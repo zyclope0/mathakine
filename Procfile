@@ -1,1 +1,1 @@
-web: uvicorn enhanced_server:app --host=0.0.0.0 --port=$PORT 
+web: bash scripts/start_render.sh 
