@@ -1,0 +1,377 @@
+        {% extends "base.html" %}
+        
+        {% block title %}Exercices - Math Trainer{% endblock %}
+        
+        {% block content %}
+        <div class="exercises-container">
+            <h2>Exercices mathématiques</h2>
+            
+            <div class="control-panel card">
+                <h3>Options d'exercices</h3>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="exerciseType">Type d'exercice:</label>
+                        <select id="exerciseType" class="filter-select">
+                            <option value="all">Tous les types</option>
+                            <option value="addition">Addition</option>
+                            <option value="subtraction">Soustraction</option>
+                            <option value="multiplication">Multiplication</option>
+                            <option value="division">Division</option>
+                            <option value="recommended">Recommandé</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="difficulty">Niveau de difficulté:</label>
+                        <select id="difficulty" class="filter-select">
+                            <option value="easy">Facile</option>
+                            <option value="medium">Moyen</option>
+                            <option value="hard">Difficile</option>
+                            <option value="adaptive">Adaptatif</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="useAI">Utiliser l'IA:</label>
+                        <div class="toggle-container">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="useAI">
+                                <span class="slider"></span>
+                            </label>
+                            <small>Génère des exercices plus variés avec l'intelligence artificielle</small>
+                        </div>
+                    </div>
+                </div>
+                <button id="generateExercise" class="btn primary-btn">
+                    <i class="fas fa-magic"></i> Générer un nouvel exercice
+                </button>
+            </div>
+            
+            {% for exercise in exercises %}
+            <div class="card exercise {% if just_generated and loop.index == 1 %}newly-generated{% endif %}" data-id="{{ exercise.id }}" data-type="{{ exercise.exercise_type }}" data-difficulty="{{ exercise.difficulty }}">
+                <div class="exercise-header">
+                    <span class="exercise-type">{{ exercise.exercise_type }}</span>
+                    <span class="difficulty-badge {{ exercise.difficulty }}">{{ exercise.difficulty }}</span>
+                    {% if exercise.ai_generated %}
+                    <span class="ai-badge"><i class="fas fa-robot"></i> IA</span>
+                    {% endif %}
+                    {% if just_generated and loop.index == 1 %}
+                    <span class="new-badge"><i class="fas fa-star"></i> Nouveau</span>
+                    {% endif %}
+                    <button class="delete-btn" data-id="{{ exercise.id }}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <h3 class="exercise-question">{{ exercise.question }}</h3>
+                <div class="choices">
+                    {% for choice in exercise.choices %}
+                    <button class="choice-btn" data-value="{{ choice }}" data-exercise-id="{{ exercise.id }}">
+                        {{ choice }}
+                    </button>
+                    {% endfor %}
+                </div>
+                <div class="explanation" style="display: none;">
+                    <strong>Explication:</strong> <span class="explanation-text">{{ exercise.explanation }}</span>
+                </div>
+                <div class="result-message" style="display: none;"></div>
+                {% if exercise.is_completed %}
+                <div class="completed-badge">Complété</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            {% if not exercises %}
+            <div class="card empty-state">
+                <p>Aucun exercice disponible. Génère-en un nouveau !</p>
+                <div class="empty-state-image">
+                    <i class="fas fa-pencil-alt fa-4x"></i>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div id="celebration" class="celebration" style="display: none;">
+            <div class="celebration-content">
+                <h3>Bravo !</h3>
+                <p>Tu as trouvé la bonne réponse !</p>
+                <div class="stars">
+                    <i class="fas fa-star fa-spin"></i>
+                    <i class="fas fa-star fa-spin"></i>
+                    <i class="fas fa-star fa-spin"></i>
+                </div>
+                <button class="btn next-btn">Continuer</button>
+            </div>
+        </div>
+
+        <!-- Modal de confirmation pour la suppression -->
+        <div id="deleteModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3>Supprimer l'exercice</h3>
+                <p>Es-tu sûr de vouloir supprimer cet exercice ?</p>
+                <div class="modal-buttons">
+                    <button id="confirmDelete" class="btn btn-danger">Supprimer</button>
+                    <button id="cancelDelete" class="btn">Annuler</button>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+        
+        {% block scripts %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Variables pour suivre le temps passé sur l'exercice
+                let startTime = new Date();
+                
+                // Récupérer les paramètres de l'URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlType = urlParams.get('type');
+                const urlDifficulty = urlParams.get('difficulty');
+                
+                // Sélectionner les filtres selon les paramètres de l'URL ou localStorage
+                const typeSelect = document.getElementById('exerciseType');
+                const difficultySelect = document.getElementById('difficulty');
+                
+                // Charger les préférences stockées dans localStorage
+                const savedType = localStorage.getItem('exerciseType') || 'all';
+                const savedDifficulty = localStorage.getItem('exerciseDifficulty') || 'easy';
+                
+                // Priorité: paramètres URL > localStorage > défaut
+                if (urlType) {
+                    typeSelect.value = urlType;
+                    localStorage.setItem('exerciseType', urlType);
+                } else if (savedType) {
+                    typeSelect.value = savedType;
+                }
+                
+                if (urlDifficulty) {
+                    difficultySelect.value = urlDifficulty;
+                    localStorage.setItem('exerciseDifficulty', urlDifficulty);
+                } else if (savedDifficulty) {
+                    difficultySelect.value = savedDifficulty;
+                }
+                
+                // Sauvegarder les changements de filtre
+                typeSelect.addEventListener('change', function() {
+                    localStorage.setItem('exerciseType', this.value);
+                });
+                
+                difficultySelect.addEventListener('change', function() {
+                    localStorage.setItem('exerciseDifficulty', this.value);
+                });
+                
+                // Fonction pour soumettre une réponse
+                async function submitAnswer(exerciseId, selectedAnswer) {
+                    const timeSpent = (new Date() - startTime) / 1000; // Temps en secondes
+                    
+                    try {
+                        const response = await fetch('/api/submit-answer', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                exercise_id: exerciseId,
+                                selected_answer: selectedAnswer,
+                                time_spent: timeSpent
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        return data;
+                    } catch (error) {
+                        console.error('Erreur lors de la soumission de la réponse:', error);
+                        return { is_correct: false, error: 'Une erreur est survenue' };
+                    }
+                }
+                
+                // Fonction pour afficher l'animation de célébration
+                function showCelebration() {
+                    const celebration = document.getElementById('celebration');
+                    celebration.style.display = 'flex';
+                    
+                    // Ajouter l'animation
+                    celebration.classList.add('animate');
+                    
+                    // Fermer la célébration au clic sur le bouton continuer
+                    const nextBtn = celebration.querySelector('.next-btn');
+                    nextBtn.addEventListener('click', function() {
+                        celebration.style.display = 'none';
+                        celebration.classList.remove('animate');
+                    });
+                }
+                
+                // Gestion de la suppression d'exercices
+                const deleteButtons = document.querySelectorAll('.delete-btn');
+                const deleteModal = document.getElementById('deleteModal');
+                const confirmDelete = document.getElementById('confirmDelete');
+                const cancelDelete = document.getElementById('cancelDelete');
+                let currentExerciseId = null;
+                
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        currentExerciseId = this.getAttribute('data-id');
+                        deleteModal.style.display = 'flex';
+                    });
+                });
+                
+                cancelDelete.addEventListener('click', function() {
+                    deleteModal.style.display = 'none';
+                });
+                
+                confirmDelete.addEventListener('click', async function() {
+                    if (currentExerciseId) {
+                        try {
+                            const response = await fetch('/api/delete-exercise', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    exercise_id: currentExerciseId
+                                })
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                // Supprimer l'exercice du DOM
+                                const exerciseElement = document.querySelector(`.exercise[data-id="${currentExerciseId}"]`);
+                                if (exerciseElement) {
+                                    exerciseElement.remove();
+                                }
+                                
+                                // Vérifie s'il reste des exercices
+                                const remainingExercises = document.querySelectorAll('.exercise');
+                                if (remainingExercises.length === 0) {
+                                    const emptyState = `
+                                    <div class="card empty-state">
+                                        <p>Aucun exercice disponible. Génère-en un nouveau !</p>
+                                        <div class="empty-state-image">
+                                            <i class="fas fa-pencil-alt fa-4x"></i>
+                                        </div>
+                                    </div>`;
+                                    document.querySelector('.exercises-container').insertAdjacentHTML('beforeend', emptyState);
+                                }
+                            }
+                            
+                        } catch (error) {
+                            console.error('Erreur lors de la suppression:', error);
+                        }
+                    }
+                    
+                    deleteModal.style.display = 'none';
+                });
+                
+                // Gérer le clic sur les boutons de choix
+                const choiceButtons = document.querySelectorAll('.choice-btn');
+                choiceButtons.forEach(button => {
+                    button.addEventListener('click', async function() {
+                        const selectedValue = this.getAttribute('data-value');
+                        const exerciseId = this.getAttribute('data-exercise-id');
+                        const exerciseCard = this.closest('.exercise');
+                        const choices = exerciseCard.querySelectorAll('.choice-btn');
+                        const explanation = exerciseCard.querySelector('.explanation');
+                        const resultMessage = exerciseCard.querySelector('.result-message');
+                        
+                        // Empêcher les clics multiples
+                        if (button.disabled) return;
+                        choices.forEach(btn => btn.disabled = true);
+                        
+                        // Soumettre la réponse
+                        const result = await submitAnswer(exerciseId, selectedValue);
+                        
+                        // Réinitialiser le temps pour le prochain exercice
+                        startTime = new Date();
+                        
+                        // Marquer les boutons
+                        choices.forEach(btn => {
+                            const btnValue = btn.getAttribute('data-value');
+                            
+                            if (btnValue === result.correct_answer) {
+                                btn.classList.add('correct');
+                            } else if (btnValue === selectedValue && btnValue !== result.correct_answer) {
+                                btn.classList.add('incorrect');
+                            }
+                        });
+                        
+                        // Afficher l'explication
+                        explanation.style.display = 'block';
+                        
+                        // Afficher un message de résultat
+                        resultMessage.style.display = 'block';
+                        if (result.is_correct) {
+                            resultMessage.innerHTML = '<div class="success-message"><i class="fas fa-check-circle"></i> Bravo ! C\'est la bonne réponse !</div>';
+                            resultMessage.className = 'result-message success';
+                            
+                            // Afficher la célébration pour les bonnes réponses
+                            showCelebration();
+                        } else {
+                            resultMessage.innerHTML = '<div class="error-message"><i class="fas fa-times-circle"></i> Ce n\'est pas la bonne réponse. Essaye encore !</div>';
+                            resultMessage.className = 'result-message error';
+                        }
+                        
+                        // Ajouter un badge "complété"
+                        const completedBadge = document.createElement('div');
+                        completedBadge.className = 'completed-badge';
+                        completedBadge.textContent = 'Complété';
+                        
+                        if (!exerciseCard.querySelector('.completed-badge')) {
+                            exerciseCard.appendChild(completedBadge);
+                        }
+                    });
+                });
+                
+                // Générer un nouvel exercice avec les filtres sélectionnés
+                const generateBtn = document.getElementById('generateExercise');
+                if (generateBtn) {
+                    generateBtn.addEventListener('click', function() {
+                        const selectedType = typeSelect.value;
+                        const selectedDifficulty = difficultySelect.value;
+                        const useAI = document.getElementById('useAI').checked;
+                        
+                        console.log('Génération avec IA:', useAI);
+                        
+                        let url = '/api/exercises/generate';
+                        const params = [];
+                        
+                        if (selectedType && selectedType !== 'all') {
+                            params.push(`type=${selectedType}`);
+                        }
+                        
+                        if (selectedDifficulty) {
+                            params.push(`difficulty=${selectedDifficulty}`);
+                        }
+                        
+                        if (useAI) {
+                            params.push(`ai=true`);
+                        }
+                        
+                        // Toujours sauvegarder les préférences
+                        localStorage.setItem('exerciseType', selectedType);
+                        localStorage.setItem('exerciseDifficulty', selectedDifficulty);
+                        localStorage.setItem('useAI', useAI);
+                        
+                        if (params.length > 0) {
+                            url += '?' + params.join('&');
+                        }
+                        
+                        window.location.href = url;
+                    });
+                }
+                
+                // Restaurer la préférence pour l'utilisation de l'IA
+                const useAICheckbox = document.getElementById('useAI');
+                if (useAICheckbox) {
+                    // Restaurer l'état sauvegardé du toggle
+                    useAICheckbox.checked = localStorage.getItem('useAI') === 'true';
+                    
+                    // S'assurer que le changement est sauvegardé immédiatement
+                    useAICheckbox.addEventListener('change', function() {
+                        localStorage.setItem('useAI', this.checked);
+                        console.log('IA toggle changé:', this.checked);
+                    });
+                }
+            });
+        </script>
+        {% endblock %}
+        
+        

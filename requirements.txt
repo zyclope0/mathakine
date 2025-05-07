@@ -1,0 +1,28 @@
+# Serveur et API REST
+starlette==0.31.1
+uvicorn==0.23.2
+
+# Moteur de templates et fichiers statiques
+jinja2==3.1.2
+aiofiles==23.2.1
+
+# Base de données
+sqlalchemy==2.0.26
+
+# Utilitaires
+python-dotenv==1.0.0
+requests==2.31.0
+
+# Intégration IA - compatibilité Python 3.13 avec version récente
+openai==1.12.0
+
+# Journalisation et débogage
+loguru==0.7.2
+
+# Tests automatisés
+pytest==7.4.3
+beautifulsoup4==4.12.2
+pytest-cov==4.1.0
+
+# Documentation (pour les développeurs)
+sphinx==7.2.6 

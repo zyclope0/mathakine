@@ -1,0 +1,228 @@
+/* Thème Star Wars inspiré pour Mathakine - L'API Rebelle */
+:root {
+    /* Palette de couleurs inspirée de Star Wars */
+    --sw-dark: #0c1019;
+    --sw-space: #1a1e33;
+    --sw-blue: #4169E1;
+    --sw-accent: #6b4dc3;
+    --sw-gold: #e6c96a;
+    --sw-text: #FFFFFF;
+    --sw-secondary: #d8d8d8;
+    --sw-red: #FF6B6B;
+    --sw-card-bg: #21273c;
+    --sw-card-border: #3a3f5c;
+}
+
+/* Réinitialisation des couleurs de base */
+body {
+    background-color: var(--sw-dark);
+    color: var(--sw-text);
+    background-image: 
+        radial-gradient(circle at 25% 15%, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        radial-gradient(circle at 75% 35%, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 100px 100px;
+}
+
+/* En-tête avec dégradé spatial */
+header {
+    background-color: var(--sw-space) !important;
+    background-image: linear-gradient(45deg, var(--sw-space), var(--sw-accent)) !important;
+    color: var(--sw-text) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Navigation */
+nav .btn {
+    background: var(--sw-accent) !important;
+    color: var(--sw-text) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.3s ease !important;
+    border-radius: 10px !important;
+}
+
+nav .btn i {
+    margin-right: 8px !important;
+}
+
+nav .btn:hover, 
+nav .btn.active {
+    background: var(--sw-blue) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Cartes */
+.card {
+    background-color: var(--sw-card-bg) !important;
+    border: 1px solid var(--sw-card-border) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+.card::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 3px !important;
+    background: linear-gradient(90deg, var(--sw-blue), var(--sw-accent), var(--sw-gold)) !important;
+}
+
+/* Boutons principaux */
+.big-btn {
+    background: var(--sw-blue) !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4) !important;
+    border-radius: 10px !important;
+    padding: 14px 28px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+}
+
+.big-btn:hover {
+    transform: translateY(-5px) !important;
+}
+
+.primary-btn {
+    background: var(--sw-accent) !important;
+}
+
+/* Titres et textes spéciaux */
+h2, h3 {
+    color: var(--sw-gold) !important;
+    text-shadow: 0 0 10px rgba(230, 201, 106, 0.2) !important;
+}
+
+/* Logo */
+.logo-container {
+    margin-bottom: 20px !important;
+}
+
+.logo {
+    filter: drop-shadow(0 0 10px rgba(230, 201, 106, 0.3)) !important;
+}
+
+.logo-subtitle {
+    color: var(--sw-gold) !important;
+    margin-top: -5px !important;
+}
+
+/* Icônes et détails */
+.feature-icon {
+    color: var(--sw-gold) !important;
+    background-color: rgba(107, 77, 195, 0.15) !important;
+    width: 70px !important;
+    height: 70px !important;
+    line-height: 70px !important;
+    font-size: 30px !important;
+}
+
+.feature-icon::after {
+    border: 2px solid var(--sw-accent) !important;
+}
+
+/* Éléments flottants */
+.floating-planet.planet-blue {
+    background-color: var(--sw-blue) !important;
+    box-shadow: 0 0 15px rgba(65, 105, 225, 0.5) !important;
+}
+
+.floating-planet.planet-red {
+    background-color: var(--sw-red) !important;
+    box-shadow: 0 0 15px rgba(255, 107, 107, 0.5) !important;
+}
+
+.star {
+    background-color: var(--sw-gold) !important;
+    box-shadow: 0 0 4px var(--sw-gold) !important;
+}
+
+/* Footer */
+footer {
+    color: var(--sw-secondary) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    margin-top: 40px !important;
+}
+
+/* Hero section */
+.hero-section {
+    perspective: 1000px !important;
+}
+
+.hero-card {
+    background-image: linear-gradient(135deg, var(--sw-space), #2a3052) !important;
+    transform-style: preserve-3d !important;
+}
+
+.hero-subtitle {
+    color: var(--sw-secondary) !important;
+    max-width: 700px !important;
+    margin: 0 auto 30px !important;
+}
+
+/* Features */
+.feature-card h3 {
+    margin-top: 10px !important;
+    margin-bottom: 15px !important;
+}
+
+.feature-card p {
+    color: var(--sw-secondary) !important;
+    line-height: 1.6 !important;
+}
+
+/* About section */
+.about-card {
+    background-color: var(--sw-space) !important;
+}
+
+.about-card ul {
+    padding-left: 20px !important;
+    list-style: none !important;
+}
+
+.about-card li {
+    position: relative !important;
+    padding-left: 25px !important;
+    margin-bottom: 12px !important;
+}
+
+.about-card li::before {
+    content: "★" !important;
+    position: absolute !important;
+    left: 0 !important;
+    color: var(--sw-gold) !important;
+}
+
+.version-note {
+    color: var(--sw-gold) !important;
+    opacity: 0.8 !important;
+}
+
+/* Contraste et accessibilité */
+@media (prefers-reduced-motion: reduce) {
+    .floating-planet, .star {
+        animation: none !important;
+    }
+    
+    .btn:hover, .card:hover {
+        transform: none !important;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    nav {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 10px !important;
+    }
+    
+    .big-btn {
+        padding: 12px 20px !important;
+        font-size: 16px !important;
+    }
+} 

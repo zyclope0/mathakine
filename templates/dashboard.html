@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord - Math Trainer{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2>Ton tableau de bord</h2>
+    
+    <div class="card stats-card">
+        <h3>Tes progrès</h3>
+        <div class="progress-container">
+            <div class="stat-box">
+                <h4>Exercices complétés</h4>
+                <div class="stat-value">{{ stats.total_completed }}</div>
+            </div>
+            <div class="stat-box">
+                <h4>Bonnes réponses</h4>
+                <div class="stat-value correct-answers">{{ stats.correct_answers }}</div>
+            </div>
+            <div class="stat-box">
+                <h4>Score</h4>
+                <div class="stat-value score">{{ stats.success_rate }}%</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>Types d'exercices</h3>
+        <div class="exercise-types-container">
+            <div class="exercise-type-box">
+                <h4>Additions</h4>
+                <div class="progress-bar">
+                    <div class="progress" style="width: {{ stats.addition_progress }}%;"></div>
+                </div>
+                <div class="type-stats">{{ stats.addition_correct }} / {{ stats.addition_total }}</div>
+            </div>
+            <div class="exercise-type-box">
+                <h4>Soustractions</h4>
+                <div class="progress-bar">
+                    <div class="progress" style="width: {{ stats.subtraction_progress }}%;"></div>
+                </div>
+                <div class="type-stats">{{ stats.subtraction_correct }} / {{ stats.subtraction_total }}</div>
+            </div>
+            <div class="exercise-type-box">
+                <h4>Multiplications</h4>
+                <div class="progress-bar">
+                    <div class="progress" style="width: {{ stats.multiplication_progress }}%;"></div>
+                </div>
+                <div class="type-stats">{{ stats.multiplication_correct }} / {{ stats.multiplication_total }}</div>
+            </div>
+            <div class="exercise-type-box">
+                <h4>Divisions</h4>
+                <div class="progress-bar">
+                    <div class="progress" style="width: {{ stats.division_progress }}%;"></div>
+                </div>
+                <div class="type-stats">{{ stats.division_correct }} / {{ stats.division_total }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>Derniers exercices</h3>
+        <div class="recent-exercises">
+            {% for exercise in recent_exercises %}
+            <div class="recent-exercise {{ 'correct' if exercise.is_correct else 'incorrect' }}">
+                <div class="exercise-question">{{ exercise.question }}</div>
+                <div class="exercise-result">
+                    {% if exercise.is_correct %}
+                    <span class="result-icon">✓</span> Bonne réponse
+                    {% else %}
+                    <span class="result-icon">✗</span> Réponse incorrecte
+                    {% endif %}
+                </div>
+                <div class="exercise-date">{{ exercise.completed_at }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="card actions-card">
+        <h3>Que veux-tu faire?</h3>
+        <div class="action-buttons">
+            <a href="/exercises" class="btn big-btn">Continuer à s'entraîner</a>
+            <a href="/api/exercises/generate?type=recommended" class="btn big-btn primary-btn">Exercice recommandé</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animation des barres de progression
+        const progressBars = document.querySelectorAll('.progress');
+        progressBars.forEach(bar => {
+            const originalWidth = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.transition = 'width 1s ease-in-out';
+                bar.style.width = originalWidth;
+            }, 300);
+        });
+        
+        // Animation des valeurs statistiques
+        const statValues = document.querySelectorAll('.stat-value');
+        statValues.forEach(value => {
+            value.classList.add('animate-pop');
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,23 @@
+{
+  "dev": {
+    "MATH_TRAINER_DEBUG": "true",
+    "MATH_TRAINER_PORT": "8081",
+    "MATH_TRAINER_LOG_LEVEL": "DEBUG",
+    "MATH_TRAINER_TEST_MODE": "true",
+    "MATH_TRAINER_PROFILE": "dev"
+  },
+  "test": {
+    "MATH_TRAINER_DEBUG": "true",
+    "MATH_TRAINER_PORT": "8082",
+    "MATH_TRAINER_LOG_LEVEL": "INFO",
+    "MATH_TRAINER_TEST_MODE": "true",
+    "MATH_TRAINER_PROFILE": "test"
+  },
+  "prod": {
+    "MATH_TRAINER_DEBUG": "false",
+    "MATH_TRAINER_PORT": "8080",
+    "MATH_TRAINER_LOG_LEVEL": "WARNING",
+    "MATH_TRAINER_TEST_MODE": "false",
+    "MATH_TRAINER_PROFILE": "prod"
+  }
+} 

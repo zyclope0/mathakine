@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mathakine{% endblock %} | L'API Rebelle</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/space-theme.css">
+    <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+    {% block head %}{% endblock %}
+    <!-- CSS spécifique pour la page d'accueil -->
+    {% if request.path == '/' %}
+    <link rel="stylesheet" href="/static/home-styles.css">
+    {% endif %}
+    <!-- Ajouter Google Fonts - Exo 2 pour un look futuriste/spatial -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Ajout d'une police pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="/static/img/mathakine-logo.svg" alt="Mathakine" class="logo" width="60" height="60">
+            <div class="logo-text">
+                <h1>Mathakine</h1>
+                <div class="logo-subtitle">L'API Rebelle</div>
+            </div>
+        </div>
+        <nav>
+            <a href="/" class="btn"><i class="fas fa-home"></i> Accueil</a>
+            <a href="/exercises" class="btn"><i class="fas fa-pencil-alt"></i> Exercices</a>
+            <a href="/dashboard" class="btn"><i class="fas fa-chart-line"></i> Tableau de bord</a>
+            <a href="/api/exercises/generate" class="btn"><i class="fas fa-plus"></i> Nouvel exercice</a>
+        </nav>
+    </header>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    <footer>
+        <p>Mathakine - Exerce-toi aux mathématiques de façon amusante !</p>
+        <div class="footer-links">
+            <a href="https://github.com/YourUsername/mathakine" class="github-link" target="_blank">
+                <i class="fab fa-github"></i> Projet GitHub
+            </a>
+            <span class="version">Version 3.0 - L'API Rebelle</span>
+        </div>
+    </footer>
+    <script>
+        // JavaScript commun
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('App loaded');
+            
+            // Ajout d'une classe active au bouton de navigation courant
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('nav a');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Animation des étoiles (effet clignotant aléatoire)
+            function animateStars() {
+                const stars = document.querySelectorAll('.star');
+                stars.forEach(star => {
+                    const delay = Math.random() * 5;
+                    const duration = 1 + Math.random() * 2;
+                    star.style.animation = `twinkle ${duration}s infinite ${delay}s`;
+                });
+            }
+            
+            // Exécuter l'animation si des étoiles sont présentes
+            if (document.querySelectorAll('.star').length > 0) {
+                animateStars();
+            }
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+        
