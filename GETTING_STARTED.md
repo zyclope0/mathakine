@@ -6,11 +6,11 @@ Ce document explique comment installer et lancer l'application Math Trainer Back
 
 Pour installer les dépendances requises et configurer l'environnement :
 
-1. Exécutez le script `setup.bat` à la racine du projet
+1. Exécutez le script `scripts/setup.bat` à la racine du projet
 2. Suivez les instructions à l'écran
 
 ```bash
-./setup.bat
+./scripts/setup.bat
 ```
 
 Alternativement, vous pouvez installer manuellement les dépendances Python :
@@ -73,7 +73,7 @@ Le projet est organisé selon une structure modulaire pour faciliter la maintena
 ```
 math-trainer-backend/
 ├── run_server.bat              # Script de lancement unifié
-├── setup.bat                   # Script d'installation unifié
+├── scripts/setup.bat           # Script d'installation unifié
 ├── GETTING_STARTED.md          # Ce guide
 ├── README.md                   # Documentation générale
 ├── minimal_server.py           # Implémentation du serveur minimal
@@ -107,20 +107,20 @@ Pour valider les variables d'environnement :
 
 ```bash
 # En batch
-scripts\utils\env_manager.bat --validate
+scripts/utils/env_manager.bat --validate
 
 # En PowerShell
-scripts\utils\env_manager.ps1 -Validate
+scripts/utils/env_manager.ps1 -Validate
 ```
 
 Pour corriger automatiquement les variables invalides :
 
 ```bash
 # En batch
-scripts\utils\env_manager.bat --validate --fix
+scripts/utils/env_manager.bat --validate --fix
 
 # En PowerShell
-scripts\utils\env_manager.ps1 -Validate -Fix
+scripts/utils/env_manager.ps1 -Validate -Fix
 ```
 
 ## Exécution des tests
@@ -129,8 +129,8 @@ Pour exécuter les tests automatisés :
 
 ```bash
 # En batch
-scripts\tests\run_tests.bat
+scripts/tests/run_tests.bat
 
 # En PowerShell
-scripts\tests\Run-Tests.ps1
+scripts/tests/Run-Tests.ps1
 ``` 

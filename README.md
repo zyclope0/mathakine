@@ -59,17 +59,17 @@ scripts.bat
 .\Scripts-Menu.ps1
 
 # Installation directe
-setup.bat
+scripts/setup.bat
 ```
 
 ### Initialisation de la base de données
 
 ```bash
 # Initialiser la base de données avec les modèles et données de départ
-init_db.bat
+scripts/init_db.bat
 
 # Version PowerShell
-.\Initialize-Database.ps1
+.\scripts/Initialize-Database.ps1
 ```
 
 ### Lancement du serveur
@@ -80,7 +80,7 @@ scripts.bat
 # Puis sélectionnez l'option "Démarrer le serveur Mathakine"
 
 # Ou directement
-scripts\server\start_math_trainer.bat
+scripts/server/start_math_trainer.bat
 ```
 
 Pour des instructions détaillées, consultez [GETTING_STARTED.md](GETTING_STARTED.md).
@@ -108,7 +108,7 @@ Pour utiliser la génération d'exercices par IA, vous devez configurer une clé
 Alternativement, vous pouvez utiliser le menu de configuration :
 ```bash
 # Menu de configuration des environnements
-scripts\config_menu.bat
+scripts/config_menu.bat
 # Puis sélectionnez l'option "Configurer la clé API OpenAI"
 ```
 
@@ -122,9 +122,9 @@ math-trainer-backend/
 ├── Scripts-Menu.ps1            # Menu principal en PowerShell
 ├── run_ps1.bat                 # Exécuteur de scripts PowerShell sans restrictions
 ├── run_server.bat              # Script de lancement unifié
-├── setup.bat                   # Script d'installation unifié
-├── init_db.bat                 # Script d'initialisation de la base de données
-├── Initialize-Database.ps1     # Script PowerShell d'initialisation de la base de données
+├── scripts/setup.bat           # Script d'installation unifié
+├── scripts/init_db.bat         # Script d'initialisation de la base de données
+├── scripts/Initialize-Database.ps1     # Script PowerShell d'initialisation de la base de données
 ├── GETTING_STARTED.md          # Guide de démarrage
 ├── README.md                   # Documentation générale
 ├── minimal_server.py           # Serveur minimal API
@@ -206,10 +206,10 @@ Pour configurer ou changer d'environnement, utilisez :
 
 ```bash
 # Menu de configuration des environnements
-scripts\config_menu.bat
+scripts/config_menu.bat
 
 # Version PowerShell
-.\scripts\Config-Menu.ps1
+.\scripts/Config-Menu.ps1
 ```
 
 ## Validation et correction automatique
@@ -218,13 +218,13 @@ Le système inclut une validation automatique des variables d'environnement :
 
 ```bash
 # Valider les variables
-scripts\utils\check_env_vars.bat
+scripts/utils/check_env_vars.bat
 
 # Version PowerShell
-.\scripts\utils\Check-EnvVars.ps1
+.\scripts/utils/Check-EnvVars.ps1
 
 # Gestionnaire d'environnement avancé
-scripts\utils\env_manager.bat --validate --fix
+scripts/utils/env_manager.bat --validate --fix
 ```
 
 ## Tests et Assurance Qualité
@@ -235,10 +235,10 @@ scripts.bat
 # Puis sélectionnez les options de test
 
 # Exécuter tous les tests
-scripts\tests\run_tests.bat
+scripts/tests/run_tests.bat
 
 # Version PowerShell
-.\scripts\tests\Run-Tests.ps1
+.\scripts/tests/Run-Tests.ps1
 ```
 
 ## Déploiement 
