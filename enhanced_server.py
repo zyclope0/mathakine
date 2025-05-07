@@ -50,7 +50,8 @@ except ImportError:
     from starlette.requests import Request
 
 # Configuration de base
-DB_PATH = "math_trainer.db"
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "math_trainer.db")
+print(f"Chemin de la base de données: {DB_PATH}")
 PORT = int(os.environ.get("MATH_TRAINER_PORT", 8081))  # Utiliser la variable d'environnement
 DEBUG = os.environ.get("MATH_TRAINER_DEBUG", "true").lower() == "true"  # Utiliser la variable d'environnement
 LOG_LEVEL = os.environ.get("MATH_TRAINER_LOG_LEVEL", "DEBUG")  # Utiliser la variable d'environnement
