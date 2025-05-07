@@ -16,4 +16,4 @@ EXPOSE 8081
 ENV OPENAI_API_KEY=""
 
 # Commande pour démarrer l'application
-CMD ["python", "enhanced_server.py"] 
+CMD ["uvicorn", "enhanced_server:app", "--host", "0.0.0.0", "--port", "8081"] 

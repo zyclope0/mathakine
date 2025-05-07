@@ -1,0 +1,28 @@
+# Environnements virtuels
+venv/
+ENV/
+.env
+
+# Fichiers temporaires Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Tests et documentation
+tests/
+docs/
+test_results/
+
+# Fichiers système
+.git
+.gitignore
+.dockerignore
+
+# Logs
+*.log
+.pytest_cache/
+
+# Base de données de développement
+math_trainer.db 

@@ -3,11 +3,15 @@
 # Accès à tous les scripts du projet
 # ===================================================
 
-function Show-Menu {
+function Show-MainMenu {
+    $title = @"
+===================================================
+    Mathakine - Menu Principal
+===================================================
+"@
+
     Clear-Host
-    Write-Host "===================================================" -ForegroundColor Cyan
-    Write-Host "   Mathakine - Menu Principal (PowerShell)" -ForegroundColor Cyan
-    Write-Host "===================================================" -ForegroundColor Cyan
+    Write-Host $title -ForegroundColor Cyan
     Write-Host
     Write-Host "  INSTALLATION ET CONFIGURATION" -ForegroundColor Yellow
     Write-Host "  ----------------------------"
@@ -23,17 +27,22 @@ function Show-Menu {
     Write-Host "  TESTS" -ForegroundColor Yellow
     Write-Host "  -----"
     Write-Host "  6. Exécuter tous les tests"
-    Write-Host "  7. Tests automatiques rapides" 
+    Write-Host "  7. Tests automatiques rapides"
     Write-Host "  8. Tester le système d'environnement"
     Write-Host "  9. Tester les endpoints API"
+    Write-Host
+    Write-Host "  DÉPLOIEMENT ET GESTION" -ForegroundColor Yellow
+    Write-Host "  ---------------------"
+    Write-Host "  D. Déployer l'application (GitHub + hébergement)"
+    Write-Host "  G. Gérer le dépôt Git (commit, push)"
     Write-Host
     Write-Host "  UTILITAIRES" -ForegroundColor Yellow
     Write-Host "  ----------"
     Write-Host "  A. Vérifier l'environnement"
     Write-Host "  0. Quitter"
     Write-Host
-    
-    $choice = Read-Host "Votre choix (0-9, A)"
+
+    $choice = Read-Host "Votre choix (0-9, A, D, G)"
     return $choice
 }
 
@@ -61,7 +70,7 @@ $projectRoot = $scriptPath
 
 # Boucle principale du menu
 while ($true) {
-    $choice = Show-Menu
+    $choice = Show-MainMenu
     
     switch ($choice) {
         "1" {
@@ -146,6 +155,14 @@ while ($true) {
             }
         }
         
+        "D" {
+            Invoke-Deploy
+        }
+        
+        "G" {
+            Invoke-GitManage
+        }
+        
         { $_ -eq "A" -or $_ -eq "a" } {
             Clear-Host
             Write-Host "Vérification de l'environnement..." -ForegroundColor Green
@@ -169,5 +186,103 @@ while ($true) {
         Write-Host
         Write-Host "Appuyez sur une touche pour revenir au menu principal..."
         $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    }
+}
+
+function Process-MainMenu {
+    param (
+        [string]$Choice
+    )
+
+    switch ($Choice) {
+        "1" { Invoke-InstallAndRun }
+        "2" { Invoke-ConfigEnvironment }
+        "3" { Invoke-StartServer }
+        "4" { Invoke-StartMinimal }
+        "5" { Invoke-StartEnhanced }
+        "6" { Invoke-RunTests }
+        "7" { Invoke-AutoTests }
+        "8" { Invoke-TestEnvSystem }
+        "9" { Invoke-TestAPI }
+        "A" { Invoke-CheckEnvironment }
+        "D" { Invoke-Deploy }
+        "G" { Invoke-GitManage }
+        "0" { return $false }
+        default {
+            Write-Host "`nChoix invalide! Veuillez réessayer." -ForegroundColor Red
+            Start-Sleep -Seconds 2
+        }
+    }
+    return $true
+}
+
+function Invoke-Deploy {
+    Clear-Host
+    Write-Host "Déploiement de l'application Mathakine..." -ForegroundColor Cyan
+    Write-Host
+    
+    try {
+        & "$PSScriptRoot\scripts\Deploy-Mathakine.ps1"
+    }
+    catch {
+        Write-Host "Erreur lors du déploiement: $_" -ForegroundColor Red
+    }
+    
+    Write-Host "`nAppuyez sur une touche pour revenir au menu principal..."
+    $null = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+}
+
+function Invoke-GitManage {
+    Clear-Host
+    Write-Host "Gestion du dépôt Git..." -ForegroundColor Cyan
+    Write-Host
+    
+    Write-Host "Choisissez une option:"
+    Write-Host "  1. Vérifier les changements (git status)"
+    Write-Host "  2. Créer un commit et pousser les changements"
+    Write-Host "  3. Afficher l'historique des commits"
+    Write-Host "  0. Retour au menu principal"
+    Write-Host
+    
+    $gitChoice = Read-Host "Votre choix (0-3)"
+    
+    Push-Location $PSScriptRoot
+    try {
+        switch ($gitChoice) {
+            "1" {
+                Write-Host "`nVérification des changements..." -ForegroundColor Yellow
+                git status
+            }
+            "2" {
+                Write-Host "`nCréation d'un commit et push..." -ForegroundColor Yellow
+                git add .
+                $commitMsg = Read-Host "Message de commit"
+                git commit -m $commitMsg
+                git push
+                Write-Host "`nOpération terminée!" -ForegroundColor Green
+            }
+            "3" {
+                Write-Host "`nAffichage de l'historique des commits..." -ForegroundColor Yellow
+                git log --oneline -n 10
+            }
+            "0" {
+                # Retour au menu principal
+            }
+            default {
+                Write-Host "`nChoix invalide! Retour au menu principal." -ForegroundColor Red
+                Start-Sleep -Seconds 2
+            }
+        }
+    }
+    catch {
+        Write-Host "Erreur Git: $_" -ForegroundColor Red
+    }
+    finally {
+        Pop-Location
+    }
+    
+    if ($gitChoice -ne "0") {
+        Write-Host "`nAppuyez sur une touche pour revenir au menu principal..."
+        $null = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     }
 } 

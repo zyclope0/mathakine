@@ -29,12 +29,17 @@ echo  7. Tests automatiques rapides
 echo  8. Tester le système d'environnement
 echo  9. Tester les endpoints API
 echo.
+echo  DÉPLOIEMENT ET GESTION
+echo  ---------------------
+echo  D. Déployer l'application (GitHub + hébergement)
+echo  G. Gérer le dépôt Git (commit, push)
+echo.
 echo  UTILITAIRES
 echo  ----------
 echo  A. Vérifier l'environnement
 echo  0. Quitter
 echo.
-set /p choix="Votre choix (0-9, A): "
+set /p choix="Votre choix (0-9, A, D, G): "
 
 if "%choix%"=="1" goto :install_and_run
 if "%choix%"=="2" goto :config_env
@@ -46,6 +51,8 @@ if "%choix%"=="7" goto :auto_tests
 if "%choix%"=="8" goto :test_env
 if "%choix%"=="9" goto :test_api
 if /i "%choix%"=="A" goto :check_env
+if /i "%choix%"=="D" goto :deploy
+if /i "%choix%"=="G" goto :git_manage
 if "%choix%"=="0" goto :exit
 
 echo.
@@ -147,6 +154,56 @@ goto :menu
 cls
 echo Vérification de l'environnement...
 call scripts\check_environment.bat
+goto :menu
+
+:deploy
+cls
+echo Déploiement de l'application Mathakine...
+call scripts\deploy.bat
+goto :menu
+
+:git_manage
+cls
+echo Gestion du dépôt Git...
+echo.
+echo Choisissez une option:
+echo  1. Vérifier les changements (git status)
+echo  2. Créer un commit et pousser les changements
+echo  3. Afficher l'historique des commits
+echo  0. Retour au menu principal
+echo.
+set /p git_choice="Votre choix (0-3): "
+
+if "%git_choice%"=="1" (
+    echo.
+    echo Vérification des changements...
+    cd "%~dp0"
+    git status
+    pause
+) else if "%git_choice%"=="2" (
+    echo.
+    echo Création d'un commit et push...
+    cd "%~dp0"
+    git add .
+    set /p commit_msg="Message de commit: "
+    git commit -m "%commit_msg%"
+    git push
+    echo.
+    echo Opération terminée!
+    pause
+) else if "%git_choice%"=="3" (
+    echo.
+    echo Affichage de l'historique des commits...
+    cd "%~dp0"
+    git log --oneline -n 10
+    pause
+) else if "%git_choice%"=="0" (
+    goto :menu
+) else (
+    echo.
+    echo Choix invalide! Retour au menu principal.
+    timeout /t 2 >nul
+)
 goto :menu
 
 :exit
