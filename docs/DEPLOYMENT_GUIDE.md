@@ -24,7 +24,7 @@ Render offre un niveau gratuit généreux et une configuration simple, idéale p
    - Sélectionnez le dépôt GitHub
    - Donnez un nom au service (ex: "mathakine")
    - Laissez le Runtime sur "Python"
-   - Définissez la commande de démarrage: `uvicorn enhanced_server:app --host 0.0.0.0 --port $PORT`
+   - Définissez la commande de démarrage: `bash scripts/start_render.sh`
    - Laissez le plan sur "Free"
 
 3. **Variables d'environnement**
@@ -100,12 +100,12 @@ Nous avons créé des scripts pour automatiser le processus:
 
 ### Windows (Batch)
 ```batch
-scripts\deploy.bat
+scripts/deploy.bat
 ```
 
 ### Windows (PowerShell)
 ```powershell
-.\scripts\Deploy-Mathakine.ps1
+./scripts/Deploy-Mathakine.ps1
 ```
 
 Ces scripts:

@@ -1,6 +1,6 @@
 # Tests Mathakine (API Rebelle)
 
-Ce répertoire contient la structure des tests pour le projet Mathakine (anciennement Math Trainer), organisés selon une logique claire pour assurer la qualité et la fiabilité de l'application.
+Ce répertoire contient la structure des tests pour le projet Mathakine, organisés selon une logique claire pour assurer la qualité et la fiabilité de l'application.
 
 ## Structure des Tests
 
@@ -13,7 +13,6 @@ math-trainer-backend/tests/
 ├── api/            # Tests API (points d'accès de l'API Rebelle)
 ├── functional/     # Tests fonctionnels (fonctionnalités complètes)
 ├── TEST_PLAN.md    # Plan de test détaillé
-└── run_tests.py    # Script d'exécution des tests
 ```
 
 ### Types de Tests
@@ -43,30 +42,18 @@ math-trainer-backend/tests/
 
 ### En utilisant les scripts fournis
 
-#### Windows (PowerShell)
-
-```powershell
-# Exécuter tous les tests
-.\Run-Tests.ps1
-
-# Exécuter uniquement les tests unitaires
-.\Run-Tests.ps1 -Type unit
-
-# Exécuter avec plus de détails
-.\Run-Tests.ps1 -Verbose
-```
-
 #### Windows (Batch)
 
 ```batch
 # Exécuter tous les tests
-run_tests.bat
+scripts/tests/run_tests.bat
+```
 
-# Exécuter uniquement les tests API
-run_tests.bat --api
+#### Windows (PowerShell)
 
-# Exécuter avec plus de détails
-run_tests.bat --verbose
+```powershell
+# Exécuter tous les tests
+scripts/tests/Run-Tests.ps1
 ```
 
 #### Directement avec Python
@@ -74,12 +61,6 @@ run_tests.bat --verbose
 ```bash
 # Exécuter tous les tests
 python math-trainer-backend/tests/run_tests.py
-
-# Exécuter uniquement les tests d'intégration
-python math-trainer-backend/tests/run_tests.py --type integration
-
-# Exécuter avec plus de détails
-python math-trainer-backend/tests/run_tests.py --verbose
 ```
 
 ## Conventions de Nommage
@@ -91,13 +72,7 @@ python math-trainer-backend/tests/run_tests.py --verbose
 
 ## Plan de Test Complet
 
-Pour une documentation exhaustive de tous les scénarios de test, consultez le fichier [TEST_PLAN.md](TEST_PLAN.md) qui contient :
-
-- La matrice de couverture des tests
-- Les objectifs détaillés de chaque test
-- Les procédures de test manuel
-- Les critères de validation
-- La gestion des défauts
+Pour une documentation exhaustive de tous les scénarios de test, consultez le fichier [TEST_PLAN.md](TEST_PLAN.md).
 
 ## Thème Star Wars
 
