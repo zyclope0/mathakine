@@ -71,12 +71,45 @@ Le script effectue les opérations suivantes :
 Vous pouvez facilement basculer entre SQLite et PostgreSQL en utilisant l'utilitaire fourni :
 
 ```bash
-# Sous Windows
-scripts/toggle_database.bat
-
-# Sous Linux/MacOS
+# Sous Windows/Linux/MacOS
 python scripts/toggle_database.py [sqlite|postgres]
 ```
+
+## Migration vers PostgreSQL sur Render
+
+### 1. Création d'une base de données PostgreSQL sur Render
+
+1. Dans le tableau de bord Render, cliquez sur "New" et sélectionnez "PostgreSQL"
+2. Configurez la base de données :
+   - Nom de l'instance : "Mathakine" (ou autre nom descriptif)
+   - Base de données : "mathakine_test"
+   - Utilisateur : laissez le nom proposé (ex: "zyclope") 
+   - Région : choisissez la plus proche de vos utilisateurs
+   - Plan : sélectionnez le plan adapté à vos besoins (un plan Free suffit pour débuter)
+
+3. Une fois la base créée, Render vous fournira les informations de connexion importantes :
+   - Internal Database URL (pour les services dans la même région)
+   - External Database URL (pour l'accès depuis l'extérieur)
+   - Commande PSQL pour la connexion directe
+
+### 2. Migration des données vers PostgreSQL sur Render
+
+Utilisez le script spécifique pour migrer les données vers Render :
+
+```bash
+python scripts/migrate_to_render.py
+```
+
+Si vous rencontrez des problèmes de permissions, vous pouvez utiliser pgAdmin ou un autre outil pour :
+1. Vous connecter à la base de données Render
+2. Exécuter la commande SQL `DROP SCHEMA public CASCADE; CREATE SCHEMA public;`
+3. Relancer le script de migration
+
+### 3. Configuration du service web Render
+
+Dans les paramètres de votre service web Render :
+1. Allez dans "Environment"
+2. Ajoutez la variable d'environnement `DATABASE_URL` avec la valeur de l'External Database URL fournie par Render
 
 ## Considérations importantes
 
@@ -108,12 +141,18 @@ Après la migration, effectuez les vérifications suivantes :
 2. Test des fonctionnalités de l'application avec PostgreSQL
 3. Vérification des performances sous charge
 
+Vous pouvez utiliser le script `check_db_connection.py` pour vérifier la connexion et l'état des tables :
+
+```bash
+python check_db_connection.py
+```
+
 ## Retour à SQLite (si nécessaire)
 
 En cas de besoin, vous pouvez revenir à SQLite en utilisant l'utilitaire de basculement :
 
 ```bash
-scripts/toggle_database.bat  # puis sélectionnez SQLite
+python scripts/toggle_database.py sqlite
 ```
 
 ---

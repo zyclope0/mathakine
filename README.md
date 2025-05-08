@@ -44,6 +44,7 @@ Cette application permet un apprentissage des mathématiques adapté aux besoins
 - Normalisation des données pour une meilleure cohérence et fiabilité
 - Support de PostgreSQL pour les environnements de production
 - Outils de migration et de gestion de base de données
+- Déploiement facilité sur Render avec PostgreSQL
 
 ## Démarrage rapide
 
@@ -96,6 +97,22 @@ python tests/compatibility_check.py
 python tests/generate_report.py
 ```
 
+### Migration vers PostgreSQL
+
+```bash
+# Pour le développement local
+python scripts/migrate_to_postgres.py
+
+# Pour Render
+python scripts/migrate_to_render.py
+
+# Basculer entre SQLite et PostgreSQL
+python scripts/toggle_database.py [sqlite|postgres]
+
+# Vérifier la connexion à la base de données
+python check_db_connection.py
+```
+
 Pour des instructions détaillées, consultez [GETTING_STARTED.md](GETTING_STARTED.md) et [docs/validation/README.md](docs/validation/README.md).
 
 ## Structure du projet
@@ -121,6 +138,7 @@ math-trainer-backend/
 ├── math_trainer.db       # Base de données SQLite (dev)
 ├── enhanced_server.py    # Serveur principal amélioré
 ├── fix_database.py       # Script de correction de la base de données
+├── check_db_connection.py # Vérification de connexion à la base de données
 └── mathakine_cli.py      # Interface en ligne de commande
 ```
 
@@ -174,6 +192,15 @@ math-trainer-backend/
 
 ## Améliorations récentes
 
+### Juillet-Août 2024
+
+- ✅ Implémentation du support PostgreSQL pour les environnements de production
+- ✅ Création de scripts pour la migration des données de SQLite vers PostgreSQL
+- ✅ Support pour le déploiement sur Render avec base de données PostgreSQL
+- ✅ Utilitaire pour basculer facilement entre SQLite et PostgreSQL
+- ✅ Outil de vérification de connexion à la base de données
+- ✅ Mise à jour de la documentation pour inclure le processus de migration
+
 ### Juin-Juillet 2024
 
 - ✅ Résolution du problème de non-mise à jour du tableau de bord après complétion d'exercices
@@ -182,10 +209,10 @@ math-trainer-backend/
 - ✅ Ajout de tests pour vérifier la normalisation des données
 - ✅ Mise à jour de la documentation avec un guide de résolution des problèmes
 
-Pour plus de détails sur les corrections et améliorations, consultez [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+Pour plus de détails sur les corrections et améliorations, consultez [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) et [docs/POSTGRESQL_MIGRATION.md](docs/POSTGRESQL_MIGRATION.md).
 
 ---
 
 *Pour toute contribution ou question, consulte la documentation ou ouvre une issue sur GitHub.*
 
-*Dernière mise à jour : 22/07/2024* 
+*Dernière mise à jour : 08/08/2024* 
