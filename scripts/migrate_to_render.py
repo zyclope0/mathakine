@@ -1,5 +1,5 @@
 """
-Script de migration de SQLite vers PostgreSQL pour Mathakine
+Script de migration de SQLite vers PostgreSQL sur Render pour Mathakine
 """
 
 import os
@@ -17,6 +17,13 @@ load_dotenv()
 logger.remove()
 logger.add(sys.stderr, level="DEBUG")
 
+# Variables de connexion Render hardcodées (pour éviter les problèmes de lecture des variables d'environnement)
+RENDER_DB_NAME = "mathakine_test"
+RENDER_DB_USER = "zyclope"
+RENDER_DB_PASSWORD = "Zp4PX83vdxl5pDyxRJVaheIHArAhyN5l"
+RENDER_DB_HOST = "dpg-d0e53tp5pdvs73aol3h0-a.frankfurt-postgres.render.com"
+RENDER_DB_PORT = "5432"
+
 def get_sqlite_connection():
     """Établit la connexion à la base de données SQLite"""
     try:
@@ -29,71 +36,33 @@ def get_sqlite_connection():
         logger.error(f"Erreur de connexion à SQLite: {e}")
         sys.exit(1)
 
-def get_postgres_connection(db_name=None):
-    """Établit la connexion à PostgreSQL"""
+def get_postgres_connection():
+    """Établit la connexion à PostgreSQL sur Render"""
     try:
-        # Récupérer les informations de connexion depuis les variables d'environnement
-        pg_user = os.getenv('POSTGRES_USER')
-        pg_password = os.getenv('POSTGRES_PASSWORD')
-        pg_host = os.getenv('POSTGRES_HOST')
-        pg_port = os.getenv('POSTGRES_PORT')
-        pg_db = os.getenv('POSTGRES_DB') if db_name is None else db_name
-        
-        # Connexion directe à la base de données spécifiée
+        # Connexion directe à la base de données Render
         params = {
-            'dbname': pg_db,
-            'user': pg_user,
-            'password': pg_password,
-            'host': pg_host,
-            'port': pg_port
+            'dbname': RENDER_DB_NAME,
+            'user': RENDER_DB_USER,
+            'password': RENDER_DB_PASSWORD,
+            'host': RENDER_DB_HOST,
+            'port': RENDER_DB_PORT
         }
         
         # Afficher les informations de connexion pour le débogage
-        logger.debug(f"Paramètres de connexion PostgreSQL: dbname={params['dbname']}, user={params['user']}, host={params['host']}, port={params['port']}")
+        logger.debug(f"Paramètres de connexion PostgreSQL Render: dbname={params['dbname']}, user={params['user']}, host={params['host']}, port={params['port']}")
         
         # Essai de connexion
-        logger.debug("Tentative de connexion à PostgreSQL...")
+        logger.debug("Tentative de connexion à PostgreSQL sur Render...")
         conn = psycopg2.connect(**params)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        logger.debug(f"Connexion à PostgreSQL établie avec succès (base de données {pg_db})")
+        logger.debug(f"Connexion à PostgreSQL sur Render établie avec succès")
         
         return conn
     except Exception as e:
-        logger.error(f"Erreur de connexion à PostgreSQL: {e}")
+        logger.error(f"Erreur de connexion à PostgreSQL sur Render: {e}")
         import traceback
         logger.error(traceback.format_exc())
         sys.exit(1)
-
-def reset_postgres_database(pg_conn):
-    """Supprime toutes les tables de la base de données PostgreSQL"""
-    try:
-        cursor = pg_conn.cursor()
-        
-        # Désactiver les contraintes de clé étrangère temporairement
-        cursor.execute("SET session_replication_role = 'replica';")
-        
-        # Récupérer toutes les tables
-        cursor.execute("""
-            SELECT tablename FROM pg_tables 
-            WHERE schemaname = 'public'
-        """)
-        tables = cursor.fetchall()
-        
-        # Supprimer chaque table
-        for table in tables:
-            table_name = table[0]
-            logger.info(f"Suppression de la table {table_name}")
-            cursor.execute(f'DROP TABLE IF EXISTS "{table_name}" CASCADE')
-        
-        # Réactiver les contraintes de clé étrangère
-        cursor.execute("SET session_replication_role = 'origin';")
-        
-        pg_conn.commit()
-        logger.success("Toutes les tables ont été supprimées avec succès")
-    except Exception as e:
-        logger.error(f"Erreur lors de la réinitialisation de la base de données: {e}")
-        pg_conn.rollback()
-        raise
 
 def get_table_schema(conn, table_name):
     """Récupère le schéma d'une table SQLite"""
@@ -189,23 +158,15 @@ def migrate_data(sqlite_conn, pg_conn, table_name):
 
 def main():
     """Fonction principale de migration"""
-    logger.info("Début de la migration de SQLite vers PostgreSQL")
-    
-    # Demander confirmation pour réinitialiser la base de données
-    reset_db = input("Voulez-vous réinitialiser la base de données PostgreSQL avant la migration ? (o/N) : ").lower() == 'o'
+    logger.info("Début de la migration de SQLite vers PostgreSQL sur Render")
     
     # Connexion à SQLite
     sqlite_conn = get_sqlite_connection()
     
-    # Connexion à PostgreSQL
-    db_name = os.getenv('POSTGRES_DB', 'mathakine_test')
-    pg_conn = get_postgres_connection(db_name)
+    # Connexion à PostgreSQL sur Render
+    pg_conn = get_postgres_connection()
     
     try:
-        # Réinitialiser la base de données PostgreSQL si demandé
-        if reset_db:
-            reset_postgres_database(pg_conn)
-        
         # Liste des tables à migrer
         cursor = sqlite_conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -222,7 +183,7 @@ def main():
             # Migrer les données
             migrate_data(sqlite_conn, pg_conn, table)
         
-        logger.success("Migration terminée avec succès!")
+        logger.success("Migration vers Render terminée avec succès!")
         
     except Exception as e:
         logger.error(f"Erreur lors de la migration: {e}")

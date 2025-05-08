@@ -12,6 +12,7 @@ sqlalchemy==2.0.26
 # Utilitaires
 python-dotenv==1.0.0
 requests==2.31.0
+email-validator==2.1.0
 
 # Intégration IA - compatibilité Python 3.13 avec version récente
 openai==1.12.0

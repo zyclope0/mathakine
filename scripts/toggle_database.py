@@ -20,14 +20,24 @@ def main():
     postgres_url = f"postgresql://{os.getenv('POSTGRES_USER', 'postgres')}:{os.getenv('POSTGRES_PASSWORD', 'postgres')}@{os.getenv('POSTGRES_HOST', 'localhost')}:{os.getenv('POSTGRES_PORT', '5432')}/{os.getenv('POSTGRES_DB', 'mathakine_test')}"
     sqlite_url = "sqlite:///./math_trainer.db"
     
-    if args.db_type == "postgres":
-        print(f"Configuration de l'application pour utiliser PostgreSQL...")
-        set_key(env_path, "DATABASE_URL", postgres_url)
-        print(f"Base de données configurée pour PostgreSQL: {postgres_url}")
-    else:
-        print(f"Configuration de l'application pour utiliser SQLite...")
-        set_key(env_path, "DATABASE_URL", sqlite_url)
-        print(f"Base de données configurée pour SQLite: {sqlite_url}")
+    # Lire le fichier .env actuel
+    with open(env_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    
+    # Modifier la ligne DATABASE_URL
+    with open(env_path, 'w', encoding='utf-8') as f:
+        for line in lines:
+            if line.startswith('DATABASE_URL='):
+                if args.db_type == "postgres":
+                    f.write(f'DATABASE_URL={postgres_url}\n')
+                    print(f"Configuration de l'application pour utiliser PostgreSQL...")
+                    print(f"Base de données configurée pour PostgreSQL: {postgres_url}")
+                else:
+                    f.write(f'DATABASE_URL={sqlite_url}\n')
+                    print(f"Configuration de l'application pour utiliser SQLite...")
+                    print(f"Base de données configurée pour SQLite: {sqlite_url}")
+            else:
+                f.write(line)
     
     print("\nRedémarrez l'application pour appliquer les changements.")
 
