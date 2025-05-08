@@ -1,37 +1,33 @@
 # Mathakine (anciennement Math Trainer)
 
-## ⚠️ AVIS IMPORTANT : MIGRATION DU PROJET ⚠️
+## ⚠️ INFORMATION IMPORTANTE : RENOMMAGE DU PROJET ⚠️
 
-**Ce dépôt est maintenant obsolète**. Le projet a été migré vers la nouvelle structure "Mathakine" avec une organisation améliorée des tests et une meilleure cohérence du thème Star Wars.
+**Ce dépôt est la nouvelle version du projet**. L'ancien projet "Math Trainer" a été renommé en "Mathakine" avec une organisation améliorée des tests et une meilleure cohérence du thème Star Wars.
 
-### Où trouver la nouvelle version ?
+### Structure actuelle du projet
 
-Le code et la documentation à jour se trouvent maintenant dans les répertoires suivants :
+Tous les fichiers ont été réorganisés dans cette nouvelle structure :
 - **Code principal** : `/math-trainer-backend/`
 - **Documentation principale** : `/math-trainer-backend/README.md`
 - **Documentation des tests** : `/math-trainer-backend/tests/README.md`
 - **Plan de test complet** : `/math-trainer-backend/tests/TEST_PLAN.md`
 - **Documentation détaillée** : `/math-trainer-backend/docs/`
 
-### Pourquoi cette migration ?
+### Avantages de cette réorganisation
 
-Cette migration a permis :
+Cette restructuration a permis :
 1. D'organiser les tests en 4 catégories distinctes (unitaires, API, intégration, fonctionnels)
 2. D'intégrer plus profondément la thématique Star Wars dans le code et la documentation
 3. De nettoyer les fichiers obsolètes et de clarifier la structure du projet
 4. D'améliorer la maintenabilité et l'extensibilité du code
 
-## Documentation conservée à titre historique
-
-Le reste de ce document est conservé à titre historique et pour référence. Pour les informations les plus récentes, veuillez consulter la documentation référencée ci-dessus.
-
 ---
-
-Backend pour un site d'entraînement mathématique interactif destiné aux enfants, spécialement adapté pour un enfant autiste de 9 ans, avec une thématique Star Wars.
 
 ## Présentation
 
-Mathakine est une application éducative conçue pour les enfants autistes, permettant un apprentissage des mathématiques adapté à leurs besoins spécifiques. L'application aide les jeunes "Padawans des mathématiques" à maîtriser la "Force des nombres" à travers des exercices interactifs et personnalisés.
+**Mathakine** est une application éducative backend pour un site d'entraînement mathématique interactif destiné aux enfants, spécialement adapté pour un enfant autiste de 9 ans, avec une thématique Star Wars.
+
+Cette application permet un apprentissage des mathématiques adapté aux besoins spécifiques des enfants autistes. Elle aide les jeunes "Padawans des mathématiques" à maîtriser la "Force des nombres" à travers des exercices interactifs et personnalisés.
 
 ## Fonctionnalités
 
