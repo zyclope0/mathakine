@@ -27,20 +27,50 @@ create_tables()
 print('Base de données initialisée avec succès!')
 "
 
-# Vérifier que la table existe
-echo "Vérification de la table exercises..."
+# Vérifier que la table existe avec PostgreSQL
+echo "Vérification de la table exercises sur PostgreSQL..."
 python -c "
 import os
-import sqlite3
-print('Répertoire courant:', os.getcwd())
-conn = sqlite3.connect('math_trainer.db')
-cursor = conn.cursor()
-cursor.execute('SELECT name FROM sqlite_master WHERE type=\"table\" AND name=\"exercises\"')
-if cursor.fetchone():
-    print('La table exercises existe!')
-else:
-    print('ERREUR: La table exercises n\'existe pas!')
-conn.close()
+import psycopg2
+from urllib.parse import urlparse
+import sys
+from loguru import logger
+
+logger.info('Vérification de la connexion PostgreSQL sur Render')
+
+# Récupérer l'URL de la base de données depuis les variables d'environnement
+database_url = os.environ.get('DATABASE_URL')
+
+if not database_url:
+    print('ERREUR: DATABASE_URL n\'est pas définie!')
+    sys.exit(1)
+
+try:
+    # Parser l'URL de connexion
+    print('Tentative de connexion à PostgreSQL:', database_url.split('@')[1])
+    
+    # Connexion à PostgreSQL
+    conn = psycopg2.connect(database_url)
+    cursor = conn.cursor()
+    
+    # Vérifier si la table exercises existe
+    cursor.execute(\"\"\"
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = 'exercises'
+        );
+    \"\"\")
+    
+    if cursor.fetchone()[0]:
+        print('La table exercises existe dans PostgreSQL!')
+    else:
+        print('ERREUR: La table exercises n\'existe pas dans PostgreSQL!')
+    
+    conn.close()
+except Exception as e:
+    print(f'ERREUR lors de la connexion à PostgreSQL: {e}')
+    sys.exit(1)
 "
 
 # Démarrer le serveur
