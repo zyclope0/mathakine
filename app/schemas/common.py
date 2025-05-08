@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Any, List, Dict, Generic, TypeVar, Union
 from enum import Enum
+from datetime import datetime
 
 # Type générique pour les réponses
 T = TypeVar('T')
@@ -69,4 +70,21 @@ class HealthCheck(BaseModel):
     uptime: float = Field(..., description="Temps de fonctionnement en secondes")
     database_status: str = Field(..., description="État de la base de données")
     environment: str = Field(..., description="Environnement d'exécution")
-    dependencies: Dict[str, str] = Field(..., description="État des dépendances externes") 
+    dependencies: Dict[str, str] = Field(..., description="État des dépendances externes")
+
+class PaginationParams:
+    """
+    Paramètres de pagination standards pour les requêtes API.
+    Peut être utilisé comme dépendance FastAPI pour les endpoints.
+    """
+    def __init__(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        sort_by: Optional[str] = None,
+        sort_desc: bool = False,
+    ):
+        self.skip = skip
+        self.limit = limit
+        self.sort_by = sort_by
+        self.sort_desc = sort_desc 

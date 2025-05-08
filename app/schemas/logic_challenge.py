@@ -192,4 +192,14 @@ class LogicChallengeStats(BaseModel):
     hint_usage_rate: Optional[Dict[str, float]] = None  # Taux d'utilisation de chaque niveau d'indice
     
     class Config:
+        orm_mode = True
+
+class LogicChallengeAttemptResult(BaseModel):
+    """Résultat d'une tentative de résolution d'un défi logique"""
+    is_correct: bool = Field(..., description="Si la réponse est correcte")
+    feedback: str = Field(..., description="Retour sur la tentative")
+    explanation: Optional[str] = Field(None, description="Explication de la solution (si correct)")
+    hints: Optional[List[str]] = Field(None, description="Indices pour aider (si incorrect)")
+    
+    class Config:
         orm_mode = True 

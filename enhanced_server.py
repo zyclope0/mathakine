@@ -332,6 +332,7 @@ def init_db():
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS exercises (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
         question TEXT NOT NULL,
         correct_answer TEXT NOT NULL,
         choices TEXT,
@@ -550,6 +551,29 @@ async def submit_answer(request):
     VALUES (?, ?, ?)
     ''', (exercise_id, is_correct, time_spent))
     
+    # Normaliser le type d'exercice et la difficulté pour correspondre aux valeurs dans user_stats
+    exercise_type = exercise['exercise_type'].lower()
+    if exercise_type not in ['addition', 'subtraction', 'multiplication', 'division']:
+        # Mapper les autres formats possibles au format attendu
+        if exercise_type == 'ADDITION':
+            exercise_type = 'addition'
+        elif exercise_type == 'SUBTRACTION':
+            exercise_type = 'subtraction'
+        elif exercise_type == 'MULTIPLICATION':
+            exercise_type = 'multiplication'
+        elif exercise_type == 'DIVISION':
+            exercise_type = 'division'
+    
+    difficulty = exercise['difficulty'].lower()
+    if difficulty not in ['easy', 'medium', 'hard']:
+        # Mapper les autres formats possibles au format attendu
+        if difficulty == 'INITIE':
+            difficulty = 'easy'
+        elif difficulty == 'PADAWAN':
+            difficulty = 'medium'
+        elif difficulty == 'CHEVALIER':
+            difficulty = 'hard'
+    
     # Mettre à jour les statistiques utilisateur
     cursor.execute('''
     UPDATE user_stats
@@ -558,14 +582,16 @@ async def submit_answer(request):
         correct_attempts = correct_attempts + CASE WHEN ? THEN 1 ELSE 0 END,
         last_updated = CURRENT_TIMESTAMP
     WHERE exercise_type = ? AND difficulty = ?
-    ''', (is_correct, exercise['exercise_type'], exercise['difficulty']))
+    ''', (is_correct, exercise_type, difficulty))
     
-    # Marquer l'exercice comme complété
-    cursor.execute('''
-    UPDATE exercises
-    SET is_completed = 1
-    WHERE id = ?
-    ''', (exercise_id,))
+    # Vérifier si la mise à jour a affecté des lignes
+    if cursor.rowcount == 0:
+        print(f"Avertissement: Aucune ligne mise à jour dans user_stats pour exercise_type={exercise_type}, difficulty={difficulty}")
+        # Si aucune ligne n'a été mise à jour, essayons d'insérer une nouvelle entrée
+        cursor.execute('''
+        INSERT OR IGNORE INTO user_stats (exercise_type, difficulty, total_attempts, correct_attempts, last_updated)
+        VALUES (?, ?, 1, ?, CURRENT_TIMESTAMP)
+        ''', (exercise_type, difficulty, 1 if is_correct else 0))
     
     conn.commit()
     conn.close()
@@ -854,11 +880,27 @@ async def generate_exercise(request):
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     
-    # Enregistrement en base de données
+    # Générer un titre pour l'exercice basé sur son type et sa difficulté
+    title_types = {
+        "addition": "Addition",
+        "subtraction": "Soustraction",
+        "multiplication": "Multiplication",
+        "division": "Division"
+    }
+    
+    title_difficulties = {
+        "easy": "simple",
+        "medium": "intermédiaire",
+        "hard": "difficile"
+    }
+    
+    exercise_title = f"{title_types.get(exercise_type, 'Exercice')} {title_difficulties.get(difficulty, '')}"
+    
+    # Enregistrement en base de données avec le titre
     cursor.execute('''
-    INSERT INTO exercises (question, correct_answer, choices, explanation, exercise_type, difficulty)
-    VALUES (?, ?, ?, ?, ?, ?)
-    ''', (question, correct_answer, json.dumps(choices), explanation, exercise_type, difficulty))
+    INSERT INTO exercises (title, question, correct_answer, choices, explanation, exercise_type, difficulty)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (exercise_title, question, correct_answer, json.dumps(choices), explanation, exercise_type, difficulty))
     
     exercise_id = cursor.lastrowid
     
@@ -869,20 +911,15 @@ async def generate_exercise(request):
     conn.commit()
     conn.close()
     
-    # Formatage du résultat
-    exercise = {
-        "id": row[0],
-        "question": row[1],
-        "correct_answer": row[2],
-        "choices": json.loads(row[3]) if row[3] else None,
-        "explanation": row[4],
-        "exercise_type": row[5],
-        "difficulty": row[6],
-        "is_archived": bool(row[7]),
-        "is_completed": bool(row[8]),
-        "created_at": row[9],
-        "ai_generated": use_ai and ai_exercise is not None
-    }
+    # Formatage du résultat en utilisant les noms de colonnes au lieu des indices
+    exercise = dict(row)
+    
+    # S'assurer que le champ choices est correctement décodé du JSON
+    if exercise.get('choices'):
+        exercise['choices'] = json.loads(exercise['choices'])
+    
+    # Ajouter le champ d'IA généré qui n'est pas dans la base de données
+    exercise['ai_generated'] = use_ai and ai_exercise is not None
     
     # Rediriger vers la page d'exercices après génération
     if request.headers.get("accept", "").startswith("text/html"):

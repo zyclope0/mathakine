@@ -3,26 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mathakine - L'API Rebelle, une plateforme d'exercices mathématiques interactifs avec un thème spatial">
     <title>{% block title %}Mathakine{% endblock %} | L'API Rebelle</title>
+    
+    <!-- Preload des ressources critiques -->
+    <link rel="preload" href="/static/style.css" as="style">
+    <link rel="preload" href="/static/space-theme.css" as="style">
+    <link rel="preload" href="/static/img/mathakine-logo.svg" as="image">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" as="style">
+    
+    <!-- Styles -->
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/space-theme.css">
     <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
     {% block head %}{% endblock %}
-    <!-- CSS spécifique pour la page d'accueil -->
+    
+    <!-- CSS spécifique pour la page d'accueil avec chargement conditionnel -->
     {% if request.path == '/' %}
     <link rel="stylesheet" href="/static/home-styles.css">
     {% endif %}
-    <!-- Ajouter Google Fonts - Exo 2 pour un look futuriste/spatial -->
+    
+    <!-- Ajouter Google Fonts avec display=swap pour un rendu optimal -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-    <!-- Ajout d'une police pour les icônes -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    
+    <!-- Ajout d'une police pour les icônes avec chargement différé -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    
+    <!-- Fallback pour les navigateurs qui ne supportent pas le onload -->
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </noscript>
 </head>
 <body>
     <header>
         <div class="logo-container">
-            <img src="/static/img/mathakine-logo.svg" alt="Mathakine" class="logo" width="60" height="60">
+            <img src="/static/img/mathakine-logo.svg" alt="Mathakine" class="logo preload" width="60" height="60" onload="this.classList.add('loaded')">
             <div class="logo-text">
                 <h1>Mathakine</h1>
                 <div class="logo-subtitle">L'API Rebelle</div>
@@ -35,9 +53,14 @@
             <a href="/api/exercises/generate" class="btn"><i class="fas fa-plus"></i> Nouvel exercice</a>
         </nav>
     </header>
+    
+    <!-- Indicateur de chargement -->
+    <div id="loading-indicator" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--sw-blue), var(--sw-accent), var(--sw-gold)); z-index: 9999; transition: opacity 0.3s ease;"></div>
+    
     <div class="container">
         {% block content %}{% endblock %}
     </div>
+    
     <footer>
         <p>Mathakine - Exerce-toi aux mathématiques de façon amusante !</p>
         <div class="footer-links">
@@ -47,12 +70,24 @@
             <span class="version">Version 3.0 - L'API Rebelle</span>
         </div>
     </footer>
+    
     <script>
-        // JavaScript commun
+        // JavaScript commun optimisé
         document.addEventListener('DOMContentLoaded', function() {
             console.log('App loaded');
             
-            // Ajout d'une classe active au bouton de navigation courant
+            // Navigation active
+            highlightCurrentNavItem();
+            
+            // Animation des étoiles (effet clignotant aléatoire)
+            animateStarsIfPresent();
+            
+            // Ajout d'un indicateur de chargement pour les requêtes AJAX
+            setupLoadingIndicator();
+        });
+        
+        // Fonctions extraites pour la lisibilité et la modularité
+        function highlightCurrentNavItem() {
             const currentPath = window.location.pathname;
             const navLinks = document.querySelectorAll('nav a');
             
@@ -61,23 +96,56 @@
                     link.classList.add('active');
                 }
             });
-            
-            // Animation des étoiles (effet clignotant aléatoire)
-            function animateStars() {
-                const stars = document.querySelectorAll('.star');
+        }
+        
+        function animateStarsIfPresent() {
+            const stars = document.querySelectorAll('.star');
+            if (stars.length > 0) {
                 stars.forEach(star => {
                     const delay = Math.random() * 5;
                     const duration = 1 + Math.random() * 2;
-                    star.style.animation = `twinkle ${duration}s infinite ${delay}s`;
+                    star.style.animation = `optimizedTwinkle ${duration}s infinite ${delay}s`;
                 });
             }
+        }
+        
+        function setupLoadingIndicator() {
+            const indicator = document.getElementById('loading-indicator');
+            if (!indicator) return;
             
-            // Exécuter l'animation si des étoiles sont présentes
-            if (document.querySelectorAll('.star').length > 0) {
-                animateStars();
+            // Intercepter tous les clics sur les liens
+            document.addEventListener('click', function(e) {
+                // Trouver si l'élément cliqué ou un de ses parents est un lien
+                let target = e.target;
+                while (target && target !== document) {
+                    if (target.tagName === 'A' && !target.getAttribute('target')) {
+                        // C'est un lien interne (sans target="_blank")
+                        indicator.style.display = 'block';
+                        break;
+                    }
+                    target = target.parentNode;
+                }
+            });
+            
+            // Intercepter les requêtes AJAX si utilisées
+            if (window.fetch) {
+                const originalFetch = window.fetch;
+                window.fetch = function() {
+                    indicator.style.display = 'block';
+                    return originalFetch.apply(this, arguments)
+                        .then(response => {
+                            indicator.style.display = 'none';
+                            return response;
+                        })
+                        .catch(error => {
+                            indicator.style.display = 'none';
+                            throw error;
+                        });
+                };
             }
-        });
+        }
     </script>
+    
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -4,6 +4,21 @@ Ce document explique comment installer et lancer l'application Math Trainer Back
 
 ## Installation
 
+### Prérequis
+
+- Python 3.8 à 3.13
+- pip (gestionnaire de paquets Python)
+- Un terminal PowerShell ou CMD (Windows)
+
+> **Note**: Avec Python 3.13, certaines dépendances nécessitent des versions spécifiques:
+> - SQLAlchemy 2.0.27+
+> - Pydantic 2.0.0+ avec pydantic-settings
+> - FastAPI 0.100.0+
+>
+> Consultez le guide de compatibilité dans `docs/validation/COMPATIBILITY.md` pour plus de détails.
+
+### Installation des dépendances
+
 Pour installer les dépendances requises et configurer l'environnement :
 
 1. Exécutez le script `scripts/setup.bat` à la racine du projet
@@ -65,6 +80,46 @@ Les principales variables d'environnement configurables sont :
 | MATH_TRAINER_PROFILE | Profil actif | dev, test, prod |
 
 Ces variables peuvent être modifiées via les scripts de configuration ou en modifiant directement le fichier `.env` à la racine du projet.
+
+## Gestion de la base de données
+
+### Base de données SQLite locale
+
+L'application utilise SQLite en développement local. Le fichier de base de données (`math_trainer.db`) est automatiquement exclu du contrôle de version (via `.gitignore`).
+
+#### Initialisation de la base de données
+
+Pour initialiser la base de données locale :
+
+```bash
+# En batch
+scripts/init_db.bat
+
+# En PowerShell
+scripts/Initialize-Database.ps1
+```
+
+#### Réinitialisation de la base de données
+
+Si vous souhaitez repartir d'une base de données propre :
+
+1. Supprimez le fichier `math_trainer.db` existant
+2. Réexécutez le script d'initialisation ci-dessus
+
+#### Structure de la base de données
+
+La base de données contient les tables principales suivantes :
+
+- `users` : Informations des utilisateurs (nom, email, role, niveau, thème préféré)
+- `exercises` : Exercices mathématiques (exercise_type, difficulté, question, réponse, choix)
+- `logic_challenges` : Défis logiques (type, groupe d'âge, description, solution)
+- `settings` : Paramètres système et utilisateur (nom de l'app, version, thème)
+
+Les données initiales incluent :
+- Un utilisateur administrateur (Maître Yoda)
+- Des exercices d'exemple
+- Des défis logiques de démonstration
+- Les paramètres système de base
 
 ## Structure du projet
 
@@ -133,4 +188,109 @@ scripts/tests/run_tests.bat
 
 # En PowerShell
 scripts/tests/Run-Tests.ps1
-``` 
+```
+
+## Gestion de la base de données SQLite
+
+La gestion de la base de données SQLite est une partie importante du backend. Voici comment vous pouvez configurer et utiliser la base de données :
+
+### Configuration de la base de données
+
+Pour configurer la base de données, vous devez éditer le fichier `config.py` dans le répertoire `app/`. Vous pouvez spécifier le chemin de la base de données, les paramètres de connexion, etc.
+
+### Utilisation de la base de données
+
+Pour utiliser la base de données, vous pouvez utiliser des outils comme `sqlite3` pour interagir directement avec la base de données, ou des bibliothèques Python comme `sqlite3` pour interagir avec la base de données à partir de votre application.
+
+Pour interagir avec la base de données à partir de votre application, vous pouvez utiliser le module `sqlite3` de Python. Voici un exemple d'utilisation :
+
+```python
+import sqlite3
+
+# Connexion à la base de données
+conn = sqlite3.connect('math_trainer.db')
+cursor = conn.cursor()
+
+# Exécution d'une requête SQL
+cursor.execute("SELECT * FROM users")
+rows = cursor.fetchall()
+
+# Affichage des résultats
+for row in rows:
+    print(row)
+
+# Fermeture de la connexion
+conn.close()
+```
+
+## Système d'Auto-Validation
+
+Le projet intègre un système complet d'auto-validation qui permet de vérifier l'intégrité et la compatibilité du projet. Ce système offre plusieurs niveaux de validation adaptés à différents besoins.
+
+### Configuration de l'environnement de validation
+
+Avant d'utiliser les scripts de validation, configurez l'environnement :
+
+```bash
+# En batch
+tests/setup_validation.bat
+
+# Directement en Python
+python tests/setup_validation.py
+```
+
+### Niveaux de validation
+
+#### 1. Validation complète
+
+Exécute tous les tests unitaires, API, d'intégration et fonctionnels :
+
+```bash
+# En batch
+tests/auto_validate.bat
+
+# Directement en Python
+python tests/auto_validation.py
+```
+
+#### 2. Validation légère
+
+Vérifie la structure du projet sans dépendances complexes :
+
+```bash
+python tests/simple_validation.py
+```
+
+#### 3. Validation très simplifiée
+
+Pour diagnostics rapides :
+
+```bash
+python tests/simplified_validation.py
+```
+
+#### 4. Vérification de compatibilité
+
+Vérifie la compatibilité avec Python 3.13 :
+
+```bash
+python tests/compatibility_check.py
+```
+
+### Génération de rapports
+
+Pour générer un rapport complet sur l'état du projet :
+
+```bash
+python tests/generate_report.py
+```
+
+Pour plus d'informations sur le système d'auto-validation, consultez la documentation dans `docs/validation/README.md`.
+
+## Déploiement
+
+Le projet est configuré pour être déployé sur Render. Le fichier `Procfile` contient la commande de démarrage pour Render.
+
+## Contribution
+
+Veuillez consulter les guidelines de contribution avant de soumettre des pull requests.

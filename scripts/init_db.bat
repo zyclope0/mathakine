@@ -1,36 +1,40 @@
 @echo off
-echo Initialisation de la base de données Mathakine
-echo ===========================================
+REM Script d'initialisation de la base de données
+echo ===================================================
+echo =  INITIALISATION DE LA BASE DE DONNÉES  =
+echo ===================================================
+echo.
 
-REM Vérifier si Python est installé
-where python >nul 2>nul
-if %errorlevel% neq 0 (
-    echo Python n'est pas installé ou n'est pas dans le PATH
-    echo Veuillez installer Python 3.8 ou supérieur
-    exit /b 1
+REM Vérification de Python
+python --version 2>NUL
+if %ERRORLEVEL% NEQ 0 (
+  echo Python n'est pas installé ou n'est pas dans le PATH.
+  echo Veuillez installer Python 3.8 ou supérieur.
+  echo.
+  exit /b 1
 )
 
-REM Vérifier si l'environnement virtuel existe
-if not exist venv (
-    echo Création de l'environnement virtuel
-    python -m venv venv
+for /f "tokens=2" %%I in ('python --version') do set PYTHON_VERSION=%%I
+echo Version de Python détectée: %PYTHON_VERSION%
+if "%PYTHON_VERSION:~0,4%" == "3.13" (
+  echo Note: Python 3.13 est supporté avec les versions appropriées des dépendances.
+  echo - SQLAlchemy 2.0.27+
+  echo - pydantic 2.0.0+ avec pydantic-settings
+  echo - FastAPI 0.100.0+
+  echo.
 )
 
-REM Activer l'environnement virtuel
-call venv\Scripts\activate.bat
+REM Initialisation de la base de données
+echo.
+echo Initialisation de la base de données en cours...
+python app/db/init_db.py
+if %ERRORLEVEL% NEQ 0 (
+  echo Erreur lors de l'initialisation de la base de données.
+  exit /b 1
+)
 
-REM Installer les dépendances
-echo Installation des dépendances...
-pip install -r requirements.txt
+echo.
+echo Base de données initialisée avec succès !
+echo.
 
-REM Exécuter le script d'initialisation de la base de données
-echo Initialisation de la base de données...
-python scripts/create_database.py
-
-REM Désactiver l'environnement virtuel
-call venv\Scripts\deactivate.bat
-
-echo ===========================================
-echo Base de données initialisée avec succès!
-echo Vous pouvez maintenant lancer le serveur avec run_server.bat
-pause 
+exit /b 0 

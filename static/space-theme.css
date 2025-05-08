@@ -11,6 +11,10 @@
     --sw-red: #FF6B6B;
     --sw-card-bg: #21273c;
     --sw-card-border: #3a3f5c;
+
+    /* Ajouter des animations comme variables CSS */
+    --transition-speed: 0.3s;
+    --hover-transform: translateY(-3px);
 }
 
 /* Réinitialisation des couleurs de base */
@@ -22,6 +26,9 @@ body {
         radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
         radial-gradient(circle at 75% 35%, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
     background-size: 100px 100px;
+    /* Optimisation pour hardware acceleration */
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 /* En-tête avec dégradé spatial */
@@ -37,8 +44,11 @@ nav .btn {
     background: var(--sw-accent) !important;
     color: var(--sw-text) !important;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
-    transition: all 0.3s ease !important;
+    transition: all var(--transition-speed) ease !important;
     border-radius: 10px !important;
+    /* Optimisation pour hardware acceleration */
+    transform: translateZ(0);
+    will-change: transform, box-shadow;
 }
 
 nav .btn i {
@@ -48,7 +58,7 @@ nav .btn i {
 nav .btn:hover, 
 nav .btn.active {
     background: var(--sw-blue) !important;
-    transform: translateY(-3px) !important;
+    transform: var(--hover-transform) !important;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
@@ -59,6 +69,16 @@ nav .btn.active {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
     overflow: hidden !important;
     position: relative !important;
+    /* Optimisation pour hardware acceleration */
+    transform: translateZ(0);
+    will-change: transform;
+    /* Ajout d'une transition fluide */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4) !important;
+    transform: translateY(-5px) scale(1.01) !important;
 }
 
 .card::before {
@@ -79,6 +99,12 @@ nav .btn.active {
     padding: 14px 28px !important;
     font-weight: 600 !important;
     letter-spacing: 0.5px !important;
+    /* Optimisation pour hardware acceleration */
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                box-shadow 0.3s ease, 
+                background-color 0.3s ease !important;
 }
 
 .big-btn:hover {
@@ -87,6 +113,30 @@ nav .btn.active {
 
 .primary-btn {
     background: var(--sw-accent) !important;
+}
+
+/* Optimisation des animations pour les étoiles */
+@keyframes optimizedTwinkle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.star {
+    background-color: var(--sw-gold) !important;
+    box-shadow: 0 0 4px var(--sw-gold) !important;
+    /* Utiliser will-change seulement pour les animationsq */
+    will-change: opacity, transform;
+    animation: optimizedTwinkle 2s infinite !important;
+}
+
+/* Optimisation du chargement des images */
+img.preload {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+img.loaded {
+    opacity: 1;
 }
 
 /* Titres et textes spéciaux */
@@ -132,11 +182,6 @@ h2, h3 {
 .floating-planet.planet-red {
     background-color: var(--sw-red) !important;
     box-shadow: 0 0 15px rgba(255, 107, 107, 0.5) !important;
-}
-
-.star {
-    background-color: var(--sw-gold) !important;
-    box-shadow: 0 0 4px var(--sw-gold) !important;
 }
 
 /* Footer */

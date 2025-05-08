@@ -3,7 +3,7 @@
 {% block title %}Accueil - Mathakine{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="/static/home-styles.css">
+<!-- Déjà chargé conditionnellement dans le template base.html -->
 {% endblock %}
 
 {% block content %}
@@ -59,67 +59,140 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Ajouter des étoiles et planètes dynamiquement
-        function createSpaceElements() {
-            const container = document.querySelector('.stars-container');
+        // Créer les éléments spatiaux avec une approche plus performante
+        createSpaceElements();
+        
+        // Ajouter des transitions fluides entre les sections
+        addScrollAnimations();
+    });
+    
+    // Version optimisée de la création des éléments spatiaux
+    function createSpaceElements() {
+        const container = document.querySelector('.stars-container');
+        if (!container) return;
+        
+        // Utiliser DocumentFragment pour minimiser les reflows
+        const fragment = document.createDocumentFragment();
+        
+        // Créer les étoiles
+        const starCount = Math.min(15, Math.floor(window.innerWidth / 80)); // Adapter le nombre au viewport
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
             
-            if (!container) return;
+            // Position aléatoire mais contrôlée
+            const top = 10 + Math.random() * 80;
+            const left = 10 + Math.random() * 80;
             
-            // Nettoyer le conteneur pour éviter les doublons
-            container.innerHTML = '';
+            // Taille aléatoire contrôlée
+            const size = 1 + Math.random() * 1.5;
             
-            // Créer les étoiles
-            const starCount = 15;
-            for (let i = 0; i < starCount; i++) {
-                const star = document.createElement('div');
-                star.classList.add('star');
-                
-                // Position aléatoire mais contrôlée
-                const top = 10 + Math.random() * 80; // Entre 10% et 90%
-                const left = 10 + Math.random() * 80; // Entre 10% et 90%
-                
-                // Taille aléatoire contrôlée
-                const size = 1 + Math.random() * 1.5;
-                
-                star.style.position = 'absolute';
-                star.style.top = `${top}%`;
-                star.style.left = `${left}%`;
-                star.style.width = `${size}px`;
-                star.style.height = `${size}px`;
-                star.style.zIndex = '0';
-                
-                // Animation
-                const delay = Math.random() * 5;
-                const duration = 1 + Math.random() * 2;
-                star.style.animation = `twinkle ${duration}s infinite ${delay}s`;
-                
-                container.appendChild(star);
-            }
-            
-            // Ajouter quelques planètes, à des positions spécifiques
-            const planets = [
-                { color: 'planet-blue', size: 10, top: 25, left: 85 },
-                { color: 'planet-red', size: 12, top: 75, left: 15 },
-                { color: 'planet-green', size: 8, top: 45, left: 75 }
-            ];
-            
-            planets.forEach(planetData => {
-                const planet = document.createElement('div');
-                planet.classList.add('floating-planet', planetData.color);
-                
-                planet.style.position = 'absolute';
-                planet.style.top = `${planetData.top}%`;
-                planet.style.left = `${planetData.left}%`;
-                planet.style.width = `${planetData.size}px`;
-                planet.style.height = `${planetData.size}px`;
-                planet.style.zIndex = '0';
-                
-                container.appendChild(planet);
+            Object.assign(star.style, {
+                position: 'absolute',
+                top: `${top}%`,
+                left: `${left}%`,
+                width: `${size}px`,
+                height: `${size}px`,
+                zIndex: '0'
             });
+            
+            // Animation via la classe plutôt que style inline pour de meilleures performances
+            star.dataset.delay = Math.random() * 5;
+            star.dataset.duration = 1 + Math.random() * 2;
+            
+            fragment.appendChild(star);
         }
         
-        // Créer les éléments spatiaux
-        createSpaceElements();
-    });
+        // Ajouter quelques planètes, à des positions spécifiques
+        const planets = [
+            { color: 'planet-blue', size: 10, top: 25, left: 85 },
+            { color: 'planet-red', size: 12, top: 75, left: 15 },
+            { color: 'planet-green', size: 8, top: 45, left: 75 }
+        ];
+        
+        planets.forEach(planetData => {
+            const planet = document.createElement('div');
+            planet.classList.add('floating-planet', planetData.color);
+            
+            Object.assign(planet.style, {
+                position: 'absolute',
+                top: `${planetData.top}%`,
+                left: `${planetData.left}%`,
+                width: `${planetData.size}px`,
+                height: `${planetData.size}px`,
+                zIndex: '0'
+            });
+            
+            fragment.appendChild(planet);
+        });
+        
+        // Ajouter tous les éléments d'un coup pour minimiser les reflows
+        container.appendChild(fragment);
+        
+        // Appliquer les animations après le rendu pour de meilleures performances
+        requestAnimationFrame(() => {
+            document.querySelectorAll('.star').forEach(star => {
+                const delay = star.dataset.delay;
+                const duration = star.dataset.duration;
+                star.style.animation = `optimizedTwinkle ${duration}s infinite ${delay}s`;
+            });
+        });
+    }
+    
+    // Ajouter des animations au scroll
+    function addScrollAnimations() {
+        const cards = document.querySelectorAll('.card:not(.hero-card)');
+        
+        // Si IntersectionObserver est supporté
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in-up');
+                        observer.unobserve(entry.target); // Une fois animé, on arrête d'observer
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                observer.observe(card);
+            });
+        } else {
+            // Fallback pour les navigateurs qui ne supportent pas IntersectionObserver
+            cards.forEach(card => card.classList.add('fade-in-up'));
+        }
+    }
 </script>
+
+<style>
+    /* Styles pour les animations de scroll */
+    .fade-in-up {
+        animation: fadeInUp 0.5s ease forwards;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Optimisation pour préférence de mouvement réduit */
+    @media (prefers-reduced-motion: reduce) {
+        .fade-in-up {
+            animation: none;
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 {% endblock %} 

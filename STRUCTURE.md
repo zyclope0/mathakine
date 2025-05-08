@@ -13,10 +13,21 @@ Ce document clarifie la structure du projet Mathakine (anciennement Math Trainer
 math-trainer-backend/
 ├── app/                # Code de l'application
 ├── docs/               # Documentation détaillée
+│   ├── validation/     # Documentation du système d'auto-validation
+│   └── ...             # Autres documents spécifiques
 ├── scripts/            # Scripts utilitaires (installation, serveur, config, etc.)
 ├── static/             # Fichiers statiques (CSS, JS)
 ├── templates/          # Templates HTML
-├── tests/              # Tests unitaires et d'intégration
+├── tests/              # Tests et validation
+│   ├── unit/           # Tests unitaires
+│   ├── api/            # Tests API
+│   ├── integration/    # Tests d'intégration
+│   ├── functional/     # Tests fonctionnels
+│   ├── auto_validation.py    # Script principal d'auto-validation
+│   ├── simple_validation.py  # Validation sans dépendances complexes
+│   ├── compatibility_check.py # Vérification de compatibilité
+│   ├── setup_validation.py   # Configuration de l'environnement de validation
+│   └── ...             # Autres scripts de test et validation
 ├── Dockerfile          # Image Docker
 ├── Procfile            # Commande de démarrage Render
 ├── README.md           # Documentation principale
@@ -34,8 +45,23 @@ math-trainer-backend/
 
 1. **Répertoire Principal** : Tout le code source et la documentation se trouvent dans le dossier `math-trainer-backend`.
 2. **Terminologie Star Wars** : Le projet utilise la terminologie Star Wars dans tout le code et la documentation.
-3. **Tests** : Les tests se trouvent dans le répertoire `tests/` et sont organisés en quatre catégories.
-4. **Documentation** : La documentation détaillée se trouve dans `docs/`.
+3. **Tests et Validation** : 
+   - Les tests se trouvent dans le répertoire `tests/` et sont organisés en quatre catégories (unitaires, API, intégration, fonctionnels).
+   - Le système d'**auto-validation** permet de vérifier l'intégrité et la compatibilité du projet avec différents scripts adaptés à divers besoins.
+4. **Documentation** : 
+   - La documentation détaillée se trouve dans `docs/`.
+   - La documentation du système d'auto-validation se trouve dans `docs/validation/`.
+
+## Système d'Auto-Validation
+
+Le projet intègre un système complet d'auto-validation avec différents niveaux de vérification :
+
+1. **Validation complète** : Exécute tous les tests et vérifie la syntaxe Python (`auto_validation.py`).
+2. **Validation légère** : Vérifie la structure du projet sans dépendances complexes (`simple_validation.py`, `simplified_validation.py`).
+3. **Vérification de compatibilité** : Vérifie la compatibilité avec Python 3.13 (`compatibility_check.py`).
+4. **Rapports** : Génère des rapports détaillés sur l'état du projet (`generate_report.py`).
+
+Voir `docs/validation/README.md` pour plus de détails sur le système d'auto-validation.
 
 ## Évolution Future
 
@@ -49,4 +75,5 @@ Si le projet doit être restructuré à l'avenir, il est recommandé de :
 - **README.md** : Documentation principale du projet
 - **tests/README.md** : Documentation des tests
 - **tests/TEST_PLAN.md** : Plan de test détaillé
+- **docs/validation/README.md** : Documentation du système d'auto-validation
 - **docs/** : Documentation détaillée sur divers aspects du projet 

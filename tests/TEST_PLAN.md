@@ -1,196 +1,301 @@
-# PLAN DE TEST MATHAKINE (API REBELLE)
+# Plan de Tests - Mathakine
 
-Ce document de recette détaille tous les scénarios de test pour valider le fonctionnement complet du projet Mathakine. Il sert de référence pour les tests manuels et automatisés et doit être mis à jour à chaque évolution majeure du projet.
+Ce document détaille la stratégie de test complète pour le projet Mathakine, une application d'apprentissage des mathématiques avec une thématique Star Wars.
 
-## ORGANISATION DES TESTS
+## Niveaux de Tests
 
-Les tests sont organisés en 4 catégories principales, reflétant la structure du dossier `/math-trainer-backend/tests/` :
+L'application utilise plusieurs niveaux de tests pour assurer une qualité optimale:
 
-1. **Tests unitaires** : Validation des composants individuels
-2. **Tests API** : Validation des endpoints de l'API Rebelle
-3. **Tests d'intégration** : Validation de l'interaction entre composants
-4. **Tests fonctionnels** : Validation des fonctionnalités complètes
+1. **Tests Unitaires** - Tests isolés de composants individuels
+2. **Tests API** - Tests pour valider les endpoints REST
+3. **Tests d'Intégration** - Tests des composants en interaction
+4. **Tests Fonctionnels** - Tests du système complet, basés sur les cas d'utilisation
 
-## MATRICE DE COUVERTURE
+## Ressources
 
-| Domaine | Composants | Couverture tests unitaires | Couverture tests API | Couverture tests d'intégration | Couverture tests fonctionnels |
-|---------|------------|----------------------------|----------------------|--------------------------------|-------------------------------|
-| Modèles | Énumérations | ✅ | N/A | N/A | N/A |
-| Modèles | Modèles | ✅ | N/A | ✅ | N/A |
-| Exercices | Génération | ✅ | ✅ | ✅ | ✅ |
-| Exercices | Validation | ✅ | ✅ | ✅ | ✅ |
-| API | Endpoints de base | N/A | ✅ | N/A | N/A |
-| API | Endpoints exercices | N/A | ✅ | ✅ | N/A |
-| API | Authentification | N/A | ✅ | ✅ | N/A |
-| Utilisateurs | Flux utilisateur | N/A | ✅ | ✅ | N/A |
-| Défis logiques | Génération | ✅ | N/A | N/A | ✅ |
-| Défis logiques | Validation | ✅ | N/A | N/A | ✅ |
+### Équipe
 
-## 1. TESTS UNITAIRES
+| Rôle | Responsabilité |
+|------|----------------|
+| Développeur | Implémentation des tests unitaires et API |
+| Testeur | Implémentation des tests d'intégration et fonctionnels |
+| Lead Dev | Supervision de la qualité des tests |
 
-### 1.1 Tests des énumérations
-- **Objectif**: Vérifier que toutes les énumérations sont correctement définies et fonctionnent comme attendu
-- **Localisation**: `/math-trainer-backend/tests/unit/test_enum.py`
-- **Scénarios**:
-  - ✅ Vérifier les valeurs des types de défis logiques
-  - ✅ Vérifier les valeurs des groupes d'âge
-  - ✅ Vérifier que toutes les énumérations sont des chaînes de caractères
+### Environnements
 
-### 1.2 Tests des modèles
-- **Objectif**: Vérifier que les modèles de données fonctionnent correctement
-- **Localisation**: `/math-trainer-backend/tests/unit/test_models.py`
-- **Scénarios**:
-  - ✅ Créer et valider un modèle utilisateur
-  - ✅ Créer et valider un modèle exercice
-  - ✅ Créer et valider un modèle tentative
-  - ✅ Vérifier la relation entre utilisateur et tentatives
-  - ✅ Vérifier la relation entre exercice et tentatives
+| Environnement | Description |
+|---------------|-------------|
+| Développement | Tests développement local |
+| Test | Pour tests d'intégration et validation |
+| Production | Vérifications finales avant déploiement |
 
-### 1.3 Tests des exercices
-- **Objectif**: Vérifier la génération et validation des exercices
-- **Localisation**: `/math-trainer-backend/tests/unit/test_exercise.py`
-- **Scénarios**:
-  - ✅ Générer un exercice d'addition facile
-  - ✅ Générer un exercice de soustraction moyen
-  - ✅ Générer un exercice de multiplication difficile
-  - ✅ Générer un exercice de division très difficile
-  - ✅ Vérifier la validation des réponses correctes
-  - ✅ Vérifier la validation des réponses incorrectes
+## Stratégie de Validation
 
-## 2. TESTS API
+### Configuration des Tests
 
-### 2.1 Tests des endpoints de base
-- **Objectif**: Vérifier les endpoints fondamentaux de l'API
-- **Localisation**: `/math-trainer-backend/tests/api/test_base_endpoints.py`
-- **Scénarios**:
-  - ✅ Vérifier la réponse de l'endpoint racine (/)
-  - ✅ Vérifier la réponse de l'endpoint info (/api/info)
-  - ✅ Vérifier la réponse de l'endpoint debug (/debug)
-  - ✅ Vérifier la gestion d'un endpoint inexistant
+Tous les tests peuvent être exécutés via pytest:
 
-### 2.2 Tests des endpoints d'exercices
-- **Objectif**: Vérifier les endpoints liés aux exercices
-- **Localisation**: `/math-trainer-backend/tests/api/test_exercise_endpoints.py`
-- **Scénarios**:
-  - ✅ Récupérer la liste des exercices
-  - ✅ Récupérer un exercice spécifique
-  - ✅ Créer un nouvel exercice
-  - ✅ Mettre à jour un exercice existant
-  - ✅ Supprimer un exercice
-  - ✅ Tester la validation des données d'entrée
-  - ✅ Vérifier les contraintes d'autorisation
-  - ✅ Soumettre une réponse à un exercice
-  - ✅ Vérifier le traitement des réponses correctes et incorrectes
+```bash
+pytest -v
+```
 
-## 3. TESTS D'INTÉGRATION
+### Système d'Auto-Validation
 
-### 3.1 Tests du flux utilisateur-exercice
-- **Objectif**: Vérifier l'interaction complète entre utilisateurs et exercices
-- **Localisation**: `/math-trainer-backend/tests/integration/test_user_exercise_flow.py`
-- **Scénarios**:
-  - ✅ Création d'un utilisateur Padawan
-  - ✅ Authentification de l'utilisateur
-  - ✅ Récupération des exercices disponibles
-  - ✅ Sélection d'un exercice
-  - ✅ Soumission d'une réponse correcte
-  - ✅ Vérification de la progression utilisateur
-  - ✅ Déconnexion et suppression du compte
+Le projet intègre un système complet d'auto-validation pour faciliter la vérification de l'intégrité et la compatibilité du projet:
 
-## 4. TESTS FONCTIONNELS
+#### Scripts Principaux
 
-### 4.1 Tests des défis logiques
-- **Objectif**: Vérifier le fonctionnement des défis logiques (Épreuves du Conseil Jedi)
-- **Localisation**: `/math-trainer-backend/tests/functional/test_logic_challenge.py`
-- **Scénarios**:
-  - ✅ Récupérer la liste des défis logiques
-  - ✅ Récupérer un défi spécifique par ID
-  - ✅ Soumettre une réponse correcte à un défi
-  - ✅ Soumettre une réponse incorrecte à un défi
-  - ✅ Vérifier le feedback approprié selon la réponse
+| Script | Description |
+|--------|-------------|
+| `auto_validation.py` | Validation complète du projet (syntaxe, tests unitaires, API, intégration, fonctionnels) |
+| `auto_validate.bat` | Script batch pour exécuter `auto_validation.py` facilement sur Windows |
+| `simple_validation.py` | Vérification de la structure du projet sans dépendances complexes |
+| `simplified_validation.py` | Version minimale pour diagnostics rapides |
+| `compatibility_check.py` | Vérification de compatibilité Python 3.13+ et dépendances |
+| `db_check.py` | Vérification de la configuration de la base de données |
+| `api_check.py` | Test de l'API sans dépendre de SQLAlchemy |
+| `basic_check.py` | Détection des problèmes de configuration élémentaires |
+| `generate_report.py` | Génération d'un rapport complet au format Markdown |
 
-## PLAN D'EXÉCUTION DES TESTS
+#### Utilisation
 
-### Exécution automatisée complète
-- **Commande**: `python math-trainer-backend/tests/run_tests.py --type all`
-- **Fréquence**: Avant chaque fusion de branche et déploiement
-- **Critère de succès**: Tous les tests passent sans erreur
+```bash
+# Configuration de l'environnement de validation
+tests/setup_validation.bat
 
-### Exécution par catégorie
-- **Tests unitaires**: `python math-trainer-backend/tests/run_tests.py --type unit`
-- **Tests API**: `python math-trainer-backend/tests/run_tests.py --type api`
-- **Tests d'intégration**: `python math-trainer-backend/tests/run_tests.py --type integration`
-- **Tests fonctionnels**: `python math-trainer-backend/tests/run_tests.py --type functional`
-- **Fréquence**: Lors du développement, avant de committer des changements
-- **Critère de succès**: Tous les tests de la catégorie passent sans erreur
+# Validation complète
+tests/auto_validate.bat
 
-### Scripts d'exécution disponibles
-- **Windows (Batch)**: `math-trainer-backend\run_tests.bat [--unit|--api|--integration|--functional|--all]`
-- **Windows (PowerShell)**: `.\math-trainer-backend\Run-Tests.ps1 [-Type unit|api|integration|functional|all]`
+# Vérification de compatibilité
+python tests/compatibility_check.py
 
-## TESTS MANUELS ADDITIONNELS
+# Génération de rapport
+python tests/generate_report.py
+```
 
-En plus des tests automatisés, les tests manuels suivants doivent être effectués avant chaque release majeure :
+Pour plus de détails, consultez `docs/validation/README.md`.
 
-### M1. Vérification de l'interface utilisateur
-1. Vérifier l'affichage correct sur différentes résolutions d'écran
-2. Vérifier l'accessibilité des éléments de l'interface
-3. Vérifier la cohérence du thème Star Wars dans tous les écrans
-4. Vérifier la réactivité de l'interface sur mobile
+## Plan d'Exécution
 
-### M2. Tests de performance
-1. Vérifier les temps de réponse de l'API sous charge
-2. Vérifier la génération d'exercices en parallèle
-3. Vérifier le comportement du système avec de nombreux utilisateurs simultanés
+### Tests Unitaires
 
-### M3. Tests de compatibilité
-1. Vérifier le fonctionnement sur différents navigateurs
-2. Vérifier le fonctionnement sur différents systèmes d'exploitation
-3. Vérifier la compatibilité avec Python 3.8 à 3.13
+- Tests des modèles de données
+- Tests des services métier
+- Tests des utilitaires
 
-## GESTION DES DÉFAUTS
+### Tests API
 
-Pour chaque test échoué, suivre la procédure suivante :
+- Tests des endpoints REST
+- Vérification des réponses JSON
+- Validation des codes de statut HTTP
 
-1. Documenter précisément le scénario qui échoue
-2. Identifier les étapes pour reproduire le problème
-3. Analyser les logs et messages d'erreur
-4. Créer un ticket dans le système de suivi avec les éléments suivants :
-   - Titre descriptif
-   - Description détaillée
-   - Environnement de test
-   - Étapes de reproduction
-   - Résultat attendu
-   - Résultat observé
-   - Sévérité (Bloquant, Critique, Majeur, Mineur, Cosmétique)
-   - Priorité (Immédiate, Haute, Moyenne, Basse)
+### Tests d'Intégration
 
-## VALIDATION DES FONCTIONNALITÉS MÉTIER
+- Tests de l'interaction entre services
+- Tests de la persistance des données
+- Tests de l'authentification
 
-### V1. Fonctionnalités pédagogiques
-1. Vérifier que les exercices sont adaptés aux enfants autistes
-2. Vérifier que la difficulté est progressive et adaptative
-3. Vérifier que le feedback est clair et encourageant
-4. Vérifier que les explications sont compréhensibles pour le public cible
+### Tests Fonctionnels
 
-### V2. Thématique Star Wars
-1. Vérifier la cohérence de la terminologie dans toute l'application
-2. Vérifier que les éléments visuels sont conformes à la thématique
-3. Vérifier que la thématique renforce l'engagement sans distraire
+- Tests des cas d'utilisation principal
+- Tests des workflows utilisateur
+- Tests de la UI (si applicable)
 
-## MISE À JOUR DE LA RECETTE
+## Critères de Succès
 
-Cette recette de tests doit être mise à jour dans les cas suivants :
-1. Ajout d'une nouvelle fonctionnalité
-2. Modification significative d'une fonctionnalité existante
-3. Identification d'un nouveau scénario de test pertinent
-4. Correction d'un bug majeur nécessitant un test spécifique
+1. Tous les tests unitaires et API doivent réussir avant toute fusion
+2. La couverture de code doit être d'au moins 80%
+3. Les tests d'intégration et fonctionnels doivent réussir avant un déploiement en production
 
-**Dernière mise à jour**: 07/05/2025
+## Outils
 
----
+- **pytest** - Exécution des tests
+- **pytest-cov** - Analyse de la couverture de code
+- **Auto-validation** - Système complet de validation du projet
+- **generate_report.py** - Génération de rapports de test
 
-## SUIVI DES VERSIONS DE LA RECETTE
+## Objectifs des Tests
 
-| Version | Date | Auteur | Description des modifications |
-|---------|------|--------|-------------------------------|
-| 1.0 | 07/05/2025 | Claude | Version initiale de la recette de tests | 
+1. **Qualité du Code**
+   - Couverture de code > 80%
+   - Tests automatisés pour toutes les fonctionnalités
+   - Détection précoce des régressions
+
+2. **Fiabilité**
+   - Validation des fonctionnalités métier
+   - Vérification des flux utilisateurs
+   - Test des cas limites
+
+3. **Performance**
+   - Temps de réponse < 200ms
+   - Gestion correcte des ressources
+   - Scalabilité des opérations
+
+## Types de Tests
+
+### 1. Tests Unitaires
+
+#### 1.1 Modèles de Données
+- [x] Création et validation des modèles (types de tests vérifiés: UserRole.PADAWAN, ExerciseType.ADDITION, DifficultyLevel.INITIE)
+- [x] Relations entre modèles
+- [x] Contraintes de données
+- [x] Validation des champs
+
+#### 1.2 Services
+- [ ] Génération d'exercices
+- [ ] Validation des réponses
+- [ ] Calcul des scores
+- [ ] Gestion des utilisateurs
+
+### 2. Tests API
+
+#### 2.1 Endpoints de Base
+- [x] Route racine (/)
+- [x] Informations API (/api/info)
+- [x] Debug (/debug)
+- [x] Gestion des erreurs
+
+#### 2.2 Endpoints Utilisateurs
+- [x] Création de compte
+- [x] Authentification
+- [x] Gestion du profil
+- [x] Progression
+
+#### 2.3 Endpoints Exercices
+- [x] Liste des exercices
+- [x] Détails d'un exercice
+- [x] Soumission de réponse
+- [x] Historique des tentatives
+
+### 3. Tests d'Intégration
+
+#### 3.1 Flux Utilisateur
+- [x] Inscription → Authentification
+- [x] Sélection d'exercice → Réponse
+- [x] Progression → Niveau suivant
+- [x] Historique → Statistiques
+
+#### 3.2 Base de Données
+- [x] Création des tables
+- [x] Relations entre tables
+- [x] Transactions
+- [x] Migrations
+
+### 4. Tests Fonctionnels
+
+#### 4.1 Défis Logiques
+- [x] Liste des défis
+- [x] Détails d'un défi
+- [x] Soumission de réponse
+- [x] Système d'indices
+
+#### 4.2 Progression
+- [x] Suivi des progrès
+- [x] Niveaux de difficulté
+- [x] Récompenses
+- [x] Statistiques
+
+## Environnements de Test
+
+### 1. Développement
+- Base de données : SQLite
+- Mode : Debug
+- Logs : Détaillés
+
+### 2. Test
+- Base de données : PostgreSQL
+- Mode : Test
+- Logs : Résumés
+
+### 3. Production
+- Base de données : PostgreSQL
+- Mode : Production
+- Logs : Critiques
+
+## Exécution des Tests
+
+### 1. Local
+```bash
+# Tous les tests
+python tests/run_tests.py
+
+# Tests spécifiques
+python tests/run_tests.py --type unit
+python tests/run_tests.py --type api
+python tests/run_tests.py --type integration
+python tests/run_tests.py --type functional
+```
+
+### 2. CI/CD
+```yaml
+# GitHub Actions
+name: Tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run tests
+        run: python tests/run_tests.py
+```
+
+## Critères de Succès
+
+### 1. Couverture
+- Unitaires : > 90%
+- API : > 85%
+- Intégration : > 80%
+- Fonctionnels : > 75%
+
+### 2. Performance
+- Temps de réponse < 200ms
+- Utilisation CPU < 50%
+- Utilisation mémoire < 500MB
+
+### 3. Qualité
+- Aucun test échoué
+- Aucune vulnérabilité critique
+- Documentation à jour
+
+## Maintenance
+
+### 1. Mise à Jour
+- Ajout de tests pour nouvelles fonctionnalités
+- Mise à jour des tests existants
+- Vérification de la couverture
+
+### 2. Documentation
+- Mise à jour du plan de test
+- Documentation des cas complexes
+- Historique des changements
+
+### 3. Revue
+- Revue mensuelle des tests
+- Analyse des échecs
+- Optimisation des performances
+
+## Responsabilités
+
+### 1. Développeurs
+- Écrire les tests unitaires
+- Maintenir la couverture
+- Corriger les échecs
+
+### 2. QA
+- Exécuter les tests fonctionnels
+- Valider les scénarios
+- Documenter les bugs
+
+### 3. DevOps
+- Configurer l'environnement
+- Automatiser les tests
+- Gérer les déploiements
+
+## Historique des Versions
+
+| Version | Date | Auteur | Description |
+|---------|------|--------|-------------|
+| 1.0 | 2024-03-07 | Claude | Version initiale |
+| 1.1 | 2024-03-08 | Claude | Ajout des tests API |
+| 1.2 | 2024-03-09 | Claude | Ajout des tests fonctionnels | 
