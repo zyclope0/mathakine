@@ -7,9 +7,14 @@ from app.core.config import settings
 logger.info(f"Initialisation de la base de données: {settings.DATABASE_URL}")
 
 try:
+    # Déterminer si nous utilisons SQLite ou PostgreSQL
+    connect_args = {}
+    if settings.DATABASE_URL.startswith('sqlite'):
+        connect_args = {"check_same_thread": False}
+    
     engine = create_engine(
         settings.DATABASE_URL, 
-        connect_args={"check_same_thread": False},
+        connect_args=connect_args,
         echo=settings.DEBUG  # Affiche les requêtes SQL dans les logs
     )
     logger.success("Moteur SQLAlchemy créé avec succès")
