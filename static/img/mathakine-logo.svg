@@ -1,59 +1,42 @@
-<svg id="mathakine-logo" width="260" height="260" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">
-    <!-- Fond cosmique -->
-    <defs>
-        <radialGradient id="space-bg" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-            <stop offset="0%" style="stop-color:#2d2d44; stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#121212; stop-opacity:1" />
-        </radialGradient>
-        
-        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-            <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-    </defs>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fond spatial -->
+  <circle cx="60" cy="60" r="60" fill="#16213e"/>
+  
+  <!-- Cercle orbital extérieur -->
+  <circle cx="60" cy="60" r="55" fill="none" stroke="#7765e3" stroke-width="2" stroke-dasharray="5,3"/>
+  
+  <!-- Symbole mathématique au centre -->
+  <g transform="translate(60, 60) scale(0.8)">
+    <!-- Signe plus -->
+    <rect x="-25" y="-5" width="50" height="10" rx="2" fill="#ffd700"/>
+    <rect x="-5" y="-25" width="10" height="50" rx="2" fill="#ffd700"/>
     
-    <!-- Cercle de fond -->
-    <circle cx="130" cy="130" r="120" fill="url(#space-bg)" />
-    
-    <!-- Étoiles en arrière-plan -->
-    <g id="stars">
-        <circle cx="50" cy="60" r="1.5" fill="#e3d798" opacity="0.7" />
-        <circle cx="80" cy="40" r="1" fill="#ffffff" opacity="0.9" />
-        <circle cx="200" cy="70" r="1.2" fill="#e3d798" opacity="0.8" />
-        <circle cx="160" cy="50" r="1" fill="#ffffff" opacity="0.7" />
-        <circle cx="190" cy="180" r="1.5" fill="#e3d798" opacity="0.9" />
-        <circle cx="70" cy="170" r="1" fill="#ffffff" opacity="0.8" />
-        <circle cx="210" cy="110" r="1" fill="#ffffff" opacity="0.7" />
-        <circle cx="40" cy="120" r="1.3" fill="#e3d798" opacity="0.8" />
-        <circle cx="100" cy="200" r="1" fill="#ffffff" opacity="0.7" />
-        <circle cx="180" cy="30" r="1.2" fill="#e3d798" opacity="0.9" />
-    </g>
-    
-    <!-- Orbites -->
-    <ellipse cx="130" cy="130" rx="100" ry="30" fill="none" stroke="#4A2970" stroke-width="1.5" opacity="0.7" transform="rotate(30, 130, 130)" />
-    <ellipse cx="130" cy="130" rx="85" ry="25" fill="none" stroke="#663399" stroke-width="1.5" opacity="0.7" transform="rotate(65, 130, 130)" />
-    
-    <!-- Planète mathématique -->
-    <circle cx="130" cy="130" r="60" fill="#4169E1" />
-    <circle cx="130" cy="130" r="60" fill="#4169E1" opacity="0.7" />
-    <path d="M100,115 L160,115 M100,145 L160,145 M130,85 L130,175" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.9" />
-    <path d="M115,100 L145,160" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.9" />
-    <path d="M145,100 L115,160" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.9" />
-    
+    <!-- Cercle central -->
+    <circle cx="0" cy="0" r="8" fill="#3db4f2"/>
+  </g>
+  
+  <!-- Orbites et planètes -->
+  <g>
+    <!-- Première orbite -->
+    <circle cx="60" cy="60" r="35" fill="none" stroke="#3db4f2" stroke-width="1" opacity="0.8"/>
     <!-- Petite planète -->
-    <circle cx="210" cy="165" r="15" fill="#FF6B6B" filter="url(#glow)" />
-    
-    <!-- Étoile brillante -->
-    <path d="M50,100 L60,120 L40,120 Z" fill="#e3d798" transform="rotate(0, 50, 110)" filter="url(#glow)" />
-    <path d="M50,100 L60,120 L40,120 Z" fill="#e3d798" transform="rotate(72, 50, 110)" filter="url(#glow)" />
-    <path d="M50,100 L60,120 L40,120 Z" fill="#e3d798" transform="rotate(144, 50, 110)" filter="url(#glow)" />
-    <path d="M50,100 L60,120 L40,120 Z" fill="#e3d798" transform="rotate(216, 50, 110)" filter="url(#glow)" />
-    <path d="M50,100 L60,120 L40,120 Z" fill="#e3d798" transform="rotate(288, 50, 110)" filter="url(#glow)" />
-    
-    <!-- Texte Mathakine -->
-    <text x="130" y="220" fill="#ffffff" font-family="Arial, sans-serif" font-size="22" text-anchor="middle" font-weight="bold" letter-spacing="2">MATHAKINE</text>
-    <text x="130" y="240" fill="#8A53BC" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" font-style="italic">L'API REBELLE</text>
+    <circle cx="95" cy="60" r="6" fill="#ff5757"/>
+  </g>
+  
+  <g>
+    <!-- Deuxième orbite -->
+    <circle cx="60" cy="60" r="25" fill="none" stroke="#ffd700" stroke-width="1" opacity="0.8"/>
+    <!-- Petite planète -->
+    <circle cx="60" cy="35" r="4" fill="#7765e3"/>
+  </g>
+  
+  <!-- Étoiles de fond -->
+  <circle cx="30" cy="20" r="1" fill="white" opacity="0.8"/>
+  <circle cx="40" cy="40" r="1.2" fill="white" opacity="0.9"/>
+  <circle cx="90" cy="30" r="1.5" fill="white" opacity="0.7"/>
+  <circle cx="85" cy="85" r="1" fill="white" opacity="0.8"/>
+  <circle cx="20" cy="75" r="1.3" fill="white" opacity="0.7"/>
+  <circle cx="15" cy="45" r="1" fill="white" opacity="0.9"/>
+  <circle cx="100" cy="50" r="1.2" fill="white" opacity="0.8"/>
 </svg> 

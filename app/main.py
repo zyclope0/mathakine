@@ -1,7 +1,11 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 import time
+import os
 from loguru import logger
 from contextlib import asynccontextmanager
 
@@ -10,6 +14,18 @@ from app.db.init_db import create_tables_with_test_data
 from app.api.api import api_router
 
 logger.info("Démarrage de l'application FastAPI")
+
+# Définir les chemins pour les dossiers statiques et templates
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+
+# Créer les dossiers s'ils n'existent pas
+os.makedirs(STATIC_DIR, exist_ok=True)
+os.makedirs(TEMPLATES_DIR, exist_ok=True)
+
+# Configuration des templates
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -73,11 +89,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Monter les fichiers statiques
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 # Routes de base
-@app.get("/")
-async def root():
-    logger.debug("Accès à la route racine")
-    return {"message": "Bienvenue sur l'API Math Trainer"}
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    # Essayez de servir la page d'accueil HTML si elle existe
+    try:
+        logger.debug("Tentative de servir le template HTML")
+        return templates.TemplateResponse("home.html", {"request": request})
+    except Exception as e:
+        # Si le template n'existe pas, retourner la réponse JSON par défaut
+        logger.debug(f"Erreur de template, retour à la réponse JSON: {str(e)}")
+        return {"message": "Bienvenue sur l'API Math Trainer"}
+
+@app.get("/exercises", response_class=HTMLResponse)
+async def exercises_page(request: Request):
+    try:
+        return templates.TemplateResponse("exercises.html", {"request": request})
+    except Exception as e:
+        logger.error(f"Erreur lors du chargement du template exercises.html: {str(e)}")
+        return {"error": "Page non disponible"}
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    try:
+        return templates.TemplateResponse("dashboard.html", {"request": request})
+    except Exception as e:
+        logger.error(f"Erreur lors du chargement du template dashboard.html: {str(e)}")
+        return {"error": "Page non disponible"}
 
 @app.get("/debug")
 async def debug_info():
@@ -90,7 +131,9 @@ async def debug_info():
         "app_name": settings.PROJECT_NAME,
         "debug_mode": settings.DEBUG,
         "database_url": settings.DATABASE_URL.replace("://", "://*****:*****@") if "://" in settings.DATABASE_URL else settings.DATABASE_URL,
-        "api_version": "0.1.0"
+        "api_version": "0.1.0",
+        "static_dir": STATIC_DIR,
+        "templates_dir": TEMPLATES_DIR
     }
 
 @app.get("/api/info")

@@ -71,79 +71,29 @@
         </div>
     </footer>
     
+    <!-- Scripts communs -->
     <script>
-        // JavaScript commun optimisé
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('App loaded');
+            console.log('Application Mathakine chargée');
             
-            // Navigation active
-            highlightCurrentNavItem();
+            // Gestionnaire d'indicateur de chargement pour les requêtes AJAX
+            const loadingIndicator = document.getElementById('loading-indicator');
             
-            // Animation des étoiles (effet clignotant aléatoire)
-            animateStarsIfPresent();
-            
-            // Ajout d'un indicateur de chargement pour les requêtes AJAX
-            setupLoadingIndicator();
+            // Interception des requêtes fetch pour afficher l'indicateur
+            const originalFetch = window.fetch;
+            window.fetch = function() {
+                loadingIndicator.style.display = 'block';
+                return originalFetch.apply(this, arguments)
+                    .then(response => {
+                        loadingIndicator.style.display = 'none';
+                        return response;
+                    })
+                    .catch(error => {
+                        loadingIndicator.style.display = 'none';
+                        throw error;
+                    });
+            };
         });
-        
-        // Fonctions extraites pour la lisibilité et la modularité
-        function highlightCurrentNavItem() {
-            const currentPath = window.location.pathname;
-            const navLinks = document.querySelectorAll('nav a');
-            
-            navLinks.forEach(link => {
-                if (link.getAttribute('href') === currentPath) {
-                    link.classList.add('active');
-                }
-            });
-        }
-        
-        function animateStarsIfPresent() {
-            const stars = document.querySelectorAll('.star');
-            if (stars.length > 0) {
-                stars.forEach(star => {
-                    const delay = Math.random() * 5;
-                    const duration = 1 + Math.random() * 2;
-                    star.style.animation = `optimizedTwinkle ${duration}s infinite ${delay}s`;
-                });
-            }
-        }
-        
-        function setupLoadingIndicator() {
-            const indicator = document.getElementById('loading-indicator');
-            if (!indicator) return;
-            
-            // Intercepter tous les clics sur les liens
-            document.addEventListener('click', function(e) {
-                // Trouver si l'élément cliqué ou un de ses parents est un lien
-                let target = e.target;
-                while (target && target !== document) {
-                    if (target.tagName === 'A' && !target.getAttribute('target')) {
-                        // C'est un lien interne (sans target="_blank")
-                        indicator.style.display = 'block';
-                        break;
-                    }
-                    target = target.parentNode;
-                }
-            });
-            
-            // Intercepter les requêtes AJAX si utilisées
-            if (window.fetch) {
-                const originalFetch = window.fetch;
-                window.fetch = function() {
-                    indicator.style.display = 'block';
-                    return originalFetch.apply(this, arguments)
-                        .then(response => {
-                            indicator.style.display = 'none';
-                            return response;
-                        })
-                        .catch(error => {
-                            indicator.style.display = 'none';
-                            throw error;
-                        });
-                };
-            }
-        }
     </script>
     
     {% block scripts %}{% endblock %}

@@ -58,115 +58,37 @@
 
 {% block scripts %}
 <script>
+    // Fonction pour créer des étoiles dans le conteneur
     document.addEventListener('DOMContentLoaded', function() {
-        // Créer les éléments spatiaux avec une approche plus performante
-        createSpaceElements();
-        
-        // Ajouter des transitions fluides entre les sections
-        addScrollAnimations();
+        const starsContainer = document.querySelector('.stars-container');
+        if (starsContainer) {
+            // Créer des étoiles aléatoires
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.width = (Math.random() * 2 + 1) + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 5 + 's';
+                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                starsContainer.appendChild(star);
+            }
+            
+            // Créer quelques planètes
+            const planetColors = ['planet-blue', 'planet-red', 'planet-green', 'planet-purple', 'planet-gold'];
+            for (let i = 0; i < 3; i++) {
+                const planet = document.createElement('div');
+                planet.className = 'floating-planet ' + planetColors[Math.floor(Math.random() * planetColors.length)];
+                planet.style.top = Math.random() * 100 + '%';
+                planet.style.left = Math.random() * 100 + '%';
+                planet.style.width = (Math.random() * 15 + 10) + 'px';
+                planet.style.height = planet.style.width;
+                planet.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(planet);
+            }
+        }
     });
-    
-    // Version optimisée de la création des éléments spatiaux
-    function createSpaceElements() {
-        const container = document.querySelector('.stars-container');
-        if (!container) return;
-        
-        // Utiliser DocumentFragment pour minimiser les reflows
-        const fragment = document.createDocumentFragment();
-        
-        // Créer les étoiles
-        const starCount = Math.min(15, Math.floor(window.innerWidth / 80)); // Adapter le nombre au viewport
-        for (let i = 0; i < starCount; i++) {
-            const star = document.createElement('div');
-            star.classList.add('star');
-            
-            // Position aléatoire mais contrôlée
-            const top = 10 + Math.random() * 80;
-            const left = 10 + Math.random() * 80;
-            
-            // Taille aléatoire contrôlée
-            const size = 1 + Math.random() * 1.5;
-            
-            Object.assign(star.style, {
-                position: 'absolute',
-                top: `${top}%`,
-                left: `${left}%`,
-                width: `${size}px`,
-                height: `${size}px`,
-                zIndex: '0'
-            });
-            
-            // Animation via la classe plutôt que style inline pour de meilleures performances
-            star.dataset.delay = Math.random() * 5;
-            star.dataset.duration = 1 + Math.random() * 2;
-            
-            fragment.appendChild(star);
-        }
-        
-        // Ajouter quelques planètes, à des positions spécifiques
-        const planets = [
-            { color: 'planet-blue', size: 10, top: 25, left: 85 },
-            { color: 'planet-red', size: 12, top: 75, left: 15 },
-            { color: 'planet-green', size: 8, top: 45, left: 75 }
-        ];
-        
-        planets.forEach(planetData => {
-            const planet = document.createElement('div');
-            planet.classList.add('floating-planet', planetData.color);
-            
-            Object.assign(planet.style, {
-                position: 'absolute',
-                top: `${planetData.top}%`,
-                left: `${planetData.left}%`,
-                width: `${planetData.size}px`,
-                height: `${planetData.size}px`,
-                zIndex: '0'
-            });
-            
-            fragment.appendChild(planet);
-        });
-        
-        // Ajouter tous les éléments d'un coup pour minimiser les reflows
-        container.appendChild(fragment);
-        
-        // Appliquer les animations après le rendu pour de meilleures performances
-        requestAnimationFrame(() => {
-            document.querySelectorAll('.star').forEach(star => {
-                const delay = star.dataset.delay;
-                const duration = star.dataset.duration;
-                star.style.animation = `optimizedTwinkle ${duration}s infinite ${delay}s`;
-            });
-        });
-    }
-    
-    // Ajouter des animations au scroll
-    function addScrollAnimations() {
-        const cards = document.querySelectorAll('.card:not(.hero-card)');
-        
-        // Si IntersectionObserver est supporté
-        if ('IntersectionObserver' in window) {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('fade-in-up');
-                        observer.unobserve(entry.target); // Une fois animé, on arrête d'observer
-                    }
-                });
-            }, {
-                threshold: 0.1
-            });
-            
-            cards.forEach(card => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                observer.observe(card);
-            });
-        } else {
-            // Fallback pour les navigateurs qui ne supportent pas IntersectionObserver
-            cards.forEach(card => card.classList.add('fade-in-up'));
-        }
-    }
 </script>
 
 <style>

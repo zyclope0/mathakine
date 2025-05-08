@@ -1,111 +1,405 @@
 {% extends "base.html" %}
 
-{% block title %}Tableau de bord - Math Trainer{% endblock %}
+{% block title %}Tableau de Bord - Mathakine{% endblock %}
+
+{% block head %}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stats-card {
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .stats-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+        color: var(--sw-accent);
+    }
+    
+    .stats-label {
+        font-size: 1rem;
+        color: #666;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 30px;
+    }
+    
+    .performance-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .performance-card {
+        border-radius: 10px;
+        text-align: center;
+        padding: 15px;
+    }
+    
+    .performance-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    
+    .performance-type {
+        font-size: 0.9rem;
+        padding: 3px 8px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+    
+    .performance-type.addition { background-color: #d4edda; color: #155724; }
+    .performance-type.soustraction { background-color: #f8d7da; color: #721c24; }
+    .performance-type.multiplication { background-color: #fff3cd; color: #856404; }
+    .performance-type.division { background-color: #cce5ff; color: #004085; }
+    
+    .progress-bar {
+        height: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+    
+    .progress-value {
+        height: 100%;
+        background-color: var(--sw-accent);
+        border-radius: 4px;
+    }
+    
+    .level-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    
+    .level-badge {
+        background-color: var(--sw-accent);
+        color: white;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-right: 15px;
+    }
+    
+    .level-info {
+        text-align: left;
+    }
+    
+    .level-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .recent-activity {
+        margin-top: 30px;
+    }
+    
+    .activity-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+    }
+    
+    .activity-icon {
+        margin-right: 15px;
+        width: 40px;
+        height: 40px;
+        background-color: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--sw-accent);
+    }
+    
+    .activity-details {
+        flex-grow: 1;
+    }
+    
+    .activity-time {
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="dashboard">
-    <h2>Ton tableau de bord</h2>
+<div class="page-header">
+    <h2>Tableau de Bord</h2>
+    <p>Visualisez vos progrès et performances dans votre apprentissage mathématique</p>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card stats-card">
+        <div class="stats-icon">
+            <i class="fas fa-check-circle fa-2x"></i>
+        </div>
+        <div class="stats-value">0</div>
+        <div class="stats-label">Exercices résolus</div>
+    </div>
     
     <div class="card stats-card">
-        <h3>Tes progrès</h3>
-        <div class="progress-container">
-            <div class="stat-box">
-                <h4>Exercices complétés</h4>
-                <div class="stat-value">{{ stats.total_completed }}</div>
+        <div class="stats-icon">
+            <i class="fas fa-bolt fa-2x"></i>
+        </div>
+        <div class="stats-value">0%</div>
+        <div class="stats-label">Taux de réussite</div>
+    </div>
+    
+    <div class="card stats-card">
+        <div class="stats-icon">
+            <i class="fas fa-trophy fa-2x"></i>
+        </div>
+        <div class="stats-value">0</div>
+        <div class="stats-label">Points d'expérience</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Progression par type d'exercice</h3>
+    <div class="chart-container">
+        <canvas id="progressChart"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Performance par type</h3>
+    <div class="performance-grid">
+        <div class="performance-card">
+            <span class="performance-type addition">Addition</span>
+            <div class="performance-value">0%</div>
+            <div class="progress-bar">
+                <div class="progress-value" style="width: 0%;"></div>
             </div>
-            <div class="stat-box">
-                <h4>Bonnes réponses</h4>
-                <div class="stat-value correct-answers">{{ stats.correct_answers }}</div>
+        </div>
+        
+        <div class="performance-card">
+            <span class="performance-type soustraction">Soustraction</span>
+            <div class="performance-value">0%</div>
+            <div class="progress-bar">
+                <div class="progress-value" style="width: 0%;"></div>
             </div>
-            <div class="stat-box">
-                <h4>Score</h4>
-                <div class="stat-value score">{{ stats.success_rate }}%</div>
+        </div>
+        
+        <div class="performance-card">
+            <span class="performance-type multiplication">Multiplication</span>
+            <div class="performance-value">0%</div>
+            <div class="progress-bar">
+                <div class="progress-value" style="width: 0%;"></div>
+            </div>
+        </div>
+        
+        <div class="performance-card">
+            <span class="performance-type division">Division</span>
+            <div class="performance-value">0%</div>
+            <div class="progress-bar">
+                <div class="progress-value" style="width: 0%;"></div>
             </div>
         </div>
     </div>
-    
-    <div class="card">
-        <h3>Types d'exercices</h3>
-        <div class="exercise-types-container">
-            <div class="exercise-type-box">
-                <h4>Additions</h4>
+</div>
+
+<div class="card">
+    <h3>Niveau actuel</h3>
+    <div class="level-indicator">
+        <div class="level-badge">1</div>
+        <div class="level-info">
+            <div class="level-title">Débutant Stellaire</div>
+            <div class="level-progress">
                 <div class="progress-bar">
-                    <div class="progress" style="width: {{ stats.addition_progress }}%;"></div>
+                    <div class="progress-value" style="width: 0%;"></div>
                 </div>
-                <div class="type-stats">{{ stats.addition_correct }} / {{ stats.addition_total }}</div>
-            </div>
-            <div class="exercise-type-box">
-                <h4>Soustractions</h4>
-                <div class="progress-bar">
-                    <div class="progress" style="width: {{ stats.subtraction_progress }}%;"></div>
-                </div>
-                <div class="type-stats">{{ stats.subtraction_correct }} / {{ stats.subtraction_total }}</div>
-            </div>
-            <div class="exercise-type-box">
-                <h4>Multiplications</h4>
-                <div class="progress-bar">
-                    <div class="progress" style="width: {{ stats.multiplication_progress }}%;"></div>
-                </div>
-                <div class="type-stats">{{ stats.multiplication_correct }} / {{ stats.multiplication_total }}</div>
-            </div>
-            <div class="exercise-type-box">
-                <h4>Divisions</h4>
-                <div class="progress-bar">
-                    <div class="progress" style="width: {{ stats.division_progress }}%;"></div>
-                </div>
-                <div class="type-stats">{{ stats.division_correct }} / {{ stats.division_total }}</div>
+                <div class="progress-text">0/100 XP pour le niveau 2</div>
             </div>
         </div>
     </div>
-    
-    <div class="card">
-        <h3>Derniers exercices</h3>
-        <div class="recent-exercises">
-            {% for exercise in recent_exercises %}
-            <div class="recent-exercise {{ 'correct' if exercise.is_correct else 'incorrect' }}">
-                <div class="exercise-question">{{ exercise.question }}</div>
-                <div class="exercise-result">
-                    {% if exercise.is_correct %}
-                    <span class="result-icon">✓</span> Bonne réponse
-                    {% else %}
-                    <span class="result-icon">✗</span> Réponse incorrecte
-                    {% endif %}
-                </div>
-                <div class="exercise-date">{{ exercise.completed_at }}</div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    
-    <div class="card actions-card">
-        <h3>Que veux-tu faire?</h3>
-        <div class="action-buttons">
-            <a href="/exercises" class="btn big-btn">Continuer à s'entraîner</a>
-            <a href="/api/exercises/generate?type=recommended" class="btn big-btn primary-btn">Exercice recommandé</a>
+</div>
+
+<div class="card recent-activity">
+    <h3>Activité récente</h3>
+    <div class="activity-list">
+        <div class="empty-state">
+            <p>Aucune activité récente. Commencez à résoudre des exercices pour voir votre progression !</p>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Animation des barres de progression
-        const progressBars = document.querySelectorAll('.progress');
-        progressBars.forEach(bar => {
-            const originalWidth = bar.style.width;
-            bar.style.width = '0%';
-            setTimeout(() => {
-                bar.style.transition = 'width 1s ease-in-out';
-                bar.style.width = originalWidth;
-            }, 300);
-        });
+        // Charger les données du tableau de bord
+        loadDashboardData();
         
-        // Animation des valeurs statistiques
-        const statValues = document.querySelectorAll('.stat-value');
-        statValues.forEach(value => {
-            value.classList.add('animate-pop');
-        });
+        // Initialiser les graphiques
+        initializeCharts();
+        
+        // Fonction pour charger les données du tableau de bord
+        function loadDashboardData() {
+            fetch('/api/v1/user/stats')
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Erreur lors du chargement des statistiques');
+                })
+                .then(data => {
+                    updateDashboard(data);
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    // Les données par défaut sont déjà affichées dans le HTML
+                });
+        }
+        
+        // Fonction pour mettre à jour le tableau de bord avec les données
+        function updateDashboard(data) {
+            if (!data) return;
+            
+            // Mettre à jour les statistiques générales
+            if (data.total_exercises) {
+                document.querySelector('.stats-value:nth-of-type(1)').textContent = data.total_exercises;
+            }
+            
+            if (data.success_rate) {
+                document.querySelector('.stats-value:nth-of-type(2)').textContent = `${data.success_rate}%`;
+            }
+            
+            if (data.experience_points) {
+                document.querySelector('.stats-value:nth-of-type(3)').textContent = data.experience_points;
+            }
+            
+            // Mettre à jour le niveau
+            if (data.level) {
+                document.querySelector('.level-badge').textContent = data.level.current;
+                document.querySelector('.level-title').textContent = data.level.title;
+                
+                const progressPercent = (data.level.current_xp / data.level.next_level_xp) * 100;
+                document.querySelector('.level-indicator .progress-value').style.width = `${progressPercent}%`;
+                document.querySelector('.progress-text').textContent = `${data.level.current_xp}/${data.level.next_level_xp} XP pour le niveau ${data.level.current + 1}`;
+            }
+            
+            // Mettre à jour les performances par type
+            if (data.performance_by_type) {
+                const types = ['addition', 'soustraction', 'multiplication', 'division'];
+                
+                types.forEach(type => {
+                    if (data.performance_by_type[type]) {
+                        const card = document.querySelector(`.performance-type.${type}`).closest('.performance-card');
+                        const percent = data.performance_by_type[type].success_rate;
+                        
+                        card.querySelector('.performance-value').textContent = `${percent}%`;
+                        card.querySelector('.progress-value').style.width = `${percent}%`;
+                    }
+                });
+            }
+            
+            // Mettre à jour l'activité récente
+            if (data.recent_activity && data.recent_activity.length > 0) {
+                const activityList = document.querySelector('.activity-list');
+                activityList.innerHTML = '';
+                
+                data.recent_activity.forEach(activity => {
+                    let iconClass = 'fa-question';
+                    
+                    if (activity.type === 'exercise_completed') {
+                        iconClass = activity.is_correct ? 'fa-check' : 'fa-times';
+                    } else if (activity.type === 'level_up') {
+                        iconClass = 'fa-arrow-up';
+                    }
+                    
+                    const html = `
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas ${iconClass}"></i>
+                            </div>
+                            <div class="activity-details">
+                                <div>${activity.description}</div>
+                                <div class="activity-time">${activity.time}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    activityList.insertAdjacentHTML('beforeend', html);
+                });
+            }
+            
+            // Mettre à jour les données du graphique
+            if (data.progress_over_time && progressChart) {
+                progressChart.data.labels = data.progress_over_time.labels;
+                
+                data.progress_over_time.datasets.forEach((dataset, index) => {
+                    progressChart.data.datasets[index].data = dataset.data;
+                });
+                
+                progressChart.update();
+            }
+        }
+        
+        // Variables pour les graphiques
+        let progressChart;
+        
+        // Fonction pour initialiser les graphiques
+        function initializeCharts() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            
+            progressChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'J-1', 'Aujourd\'hui'],
+                    datasets: [{
+                        label: 'Exercices résolus',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        }
     });
 </script>
 {% endblock %} 

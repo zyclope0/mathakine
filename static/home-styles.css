@@ -1,9 +1,16 @@
 /* Styles pour la page d'accueil - Mathakine Itération 3 */
 .hero-section {
     position: relative;
-    min-height: 300px;
-    margin-bottom: 50px;
+    background: linear-gradient(to bottom, #0a0a1a, #16213e);
+    border-radius: var(--border-radius);
+    color: white;
+    padding: var(--spacing-xl) var(--spacing-lg);
     overflow: hidden;
+    margin-bottom: var(--spacing-xl);
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Conteneur pour les étoiles et planètes */
@@ -19,135 +26,201 @@
 }
 
 .hero-card {
-    text-align: center;
-    padding: 40px 30px;
-    background-image: linear-gradient(135deg, var(--sw-space), #2a3052) !important;
     position: relative;
-    z-index: 1; /* Au-dessus des étoiles */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    z-index: 1;
+    max-width: 800px;
+    text-align: center;
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
 }
 
-/* S'assurer que les étoiles et planètes sont correctement positionnées */
-.star, .floating-planet {
-    position: absolute;
-    border-radius: 50%;
-    z-index: 0;
+.hero-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
 }
 
-.star {
-    background-color: var(--sw-gold);
-    box-shadow: 0 0 4px var(--sw-gold);
-}
-
-.floating-planet.planet-blue {
-    background-color: var(--sw-blue);
-    box-shadow: 0 0 10px rgba(65, 105, 225, 0.5);
-}
-
-.floating-planet.planet-red {
-    background-color: var(--sw-red);
-    box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
-}
-
-.floating-planet.planet-green {
-    background-color: var(--sw-accent);
-    box-shadow: 0 0 10px rgba(107, 77, 195, 0.5);
-}
-
-@keyframes twinkle {
-    0% { opacity: 0.3; }
-    50% { opacity: 1; }
-    100% { opacity: 0.3; }
-}
-
-@keyframes float {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0); }
-}
-
-.floating-planet {
-    animation: float 8s infinite ease-in-out;
+.hero-card h2 {
+    color: var(--sw-gold);
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
 .hero-subtitle {
-    font-size: 18px;
-    margin-bottom: 30px;
-    color: var(--space-text-secondary);
-    max-width: 700px;
+    font-size: 1.3rem;
+    margin-bottom: var(--spacing-lg);
+    color: #b8b8b8;
+    max-width: 600px;
     margin-left: auto;
     margin-right: auto;
 }
 
-.hero-card h2 {
-    color: var(--star-color);
-    margin-bottom: 20px;
-    font-size: 32px;
-    text-shadow: 0 0 10px rgba(227, 215, 152, 0.3);
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
 }
 
+.big-btn {
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 30px;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease-in-out;
+}
+
+.big-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.primary-btn {
+    background: linear-gradient(to right, var(--sw-accent), #9784ff);
+    border: none;
+}
+
+.primary-btn:hover {
+    background: linear-gradient(to right, #9784ff, var(--sw-accent));
+}
+
+/* Features section */
 .features-section {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin-bottom: 50px;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    padding: 0 var(--spacing-md);
 }
 
 .feature-card {
     text-align: center;
-    padding: 30px 20px;
+    padding: var(--spacing-xl);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: var(--border-radius);
+    background-color: white;
+    box-shadow: var(--box-shadow);
 }
 
 .feature-card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
 .feature-icon {
-    font-size: 36px;
-    margin-bottom: 20px;
-    color: var(--space-accent-light);
+    background: linear-gradient(135deg, var(--sw-accent), var(--sw-blue));
     width: 80px;
     height: 80px;
-    line-height: 80px;
     border-radius: 50%;
-    background-color: rgba(102, 51, 153, 0.1);
-    margin: 0 auto 20px;
-    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--spacing-lg);
+    color: white;
+    font-size: 1.8rem;
+    box-shadow: 0 10px 20px rgba(119, 101, 227, 0.3);
+    transition: transform 0.3s ease;
 }
 
-.feature-icon::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 2px solid var(--space-accent);
-    opacity: 0.6;
-    animation: pulse-ring 3s infinite;
-}
-
-@keyframes pulse-ring {
-    0% {
-        transform: scale(0.8);
-        opacity: 0.6;
-    }
-    50% {
-        transform: scale(1.2);
-        opacity: 0.2;
-    }
-    100% {
-        transform: scale(0.8);
-        opacity: 0.6;
-    }
+.feature-card:hover .feature-icon {
+    transform: rotateY(180deg);
 }
 
 .feature-card h3 {
-    color: var(--space-accent-light);
-    margin-bottom: 15px;
-    font-size: 22px;
+    color: var(--sw-accent);
+    margin-bottom: var(--spacing-md);
+    font-size: 1.4rem;
+}
+
+.feature-card p {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Étoiles et planètes animées */
+.star {
+    position: absolute;
+    background-color: white;
+    border-radius: 50%;
+    animation: twinkle 3s infinite;
+}
+
+.floating-planet {
+    position: absolute;
+    border-radius: 50%;
+    animation: float 15s infinite ease-in-out;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.planet-blue {
+    background: radial-gradient(circle at 30% 30%, #4f84c4, #1e3c61);
+}
+
+.planet-red {
+    background: radial-gradient(circle at 30% 30%, #d64c4c, #8c2e2e);
+}
+
+.planet-green {
+    background: radial-gradient(circle at 30% 30%, #4cd67c, #2a7c4a);
+}
+
+.planet-purple {
+    background: radial-gradient(circle at 30% 30%, #9c4cd6, #5a2e8c);
+}
+
+.planet-gold {
+    background: radial-gradient(circle at 30% 30%, #d6b74c, #8c762e);
+}
+
+@keyframes float {
+    0% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+    100% { transform: translateY(0) rotate(0); }
+}
+
+@keyframes twinkle {
+    0% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+    100% { opacity: 0.2; transform: scale(1); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: var(--spacing-lg);
+        min-height: 400px;
+    }
+    
+    .hero-card h2 {
+        font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .features-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .feature-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .big-btn {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
 }
 
 .about-card {
@@ -186,10 +259,4 @@
     color: var(--space-text-secondary);
     margin-top: 20px;
     font-size: 18px;
-}
-
-@media (max-width: 768px) {
-    .features-section {
-        grid-template-columns: 1fr;
-    }
 } 
