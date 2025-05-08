@@ -122,6 +122,14 @@ PUT     /api/v1/settings               # Mise à jour des paramètres
 - [ ] Endpoints API spécifiques pour les défis de logique
 - [ ] Système d'évaluation adapté aux problèmes de logique
 
+### 3.5 La Normalisation des Données (Protocole d'Harmonie)
+- [x] Implémentation de la normalisation des types d'exercices dans la fonction `submit_answer`
+- [x] Développement des fonctions de mappage pour les types d'exercices et niveaux de difficulté
+- [x] Création d'un script de correction des données existantes (`fix_database.py`)
+- [x] Mise en place de tests spécifiques pour la validation de la normalisation
+- [x] Implémentation d'un mécanisme de fusion des statistiques dupliquées
+- [x] Documentation des problèmes et solutions dans le guide de dépannage
+
 ## PHASE 4: LA DOCUMENTATION (SEMAINE 8)
 
 ### 4.1 Documentation API
@@ -138,6 +146,7 @@ PUT     /api/v1/settings               # Mise à jour des paramètres
 - [ ] Configuration pour environnement de production
 - [ ] Stratégie de mise à jour et versioning
 - [ ] Monitoring et alerting (Senseurs Longue Portée)
+- [x] Vérification et correction de l'intégrité des données avant déploiement
 
 ## PHASE 5: L'INTERFACE DE COMMANDE (SEMAINE 9-10)
 
@@ -179,6 +188,7 @@ PUT     /api/v1/settings               # Mise à jour des paramètres
 | 2       | Définition des modèles | Schémas de base de données finalisés |
 | 3-4     | Conception des endpoints | Documentation des endpoints |
 | 5-7     | Implémentation et tests | API fonctionnelle avec tests |
+| 7-8     | Normalisation des données | Script de correction et tests de validation |
 | 8       | Documentation et finalisation | API documentée prête pour le déploiement |
 | 9-10    | Interface utilisateur | Interface thématique Star Wars et gestion des exercices terminés |
 
@@ -192,6 +202,7 @@ PUT     /api/v1/settings               # Mise à jour des paramètres
 - Interface utilisateur cohérente avec le thème Star Wars
 - Gestion efficace et visuellement attrayante des exercices terminés
 - Animations fluides et réactives pour une meilleure expérience utilisateur
+- Cohérence et intégrité des données entre les différentes tables de la base de données
 
 ## OPTIMISATIONS SPÉCIFIQUES À L'API
 
@@ -212,6 +223,7 @@ PUT     /api/v1/settings               # Mise à jour des paramètres
 - [ ] Implémentation de CORS sécurisé
 - [ ] Protection contre les attaques CSRF (Défenses Anti-Intrusion)
 - [ ] Validation stricte des entrées avec Pydantic
+- [x] Normalisation des données pour prévenir les incohérences
 - [ ] Sanitization des données pour prévenir les injections
 - [ ] Système de rotation des tokens JWT (Changement de Fréquences)
 
@@ -219,6 +231,7 @@ PUT     /api/v1/settings               # Mise à jour des paramètres
 - [ ] Logging structuré pour faciliter le debugging
 - [ ] Métriques pour le monitoring des performances
 - [ ] Documentation interne des classes et méthodes
+- [x] Scripts de vérification et correction de l'intégrité des données
 - [ ] Tests de performance automatisés
 
 ## CRITÈRES DE VALIDATION
@@ -228,16 +241,7 @@ PUT     /api/v1/settings               # Mise à jour des paramètres
 - Tests automatisés couvrant au moins 90% du code
 - Validation des données pour toutes les entrées utilisateur
 - Authentification et autorisation sécurisées pour tous les endpoints
-
-## PLANNING
-
-| Semaine | Activité principale | Livrables |
-|---------|---------------------|-----------|
-| 1       | Configuration initiale | Environnement de développement fonctionnel |
-| 2       | Définition des modèles | Schémas de base de données finalisés |
-| 3-4     | Conception des endpoints | Documentation des endpoints |
-| 5-7     | Implémentation et tests | API fonctionnelle avec tests |
-| 8       | Documentation et finalisation | API documentée prête pour le déploiement |
+- Intégrité et cohérence des données dans toutes les tables de la base de données
 
 ## RISQUES ET MITIGATIONS
 
@@ -247,6 +251,7 @@ PUT     /api/v1/settings               # Mise à jour des paramètres
 | Performance insuffisante | Faible | Élevé | Tests de charge dès le début, optimisation continue |
 | Sécurité des données des enfants | Faible | Très élevé | Audit de sécurité, chiffrement, anonymisation |
 | Compatibilité avec le frontend | Moyenne | Moyen | Développement en parallèle, tests d'intégration réguliers |
+| Inconsistance des données | Moyenne | Élevé | Normalisation des données, tests de validation, scripts de correction |
 
 ## PROCHAINES ÉTAPES
 
@@ -256,4 +261,5 @@ PUT     /api/v1/settings               # Mise à jour des paramètres
 
 ---
 *Document créé le: 06/06/2024*
-*Prochaine révision: 13/06/2024* 
+*Prochaine révision: 13/06/2024*
+*Dernière mise à jour: 22/07/2024* 
