@@ -42,6 +42,8 @@ Cette application permet un apprentissage des mathématiques adapté aux besoins
 - Système de gestion des environnements (dev, test, prod)
 - API REST complète
 - Normalisation des données pour une meilleure cohérence et fiabilité
+- Support de PostgreSQL pour les environnements de production
+- Outils de migration et de gestion de base de données
 
 ## Démarrage rapide
 
@@ -157,6 +159,7 @@ math-trainer-backend/
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) : Architecture du système
 - [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) : État du projet et planification
 - [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) : Plan d'implémentation détaillé
+- [docs/POSTGRESQL_MIGRATION.md](docs/POSTGRESQL_MIGRATION.md) : Guide de migration vers PostgreSQL
 
 #### Documentation de référence
 - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) : Guide de résolution des problèmes

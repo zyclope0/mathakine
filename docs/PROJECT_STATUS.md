@@ -100,23 +100,30 @@ Mathakine est une application éducative conçue pour les enfants autistes, perm
 
 #### Corrections et améliorations de la base de données
 
-1. **Normalisation des types d'exercices et des niveaux de difficulté**
-   - [x] Correction de la fonction `submit_answer` dans `enhanced_server.py` pour normaliser les données avant mise à jour
-   - [x] Création d'un script `fix_database.py` pour corriger les données existantes
-   - [x] Fonction `normalize_exercise_type()` pour standardiser les types d'exercices
-   - [x] Fonction `normalize_difficulty()` pour standardiser les niveaux de difficulté
+1. **Normalisation des données**
+   - [x] Correction des types d'exercices et niveaux de difficulté incohérents
+   - [x] Script de correction pour la base de données existante (`fix_database.py`)
+   - [x] Tests automatisés pour valider la normalisation des données
+   - [x] Mise à jour de la fonction `submit_answer` pour normaliser les entrées
 
-2. **Gestion des doublons dans les statistiques**
+2. **Migration vers PostgreSQL**
+   - [x] Script de migration de SQLite vers PostgreSQL
+   - [x] Gestion des conversions de types (notamment booléens)
+   - [x] Utilitaire pour basculer facilement entre SQLite et PostgreSQL
+   - [x] Documentation de la procédure de migration
+   - [x] Tests de validation post-migration
+
+3. **Gestion des doublons dans les statistiques**
    - [x] Création de la fonction `fix_duplicates()` pour identifier et fusionner les entrées dupliquées
    - [x] Prévention des doublons futurs avec `INSERT OR IGNORE` et mises à jour conditionnelles
    - [x] Tests automatisés pour vérifier l'absence de doublons (`test_user_stats_no_duplicates`)
 
-3. **Validation et test des données**
+4. **Validation et test des données**
    - [x] Ajout de tests dans `tests/test_normalization.py` pour vérifier la normalisation
    - [x] Mise à jour de `db_check.py` avec une fonction `check_data_normalization()`
    - [x] Documentation du problème et de sa solution dans `docs/TROUBLESHOOTING.md`
 
-4. **Résolutions des problèmes d'interface**
+5. **Résolutions des problèmes d'interface**
    - [x] Correction du problème de non-mise à jour du tableau de bord après complétion d'exercices
    - [x] Vérification des statistiques avec outils de débogage améliorés
    - [x] Amélioration de la cohérence des données entre les différentes tables
