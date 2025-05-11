@@ -390,138 +390,122 @@
             }
             
             // Mettre à jour les données du graphique
-            if (data.progress_over_time && window.progressChart) {
-                console.log('Updating chart data:', data.progress_over_time);
-                
-                try {
-                    // Vérifier que les labels et les données existent
-                    if (data.progress_over_time.labels && 
-                        data.progress_over_time.datasets && 
-                        data.progress_over_time.datasets.length > 0 &&
-                        data.progress_over_time.datasets[0].data) {
-                        
-                        console.log('Labels:', data.progress_over_time.labels);
-                        console.log('Dataset data:', data.progress_over_time.datasets[0].data);
-                        
-                        window.progressChart.data.labels = data.progress_over_time.labels;
-                        
-                        // Assurer que le dataset existe dans le graphique
-                        if (window.progressChart.data.datasets.length > 0) {
-                            window.progressChart.data.datasets[0].data = data.progress_over_time.datasets[0].data;
-                            window.progressChart.update();
-                            console.log('Chart updated successfully');
-                        } else {
-                            console.error('No datasets in chart');
-                            // Créer un nouveau dataset si aucun n'existe
-                            window.progressChart.data.datasets = [{
-                                label: 'Exercices résolus',
-                                data: data.progress_over_time.datasets[0].data,
-                                borderColor: 'rgba(75, 192, 192, 1)',
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                tension: 0.4,
-                                fill: true
-                            }];
-                            window.progressChart.update();
-                            console.log('Created new dataset and updated chart');
-                        }
-                    } else {
-                        console.error('Invalid progress_over_time data structure', data.progress_over_time);
-                    }
-                } catch (error) {
-                    console.error('Error updating chart:', error);
-                    // Essayer de recréer complètement le graphique
-                    try {
-                        if (window.progressChart) {
-                            window.progressChart.destroy();
-                        }
-                        initializeCharts();
-                        if (window.progressChart) {
-                            window.progressChart.data.labels = data.progress_over_time.labels;
-                            window.progressChart.data.datasets[0].data = data.progress_over_time.datasets[0].data;
-                            window.progressChart.update();
-                            console.log('Recreated and updated chart after error');
-                        }
-                    } catch (e) {
-                        console.error('Failed to recreate chart:', e);
-                    }
-                }
-            } else {
-                console.warn('Chart not initialized or no progress data');
-                // Réinitialiser le graphique si pas encore fait
-                if (!window.progressChart || !window.progressChart.ctx) {
-                    console.log('Trying to initialize chart');
-                    initializeCharts();
-                }
+            if (data.progress_over_time) {
+                console.log('Received progress_over_time data:', data.progress_over_time);
+                // Recréer complètement le graphique à chaque mise à jour
+                createProgressChart(data.progress_over_time);
             }
         }
         
-        // Variables pour les graphiques
-        let progressChart;
-        
-        // Fonction pour initialiser les graphiques
-        function initializeCharts() {
+        // Fonction pour créer le graphique de progression
+        function createProgressChart(chartData) {
+            console.log('Creating progress chart with data:', chartData);
+            
             const ctx = document.getElementById('progressChart');
             if (!ctx) {
                 console.error('Canvas element not found for chart');
                 return;
             }
             
-            console.log('Initializing charts');
-            const ctxContext = ctx.getContext('2d');
-            
-            if (!ctxContext) {
-                console.error('Could not get 2D context for chart');
-                return;
-            }
-            
             // Détruire le graphique existant s'il y en a un
             if (window.progressChart) {
                 try {
+                    console.log('Destroying existing chart');
                     window.progressChart.destroy();
-                    console.log('Destroyed existing chart');
                 } catch (e) {
                     console.error('Error destroying existing chart:', e);
                 }
+                window.progressChart = null;
             }
             
-            // Attribuer le graphique à une variable globale pour un accès plus facile
-            window.progressChart = new Chart(ctxContext, {
-                type: 'line',
-                data: {
+            // Vérifier que les données sont valides
+            if (!chartData.labels || !chartData.datasets || !chartData.datasets[0] || !chartData.datasets[0].data) {
+                console.error('Invalid chart data structure:', chartData);
+                chartData = {
                     labels: ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'J-1', 'Aujourd\'hui'],
                     datasets: [{
                         label: 'Exercices résolus',
-                        data: [0, 0, 0, 0, 0, 0, 0],
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        tension: 0.4,
-                        fill: true
+                        data: [0, 0, 0, 0, 0, 0, 0]
                     }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                        }
+                };
+            }
+            
+            // Assurer que les données sont des nombres
+            const cleanData = chartData.datasets[0].data.map(value => {
+                const num = Number(value);
+                return isNaN(num) ? 0 : num;
+            });
+            console.log('Clean data for chart:', cleanData);
+            
+            try {
+                console.log('Creating new chart with context');
+                window.progressChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [{
+                            label: 'Exercices résolus',
+                            data: cleanData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#e0e0e0' // Couleur claire pour contraste
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0,
+                                    color: '#e0e0e0' // Couleur claire pour contraste
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: '#e0e0e0' // Couleur claire pour contraste
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
                             }
                         }
                     }
-                }
+                });
+                console.log('Chart creation successful');
+            } catch (error) {
+                console.error('Error creating chart:', error);
+            }
+        }
+        
+        // Fonction pour initialiser les graphiques au chargement de la page
+        function initializeCharts() {
+            console.log('Initializing default charts');
+            // Créer un graphique initial avec des données vides
+            createProgressChart({
+                labels: ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'J-1', 'Aujourd\'hui'],
+                datasets: [{
+                    label: 'Exercices résolus',
+                    data: [0, 0, 0, 0, 0, 0, 0]
+                }]
             });
-            
-            console.log('Chart initialized:', window.progressChart ? 'success' : 'failed');
         }
     });
 </script>
