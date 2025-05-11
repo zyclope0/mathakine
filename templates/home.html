@@ -7,6 +7,13 @@
 {% endblock %}
 
 {% block content %}
+{% if error_message %}
+<div class="error-alert">
+    <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+    <div class="error-message">{{ error_message }}</div>
+</div>
+{% endif %}
+
 <div class="hero-section">
     <div class="stars-container">
         <!-- Les étoiles et planètes seront ajoutées ici par JavaScript -->
@@ -115,6 +122,29 @@
             opacity: 1;
             transform: translateY(0);
         }
+    }
+    
+    /* Style pour l'alerte d'erreur */
+    .error-alert {
+        background-color: var(--sw-error-bg, #ffebee);
+        border: 2px solid var(--sw-error-border, #f44336);
+        color: var(--sw-error-text, #b71c1c);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .error-icon {
+        margin-right: 12px;
+        font-size: 24px;
+        color: var(--sw-error-icon, #d32f2f);
+    }
+    
+    .error-message {
+        flex: 1;
+        font-weight: 500;
     }
 </style>
 {% endblock %} 

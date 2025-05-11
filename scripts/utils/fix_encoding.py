@@ -45,22 +45,24 @@ MATH_TRAINER_PROFILE=dev               # Profil actif (dev, test, prod)
 # SESSION_COOKIE_SECURE=true                       # Cookies sécurisés en production
 """
 
+
+
 def main():
     """Fonction principale pour corriger l'encodage des fichiers"""
     print("Correction de l'encodage des fichiers env.example et .env.example...")
-    
+
     try:
         # Écrire le contenu dans les fichiers avec encodage UTF-8
         with open(env_example_util, 'w', encoding='utf-8') as f:
             f.write(env_content)
-        
+
         with open(env_example_dest, 'w', encoding='utf-8') as f:
             f.write(env_content)
-        
+
         print(f"Fichiers mis à jour avec succès en encodage UTF-8:")
         print(f"  - {env_example_util}")
         print(f"  - {env_example_dest}")
-        
+
         # Vérifier l'encodage
         with open(env_example_dest, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -68,11 +70,11 @@ def main():
                 print("✓ Vérification réussie : Les caractères accentués sont correctement encodés.")
             else:
                 print("⚠ Attention : Possible problème d'encodage des caractères accentués.")
-        
+
         return 0
     except Exception as e:
         print(f"Erreur lors de la correction de l'encodage: {e}")
         return 1
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())

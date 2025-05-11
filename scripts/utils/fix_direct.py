@@ -16,10 +16,12 @@ project_root = Path(__file__).resolve().parent.parent.parent
 # Chemin du fichier destination
 env_example_dest = project_root / ".env.example"
 
+
+
 def main():
     """Fonction principale pour créer le fichier .env.example"""
     print(f"Création du fichier {env_example_dest}...")
-    
+
     try:
         with open(env_example_dest, 'w', encoding='utf-8') as f:
             f.write("""# Math Trainer - Fichier d'environnement exemple
@@ -47,9 +49,9 @@ MATH_TRAINER_PROFILE=dev               # Profil actif (dev, test, prod)
 # ALLOWED_HOSTS=mathtrainer.example.com,localhost  # Hôtes autorisés en production
 # SESSION_COOKIE_SECURE=true                       # Cookies sécurisés en production
 """)
-        
+
         print(f"Fichier {env_example_dest} créé avec succès (encodage UTF-8)")
-        
+
         # Vérifier l'encodage
         with open(env_example_dest, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -57,11 +59,11 @@ MATH_TRAINER_PROFILE=dev               # Profil actif (dev, test, prod)
                 print("✓ Vérification réussie : Les caractères accentués sont correctement encodés.")
             else:
                 print("⚠ Attention : Possible problème d'encodage des caractères accentués.")
-        
+
         return 0
     except Exception as e:
         print(f"Erreur lors de la création du fichier: {e}")
         return 1
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())

@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exercise.title }} - Mathakine{% endblock %}
+
+{% block head %}
+<style>
+    .exercise-detail {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px;
+        position: relative;
+    }
+    
+    .exercise-detail::after {
+        content: "";
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        background-color: transparent;
+        border: 2px solid var(--sw-gold);
+        border-radius: 50%;
+        opacity: 0.2;
+        top: -30px;
+        right: -20px;
+        z-index: -1;
+    }
+    
+    .exercise-detail::before {
+        content: "";
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        background-color: transparent;
+        border: 2px solid var(--sw-blue);
+        border-radius: 50%;
+        opacity: 0.2;
+        bottom: -20px;
+        left: -10px;
+        z-index: -1;
+    }
+    
+    .question-container {
+        margin: 20px 0;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--sw-space), #2a3052);
+        border-radius: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        border: 2px solid var(--sw-card-border);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .question-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--sw-blue), var(--sw-accent), var(--sw-gold));
+    }
+    
+    .question {
+        font-size: 2rem;
+        margin: 0;
+        text-align: center;
+        color: var(--sw-gold);
+    }
+    
+    .choices-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin: 30px 0;
+    }
+    
+    @media (min-width: 768px) {
+        .choices-container {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    .choice-btn {
+        font-size: 2rem;
+        padding: 1.5rem;
+        text-align: center;
+        background-color: var(--sw-card-bg);
+        border: 2px solid var(--sw-accent);
+        color: var(--sw-text);
+        border-radius: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100px;
+    }
+    
+    .choice-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--sw-blue), var(--sw-accent));
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .choice-btn:hover:not(.disabled) {
+        background-color: var(--sw-space);
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        border-color: var(--sw-gold);
+    }
+    
+    .choice-btn:hover:not(.disabled)::before {
+        transform: translateX(0);
+    }
+    
+    .choice-btn.correct {
+        background-color: rgba(40, 167, 69, 0.2);
+        border-color: #28a745;
+        color: #28a745;
+    }
+    
+    .choice-btn.incorrect {
+        background-color: rgba(220, 53, 69, 0.2);
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+    
+    .choice-btn.disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+    
+    .explanation {
+        padding: 1.5rem;
+        background-color: var(--sw-space);
+        border-radius: 0.8rem;
+        margin-top: 20px;
+        border: 2px solid var(--sw-card-border);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .explanation h4 {
+        color: var(--sw-gold);
+        margin-top: 0;
+        font-size: 1.3rem;
+    }
+    
+    .result-message {
+        padding: 1.5rem;
+        border-radius: 0.8rem;
+        margin-top: 20px;
+        text-align: center;
+        font-size: 1.3rem;
+        background-color: var(--sw-space);
+        border: 2px solid var(--sw-card-border);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .result-message.success {
+        border-color: var(--success-color);
+    }
+    
+    .result-message.error {
+        border-color: var(--sw-red);
+    }
+    
+    .exercise-meta {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .difficulty, .exercise-type-tag {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .difficulty::before, .exercise-type-tag::before {
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+    }
+    
+    .difficulty.initie {
+        background-color: rgba(21, 87, 36, 0.2);
+        color: #d4edda;
+    }
+    
+    .difficulty.initie::before {
+        content: "\f005";
+    }
+    
+    .difficulty.padawan {
+        background-color: rgba(133, 100, 4, 0.2);
+        color: #fff3cd;
+    }
+    
+    .difficulty.padawan::before {
+        content: "\f005\f005";
+    }
+    
+    .difficulty.chevalier {
+        background-color: rgba(114, 28, 36, 0.2);
+        color: #f8d7da;
+    }
+    
+    .difficulty.chevalier::before {
+        content: "\f005\f005\f005";
+    }
+    
+    .difficulty.maitre {
+        background-color: rgba(0, 64, 133, 0.2);
+        color: #cce5ff;
+    }
+    
+    .difficulty.maitre::before {
+        content: "\f005\f005\f005\f005";
+    }
+    
+    .exercise-type-tag {
+        background-color: rgba(107, 77, 195, 0.2);
+        color: var(--sw-accent);
+    }
+    
+    .exercise-type-tag::before {
+        content: "\f14a";
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 768px) {
+        .choices-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .question {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>{{ exercise.title }}</h2>
+    <a href="/exercises" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour aux exercices
+    </a>
+</div>
+
+<div class="card exercise-detail">
+    <div class="exercise-meta">
+        <span class="difficulty {{ exercise.difficulty.lower() if exercise.difficulty else 'easy' }}">
+            {% if exercise.difficulty == "initie" %}Initié
+            {% elif exercise.difficulty == "padawan" %}Padawan
+            {% elif exercise.difficulty == "chevalier" %}Chevalier
+            {% elif exercise.difficulty == "maitre" %}Maître
+            {% else %}{{ exercise.difficulty }}
+            {% endif %}
+        </span>
+        <span class="exercise-type-tag">
+            {% if exercise.exercise_type == "addition" %}Addition
+            {% elif exercise.exercise_type == "soustraction" %}Soustraction
+            {% elif exercise.exercise_type == "multiplication" %}Multiplication
+            {% elif exercise.exercise_type == "division" %}Division
+            {% elif exercise.exercise_type == "fractions" %}Fractions
+            {% elif exercise.exercise_type == "geometrie" %}Géométrie
+            {% else %}{{ exercise.exercise_type|title }}
+            {% endif %}
+        </span>
+    </div>
+    
+    <div class="question-container">
+        <h3 class="question">{{ exercise.question }}</h3>
+    </div>
+    
+    <div class="choices-container">
+        {% set correct_answer = exercise.correct_answer|string %}
+        {% set choices = [] %}
+        
+        {# Assurons-nous que les choix sont bien une liste #}
+        {% if exercise.choices is defined and exercise.choices is iterable %}
+            {% for choice in exercise.choices %}
+                {% if choice is not string and choice is not none %}
+                    {% set choice_str = choice|string %}
+                {% else %}
+                    {% set choice_str = choice %}
+                {% endif %}
+                
+                {% if choice_str and choice_str|length > 0 %}
+                    {% if choices.append(choice_str) %}{% endif %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        
+        {# Si pas assez de choix ou aucun choix, créer quelques options basées sur la réponse correcte #}
+        {% if choices|length < 4 and correct_answer and correct_answer.isdigit() %}
+            {% set correct_int = correct_answer|int %}
+            {% if not choices or correct_answer not in choices %}
+                {% if choices.append(correct_answer) %}{% endif %}
+            {% endif %}
+            {% if correct_int + 1 > 0 and (correct_int + 1)|string not in choices %}
+                {% if choices.append((correct_int + 1)|string) %}{% endif %}
+            {% endif %}
+            {% if correct_int - 1 > 0 and (correct_int - 1)|string not in choices %}
+                {% if choices.append((correct_int - 1)|string) %}{% endif %}
+            {% endif %}
+            {% if correct_int + 10 > 0 and (correct_int + 10)|string not in choices %}
+                {% if choices.append((correct_int + 10)|string) %}{% endif %}
+            {% endif %}
+        {% endif %}
+        
+        {# Limiter à 4 choix maximum #}
+        {% set choices = choices[:4] %}
+        
+        {# Afficher les choix #}
+        {% for choice in choices %}
+            <button class="choice-btn" data-value="{{ choice }}" data-correct="{{ correct_answer }}">
+                {{ choice }}
+            </button>
+        {% endfor %}
+    </div>
+    
+    <div class="explanation" style="display: none;">
+        <h4><i class="fas fa-info-circle"></i> Explication:</h4>
+        <p>{{ exercise.explanation }}</p>
+    </div>
+    
+    <div id="result-message" class="result-message" style="display: none;"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const choiceButtons = document.querySelectorAll('.choice-btn');
+        const explanation = document.querySelector('.explanation');
+        const resultMessage = document.getElementById('result-message');
+        
+        // Temps de début pour calculer le temps passé
+        const startTime = Date.now();
+        
+        choiceButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                if (this.classList.contains('disabled')) {
+                    return; // Ne rien faire si le bouton est déjà désactivé
+                }
+                
+                const selectedValue = this.getAttribute('data-value');
+                const correctAnswer = this.getAttribute('data-correct');
+                const timeSpent = (Date.now() - startTime) / 1000; // Temps en secondes
+                
+                // Désactiver tous les boutons
+                choiceButtons.forEach(btn => {
+                    btn.classList.add('disabled');
+                    btn.style.opacity = "0.7";
+                });
+                
+                // Mettre en évidence le bouton actuel
+                this.style.opacity = "1";
+                
+                // Marquer le bouton actuel
+                if (selectedValue === correctAnswer) {
+                    this.classList.add('correct');
+                    resultMessage.innerHTML = '<i class="fas fa-check-circle"></i> Bravo ! C\'est la bonne réponse.';
+                    resultMessage.className = 'result-message success';
+                } else {
+                    this.classList.add('incorrect');
+                    // Trouver et marquer la bonne réponse
+                    choiceButtons.forEach(btn => {
+                        if (btn.getAttribute('data-value') === correctAnswer) {
+                            btn.classList.add('correct');
+                            btn.style.opacity = "1";
+                        }
+                    });
+                    resultMessage.innerHTML = '<i class="fas fa-times-circle"></i> Essaie encore ! Ce n\'est pas la bonne réponse.';
+                    resultMessage.className = 'result-message error';
+                }
+                
+                // Afficher l'explication et le message de résultat
+                explanation.style.display = 'block';
+                resultMessage.style.display = 'block';
+                
+                // Enregistrer la réponse
+                fetch('/api/submit-answer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        exercise_id: {{ exercise.id }},
+                        selected_answer: selectedValue,
+                        time_spent: timeSpent
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Réponse enregistrée:', data);
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                });
+            });
+        });
+    });
+</script>
+{% endblock %} 

@@ -249,6 +249,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('Dashboard initialized');
+        
         // Charger les données du tableau de bord
         loadDashboardData();
         
@@ -257,14 +259,17 @@
         
         // Fonction pour charger les données du tableau de bord
         function loadDashboardData() {
-            fetch('/api/v1/user/stats')
+            console.log('Fetching dashboard data...');
+            fetch('/api/users/stats')
                 .then(response => {
+                    console.log('API Response status:', response.status);
                     if (response.ok) {
                         return response.json();
                     }
                     throw new Error('Erreur lors du chargement des statistiques');
                 })
                 .then(data => {
+                    console.log('Data received:', data);
                     updateDashboard(data);
                 })
                 .catch(error => {
@@ -275,29 +280,50 @@
         
         // Fonction pour mettre à jour le tableau de bord avec les données
         function updateDashboard(data) {
-            if (!data) return;
+            console.log('Updating dashboard with data:', data);
+            if (!data) {
+                console.error('No data available');
+                return;
+            }
+            
+            // Sélectionner les éléments du DOM une seule fois pour performance
+            const statsValues = document.querySelectorAll('.stats-value');
+            console.log('Found stats values:', statsValues.length);
             
             // Mettre à jour les statistiques générales
-            if (data.total_exercises) {
-                document.querySelector('.stats-value:nth-of-type(1)').textContent = data.total_exercises;
+            if (data.total_exercises && statsValues.length >= 1) {
+                console.log('Updating total exercises:', data.total_exercises);
+                statsValues[0].textContent = data.total_exercises;
             }
             
-            if (data.success_rate) {
-                document.querySelector('.stats-value:nth-of-type(2)').textContent = `${data.success_rate}%`;
+            if (data.success_rate && statsValues.length >= 2) {
+                console.log('Updating success rate:', data.success_rate);
+                statsValues[1].textContent = `${data.success_rate}%`;
             }
             
-            if (data.experience_points) {
-                document.querySelector('.stats-value:nth-of-type(3)').textContent = data.experience_points;
+            if (data.experience_points && statsValues.length >= 3) {
+                console.log('Updating experience points:', data.experience_points);
+                statsValues[2].textContent = data.experience_points;
             }
             
             // Mettre à jour le niveau
             if (data.level) {
-                document.querySelector('.level-badge').textContent = data.level.current;
-                document.querySelector('.level-title').textContent = data.level.title;
+                const levelBadge = document.querySelector('.level-badge');
+                const levelTitle = document.querySelector('.level-title');
+                const levelProgress = document.querySelector('.level-indicator .progress-value');
+                const progressText = document.querySelector('.progress-text');
                 
-                const progressPercent = (data.level.current_xp / data.level.next_level_xp) * 100;
-                document.querySelector('.level-indicator .progress-value').style.width = `${progressPercent}%`;
-                document.querySelector('.progress-text').textContent = `${data.level.current_xp}/${data.level.next_level_xp} XP pour le niveau ${data.level.current + 1}`;
+                if (levelBadge && levelTitle && levelProgress && progressText) {
+                    console.log('Updating level data:', data.level);
+                    levelBadge.textContent = data.level.current;
+                    levelTitle.textContent = data.level.title;
+                    
+                    const progressPercent = (data.level.current_xp / data.level.next_level_xp) * 100;
+                    levelProgress.style.width = `${progressPercent}%`;
+                    progressText.textContent = `${data.level.current_xp}/${data.level.next_level_xp} XP pour le niveau ${data.level.current + 1}`;
+                } else {
+                    console.error('Missing level elements in DOM');
+                }
             }
             
             // Mettre à jour les performances par type
@@ -306,11 +332,24 @@
                 
                 types.forEach(type => {
                     if (data.performance_by_type[type]) {
-                        const card = document.querySelector(`.performance-type.${type}`).closest('.performance-card');
-                        const percent = data.performance_by_type[type].success_rate;
+                        console.log(`Updating performance for ${type}:`, data.performance_by_type[type]);
+                        const typeElement = document.querySelector(`.performance-type.${type}`);
                         
-                        card.querySelector('.performance-value').textContent = `${percent}%`;
-                        card.querySelector('.progress-value').style.width = `${percent}%`;
+                        if (typeElement) {
+                            const card = typeElement.closest('.performance-card');
+                            if (card) {
+                                const percent = data.performance_by_type[type].success_rate;
+                                const valueElement = card.querySelector('.performance-value');
+                                const progressElement = card.querySelector('.progress-value');
+                                
+                                if (valueElement) valueElement.textContent = `${percent}%`;
+                                if (progressElement) progressElement.style.width = `${percent}%`;
+                            } else {
+                                console.error(`Performance card not found for ${type}`);
+                            }
+                        } else {
+                            console.error(`Performance type element not found for ${type}`);
+                        }
                     }
                 });
             }
@@ -318,42 +357,71 @@
             // Mettre à jour l'activité récente
             if (data.recent_activity && data.recent_activity.length > 0) {
                 const activityList = document.querySelector('.activity-list');
-                activityList.innerHTML = '';
-                
-                data.recent_activity.forEach(activity => {
-                    let iconClass = 'fa-question';
+                if (activityList) {
+                    console.log('Updating recent activity:', data.recent_activity.length, 'items');
+                    activityList.innerHTML = '';
                     
-                    if (activity.type === 'exercise_completed') {
-                        iconClass = activity.is_correct ? 'fa-check' : 'fa-times';
-                    } else if (activity.type === 'level_up') {
-                        iconClass = 'fa-arrow-up';
-                    }
-                    
-                    const html = `
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <i class="fas ${iconClass}"></i>
+                    data.recent_activity.forEach(activity => {
+                        let iconClass = 'fa-question';
+                        
+                        if (activity.type === 'exercise_completed') {
+                            iconClass = activity.is_correct ? 'fa-check' : 'fa-times';
+                        } else if (activity.type === 'level_up') {
+                            iconClass = 'fa-arrow-up';
+                        }
+                        
+                        const html = `
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <i class="fas ${iconClass}"></i>
+                                </div>
+                                <div class="activity-details">
+                                    <div>${activity.description}</div>
+                                    <div class="activity-time">${activity.time}</div>
+                                </div>
                             </div>
-                            <div class="activity-details">
-                                <div>${activity.description}</div>
-                                <div class="activity-time">${activity.time}</div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    activityList.insertAdjacentHTML('beforeend', html);
-                });
+                        `;
+                        
+                        activityList.insertAdjacentHTML('beforeend', html);
+                    });
+                } else {
+                    console.error('Activity list element not found');
+                }
             }
             
             // Mettre à jour les données du graphique
-            if (data.progress_over_time && progressChart) {
-                progressChart.data.labels = data.progress_over_time.labels;
+            if (data.progress_over_time && window.progressChart) {
+                console.log('Updating chart data:', data.progress_over_time);
                 
-                data.progress_over_time.datasets.forEach((dataset, index) => {
-                    progressChart.data.datasets[index].data = dataset.data;
-                });
-                
-                progressChart.update();
+                try {
+                    // Vérifier que les labels et les données existent
+                    if (data.progress_over_time.labels && 
+                        data.progress_over_time.datasets && 
+                        data.progress_over_time.datasets.length > 0 &&
+                        data.progress_over_time.datasets[0].data) {
+                        
+                        window.progressChart.data.labels = data.progress_over_time.labels;
+                        
+                        // Assurer que le dataset existe dans le graphique
+                        if (window.progressChart.data.datasets.length > 0) {
+                            window.progressChart.data.datasets[0].data = data.progress_over_time.datasets[0].data;
+                            window.progressChart.update();
+                            console.log('Chart updated successfully');
+                        } else {
+                            console.error('No datasets in chart');
+                        }
+                    } else {
+                        console.error('Invalid progress_over_time data structure', data.progress_over_time);
+                    }
+                } catch (error) {
+                    console.error('Error updating chart:', error);
+                }
+            } else {
+                console.warn('Chart not initialized or no progress data');
+                // Réinitialiser le graphique si pas encore fait
+                if (!window.progressChart) {
+                    initializeCharts();
+                }
             }
         }
         
@@ -362,9 +430,22 @@
         
         // Fonction pour initialiser les graphiques
         function initializeCharts() {
-            const ctx = document.getElementById('progressChart').getContext('2d');
+            const ctx = document.getElementById('progressChart');
+            if (!ctx) {
+                console.error('Canvas element not found for chart');
+                return;
+            }
             
-            progressChart = new Chart(ctx, {
+            console.log('Initializing charts');
+            const ctxContext = ctx.getContext('2d');
+            
+            if (!ctxContext) {
+                console.error('Could not get 2D context for chart');
+                return;
+            }
+            
+            // Attribuer le graphique à une variable globale pour un accès plus facile
+            window.progressChart = new Chart(ctxContext, {
                 type: 'line',
                 data: {
                     labels: ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'J-1', 'Aujourd\'hui'],
@@ -399,6 +480,8 @@
                     }
                 }
             });
+            
+            console.log('Chart initialized:', window.progressChart ? 'success' : 'failed');
         }
     });
 </script>

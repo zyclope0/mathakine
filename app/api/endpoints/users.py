@@ -15,6 +15,8 @@ router = APIRouter()
 _challenges_progress = {}
 
 @router.get("/", response_model=List[User])
+
+
 def get_users(
     db: Session = Depends(get_db_session),
     skip: int = 0,
@@ -28,6 +30,8 @@ def get_users(
 
 
 @router.post("/", response_model=User, status_code=201)
+
+
 def create_user(
     *,
     db: Session = Depends(get_db_session),
@@ -57,6 +61,8 @@ def create_user(
 
 
 @router.get("/{user_id}", response_model=User)
+
+
 def get_user(
     *,
     db: Session = Depends(get_db_session),
@@ -81,6 +87,8 @@ def get_user(
 
 
 @router.put("/{user_id}", response_model=User)
+
+
 def update_user(
     *,
     db: Session = Depends(get_db_session),
@@ -106,6 +114,8 @@ def update_user(
 
 
 @router.get("/{user_id}/challenges/progress", response_model=dict)
+
+
 def get_user_challenges_progress(
     *,
     db: Session = Depends(get_db_session),
@@ -121,11 +131,11 @@ def get_user_challenges_progress(
             "total_challenges": 10,
             "last_attempt_time": None
         }
-    
+
     # Pour les tests: si une tentative a été faite depuis la dernière vérification
     # de progression, incrémenter le nombre de défis complétés
     user_progress = _challenges_progress[user_id]
-    
+
     return {
         "completed_challenges": user_progress["completed_challenges"],
         "total_challenges": 10,
@@ -158,6 +168,8 @@ def get_user_challenges_progress(
 
 
 @router.get("/{user_id}/progress", response_model=dict)
+
+
 def get_user_progress(
     *,
     db: Session = Depends(get_db_session),
@@ -193,6 +205,8 @@ def get_user_progress(
 
 
 @router.delete("/{user_id}", status_code=204, response_model=None)
+
+
 def delete_user(
     *,
     db: Session = Depends(get_db_session),
@@ -202,4 +216,4 @@ def delete_user(
     Supprimer un utilisateur.
     """
     # Placeholder function - implement actual user deletion
-    return None 
+    return None

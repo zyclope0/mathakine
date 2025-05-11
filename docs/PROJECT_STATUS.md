@@ -17,10 +17,8 @@ Mathakine est une application éducative conçue pour les enfants autistes, perm
 - ✅ Intégration de la validation dans les scripts existants
 - ✅ Résolution des problèmes d'encodage et de compatibilité PowerShell
 
-## ITÉRATION EN COURS
-
 ### Itération 3: "L'API Rebelle" - Implémentation de l'API REST
-*Un plan détaillé est disponible dans le fichier [API_REBELLE_IMPLEMENTATION_PLAN.md](API_REBELLE_IMPLEMENTATION_PLAN.md)*
+*Un plan détaillé est disponible dans le fichier [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)*
 
 #### Objectifs de l'itération
 - Créer une API REST complète pour servir de base à la prochaine génération de l'interface
@@ -45,21 +43,21 @@ Mathakine est une application éducative conçue pour les enfants autistes, perm
 
 3. **La Construction du Temple API**
    - [x] Restructurer l'architecture API (dossier app/api avec endpoints séparés)
-   - [x] Développer les endpoints CRUD pour les utilisateurs
+   - [ ] Développer les endpoints CRUD pour les utilisateurs
    - [x] Développer les endpoints CRUD pour les exercices 
-   - [x] Créer le système d'authentification ("identification des Padawans")
-   - [x] Implémenter le système de gestion des rôles et permissions
+   - [ ] Créer le système d'authentification ("identification des Padawans")
+   - [ ] Implémenter le système de gestion des rôles et permissions
    - [x] Moderniser l'application FastAPI avec les gestionnaires lifespan
 
 4. **L'Académie des Jeunes Utilisateurs**
-   - [x] Développer les endpoints de progression et statistiques
-   - [x] Créer le système de parcours d'apprentissage adaptatif
-   - [x] Implémenter les recommandations d'exercices personnalisés
+   - [ ] Développer les endpoints de progression et statistiques
+   - [ ] Créer le système de parcours d'apprentissage adaptatif
+   - [ ] Implémenter les recommandations d'exercices personnalisés
 
 5. **Les Défis de Logique (Épreuves du Conseil Jedi)**
    - [x] Développer un système de problèmes de logique pour les 10-15 ans
    - [x] Créer des exercices imagés et abstraits adaptés aux concours mathématiques
-   - [x] Implémenter un système d'évaluation progressif par niveau d'âge
+   - [ ] Implémenter un système d'évaluation progressif par niveau d'âge
    - [ ] Intégrer un moteur de génération de défis logiques personnalisés (prévu pour l'itération suivante)
 
 6. **La Cartographie de la Galaxie API**
@@ -129,19 +127,73 @@ Mathakine est une application éducative conçue pour les enfants autistes, perm
    - [x] Amélioration de la cohérence des données entre les différentes tables
 
 #### État de l'Itération
-L'itération 3 est maintenant **TERMINÉE** avec toutes les fonctionnalités essentielles implémentées et testées. Les prochaines étapes consisteront à étendre ces fonctionnalités dans les itérations futures et à mettre en œuvre l'interface utilisateur modernisée.
+L'itération 3 est maintenant **PARTIELLEMENT TERMINÉE** avec certaines fonctionnalités essentielles implémentées et testées, mais plusieurs éléments clés restant à l'état de placeholders. Les prochaines étapes consisteront à compléter les fonctionnalités manquantes avant de passer aux itérations futures.
 
-#### Planning
+## ÉTAT ACTUEL DU PROJET (Mai 2025)
 
-| Semaine | Activité principale | Livrables |
-|---------|---------------------|-----------|
-| 1-2     | Préparation et modèles | Infrastructure renommée et modèles de données |
-| 3-4     | Endpoints principaux | API CRUD fonctionnelle |
-| 5-6     | Progression et statistiques | Système de progression complet |
-| 7       | Documentation et tests | Documentation Swagger et suite de tests |
-| 8       | Améliorations visuelles | Interface utilisateur améliorée |
+### Vue d'ensemble des fonctionnalités
+
+| Fonctionnalité | État | Commentaire |
+|----------------|------|-------------|
+| **Backend API REST** | ⚠️ PARTIELLEMENT TERMINÉ | API avec structure complète mais plusieurs endpoints contiennent du code temporaire |
+| **Interface graphique Starlette** | ✅ TERMINÉ | Interface utilisateur avec thème Star Wars, intégrée via enhanced_server.py |
+| **Interface CLI** | ✅ TERMINÉ | CLI complet avec mathakine_cli.py |
+| **Génération d'exercices** | ✅ TERMINÉ | Support pour addition, soustraction, multiplication, division |
+| **Défis logiques** | ⚠️ EN COURS | Modèles créés, endpoints provisoires, mais fonctionnalités incomplètes |
+| **Système de progression** | ⚠️ PARTIELLEMENT | La structure existe mais l'implémentation est incomplète |
+| **Mode adaptatif** | ⚠️ EN COURS | Conception architecturale seulement |
+| **Migration PostgreSQL** | ✅ TERMINÉ | Support complet pour SQLite (dev) et PostgreSQL (prod) |
+| **Authentification** | ⚠️ NON IMPLÉMENTÉ | Modèles et endpoints définis mais implémentation réelle manquante |
+| **Tests automatisés** | ⚠️ PARTIELLEMENT | Tests unitaires et d'intégration présents, mais incomplets pour certaines fonctionnalités |
+| **Documentation** | ✅ TERMINÉ | Documentation exhaustive dans le dossier docs/ |
+| **Compatibilité Python 3.13** | ✅ TERMINÉ | Support complet pour les dernières versions de Python |
+| **Conteneurisation** | ✅ TERMINÉ | Support Docker et déploiement Render |
+
+### État du code 
+
+Basé sur une analyse complète du code source, voici la répartition des fichiers par statut :
+
+- **ACTUEL** : 85% des fichiers (essentiels au fonctionnement)
+- **OBSOLÈTE** : 10% des fichiers (conservés pour référence historique)
+- **INUTILE** : 2% des fichiers (peuvent être supprimés)
+- **DOUBLON** : 3% des fichiers (peuvent être consolidés)
+
+Un rapport détaillé est disponible dans `file_analysis.md`.
+
+### Améliorations récentes significatives
+
+1. **Migration complète vers PostgreSQL**
+   - Support pour SQLite en développement et PostgreSQL en production
+   - Scripts de migration automatisés
+   - Gestion transparente des différences de types entre les bases de données
+
+2. **Normalisation des données**
+   - Uniformisation des types d'exercices et niveaux de difficulté
+   - Correction des incohérences historiques dans les données
+   - Prévention des problèmes futurs avec des validateurs Pydantic stricts
+
+3. **Modernisation de l'architecture**
+   - Séparation claire entre API REST et interface graphique
+   - Structure modulaire facilitant la maintenance
+   - Implémentation des meilleures pratiques SQLAlchemy 2.0 et FastAPI
+
+4. **Système de logs centralisé**
+   - Configuration unifiée dans app/core/logging_config.py
+   - Rotation automatique des logs
+   - Niveaux de logs différenciés pour faciliter le débogage
+
+5. **Système d'auto-validation robuste**
+   - Tests organisés en catégories logiques (unitaires, API, intégration, fonctionnels)
+   - Rapports de test automatisés en plusieurs formats
+   - Vérification de compatibilité avec Python 3.13
 
 ## ITÉRATIONS FUTURES
+
+### Itération 3 (Suite): Complétion de l'API Rebelle
+- Implémentation réelle du système d'authentification JWT
+- Finalisation des endpoints pour les défis logiques
+- Développement des fonctionnalités de progression adaptatées
+- Implémentation du moteur de génération de défis logiques
 
 ### Itération 4: "L'Interface Nouvelle" - Refonte de l'interface utilisateur
 - Interface adaptative pour différents besoins
@@ -164,7 +216,7 @@ L'itération 3 est maintenant **TERMINÉE** avec toutes les fonctionnalités ess
 
 Le stockage des exercices dans Mathakine repose actuellement sur les éléments suivants:
 
-1. **Base de données SQLite**
+1. **Base de données SQLite/PostgreSQL**
    - Table `exercises` stockant les exercices générés avec les champs:
      - `id`: Identifiant unique (clé primaire)
      - `question`: Texte de la question
@@ -199,92 +251,44 @@ Le stockage des exercices dans Mathakine repose actuellement sur les éléments 
 - Double méthode de génération (algorithmique et IA)
 
 #### Limitations
-- **Dépendance à SQLite**: Base de données fichier, pas idéale pour une application multi-utilisateurs à grande échelle
+- **Dépendance à SQLite**: Résolu avec la migration vers PostgreSQL pour les environnements de production
 - **Absence de versionnement des exercices**: Pas de suivi des modifications d'exercices
 - **Stockage monolithique**: Pas de séparation entre définition d'exercice et instances d'exercices
 - **Pas de catégorisation avancée**: Taxonomie limitée (type et difficulté uniquement)
 - **Stockage des choix en JSON**: Limite les possibilités de requêtes avancées sur les options
 
-### Recommandations d'amélioration
+### Améliorations mises en œuvre
 
 1. **Migration vers une base de données plus robuste**
-   - Passage à PostgreSQL pour supporter plus d'utilisateurs concurrents
-   - Possibilité de recherche texte avancée pour les questions/explications
+   - ✅ Migration à PostgreSQL supportée pour les environnements de production
+   - ✅ Conservation de SQLite pour le développement local (facilité d'utilisation)
+   - ✅ Scripts de migration automatisés
+   - ✅ Gestion des différences de types entre les SGBD
 
-2. **Restructuration du modèle de données**
+2. **Normalisation des données**
+   - ✅ Correction des inconsistances historiques
+   - ✅ Validateurs Pydantic stricts pour prévenir les problèmes futurs
+   - ✅ Script de correction pour les bases de données existantes
+
+### Recommandations pour la prochaine itération
+
+1. **Restructuration du modèle de données**
    - Séparation entre modèles d'exercices (templates) et instances
    - Table de catégories d'exercices avec taxonomie hiérarchique
    - Table dédiée pour les choix de réponses (normalisation)
 
-3. **Système de versionnement**
+2. **Système de versionnement**
    - Suivi des modifications d'exercices pour analyses longitudinales
    - Support pour l'évolution des exercices sans perte d'historique
 
-4. **Système de métadonnées extensible**
+3. **Système de métadonnées extensible**
    - Champs de métadonnées flexibles pour enrichir les exercices
    - Tags et attributs personnalisables
 
-5. **Optimisations de performance**
+4. **Optimisations de performance**
    - Indexation appropriée pour les requêtes fréquentes
    - Mise en cache des exercices populaires
    - Stratégies de partitionnement pour les grandes quantités de données
-
-Ces améliorations sont essentielles pour assurer la pérennité du stockage des exercices, particulièrement dans l'optique du développement de l'API REST et de l'évolution future du projet.
-
-### Timing de la migration de la base de données
-
-La question du moment optimal pour migrer de SQLite vers un système de base de données plus robuste est stratégique. Voici une analyse des différentes options:
-
-#### Option 1: Migration immédiate
-**Avantages:**
-- Évite l'accumulation de dette technique
-- Permet de concevoir l'API REST directement avec le système final
-- Élimine le besoin de migration de données plus tard
-
-**Inconvénients:**
-- Ralentit le développement actuel des fonctionnalités
-- Complexifie l'environnement de développement prématurément
-- Peut représenter un investissement trop précoce
-
-#### Option 2: Migration lors du premier déploiement
-**Avantages:**
-- Permet de finaliser le modèle de données basé sur l'expérience de développement
-- Timing approprié avant l'exposition aux utilisateurs réels
-- Coïncide avec la mise en place de l'infrastructure de production
-
-**Inconvénients:**
-- Nécessite un effort concentré juste avant le déploiement
-- Peut révéler des problèmes de dernière minute
-- Requiert une refactorisation de l'API si celle-ci a été développée avant
-
-#### Option 3: Migration ultérieure (après les premiers utilisateurs)
-**Avantages:**
-- Permet de valider les besoins réels basés sur l'utilisation effective
-- Développement initial plus rapide avec SQLite
-- Migration justifiée par des métriques de performance concrètes
-
-**Inconvénients:**
-- Accumulation de dette technique
-- Migration plus complexe une fois les données utilisateurs présentes
-- Risque de limitations de performances une fois en production
-
-#### Recommandation
-
-Pour Mathakine, l'**Option 2 (Migration lors du premier déploiement)** représente le meilleur compromis pour les raisons suivantes:
-
-1. Le développement de l'API REST peut continuer avec SQLite, permettant d'itérer rapidement sur le design
-2. Les modèles de données peuvent être affinés pendant la phase de développement
-3. La migration avant le déploiement garantit que le système est prêt pour les utilisateurs réels
-4. Cette approche permet d'inclure la migration dans le processus de CI/CD dès le début
-
-**Plan de migration proposé:**
-1. Continuer le développement avec SQLite pour les itérations rapides
-2. Concevoir les modèles avec la migration future en tête (éviter les fonctionnalités spécifiques à SQLite)
-3. Implémenter les tests avec des mocks de base de données pour faciliter la transition
-4. Créer des scripts de migration automatisés avant le premier déploiement
-5. Intégrer un ORM (SQLAlchemy) dès maintenant pour abstraire l'accès à la base de données
-
-Cette stratégie préserve la rapidité de développement tout en préparant le terrain pour une transition en douceur vers un système plus robuste au moment le plus opportun.
 
 ## OPTIMISATIONS PLANIFIÉES
 
@@ -313,6 +317,26 @@ Cette stratégie préserve la rapidité de développement tout en préparant le 
 - [ ] Monitoring en temps réel des performances
 - [ ] Documentation générée automatiquement à partir du code
 
+## NETTOYAGE DU CODE ET PROCHAINES ACTIONS
+
+### Actions de nettoyage recommandées
+
+1. **Suppression des fichiers inutiles**
+   - Fichiers temporaires comme `temp_function.py`
+   - Tests redondants et anciens rapports de test
+
+2. **Consolidation des archives**
+   - Déplacer tous les fichiers obsolètes dans le dossier `archives/`
+   - Organiser les archives par catégorie et date
+
+3. **Restructuration**
+   - Renommer le dossier principal en "mathakine" (actuellement "math-trainer-backend")
+   - Mettre à jour toutes les références dans le code et la documentation
+
+4. **Standardisation du code**
+   - Appliquer les règles de formatage uniformes avec Black et isort
+   - Mettre en place pre-commit hooks pour maintenir la qualité du code
+
 ## SUIVI DES RÉVISIONS ET POINTS À CHALLENGER
 
 | Date       | Éléments challengés                                | Résultat                            | Action requise                       |
@@ -326,7 +350,9 @@ Cette stratégie préserve la rapidité de développement tout en préparant le 
 | 06/06/2024 | Point 1: Préparation de l'infrastructure           | Infrastructure de base créée        | Continuer avec le Point 2 (Modèles de données) |
 | 13/06/2024 | Mise à jour des éléments visuels et UI             | Implémentation du thème spatial avec correction des artefacts visuels | Finaliser les validateurs de données et les modèles |
 | 13/06/2024 | Point 2: Le Conseil Jedi des Données              | Modèles et schémas de validation implémentés | Commencer le développement des endpoints CRUD |
-| ⚠️ PROCHAINE RÉVISION: 20/06/2024                                                                                                        |
+| 22/07/2024 | Revue complète de l'itération 3                   | Itération marquée comme partiellement terminée | Finaliser les implémentations manquantes avant de démarrer l'itération 4 |
+| 08/05/2025 | Analyse complète des fichiers du projet            | Classification des fichiers par statut | Procéder au nettoyage recommandé |
+| ⚠️ PROCHAINE RÉVISION: 15/05/2025                                                                                                      |
 
 ### Points à challenger régulièrement:
 - Les délais de chaque itération sont-ils réalistes?
@@ -339,9 +365,10 @@ Cette stratégie préserve la rapidité de développement tout en préparant le 
 
 ## DOCUMENTATION ASSOCIÉE
 
-- [API_REBELLE_IMPLEMENTATION_PLAN.md](API_REBELLE_IMPLEMENTATION_PLAN.md): Plan détaillé de l'implémentation de l'API Rebelle
-- [GETTING_STARTED.md](GETTING_STARTED.md): Guide de démarrage pour les nouveaux développeurs
+- [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md): Plan détaillé de l'implémentation de l'API Rebelle
+- [../GETTING_STARTED.md](../GETTING_STARTED.md): Guide de démarrage pour les nouveaux développeurs
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md): Guide de résolution des problèmes connus
+- [../file_analysis.md](../file_analysis.md): Analyse détaillée de tous les fichiers du projet
 
 ---
-*Dernière mise à jour: 22/07/2024* 
+*Dernière mise à jour: 08/05/2025* 

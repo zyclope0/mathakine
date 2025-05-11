@@ -13,4 +13,4 @@ api_router.include_router(exercises.router, prefix="/exercises", tags=["exercise
 api_router.include_router(challenges.router, prefix="/challenges", tags=["challenges"])
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 
-# Ajouter d'autres routeurs selon les besoins 
+# Ajouter d'autres routeurs selon les besoins

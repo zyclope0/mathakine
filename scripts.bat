@@ -34,12 +34,16 @@ echo  ---------------------
 echo  D. Déployer l'application (GitHub + hébergement)
 echo  G. Gérer le dépôt Git (commit, push)
 echo.
+echo  DOCUMENTATION
+echo  -------------
+echo  M. Menu de gestion de la documentation
+echo.
 echo  UTILITAIRES
 echo  ----------
 echo  A. Vérifier l'environnement
 echo  0. Quitter
 echo.
-set /p choix="Votre choix (0-9, A, D, G): "
+set /p choix="Votre choix (0-9, A, D, G, M): "
 
 if "%choix%"=="1" goto :install_and_run
 if "%choix%"=="2" goto :config_env
@@ -53,6 +57,7 @@ if "%choix%"=="9" goto :test_api
 if /i "%choix%"=="A" goto :check_env
 if /i "%choix%"=="D" goto :deploy
 if /i "%choix%"=="G" goto :git_manage
+if /i "%choix%"=="M" goto :doc_menu
 if "%choix%"=="0" goto :exit
 
 echo.
@@ -204,6 +209,12 @@ if "%git_choice%"=="1" (
     echo Choix invalide! Retour au menu principal.
     timeout /t 2 >nul
 )
+goto :menu
+
+:doc_menu
+cls
+echo Lancement du menu de gestion de la documentation...
+call scripts\doc_menu.bat
 goto :menu
 
 :exit

@@ -1,0 +1,11 @@
+[flake8]
+max-line-length = 100
+exclude = .git,__pycache__,dist,build,*.egg,venv,env,archive,archives
+ignore = E203, W503  # Ces règles sont en contradiction avec Black
+per-file-ignores =
+    __init__.py: F401
+    # Ignorer les lignes trop longues dans les fichiers de tests
+    tests/*: E501
+    # Ignorer certaines erreurs dans les fichiers temporaires ou de configuration
+    **/conftest.py: E402, F401
+    setup.py: E402 

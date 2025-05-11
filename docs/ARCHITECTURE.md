@@ -237,7 +237,7 @@ Des efforts significatifs ont été faits pour assurer la compatibilité avec Py
    - Utilisation des meilleures pratiques pour la validation des entrées
    - Mise en œuvre de middleware de sécurité
 
-Pour plus de détails sur la compatibilité, voir [docs/validation/COMPATIBILITY.md](validation/COMPATIBILITY.md).
+Pour plus de détails sur la compatibilité, voir [validation/COMPATIBILITY.md](validation/COMPATIBILITY.md).
 
 ## Évolution future
 

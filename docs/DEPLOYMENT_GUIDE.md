@@ -177,6 +177,7 @@ Ce script affichera le type de base de données, la version, et listera toutes l
 - Vérifiez que la variable `DATABASE_URL` est correctement configurée
 - Assurez-vous que la base de données est accessible depuis le service web
 - Utilisez le script `check_db_connection.py` pour diagnostiquer les problèmes
+- Pour un diagnostic plus approfondi, utilisez le nouveau script `test_render_connection.py` qui teste spécifiquement la connexion PostgreSQL
 
 ### Erreur H10 sur Heroku
 - Vérifiez que le Procfile est correctement configuré
@@ -185,6 +186,12 @@ Ce script affichera le type de base de données, la version, et listera toutes l
 ### Problèmes avec Fly.io
 - Vérifiez que le Dockerfile est correctement configuré
 - Consultez les logs avec `fly logs`
+
+### Problèmes d'affichage de l'interface graphique
+- Vérifiez que tous les fichiers statiques et templates sont présents avec `python check_ui_setup.py`
+- Assurez-vous que les dossiers `/static` et `/templates` existent à la racine du projet
+- Vérifiez que les fichiers CSS et images sont correctement chargés dans le navigateur (outils de développement)
+- Si l'API fonctionne mais pas l'interface graphique, vérifiez que FastAPI est configuré pour servir les fichiers statiques
 
 ## Migration vers la Production
 
@@ -195,4 +202,33 @@ Une fois que vous êtes prêt à passer en production:
 3. Mettez en place des sauvegardes de base de données
 4. Configurez la surveillance et les alertes
 
-Pour des questions ou problèmes, consultez la documentation de la plateforme choisie ou ouvrez une issue sur GitHub. 
+## Configuration avancée
+
+### Configuration de l'interface graphique
+
+L'application inclut désormais une interface graphique moderne avec un thème spatial. Pour la personnaliser :
+
+1. **Templates HTML**
+   - Les templates se trouvent dans le dossier `/templates`
+   - Modifiez `base.html` pour changer la structure commune
+   - Personnalisez `home.html`, `exercises.html` et `dashboard.html` selon vos besoins
+
+2. **Styles CSS**
+   - Les fichiers CSS sont dans le dossier `/static`
+   - `style.css` contient les styles de base
+   - `space-theme.css` définit le thème spatial
+   - `home-styles.css` est spécifique à la page d'accueil
+
+3. **Assets graphiques**
+   - Les images se trouvent dans `/static/img`
+   - Vous pouvez remplacer `mathakine-logo.svg` et `favicon.svg` par vos propres versions
+
+4. **Vérification de la configuration**
+   ```
+   python check_ui_setup.py
+   ```
+
+Pour des questions ou problèmes, consultez la documentation de la plateforme choisie ou ouvrez une issue sur GitHub.
+
+---
+*Dernière mise à jour : 20/09/2024* 

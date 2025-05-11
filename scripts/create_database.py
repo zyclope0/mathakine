@@ -14,10 +14,12 @@ from app.models.all_models import User, UserRole, Exercise, ExerciseType, Diffic
 from app.models.logic_challenge import LogicChallenge, LogicChallengeType, AgeGroup
 from loguru import logger
 
+
+
 def create_initial_data():
     """Crée les données initiales dans la base de données"""
     logger.info("Création des données initiales dans la base de données")
-    
+
     db = SessionLocal()
     try:
         # Vérifier si des données existent déjà
@@ -25,7 +27,7 @@ def create_initial_data():
         if existing_users:
             logger.info("Des données existent déjà dans la base, abandon de l'initialisation")
             return
-            
+
         logger.info("Création des paramètres système initiaux")
         db_settings = [
             Setting(
@@ -58,12 +60,13 @@ def create_initial_data():
             )
         ]
         db.add_all(db_settings)
-        
+
         logger.info("Création de l'utilisateur administrateur")
         admin_user = User(
             username="maitre_yoda",
             email="yoda@jedi-temple.com",
-            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",  # "password"
+            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"\
+                ,  # "password"
             full_name="Maître Yoda",
             role=UserRole.ARCHIVISTE,
             grade_level=10,
@@ -71,7 +74,7 @@ def create_initial_data():
         )
         db.add(admin_user)
         db.flush()  # Pour obtenir l'ID de l'utilisateur
-        
+
         logger.info("Création d'un exemple d'exercice")
         example_exercise = Exercise(
             title="Addition de Padawan",
@@ -80,18 +83,20 @@ def create_initial_data():
             question="Quelle est la somme de 5 + 3?",
             correct_answer="8",
             choices=["6", "7", "8", "9"],
-            explanation="Pour additionner 5 et 3, il faut compter 3 nombres après 5, ce qui donne 8.",
+            explanation="Pour additionner 5 et 3, il faut compter 3 nombres après 5\
+                , ce qui donne 8.",
             hint="Imagine que tu as 5 étoiles et que tu en reçois 3 de plus."
         )
         db.add(example_exercise)
-        
+
         logger.info("Création d'un exemple de défi logique")
         example_logic_challenge = LogicChallenge(
             title="La séquence des cristaux Kyber",
             creator_id=admin_user.id,
             challenge_type=LogicChallengeType.SEQUENCE,
             age_group=AgeGroup.GROUP_10_12,
-            description="Maître Yoda a disposé des cristaux Kyber dans un ordre précis. Quelle est la valeur du prochain cristal dans cette séquence: 2, 4, 8, 16, 32, ?",
+            description="Maître Yoda a disposé des cristaux Kyber dans un ordre précis. Quelle est la valeur du prochain cristal dans cette séquence: 2\
+                , 4, 8, 16, 32, ?",
             correct_answer="64",
             solution_explanation="Chaque nombre est multiplié par 2 pour obtenir le suivant.",
             hint_level1="Observe comment chaque nombre est lié au précédent.",
@@ -102,7 +107,7 @@ def create_initial_data():
             tags="séquence,multiplication,cristaux"
         )
         db.add(example_logic_challenge)
-        
+
         logger.info("Création d'un exemple de défi de déduction")
         deduction_challenge = LogicChallenge(
             title="L'ordre des apprentis Jedi",
@@ -118,7 +123,8 @@ def create_initial_data():
             correct_answer="Anakin: jaune, Ben: violet, Cere: bleu, Depa: rouge, Ezra: vert",
             solution_explanation="""Solution pas à pas:
 1. Depa a le sabre rouge (indice 4).
-2. Anakin n'a ni le bleu ni le rouge (indice 1), donc il a soit le jaune, soit le vert, soit le violet.
+2. Anakin n'a ni le bleu ni le rouge (indice 1), donc il a soit le jaune, soit le vert
+    , soit le violet.
 3. Ezra n'est pas à côté du propriétaire du sabre bleu (indice 5).
 4. Ben est à droite du propriétaire du sabre vert (indice 2), donc Ezra est le propriétaire du sabre vert.
 5. Ben est à droite d'Ezra et a donc le sabre violet.
@@ -131,10 +137,10 @@ def create_initial_data():
             tags="déduction,logique,jedi,sabre laser"
         )
         db.add(deduction_challenge)
-        
+
         db.commit()
         logger.success("Données initiales créées avec succès")
-        
+
     except Exception as e:
         db.rollback()
         logger.error(f"Erreur lors de la création des données initiales: {e}")
@@ -146,4 +152,4 @@ if __name__ == "__main__":
     logger.info("Initialisation de la base de données Mathakine")
     create_tables()
     create_initial_data()
-    logger.success("Base de données initialisée avec succès!") 
+    logger.success("Base de données initialisée avec succès!")

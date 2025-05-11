@@ -5,11 +5,20 @@ from app.models.exercise import ExerciseType, DifficultyLevel
 
 client = TestClient(app)
 
+
+
 def test_get_exercises():
     """Test de l'endpoint pour récupérer tous les exercices"""
     response = client.get("/api/exercises/")
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
+    data = response.json()
+    assert "exercises" in data
+    assert isinstance(data["exercises"], list)
+    assert "total" in data
+    assert "limit" in data
+    assert "skip" in data
+
+
 
 def test_get_exercise_types():
     """Test de l'endpoint pour récupérer tous les types d'exercices"""
@@ -19,6 +28,8 @@ def test_get_exercise_types():
     assert "addition" in response.json()
     assert "soustraction" in response.json()
 
+
+
 def test_get_difficulty_levels():
     """Test de l'endpoint pour récupérer tous les niveaux de difficulté"""
     response = client.get("/api/exercises/difficulties")
@@ -26,6 +37,8 @@ def test_get_difficulty_levels():
     assert isinstance(response.json(), list)
     assert "initie" in response.json()
     assert "padawan" in response.json()
+
+
 
 def test_create_exercise():
     """Test de l'endpoint pour créer un exercice"""
@@ -55,6 +68,8 @@ def test_create_exercise():
         # Ce n'est pas grave pour nos tests actuels
         pass
 
+
+
 def test_get_nonexistent_exercise():
     """Test de l'endpoint pour récupérer un exercice inexistant"""
     response = client.get("/api/exercises/0")
@@ -63,6 +78,8 @@ def test_get_nonexistent_exercise():
 # Ces deux tests sont susceptibles d'échouer à cause du middleware de logging qui capture toutes les erreurs
 # Nous les laissons commentés car ils ne sont pas cruciaux pour vérifier la structure du code
 """
+
+
 def test_get_random_exercise():
     # Test de l'endpoint pour récupérer un exercice aléatoire
     try:
@@ -80,6 +97,8 @@ def test_get_random_exercise():
         # Il est possible que ce test échoue en raison du middleware qui capture les erreurs
         pass
 
+
+
 def test_get_exercise_by_id():
     # Test de l'endpoint pour récupérer un exercice par ID
     try:
@@ -90,4 +109,4 @@ def test_get_exercise_by_id():
     except Exception as e:
         # Il est possible que ce test échoue en raison du middleware qui capture les erreurs
         pass
-""" 
+"""

@@ -11,6 +11,8 @@ from app.schemas.user import UserLogin, Token
 router = APIRouter()
 
 @router.post("/login", response_model=Token)
+
+
 def login(
     user_login: UserLogin,
     db: Session = Depends(get_db_session),
@@ -27,9 +29,11 @@ def login(
 
 
 @router.post("/logout")
+
+
 def logout() -> Any:
     """
     Se déconnecter et invalider le token.
     """
     # Placeholder function - implement actual logout
-    return {"detail": "Déconnecté avec succès"} 
+    return {"detail": "Déconnecté avec succès"}

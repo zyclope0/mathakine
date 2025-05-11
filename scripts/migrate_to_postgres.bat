@@ -55,4 +55,8 @@ call venv\Scripts\deactivate.bat
 
 echo ================================
 echo Migration terminée!
+echo.
+echo Pour plus d'informations sur PostgreSQL, consultez:
+echo docs\POSTGRESQL_MIGRATION.md
+echo.
 pause 

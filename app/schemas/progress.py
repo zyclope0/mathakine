@@ -1,8 +1,10 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 # Schémas pour la manipulation des progressions
+
+
 
 class ProgressBase(BaseModel):
     """Schéma de base pour les progressions (Chemin vers la Maîtrise)"""
@@ -10,23 +12,34 @@ class ProgressBase(BaseModel):
     difficulty: str = Field(..., description="Niveau de difficulté")
     total_attempts: int = Field(0, ge=0, description="Nombre total de tentatives")
     correct_attempts: int = Field(0, ge=0, description="Nombre de tentatives réussies")
-    
-    @validator('correct_attempts')
-    def correct_not_greater_than_total(cls, v, values):
+
+    @field_validator('correct_attempts')
+    @classmethod
+
+
+    def correct_not_greater_than_total(cls, v, info):
+        values = info.data
         if 'total_attempts' in values and v > values['total_attempts']:
             raise ValueError("Le nombre de tentatives réussies ne peut pas dépasser le nombre total de tentatives")
         return v
+
+
 
 class ProgressCreate(ProgressBase):
     """Schéma pour la création d'un enregistrement de progression"""
     average_time: Optional[float] = Field(None, ge=0.0, description="Temps moyen pour résoudre")
     completion_rate: Optional[float] = Field(None, ge=0.0, le=100.0, description="Taux de complétion (%)")
-    
-    @validator('average_time')
+
+    @field_validator('average_time')
+    @classmethod
+
+
     def average_time_positive(cls, v):
         if v is not None and v < 0:
             raise ValueError("Le temps moyen ne peut pas être négatif")
         return v
+
+
 
 class ProgressUpdate(BaseModel):
     """Schéma pour la mise à jour d'un enregistrement de progression"""
@@ -41,18 +54,30 @@ class ProgressUpdate(BaseModel):
     strengths: Optional[str] = None
     areas_to_improve: Optional[str] = None
     recommendations: Optional[str] = None
-    
-    @validator('correct_attempts')
-    def correct_not_greater_than_total(cls, v, values):
-        if v is not None and 'total_attempts' in values and values['total_attempts'] is not None and v > values['total_attempts']:
+
+    @field_validator('correct_attempts')
+    @classmethod
+
+
+    def correct_not_greater_than_total(cls, v, info):
+        values = info.data
+        if v is not None and 'total_attempts' in values and values['total_attempts'] is not None\
+            and v > values['total_attempts']:
             raise ValueError("Le nombre de tentatives réussies ne peut pas dépasser le nombre total de tentatives")
         return v
-    
-    @validator('highest_streak')
-    def highest_streak_not_less_than_streak(cls, v, values):
-        if v is not None and 'streak' in values and values['streak'] is not None and v < values['streak']:
+
+    @field_validator('highest_streak')
+    @classmethod
+
+
+    def highest_streak_not_less_than_streak(cls, v, info):
+        values = info.data
+        if v is not None and 'streak' in values and values['streak'] is not None\
+            and v < values['streak']:
             raise ValueError("La meilleure série ne peut pas être inférieure à la série actuelle")
         return v
+
+
 
 class ProgressInDB(ProgressBase):
     """Schéma pour un enregistrement de progression en base de données"""
@@ -68,16 +93,18 @@ class ProgressInDB(ProgressBase):
     areas_to_improve: Optional[str] = None
     recommendations: Optional[str] = None
     last_updated: datetime
-    
-    class Config:
-        orm_mode = True
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 
 class Progress(ProgressInDB):
     """Schéma pour un enregistrement de progression complet (Carte de Progression)"""
     user_name: Optional[str] = None
-    
-    class Config:
-        orm_mode = True
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 
 class UserProgressSummary(BaseModel):
     """Résumé de la progression d'un utilisateur (Rapport du Conseil Jedi)"""
@@ -89,6 +116,5 @@ class UserProgressSummary(BaseModel):
     weakest_area: Optional[str] = None
     recent_progress: Optional[List[Dict[str, Any]]] = None
     next_recommended_exercise_types: Optional[List[str]] = None
-    
-    class Config:
-        orm_mode = True 
+
+    model_config = ConfigDict(from_attributes=True)

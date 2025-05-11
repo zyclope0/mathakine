@@ -6,12 +6,16 @@ from datetime import datetime
 # Type générique pour les réponses
 T = TypeVar('T')
 
+
+
 class StatusCode(str, Enum):
     """Codes d'état standardisés pour l'API (Codes de Transmission)"""
     SUCCESS = "success"  # Succès
     ERROR = "error"      # Erreur
     WARNING = "warning"  # Avertissement
     INFO = "info"        # Information
+
+
 
 class ErrorCode(str, Enum):
     """Codes d'erreur standardisés (Codes de Défaillance)"""
@@ -26,6 +30,8 @@ class ErrorCode(str, Enum):
     RATE_LIMIT_ERROR = "rate_limit"         # Limite de taux dépassée
     INVALID_OPERATION = "invalid_operation" # Opération invalide
 
+
+
 class PageInfo(BaseModel):
     """Information de pagination (Coordonnées de Navigation)"""
     page: int = Field(..., ge=1, description="Page actuelle")
@@ -35,6 +41,8 @@ class PageInfo(BaseModel):
     has_next: bool = Field(..., description="S'il existe une page suivante")
     has_prev: bool = Field(..., description="S'il existe une page précédente")
 
+
+
 class ResponseMeta(BaseModel):
     """Métadonnées de réponse (Données de Transmission)"""
     code: StatusCode
@@ -43,14 +51,20 @@ class ResponseMeta(BaseModel):
     pagination: Optional[PageInfo] = Field(None, description="Information de pagination si applicable")
     debug_info: Optional[Dict[str, Any]] = Field(None, description="Informations de débogage (en mode debug uniquement)")
 
+
+
 class Response(BaseModel, Generic[T]):
     """Réponse API standard (Transmission Galactique)"""
     meta: ResponseMeta
     data: Optional[T] = Field(None, description="Données de la réponse")
 
+
+
 class ListResponse(Response[List[T]], Generic[T]):
     """Réponse API pour listes paginées (Liste de Transmission)"""
     data: List[T] = Field(..., description="Liste des éléments")
+
+
 
 class ValidationError(BaseModel):
     """Détails d'une erreur de validation (Rapport d'Anomalie)"""
@@ -58,10 +72,14 @@ class ValidationError(BaseModel):
     message: str = Field(..., description="Message d'erreur")
     code: Optional[str] = Field(None, description="Code d'erreur spécifique")
 
+
+
 class ErrorResponse(BaseModel):
     """Réponse d'erreur détaillée (Rapport de Défaillance)"""
     meta: ResponseMeta
     errors: Optional[List[ValidationError]] = Field(None, description="Liste détaillée des erreurs de validation")
+
+
 
 class HealthCheck(BaseModel):
     """État de santé de l'API (État des Systèmes)"""
@@ -72,11 +90,15 @@ class HealthCheck(BaseModel):
     environment: str = Field(..., description="Environnement d'exécution")
     dependencies: Dict[str, str] = Field(..., description="État des dépendances externes")
 
+
+
 class PaginationParams:
     """
     Paramètres de pagination standards pour les requêtes API.
     Peut être utilisé comme dépendance FastAPI pour les endpoints.
     """
+
+
     def __init__(
         self,
         skip: int = 0,
@@ -87,4 +109,4 @@ class PaginationParams:
         self.skip = skip
         self.limit = limit
         self.sort_by = sort_by
-        self.sort_desc = sort_desc 
+        self.sort_desc = sort_desc

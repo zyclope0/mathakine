@@ -6,24 +6,34 @@ Le projet utilise une architecture de tests en 4 niveaux, organisée dans le dos
 
 ```
 tests/
-├── unit/                 # Tests unitaires
-│   └── test_models.py   # Tests des modèles de données
-├── api/                  # Tests API
-│   └── test_base_endpoints.py  # Tests des endpoints de base
-├── integration/          # Tests d'intégration
+├── unit/                   # Tests unitaires
+│   ├── test_models.py      # Tests des modèles de données
+│   ├── test_services.py    # Tests des services métier
+│   └── test_utils.py       # Tests des utilitaires
+├── api/                    # Tests API
+│   ├── test_base_endpoints.py     # Tests des endpoints de base
+│   ├── test_exercise_endpoints.py # Tests des endpoints d'exercices
+│   ├── test_user_endpoints.py     # Tests des endpoints utilisateurs 
+│   └── test_challenge_endpoints.py # Tests des endpoints de défis logiques
+├── integration/            # Tests d'intégration
 │   └── test_user_exercise_flow.py  # Tests du flux utilisateur-exercice
-├── functional/          # Tests fonctionnels
-│   └── test_logic_challenge.py  # Tests des défis logiques
-├── run_tests.py         # Script principal d'exécution des tests
-├── run_tests.bat        # Script Windows pour l'exécution des tests
-└── test_results/        # Dossier des résultats de test
+├── functional/             # Tests fonctionnels
+│   └── test_logic_challenge.py     # Tests des défis logiques
+├── fixtures/               # Fixtures réutilisables
+│   ├── model_fixtures.py   # Instances de modèles pour les tests
+│   └── db_fixtures.py      # Sessions de base de données pour les tests
+├── automation/             # Scripts d'automatisation
+│   ├── run_tests.py        # Script principal unifié
+│   └── run_tests.bat       # Script batch pour Windows
+├── conftest.py             # Configuration centralisée de pytest
+└── README.md               # Cette documentation
 ```
 
 ## Types de Tests
 
 ### 1. Tests Unitaires (`unit/`)
 - Testent les composants individuels de manière isolée
-- Vérifient le comportement des modèles de données
+- Vérifient le comportement des modèles, services et utilités
 - Exemple : `test_models.py` teste la création et la validation des modèles
 
 ### 2. Tests API (`api/`)
@@ -41,45 +51,76 @@ tests/
 - Vérifient le comportement end-to-end
 - Exemple : `test_logic_challenge.py` teste les défis logiques
 
+## Fixtures Réutilisables
+
+Les fixtures sont centralisées dans le dossier `fixtures/` pour faciliter la réutilisation :
+
+### 1. Modèles (`model_fixtures.py`)
+- Fournit des instances préconfigurées des modèles de données
+- Exemple : `test_user()`, `test_exercise()`, `test_logic_challenge()`
+
+### 2. Base de Données (`db_fixtures.py`)
+- Fournit des sessions de base de données pour les tests
+- Supporte à la fois SQLite et PostgreSQL
+- Exemple : `db_session()`, `populated_db_session()`
+
 ## Exécution des Tests
 
-### Via le Script Batch (Windows)
+### Via le Script Unifié
 ```bash
-# Tous les tests
-tests\run_tests.bat --all
-
-# Tests spécifiques
-tests\run_tests.bat --unit
-tests\run_tests.bat --api
-tests\run_tests.bat --integration
-tests\run_tests.bat --functional
+# À la racine du projet
+run_tests.bat --help              # Affiche l'aide
+run_tests.bat --full              # Exécute une validation complète
+run_tests.bat --basic             # Exécute une validation basique (tests unitaires et API)
+run_tests.bat --unit              # Exécute uniquement les tests unitaires
+run_tests.bat --api               # Exécute uniquement les tests d'API
+run_tests.bat --integration       # Exécute uniquement les tests d'intégration
+run_tests.bat --functional        # Exécute uniquement les tests fonctionnels
+run_tests.bat --file FILE         # Exécute un fichier de test spécifique
+run_tests.bat --verbose           # Mode verbeux
+run_tests.bat --no-coverage       # Désactive la couverture de code
 ```
 
-### Via Python
+### Via Python Directement
 ```bash
 # Tous les tests
-python tests/run_tests.py
+python -m pytest tests/
 
-# Tests spécifiques
-python tests/run_tests.py --type unit
-python tests/run_tests.py --type api
-python tests/run_tests.py --type integration
-python tests/run_tests.py --type functional
+# Tests par dossier
+python -m pytest tests/unit/
+python -m pytest tests/api/
+python -m pytest tests/integration/
+python -m pytest tests/functional/
+
+# Couverture de code
+python -m pytest --cov=app --cov-report=html:test_results/coverage tests/
 ```
 
-## Résultats des Tests
+## Rapports
 
-Les résultats sont générés dans le dossier `test_results/` :
-- `test_run_{timestamp}.log` : Logs détaillés de l'exécution
-- `coverage/` : Rapports de couverture de code en HTML
-- `junit.xml` : Rapport au format JUnit
+Tous les rapports sont générés dans le dossier `test_results/` :
 
-## Couverture de Code
+1. **Journal détaillé** : `auto_validation_TIMESTAMP.log`
+2. **Rapport de compatibilité** : `compatibility_report_TIMESTAMP.txt`
+3. **Rapport de validation** : `validation_TIMESTAMP.json`
+4. **Rapport complet** : `rapport_complet_TIMESTAMP.md`
+5. **Couverture de code** : `coverage/index.html`
 
-Le projet utilise `pytest-cov` pour mesurer la couverture de code :
-- Génère des rapports HTML détaillés
-- Affiche les lignes non couvertes
-- Calcule le pourcentage de couverture par module
+Les formats des rapports ont été conservés pour assurer la compatibilité avec les processus existants.
+
+## Base de données de test
+
+Par défaut, les tests utilisent SQLite (`sqlite:///./test.db`), mais vous pouvez configurer une base de données PostgreSQL en définissant la variable d'environnement `TEST_DATABASE_URL` :
+
+```bash
+# Windows
+set TEST_DATABASE_URL=postgresql://user:password@localhost:5432/test_db
+run_tests.bat --full
+
+# Linux/Mac
+export TEST_DATABASE_URL=postgresql://user:password@localhost:5432/test_db
+./run_tests.sh --full
+```
 
 ## Bonnes Pratiques
 
@@ -99,44 +140,26 @@ Le projet utilise `pytest-cov` pour mesurer la couverture de code :
    - Tester les cas positifs et négatifs
 
 4. **Fixtures**
-   - Réutiliser le code de configuration
+   - Réutiliser les fixtures centralisées
    - Isoler les dépendances
    - Nettoyer les ressources
 
-## Exemple de Test
-
-```python
-def test_user_model():
-    """Test de création et validation d'un modèle utilisateur"""
-    user = User(
-        username="test_user",
-        email="test@example.com",
-        role=UserRole.PADAWAN,
-        created_at=datetime.now()
-    )
-    
-    assert user.username == "test_user"
-    assert user.email == "test@example.com"
-    assert user.role == UserRole.PADAWAN
-    assert isinstance(user.created_at, datetime)
-```
-
 ## Maintenance
 
-1. **Mise à Jour**
-   - Ajouter des tests pour les nouvelles fonctionnalités
-   - Mettre à jour les tests existants lors des changements
-   - Vérifier la couverture de code
+1. **Ajout de Tests**
+   - Créer un test pour chaque nouvelle fonctionnalité
+   - Vérifier la couverture de code pour identifier les parties non testées
+   - Ajouter des tests pour les cas limites ou scénarios d'erreur
 
-2. **Dépannage**
+2. **Mise à Jour**
+   - Maintenir les fixtures à jour avec les modèles
+   - Adapter les tests existants lors des modifications du code
+   - Vérifier régulièrement la couverture globale
+
+3. **Dépannage**
    - Consulter les logs dans `test_results/`
-   - Vérifier la couverture de code
-   - Utiliser le mode debug de pytest
-
-3. **Documentation**
-   - Maintenir à jour cette documentation
-   - Documenter les cas de test complexes
-   - Expliquer les choix de conception
+   - Exécuter les tests individuellement pour isoler les problèmes
+   - Utiliser le mode verbose pour plus de détails
 
 ## Dépendances
 

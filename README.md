@@ -74,8 +74,14 @@ scripts/Initialize-Database.ps1
 ### Lancement du serveur
 
 ```bash
-# Démarrer le serveur (exemple)
-scripts/start_render.sh
+# Lancer le serveur avec interface graphique (par défaut)
+python mathakine_cli.py run
+
+# Lancer le serveur API uniquement (sans interface graphique)
+python mathakine_cli.py run --api-only
+
+# Avec options supplémentaires
+python mathakine_cli.py run --port 8082 --debug
 ```
 
 ### Validation du Projet
@@ -118,28 +124,46 @@ Pour des instructions détaillées, consultez [GETTING_STARTED.md](GETTING_START
 ## Structure du projet
 
 ```
-math-trainer-backend/
+./
 ├── app/                  # Code de l'application
 ├── docs/                 # Documentation détaillée
-├── scripts/              # Scripts utilitaires (installation, serveur, config, etc.)
+│   ├── ARCHITECTURE.md   # Architecture du système
+│   ├── CHANGELOG.md      # Historique des modifications
+│   ├── CLEANUP_REPORT.md # Rapport détaillé de nettoyage
+│   ├── CLEANUP_SUMMARY.md # Résumé des opérations de nettoyage
+│   ├── CONTEXT.md        # Contexte du projet
+│   ├── DASHBOARD_FIX_REPORT.md # Corrections du tableau de bord
+│   └── ...               # Autres documents
+├── scripts/              # Scripts utilitaires
+│   ├── check_project.py  # Vérification de la santé du projet
+│   ├── fix_style.py      # Correction des problèmes de style courants
+│   ├── fix_advanced_style.py # Correction des problèmes de style avancés
+│   ├── migrate_to_postgres.py # Migration vers PostgreSQL
+│   ├── toggle_database.py # Basculement entre SQLite et PostgreSQL
+│   └── ...               # Autres scripts
 ├── static/               # Fichiers statiques (CSS, JS)
 ├── templates/            # Templates HTML
 ├── tests/                # Tests unitaires et d'intégration
+├── archive/              # Fichiers récemment archivés
+├── archives/             # Archives historiques
+│   ├── obsolete/         # Fichiers obsolètes
+│   └── sqlite/           # Anciennes sauvegardes SQLite
 ├── Dockerfile            # Image Docker
 ├── Procfile              # Commande de démarrage Render
 ├── README.md             # Documentation générale
 ├── GETTING_STARTED.md    # Guide de démarrage
 ├── STRUCTURE.md          # Structure du projet
 ├── requirements.txt      # Dépendances Python
+├── ai_context_summary.md # Résumé du contexte du projet
 ├── .gitignore            # Fichiers ignorés par Git
 ├── .dockerignore         # Fichiers ignorés par Docker
+├── .flake8               # Configuration de Flake8
+├── setup.cfg             # Configuration des outils de développement
 ├── LICENSE               # Licence
 ├── sample.env            # Exemple de configuration d'environnement
-├── math_trainer.db       # Base de données SQLite (dev)
 ├── enhanced_server.py    # Serveur principal amélioré
-├── fix_database.py       # Script de correction de la base de données
-├── check_db_connection.py # Vérification de connexion à la base de données
-└── mathakine_cli.py      # Interface en ligne de commande
+├── mathakine_cli.py      # Interface en ligne de commande
+└── math-trainer-backend/ # Dossier hérité (en cours de migration)
 ```
 
 ## Glossaire et Index de la documentation
@@ -172,17 +196,23 @@ math-trainer-backend/
 - [STRUCTURE.md](STRUCTURE.md) : Structure du projet
 - [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) : Guide de déploiement
 - [docs/GLOSSARY.md](docs/GLOSSARY.md) : Glossaire complet des termes du projet
+- [docs/UI_GUIDE.md](docs/UI_GUIDE.md) : Guide de l'interface graphique
 
 #### Documentation technique
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) : Architecture du système
 - [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) : État du projet et planification
 - [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) : Plan d'implémentation détaillé
 - [docs/POSTGRESQL_MIGRATION.md](docs/POSTGRESQL_MIGRATION.md) : Guide de migration vers PostgreSQL
+- [docs/PYDANTIC_V2_MIGRATION.md](docs/PYDANTIC_V2_MIGRATION.md) : Migration vers Pydantic v2
+- [docs/CHANGELOG.md](docs/CHANGELOG.md) : Résumé des modifications récentes et historique
+- [docs/CLEANUP_REPORT.md](docs/CLEANUP_REPORT.md) : Rapport de nettoyage des fichiers obsolètes
+- [docs/CLEANUP_SUMMARY.md](docs/CLEANUP_SUMMARY.md) : Résumé des améliorations de code
 
 #### Documentation de référence
 - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) : Guide de résolution des problèmes
 - [docs/validation/README.md](docs/validation/README.md) : Documentation du système d'auto-validation
 - [docs/validation/COMPATIBILITY.md](docs/validation/COMPATIBILITY.md) : Compatibilité avec Python 3.13
+- [docs/DASHBOARD_FIX_REPORT.md](docs/DASHBOARD_FIX_REPORT.md) : Corrections du tableau de bord
 
 #### Documents spécifiques
 - [tests/README.md](tests/README.md) : Documentation des tests
@@ -192,27 +222,108 @@ math-trainer-backend/
 
 ## Améliorations récentes
 
-### Juillet-Août 2024
+### Mai 2025
 
-- ✅ Implémentation du support PostgreSQL pour les environnements de production
-- ✅ Création de scripts pour la migration des données de SQLite vers PostgreSQL
-- ✅ Support pour le déploiement sur Render avec base de données PostgreSQL
-- ✅ Utilitaire pour basculer facilement entre SQLite et PostgreSQL
-- ✅ Outil de vérification de connexion à la base de données
-- ✅ Mise à jour de la documentation pour inclure le processus de migration
+- ✅ Migration complète vers PostgreSQL et correction des problèmes liés aux types énumérés
+- ✅ Résolution des problèmes de relation entre exercices et tentatives (cascade delete)
+- ✅ Amélioration des endpoints d'API avec une meilleure gestion des erreurs
+- ✅ Mise à jour de l'interface utilisateur des exercices avec bouton de suppression
+- ✅ Optimisation des requêtes SQL pour les opérations critiques
+- ✅ Nouveau système de maintien du contexte avec fichier centralisé et script de génération
 
-### Juin-Juillet 2024
+Pour plus de détails sur ces améliorations, consultez [docs/CHANGELOG.md](docs/CHANGELOG.md).
 
-- ✅ Résolution du problème de non-mise à jour du tableau de bord après complétion d'exercices
-- ✅ Normalisation des types d'exercices et niveaux de difficulté dans la base de données
-- ✅ Création d'un script `fix_database.py` pour corriger les données existantes
-- ✅ Ajout de tests pour vérifier la normalisation des données
-- ✅ Mise à jour de la documentation avec un guide de résolution des problèmes
+### Système de maintien du contexte
 
-Pour plus de détails sur les corrections et améliorations, consultez [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) et [docs/POSTGRESQL_MIGRATION.md](docs/POSTGRESQL_MIGRATION.md).
+Pour faciliter la compréhension rapide de l'état actuel du projet :
+
+```bash
+# Générer un rapport sur l'état actuel du projet
+python scripts/generate_context.py
+
+# Mettre à jour automatiquement le fichier de contexte
+python scripts/generate_context.py --update
+
+# Générer le rapport au format JSON (pour intégration avec d'autres outils)
+python scripts/generate_context.py --json
+```
+
+Le fichier [docs/CONTEXT.md](docs/CONTEXT.md) sert de point d'entrée central pour comprendre l'état actuel du projet, son architecture et ses fonctionnalités clés.
+
+#### Documentation consolidée
+
+Le projet utilise un système de documentation simplifié et consolidé :
+
+```bash
+# Consolider les documents qui se chevauchent (crée des sauvegardes .bak)
+python scripts/consolidate_docs.py
+
+# Vérifier quels fichiers redondants seraient supprimés
+python scripts/cleanup_redundant_docs.py check
+
+# Supprimer les fichiers redondants après consolidation
+python scripts/cleanup_redundant_docs.py remove
+
+# Restaurer les fichiers à partir des sauvegardes (si nécessaire)
+python scripts/cleanup_redundant_docs.py restore
+```
+
+Le système de documentation maintient :
+- **CHANGELOG.md** : Historique complet des versions et modifications
+- **CONTEXT.md** : État actuel du projet, mis à jour automatiquement
+- **CLEANUP_REPORT.md** : Rapport consolidé sur les opérations de nettoyage
+- **POSTGRESQL_MIGRATION.md** : Guide complet de migration vers PostgreSQL
+
+Les fichiers obsolètes et sauvegardes (.bak) peuvent être archivés :
+```bash
+# Déplacer les fichiers de sauvegarde (.bak) vers le dossier d'archives
+python scripts/move_obsolete_files.py
+```
+
+Cette approche garantit une documentation complète mais non redondante, facilitant la maintenance et la compréhension du projet.
+
+### Août-Septembre 2024
+
+- ✅ Migration des modèles de données vers Pydantic v2 pour améliorer les performances et la compatibilité
+- ✅ Résolution des problèmes de déploiement sur Render avec PostgreSQL
+- ✅ Centralisation du système de journalisation pour une meilleure gestion des logs
+- ✅ Système de détection des fichiers obsolètes pour maintenir la propreté du code
+- ✅ Restructuration du projet avec une meilleure organisation des services
+
+### Système de logs centralisé
+
+Le projet intègre désormais un système de logs centralisé avec :
+
+```bash
+# Migration des logs existants
+python -m scripts.migrate_logs
+
+# Nettoyage des anciens fichiers logs (après vérification)
+python -m scripts.cleanup_logs
+```
+
+Consultez [docs/LOGGING.md](docs/LOGGING.md) pour plus de détails sur le système de journalisation.
+
+### Maintenance et nettoyage
+
+```bash
+# Détecter les fichiers obsolètes
+python -m scripts.detect_obsolete_files --verbose
+
+# Déplacer les fichiers obsolètes vers un répertoire d'archives
+python -m scripts.detect_obsolete_files --move-to archives/obsolete
+
+# Supprimer les fichiers obsolètes avec une confiance très élevée (>95%)
+python -m scripts.detect_obsolete_files --delete
+
+# Générer un rapport de nettoyage
+python -m scripts.detect_obsolete_files --cleanup-report docs/CLEANUP_REPORT.md --confidence 40
+```
+
+Pour plus de détails sur les procédures de nettoyage et de maintenance, consultez [docs/MAINTENANCE.md](docs/MAINTENANCE.md).
 
 ---
 
 *Pour toute contribution ou question, consulte la documentation ou ouvre une issue sur GitHub.*
 
-*Dernière mise à jour : 08/08/2024* 
+*Dernière mise à jour : 08/05/2025* 

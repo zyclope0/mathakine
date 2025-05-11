@@ -11,9 +11,9 @@ try:
     connect_args = {}
     if settings.DATABASE_URL.startswith('sqlite'):
         connect_args = {"check_same_thread": False}
-    
+
     engine = create_engine(
-        settings.DATABASE_URL, 
+        settings.DATABASE_URL,
         connect_args=connect_args,
         echo=settings.DEBUG  # Affiche les requêtes SQL dans les logs
     )
@@ -29,6 +29,8 @@ Base = declarative_base()
 logger.debug("Base déclarative configurée")
 
 # Helper pour obtenir une session de base de données
+
+
 def get_db():
     logger.debug("Ouverture d'une nouvelle session de base de données")
     db = SessionLocal()
@@ -36,4 +38,4 @@ def get_db():
         yield db
     finally:
         logger.debug("Fermeture de la session de base de données")
-        db.close() 
+        db.close()

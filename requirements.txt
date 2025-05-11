@@ -7,13 +7,17 @@ jinja2==3.1.2
 aiofiles==23.2.1
 
 # Base de données
-sqlalchemy==2.0.26
-psycopg2-binary==2.9.9  # Pilote PostgreSQL pour Python
+sqlalchemy==2.0.40
+psycopg2-binary==2.9.9  # Pilote PostgreSQL pour Python - Nécessaire pour Render PostgreSQL
+
+# Modèles de données
+pydantic==2.11.0  # Modèles de données avec validation
 
 # Utilitaires
 python-dotenv==1.0.0
 requests==2.31.0
 email-validator==2.1.0
+colorama==0.4.6  # Colorisation des messages en console
 
 # Intégration IA - compatibilité Python 3.13 avec version récente
 openai==1.12.0

@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-
+        {% extends "base.html" %}
+        
 {% block title %}Exercices - Mathakine{% endblock %}
 
 {% block head %}
@@ -7,40 +7,195 @@
     .exercise-list {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
+        gap: 25px;
     }
     
     .exercise-card {
-        border-radius: 10px;
+        border-radius: 12px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        padding: 20px;
+        background-color: var(--sw-card-bg);
+        border: 1px solid var(--sw-card-border);
+        overflow: hidden;
+    }
+    
+    .exercise-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--sw-blue), var(--sw-accent), var(--sw-gold));
     }
     
     .exercise-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 25px rgba(0,0,0,0.25);
     }
     
     .exercise-card .difficulty {
-        display: inline-block;
-        padding: 3px 8px;
-        border-radius: 4px;
+        display: inline-flex;
+        padding: 5px 10px;
+        border-radius: 6px;
         font-size: 0.8rem;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
+        align-items: center;
+        gap: 5px;
     }
     
-    .difficulty.initie { background-color: #d4edda; color: #155724; }
-    .difficulty.padawan { background-color: #fff3cd; color: #856404; }
-    .difficulty.chevalier { background-color: #f8d7da; color: #721c24; }
-    .difficulty.maitre { background-color: #cce5ff; color: #004085; }
+    .difficulty::before {
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+    }
+    
+    .difficulty.initie { 
+        background-color: rgba(21, 87, 36, 0.2);
+        color: #d4edda;
+    }
+    
+    .difficulty.initie::before {
+        content: "\f005";
+    }
+    
+    .difficulty.padawan { 
+        background-color: rgba(133, 100, 4, 0.2);
+        color: #fff3cd;
+    }
+    
+    .difficulty.padawan::before {
+        content: "\f005\f005";
+    }
+    
+    .difficulty.chevalier { 
+        background-color: rgba(114, 28, 36, 0.2);
+        color: #f8d7da;
+    }
+    
+    .difficulty.chevalier::before {
+        content: "\f005\f005\f005";
+    }
+    
+    .difficulty.maitre { 
+        background-color: rgba(0, 64, 133, 0.2);
+        color: #cce5ff;
+    }
+    
+    .difficulty.maitre::before {
+        content: "\f005\f005\f005\f005";
+    }
     
     .exercise-actions {
         display: flex;
         justify-content: space-between;
-        margin-top: 15px;
+        margin-top: 20px;
+        gap: 10px;
+    }
+    
+    .delete-icon {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        color: rgba(220, 53, 69, 0.6);
+        cursor: pointer;
+        font-size: 1.2rem;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 5;
+        background-color: rgba(0, 0, 0, 0.15);
+    }
+    
+    .delete-icon:hover {
+        color: #dc3545;
+        background-color: rgba(220, 53, 69, 0.15);
+        transform: rotate(90deg);
+    }
+    
+    .exercise-type-tag {
+        display: inline-flex;
+        background-color: rgba(107, 77, 195, 0.2);
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        color: var(--sw-accent);
+        margin-bottom: 10px;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .exercise-type-tag::before {
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        content: "\f14a";
+    }
+    
+    .exercise-card h3 {
+        margin: 12px 0;
+        font-size: 1.4rem;
+        color: var(--sw-gold);
+    }
+    
+    .exercise-card p {
+        color: var(--sw-text);
+        margin-bottom: 15px;
+        font-size: 1rem;
+        line-height: 1.5;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+    
+    /* Mise à jour des boutons d'action */
+    .action-btn {
+        border-radius: 30px;
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .action-btn i {
+        font-size: 1rem;
+    }
+    
+    .primary-action {
+        background-color: var(--sw-accent);
+        color: white;
+        flex-grow: 1;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .primary-action:hover {
+        background-color: var(--sw-blue);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .secondary-action {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: var(--sw-secondary);
+        border: 1px solid rgba(108, 117, 125, 0.3);
+    }
+    
+    .secondary-action:hover {
+        background-color: rgba(108, 117, 125, 0.2);
+        color: var(--sw-text);
     }
     
     .loading-container {
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         min-height: 200px;
@@ -58,194 +213,747 @@
     @keyframes spin {
         to { transform: rotate(360deg); }
     }
+    
+    /* Styles pour les filtres */
+    .filters-container {
+        background-color: var(--sw-card-bg);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--sw-card-border);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .filters-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--sw-blue), var(--sw-accent));
+    }
+    
+    .filters-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: center;
+    }
+    
+    .filter-group {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .filter-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--sw-gold);
+        font-weight: 500;
+    }
+    
+    .filter-select {
+        width: 100%;
+        padding: 10px 15px;
+        border-radius: 8px;
+        background-color: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--sw-card-border);
+        color: var(--sw-text);
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%237765e3' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        padding-right: 40px;
+    }
+    
+    .filter-select:focus {
+        outline: none;
+        border-color: var(--sw-accent);
+        box-shadow: 0 0 0 2px rgba(107, 77, 195, 0.25);
+    }
+    
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .reset-filters {
+        background-color: transparent;
+        color: var(--sw-secondary);
+        border: 1px solid rgba(108, 117, 125, 0.3);
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .reset-filters:hover {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: var(--sw-text);
+    }
+    
+    .apply-filters {
+        background-color: var(--sw-accent);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .apply-filters:hover {
+        background-color: var(--sw-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .exercise-list {
+            grid-template-columns: 1fr;
+        }
+        
+        .filters-row {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .filter-group {
+            width: 100%;
+        }
+    }
+    
+    /* Styles pour la boîte modale */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.7);
+        backdrop-filter: blur(5px);
+    }
+    
+    .modal-content {
+        background-color: var(--sw-card-bg);
+        margin: 10% auto;
+        padding: 25px;
+        border: 1px solid var(--sw-card-border);
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        animation: modalFadeIn 0.3s;
+        color: var(--sw-text);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        position: relative;
+    }
+    
+    .modal-content::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--sw-red), #ff8f8f);
+    }
+    
+    @keyframes modalFadeIn {
+        from {opacity: 0; transform: translateY(-30px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+    
+    .close {
+        color: var(--sw-secondary);
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .close:hover,
+    .close:focus {
+        color: var(--sw-accent);
+        text-decoration: none;
+        cursor: pointer;
+        transform: rotate(90deg);
+    }
+    
+    .modal-actions {
+        margin-top: 25px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+    }
+    
+    .cancel-delete {
+        background-color: transparent;
+        color: var(--sw-secondary);
+        border: 1px solid rgba(108, 117, 125, 0.3);
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .cancel-delete:hover {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: var(--sw-text);
+    }
+    
+    .confirm-delete {
+        background-color: var(--sw-red);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+    
+    .confirm-delete:hover {
+        background-color: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
+    }
+    
+    /* Styles pour les alertes */
+    .alert {
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        animation: fadeInDown 0.5s;
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .alert-success {
+        background-color: rgba(40, 167, 69, 0.2);
+        border: 1px solid rgba(40, 167, 69, 0.4);
+        color: #28a745;
+    }
+    
+    .alert-error {
+        background-color: rgba(220, 53, 69, 0.2);
+        border: 1px solid rgba(220, 53, 69, 0.4);
+        color: #dc3545;
+    }
+    
+    .alert i {
+        font-size: 1.5rem;
+    }
+    
+    .alert-message {
+        flex: 1;
+    }
+    
+    /* Styles pour les boutons de génération */
+    .generation-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin: 30px 0;
+    }
+    
+    .big-btn {
+        padding: 15px 30px;
+        border-radius: 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .big-btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
+    }
+    
+    .primary-btn {
+        background-color: var(--sw-accent);
+        color: white;
+        border: none;
+    }
+    
+    .primary-btn:hover {
+        background-color: var(--sw-blue);
+    }
+    
+    .ai-btn {
+        background-color: var(--sw-gold);
+        color: var(--sw-dark);
+        border: none;
+    }
+    
+    .ai-btn:hover {
+        background-color: #ffd54f;
+    }
+    
+    /* Style pour le badge IA */
+    .ai-badge {
+        display: inline-flex;
+        align-items: center;
+        background-color: #6f42c1;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        margin-left: 8px;
+        font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    
+    .ai-badge i {
+        margin-right: 4px;
+    }
+    
+    /* Positionnement amélioré pour éviter les conflits */
+    .exercise-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+        padding-right: 40px; /* Espace pour l'icône de suppression */
+    }
 </style>
 {% endblock %}
-
-{% block content %}
+        
+        {% block content %}
 <div class="page-header">
     <h2>Exercices Mathématiques</h2>
-    <p>Testez vos compétences avec ces défis mathématiques intergalactiques</p>
+    <p>Choisissez parmi les exercices ou générez-en un nouveau</p>
 </div>
 
-<div class="filters-section card">
-    <div class="filter-row">
-        <div class="filter-group">
-            <label for="type-filter">Type d'exercice:</label>
-            <select id="type-filter" class="filter-select">
-                <option value="all">Tous les types</option>
-                <option value="addition">Addition</option>
-                <option value="soustraction">Soustraction</option>
-                <option value="multiplication">Multiplication</option>
-                <option value="division">Division</option>
-            </select>
+<!-- Filtres -->
+<div class="filters-container">
+    <form id="filters-form" method="GET" action="/exercises">
+        <div class="filters-row">
+                    <div class="filter-group">
+                <label for="exercise_type">Type d'exercice</label>
+                <select id="exercise_type" name="exercise_type" class="filter-select">
+                    <option value="">Tous les types</option>
+                    <option value="addition" {% if request.query_params.get('exercise_type') == 'addition' %}selected{% endif %}>Addition</option>
+                    <option value="soustraction" {% if request.query_params.get('exercise_type') == 'soustraction' %}selected{% endif %}>Soustraction</option>
+                    <option value="multiplication" {% if request.query_params.get('exercise_type') == 'multiplication' %}selected{% endif %}>Multiplication</option>
+                    <option value="division" {% if request.query_params.get('exercise_type') == 'division' %}selected{% endif %}>Division</option>
+                    <option value="fractions" {% if request.query_params.get('exercise_type') == 'fractions' %}selected{% endif %}>Fractions</option>
+                    <option value="geometrie" {% if request.query_params.get('exercise_type') == 'geometrie' %}selected{% endif %}>Géométrie</option>
+                        </select>
+                    </div>
+        
+                    <div class="filter-group">
+                <label for="difficulty">Niveau de difficulté</label>
+                <select id="difficulty" name="difficulty" class="filter-select">
+                    <option value="">Tous les niveaux</option>
+                    <option value="initie" {% if request.query_params.get('difficulty') == 'initie' %}selected{% endif %}>Initié</option>
+                    <option value="padawan" {% if request.query_params.get('difficulty') == 'padawan' %}selected{% endif %}>Padawan</option>
+                    <option value="chevalier" {% if request.query_params.get('difficulty') == 'chevalier' %}selected{% endif %}>Chevalier</option>
+                    <option value="maitre" {% if request.query_params.get('difficulty') == 'maitre' %}selected{% endif %}>Maître</option>
+                        </select>
         </div>
         
-        <div class="filter-group">
-            <label for="difficulty-filter">Niveau de difficulté:</label>
-            <select id="difficulty-filter" class="filter-select">
-                <option value="all">Tous les niveaux</option>
-                <option value="initie">Initié</option>
-                <option value="padawan">Padawan</option>
-                <option value="chevalier">Chevalier</option>
-                <option value="maitre">Maître</option>
-            </select>
-        </div>
-        
-        <button id="generate-exercise" class="btn primary-btn">
-            <i class="fas fa-plus-circle"></i> Générer un nouvel exercice
+            <div class="filter-actions">
+                <button type="button" id="reset-filters" class="reset-filters">
+                    <i class="fas fa-times"></i> Réinitialiser
+                </button>
+                <button type="submit" class="apply-filters">
+                    <i class="fas fa-filter"></i> Appliquer
         </button>
-    </div>
+            </div>
+        </div>
+    </form>
 </div>
 
-<div id="exercise-container">
+<!-- Message success/error -->
+{% if message %}
+<div class="alert alert-{{ message_type }}">
+    <i class="fas {% if message_type == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+    <div class="alert-message">{{ message }}</div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div id="loading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Chargement des exercices...</p>
+    </div>
+    
+    <div id="exercise-list" class="exercise-list" style="display: none;">
+        {% for exercise in exercises %}
+        <div class="exercise-card" id="exercise-{{ exercise.id }}">
+            <i class="fas fa-trash-can delete-icon" data-id="{{ exercise.id }}" title="Supprimer"></i>
+            
+            <div class="exercise-meta">
+                <span class="difficulty {{ exercise.difficulty }}">
+                    {% if exercise.difficulty == "initie" %}Initié
+                    {% elif exercise.difficulty == "padawan" %}Padawan
+                    {% elif exercise.difficulty == "chevalier" %}Chevalier
+                    {% elif exercise.difficulty == "maitre" %}Maître
+                    {% else %}{{ exercise.difficulty }}
+                    {% endif %}
+                </span>
+                
+                <span class="exercise-type-tag">
+                    {% if exercise.exercise_type == "addition" %}Addition
+                    {% elif exercise.exercise_type == "soustraction" %}Soustraction
+                    {% elif exercise.exercise_type == "multiplication" %}Multiplication
+                    {% elif exercise.exercise_type == "division" %}Division
+                    {% elif exercise.exercise_type == "fractions" %}Fractions
+                    {% elif exercise.exercise_type == "geometrie" %}Géométrie
+                    {% else %}{{ exercise.exercise_type|title }}
+                    {% endif %}
+                </span>
+                
+                {% if exercise.ai_generated %}
+                <span class="ai-badge"><i class="fas fa-robot"></i> IA</span>
+                {% elif "TEST-ZAXXON" in exercise.title or "TEST-ZAXXON" in exercise.question %}
+                <span class="ai-badge"><i class="fas fa-robot"></i> IA</span>
+                {% endif %}
+            </div>
+            
+            <h3>
+                {{ exercise.title }}
+            </h3>
+            <p>{{ exercise.question }}</p>
+            
+            <div class="exercise-actions">
+                <a href="/exercise/{{ exercise.id }}" class="action-btn primary-action">
+                    <i class="fas fa-play-circle"></i> Démarrer
+                </a>
+                <button class="action-btn secondary-action show-details-btn" data-id="{{ exercise.id }}">
+                    <i class="fas fa-info-circle"></i> Détails
+        </button>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+
+    {% if not exercises %}
+    <div class="empty-state">
+        <i class="fas fa-jedi fa-3x"></i>
+        <h3>Aucun exercice trouvé</h3>
+        <p>Modifiez vos filtres ou générez un nouvel exercice.</p>
+        <a href="/api/exercises/generate" class="btn primary-btn big-btn">
+            <i class="fas fa-meteor"></i> Générer un nouvel exercice
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Boutons de génération -->
+<div class="generation-buttons">
+    <button id="generate-exercise-btn" class="btn accent-btn big-btn">
+        <i class="fas fa-jedi"></i> Générer un exercice personnalisé
+    </button>
+    <a href="#" id="generate-ai-exercise-btn" class="btn ai-btn big-btn">
+        <i class="fas fa-robot"></i> Générer avec l'IA
+    </a>
+</div>
+
+<!-- Modal de confirmation suppression -->
+<div id="delete-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Confirmer la suppression</h3>
+        <p>Êtes-vous sûr de vouloir supprimer cet exercice ? Cette action est irréversible.</p>
+        <div class="modal-actions">
+            <button id="cancel-delete" class="cancel-delete">Annuler</button>
+            <button id="confirm-delete" class="confirm-delete">Supprimer</button>
+        </div>
+            </div>
+        </div>
+
+<!-- Modal de détails d'exercice -->
+<div id="details-modal" class="modal">
+    <div class="modal-content details-modal-content">
+        <span class="close details-close">&times;</span>
+        <div id="exercise-details-content">
     <div class="loading-container">
         <div class="spinner"></div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    // Chargement des exercices
-    document.addEventListener('DOMContentLoaded', function() {
-        const exerciseContainer = document.getElementById('exercise-container');
-        const typeFilter = document.getElementById('type-filter');
-        const difficultyFilter = document.getElementById('difficulty-filter');
-        const generateButton = document.getElementById('generate-exercise');
+                <p>Chargement des détails...</p>
+            </div>
+        </div>
+            </div>
+        </div>
+        {% endblock %}
         
-        // Charger les exercices
-        loadExercises();
+        {% block scripts %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+        // Afficher la liste d'exercices après chargement de la page
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('exercise-list').style.display = 'grid';
         
-        // Écouteurs d'événements
-        typeFilter.addEventListener('change', loadExercises);
-        difficultyFilter.addEventListener('change', loadExercises);
-        generateButton.addEventListener('click', generateNewExercise);
+        // Réinitialiser les filtres
+        document.getElementById('reset-filters').addEventListener('click', function() {
+            document.getElementById('exercise_type').value = '';
+            document.getElementById('difficulty').value = '';
+            document.getElementById('filters-form').submit();
+        });
         
-        // Fonction pour charger les exercices
-        function loadExercises() {
-            // Afficher le spinner
-            exerciseContainer.innerHTML = '<div class="loading-container"><div class="spinner"></div></div>';
+        // Gestion des liens de génération d'exercices avec paramètres
+        document.getElementById('generate-exercise-btn').addEventListener('click', function(e) {
+            e.preventDefault();
             
-            // Récupérer les valeurs des filtres
-            const typeValue = typeFilter.value;
-            const difficultyValue = difficultyFilter.value;
+            // Récupérer les valeurs actuelles des filtres
+            const exerciseType = document.getElementById('exercise_type').value;
+            const difficulty = document.getElementById('difficulty').value;
             
-            // Construire l'URL avec les filtres
-            let url = '/api/v1/exercises';
-            const params = [];
+            // Construire l'URL avec les paramètres
+            let url = '/api/exercises/generate';
+            const params = new URLSearchParams();
             
-            if (typeValue !== 'all') {
-                params.push(`type=${typeValue}`);
+            if (exerciseType) {
+                params.append('exercise_type', exerciseType);
             }
             
-            if (difficultyValue !== 'all') {
-                params.push(`difficulty=${difficultyValue}`);
+            if (difficulty) {
+                params.append('difficulty', difficulty);
             }
             
-            if (params.length > 0) {
-                url += '?' + params.join('&');
+            if (params.toString()) {
+                url += '?' + params.toString();
             }
             
-            // Récupérer les exercices
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.exercises && data.exercises.length > 0) {
-                        renderExercises(data.exercises);
-                    } else {
-                        exerciseContainer.innerHTML = `
-                            <div class="card">
-                                <h3>Aucun exercice trouvé</h3>
-                                <p>Aucun exercice ne correspond à vos critères de recherche. Essayez de modifier vos filtres ou générez un nouvel exercice.</p>
+            window.location.href = url;
+        });
+        
+        document.getElementById('generate-ai-exercise-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Récupérer les valeurs actuelles des filtres
+            const exerciseType = document.getElementById('exercise_type').value;
+            const difficulty = document.getElementById('difficulty').value;
+            
+            // Construire l'URL avec les paramètres
+            let url = '/api/exercises/generate?ai=true';
+            
+            if (exerciseType) {
+                url += `&exercise_type=${exerciseType}`;
+            }
+            
+            if (difficulty) {
+                url += `&difficulty=${difficulty}`;
+            }
+            
+                        window.location.href = url;
+        });
+        
+        // Gestion modale de suppression
+        const deleteModal = document.getElementById('delete-modal');
+        const closeButton = document.querySelector('.close');
+        const cancelButton = document.getElementById('cancel-delete');
+        const deleteButtons = document.querySelectorAll('.delete-icon');
+        const confirmButton = document.getElementById('confirm-delete');
+        let exerciseToDelete = null;
+        
+        // Ouvrir la modale au clic sur l'icône de suppression
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                exerciseToDelete = this.getAttribute('data-id');
+                deleteModal.style.display = 'block';
+            });
+        });
+        
+        // Fermer la modale
+        closeButton.addEventListener('click', function() {
+            deleteModal.style.display = 'none';
+        });
+        
+        cancelButton.addEventListener('click', function() {
+            deleteModal.style.display = 'none';
+        });
+        
+        // Fermer la modale au clic en dehors
+        window.addEventListener('click', function(event) {
+            if (event.target == deleteModal) {
+                deleteModal.style.display = 'none';
+            }
+            if (event.target == detailsModal) {
+                detailsModal.style.display = 'none';
+            }
+        });
+        
+        // Confirmer la suppression
+        confirmButton.addEventListener('click', function() {
+            if (!exerciseToDelete) return;
+            
+            fetch(`/api/exercises/${exerciseToDelete}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok || response.status === 204) {
+                    // Supprimer l'élément du DOM
+                    document.getElementById(`exercise-${exerciseToDelete}`).remove();
+                    deleteModal.style.display = 'none';
+                    
+                    // Afficher un message de succès
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success';
+                    alert.innerHTML = `
+                        <i class="fas fa-check-circle"></i>
+                        <div class="alert-message">L'exercice a été supprimé avec succès.</div>
+                    `;
+                    document.querySelector('.page-header').insertAdjacentElement('afterend', alert);
+                    
+                    // Faire disparaître le message après 3 secondes
+                    setTimeout(() => {
+                        alert.style.opacity = '0';
+                        alert.style.transition = 'opacity 0.5s';
+                        setTimeout(() => alert.remove(), 500);
+                    }, 3000);
+                } else {
+                    throw new Error('Erreur lors de la suppression');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                deleteModal.style.display = 'none';
+                
+                // Afficher un message d'erreur
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-error';
+                alert.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div class="alert-message">Une erreur est survenue lors de la suppression de l'exercice.</div>
+                `;
+                document.querySelector('.page-header').insertAdjacentElement('afterend', alert);
+                
+                // Faire disparaître le message après 3 secondes
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    alert.style.transition = 'opacity 0.5s';
+                    setTimeout(() => alert.remove(), 500);
+                }, 3000);
+            });
+        });
+        
+        // Gestion modale des détails
+        const detailsModal = document.getElementById('details-modal');
+        const detailsCloseButton = document.querySelector('.details-close');
+        const detailsButtons = document.querySelectorAll('.show-details-btn');
+        const detailsContent = document.getElementById('exercise-details-content');
+        
+        // Ouvrir la modale de détails
+        detailsButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const exerciseId = this.getAttribute('data-id');
+                detailsModal.style.display = 'block';
+                
+                // Afficher le spinner de chargement
+                detailsContent.innerHTML = `
+                    <div class="loading-container">
+                        <div class="spinner"></div>
+                        <p>Chargement des détails...</p>
+                    </div>
+                `;
+                
+                // Charger les détails de l'exercice
+                fetch(`/api/exercises/${exerciseId}`)
+                    .then(response => response.json())
+                    .then(exercise => {
+                        // Formater les choix si présents
+                        let choicesHtml = '';
+                        if (exercise.choices && exercise.choices.length > 0) {
+                            choicesHtml = '<div class="exercise-choices">';
+                            exercise.choices.forEach(choice => {
+                                choicesHtml += `
+                                    <div class="choice-item">
+                                        ${choice}
+                                    </div>
+                                `;
+                            });
+                            choicesHtml += '</div>';
+                        }
+                        
+                        // Construire le contenu de la modale
+                        detailsContent.innerHTML = `
+                            <h3>${exercise.title}</h3>
+                            
+                            <div class="exercise-meta-details">
+                                <span class="difficulty ${exercise.difficulty}">
+                                    ${exercise.difficulty === 'initie' ? 'Initié' : 
+                                      exercise.difficulty === 'padawan' ? 'Padawan' :
+                                      exercise.difficulty === 'chevalier' ? 'Chevalier' :
+                                      exercise.difficulty === 'maitre' ? 'Maître' : exercise.difficulty}
+                                </span>
+                                
+                                <span class="exercise-type-tag">
+                                    ${exercise.exercise_type === 'addition' ? 'Addition' :
+                                      exercise.exercise_type === 'soustraction' ? 'Soustraction' :
+                                      exercise.exercise_type === 'multiplication' ? 'Multiplication' :
+                                      exercise.exercise_type === 'division' ? 'Division' :
+                                      exercise.exercise_type === 'fractions' ? 'Fractions' :
+                                      exercise.exercise_type === 'geometrie' ? 'Géométrie' : exercise.exercise_type}
+                                </span>
+                            </div>
+                            
+                            <div class="question-preview">
+                                <h4>Question:</h4>
+                                <p>${exercise.question}</p>
+                            </div>
+                            
+                            ${choicesHtml ? `
+                                <div class="choices-preview">
+                                    <h4>Choix disponibles:</h4>
+                                    ${choicesHtml}
+                                </div>
+                            ` : ''}
+                            
+                            <div class="modal-actions">
+                                <a href="/exercise/${exercise.id}" class="confirm-delete">
+                                    <i class="fas fa-play-circle"></i> Démarrer l'exercice
+                                </a>
                             </div>
                         `;
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur lors du chargement des exercices:', error);
-                    exerciseContainer.innerHTML = `
-                        <div class="card error-card">
-                            <h3>Erreur de chargement</h3>
-                            <p>Une erreur s'est produite lors du chargement des exercices. Veuillez réessayer plus tard.</p>
-                        </div>
-                    `;
-                });
-        }
-        
-        // Fonction pour afficher les exercices
-        function renderExercises(exercises) {
-            const html = `
-                <div class="exercise-list">
-                    ${exercises.map(exercise => `
-                        <div class="card exercise-card" data-id="${exercise.id}">
-                            <span class="difficulty ${exercise.difficulty.toLowerCase()}">${exercise.difficulty}</span>
-                            <h3>${exercise.title}</h3>
-                            <p class="exercise-type">${getExerciseTypeLabel(exercise.exercise_type)}</p>
-                            <div class="exercise-actions">
-                                <button class="btn start-exercise" data-id="${exercise.id}">
-                                    <i class="fas fa-play"></i> Commencer
-                                </button>
-                                <button class="btn btn-secondary view-details" data-id="${exercise.id}">
-                                    <i class="fas fa-info-circle"></i> Détails
-                                </button>
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        detailsContent.innerHTML = `
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>Une erreur est survenue lors du chargement des détails de l'exercice.</p>
                             </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            
-            exerciseContainer.innerHTML = html;
-            
-            // Ajouter les écouteurs d'événements pour les boutons
-            document.querySelectorAll('.start-exercise').forEach(button => {
-                button.addEventListener('click', function() {
-                    const exerciseId = this.getAttribute('data-id');
-                    startExercise(exerciseId);
-                });
+                        `;
+                    });
             });
-            
-            document.querySelectorAll('.view-details').forEach(button => {
-                button.addEventListener('click', function() {
-                    const exerciseId = this.getAttribute('data-id');
-                    viewExerciseDetails(exerciseId);
-                });
-            });
-        }
+        });
         
-        // Fonction pour générer un nouvel exercice
-        function generateNewExercise() {
-            // Redirection vers l'API de génération d'exercice
-            window.location.href = '/api/v1/exercises/generate';
-        }
-        
-        // Fonction pour commencer un exercice
-        function startExercise(exerciseId) {
-            // Redirection vers la page de l'exercice
-            window.location.href = `/exercise/${exerciseId}`;
-        }
-        
-        // Fonction pour voir les détails d'un exercice
-        function viewExerciseDetails(exerciseId) {
-            // Implémentation à venir
-            alert(`Détails de l'exercice ${exerciseId}`);
-        }
-        
-        // Fonction utilitaire pour obtenir le libellé du type d'exercice
-        function getExerciseTypeLabel(type) {
-            const types = {
-                'addition': 'Addition',
-                'subtraction': 'Soustraction',
-                'multiplication': 'Multiplication',
-                'division': 'Division',
-                'fractions': 'Fractions',
-                'equations': 'Équations',
-                'geometry': 'Géométrie'
-            };
-            
-            return types[type] || type;
-        }
+        // Fermer la modale de détails
+        detailsCloseButton.addEventListener('click', function() {
+            detailsModal.style.display = 'none';
+        });
     });
 </script>
 {% endblock %}
-        
-        

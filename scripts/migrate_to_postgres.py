@@ -17,6 +17,8 @@ load_dotenv()
 logger.remove()
 logger.add(sys.stderr, level="DEBUG")
 
+
+
 def get_sqlite_connection():
     """Établit la connexion à la base de données SQLite"""
     try:
@@ -29,6 +31,8 @@ def get_sqlite_connection():
         logger.error(f"Erreur de connexion à SQLite: {e}")
         sys.exit(1)
 
+
+
 def get_postgres_connection(db_name=None):
     """Établit la connexion à PostgreSQL"""
     try:
@@ -38,7 +42,7 @@ def get_postgres_connection(db_name=None):
         pg_host = os.getenv('POSTGRES_HOST')
         pg_port = os.getenv('POSTGRES_PORT')
         pg_db = os.getenv('POSTGRES_DB') if db_name is None else db_name
-        
+
         # Connexion directe à la base de données spécifiée
         params = {
             'dbname': pg_db,
@@ -47,16 +51,17 @@ def get_postgres_connection(db_name=None):
             'host': pg_host,
             'port': pg_port
         }
-        
+
         # Afficher les informations de connexion pour le débogage
-        logger.debug(f"Paramètres de connexion PostgreSQL: dbname={params['dbname']}, user={params['user']}, host={params['host']}, port={params['port']}")
-        
+        logger.debug(f"Paramètres de connexion PostgreSQL: dbname={params['dbname']}
+            , user={params['user']}, host={params['host']}, port={params['port']}")
+
         # Essai de connexion
         logger.debug("Tentative de connexion à PostgreSQL...")
         conn = psycopg2.connect(**params)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         logger.debug(f"Connexion à PostgreSQL établie avec succès (base de données {pg_db})")
-        
+
         return conn
     except Exception as e:
         logger.error(f"Erreur de connexion à PostgreSQL: {e}")
@@ -64,30 +69,32 @@ def get_postgres_connection(db_name=None):
         logger.error(traceback.format_exc())
         sys.exit(1)
 
+
+
 def reset_postgres_database(pg_conn):
     """Supprime toutes les tables de la base de données PostgreSQL"""
     try:
         cursor = pg_conn.cursor()
-        
+
         # Désactiver les contraintes de clé étrangère temporairement
         cursor.execute("SET session_replication_role = 'replica';")
-        
+
         # Récupérer toutes les tables
         cursor.execute("""
-            SELECT tablename FROM pg_tables 
+            SELECT tablename FROM pg_tables
             WHERE schemaname = 'public'
         """)
         tables = cursor.fetchall()
-        
+
         # Supprimer chaque table
         for table in tables:
             table_name = table[0]
             logger.info(f"Suppression de la table {table_name}")
             cursor.execute(f'DROP TABLE IF EXISTS "{table_name}" CASCADE')
-        
+
         # Réactiver les contraintes de clé étrangère
         cursor.execute("SET session_replication_role = 'origin';")
-        
+
         pg_conn.commit()
         logger.success("Toutes les tables ont été supprimées avec succès")
     except Exception as e:
@@ -95,16 +102,20 @@ def reset_postgres_database(pg_conn):
         pg_conn.rollback()
         raise
 
+
+
 def get_table_schema(conn, table_name):
     """Récupère le schéma d'une table SQLite"""
     cursor = conn.cursor()
     cursor.execute(f"PRAGMA table_info({table_name})")
     return cursor.fetchall()
 
+
+
 def create_postgres_table(pg_conn, table_name, schema):
     """Crée une table PostgreSQL basée sur le schéma SQLite"""
     cursor = pg_conn.cursor()
-    
+
     # Convertir les types SQLite en types PostgreSQL
     type_mapping = {
         'INTEGER': 'INTEGER',
@@ -114,25 +125,27 @@ def create_postgres_table(pg_conn, table_name, schema):
         'BOOLEAN': 'BOOLEAN',
         'DATETIME': 'TIMESTAMP'
     }
-    
+
     columns = []
     for col in schema:
         name = col['name']
-        
+
         # Si le nom de la colonne suggère un booléen, utiliser BOOLEAN
         col_type = col['type'].upper()
-        if (name.startswith('is_') or name.startswith('has_') or name == 'active' or name == 'enabled') and col_type == 'INTEGER':
+        if (name.startswith('is_') or name.startswith('has_') or name == 'active'
+            or name == 'enabled') and col_type == 'INTEGER':
             logger.debug(f"Conversion de la colonne {name} de INTEGER à BOOLEAN")
             type_ = 'BOOLEAN'
         else:
             type_ = type_mapping.get(col_type, 'TEXT')
-        
+
         nullable = 'NOT NULL' if col['notnull'] else ''
         pk = 'PRIMARY KEY' if col['pk'] else ''
         columns.append(f'"{name}" {type_} {nullable} {pk}'.strip())
-    
-    create_table_sql = f'CREATE TABLE IF NOT EXISTS "{table_name}" (\n    ' + ',\n    '.join(columns) + '\n)'
-    
+
+    create_table_sql = f'CREATE TABLE IF NOT EXISTS "{table_name}" (\n    ' + ',\n    '.join(columns)
+        + '\n)'
+
     try:
         cursor.execute(create_table_sql)
         pg_conn.commit()
@@ -142,33 +155,35 @@ def create_postgres_table(pg_conn, table_name, schema):
         pg_conn.rollback()
         raise
 
+
+
 def migrate_data(sqlite_conn, pg_conn, table_name):
     """Migre les données d'une table SQLite vers PostgreSQL"""
     sqlite_cursor = sqlite_conn.cursor()
     pg_cursor = pg_conn.cursor()
-    
+
     # Récupérer les données
     sqlite_cursor.execute(f'SELECT * FROM {table_name}')
     rows = sqlite_cursor.fetchall()
-    
+
     if not rows:
         logger.info(f"Table {table_name} vide, pas de données à migrer")
         return
-    
+
     # Récupérer les noms des colonnes et les types
     columns = [description[0] for description in sqlite_cursor.description]
-    
+
     # Récupérer le schéma pour détecter les colonnes booléennes
     schema = get_table_schema(sqlite_conn, table_name)
     boolean_columns = {}
     for col in schema:
         if col['type'].upper() == 'BOOLEAN':
             boolean_columns[col['name']] = True
-    
+
     # Préparer la requête d'insertion
     placeholders = ', '.join(['%s'] * len(columns))
     insert_sql = f'INSERT INTO "{table_name}" ({", ".join([f"\"{col}\"" for col in columns])}) VALUES ({placeholders})'
-    
+
     try:
         # Insérer les données
         for row_dict in rows:
@@ -177,9 +192,9 @@ def migrate_data(sqlite_conn, pg_conn, table_name):
             for i, col_name in enumerate(columns):
                 if col_name in boolean_columns and row_list[i] is not None:
                     row_list[i] = bool(row_list[i])
-            
+
             pg_cursor.execute(insert_sql, row_list)
-        
+
         pg_conn.commit()
         logger.info(f"{len(rows)} lignes migrées vers la table {table_name}")
     except Exception as e:
@@ -187,43 +202,45 @@ def migrate_data(sqlite_conn, pg_conn, table_name):
         pg_conn.rollback()
         raise
 
+
+
 def main():
     """Fonction principale de migration"""
     logger.info("Début de la migration de SQLite vers PostgreSQL")
-    
+
     # Demander confirmation pour réinitialiser la base de données
     reset_db = input("Voulez-vous réinitialiser la base de données PostgreSQL avant la migration ? (o/N) : ").lower() == 'o'
-    
+
     # Connexion à SQLite
     sqlite_conn = get_sqlite_connection()
-    
+
     # Connexion à PostgreSQL
     db_name = os.getenv('POSTGRES_DB', 'mathakine_test')
     pg_conn = get_postgres_connection(db_name)
-    
+
     try:
         # Réinitialiser la base de données PostgreSQL si demandé
         if reset_db:
             reset_postgres_database(pg_conn)
-        
+
         # Liste des tables à migrer
         cursor = sqlite_conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
         tables = [row[0] for row in cursor.fetchall()]
-        
+
         # Migrer chaque table
         for table in tables:
             logger.info(f"Migration de la table {table}")
-            
+
             # Créer la table dans PostgreSQL
             schema = get_table_schema(sqlite_conn, table)
             create_postgres_table(pg_conn, table, schema)
-            
+
             # Migrer les données
             migrate_data(sqlite_conn, pg_conn, table)
-        
+
         logger.success("Migration terminée avec succès!")
-        
+
     except Exception as e:
         logger.error(f"Erreur lors de la migration: {e}")
         sys.exit(1)
@@ -232,4 +249,4 @@ def main():
         pg_conn.close()
 
 if __name__ == "__main__":
-    main() 
+    main()
