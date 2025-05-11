@@ -414,39 +414,52 @@ async def dashboard(request):
 async def exercise_detail_page(request):
     """Rendu de la page de détail d'un exercice"""
     exercise_id = request.path_params["exercise_id"]
+    print(f"Accès à la page de détail de l'exercice {exercise_id}")
     
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
+        # Récupérer l'exercice
+        print(f"Exécution de la requête pour récupérer l'exercice {exercise_id}")
+        print(f"Requête SQL: {ExerciseQueries.GET_BY_ID}")
+        
         cursor.execute(ExerciseQueries.GET_BY_ID, (exercise_id,))
         columns = [desc[0] for desc in cursor.description]
+        print(f"Colonnes retournées: {columns}")
         row = cursor.fetchone()
+        print(f"Résultat de la requête: {row}")
         
         if not row:
+            print(f"ERREUR: L'exercice {exercise_id} n'a pas été trouvé dans la base de données")
             return templates.TemplateResponse("error.html", {
                 "request": request,
                 "error": "Exercice non trouvé",
                 "message": f"L'exercice avec l'ID {exercise_id} n'existe pas ou a été supprimé."
             }, status_code=404)
         
+        # Convertir en dictionnaire
         exercise = dict(zip(columns, row))
+        print(f"Exercice récupéré: {exercise}")
         
         # Sécuriser le traitement JSON
         if exercise.get('choices'):
             try:
                 if isinstance(exercise['choices'], list):
-                    pass
+                    print("Les choix sont déjà au format liste")
                 else:
+                    print(f"Conversion des choix du format {type(exercise['choices'])} au format liste")
                     exercise['choices'] = json.loads(exercise['choices'])
+                    print(f"Choix après conversion: {exercise['choices']}")
             except (ValueError, TypeError) as e:
                 print(f"Erreur lors du parsing JSON des choix pour l'exercice {exercise_id}: {e}")
                 exercise['choices'] = []
         else:
+            print("Aucun choix trouvé pour cet exercice, initialisation avec une liste vide")
             exercise['choices'] = []
             
     except Exception as e:
-        print(f"Erreur lors de la récupération de l'exercice {exercise_id}: {e}")
+        print(f"Exception lors de la récupération de l'exercice {exercise_id}: {str(e)}")
         traceback.print_exc()
         return templates.TemplateResponse("error.html", {
             "request": request,
@@ -460,13 +473,24 @@ async def exercise_detail_page(request):
     # Mappings pour l'affichage des types et niveaux
     exercise_type_display = DISPLAY_NAMES
     difficulty_display = DISPLAY_NAMES
-        
-    return templates.TemplateResponse("exercise_detail.html", {
-        "request": request,
-        "exercise": exercise,
-        "exercise_type_display": exercise_type_display,
-        "difficulty_display": difficulty_display
-    })
+    
+    print(f"Rendu du template exercise_detail.html avec l'exercice {exercise_id}")
+    
+    try:
+        return templates.TemplateResponse("exercise_detail.html", {
+            "request": request,
+            "exercise": exercise,
+            "exercise_type_display": exercise_type_display,
+            "difficulty_display": difficulty_display
+        })
+    except Exception as template_error:
+        print(f"ERREUR lors du rendu du template: {str(template_error)}")
+        traceback.print_exc()
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error": "Erreur de template",
+            "message": f"Une erreur est survenue lors du rendu du template: {str(template_error)}"
+        }, status_code=500)
 
 # Fonction pour normaliser le type d'exercice
 def normalize_exercise_type(exercise_type):
@@ -1131,10 +1155,12 @@ async def get_user_stats(request):
         # ID utilisateur fictif pour l'instant (sera remplacé par l'authentification plus tard)
         user_id = 1
         
+        print("Début de la récupération des statistiques utilisateur")
         conn = get_db_connection()
         cursor = conn.cursor()
 
         # Récupérer les statistiques globales
+        print("Exécution de la requête pour récupérer les statistiques globales")
         cursor.execute("""
         SELECT
             SUM(total_attempts) as total_exercises,
@@ -1144,16 +1170,21 @@ async def get_user_stats(request):
         
         columns = [desc[0] for desc in cursor.description]
         row = cursor.fetchone()
+        print(f"Statistiques globales brutes: {row}")
         overall_stats = dict(zip(columns, row)) if row else {"total_exercises": 0, "correct_answers": 0}
+        print(f"Statistiques globales formatées: {overall_stats}")
 
         # Calculer le taux de réussite
         total_exercises = overall_stats.get('total_exercises', 0) or 0
         correct_answers = overall_stats.get('correct_answers', 0) or 0
         success_rate = int((correct_answers / total_exercises * 100) if total_exercises > 0 else 0)
+        print(f"Taux de réussite calculé: {success_rate}%")
 
         # Statistiques par type d'exercice
         performance_by_type = {}
+        print("Récupération des statistiques par type d'exercice")
         for exercise_type in ExerciseTypes.ALL_TYPES[:4]:  # Pour l'instant, juste les 4 types de base
+            print(f"Récupération des statistiques pour le type {exercise_type}")
             cursor.execute("""
             SELECT
                 SUM(total_attempts) as total,
@@ -1164,11 +1195,13 @@ async def get_user_stats(request):
             
             columns = [desc[0] for desc in cursor.description]
             row = cursor.fetchone()
+            print(f"Statistiques brutes pour {exercise_type}: {row}")
             type_stats = dict(zip(columns, row)) if row else {"total": 0, "correct": 0}
 
             total = type_stats.get('total', 0) or 0
             correct = type_stats.get('correct', 0) or 0
             success_rate_type = int((correct / total * 100) if total > 0 else 0)
+            print(f"Taux de réussite pour {exercise_type}: {success_rate_type}%")
 
             # Convertir les types en français pour le frontend
             type_fr = {
@@ -1183,8 +1216,11 @@ async def get_user_stats(request):
                 'correct': correct,
                 'success_rate': success_rate_type
             }
+        
+        print(f"Performance par type complète: {performance_by_type}")
 
         # Récupérer les exercices récents pour l'activité
+        print("Récupération des exercices récents")
         cursor.execute("""
         SELECT
             e.question,
@@ -1198,6 +1234,7 @@ async def get_user_stats(request):
         
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
+        print(f"Nombre d'exercices récents trouvés: {len(rows)}")
         recent_results = [dict(zip(columns, row)) for row in rows]
 
         # Formater les activités récentes
@@ -1221,6 +1258,8 @@ async def get_user_stats(request):
                 'time': formatted_time
             }
             recent_activity.append(activity)
+        
+        print(f"Nombre d'activités récentes formatées: {len(recent_activity)}")
 
         # Simuler les données de niveau pour le moment
         level_data = {
@@ -1231,9 +1270,11 @@ async def get_user_stats(request):
         }
 
         # Récupérer la progression réelle par jour pour les 7 derniers jours
+        print("Génération des données de progression sur 7 jours")
         from datetime import datetime, timedelta
         
         today = datetime.now().date()
+        print(f"Date du jour: {today}")
         day_labels = []
         exercise_counts = []
         
@@ -1244,12 +1285,15 @@ async def get_user_stats(request):
                 day_labels.append('Aujourd\'hui')
             else:
                 day_labels.append(f'J-{i}')
+        
+        print(f"Étiquettes des jours générées: {day_labels}")
                 
         # Pour chaque jour, récupérer le nombre d'exercices résolus
         try:
             # Utiliser la fonction date_trunc pour obtenir la date sans l'heure en PostgreSQL
             # Convertir la date en chaîne formatée pour éviter les problèmes de type
             date_str = (today - timedelta(days=6)).strftime('%Y-%m-%d')
+            print(f"Date de début pour la requête: {date_str}")
             cursor.execute("""
             SELECT 
                 DATE(created_at) as exercise_date,
@@ -1262,16 +1306,21 @@ async def get_user_stats(request):
             
             date_counts = {}
             rows = cursor.fetchall()
+            print(f"Résultats de la requête de progression quotidienne: {rows}")
             for row in rows:
                 date_obj = row[0]
                 if isinstance(date_obj, str):
                     date_obj = datetime.strptime(date_obj, '%Y-%m-%d').date()
                 date_counts[date_obj] = row[1]
             
+            print(f"Comptage par date formaté: {date_counts}")
+            
             # Remplir le tableau avec les comptages réels ou zéro si aucun exercice
             for i in range(6, -1, -1):
                 past_date = today - timedelta(days=i)
-                exercise_counts.append(date_counts.get(past_date, 0))
+                count = date_counts.get(past_date, 0)
+                exercise_counts.append(count)
+                print(f"Pour {past_date}: {count} exercices")
                 
         except Exception as e:
             print(f"Erreur lors de la récupération des données de progression journalière: {e}")
@@ -1281,7 +1330,9 @@ async def get_user_stats(request):
             # Ajouter le total exercices à aujourd'hui pour que ce soit cohérent
             if total_exercises > 0:
                 exercise_counts[-1] = total_exercises
+            print(f"Données de progression simulées après erreur: {exercise_counts}")
 
+        print(f"Tableau final des exercices par jour: {exercise_counts}")
         progress_over_time = {
             'labels': day_labels,
             'datasets': [{
@@ -1289,6 +1340,7 @@ async def get_user_stats(request):
                 'data': exercise_counts
             }]
         }
+        print(f"Structure complète progress_over_time: {progress_over_time}")
 
         conn.close()
 
@@ -1303,7 +1355,7 @@ async def get_user_stats(request):
             'progress_over_time': progress_over_time
         }
         
-        print("Données du tableau de bord générées:", response_data)
+        print("Données du tableau de bord générées complètes:", response_data)
         return JSONResponse(response_data)
     
     except Exception as e:

@@ -268,22 +268,18 @@
 
 <div class="card exercise-detail">
     <div class="exercise-meta">
-        <span class="difficulty {{ exercise.difficulty.lower() if exercise.difficulty else 'easy' }}">
-            {% if exercise.difficulty == "initie" %}Initié
-            {% elif exercise.difficulty == "padawan" %}Padawan
-            {% elif exercise.difficulty == "chevalier" %}Chevalier
-            {% elif exercise.difficulty == "maitre" %}Maître
-            {% else %}{{ exercise.difficulty }}
+        <span class="difficulty {{ exercise.difficulty }}">
+            {% if exercise.difficulty in difficulty_display %}
+            {{ difficulty_display[exercise.difficulty] }}
+            {% else %}
+            {{ exercise.difficulty }}
             {% endif %}
         </span>
         <span class="exercise-type-tag">
-            {% if exercise.exercise_type == "addition" %}Addition
-            {% elif exercise.exercise_type == "soustraction" %}Soustraction
-            {% elif exercise.exercise_type == "multiplication" %}Multiplication
-            {% elif exercise.exercise_type == "division" %}Division
-            {% elif exercise.exercise_type == "fractions" %}Fractions
-            {% elif exercise.exercise_type == "geometrie" %}Géométrie
-            {% else %}{{ exercise.exercise_type|title }}
+            {% if exercise.exercise_type in exercise_type_display %}
+            {{ exercise_type_display[exercise.exercise_type] }}
+            {% else %}
+            {{ exercise.exercise_type|title }}
             {% endif %}
         </span>
     </div>

@@ -187,6 +187,78 @@ static/variables.css       # Variables CSS (couleurs, espacement, typographie, e
 
 Cette organisation permet de facilement mettre à jour les valeurs sans avoir à modifier le code à plusieurs endroits, améliorant ainsi la maintenabilité et la cohérence de l'application.
 
+### Fichiers de centralisation détaillés
+
+#### 1. constants.py
+Ce fichier contient toutes les constantes liées à la logique métier:
+- `ExerciseTypes`: Énumération des types d'exercices disponibles avec leurs alias
+- `DifficultyLevels`: Niveaux de difficulté avec leurs alias pour normalisation
+- `DISPLAY_NAMES`: Mapping pour l'affichage des noms dans l'interface utilisateur
+- `DIFFICULTY_LIMITS`: Limites numériques configurées pour chaque type d'exercice et niveau
+- `Tags`: Tags utilisés pour catégoriser les exercices
+- `Messages`: Messages système communs et préfixes
+- `PaginationConfig`: Paramètres de pagination
+- `LoggingLevels`: Définition des niveaux de journalisation
+- `SecurityConfig`: Paramètres liés à la sécurité et l'authentification
+- `ExerciseStatus`: États possibles des exercices
+
+#### 2. messages.py
+Ce fichier centralise tous les textes et messages affichés à l'utilisateur:
+- `SystemMessages`: Messages d'erreur, de succès et d'information système
+- `ExerciseMessages`: Textes spécifiques aux exercices (titres, questions, feedback)
+- `InterfaceTexts`: Textes de l'interface (boutons, étiquettes, titres de pages)
+- `NotificationMessages`: Messages de notification (alertes, confirmations)
+
+#### 3. queries.py
+Ce fichier contient toutes les requêtes SQL utilisées dans l'application:
+- `ExerciseQueries`: Requêtes pour la gestion des exercices
+- `ResultQueries`: Requêtes pour les résultats des exercices
+- `UserStatsQueries`: Requêtes pour les statistiques utilisateur
+- `UserQueries`: Requêtes pour la gestion des utilisateurs
+- `SettingQueries`: Requêtes pour la gestion des paramètres système
+
+#### 4. variables.css
+Ce fichier définit toutes les variables CSS pour assurer une cohérence visuelle:
+- Palettes de couleurs (standard et thème Star Wars)
+- Dimensions et espacement
+- Typographie (familles de polices, tailles, hauteurs de ligne)
+- Effets (transitions, ombres, animations)
+- Points de rupture pour le design responsive
+- Variables spécifiques pour le mode sombre et les préférences d'accessibilité
+
+### Utilisation des constantes centralisées
+
+Ces fichiers sont importés et utilisés dans tout le code de l'application:
+
+```python
+# Exemple dans enhanced_server.py
+from app.core.constants import ExerciseTypes, DifficultyLevels
+from app.core.messages import SystemMessages, ExerciseMessages
+from app.db.queries import ExerciseQueries
+
+# Utilisation des constantes
+if exercise_type == ExerciseTypes.ADDITION:
+    # ...
+
+# Utilisation des messages
+return JSONResponse({"message": SystemMessages.SUCCESS_OPERATION_COMPLETED})
+
+# Utilisation des requêtes SQL
+cursor.execute(ExerciseQueries.GET_BY_ID, (exercise_id,))
+```
+
+```css
+/* Exemple dans un fichier CSS */
+.button {
+    background-color: var(--sw-blue);
+    padding: var(--spacing-md);
+    font-size: var(--font-size-md);
+    transition: var(--default-transition);
+}
+```
+
+Ce système de centralisation facilite grandement la maintenance et garantit une cohérence dans toute l'application. Il permet également d'envisager plus facilement l'internationalisation du projet à l'avenir.
+
 ## Services et Modules
 
 L'application est organisée en modules fonctionnels suivant une architecture en couches :

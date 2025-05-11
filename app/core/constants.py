@@ -2,16 +2,17 @@
 Constants centralisées pour l'application Mathakine
 Ce fichier contient toutes les constantes utilisées dans l'application.
 """
+from app.models.exercise import ExerciseType, DifficultyLevel
 
-# Types d'exercices
+# Types d'exercices - compatible avec l'enum ExerciseType
 class ExerciseTypes:
-    ADDITION = "addition"
-    SUBTRACTION = "subtraction"
-    MULTIPLICATION = "multiplication"
-    DIVISION = "division"
-    FRACTIONS = "fractions"
-    GEOMETRIE = "geometrie"
-    DIVERS = "divers"
+    ADDITION = ExerciseType.ADDITION.value
+    SUBTRACTION = ExerciseType.SOUSTRACTION.value
+    MULTIPLICATION = ExerciseType.MULTIPLICATION.value
+    DIVISION = ExerciseType.DIVISION.value
+    FRACTIONS = ExerciseType.FRACTIONS.value
+    GEOMETRIE = ExerciseType.GEOMETRIE.value
+    DIVERS = ExerciseType.DIVERS.value
     
     ALL_TYPES = [ADDITION, SUBTRACTION, MULTIPLICATION, DIVISION, FRACTIONS, GEOMETRIE, DIVERS]
     
@@ -26,12 +27,12 @@ class ExerciseTypes:
         DIVERS: [DIVERS, "misc", "divers", "other"]
     }
 
-# Niveaux de difficulté
+# Niveaux de difficulté - compatible avec l'enum DifficultyLevel
 class DifficultyLevels:
-    INITIE = "initie"
-    PADAWAN = "padawan"
-    CHEVALIER = "chevalier"
-    MAITRE = "maitre"
+    INITIE = DifficultyLevel.INITIE.value
+    PADAWAN = DifficultyLevel.PADAWAN.value
+    CHEVALIER = DifficultyLevel.CHEVALIER.value
+    MAITRE = DifficultyLevel.MAITRE.value
     
     ALL_LEVELS = [INITIE, PADAWAN, CHEVALIER, MAITRE]
     

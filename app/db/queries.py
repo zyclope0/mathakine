@@ -38,7 +38,7 @@ class ExerciseQueries:
     
     GET_BY_ID = """
     SELECT * FROM exercises 
-    WHERE id = %s AND is_archived = false
+    WHERE id = %s
     """
     
     GET_BY_TYPE = """

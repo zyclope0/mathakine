@@ -9,9 +9,10 @@
 Tous les fichiers ont été réorganisés dans cette nouvelle structure :
 - **Code principal** : `/math-trainer-backend/`
 - **Documentation principale** : `/math-trainer-backend/README.md`
+- **Documentation détaillée** : `/math-trainer-backend/docs/`
+- **Table des matières de la documentation** : `/math-trainer-backend/docs/TABLE_DES_MATIERES.md`
 - **Documentation des tests** : `/math-trainer-backend/tests/README.md`
 - **Plan de test complet** : `/math-trainer-backend/tests/TEST_PLAN.md`
-- **Documentation détaillée** : `/math-trainer-backend/docs/`
 
 ### Avantages de cette réorganisation
 
@@ -119,7 +120,7 @@ python scripts/toggle_database.py [sqlite|postgres]
 python check_db_connection.py
 ```
 
-Pour des instructions détaillées, consultez [GETTING_STARTED.md](GETTING_STARTED.md) et [docs/validation/README.md](docs/validation/README.md).
+Pour des instructions détaillées, consultez [GETTING_STARTED.md](docs/GETTING_STARTED.md) et [docs/validation/README.md](docs/validation/README.md).
 
 ## Structure du projet
 
@@ -192,27 +193,30 @@ Pour des instructions détaillées, consultez [GETTING_STARTED.md](GETTING_START
 ### Index de la documentation
 
 #### Guide utilisateur et administrateur
-- [GETTING_STARTED.md](GETTING_STARTED.md) : Guide de démarrage
+- [GETTING_STARTED.md](docs/GETTING_STARTED.md) : Guide de démarrage
 - [STRUCTURE.md](STRUCTURE.md) : Structure du projet
 - [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) : Guide de déploiement
 - [docs/GLOSSARY.md](docs/GLOSSARY.md) : Glossaire complet des termes du projet
 - [docs/UI_GUIDE.md](docs/UI_GUIDE.md) : Guide de l'interface graphique
 
 #### Documentation technique
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) : Architecture du système
-- [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) : État du projet et planification
-- [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) : Plan d'implémentation détaillé
-- [docs/POSTGRESQL_MIGRATION.md](docs/POSTGRESQL_MIGRATION.md) : Guide de migration vers PostgreSQL
-- [docs/PYDANTIC_V2_MIGRATION.md](docs/PYDANTIC_V2_MIGRATION.md) : Migration vers Pydantic v2
-- [docs/CHANGELOG.md](docs/CHANGELOG.md) : Résumé des modifications récentes et historique
-- [docs/CLEANUP_REPORT.md](docs/CLEANUP_REPORT.md) : Rapport de nettoyage des fichiers obsolètes
-- [docs/CLEANUP_SUMMARY.md](docs/CLEANUP_SUMMARY.md) : Résumé des améliorations de code
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) : Architecture détaillée
+- [docs/API_REFERENCE.md](docs/API_REFERENCE.md) : Documentation de l'API REST
+- [docs/POSTGRESQL_MIGRATION.md](docs/POSTGRESQL_MIGRATION.md) : Guide de migration SQL
+- [docs/NORMALIZATION.md](docs/NORMALIZATION.md) : Processus de normalisation des données
 
-#### Documentation de référence
-- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) : Guide de résolution des problèmes
-- [docs/validation/README.md](docs/validation/README.md) : Documentation du système d'auto-validation
-- [docs/validation/COMPATIBILITY.md](docs/validation/COMPATIBILITY.md) : Compatibilité avec Python 3.13
-- [docs/DASHBOARD_FIX_REPORT.md](docs/DASHBOARD_FIX_REPORT.md) : Corrections du tableau de bord
+#### Documentation de développement
+- [docs/DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md) : Guide de développement
+- [docs/CENTRALISATION_ET_REFACTORING.md](docs/CENTRALISATION_ET_REFACTORING.md) : Documentation complète sur le refactoring de centralisation
+- [docs/EXTENSION_GUIDE.md](docs/EXTENSION_GUIDE.md) : Guide d'extension des fonctionnalités
+- [docs/AI_INTEGRATION.md](docs/AI_INTEGRATION.md) : Intégration avec l'IA
+- [docs/ADMIN_COMMANDS.md](docs/ADMIN_COMMANDS.md) : Commandes administratives
+
+#### Rapports de maintenance
+- [docs/CHANGELOG.md](docs/CHANGELOG.md) : Historique des versions
+- [docs/CLEANUP_SUMMARY.md](docs/CLEANUP_SUMMARY.md) : Résumé du nettoyage
+- [docs/DASHBOARD_FIX_REPORT.md](docs/DASHBOARD_FIX_REPORT.md) : Correction du tableau de bord
+- [docs/FIXES.md](docs/FIXES.md) : Corrections majeures de bugs critiques
 
 #### Documents spécifiques
 - [tests/README.md](tests/README.md) : Documentation des tests
