@@ -36,11 +36,16 @@ L'API REST est organisée selon les principes RESTful avec une séparation clair
 app/api/
 ├── __init__.py
 ├── api.py                   # Routeur API principal
-├── deps.py                  # Dépendances FastAPI
-└── endpoints/               # Endpoints organisés par domaine
-    ├── __init__.py
-    ├── exercises.py         # Endpoints pour les exercices
-    └── users.py             # Endpoints pour les utilisateurs
+├── deps.py                  # Dépendances FastAPI (dont l'authentification)
+├── endpoints/               # Endpoints API groupés par fonctionnalité
+│   ├── __init__.py
+│   ├── auth.py              # Authentification (login, logout)
+│   ├── exercises.py         # Gestion des exercices
+│   ├── users.py             # Gestion des utilisateurs
+│   ├── attempts.py          # Tentatives et résultats
+│   ├── challenges.py        # Défis logiques
+│   └── settings.py          # Configuration
+└── router.py                # Enregistrement des routeurs
 ```
 
 Chaque module d'endpoints contient :
@@ -324,6 +329,35 @@ Cette normalisation garantit que les statistiques dans le tableau de bord sont c
 Pour plus de détails sur les problèmes résolus et les mécanismes de normalisation, consultez [docs/TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
 Pour les détails complets sur les plans futurs, voir [docs/PROJECT_STATUS.md](PROJECT_STATUS.md) et [docs/IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
+
+### Sécurité et Authentification
+
+Le système de sécurité, surnommé "Les Cristaux d'Identité", est implémenté avec :
+
+- JSON Web Tokens (JWT) pour l'authentification sans état
+- Bcrypt pour le hachage sécurisé des mots de passe
+- Système de rôles hiérarchique (Padawan, Maître, Gardien, Archiviste)
+- Middleware de vérification des tokens et autorisations
+
+L'architecture de sécurité est répartie entre ces composants :
+
+```
+app/
+├── core/
+│   ├── security.py          # Utilitaires de sécurité (création de tokens, hachage)
+│   └── config.py            # Configuration de sécurité (clés, durée de vie des tokens)
+├── services/
+│   └── auth_service.py      # Service d'authentification
+├── api/
+│   ├── deps.py              # Middleware d'authentification et vérification des rôles
+│   └── endpoints/
+│       ├── auth.py          # Endpoints d'authentification
+│       └── users.py         # Gestion des utilisateurs
+└── schemas/
+    └── user.py              # Schémas de validation pour l'authentification
+```
+
+Les tokens JWT contiennent le nom d'utilisateur, le rôle, et une date d'expiration, signés avec une clé secrète définie dans les variables d'environnement.
 
 ---
 *Dernière mise à jour: 22/07/2024* 

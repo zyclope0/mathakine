@@ -90,9 +90,9 @@ PUT     /api/settings               # Mise à jour des paramètres
 ```
 
 ### 2.2 Implémentation de l'authentification
-- [ ] Système JWT pour l'authentification (Les Cristaux d'Identité)
-- [ ] Gestion des rôles et permissions (Le Conseil et ses Rangs)
-- [ ] Middleware de sécurité (Boucliers Déflecteurs)
+- [x] Système JWT pour l'authentification (Les Cristaux d'Identité)
+- [x] Gestion des rôles et permissions (Le Conseil et ses Rangs)
+- [x] Middleware de sécurité (Boucliers Déflecteurs)
 
 ### 2.3 Design des réponses d'erreur
 - [x] Format standardisé des réponses d'erreur
@@ -102,7 +102,7 @@ PUT     /api/settings               # Mise à jour des paramètres
 ## PHASE 3: L'IMPLÉMENTATION (SEMAINE 5-7)
 
 ### 3.1 Développement des endpoints CRUD
-- [ ] Implémentation des routes utilisateurs
+- [x] Implémentation des routes utilisateurs
 - [x] Implémentation des routes exercices
 - [ ] Implémentation des routes tentatives/progression
 - [ ] Implémentation des routes configuration
