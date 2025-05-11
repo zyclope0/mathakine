@@ -5,9 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Any, List
 
-from app.api.deps import get_db_session
+from app.api.deps import get_db_session, get_current_user, get_current_gardien_or_archiviste
 from app.schemas.user import User, UserCreate, UserUpdate
-# Import additional models as needed
+from app.services.auth_service import create_user, get_user_by_id, update_user
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -15,129 +18,143 @@ router = APIRouter()
 _challenges_progress = {}
 
 @router.get("/", response_model=List[User])
-
-
 def get_users(
     db: Session = Depends(get_db_session),
     skip: int = 0,
     limit: int = 100,
+    current_user: User = Depends(get_current_gardien_or_archiviste)
 ) -> Any:
     """
     Récupérer tous les utilisateurs.
+    Accessible uniquement aux Gardiens et Archivistes.
     """
-    # Placeholder function - implement actual user retrieval
-    return []
+    # Requête réelle à la base de données
+    users = db.query(User).offset(skip).limit(limit).all()
+    logger.info(f"Liste des utilisateurs récupérée par {current_user.username}")
+    return users
 
 
 @router.post("/", response_model=User, status_code=201)
-
-
-def create_user(
+def create_new_user(
     *,
     db: Session = Depends(get_db_session),
     user_in: UserCreate,
 ) -> Any:
     """
     Créer un nouvel utilisateur.
+    Endpoint public pour l'inscription.
     """
-    # Placeholder function - implement actual user creation
-    from datetime import datetime
-    now = datetime.now()
-    return {
-        "id": 0,
-        "username": user_in.username,
-        "email": user_in.email,
-        "full_name": user_in.full_name,
-        "role": user_in.role,
-        "is_active": True,
-        "created_at": now,
-        "updated_at": now,
-        "grade_level": user_in.grade_level,
-        "learning_style": user_in.learning_style,
-        "preferred_difficulty": user_in.preferred_difficulty,
-        "preferred_theme": user_in.preferred_theme,
-        "accessibility_settings": user_in.accessibility_settings
-    }
+    # Utiliser le service d'authentification pour créer l'utilisateur
+    user = create_user(db, user_in)
+    logger.info(f"Nouvel utilisateur créé: {user.username}")
+    return user
+
+
+@router.get("/me", response_model=User)
+def get_user_me(
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Récupérer les informations de l'utilisateur actuellement connecté.
+    """
+    logger.debug(f"Récupération des informations personnelles par {current_user.username}")
+    return current_user
 
 
 @router.get("/{user_id}", response_model=User)
-
-
 def get_user(
     *,
     db: Session = Depends(get_db_session),
     user_id: int,
+    current_user: User = Depends(get_current_gardien_or_archiviste)
 ) -> Any:
     """
     Récupérer un utilisateur par ID.
+    Accessible uniquement aux Gardiens et Archivistes.
     """
-    # Placeholder function - implement actual user retrieval
-    if user_id == 0:
+    user = get_user_by_id(db, user_id)
+    if user is None:
+        logger.warning(f"Tentative d'accès à un utilisateur inexistant (ID: {user_id}) par {current_user.username}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Utilisateur non trouvé"
         )
-    return {
-        "id": user_id,
-        "username": "test_user",
-        "email": "test@example.com",
-        "role": "padawan",
-        "is_active": True
-    }
+    logger.info(f"Récupération des informations de l'utilisateur {user.username} par {current_user.username}")
+    return user
+
+
+@router.put("/me", response_model=User)
+def update_user_me(
+    *,
+    db: Session = Depends(get_db_session),
+    user_in: UserUpdate,
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Mettre à jour les informations de l'utilisateur actuellement connecté.
+    """
+    user = update_user(db, current_user, user_in)
+    logger.info(f"Utilisateur {current_user.username} a mis à jour ses informations")
+    return user
 
 
 @router.put("/{user_id}", response_model=User)
-
-
-def update_user(
+def update_user_by_id(
     *,
     db: Session = Depends(get_db_session),
     user_id: int,
     user_in: UserUpdate,
+    current_user: User = Depends(get_current_gardien_or_archiviste)
 ) -> Any:
     """
-    Mettre à jour un utilisateur.
+    Mettre à jour un utilisateur par ID.
+    Accessible uniquement aux Gardiens et Archivistes.
     """
-    # Placeholder function - implement actual user update
-    if user_id == 0:
+    user = get_user_by_id(db, user_id)
+    if user is None:
+        logger.warning(f"Tentative de mise à jour d'un utilisateur inexistant (ID: {user_id}) par {current_user.username}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Utilisateur non trouvé"
         )
-    return {
-        "id": user_id,
-        "username": user_in.username or "test_user",
-        "email": user_in.email or "test@example.com",
-        "role": user_in.role or "padawan",
-        "is_active": True
-    }
+    
+    user = update_user(db, user, user_in)
+    logger.info(f"Utilisateur {user.username} mis à jour par {current_user.username}")
+    return user
 
 
 @router.get("/{user_id}/challenges/progress", response_model=dict)
-
-
 def get_user_challenges_progress(
     *,
     db: Session = Depends(get_db_session),
     user_id: int,
+    current_user: User = Depends(get_current_user)
 ) -> Any:
     """
     Récupérer la progression des défis logiques pour un utilisateur.
+    L'utilisateur peut voir sa propre progression, les Gardiens/Archivistes peuvent voir celle des autres.
     """
-    # Initialiser la progression si nécessaire
-    if user_id not in _challenges_progress:
-        _challenges_progress[user_id] = {
-            "completed_challenges": 3,
-            "total_challenges": 10,
-            "last_attempt_time": None
-        }
-
-    # Pour les tests: si une tentative a été faite depuis la dernière vérification
-    # de progression, incrémenter le nombre de défis complétés
-    user_progress = _challenges_progress[user_id]
-
+    # Vérifier si l'utilisateur demande sa propre progression ou s'il a les droits
+    if current_user.id != user_id and current_user.role not in ["gardien", "archiviste"]:
+        logger.warning(f"Tentative d'accès non autorisé à la progression de l'utilisateur {user_id} par {current_user.username}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Vous n'avez pas accès à cette progression"
+        )
+    
+    # Vérifier si l'utilisateur demandé existe
+    user = get_user_by_id(db, user_id)
+    if user is None:
+        logger.warning(f"Tentative d'accès à la progression d'un utilisateur inexistant (ID: {user_id})")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Utilisateur non trouvé"
+        )
+    
+    # TODO: Remplacer par un service réel de suivi de progression
+    logger.info(f"Récupération de la progression des défis pour l'utilisateur {user.username}")
     return {
-        "completed_challenges": user_progress["completed_challenges"],
+        "completed_challenges": 3,
         "total_challenges": 10,
         "success_rate": 0.8,
         "average_time": 45.5,
@@ -168,17 +185,35 @@ def get_user_challenges_progress(
 
 
 @router.get("/{user_id}/progress", response_model=dict)
-
-
 def get_user_progress(
     *,
     db: Session = Depends(get_db_session),
     user_id: int,
+    current_user: User = Depends(get_current_user)
 ) -> Any:
     """
     Récupérer la progression globale d'un utilisateur.
+    L'utilisateur peut voir sa propre progression, les Gardiens/Archivistes peuvent voir celle des autres.
     """
-    # Pour les tests, on accepte n'importe quel ID
+    # Vérifier si l'utilisateur demande sa propre progression ou s'il a les droits
+    if current_user.id != user_id and current_user.role not in ["gardien", "archiviste"]:
+        logger.warning(f"Tentative d'accès non autorisé à la progression de l'utilisateur {user_id} par {current_user.username}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Vous n'avez pas accès à cette progression"
+        )
+    
+    # Vérifier si l'utilisateur demandé existe
+    user = get_user_by_id(db, user_id)
+    if user is None:
+        logger.warning(f"Tentative d'accès à la progression d'un utilisateur inexistant (ID: {user_id})")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Utilisateur non trouvé"
+        )
+    
+    # TODO: Remplacer par un service réel de suivi de progression
+    logger.info(f"Récupération de la progression globale pour l'utilisateur {user.username}")
     return {
         "total_attempts": 15,
         "correct_attempts": 12,

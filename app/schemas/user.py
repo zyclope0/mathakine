@@ -46,17 +46,16 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    """Schéma pour la création d'un nouvel utilisateur (Initiation d'un Padawan)"""
-    password: str = Field(..., min_length=8,
+    """Schéma pour la création d'un utilisateur (Recrutement d'un Padawan)"""
+    password: str = Field(..., min_length=8, 
                         description="Mot de passe (8 caractères minimum)")
-
+    
     @field_validator('password')
     @classmethod
-
-
     def password_strength(cls, v):
+        """Vérifie que le mot de passe est suffisamment fort"""
         if len(v) < 8:
-            raise ValueError("Le mot de passe doit contenir au moins 8 caractères")
+            raise ValueError("Le mot de passe doit faire au moins 8 caractères")
         if not any(char.isdigit() for char in v):
             raise ValueError("Le mot de passe doit contenir au moins un chiffre")
         if not any(char.isupper() for char in v):
@@ -66,25 +65,33 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    """Schéma pour la mise à jour d'un utilisateur (Évolution d'un Padawan)"""
+    """Schéma pour la mise à jour d'un utilisateur (Évolution d'un Jedi)"""
+    username: Optional[str] = Field(None, min_length=3, max_length=50,
+                                description="Nom d'utilisateur unique (3-50 caractères)")
     email: Optional[EmailStr] = None
+    password: Optional[str] = Field(None, min_length=8,
+                                description="Nouveau mot de passe (8 caractères minimum)")
     full_name: Optional[str] = Field(None, min_length=2, max_length=100)
     role: Optional[UserRole] = None
-    is_active: Optional[bool] = None
     grade_level: Optional[int] = Field(None, ge=1, le=12)
     learning_style: Optional[str] = None
     preferred_difficulty: Optional[str] = None
     preferred_theme: Optional[str] = None
     accessibility_settings: Optional[Dict[str, Any]] = None
+    is_active: Optional[bool] = None
+    
+    model_config = ConfigDict(extra="forbid", validate_default=True)
 
-    @field_validator('preferred_theme')
-    @classmethod
 
 
-    def theme_valid(cls, v):
-        if v is not None and v not in ['light', 'dark']:
-            raise ValueError("Le thème doit être 'light' (Côté Lumineux) ou 'dark' (Côté Obscur)")
-        return v
+class User(UserBase):
+    """Schéma pour un utilisateur (Membre de l'Ordre Jedi)"""
+    id: int
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 
@@ -95,12 +102,6 @@ class UserInDB(UserBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
-
-
-
-class User(UserInDB):
-    """Schéma d'un utilisateur (Carte d'identité Jedi)"""
     model_config = ConfigDict(from_attributes=True)
 
 

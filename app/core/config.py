@@ -4,6 +4,7 @@ from typing import List
 import os
 from dotenv import load_dotenv
 from app.core.logging_config import get_logger
+import secrets
 
 # Obtenir un logger nommé pour ce module
 logger = get_logger(__name__)
@@ -33,6 +34,10 @@ class Settings(BaseSettings):
         "127.0.0.1",
         os.getenv("DOMAIN", "localhost")
     ]
+    
+    # JWT Security
+    SECRET_KEY: str = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24 * 7))  # 7 jours
 
     # Debug mode
     DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
