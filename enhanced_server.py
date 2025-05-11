@@ -147,13 +147,30 @@ async def exercises_page(request):
     # Vérifier si nous venons d'une génération d'exercices
     just_generated = request.query_params.get('generated', 'false') == 'true'
     print(f"Page d'exercices chargée, just_generated={just_generated}")
+    
+    # Récupérer les paramètres de filtrage
+    exercise_type = request.query_params.get('type', None)
+    difficulty = request.query_params.get('difficulty', None)
+    
+    # Normaliser les paramètres si présents
+    if exercise_type:
+        exercise_type = normalize_exercise_type(exercise_type)
+    if difficulty:
+        difficulty = normalize_difficulty(difficulty)
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
-        # Requête pour les exercices non archivés
-        cursor.execute("SELECT * FROM exercises WHERE is_archived IS NOT TRUE ORDER BY id DESC LIMIT 10")
+        # Choisir la requête SQL appropriée selon les paramètres
+        if exercise_type and difficulty:
+            cursor.execute(ExerciseQueries.GET_BY_TYPE_AND_DIFFICULTY, (exercise_type, difficulty))
+        elif exercise_type:
+            cursor.execute(ExerciseQueries.GET_BY_TYPE, (exercise_type,))
+        elif difficulty:
+            cursor.execute(ExerciseQueries.GET_BY_DIFFICULTY, (difficulty,))
+        else:
+            cursor.execute(ExerciseQueries.GET_ALL)
 
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
@@ -188,7 +205,9 @@ async def exercises_page(request):
     return templates.TemplateResponse("exercises.html", {
         "request": request,
         "exercises": exercises,
-        "just_generated": just_generated
+        "just_generated": just_generated,
+        "selected_type": exercise_type,
+        "selected_difficulty": difficulty
     })
 
 async def get_exercise(request):
@@ -197,14 +216,14 @@ async def get_exercise(request):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM exercises WHERE id = %s", (exercise_id,))
+    cursor.execute(ExerciseQueries.GET_BY_ID, (exercise_id,))
 
     columns = [desc[0] for desc in cursor.description]
     row = cursor.fetchone()
 
     if not row:
         conn.close()
-        return JSONResponse({"error": "Exercice non trouvé"}, status_code=404)
+        return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
 
     exercise = dict(zip(columns, row))
 
@@ -323,16 +342,17 @@ async def exercise_detail_page(request):
     cursor = conn.cursor()
 
     # Récupérer l'exercice
-    cursor.execute("SELECT * FROM exercises WHERE id = %s", (exercise_id,))
+    cursor.execute(ExerciseQueries.GET_BY_ID, (exercise_id,))
 
     columns = [desc[0] for desc in cursor.description]
     row = cursor.fetchone()
 
     if not row:
         conn.close()
-        return templates.TemplateResponse("home.html", {
+        return templates.TemplateResponse("error.html", {
             "request": request,
-            "error_message": "L'exercice demandé n'existe pas."
+            "error": "Exercice non trouvé",
+            "message": SystemMessages.ERROR_EXERCISE_NOT_FOUND
         })
 
     # Convertir en dictionnaire
@@ -404,29 +424,7 @@ def init_database():
     cursor = conn.cursor()
 
     # Créer la table des exercices si elle n'existe pas
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS exercises (
-        id SERIAL PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
-        creator_id INTEGER,
-        exercise_type VARCHAR(50) NOT NULL,
-        difficulty VARCHAR(50) NOT NULL,
-        tags VARCHAR(255),
-        question TEXT NOT NULL,
-        correct_answer VARCHAR(255) NOT NULL,
-        choices JSON,
-        explanation TEXT,
-        hint TEXT,
-        image_url VARCHAR(255),
-        audio_url VARCHAR(255),
-        is_active BOOLEAN DEFAULT TRUE,
-        is_archived BOOLEAN DEFAULT FALSE,
-        ai_generated BOOLEAN DEFAULT FALSE,
-        view_count INTEGER DEFAULT 0,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    )
-    """)
+    cursor.execute(ExerciseQueries.CREATE_TABLE)
 
     # Ajouter la colonne ai_generated si elle n'existe pas
     try:
@@ -451,19 +449,7 @@ def init_database():
         conn.rollback()
 
     # Créer la table des résultats si elle n'existe pas
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS results (
-        id SERIAL PRIMARY KEY,
-        exercise_id INTEGER NOT NULL,
-        user_id INTEGER,
-        session_id VARCHAR(255),
-        is_correct BOOLEAN NOT NULL,
-        time_taken REAL NOT NULL,
-        answer_given VARCHAR(255),
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (exercise_id) REFERENCES exercises (id)
-    )
-    """)
+    cursor.execute(ResultQueries.CREATE_TABLE)
 
     # Créer la table user_stats
     cursor.execute("""
@@ -521,23 +507,21 @@ async def generate_exercise(request):
         # Vérifier si ai_generated est dans le dictionnaire, sinon le définir à False
         ai_generated = exercise_dict.get('ai_generated', use_ai)
 
-        # Insérer dans la base de données
-        cursor.execute("""
-            INSERT INTO exercises
-            (title, exercise_type, difficulty, question, correct_answer, choices
-                , tags, is_archived, ai_generated)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING id
-        """, (
-            exercise_dict['title'],
-            exercise_dict['exercise_type'],
-            exercise_dict['difficulty'],
-            exercise_dict['question'],
-            exercise_dict['correct_answer'],
-            choices_json,
-            exercise_dict.get('tags', 'generated'),
-            False,  # is_archived
-            ai_generated  # ai_generated
+        # Insérer dans la base de données en utilisant la requête centralisée
+        cursor.execute(ExerciseQueries.INSERT, (
+            exercise_dict['title'],              # title
+            None,                                # creator_id (pour l'instant, None)
+            exercise_dict['exercise_type'],      # exercise_type
+            exercise_dict['difficulty'],         # difficulty
+            exercise_dict.get('tags', 'generated'), # tags
+            exercise_dict['question'],           # question
+            exercise_dict['correct_answer'],     # correct_answer
+            choices_json,                        # choices
+            exercise_dict.get('explanation', None), # explanation
+            exercise_dict.get('hint', None),     # hint
+            exercise_dict.get('image_url', None), # image_url
+            exercise_dict.get('audio_url', None), # audio_url
+            ai_generated                         # ai_generated
         ))
 
         result = cursor.fetchone()
@@ -851,29 +835,32 @@ async def submit_answer(request):
         exercise_id = data.get('exercise_id')
         selected_answer = data.get('selected_answer')
         time_spent = data.get('time_spent', 0)
+        user_id = data.get('user_id', 1)  # Utiliser l'ID 1 par défaut pour un utilisateur non authentifié
 
         # Récupérer l'exercice pour vérifier la réponse
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM exercises WHERE id = %s", (exercise_id,))
+        cursor.execute(ExerciseQueries.GET_BY_ID, (exercise_id,))
         columns = [desc[0] for desc in cursor.description]
         row = cursor.fetchone()
 
         if not row:
             conn.close()
-            return JSONResponse({"error": "Exercice non trouvé"}, status_code=404)
+            return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
 
         exercise = dict(zip(columns, row))
         is_correct = selected_answer == exercise['correct_answer']
 
-        # Utiliser uniquement les colonnes que nous savons exister
+        # Enregistrer le résultat dans la table results
         try:
-            # Version simplifiée avec seulement exercise_id et is_correct
-            cursor.execute("""
-                INSERT INTO results (exercise_id, is_correct)
-                VALUES (%s, %s)
-            """, (exercise_id, is_correct))
+            cursor.execute(ResultQueries.INSERT, (
+                user_id,         # user_id
+                exercise_id,     # exercise_id
+                is_correct,      # is_correct
+                selected_answer, # user_answer
+                time_spent       # time_taken
+            ))
         except Exception as e:
             print(f"Erreur lors de l'insertion dans results: {e}")
             # En dernier recours, ne pas enregistrer le résultat mais continuer pour mettre à jour les stats
@@ -928,8 +915,27 @@ async def get_exercises_list(request):
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Récupérer les exercices non archivés
-        cursor.execute("SELECT * FROM exercises WHERE is_archived IS NOT TRUE ORDER BY id DESC LIMIT 10")
+        # Récupérer les paramètres de requête
+        limit = int(request.query_params.get('limit', 10))
+        skip = int(request.query_params.get('skip', 0))
+        exercise_type = request.query_params.get('type', None)
+        difficulty = request.query_params.get('difficulty', None)
+        
+        # Normaliser les paramètres si présents
+        if exercise_type:
+            exercise_type = normalize_exercise_type(exercise_type)
+        if difficulty:
+            difficulty = normalize_difficulty(difficulty)
+        
+        # Choisir la requête appropriée selon les paramètres
+        if exercise_type and difficulty:
+            cursor.execute(ExerciseQueries.GET_BY_TYPE_AND_DIFFICULTY, (exercise_type, difficulty))
+        elif exercise_type:
+            cursor.execute(ExerciseQueries.GET_BY_TYPE, (exercise_type,))
+        elif difficulty:
+            cursor.execute(ExerciseQueries.GET_BY_DIFFICULTY, (difficulty,))
+        else:
+            cursor.execute(ExerciseQueries.GET_ALL)
 
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
@@ -956,11 +962,15 @@ async def get_exercises_list(request):
 
         conn.close()
 
+        # Appliquer pagination manuellement
+        total = len(exercises)
+        paginated_exercises = exercises[skip:skip+limit] if skip < total else []
+
         return JSONResponse({
-            "items": exercises,
-            "total": len(exercises),
-            "skip": 0,
-            "limit": 10
+            "items": paginated_exercises,
+            "total": total,
+            "skip": skip,
+            "limit": limit
         })
 
     except Exception as e:
@@ -977,10 +987,10 @@ async def delete_exercise(request):
         cursor = conn.cursor()
 
         # Vérifier si l'exercice existe
-        cursor.execute("SELECT id FROM exercises WHERE id = %s", (exercise_id,))
+        cursor.execute(ExerciseQueries.GET_BY_ID, (exercise_id,))
         if cursor.fetchone() is None:
             conn.close()
-            return JSONResponse({"error": "Exercice non trouvé"}, status_code=404)
+            return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
 
         # Supprimer les résultats associés à cet exercice (si la table a une contrainte de clé étrangère)
         try:
@@ -990,12 +1000,11 @@ async def delete_exercise(request):
             print(f"Note: Impossible de supprimer les résultats associés: {e}")
 
         # Supprimer l'exercice
-        cursor.execute("DELETE FROM exercises WHERE id = %s", (exercise_id,))
+        cursor.execute(ExerciseQueries.DELETE, (exercise_id,))
         conn.commit()
         conn.close()
 
-        return JSONResponse({"success": True, "message": "Exercice supprimé avec succès"}
-            , status_code=200)
+        return JSONResponse({"success": True, "message": SystemMessages.SUCCESS_DELETED}, status_code=200)
 
     except Exception as e:
         print(f"Erreur lors de la suppression de l'exercice: {e}")
@@ -1008,6 +1017,9 @@ async def get_user_stats(request):
     Route: /api/users/stats
     """
     try:
+        # ID utilisateur fictif pour l'instant (sera remplacé par l'authentification plus tard)
+        user_id = 1
+        
         conn = get_db_connection()
         cursor = conn.cursor()
 
@@ -1030,7 +1042,7 @@ async def get_user_stats(request):
 
         # Statistiques par type d'exercice
         performance_by_type = {}
-        for exercise_type in ['addition', 'subtraction', 'multiplication', 'division']:
+        for exercise_type in ExerciseTypes.ALL_TYPES[:4]:  # Pour l'instant, juste les 4 types de base
             cursor.execute("""
             SELECT
                 SUM(total_attempts) as total,
@@ -1048,8 +1060,12 @@ async def get_user_stats(request):
             success_rate_type = int((correct / total * 100) if total > 0 else 0)
 
             # Convertir les types en français pour le frontend
-            type_fr = {'addition': 'addition', 'subtraction': 'soustraction',
-                    'multiplication': 'multiplication', 'division': 'division'}
+            type_fr = {
+                ExerciseTypes.ADDITION: 'addition', 
+                ExerciseTypes.SUBTRACTION: 'soustraction',
+                ExerciseTypes.MULTIPLICATION: 'multiplication', 
+                ExerciseTypes.DIVISION: 'division'
+            }
 
             performance_by_type[type_fr.get(exercise_type, exercise_type)] = {
                 'completed': total,
