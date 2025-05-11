@@ -240,8 +240,6 @@ def get_user_progress(
 
 
 @router.delete("/{user_id}", status_code=204, response_model=None)
-
-
 def delete_user(
     *,
     db: Session = Depends(get_db_session),
