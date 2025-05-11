@@ -222,7 +222,7 @@ Pour des instructions détaillées, consultez [GETTING_STARTED.md](GETTING_START
 
 ## Améliorations récentes
 
-### Mai 2023
+### Mai 2025
 
 - ✅ Migration complète vers PostgreSQL et correction des problèmes liés aux types énumérés
 - ✅ Résolution des problèmes de relation entre exercices et tentatives (cascade delete)
@@ -282,7 +282,7 @@ python scripts/move_obsolete_files.py
 
 Cette approche garantit une documentation complète mais non redondante, facilitant la maintenance et la compréhension du projet.
 
-### Août-Septembre 2023
+### Août-Septembre 2024
 
 - ✅ Migration des modèles de données vers Pydantic v2 pour améliorer les performances et la compatibilité
 - ✅ Résolution des problèmes de déploiement sur Render avec PostgreSQL
@@ -326,4 +326,4 @@ Pour plus de détails sur les procédures de nettoyage et de maintenance, consul
 
 *Pour toute contribution ou question, consulte la documentation ou ouvre une issue sur GitHub.*
 
-*Dernière mise à jour : 08/05/2023* 
+*Dernière mise à jour : 08/05/2025* 
