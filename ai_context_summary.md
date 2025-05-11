@@ -19,7 +19,10 @@ Mathakine est une application éducative backend pour un site d'entraînement ma
 - **Structure du code**:
   - Architecture MVC moderne avec séparation claire entre modèles/schémas/services/API
   - API REST documentée via Swagger/OpenAPI (appelée "Les Holocrons" dans la terminologie du projet)
-  - Tests répartis en 4 catégories: unitaires, API, intégration, fonctionnels 
+  - Tests répartis en 4 catégories: unitaires, API, intégration, fonctionnels
+  - **Centralisation des constantes et messages** pour améliorer la maintenabilité
+  - **Système de variables CSS** pour une apparence cohérente
+  - **Requêtes SQL centralisées** pour faciliter la maintenance et éviter la duplication
 - **Outils de gestion**:
   - Interface CLI complète (mathakine_cli.py) avec 6 commandes principales
   - Scripts de migration et de gestion de base de données
@@ -28,6 +31,7 @@ Mathakine est une application éducative backend pour un site d'entraînement ma
   - Support Docker avec Dockerfile optimisé
   - Configuration pour déploiement sur Render
   - Compatibilité avec Python 3.13
+  - Exemple de fichier .env pour la configuration des environnements
 
 ## Composants clés
 
@@ -61,8 +65,15 @@ Contient l'implémentation API REST pure utilisant FastAPI, organisée selon les
 - **models/**: Modèles SQLAlchemy 2.0 (exercise.py, user.py, attempt.py, progress.py, logic_challenge.py)
 - **schemas/**: Schémas Pydantic 2.0 pour validation (exercise.py, progress.py, etc.)
 - **services/**: Logique métier (exercise_service.py, auth_service.py, etc.)
-- **core/**: Configuration et utilitaires (config.py, logging_config.py)
-- **db/**: Accès et initialisation de base de données (init_db.py, base.py)
+- **core/**: Configuration et utilitaires
+  - **config.py**: Configuration principale de l'application
+  - **constants.py**: Toutes les constantes centralisées (types, niveaux, limites)
+  - **messages.py**: Messages et textes centralisés pour l'interface et les API
+  - **logging_config.py**: Configuration du système de journalisation
+- **db/**: Accès et initialisation de base de données
+  - **init_db.py**: Initialisation de la base de données
+  - **base.py**: Configuration de base
+  - **queries.py**: Requêtes SQL centralisées
 
 **Fonctionnalités avancées**:
 - Support complet CRUD pour toutes les entités
@@ -84,6 +95,7 @@ Dossiers contenant les templates HTML et les fichiers statiques (CSS, JS) pour l
 - **exercise_detail.html**: Détails d'un exercice spécifique
 
 **CSS et assets**:
+- **variables.css**: Variables CSS centralisées (couleurs, espacements, typographie)
 - **style.css**: Styles globaux avec thème Star Wars
 - **home-styles.css**: Styles spécifiques à la page d'accueil
 - **space-theme.css**: Éléments de thème spatial Star Wars
@@ -472,4 +484,86 @@ Le dossier tests/ contient des tests organisés par catégories avec une structu
 - Les changements UI doivent respecter le thème Star Wars établi
 - La compatibilité Python 3.13 est une priorité pour la maintenabilité future
 
-Cette architecture est conçue pour être extensible, maintenable et évolutive, permettant l'ajout futur de nouvelles fonctionnalités comme l'authenticité, la personnalisation avancée et la gamification. 
+Cette architecture est conçue pour être extensible, maintenable et évolutive, permettant l'ajout futur de nouvelles fonctionnalités comme l'authenticité, la personnalisation avancée et la gamification.
+
+## Refactoring récent
+
+Le projet a récemment subi un important refactoring (Mai 2025) pour améliorer la maintenabilité et la cohérence du code:
+
+### Phase 1: Centralisation des constantes et valeurs
+
+1. **Création de fichiers de constantes centralisées**:
+   - `app/core/constants.py`: Types d'exercices, niveaux de difficulté, limites numériques
+   - `app/core/messages.py`: Messages et textes de l'interface utilisateur
+   - `app/db/queries.py`: Requêtes SQL centralisées
+   - `static/variables.css`: Variables CSS (couleurs, espacement, typographie)
+
+2. **Bénéfices**:
+   - Élimination des valeurs codées en dur dispersées dans le code
+   - Point unique de modification pour les constantes et messages
+   - Cohérence accrue de l'interface utilisateur et des messages
+   - Facilité de traduction future (tous les textes sont centralisés)
+   - Facilité de maintenance des requêtes SQL
+
+### Phase 2: Application des constantes centralisées
+
+1. **Modifications dans enhanced_server.py**:
+   - Remplacement des types d'exercices et niveaux de difficulté hardcodés par les constantes de `ExerciseTypes` et `DifficultyLevels`
+   - Utilisation des messages de `ExerciseMessages` et `SystemMessages` pour les retours API
+   - Remplacement des requêtes SQL en ligne par les références à `ExerciseQueries`, `ResultQueries` et `UserStatsQueries`
+   - Modification des fonctions `normalize_exercise_type` et `normalize_difficulty` pour utiliser les mappings centralisés
+   - Utilisation des limites numériques de `DIFFICULTY_LIMITS` dans la génération d'exercices
+
+2. **Fichiers CSS**:
+   - Modification de tous les fichiers CSS pour utiliser les variables de `variables.css`
+   - Remplacement des valeurs en dur (couleurs, espacements, tailles de police) par les variables correspondantes
+   - Assurance d'une apparence visuelle cohérente dans toute l'application
+
+3. **Templates HTML**:
+   - Utilisation des messages et textes centralisés pour les éléments d'interface
+   - Cohérence dans les titres, labels, boutons et messages d'erreur
+
+### Bénéfices du refactoring
+
+1. **Maintenance simplifiée**: Modification des valeurs à un seul endroit
+2. **Cohérence accrue**: Utilisation cohérente des mêmes valeurs partout
+3. **Réduction de la duplication**: Élimination du code dupliqué
+4. **Évolutivité améliorée**: Facilite l'ajout de nouveaux types d'exercices ou niveaux
+5. **Préparation pour l'internationalisation**: Messages centralisés facilitant la traduction
+6. **Documentation implicite**: Les fichiers centralisés servent de documentation pour les valeurs possibles
+7. **Réduction des erreurs**: Moins de risques d'erreurs typographiques ou d'incohérences
+8. **Tests simplifiés**: Facilité pour mocker ou remplacer des valeurs lors des tests
+
+Ce refactoring représente une amélioration significative de la qualité du code et pose les bases pour les futures évolutions de l'application Mathakine.
+
+### Correction du problème d'affichage des exercices
+
+Après le refactoring de centralisation, nous avons identifié un problème concernant l'affichage des exercices dans l'interface:
+
+1. **Problème identifié**:
+   - Les exercices étaient correctement générés et stockés dans la base de données (visible via la requête `SELECT COUNT(*) FROM exercises`)
+   - Cependant, aucun exercice n'apparaissait dans l'interface utilisateur
+
+2. **Cause du problème**:
+   - Les requêtes SQL centralisées dans `app/db/queries.py` incluaient toutes un filtre `WHERE is_archived = false`
+   - Ce filtre empêchait l'affichage des exercices, même s'ils existaient dans la base de données
+   - Le champ `is_archived` n'était pas correctement initialisé lors de la création des exercices
+
+3. **Solution apportée**:
+   - Modification de la fonction `exercises_page` pour utiliser des requêtes SQL personnalisées sans filtre sur `is_archived`
+   - Ajout de débogage pour identifier les exercices présents dans la base de données
+   - Préparation pour l'implémentation future de la fonctionnalité d'archivage
+
+4. **Leçons tirées**:
+   - Importance de tester les fonctionnalités après un refactoring majeur
+   - Nécessité de vérifier l'initialisation correcte des champs lors de l'insertion en base de données
+   - Considération des paramètres de filtrage par défaut dans les requêtes SQL centralisées
+
+Cette correction assure que tous les exercices générés sont bien visibles dans l'interface utilisateur, tout en préservant la structure qui permettra l'implémentation future de l'archivage des exercices.
+
+### Documents mis à jour
+
+Suite à ce refactoring, les documents suivants ont été mis à jour:
+- **STRUCTURE.md**: Description de la nouvelle organisation du code
+- **ai_context_summary.md**: Ajout de détails sur le refactoring
+- **.env.example**: Documentation des variables d'environnement requises 

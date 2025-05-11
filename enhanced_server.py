@@ -149,35 +149,69 @@ async def exercises_page(request):
     print(f"Page d'exercices chargée, just_generated={just_generated}")
     
     # Récupérer les paramètres de filtrage
-    exercise_type = request.query_params.get('type', None)
+    exercise_type = request.query_params.get('exercise_type', None)
     difficulty = request.query_params.get('difficulty', None)
+    
+    print(f"Paramètres reçus - exercise_type: {exercise_type}, difficulty: {difficulty}")
     
     # Normaliser les paramètres si présents
     if exercise_type:
         exercise_type = normalize_exercise_type(exercise_type)
+        print(f"Type d'exercice normalisé: {exercise_type}")
     if difficulty:
         difficulty = normalize_difficulty(difficulty)
+        print(f"Difficulté normalisée: {difficulty}")
 
     conn = get_db_connection()
     cursor = conn.cursor()
-
+    
     try:
-        # Choisir la requête SQL appropriée selon les paramètres
+        # DEBUG: Vérifier si les exercices existent dans la DB
+        cursor.execute("SELECT COUNT(*) FROM exercises")
+        count = cursor.fetchone()[0]
+        print(f"Nombre total d'exercices dans la base de données: {count}")
+        
+        # Utiliser une requête SQL personnalisée sans filtrer sur is_archived
         if exercise_type and difficulty:
-            cursor.execute(ExerciseQueries.GET_BY_TYPE_AND_DIFFICULTY, (exercise_type, difficulty))
+            print(f"Exécution requête personnalisée par type et difficulté: ({exercise_type}, {difficulty})")
+            cursor.execute("""
+            SELECT * FROM exercises 
+            WHERE exercise_type = %s AND difficulty = %s
+            ORDER BY id
+            """, (exercise_type, difficulty))
         elif exercise_type:
-            cursor.execute(ExerciseQueries.GET_BY_TYPE, (exercise_type,))
+            print(f"Exécution requête personnalisée par type: ({exercise_type},)")
+            cursor.execute("""
+            SELECT * FROM exercises 
+            WHERE exercise_type = %s
+            ORDER BY id
+            """, (exercise_type,))
         elif difficulty:
-            cursor.execute(ExerciseQueries.GET_BY_DIFFICULTY, (difficulty,))
+            print(f"Exécution requête personnalisée par difficulté: ({difficulty},)")
+            cursor.execute("""
+            SELECT * FROM exercises 
+            WHERE difficulty = %s
+            ORDER BY id
+            """, (difficulty,))
         else:
-            cursor.execute(ExerciseQueries.GET_ALL)
+            print("Exécution requête personnalisée pour tous les exercices")
+            cursor.execute("""
+            SELECT * FROM exercises 
+            ORDER BY id
+            """)
 
         columns = [desc[0] for desc in cursor.description]
+        print(f"Colonnes retournées: {columns}")
         rows = cursor.fetchall()
-
+        print(f"Nombre de lignes récupérées: {len(rows)}")
+    
         exercises = []
         for row in rows:
             exercise = dict(zip(columns, row))
+            
+            # Afficher le premier exercice pour le débogage
+            if len(exercises) == 0:
+                print(f"Premier exercice récupéré: {exercise}")
 
             # Sécuriser le traitement JSON
             if exercise.get('choices'):
@@ -194,21 +228,63 @@ async def exercises_page(request):
                 exercise['choices'] = []
 
             exercises.append(exercise)
+    
+        print(f"Nombre d'exercices récupérés: {len(exercises)}")
+        if len(exercises) > 0:
+            print(f"Premier exercice: ID={exercises[0].get('id')}, Titre={exercises[0].get('title')}")
+            print(f"Dernier exercice: ID={exercises[-1].get('id')}, Titre={exercises[-1].get('title')}")
 
     except Exception as e:
         print(f"Erreur lors de la récupération des exercices: {e}")
         traceback.print_exc()
         exercises = []
+
     finally:
         conn.close()
+    
+    # Message pour indiquer si on vient de générer un exercice
+    message = None
+    message_type = None
+    if just_generated:
+        message = "Exercice généré avec succès. Vous pouvez maintenant le résoudre ou en générer un autre."
+        message_type = "success"
 
-    return templates.TemplateResponse("exercises.html", {
-        "request": request,
-        "exercises": exercises,
-        "just_generated": just_generated,
-        "selected_type": exercise_type,
-        "selected_difficulty": difficulty
-    })
+    # Créer des dictionnaires pour l'affichage des types et niveaux
+    exercise_types = {key: DISPLAY_NAMES[key] for key in ExerciseTypes.ALL_TYPES}
+    difficulty_levels = {key: DISPLAY_NAMES[key] for key in DifficultyLevels.ALL_LEVELS}
+    
+    # Mappings pour l'affichage des exercices dans la liste
+    exercise_type_display = DISPLAY_NAMES
+    difficulty_display = DISPLAY_NAMES
+    
+    # Préfixe IA pour les templates
+    ai_prefix = Messages.AI_EXERCISE_PREFIX
+
+    print(f"Préparation du rendu template avec {len(exercises)} exercices")
+    print(f"Chemin du template: {TEMPLATES_DIR}/exercises.html")
+    
+    # Vérifier que les mappings sont bien générés
+    print(f"Types d'exercices disponibles: {exercise_types}")
+    print(f"Niveaux de difficulté disponibles: {difficulty_levels}")
+    
+    try:
+        response = templates.TemplateResponse("exercises.html", {
+            "request": request,
+            "exercises": exercises,
+            "message": message,
+            "message_type": message_type,
+            "exercise_types": exercise_types,
+            "difficulty_levels": difficulty_levels,
+            "exercise_type_display": exercise_type_display,
+            "difficulty_display": difficulty_display,
+            "ai_prefix": ai_prefix
+        })
+        print("Template rendu avec succès")
+        return response
+    except Exception as e:
+        print(f"Erreur lors du rendu du template: {e}")
+        traceback.print_exc()
+        return HTMLResponse("<h1>Erreur lors du chargement des exercices</h1><p>Veuillez réessayer ultérieurement.</p>")
 
 async def get_exercise(request):
     exercise_id = request.path_params.get('exercise_id')
@@ -336,51 +412,60 @@ async def dashboard(request):
         }, status_code=500)
 
 async def exercise_detail_page(request):
-    exercise_id = request.path_params['exercise_id']
-
+    """Rendu de la page de détail d'un exercice"""
+    exercise_id = request.path_params["exercise_id"]
+    
     conn = get_db_connection()
     cursor = conn.cursor()
-
-    # Récupérer l'exercice
-    cursor.execute(ExerciseQueries.GET_BY_ID, (exercise_id,))
-
-    columns = [desc[0] for desc in cursor.description]
-    row = cursor.fetchone()
-
-    if not row:
-        conn.close()
+    
+    try:
+        cursor.execute(ExerciseQueries.GET_BY_ID, (exercise_id,))
+        columns = [desc[0] for desc in cursor.description]
+        row = cursor.fetchone()
+        
+        if not row:
+            return templates.TemplateResponse("error.html", {
+                "request": request,
+                "error": "Exercice non trouvé",
+                "message": f"L'exercice avec l'ID {exercise_id} n'existe pas ou a été supprimé."
+            }, status_code=404)
+        
+        exercise = dict(zip(columns, row))
+        
+        # Sécuriser le traitement JSON
+        if exercise.get('choices'):
+            try:
+                if isinstance(exercise['choices'], list):
+                    pass
+                else:
+                    exercise['choices'] = json.loads(exercise['choices'])
+            except (ValueError, TypeError) as e:
+                print(f"Erreur lors du parsing JSON des choix pour l'exercice {exercise_id}: {e}")
+                exercise['choices'] = []
+        else:
+            exercise['choices'] = []
+            
+    except Exception as e:
+        print(f"Erreur lors de la récupération de l'exercice {exercise_id}: {e}")
+        traceback.print_exc()
         return templates.TemplateResponse("error.html", {
             "request": request,
-            "error": "Exercice non trouvé",
-            "message": SystemMessages.ERROR_EXERCISE_NOT_FOUND
-        })
+            "error": "Erreur de base de données",
+            "message": f"Une erreur est survenue lors de la récupération de l'exercice: {str(e)}"
+        }, status_code=500)
+    
+    finally:
+        conn.close()
 
-    # Convertir en dictionnaire
-    exercise_dict = dict(zip(columns, row))
-
-    # Traiter correctement les choix JSON
-    if exercise_dict.get('choices'):
-        try:
-            # Vérifier si choices est déjà un objet Python (liste)
-            if isinstance(exercise_dict['choices'], list):
-                pass  # Déjà au bon format
-            else:
-                exercise_dict['choices'] = json.loads(exercise_dict['choices'])
-
-            # Vérification supplémentaire pour s'assurer que c'est une liste
-            if not isinstance(exercise_dict['choices'], list):
-                exercise_dict['choices'] = []
-        except (ValueError, TypeError) as e:
-            print(f"Erreur JSON pour l'exercice {exercise_id}: {e}")
-            exercise_dict['choices'] = []
-    else:
-        exercise_dict['choices'] = []
-
-    conn.close()
-
-    return templates.TemplateResponse("exercise.html", {
+    # Mappings pour l'affichage des types et niveaux
+    exercise_type_display = DISPLAY_NAMES
+    difficulty_display = DISPLAY_NAMES
+        
+    return templates.TemplateResponse("exercise_detail.html", {
         "request": request,
-        "exercise": exercise_dict
+        "exercise": exercise,
+        "exercise_type_display": exercise_type_display,
+        "difficulty_display": difficulty_display
     })
 
 # Fonction pour normaliser le type d'exercice
@@ -436,12 +521,12 @@ def init_database():
         print(f"Note: {str(e)}")
         conn.rollback()
 
-    # Mettre à jour les exercices existants qui contiennent "TEST-ZAXXON"
+    # Mettre à jour les exercices existants qui contiennent le préfixe d'IA
     try:
-        cursor.execute("""
+        cursor.execute(f"""
         UPDATE exercises
         SET ai_generated = TRUE
-        WHERE title LIKE '%TEST-ZAXXON%' OR question LIKE '%TEST-ZAXXON%'
+        WHERE title LIKE '%{Messages.AI_EXERCISE_PREFIX}%' OR question LIKE '%{Messages.AI_EXERCISE_PREFIX}%'
         """)
         conn.commit()
     except Exception as e:
@@ -490,7 +575,7 @@ async def generate_exercise(request):
 
         if use_ai:
             print(f"Génération d'un exercice IA de type: {exercise_type}, difficulté: {difficulty}")
-            # Générer un exercice avec TEST-ZAXXON dans le titre pour simuler la génération par IA
+            # Générer un exercice avec le préfixe IA dans le titre pour simuler la génération par IA
             exercise_dict = generate_ai_exercise(exercise_type, difficulty)
         else:
             print(f"Génération d'un exercice de type: {exercise_type}, difficulté: {difficulty}")
@@ -500,15 +585,34 @@ async def generate_exercise(request):
         # Enregistrer l'exercice dans la base de données
         conn = get_db_connection()
         cursor = conn.cursor()
-
+        
         # Préparer les choix au format JSON
         choices_json = json.dumps(exercise_dict['choices'])
 
         # Vérifier si ai_generated est dans le dictionnaire, sinon le définir à False
         ai_generated = exercise_dict.get('ai_generated', use_ai)
 
-        # Insérer dans la base de données en utilisant la requête centralisée
-        cursor.execute(ExerciseQueries.INSERT, (
+        # DEBUGGAGE: Essayer d'abord de réparer les exercices existants
+        try:
+            print("Tentative de réparation des exercices existants (définir is_archived à false)...")
+            cursor.execute("""
+            UPDATE exercises
+            SET is_archived = false
+            """)
+            conn.commit()
+            print("Réparation effectuée: tous les exercices sont maintenant non archivés")
+        except Exception as repair_error:
+            print(f"Erreur lors de la réparation des exercices: {repair_error}")
+        
+        # Insérer dans la base de données en utilisant la requête centralisée, en spécifiant explicitement is_archived=false
+        print("Insertion d'un nouvel exercice avec is_archived=false...")
+        cursor.execute("""
+        INSERT INTO exercises 
+        (title, creator_id, exercise_type, difficulty, tags, question, correct_answer, 
+        choices, explanation, hint, image_url, audio_url, ai_generated, is_archived) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, false)
+        RETURNING id
+        """, (
             exercise_dict['title'],              # title
             None,                                # creator_id (pour l'instant, None)
             exercise_dict['exercise_type'],      # exercise_type
@@ -526,7 +630,10 @@ async def generate_exercise(request):
 
         result = cursor.fetchone()
         exercise_id = result[0]
+        conn.commit()
         conn.close()
+        
+        print(f"Nouvel exercice créé avec ID={exercise_id}, is_archived=false")
 
         # Rediriger vers la page des exercices
         return RedirectResponse(url="/exercises?generated=true", status_code=303)
@@ -914,18 +1021,22 @@ async def get_exercises_list(request):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-
+        
         # Récupérer les paramètres de requête
         limit = int(request.query_params.get('limit', 10))
         skip = int(request.query_params.get('skip', 0))
-        exercise_type = request.query_params.get('type', None)
+        exercise_type = request.query_params.get('exercise_type', None)
         difficulty = request.query_params.get('difficulty', None)
+        
+        print(f"API - Paramètres reçus: exercise_type={exercise_type}, difficulty={difficulty}")
         
         # Normaliser les paramètres si présents
         if exercise_type:
             exercise_type = normalize_exercise_type(exercise_type)
+            print(f"API - Type d'exercice normalisé: {exercise_type}")
         if difficulty:
             difficulty = normalize_difficulty(difficulty)
+            print(f"API - Difficulté normalisée: {difficulty}")
         
         # Choisir la requête appropriée selon les paramètres
         if exercise_type and difficulty:
@@ -1137,15 +1248,17 @@ async def get_user_stats(request):
         # Pour chaque jour, récupérer le nombre d'exercices résolus
         try:
             # Utiliser la fonction date_trunc pour obtenir la date sans l'heure en PostgreSQL
+            # Convertir la date en chaîne formatée pour éviter les problèmes de type
+            date_str = (today - timedelta(days=6)).strftime('%Y-%m-%d')
             cursor.execute("""
             SELECT 
                 DATE(created_at) as exercise_date,
                 COUNT(*) as exercise_count
             FROM results
-            WHERE created_at >= %s
+            WHERE created_at::date >= %s::date
             GROUP BY DATE(created_at)
             ORDER BY exercise_date ASC
-            """, (today - timedelta(days=6),))
+            """, (date_str,))
             
             date_counts = {}
             rows = cursor.fetchall()
