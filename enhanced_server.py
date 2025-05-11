@@ -1277,6 +1277,7 @@ async def get_user_stats(request):
         print(f"Date du jour: {today}")
         day_labels = []
         exercise_counts = []
+        date_counts = {}  # Initialisation avant la boucle try/except
         
         # Générer les étiquettes des 7 derniers jours
         for i in range(6, -1, -1):
@@ -1288,7 +1289,7 @@ async def get_user_stats(request):
         
         print(f"Étiquettes des jours générées: {day_labels}")
                 
-        # Pour chaque jour, récupérer le nombre d'exercices résolus
+        # Récupérer les données de progression pour les 7 derniers jours
         try:
             # Utiliser la fonction date_trunc pour obtenir la date sans l'heure en PostgreSQL
             # Convertir la date en chaîne formatée pour éviter les problèmes de type
@@ -1304,7 +1305,6 @@ async def get_user_stats(request):
             ORDER BY exercise_date ASC
             """, (date_str,))
             
-            date_counts = {}
             rows = cursor.fetchall()
             print(f"Résultats de la requête de progression quotidienne: {rows}")
             for row in rows:
@@ -1325,7 +1325,7 @@ async def get_user_stats(request):
         except Exception as e:
             print(f"Erreur lors de la récupération des données de progression journalière: {e}")
             traceback.print_exc()
-            # En cas d'erreur, revenir aux données simulées mais plus réalistes
+            # En cas d'erreur, revenir aux données simulées
             exercise_counts = [0, 0, 0, 0, 0, 0, 0]
             # Ajouter le total exercices à aujourd'hui pour que ce soit cohérent
             if total_exercises > 0:
@@ -1333,6 +1333,13 @@ async def get_user_stats(request):
             print(f"Données de progression simulées après erreur: {exercise_counts}")
 
         print(f"Tableau final des exercices par jour: {exercise_counts}")
+        # S'assurer que toutes les données sont bien formatées
+        for i in range(len(exercise_counts)):
+            if exercise_counts[i] is None:
+                exercise_counts[i] = 0
+            else:
+                exercise_counts[i] = int(exercise_counts[i])
+        
         progress_over_time = {
             'labels': day_labels,
             'datasets': [{

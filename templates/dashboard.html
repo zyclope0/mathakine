@@ -400,6 +400,9 @@
                         data.progress_over_time.datasets.length > 0 &&
                         data.progress_over_time.datasets[0].data) {
                         
+                        console.log('Labels:', data.progress_over_time.labels);
+                        console.log('Dataset data:', data.progress_over_time.datasets[0].data);
+                        
                         window.progressChart.data.labels = data.progress_over_time.labels;
                         
                         // Assurer que le dataset existe dans le graphique
@@ -409,17 +412,44 @@
                             console.log('Chart updated successfully');
                         } else {
                             console.error('No datasets in chart');
+                            // Créer un nouveau dataset si aucun n'existe
+                            window.progressChart.data.datasets = [{
+                                label: 'Exercices résolus',
+                                data: data.progress_over_time.datasets[0].data,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                tension: 0.4,
+                                fill: true
+                            }];
+                            window.progressChart.update();
+                            console.log('Created new dataset and updated chart');
                         }
                     } else {
                         console.error('Invalid progress_over_time data structure', data.progress_over_time);
                     }
                 } catch (error) {
                     console.error('Error updating chart:', error);
+                    // Essayer de recréer complètement le graphique
+                    try {
+                        if (window.progressChart) {
+                            window.progressChart.destroy();
+                        }
+                        initializeCharts();
+                        if (window.progressChart) {
+                            window.progressChart.data.labels = data.progress_over_time.labels;
+                            window.progressChart.data.datasets[0].data = data.progress_over_time.datasets[0].data;
+                            window.progressChart.update();
+                            console.log('Recreated and updated chart after error');
+                        }
+                    } catch (e) {
+                        console.error('Failed to recreate chart:', e);
+                    }
                 }
             } else {
                 console.warn('Chart not initialized or no progress data');
                 // Réinitialiser le graphique si pas encore fait
-                if (!window.progressChart) {
+                if (!window.progressChart || !window.progressChart.ctx) {
+                    console.log('Trying to initialize chart');
                     initializeCharts();
                 }
             }
@@ -442,6 +472,16 @@
             if (!ctxContext) {
                 console.error('Could not get 2D context for chart');
                 return;
+            }
+            
+            // Détruire le graphique existant s'il y en a un
+            if (window.progressChart) {
+                try {
+                    window.progressChart.destroy();
+                    console.log('Destroyed existing chart');
+                } catch (e) {
+                    console.error('Error destroying existing chart:', e);
+                }
             }
             
             // Attribuer le graphique à une variable globale pour un accès plus facile
