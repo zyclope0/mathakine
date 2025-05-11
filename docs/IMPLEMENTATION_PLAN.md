@@ -202,7 +202,7 @@ PUT     /api/settings               # Mise à jour des paramètres
 - ✅ Documentation complète de tous les endpoints avec exemples
 - ⚠️ Tests automatisés couvrant au moins 90% du code
 - ✅ Validation des données pour toutes les entrées utilisateur
-- [ ] Authentification et autorisation sécurisées pour tous les endpoints
+- ✅ Authentification et autorisation sécurisées pour tous les endpoints
 - ⚠️ Interface utilisateur cohérente avec le thème Star Wars
 - ⚠️ Gestion efficace et visuellement attrayante des exercices terminés
 - ⚠️ Animations fluides et réactives pour une meilleure expérience utilisateur
@@ -277,8 +277,8 @@ Les éléments suivants ont été identifiés comme améliorations potentielles 
 
 L'API Rebelle est partiellement implémentée avec une structure solide mais plusieurs fonctionnalités clés restent à l'état de placeholders. L'architecture choisie a démontré son potentiel, mais nécessite encore des développements significatifs pour atteindre tous les objectifs fixés.
 
-Les prochaines étapes devraient se concentrer sur l'implémentation complète de l'authentification, la finalisation des défis logiques, et l'amélioration de l'expérience utilisateur, tout en maintenant les standards de performance, sécurité et maintenabilité établis dans cette implémentation préliminaire.
+Les prochaines étapes devraient se concentrer sur la finalisation des défis logiques, l'amélioration de l'expérience utilisateur et la mise en place des migrations avec Alembic, tout en maintenant les standards de performance, sécurité et maintenabilité établis dans cette implémentation.
 
 ---
 
-*Dernière mise à jour: 08/05/2025* 
+*Dernière mise à jour: 12/05/2025* 

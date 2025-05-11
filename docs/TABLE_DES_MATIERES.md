@@ -55,4 +55,4 @@ Ce document sert de point d'entrée vers toute la documentation du projet Mathak
 
 ---
 
-*Cette table des matières est mise à jour régulièrement. Dernière mise à jour : 11 Mai 2025* 
+*Cette table des matières est mise à jour régulièrement. Dernière mise à jour : 12 Mai 2025* 
