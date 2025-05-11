@@ -73,6 +73,6 @@ except Exception as e:
     sys.exit(1)
 "
 
-# Démarrer le serveur
-echo "Démarrage du serveur..."
-uvicorn app.main:app --host 0.0.0.0 --port $PORT 
+# Démarrer le serveur avec l'interface graphique
+echo "Démarrage du serveur avec l'interface graphique..."
+python enhanced_server.py 
