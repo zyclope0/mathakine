@@ -4,6 +4,30 @@ Ce document fournit des solutions aux problèmes courants rencontrés lors du d�
 
 ## Problèmes de base de données
 
+### Erreur lors de l'insertion dans la table results
+
+**Symptôme :** Les réponses aux exercices sont validées visuellement dans l'interface utilisateur, mais aucune donnée n'est enregistrée dans la base de données. Le tableau de bord ne se met pas à jour avec les nouvelles statistiques.
+
+**Cause :** Problème de gestion des transactions dans la fonction `submit_answer` de `enhanced_server.py`. Le code continuait son exécution après une erreur d'insertion sans interrompre la transaction ni signaler clairement l'erreur.
+
+**Solution :**
+1. Diviser le processus en deux transactions distinctes (insertion du résultat et mise à jour des statistiques)
+2. Utiliser des blocs try/except spécifiques pour chaque opération critique
+3. Effectuer un commit immédiat après chaque opération importante
+4. Implémenter des rollbacks appropriés en cas d'erreur :
+
+```python
+# Insertion dans la table results avec gestion de transaction
+try:
+    cursor.execute(ResultQueries.INSERT, (exercise_id, is_correct, 1, time_spent))
+    # Commit immédiat après l'insertion réussie
+    conn.commit()
+except Exception as e:
+    conn.rollback()
+    # Journaliser l'erreur et renvoyer une réponse appropriée
+    return JSONResponse({"error": str(e)}, status_code=500)
+```
+
 ### Erreur "Unknown PG numeric type: 25"
 
 **Symptôme :** Erreur 500 lors de la suppression d'un exercice avec le message "Unknown PG numeric type: 25".
@@ -144,4 +168,4 @@ console.log(`Tentative de suppression de l'exercice ${exerciseId}`);
 
 *Si vous rencontrez un problème qui n'est pas listé ici, veuillez ouvrir une issue sur GitHub.*
 
-*Dernière mise à jour : 08/05/2025* 
+*Dernière mise à jour : 11/05/2025* 

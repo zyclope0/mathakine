@@ -177,12 +177,18 @@ Un rapport détaillé est disponible dans `file_analysis.md`.
    - Structure modulaire facilitant la maintenance
    - Implémentation des meilleures pratiques SQLAlchemy 2.0 et FastAPI
 
-4. **Système de logs centralisé**
+4. **Correction des problèmes critiques du tableau de bord**
+   - Implémentation de l'endpoint `/api/users/stats` pour le tableau de bord
+   - Correction du problème d'insertion dans la table `results` lors de la validation des exercices
+   - Amélioration de la gestion des transactions pour garantir l'intégrité des données
+   - Journalisation détaillée pour faciliter le débogage des problèmes de base de données
+
+5. **Système de logs centralisé**
    - Configuration unifiée dans app/core/logging_config.py
    - Rotation automatique des logs
    - Niveaux de logs différenciés pour faciliter le débogage
 
-5. **Système d'auto-validation robuste**
+6. **Système d'auto-validation robuste**
    - Tests organisés en catégories logiques (unitaires, API, intégration, fonctionnels)
    - Rapports de test automatisés en plusieurs formats
    - Vérification de compatibilité avec Python 3.13

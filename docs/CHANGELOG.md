@@ -4,6 +4,13 @@ Ce fichier documente toutes les modifications notables apportées au projet Math
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-05-11
+
+### Corrections
+- 🐛 Correction du problème d'insertion dans la table `results` lors de la validation des exercices
+- 🐛 Amélioration de la gestion des transactions dans la fonction `submit_answer`
+- 🐛 Meilleure journalisation des erreurs de base de données
+
 ## [0.3.0] - 2025-05-01
 
 

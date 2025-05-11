@@ -968,6 +968,8 @@ async def submit_answer(request):
         time_spent = data.get('time_spent', 0)
         user_id = data.get('user_id', 1)  # Utiliser l'ID 1 par défaut pour un utilisateur non authentifié
 
+        print(f"Traitement de la réponse: exercise_id={exercise_id}, selected_answer={selected_answer}")
+
         # Récupérer l'exercice pour vérifier la réponse
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -982,51 +984,76 @@ async def submit_answer(request):
 
         exercise = dict(zip(columns, row))
         is_correct = selected_answer == exercise['correct_answer']
+        
+        print(f"Réponse correcte? {is_correct}")
 
         # Enregistrer le résultat dans la table results
         try:
+            print("Tentative d'insertion dans la table results...")
             cursor.execute(ResultQueries.INSERT, (
-                user_id,         # user_id
                 exercise_id,     # exercise_id
                 is_correct,      # is_correct
-                selected_answer, # user_answer
-                time_spent       # time_taken
+                1,               # attempt_count (par défaut 1 pour la première tentative)
+                time_spent       # time_spent
             ))
+            print("Insertion réussie dans la table results")
+            
+            # Commit immédiatement après l'insertion réussie
+            conn.commit()
+            print("Transaction validée (commit) pour l'insertion de résultat")
         except Exception as e:
-            print(f"Erreur lors de l'insertion dans results: {e}")
-            # En dernier recours, ne pas enregistrer le résultat mais continuer pour mettre à jour les stats
-            pass
+            print(f"ERREUR lors de l'insertion dans results: {e}")
+            conn.rollback()
+            print("Transaction annulée (rollback) suite à l'erreur")
+            # Renvoyer une réponse avec l'erreur mais continuer pour l'affichage côté client
+            return JSONResponse({
+                "is_correct": is_correct,
+                "correct_answer": exercise['correct_answer'],
+                "explanation": exercise.get('explanation', ""),
+                "error": f"Erreur lors de l'enregistrement du résultat: {str(e)}"
+            }, status_code=500)
 
         # Mettre à jour les statistiques user_stats
         exercise_type = normalize_exercise_type(exercise['exercise_type'])
         difficulty = normalize_difficulty(exercise['difficulty'])
 
-        # Vérifier si une entrée existe pour ce type/difficulté
-        cursor.execute("""
-            SELECT id, total_attempts, correct_attempts
-            FROM user_stats
-            WHERE exercise_type = %s AND difficulty = %s
-        """, (exercise_type, difficulty))
-
-        row = cursor.fetchone()
-
-        if row:
-            # Mettre à jour l'entrée existante
-            stats_id, total_attempts, correct_attempts = row
+        try:
+            # Vérifier si une entrée existe pour ce type/difficulté
             cursor.execute("""
-                UPDATE user_stats
-                SET total_attempts = %s, correct_attempts = %s, last_updated = CURRENT_TIMESTAMP
-                WHERE id = %s
-            """, (total_attempts + 1, correct_attempts + (1 if is_correct else 0), stats_id))
-        else:
-            # Créer une nouvelle entrée
-            cursor.execute("""
-                INSERT INTO user_stats (exercise_type, difficulty, total_attempts, correct_attempts)
-                VALUES (%s, %s, %s, %s)
-            """, (exercise_type, difficulty, 1, 1 if is_correct else 0))
+                SELECT id, total_attempts, correct_attempts
+                FROM user_stats
+                WHERE exercise_type = %s AND difficulty = %s
+            """, (exercise_type, difficulty))
 
-        conn.commit()
+            row = cursor.fetchone()
+
+            if row:
+                # Mettre à jour l'entrée existante
+                stats_id, total_attempts, correct_attempts = row
+                cursor.execute("""
+                    UPDATE user_stats
+                    SET total_attempts = %s, correct_attempts = %s, last_updated = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                """, (total_attempts + 1, correct_attempts + (1 if is_correct else 0), stats_id))
+                print(f"Statistiques mises à jour pour type={exercise_type}, difficulté={difficulty}")
+            else:
+                # Créer une nouvelle entrée
+                cursor.execute("""
+                    INSERT INTO user_stats (exercise_type, difficulty, total_attempts, correct_attempts)
+                    VALUES (%s, %s, %s, %s)
+                """, (exercise_type, difficulty, 1, 1 if is_correct else 0))
+                print(f"Nouvelles statistiques créées pour type={exercise_type}, difficulté={difficulty}")
+            
+            # Commit pour les statistiques
+            conn.commit()
+            print("Transaction validée (commit) pour les statistiques")
+        except Exception as stats_error:
+            print(f"ERREUR lors de la mise à jour des statistiques: {stats_error}")
+            conn.rollback()
+            # On continue malgré l'erreur car les résultats sont déjà enregistrés
+
         conn.close()
+        print("Connexion fermée, traitement terminé avec succès")
 
         # Retourner le résultat
         return JSONResponse({
@@ -1182,6 +1209,8 @@ async def get_user_stats(request):
 
         # Statistiques par type d'exercice
         performance_by_type = {}
+        exercise_type_data = []  # Pour stocker les données pour le graphique de progression
+        
         print("Récupération des statistiques par type d'exercice")
         for exercise_type in ExerciseTypes.ALL_TYPES[:4]:  # Pour l'instant, juste les 4 types de base
             print(f"Récupération des statistiques pour le type {exercise_type}")
@@ -1205,13 +1234,16 @@ async def get_user_stats(request):
 
             # Convertir les types en français pour le frontend
             type_fr = {
-                ExerciseTypes.ADDITION: 'addition', 
-                ExerciseTypes.SUBTRACTION: 'soustraction',
-                ExerciseTypes.MULTIPLICATION: 'multiplication', 
-                ExerciseTypes.DIVISION: 'division'
+                ExerciseTypes.ADDITION: 'Addition', 
+                ExerciseTypes.SUBTRACTION: 'Soustraction',
+                ExerciseTypes.MULTIPLICATION: 'Multiplication', 
+                ExerciseTypes.DIVISION: 'Division'
             }
+            
+            # Stocker les données pour le graphique (utiliser les statistiques réelles)
+            exercise_type_data.append(total)
 
-            performance_by_type[type_fr.get(exercise_type, exercise_type)] = {
+            performance_by_type[type_fr.get(exercise_type, exercise_type).lower()] = {
                 'completed': total,
                 'correct': correct,
                 'success_rate': success_rate_type
@@ -1260,6 +1292,78 @@ async def get_user_stats(request):
             recent_activity.append(activity)
         
         print(f"Nombre d'activités récentes formatées: {len(recent_activity)}")
+        
+        # Récupérer les statistiques d'exercices par jour sur les 30 derniers jours
+        print("Récupération des exercices par jour sur les 30 derniers jours")
+        try:
+            cursor.execute(UserStatsQueries.GET_EXERCISES_BY_DAY)
+            
+            daily_data = cursor.fetchall()
+            print(f"Nombre de jours avec des exercices: {len(daily_data)}")
+            
+            # Créer un dict avec tous les jours des 30 derniers jours
+            from datetime import datetime, timedelta
+            current_date = datetime.now().date()
+            
+            # Initialiser avec zéro pour chaque jour
+            daily_exercises = {}
+            for i in range(30, -1, -1):
+                day = current_date - timedelta(days=i)
+                day_str = day.strftime("%d/%m")
+                daily_exercises[day_str] = 0
+            
+            # Remplir avec les données réelles
+            for row in daily_data:
+                try:
+                    # Si la date est au format YYYY-MM-DD (comme retourné par DATE())
+                    date_str = row[0]  # Format YYYY-MM-DD
+                    # Convertir en objet date pour le formater en DD/MM
+                    if isinstance(date_str, str):
+                        date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+                    else:
+                        date_obj = date_str  # Déjà un objet date
+                    day_str = date_obj.strftime("%d/%m")
+                    
+                    daily_exercises[day_str] = row[1]  # Nombre d'exercices ce jour-là
+                    print(f"Jour {day_str}: {row[1]} exercices")
+                except Exception as e:
+                    print(f"Erreur lors du traitement de la date {row[0]}: {e}")
+                    continue
+            
+            # Créer les données pour le graphique par jour
+            daily_labels = list(daily_exercises.keys())
+            daily_counts = list(daily_exercises.values())
+            
+            print(f"Données du graphique quotidien générées: {len(daily_labels)} jours")
+        except Exception as e:
+            print(f"Erreur lors de la récupération des exercices quotidiens: {e}")
+            traceback.print_exc()
+            
+            # En cas d'erreur, utiliser des données vides plutôt que des données aléatoires
+            print("Utilisation de données vides pour le graphique quotidien")
+            
+            from datetime import datetime, timedelta
+            current_date = datetime.now().date()
+            
+            daily_exercises = {}
+            for i in range(30, -1, -1):
+                day = current_date - timedelta(days=i)
+                day_str = day.strftime("%d/%m")
+                daily_exercises[day_str] = 0
+            
+            daily_labels = list(daily_exercises.keys())
+            daily_counts = list(daily_exercises.values())
+            
+        # Graphique des exercices quotidiens
+        exercises_by_day = {
+            'labels': daily_labels,
+            'datasets': [{
+                'label': 'Exercices par jour',
+                'data': daily_counts,
+                'borderColor': 'rgba(255, 206, 86, 1)',
+                'backgroundColor': 'rgba(255, 206, 86, 0.2)',
+            }]
+        }
 
         # Simuler les données de niveau pour le moment
         level_data = {
@@ -1269,117 +1373,35 @@ async def get_user_stats(request):
             'next_level_xp': 100
         }
 
-        # Récupérer la progression réelle par jour pour les 7 derniers jours
-        print("Génération des données de progression sur 7 jours")
-        from datetime import datetime, timedelta
+        # Utiliser les données par type d'exercice pour le graphique de progression
+        print("Construction du graphique basé sur les données réelles")
         
-        today = datetime.now().date()
-        print(f"Date du jour: {today}")
-        day_labels = []
-        exercise_counts = []
-        date_counts = {}  # Initialisation avant la boucle try/except
-        
-        # Générer les étiquettes des 7 derniers jours
-        for i in range(6, -1, -1):
-            past_date = today - timedelta(days=i)
-            if i == 0:
-                day_labels.append('Aujourd\'hui')
-            else:
-                day_labels.append(f'J-{i}')
-        
-        print(f"Étiquettes des jours générées: {day_labels}")
-                
-        # Récupérer les données de progression pour les 7 derniers jours
-        try:
-            # Utiliser la fonction date_trunc pour obtenir la date sans l'heure en PostgreSQL
-            # Convertir la date en chaîne formatée pour éviter les problèmes de type
-            date_str = (today - timedelta(days=6)).strftime('%Y-%m-%d')
-            print(f"Date de début pour la requête: {date_str}")
-            cursor.execute("""
-            SELECT 
-                DATE(created_at) as exercise_date,
-                COUNT(*) as exercise_count
-            FROM results
-            WHERE created_at::date >= %s::date
-            GROUP BY DATE(created_at)
-            ORDER BY exercise_date ASC
-            """, (date_str,))
+        # Vérifier si nous avons des données réelles
+        if sum(exercise_type_data) > 0:
+            type_labels = ['Addition', 'Soustraction', 'Multiplication', 'Division']
+            print(f"Données pour le graphique par type d'exercice: {exercise_type_data}")
             
-            rows = cursor.fetchall()
-            print(f"Résultats de la requête de progression quotidienne: {rows}")
-            for row in rows:
-                date_obj = row[0]
-                if isinstance(date_obj, str):
-                    date_obj = datetime.strptime(date_obj, '%Y-%m-%d').date()
-                date_counts[date_obj] = row[1]
-            
-            print(f"Comptage par date formaté: {date_counts}")
-            
-            # Remplir le tableau avec les comptages réels ou zéro si aucun exercice
-            exercise_counts = []
-            for i in range(6, -1, -1):
-                past_date = today - timedelta(days=i)
-                count = date_counts.get(past_date, 0)
-                exercise_counts.append(count)
-                print(f"Pour {past_date}: {count} exercices")
-                
-        except Exception as e:
-            print(f"Erreur lors de la récupération des données de progression journalière: {e}")
-            traceback.print_exc()
-            # En cas d'erreur, revenir aux données simulées
-            exercise_counts = [0, 0, 0, 0, 0, 0, 0]
-            # Ajouter le total exercices à aujourd'hui pour que ce soit cohérent
-            if total_exercises > 0:
-                exercise_counts[-1] = total_exercises
-            print(f"Données de progression simulées après erreur: {exercise_counts}")
-
-        print(f"Tableau final des exercices par jour: {exercise_counts}")
+            progress_over_time = {
+                'labels': type_labels,
+                'datasets': [{
+                    'label': 'Exercices résolus',
+                    'data': exercise_type_data
+                }]
+            }
+        else:
+            # Si aucune donnée réelle, générer des données de test
+            print("Aucune donnée réelle pour le graphique, génération de données de test")
+            progress_over_time = {
+                'labels': ['Addition', 'Soustraction', 'Multiplication', 'Division'],
+                'datasets': [{
+                    'label': 'Exercices résolus',
+                    'data': [10, 5, 8, 3]
+                }]
+            }
         
-        # Vérifier si nous avons des données de progression réelles
-        # Si non, créer des données simulées pour tester le graphique
-        if all(count == 0 for count in exercise_counts):
-            print("Aucune donnée réelle de progression, création de données de test")
-            exercise_counts = [2, 3, 0, 4, 1, 5, 3]
-            print(f"Données de test générées: {exercise_counts}")
-        
-        # S'assurer que toutes les données sont bien formatées
-        for i in range(len(exercise_counts)):
-            if exercise_counts[i] is None:
-                exercise_counts[i] = 0
-            else:
-                exercise_counts[i] = int(exercise_counts[i])
-        
-        progress_over_time = {
-            'labels': day_labels,
-            'datasets': [{
-                'label': 'Exercices résolus',
-                'data': exercise_counts
-            }]
-        }
-        print(f"Structure complète progress_over_time: {progress_over_time}")
+        print(f"Structure finale du graphique: {progress_over_time}")
 
         conn.close()
-
-        # Vérifier si nous avons des statistiques réelles dans performance_by_type
-        # Si tout est à zéro, créer des données simulées
-        has_real_performance_data = False
-        for type_data in performance_by_type.values():
-            if type_data['completed'] > 0:
-                has_real_performance_data = True
-                break
-        
-        if not has_real_performance_data:
-            print("Aucune donnée réelle de performance par type, création de données de test")
-            performance_by_type = {
-                'addition': {'completed': 10, 'correct': 8, 'success_rate': 80},
-                'soustraction': {'completed': 8, 'correct': 5, 'success_rate': 62},
-                'multiplication': {'completed': 5, 'correct': 3, 'success_rate': 60},
-                'division': {'completed': 3, 'correct': 1, 'success_rate': 33}
-            }
-            total_exercises = sum(type_data['completed'] for type_data in performance_by_type.values())
-            correct_answers = sum(type_data['correct'] for type_data in performance_by_type.values())
-            success_rate = int((correct_answers / total_exercises * 100) if total_exercises > 0 else 0)
-            print(f"Données de test générées pour performance_by_type: {performance_by_type}")
 
         response_data = {
             'total_exercises': total_exercises,
@@ -1389,7 +1411,8 @@ async def get_user_stats(request):
             'performance_by_type': performance_by_type,
             'recent_activity': recent_activity,
             'level': level_data,
-            'progress_over_time': progress_over_time
+            'progress_over_time': progress_over_time,
+            'exercises_by_day': exercises_by_day
         }
         
         print("Données du tableau de bord générées complètes:", response_data)
@@ -1412,9 +1435,10 @@ routes = [
     # API
     Route("/api/exercises", get_exercises_list),
     Route("/api/exercises/{exercise_id:int}", get_exercise),
-    Route("/api/exercises/{exercise_id:int}", delete_exercise),
+    Route("/api/exercises/{exercise_id:int}", delete_exercise, methods=["DELETE"]),
     Route("/api/exercises/generate", generate_exercise),
-    Route("/api/exercises/{exercise_id:int}/submit", submit_answer),
+    Route("/api/exercises/{exercise_id:int}/submit", submit_answer, methods=["POST"]),
+    Route("/api/submit-answer", submit_answer, methods=["POST"]),  # Route alternative pour la soumission des exercices
 
     # Fichiers statiques
     Mount("/static", StaticFiles(directory=STATIC_DIR), name="static"),
