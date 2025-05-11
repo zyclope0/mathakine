@@ -5,8 +5,6 @@ from app.models.logic_challenge import LogicChallengeType, AgeGroup
 
 # Schémas pour la manipulation des défis logiques
 
-
-
 class LogicChallengeBase(BaseModel):
     """Schéma de base pour les défis de logique (Épreuves du Conseil Jedi)"""
     title: str = Field(..., min_length=3, max_length=100,
@@ -38,8 +36,6 @@ class LogicChallengeBase(BaseModel):
 
     @field_validator('correct_answer')
     @classmethod
-
-
     def answer_not_empty(cls, v):
         if not v or v.isspace():
             raise ValueError("La réponse correcte ne peut pas être vide")
@@ -47,8 +43,6 @@ class LogicChallengeBase(BaseModel):
 
     @field_validator('description')
     @classmethod
-
-
     def description_not_too_short(cls, v):
         if len(v) < 10:
             raise ValueError("La description doit contenir au moins 10 caractères")
@@ -56,20 +50,15 @@ class LogicChallengeBase(BaseModel):
 
     @field_validator('solution_explanation')
     @classmethod
-
-
     def explanation_not_too_short(cls, v):
         if len(v) < 10:
             raise ValueError("L'explication de la solution doit contenir au moins 10 caractères")
         return v
 
-
-
 class LogicChallengeCreate(LogicChallengeBase):
     """Schéma pour la création d'un défi logique"""
     visual_data: Optional[Dict[str, Any]] = Field(None,
-                                             description="Données pour visualisation (graphes
-                                                 , formes, etc.)")
+                                             description="Données pour visualisation (graphes, formes, etc.)")
     image_url: Optional[str] = Field(None,
                                  description="URL de l'image associée")
     source_reference: Optional[str] = Field(None,
@@ -78,8 +67,6 @@ class LogicChallengeCreate(LogicChallengeBase):
                            description="S'il s'agit d'un template pour génération")
     generation_parameters: Optional[Dict[str, Any]] = Field(None,
                                                        description="Paramètres pour la génération")
-
-
 
 class LogicChallengeUpdate(BaseModel):
     """Schéma pour la mise à jour d'un défi logique"""
@@ -105,8 +92,6 @@ class LogicChallengeUpdate(BaseModel):
 
     @field_validator('description')
     @classmethod
-
-
     def description_not_too_short(cls, v):
         if v is not None and len(v) < 10:
             raise ValueError("La description doit contenir au moins 10 caractères")
@@ -114,14 +99,10 @@ class LogicChallengeUpdate(BaseModel):
 
     @field_validator('solution_explanation')
     @classmethod
-
-
     def explanation_not_too_short(cls, v):
         if v is not None and len(v) < 10:
             raise ValueError("L'explication de la solution doit contenir au moins 10 caractères")
         return v
-
-
 
 class LogicChallengeInDB(LogicChallengeBase):
     """Schéma pour un défi logique en base de données"""
@@ -141,15 +122,11 @@ class LogicChallengeInDB(LogicChallengeBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-
-
 class LogicChallenge(LogicChallengeInDB):
     """Schéma pour un défi logique complet"""
     model_config = ConfigDict(from_attributes=True)
 
 # Schémas pour les tentatives de résolution
-
-
 
 class LogicChallengeAttemptBase(BaseModel):
     """Schéma de base pour les tentatives de résolution de défis logiques"""
@@ -164,20 +141,14 @@ class LogicChallengeAttemptBase(BaseModel):
 
     @field_validator('user_answer')
     @classmethod
-
-
     def answer_not_empty(cls, v):
         if not v or v.isspace():
             raise ValueError("La réponse ne peut pas être vide")
         return v
 
-
-
 class LogicChallengeAttemptCreate(LogicChallengeAttemptBase):
     """Schéma pour la création d'une tentative de résolution de défi logique"""
     pass
-
-
 
 class LogicChallengeAttemptUpdate(BaseModel):
     """Schéma pour la mise à jour d'une tentative de résolution"""
@@ -191,14 +162,10 @@ class LogicChallengeAttemptUpdate(BaseModel):
 
     @field_validator('user_answer')
     @classmethod
-
-
     def answer_not_empty(cls, v):
         if v is not None and (not v or v.isspace()):
             raise ValueError("La réponse ne peut pas être vide")
         return v
-
-
 
 class LogicChallengeAttemptInDB(LogicChallengeAttemptBase):
     """Schéma pour une tentative de résolution en base de données"""
@@ -210,8 +177,6 @@ class LogicChallengeAttemptInDB(LogicChallengeAttemptBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-
-
 class LogicChallengeAttempt(LogicChallengeAttemptInDB):
     """Schéma pour une tentative de résolution complète"""
     challenge_title: Optional[str] = None
@@ -219,8 +184,6 @@ class LogicChallengeAttempt(LogicChallengeAttemptInDB):
     age_group: Optional[AgeGroup] = None
 
     model_config = ConfigDict(from_attributes=True)
-
-
 
 class LogicChallengeStats(BaseModel):
     """Statistiques sur un défi logique"""
@@ -233,8 +196,6 @@ class LogicChallengeStats(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
-
 class LogicChallengeAttemptResult(BaseModel):
     """Résultat d'une tentative de résolution d'un défi logique"""
     is_correct: bool = Field(..., description="Si la réponse est correcte")
@@ -242,4 +203,4 @@ class LogicChallengeAttemptResult(BaseModel):
     explanation: Optional[str] = Field(None, description="Explication de la solution (si correct)")
     hints: Optional[List[str]] = Field(None, description="Indices pour aider (si incorrect)")
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True) 

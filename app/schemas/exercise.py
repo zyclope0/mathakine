@@ -5,8 +5,6 @@ from app.models.exercise import ExerciseType, DifficultyLevel
 
 # Schémas pour la manipulation des exercices
 
-
-
 class ExerciseBase(BaseModel):
     """Schéma de base pour les exercices (Épreuves Jedi)"""
     title: str = Field(..., min_length=3, max_length=100,
@@ -30,8 +28,6 @@ class ExerciseBase(BaseModel):
 
     @field_validator('exercise_type')
     @classmethod
-
-
     def validate_exercise_type(cls, v):
         # Si c'est déjà un objet ExerciseType, retourner sa valeur
         if isinstance(v, ExerciseType):
@@ -45,15 +41,12 @@ class ExerciseBase(BaseModel):
             if v_lower in valid_types:
                 return v_lower
             else:
-                raise ValueError(f"Le type d'exercice '{v}' n'est pas valide. Valeurs possibles: {'
-                    , '.join(valid_types)}")
+                raise ValueError(f"Le type d'exercice '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_types)}")
 
         raise ValueError(f"Type non valide: {type(v)}")
 
     @field_validator('difficulty')
     @classmethod
-
-
     def validate_difficulty(cls, v):
         # Si c'est déjà un objet DifficultyLevel, retourner sa valeur
         if isinstance(v, DifficultyLevel):
@@ -67,15 +60,12 @@ class ExerciseBase(BaseModel):
             if v_lower in valid_difficulties:
                 return v_lower
             else:
-                raise ValueError(f"La difficulté '{v}' n'est pas valide. Valeurs possibles: {'
-                    , '.join(valid_difficulties)}")
+                raise ValueError(f"La difficulté '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_difficulties)}")
 
         raise ValueError(f"Type non valide: {type(v)}")
 
     @field_validator('correct_answer')
     @classmethod
-
-
     def answer_not_empty(cls, v):
         if not v or v.isspace():
             raise ValueError("La réponse correcte ne peut pas être vide")
@@ -83,8 +73,6 @@ class ExerciseBase(BaseModel):
 
     @field_validator('choices')
     @classmethod
-
-
     def validate_choices(cls, v, info):
         if v is not None:
             # Vérifier qu'il y a au moins 2 choix
@@ -104,15 +92,11 @@ class ExerciseBase(BaseModel):
 
     @field_validator('question')
     @classmethod
-
-
     def validate_question(cls, v):
         # Vérifier que la question contient un point d'interrogation, deux points, point d'exclamation ou point final
         if not any(mark in v for mark in ['?', ':', '!', '.']):
             raise ValueError("La question doit contenir une ponctuation finale (?, :, !, .)")
         return v
-
-
 
 class ExerciseCreate(ExerciseBase):
     """Schéma pour la création d'un exercice (Création d'une Épreuve)"""
@@ -120,8 +104,6 @@ class ExerciseCreate(ExerciseBase):
                                   description="URL de l'image associée")
     audio_url: Optional[str] = Field(None,
                                   description="URL audio pour accessibilité")
-
-
 
 class ExerciseUpdate(BaseModel):
     """Schéma pour la mise à jour d'un exercice (Modification d'une Épreuve)"""
@@ -141,8 +123,6 @@ class ExerciseUpdate(BaseModel):
 
     @field_validator('exercise_type')
     @classmethod
-
-
     def validate_exercise_type(cls, v):
         if v is None:
             return None
@@ -159,15 +139,12 @@ class ExerciseUpdate(BaseModel):
             if v_lower in valid_types:
                 return v_lower
             else:
-                raise ValueError(f"Le type d'exercice '{v}' n'est pas valide. Valeurs possibles: {'
-                    , '.join(valid_types)}")
+                raise ValueError(f"Le type d'exercice '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_types)}")
 
         raise ValueError(f"Type non valide: {type(v)}")
 
     @field_validator('difficulty')
     @classmethod
-
-
     def validate_difficulty(cls, v):
         if v is None:
             return None
@@ -184,15 +161,12 @@ class ExerciseUpdate(BaseModel):
             if v_lower in valid_difficulties:
                 return v_lower
             else:
-                raise ValueError(f"La difficulté '{v}' n'est pas valide. Valeurs possibles: {'
-                    , '.join(valid_difficulties)}")
+                raise ValueError(f"La difficulté '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_difficulties)}")
 
         raise ValueError(f"Type non valide: {type(v)}")
 
     @field_validator('question')
     @classmethod
-
-
     def validate_question(cls, v):
         if v is not None and not any(mark in v for mark in ['?', ':', '!', '.']):
             raise ValueError("La question doit contenir une ponctuation finale (?, :, !, .)")
@@ -200,8 +174,6 @@ class ExerciseUpdate(BaseModel):
 
     @field_validator('choices')
     @classmethod
-
-
     def validate_choices(cls, v, info):
         if v is not None:
             # Vérifier qu'il y a au moins 2 choix
@@ -213,8 +185,6 @@ class ExerciseUpdate(BaseModel):
                 raise ValueError("Les choix doivent être uniques")
 
         return v
-
-
 
 class ExerciseInDB(ExerciseBase):
     """Schéma pour un exercice en base de données (Archives des Épreuves)"""
@@ -230,13 +200,9 @@ class ExerciseInDB(ExerciseBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-
-
 class Exercise(ExerciseInDB):
     """Schéma pour un exercice complet (Holocron d'Épreuve)"""
     model_config = ConfigDict(from_attributes=True)
-
-
 
 class ExerciseStats(BaseModel):
     """Statistiques sur un exercice (Données de l'Holocron)"""
@@ -246,4 +212,4 @@ class ExerciseStats(BaseModel):
     success_rate: float
     average_time: Optional[float] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True) 
