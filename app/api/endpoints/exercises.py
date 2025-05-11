@@ -13,6 +13,10 @@ from app.schemas.exercise import Exercise, ExerciseCreate, ExerciseUpdate
 from app.schemas.common import PaginationParams
 from app.models.exercise import DifficultyLevel, ExerciseType
 
+# Import des constantes centralisées
+from app.core.constants import ExerciseTypes, DifficultyLevels, DISPLAY_NAMES, DIFFICULTY_LIMITS, Messages, Tags
+from app.core.messages import SystemMessages, ExerciseMessages, InterfaceTexts
+
 router = APIRouter()
 
 
@@ -223,117 +227,108 @@ def generate_ai_exercise(exercise_type, difficulty):
             num1 = random.randint(1, 10)
             num2 = random.randint(1, 10)
             result = num1 + num2
-            question = f"[TEST-ZAXXON] Si tu as {num1} cristaux Kyber et que tu en trouves {num2} autres\
-                , combien de cristaux as-tu au total?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Si tu as {num1} cristaux Kyber et que tu en trouves {num2} autres, combien de cristaux as-tu au total?"
         elif difficulty == DifficultyLevel.PADAWAN.value:
             num1 = random.randint(10, 30)
             num2 = random.randint(10, 30)
             result = num1 + num2
-            question = f"[TEST-ZAXXON] Ton escadron de {num1} chasseurs TIE est rejoint par {num2} autres. Combien de vaisseaux forment maintenant ton escadron?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Ton escadron de {num1} chasseurs TIE est rejoint par {num2} autres. Combien de vaisseaux forment maintenant ton escadron?"
         elif difficulty == DifficultyLevel.CHEVALIER.value:
             num1 = random.randint(30, 100)
             num2 = random.randint(30, 100)
             result = num1 + num2
-            question = f"[TEST-ZAXXON] La République dispose de {num1} destroyers et en construit {num2} supplémentaires. Quelle est la taille de la flotte?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] La République dispose de {num1} destroyers et en construit {num2} supplémentaires. Quelle est la taille de la flotte?"
         else:  # Maître
             num1 = random.randint(100, 500)
             num2 = random.randint(100, 500)
             result = num1 + num2
-            question = f"[TEST-ZAXXON] L'Empire compte {num1} systèmes sous son contrôle et en conquiert {num2} de plus. Combien de systèmes sont maintenant sous contrôle impérial?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] L'Empire compte {num1} systèmes sous son contrôle et en conquiert {num2} de plus. Combien de systèmes sont maintenant sous contrôle impérial?"
 
         correct_answer = str(result)
-        choices = [str(result), str(result-random.randint(1, 10)), str(result+random.randint(1
-            , 10)), str(result+random.randint(11, 20))]
-        explanation = f"Tu avais {num1} puis tu en as ajouté {num2}. Ainsi, {num1}\
-            + {num2} = {result}."
+        choices = [str(result), str(result-random.randint(1, 10)), str(result+random.randint(1, 10)), str(result+random.randint(11, 20))]
+        explanation = f"[{Messages.AI_EXERCISE_PREFIX}] Tu avais {num1} puis tu en as ajouté {num2}. Ainsi, {num1} + {num2} = {result}."
 
     elif exercise_type == ExerciseType.SOUSTRACTION.value:
         if difficulty == DifficultyLevel.INITIE.value:
             num1 = random.randint(5, 15)
             num2 = random.randint(1, 5)
             result = num1 - num2
-            question = f"[TEST-ZAXXON] Tu as {num1} portions de rations et tu en consommes {num2}. Combien de portions te reste-t-il?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Tu as {num1} portions de rations et tu en consommes {num2}. Combien de portions te reste-t-il?"
         elif difficulty == DifficultyLevel.PADAWAN.value:
             num1 = random.randint(20, 50)
             num2 = random.randint(5, 20)
             result = num1 - num2
-            question = f"[TEST-ZAXXON] Tu commandais {num1} stormtroopers mais {num2} ont été capturés par la Résistance. Combien de stormtroopers te reste-t-il?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Tu commandais {num1} stormtroopers mais {num2} ont été capturés par la Résistance. Combien de stormtroopers te reste-t-il?"
         elif difficulty == DifficultyLevel.CHEVALIER.value:
             num1 = random.randint(50, 150)
             num2 = random.randint(20, 50)
             result = num1 - num2
-            question = f"[TEST-ZAXXON] Ta flotte a {num1} vaisseaux mais {num2} sont endommagés après la bataille. Combien de vaisseaux sont encore opérationnels?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Ta flotte a {num1} vaisseaux mais {num2} sont endommagés après la bataille. Combien de vaisseaux sont encore opérationnels?"
         else:  # Maître
             num1 = random.randint(200, 500)
             num2 = random.randint(50, 200)
             result = num1 - num2
-            question = f"[TEST-ZAXXON] L'Empire contrôle {num1} planètes, mais {num2} se rebellent et rejoignent l'Alliance. Combien de planètes restent fidèles à l'Empire?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] L'Empire contrôle {num1} planètes, mais {num2} se rebellent et rejoignent l'Alliance. Combien de planètes restent fidèles à l'Empire?"
 
         correct_answer = str(result)
-        choices = [str(result), str(result-random.randint(1, 5)), str(result+random.randint(1
-            , 5)), str(num2)]
-        explanation = f"Tu avais {num1} au départ et tu en as perdu {num2}. Donc\
-            , {num1} - {num2} = {result}."
+        choices = [str(result), str(result-random.randint(1, 5)), str(result+random.randint(1, 5)), str(num2)]
+        explanation = f"[{Messages.AI_EXERCISE_PREFIX}] Tu avais {num1} au départ et tu en as perdu {num2}. Donc, {num1} - {num2} = {result}."
 
     elif exercise_type == ExerciseType.MULTIPLICATION.value:
         if difficulty == DifficultyLevel.INITIE.value:
             num1 = random.randint(1, 5)
             num2 = random.randint(1, 5)
             result = num1 * num2
-            question = f"[TEST-ZAXXON] Chaque Padawan a {num2} cristaux Kyber. S'il y a {num1} Padawans\
-                , combien de cristaux y a-t-il au total?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Chaque Padawan a {num2} cristaux Kyber. S'il y a {num1} Padawans, combien de cristaux y a-t-il au total?"
         elif difficulty == DifficultyLevel.PADAWAN.value:
             num1 = random.randint(2, 10)
             num2 = random.randint(2, 10)
             result = num1 * num2
-            question = f"[TEST-ZAXXON] Chaque escadron compte {num2} vaisseaux. Combien de vaisseaux y a-t-il dans {num1} escadrons?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Chaque escadron compte {num2} vaisseaux. Combien de vaisseaux y a-t-il dans {num1} escadrons?"
         elif difficulty == DifficultyLevel.CHEVALIER.value:
             num1 = random.randint(5, 12)
             num2 = random.randint(5, 12)
             result = num1 * num2
-            question = f"[TEST-ZAXXON] Chaque Star Destroyer transporte {num2} TIE Fighters. Combien de TIE Fighters y a-t-il sur {num1} Star Destroyers?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Chaque Star Destroyer transporte {num2} TIE Fighters. Combien de TIE Fighters y a-t-il sur {num1} Star Destroyers?"
         else:  # Maître
             num1 = random.randint(10, 20)
             num2 = random.randint(10, 20)
             result = num1 * num2
-            question = f"[TEST-ZAXXON] Un bataillon compte {num2} régiments de clones. Si l'armée de la République déploie {num1} bataillons\
-                , combien de régiments sont mobilisés au total?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Un bataillon compte {num2} régiments de clones. Si l'armée de la République déploie {num1} bataillons, combien de régiments sont mobilisés au total?"
 
         correct_answer = str(result)
         choices = [str(result), str(result-num2), str(result+num1), str(num1+num2)]
-        explanation = f"[TEST-ZAXXON] Il y a {num1} groupes de {num2} éléments chacun. Donc\
-            , {num1} × {num2} = {result}."
+        explanation = f"[{Messages.AI_EXERCISE_PREFIX}] Il y a {num1} groupes de {num2} éléments chacun. Donc, {num1} × {num2} = {result}."
 
     elif exercise_type == ExerciseType.DIVISION.value:
         if difficulty == DifficultyLevel.INITIE.value:
             num2 = random.choice([2, 5, 10])
             num1 = num2 * random.randint(1, 5)
             result = num1 // num2
-            question = f"[TEST-ZAXXON] Tu dois partager équitablement {num1} portions de rations entre {num2} Padawans. Combien chaque Padawan recevra-t-il?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Tu dois partager équitablement {num1} portions de rations entre {num2} Padawans. Combien chaque Padawan recevra-t-il?"
         elif difficulty == DifficultyLevel.PADAWAN.value:
             num2 = random.randint(2, 10)
             num1 = num2 * random.randint(2, 10)
             result = num1 // num2
-            question = f"[TEST-ZAXXON] Tu as {num1} stormtroopers à répartir également dans {num2} transports. Combien de stormtroopers embarqueront dans chaque transport?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Tu as {num1} stormtroopers à répartir également dans {num2} transports. Combien de stormtroopers embarqueront dans chaque transport?"
         elif difficulty == DifficultyLevel.CHEVALIER.value:
             num2 = random.randint(5, 15)
             num1 = num2 * random.randint(5, 15)
             result = num1 // num2
-            question = f"[TEST-ZAXXON] La flotte impériale de {num1} TIE Fighters doit être répartie équitablement entre {num2} Star Destroyers. Combien de TIE Fighters seront affectés à chaque vaisseau?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] La flotte impériale de {num1} TIE Fighters doit être répartie équitablement entre {num2} Star Destroyers. Combien de TIE Fighters seront affectés à chaque vaisseau?"
         else:  # Maître
             num2 = random.randint(10, 20)
             remainder = random.randint(0, num2-1)
             num1 = num2 * random.randint(10, 20) + remainder
             result = num1 // num2
             if remainder > 0:
-                question = f"[TEST-ZAXXON] L'Empire doit diviser {num1} troupes en {num2} garnisons égales. Combien de soldats y aura-t-il dans chaque garnison? (Donne le quotient sans le reste)"
+                question = f"[{Messages.AI_EXERCISE_PREFIX}] L'Empire doit diviser {num1} troupes en {num2} garnisons égales. Combien de soldats y aura-t-il dans chaque garnison? (Donne le quotient sans le reste)"
             else:
-                question = f"[TEST-ZAXXON] L'Empire doit diviser {num1} troupes en {num2} garnisons égales. Combien de soldats y aura-t-il dans chaque garnison?"
+                question = f"[{Messages.AI_EXERCISE_PREFIX}] L'Empire doit diviser {num1} troupes en {num2} garnisons égales. Combien de soldats y aura-t-il dans chaque garnison?"
 
         correct_answer = str(result)
         choices = [str(result), str(result-1), str(result+1), str(result*2)]
-        explanation = f"[TEST-ZAXXON] Pour répartir {num1} éléments en {num2} groupes égaux\
-            , chaque groupe contient {result} éléments car {num1} ÷ {num2} = {result}."
+        explanation = f"[{Messages.AI_EXERCISE_PREFIX}] Pour répartir {num1} éléments en {num2} groupes égaux, chaque groupe contient {result} éléments car {num1} ÷ {num2} = {result}."
 
     else:
         # Ce bloc ne devrait jamais être exécuté grâce à la normalisation précédente
@@ -341,13 +336,10 @@ def generate_ai_exercise(exercise_type, difficulty):
         num1 = random.randint(5, 25)
         num2 = random.randint(5, 25)
         result = num1 + num2
-        question = f"[TEST-ZAXXON] Si tu as {num1} crédits galactiques et que tu en gagnes {num2} de plus dans une mission\
-            , combien de crédits possèdes-tu maintenant?"
+        question = f"[{Messages.AI_EXERCISE_PREFIX}] Si tu as {num1} crédits galactiques et que tu en gagnes {num2} de plus dans une mission, combien de crédits possèdes-tu maintenant?"
         correct_answer = str(result)
-        choices = [str(result), str(result-random.randint(1, 5)), str(result+random.randint(1
-            , 5)), str(result+random.randint(6, 10))]
-        explanation = f"[TEST-ZAXXON] Tu avais {num1} crédits et tu en as gagné {num2} de plus. Donc {num1}\
-            + {num2} = {result} crédits au total."
+        choices = [str(result), str(result-random.randint(1, 5)), str(result+random.randint(1, 5)), str(result+random.randint(6, 10))]
+        explanation = f"[{Messages.AI_EXERCISE_PREFIX}] Tu avais {num1} crédits et tu en as gagné {num2} de plus. Donc {num1} + {num2} = {result} crédits au total."
 
         # Log pour le débogage
         print(f"Attention: Type d'exercice non géré: {exercise_type}, génération d'une addition par défaut")
@@ -409,16 +401,13 @@ def generate_exercise(
     else:
         # Normaliser le type d'exercice fourni
         exercise_type = exercise_type.lower()
-        # Correspondance des types d'exercices
-        type_mapping = {
-            "addition": ExerciseType.ADDITION.value,
-            "soustraction": ExerciseType.SOUSTRACTION.value,
-            "multiplication": ExerciseType.MULTIPLICATION.value,
-            "division": ExerciseType.DIVISION.value,
-            "fractions": ExerciseType.FRACTIONS.value,
-            "geometrie": ExerciseType.GEOMETRIE.value
-        }
-        selected_type = type_mapping.get(exercise_type, ExerciseType.ADDITION.value)
+        # Utiliser les mappings centralisés des types d'exercices
+        for type_key, aliases in ExerciseTypes.TYPE_ALIASES.items():
+            if exercise_type in aliases:
+                selected_type = type_key
+                break
+        else:
+            selected_type = ExerciseType.ADDITION.value
 
     # Si la difficulté n'est pas spécifiée, en choisir une au hasard
     if not difficulty:
@@ -427,18 +416,13 @@ def generate_exercise(
     else:
         # Normaliser la difficulté fournie
         difficulty = difficulty.lower()
-        # Correspondance des niveaux de difficulté
-        difficulty_mapping = {
-            "facile": DifficultyLevel.INITIE.value,
-            "moyen": DifficultyLevel.PADAWAN.value,
-            "difficile": DifficultyLevel.CHEVALIER.value,
-            "tres_difficile": DifficultyLevel.MAITRE.value,
-            "initie": DifficultyLevel.INITIE.value,
-            "padawan": DifficultyLevel.PADAWAN.value,
-            "chevalier": DifficultyLevel.CHEVALIER.value,
-            "maitre": DifficultyLevel.MAITRE.value
-        }
-        selected_difficulty = difficulty_mapping.get(difficulty, DifficultyLevel.PADAWAN.value)
+        # Utiliser les mappings centralisés pour les niveaux de difficulté
+        for level_key, aliases in DifficultyLevels.LEVEL_ALIASES.items():
+            if difficulty in aliases:
+                selected_difficulty = level_key
+                break
+        else:
+            selected_difficulty = DifficultyLevel.PADAWAN.value
 
     # Si l'utilisateur a demandé de générer avec IA
     if ai:
@@ -456,96 +440,72 @@ def generate_exercise(
         if "difficulty" in ai_exercise:
             selected_difficulty = ai_exercise["difficulty"]
 
-        # Formater le titre avec thématique Star Wars selon le type et le niveau
-        type_names = {
-            "addition": "Addition",
-            "soustraction": "Soustraction",
-            "multiplication": "Multiplication",
-            "division": "Division"
-        }
+        # Utiliser les noms d'affichage des constantes centralisées
+        type_label = DISPLAY_NAMES.get(selected_type, selected_type.capitalize())
+        difficulty_label = DISPLAY_NAMES.get(selected_difficulty, selected_difficulty.capitalize())
 
-        difficulty_labels = {
-            "initie": "Initié",
-            "padawan": "Padawan",
-            "chevalier": "Chevalier",
-            "maitre": "Maître"
-        }
-
-        type_label = type_names.get(selected_type, selected_type.capitalize())
-        difficulty_label = difficulty_labels.get(selected_difficulty, selected_difficulty.capitalize())
-
-        title = f"[TEST-ZAXXON] Épreuve de {type_label} - Niveau {difficulty_label}"
+        title = f"[{Messages.AI_EXERCISE_PREFIX}] Épreuve de {type_label} - Niveau {difficulty_label}"
     else:
         # Génération algorithmique standard
         if selected_type == ExerciseType.ADDITION.value:
             # Génération d'une addition basée sur la difficulté
-            num1, num2 = 1, 1
-            if selected_difficulty == DifficultyLevel.PADAWAN.value:
-                num1, num2 = random.randint(1, 10), random.randint(1, 10)
-            elif selected_difficulty == DifficultyLevel.INITIE.value:
-                num1, num2 = random.randint(10, 50), random.randint(10, 50)
-            elif selected_difficulty == DifficultyLevel.CHEVALIER.value:
-                num1, num2 = random.randint(50, 100), random.randint(50, 100)
-            else:  # Maître et au-delà
-                num1, num2 = random.randint(100, 500), random.randint(100, 500)
-
+            num1 = random.randint(min_range, max_range)
+            num2 = random.randint(min_range, max_range)
             result = num1 + num2
-            question = f"[TEST-ZAXXON] Combien font {num1} + {num2}?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Combien font {num1} + {num2}?"
             correct_answer = str(result)
-            choices = [str(result), str(result-1), str(result+1), str(result+2)]
+
+            # Générer des choix proches mais différents
+            choices = [
+                str(result),  # Bonne réponse
+                str(result + random.randint(1, 10)),
+                str(result - random.randint(1, 10)),
+                str(result + random.randint(11, 20))
+            ]
             random.shuffle(choices)
-            explanation = f"[TEST-ZAXXON] {num1} + {num2} = {result}"
-            title = f"[TEST-ZAXXON] Exercice de {selected_type.lower()}"
+            explanation = f"[{Messages.AI_EXERCISE_PREFIX}] {num1} + {num2} = {result}"
+            title = f"[{Messages.AI_EXERCISE_PREFIX}] Exercice de {selected_type.lower()}"
             is_ai_generated = False
 
         elif selected_type == ExerciseType.SOUSTRACTION.value:
             # Génération d'une soustraction
-            num1, num2 = 1, 1
-            if selected_difficulty == DifficultyLevel.PADAWAN.value:
-                num1, num2 = random.randint(5, 20), random.randint(1, 5)
-            elif selected_difficulty == DifficultyLevel.INITIE.value:
-                num1, num2 = random.randint(20, 70), random.randint(10, 20)
-            elif selected_difficulty == DifficultyLevel.CHEVALIER.value:
-                num1, num2 = random.randint(70, 120), random.randint(20, 70)
-            else:  # Maître et au-delà
-                num1, num2 = random.randint(120, 500), random.randint(70, 120)
-
-            # Assurer que num1 > num2
-            if num1 < num2:
-                num1, num2 = num2, num1
-
+            num1 = random.randint(min_range + 10, max_range)
+            num2 = random.randint(min_range, num1 - 1)  # S'assurer que num2 < num1
             result = num1 - num2
-            question = f"[TEST-ZAXXON] Combien font {num1} - {num2}?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Combien font {num1} - {num2}?"
             correct_answer = str(result)
-            choices = [str(result), str(result-1), str(result+1), str(result+2)]
+
+            # Générer des choix proches mais différents
+            choices = [
+                str(result),  # Bonne réponse
+                str(result + random.randint(1, 5)),
+                str(result - random.randint(1, 5)),
+                str(num2 - num1)  # Erreur courante: inverser l'ordre
+            ]
             random.shuffle(choices)
-            explanation = f"[TEST-ZAXXON] {num1} - {num2} = {result}"
-            title = f"[TEST-ZAXXON] Exercice de {selected_type.lower()}"
-            is_ai_generated = False
+            explanation = f"[{Messages.AI_EXERCISE_PREFIX}] {num1} - {num2} = {result}"
 
         elif selected_type == ExerciseType.MULTIPLICATION.value:
             # Génération d'une multiplication
-            num1, num2 = 1, 1
-            if selected_difficulty == DifficultyLevel.PADAWAN.value:
-                num1, num2 = random.randint(1, 5), random.randint(1, 5)
-            elif selected_difficulty == DifficultyLevel.INITIE.value:
-                num1, num2 = random.randint(5, 10), random.randint(5, 10)
-            elif selected_difficulty == DifficultyLevel.CHEVALIER.value:
-                num1, num2 = random.randint(10, 15), random.randint(10, 15)
-            else:  # Maître et au-delà
-                num1, num2 = random.randint(15, 30), random.randint(15, 30)
+            num1 = random.randint(5, min(20, max_range // 5))
+            num2 = random.randint(5, min(20, max_range // num1))
 
             result = num1 * num2
-            question = f"[TEST-ZAXXON] Combien font {num1} × {num2}?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Combien font {num1} × {num2}?"
             correct_answer = str(result)
-            choices = [str(result), str(result-num1), str(result+num1), str(result+num2)]
+
+            # Générer des choix proches mais différents
+            choices = [
+                str(result),  # Bonne réponse
+                str(result + num1),  # Erreur: une fois de trop
+                str(result - num2),  # Erreur: une fois de moins
+                str(num1 + num2)  # Erreur: addition au lieu de multiplication
+            ]
             random.shuffle(choices)
-            explanation = f"[TEST-ZAXXON] {num1} × {num2} = {result}"
-            title = f"[TEST-ZAXXON] Exercice de {selected_type.lower()}"
-            is_ai_generated = False
+            explanation = f"[{Messages.AI_EXERCISE_PREFIX}] {num1} × {num2} = {result}"
 
         elif selected_type == ExerciseType.DIVISION.value:
-            # Génération d'une division (on crée d'abord des nombres qui sont divisibles)
+            # Génération d'une division (s'assurer que le résultat est un entier)
             if selected_difficulty == DifficultyLevel.PADAWAN.value:
                 num2 = random.randint(2, 5)
                 num1 = num2 * random.randint(1, 5)
@@ -560,25 +520,30 @@ def generate_exercise(
                 num1 = num2 * random.randint(15, 25)
 
             result = num1 // num2
-            question = f"[TEST-ZAXXON] Combien font {num1} ÷ {num2}?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Combien font {num1} ÷ {num2}?"
             correct_answer = str(result)
-            choices = [str(result), str(result-1), str(result+1), str(num1//max(1, num2-1))]
+
+            # Générer des choix proches mais différents
+            choices = [
+                str(result),  # Bonne réponse
+                str(result + 1),  # Erreur d'arrondi vers le haut
+                str(result - 1),  # Erreur d'arrondi vers le bas
+                str(num2 // num1 if num1 != 0 else 0)  # Erreur: inverser l'ordre
+            ]
             random.shuffle(choices)
-            explanation = f"[TEST-ZAXXON] {num1} ÷ {num2} = {result}"
-            title = f"[TEST-ZAXXON] Exercice de {selected_type.lower()}"
-            is_ai_generated = False
+            explanation = f"[{Messages.AI_EXERCISE_PREFIX}] {num1} ÷ {num2} = {result}"
 
         else:
             # Par défaut, faire une addition
             num1 = random.randint(1, 10)
             num2 = random.randint(1, 10)
             result = num1 + num2
-            question = f"[TEST-ZAXXON] Combien font {num1} + {num2}?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Combien font {num1} + {num2}?"
             correct_answer = str(result)
             choices = [str(result), str(result-1), str(result+1), str(result+2)]
             random.shuffle(choices)
-            explanation = f"[TEST-ZAXXON] {num1} + {num2} = {result}"
-            title = f"[TEST-ZAXXON] Exercice de {selected_type.lower()}"
+            explanation = f"[{Messages.AI_EXERCISE_PREFIX}] {num1} + {num2} = {result}"
+            title = f"[{Messages.AI_EXERCISE_PREFIX}] Exercice de {selected_type.lower()}"
             is_ai_generated = False
 
     try:
@@ -639,8 +604,7 @@ def get_exercise(
             "question": "Combien font 70 + 89?",
             "correct_answer": "159",
             "choices": ["159", "150", "149", "169"],
-            "explanation": "70 + 89 = 159. On additionne les dizaines (7 + 8 = 15) et les unités (0
-                + 9 = 9) pour obtenir 159.",
+            "explanation": "70 + 89 = 159. On additionne les dizaines (7 + 8 = 15) et les unités (0 + 9 = 9) pour obtenir 159.",
             "hint": "Ajoutez les dizaines puis les unités",
             "image_url": None,
             "audio_url": None,
@@ -660,8 +624,7 @@ def get_exercise(
             "question": "Combien font 12 × 5?",
             "correct_answer": "60",
             "choices": ["55", "60", "65", "70"],
-            "explanation": "12 × 5 = 60. On peut calculer 10 × 5 = 50, puis 2 × 5\
-                = 10, et enfin 50 + 10 = 60.",
+            "explanation": "12 × 5 = 60. On peut calculer 10 × 5 = 50, puis 2 × 5 = 10, et enfin 50 + 10 = 60.",
             "hint": "Décomposez 12 en 10 + 2 pour faciliter le calcul",
             "image_url": None,
             "audio_url": None,
@@ -699,7 +662,7 @@ def get_exercise(
             num1 = random.randint(min_range, max_range)
             num2 = random.randint(min_range, max_range)
             result = num1 + num2
-            question = f"Combien font {num1} + {num2}?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Combien font {num1} + {num2}?"
             correct_answer = str(result)
 
             # Générer des choix proches mais différents
@@ -710,14 +673,14 @@ def get_exercise(
                 str(result + random.randint(11, 20))
             ]
             random.shuffle(choices)
-            explanation = f"{num1} + {num2} = {result}"
+            explanation = f"[{Messages.AI_EXERCISE_PREFIX}] {num1} + {num2} = {result}"
 
         elif selected_type == ExerciseType.SOUSTRACTION.value:
             # Génération d'une soustraction (s'assurer que le résultat est positif)
             num1 = random.randint(min_range + 10, max_range)
             num2 = random.randint(min_range, num1 - 1)  # S'assurer que num2 < num1
             result = num1 - num2
-            question = f"Combien font {num1} - {num2}?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Combien font {num1} - {num2}?"
             correct_answer = str(result)
 
             # Générer des choix proches mais différents
@@ -728,7 +691,7 @@ def get_exercise(
                 str(num2 - num1)  # Erreur courante: inverser l'ordre
             ]
             random.shuffle(choices)
-            explanation = f"{num1} - {num2} = {result}"
+            explanation = f"[{Messages.AI_EXERCISE_PREFIX}] {num1} - {num2} = {result}"
 
         elif selected_type == ExerciseType.MULTIPLICATION.value:
             # Génération d'une multiplication
@@ -742,7 +705,7 @@ def get_exercise(
                 num2 = random.randint(5, min(20, max_range // num1))
 
             result = num1 * num2
-            question = f"Combien font {num1} × {num2}?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Combien font {num1} × {num2}?"
             correct_answer = str(result)
 
             # Générer des choix proches mais différents
@@ -753,7 +716,7 @@ def get_exercise(
                 str(num1 + num2)  # Erreur: addition au lieu de multiplication
             ]
             random.shuffle(choices)
-            explanation = f"{num1} × {num2} = {result}"
+            explanation = f"[{Messages.AI_EXERCISE_PREFIX}] {num1} × {num2} = {result}"
 
         else:  # Division
             # Génération d'une division (s'assurer que le résultat est un entier)
@@ -768,7 +731,7 @@ def get_exercise(
 
             num1 = num2 * multiplicateur  # Garantir que la division est exacte
             result = num1 // num2
-            question = f"Combien font {num1} ÷ {num2}?"
+            question = f"[{Messages.AI_EXERCISE_PREFIX}] Combien font {num1} ÷ {num2}?"
             correct_answer = str(result)
 
             # Générer des choix proches mais différents
@@ -779,7 +742,7 @@ def get_exercise(
                 str(num2 // num1 if num1 != 0 else 0)  # Erreur: inverser l'ordre
             ]
             random.shuffle(choices)
-            explanation = f"{num1} ÷ {num2} = {result}"
+            explanation = f"[{Messages.AI_EXERCISE_PREFIX}] {num1} ÷ {num2} = {result}"
 
         # Assurer qu'il n'y a pas de doublons dans les choix
         choices = list(dict.fromkeys(choices))
