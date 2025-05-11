@@ -71,6 +71,58 @@ class ExerciseMessages:
     INFO_EXERCISE_COMPLETE = "Exercice terminé"
     INFO_EXERCISE_SKIPPED = "Exercice passé"
 
+# Éléments narratifs Star Wars pour les exercices générés par IA
+class StarWarsNarratives:
+    # Personnages Star Wars pour les contextes
+    CHARACTERS = [
+        "Luke Skywalker", "Princesse Leia", "Han Solo", "Chewbacca", "Maître Yoda", 
+        "Obi-Wan Kenobi", "R2-D2", "C-3PO", "Darth Vader", "Rey", 
+        "Kylo Ren", "BB-8", "Finn", "Poe Dameron", "Padmé Amidala", 
+        "Qui-Gon Jinn", "Mace Windu", "Ahsoka Tano", "Boba Fett", "Le Mandalorien"
+    ]
+    
+    # Objets Star Wars
+    OBJECTS = [
+        "sabres laser", "vaisseaux", "blasters", "droïdes", "cristaux kyber", 
+        "pièces détachées", "crédits galactiques", "hologrammes", "speeders", "chasseurs X-wing", 
+        "chasseurs TIE", "grenades thermiques", "jetpacks", "casques de stormtrooper"
+    ]
+    
+    # Lieux Star Wars
+    LOCATIONS = [
+        "Tatooine", "Coruscant", "Endor", "Hoth", "Dagobah", 
+        "Naboo", "Mustafar", "Alderaan", "Jakku", "Exegol", 
+        "Cantina de Mos Eisley", "Temple Jedi", "l'Étoile de la Mort", "la Base Starkiller", "Geonosis"
+    ]
+    
+    # Préfixes pour les explications (contexte et importance des mathématiques)
+    EXPLANATION_PREFIXES = [
+        "Dans l'univers Star Wars, il est important de partager équitablement les ressources, comme les armes laser.",
+        "Les Jedi enseignent que la maîtrise des mathématiques est essentielle à l'équilibre de la Force.",
+        "Comme le dit souvent Maître Yoda, 'Par les calculs, plus clair l'avenir devient.'",
+        "Dans la galaxie lointaine, très lointaine, la précision des calculs peut faire la différence entre victoire et défaite.",
+        "Pour un futur Jedi, comprendre les nombres est aussi important que manier le sabre laser.",
+        "La Résistance utilise quotidiennement ce type de calcul pour planifier ses missions.",
+        "L'Ordre Jedi a toujours valorisé les connaissances mathématiques dans la formation des Padawans.",
+        "Dans les archives du Temple Jedi, ce genre de problème est considéré comme fondamental.",
+        "Qu'on soit du côté lumineux ou obscur de la Force, ces compétences mathématiques sont universelles.",
+        "Même les droïdes comme R2-D2 doivent maîtriser ces calculs pour naviguer dans l'hyperespace."
+    ]
+    
+    # Conclusions pour les explications (encouragement et lien avec l'univers Star Wars)
+    EXPLANATION_SUFFIXES = [
+        "Cette compétence te rapproche du rang de Maître Jedi.",
+        "En maîtrisant ces calculs, tu progresses sur le chemin de la Force.",
+        "Que la Force des mathématiques soit avec toi, jeune Padawan.",
+        "Comme dirait Maître Yoda: 'Apprendre toujours, nous devons.'",
+        "Ces connaissances te serviront dans toute la galaxie.",
+        "Continue ainsi, et tu pourras bientôt construire ton propre sabre laser.",
+        "La maîtrise de ces calculs te distingue des simples recrues de l'Empire.",
+        "Même un Seigneur Sith serait impressionné par ta maîtrise des nombres.",
+        "La Résistance a besoin de cerveaux brillants comme le tien.",
+        "Avec de telles compétences, même le Conseil Jedi pourrait te remarquer."
+    ]
+
 # Textes de l'interface
 class InterfaceTexts:
     # En-tête

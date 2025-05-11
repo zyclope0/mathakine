@@ -22,7 +22,7 @@ from starlette.templating import Jinja2Templates
 
 # Import des constantes et messages centralisés
 from app.core.constants import ExerciseTypes, DifficultyLevels, DISPLAY_NAMES, DIFFICULTY_LIMITS, Messages, Tags
-from app.core.messages import SystemMessages, ExerciseMessages, InterfaceTexts
+from app.core.messages import SystemMessages, ExerciseMessages, InterfaceTexts, StarWarsNarratives
 from app.db.queries import ExerciseQueries, ResultQueries, UserStatsQueries
 
 # Chemins et configurations
@@ -579,57 +579,61 @@ def init_database():
 # Fonctions pour la génération et résolution d'exercices
 async def generate_exercise(request):
     """Génère un nouvel exercice"""
-    try:
-        # Obtenir les paramètres (type et difficulté)
-        # Cas spécial : le paramètre peut être 'exercise_type' ou 'type'
-        exercise_type = request.query_params.get('exercise_type')
-        if exercise_type is None:
-            exercise_type = request.query_params.get('type')
-        if exercise_type is None:
-            exercise_type = 'addition'
-
-        difficulty = request.query_params.get('difficulty', 'padawan')
-
-        # Vérifier si on demande une génération par IA
-        use_ai = request.query_params.get('ai', '').lower() == 'true'
-
-        # Normaliser les paramètres
-        exercise_type = normalize_exercise_type(exercise_type)
-        difficulty = normalize_difficulty(difficulty)
-
-        if use_ai:
-            print(f"Génération d'un exercice IA de type: {exercise_type}, difficulté: {difficulty}")
-            # Générer un exercice avec le préfixe IA dans le titre pour simuler la génération par IA
-            exercise_dict = generate_ai_exercise(exercise_type, difficulty)
+    # Récupérer les paramètres (type d'exercice, difficulté)
+    params = request.query_params
+    exercise_type = params.get('type')
+    difficulty = params.get('difficulty')
+    use_ai = params.get('ai', False)
+    
+    # Normaliser les types et difficultés
+    normalized_type = normalize_exercise_type(exercise_type) if exercise_type else None
+    normalized_difficulty = normalize_difficulty(difficulty) if difficulty else None
+    
+    # Si le type n'est pas spécifié, en prendre un au hasard
+    if not normalized_type:
+        normalized_type = random.choice(ExerciseTypes.ALL_TYPES)
+    
+    # Si la difficulté n'est pas spécifiée, en prendre une au hasard
+    if not normalized_difficulty:
+        normalized_difficulty = random.choice(DifficultyLevels.ALL_LEVELS)
+    
+    # Si on demande de l'IA, utiliser la fonction de génération IA
+    ai_generated = False
+    if use_ai and str(use_ai).lower() in ['true', '1', 'yes', 'y']:
+        exercise_dict = generate_ai_exercise(normalized_type, normalized_difficulty)
+        ai_generated = True
+    else:
+        # Génération algorithmique simple
+        exercise_dict = generate_simple_exercise(normalized_type, normalized_difficulty)
+    
+    # Préparer les choix pour la base de données (JSON)
+    choices_json = json.dumps(exercise_dict.get('choices', []))
+    
+    # S'assurer que l'explication est définie et n'est pas None
+    if 'explanation' not in exercise_dict or exercise_dict['explanation'] is None or exercise_dict['explanation'] == "None" or exercise_dict['explanation'] == "":
+        if exercise_dict['exercise_type'] == ExerciseTypes.ADDITION:
+            exercise_dict['explanation'] = f"Pour additionner {exercise_dict.get('num1', '?')} et {exercise_dict.get('num2', '?')}, il faut calculer leur somme: {exercise_dict['correct_answer']}"
+        elif exercise_dict['exercise_type'] == ExerciseTypes.SUBTRACTION:
+            exercise_dict['explanation'] = f"Pour soustraire {exercise_dict.get('num2', '?')} de {exercise_dict.get('num1', '?')}, il faut calculer leur différence: {exercise_dict['correct_answer']}"
+        elif exercise_dict['exercise_type'] == ExerciseTypes.MULTIPLICATION:
+            exercise_dict['explanation'] = f"Pour multiplier {exercise_dict.get('num1', '?')} par {exercise_dict.get('num2', '?')}, il faut calculer leur produit: {exercise_dict['correct_answer']}"
+        elif exercise_dict['exercise_type'] == ExerciseTypes.DIVISION:
+            exercise_dict['explanation'] = f"Pour diviser {exercise_dict.get('num1', '?')} par {exercise_dict.get('num2', '?')}, il faut calculer leur quotient: {exercise_dict['correct_answer']}"
         else:
-            print(f"Génération d'un exercice de type: {exercise_type}, difficulté: {difficulty}")
-            # Générer l'exercice normalement
-            exercise_dict = generate_simple_exercise(exercise_type, difficulty)
-
-        # Enregistrer l'exercice dans la base de données
+            exercise_dict['explanation'] = f"La réponse correcte est {exercise_dict['correct_answer']}"
+    
+    print(f"Explication générée: {exercise_dict['explanation']}")
+    
+    try:
+        # Se connecter à la base de données
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Préparer les choix au format JSON
-        choices_json = json.dumps(exercise_dict['choices'])
-
-        # Vérifier si ai_generated est dans le dictionnaire, sinon le définir à False
-        ai_generated = exercise_dict.get('ai_generated', use_ai)
-
-        # DEBUGGAGE: Essayer d'abord de réparer les exercices existants
-        try:
-            print("Tentative de réparation des exercices existants (définir is_archived à false)...")
-            cursor.execute("""
-            UPDATE exercises
-            SET is_archived = false
-            """)
-            conn.commit()
-            print("Réparation effectuée: tous les exercices sont maintenant non archivés")
-        except Exception as repair_error:
-            print(f"Erreur lors de la réparation des exercices: {repair_error}")
+        # DEBUGGAGE: Vérifier si l'explication est bien définie
+        print(f"Insertion d'un exercice avec explication: {exercise_dict.get('explanation', 'NON DÉFINIE')}")
         
-        # Insérer dans la base de données en utilisant la requête centralisée, en spécifiant explicitement is_archived=false
-        print("Insertion d'un nouvel exercice avec is_archived=false...")
+        # Insérer dans la base de données en utilisant la requête centralisée
+        print("Insertion d'un nouvel exercice...")
         cursor.execute("""
         INSERT INTO exercises 
         (title, creator_id, exercise_type, difficulty, tags, question, correct_answer, 
@@ -645,19 +649,19 @@ async def generate_exercise(request):
             exercise_dict['question'],           # question
             exercise_dict['correct_answer'],     # correct_answer
             choices_json,                        # choices
-            exercise_dict.get('explanation', None), # explanation
+            exercise_dict['explanation'],        # explanation (maintenant garanti non-null)
             exercise_dict.get('hint', None),     # hint
             exercise_dict.get('image_url', None), # image_url
             exercise_dict.get('audio_url', None), # audio_url
             ai_generated                         # ai_generated
         ))
-
+        
         result = cursor.fetchone()
         exercise_id = result[0]
         conn.commit()
         conn.close()
         
-        print(f"Nouvel exercice créé avec ID={exercise_id}, is_archived=false")
+        print(f"Nouvel exercice créé avec ID={exercise_id}, explication: {exercise_dict['explanation']}")
 
         # Rediriger vers la page des exercices
         return RedirectResponse(url="/exercises?generated=true", status_code=303)
@@ -684,31 +688,50 @@ def generate_ai_exercise(exercise_type, difficulty):
     difficulty_config = DIFFICULTY_LIMITS.get(normalized_difficulty, DIFFICULTY_LIMITS[DifficultyLevels.PADAWAN])
     type_limits = difficulty_config.get(normalized_type, difficulty_config.get("default", {"min": 1, "max": 10}))
     
-    # Contextes Star Wars pour les exercices
-    contexts = [
-        "Sur la planète Tatooine, un marchand Jawa vend {num1} pièces détachées de droïdes. Un fermier d'humidité en achète {num2}.",
-        "Le Faucon Millenium a parcouru {num1} parsecs. Après une mission pour la Résistance, il parcourt encore {num2} parsecs.",
-        "Luke Skywalker s'entraîne avec {num1} cubes de levitation. Yoda lui en donne {num2} de plus.",
-        "Dans la base rebelle, il y a {num1} X-wings. Après la bataille, il ne reste que {num2} vaisseaux.",
-        "Rey a trouvé {num1} cristaux kyber. Elle en utilise {num2} pour son nouveau sabre laser.",
-        "Han Solo a fait {num1} voyages pour livrer des marchandises. Il doit encore faire {num2} voyages cette semaine.",
-        "Sur la planète Endor, {num1} Ewoks préparent un piège. {num2} autres Ewoks les rejoignent."
-    ]
+    # Structure de base commune pour tous les types d'exercices générés par IA
+    exercise_data = {
+        "exercise_type": normalized_type,
+        "difficulty": normalized_difficulty,
+        "ai_generated": True,
+        "tags": Tags.AI + "," + Tags.GENERATIVE + "," + Tags.STARWARS
+    }
     
-    # Sélectionner un contexte au hasard
-    context = random.choice(contexts)
+    # Préfixe et suffixe pour enrichir l'explication
+    explanation_prefix = random.choice(StarWarsNarratives.EXPLANATION_PREFIXES)
+    explanation_suffix = random.choice(StarWarsNarratives.EXPLANATION_SUFFIXES)
     
-    # Générer les nombres en fonction du type et de la difficulté
     if normalized_type == ExerciseTypes.ADDITION:
         min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
         num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
         result = num1 + num2
         
-        # Construire la question avec contexte Star Wars
-        question_text = context.format(num1=num1, num2=num2)
-        question = f"{question_text} Combien y a-t-il de {random.choice(['éléments', 'unités', 'objets'])} au total?"
+        # Modèles de question d'addition avec thématique Star Wars
+        addition_templates = [
+            # Format: (question, explication)
+            (
+                f"Sur la planète {random.choice(StarWarsNarratives.LOCATIONS)}, {random.choice(StarWarsNarratives.CHARACTERS)} a trouvé {num1} {random.choice(StarWarsNarratives.OBJECTS)}. Plus tard, il en trouve encore {num2}. Combien de {random.choice(StarWarsNarratives.OBJECTS)} a-t-il maintenant?",
+                f"Au début, il y avait {num1} objets, puis {num2} autres ont été ajoutés. Pour résoudre ce problème d'addition, il faut calculer {num1} + {num2}, ce qui donne {result} objets au total."
+            ),
+            (
+                f"{random.choice(StarWarsNarratives.CHARACTERS)} a capturé {num1} {random.choice(StarWarsNarratives.OBJECTS)} lors d'une mission sur {random.choice(StarWarsNarratives.LOCATIONS)}. {random.choice(StarWarsNarratives.CHARACTERS)} lui en donne {num2} de plus. Combien en a-t-il au total?",
+                f"Ce problème d'addition consiste à ajouter les {num1} objets initiaux aux {num2} nouveaux objets. Le calcul est donc {num1} + {num2} = {result}."
+            ),
+            (
+                f"Une escouade de {num1} stormtroopers patrouille sur {random.choice(StarWarsNarratives.LOCATIONS)}. Ils sont rejoints par {num2} autres stormtroopers. Combien sont-ils maintenant?",
+                f"Pour résoudre ce problème, nous devons additionner le nombre initial de stormtroopers ({num1}) au nombre de renforts ({num2}). Cela nous donne {num1} + {num2} = {result} stormtroopers au total."
+            )
+        ]
         
-        correct_answer = str(result)
+        question_template, explanation_template = random.choice(addition_templates)
+        
+        exercise_data.update({
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Aventure spatiale - Addition niveau {difficulty}",
+            "question": question_template,
+            "correct_answer": str(result),
+            "num1": num1,
+            "num2": num2,
+            "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
+        })
         
     elif normalized_type == ExerciseTypes.SUBTRACTION:
         limits = type_limits
@@ -721,110 +744,162 @@ def generate_ai_exercise(exercise_type, difficulty):
             
         result = num1 - num2
         
-        # Contextes pour soustraction
-        sub_contexts = [
-            "Le destroyer impérial a {num1} TIE Fighters. {num2} sont détruits lors d'une bataille.",
-            "Darth Vader commande {num1} stormtroopers, mais {num2} sont capturés par les rebelles.",
-            "Il y avait {num1} droïdes dans le centre de réparation. {num2} ont été récupérés par leurs propriétaires."
+        # Modèles de question de soustraction avec thématique Star Wars
+        subtraction_templates = [
+            # Format: (question, explication)
+            (
+                f"Le Destroyer Impérial avait {num1} chasseurs TIE. Après une bataille contre les rebelles, {num2} ont été détruits. Combien de chasseurs TIE reste-t-il?",
+                f"Initialement, l'Empire disposait de {num1} chasseurs. Suite à la bataille, {num2} ont été perdus. Pour calculer ceux qui restent, on effectue la soustraction {num1} - {num2} = {result} chasseurs TIE."
+            ),
+            (
+                f"{random.choice(StarWarsNarratives.CHARACTERS)} possédait {num1} {random.choice(StarWarsNarratives.OBJECTS)}. Malheureusement, {num2} ont été volés par des pillards Jawas sur {random.choice(StarWarsNarratives.LOCATIONS)}. Combien lui reste-t-il de {random.choice(StarWarsNarratives.OBJECTS)}?",
+                f"Dans ce problème de soustraction, nous commençons avec {num1} objets puis nous en perdons {num2}. L'opération mathématique est {num1} - {num2} = {result}."
+            ),
+            (
+                f"Une flotte de {num1} vaisseaux rebelles affronte l'Empire. Après la bataille, {num2} vaisseaux sont détruits. Combien de vaisseaux rebelles ont survécu?",
+                f"Pour résoudre ce problème, nous devons soustraire le nombre de vaisseaux détruits ({num2}) du nombre initial ({num1}). Le calcul est {num1} - {num2} = {result} vaisseaux survivants."
+            )
         ]
         
-        context = random.choice(sub_contexts)
-        question_text = context.format(num1=num1, num2=num2)
-        question = f"{question_text} Combien reste-t-il de {random.choice(['unités', 'vaisseaux', 'soldats', 'droïdes'])}?"
+        question_template, explanation_template = random.choice(subtraction_templates)
         
-        correct_answer = str(result)
+        exercise_data.update({
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Conflit galactique - Soustraction niveau {difficulty}",
+            "question": question_template,
+            "correct_answer": str(result),
+            "num1": num1,
+            "num2": num2,
+            "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
+        })
         
     elif normalized_type == ExerciseTypes.MULTIPLICATION:
-        min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
-        num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
+        # Utiliser des limites adaptées pour la multiplication
+        if normalized_difficulty == DifficultyLevels.INITIE:
+            num1 = random.randint(2, 5)
+            num2 = random.randint(2, 5)
+        else:
+            num1 = random.randint(type_limits.get("min", 2), type_limits.get("max", 10))
+            num2 = random.randint(type_limits.get("min", 2), type_limits.get("max", 10))
+        
         result = num1 * num2
         
-        # Contextes pour multiplication
-        mult_contexts = [
-            "Chaque escadron rebelle compte {num1} pilotes. S'il y a {num2} escadrons, ",
-            "Un chasseur de primes gagne {num1} crédits par mission. S'il effectue {num2} missions, ",
-            "Chaque pod de course peut atteindre {num1} fois la vitesse du son. Si Anakin pousse son pod à {num2} fois cette limite, "
+        # Modèles de question de multiplication avec thématique Star Wars
+        multiplication_templates = [
+            # Format: (question, explication)
+            (
+                f"Chaque Jedi du Temple possède {num2} cristaux kyber pour construire ses sabres laser. S'il y a {num1} Jedi, combien de cristaux kyber sont nécessaires au total?",
+                f"Ce problème demande de calculer le nombre total de cristaux pour tous les Jedi. Chaque Jedi ayant {num2} cristaux, et comme il y a {num1} Jedi, nous devons faire la multiplication {num1} × {num2} = {result} cristaux au total."
+            ),
+            (
+                f"Sur {random.choice(StarWarsNarratives.LOCATIONS)}, chaque escadron compte {num2} X-wings. Si la Résistance dispose de {num1} escadrons, combien de X-wings cela représente-t-il?",
+                f"Pour trouver le nombre total de vaisseaux, nous multiplions le nombre d'escadrons ({num1}) par le nombre de X-wings dans chaque escadron ({num2}). Donc {num1} × {num2} = {result} X-wings au total."
+            ),
+            (
+                f"Un stormtrooper transporte {num2} blasters. Combien de blasters sont transportés par {num1} stormtroopers?",
+                f"Dans ce problème de multiplication, nous calculons combien d'objets sont portés au total. Avec {num2} blasters par stormtrooper et {num1} stormtroopers, la multiplication est {num1} × {num2} = {result} blasters au total."
+            )
         ]
         
-        context = random.choice(mult_contexts)
-        question_text = context.format(num1=num1, num2=num2)
-        question = f"{question_text}quel est le total de {random.choice(['pilotes', 'crédits', 'vitesse'])}?"
+        question_template, explanation_template = random.choice(multiplication_templates)
         
-        correct_answer = str(result)
+        exercise_data.update({
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Forces galactiques - Multiplication niveau {difficulty}",
+            "question": question_template,
+            "correct_answer": str(result),
+            "num1": num1,
+            "num2": num2,
+            "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
+        })
         
     elif normalized_type == ExerciseTypes.DIVISION:
-        limits = type_limits
-        min_result = limits.get("min_result", 1)
-        max_result = limits.get("max_result", 5)
-        min_divisor = limits.get("min_divisor", 2)
-        max_divisor = limits.get("max_divisor", 5)
+        # Générer une division avec reste nul
+        divisor_range = type_limits.get("divisor_range", (2, 10))
+        result_range = type_limits.get("result_range", (1, 10))
         
-        # Générer d'abord le diviseur et le résultat pour assurer une division exacte
-        num2 = random.randint(min_divisor, max_divisor)  # diviseur
-        result = random.randint(min_result, max_result)  # quotient
+        # Pour assurer une division sans reste, on génère d'abord le diviseur et le quotient
+        num2 = random.randint(divisor_range[0], divisor_range[1])  # diviseur
+        result = random.randint(result_range[0], result_range[1])  # quotient
         num1 = num2 * result  # dividende
         
-        # Contextes pour division
-        div_contexts = [
-            "Les {num1} stormtroopers doivent être répartis en {num2} groupes égaux pour rechercher les droïdes.",
-            "Le Faucon Millenium a {num1} parsecs à parcourir à une vitesse de {num2} parsecs par heure.",
-            "Les rebelles ont {num1} blasters à distribuer équitablement à {num2} soldats."
+        # Modèles de question de division avec thématique Star Wars
+        division_templates = [
+            # Format: (question, explication)
+            (
+                f"{num1} jeunes Padawans doivent être répartis en groupes de {num2} pour s'entraîner avec différents Maîtres Jedi. Combien de groupes seront formés?",
+                f"Pour résoudre ce problème, nous devons diviser le nombre total de Padawans ({num1}) par la taille de chaque groupe ({num2}). Le calcul est {num1} ÷ {num2} = {result} groupes."
+            ),
+            (
+                f"La Résistance a récupéré {num1} caisses de provisions qui doivent être réparties équitablement entre {num2} bases sur différentes planètes. Combien de caisses chaque base recevra-t-elle?",
+                f"Il s'agit d'une division où nous partageons {num1} caisses entre {num2} bases. En effectuant {num1} ÷ {num2}, nous obtenons {result} caisses par base."
+            ),
+            (
+                f"{num1} stormtroopers sont divisés en escouades de {num2}. Combien d'escouades complètes peuvent être formées?",
+                f"Pour déterminer le nombre d'escouades, nous divisons le nombre total de stormtroopers ({num1}) par le nombre de stormtroopers par escouade ({num2}). Le calcul est donc {num1} ÷ {num2} = {result} escouades."
+            )
         ]
         
-        context = random.choice(div_contexts)
-        question_text = context.format(num1=num1, num2=num2)
-        question = f"{question_text} Combien de {random.choice(['stormtroopers par groupe', 'heures de voyage', 'blasters par soldat'])}?"
+        question_template, explanation_template = random.choice(division_templates)
         
-        correct_answer = str(result)
+        exercise_data.update({
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Tactique impériale - Division niveau {difficulty}",
+            "question": question_template,
+            "correct_answer": str(result),
+            "num1": num1,
+            "num2": num2,
+            "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
+        })
     
     else:
-        # Par défaut, faire une addition si le type n'est pas reconnu
-        min_val, max_val = 1, 10
+        # Par défaut, création d'un exercice d'addition
+        min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
         num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
         result = num1 + num2
         
-        question_text = context.format(num1=num1, num2=num2)
-        question = f"{question_text} Combien y a-t-il de {random.choice(['éléments', 'unités', 'objets'])} au total?"
+        character = random.choice(StarWarsNarratives.CHARACTERS)
+        object_type = random.choice(StarWarsNarratives.OBJECTS)
+        location = random.choice(StarWarsNarratives.LOCATIONS)
         
-        correct_answer = str(result)
+        question = f"{character} a trouvé {num1} {object_type} sur {location}. Plus tard, il en trouve encore {num2}. Combien de {object_type} a-t-il maintenant?"
+        explanation = f"Au début, {character} avait {num1} {object_type}, puis a trouvé {num2} autres. Pour résoudre ce problème d'addition, il faut calculer {num1} + {num2} = {result} {object_type} au total."
+        
+        exercise_data.update({
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Aventure sur {location} - Addition niveau {difficulty}",
+            "question": question,
+            "correct_answer": str(result),
+            "num1": num1,
+            "num2": num2,
+            "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation} {explanation_suffix}"
+        })
     
-    # Générer les choix
-    if result <= 10:
-        wrong_answers = [result + 1, result - 1, result + 2]
-    else:
-        percent_variations = [0.1, -0.1, 0.2] 
-        wrong_answers = [result + int(result * var) for var in percent_variations]
+    # Générer des choix pertinents en fonction du résultat
+    result_int = int(result)
+    choices = [str(result_int)]
     
-    # S'assurer que les réponses incorrectes sont positives et uniques
-    wrong_answers = [max(1, ans) for ans in wrong_answers]
+    # Ajouter des erreurs typiques en fonction du type d'exercice
+    if normalized_type == ExerciseTypes.ADDITION:
+        choices.extend([str(result_int + 1), str(result_int - 1), str(num1 * num2)])
+    elif normalized_type == ExerciseTypes.SUBTRACTION:
+        choices.extend([str(result_int + 1), str(result_int - 1), str(num2 - num1 if num2 > num1 else 1)])
+    elif normalized_type == ExerciseTypes.MULTIPLICATION:
+        choices.extend([str(result_int + num1), str(result_int - num2), str(num1 + num2)])
+    elif normalized_type == ExerciseTypes.DIVISION:
+        choices.extend([str(result_int + 1), str(result_int - 1), str(num1 // (num2+1) if num2 < num1 else 1)])
     
-    # Ajouter la bonne réponse et mélanger
-    choices = wrong_answers + [result]
-    choices = list(set(choices))  # Suppression des doublons
+    # Assurer au moins 4 choix uniques
+    while len(set(choices)) < 4:
+        new_choice = str(result_int + random.randint(-10, 10))
+        if new_choice != str(result_int) and int(new_choice) > 0:
+            choices.append(new_choice)
     
-    # Si on a perdu des choix à cause des doublons, en ajouter de nouveaux
-    while len(choices) < 4:
-        new_wrong = result + random.randint(3, 5) * random.choice([-1, 1])
-        if new_wrong > 0 and new_wrong not in choices:
-            choices.append(new_wrong)
-    
-    # Convertir les choix en strings        
-    choices = [str(c) for c in choices]
+    # Limiter à 4 choix et mélanger
+    choices = list(set(choices))[:4]
+    if str(result_int) not in choices:
+        choices[0] = str(result_int)
     random.shuffle(choices)
     
-    # Créer le titre de l'exercice IA
-    title = f"{Messages.AI_EXERCISE_PREFIX}: {DISPLAY_NAMES.get(normalized_difficulty, 'Inconnu')} - {DISPLAY_NAMES.get(normalized_type, 'Inconnu')}"
+    exercise_data["choices"] = choices
     
-    return {
-        "title": title,
-        "exercise_type": normalized_type,
-        "difficulty": normalized_difficulty,
-        "question": question,
-        "correct_answer": correct_answer,
-        "choices": choices,
-        "tags": Tags.AI + "," + Tags.GENERATIVE + "," + Tags.STARWARS,
-        "ai_generated": True
-    }
+    return exercise_data
 
 
 
@@ -841,6 +916,12 @@ def generate_simple_exercise(exercise_type, difficulty):
     # Limites par défaut si le type n'est pas trouvé
     type_limits = difficulty_config.get(normalized_type, difficulty_config.get("default", {"min": 1, "max": 10}))
     
+    # Structure de base commune pour tous les types d'exercices
+    exercise_data = {
+        "exercise_type": normalized_type,
+        "difficulty": normalized_difficulty
+    }
+    
     if normalized_type == ExerciseTypes.ADDITION:
         # Génération d'une addition
         min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
@@ -852,15 +933,17 @@ def generate_simple_exercise(exercise_type, difficulty):
         choices = [str(result), str(result-1), str(result+1), str(result+2)]
         random.shuffle(choices)
 
-        return {
+        exercise_data.update({
             "title": ExerciseMessages.TITLE_ADDITION,
-            "exercise_type": normalized_type,
-            "difficulty": normalized_difficulty,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
-            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE
-        }
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE,
+            "num1": num1,
+            "num2": num2,
+            "explanation": f"Pour additionner {num1} et {num2}, il faut calculer leur somme, donc {num1} + {num2} = {result}."
+        })
+        return exercise_data
 
     elif normalized_type == ExerciseTypes.SUBTRACTION:
         # Génération d'une soustraction
@@ -878,15 +961,17 @@ def generate_simple_exercise(exercise_type, difficulty):
         choices = [str(result), str(result-1), str(result+1), str(result+2)]
         random.shuffle(choices)
 
-        return {
+        exercise_data.update({
             "title": ExerciseMessages.TITLE_SUBTRACTION,
-            "exercise_type": normalized_type,
-            "difficulty": normalized_difficulty,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
-            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE
-        }
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE,
+            "num1": num1,
+            "num2": num2,
+            "explanation": f"Pour soustraire {num2} de {num1}, il faut calculer leur différence, donc {num1} - {num2} = {result}."
+        })
+        return exercise_data
 
     elif normalized_type == ExerciseTypes.MULTIPLICATION:
         # Génération d'une multiplication
@@ -899,15 +984,17 @@ def generate_simple_exercise(exercise_type, difficulty):
         choices = [str(result), str(result-num1), str(result+num1), str(result+num2)]
         random.shuffle(choices)
 
-        return {
+        exercise_data.update({
             "title": ExerciseMessages.TITLE_MULTIPLICATION,
-            "exercise_type": normalized_type,
-            "difficulty": normalized_difficulty,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
-            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE
-        }
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE,
+            "num1": num1,
+            "num2": num2,
+            "explanation": f"Pour multiplier {num1} par {num2}, il faut calculer leur produit, donc {num1} × {num2} = {result}."
+        })
+        return exercise_data
 
     elif normalized_type == ExerciseTypes.DIVISION:
         # Génération d'une division
@@ -927,15 +1014,17 @@ def generate_simple_exercise(exercise_type, difficulty):
         choices = [str(result), str(result-1), str(result+1), str(result+num2//2)]
         random.shuffle(choices)
 
-        return {
+        exercise_data.update({
             "title": ExerciseMessages.TITLE_DIVISION,
-            "exercise_type": normalized_type,
-            "difficulty": normalized_difficulty,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
-            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE
-        }
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE,
+            "num1": num1,
+            "num2": num2,
+            "explanation": f"Pour diviser {num1} par {num2}, il faut calculer leur quotient, donc {num1} ÷ {num2} = {result}."
+        })
+        return exercise_data
 
     else:
         # Par défaut, faire une addition si le type n'est pas reconnu
@@ -948,15 +1037,17 @@ def generate_simple_exercise(exercise_type, difficulty):
         choices = [str(result), str(result-1), str(result+1), str(result+2)]
         random.shuffle(choices)
 
-        return {
+        exercise_data.update({
             "title": ExerciseMessages.TITLE_DEFAULT,
-            "exercise_type": ExerciseTypes.ADDITION,
-            "difficulty": normalized_difficulty,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
-            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE
-        }
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE,
+            "num1": num1,
+            "num2": num2,
+            "explanation": f"Pour additionner {num1} et {num2}, il faut calculer leur somme, donc {num1} + {num2} = {result}."
+        })
+        return exercise_data
 
 async def submit_answer(request):
     """Traite la soumission d'une réponse à un exercice"""
