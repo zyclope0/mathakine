@@ -20,6 +20,8 @@ Ce document sert de point d'entrée vers toute la documentation du projet Mathak
 - [Guide de l'interface utilisateur](UI_GUIDE.md) - Guide de l'interface graphique
 - [Guide d'authentification](AUTH_GUIDE.md) - Système d'authentification JWT et gestion des rôles
 - [Migration vers Pydantic v2](PYDANTIC_V2_MIGRATION.md) - Détails sur la migration vers Pydantic v2
+- [Guide Alembic](ALEMBIC.md) - Gestion des migrations de base de données avec Alembic
+- [Schéma de la base de données](SCHEMA.md) - Documentation complète du schéma de la base de données
 - [Glossaire](GLOSSARY.md) - Terminologie du projet (thème Star Wars)
 - [Logging](LOGGING.md) - Système de journalisation
 

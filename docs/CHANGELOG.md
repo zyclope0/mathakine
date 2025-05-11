@@ -4,6 +4,12 @@ Ce fichier documente toutes les modifications notables apportées au projet Math
 
 ## [Unreleased]
 
+### Ajouts
+- ✅ Implémentation d'Alembic pour la gestion des migrations de base de données
+- ✅ Scripts utilitaires pour faciliter les migrations (`init_alembic.py`, `generate_migration.py`, `alembic_demo.py`)
+- ✅ Documentation complète du processus de migration (docs/ALEMBIC.md)
+- ✅ Configuration spéciale pour préserver les tables héritées (results, statistics, user_stats, schema_version)
+
 ## [0.3.1] - 2025-05-11
 
 ### Corrections

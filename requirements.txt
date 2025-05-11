@@ -9,15 +9,19 @@ aiofiles==23.2.1
 # Base de données
 sqlalchemy==2.0.40
 psycopg2-binary==2.9.9  # Pilote PostgreSQL pour Python - Nécessaire pour Render PostgreSQL
+alembic==1.13.1  # Migrations de base de données
 
 # Modèles de données
 pydantic==2.11.0  # Modèles de données avec validation
+pydantic-settings==2.1.0  # Support pour les paramètres Pydantic
 
 # Utilitaires
 python-dotenv==1.0.0
 requests==2.31.0
 email-validator==2.1.0
 colorama==0.4.6  # Colorisation des messages en console
+typer==0.9.0  # CLI améliorée
+pathlib==1.0.1  # Manipulation de chemins de fichiers
 
 # Intégration IA - compatibilité Python 3.13 avec version récente
 openai==1.12.0

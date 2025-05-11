@@ -120,6 +120,24 @@ python scripts/toggle_database.py [sqlite|postgres]
 python check_db_connection.py
 ```
 
+### Gestion des migrations avec Alembic
+
+```bash
+# Initialiser Alembic dans la base de données existante
+python scripts/init_alembic.py
+
+# Générer une nouvelle migration
+python scripts/generate_migration.py "Description de la migration"
+
+# Appliquer les migrations
+alembic upgrade head
+
+# Vérifier l'état des migrations
+alembic current
+```
+
+Pour plus d'informations sur les migrations, consultez le [guide Alembic](docs/ALEMBIC.md).
+
 Pour des instructions détaillées, consultez [GETTING_STARTED.md](docs/GETTING_STARTED.md) et [docs/validation/README.md](docs/validation/README.md).
 
 ## Structure du projet
@@ -193,36 +211,36 @@ Pour des instructions détaillées, consultez [GETTING_STARTED.md](docs/GETTING_
 ### Index de la documentation
 
 #### Guide utilisateur et administrateur
-- [GETTING_STARTED.md](docs/GETTING_STARTED.md) : Guide de démarrage
-- [STRUCTURE.md](STRUCTURE.md) : Structure du projet
-- [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) : Guide de déploiement
-- [docs/GLOSSARY.md](docs/GLOSSARY.md) : Glossaire complet des termes du projet
-- [docs/UI_GUIDE.md](docs/UI_GUIDE.md) : Guide de l'interface graphique
+- [TABLE_DES_MATIERES.md](docs/TABLE_DES_MATIERES.md) : Index complet de toute la documentation
+- [STRUCTURE.md](STRUCTURE.md) : Organisation des fichiers et dossiers du projet
+- [GUIDE_DEVELOPPEUR.md](docs/GUIDE_DEVELOPPEUR.md) : Instructions d'installation et d'utilisation
+- [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) : Guide de déploiement sur Render
+- [GLOSSARY.md](docs/GLOSSARY.md) : Glossaire complet des termes du projet
+- [UI_GUIDE.md](docs/UI_GUIDE.md) : Guide de l'interface graphique
 
 #### Documentation technique
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) : Architecture détaillée
-- [docs/API_REFERENCE.md](docs/API_REFERENCE.md) : Documentation de l'API REST
-- [docs/POSTGRESQL_MIGRATION.md](docs/POSTGRESQL_MIGRATION.md) : Guide de migration SQL
-- [docs/NORMALIZATION.md](docs/NORMALIZATION.md) : Processus de normalisation des données
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) : Architecture détaillée du système
+- [SCHEMA.md](docs/SCHEMA.md) : Documentation complète du schéma de la base de données
+- [POSTGRESQL_MIGRATION.md](docs/POSTGRESQL_MIGRATION.md) : Guide de migration vers PostgreSQL
+- [ALEMBIC.md](docs/ALEMBIC.md) : Gestion des migrations de base de données avec Alembic
+- [PYDANTIC_V2_MIGRATION.md](docs/PYDANTIC_V2_MIGRATION.md) : Migration vers Pydantic v2
+- [LOGGING.md](docs/LOGGING.md) : Système de journalisation centralisé
 
 #### Documentation de développement
-- [docs/DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md) : Guide de développement
-- [docs/CENTRALISATION_ET_REFACTORING.md](docs/CENTRALISATION_ET_REFACTORING.md) : Documentation complète sur le refactoring de centralisation
-- [docs/EXTENSION_GUIDE.md](docs/EXTENSION_GUIDE.md) : Guide d'extension des fonctionnalités
-- [docs/AI_INTEGRATION.md](docs/AI_INTEGRATION.md) : Intégration avec l'IA
-- [docs/ADMIN_COMMANDS.md](docs/ADMIN_COMMANDS.md) : Commandes administratives
+- [AUTH_GUIDE.md](docs/AUTH_GUIDE.md) : Système d'authentification et de sécurité
+- [ADMIN_COMMANDS.md](docs/ADMIN_COMMANDS.md) : Commandes administratives
+- [LOGIC_CHALLENGES_REQUIREMENTS.md](docs/LOGIC_CHALLENGES_REQUIREMENTS.md) : Exigences pour les défis logiques
+- [PROJECT_STATUS.md](docs/PROJECT_STATUS.md) : État actuel du projet et roadmap
 
-#### Rapports de maintenance
-- [docs/CHANGELOG.md](docs/CHANGELOG.md) : Historique des versions
-- [docs/CLEANUP_SUMMARY.md](docs/CLEANUP_SUMMARY.md) : Résumé du nettoyage
-- [docs/DASHBOARD_FIX_REPORT.md](docs/DASHBOARD_FIX_REPORT.md) : Correction du tableau de bord
-- [docs/FIXES.md](docs/FIXES.md) : Corrections majeures de bugs critiques
+#### Maintenance et résolution des problèmes
+- [CHANGELOG.md](docs/CHANGELOG.md) : Historique des versions et modifications
+- [CONTEXT.md](docs/CONTEXT.md) : Résumé de l'état actuel du projet (auto-généré)
+- [CORRECTIONS_ET_MAINTENANCE.md](docs/CORRECTIONS_ET_MAINTENANCE.md) : Guide de résolution des problèmes
+- [MAINTENANCE_ET_NETTOYAGE.md](docs/MAINTENANCE_ET_NETTOYAGE.md) : Procédures de maintenance
+- [HISTORIQUE_REFACTORING.md](docs/HISTORIQUE_REFACTORING.md) : Historique des refactorings majeurs
 
-#### Documents spécifiques
-- [tests/README.md](tests/README.md) : Documentation des tests
-- [tests/TEST_PLAN.md](tests/TEST_PLAN.md) : Plan de test
-- [scripts/README.md](scripts/README.md) : Documentation des scripts
-- [docs/LOGIC_CHALLENGES_REQUIREMENTS.md](docs/LOGIC_CHALLENGES_REQUIREMENTS.md) : Exigences pour les défis logiques
+#### Documentation des tests
+- [TEST_PLAN.md](tests/TEST_PLAN.md) : Plan de test détaillé
 
 ## Améliorations récentes
 
@@ -233,6 +251,7 @@ Pour des instructions détaillées, consultez [GETTING_STARTED.md](docs/GETTING_
 - ✅ Amélioration des endpoints d'API avec une meilleure gestion des erreurs
 - ✅ Mise à jour de l'interface utilisateur des exercices avec bouton de suppression
 - ✅ Optimisation des requêtes SQL pour les opérations critiques
+- ✅ Implémentation d'Alembic pour gérer les migrations de base de données de façon professionnelle
 - ✅ Nouveau système de maintien du contexte avec fichier centralisé et script de génération
 
 Pour plus de détails sur ces améliorations, consultez [docs/CHANGELOG.md](docs/CHANGELOG.md).
@@ -330,4 +349,4 @@ Pour plus de détails sur les procédures de nettoyage et de maintenance, consul
 
 *Pour toute contribution ou question, consulte la documentation ou ouvre une issue sur GitHub.*
 
-*Dernière mise à jour : 08/05/2025* 
+*Dernière mise à jour : 12/05/2025* 
