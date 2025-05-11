@@ -4,7 +4,7 @@ Ce document sert de point d'entrée vers toute la documentation du projet Mathak
 
 ## 🚀 Démarrage et installation
 
-- [Guide de démarrage rapide](GETTING_STARTED.md) - Instructions d'installation et de configuration
+- [Guide du développeur](GUIDE_DEVELOPPEUR.md) - Installation, configuration et extension du projet
 - [Guide de déploiement](DEPLOYMENT_GUIDE.md) - Déploiement en production (Render, Docker)
 - [Migration PostgreSQL](POSTGRESQL_MIGRATION.md) - Guide de migration vers PostgreSQL
 
@@ -23,21 +23,17 @@ Ce document sert de point d'entrée vers toute la documentation du projet Mathak
 - [Logging](LOGGING.md) - Système de journalisation
 
 ### Maintenance et développement
-- [Guide d'extension](EXTENSION_GUIDE.md) - Ajout de nouvelles fonctionnalités
+- [Corrections et maintenance](CORRECTIONS_ET_MAINTENANCE.md) - Bugs corrigés et guide de résolution des problèmes
+- [Maintenance et nettoyage](MAINTENANCE_ET_NETTOYAGE.md) - Historique et statistiques des opérations de nettoyage
 - [Commandes administratives](ADMIN_COMMANDS.md) - Commandes de la CLI
-- [Guide de dépannage](TROUBLESHOOTING.md) - Résolution des problèmes courants
-- [Maintenance](MAINTENANCE.md) - Procédures de maintenance
 - [Script de nettoyage de documentation](../scripts/cleanup_doc.py) - Outil pour gérer la documentation redondante
 
 ## 📝 Refactoring et améliorations
 
 ### Documentation sur le refactoring
-- [Refactoring de Centralisation](CENTRALISATION_ET_REFACTORING.md) - Documentation complète sur le refactoring de centralisation des constantes
+- [Historique des refactorings](HISTORIQUE_REFACTORING.md) - Documentation complète sur les refactorings majeurs
 
 ### Corrections et améliorations
-- [Corrections majeures](FIXES.md) - Documentation des bugs critiques corrigés
-- [Rapport de correction du tableau de bord](DASHBOARD_FIX_REPORT.md) - Correction du tableau de bord
-- [Résumé du nettoyage](CLEANUP_SUMMARY.md) - Résumé des opérations de nettoyage
 - [Rapport de nettoyage détaillé](CLEANUP_REPORT.md) - Rapport détaillé du nettoyage
 
 ## 📊 Fonctionnalités spécifiques
