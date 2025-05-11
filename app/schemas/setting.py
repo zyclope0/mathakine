@@ -26,8 +26,7 @@ class SettingBase(BaseModel):
         if not v or v.isspace():
             raise ValueError("La clé ne peut pas être vide")
         if not v.replace('_', '').replace('-', '').replace('.', '').isalnum():
-            raise ValueError("La clé ne peut contenir que des lettres, chiffres, tirets
-                , underscores et points")
+            raise ValueError("La clé ne peut contenir que des lettres, chiffres, tirets, underscores et points")
         return v
 
     @field_validator('value_json')

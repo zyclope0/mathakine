@@ -29,12 +29,9 @@ class UserBase(BaseModel):
 
     @field_validator('username')
     @classmethod
-
-
     def username_alphanumeric(cls, v):
         if not v.replace('_', '').replace('-', '').isalnum():
-            raise ValueError("Le nom d'utilisateur ne peut contenir que des lettres
-                , chiffres, tirets et underscores")
+            raise ValueError("Le nom d'utilisateur ne peut contenir que des lettres, chiffres, tirets et underscores")
         return v
 
     @field_validator('preferred_theme')
