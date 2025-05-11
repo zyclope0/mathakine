@@ -200,16 +200,7 @@ def get_random_exercise(
 
 def generate_ai_exercise(exercise_type, difficulty):
     """
-    Génère un exercice de mathématiques avec thématique Star Wars.
-    Cette fonction n'utilise pas OpenAI, mais simule une génération
-    algorithmique avec contexte Star Wars.
-
-    Args:
-        exercise_type: Le type d'exercice (addition, soustraction, etc.)
-        difficulty: Le niveau de difficulté
-
-    Returns:
-        Un dictionnaire avec les détails de l'exercice généré
+    Générer un exercice mathématique avec des paramètres aléatoires adaptés au niveau.
     """
     # S'assurer que le type d'exercice est normalisé
     if exercise_type not in [e.value for e in ExerciseType]:
@@ -223,6 +214,33 @@ def generate_ai_exercise(exercise_type, difficulty):
 
     # Ajustement des exercices selon le type et la difficulté
     if exercise_type == ExerciseType.ADDITION.value:
+        num1 = random.randint(1, 10)
+        num2 = random.randint(1, 10)
+        result = num1 + num2
+        question = f"[{Messages.AI_EXERCISE_PREFIX}] Si tu as {num1} cristaux Kyber et que tu en trouves {num2} autres, combien de cristaux as-tu au total?"
+        correct_answer = str(result)
+        choices = [str(result), str(result-random.randint(1, 10)), str(result+random.randint(1, 10)), str(result+random.randint(11, 20))]
+        explanation = f"[{Messages.AI_EXERCISE_PREFIX}] Tu avais {num1} puis tu en as ajouté {num2}. Ainsi, {num1} + {num2} = {result}."
+
+    elif exercise_type == ExerciseType.SOUSTRACTION.value:
+        num1 = random.randint(5, 15)
+        num2 = random.randint(1, 5)
+        result = num1 - num2
+        question = f"[{Messages.AI_EXERCISE_PREFIX}] Tu as {num1} portions de rations et tu en consommes {num2}. Combien de portions te reste-t-il?"
+        correct_answer = str(result)
+        choices = [str(result), str(result-random.randint(1, 5)), str(result+random.randint(1, 5)), str(num2)]
+        explanation = f"[{Messages.AI_EXERCISE_PREFIX}] Tu avais {num1} au départ et tu en as perdu {num2}. Donc, {num1} - {num2} = {result}."
+
+    elif exercise_type == ExerciseType.MULTIPLICATION.value:
+        num1 = random.randint(1, 5)
+        num2 = random.randint(1, 5)
+        result = num1 * num2
+        question = f"[{Messages.AI_EXERCISE_PREFIX}] Chaque Padawan a {num2} cristaux Kyber. S'il y a {num1} Padawans, combien de cristaux y a-t-il au total?"
+        correct_answer = str(result)
+        choices = [str(result), str(result-num2), str(result+num1), str(num1+num2)]
+        explanation = f"[{Messages.AI_EXERCISE_PREFIX}] Il y a {num1} groupes de {num2} éléments chacun. Donc, {num1} × {num2} = {result}."
+
+    elif exercise_type == ExerciseType.DIVISION.value:
         if difficulty == DifficultyLevel.INITIE.value:
             num1 = random.randint(1, 10)
             num2 = random.randint(1, 10)
@@ -424,13 +442,29 @@ def generate_exercise(
         else:
             selected_difficulty = DifficultyLevel.PADAWAN.value
 
+    # Déterminer les limites de nombres en fonction de la difficulté
+    if selected_difficulty == DifficultyLevel.INITIE.value:
+        min_range, max_range = 1, 10  # Nombres simples pour les débutants
+    elif selected_difficulty == DifficultyLevel.PADAWAN.value:
+        min_range, max_range = 10, 50  # Nombres intermédiaires
+    elif selected_difficulty == DifficultyLevel.CHEVALIER.value:
+        min_range, max_range = 20, 100  # Nombres plus grands
+    else:  # DifficultyLevel.MAITRE.value
+        min_range, max_range = 50, 200  # Nombres avancés
+
+    # Variables pour suivre si l'exercice est généré par IA
+    is_ai_generated = False
+    
     # Si l'utilisateur a demandé de générer avec IA
     if ai:
         ai_exercise = generate_ai_exercise(selected_type, selected_difficulty)
         question = ai_exercise["question"]
         correct_answer = ai_exercise["correct_answer"]
         choices = ai_exercise["choices"]
-        explanation = ai_exercise["explanation"]
+        # S'assurer qu'une explication existe toujours
+        explanation = ai_exercise.get("explanation", "")
+        if explanation is None or explanation == "" or explanation == "None":
+            explanation = f"[{Messages.AI_EXERCISE_PREFIX}] La réponse est {correct_answer}. Dans cet exercice de {selected_type}, tu dois trouver le résultat de l'opération."
         is_ai_generated = True
 
         # Utiliser les valeurs normalisées retournées par generate_ai_exercise pour assurer la cohérence
@@ -547,6 +581,12 @@ def generate_exercise(
             is_ai_generated = False
 
     try:
+        # S'assurer que l'explication n'est jamais NULL
+        if explanation is None or explanation == "" or explanation == "None":
+            explanation = f"[{Messages.AI_EXERCISE_PREFIX}] La réponse est {correct_answer}."
+            
+        print(f"Création d'un nouvel exercice avec explication: {explanation}")
+            
         # Créer l'exercice en utilisant le modèle ORM directement
         from app.models.exercise import Exercise as ExerciseModel
         from datetime import datetime
@@ -558,7 +598,7 @@ def generate_exercise(
             question=question,
             correct_answer=correct_answer,
             choices=choices,
-            explanation=explanation,
+            explanation=explanation,  # Assurer que l'explication est définie et non-nulle
             hint="Résolvez le calcul étape par étape",
             is_active=True,
             is_archived=False,
@@ -571,9 +611,15 @@ def generate_exercise(
         # Ajouter à la session et commiter pour sauvegarder
         db.add(new_exercise)
         db.commit()
+        db.refresh(new_exercise)
+        
+        print(f"Exercice créé avec ID {new_exercise.id}, explication: {new_exercise.explanation}")
 
     except Exception as e:
         db.rollback()
+        print(f"Erreur lors de la création de l'exercice: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors de la création de l'exercice: {str(e)}"
@@ -720,16 +766,19 @@ def get_exercise(
 
         else:  # Division
             # Génération d'une division (s'assurer que le résultat est un entier)
-            if selected_difficulty == DifficultyLevel.INITIE.value:
-                # Divisions simples pour les initiés
+            if selected_difficulty == DifficultyLevel.PADAWAN.value:
+                num2 = random.randint(2, 5)
+                num1 = num2 * random.randint(1, 5)
+            elif selected_difficulty == DifficultyLevel.INITIE.value:
                 num2 = random.randint(2, 10)
-                multiplicateur = random.randint(1, 10)
-            else:
-                # Divisions plus complexes pour les niveaux supérieurs
-                num2 = random.randint(2, min(12, max_range // 10))
-                multiplicateur = random.randint(2, min(20, max_range // num2))
+                num1 = num2 * random.randint(5, 10)
+            elif selected_difficulty == DifficultyLevel.CHEVALIER.value:
+                num2 = random.randint(5, 12)
+                num1 = num2 * random.randint(10, 15)
+            else:  # Maître et au-delà
+                num2 = random.randint(10, 20)
+                num1 = num2 * random.randint(15, 25)
 
-            num1 = num2 * multiplicateur  # Garantir que la division est exacte
             result = num1 // num2
             question = f"[{Messages.AI_EXERCISE_PREFIX}] Combien font {num1} ÷ {num2}?"
             correct_answer = str(result)
@@ -766,7 +815,7 @@ def get_exercise(
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
-            "explanation": explanation,
+            "explanation": explanation if explanation is not None else "",
             "hint": "Résolvez le calcul étape par étape",
             "image_url": None,
             "audio_url": None,
@@ -784,38 +833,68 @@ def get_exercise(
     )
 
 
-@router.post("/{exercise_id}/attempt", response_model=dict)
-
-
-def attempt_exercise(
-    *,
-    db: Session = Depends(get_db_session),
+@router.post("/{exercise_id}/submit", response_model=dict)
+async def submit_exercise(
     exercise_id: int,
-    attempt_data: dict,
-) -> Any:
+    data: dict,
+    db: Session = Depends(get_db_session)
+):
     """
-    Soumettre une tentative pour un exercice.
+    Soumettre une réponse à un exercice et recevoir un feedback.
+    
+    - Vérifie si la réponse est correcte
+    - Enregistre la tentative dans la base de données (si authentifié)
+    - Retourne un feedback approprié
     """
+    
     # Récupérer l'exercice
-    exercise = None
+    exercise_data = None
     try:
-        exercise = get_exercise(db=db, exercise_id=exercise_id)
+        exercise_data = get_exercise(db=db, exercise_id=exercise_id)
     except HTTPException:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Exercice non trouvé"
         )
 
-    # Vérifier la réponse
-    user_answer = attempt_data.get("user_answer", "")
-    is_correct = user_answer == exercise["correct_answer"]
-
-    return {
-        "is_correct": is_correct,
-        "feedback": "Bravo, c'est correct!" if is_correct else "Ce n'est pas la bonne réponse.",
-        "correct_answer": exercise["correct_answer"] if not is_correct else None,
-        "explanation": exercise["explanation"]
-    }
+    # Si nous trouvons l'exercice
+    if exercise_data:
+        # Vérifier si la réponse est correcte
+        selected_answer = data.get("selected_answer", "")
+        is_correct = selected_answer == exercise_data["correct_answer"]
+        
+        # Préparation des données de réponse
+        explanation = exercise_data.get("explanation", "")
+        if explanation is None or explanation == "" or explanation == "None":
+            # Créer une explication de secours basée sur le type d'exercice et la réponse
+            exercise_type = exercise_data.get("exercise_type", "")
+            if "addition" in exercise_type.lower():
+                explanation = f"La somme des nombres est {exercise_data['correct_answer']}."
+            elif "soustraction" in exercise_type.lower():
+                explanation = f"La différence entre les nombres est {exercise_data['correct_answer']}."
+            elif "multiplication" in exercise_type.lower():
+                explanation = f"Le produit des nombres est {exercise_data['correct_answer']}."
+            elif "division" in exercise_type.lower():
+                explanation = f"Le quotient des nombres est {exercise_data['correct_answer']}."
+            else:
+                explanation = f"La réponse correcte est {exercise_data['correct_answer']}."
+            
+        response_data = {
+            "is_correct": is_correct,
+            "correct_answer": exercise_data["correct_answer"],
+            "explanation": explanation
+        }
+        
+        # TODO: Enregistrer la tentative dans la base de données
+        # Si un utilisateur est authentifié
+        
+        return response_data
+    
+    # Si l'exercice n'est pas trouvé
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Exercice non trouvé"
+    )
 
 
 @router.delete("/{exercise_id}", status_code=204)

@@ -42,9 +42,59 @@ mathakine/
 ### 1. Page d'accueil (home.html)
 
 La page d'accueil présente l'application avec :
-- Une animation spatiale avec étoiles et planètes
+- Une bannière (hero section) compacte et horizontale avec trois composants clés:
+  - **Contenu textuel**: Message d'accueil et explication concise
+  - **Statistiques**: Affichage des métriques principales (nombre d'exercices, niveaux, possibilités)
+  - **Illustration spatiale**: Représentation visuelle de l'univers Star Wars avec animation
+- Un unique bouton d'appel à l'action (CTA) principal qui réduit les redondances avec la barre de navigation
 - Des cartes de fonctionnalités expliquant les capacités de l'application
-- Des boutons d'action pour naviguer vers les exercices
+- Une section sur la progression avec les différents niveaux disponibles
+
+#### Structure de la Hero Section
+```html
+<div class="hero-section">
+    <div class="stars-container">
+        <!-- Étoiles générées par JavaScript -->
+    </div>
+    
+    <div class="card hero-card">
+        <div class="hero-flex">
+            <div class="hero-content">
+                <h2>Bienvenue dans la galaxie Mathakine</h2>
+                <p class="hero-subtitle">Embarquez pour un voyage stellaire...</p>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number"><i class="fas fa-calculator"></i> 150+</div>
+                        <div class="stat-label">Exercices</div>
+                    </div>
+                    <!-- Autres statistiques -->
+                </div>
+                
+                <a href="/api/exercises/generate?ai=true" class="btn big-btn primary-btn">
+                    <i class="fas fa-jedi"></i> Commencer l'aventure
+                </a>
+            </div>
+            <div class="hero-image">
+                <div class="space-object"></div>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+#### Design responsive
+La hero section utilise un layout flexible qui s'adapte aux différentes tailles d'écran:
+- Sur desktop: Affichage horizontal avec contenu à gauche et image à droite
+- Sur mobile: Bascule vers un affichage vertical avec image en haut et contenu en dessous
+- Optimisation de l'espace tout en conservant l'expérience immersive Star Wars
+
+#### Bonnes pratiques implémentées
+- **Réduction des redondances UI**: Suppression des boutons duplicatifs avec la navigation
+- **Hiérarchie visuelle claire**: Un seul CTA principal qui guide l'utilisateur
+- **Métrique de conversion**: Mise en avant des statistiques pour engager l'utilisateur
+- **Équilibre texte/visuel**: Combinaison efficace d'informations textuelles et d'éléments visuels
+- **Animations subtiles**: Effet de pulsation et rotation sur l'objet spatial pour attirer l'attention sans distraire
 
 ### 2. Page des exercices (exercises.html)
 

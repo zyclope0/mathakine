@@ -337,7 +337,12 @@
     
     <div class="explanation" style="display: none;">
         <h4><i class="fas fa-info-circle"></i> Explication:</h4>
-        <p>{{ exercise.explanation }}</p>
+        <p>{% if exercise.explanation and exercise.explanation != 'None' %}
+            {{ exercise.explanation }}
+           {% else %}
+            Pas d'explication disponible pour cet exercice.
+           {% endif %}
+        </p>
     </div>
     
     <div id="result-message" class="result-message" style="display: none;"></div>
@@ -410,6 +415,21 @@
                 .then(response => response.json())
                 .then(data => {
                     console.log('Réponse enregistrée:', data);
+                    
+                    // Ajouter un bouton pour aller au tableau de bord
+                    const dashboardButton = document.createElement('a');
+                    dashboardButton.innerHTML = '<i class="fas fa-chart-line"></i> Voir mes statistiques';
+                    dashboardButton.className = 'btn btn-primary mt-4';
+                    dashboardButton.href = '/dashboard?t=' + Date.now(); // Ajouter un timestamp pour éviter le cache
+                    dashboardButton.style.display = 'block';
+                    dashboardButton.style.margin = '20px auto';
+                    dashboardButton.style.textAlign = 'center';
+                    
+                    // Ajouter le bouton après le message de résultat
+                    if (!document.querySelector('.dashboard-link')) { // Éviter les doublons
+                        dashboardButton.classList.add('dashboard-link');
+                        resultMessage.parentNode.insertBefore(dashboardButton, resultMessage.nextSibling);
+                    }
                 })
                 .catch(error => {
                     console.error('Erreur:', error);

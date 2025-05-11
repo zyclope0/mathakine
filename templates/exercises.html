@@ -729,7 +729,7 @@
             const params = new URLSearchParams();
             
             if (exerciseType) {
-                params.append('exercise_type', exerciseType);
+                params.append('type', exerciseType);
             }
             
             if (difficulty) {
@@ -755,14 +755,15 @@
             let url = '/api/exercises/generate?ai=true';
             
             if (exerciseType) {
-                url += `&exercise_type=${exerciseType}`;
+                url += `&type=${exerciseType}`;
             }
             
             if (difficulty) {
                 url += `&difficulty=${difficulty}`;
             }
             
-                        window.location.href = url;
+            console.log('URL de génération avec IA:', url);
+            window.location.href = url;
         });
         
         // Gestion modale de suppression

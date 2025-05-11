@@ -145,7 +145,12 @@
 
 {% block content %}
 <div class="page-header">
-    <h2>Tableau de Bord</h2>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h2>Tableau de Bord</h2>
+        <button id="refresh-dashboard" class="btn btn-outline-secondary">
+            <i class="fas fa-sync"></i> Rafraîchir
+        </button>
+    </div>
     <p>Visualisez vos progrès et performances dans votre apprentissage mathématique</p>
 </div>
 
@@ -179,6 +184,13 @@
     <h3>Progression par type d'exercice</h3>
     <div class="chart-container">
         <canvas id="progressChart"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Exercices par jour (30 derniers jours)</h3>
+    <div class="chart-container">
+        <canvas id="dailyExercisesChart"></canvas>
     </div>
 </div>
 
@@ -251,16 +263,64 @@
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Dashboard initialized');
         
-        // Charger les données du tableau de bord
-        loadDashboardData();
-        
         // Initialiser les graphiques
         initializeCharts();
         
+        // Forcer un rafraîchissement des données si la page a été chargée depuis un exercice
+        // Vérifier si l'URL contient un paramètre timestamp
+        const urlParams = new URLSearchParams(window.location.search);
+        const forceRefresh = urlParams.has('t');
+        
+        if (forceRefresh) {
+            console.log('Force refresh requested with timestamp:', urlParams.get('t'));
+            // Ajouter un message de succès temporaire
+            const pageHeader = document.querySelector('.page-header');
+            if (pageHeader) {
+                const refreshNotice = document.createElement('div');
+                refreshNotice.className = 'alert alert-success';
+                refreshNotice.innerHTML = '<i class="fas fa-sync"></i> Actualisation des statistiques...';
+                refreshNotice.style.marginTop = '10px';
+                pageHeader.appendChild(refreshNotice);
+                
+                // Supprimer le message après 3 secondes
+                setTimeout(() => {
+                    refreshNotice.remove();
+                }, 3000);
+            }
+        }
+        
+        // Charger les données du tableau de bord
+        loadDashboardData(forceRefresh);
+        
+        // Ajouter un gestionnaire d'événements pour le bouton de rafraîchissement
+        const refreshButton = document.getElementById('refresh-dashboard');
+        if (refreshButton) {
+            refreshButton.addEventListener('click', function() {
+                console.log('Manual refresh requested');
+                
+                // Ajouter un effet visuel pendant le chargement
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-sync fa-spin"></i> Actualisation...';
+                
+                // Forcer le rafraîchissement des données
+                loadDashboardData(true);
+                
+                // Rétablir le bouton après 1 seconde
+                setTimeout(() => {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-sync"></i> Rafraîchir';
+                }, 1000);
+            });
+        }
+        
         // Fonction pour charger les données du tableau de bord
-        function loadDashboardData() {
+        function loadDashboardData(forceRefresh = false) {
             console.log('Fetching dashboard data...');
-            fetch('/api/users/stats')
+            const url = forceRefresh 
+                ? '/api/users/stats?nocache=' + Date.now() 
+                : '/api/users/stats';
+                
+            fetch(url)
                 .then(response => {
                     console.log('API Response status:', response.status);
                     if (response.ok) {
@@ -389,11 +449,16 @@
                 }
             }
             
-            // Mettre à jour les données du graphique
+            // Mettre à jour les données du graphique de progression par type
             if (data.progress_over_time) {
                 console.log('Received progress_over_time data:', data.progress_over_time);
-                // Recréer complètement le graphique à chaque mise à jour
                 createProgressChart(data.progress_over_time);
+            }
+            
+            // Mettre à jour le graphique des exercices quotidiens
+            if (data.exercises_by_day) {
+                console.log('Received exercises_by_day data:', data.exercises_by_day);
+                createDailyExercisesChart(data.exercises_by_day);
             }
         }
         
@@ -459,7 +524,7 @@
                             legend: {
                                 position: 'top',
                                 labels: {
-                                    color: '#e0e0e0' // Couleur claire pour contraste
+                                    color: '#e0e0e0'
                                 }
                             },
                             tooltip: {
@@ -472,7 +537,7 @@
                                 beginAtZero: true,
                                 ticks: {
                                     precision: 0,
-                                    color: '#e0e0e0' // Couleur claire pour contraste
+                                    color: '#e0e0e0'
                                 },
                                 grid: {
                                     color: 'rgba(255, 255, 255, 0.1)'
@@ -480,7 +545,7 @@
                             },
                             x: {
                                 ticks: {
-                                    color: '#e0e0e0' // Couleur claire pour contraste
+                                    color: '#e0e0e0'
                                 },
                                 grid: {
                                     color: 'rgba(255, 255, 255, 0.1)'
@@ -495,15 +560,122 @@
             }
         }
         
+        // Fonction pour créer le graphique des exercices quotidiens
+        function createDailyExercisesChart(chartData) {
+            console.log('Creating daily exercises chart with data:', chartData);
+            
+            const ctx = document.getElementById('dailyExercisesChart');
+            if (!ctx) {
+                console.error('Canvas element not found for daily exercises chart');
+                return;
+            }
+            
+            // Détruire le graphique existant s'il y en a un
+            if (window.dailyExercisesChart) {
+                try {
+                    console.log('Destroying existing daily chart');
+                    window.dailyExercisesChart.destroy();
+                } catch (e) {
+                    console.error('Error destroying existing daily chart:', e);
+                }
+                window.dailyExercisesChart = null;
+            }
+            
+            // Vérifier que les données sont valides
+            if (!chartData.labels || !chartData.datasets || !chartData.datasets[0] || !chartData.datasets[0].data) {
+                console.error('Invalid daily chart data structure:', chartData);
+                chartData = {
+                    labels: ['01/05', '02/05', '03/05', '04/05', '05/05'],
+                    datasets: [{
+                        label: 'Exercices par jour',
+                        data: [0, 0, 0, 0, 0]
+                    }]
+                };
+            }
+            
+            // Assurer que les données sont des nombres
+            const cleanData = chartData.datasets[0].data.map(value => {
+                const num = Number(value);
+                return isNaN(num) ? 0 : num;
+            });
+            console.log('Clean data for daily chart:', cleanData);
+            
+            try {
+                console.log('Creating new daily chart');
+                window.dailyExercisesChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [{
+                            label: 'Exercices par jour',
+                            data: cleanData,
+                            borderColor: chartData.datasets[0].borderColor || 'rgba(255, 206, 86, 1)',
+                            backgroundColor: chartData.datasets[0].backgroundColor || 'rgba(255, 206, 86, 0.2)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#e0e0e0'
+                                }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0,
+                                    color: '#e0e0e0'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: '#e0e0e0'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('Daily chart creation successful');
+            } catch (error) {
+                console.error('Error creating daily chart:', error);
+            }
+        }
+        
         // Fonction pour initialiser les graphiques au chargement de la page
         function initializeCharts() {
             console.log('Initializing default charts');
-            // Créer un graphique initial avec des données vides
+            
+            // Créer un graphique initial de progression avec des données vides
             createProgressChart({
                 labels: ['J-6', 'J-5', 'J-4', 'J-3', 'J-2', 'J-1', 'Aujourd\'hui'],
                 datasets: [{
                     label: 'Exercices résolus',
                     data: [0, 0, 0, 0, 0, 0, 0]
+                }]
+            });
+            
+            // Créer un graphique initial des exercices quotidiens avec des données vides
+            createDailyExercisesChart({
+                labels: ['01/05', '02/05', '03/05', '04/05', '05/05'],
+                datasets: [{
+                    label: 'Exercices par jour',
+                    data: [0, 0, 0, 0, 0]
                 }]
             });
         }

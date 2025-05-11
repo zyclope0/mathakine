@@ -69,8 +69,19 @@ Contient l'implémentation API REST pure utilisant FastAPI, organisée selon les
   - **config.py**: Configuration principale de l'application
   - **constants.py**: Toutes les constantes centralisées (types, niveaux, limites)
   - **messages.py**: Messages et textes centralisés pour l'interface et les API
-  - **logging_config.py**: Configuration du système de journalisation
-- **db/**: Accès et initialisation de base de données
+  - **logging_config.py**: Configuration du système de journalisation centralisée
+    
+    **Système de journalisation**:
+    - **Architecture**: Système centralisé basé sur loguru avec rotation et compression automatiques
+    - **Niveaux**: DEBUG, INFO, WARNING, ERROR, CRITICAL dans des fichiers séparés
+    - **Utilisation**: Via `from app.core.logging_config import get_logger`
+    - **Format standardisé**: Horodatage, niveau, module, ligne, message
+    - **Rotation**: Fichiers divisés à 10-20 Mo et compressés en ZIP
+    - **Conservation**: 30-60 jours selon l'importance des logs
+    - **Contexte**: Support pour l'ajout de métadonnées via `logger.bind()`
+    - **Capture d'exceptions**: Enregistrement automatique des stack traces
+    - **Importance**: Essentiel pour le débogage, la surveillance et l'analyse des performances
+  - **db/**: Accès et initialisation de base de données
   - **init_db.py**: Initialisation de la base de données
   - **base.py**: Configuration de base
   - **queries.py**: Requêtes SQL centralisées
@@ -87,10 +98,15 @@ Dossiers contenant les templates HTML et les fichiers statiques (CSS, JS) pour l
 
 **Templates principaux**:
 - **base.html**: Template de base avec layout, navigation et thème Star Wars
+- **home.html**: Page d'accueil avec hero section optimisée suivant les best practices UI:
+  - Layout horizontal avec contenu à gauche et visuel à droite
+  - Affichage de statistiques clés (nombre d'exercices, niveaux, possibilités)
+  - Unique CTA principal pour réduire les redondances avec la navigation
+  - Design responsive adaptatif pour desktop et mobile
+  - Animation spatiale avec objet céleste animé par CSS
 - **exercise.html**: Interface pour résoudre un exercice spécifique
 - **exercises.html**: Liste et gestion des exercices avec filtres
 - **dashboard.html**: Interface du tableau de bord avec statistiques et graphiques
-- **home.html**: Page d'accueil
 - **error.html**: Page d'erreur standardisée
 - **exercise_detail.html**: Détails d'un exercice spécifique
 
@@ -123,8 +139,19 @@ Ensemble complet de documents détaillant tous les aspects du projet.
 - **UI_GUIDE.md**: Guide de l'interface graphique
 - **POSTGRESQL_MIGRATION.md**: Guide de migration vers PostgreSQL
 - **CHANGELOG.md**: Historique des modifications
-- **CLEANUP_SUMMARY.md**: Résumé des opérations de nettoyage
-- **DASHBOARD_FIX_REPORT.md**: Rapport sur la correction du tableau de bord
+- **CORRECTIONS_ET_MAINTENANCE.md**: Documentation des corrections et problèmes résolus
+- **MAINTENANCE_ET_NETTOYAGE.md**: Résumé des opérations de nettoyage
+- **LOGGING.md**: Guide du système de journalisation centralisé
+- **PYDANTIC_V2_MIGRATION.md**: Documentation de la migration vers Pydantic v2
+
+**Rôle de la documentation de migration**:
+- **Valeur historique**: Documentation des décisions techniques importantes
+- **Référence pour les développeurs**: Aide les nouveaux développeurs à comprendre les choix d'architecture
+- **Guide de maintenance**: Facilite la compréhension de patterns utilisés dans le code actuel
+- **Résolution de problèmes**: Source d'information pour diagnostiquer les problèmes liés aux migrations
+- **Configuration des environnements**: Instructions pour configurer différents environnements (développement/production)
+
+La documentation complète est organisée dans la **TABLE_DES_MATIERES.md** qui sert de point d'entrée vers tous les documents.
 
 ### 6. Scripts d'utilitaires
 Le dossier scripts/ contient des outils essentiels pour la maintenance et le développement du projet.
@@ -323,159 +350,6 @@ Le dossier tests/ contient des tests organisés par catégories avec une structu
 [ ] updated_at - TIMESTAMP WITH TIME ZONE
 ```
 
-### Relations entre les tables
-- **results.exercise_id** → **exercises.id**: Chaque résultat est lié à un exercice
-- **attempts.exercise_id** → **exercises.id**: Chaque tentative est liée à un exercice
-- **attempts.user_id** → **users.id**: Chaque tentative est liée à un utilisateur
-- **progress.user_id** → **users.id**: Le suivi de progression est lié à un utilisateur
-- **exercises.creator_id** → **users.id**: Chaque exercice peut être lié à un créateur
-- **user_stats**: Agrège les statistiques par type et niveau
-
-## Interface utilisateur
-
-### Design et thème
-- **Thème Star Wars**: Esthétique spatiale avec couleurs bleues/dorées
-- **Palette de couleurs**: Variables CSS pour les couleurs thématiques (--sw-blue, --sw-accent, --sw-gold)
-- **Typographie**: Optimisée pour l'affichage numérique et le thème spatial
-- **Icônes**: Font Awesome 6.4.0 pour les éléments d'interface
-- **Animations**: Transitions et effets subtils pour une expérience immersive
-
-### Composants principaux
-- **En-tête**: Logo Mathakine avec navigation principale
-- **Interface exercices**: Affichage clair avec question et choix de réponses
-- **Liste des exercices**: Grille de cartes filtrables par type et difficulté
-- **Tableau de bord**: Statistiques et graphiques de performances
-- **Modals**: Fenêtres dialog pour détails sans quitter la page
-
-### Interface des exercices
-- **Layout optimisé**: Question en haut, choix en grille de boutons
-- **Boutons de choix**: Grands (min-height 100px) avec texte agrandi (2rem)
-- **Feedback**: Message clair de succès/échec avec détails
-- **Navigation fluide**: Boutons pour exercice suivant et retour à la liste
-
-### Tableau de bord
-- **Statistiques globales**: Exercices résolus, taux, points d'expérience
-- **Graphique de progression**: Visualisation des performances sur 7 jours
-- **Performance par type**: Barres de progression pour chaque opération
-- **Niveau**: Affichage du niveau actuel et progression
-
-### Fonctionnalités JavaScript
-- **Mise à jour dynamique**: Actualisation sans rechargement de page
-- **Graphiques interactifs**: Visualisation avec Chart.js
-- **Gestion des erreurs**: Messages d'erreur informatifs
-- **Modals interactifs**: Affichage des détails sans navigation
-
-## Compatibilité et déploiement
-
-### Compatibilité Python 3.13
-- **Dépendances récentes**: SQLAlchemy 2.0+, FastAPI 0.100.0+, Pydantic 2.0+
-- **Adaptations**: Modifications pour les changements d'API dans les librairies
-- **Tests de compatibilité**: Validation automatisée pour Python 3.13
-
-### Déploiement sur Render
-- **PostgreSQL**: Base de données managée sur Render
-- **Procfile**: Configuration pour démarrage automatisé
-- **Variables d'environnement**: Configuration via interface Render
-
-### Docker
-- **Dockerfile**: Configuration pour conteneurisation
-- **Multi-stage build**: Optimisation de l'image
-- **Environnement paramétrable**: Variables configurables
-
-## État actuel du projet (Mai 2025)
-
-### Vue d'ensemble des fonctionnalités
-| Fonctionnalité | État | 
-|----------------|------|
-| **Backend API REST** | ⚠️ PARTIELLEMENT TERMINÉ |
-| **Interface graphique Starlette** | ✅ TERMINÉ |
-| **Interface CLI** | ✅ TERMINÉ |
-| **Génération d'exercices** | ✅ TERMINÉ |
-| **Défis logiques** | ⚠️ EN COURS |
-| **Système de progression** | ⚠️ PARTIELLEMENT |
-| **Mode adaptatif** | ⚠️ EN COURS |
-| **Migration PostgreSQL** | ✅ TERMINÉ |
-| **Authentification** | ⚠️ NON IMPLÉMENTÉ |
-| **Tableau de bord** | ✅ TERMINÉ |
-
-### Améliorations récentes
-1. **Migration vers PostgreSQL**: Support complet pour environnements de production et développement
-2. **Normalisation des données**: Correction des incohérences et uniformisation des formats
-3. **Amélioration de l'interface**: Corrections UI et meilleure expérience utilisateur
-4. **Génération d'exercices par IA**: Implémentation de contextes Star Wars
-5. **Ajout des défis logiques**: Modèles et endpoints pour enfants 10-15 ans
-6. **Correction du tableau de bord**: Implémentation de la fonction `get_user_stats` et affichage de données réelles
-7. **Améliorations de qualité du code**: 
-   - Correction d'erreurs de syntaxe dans les templates (balise `{% endblock %}` manquante)
-   - Résolution du problème de chevauchement UI entre l'icône de corbeille et le badge IA
-   - Scripts de vérification et correction automatique du style de code (fix_style.py, fix_advanced_style.py)
-   - Configuration d'outils de lint et qualité (.flake8, setup.cfg)
-
-## Problèmes résolus récemment
-
-### Tableau de bord fonctionnel
-- **Problème**: Le tableau de bord ne chargeait pas de données car l'endpoint `/api/users/stats` était manquant
-- **Solution**: Implémentation de la fonction `get_user_stats` dans enhanced_server.py qui:
-  - Récupère les statistiques globales des exercices (total, corrects, taux de réussite)
-  - Calcule les performances par type d'exercice
-  - Affiche l'activité des 7 derniers jours dans un graphique
-  - Retourne les données au format JSON attendu par le frontend
-
-### Structure des données
-- **Problème**: Incohérence entre le schéma défini dans le code et la structure réelle de la base de données
-- **Solution**: Mise à jour du schéma pour se conformer à la structure réelle des tables (notamment `results` avec suppression du champ `time_taken` non utilisé)
-
-### Configuration du Déploiement
-- **Problème**: Configuration incomplète pour déploiement sur Render
-- **Solution**: Optimisation du Procfile et des variables d'environnement pour assurer un déploiement sans erreur
-
-## Itérations futures planifiées
-
-### Complétion de l'API REST
-- Implémentation réelle du système d'authentification
-- Finalisation des endpoints pour défis logiques
-- Développement du système de progression adaptative
-
-### "L'Interface Nouvelle"
-- Refonte complète de l'interface utilisateur
-- Gamification avancée (médailles, récompenses, niveaux)
-- Expérience utilisateur adaptée aux besoins spécifiques
-
-### "Le Grand Archiviste"
-- Système avancé d'analyse et de suivi
-- Recommandations personnalisées
-- Rapports détaillés pour enseignants/parents
-
-### "L'Alliance Galactique"
-- Internationalisation et localisation
-- Support multilingue
-- Adaptation culturelle des exercices
-
-## Glossaire des termes Star Wars
-
-| Terme | Description |
-|-------|-------------|
-| **Mathakine** | Nom du projet, anciennement Math Trainer |
-| **Padawan** | Niveau intermédiaire de difficulté |
-| **Initié** | Niveau facile de difficulté |
-| **Chevalier** | Niveau difficile de difficulté |
-| **Maître** | Niveau expert de difficulté |
-| **La Force des nombres** | Compétences mathématiques |
-| **API Rebelle** | API REST du projet |
-| **Les Archives** | Base de données |
-| **Épreuves d'Initié** | Tests unitaires |
-| **Épreuves de Chevalier** | Tests d'intégration |
-| **Holocrons** | Documentation API (Swagger) |
-
-## Environnement technique
-
-- **Système d'exploitation**: Windows/Linux
-- **Langages principaux**: Python 3.13+, JavaScript, HTML/CSS
-- **Frameworks**: FastAPI, Starlette, SQLAlchemy 2.0
-- **Base de données**: PostgreSQL (prod), SQLite (dev)
-- **Interface**: Templates Jinja2, CSS personnalisé
-- **Déploiement**: Docker, Render
-
 ## Remarques spéciales pour le développement
 
 - La normalisation des types d'exercice et difficultés est cruciale pour la cohérence des données
@@ -484,86 +358,28 @@ Le dossier tests/ contient des tests organisés par catégories avec une structu
 - Les changements UI doivent respecter le thème Star Wars établi
 - La compatibilité Python 3.13 est une priorité pour la maintenabilité future
 
+### Système de journalisation et débogage
+
+Le projet utilise un système de journalisation centralisé qui est essentiel au développement et à la maintenance :
+
+- **Importance pour le débogage** : Le système de logs permet d'identifier rapidement l'origine des problèmes en production et développement
+- **Structure standardisée** : Tous les logs suivent le même format permettant une analyse cohérente
+- **Isolation par niveau** : La séparation des logs par niveaux (debug.log, error.log, etc.) facilite l'analyse ciblée
+- **Rotation des fichiers** : Les fichiers logs sont automatiquement divisés et compressés pour éviter de saturer le disque
+- **Conservation limitée** : Les anciens logs sont automatiquement supprimés après 30-60 jours selon leur importance
+- **Test du système** : Le script `test_logging.py` permet de vérifier le bon fonctionnement du système de logs
+
+#### Bonnes pratiques pour la journalisation
+
+1. **Utiliser la fonction centralisée** : Toujours importer via `from app.core.logging_config import get_logger`
+2. **Nommer correctement le logger** : Utiliser `logger = get_logger(__name__)` pour identifier la source
+3. **Choisir le bon niveau** : 
+   - DEBUG pour information détaillée utile en développement
+   - INFO pour confirmer le déroulement normal
+   - WARNING pour les situations anormales mais non critiques
+   - ERROR pour les problèmes empêchant une fonctionnalité
+   - CRITICAL pour les problèmes bloquants
+4. **Enrichir avec le contexte** : Utiliser `logger.bind(user_id=123).info("Action")` pour ajouter des métadonnées
+5. **Capturer les exceptions** : Utiliser `logger.exception()` dans les blocs `except` pour enregistrer la stack trace
+
 Cette architecture est conçue pour être extensible, maintenable et évolutive, permettant l'ajout futur de nouvelles fonctionnalités comme l'authenticité, la personnalisation avancée et la gamification.
-
-## Refactoring récent
-
-Le projet a récemment subi un important refactoring (Mai 2025) pour améliorer la maintenabilité et la cohérence du code:
-
-### Phase 1: Centralisation des constantes et valeurs
-
-1. **Création de fichiers de constantes centralisées**:
-   - `app/core/constants.py`: Types d'exercices, niveaux de difficulté, limites numériques
-   - `app/core/messages.py`: Messages et textes de l'interface utilisateur
-   - `app/db/queries.py`: Requêtes SQL centralisées
-   - `static/variables.css`: Variables CSS (couleurs, espacement, typographie)
-
-2. **Bénéfices**:
-   - Élimination des valeurs codées en dur dispersées dans le code
-   - Point unique de modification pour les constantes et messages
-   - Cohérence accrue de l'interface utilisateur et des messages
-   - Facilité de traduction future (tous les textes sont centralisés)
-   - Facilité de maintenance des requêtes SQL
-
-### Phase 2: Application des constantes centralisées
-
-1. **Modifications dans enhanced_server.py**:
-   - Remplacement des types d'exercices et niveaux de difficulté hardcodés par les constantes de `ExerciseTypes` et `DifficultyLevels`
-   - Utilisation des messages de `ExerciseMessages` et `SystemMessages` pour les retours API
-   - Remplacement des requêtes SQL en ligne par les références à `ExerciseQueries`, `ResultQueries` et `UserStatsQueries`
-   - Modification des fonctions `normalize_exercise_type` et `normalize_difficulty` pour utiliser les mappings centralisés
-   - Utilisation des limites numériques de `DIFFICULTY_LIMITS` dans la génération d'exercices
-
-2. **Fichiers CSS**:
-   - Modification de tous les fichiers CSS pour utiliser les variables de `variables.css`
-   - Remplacement des valeurs en dur (couleurs, espacements, tailles de police) par les variables correspondantes
-   - Assurance d'une apparence visuelle cohérente dans toute l'application
-
-3. **Templates HTML**:
-   - Utilisation des messages et textes centralisés pour les éléments d'interface
-   - Cohérence dans les titres, labels, boutons et messages d'erreur
-
-### Bénéfices du refactoring
-
-1. **Maintenance simplifiée**: Modification des valeurs à un seul endroit
-2. **Cohérence accrue**: Utilisation cohérente des mêmes valeurs partout
-3. **Réduction de la duplication**: Élimination du code dupliqué
-4. **Évolutivité améliorée**: Facilite l'ajout de nouveaux types d'exercices ou niveaux
-5. **Préparation pour l'internationalisation**: Messages centralisés facilitant la traduction
-6. **Documentation implicite**: Les fichiers centralisés servent de documentation pour les valeurs possibles
-7. **Réduction des erreurs**: Moins de risques d'erreurs typographiques ou d'incohérences
-8. **Tests simplifiés**: Facilité pour mocker ou remplacer des valeurs lors des tests
-
-Ce refactoring représente une amélioration significative de la qualité du code et pose les bases pour les futures évolutions de l'application Mathakine.
-
-### Correction du problème d'affichage des exercices
-
-Après le refactoring de centralisation, nous avons identifié un problème concernant l'affichage des exercices dans l'interface:
-
-1. **Problème identifié**:
-   - Les exercices étaient correctement générés et stockés dans la base de données (visible via la requête `SELECT COUNT(*) FROM exercises`)
-   - Cependant, aucun exercice n'apparaissait dans l'interface utilisateur
-
-2. **Cause du problème**:
-   - Les requêtes SQL centralisées dans `app/db/queries.py` incluaient toutes un filtre `WHERE is_archived = false`
-   - Ce filtre empêchait l'affichage des exercices, même s'ils existaient dans la base de données
-   - Le champ `is_archived` n'était pas correctement initialisé lors de la création des exercices
-
-3. **Solution apportée**:
-   - Modification de la fonction `exercises_page` pour utiliser des requêtes SQL personnalisées sans filtre sur `is_archived`
-   - Ajout de débogage pour identifier les exercices présents dans la base de données
-   - Préparation pour l'implémentation future de la fonctionnalité d'archivage
-
-4. **Leçons tirées**:
-   - Importance de tester les fonctionnalités après un refactoring majeur
-   - Nécessité de vérifier l'initialisation correcte des champs lors de l'insertion en base de données
-   - Considération des paramètres de filtrage par défaut dans les requêtes SQL centralisées
-
-Cette correction assure que tous les exercices générés sont bien visibles dans l'interface utilisateur, tout en préservant la structure qui permettra l'implémentation future de l'archivage des exercices.
-
-### Documents mis à jour
-
-Suite à ce refactoring, les documents suivants ont été mis à jour:
-- **STRUCTURE.md**: Description de la nouvelle organisation du code
-- **ai_context_summary.md**: Ajout de détails sur le refactoring
-- **.env.example**: Documentation des variables d'environnement requises 

@@ -10,13 +10,13 @@ class ExerciseQueries:
     CREATE TABLE IF NOT EXISTS exercises (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
-        creator_id INTEGER,
+        creator_id INTEGER REFERENCES users(id),
         exercise_type VARCHAR(50) NOT NULL,
         difficulty VARCHAR(50) NOT NULL,
         tags VARCHAR(255),
         question TEXT NOT NULL,
         correct_answer VARCHAR(255) NOT NULL,
-        choices JSON,
+        choices JSONB,
         explanation TEXT,
         hint TEXT,
         image_url VARCHAR(255),
@@ -24,8 +24,9 @@ class ExerciseQueries:
         is_active BOOLEAN DEFAULT TRUE,
         is_archived BOOLEAN DEFAULT FALSE,
         ai_generated BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        view_count INTEGER DEFAULT 0,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
     """
     
@@ -33,30 +34,30 @@ class ExerciseQueries:
     GET_ALL = """
     SELECT * FROM exercises 
     WHERE is_archived = false
-    ORDER BY id
+    ORDER BY id DESC
     """
     
     GET_BY_ID = """
     SELECT * FROM exercises 
-    WHERE id = %s
+    WHERE id = %s AND is_archived = false
     """
     
     GET_BY_TYPE = """
     SELECT * FROM exercises 
     WHERE exercise_type = %s AND is_archived = false
-    ORDER BY id
+    ORDER BY id DESC
     """
     
     GET_BY_DIFFICULTY = """
     SELECT * FROM exercises 
     WHERE difficulty = %s AND is_archived = false
-    ORDER BY id
+    ORDER BY id DESC
     """
     
     GET_BY_TYPE_AND_DIFFICULTY = """
     SELECT * FROM exercises 
     WHERE exercise_type = %s AND difficulty = %s AND is_archived = false
-    ORDER BY id
+    ORDER BY id DESC
     """
     
     GET_RANDOM = """
@@ -135,12 +136,11 @@ class ResultQueries:
     CREATE_TABLE = """
     CREATE TABLE IF NOT EXISTS results (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL,
         exercise_id INTEGER NOT NULL,
         is_correct BOOLEAN NOT NULL,
-        user_answer TEXT,
-        time_taken INTEGER,  -- Temps en secondes
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        attempt_count INTEGER,
+        time_spent REAL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
     """
     
@@ -166,8 +166,8 @@ class ResultQueries:
     # Insertion
     INSERT = """
     INSERT INTO results 
-    (user_id, exercise_id, is_correct, user_answer, time_taken) 
-    VALUES (%s, %s, %s, %s, %s)
+    (exercise_id, is_correct, attempt_count, time_spent) 
+    VALUES (%s, %s, %s, %s)
     RETURNING id
     """
 
@@ -223,6 +223,17 @@ class UserStatsQueries:
     WHERE r.user_id = %s
     GROUP BY DATE(r.created_at)
     ORDER BY DATE(r.created_at)
+    """
+
+    # Exercices par jour sur les 30 derniers jours (global, tous utilisateurs)
+    GET_EXERCISES_BY_DAY = """
+    SELECT 
+        DATE(created_at) as exercise_date,
+        COUNT(*) as count
+    FROM results
+    GROUP BY DATE(created_at)
+    ORDER BY exercise_date DESC
+    LIMIT 30
     """
 
 # Requêtes pour la table 'users'

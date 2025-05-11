@@ -453,37 +453,52 @@
         
         // Fonction pour afficher le feedback
         function showFeedback(result) {
-            feedback.innerHTML = '';
+            const feedback = document.querySelector('.feedback');
+            feedback.style.display = 'block';
+            feedback.classList.remove('success', 'error');
             
-            // Créer un élément pour le message principal
-            const message = document.createElement('div');
-            message.style.fontSize = "1.3rem";
-            message.style.marginBottom = "0.8rem";
-            
-            if (result.is_correct) {
-                feedback.className = 'feedback correct';
-                message.innerHTML = `<i class="fas fa-check-circle"></i> Bonne réponse !`;
+            // Déterminer le type de feedback
+            if(result.is_correct) {
+                feedback.classList.add('success');
+                feedback.innerHTML = '<p><i class="fas fa-check-circle"></i> Bravo ! Ta réponse est correcte.</p>';
+                
+                // Jouer le son de succès
+                playSound('success');
             } else {
-                feedback.className = 'feedback incorrect';
-                message.innerHTML = `<i class="fas fa-times-circle"></i> Réponse incorrecte.`;
+                feedback.classList.add('error');
+                feedback.innerHTML = `<p><i class="fas fa-times-circle"></i> Dommage ! La bonne réponse était: ${result.correct_answer}</p>`;
                 
-                // Ajouter la bonne réponse
-                const correctAnswer = document.createElement('p');
-                correctAnswer.innerHTML = `La bonne réponse était: <strong>${result.correct_answer}</strong>`;
-                feedback.appendChild(correctAnswer);
-                
-                // Ajouter l'explication si disponible
-                if (result.explanation) {
-                    const explanation = document.createElement('p');
-                    explanation.style.marginTop = "0.8rem";
-                    explanation.style.fontStyle = "italic";
-                    explanation.innerHTML = `<strong>Explication:</strong> ${result.explanation}`;
-                    feedback.appendChild(explanation);
-                }
+                // Jouer le son d'erreur
+                playSound('error');
             }
             
-            feedback.insertBefore(message, feedback.firstChild);
-            feedback.style.display = 'block';
+            // Ajouter l'explication si disponible
+            if (result.explanation && result.explanation !== 'None' && result.explanation.trim() !== '') {
+                const explanation = document.createElement('p');
+                explanation.style.marginTop = "0.8rem";
+                explanation.style.fontStyle = "italic";
+                explanation.innerHTML = `<strong>Explication:</strong> ${result.explanation}`;
+                feedback.appendChild(explanation);
+            } else {
+                // Ajouter une explication par défaut
+                const explanation = document.createElement('p');
+                explanation.style.marginTop = "0.8rem";
+                explanation.style.fontStyle = "italic";
+                explanation.innerHTML = `<strong>Explication:</strong> La réponse correcte est ${result.correct_answer}.`;
+                feedback.appendChild(explanation);
+            }
+            
+            // Faire défiler vers l'explication
+            feedback.scrollIntoView({ behavior: 'smooth' });
+            
+            // Ajouter le bouton pour l'exercice suivant
+            const nextButton = document.createElement('button');
+            nextButton.className = 'btn btn-primary mt-3';
+            nextButton.innerHTML = '<i class="fas fa-arrow-right"></i> Exercice suivant';
+            nextButton.addEventListener('click', () => {
+                window.location.href = '/exercises/random';
+            });
+            feedback.appendChild(nextButton);
         }
     });
 </script>
