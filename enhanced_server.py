@@ -1317,15 +1317,15 @@ routes = [
     Route("/", homepage),
     Route("/exercises", exercises_page),
     Route("/dashboard", dashboard),
-    Route("/exercise/{exercise_id:int}", exercise_detail_page),
+    Route("/exercises/{exercise_id:int}", exercise_detail_page),
     Route("/api/users/stats", get_user_stats),
 
     # API
-    Route("/api/exercises/", get_exercises_list, methods=["GET"]),
-    Route("/api/exercises/{exercise_id:int}", get_exercise, methods=["GET"]),
-    Route("/api/exercises/{exercise_id:int}", delete_exercise, methods=["DELETE"]),
-    Route("/api/exercises/generate", generate_exercise, methods=["GET"]),
-    Route("/api/exercises/{exercise_id:int}/submit", submit_answer, methods=["POST"]),
+    Route("/api/exercises", get_exercises_list),
+    Route("/api/exercises/{exercise_id:int}", get_exercise),
+    Route("/api/exercises/{exercise_id:int}", delete_exercise),
+    Route("/api/exercises/generate", generate_exercise),
+    Route("/api/exercises/{exercise_id:int}/submit", submit_answer),
 
     # Fichiers statiques
     Mount("/static", StaticFiles(directory=STATIC_DIR), name="static"),

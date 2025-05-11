@@ -563,24 +563,20 @@
                 <label for="exercise_type">Type d'exercice</label>
                 <select id="exercise_type" name="exercise_type" class="filter-select">
                     <option value="">Tous les types</option>
-                    <option value="addition" {% if request.query_params.get('exercise_type') == 'addition' %}selected{% endif %}>Addition</option>
-                    <option value="soustraction" {% if request.query_params.get('exercise_type') == 'soustraction' %}selected{% endif %}>Soustraction</option>
-                    <option value="multiplication" {% if request.query_params.get('exercise_type') == 'multiplication' %}selected{% endif %}>Multiplication</option>
-                    <option value="division" {% if request.query_params.get('exercise_type') == 'division' %}selected{% endif %}>Division</option>
-                    <option value="fractions" {% if request.query_params.get('exercise_type') == 'fractions' %}selected{% endif %}>Fractions</option>
-                    <option value="geometrie" {% if request.query_params.get('exercise_type') == 'geometrie' %}selected{% endif %}>Géométrie</option>
-                        </select>
+                    {% for type_value, type_name in exercise_types.items() %}
+                    <option value="{{ type_value }}" {% if request.query_params.get('exercise_type') == type_value %}selected{% endif %}>{{ type_name }}</option>
+                    {% endfor %}
+                </select>
                     </div>
         
                     <div class="filter-group">
                 <label for="difficulty">Niveau de difficulté</label>
                 <select id="difficulty" name="difficulty" class="filter-select">
                     <option value="">Tous les niveaux</option>
-                    <option value="initie" {% if request.query_params.get('difficulty') == 'initie' %}selected{% endif %}>Initié</option>
-                    <option value="padawan" {% if request.query_params.get('difficulty') == 'padawan' %}selected{% endif %}>Padawan</option>
-                    <option value="chevalier" {% if request.query_params.get('difficulty') == 'chevalier' %}selected{% endif %}>Chevalier</option>
-                    <option value="maitre" {% if request.query_params.get('difficulty') == 'maitre' %}selected{% endif %}>Maître</option>
-                        </select>
+                    {% for difficulty_value, difficulty_name in difficulty_levels.items() %}
+                    <option value="{{ difficulty_value }}" {% if request.query_params.get('difficulty') == difficulty_value %}selected{% endif %}>{{ difficulty_name }}</option>
+                    {% endfor %}
+                </select>
         </div>
         
             <div class="filter-actions">
@@ -616,28 +612,24 @@
             
             <div class="exercise-meta">
                 <span class="difficulty {{ exercise.difficulty }}">
-                    {% if exercise.difficulty == "initie" %}Initié
-                    {% elif exercise.difficulty == "padawan" %}Padawan
-                    {% elif exercise.difficulty == "chevalier" %}Chevalier
-                    {% elif exercise.difficulty == "maitre" %}Maître
-                    {% else %}{{ exercise.difficulty }}
+                    {% if exercise.difficulty in difficulty_display %}
+                    {{ difficulty_display[exercise.difficulty] }}
+                    {% else %}
+                    {{ exercise.difficulty }}
                     {% endif %}
                 </span>
                 
                 <span class="exercise-type-tag">
-                    {% if exercise.exercise_type == "addition" %}Addition
-                    {% elif exercise.exercise_type == "soustraction" %}Soustraction
-                    {% elif exercise.exercise_type == "multiplication" %}Multiplication
-                    {% elif exercise.exercise_type == "division" %}Division
-                    {% elif exercise.exercise_type == "fractions" %}Fractions
-                    {% elif exercise.exercise_type == "geometrie" %}Géométrie
-                    {% else %}{{ exercise.exercise_type|title }}
+                    {% if exercise.exercise_type in exercise_type_display %}
+                    {{ exercise_type_display[exercise.exercise_type] }}
+                    {% else %}
+                    {{ exercise.exercise_type|title }}
                     {% endif %}
                 </span>
                 
                 {% if exercise.ai_generated %}
                 <span class="ai-badge"><i class="fas fa-robot"></i> IA</span>
-                {% elif "TEST-ZAXXON" in exercise.title or "TEST-ZAXXON" in exercise.question %}
+                {% elif ai_prefix in exercise.title or ai_prefix in exercise.question %}
                 <span class="ai-badge"><i class="fas fa-robot"></i> IA</span>
                 {% endif %}
             </div>
@@ -648,8 +640,8 @@
             <p>{{ exercise.question }}</p>
             
             <div class="exercise-actions">
-                <a href="/exercise/{{ exercise.id }}" class="action-btn primary-action">
-                    <i class="fas fa-play-circle"></i> Démarrer
+                <a href="/exercises/{{ exercise.id }}" class="action-btn primary-action">
+                    <i class="fas fa-play"></i> Démarrer
                 </a>
                 <button class="action-btn secondary-action show-details-btn" data-id="{{ exercise.id }}">
                     <i class="fas fa-info-circle"></i> Détails
@@ -730,6 +722,8 @@
             const exerciseType = document.getElementById('exercise_type').value;
             const difficulty = document.getElementById('difficulty').value;
             
+            console.log('Génération d\'exercice avec:', {exercise_type: exerciseType, difficulty: difficulty});
+            
             // Construire l'URL avec les paramètres
             let url = '/api/exercises/generate';
             const params = new URLSearchParams();
@@ -746,6 +740,7 @@
                 url += '?' + params.toString();
             }
             
+            console.log('URL de génération:', url);
             window.location.href = url;
         });
         
@@ -932,7 +927,7 @@
                             ` : ''}
                             
                             <div class="modal-actions">
-                                <a href="/exercise/${exercise.id}" class="confirm-delete">
+                                <a href="/exercises/${exercise.id}" class="confirm-delete">
                                     <i class="fas fa-play-circle"></i> Démarrer l'exercice
                                 </a>
                             </div>
