@@ -124,7 +124,14 @@
 
 - **API** (`/app/api`): Définit l'interface REST pour interagir avec l'application.
 - **Core** (`/app/core`): Contient les composants fondamentaux comme la configuration, la journalisation et la sécurité.
+  - **constants.py**: Définit toutes les constantes centralisées (types d'exercices, niveaux de difficulté, limites numériques)
+  - **config.py**: Configuration principale de l'application
+  - **messages.py**: Messages et textes centralisés pour l'interface utilisateur et le système
+  - **logging_config.py**: Configuration du système de journalisation
 - **DB** (`/app/db`): Assure la communication avec la base de données (SQLite en dev, PostgreSQL en prod).
+  - **base.py**: Configuration de base de la base de données
+  - **init_db.py**: Initialisation et création des tables
+  - **queries.py**: Requêtes SQL centralisées pour toutes les opérations de base de données
 - **Models** (`/app/models`): Définit les modèles SQLAlchemy pour la base de données.
 - **Schemas** (`/app/schemas`): Définit les schémas Pydantic pour la validation des données.
 - **Services** (`/app/services`): Implémente la logique métier et les fonctionnalités principales.
@@ -140,6 +147,10 @@
 ### Interface Utilisateur
 
 - **Static** (`/static`): Fichiers statiques (CSS, JS, images).
+  - **variables.css**: Variables CSS centralisées (couleurs, espacement, typographie, animations)
+  - **style.css**: Styles principaux de l'application 
+  - **space-theme.css**: Styles spécifiques au thème spatial Star Wars
+  - **home-styles.css**: Styles spécifiques à la page d'accueil
 - **Templates** (`/templates`): Templates HTML Jinja2 pour le rendu des pages.
 
 ### Tests et Assurance Qualité
@@ -162,6 +173,19 @@ logs/
 ```
 
 Pour plus de détails sur le système de journalisation, consultez [docs/LOGGING.md](docs/LOGGING.md).
+
+## Organisation des Variables et Constantes
+
+L'application utilise un système centralisé de variables et constantes pour assurer la cohérence et faciliter la maintenance :
+
+```
+app/core/constants.py      # Constantes de l'application (types d'exercices, niveaux, etc.)
+app/core/messages.py       # Messages et textes pour l'interface et le système
+app/db/queries.py          # Requêtes SQL centralisées
+static/variables.css       # Variables CSS (couleurs, espacement, typographie, etc.)
+```
+
+Cette organisation permet de facilement mettre à jour les valeurs sans avoir à modifier le code à plusieurs endroits, améliorant ainsi la maintenabilité et la cohérence de l'application.
 
 ## Services et Modules
 

@@ -1,21 +1,5 @@
 /* Thème Star Wars inspiré pour Mathakine - L'API Rebelle */
-:root {
-    /* Palette de couleurs inspirée de Star Wars */
-    --sw-dark: #0c1019;
-    --sw-space: #1a1e33;
-    --sw-blue: #4169E1;
-    --sw-accent: #6b4dc3;
-    --sw-gold: #e6c96a;
-    --sw-text: #FFFFFF;
-    --sw-secondary: #d8d8d8;
-    --sw-red: #FF6B6B;
-    --sw-card-bg: #21273c;
-    --sw-card-border: #3a3f5c;
-
-    /* Ajouter des animations comme variables CSS */
-    --transition-speed: 0.3s;
-    --hover-transform: translateY(-3px);
-}
+@import 'variables.css';
 
 /* Réinitialisation des couleurs de base */
 body {

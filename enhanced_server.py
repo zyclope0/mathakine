@@ -20,6 +20,11 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.templating import Jinja2Templates
 
+# Import des constantes et messages centralisés
+from app.core.constants import ExerciseTypes, DifficultyLevels, DISPLAY_NAMES, DIFFICULTY_LIMITS, Messages, Tags
+from app.core.messages import SystemMessages, ExerciseMessages, InterfaceTexts
+from app.db.queries import ExerciseQueries, ResultQueries, UserStatsQueries
+
 # Chemins et configurations
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = str(BASE_DIR / 'static')
@@ -359,46 +364,36 @@ async def exercise_detail_page(request):
     })
 
 # Fonction pour normaliser le type d'exercice
-
-
 def normalize_exercise_type(exercise_type):
     """Normalise le type d'exercice"""
     if not exercise_type:
-        return "addition"
+        return ExerciseTypes.ADDITION
 
     exercise_type = exercise_type.lower()
 
-    if exercise_type in ["addition", "add", "+", "plus"]:
-        return "addition"
-    elif exercise_type in ["subtraction", "subtract", "sub", "soustraction", "-", "minus"]:
-        return "subtraction"
-    elif exercise_type in ["multiplication", "multiply", "mult", "times", "*", "×"]:
-        return "multiplication"
-    elif exercise_type in ["division", "divide", "div", "/", "÷"]:
-        return "division"
-    else:
-        return exercise_type
+    # Parcourir tous les types d'exercices et leurs alias
+    for type_key, aliases in ExerciseTypes.TYPE_ALIASES.items():
+        if exercise_type in aliases:
+            return type_key
+            
+    # Si aucune correspondance trouvée, retourner le type tel quel
+    return exercise_type
 
 # Fonction pour normaliser la difficulté
-
-
 def normalize_difficulty(difficulty):
     """Normalise le niveau de difficulté"""
     if not difficulty:
-        return "padawan"
+        return DifficultyLevels.PADAWAN
 
     difficulty = difficulty.lower()
 
-    if difficulty in ["initie", "initié", "easy", "facile", "debutant", "débutant"]:
-        return "initie"
-    elif difficulty in ["padawan", "medium", "moyen", "intermediaire", "intermédiaire"]:
-        return "padawan"
-    elif difficulty in ["chevalier", "hard", "difficile", "avance", "avancé"]:
-        return "chevalier"
-    elif difficulty in ["maitre", "maître", "expert", "très difficile", "tres difficile"]:
-        return "maitre"
-    else:
-        return difficulty
+    # Parcourir tous les niveaux de difficulté et leurs alias
+    for level_key, aliases in DifficultyLevels.LEVEL_ALIASES.items():
+        if difficulty in aliases:
+            return level_key
+            
+    # Si aucune correspondance trouvée, retourner la difficulté telle quelle
+    return difficulty
 
 # Initialiser la base de données
 
@@ -564,199 +559,157 @@ async def generate_exercise(request):
 
 
 def generate_ai_exercise(exercise_type, difficulty):
-    """Génère un exercice avec l'aide de l'IA (simulé avec TEST-ZAXXON)"""
+    """Génère un exercice avec contexte Star Wars pour simuler une génération par IA"""
     import random
-
-    # Utiliser la même structure que generate_simple_exercise mais ajouter TEST-ZAXXON
-    if exercise_type == "addition":
-        num1, num2 = 0, 0
-        if difficulty == "initie":
-            num1, num2 = random.randint(1, 10), random.randint(1, 10)
-        elif difficulty == "padawan":
-            num1, num2 = random.randint(10, 50), random.randint(10, 50)
-        elif difficulty == "chevalier":
-            num1, num2 = random.randint(50, 100), random.randint(50, 100)
-        else:  # Maître
-            num1, num2 = random.randint(100, 500), random.randint(100, 500)
-
-            result = num1 + num2
-
-        # Générer un contexte Star Wars pour l'exercice
-        contexts = [
-            f"TEST-ZAXXON: Luke Skywalker a {num1} armes laser. Il en trouve {num2} de plus dans une cache secrète. Combien d'armes laser a-t-il maintenant?",
-            f"TEST-ZAXXON: Han Solo a {num1} cristaux kyber. Chewbacca lui en donne {num2} autres. Combien de cristaux possède Han Solo?",
-            f"TEST-ZAXXON: L'Alliance Rebelle a {num1} vaisseaux spatiaux et en construit {num2} supplémentaires. Combien de vaisseaux a maintenant l'Alliance?"
-        ]
-
-        question = random.choice(contexts)
+    
+    normalized_type = normalize_exercise_type(exercise_type)
+    normalized_difficulty = normalize_difficulty(difficulty)
+    
+    # Récupérer les limites pour ce type d'exercice et cette difficulté
+    difficulty_config = DIFFICULTY_LIMITS.get(normalized_difficulty, DIFFICULTY_LIMITS[DifficultyLevels.PADAWAN])
+    type_limits = difficulty_config.get(normalized_type, difficulty_config.get("default", {"min": 1, "max": 10}))
+    
+    # Contextes Star Wars pour les exercices
+    contexts = [
+        "Sur la planète Tatooine, un marchand Jawa vend {num1} pièces détachées de droïdes. Un fermier d'humidité en achète {num2}.",
+        "Le Faucon Millenium a parcouru {num1} parsecs. Après une mission pour la Résistance, il parcourt encore {num2} parsecs.",
+        "Luke Skywalker s'entraîne avec {num1} cubes de levitation. Yoda lui en donne {num2} de plus.",
+        "Dans la base rebelle, il y a {num1} X-wings. Après la bataille, il ne reste que {num2} vaisseaux.",
+        "Rey a trouvé {num1} cristaux kyber. Elle en utilise {num2} pour son nouveau sabre laser.",
+        "Han Solo a fait {num1} voyages pour livrer des marchandises. Il doit encore faire {num2} voyages cette semaine.",
+        "Sur la planète Endor, {num1} Ewoks préparent un piège. {num2} autres Ewoks les rejoignent."
+    ]
+    
+    # Sélectionner un contexte au hasard
+    context = random.choice(contexts)
+    
+    # Générer les nombres en fonction du type et de la difficulté
+    if normalized_type == ExerciseTypes.ADDITION:
+        min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
+        num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
+        result = num1 + num2
+        
+        # Construire la question avec contexte Star Wars
+        question_text = context.format(num1=num1, num2=num2)
+        question = f"{question_text} Combien y a-t-il de {random.choice(['éléments', 'unités', 'objets'])} au total?"
+        
         correct_answer = str(result)
-
-        # Générer des choix plausibles
-        choices = [str(result), str(result-1), str(result+1), str(result+2)]
-        random.shuffle(choices)
-
-        return {
-            "title": f"TEST-ZAXXON: Opération d'addition de niveau {difficulty}",
-            "exercise_type": exercise_type,
-            "difficulty": difficulty,
-            "question": question,
-            "correct_answer": correct_answer,
-            "choices": choices,
-            "tags": "ia,generatif,starwars",
-            "ai_generated": True
-        }
-
-    elif exercise_type == "subtraction":
-        num1, num2 = 0, 0
-        if difficulty == "initie":
-            num1, num2 = random.randint(5, 20), random.randint(1, 5)
-        elif difficulty == "padawan":
-            num1, num2 = random.randint(20, 70), random.randint(10, 20)
-        elif difficulty == "chevalier":
-            num1, num2 = random.randint(70, 120), random.randint(20, 70)
-        else:  # Maître
-            num1, num2 = random.randint(120, 500), random.randint(70, 120)
-
+        
+    elif normalized_type == ExerciseTypes.SUBTRACTION:
+        limits = type_limits
+        num1 = random.randint(limits.get("min1", 5), limits.get("max1", 20))
+        num2 = random.randint(limits.get("min2", 1), limits.get("max2", 5))
+        
         # Assurer que num1 > num2 pour éviter les résultats négatifs
         if num1 < num2:
             num1, num2 = num2, num1
-
+            
         result = num1 - num2
-
-        # Générer un contexte Star Wars pour l'exercice
-        contexts = [
-            f"TEST-ZAXXON: Luke Skywalker a {num1} armes laser. Il en perd {num2} lors d'un combat. Combien d'armes laser lui reste-t-il?",
-            f"TEST-ZAXXON: Han Solo a {num1} cristaux kyber et en utilise {num2} pour créer des sabres laser. Combien de cristaux lui reste-t-il?",
-            f"TEST-ZAXXON: L'Alliance Rebelle a {num1} vaisseaux spatiaux mais {num2} sont détruits lors d'une bataille. Combien de vaisseaux restent-ils?"
+        
+        # Contextes pour soustraction
+        sub_contexts = [
+            "Le destroyer impérial a {num1} TIE Fighters. {num2} sont détruits lors d'une bataille.",
+            "Darth Vader commande {num1} stormtroopers, mais {num2} sont capturés par les rebelles.",
+            "Il y avait {num1} droïdes dans le centre de réparation. {num2} ont été récupérés par leurs propriétaires."
         ]
-
-        question = random.choice(contexts)
+        
+        context = random.choice(sub_contexts)
+        question_text = context.format(num1=num1, num2=num2)
+        question = f"{question_text} Combien reste-t-il de {random.choice(['unités', 'vaisseaux', 'soldats', 'droïdes'])}?"
+        
         correct_answer = str(result)
-
-        # Générer des choix plausibles
-        choices = [str(result), str(result-1), str(result+1), str(result+2)]
-        random.shuffle(choices)
-
-        return {
-            "title": f"TEST-ZAXXON: Opération de soustraction de niveau {difficulty}",
-            "exercise_type": exercise_type,
-            "difficulty": difficulty,
-            "question": question,
-            "correct_answer": correct_answer,
-            "choices": choices,
-            "tags": "ia,generatif,starwars",
-            "ai_generated": True
-        }
-
-    elif exercise_type == "multiplication":
-        num1, num2 = 0, 0
-        if difficulty == "initie":
-            num1, num2 = random.randint(1, 5), random.randint(1, 5)
-        elif difficulty == "padawan":
-            num1, num2 = random.randint(5, 10), random.randint(5, 10)
-        elif difficulty == "chevalier":
-            num1, num2 = random.randint(10, 15), random.randint(10, 15)
-        else:  # Maître
-            num1, num2 = random.randint(15, 30), random.randint(15, 30)
-
+        
+    elif normalized_type == ExerciseTypes.MULTIPLICATION:
+        min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
+        num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
         result = num1 * num2
-
-        # Générer un contexte Star Wars pour l'exercice
-        contexts = [
-            f"TEST-ZAXXON: Luke Skywalker a {num1} armées de {num2} soldats chacune. Combien de soldats a-t-il au total?",
-            f"TEST-ZAXXON: Han Solo a {num1} groupes de {num2} cristaux kyber. Combien de cristaux possède-t-il en tout?",
-            f"TEST-ZAXXON: L'Empire a {num1} escadrons de {num2} TIE Fighters chacun. Combien de TIE Fighters possède l'Empire?"
+        
+        # Contextes pour multiplication
+        mult_contexts = [
+            "Chaque escadron rebelle compte {num1} pilotes. S'il y a {num2} escadrons, ",
+            "Un chasseur de primes gagne {num1} crédits par mission. S'il effectue {num2} missions, ",
+            "Chaque pod de course peut atteindre {num1} fois la vitesse du son. Si Anakin pousse son pod à {num2} fois cette limite, "
         ]
-
-        question = random.choice(contexts)
+        
+        context = random.choice(mult_contexts)
+        question_text = context.format(num1=num1, num2=num2)
+        question = f"{question_text}quel est le total de {random.choice(['pilotes', 'crédits', 'vitesse'])}?"
+        
         correct_answer = str(result)
-
-        # Générer des choix plausibles
-        choices = [str(result), str(result-num1), str(result+num1), str(result+num2)]
-        random.shuffle(choices)
-
-        return {
-            "title": f"TEST-ZAXXON: Opération de multiplication de niveau {difficulty}",
-            "exercise_type": exercise_type,
-            "difficulty": difficulty,
-            "question": question,
-            "correct_answer": correct_answer,
-            "choices": choices,
-            "tags": "ia,generatif,starwars",
-            "ai_generated": True
-        }
-
-    elif exercise_type == "division":
-        num2 = 0
-        if difficulty == "initie":
-            num2 = random.randint(2, 5)
-        elif difficulty == "padawan":
-            num2 = random.randint(2, 10)
-        elif difficulty == "chevalier":
-            num2 = random.randint(5, 12)
-        else:  # Maître
-            num2 = random.randint(10, 20)
-
-        # Créer un nombre divisible exactement
-        multiplier = 0
-        if difficulty == "initie":
-            multiplier = random.randint(1, 5)
-        elif difficulty == "padawan":
-            multiplier = random.randint(5, 10)
-        elif difficulty == "chevalier":
-            multiplier = random.randint(10, 15)
-        else:  # Maître
-            multiplier = random.randint(15, 25)
-
-        num1 = num2 * multiplier
-        result = num1 // num2
-
-        # Générer un contexte Star Wars pour l'exercice
-        contexts = [
-            f"TEST-ZAXXON: Luke Skywalker a {num1} armes laser à partager équitablement entre {num2} Jedis. Combien d'armes chaque Jedi recevra-t-il?",
-            f"TEST-ZAXXON: Han Solo a {num1} cristaux kyber à répartir dans {num2} conteneurs égaux. Combien de cristaux mettra-t-il dans chaque conteneur?",
-            f"TEST-ZAXXON: L'Alliance Rebelle a {num1} soldats à répartir également dans {num2} bataillons. Combien de soldats y aura-t-il dans chaque bataillon?"
+        
+    elif normalized_type == ExerciseTypes.DIVISION:
+        limits = type_limits
+        min_result = limits.get("min_result", 1)
+        max_result = limits.get("max_result", 5)
+        min_divisor = limits.get("min_divisor", 2)
+        max_divisor = limits.get("max_divisor", 5)
+        
+        # Générer d'abord le diviseur et le résultat pour assurer une division exacte
+        num2 = random.randint(min_divisor, max_divisor)  # diviseur
+        result = random.randint(min_result, max_result)  # quotient
+        num1 = num2 * result  # dividende
+        
+        # Contextes pour division
+        div_contexts = [
+            "Les {num1} stormtroopers doivent être répartis en {num2} groupes égaux pour rechercher les droïdes.",
+            "Le Faucon Millenium a {num1} parsecs à parcourir à une vitesse de {num2} parsecs par heure.",
+            "Les rebelles ont {num1} blasters à distribuer équitablement à {num2} soldats."
         ]
-
-        question = random.choice(contexts)
+        
+        context = random.choice(div_contexts)
+        question_text = context.format(num1=num1, num2=num2)
+        question = f"{question_text} Combien de {random.choice(['stormtroopers par groupe', 'heures de voyage', 'blasters par soldat'])}?"
+        
         correct_answer = str(result)
-
-        # Générer des choix plausibles
-        choices = [str(result), str(result-1), str(result+1), str(result+num2//2)]
-        random.shuffle(choices)
-
-        return {
-            "title": f"TEST-ZAXXON: Opération de division de niveau {difficulty}",
-            "exercise_type": exercise_type,
-            "difficulty": difficulty,
-            "question": question,
-            "correct_answer": correct_answer,
-            "choices": choices,
-            "tags": "ia,generatif,starwars",
-            "ai_generated": True
-        }
-
+    
     else:
-        # Par défaut, faire une addition
-        num1 = random.randint(1, 10)
-        num2 = random.randint(1, 10)
+        # Par défaut, faire une addition si le type n'est pas reconnu
+        min_val, max_val = 1, 10
+        num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
         result = num1 + num2
-
-        question = f"TEST-ZAXXON: Luke Skywalker a {num1} armes laser. Il en trouve {num2} de plus. Combien d'armes laser a-t-il maintenant?"
+        
+        question_text = context.format(num1=num1, num2=num2)
+        question = f"{question_text} Combien y a-t-il de {random.choice(['éléments', 'unités', 'objets'])} au total?"
+        
         correct_answer = str(result)
-        choices = [str(result), str(result-1), str(result+1), str(result+2)]
-        random.shuffle(choices)
-
-        return {
-            "title": f"TEST-ZAXXON: Opération de calcul de niveau {difficulty}",
-            "exercise_type": "addition",
-            "difficulty": difficulty,
-            "question": question,
-            "correct_answer": correct_answer,
-            "choices": choices,
-            "tags": "ia,generatif,starwars",
-            "ai_generated": True
-        }
+    
+    # Générer les choix
+    if result <= 10:
+        wrong_answers = [result + 1, result - 1, result + 2]
+    else:
+        percent_variations = [0.1, -0.1, 0.2] 
+        wrong_answers = [result + int(result * var) for var in percent_variations]
+    
+    # S'assurer que les réponses incorrectes sont positives et uniques
+    wrong_answers = [max(1, ans) for ans in wrong_answers]
+    
+    # Ajouter la bonne réponse et mélanger
+    choices = wrong_answers + [result]
+    choices = list(set(choices))  # Suppression des doublons
+    
+    # Si on a perdu des choix à cause des doublons, en ajouter de nouveaux
+    while len(choices) < 4:
+        new_wrong = result + random.randint(3, 5) * random.choice([-1, 1])
+        if new_wrong > 0 and new_wrong not in choices:
+            choices.append(new_wrong)
+    
+    # Convertir les choix en strings        
+    choices = [str(c) for c in choices]
+    random.shuffle(choices)
+    
+    # Créer le titre de l'exercice IA
+    title = f"{Messages.AI_EXERCISE_PREFIX}: {DISPLAY_NAMES.get(normalized_difficulty, 'Inconnu')} - {DISPLAY_NAMES.get(normalized_type, 'Inconnu')}"
+    
+    return {
+        "title": title,
+        "exercise_type": normalized_type,
+        "difficulty": normalized_difficulty,
+        "question": question,
+        "correct_answer": correct_answer,
+        "choices": choices,
+        "tags": Tags.AI + "," + Tags.GENERATIVE + "," + Tags.STARWARS,
+        "ai_generated": True
+    }
 
 
 
@@ -764,143 +717,130 @@ def generate_simple_exercise(exercise_type, difficulty):
     """Génère un exercice simple de manière algorithmique"""
     import random
 
-    if exercise_type == "addition":
+    normalized_type = normalize_exercise_type(exercise_type)
+    normalized_difficulty = normalize_difficulty(difficulty)
+    
+    # Récupérer les limites pour ce type et cette difficulté
+    difficulty_config = DIFFICULTY_LIMITS.get(normalized_difficulty, DIFFICULTY_LIMITS[DifficultyLevels.PADAWAN])
+    
+    # Limites par défaut si le type n'est pas trouvé
+    type_limits = difficulty_config.get(normalized_type, difficulty_config.get("default", {"min": 1, "max": 10}))
+    
+    if normalized_type == ExerciseTypes.ADDITION:
         # Génération d'une addition
-        num1, num2 = 1, 1
-        if difficulty == "initie":
-            num1, num2 = random.randint(1, 10), random.randint(1, 10)
-        elif difficulty == "padawan":
-            num1, num2 = random.randint(10, 50), random.randint(10, 50)
-        elif difficulty == "chevalier":
-            num1, num2 = random.randint(50, 100), random.randint(50, 100)
-        else:  # Maître
-            num1, num2 = random.randint(100, 500), random.randint(100, 500)
-
+        min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
+        num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
+        
         result = num1 + num2
-        question = f"Combien font {num1} + {num2}?"
+        question = ExerciseMessages.QUESTION_ADDITION.format(num1=num1, num2=num2)
         correct_answer = str(result)
         choices = [str(result), str(result-1), str(result+1), str(result+2)]
         random.shuffle(choices)
 
         return {
-            "title": "Addition de nombres",
-            "exercise_type": exercise_type,
-            "difficulty": difficulty,
+            "title": ExerciseMessages.TITLE_ADDITION,
+            "exercise_type": normalized_type,
+            "difficulty": normalized_difficulty,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
-            "tags": "algorithmique,simple"
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE
         }
 
-    elif exercise_type == "subtraction":
+    elif normalized_type == ExerciseTypes.SUBTRACTION:
         # Génération d'une soustraction
-        num1, num2 = 1, 1
-        if difficulty == "initie":
-            num1, num2 = random.randint(5, 20), random.randint(1, 5)
-        elif difficulty == "padawan":
-            num1, num2 = random.randint(20, 70), random.randint(10, 20)
-        elif difficulty == "chevalier":
-            num1, num2 = random.randint(70, 120), random.randint(20, 70)
-        else:  # Maître
-            num1, num2 = random.randint(120, 500), random.randint(70, 120)
+        limits = type_limits
+        num1 = random.randint(limits.get("min1", 5), limits.get("max1", 20))
+        num2 = random.randint(limits.get("min2", 1), limits.get("max2", 5))
 
         # Assurer que num1 > num2 pour éviter les résultats négatifs
         if num1 < num2:
             num1, num2 = num2, num1
 
         result = num1 - num2
-        question = f"Combien font {num1} - {num2}?"
+        question = ExerciseMessages.QUESTION_SUBTRACTION.format(num1=num1, num2=num2)
         correct_answer = str(result)
         choices = [str(result), str(result-1), str(result+1), str(result+2)]
         random.shuffle(choices)
 
         return {
-            "title": "Soustraction de nombres",
-            "exercise_type": exercise_type,
-            "difficulty": difficulty,
+            "title": ExerciseMessages.TITLE_SUBTRACTION,
+            "exercise_type": normalized_type,
+            "difficulty": normalized_difficulty,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
-            "tags": "algorithmique,simple"
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE
         }
 
-    elif exercise_type == "multiplication":
+    elif normalized_type == ExerciseTypes.MULTIPLICATION:
         # Génération d'une multiplication
-        num1, num2 = 1, 1
-        if difficulty == "initie":
-            num1, num2 = random.randint(1, 5), random.randint(1, 5)
-        elif difficulty == "padawan":
-            num1, num2 = random.randint(5, 10), random.randint(5, 10)
-        elif difficulty == "chevalier":
-            num1, num2 = random.randint(10, 15), random.randint(10, 15)
-        else:  # Maître
-            num1, num2 = random.randint(15, 30), random.randint(15, 30)
+        min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
+        num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
 
         result = num1 * num2
-        question = f"Combien font {num1} × {num2}?"
+        question = ExerciseMessages.QUESTION_MULTIPLICATION.format(num1=num1, num2=num2)
         correct_answer = str(result)
         choices = [str(result), str(result-num1), str(result+num1), str(result+num2)]
         random.shuffle(choices)
 
         return {
-            "title": "Multiplication de nombres",
-            "exercise_type": exercise_type,
-            "difficulty": difficulty,
+            "title": ExerciseMessages.TITLE_MULTIPLICATION,
+            "exercise_type": normalized_type,
+            "difficulty": normalized_difficulty,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
-            "tags": "algorithmique,simple"
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE
         }
 
-    elif exercise_type == "division":
+    elif normalized_type == ExerciseTypes.DIVISION:
         # Génération d'une division
-        if difficulty == "initie":
-            num2 = random.randint(2, 5)
-            num1 = num2 * random.randint(1, 5)  # Divisible exactement
-        elif difficulty == "padawan":
-            num2 = random.randint(2, 10)
-            num1 = num2 * random.randint(5, 10)
-        elif difficulty == "chevalier":
-            num2 = random.randint(5, 12)
-            num1 = num2 * random.randint(10, 15)
-        else:  # Maître
-            num2 = random.randint(10, 20)
-            num1 = num2 * random.randint(15, 25)
+        limits = type_limits
+        min_result = limits.get("min_result", 1)
+        max_result = limits.get("max_result", 5)
+        min_divisor = limits.get("min_divisor", 2)
+        max_divisor = limits.get("max_divisor", 5)
+        
+        # Générer d'abord le diviseur et le résultat pour assurer une division exacte
+        num2 = random.randint(min_divisor, max_divisor)  # diviseur
+        result = random.randint(min_result, max_result)  # quotient
+        num1 = num2 * result  # dividende
 
-        result = num1 // num2
-        question = f"Combien font {num1} ÷ {num2}?"
+        question = ExerciseMessages.QUESTION_DIVISION.format(num1=num1, num2=num2)
         correct_answer = str(result)
         choices = [str(result), str(result-1), str(result+1), str(result+num2//2)]
         random.shuffle(choices)
 
         return {
-            "title": "Division de nombres",
-            "exercise_type": exercise_type,
-            "difficulty": difficulty,
+            "title": ExerciseMessages.TITLE_DIVISION,
+            "exercise_type": normalized_type,
+            "difficulty": normalized_difficulty,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
-            "tags": "algorithmique,simple"
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE
         }
 
     else:
-        # Par défaut, faire une addition
-        num1 = random.randint(1, 10)
-        num2 = random.randint(1, 10)
+        # Par défaut, faire une addition si le type n'est pas reconnu
+        min_val, max_val = 1, 10
+        num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
+        
         result = num1 + num2
-        question = f"Combien font {num1} + {num2}?"
+        question = ExerciseMessages.QUESTION_ADDITION.format(num1=num1, num2=num2)
         correct_answer = str(result)
         choices = [str(result), str(result-1), str(result+1), str(result+2)]
         random.shuffle(choices)
 
         return {
-            "title": "Exercice de calcul",
-            "exercise_type": "addition",
-            "difficulty": difficulty,
+            "title": ExerciseMessages.TITLE_DEFAULT,
+            "exercise_type": ExerciseTypes.ADDITION,
+            "difficulty": normalized_difficulty,
             "question": question,
             "correct_answer": correct_answer,
             "choices": choices,
-            "tags": "algorithmique,simple"
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE
         }
 
 async def submit_answer(request):

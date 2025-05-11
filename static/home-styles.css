@@ -1,4 +1,6 @@
 /* Styles pour la page d'accueil - Mathakine Itération 3 */
+@import 'variables.css';
+
 .hero-section {
     position: relative;
     background: linear-gradient(to bottom, #0a0a1a, #16213e);
