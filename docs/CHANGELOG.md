@@ -5,12 +5,29 @@ Ce fichier documente toutes les modifications notables apportées au projet Math
 ## [Unreleased]
 
 ### Ajouts
+- ✅ Gestion unifiée des suppressions en cascade avec SQLAlchemy pour tous les modèles
+- ✅ Nouveaux endpoints de suppression API pour les utilisateurs, exercices et défis logiques
+- ✅ Scripts de sécurité pour les migrations Alembic en production (`alembic_backup.py`, `safe_migrate.py`, `restore_from_backup.py`)
+- ✅ Script de vérification des migrations (`pre_commit_migration_check.py`)
+- ✅ Documentation détaillée pour les suppressions en cascade et la sécurité des migrations Alembic
+- ✅ Amélioration de la documentation OpenAPI (Swagger) pour tous les endpoints
+
+### Modifications
+- 🔄 Refactorisation des relations entre les modèles SQLAlchemy avec cascade="all, delete-orphan"
+- 🔄 Standardisation des opérations de suppression dans tous les endpoints API
+- 🔄 Personnalisation de l'interface Swagger UI et ReDoc
+
+### Corrections
+- 🐛 Correction des potentielles fuites de mémoire lors des suppressions d'entités
+- 🐛 Prévention des erreurs d'intégrité référentielle dans la base de données
+
+## [0.3.1] - 2025-05-11
+
+### Ajouts
 - ✅ Implémentation d'Alembic pour la gestion des migrations de base de données
 - ✅ Scripts utilitaires pour faciliter les migrations (`init_alembic.py`, `generate_migration.py`, `alembic_demo.py`)
 - ✅ Documentation complète du processus de migration (docs/ALEMBIC.md)
 - ✅ Configuration spéciale pour préserver les tables héritées (results, statistics, user_stats, schema_version)
-
-## [0.3.1] - 2025-05-11
 
 ### Corrections
 - 🐛 Correction du problème d'insertion dans la table `results` lors de la validation des exercices
@@ -19,9 +36,12 @@ Ce fichier documente toutes les modifications notables apportées au projet Math
 
 ## [0.3.0] - 2025-05-01
 
+### Ajouts
+- ✅ Implémentation d'Alembic pour la gestion des migrations de base de données
+- ✅ Scripts utilitaires pour faciliter les migrations (`init_alembic.py`, `generate_migration.py`, `alembic_demo.py`)
+- ✅ Documentation complète du processus de migration (docs/ALEMBIC.md)
+- ✅ Configuration spéciale pour préserver les tables héritées (results, statistics, user_stats, schema_version)
 
-
-#
 ## [0.2.0] - 2024-09-08
 
 ### Ajouts

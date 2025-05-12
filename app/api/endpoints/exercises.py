@@ -1,21 +1,29 @@
 """
 Endpoints API pour la gestion des exercices
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from sqlalchemy.orm import Session
-from typing import Any, List, Optional, Dict
+from typing import Any, List, Dict, Optional
 from fastapi.responses import RedirectResponse
 import random
 import logging
+import uuid
+import json
+import os
+import time
+from datetime import datetime, timezone
 
-from app.api.deps import get_db_session
+from app.api.deps import get_db_session, get_current_gardien_or_archiviste, get_current_user
 from app.schemas.exercise import Exercise, ExerciseCreate, ExerciseUpdate
-from app.schemas.common import PaginationParams
+from app.models.user import User
 from app.models.exercise import DifficultyLevel, ExerciseType
-
-# Import des constantes centralisées
-from app.core.constants import ExerciseTypes, DifficultyLevels, DISPLAY_NAMES, DIFFICULTY_LIMITS, Messages, Tags
+from app.schemas.common import PaginationParams
+from app.core.constants import ExerciseTypes, DifficultyLevels, Messages, Tags
 from app.core.messages import SystemMessages, ExerciseMessages, InterfaceTexts
+from app.core.logging_config import get_logger
+
+# Logger pour ce module
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -138,21 +146,74 @@ def create_exercise(
     *,
     db: Session = Depends(get_db_session),
     exercise_in: ExerciseCreate,
+    current_user: User = Depends(get_current_user)
 ) -> Any:
     """
     Créer un nouvel exercice.
     """
-    # Placeholder function - implement actual exercise creation
-    return {
-        "id": 0,
-        "title": exercise_in.title,
-        "exercise_type": exercise_in.exercise_type,
-        "difficulty": exercise_in.difficulty,
-        "question": exercise_in.question,
-        "correct_answer": exercise_in.correct_answer,
-        "choices": exercise_in.choices,
-        "is_active": True
-    }
+    from app.models.exercise import Exercise as ExerciseModel
+    
+    # Créer un nouvel exercice dans la base de données
+    try:
+        # Créer l'objet modèle
+        new_exercise = ExerciseModel(
+            title=exercise_in.title,
+            exercise_type=exercise_in.exercise_type,
+            difficulty=exercise_in.difficulty,
+            question=exercise_in.question,
+            correct_answer=exercise_in.correct_answer,
+            choices=exercise_in.choices,
+            creator_id=current_user.id if current_user else None,
+            is_active=True,
+            is_archived=False,
+            view_count=0
+        )
+        
+        # Ajouter les champs optionnels s'ils sont présents
+        if hasattr(exercise_in, "explanation") and exercise_in.explanation:
+            new_exercise.explanation = exercise_in.explanation
+        
+        if hasattr(exercise_in, "hint") and exercise_in.hint:
+            new_exercise.hint = exercise_in.hint
+            
+        if hasattr(exercise_in, "image_url") and exercise_in.image_url:
+            new_exercise.image_url = exercise_in.image_url
+            
+        if hasattr(exercise_in, "audio_url") and exercise_in.audio_url:
+            new_exercise.audio_url = exercise_in.audio_url
+            
+        # Ajouter et valider en base de données
+        db.add(new_exercise)
+        db.commit()
+        db.refresh(new_exercise)
+        
+        # Convertir en dictionnaire pour correspondre au schéma de réponse
+        return {
+            "id": new_exercise.id,
+            "title": new_exercise.title,
+            "exercise_type": new_exercise.exercise_type,
+            "difficulty": new_exercise.difficulty,
+            "question": new_exercise.question,
+            "correct_answer": new_exercise.correct_answer,
+            "choices": new_exercise.choices,
+            "is_active": new_exercise.is_active,
+            "is_archived": new_exercise.is_archived,
+            "view_count": new_exercise.view_count,
+            "creator_id": new_exercise.creator_id,
+            "created_at": new_exercise.created_at.isoformat() if new_exercise.created_at else None,
+            "updated_at": new_exercise.updated_at.isoformat() if new_exercise.updated_at else None,
+            "explanation": new_exercise.explanation,
+            "hint": new_exercise.hint,
+            "image_url": new_exercise.image_url,
+            "audio_url": new_exercise.audio_url
+        }
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Erreur lors de la création de l'exercice: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors de la création de l'exercice: {str(e)}"
+        )
 
 
 @router.get("/random", response_model=Exercise)
@@ -897,26 +958,40 @@ async def submit_exercise(
     )
 
 
-@router.delete("/{exercise_id}", status_code=204)
+@router.delete("/{exercise_id}", status_code=204,
+               summary="Archiver un exercice",
+               description="Archive un exercice et conserve toutes ses données associées. Nécessite les droits de Gardien ou d'Archiviste.")
 
 
 def delete_exercise(
     *,
     db: Session = Depends(get_db_session),
     exercise_id: int,
+    current_user: User = Depends(get_current_gardien_or_archiviste)
 ) -> None:
     """
-    Supprimer un exercice par ID.
+    Archive un exercice par ID (marque comme supprimé sans suppression physique).
+    
+    Cette opération marque l'exercice comme archivé (is_archived = true) mais conserve 
+    toutes les données associées dans la base de données. L'exercice n'apparaîtra plus
+    dans les résultats de recherche standard mais peut être récupéré si nécessaire.
+    
+    Nécessite un utilisateur avec le rôle Gardien ou Archiviste.
+    
+    - **exercise_id**: ID de l'exercice à archiver
+    
+    Retourne un code 204 (No Content) en cas de succès.
+    
+    Génère une erreur 404 si l'exercice n'existe pas.
+    Génère une erreur 500 en cas de problème lors de l'archivage.
     """
     from app.models.exercise import Exercise as ExerciseModel
-    from app.models.attempt import Attempt as AttemptModel
     from sqlalchemy.exc import SQLAlchemyError
     import logging
     import traceback
-    from sqlalchemy import text
 
     logger = logging.getLogger(__name__)
-    logger.info(f"Tentative de suppression de l'exercice {exercise_id}")
+    logger.info(f"Tentative d'archivage de l'exercice {exercise_id}")
 
     try:
         # Vérifier si l'exercice existe
@@ -931,43 +1006,112 @@ def delete_exercise(
                 detail="Exercice non trouvé"
             )
 
-        # Utiliser des requêtes SQL brutes pour éviter les problèmes de types PostgreSQL
-        try:
-            # Une transaction est déjà démarrée implicitement par SQLAlchemy
-
-            # 1. Supprimer d'abord les tentatives associées
-            logger.info(f"Suppression des tentatives associées à l'exercice {exercise_id}")
-            db.execute(text("DELETE FROM attempts WHERE exercise_id = :exercise_id"),
-                      {"exercise_id": exercise_id})
-
-            # 2. Supprimer l'exercice
-            logger.info(f"Suppression de l'exercice {exercise_id}")
-            db.execute(text("DELETE FROM exercises WHERE id = :exercise_id"),
-                      {"exercise_id": exercise_id})
-
-            # Valider la transaction
-            db.commit()
-            logger.info(f"Exercice {exercise_id} supprimé avec succès")
-
-            return None
-
-        except SQLAlchemyError as sqla_error:
+        # Marquer l'exercice comme archivé au lieu de le supprimer physiquement
+        exercise.is_archived = True
+        exercise.updated_at = datetime.now(timezone.utc)
+        db.commit()
+        
+        # Vérifier que l'exercice a bien été marqué comme archivé
+        db.refresh(exercise)
+        if not exercise.is_archived:
             db.rollback()
-            error_msg = str(sqla_error)
-            stack_trace = traceback.format_exc()
-            logger.error(f"Erreur SQL lors de la suppression: {error_msg}")
-            logger.error(f"Stack trace: {stack_trace}")
+            logger.error(f"Exercice {exercise_id} n'a pas été correctement archivé")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Erreur de base de données: {error_msg}"
+                detail="L'exercice n'a pas été correctement archivé"
             )
+        
+        logger.info(f"Exercice {exercise_id} archivé avec succès")
+        return None
 
-    except Exception as e:
+    except SQLAlchemyError as sqla_error:
         db.rollback()
+        error_msg = str(sqla_error)
         stack_trace = traceback.format_exc()
-        logger.error(f"Erreur lors de la suppression de l'exercice {exercise_id}: {str(e)}")
+        logger.error(f"Erreur SQL lors de l'archivage: {error_msg}")
         logger.error(f"Stack trace: {stack_trace}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors de la suppression de l'exercice: {str(e)}"
+            detail=f"Erreur de base de données: {error_msg}"
+        )
+    except Exception as e:
+        db.rollback()
+        stack_trace = traceback.format_exc()
+        logger.error(f"Erreur lors de l'archivage de l'exercice {exercise_id}: {str(e)}")
+        logger.error(f"Stack trace: {stack_trace}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors de l'archivage de l'exercice: {str(e)}"
+        )
+
+
+@router.post("/{exercise_id}/attempt", response_model=dict)
+def attempt_exercise(
+    exercise_id: int,
+    attempt_data: dict,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Enregistrer une tentative pour un exercice spécifique.
+    
+    - **exercise_id**: ID de l'exercice
+    - **attempt_data**: Données de la tentative (user_answer, time_spent)
+    
+    Retourne les informations sur la tentative, notamment si la réponse est correcte.
+    """
+    from app.models.exercise import Exercise as ExerciseModel
+    from app.models.attempt import Attempt as AttemptModel
+    
+    # Vérifier si l'exercice existe
+    exercise = db.query(ExerciseModel).filter(
+        ExerciseModel.id == exercise_id
+    ).first()
+    
+    if not exercise:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Exercice non trouvé"
+        )
+    
+    # Extraire les données de la tentative
+    user_answer = attempt_data.get("user_answer", "")
+    time_spent = attempt_data.get("time_spent", None)
+    
+    # Vérifier si la réponse est correcte
+    is_correct = user_answer == exercise.correct_answer
+    
+    # Créer une nouvelle tentative en base de données
+    try:
+        attempt = AttemptModel(
+            user_id=current_user.id,
+            exercise_id=exercise_id,
+            user_answer=user_answer,
+            is_correct=is_correct,
+            time_spent=time_spent
+        )
+        
+        db.add(attempt)
+        db.commit()
+        
+        # Préparer la réponse
+        response = {
+            "id": attempt.id,
+            "is_correct": is_correct,
+            "correct_answer": exercise.correct_answer,
+            "user_answer": user_answer,
+            "time_spent": time_spent,
+            "exercise_id": exercise_id,
+            "user_id": current_user.id,
+            "created_at": attempt.created_at.isoformat() if attempt.created_at else None
+        }
+        
+        return response
+        
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Erreur lors de l'enregistrement de la tentative: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Erreur lors de l'enregistrement de la tentative: {str(e)}"
         )

@@ -701,72 +701,90 @@ def generate_ai_exercise(exercise_type, difficulty):
     explanation_suffix = random.choice(StarWarsNarratives.EXPLANATION_SUFFIXES)
     
     if normalized_type == ExerciseTypes.ADDITION:
-        min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
-        num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
+        # Utiliser les limites de difficulté pour déterminer les plages de nombres
+        min_val = type_limits.get("min", 1)
+        max_val = type_limits.get("max", 10)
+        
+        num1 = random.randint(min_val, max_val)
+        num2 = random.randint(min_val, max_val)
         result = num1 + num2
         
-        # Modèles de question d'addition avec thématique Star Wars
-        addition_templates = [
-            # Format: (question, explication)
-            (
-                f"Sur la planète {random.choice(StarWarsNarratives.LOCATIONS)}, {random.choice(StarWarsNarratives.CHARACTERS)} a trouvé {num1} {random.choice(StarWarsNarratives.OBJECTS)}. Plus tard, il en trouve encore {num2}. Combien de {random.choice(StarWarsNarratives.OBJECTS)} a-t-il maintenant?",
-                f"Au début, il y avait {num1} objets, puis {num2} autres ont été ajoutés. Pour résoudre ce problème d'addition, il faut calculer {num1} + {num2}, ce qui donne {result} objets au total."
-            ),
-            (
-                f"{random.choice(StarWarsNarratives.CHARACTERS)} a capturé {num1} {random.choice(StarWarsNarratives.OBJECTS)} lors d'une mission sur {random.choice(StarWarsNarratives.LOCATIONS)}. {random.choice(StarWarsNarratives.CHARACTERS)} lui en donne {num2} de plus. Combien en a-t-il au total?",
-                f"Ce problème d'addition consiste à ajouter les {num1} objets initiaux aux {num2} nouveaux objets. Le calcul est donc {num1} + {num2} = {result}."
-            ),
-            (
-                f"Une escouade de {num1} stormtroopers patrouille sur {random.choice(StarWarsNarratives.LOCATIONS)}. Ils sont rejoints par {num2} autres stormtroopers. Combien sont-ils maintenant?",
-                f"Pour résoudre ce problème, nous devons additionner le nombre initial de stormtroopers ({num1}) au nombre de renforts ({num2}). Cela nous donne {num1} + {num2} = {result} stormtroopers au total."
-            )
-        ]
+        # Thème Star Wars pour l'addition
+        if normalized_difficulty == DifficultyLevels.INITIE:
+            question_template = random.choice([
+                f"Tu as trouvé {num1} cristaux Kyber et ton ami en a trouvé {num2}. Combien avez-vous de cristaux au total?",
+                f"Il y a {num1} droïdes dans le hangar et {num2} droïdes dans l'atelier. Combien y a-t-il de droïdes en tout?",
+                f"Tu as parcouru {num1} parsecs hier et {num2} parsecs aujourd'hui. Quelle distance as-tu parcourue en tout?"
+            ])
+            explanation_template = f"Pour trouver la réponse, tu dois additionner {num1} et {num2}, ce qui donne {result}."
+        else:
+            question_template = random.choice([
+                f"Un escadron de {num1} X-wings et un escadron de {num2} Y-wings se préparent pour attaquer l'Étoile de la Mort. Combien de vaisseaux y a-t-il au total?",
+                f"L'Empire a envoyé {num1} stormtroopers sur Endor et {num2} stormtroopers sur Hoth. Combien de stormtroopers ont été déployés en tout?",
+                f"Un destroyer stellaire contient {num1} TIE fighters et {num2} navettes. Combien de vaisseaux sont à bord au total?"
+            ])
+            explanation_template = f"Pour calculer le total, on additionne les deux nombres: {num1} + {num2} = {result}."
         
-        question_template, explanation_template = random.choice(addition_templates)
+        # Générer des choix proches mais différents
+        choices = [
+            str(result),
+            str(result + random.randint(1, min(10, max_val//2))),
+            str(result - random.randint(1, min(5, max_val//3))),
+            str(num1 * num2)  # Distraction: multiplication au lieu d'addition
+        ]
+        random.shuffle(choices)
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Aventure spatiale - Addition niveau {difficulty}",
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Alliance Rebelle - Addition niveau {difficulty}",
             "question": question_template,
             "correct_answer": str(result),
+            "choices": choices,
             "num1": num1,
             "num2": num2,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
         
     elif normalized_type == ExerciseTypes.SUBTRACTION:
-        limits = type_limits
-        num1 = random.randint(limits.get("min1", 5), limits.get("max1", 20))
-        num2 = random.randint(limits.get("min2", 1), limits.get("max2", 5))
+        # Paramètres pour la soustraction avec des limites adaptatives
+        min1 = type_limits.get("min1", 5)
+        max1 = type_limits.get("max1", 20)
+        min2 = type_limits.get("min2", 1)
+        max2 = type_limits.get("max2", 5)
         
-        # Assurer que num1 > num2 pour éviter les résultats négatifs
-        if num1 < num2:
-            num1, num2 = num2, num1
-            
+        num1 = random.randint(min1, max1)
+        num2 = random.randint(min2, min(num1-1, max2))  # Eviter les soustractions avec résultat négatif
         result = num1 - num2
         
-        # Modèles de question de soustraction avec thématique Star Wars
-        subtraction_templates = [
-            # Format: (question, explication)
-            (
-                f"Le Destroyer Impérial avait {num1} chasseurs TIE. Après une bataille contre les rebelles, {num2} ont été détruits. Combien de chasseurs TIE reste-t-il?",
-                f"Initialement, l'Empire disposait de {num1} chasseurs. Suite à la bataille, {num2} ont été perdus. Pour calculer ceux qui restent, on effectue la soustraction {num1} - {num2} = {result} chasseurs TIE."
-            ),
-            (
-                f"{random.choice(StarWarsNarratives.CHARACTERS)} possédait {num1} {random.choice(StarWarsNarratives.OBJECTS)}. Malheureusement, {num2} ont été volés par des pillards Jawas sur {random.choice(StarWarsNarratives.LOCATIONS)}. Combien lui reste-t-il de {random.choice(StarWarsNarratives.OBJECTS)}?",
-                f"Dans ce problème de soustraction, nous commençons avec {num1} objets puis nous en perdons {num2}. L'opération mathématique est {num1} - {num2} = {result}."
-            ),
-            (
-                f"Une flotte de {num1} vaisseaux rebelles affronte l'Empire. Après la bataille, {num2} vaisseaux sont détruits. Combien de vaisseaux rebelles ont survécu?",
-                f"Pour résoudre ce problème, nous devons soustraire le nombre de vaisseaux détruits ({num2}) du nombre initial ({num1}). Le calcul est {num1} - {num2} = {result} vaisseaux survivants."
-            )
-        ]
+        # Thème Star Wars pour la soustraction
+        if normalized_difficulty == DifficultyLevels.INITIE:
+            question_template = random.choice([
+                f"Tu as {num1} portions de rations, mais tu en as utilisé {num2}. Combien de portions te reste-t-il?",
+                f"Il y avait {num1} droïdes dans le hangar, mais {num2} ont été envoyés en mission. Combien reste-t-il de droïdes?",
+                f"Tu as parcouru {num1} années-lumière, mais il te reste encore {num2} années-lumière à faire. Quelle distance as-tu déjà parcourue?"
+            ])
+            explanation_template = f"Pour trouver la réponse, tu dois soustraire {num2} de {num1}, ce qui donne {result}."
+        else:
+            question_template = random.choice([
+                f"La flotte rebelle comptait {num1} vaisseaux, mais {num2} ont été détruits dans la bataille. Combien de vaisseaux reste-t-il?",
+                f"L'Empire avait {num1} planètes sous son contrôle, mais {num2} se sont rebellées. Combien de planètes restent loyales?",
+                f"Le Faucon Millenium a {num1} pièces de contrebande, mais {num2} sont confisquées par les Impériaux. Combien de pièces reste-t-il?"
+            ])
+            explanation_template = f"Pour calculer ce qui reste, on soustrait: {num1} - {num2} = {result}."
         
-        question_template, explanation_template = random.choice(subtraction_templates)
+        # Générer des choix proches mais différents
+        choices = [
+            str(result),
+            str(result + random.randint(1, min(5, max2))),
+            str(result - random.randint(1, min(3, result//2))),
+            str(num2 - num1)  # Erreur commune: inverser l'ordre de la soustraction
+        ]
+        random.shuffle(choices)
         
         exercise_data.update({
             "title": f"[{Messages.AI_EXERCISE_PREFIX}] Conflit galactique - Soustraction niveau {difficulty}",
             "question": question_template,
             "correct_answer": str(result),
+            "choices": choices,
             "num1": num1,
             "num2": num2,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
@@ -774,38 +792,43 @@ def generate_ai_exercise(exercise_type, difficulty):
         
     elif normalized_type == ExerciseTypes.MULTIPLICATION:
         # Utiliser des limites adaptées pour la multiplication
-        if normalized_difficulty == DifficultyLevels.INITIE:
-            num1 = random.randint(2, 5)
-            num2 = random.randint(2, 5)
-        else:
-            num1 = random.randint(type_limits.get("min", 2), type_limits.get("max", 10))
-            num2 = random.randint(type_limits.get("min", 2), type_limits.get("max", 10))
+        min_val = type_limits.get("min", 2)
+        max_val = type_limits.get("max", 10)
         
+        num1 = random.randint(min_val, max_val)
+        num2 = random.randint(min_val, max_val)
         result = num1 * num2
         
-        # Modèles de question de multiplication avec thématique Star Wars
-        multiplication_templates = [
-            # Format: (question, explication)
-            (
-                f"Chaque Jedi du Temple possède {num2} cristaux kyber pour construire ses sabres laser. S'il y a {num1} Jedi, combien de cristaux kyber sont nécessaires au total?",
-                f"Ce problème demande de calculer le nombre total de cristaux pour tous les Jedi. Chaque Jedi ayant {num2} cristaux, et comme il y a {num1} Jedi, nous devons faire la multiplication {num1} × {num2} = {result} cristaux au total."
-            ),
-            (
-                f"Sur {random.choice(StarWarsNarratives.LOCATIONS)}, chaque escadron compte {num2} X-wings. Si la Résistance dispose de {num1} escadrons, combien de X-wings cela représente-t-il?",
-                f"Pour trouver le nombre total de vaisseaux, nous multiplions le nombre d'escadrons ({num1}) par le nombre de X-wings dans chaque escadron ({num2}). Donc {num1} × {num2} = {result} X-wings au total."
-            ),
-            (
-                f"Un stormtrooper transporte {num2} blasters. Combien de blasters sont transportés par {num1} stormtroopers?",
-                f"Dans ce problème de multiplication, nous calculons combien d'objets sont portés au total. Avec {num2} blasters par stormtrooper et {num1} stormtroopers, la multiplication est {num1} × {num2} = {result} blasters au total."
-            )
-        ]
+        # Thème Star Wars pour la multiplication
+        if normalized_difficulty == DifficultyLevels.INITIE:
+            question_template = random.choice([
+                f"Chaque Padawan a {num2} cristaux Kyber. S'il y a {num1} Padawans, combien de cristaux y a-t-il au total?",
+                f"Chaque droïde astromech a {num2} outils. Combien d'outils ont {num1} droïdes au total?",
+                f"Chaque module de formation a {num2} exercices. Combien d'exercices y a-t-il dans {num1} modules?"
+            ])
+            explanation_template = f"Pour trouver le total, tu dois multiplier le nombre de {num1} par {num2}, ce qui donne {result}."
+        else:
+            question_template = random.choice([
+                f"Chaque escadron comprend {num2} X-wings. Combien de X-wings y a-t-il dans {num1} escadrons?",
+                f"Chaque Star Destroyer transporte {num2} TIE Fighters. Combien de TIE Fighters y a-t-il sur {num1} Star Destroyers?",
+                f"Chaque secteur contient {num2} systèmes stellaires. Combien de systèmes y a-t-il dans {num1} secteurs?"
+            ])
+            explanation_template = f"Pour calculer le total, on multiplie: {num1} × {num2} = {result}."
         
-        question_template, explanation_template = random.choice(multiplication_templates)
+        # Générer des choix proches mais différents
+        choices = [
+            str(result),
+            str(result + num1),  # Erreur: une fois de trop
+            str(result - num2),  # Erreur: une fois de moins
+            str(num1 + num2)  # Erreur: addition au lieu de multiplication
+        ]
+        random.shuffle(choices)
         
         exercise_data.update({
             "title": f"[{Messages.AI_EXERCISE_PREFIX}] Forces galactiques - Multiplication niveau {difficulty}",
             "question": question_template,
             "correct_answer": str(result),
+            "choices": choices,
             "num1": num1,
             "num2": num2,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
@@ -813,92 +836,91 @@ def generate_ai_exercise(exercise_type, difficulty):
         
     elif normalized_type == ExerciseTypes.DIVISION:
         # Générer une division avec reste nul
-        divisor_range = type_limits.get("divisor_range", (2, 10))
-        result_range = type_limits.get("result_range", (1, 10))
+        min_divisor = type_limits.get("min_divisor", 2)
+        max_divisor = type_limits.get("max_divisor", 10)
+        min_result = type_limits.get("min_result", 1)
+        max_result = type_limits.get("max_result", 10)
         
         # Pour assurer une division sans reste, on génère d'abord le diviseur et le quotient
-        num2 = random.randint(divisor_range[0], divisor_range[1])  # diviseur
-        result = random.randint(result_range[0], result_range[1])  # quotient
+        num2 = random.randint(min_divisor, max_divisor)  # diviseur
+        result = random.randint(min_result, max_result)  # quotient
         num1 = num2 * result  # dividende
         
-        # Modèles de question de division avec thématique Star Wars
-        division_templates = [
-            # Format: (question, explication)
-            (
-                f"{num1} jeunes Padawans doivent être répartis en groupes de {num2} pour s'entraîner avec différents Maîtres Jedi. Combien de groupes seront formés?",
-                f"Pour résoudre ce problème, nous devons diviser le nombre total de Padawans ({num1}) par la taille de chaque groupe ({num2}). Le calcul est {num1} ÷ {num2} = {result} groupes."
-            ),
-            (
-                f"La Résistance a récupéré {num1} caisses de provisions qui doivent être réparties équitablement entre {num2} bases sur différentes planètes. Combien de caisses chaque base recevra-t-elle?",
-                f"Il s'agit d'une division où nous partageons {num1} caisses entre {num2} bases. En effectuant {num1} ÷ {num2}, nous obtenons {result} caisses par base."
-            ),
-            (
-                f"{num1} stormtroopers sont divisés en escouades de {num2}. Combien d'escouades complètes peuvent être formées?",
-                f"Pour déterminer le nombre d'escouades, nous divisons le nombre total de stormtroopers ({num1}) par le nombre de stormtroopers par escouade ({num2}). Le calcul est donc {num1} ÷ {num2} = {result} escouades."
-            )
-        ]
+        # Thème Star Wars pour la division
+        if normalized_difficulty == DifficultyLevels.INITIE:
+            question_template = random.choice([
+                f"Tu as {num1} cristaux Kyber à distribuer équitablement entre {num2} Padawans. Combien de cristaux chaque Padawan recevra-t-il?",
+                f"Il y a {num1} droïdes à répartir dans {num2} hangars. Combien de droïdes y aura-t-il dans chaque hangar?",
+                f"Tu dois parcourir {num1} parsecs en {num2} jours. Combien de parsecs dois-tu parcourir chaque jour?"
+            ])
+            explanation_template = f"Pour trouver la réponse, tu dois diviser {num1} par {num2}, ce qui donne {result}."
+        else:
+            question_template = random.choice([
+                f"L'Alliance a {num1} soldats à répartir équitablement dans {num2} bases. Combien de soldats seront affectés à chaque base?",
+                f"L'Empire a fabriqué {num1} blasters qui doivent être distribués à {num2} escouades. Combien de blasters chaque escouade recevra-t-elle?",
+                f"Un convoi de {num1} containers doit être réparti sur {num2} vaisseaux de transport. Combien de containers chaque vaisseau transportera-t-il?"
+            ])
+            explanation_template = f"Pour calculer le résultat, on divise: {num1} ÷ {num2} = {result}."
         
-        question_template, explanation_template = random.choice(division_templates)
+        # Générer des choix proches mais différents
+        choices = [
+            str(result),
+            str(result + random.randint(1, min(5, result))),
+            str(result - random.randint(1, min(3, result - 1) if result > 1 else 1)),
+            str(num1 // (num2 + random.randint(1, 3)))  # Diviseur légèrement différent
+        ]
+        random.shuffle(choices)
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Tactique impériale - Division niveau {difficulty}",
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Stratégie galactique - Division niveau {difficulty}",
             "question": question_template,
             "correct_answer": str(result),
+            "choices": choices,
+            "num1": num1,
+            "num2": num2,
+            "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
+        })
+        
+    else:
+        # Par défaut, générer une addition si le type n'est pas reconnu
+        min_val = type_limits.get("min", 1)
+        max_val = type_limits.get("max", 10)
+        
+        num1 = random.randint(min_val, max_val)
+        num2 = random.randint(min_val, max_val)
+        result = num1 + num2
+        
+        question_template = f"Tu as trouvé {num1} cristaux Kyber et ton ami en a trouvé {num2}. Combien avez-vous de cristaux au total?"
+        explanation_template = f"Pour trouver la réponse, tu dois additionner {num1} et {num2}, ce qui donne {result}."
+        
+        choices = [str(result), str(result-1), str(result+1), str(result+2)]
+        random.shuffle(choices)
+        
+        exercise_data.update({
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Défaut - Addition niveau {difficulty}",
+            "question": question_template,
+            "correct_answer": str(result),
+            "choices": choices,
             "num1": num1,
             "num2": num2,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
     
-    else:
-        # Par défaut, création d'un exercice d'addition
-        min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
-        num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
-        result = num1 + num2
-        
-        character = random.choice(StarWarsNarratives.CHARACTERS)
-        object_type = random.choice(StarWarsNarratives.OBJECTS)
-        location = random.choice(StarWarsNarratives.LOCATIONS)
-        
-        question = f"{character} a trouvé {num1} {object_type} sur {location}. Plus tard, il en trouve encore {num2}. Combien de {object_type} a-t-il maintenant?"
-        explanation = f"Au début, {character} avait {num1} {object_type}, puis a trouvé {num2} autres. Pour résoudre ce problème d'addition, il faut calculer {num1} + {num2} = {result} {object_type} au total."
-        
-        exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Aventure sur {location} - Addition niveau {difficulty}",
-            "question": question,
-            "correct_answer": str(result),
-            "num1": num1,
-            "num2": num2,
-            "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation} {explanation_suffix}"
-        })
-    
-    # Générer des choix pertinents en fonction du résultat
-    result_int = int(result)
-    choices = [str(result_int)]
-    
-    # Ajouter des erreurs typiques en fonction du type d'exercice
-    if normalized_type == ExerciseTypes.ADDITION:
-        choices.extend([str(result_int + 1), str(result_int - 1), str(num1 * num2)])
-    elif normalized_type == ExerciseTypes.SUBTRACTION:
-        choices.extend([str(result_int + 1), str(result_int - 1), str(num2 - num1 if num2 > num1 else 1)])
-    elif normalized_type == ExerciseTypes.MULTIPLICATION:
-        choices.extend([str(result_int + num1), str(result_int - num2), str(num1 + num2)])
-    elif normalized_type == ExerciseTypes.DIVISION:
-        choices.extend([str(result_int + 1), str(result_int - 1), str(num1 // (num2+1) if num2 < num1 else 1)])
-    
-    # Assurer au moins 4 choix uniques
-    while len(set(choices)) < 4:
-        new_choice = str(result_int + random.randint(-10, 10))
-        if new_choice != str(result_int) and int(new_choice) > 0:
+    # S'assurer que tous les choix sont uniques
+    choices = list(set(exercise_data.get("choices", [])))
+    while len(choices) < 4:
+        new_choice = str(int(exercise_data["correct_answer"]) + random.randint(-10, 10))
+        if new_choice != exercise_data["correct_answer"] and new_choice not in choices and int(new_choice) > 0:
             choices.append(new_choice)
     
-    # Limiter à 4 choix et mélanger
-    choices = list(set(choices))[:4]
-    if str(result_int) not in choices:
-        choices[0] = str(result_int)
-    random.shuffle(choices)
+    # Limiter à 4 choix maximum
+    if len(choices) > 4:
+        # S'assurer que la bonne réponse est incluse
+        if exercise_data["correct_answer"] not in choices[:4]:
+            choices[3] = exercise_data["correct_answer"]
+        choices = choices[:4]
     
     exercise_data["choices"] = choices
-    
     return exercise_data
 
 
@@ -930,7 +952,16 @@ def generate_simple_exercise(exercise_type, difficulty):
         result = num1 + num2
         question = ExerciseMessages.QUESTION_ADDITION.format(num1=num1, num2=num2)
         correct_answer = str(result)
-        choices = [str(result), str(result-1), str(result+1), str(result+2)]
+        
+        # Générer des choix proches mais différents selon la difficulté
+        error_margin = max(1, min(int(max_val * 0.1), 10))  # Marge d'erreur proportionnelle à la difficulté
+        
+        choices = [
+            str(result),  # Bonne réponse
+            str(result + random.randint(1, error_margin)),
+            str(result - random.randint(1, error_margin)),
+            str(num1 * num2) if num1 * num2 != result else str(result + error_margin + 1)  # Distraction: multiplication
+        ]
         random.shuffle(choices)
 
         exercise_data.update({
@@ -949,16 +980,21 @@ def generate_simple_exercise(exercise_type, difficulty):
         # Génération d'une soustraction
         limits = type_limits
         num1 = random.randint(limits.get("min1", 5), limits.get("max1", 20))
-        num2 = random.randint(limits.get("min2", 1), limits.get("max2", 5))
-
-        # Assurer que num1 > num2 pour éviter les résultats négatifs
-        if num1 < num2:
-            num1, num2 = num2, num1
+        num2 = random.randint(limits.get("min2", 1), min(num1-1, limits.get("max2", 5)))  # Assurer num2 < num1
 
         result = num1 - num2
         question = ExerciseMessages.QUESTION_SUBTRACTION.format(num1=num1, num2=num2)
         correct_answer = str(result)
-        choices = [str(result), str(result-1), str(result+1), str(result+2)]
+        
+        # Générer des choix proches mais différents selon la difficulté
+        error_margin = max(1, min(int(limits.get("max2", 5) * 0.2), 10))
+        
+        choices = [
+            str(result),  # Bonne réponse
+            str(result + random.randint(1, error_margin)),
+            str(result - random.randint(1, min(error_margin, result-1) if result > 1 else 1)),
+            str(num2 - num1) if num2 > num1 else str(result + error_margin + 2)  # Erreur: inversion de l'ordre
+        ]
         random.shuffle(choices)
 
         exercise_data.update({
@@ -981,7 +1017,14 @@ def generate_simple_exercise(exercise_type, difficulty):
         result = num1 * num2
         question = ExerciseMessages.QUESTION_MULTIPLICATION.format(num1=num1, num2=num2)
         correct_answer = str(result)
-        choices = [str(result), str(result-num1), str(result+num1), str(result+num2)]
+        
+        # Générer des choix proches mais différents selon la difficulté
+        choices = [
+            str(result),  # Bonne réponse
+            str(result + num1),  # Erreur: une fois de trop
+            str(result - num2),  # Erreur: une fois de moins
+            str(num1 + num2)  # Erreur: addition au lieu de multiplication
+        ]
         random.shuffle(choices)
 
         exercise_data.update({
@@ -999,10 +1042,10 @@ def generate_simple_exercise(exercise_type, difficulty):
     elif normalized_type == ExerciseTypes.DIVISION:
         # Génération d'une division
         limits = type_limits
-        min_result = limits.get("min_result", 1)
-        max_result = limits.get("max_result", 5)
         min_divisor = limits.get("min_divisor", 2)
         max_divisor = limits.get("max_divisor", 5)
+        min_result = limits.get("min_result", 1)
+        max_result = limits.get("max_result", 5)
         
         # Générer d'abord le diviseur et le résultat pour assurer une division exacte
         num2 = random.randint(min_divisor, max_divisor)  # diviseur
@@ -1011,7 +1054,14 @@ def generate_simple_exercise(exercise_type, difficulty):
 
         question = ExerciseMessages.QUESTION_DIVISION.format(num1=num1, num2=num2)
         correct_answer = str(result)
-        choices = [str(result), str(result-1), str(result+1), str(result+num2//2)]
+        
+        # Générer des choix proches mais différents selon la difficulté
+        choices = [
+            str(result),  # Bonne réponse
+            str(result + 1),  # Une de plus
+            str(max(1, result - 1)),  # Une de moins (minimum 1)
+            str(num1 // (num2 + 1)) if num2 < 9 else str(result + 2)  # Diviseur légèrement différent
+        ]
         random.shuffle(choices)
 
         exercise_data.update({
@@ -1028,7 +1078,7 @@ def generate_simple_exercise(exercise_type, difficulty):
 
     else:
         # Par défaut, faire une addition si le type n'est pas reconnu
-        min_val, max_val = 1, 10
+        min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
         num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
         
         result = num1 + num2
@@ -1232,37 +1282,66 @@ async def get_exercises_list(request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 async def delete_exercise(request):
-    """Supprime un exercice par son ID"""
+    """
+    Archive un exercice par ID (marque comme supprimé sans suppression physique).
+    Route: /api/exercises/{exercise_id}
+    
+    Cette fonction marque un exercice comme archivé (is_archived = true) plutôt que de le
+    supprimer physiquement, ce qui permet de le récupérer si nécessaire tout en
+    le masquant dans les listes d'exercices standards.
+    """
     try:
-        exercise_id = request.path_params.get('exercise_id')
-
+        # Extraire l'ID de l'exercice
+        exercise_id = int(request.path_params["exercise_id"])
+        
         conn = get_db_connection()
         cursor = conn.cursor()
-
+        
         # Vérifier si l'exercice existe
         cursor.execute(ExerciseQueries.GET_BY_ID, (exercise_id,))
         if cursor.fetchone() is None:
             conn.close()
             return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
-
-        # Supprimer les résultats associés à cet exercice (si la table a une contrainte de clé étrangère)
-        try:
-            cursor.execute("DELETE FROM results WHERE exercise_id = %s", (exercise_id,))
-        except Exception as e:
-            # Ignorer les erreurs ici, car la table results pourrait ne pas avoir de contrainte
-            print(f"Note: Impossible de supprimer les résultats associés: {e}")
-
-        # Supprimer l'exercice
-        cursor.execute(ExerciseQueries.DELETE, (exercise_id,))
+        
+        # Marquer l'exercice comme archivé plutôt que de le supprimer physiquement
+        cursor.execute("""
+        UPDATE exercises 
+        SET is_archived = true, updated_at = CURRENT_TIMESTAMP
+        WHERE id = %s
+        """, (exercise_id,))
+        
+        # Vérifier que la mise à jour a bien fonctionné
+        cursor.execute("""
+        SELECT id, is_archived FROM exercises WHERE id = %s
+        """, (exercise_id,))
+        
+        exercise = cursor.fetchone()
+        if not exercise:
+            conn.rollback()
+            conn.close()
+            print(f"ERREUR: L'exercice {exercise_id} a été supprimé au lieu d'être archivé")
+            return JSONResponse({"error": "L'exercice a été supprimé au lieu d'être archivé"}, status_code=500)
+        
+        if not exercise[1]:  # is_archived est False
+            conn.rollback()
+            conn.close()
+            print(f"ERREUR: L'exercice {exercise_id} n'a pas été archivé correctement")
+            return JSONResponse({"error": "L'exercice n'a pas été archivé correctement"}, status_code=500)
+        
         conn.commit()
+        print(f"Exercice {exercise_id} archivé avec succès (is_archived = {exercise[1]})")
         conn.close()
-
-        return JSONResponse({"success": True, "message": SystemMessages.SUCCESS_DELETED}, status_code=200)
-
-    except Exception as e:
-        print(f"Erreur lors de la suppression de l'exercice: {e}")
+        
+        return JSONResponse({
+            "success": True, 
+            "message": SystemMessages.SUCCESS_ARCHIVED,
+            "exercise_id": exercise_id
+        }, status_code=200)
+        
+    except Exception as error:
+        print(f"Erreur lors de l'archivage de l'exercice {exercise_id}: {error}")
         traceback.print_exc()
-        return JSONResponse({"error": f"Erreur: {str(e)}"}, status_code=500)
+        return JSONResponse({"error": f"Erreur: {str(error)}"}, status_code=500)
 
 async def get_user_stats(request):
     """

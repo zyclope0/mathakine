@@ -126,6 +126,13 @@ class ExerciseQueries:
     
     # Suppression
     DELETE = """
+    UPDATE exercises 
+    SET is_archived = true, updated_at = CURRENT_TIMESTAMP
+    WHERE id = %s
+    """
+    
+    # Suppression physique (pour administration avancée ou migrations)
+    DELETE_PERMANENT = """
     DELETE FROM exercises 
     WHERE id = %s
     """
