@@ -1,0 +1,210 @@
+/* 
+ * Styles d'accessibilité pour Mathakine
+ * Conçu pour être conforme aux normes WCAG 2.1 AA
+ */
+
+/* ========== MODE CONTRASTE ÉLEVÉ ========== */
+
+/* Activer uniquement quand .high-contrast est présent sur le body ou avec prefers-contrast */
+body.high-contrast {
+    /* Styles pour le mode contraste élevé activé manuellement */
+}
+
+@media (prefers-contrast: more) {
+    /* Remplacer les variables de couleur globales */
+    :root {
+        /* Couleurs de base à fort contraste */
+        --high-contrast-background: #000000;
+        --high-contrast-text: #ffffff;
+        --high-contrast-link: #ffff00;
+        --high-contrast-border: #ffffff;
+        --high-contrast-button: #000000;
+        --high-contrast-button-text: #ffffff;
+        --high-contrast-focus: #ff8000;
+        --high-contrast-heading: #ffffff;
+        --high-contrast-error: #ff0000;
+        --high-contrast-success: #00ff00;
+
+        /* Remplacer les variables Star Wars par des équivalents à fort contraste */
+        --sw-space: var(--high-contrast-background);
+        --sw-text: var(--high-contrast-text);
+        --sw-accent: var(--high-contrast-link);
+        --sw-gold: var(--high-contrast-link);
+        --sw-blue: var(--high-contrast-link);
+        --sw-card-bg: #333333;
+        --sw-card-border: var(--high-contrast-border);
+        --sw-button: var(--high-contrast-button);
+        --sw-button-text: var(--high-contrast-button-text);
+    }
+
+    /* Corps et conteneur principal */
+    body, .container, main {
+        background-color: var(--high-contrast-background);
+        color: var(--high-contrast-text);
+    }
+
+    /* Texte et titres */
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--high-contrast-heading);
+    }
+
+    /* Liens */
+    a, a:visited, a:hover {
+        color: var(--high-contrast-link);
+        text-decoration: underline;
+    }
+
+    /* Boutons */
+    .btn, button, 
+    [role="button"],
+    input[type="button"],
+    input[type="submit"] {
+        background-color: var(--high-contrast-button);
+        color: var(--high-contrast-button-text);
+        border: 2px solid var(--high-contrast-border);
+    }
+
+    /* Focus - Très important pour la navigation au clavier */
+    a:focus, button:focus, input:focus, [tabindex]:focus {
+        outline: 3px solid var(--high-contrast-focus);
+        outline-offset: 2px;
+    }
+
+    /* ========== MODIFICATIONS SPÉCIFIQUES POUR L'INTERFACE HOLOGRAPHIQUE ========== */
+    
+    /* Ajustement de l'interface holographique pour un contraste élevé */
+    .holographic-container {
+        background: #333333;
+        border: 3px solid var(--high-contrast-border);
+        box-shadow: none;
+    }
+
+    /* Désactivation des effets visuels qui peuvent réduire la lisibilité */
+    .holographic-container::before,
+    .holographic-container::after {
+        display: none;
+    }
+
+    /* Amélioration de la lisibilité du texte holographique */
+    .holographic-text {
+        color: var(--high-contrast-text) !important;
+        text-shadow: none;
+        animation: none;
+        font-weight: bold;
+    }
+
+    /* Choix des exercices avec meilleur contraste */
+    .choice-btn {
+        background-color: #333333;
+        color: var(--high-contrast-text);
+        border: 3px solid var(--high-contrast-border);
+        text-shadow: none;
+        box-shadow: none;
+    }
+
+    /* États des boutons clairement identifiables */
+    .choice-btn.correct {
+        background-color: #005500;
+        border-color: var(--high-contrast-success);
+    }
+
+    .choice-btn.incorrect {
+        background-color: #550000;
+        border-color: var(--high-contrast-error);
+    }
+
+    /* Messages de résultat */
+    .result-message.success {
+        background-color: #005500;
+        border-color: var(--high-contrast-success);
+        color: var(--high-contrast-text);
+    }
+
+    .result-message.error {
+        background-color: #550000;
+        border-color: var(--high-contrast-error);
+        color: var(--high-contrast-text);
+    }
+
+    /* ========== COMPOSANTS DE NAVIGATION ========== */
+
+    /* Navigation principale */
+    nav, .navbar {
+        background-color: #333333;
+        border-bottom: 2px solid var(--high-contrast-border);
+    }
+
+    /* Badges pour type d'exercice et difficulté */
+    .difficulty, .exercise-type-tag {
+        border: 2px solid var(--high-contrast-border);
+        background-color: #333333;
+        color: var(--high-contrast-text);
+    }
+
+    /* Pagination */
+    .pagination .page-item .page-link {
+        background-color: var(--high-contrast-button);
+        color: var(--high-contrast-button-text);
+        border: 2px solid var(--high-contrast-border);
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--high-contrast-link);
+        color: var(--high-contrast-background);
+        font-weight: bold;
+    }
+}
+
+/* ========== FONCTIONNALITÉS D'ACCESSIBILITÉ SUPPLÉMENTAIRES ========== */
+
+/* Texte plus grand */
+body.large-text {
+    font-size: 120%;
+}
+
+/* Réduction des animations pour les personnes photosensibles */
+body.reduced-motion {
+    /* Styles pour réduction des animations activée manuellement */
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001s !important;
+    }
+}
+
+/* Amélioration de la lecture pour les utilisateurs dyslexiques */
+body.dyslexic-friendly {
+    font-family: "OpenDyslexic", "Comic Sans MS", sans-serif;
+    line-height: 1.5;
+    letter-spacing: 0.1em;
+    word-spacing: 0.2em;
+}
+
+/* Barre d'accessibilité flottante */
+.accessibility-bar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    background-color: #333;
+    padding: 5px 10px;
+    border-radius: 0 0 0 10px;
+    z-index: 9999;
+}
+
+.accessibility-bar button {
+    background: none;
+    border: 1px solid #fff;
+    color: #fff;
+    margin: 0 5px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.accessibility-bar button.active {
+    background-color: #fff;
+    color: #333;
+} 

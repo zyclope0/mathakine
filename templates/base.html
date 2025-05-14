@@ -12,6 +12,7 @@
     <link rel="preload" href="/static/utils.css" as="style">
     <link rel="preload" href="/static/style.css" as="style">
     <link rel="preload" href="/static/space-theme-dark.css" as="style">
+    <link rel="preload" href="/static/accessibility.css" as="style">
     <link rel="preload" href="/static/img/mathakine-logo.svg" as="image">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" as="style">
     
@@ -21,6 +22,7 @@
     <link rel="stylesheet" href="/static/utils.css">
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/space-theme-dark.css">
+    <link rel="stylesheet" href="/static/accessibility.css">
     <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
     {% block head %}{% endblock %}
     
@@ -44,6 +46,22 @@
     </noscript>
 </head>
 <body>
+    <!-- Barre d'accessibilité -->
+    <div class="accessibility-bar" role="toolbar" aria-label="Options d'accessibilité">
+        <button id="high-contrast-toggle" aria-pressed="false" title="Mode contraste élevé">
+            <i class="fas fa-adjust"></i>
+        </button>
+        <button id="large-text-toggle" aria-pressed="false" title="Texte plus grand">
+            <i class="fas fa-text-height"></i>
+        </button>
+        <button id="reduced-motion-toggle" aria-pressed="false" title="Réduire les animations">
+            <i class="fas fa-running"></i>
+        </button>
+        <button id="dyslexic-toggle" aria-pressed="false" title="Mode dyslexie">
+            <i class="fas fa-font"></i>
+        </button>
+    </div>
+    
     <header>
         <div class="logo-container">
             <img src="/static/img/mathakine-logo.svg" alt="Mathakine" class="logo preload" width="60" height="60" onload="this.classList.add('loaded')">
@@ -106,6 +124,99 @@
     </script>
     
     {% block scripts %}{% endblock %}
+    
+    <!-- Script d'accessibilité -->
+    <script>
+        // Gestionnaire des fonctionnalités d'accessibilité
+        document.addEventListener('DOMContentLoaded', function() {
+            // Récupérer les préférences sauvegardées
+            const highContrast = localStorage.getItem('highContrast') === 'true';
+            const largeText = localStorage.getItem('largeText') === 'true';
+            const reducedMotion = localStorage.getItem('reducedMotion') === 'true';
+            const dyslexicFont = localStorage.getItem('dyslexicFont') === 'true';
+            
+            // Appliquer les préférences sauvegardées
+            if (highContrast) {
+                document.body.classList.add('high-contrast');
+                document.getElementById('high-contrast-toggle').classList.add('active');
+                document.getElementById('high-contrast-toggle').setAttribute('aria-pressed', 'true');
+            }
+            
+            if (largeText) {
+                document.body.classList.add('large-text');
+                document.getElementById('large-text-toggle').classList.add('active');
+                document.getElementById('large-text-toggle').setAttribute('aria-pressed', 'true');
+            }
+            
+            if (reducedMotion) {
+                document.body.classList.add('reduced-motion');
+                document.getElementById('reduced-motion-toggle').classList.add('active');
+                document.getElementById('reduced-motion-toggle').setAttribute('aria-pressed', 'true');
+            }
+            
+            if (dyslexicFont) {
+                document.body.classList.add('dyslexic-friendly');
+                document.getElementById('dyslexic-toggle').classList.add('active');
+                document.getElementById('dyslexic-toggle').setAttribute('aria-pressed', 'true');
+            }
+            
+            // Bouton contraste élevé
+            document.getElementById('high-contrast-toggle').addEventListener('click', function() {
+                document.body.classList.toggle('high-contrast');
+                this.classList.toggle('active');
+                const isActive = document.body.classList.contains('high-contrast');
+                this.setAttribute('aria-pressed', isActive);
+                localStorage.setItem('highContrast', isActive);
+            });
+            
+            // Bouton texte plus grand
+            document.getElementById('large-text-toggle').addEventListener('click', function() {
+                document.body.classList.toggle('large-text');
+                this.classList.toggle('active');
+                const isActive = document.body.classList.contains('large-text');
+                this.setAttribute('aria-pressed', isActive);
+                localStorage.setItem('largeText', isActive);
+            });
+            
+            // Bouton réduction des animations
+            document.getElementById('reduced-motion-toggle').addEventListener('click', function() {
+                document.body.classList.toggle('reduced-motion');
+                this.classList.toggle('active');
+                const isActive = document.body.classList.contains('reduced-motion');
+                this.setAttribute('aria-pressed', isActive);
+                localStorage.setItem('reducedMotion', isActive);
+            });
+            
+            // Bouton texte dyslexie-friendly
+            document.getElementById('dyslexic-toggle').addEventListener('click', function() {
+                document.body.classList.toggle('dyslexic-friendly');
+                this.classList.toggle('active');
+                const isActive = document.body.classList.contains('dyslexic-friendly');
+                this.setAttribute('aria-pressed', isActive);
+                localStorage.setItem('dyslexicFont', isActive);
+            });
+            
+            // Raccourcis clavier pour l'accessibilité
+            document.addEventListener('keydown', function(e) {
+                // Alt+C : Contraste élevé
+                if (e.altKey && e.key === 'c') {
+                    document.getElementById('high-contrast-toggle').click();
+                }
+                // Alt+T : Texte plus grand
+                else if (e.altKey && e.key === 't') {
+                    document.getElementById('large-text-toggle').click();
+                }
+                // Alt+M : Réduire les animations
+                else if (e.altKey && e.key === 'm') {
+                    document.getElementById('reduced-motion-toggle').click();
+                }
+                // Alt+D : Mode dyslexie
+                else if (e.altKey && e.key === 'd') {
+                    document.getElementById('dyslexic-toggle').click();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
         

@@ -392,6 +392,36 @@ fetch('/api/exercises')
    - Implémentez une approche "mobile-first"
    - Assurez-vous que les modales s'affichent correctement sur mobile
 
+## Accessibilité
+
+### Barre d'outils d'accessibilité
+
+Une barre d'outils d'accessibilité flottante est disponible sur toutes les pages de l'application. Elle propose les fonctionnalités suivantes :
+
+- **Mode contraste élevé** (Alt+C) : Augmente le contraste des couleurs pour améliorer la lisibilité
+- **Texte plus grand** (Alt+T) : Augmente la taille du texte de 20%
+- **Réduction des animations** (Alt+M) : Désactive les animations qui pourraient poser problème aux utilisateurs photosensibles
+- **Mode dyslexie** (Alt+D) : Utilise une police adaptée aux personnes dyslexiques et améliore l'espacement des lettres
+
+Les préférences d'accessibilité sont enregistrées dans le stockage local du navigateur et automatiquement restaurées lors des visites ultérieures.
+
+### Accessibilité de l'interface holographique
+
+L'interface holographique Star Wars a été conçue pour être entièrement conforme aux normes WCAG 2.1 AA :
+
+- Les effets visuels sont désactivés automatiquement lorsque `prefers-reduced-motion` est activé
+- En mode contraste élevé, les effets holographiques sont simplifiés pour maximiser la lisibilité
+- Tous les éléments interactifs sont accessibles au clavier avec un focus visible
+- Des attributs ARIA sont utilisés pour informer les lecteurs d'écran du rôle et de l'état des composants
+- Des messages audio peuvent être désactivés selon les préférences utilisateur
+
+### Compatibilité avec les technologies d'assistance
+
+- **Lecteurs d'écran** : Structure sémantique avec landmarks, headings et attributs ARIA appropriés
+- **Navigation au clavier** : Ordre de tabulation logique et focus visible pour tous les éléments interactifs
+- **Préférences système** : Respect des préférences système via les media queries (`prefers-contrast`, `prefers-reduced-motion`)
+- **Zoom** : Interface entièrement fonctionnelle jusqu'à 400% de zoom sans perte de contenu ou de fonctionnalité
+
 ---
 
 *Dernière mise à jour : Mai 2025* 

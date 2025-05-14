@@ -7,15 +7,18 @@ Ce fichier documente toutes les modifications notables apportées au projet Math
 ### Ajouts
 - ✅ Gestion unifiée des suppressions en cascade avec SQLAlchemy pour tous les modèles
 - ✅ Nouveaux endpoints de suppression API pour les utilisateurs, exercices et défis logiques
-- ✅ Scripts de sécurité pour les migrations Alembic en production (`alembic_backup.py`, `safe_migrate.py`, `restore_from_backup.py`)
+- ✅ Scripts de sécurité pour les migrations Alembic en production (`safe_migrate.py`, `restore_from_backup.py`)
 - ✅ Script de vérification des migrations (`pre_commit_migration_check.py`)
 - ✅ Documentation détaillée pour les suppressions en cascade et la sécurité des migrations Alembic
 - ✅ Amélioration de la documentation OpenAPI (Swagger) pour tous les endpoints
 - ✅ Système de pagination amélioré pour la page d'exercices
-- ✅ Gestion optimisée des basculements entre vue grille/liste sur la page d'exercices
-- ✅ Nouvelles animations d'apparition séquentielle pour les cartes d'exercices
-- ✅ Documentation des nouveaux types d'exercices (Fractions, Géométrie, Problèmes)
-- ✅ Document de contexte actualisé résumant l'état du projet et les prochaines étapes
+- ✅ Gestion optimisée des basculements entre vue grille et vue liste
+- ✅ Interface holographique pour les exercices avec effets Star Wars
+- ✅ Animation adaptative selon le niveau de difficulté des exercices
+- ✅ Préparation de l'infrastructure pour le feedback sonore
+- ✅ Fonctionnalités d'accessibilité avancées (mode contraste élevé, texte plus grand, réduction des animations)
+- ✅ Barre d'outils d'accessibilité avec raccourcis clavier
+- ✅ Prise en charge des préférences utilisateur et stockage local des paramètres
 
 ### Modifications
 - 🔄 Refactorisation des relations entre les modèles SQLAlchemy avec cascade="all, delete-orphan"
