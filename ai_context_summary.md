@@ -750,6 +750,36 @@ tests/run_tests.bat --functional
 
 ## Mises à jour récentes
 
+### Interface utilisateur holographique
+- Implémentation d'une interface holographique style Star Wars pour les exercices
+- Effet de texte doré avec halo bleu et animations adaptatives selon le niveau de difficulté
+- Préparation du système de feedback sonore avec fichiers audio de sabre laser
+- Correction des problèmes d'affichage des exercices archivés dans les listes
+- Résolution du défilement automatique indésirable lors des changements de page et de vue
+
+### Fonctionnalités d'accessibilité
+- **Barre d'outils d'accessibilité** flottante disponible sur toutes les pages:
+  - Mode contraste élevé (Alt+C) - Améliore le contraste pour meilleure lisibilité
+  - Texte plus grand (Alt+T) - Augmente la taille du texte de 20%
+  - Réduction des animations (Alt+M) - Pour utilisateurs photosensibles
+  - Mode dyslexie (Alt+D) - Police adaptée et espacement des lettres amélioré
+- **Persistance des préférences** via localStorage
+- **Support des préférences système** (media queries `prefers-contrast`, `prefers-reduced-motion`)
+- **Compatibilité avec technologies d'assistance** (lecteurs d'écran, navigation clavier)
+- **Conformité WCAG 2.1 AA** pour toute l'interface
+
+### Scripts de migration sécurisée
+- **safe_migrate.py** - Script qui effectue les migrations Alembic avec mesures de sécurité:
+  - Sauvegarde automatique de la base de données avant migration
+  - Vérification post-migration de l'intégrité des tables protégées
+  - Journal détaillé des opérations
+  - Restauration automatique en cas d'échec
+- **restore_from_backup.py** - Utilitaire pour restaurer facilement une base de données:
+  - Liste des sauvegardes disponibles
+  - Mode interactif pour choisir une sauvegarde
+  - Support pour PostgreSQL et SQLite
+  - Gestion des erreurs et validation de l'intégrité
+
 ### Suppression en cascade
 - Implémentation complète des relations avec `cascade="all, delete-orphan"` dans les modèles SQLAlchemy
 - Documentation des suppressions en cascade dans `docs/CASCADE_DELETION.md`
