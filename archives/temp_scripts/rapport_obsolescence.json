@@ -1,0 +1,15 @@
+{
+  "date": "2025-05-08 14:18:32",
+  "project_path": "C:\\ProjetCursor\\math-trainer-backend",
+  "confidence_threshold": 85,
+  "files_analyzed": 228,
+  "python_files_analyzed": 78,
+  "files_with_references": 0,
+  "obsolete_files": [],
+  "statistics": {
+    "nom_patterns": 0,
+    "non_referenced": 61,
+    "old_files": 7,
+    "has_newer_version": 0
+  }
+}

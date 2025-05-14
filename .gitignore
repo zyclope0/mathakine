@@ -20,65 +20,94 @@ wheels/
 .installed.cfg
 *.egg
 
-# Environnements virtuels
+# Environnement virtuel
 venv/
-env/
 ENV/
-
-# SQLite
-*.sqlite
-*.sqlite3
-*.db
-
-# Fichiers de log
-*.log
-
-# Fichiers temporaires
-*.tmp
-*.bak
-*.swp
-*~
-
-# Fichiers de configuration locale
+env/
 .env
-.env.local
-.env.development
-.env.test
-.env.production
-
-# Dossiers et fichiers spécifiques à l'IDE
-.idea/
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.DS_Store
-
-# Dossiers d'archives
-archives/
-archive/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+*~
 
-# Environment variables
-.env
-.env.*
-!.env.example
-
-# Test cache
-.pytest_cache/
+# Logs et bases de données
+*.log
+*.sqlite
+*.db
+logs/
+test_results/
 .coverage
+coverage.xml
+.pytest_cache/
 htmlcov/
 
-# Test results and reports
-test_results/
-coverage/
-.coverage.*
-junit.xml
-coverage.xml 
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Node (pour le frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Distribution
+dist/
+build/
+*.pyc
+
+# Fichiers de configuration locaux
+.env.local
+.env.*.local
+*.local.py
+config.local.py
+
+# Fichiers de cache
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Fichiers de sauvegarde
+*.bak
+*.backup
+*~
+*.swp
+*.swo
+
+# Fichiers de test et couverture
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# Documentation générée
+docs/_build/
+site/
+
+# Fichiers de déploiement
+*.pem
+*.key
+*.crt
+*.cert
+
+# Fichiers temporaires
+tmp/
+temp/
+.temp/
+*.tmp
+*.temp
+
+# Fichiers de migration de base de données
+migrations/versions/*
+!migrations/versions/.gitkeep
+
+# Fichiers spécifiques au projet
+mathakine.db
+.env.test
+.env.prod
+.env.staging 

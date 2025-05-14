@@ -152,6 +152,12 @@ Pour plus de détails, consultez `docs/validation/README.md`.
 - [ ] Calcul des scores
 - [ ] Gestion des utilisateurs
 
+#### 1.3 Adaptateurs
+- [x] EnhancedServerAdapter (test_enhanced_server_adapter.py)
+- [x] Conversion des requêtes SQL en opérations de service
+- [x] Gestion de session avec try/finally
+- [x] Conversion de format entre SQLAlchemy et dictionnaires
+
 ### 2. Tests API
 
 #### 2.1 Endpoints de Base

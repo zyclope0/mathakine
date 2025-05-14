@@ -1,246 +1,315 @@
 #!/usr/bin/env python
 """
-Script pour appliquer les migrations Alembic de manière sécurisée en production.
-Ce script:
-1. Analyse les migrations à appliquer pour détecter des opérations risquées
-2. Effectue une sauvegarde de la base de données avant la migration
-3. Applique les migrations avec journalisation détaillée
-4. Gère les erreurs et propose des actions de récupération
+Script de migration Alembic sécurisé pour Mathakine
 
-Ce script doit être utilisé en production pour toute migration de schéma.
+Ce script effectue une migration Alembic en production avec les sécurités suivantes :
+1. Sauvegarde automatique de la base de données avant migration
+2. Vérification post-migration de l'intégrité des tables protégées
+3. Journal détaillé de l'opération
+4. Restauration automatique en cas d'échec
+
+Usage: python scripts/safe_migrate.py [--check-only] [--force] [--restore-backup file]
 """
+
+import argparse
+import datetime
 import os
 import sys
-import re
 import subprocess
-import argparse
-import time
+import logging
 from pathlib import Path
 
-# Ajouter le répertoire parent au sys.path
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(BASE_DIR)
+# Configure le logger
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("logs/migration.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("safe_migrate")
 
-from app.core.config import settings
-from app.core.logging_config import get_logger
-from alembic.config import Config
-from alembic import command
-from alembic.script import ScriptDirectory
-from alembic.runtime.migration import MigrationContext
-from sqlalchemy import create_engine, text
-
-# Configuration du logging
-logger = get_logger("safe_migrate")
-
-# Chemin vers le script de sauvegarde
-BACKUP_SCRIPT = os.path.join(BASE_DIR, "scripts", "alembic_backup.py")
-
-# Liste des opérations considérées comme risquées
-RISKY_OPERATIONS = [
-    r'op\.drop_table\([\'"]([^\'"]+)[\'"]\)',              # Suppression de table
-    r'op\.drop_column\([\'"]([^\'"]+)[\'"],\s*[\'"]([^\'"]+)[\'"]\)',  # Suppression de colonne
-    r'op\.alter_column\([\'"]([^\'"]+)[\'"],\s*[\'"]([^\'"]+)[\'"]\s*.*not_nullable=True',  # Ajout de NOT NULL
-    r'op\.rename_table\([\'"]([^\'"]+)[\'"],\s*[\'"]([^\'"]+)[\'"]\)',  # Renommage de table
-    r'op\.execute\([\'"]DROP',                              # Exécution directe de DROP
-    r'op\.execute\([\'"]TRUNCATE',                          # Exécution directe de TRUNCATE
-    r'op\.execute\([\'"]ALTER\s+TABLE.*DROP\s+CONSTRAINT',  # Suppression de contrainte
+# Tables protégées qui ne doivent jamais être supprimées
+PROTECTED_TABLES = [
+    'exercises',
+    'results',
+    'statistics',
+    'user_stats',
+    'schema_version'
 ]
 
-# Tables protégées que nous ne voulons jamais supprimer ou modifier sans confirmation
-PROTECTED_TABLES = {'results', 'statistics', 'user_stats', 'schema_version', 'exercises', 'users', 'attempts'}
-
-def get_current_revision():
-    """Récupère la révision actuelle de la base de données."""
+def create_backup(db_url):
+    """Crée une sauvegarde de la base de données avant la migration."""
+    logger.info("Création d'une sauvegarde de la base de données...")
+    
+    # Répertoire de sauvegarde
+    backup_dir = Path("backups/database")
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Nom de fichier basé sur la date et l'heure
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    db_name = db_url.split('/')[-1]
+    backup_file = backup_dir / f"backup_{db_name}_{timestamp}.sql.gz"
+    
     try:
-        engine = create_engine(settings.DATABASE_URL)
-        with engine.connect() as conn:
-            context = MigrationContext.configure(conn)
-            return context.get_current_revision()
+        # Vérifier si c'est PostgreSQL ou SQLite
+        if db_url.startswith('postgresql'):
+            # Extraire les informations de connexion
+            # Format: postgresql://user:password@host/dbname
+            parts = db_url.replace('postgresql://', '').split('@')
+            user_pass = parts[0].split(':')
+            host_db = parts[1].split('/')
+            
+            user = user_pass[0]
+            password = user_pass[1]
+            host = host_db[0]
+            dbname = host_db[1]
+            
+            # Configuration des variables d'environnement pour pg_dump
+            env = os.environ.copy()
+            env['PGPASSWORD'] = password
+            
+            # Commande pg_dump avec compression gzip
+            cmd = [
+                'pg_dump',
+                '-h', host,
+                '-U', user,
+                '-d', dbname,
+                '-F', 'c',  # Format personnalisé
+                '-f', str(backup_file)
+            ]
+            
+            # Exécuter la commande
+            subprocess.run(cmd, env=env, check=True, capture_output=True)
+            
+        elif db_url.startswith('sqlite'):
+            # Pour SQLite, faire une copie simple du fichier
+            db_path = db_url.replace('sqlite:///', '')
+            sqlite_backup_file = str(backup_file).replace('.sql.gz', '.sqlite')
+            
+            # Utiliser sqlite3 pour exporter sous forme SQL, puis compresser
+            subprocess.run(
+                f"sqlite3 {db_path} .dump | gzip > {backup_file}",
+                shell=True, check=True
+            )
+            
+        logger.info(f"Sauvegarde créée avec succès: {backup_file}")
+        return str(backup_file)
+    
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération de la révision actuelle: {e}")
-        return None
+        logger.error(f"Erreur lors de la création de la sauvegarde: {e}")
+        raise
 
-def get_pending_migrations():
-    """Récupère la liste des migrations à appliquer."""
-    alembic_cfg = Config(os.path.join(BASE_DIR, "alembic.ini"))
-    script = ScriptDirectory.from_config(alembic_cfg)
-    
-    current_rev = get_current_revision()
-    if not current_rev:
-        logger.error("Impossible de déterminer la révision actuelle")
-        return []
-    
-    # Récupérer les migrations à appliquer
-    revisions = []
-    for rev in script.walk_revisions(base=current_rev, head="head"):
-        if rev.revision != current_rev:
-            revisions.append(rev)
-    
-    return list(reversed(revisions))
-
-def check_migration_safety(revision):
-    """Analyse une migration pour y détecter des opérations risquées."""
-    # Trouver le fichier de migration
-    migrations_dir = os.path.join(BASE_DIR, "migrations", "versions")
-    migration_file = os.path.join(migrations_dir, f"{revision.revision}.py")
-    
-    if not os.path.exists(migration_file):
-        # Tenter de trouver le fichier avec le nom de fichier différent du revision_id
-        for file in os.listdir(migrations_dir):
-            if file.endswith(".py"):
-                with open(os.path.join(migrations_dir, file), 'r') as f:
-                    content = f.read()
-                    if f'revision: str = \'{revision.revision}\'' in content:
-                        migration_file = os.path.join(migrations_dir, file)
-                        break
-    
-    if not os.path.exists(migration_file):
-        logger.error(f"Fichier de migration introuvable pour {revision.revision}")
-        return False, []
-    
-    risky_operations = []
-    with open(migration_file, 'r') as f:
-        content = f.read()
-        
-        # Rechercher les opérations risquées
-        for pattern in RISKY_OPERATIONS:
-            matches = re.findall(pattern, content)
-            if matches:
-                for match in matches:
-                    if isinstance(match, tuple):  # Pour les patterns avec plusieurs groupes
-                        table_name = match[0]
-                        column_name = match[1] if len(match) > 1 else ""
-                        operation = f"{pattern.split('op\\.')[1].split('\\(')[0]} sur {table_name}.{column_name}" if column_name else f"{pattern.split('op\\.')[1].split('\\(')[0]} sur {table_name}"
-                    else:  # Pour les patterns avec un seul groupe
-                        table_name = match
-                        operation = f"{pattern.split('op\\.')[1].split('\\(')[0]} sur {table_name}"
-                    
-                    # Vérifier si c'est une table protégée
-                    if table_name in PROTECTED_TABLES:
-                        risky_operations.append(f"🚨 CRITIQUE: {operation} (Table protégée)")
-                    else:
-                        risky_operations.append(f"⚠️ RISQUE: {operation}")
-    
-    return len(risky_operations) == 0, risky_operations
-
-def backup_database():
-    """Exécute le script de sauvegarde de la base de données."""
-    logger.info("Lancement de la sauvegarde de la base de données...")
+def check_protected_tables(db_url):
+    """Vérifie que toutes les tables protégées existent toujours après la migration."""
+    logger.info("Vérification de l'intégrité des tables protégées...")
     
     try:
-        subprocess.run(
-            [sys.executable, BACKUP_SCRIPT],
-            check=True
+        # Vérifier si c'est PostgreSQL ou SQLite
+        if db_url.startswith('postgresql'):
+            # Extraire les informations de connexion
+            parts = db_url.replace('postgresql://', '').split('@')
+            user_pass = parts[0].split(':')
+            host_db = parts[1].split('/')
+            
+            user = user_pass[0]
+            password = user_pass[1]
+            host = host_db[0]
+            dbname = host_db[1]
+            
+            # Configuration des variables d'environnement pour psql
+            env = os.environ.copy()
+            env['PGPASSWORD'] = password
+            
+            # Vérifier chaque table protégée
+            for table in PROTECTED_TABLES:
+                cmd = [
+                    'psql',
+                    '-h', host,
+                    '-U', user,
+                    '-d', dbname,
+                    '-t',  # Format tableau (moins de bruit)
+                    '-c', f"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = '{table}');"
+                ]
+                
+                result = subprocess.run(cmd, env=env, check=True, capture_output=True, text=True)
+                exists = 't' in result.stdout.strip().lower()
+                
+                if exists:
+                    logger.info(f"Table protégée '{table}' vérifiée ✓")
+                else:
+                    logger.error(f"Table protégée '{table}' MANQUANTE ✗")
+                    return False
+            
+        elif db_url.startswith('sqlite'):
+            # Pour SQLite
+            db_path = db_url.replace('sqlite:///', '')
+            
+            for table in PROTECTED_TABLES:
+                cmd = [
+                    'sqlite3',
+                    db_path,
+                    f"SELECT count(*) FROM sqlite_master WHERE type='table' AND name='{table}';"
+                ]
+                
+                result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+                exists = '1' in result.stdout.strip()
+                
+                if exists:
+                    logger.info(f"Table protégée '{table}' vérifiée ✓")
+                else:
+                    logger.error(f"Table protégée '{table}' MANQUANTE ✗")
+                    return False
+        
+        logger.info("Toutes les tables protégées sont présentes ✓")
+        return True
+    
+    except Exception as e:
+        logger.error(f"Erreur lors de la vérification des tables protégées: {e}")
+        return False
+
+def run_migration():
+    """Exécute la migration Alembic."""
+    logger.info("Démarrage de la migration...")
+    
+    try:
+        result = subprocess.run(
+            ['alembic', 'upgrade', 'head'],
+            check=True,
+            capture_output=True,
+            text=True
         )
-        logger.success("Sauvegarde de la base de données terminée")
+        logger.info(f"Migration réussie: {result.stdout}")
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"Erreur lors de la sauvegarde: {e}")
-        return False
-    except Exception as e:
-        logger.error(f"Exception lors de la sauvegarde: {e}")
+        logger.error(f"Migration échouée: {e.stderr}")
         return False
 
-def apply_migrations(target="head", sql=False):
-    """Applique les migrations jusqu'à la révision cible."""
-    logger.info(f"Application des migrations jusqu'à {target}...")
-    
-    alembic_cfg = Config(os.path.join(BASE_DIR, "alembic.ini"))
+def restore_backup(backup_file, db_url):
+    """Restaure la base de données à partir d'une sauvegarde."""
+    logger.info(f"Restauration de la base de données depuis: {backup_file}")
     
     try:
-        if sql:
-            # Générer le SQL sans l'exécuter
-            with open("migration_sql.sql", "w") as f:
-                command.upgrade(alembic_cfg, target, sql=True, stdout=f)
-            logger.info(f"SQL de migration généré dans migration_sql.sql")
+        # Vérifier si c'est PostgreSQL ou SQLite
+        if db_url.startswith('postgresql'):
+            # Extraire les informations de connexion
+            parts = db_url.replace('postgresql://', '').split('@')
+            user_pass = parts[0].split(':')
+            host_db = parts[1].split('/')
+            
+            user = user_pass[0]
+            password = user_pass[1]
+            host = host_db[0]
+            dbname = host_db[1]
+            
+            # Configuration des variables d'environnement pour pg_restore
+            env = os.environ.copy()
+            env['PGPASSWORD'] = password
+            
+            # Commande pg_restore
+            cmd = [
+                'pg_restore',
+                '-h', host,
+                '-U', user,
+                '-d', dbname,
+                '-c',  # Clean (drop) objects before recreating
+                str(backup_file)
+            ]
+            
+            # Exécuter la commande
+            subprocess.run(cmd, env=env, check=True)
+            
+        elif db_url.startswith('sqlite'):
+            # Pour SQLite, remplacer le fichier
+            db_path = db_url.replace('sqlite:///', '')
+            
+            # Décompresser et restaurer
+            if backup_file.endswith('.sql.gz'):
+                subprocess.run(
+                    f"gunzip -c {backup_file} | sqlite3 {db_path}",
+                    shell=True, check=True
+                )
+            elif backup_file.endswith('.sqlite'):
+                # Copie directe
+                subprocess.run(
+                    f"cp {backup_file} {db_path}",
+                    shell=True, check=True
+                )
+        
+        logger.info("Restauration terminée avec succès ✓")
             return True
-        else:
-            # Exécuter la migration
-            command.upgrade(alembic_cfg, target)
-            logger.success(f"Migrations appliquées avec succès jusqu'à {target}")
-            return True
+    
     except Exception as e:
-        logger.error(f"Erreur lors de l'application des migrations: {e}")
+        logger.error(f"Erreur lors de la restauration: {e}")
         return False
 
-def safe_migrate(target="head", force=False, dry_run=False, sql=False):
-    """
-    Applique les migrations de manière sécurisée.
+def get_db_url():
+    """Récupère l'URL de la base de données depuis l'environnement."""
+    # Essayer d'abord avec la variable d'environnement standard
+    db_url = os.environ.get('DATABASE_URL')
     
-    Args:
-        target: La révision cible (défaut: "head")
-        force: Forcer l'application même si des opérations risquées sont détectées
-        dry_run: Ne pas appliquer les migrations, juste afficher ce qui serait fait
-        sql: Générer le SQL sans l'exécuter
-    """
-    logger.info(f"Démarrage de la migration sécurisée vers {target}...")
+    # Si non défini, essayer de charger depuis la configuration
+    if not db_url:
+        try:
+            sys.path.append('.')
+            from app.core.config import settings
+            db_url = settings.DATABASE_URL
+        except ImportError:
+            logger.error("Impossible de charger la configuration. DATABASE_URL doit être défini.")
+            sys.exit(1)
     
-    # 1. Récupérer les migrations à appliquer
-    pending_migrations = get_pending_migrations()
-    if not pending_migrations:
-        logger.info("Aucune migration à appliquer.")
-        return True
+    return db_url
+
+def main():
+    """Fonction principale du script."""
+    parser = argparse.ArgumentParser(description='Migration Alembic sécurisée pour Mathakine')
+    parser.add_argument('--check-only', action='store_true', help='Vérifier uniquement sans migrer')
+    parser.add_argument('--force', action='store_true', help='Forcer la migration même si des tables protégées sont menacées')
+    parser.add_argument('--restore-backup', help='Restaurer une sauvegarde spécifique')
     
-    logger.info(f"{len(pending_migrations)} migration(s) à appliquer:")
-    for i, rev in enumerate(pending_migrations, 1):
-        logger.info(f"{i}. {rev.revision}: {rev.doc}")
+    args = parser.parse_args()
+    db_url = get_db_url()
     
-    # 2. Analyser chaque migration pour les opérations risquées
-    all_safe = True
-    risky_operations = []
+    # Mode restauration
+    if args.restore_backup:
+        success = restore_backup(args.restore_backup, db_url)
+        sys.exit(0 if success else 1)
     
-    for rev in pending_migrations:
-        logger.info(f"Analyse de la migration {rev.revision}...")
-        is_safe, operations = check_migration_safety(rev)
+    # Mode vérification uniquement
+    if args.check_only:
+        success = check_protected_tables(db_url)
+        logger.info(f"Vérification des tables protégées: {'✓ OK' if success else '✗ ÉCHEC'}")
+        sys.exit(0 if success else 1)
+    
+    # Mode migration normal
+    logger.info("=== DÉMARRAGE DE LA MIGRATION SÉCURISÉE ===")
+    
+    # Créer une sauvegarde
+    backup_file = create_backup(db_url)
+    
+    # Exécuter la migration
+    migration_success = run_migration()
+    
+    # Vérifier l'intégrité
+    integrity_ok = check_protected_tables(db_url) if migration_success else False
+    
+    # Si migration réussie et intégrité OK
+    if migration_success and integrity_ok:
+        logger.info("=== MIGRATION TERMINÉE AVEC SUCCÈS ===")
+        sys.exit(0)
+    
+    # Si échec et pas de forçage
+    if not args.force:
+        logger.error("Migration échouée ou intégrité compromise. Restauration de la sauvegarde...")
+        restore_success = restore_backup(backup_file, db_url)
+        if restore_success:
+            logger.info("Restauration réussie. La base de données a été rétablie à son état initial.")
+        else:
+            logger.critical("ÉCHEC DE LA RESTAURATION. INTERVENTION MANUELLE REQUISE!")
         
-        if not is_safe:
-            all_safe = False
-            risky_operations.extend(operations)
-    
-    if not all_safe:
-        logger.warning("Des opérations risquées ont été détectées dans les migrations:")
-        for op in risky_operations:
-            logger.warning(f"  - {op}")
-        
-        if not force and not dry_run:
-            logger.error("Migration annulée. Utilisez --force pour appliquer malgré les risques.")
-            return False
-    
-    # 3. Si c'est un dry run, s'arrêter ici
-    if dry_run:
-        logger.info("Dry run terminé. Aucune modification n'a été appliquée.")
-        return True
-    
-    # 4. Faire une sauvegarde avant d'appliquer les migrations
-    if not backup_database():
-        logger.error("Migration annulée à cause de l'échec de la sauvegarde.")
-        logger.info("Utilisez --force pour ignorer l'échec de la sauvegarde.")
-        if not force:
-            return False
-    
-    # 5. Appliquer les migrations
-    start_time = time.time()
-    success = apply_migrations(target, sql)
-    end_time = time.time()
-    
-    if success:
-        logger.success(f"Migration terminée en {end_time - start_time:.2f} secondes")
-    else:
-        logger.error("La migration a échoué.")
-        logger.info("Consultez les logs pour plus de détails et envisagez de restaurer la sauvegarde.")
-    
-    return success
+    logger.error("=== MIGRATION TERMINÉE AVEC ERREURS ===")
+    sys.exit(1)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Appliquer les migrations Alembic de manière sécurisée")
-    parser.add_argument("--target", default="head", help="Révision cible (défaut: head)")
-    parser.add_argument("--force", action="store_true", help="Forcer l'application même si des risques sont détectés")
-    parser.add_argument("--dry-run", action="store_true", help="Ne pas appliquer les migrations, juste afficher ce qui serait fait")
-    parser.add_argument("--sql", action="store_true", help="Générer le SQL sans l'exécuter")
-    args = parser.parse_args()
-    
-    success = safe_migrate(args.target, args.force, args.dry_run, args.sql)
-    if success:
-        sys.exit(0)
-    else:
-        sys.exit(1) 
+    main() 

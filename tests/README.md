@@ -35,6 +35,7 @@ tests/
 - Testent les composants individuels de manière isolée
 - Vérifient le comportement des modèles, services et utilités
 - Exemple : `test_models.py` teste la création et la validation des modèles
+- Exemple : `test_enhanced_server_adapter.py` teste l'adaptateur EnhancedServerAdapter pour la migration progressive des requêtes SQL directes vers le système de transaction unifié
 
 ### 2. Tests API (`api/`)
 - Testent les endpoints de l'API

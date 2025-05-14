@@ -1,0 +1,32 @@
+# Redirection - Document archivé
+
+> **⚠️ Ce document a été archivé** ⚠️
+
+## Redirection
+
+Le document `API_REFERENCE.md` a été consolidé avec `GUIDE_DEVELOPPEUR.md` et `AUTH_GUIDE.md` dans un nouveau document plus complet :
+
+👉 **[Core/DEVELOPER_GUIDE.md](../../Core/DEVELOPER_GUIDE.md)**
+
+## Section spécifique
+
+Si vous cherchiez la documentation de référence API, consultez spécifiquement la section 4 du document consolidé :
+
+👉 **[Core/DEVELOPER_GUIDE.md#4-référence-api](../../Core/DEVELOPER_GUIDE.md#4-référence-api)**
+
+## Pourquoi ce changement?
+
+Dans le cadre de la rationalisation de la documentation du projet Mathakine, nous avons consolidé plusieurs documents pour:
+- Réduire la redondance
+- Améliorer la cohérence
+- Faciliter la maintenance
+- Fournir une documentation plus complète
+
+## Document original
+
+L'original de ce document est conservé à titre d'archive dans:
+`ARCHIVE/2025-06/Original/API_REFERENCE.md`
+
+---
+
+*Cette redirection a été créée le 14 mai 2025* 

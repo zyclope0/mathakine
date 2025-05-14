@@ -750,6 +750,26 @@ tests/run_tests.bat --functional
 
 ## Mises à jour récentes
 
+### Système unifié de gestion des transactions
+- **TransactionManager** - Gestionnaire de contexte pour les transactions de base de données:
+  - Commit et rollback automatiques pour les transactions
+  - Méthodes sécurisées pour la suppression et l'archivage
+  - Journalisation détaillée des opérations
+- **DatabaseAdapter** - Interface unifiée pour les opérations de base de données:
+  - Support pour SQLAlchemy et requêtes SQL brutes
+  - Filtrage automatique des objets archivés
+  - Méthodes standardisées pour les opérations CRUD
+- **EnhancedServerAdapter** - Adaptateur pour l'intégration avec enhanced_server.py:
+  - Conversion des requêtes SQL directes en appels aux services métier
+  - Gestion coherente des sessions SQLAlchemy
+  - Prise en charge des endpoints clés (delete_exercise, submit_answer, get_exercises_list)
+  - Migration progressive du serveur Starlette vers le système de transaction unifié
+- **Services métier** pour chaque domaine fonctionnel:
+  - ExerciseService pour la gestion des exercices
+  - LogicChallengeService pour les défis logiques
+  - UserService pour la gestion des utilisateurs
+- Tests complets pour le système de transaction et l'adaptateur
+
 ### Interface utilisateur holographique
 - Implémentation d'une interface holographique style Star Wars pour les exercices
 - Effet de texte doré avec halo bleu et animations adaptatives selon le niveau de difficulté
@@ -774,11 +794,6 @@ tests/run_tests.bat --functional
   - Vérification post-migration de l'intégrité des tables protégées
   - Journal détaillé des opérations
   - Restauration automatique en cas d'échec
-- **restore_from_backup.py** - Utilitaire pour restaurer facilement une base de données:
-  - Liste des sauvegardes disponibles
-  - Mode interactif pour choisir une sauvegarde
-  - Support pour PostgreSQL et SQLite
-  - Gestion des erreurs et validation de l'intégrité
 
 ### Suppression en cascade
 - Implémentation complète des relations avec `cascade="all, delete-orphan"` dans les modèles SQLAlchemy
@@ -887,3 +902,171 @@ L'implémentation d'Alembic permet une gestion professionnelle de l'évolution d
 5. **Documenter les changements** dans le CHANGELOG
 
 Cette architecture est conçue pour être extensible, maintenable et évolutive, permettant l'ajout futur de nouvelles fonctionnalités comme l'authenticité, la personnalisation avancée et la gamification.
+
+## 💾 Système d'archivage (Les Archives du Temple Jedi)
+
+### Principes fondamentaux
+- Les exercices ne sont JAMAIS supprimés physiquement
+- Utilisation du champ `is_archived` pour marquer les exercices archivés
+- Conservation de toutes les données associées (tentatives, statistiques, historique)
+- Interface dédiée "Les Archives du Temple Jedi"
+
+### Rôles et permissions
+- Gardiens du Temple : Peuvent archiver des exercices
+- Archivistes : Peuvent archiver et restaurer des exercices
+- Logs détaillés de toutes les opérations d'archivage
+
+### Implémentation technique
+```python
+# Exemple d'archivage dans ExerciseService
+@staticmethod
+def archive_exercise(db: Session, exercise_id: int) -> bool:
+    exercise = ExerciseService.get_exercise(db, exercise_id)
+    if not exercise:
+        logger.error(f"Exercice avec ID {exercise_id} non trouvé pour archivage")
+        return False
+    
+    exercise.is_archived = True
+    exercise.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    return True
+```
+
+### Interface utilisateur
+- Section spéciale "Les Archives du Temple Jedi"
+- Filtres pour afficher/masquer les exercices archivés
+- Boutons d'archivage et de restauration
+- Messages de confirmation thématiques
+
+## 🧪 Tests et validation
+
+### Structure des tests
+```
+tests/
+├── unit/                 # Tests unitaires
+│   ├── test_models.py
+│   └── test_services.py
+├── api/                  # Tests API
+│   ├── test_endpoints.py
+│   └── test_archive.py
+├── integration/          # Tests d'intégration
+│   └── test_cascade.py
+└── functional/          # Tests fonctionnels
+    └── test_ui.py
+```
+
+### Tests d'archivage
+- Vérification de la conservation des données
+- Tests des permissions des rôles
+- Validation de l'interface utilisateur
+- Tests de restauration des archives
+
+## 📊 Statistiques et progression
+
+### Niveaux de difficulté
+- **Initié**: Nombres 1-10
+- **Padawan**: Nombres 10-50
+- **Chevalier**: Nombres 50-100
+- **Maître**: Nombres 100-500
+
+### Types d'exercices
+- Addition
+- Soustraction
+- Multiplication
+- Division
+- Mixte (combinaison)
+
+### Suivi de progression
+- Taux de réussite par type
+- Séries (streaks) et records
+- Recommandations personnalisées
+- Rapports détaillés
+
+## 🛠️ Outils et commandes
+
+### CLI (mathakine_cli.py)
+```bash
+# Démarrage du serveur
+python mathakine_cli.py run
+
+# Tests
+python mathakine_cli.py test --all
+python mathakine_cli.py test --unit
+python mathakine_cli.py test --api
+
+# Base de données
+python mathakine_cli.py init
+python mathakine_cli.py migrate
+```
+
+### Scripts utilitaires
+- check_project.py : Vérification de la santé du projet
+- toggle_database.py : Basculement SQLite/PostgreSQL
+- generate_context.py : Génération du contexte
+
+## 📝 Documentation
+
+### Structure
+```
+docs/
+├── Core/                # Documentation principale
+│   ├── PROJECT_STATUS.md
+│   └── IMPLEMENTATION_PLAN.md
+├── Tech/               # Documentation technique
+│   ├── API_REFERENCE.md
+│   └── DATABASE_GUIDE.md
+└── ARCHIVE/           # Documentation archivée
+```
+
+### Points clés
+- Documentation exhaustive dans docs/
+- Guide de démarrage rapide (QUICKSTART.md)
+- Documentation API avec Swagger/OpenAPI
+- Guides techniques détaillés
+
+## ⚠️ Points d'attention
+
+### Sécurité
+- Protection contre la suppression physique
+- Journalisation des opérations sensibles
+- Gestion stricte des rôles et permissions
+- Validation des données avec Pydantic
+
+### Performance
+- Cache pour les données fréquentes
+- Optimisation des requêtes SQL
+- Lazy loading des composants UI
+- Compression des assets
+
+### Maintenance
+- Tests automatisés complets
+- Documentation à jour
+- Logs détaillés
+- Sauvegardes régulières
+
+## 🎯 Prochaines étapes
+
+### Court terme (Juillet 2025)
+1. Finalisation interface holographique
+2. Complétion système de rôles
+3. Optimisation performances
+4. Documentation des nouveautés
+
+### Moyen terme (Août-Sept 2025)
+1. Défis logiques complets
+2. Système adaptatif
+3. Support multilingue
+4. Migration microservices
+
+### Long terme (Q4 2025)
+1. IA avancée
+2. Réalité augmentée
+3. Mode multijoueur
+4. Extension mobile
+
+## 📈 État actuel
+- 58 tests réussis
+- 1 test ignoré (PostgreSQL spécifique)
+- 0 échecs
+- Couverture code: 64%
+- Temps d'exécution moyen: ~25 secondes

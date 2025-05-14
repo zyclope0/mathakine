@@ -1,352 +1,80 @@
-# Mathakine (anciennement Math Trainer)
+# Mathakine
 
-## ⚠️ INFORMATION IMPORTANTE : RENOMMAGE DU PROJET ⚠️
+[![Tests](https://github.com/mathakine/math-trainer/actions/workflows/tests.yml/badge.svg)](https://github.com/mathakine/math-trainer/actions/workflows/tests.yml)
+[![Coverage](https://codecov.io/gh/mathakine/math-trainer/branch/main/graph/badge.svg)](https://codecov.io/gh/mathakine/math-trainer)
+[![Version](https://img.shields.io/github/v/release/mathakine/math-trainer)](https://github.com/mathakine/math-trainer/releases)
+[![License](https://img.shields.io/github/license/mathakine/math-trainer)](LICENSE)
+[![Discord](https://img.shields.io/discord/1234567890)](https://discord.mathakine.fr)
 
-**Ce dépôt est la nouvelle version du projet**. L'ancien projet "Math Trainer" a été renommé en "Mathakine" avec une organisation améliorée des tests et une meilleure cohérence du thème Star Wars.
+> Plateforme d'entraînement mathématique adaptative et personnalisée
 
-### Structure actuelle du projet
+## 🚀 Liens Rapides
 
-Tous les fichiers ont été réorganisés dans cette nouvelle structure :
-- **Code principal** : `/math-trainer-backend/`
-- **Documentation principale** : `/math-trainer-backend/README.md`
-- **Documentation détaillée** : `/math-trainer-backend/docs/`
-- **Table des matières de la documentation** : `/math-trainer-backend/docs/TABLE_DES_MATIERES.md`
-- **Documentation des tests** : `/math-trainer-backend/tests/README.md`
-- **Plan de test complet** : `/math-trainer-backend/tests/TEST_PLAN.md`
+- [Guide de démarrage](docs/Core/QUICKSTART.md)
+- [Documentation](docs/README.md)
+- [Contribuer](docs/Core/CONTRIBUTING.md)
+- [Changelog](docs/CHANGELOG.md)
 
-### Avantages de cette réorganisation
+## ✨ Fonctionnalités
 
-Cette restructuration a permis :
-1. D'organiser les tests en 4 catégories distinctes (unitaires, API, intégration, fonctionnels)
-2. D'intégrer plus profondément la thématique Star Wars dans le code et la documentation
-3. De nettoyer les fichiers obsolètes et de clarifier la structure du projet
-4. D'améliorer la maintenabilité et l'extensibilité du code
+- 🎯 Exercices adaptatifs selon le niveau
+- 📊 Suivi détaillé de la progression
+- 🏆 Système de récompenses
+- 📱 Interface responsive
+- 🔄 Mode hors-ligne
+- 📈 Analyses et statistiques
 
----
-
-## Présentation
-
-**Mathakine** est une application éducative backend pour un site d'entraînement mathématique interactif destiné aux enfants, spécialement adapté pour un enfant autiste de 9 ans, avec une thématique Star Wars.
-
-Cette application permet un apprentissage des mathématiques adapté aux besoins spécifiques des enfants autistes. Elle aide les jeunes "Padawans des mathématiques" à maîtriser la "Force des nombres" à travers des exercices interactifs et personnalisés.
-
-## Fonctionnalités
-
-- Génération d'exercices mathématiques (addition, soustraction, multiplication, division)
-- Interface adaptée aux enfants autistes avec thème Star Wars
-- Différents niveaux de difficulté (Initié, Padawan, Chevalier, Maître)
-- Mode adaptatif qui ajuste la difficulté selon les performances
-- Tableau de bord pour suivre les progrès
-- Génération d'exercices avec IA via l'API OpenAI
-- Tests automatisés robustes
-- Compatibilité avec Python 3.13
-- Système de gestion des environnements (dev, test, prod)
-- API REST complète
-- Normalisation des données pour une meilleure cohérence et fiabilité
-- Support de PostgreSQL pour les environnements de production
-- Outils de migration et de gestion de base de données
-- Déploiement facilité sur Render avec PostgreSQL
-
-## Démarrage rapide
-
-### Installation
+## 🛠 Installation
 
 ```bash
-# Menu principal d'accès à toutes les fonctionnalités
-scripts/scripts.bat
+# Cloner le projet
+git clone https://github.com/mathakine/math-trainer.git
+cd math-trainer
 
-# Version PowerShell
-./Scripts-Menu.ps1
+# Installer les dépendances
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# ou
+venv\Scripts\activate     # Windows
 
-# Installation directe
-scripts/setup.bat
-```
+pip install -r requirements.txt
 
-### Initialisation de la base de données
+# Configuration
+cp .env.example .env
+# Éditer .env avec vos paramètres
 
-```bash
-# Initialiser la base de données
-scripts/init_db.bat
-
-# Version PowerShell
-scripts/Initialize-Database.ps1
-```
-
-### Lancement du serveur
-
-```bash
-# Lancer le serveur avec interface graphique (par défaut)
+# Lancer l'application
 python mathakine_cli.py run
-
-# Lancer le serveur API uniquement (sans interface graphique)
-python mathakine_cli.py run --api-only
-
-# Avec options supplémentaires
-python mathakine_cli.py run --port 8082 --debug
 ```
 
-### Validation du Projet
+## 📖 Documentation
 
-```bash
-# Configuration de l'environnement de validation
-tests/setup_validation.bat
+La documentation complète est disponible dans le dossier [docs/](docs/README.md).
 
-# Validation complète du projet
-tests/auto_validate.bat
-
-# Validation rapide (sans dépendances complexes)
-python tests/simplified_validation.py
-
-# Vérification de compatibilité
-python tests/compatibility_check.py
-
-# Génération d'un rapport complet
-python tests/generate_report.py
-```
-
-### Migration vers PostgreSQL
-
-```bash
-# Pour le développement local
-python scripts/migrate_to_postgres.py
-
-# Pour Render
-python scripts/migrate_to_render.py
-
-# Basculer entre SQLite et PostgreSQL
-python scripts/toggle_database.py [sqlite|postgres]
-
-# Vérifier la connexion à la base de données
-python check_db_connection.py
-```
-
-### Gestion des migrations avec Alembic
-
-```bash
-# Initialiser Alembic dans la base de données existante
-python scripts/init_alembic.py
-
-# Générer une nouvelle migration
-python scripts/generate_migration.py "Description de la migration"
-
-# Appliquer les migrations
-alembic upgrade head
-
-# Vérifier l'état des migrations
-alembic current
-```
-
-Pour plus d'informations sur les migrations, consultez le [guide Alembic](docs/ALEMBIC.md).
-
-Pour des instructions détaillées, consultez [GETTING_STARTED.md](docs/GETTING_STARTED.md) et [docs/validation/README.md](docs/validation/README.md).
-
-## Structure du projet
+### Structure
 
 ```
-./
-├── app/                  # Code de l'application
-├── docs/                 # Documentation détaillée
-│   ├── ARCHITECTURE.md   # Architecture du système
-│   ├── CHANGELOG.md      # Historique des modifications
-│   ├── CLEANUP_REPORT.md # Rapport détaillé de nettoyage
-│   ├── CLEANUP_SUMMARY.md # Résumé des opérations de nettoyage
-│   ├── CONTEXT.md        # Contexte du projet
-│   ├── DASHBOARD_FIX_REPORT.md # Corrections du tableau de bord
-│   └── ...               # Autres documents
-├── scripts/              # Scripts utilitaires
-│   ├── check_project.py  # Vérification de la santé du projet
-│   ├── fix_style.py      # Correction des problèmes de style courants
-│   ├── fix_advanced_style.py # Correction des problèmes de style avancés
-│   ├── migrate_to_postgres.py # Migration vers PostgreSQL
-│   ├── toggle_database.py # Basculement entre SQLite et PostgreSQL
-│   └── ...               # Autres scripts
-├── static/               # Fichiers statiques (CSS, JS)
-├── templates/            # Templates HTML
-├── tests/                # Tests unitaires et d'intégration
-├── archive/              # Fichiers récemment archivés
-├── archives/             # Archives historiques
-│   ├── obsolete/         # Fichiers obsolètes
-│   └── sqlite/           # Anciennes sauvegardes SQLite
-├── Dockerfile            # Image Docker
-├── Procfile              # Commande de démarrage Render
-├── README.md             # Documentation générale
-├── GETTING_STARTED.md    # Guide de démarrage
-├── STRUCTURE.md          # Structure du projet
-├── requirements.txt      # Dépendances Python
-├── ai_context_summary.md # Résumé du contexte du projet
-├── .gitignore            # Fichiers ignorés par Git
-├── .dockerignore         # Fichiers ignorés par Docker
-├── .flake8               # Configuration de Flake8
-├── setup.cfg             # Configuration des outils de développement
-├── LICENSE               # Licence
-├── sample.env            # Exemple de configuration d'environnement
-├── enhanced_server.py    # Serveur principal amélioré
-├── mathakine_cli.py      # Interface en ligne de commande
-└── math-trainer-backend/ # Dossier hérité (en cours de migration)
+docs/
+├── Core/           # Documentation principale
+├── Tech/           # Documentation technique
+├── Features/       # Documentation fonctionnelle
+└── assets/         # Ressources visuelles
 ```
 
-## Glossaire et Index de la documentation
+## 🤝 Contribution
 
-### Glossaire des termes
+Les contributions sont les bienvenues ! Consultez notre [guide de contribution](docs/Core/CONTRIBUTING.md).
 
-| Terme | Description |
-|-------|-------------|
-| **Mathakine** | Nom du projet, anciennement Math Trainer. Inspiré de Star Wars |
-| **Padawan** | Niveau intermédiaire de difficulté (équivalent à "medium") |
-| **Initié** | Niveau facile de difficulté (équivalent à "easy") |
-| **Chevalier** | Niveau difficile de difficulté (équivalent à "hard") |
-| **Maître** | Niveau expert de difficulté (non implémenté) |
-| **La Force des nombres** | Métaphore pour les compétences mathématiques |
-| **API Rebelle** | Nom de l'API REST du projet |
-| **Les Archives** | Métaphore pour la base de données |
-| **Épreuves d'Initié** | Tests unitaires |
-| **Épreuves de Chevalier** | Tests d'intégration |
-| **Épreuves de Maître** | Tests de performance |
-| **Épreuves du Conseil Jedi** | Défis logiques pour les 10-15 ans |
-| **Les Cristaux d'Identité** | Système d'authentification JWT |
-| **Boucliers Déflecteurs** | Middleware de sécurité |
-| **Holocrons** | Documentation API (Swagger/OpenAPI) |
-| **Normalisation** | Processus d'uniformisation des données pour assurer la cohérence |
+## 📝 License
 
-### Index de la documentation
+Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
-#### Guide utilisateur et administrateur
-- [TABLE_DES_MATIERES.md](docs/TABLE_DES_MATIERES.md) : Index complet de toute la documentation
-- [STRUCTURE.md](STRUCTURE.md) : Organisation des fichiers et dossiers du projet
-- [GUIDE_DEVELOPPEUR.md](docs/GUIDE_DEVELOPPEUR.md) : Instructions d'installation et d'utilisation
-- [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) : Guide de déploiement sur Render
-- [GLOSSARY.md](docs/GLOSSARY.md) : Glossaire complet des termes du projet
-- [UI_GUIDE.md](docs/UI_GUIDE.md) : Guide de l'interface graphique
+## 📫 Contact
 
-#### Documentation technique
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) : Architecture détaillée du système
-- [SCHEMA.md](docs/SCHEMA.md) : Documentation complète du schéma de la base de données
-- [POSTGRESQL_MIGRATION.md](docs/POSTGRESQL_MIGRATION.md) : Guide de migration vers PostgreSQL
-- [ALEMBIC.md](docs/ALEMBIC.md) : Gestion des migrations de base de données avec Alembic
-- [PYDANTIC_V2_MIGRATION.md](docs/PYDANTIC_V2_MIGRATION.md) : Migration vers Pydantic v2
-- [LOGGING.md](docs/LOGGING.md) : Système de journalisation centralisé
-
-#### Documentation de développement
-- [AUTH_GUIDE.md](docs/AUTH_GUIDE.md) : Système d'authentification et de sécurité
-- [ADMIN_COMMANDS.md](docs/ADMIN_COMMANDS.md) : Commandes administratives
-- [LOGIC_CHALLENGES_REQUIREMENTS.md](docs/LOGIC_CHALLENGES_REQUIREMENTS.md) : Exigences pour les défis logiques
-- [PROJECT_STATUS.md](docs/PROJECT_STATUS.md) : État actuel du projet et roadmap
-
-#### Maintenance et résolution des problèmes
-- [CHANGELOG.md](docs/CHANGELOG.md) : Historique des versions et modifications
-- [CONTEXT.md](docs/CONTEXT.md) : Résumé de l'état actuel du projet (auto-généré)
-- [CORRECTIONS_ET_MAINTENANCE.md](docs/CORRECTIONS_ET_MAINTENANCE.md) : Guide de résolution des problèmes
-- [MAINTENANCE_ET_NETTOYAGE.md](docs/MAINTENANCE_ET_NETTOYAGE.md) : Procédures de maintenance
-- [HISTORIQUE_REFACTORING.md](docs/HISTORIQUE_REFACTORING.md) : Historique des refactorings majeurs
-
-#### Documentation des tests
-- [TEST_PLAN.md](tests/TEST_PLAN.md) : Plan de test détaillé
-
-## Améliorations récentes
-
-### Mai 2025
-
-- ✅ Migration complète vers PostgreSQL et correction des problèmes liés aux types énumérés
-- ✅ Résolution des problèmes de relation entre exercices et tentatives (cascade delete)
-- ✅ Amélioration des endpoints d'API avec une meilleure gestion des erreurs
-- ✅ Mise à jour de l'interface utilisateur des exercices avec bouton de suppression
-- ✅ Optimisation des requêtes SQL pour les opérations critiques
-- ✅ Implémentation d'Alembic pour gérer les migrations de base de données de façon professionnelle
-- ✅ Nouveau système de maintien du contexte avec fichier centralisé et script de génération
-
-Pour plus de détails sur ces améliorations, consultez [docs/CHANGELOG.md](docs/CHANGELOG.md).
-
-### Système de maintien du contexte
-
-Pour faciliter la compréhension rapide de l'état actuel du projet :
-
-```bash
-# Générer un rapport sur l'état actuel du projet
-python scripts/generate_context.py
-
-# Mettre à jour automatiquement le fichier de contexte
-python scripts/generate_context.py --update
-
-# Générer le rapport au format JSON (pour intégration avec d'autres outils)
-python scripts/generate_context.py --json
-```
-
-Le fichier [docs/CONTEXT.md](docs/CONTEXT.md) sert de point d'entrée central pour comprendre l'état actuel du projet, son architecture et ses fonctionnalités clés.
-
-#### Documentation consolidée
-
-Le projet utilise un système de documentation simplifié et consolidé :
-
-```bash
-# Consolider les documents qui se chevauchent (crée des sauvegardes .bak)
-python scripts/consolidate_docs.py
-
-# Vérifier quels fichiers redondants seraient supprimés
-python scripts/cleanup_redundant_docs.py check
-
-# Supprimer les fichiers redondants après consolidation
-python scripts/cleanup_redundant_docs.py remove
-
-# Restaurer les fichiers à partir des sauvegardes (si nécessaire)
-python scripts/cleanup_redundant_docs.py restore
-```
-
-Le système de documentation maintient :
-- **CHANGELOG.md** : Historique complet des versions et modifications
-- **CONTEXT.md** : État actuel du projet, mis à jour automatiquement
-- **CLEANUP_REPORT.md** : Rapport consolidé sur les opérations de nettoyage
-- **POSTGRESQL_MIGRATION.md** : Guide complet de migration vers PostgreSQL
-
-Les fichiers obsolètes et sauvegardes (.bak) peuvent être archivés :
-```bash
-# Déplacer les fichiers de sauvegarde (.bak) vers le dossier d'archives
-python scripts/move_obsolete_files.py
-```
-
-Cette approche garantit une documentation complète mais non redondante, facilitant la maintenance et la compréhension du projet.
-
-### Août-Septembre 2024
-
-- ✅ Migration des modèles de données vers Pydantic v2 pour améliorer les performances et la compatibilité
-- ✅ Résolution des problèmes de déploiement sur Render avec PostgreSQL
-- ✅ Centralisation du système de journalisation pour une meilleure gestion des logs
-- ✅ Système de détection des fichiers obsolètes pour maintenir la propreté du code
-- ✅ Restructuration du projet avec une meilleure organisation des services
-
-### Système de logs centralisé
-
-Le projet intègre désormais un système de logs centralisé avec :
-
-```bash
-# Migration des logs existants
-python -m scripts.migrate_logs
-
-# Nettoyage des anciens fichiers logs (après vérification)
-python -m scripts.cleanup_logs
-```
-
-Consultez [docs/LOGGING.md](docs/LOGGING.md) pour plus de détails sur le système de journalisation.
-
-### Maintenance et nettoyage
-
-```bash
-# Détecter les fichiers obsolètes
-python -m scripts.detect_obsolete_files --verbose
-
-# Déplacer les fichiers obsolètes vers un répertoire d'archives
-python -m scripts.detect_obsolete_files --move-to archives/obsolete
-
-# Supprimer les fichiers obsolètes avec une confiance très élevée (>95%)
-python -m scripts.detect_obsolete_files --delete
-
-# Générer un rapport de nettoyage
-python -m scripts.detect_obsolete_files --cleanup-report docs/CLEANUP_REPORT.md --confidence 40
-```
-
-Pour plus de détails sur les procédures de nettoyage et de maintenance, consultez [docs/MAINTENANCE.md](docs/MAINTENANCE.md).
+- Site : [mathakine.fr](https://mathakine.fr)
+- Email : contact@mathakine.fr
+- Discord : [discord.mathakine.fr](https://discord.mathakine.fr)
 
 ---
 
-*Pour toute contribution ou question, consulte la documentation ou ouvre une issue sur GitHub.*
-
-*Dernière mise à jour : 12/05/2025* 
+Fait avec ❤️ par l'équipe Mathakine 

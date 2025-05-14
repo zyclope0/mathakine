@@ -1,244 +1,255 @@
 #!/usr/bin/env python
 """
-Script pour restaurer une base de données à partir d'une sauvegarde.
-Ce script:
-1. Liste les sauvegardes disponibles dans le dossier backups/database
-2. Permet de sélectionner une sauvegarde à restaurer
-3. Restaure la sauvegarde dans la base de données spécifiée
-4. Réinitialise la table alembic_version si nécessaire
+Script de restauration de base de données Mathakine
 
-À utiliser uniquement en cas de problème après l'application d'une migration Alembic.
+Ce script permet de restaurer facilement une base de données à partir d'une sauvegarde,
+soit en spécifiant le fichier manuellement, soit en choisissant parmi les sauvegardes disponibles.
+
+Usage: python scripts/restore_from_backup.py [--list] [--file BACKUP_FILE]
 """
+
 import os
 import sys
-import subprocess
 import argparse
-import datetime
+import subprocess
 from pathlib import Path
+import datetime
+import logging
 
-# Ajouter le répertoire parent au sys.path
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(BASE_DIR)
+# Configure le logger
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("logs/restore.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("restore_db")
 
-from app.core.config import settings
-from app.core.logging_config import get_logger
-
-logger = get_logger("db_restore")
-
-# Configuration du stockage des sauvegardes
-BACKUP_DIR = os.path.join(BASE_DIR, "backups", "database")
+def get_db_url():
+    """Récupère l'URL de la base de données depuis l'environnement."""
+    # Essayer d'abord avec la variable d'environnement standard
+    db_url = os.environ.get('DATABASE_URL')
+    
+    # Si non défini, essayer de charger depuis la configuration
+    if not db_url:
+        try:
+            sys.path.append('.')
+            from app.core.config import settings
+            db_url = settings.DATABASE_URL
+        except ImportError:
+            logger.error("Impossible de charger la configuration. DATABASE_URL doit être défini.")
+            sys.exit(1)
+    
+    return db_url
 
 def list_backups():
-    """Liste les sauvegardes disponibles."""
-    logger.info("Recherche des sauvegardes disponibles...")
-    
-    if not os.path.exists(BACKUP_DIR):
-        logger.error(f"Le répertoire de sauvegarde {BACKUP_DIR} n'existe pas")
+    """Liste les sauvegardes disponibles dans le répertoire de sauvegarde."""
+    backup_dir = Path("backups/database")
+    if not backup_dir.exists():
+        logger.error(f"Le répertoire de sauvegarde {backup_dir} n'existe pas.")
         return []
     
-    # Rechercher tous les fichiers .sql.gz dans le répertoire
-    backups = sorted(Path(BACKUP_DIR).glob("*.sql.gz"), key=os.path.getmtime, reverse=True)
+    # Récupérer tous les fichiers de sauvegarde
+    backups = []
+    for file in backup_dir.glob("backup_*"):
+        if file.is_file() and (file.name.endswith('.sql.gz') or file.name.endswith('.sqlite')):
+            # Extraire la date et l'heure de la création
+            try:
+                # Format: backup_dbname_YYYYMMDD_HHMMSS.sql.gz
+                date_str = file.name.split('_')[2]
+                time_str = file.name.split('_')[3].split('.')[0]
+                timestamp = datetime.datetime.strptime(f"{date_str}_{time_str}", "%Y%m%d_%H%M%S")
+                size = file.stat().st_size
+                backups.append({
+                    'file': file,
+                    'timestamp': timestamp,
+                    'size': size
+                })
+            except (IndexError, ValueError):
+                # Si le format ne correspond pas, utiliser la date de modification
+                timestamp = datetime.datetime.fromtimestamp(file.stat().st_mtime)
+                size = file.stat().st_size
+                backups.append({
+                    'file': file,
+                    'timestamp': timestamp,
+                    'size': size
+                })
     
-    if not backups:
-        logger.error("Aucune sauvegarde trouvée")
-        return []
-    
+    # Trier par date décroissante (plus récent d'abord)
+    backups.sort(key=lambda x: x['timestamp'], reverse=True)
     return backups
 
-def parse_db_url(db_url):
-    """Extrait les informations de connexion depuis l'URL de la base de données."""
-    # Exemple: postgresql://user:password@host:port/dbname
-    if not db_url.startswith('postgresql://'):
-        logger.error("L'URL de la base de données doit être PostgreSQL pour la restauration")
-        return None
+def print_backups(backups):
+    """Affiche la liste des sauvegardes disponibles."""
+    if not backups:
+        print("Aucune sauvegarde trouvée.")
+        return
     
-    try:
-        # Séparer les parties de l'URL
-        credentials, rest = db_url.replace('postgresql://', '').split('@')
-        user_pass = credentials.split(':')
-        host_port_db = rest.split('/')
-        
-        # Construire le dictionnaire des informations de connexion
-        db_info = {
-            'user': user_pass[0],
-            'password': user_pass[1] if len(user_pass) > 1 else None,
-            'host': host_port_db[0].split(':')[0],
-            'port': host_port_db[0].split(':')[1] if ':' in host_port_db[0] else '5432',
-            'dbname': host_port_db[1]
-        }
-        
-        return db_info
-    except Exception as e:
-        logger.error(f"Impossible de parser l'URL de la base de données: {e}")
-        return None
+    print(f"\n{'#':<4} {'Date':<20} {'Taille':<12} {'Fichier':<50}")
+    print("-" * 90)
+    
+    for i, backup in enumerate(backups, 1):
+        size_str = f"{backup['size'] / (1024*1024):.2f} MB" if backup['size'] > 1024*1024 else f"{backup['size'] / 1024:.2f} KB"
+        print(f"{i:<4} {backup['timestamp'].strftime('%Y-%m-%d %H:%M:%S'):<20} {size_str:<12} {backup['file'].name:<50}")
+    
+    print("")
 
-def restore_database(backup_path, db_info, force=False):
+def restore_backup(backup_file, db_url):
     """Restaure la base de données à partir d'une sauvegarde."""
-    logger.info(f"Restauration de la base de données {db_info['dbname']} à partir de {backup_path}...")
-    
-    if not force:
-        # Demander confirmation avant de continuer
-        response = input(f"⚠️ ATTENTION: Cette opération va remplacer la base de données {db_info['dbname']} par la sauvegarde {os.path.basename(backup_path)}.\nToutes les données actuelles seront perdues. Continuer? (y/n): ")
-        if response.lower() != 'y':
-            logger.info("Restauration annulée par l'utilisateur")
-            return False
-    
-    # Construction de la commande pg_restore
-    pg_restore_cmd = [
-        "pg_restore",
-        "--clean",        # Nettoie (drop) les objets avant de les recréer
-        "--if-exists",    # Ajoute IF EXISTS aux commandes DROP
-        "-h", db_info["host"],
-        "-p", db_info["port"],
-        "-U", db_info["user"],
-        "-d", db_info["dbname"],
-        backup_path
-    ]
-    
-    # Configuration de l'environnement pour pg_restore (mot de passe)
-    env = os.environ.copy()
-    if db_info["password"]:
-        env["PGPASSWORD"] = db_info["password"]
+    logger.info(f"Restauration de la base de données depuis: {backup_file}")
     
     try:
-        logger.info("Exécution de pg_restore...")
-        process = subprocess.run(
-            pg_restore_cmd, 
-            env=env, 
-            stdout=subprocess.PIPE, 
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        
-        # pg_restore peut retourner un code non-zéro même si la restauration réussit partiellement
-        if process.returncode != 0:
-            logger.warning(f"pg_restore a terminé avec le code {process.returncode}")
-            logger.warning(f"Messages d'erreur: {process.stderr}")
+        # Vérifier si c'est PostgreSQL ou SQLite
+        if db_url.startswith('postgresql'):
+            # Extraire les informations de connexion
+            parts = db_url.replace('postgresql://', '').split('@')
+            user_pass = parts[0].split(':')
+            host_db = parts[1].split('/')
             
-            # Même si pg_restore échoue partiellement, certaines tables peuvent être restaurées
-            # On considère que c'est un succès avec avertissement
-            logger.info("La restauration a probablement réussi partiellement.")
-        else:
-            logger.success("Restauration terminée avec succès")
+            user = user_pass[0]
+            password = user_pass[1]
+            host = host_db[0]
+            dbname = host_db[1]
+            
+            # Configuration des variables d'environnement pour pg_restore
+            env = os.environ.copy()
+            env['PGPASSWORD'] = password
+            
+            # Commande pg_restore
+            if str(backup_file).endswith('.sql.gz'):
+                # Décompresser d'abord le fichier SQL
+                logger.info("Décompression du fichier de sauvegarde...")
+                temp_sql = "/tmp/temp_restore.sql"
+                subprocess.run(
+                    f"gunzip -c {backup_file} > {temp_sql}",
+                    shell=True, check=True
+                )
+                
+                # Restaurer avec psql
+                logger.info("Restauration avec psql...")
+                cmd = [
+                    'psql',
+                    '-h', host,
+                    '-U', user,
+                    '-d', dbname,
+                    '-f', temp_sql
+                ]
+                subprocess.run(cmd, env=env, check=True)
+                
+                # Nettoyer
+                os.remove(temp_sql)
+            else:
+                # Fichier binaire pg_dump
+                cmd = [
+                    'pg_restore',
+                    '-h', host,
+                    '-U', user,
+                    '-d', dbname,
+                    '-c',  # Clean (drop) objects before recreating
+                    str(backup_file)
+                ]
+                subprocess.run(cmd, env=env, check=True)
+            
+        elif db_url.startswith('sqlite'):
+            # Pour SQLite, remplacer le fichier
+            db_path = db_url.replace('sqlite:///', '')
+            
+            # Stopper temporairement toute activité sur la base (si possible)
+            logger.info("Arrêt temporaire des services utilisant la base de données...")
+            
+            # Décompresser et restaurer
+            if str(backup_file).endswith('.sql.gz'):
+                subprocess.run(
+                    f"gunzip -c {backup_file} | sqlite3 {db_path}",
+                    shell=True, check=True
+                )
+            elif str(backup_file).endswith('.sqlite'):
+                # Faire une copie de sauvegarde du fichier existant
+                if os.path.exists(db_path):
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    backup_path = f"{db_path}.bak_{timestamp}"
+                    subprocess.run(
+                        f"cp {db_path} {backup_path}",
+                        shell=True, check=True
+                    )
+                    logger.info(f"Base de données existante sauvegardée sous: {backup_path}")
+                
+                # Copie directe
+                subprocess.run(
+                    f"cp {backup_file} {db_path}",
+                    shell=True, check=True
+                )
         
+        logger.info("Restauration terminée avec succès ✓")
         return True
+    
     except Exception as e:
         logger.error(f"Erreur lors de la restauration: {e}")
         return False
 
-def reset_alembic_version(revision=None):
-    """Réinitialise la table alembic_version à une révision spécifique."""
-    if not revision:
-        logger.info("Aucune révision spécifiée pour alembic_version")
-        return False
-    
-    logger.info(f"Réinitialisation de la table alembic_version à la révision {revision}...")
-    
-    try:
-        from sqlalchemy import create_engine, text
-        
-        engine = create_engine(settings.DATABASE_URL)
-        with engine.connect() as conn:
-            # Vider la table alembic_version
-            conn.execute(text("DELETE FROM alembic_version"))
-            
-            # Insérer la révision spécifiée
-            conn.execute(text(f"INSERT INTO alembic_version (version_num) VALUES ('{revision}')"))
-            
-            # Valider la transaction
-            conn.commit()
-            
-        logger.success(f"Table alembic_version réinitialisée à la révision {revision}")
-        return True
-    except Exception as e:
-        logger.error(f"Erreur lors de la réinitialisation de alembic_version: {e}")
-        return False
-
-def main(backup_index=None, force=False, reset_to=None):
-    """
-    Fonction principale pour la restauration de la base de données.
-    
-    Args:
-        backup_index: Index de la sauvegarde à restaurer (si None, affiche la liste)
-        force: Si True, restaure sans demander de confirmation
-        reset_to: Révision Alembic à définir après la restauration
-    """
-    logger.info("Démarrage du processus de restauration...")
-    
-    # Liste des sauvegardes disponibles
+def interactive_restore():
+    """Mode interactif pour choisir une sauvegarde à restaurer."""
     backups = list_backups()
+    
     if not backups:
+        logger.error("Aucune sauvegarde trouvée.")
         return False
     
-    # Afficher la liste des sauvegardes
-    if backup_index is None:
-        print("\nSauvegardes disponibles:")
-        for i, backup in enumerate(backups):
-            mtime = datetime.datetime.fromtimestamp(os.path.getmtime(backup))
-            size_mb = os.path.getsize(backup) / (1024 * 1024)
-            dbname = os.path.basename(backup).split('_')[1]  # backup_dbname_timestamp.sql.gz
-            print(f"{i+1}. {os.path.basename(backup)}")
-            print(f"   - Base de données: {dbname}")
-            print(f"   - Date: {mtime.strftime('%Y-%m-%d %H:%M:%S')}")
-            print(f"   - Taille: {size_mb:.2f} MB")
-        
-        # Demander à l'utilisateur de choisir une sauvegarde
+    print_backups(backups)
+    
+    while True:
         try:
-            choice = int(input("\nEntrez le numéro de la sauvegarde à restaurer (0 pour annuler): "))
-            if choice == 0:
-                logger.info("Restauration annulée par l'utilisateur")
+            choice = input("Choisissez une sauvegarde à restaurer (numéro ou 'q' pour quitter): ")
+            
+            if choice.lower() == 'q':
                 return False
             
-            if choice < 1 or choice > len(backups):
-                logger.error(f"Choix invalide: {choice}")
-                return False
-            
-            backup_index = choice - 1
+            choice_num = int(choice)
+            if 1 <= choice_num <= len(backups):
+                selected_backup = backups[choice_num - 1]['file']
+                break
+            else:
+                print(f"Veuillez choisir un numéro entre 1 et {len(backups)}.")
         except ValueError:
-            logger.error("Entrée invalide")
-            return False
+            print("Veuillez entrer un numéro valide.")
     
-    # Vérifier l'index de la sauvegarde
-    if backup_index < 0 or backup_index >= len(backups):
-        logger.error(f"Index de sauvegarde invalide: {backup_index}")
+    confirm = input(f"ATTENTION: Cela va écraser votre base de données actuelle avec {selected_backup.name}. Continuer? (oui/non) ")
+    if confirm.lower() in ['oui', 'o', 'yes', 'y']:
+        return restore_backup(selected_backup, get_db_url())
+    else:
+        print("Restauration annulée.")
         return False
-    
-    # Sélectionner la sauvegarde
-    selected_backup = backups[backup_index]
-    logger.info(f"Sauvegarde sélectionnée: {selected_backup}")
-    
-    # Extraire les informations de connexion
-    db_info = parse_db_url(settings.DATABASE_URL)
-    if not db_info:
-        return False
-    
-    # Restaurer la base de données
-    if not restore_database(selected_backup, db_info, force):
-        logger.error("Échec de la restauration")
-        return False
-    
-    # Réinitialiser la table alembic_version si une révision est spécifiée
-    if reset_to:
-        if not reset_alembic_version(reset_to):
-            logger.warning("Échec de la réinitialisation de alembic_version")
-            logger.info("La base de données a été restaurée, mais la table alembic_version n'a pas été mise à jour")
-            return True
-    
-    logger.success("Processus de restauration terminé avec succès")
-    return True
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Restaurer une base de données à partir d'une sauvegarde")
-    parser.add_argument("--backup", type=int, help="Index de la sauvegarde à restaurer (1-based)")
-    parser.add_argument("--force", action="store_true", help="Restaurer sans demander de confirmation")
-    parser.add_argument("--reset-to", help="Révision Alembic à définir après la restauration")
+def main():
+    parser = argparse.ArgumentParser(description='Restauration de base de données Mathakine')
+    parser.add_argument('--list', action='store_true', help='Lister les sauvegardes disponibles')
+    parser.add_argument('--file', help='Fichier de sauvegarde spécifique à restaurer')
+    
     args = parser.parse_args()
     
-    # Ajuster l'index (interface utilisateur est 1-based, mais le code est 0-based)
-    backup_index = args.backup - 1 if args.backup is not None else None
+    if args.list:
+        backups = list_backups()
+        print_backups(backups)
+        return
     
-    success = main(backup_index, args.force, args.reset_to)
-    if success:
-        sys.exit(0)
-    else:
-        sys.exit(1) 
+    if args.file:
+        backup_file = Path(args.file)
+        if not backup_file.exists():
+            logger.error(f"Le fichier de sauvegarde {args.file} n'existe pas.")
+            sys.exit(1)
+        
+        success = restore_backup(backup_file, get_db_url())
+        if success:
+            logger.info("Restauration terminée avec succès.")
+        else:
+            logger.error("Échec de la restauration.")
+        sys.exit(0 if success else 1)
+    
+    # Mode interactif
+    success = interactive_restore()
+    sys.exit(0 if success else 1)
+
+if __name__ == "__main__":
+    main() 

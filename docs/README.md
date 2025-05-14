@@ -1,54 +1,79 @@
 # Documentation Mathakine
 
-Ce dossier contient toute la documentation du projet Mathakine (anciennement Math Trainer), une application éducative pour l'apprentissage des mathématiques et de la logique avec une thématique Star Wars.
+Bienvenue dans la documentation de Mathakine. Cette documentation est organisée en trois sections principales pour faciliter la navigation et la compréhension du projet.
 
-## Organisation de la documentation
+## 📚 Structure de la Documentation
 
-La documentation est organisée par thématiques :
+```mermaid
+graph TB
+    A[Documentation] --> B[Core]
+    A --> C[Tech]
+    A --> D[Features]
+    A --> E[Assets]
+    A --> F[Archive]
+```
 
-- **Démarrage** : Installation, configuration, déploiement
-- **Architecture** : Structure du code, modèles de données, API
-- **Fonctionnalités** : Documentation détaillée des fonctionnalités
-- **Maintenance** : Guides pour la maintenance et le nettoyage
-- **Historique** : Changements, refactorings, migrations
+## 🚀 Documents Principaux (Core/)
 
-## Comment naviguer dans la documentation
+- [Guide de démarrage rapide](Core/QUICKSTART.md)
+- [Guide de contribution](Core/CONTRIBUTING.md)
+- [Diagrammes d'architecture](Core/ARCHITECTURE_DIAGRAMS.md)
+- [FAQ](Core/FAQ.md)
 
-1. Commencez par consulter la [Table des matières](TABLE_DES_MATIERES.md) qui offre une vue d'ensemble organisée.
-2. Pour les nouveaux contributeurs, le [Guide du développeur](GUIDE_DEVELOPPEUR.md) est le meilleur point de départ.
-3. Pour comprendre le modèle de données, consultez [Schéma de la base de données](SCHEMA.md).
-4. Pour les API, consultez la [Référence API](API_REFERENCE.md).
+## 💻 Documentation Technique (Tech/)
 
-## Mises à jour récentes (Mai 2025)
+- [Guide de la base de données](Tech/DATABASE.md)
+- [Guide des tests](Tech/TESTING.md)
+- [Guide de déploiement](Tech/DEPLOYMENT.md)
+- [Guide des API](Tech/API.md)
+- [Guide de sécurité](Tech/SECURITY.md)
 
-Deux améliorations majeures ont été récemment documentées :
+## ✨ Documentation Fonctionnelle (Features/)
 
-1. **Gestion unifiée des suppressions en cascade** ([CASCADE_DELETION.md](CASCADE_DELETION.md))
-   - Implémentation des relations avec `cascade="all, delete-orphan"`
-   - Standardisation des endpoints de suppression
-   - Documentation des bonnes pratiques
+- [Exercices mathématiques](Features/EXERCISES.md)
+- [Système de progression](Features/PROGRESSION.md)
+- [Système de récompenses](Features/REWARDS.md)
+- [Mode hors-ligne](Features/OFFLINE.md)
+- [Analytics](Features/ANALYTICS.md)
 
-2. **Sécurité des migrations Alembic** ([ALEMBIC_SÉCURITÉ.md](ALEMBIC_SÉCURITÉ.md))
-   - Nouveaux scripts de sauvegarde et restauration
-   - Procédures sécurisées pour les migrations en production
-   - Détection des opérations dangereuses
+## 📦 Ressources
 
-La documentation de l'API a également été mise à jour avec les nouveaux endpoints de suppression dans [API_REFERENCE.md](API_REFERENCE.md).
+- [Changelog](CHANGELOG.md)
+- [Glossaire](GLOSSARY.md)
+- [Licence](../LICENSE)
 
-## Contributions à la documentation
+## 🔍 Navigation Rapide
 
-Pour contribuer à la documentation :
+### Pour les Nouveaux Utilisateurs
+1. [Guide de démarrage rapide](Core/QUICKSTART.md)
+2. [FAQ](Core/FAQ.md)
+3. [Guide des exercices](Features/EXERCISES.md)
 
-1. Assurez-vous que la documentation suit le format Markdown standard
-2. Placez les nouveaux documents dans le dossier approprié
-3. Mettez à jour la [Table des matières](TABLE_DES_MATIERES.md)
-4. Maintenez la cohérence du style et de la terminologie
-5. Utilisez des emojis pour améliorer la lisibilité des titres (📝, 🚀, etc.)
+### Pour les Développeurs
+1. [Guide de contribution](Core/CONTRIBUTING.md)
+2. [Architecture](Core/ARCHITECTURE_DIAGRAMS.md)
+3. [Guide technique](Tech/DEVELOPMENT.md)
 
-## Documentation obsolète
+### Pour les Administrateurs
+1. [Guide de déploiement](Tech/DEPLOYMENT.md)
+2. [Guide de sécurité](Tech/SECURITY.md)
+3. [Guide des opérations](Tech/OPERATIONS.md)
 
-La documentation obsolète est déplacée dans le dossier [ARCHIVE](ARCHIVE/) plutôt que d'être supprimée, afin de conserver l'historique.
+## 📅 Mises à jour
+
+La documentation est mise à jour régulièrement. Consultez le [CHANGELOG.md](CHANGELOG.md) pour suivre les modifications.
+
+## 🤝 Contribution
+
+Nous encourageons les contributions à la documentation. Consultez le [guide de contribution](Core/CONTRIBUTING.md) pour plus d'informations.
+
+## 📫 Contact
+
+Pour toute question sur la documentation :
+- Ouvrir une issue avec le label `documentation`
+- Email : docs@mathakine.fr
+- Discord : [canal #documentation](https://discord.mathakine.fr)
 
 ---
 
-*Pour toute question sur la documentation, contactez l'équipe de développement Mathakine.* 
+© 2024-2025 Équipe Mathakine - [mathakine.fr](https://mathakine.fr)

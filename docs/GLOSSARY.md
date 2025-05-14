@@ -9,7 +9,9 @@ Ce document contient tous les termes spécifiques utilisés dans le projet Matha
 3. [Métaphores Star Wars](#métaphores-star-wars)
 4. [Termes techniques](#termes-techniques)
 5. [Termes liés aux données](#termes-liés-aux-données)
-6. [Termes de développement et déploiement](#termes-de-développement-et-déploiement)
+6. [Termes liés au système de transaction](#termes-liés-au-système-de-transaction)
+7. [Termes de documentation](#termes-de-documentation)
+8. [Termes de développement et déploiement](#termes-de-développement-et-déploiement)
 
 ---
 
@@ -72,6 +74,8 @@ Ce document contient tous les termes spécifiques utilisés dans le projet Matha
 | **Modules d'Expansion** | Conteneurs Docker |
 | **Vitesse Hyperdrive** | Performance optimale de l'API |
 | **Protocole d'Harmonie** | Système de normalisation des données |
+| **Chambre de Méditation** | Système de transaction unifié |
+| **Gardiens du Temple** | Transactions de base de données sécurisées |
 
 ## Termes techniques
 
@@ -99,6 +103,30 @@ Ce document contient tous les termes spécifiques utilisés dans le projet Matha
 | **Doublons** | Entrées multiples pour la même combinaison type/difficulté dans `user_stats`. |
 | **Mappage** | Processus de conversion des variantes de format vers un format standard. |
 
+## Termes liés au système de transaction
+
+| Terme | Description |
+|-------|-------------|
+| **TransactionManager** | Gestionnaire central qui assure la cohérence des transactions de base de données. |
+| **DatabaseAdapter** | Interface unifiée pour les opérations de base de données, supportant SQLAlchemy et SQL brut. |
+| **EnhancedServerAdapter** | Adaptateur qui connecte le serveur Starlette au système de transaction unifié. |
+| **Service métier** | Composant qui encapsule la logique métier d'un domaine spécifique (exercices, utilisateurs, etc.). |
+| **Suppress en cascade** | Mécanisme qui assure la suppression automatique des objets dépendants en cascade. |
+| **Archivage logique** | Processus qui marque les entités comme archivées sans les supprimer physiquement. |
+| **Rollback automatique** | Annulation automatique des changements en cas d'erreur dans une transaction. |
+
+## Termes de documentation
+
+| Terme | Description |
+|-------|-------------|
+| **Core** | Catégorie de documents principaux dans la nouvelle structure de documentation. |
+| **Tech** | Catégorie de documents techniques dans la nouvelle structure de documentation. |
+| **Features** | Catégorie de documents spécifiques aux fonctionnalités dans la nouvelle structure de documentation. |
+| **Consolidation** | Processus de fusion de plusieurs documents en un seul document cohérent. |
+| **Document archivé** | Document historique déplacé dans le dossier ARCHIVE pour référence. |
+| **Rationalisation** | Processus d'optimisation et de restructuration de la documentation. |
+| **Document de redirection** | Fichier qui indique la nouvelle location d'un document déplacé. |
+
 ## Termes de développement et déploiement
 
 | Terme | Description |
@@ -117,4 +145,4 @@ Ce document contient tous les termes spécifiques utilisés dans le projet Matha
 
 *Ce glossaire est en constante évolution à mesure que le projet se développe.*
 
-*Dernière mise à jour : 22/07/2024* 
+*Dernière mise à jour : 15/06/2025* 

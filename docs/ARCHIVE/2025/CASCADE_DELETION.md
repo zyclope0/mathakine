@@ -38,35 +38,81 @@ class User(Base):
     )
 ```
 
-### 2. Endpoints de suppression uniformisés
+### 2. Gestionnaire de transactions unifié
 
-Tous les endpoints de suppression suivent désormais la même structure :
+Nous avons implémenté un gestionnaire de transactions centralisé qui assure la cohérence des opérations de base de données :
 
 ```python
-@router.delete("/{item_id}", status_code=204)
-def delete_item(
-    *,
-    db: Session = Depends(get_db_session),
-    item_id: int,
-    current_user: User = Depends(get_current_user_with_permission)
-) -> None:
-    try:
-        # Vérification de l'existence
-        item = db.query(ItemModel).filter(ItemModel.id == item_id).first()
-        if not item:
-            raise HTTPException(status_code=404, detail="Item non trouvé")
-            
-        # Suppression (cascade automatique)
-        db.delete(item)
-        db.commit()
-        
-        return None
-        
-    except SQLAlchemyError as e:
-        db.rollback()
-        logger.error(f"Erreur SQL: {str(e)}")
-        raise HTTPException(status_code=500, detail="Erreur de base de données")
+with TransactionManager.transaction(db) as session:
+    # Effectuer des opérations
+    session.delete(user)
+    # La transaction est automatiquement validée ou annulée
 ```
+
+Ce gestionnaire s'occupe de :
+- Commiter les transactions réussies
+- Faire un rollback en cas d'erreur
+- Journaliser les opérations
+- Gérer les cas spécifiques comme l'archivage
+
+### 3. Service d'adaptation pour les opérations de base de données
+
+Un adaptateur de base de données (`DatabaseAdapter`) fournit une interface unifiée pour toutes les opérations :
+
+```python
+# Suppression physique
+DatabaseAdapter.delete(db, object)
+
+# Archivage logique
+DatabaseAdapter.archive(db, object)
+```
+
+### 4. Services métier spécialisés
+
+Des services métier dédiés utilisent le gestionnaire de transactions et l'adaptateur :
+
+```python
+# Exemple de suppression d'un utilisateur
+UserService.delete_user(db, user_id)
+
+# Exemple d'archivage d'un exercice
+ExerciseService.archive_exercise(db, exercise_id)
+```
+
+## Choix entre suppression physique et archivage logique
+
+Deux approches sont possibles pour "supprimer" des données :
+
+### Suppression physique
+
+- **Avantage** : Libère de l'espace de stockage
+- **Avantage** : Respecte le droit à l'oubli (RGPD)
+- **Inconvénient** : Irréversible
+
+### Archivage logique
+
+- **Avantage** : Permet de récupérer les données si nécessaire
+- **Avantage** : Maintient l'historique
+- **Inconvénient** : Consomme plus d'espace
+
+La décision entre ces deux approches dépend du contexte :
+- Les exercices sont généralement archivés (`is_archived = true`)
+- Les utilisateurs peuvent être physiquement supprimés (droits RGPD)
+- Les données sensibles doivent pouvoir être physiquement supprimées
+
+## Tests de validation
+
+Des tests unitaires vérifient automatiquement que :
+1. Les relations cascade sont correctement configurées
+2. Les suppressions en cascade fonctionnent comme prévu
+3. Les deux modes de suppression (physique et logique) fonctionnent correctement
+
+## Bonnes pratiques
+
+1. **Toujours utiliser les services** plutôt que de manipuler directement les modèles
+2. **Préférer l'archivage** pour les données qui pourraient être utiles plus tard
+3. **Documenter clairement** le comportement attendu pour chaque entité
+4. **Tester soigneusement** les suppressions en cascade pour éviter les surprises
 
 ## Relations en cascade par modèle
 
@@ -118,34 +164,6 @@ DELETE /api/challenges/{challenge_id}
 - **Autorisations requises** : Rôle Gardien ou Archiviste
 - **Comportement** : Supprime le défi logique et toutes les tentatives associées
 - **Implémentation** : `app/api/endpoints/challenges.py`
-
-## Bonnes pratiques
-
-1. **Toujours définir les cascades dans les modèles** : Utilisez les relations SQLAlchemy avec l'option cascade appropriée
-2. **Valider les suppressions** : Vérifiez que les entités sont bien supprimées en cascade
-3. **Journaliser les suppressions** : Enregistrez les suppressions pour la traçabilité
-4. **Gérer les erreurs** : Utilisez try/except et rollback en cas d'erreur
-5. **Limiter les autorisations** : Restreignez les suppressions aux rôles appropriés
-
-## Tests
-
-Pour valider le comportement des suppressions en cascade :
-
-```python
-# Test de suppression en cascade pour les utilisateurs
-def test_delete_user_cascade():
-    user = create_test_user()
-    exercise = create_test_exercise(creator_id=user.id)
-    attempt = create_test_attempt(user_id=user.id, exercise_id=exercise.id)
-    
-    # Supprimer l'utilisateur
-    db.delete(user)
-    db.commit()
-    
-    # Vérifier que tout a été supprimé
-    assert db.query(Exercise).filter_by(id=exercise.id).first() is None
-    assert db.query(Attempt).filter_by(id=attempt.id).first() is None
-```
 
 ## Résumé
 

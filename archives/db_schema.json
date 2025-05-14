@@ -1,0 +1,185 @@
+{
+  "exercises": [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "not_null": false,
+      "default": null,
+      "primary_key": true
+    },
+    {
+      "name": "title",
+      "type": "TEXT",
+      "not_null": true,
+      "default": null,
+      "primary_key": false
+    },
+    {
+      "name": "question",
+      "type": "TEXT",
+      "not_null": true,
+      "default": null,
+      "primary_key": false
+    },
+    {
+      "name": "correct_answer",
+      "type": "TEXT",
+      "not_null": true,
+      "default": null,
+      "primary_key": false
+    },
+    {
+      "name": "choices",
+      "type": "TEXT",
+      "not_null": false,
+      "default": null,
+      "primary_key": false
+    },
+    {
+      "name": "explanation",
+      "type": "TEXT",
+      "not_null": false,
+      "default": null,
+      "primary_key": false
+    },
+    {
+      "name": "exercise_type",
+      "type": "TEXT",
+      "not_null": true,
+      "default": null,
+      "primary_key": false
+    },
+    {
+      "name": "difficulty",
+      "type": "TEXT",
+      "not_null": false,
+      "default": "'easy'",
+      "primary_key": false
+    },
+    {
+      "name": "is_archived",
+      "type": "BOOLEAN",
+      "not_null": false,
+      "default": "0",
+      "primary_key": false
+    },
+    {
+      "name": "is_completed",
+      "type": "BOOLEAN",
+      "not_null": false,
+      "default": "0",
+      "primary_key": false
+    },
+    {
+      "name": "created_at",
+      "type": "TEXT",
+      "not_null": false,
+      "default": "CURRENT_TIMESTAMP",
+      "primary_key": false
+    }
+  ],
+  "sqlite_sequence": [
+    {
+      "name": "name",
+      "type": "",
+      "not_null": false,
+      "default": null,
+      "primary_key": false
+    },
+    {
+      "name": "seq",
+      "type": "",
+      "not_null": false,
+      "default": null,
+      "primary_key": false
+    }
+  ],
+  "results": [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "not_null": false,
+      "default": null,
+      "primary_key": true
+    },
+    {
+      "name": "exercise_id",
+      "type": "INTEGER",
+      "not_null": false,
+      "default": null,
+      "primary_key": false
+    },
+    {
+      "name": "is_correct",
+      "type": "BOOLEAN",
+      "not_null": false,
+      "default": "0",
+      "primary_key": false
+    },
+    {
+      "name": "attempt_count",
+      "type": "INTEGER",
+      "not_null": false,
+      "default": "1",
+      "primary_key": false
+    },
+    {
+      "name": "time_spent",
+      "type": "REAL",
+      "not_null": false,
+      "default": null,
+      "primary_key": false
+    },
+    {
+      "name": "created_at",
+      "type": "TEXT",
+      "not_null": false,
+      "default": "CURRENT_TIMESTAMP",
+      "primary_key": false
+    }
+  ],
+  "user_stats": [
+    {
+      "name": "id",
+      "type": "INTEGER",
+      "not_null": false,
+      "default": null,
+      "primary_key": true
+    },
+    {
+      "name": "exercise_type",
+      "type": "TEXT",
+      "not_null": true,
+      "default": null,
+      "primary_key": false
+    },
+    {
+      "name": "difficulty",
+      "type": "TEXT",
+      "not_null": true,
+      "default": null,
+      "primary_key": false
+    },
+    {
+      "name": "total_attempts",
+      "type": "INTEGER",
+      "not_null": false,
+      "default": "0",
+      "primary_key": false
+    },
+    {
+      "name": "correct_attempts",
+      "type": "INTEGER",
+      "not_null": false,
+      "default": "0",
+      "primary_key": false
+    },
+    {
+      "name": "last_updated",
+      "type": "TEXT",
+      "not_null": false,
+      "default": "CURRENT_TIMESTAMP",
+      "primary_key": false
+    }
+  ]
+}
