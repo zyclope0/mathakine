@@ -5,11 +5,45 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.models.logic_challenge import LogicChallengeType, AgeGroup
+from app.models.user import User, UserRole
+from app.api.deps import get_current_user
 from tests.fixtures.model_fixtures import test_logic_challenge, test_logic_challenges
 
 client = TestClient(app)
 
-
+@pytest.fixture
+def test_authenticated_user():
+    """
+    Crée un utilisateur de test authentifié pour les tests qui nécessitent l'authentification.
+    Override la dépendance get_current_user pour simuler un utilisateur authentifié.
+    """
+    # Créer un utilisateur de test
+    user = User(
+        id=999,
+        username="test_padawan",
+        email="test_padawan@example.com",
+        hashed_password="hashed_password",
+        role=UserRole.PADAWAN
+    )
+    
+    # Override la dépendance pour simuler un utilisateur authentifié
+    def override_get_current_user():
+        return user
+    
+    # Sauvegarder la dépendance originale
+    original_dependency = app.dependency_overrides.get(get_current_user)
+    
+    # Remplacer par notre override
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    
+    # Fournir l'utilisateur au test
+    yield user
+    
+    # Restaurer la dépendance originale après le test
+    if original_dependency:
+        app.dependency_overrides[get_current_user] = original_dependency
+    else:
+        del app.dependency_overrides[get_current_user]
 
 
 def test_get_logic_challenges():
@@ -28,11 +62,9 @@ def test_get_logic_challenges():
     first_challenge = data[0]
     assert "id" in first_challenge
     assert "type" in first_challenge or "challenge_type" in first_challenge
-    assert "difficulty" in first_challenge
+    assert "age_group" in first_challenge
     assert "question" in first_challenge or "description" in first_challenge
     assert "correct_answer" in first_challenge
-
-
 
 
 def test_get_logic_challenge_by_id():
@@ -50,8 +82,6 @@ def test_get_logic_challenge_by_id():
     assert "solution_explanation" in challenge or "explanation" in challenge
 
 
-
-
 def test_get_nonexistent_challenge():
     """Test de l'endpoint pour récupérer un défi logique inexistant."""
     # Tester avec un ID très grand (probablement inexistant)
@@ -59,9 +89,7 @@ def test_get_nonexistent_challenge():
     assert response.status_code == 404
 
 
-
-
-def test_challenge_attempt_correct():
+def test_challenge_attempt_correct(test_authenticated_user):
     """Test de la soumission d'une tentative correcte pour un défi logique."""
     challenge_id = 1
 
@@ -84,9 +112,7 @@ def test_challenge_attempt_correct():
     assert result["hints"] is None  # Pas d'indice nécessaire pour une réponse correcte
 
 
-
-
-def test_challenge_attempt_incorrect():
+def test_challenge_attempt_incorrect(test_authenticated_user):
     """Test de la soumission d'une tentative incorrecte pour un défi logique."""
     challenge_id = 1
 
@@ -114,9 +140,7 @@ def test_challenge_attempt_incorrect():
     assert result["hints"] is not None  # Des indices devraient être fournis
 
 
-
-
-def test_get_challenge_hint():
+def test_get_challenge_hint(test_authenticated_user):
     """Test de l'endpoint pour récupérer un indice pour un défi logique."""
     challenge_id = 1
 
@@ -132,9 +156,7 @@ def test_get_challenge_hint():
 
     # Récupérer un niveau d'indice non disponible (généralement > 3)
     response = client.get(f"/api/challenges/{challenge_id}/hint", params={"level": 99})
-    assert response.status_code == 400  # Bad Request attendu
-
-
+    assert response.status_code == 422  # Validation error attendu (Unprocessable Entity)
 
 
 def test_filter_challenges_by_type():

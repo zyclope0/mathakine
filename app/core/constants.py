@@ -79,18 +79,18 @@ DIFFICULTY_LIMITS = {
         "default": {"min": 10, "max": 50}
     },
     DifficultyLevels.CHEVALIER: {
-        ExerciseTypes.ADDITION: {"min": 50, "max": 100},
-        ExerciseTypes.SUBTRACTION: {"min1": 70, "max1": 120, "min2": 20, "max2": 70},
-        ExerciseTypes.MULTIPLICATION: {"min": 10, "max": 15},
-        ExerciseTypes.DIVISION: {"min_divisor": 5, "max_divisor": 12, "min_result": 10, "max_result": 15},
-        "default": {"min": 50, "max": 100}
+        ExerciseTypes.ADDITION: {"min": 50, "max": 200},
+        ExerciseTypes.SUBTRACTION: {"min1": 100, "max1": 250, "min2": 50, "max2": 100},
+        ExerciseTypes.MULTIPLICATION: {"min": 10, "max": 20},
+        ExerciseTypes.DIVISION: {"min_divisor": 5, "max_divisor": 15, "min_result": 8, "max_result": 20},
+        "default": {"min": 50, "max": 200}
     },
     DifficultyLevels.MAITRE: {
-        ExerciseTypes.ADDITION: {"min": 100, "max": 500},
-        ExerciseTypes.SUBTRACTION: {"min1": 120, "max1": 500, "min2": 70, "max2": 120},
-        ExerciseTypes.MULTIPLICATION: {"min": 15, "max": 30},
-        ExerciseTypes.DIVISION: {"min_divisor": 10, "max_divisor": 20, "min_result": 15, "max_result": 25},
-        "default": {"min": 100, "max": 500}
+        ExerciseTypes.ADDITION: {"min": 200, "max": 1000},
+        ExerciseTypes.SUBTRACTION: {"min1": 250, "max1": 1000, "min2": 100, "max2": 500},
+        ExerciseTypes.MULTIPLICATION: {"min": 20, "max": 50},
+        ExerciseTypes.DIVISION: {"min_divisor": 10, "max_divisor": 30, "min_result": 10, "max_result": 50},
+        "default": {"min": 200, "max": 1000}
     }
 }
 

@@ -1,60 +1,53 @@
-# Table des matières de la documentation Mathakine
+# Table des Matières de la Documentation Mathakine
 
-Ce document sert de point d'entrée vers toute la documentation du projet Mathakine (anciennement Math Trainer).
+Cette table des matières centralise tous les documents techniques et guides du projet Mathakine.
 
-## 🚀 Démarrage et installation
+## Documentation Générale
 
-- [Guide du développeur](GUIDE_DEVELOPPEUR.md) - Installation, configuration et extension du projet
-- [Guide de déploiement](DEPLOYMENT_GUIDE.md) - Déploiement en production (Render, Docker)
-- [Migration PostgreSQL](POSTGRESQL_MIGRATION.md) - Guide de migration vers PostgreSQL
+1. [README.md](../README.md) - Présentation générale du projet
+2. [STRUCTURE.md](STRUCTURE.md) - Structure détaillée du projet
+3. [ARCHITECTURE.md](ARCHITECTURE.md) - Architecture technique détaillée
+4. [PROJECT_STATUS.md](PROJECT_STATUS.md) - État actuel et planification
+5. [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) - Plan d'implémentation détaillé
+6. [UI_GUIDE.md](UI_GUIDE.md) - Guide de l'interface graphique
+7. [CHANGELOG.md](CHANGELOG.md) - Historique des modifications
 
-## 📋 Documentation du projet
+## Guides Techniques
 
-### Vue d'ensemble
-- [Architecture du projet](ARCHITECTURE.md) - Architecture détaillée du système
-- [Structure du projet](../STRUCTURE.md) - Organisation des fichiers et dossiers
-- [État actuel du projet](PROJECT_STATUS.md) - État d'avancement et planification
-- [Plan d'implémentation](IMPLEMENTATION_PLAN.md) - Planification détaillée des fonctionnalités
+1. [POSTGRESQL_MIGRATION.md](POSTGRESQL_MIGRATION.md) - Guide de migration vers PostgreSQL
+2. [ALEMBIC.md](ALEMBIC.md) - Guide d'utilisation d'Alembic pour les migrations
+3. [LOGGING.md](LOGGING.md) - Guide du système de journalisation
+4. [PYDANTIC_V2_MIGRATION.md](PYDANTIC_V2_MIGRATION.md) - Documentation de la migration vers Pydantic v2
+5. [CASCADE_DELETION.md](CASCADE_DELETION.md) - Documentation du système de suppression en cascade
+6. [API_REFERENCE.md](API_REFERENCE.md) - Référence complète de l'API
 
-### Documentation technique
-- [Guide de l'interface utilisateur](UI_GUIDE.md) - Guide de l'interface graphique
-- [Guide d'authentification](AUTH_GUIDE.md) - Système d'authentification JWT et gestion des rôles
-- [Migration vers Pydantic v2](PYDANTIC_V2_MIGRATION.md) - Détails sur la migration vers Pydantic v2
-- [Guide Alembic](ALEMBIC.md) - Gestion des migrations de base de données avec Alembic
-- [Schéma de la base de données](SCHEMA.md) - Documentation complète du schéma de la base de données
-- [Glossaire](GLOSSARY.md) - Terminologie du projet (thème Star Wars)
-- [Logging](LOGGING.md) - Système de journalisation
+## Tests et Qualité du Code
 
-### Maintenance et développement
-- [Corrections et maintenance](CORRECTIONS_ET_MAINTENANCE.md) - Bugs corrigés et guide de résolution des problèmes
-- [Maintenance et nettoyage](MAINTENANCE_ET_NETTOYAGE.md) - Historique et statistiques des opérations de nettoyage
-- [Commandes administratives](ADMIN_COMMANDS.md) - Commandes de la CLI
-- [Script de nettoyage de documentation](../scripts/cleanup_doc.py) - Outil pour gérer la documentation redondante
+1. [tests/README.md](../tests/README.md) - Vue d'ensemble du système de tests
+2. [tests/TEST_PLAN.md](../tests/TEST_PLAN.md) - Plan de test détaillé
+3. [TESTS.md](TESTS.md) - Documentation détaillée des tests et couverture
+4. [CODE_STANDARDS.md](CODE_STANDARDS.md) - Standards de code et bonnes pratiques
 
-## 📝 Refactoring et améliorations
+## Maintenance et Opérations
 
-### Documentation sur le refactoring
-- [Historique des refactorings](HISTORIQUE_REFACTORING.md) - Documentation complète sur les refactorings majeurs
+1. [CORRECTIONS_ET_MAINTENANCE.md](CORRECTIONS_ET_MAINTENANCE.md) - Documentation des corrections et problèmes résolus
+2. [MAINTENANCE_ET_NETTOYAGE.md](MAINTENANCE_ET_NETTOYAGE.md) - Résumé des opérations de nettoyage
 
-### Corrections et améliorations
-- [Rapport de nettoyage détaillé](CLEANUP_REPORT.md) - Rapport détaillé du nettoyage
+## Documentation des Interfaces
 
-## 📊 Fonctionnalités spécifiques
+1. [SWAGGER_DOCUMENTATION.md](SWAGGER_DOCUMENTATION.md) - Documentation de l'interface Swagger/OpenAPI
+2. [STARLETTE_VIEWS.md](STARLETTE_VIEWS.md) - Documentation des vues Starlette
 
-- [Exigences des défis logiques](LOGIC_CHALLENGES_REQUIREMENTS.md) - Spécifications pour les défis logiques (10-15 ans)
+## Annexes
 
-## 📜 Historique et contexte
+1. [GLOSSAIRE.md](GLOSSAIRE.md) - Termes techniques et du domaine
+2. [REFERENCES.md](REFERENCES.md) - Sources et références externes
 
-- [Résumé du contexte](CONTEXT.md) - État actuel du projet (généré automatiquement)
-- [Changelog](CHANGELOG.md) - Historique des versions et modifications
-- [Résumé du contexte IA](../ai_context_summary.md) - Résumé complet du projet pour l'IA
+## Liste des Scripts Utilitaires
 
-## 🧪 Documentation des tests
-
-- [Guide des tests](../tests/README.md) - Documentation sur les tests
-- [Plan de test](../tests/TEST_PLAN.md) - Plan de test détaillé
-- [Documentation de validation](validation/README.md) - Procédures de validation
+1. [SCRIPT_USAGE.md](SCRIPT_USAGE.md) - Documentation des scripts utilitaires
+2. [CLI_COMMANDS.md](CLI_COMMANDS.md) - Documentation des commandes CLI
 
 ---
 
-*Cette table des matières est mise à jour régulièrement. Dernière mise à jour : 12 Mai 2025* 
+*Cette table des matières est mise à jour régulièrement. Dernière mise à jour : 20 Mai 2025* 

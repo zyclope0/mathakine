@@ -1,0 +1,473 @@
+/* Thème Star Wars sombre pour Mathakine - L'API Rebelle */
+
+/* Variables */
+:root {
+  /* Couleurs principales inspirées par Star Wars */
+  --space-bg-dark: #121726;
+  --space-bg-darker: #0a0d14;
+  --space-card-bg: rgba(23, 34, 59, 0.9);
+  --space-card-hover: rgba(29, 43, 75, 0.95);
+  
+  /* Couleurs d'accent */
+  --space-blue: #4a6bff;       /* Sabre laser bleu */
+  --space-red: #ff5b5b;        /* Sabre laser rouge */
+  --space-green: #4eff9f;      /* Sabre laser vert */
+  --space-purple: #9c6eff;     /* Sabre laser violet */
+  --space-yellow: #ffe607;     /* Étoiles */
+  --space-gold: #f0c850;       /* C-3PO, médailles */
+  
+  /* Couleurs de texte */
+  --space-text-primary: #ffffff;
+  --space-text-secondary: #a4b5e1;
+  --space-text-dim: #6a7a9e;
+  
+  /* Niveaux de difficulté */
+  --space-level-initie: #4eff9f;      /* Vert - Initié */
+  --space-level-padawan: #4a6bff;     /* Bleu - Padawan */
+  --space-level-chevalier: #9c6eff;   /* Violet - Chevalier */
+  --space-level-maitre: #ffe607;      /* Jaune - Maître */
+}
+
+/* ==== COMMON ELEMENTS ==== */
+
+body {
+  background-color: var(--space-bg-dark);
+  background-image: 
+    radial-gradient(circle at 10% 50%, rgba(25, 33, 59, 0.8) 0%, transparent 50%),
+    radial-gradient(circle at 90% 20%, rgba(20, 45, 90, 0.6) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(16, 24, 48, 0.8) 0%, rgba(10, 13, 20, 0.8) 100%);
+  background-attachment: fixed;
+  background-position: center;
+  position: relative;
+  color: var(--space-text-primary);
+  min-height: 100vh;
+  font-family: 'Raleway', sans-serif;
+}
+
+/* Étoiles animées en arrière-plan */
+body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 25% 15%, rgba(255, 255, 255, 0.2) 1px, transparent 2px),
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.2) 1px, transparent 2px),
+    radial-gradient(circle at 75% 35%, rgba(255, 255, 255, 0.2) 1px, transparent 2px),
+    radial-gradient(circle at 15% 75%, rgba(255, 255, 255, 0.2) 1px, transparent 2px),
+    radial-gradient(circle at 85% 65%, rgba(255, 255, 255, 0.2) 1px, transparent 2px);
+  background-size: 150px 150px;
+  z-index: -1;
+  opacity: 0.6;
+  animation: twinkleStars 7s ease-in-out infinite alternate;
+}
+
+@keyframes twinkleStars {
+  0% {
+    opacity: 0.4;
+  }
+  33% {
+    opacity: 0.8;
+  }
+  66% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+/* Nebuleuses colorées */
+body::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 80% 10%, rgba(156, 110, 255, 0.15) 0%, transparent 35%),
+    radial-gradient(circle at 20% 80%, rgba(74, 107, 255, 0.1) 0%, transparent 30%),
+    radial-gradient(circle at 50% 50%, rgba(255, 230, 7, 0.05) 0%, transparent 45%);
+  background-size: 100% 100%;
+  z-index: -1;
+  opacity: 0.7;
+  filter: blur(20px);
+}
+
+/* ==== EXERCISE TYPE BADGES & TAGS ==== */
+
+/* Type d'exercice - badge cohérent avec le thème Star Wars */
+.exercise-type-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background-color: rgba(23, 34, 59, 0.9);
+  color: white;
+  margin-right: 5px;
+  text-transform: capitalize;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.exercise-type-tag::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+/* Styles spécifiques pour chaque type d'exercice avec couleurs plus visibles */
+.exercise-type-tag.addition {
+  background: linear-gradient(135deg, rgba(23, 34, 59, 0.8), rgba(78, 255, 159, 0.3));
+  border-left: 3px solid #4eff9f;
+}
+.exercise-type-tag.addition::before {
+  background-color: #4eff9f;
+  box-shadow: 0 0 6px #4eff9f;
+}
+
+.exercise-type-tag.soustraction {
+  background: linear-gradient(135deg, rgba(23, 34, 59, 0.8), rgba(74, 107, 255, 0.3));
+  border-left: 3px solid #4a6bff;
+}
+.exercise-type-tag.soustraction::before {
+  background-color: #4a6bff;
+  box-shadow: 0 0 6px #4a6bff;
+}
+
+.exercise-type-tag.multiplication {
+  background: linear-gradient(135deg, rgba(23, 34, 59, 0.8), rgba(156, 110, 255, 0.3));
+  border-left: 3px solid #9c6eff;
+}
+.exercise-type-tag.multiplication::before {
+  background-color: #9c6eff;
+  box-shadow: 0 0 6px #9c6eff;
+}
+
+.exercise-type-tag.division {
+  background: linear-gradient(135deg, rgba(23, 34, 59, 0.8), rgba(240, 200, 80, 0.3));
+  border-left: 3px solid #f0c850;
+}
+.exercise-type-tag.division::before {
+  background-color: #f0c850;
+  box-shadow: 0 0 6px #f0c850;
+}
+
+.exercise-type-tag.fractions {
+  background: linear-gradient(135deg, rgba(23, 34, 59, 0.8), rgba(255, 91, 91, 0.3));
+  border-left: 3px solid #ff5b5b;
+}
+.exercise-type-tag.fractions::before {
+  background-color: #ff5b5b;
+  box-shadow: 0 0 6px #ff5b5b;
+}
+
+.exercise-type-tag.geometrie {
+  background: linear-gradient(135deg, rgba(23, 34, 59, 0.8), rgba(255, 157, 0, 0.3));
+  border-left: 3px solid #ff9d00;
+}
+.exercise-type-tag.geometrie::before {
+  background-color: #ff9d00;
+  box-shadow: 0 0 6px #ff9d00;
+}
+
+.exercise-type-tag.divers {
+  background: linear-gradient(135deg, rgba(23, 34, 59, 0.8), rgba(0, 201, 255, 0.3));
+  border-left: 3px solid #00c9ff;
+}
+.exercise-type-tag.divers::before {
+  background-color: #00c9ff;
+  box-shadow: 0 0 6px #00c9ff;
+}
+
+/* Effet hover pour les badges de type */
+.exercise-type-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ==== DIFFICULTÉ BADGES ==== */
+
+/* Niveaux de difficulté - style inspiré des grades Jedi */
+.difficulty {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  margin-right: 5px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.difficulty::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.difficulty.initie {
+  background: linear-gradient(135deg, rgba(23, 34, 59, 0.8), rgba(78, 255, 159, 0.3));
+}
+.difficulty.initie::before {
+  background-color: var(--space-level-initie);
+  box-shadow: 0 0 8px var(--space-level-initie);
+}
+
+.difficulty.padawan {
+  background: linear-gradient(135deg, rgba(23, 34, 59, 0.8), rgba(74, 107, 255, 0.3));
+}
+.difficulty.padawan::before {
+  background-color: var(--space-level-padawan);
+  box-shadow: 0 0 8px var(--space-level-padawan);
+}
+
+.difficulty.chevalier {
+  background: linear-gradient(135deg, rgba(23, 34, 59, 0.8), rgba(156, 110, 255, 0.3));
+}
+.difficulty.chevalier::before {
+  background-color: var(--space-level-chevalier);
+  box-shadow: 0 0 8px var(--space-level-chevalier);
+}
+
+.difficulty.maitre {
+  background: linear-gradient(135deg, rgba(23, 34, 59, 0.8), rgba(255, 230, 7, 0.3));
+}
+.difficulty.maitre::before {
+  background-color: var(--space-level-maitre);
+  box-shadow: 0 0 8px var(--space-level-maitre);
+}
+
+/* Effet hover pour les badges de difficulté */
+.difficulty:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ==== PAGINATION ==== */
+
+/* Pagination améliorée avec style Star Wars */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 25px auto;
+  gap: 15px;
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(164, 181, 225, 0.3);
+  background-color: rgba(23, 34, 59, 0.6);
+  color: var(--space-text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-item:hover {
+  background-color: rgba(74, 107, 255, 0.2);
+  color: white;
+  border-color: var(--space-blue);
+}
+
+.pagination-item.active {
+  background-color: var(--space-blue);
+  color: white;
+  border-color: var(--space-blue);
+  box-shadow: 0 0 12px rgba(74, 107, 255, 0.5);
+}
+
+.pagination-nav {
+  padding: 8px 15px;
+  background-color: rgba(23, 34, 59, 0.6);
+  border: 1px solid rgba(164, 181, 225, 0.3);
+  border-radius: 20px;
+  color: var(--space-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-nav:hover:not(.disabled) {
+  background-color: rgba(74, 107, 255, 0.2);
+  color: white;
+  border-color: var(--space-blue);
+}
+
+.pagination-nav.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-ellipsis {
+  color: var(--space-text-secondary);
+  font-weight: 500;
+  margin: 0 2px;
+}
+
+/* ==== LIST VIEW IMPROVEMENTS ==== */
+
+/* Vue liste améliorée */
+.exercise-list.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exercise-list.list-view .exercise-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 20px;
+  padding: 15px 20px;
+  border-radius: 8px;
+}
+
+.exercise-list.list-view .exercise-card h3 {
+  margin: 0 0 5px 0;
+}
+
+.exercise-list.list-view .exercise-meta {
+  display: flex;
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.exercise-list.list-view .exercise-card p {
+  grid-row: 1;
+  grid-column: 2;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.exercise-list.list-view .exercise-actions {
+  grid-row: 1;
+  grid-column: 3;
+  display: flex;
+  gap: 10px;
+  margin-top: 0;
+}
+
+.exercise-list.list-view .delete-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+/* Exercices Cards - Style amélioré pour liste */
+.exercise-list .exercise-card {
+  position: relative;
+  background-color: var(--space-card-bg);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  border-left: 3px solid transparent;
+}
+
+/* Colorisation des cartes selon le type */
+.exercise-card[id*="addition"] {
+  border-left-color: var(--space-green);
+}
+
+.exercise-card[id*="soustraction"] {
+  border-left-color: var(--space-blue);
+}
+
+.exercise-card[id*="multiplication"] {
+  border-left-color: var(--space-purple);
+}
+
+.exercise-card[id*="division"] {
+  border-left-color: var(--space-gold);
+}
+
+.exercise-card[id*="fractions"] {
+  border-left-color: var(--space-red);
+}
+
+.exercise-card[id*="geometrie"] {
+  border-left-color: #ff9d00; /* Orange */
+}
+
+.exercise-card[id*="divers"] {
+  border-left-color: #00c9ff; /* Cyan */
+}
+
+.exercise-card:hover {
+  background-color: var(--space-card-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* ==== RESPONSIVE ADJUSTMENTS ==== */
+
+@media (max-width: 768px) {
+  .pagination {
+    flex-wrap: wrap;
+  }
+  
+  .pagination-numbers {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .exercise-list.list-view .exercise-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 10px;
+  }
+  
+  .exercise-list.list-view .exercise-meta {
+    grid-row: 1;
+    grid-column: 1;
+  }
+  
+  .exercise-list.list-view .exercise-card p {
+    grid-row: 2;
+    grid-column: 1;
+  }
+  
+  .exercise-list.list-view .exercise-actions {
+    grid-row: 3;
+    grid-column: 1;
+    justify-content: flex-end;
+  }
+} 

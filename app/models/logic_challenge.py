@@ -78,7 +78,7 @@ class LogicChallenge(Base):
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
 
     # Relations
-    attempts = relationship("LogicChallengeAttempt", back_populates="challenge")
+    attempts = relationship("LogicChallengeAttempt", back_populates="challenge", cascade="all, delete-orphan")
 
 
 

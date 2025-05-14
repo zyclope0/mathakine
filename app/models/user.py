@@ -40,13 +40,13 @@ class User(Base):
     accessibility_settings = Column(String, nullable=True)  # JSON des paramètres d'accessibilité
 
     # Relations
-    created_exercises = relationship("Exercise", back_populates="creator")
-    attempts = relationship("Attempt", back_populates="user")
-    progress_records = relationship("Progress", back_populates="user")
+    created_exercises = relationship("Exercise", back_populates="creator", cascade="all, delete-orphan")
+    attempts = relationship("Attempt", back_populates="user", cascade="all, delete-orphan")
+    progress_records = relationship("Progress", back_populates="user", cascade="all, delete-orphan")
 
     # Relations avec les défis logiques
-    created_logic_challenges = relationship("LogicChallenge", back_populates="creator")
-    logic_challenge_attempts = relationship("LogicChallengeAttempt", back_populates="user")
+    created_logic_challenges = relationship("LogicChallenge", back_populates="creator", cascade="all, delete-orphan")
+    logic_challenge_attempts = relationship("LogicChallengeAttempt", back_populates="user", cascade="all, delete-orphan")
 
 
 

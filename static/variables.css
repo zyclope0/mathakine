@@ -15,17 +15,20 @@
     --danger-color: #dc3545;
     --info-color: #17a2b8;
     
-    /* Palette Star Wars */
+    /* Palette Star Wars - Version claire */
     --sw-blue: #3db4f2;
-    --sw-dark: #121212;
-    --sw-space: #1a1e33;
+    --sw-dark: #2c3e50;
+    --sw-space: #f0f2f8;
     --sw-accent: #7765e3;
-    --sw-gold: #f8d76b;
+    --sw-gold: #d9b846;
     --sw-red: #ff5757;
-    --sw-text: #FFFFFF;
-    --sw-secondary: #d8d8d8;
-    --sw-card-bg: #21273c;
-    --sw-card-border: #3a3f5c;
+    --sw-text: #333333;
+    --sw-secondary: #666666;
+    --sw-card-bg: #ffffff;
+    --sw-card-border: #e0e4f0;
+    --sw-input-bg: #ffffff;
+    --sw-input-border: #d0d4e4;
+    --sw-accent-hover: #6455c3;
     
     /* Dimensions et espacement */
     --container-max-width: 1200px;
@@ -83,7 +86,14 @@
         --primary-color: #4a5dc4;
         --secondary-color: #7282d9;
         
-        /* Ajuster d'autres variables si nécessaire pour le dark mode */
+        /* Star Wars theme - dark mode */
+        --sw-space: #1a1e33;
+        --sw-card-bg: #21273c;
+        --sw-card-border: #3a3f5c;
+        --sw-text: #FFFFFF;
+        --sw-secondary: #d8d8d8;
+        --sw-input-bg: #2a3045;
+        --sw-input-border: #3e4563;
     }
 }
 

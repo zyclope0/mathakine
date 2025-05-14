@@ -1,7 +1,7 @@
 """
 Utilitaires de sécurité pour l'authentification
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional, Union, Any
 from jose import jwt
 from passlib.context import CryptContext
@@ -35,9 +35,9 @@ def create_access_token(
         Token JWT encodé
     """
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=SecurityConfig.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(UTC) + timedelta(minutes=SecurityConfig.ACCESS_TOKEN_EXPIRE_MINUTES)
     
     # Créer les données à encoder dans le token
     to_encode = {"exp": expire, "sub": str(subject)}

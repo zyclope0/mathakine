@@ -82,24 +82,28 @@ Pour plus de détails, consultez `docs/validation/README.md`.
 - Tests des modèles de données
 - Tests des services métier
 - Tests des utilitaires
+- Tests des relations en cascade
 
 ### Tests API
 
 - Tests des endpoints REST
 - Vérification des réponses JSON
 - Validation des codes de statut HTTP
+- Tests des endpoints de suppression en cascade
 
 ### Tests d'Intégration
 
 - Tests de l'interaction entre services
 - Tests de la persistance des données
 - Tests de l'authentification
+- Tests de suppression en cascade entre modèles
 
 ### Tests Fonctionnels
 
 - Tests des cas d'utilisation principal
 - Tests des workflows utilisateur
 - Tests de la UI (si applicable)
+- Tests des suppressions en cascade sur le serveur Starlette
 
 ## Critères de Succès
 
@@ -140,6 +144,7 @@ Pour plus de détails, consultez `docs/validation/README.md`.
 - [x] Relations entre modèles
 - [x] Contraintes de données
 - [x] Validation des champs
+- [x] Relations cascade (test_cascade_relationships.py)
 
 #### 1.2 Services
 - [ ] Génération d'exercices
@@ -166,6 +171,7 @@ Pour plus de détails, consultez `docs/validation/README.md`.
 - [x] Détails d'un exercice
 - [x] Soumission de réponse
 - [x] Historique des tentatives
+- [x] Suppression en cascade (test_deletion_endpoints.py)
 
 ### 3. Tests d'Intégration
 
@@ -180,6 +186,7 @@ Pour plus de détails, consultez `docs/validation/README.md`.
 - [x] Relations entre tables
 - [x] Transactions
 - [x] Migrations
+- [x] Suppressions en cascade (test_cascade_deletion.py)
 
 ### 4. Tests Fonctionnels
 
@@ -194,6 +201,11 @@ Pour plus de détails, consultez `docs/validation/README.md`.
 - [x] Niveaux de difficulté
 - [x] Récompenses
 - [x] Statistiques
+
+#### 4.3 Suppressions en cascade
+- [x] Serveur Starlette (test_starlette_cascade_deletion.py)
+- [x] Intégrité référentielle
+- [x] Comportement end-to-end
 
 ## Environnements de Test
 
@@ -217,13 +229,13 @@ Pour plus de détails, consultez `docs/validation/README.md`.
 ### 1. Local
 ```bash
 # Tous les tests
-python tests/run_tests.py
+tests/run_tests.bat --all
 
 # Tests spécifiques
-python tests/run_tests.py --type unit
-python tests/run_tests.py --type api
-python tests/run_tests.py --type integration
-python tests/run_tests.py --type functional
+tests/run_tests.bat --unit
+tests/run_tests.bat --api
+tests/run_tests.bat --integration
+tests/run_tests.bat --functional
 ```
 
 ### 2. CI/CD
@@ -296,6 +308,7 @@ jobs:
 
 | Version | Date | Auteur | Description |
 |---------|------|--------|-------------|
-| 1.0 | 2024-03-07 | Claude | Version initiale |
-| 1.1 | 2024-03-08 | Claude | Ajout des tests API |
-| 1.2 | 2024-03-09 | Claude | Ajout des tests fonctionnels | 
+| 1.0 | 2025-03-07 | Claude | Version initiale |
+| 1.1 | 2025-03-08 | Claude | Ajout des tests API |
+| 1.2 | 2025-03-09 | Claude | Ajout des tests fonctionnels |
+| 1.3 | 2025-05-12 | Claude | Ajout des tests de suppression en cascade | 

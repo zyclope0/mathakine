@@ -171,7 +171,7 @@
             <p>Chargement de l'exercice...</p>
         </div>
         
-        <div id="exercise-content" style="display: none;">
+        <div id="exercise-content" class="d-none">
             <div class="question" id="question"></div>
             
             <div class="choices" id="choices"></div>
@@ -405,9 +405,9 @@
                 // Afficher un message d'erreur à l'utilisateur
                 loading.style.display = 'none';
                 exerciseContent.innerHTML = `
-                    <div class="error-message" style="text-align: center; padding: 20px;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--sw-red); margin-bottom: 15px;"></i>
-                        <p style="margin-bottom: 20px;">Une erreur est survenue lors de l'affichage de l'exercice.</p>
+                    <div class="error-message text-center" >
+                        <i class="fas fa-exclamation-triangle error-icon" ></i>
+                        <p class="mb-3">Une erreur est survenue lors de l'affichage de l'exercice.</p>
                         <button id="error-back-btn" class="btn primary-btn">
                             <i class="fas fa-arrow-left"></i> Retour aux exercices
                         </button>

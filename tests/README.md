@@ -51,6 +51,26 @@ tests/
 - Vérifient le comportement end-to-end
 - Exemple : `test_logic_challenge.py` teste les défis logiques
 
+### 5. Tests de suppression en cascade
+
+Le projet inclut une série complète de tests pour valider le mécanisme de suppression en cascade :
+
+1. **Tests unitaires** : `unit/test_cascade_relationships.py`
+   - Vérifie que les relations avec cascade sont correctement configurées dans les modèles
+   - Teste les relations entre User, Exercise, Attempt, LogicChallenge
+
+2. **Tests d'intégration** : `integration/test_cascade_deletion.py`
+   - Valide que la suppression d'une entité déclenche bien la suppression des entités dépendantes
+   - Teste les suppressions en cascade pour Exercise, User et LogicChallenge
+
+3. **Tests API** : `api/test_deletion_endpoints.py`
+   - Vérifie que les endpoints de suppression gèrent correctement les suppressions en cascade
+   - Teste les autorisations et les cas d'erreur
+
+4. **Tests fonctionnels** : `functional/test_starlette_cascade_deletion.py`
+   - Teste que le serveur Starlette gère correctement les suppressions en cascade
+   - Valide le comportement end-to-end des suppressions
+
 ## Fixtures Réutilisables
 
 Les fixtures sont centralisées dans le dossier `fixtures/` pour faciliter la réutilisation :

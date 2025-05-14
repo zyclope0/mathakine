@@ -135,64 +135,37 @@ def cmd_run(args):
 
     # Par défaut, lancer le serveur amélioré sauf si --api-only est utilisé
     if not args.api_only:
-        logger.info("Lancement du serveur amélioré avec interface graphique")
+        logger.info("Lancement du serveur amélioré (enhanced_server.py) avec interface graphique complète")
         try:
-            # Exécuter enhanced_server.py directement plutôt que de l'importer
+            # Vérifier que enhanced_server.py existe
+            if not os.path.exists("enhanced_server.py"):
+                logger.error("Le fichier enhanced_server.py n'existe pas!")
+                return 1
+                
+            logger.info(f"Exécution de: {sys.executable} enhanced_server.py")
             process = subprocess.Popen([sys.executable, "enhanced_server.py"])
             logger.success("Serveur amélioré démarré avec succès")
-
-            # Ne pas attendre si nous sommes dans un contexte de test
-            in_pytest = "pytest" in sys.modules
-            if not in_pytest:
-                logger.info("Appuyez sur Ctrl+C pour arrêter le serveur")
-                try:
-                    process.wait()
-                except KeyboardInterrupt:
-                    logger.info("Arrêt du serveur...")
-                    process.terminate()
-
-            return 0
-        except Exception as e:
-            logger.error(f"Erreur lors du démarrage du serveur amélioré: {e}")
-            return 1
-
-    # Si --api-only est spécifié, lancer le serveur API standard
-    logger.info("Lancement du serveur API (backend uniquement)")
-
-    # Construire la commande uvicorn
-    cmd = [
-        "uvicorn", "app.main:app",
-        "--host", args.host,
-        "--port", str(args.port)
-    ]
-
-    if args.reload:
-        cmd.append("--reload")
-
-    logger.info(f"Exécution de: {' '.join(cmd)}")
-
-    # En mode test, nous pouvons détecter si nous sommes dans un contexte pytest
-    # pour éviter de bloquer l'exécution
-    in_pytest = "pytest" in sys.modules
-
-    try:
-        # Exécution de la commande uvicorn
-        process = subprocess.Popen(cmd)
-        logger.success(f"Serveur démarré sur http://{args.host}:{args.port}")
-
-        # Ne pas attendre si nous sommes dans un contexte de test
-        if not in_pytest:
             logger.info("Appuyez sur Ctrl+C pour arrêter le serveur")
-            try:
-                process.wait()
-            except KeyboardInterrupt:
-                logger.info("Arrêt du serveur...")
-                process.terminate()
-    except Exception as e:
-        logger.error(f"Erreur lors du démarrage du serveur: {e}")
-        return 1
-
-    return 0
+            process.wait()
+        except KeyboardInterrupt:
+            logger.info("Arrêt du serveur Mathakine")
+            process.terminate()
+            process.wait()
+    else:
+        logger.info("Lancement du serveur API uniquement")
+        try:
+            # Utiliser uvicorn directement pour lancer l'application FastAPI
+            process = subprocess.Popen([
+                sys.executable, "-m", "uvicorn", "app.main:app",
+                "--host", "0.0.0.0", "--port", str(args.port), "--reload" if args.debug else ""
+            ])
+            logger.success("Serveur API démarré avec succès")
+            logger.info("Appuyez sur Ctrl+C pour arrêter le serveur")
+            process.wait()
+        except KeyboardInterrupt:
+            logger.info("Arrêt du serveur Mathakine API")
+            process.terminate()
+            process.wait()
 
 
 

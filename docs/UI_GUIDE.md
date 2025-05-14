@@ -100,15 +100,63 @@ La hero section utilise un layout flexible qui s'adapte aux différentes tailles
 
 La page des exercices permet aux utilisateurs de :
 - Filtrer les exercices par type et difficulté
-- Visualiser les exercices disponibles sous forme de cartes
-- Générer de nouveaux exercices
+- Visualiser les exercices disponibles sous forme de cartes (vues grille ou liste)
+- Générer de nouveaux exercices (standard ou avec IA)
+- Naviguer entre les pages d'exercices avec la pagination
 - Commencer un exercice ou voir ses détails via un modal
 - Supprimer un exercice avec confirmation
 
 #### Fonctionnalités d'interface avancées
-- **Modal de détails** : Un clic sur le bouton "Détails" ouvre une fenêtre modale présentant les informations de l'exercice sans afficher la réponse correcte
-- **Chargement asynchrone** : Les informations du modal sont chargées à la demande via l'API
-- **Suppression avec confirmation** : Un clic sur l'icône de suppression ouvre un modal de confirmation
+- **Système de pagination amélioré** : Navigation intuitive entre les pages avec numéros de page, boutons précédent/suivant et ellipses pour les grandes plages
+- **Double vue** : Basculement entre vue en grille (par défaut) et vue en liste avec persistance du choix via localStorage
+- **Modals interactifs** : 
+  - Modal de détails avec chargement asynchrone des informations de l'exercice
+  - Modal de confirmation pour la suppression sécurisée
+- **Animations optimisées** : Apparition séquentielle des cartes d'exercices avec délais progressifs
+- **Cache et performance** :
+  - Mécanisme de "force redraw" pour éviter les problèmes de cache lors du changement de vue
+  - Prévention du défilement automatique indésirable lors du basculement entre vues grille/liste
+
+#### Badges et indicateurs
+- **Badges de type d'exercice** : Identification visuelle rapide par code couleur (Addition en vert, Soustraction en orange, etc.)
+- **Badges de difficulté** : Indication claire du niveau (Initié, Padawan, Chevalier, Maître) par couleur
+- **Badge IA** : Identification des exercices générés par IA avec une icône de robot
+
+#### Code JavaScript clé
+Le JavaScript de la page implémente des fonctionnalités importantes :
+```javascript
+// Pagination avec prévention du défilement automatique indésirable
+function goToPage(page, skipScroll = false) {
+    // ... logique de pagination ...
+    
+    // Scroll en haut de la liste uniquement si skipScroll est false
+    if (!skipScroll) {
+        setTimeout(() => {
+            const exerciseList = document.querySelector('.exercise-list');
+            if (exerciseList) {
+                exerciseList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
+    }
+}
+
+// Bascule entre vue grille et vue liste avec persistance
+function applyViewMode(mode) {
+    if (mode === 'list') {
+        exerciseList.classList.add('list-view');
+        // ... configuration vue liste ...
+    } else {
+        exerciseList.classList.remove('list-view');
+        // ... configuration vue grille ...
+    }
+    
+    // Force redraw pour éviter les problèmes de cache
+    exerciseList.style.display = 'none';
+    setTimeout(() => {
+        exerciseList.style.display = mode === 'list' ? 'flex' : 'grid';
+    }, 10);
+}
+```
 
 ### 3. Page de détail d'exercice (exercise_detail.html)
 
@@ -147,6 +195,60 @@ python enhanced_server.py
 ```
 
 ## Personnalisation
+
+### Structure CSS normalisée
+
+L'interface de Mathakine utilise désormais une structure CSS normalisée pour améliorer la maintenabilité et la cohérence du code :
+
+#### 1. Organisation des fichiers CSS
+
+Les fichiers CSS sont organisés comme suit :
+
+- **normalize.css** - Réinitialisation CSS standardisée qui normalise le rendu entre navigateurs
+- **variables.css** - Variables CSS globales (couleurs, espacements, typographie, etc.)
+- **utils.css** - Classes utilitaires réutilisables (marges, paddings, alignements, etc.)
+- **style.css** - Styles principaux de l'application (importe normalize.css, variables.css et utils.css)
+- **space-theme.css** - Styles spécifiques au thème Star Wars
+- **home-styles.css** - Styles spécifiques à la page d'accueil
+
+#### 2. Bonnes pratiques
+
+- Utiliser les variables CSS définies dans `variables.css` plutôt que des valeurs codées en dur
+- Privilégier les classes utilitaires de `utils.css` plutôt que des styles en ligne
+- Suivre l'ordre d'importation des fichiers CSS : normalize → variables → utils → style → theme
+- Éviter d'ajouter des styles en ligne directement dans le HTML
+- Utiliser les classes utilitaires pour les mises en page communes
+
+#### 3. Classes utilitaires
+
+Un système de classes utilitaires est disponible pour les besoins courants :
+
+```html
+<!-- Alignement de texte -->
+<div class="text-center">Texte centré</div>
+<div class="text-left">Texte aligné à gauche</div>
+
+<!-- Marges -->
+<div class="mt-3">Marge supérieure moyenne</div>
+<div class="mb-4">Marge inférieure grande</div>
+
+<!-- Display et Flexbox -->
+<div class="d-flex justify-between">Conteneur flex avec espace entre</div>
+<div class="d-none">Élément masqué</div>
+
+<!-- Padding -->
+<div class="p-3">Padding moyen sur tous les côtés</div>
+```
+
+#### 4. Script de normalisation
+
+Un script utilitaire est disponible pour normaliser les styles en ligne existants :
+
+```bash
+python scripts/normalize_css.py
+```
+
+Ce script analyse les fichiers HTML dans le dossier templates et remplace les styles en ligne par des classes utilitaires appropriées.
 
 ### Styles CSS
 

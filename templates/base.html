@@ -7,16 +7,20 @@
     <title>{% block title %}Mathakine{% endblock %} | L'API Rebelle</title>
     
     <!-- Preload des ressources critiques -->
+    <link rel="preload" href="/static/normalize.css" as="style">
     <link rel="preload" href="/static/variables.css" as="style">
+    <link rel="preload" href="/static/utils.css" as="style">
     <link rel="preload" href="/static/style.css" as="style">
-    <link rel="preload" href="/static/space-theme.css" as="style">
+    <link rel="preload" href="/static/space-theme-dark.css" as="style">
     <link rel="preload" href="/static/img/mathakine-logo.svg" as="image">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" as="style">
     
     <!-- Styles -->
+    <link rel="stylesheet" href="/static/normalize.css">
     <link rel="stylesheet" href="/static/variables.css">
+    <link rel="stylesheet" href="/static/utils.css">
     <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="/static/space-theme.css">
+    <link rel="stylesheet" href="/static/space-theme-dark.css">
     <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
     {% block head %}{% endblock %}
     
@@ -49,15 +53,15 @@
             </div>
         </div>
         <nav>
-            <a href="/" class="btn"><i class="fas fa-home"></i> Accueil</a>
-            <a href="/exercises" class="btn"><i class="fas fa-pencil-alt"></i> Exercices</a>
-            <a href="/dashboard" class="btn"><i class="fas fa-chart-line"></i> Tableau de bord</a>
-            <a href="/api/exercises/generate" class="btn"><i class="fas fa-plus"></i> Nouvel exercice</a>
+            <a href="/" class="btn{% if request.path == '/' %} active{% endif %}"><i class="fas fa-home"></i> Accueil</a>
+            <a href="/exercises" class="btn{% if request.path == '/exercises' %} active{% endif %}"><i class="fas fa-pencil-alt"></i> Exercices</a>
+            <a href="/dashboard" class="btn{% if request.path == '/dashboard' %} active{% endif %}"><i class="fas fa-chart-line"></i> Tableau de bord</a>
+            <a href="/api/exercises/generate" class="btn{% if request.path == '/api/exercises/generate' %} active{% endif %}"><i class="fas fa-plus"></i> Nouvel exercice</a>
         </nav>
     </header>
     
     <!-- Indicateur de chargement -->
-    <div id="loading-indicator" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--sw-blue), var(--sw-accent), var(--sw-gold)); z-index: 9999; transition: opacity 0.3s ease;"></div>
+    <div id="loading-indicator" class="loading-indicator"></div>
     
     <div class="container">
         {% block content %}{% endblock %}
@@ -84,14 +88,17 @@
             // Interception des requêtes fetch pour afficher l'indicateur
             const originalFetch = window.fetch;
             window.fetch = function() {
-                loadingIndicator.style.display = 'block';
+                loadingIndicator.classList.remove('d-none');
+                loadingIndicator.classList.add('d-block');
                 return originalFetch.apply(this, arguments)
                     .then(response => {
-                        loadingIndicator.style.display = 'none';
+                        loadingIndicator.classList.add('d-none');
+                        loadingIndicator.classList.remove('d-block');
                         return response;
                     })
                     .catch(error => {
-                        loadingIndicator.style.display = 'none';
+                        loadingIndicator.classList.add('d-none');
+                        loadingIndicator.classList.remove('d-block');
                         throw error;
                     });
             };

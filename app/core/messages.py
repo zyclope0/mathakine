@@ -20,6 +20,7 @@ class SystemMessages:
     SUCCESS_CREATED = "Ressource créée avec succès"
     SUCCESS_UPDATED = "Ressource mise à jour avec succès"
     SUCCESS_DELETED = "Ressource supprimée avec succès"
+    SUCCESS_ARCHIVED = "Ressource archivée avec succès"
     
     # Messages d'information
     INFO_TRYING_CONNECTION = "Tentative de connexion à la base de données"
@@ -34,6 +35,9 @@ class ExerciseMessages:
     TITLE_SUBTRACTION = "Soustraction de nombres"
     TITLE_MULTIPLICATION = "Multiplication de nombres"
     TITLE_DIVISION = "Division de nombres"
+    TITLE_FRACTIONS = "Calcul de fractions"
+    TITLE_GEOMETRIE = "Exercice de géométrie"
+    TITLE_DIVERS = "Exercice divers"
     TITLE_DEFAULT = "Exercice de calcul"
     TITLE_AI_PREFIX = "TEST-ZAXXON"
     
@@ -47,12 +51,18 @@ class ExerciseMessages:
     QUESTION_SUBTRACTION = "Combien font {num1} - {num2}?"
     QUESTION_MULTIPLICATION = "Combien font {num1} × {num2}?"
     QUESTION_DIVISION = "Combien font {num1} ÷ {num2}?"
+    QUESTION_FRACTIONS = "Calcule la fraction {num1}/{num2} {operation} {num3}/{num4}"
+    QUESTION_GEOMETRIE = "Calcule {property} {shape} avec {parameter1}={value1} et {parameter2}={value2}"
+    QUESTION_DIVERS = "Résous ce problème: {problem}"
     
     # Textes éducatifs
     EXPLANATION_ADDITION = "{num1} + {num2} = {result}"
     EXPLANATION_SUBTRACTION = "{num1} - {num2} = {result}"
     EXPLANATION_MULTIPLICATION = "{num1} × {num2} = {result}"
     EXPLANATION_DIVISION = "{num1} ÷ {num2} = {result}"
+    EXPLANATION_FRACTIONS = "Pour calculer {num1}/{num2} {operation} {num3}/{num4}, il faut {steps}. Le résultat est {result}."
+    EXPLANATION_GEOMETRIE = "Pour calculer {property} {shape}, on utilise la formule {formula}. Avec {parameter1}={value1} et {parameter2}={value2}, on obtient {result}."
+    EXPLANATION_DIVERS = "Pour résoudre ce problème, on procède ainsi: {steps}. La réponse est {result}."
     
     # Tags
     TAGS_ALGORITHMIC = "algorithmique,simple"

@@ -4,6 +4,7 @@
 
 {% block head %}
 <style>
+    /* Styles globaux pour l'exercice */
     .exercise-detail {
         max-width: 800px;
         margin: 0 auto;
@@ -11,6 +12,7 @@
         position: relative;
     }
     
+    /* Effets cosmiques en arrière-plan */
     .exercise-detail::after {
         content: "";
         position: absolute;
@@ -23,6 +25,7 @@
         top: -30px;
         right: -20px;
         z-index: -1;
+        animation: pulseStar 7s infinite alternate;
     }
     
     .exercise-detail::before {
@@ -37,36 +40,97 @@
         bottom: -20px;
         left: -10px;
         z-index: -1;
+        animation: pulseStar 5s infinite alternate;
+    }
+
+    @keyframes pulseStar {
+        0% { transform: scale(1); opacity: 0.2; }
+        100% { transform: scale(1.2); opacity: 0.3; }
     }
     
+    /* Conteneur de question avec effet holographique */
     .question-container {
-        margin: 20px 0;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, var(--sw-space), #2a3052);
+        margin: 30px 0;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(30, 39, 70, 0.9), rgba(16, 20, 40, 0.95));
         border-radius: 1rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        border: 2px solid var(--sw-card-border);
+        box-shadow: 0 0 30px rgba(61, 180, 242, 0.25);
         position: relative;
         overflow: hidden;
+        border: 2px solid rgba(61, 180, 242, 0.5);
     }
     
+    /* Bordure lumineuse */
     .question-container::before {
         content: "";
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, var(--sw-blue), var(--sw-accent), var(--sw-gold));
+        height: 100%;
+        border: 2px solid transparent;
+        border-radius: 0.8rem;
+        background: linear-gradient(90deg, 
+            rgba(61, 180, 242, 0) 0%, 
+            rgba(61, 180, 242, 0.6) 50%, 
+            rgba(61, 180, 242, 0) 100%) border-box;
+        -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: destination-out;
+        mask-composite: exclude;
+        animation: borderGlow 4s infinite;
+        pointer-events: none;
+    }
+    
+    @keyframes borderGlow {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+    }
+    
+    /* Léger effet de lignes holographiques, très subtil */
+    .question-container::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: repeating-linear-gradient(
+            0deg,
+            rgba(61, 180, 242, 0.02) 0px,
+            rgba(61, 180, 242, 0.02) 2px,
+            transparent 2px,
+            transparent 4px
+        );
+        pointer-events: none;
+        animation: scanlines 12s linear infinite;
+        opacity: 0.3;
+    }
+    
+    @keyframes scanlines {
+        0% { background-position: 0 0; }
+        100% { background-position: 0 100%; }
     }
     
     .question {
-        font-size: 2rem;
+        font-size: 2.4rem !important;
         margin: 0;
         text-align: center;
-        color: var(--sw-gold);
+        color: #f8d76b !important; /* Jaune doré avec !important pour forcer l'application */
+        text-shadow: 0 0 15px rgba(119, 183, 255, 0.8), 0 0 30px rgba(61, 180, 242, 0.6) !important;
+        font-weight: 700 !important;
+        position: relative;
+        z-index: 2;
+        letter-spacing: 1px;
     }
     
+    /* Règle supplémentaire pour cibler spécifiquement le texte de la question */
+    .question-container h3.question {
+        color: #f8d76b !important;
+        text-shadow: 0 0 15px rgba(119, 183, 255, 0.8), 0 0 30px rgba(61, 180, 242, 0.6) !important;
+    }
+    
+    /* Amélioration des conteneurs de choix */
     .choices-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -76,28 +140,31 @@
     
     @media (min-width: 768px) {
         .choices-container {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
         }
     }
     
+    /* Style des boutons de choix avec effet lightsaber */
     .choice-btn {
         font-size: 2rem;
-        padding: 1.5rem;
+        padding: 1.8rem 1.5rem;
         text-align: center;
-        background-color: var(--sw-card-bg);
+        background-color: rgba(33, 39, 60, 0.8);
         border: 2px solid var(--sw-accent);
         color: var(--sw-text);
         border-radius: 0.8rem;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         position: relative;
         overflow: hidden;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
         min-height: 100px;
+        user-select: none; /* Évite la sélection du texte */
+        -webkit-tap-highlight-color: transparent; /* Supprime le highlight sur mobile */
     }
     
     .choice-btn::before {
@@ -109,86 +176,134 @@
         height: 3px;
         background: linear-gradient(90deg, var(--sw-blue), var(--sw-accent));
         transform: translateX(-100%);
-        transition: transform 0.3s ease;
+        transition: transform 0.4s ease;
     }
     
     .choice-btn:hover:not(.disabled) {
-        background-color: var(--sw-space);
-        transform: translateY(-5px);
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        background-color: rgba(33, 39, 60, 0.95);
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         border-color: var(--sw-gold);
+    }
+    
+    .choice-btn:active:not(.disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     }
     
     .choice-btn:hover:not(.disabled)::before {
         transform: translateX(0);
     }
     
+    /* États des boutons */
     .choice-btn.correct {
-        background-color: rgba(40, 167, 69, 0.2);
+        background-color: rgba(21, 87, 36, 0.3);
         border-color: #28a745;
-        color: #28a745;
+        color: #d4edda;
+        box-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
     }
     
     .choice-btn.incorrect {
-        background-color: rgba(220, 53, 69, 0.2);
+        background-color: rgba(114, 28, 36, 0.3);
         border-color: #dc3545;
-        color: #dc3545;
+        color: #f8d7da;
+        box-shadow: 0 0 20px rgba(220, 53, 69, 0.5);
     }
     
     .choice-btn.disabled {
-        opacity: 0.7;
+        opacity: 0.5;
         cursor: not-allowed;
     }
     
+    /* Section d'explication avec style Star Wars */
     .explanation {
-        padding: 1.5rem;
-        background-color: var(--sw-space);
+        padding: 1.8rem;
+        background-color: rgba(248, 215, 107, 0.08);
         border-radius: 0.8rem;
-        margin-top: 20px;
-        border: 2px solid var(--sw-card-border);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        animation: fadeIn 0.5s ease;
+        margin-top: 25px;
+        border: 2px solid var(--sw-gold);
+        box-shadow: 0 4px 15px rgba(248, 215, 107, 0.3);
+        animation: fadeIn 0.7s ease;
+        position: relative;
     }
     
     .explanation h4 {
         color: var(--sw-gold);
         margin-top: 0;
         font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
     }
     
+    .explanation h4 i {
+        margin-right: 10px;
+        font-size: 1.5rem;
+        color: var(--sw-gold);
+    }
+    
+    .explanation p {
+        color: #FFFFFF;
+        line-height: 1.6;
+        margin-bottom: 0;
+        font-size: 1.1rem;
+    }
+    
+    /* Message de résultat amélioré */
     .result-message {
         padding: 1.5rem;
         border-radius: 0.8rem;
-        margin-top: 20px;
+        margin-top: 25px;
         text-align: center;
         font-size: 1.3rem;
         background-color: var(--sw-space);
         border: 2px solid var(--sw-card-border);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        animation: fadeIn 0.5s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 0.7s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .result-message i {
+        margin-right: 12px;
+        font-size: 1.5rem;
     }
     
     .result-message.success {
-        border-color: var(--success-color);
+        border-color: #28a745;
+        color: #d4edda;
+        background-color: rgba(21, 87, 36, 0.2);
+        box-shadow: 0 0 20px rgba(40, 167, 69, 0.3);
     }
     
     .result-message.error {
-        border-color: var(--sw-red);
+        border-color: #dc3545;
+        color: #f8d7da;
+        background-color: rgba(114, 28, 36, 0.2);
+        box-shadow: 0 0 20px rgba(220, 53, 69, 0.3);
     }
     
+    /* Badges pour le type d'exercice et la difficulté */
     .exercise-meta {
         display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
+        gap: 12px;
+        margin-bottom: 25px;
     }
     
     .difficulty, .exercise-type-tag {
-        padding: 0.5rem 1rem;
-        border-radius: 0.5rem;
-        font-size: 0.9rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 0.6rem;
+        font-size: 0.95rem;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .difficulty:hover, .exercise-type-tag:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
     
     .difficulty::before, .exercise-type-tag::before {
@@ -241,9 +356,50 @@
         content: "\f14a";
     }
     
+    /* Styles pour le bouton "Voir mes statistiques" */
+    .dashboard-link {
+        background: linear-gradient(135deg, #7765e3, #3db4f2);
+        color: white;
+        padding: 14px 28px;
+        border-radius: 30px;
+        border: none;
+        font-weight: 600;
+        box-shadow: 0 6px 15px rgba(107, 77, 195, 0.4);
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .dashboard-link i {
+        margin-right: 8px;
+    }
+    
+    .dashboard-link:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(107, 77, 195, 0.6), 0 0 10px rgba(61, 180, 242, 0.4);
+    }
+
+    .dashboard-link:active {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(107, 77, 195, 0.4);
+    }
+    
+    /* Animations */
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
+        from { opacity: 0; transform: translateY(15px); }
         to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Adaptation mobile */
+    @media (prefers-reduced-motion: reduce) {
+        .question-container, .question-container::after, .explanation,
+        .result-message, .dashboard-link, .choice-btn, .difficulty, 
+        .exercise-type-tag, .exercise-detail::before, .exercise-detail::after {
+            animation: none;
+            transition: none;
+        }
     }
     
     @media (max-width: 768px) {
@@ -254,6 +410,17 @@
         .question {
             font-size: 1.5rem;
         }
+        
+        .exercise-meta {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .choice-btn {
+            min-height: 80px;
+            font-size: 1.7rem;
+            padding: 1.2rem;
+        }
     }
 </style>
 {% endblock %}
@@ -261,21 +428,21 @@
 {% block content %}
 <div class="page-header">
     <h2>{{ exercise.title }}</h2>
-    <a href="/exercises" class="btn btn-secondary">
+    <a href="/exercises" class="btn btn-secondary" aria-label="Retour à la liste des exercices">
         <i class="fas fa-arrow-left"></i> Retour aux exercices
     </a>
 </div>
 
 <div class="card exercise-detail">
     <div class="exercise-meta">
-        <span class="difficulty {{ exercise.difficulty }}">
+        <span class="difficulty {{ exercise.difficulty }}" aria-label="Niveau de difficulté: {{ difficulty_display[exercise.difficulty] if exercise.difficulty in difficulty_display else exercise.difficulty }}">
             {% if exercise.difficulty in difficulty_display %}
             {{ difficulty_display[exercise.difficulty] }}
             {% else %}
             {{ exercise.difficulty }}
             {% endif %}
         </span>
-        <span class="exercise-type-tag">
+        <span class="exercise-type-tag" aria-label="Type d'exercice: {{ exercise_type_display[exercise.exercise_type] if exercise.exercise_type in exercise_type_display else exercise.exercise_type|title }}">
             {% if exercise.exercise_type in exercise_type_display %}
             {{ exercise_type_display[exercise.exercise_type] }}
             {% else %}
@@ -284,11 +451,11 @@
         </span>
     </div>
     
-    <div class="question-container">
+    <div class="question-container" role="heading" aria-level="3">
         <h3 class="question">{{ exercise.question }}</h3>
     </div>
     
-    <div class="choices-container">
+    <div class="choices-container" role="radiogroup" aria-label="Options de réponse">
         {% set correct_answer = exercise.correct_answer|string %}
         {% set choices = [] %}
         
@@ -329,14 +496,19 @@
         
         {# Afficher les choix #}
         {% for choice in choices %}
-            <button class="choice-btn" data-value="{{ choice }}" data-correct="{{ correct_answer }}">
+            <button class="choice-btn" 
+                    data-value="{{ choice }}" 
+                    data-correct="{{ correct_answer }}"
+                    role="radio" 
+                    aria-checked="false"
+                    aria-label="Choix: {{ choice }}">
                 {{ choice }}
             </button>
         {% endfor %}
     </div>
     
-    <div class="explanation" style="display: none;">
-        <h4><i class="fas fa-info-circle"></i> Explication:</h4>
+    <div class="explanation d-none" aria-live="polite">
+        <h4><i class="fas fa-jedi"></i> Conseil du Maître Jedi:</h4>
         <p>{% if exercise.explanation and exercise.explanation != 'None' %}
             {{ exercise.explanation }}
            {% else %}
@@ -345,7 +517,7 @@
         </p>
     </div>
     
-    <div id="result-message" class="result-message" style="display: none;"></div>
+    <div id="result-message" class="result-message d-none" aria-live="assertive"></div>
 </div>
 {% endblock %}
 
@@ -359,6 +531,19 @@
         // Temps de début pour calculer le temps passé
         const startTime = Date.now();
         
+        // Messages thématiques Star Wars
+        const successMessages = [
+            '<i class="fas fa-check-circle"></i> Bravo ! La Force est puissante en toi !',
+            '<i class="fas fa-check-circle"></i> Excellent, jeune Padawan !',
+            '<i class="fas fa-check-circle"></i> C\'est la bonne réponse, par la Force !'
+        ];
+        
+        const errorMessages = [
+            '<i class="fas fa-times-circle"></i> N\'abandonne pas ! Concentre-toi sur la Force !',
+            '<i class="fas fa-times-circle"></i> Patience, jeune Padawan. Essaie encore !',
+            '<i class="fas fa-times-circle"></i> Le côté obscur n\'est pas la bonne voie.'
+        ];
+        
         choiceButtons.forEach(button => {
             button.addEventListener('click', function() {
                 if (this.classList.contains('disabled')) {
@@ -369,10 +554,16 @@
                 const correctAnswer = this.getAttribute('data-correct');
                 const timeSpent = (Date.now() - startTime) / 1000; // Temps en secondes
                 
+                // Mise à jour des attributs ARIA
+                choiceButtons.forEach(btn => {
+                    btn.setAttribute('aria-checked', 'false');
+                });
+                this.setAttribute('aria-checked', 'true');
+                
                 // Désactiver tous les boutons
                 choiceButtons.forEach(btn => {
                     btn.classList.add('disabled');
-                    btn.style.opacity = "0.7";
+                    btn.style.opacity = "0.5";
                 });
                 
                 // Mettre en évidence le bouton actuel
@@ -380,11 +571,17 @@
                 
                 // Marquer le bouton actuel
                 if (selectedValue === correctAnswer) {
+                    // Réponse correcte
                     this.classList.add('correct');
-                    resultMessage.innerHTML = '<i class="fas fa-check-circle"></i> Bravo ! C\'est la bonne réponse.';
+                    
+                    // Message de succès aléatoire
+                    const randomSuccessMsg = successMessages[Math.floor(Math.random() * successMessages.length)];
+                    resultMessage.innerHTML = randomSuccessMsg;
                     resultMessage.className = 'result-message success';
                 } else {
+                    // Réponse incorrecte
                     this.classList.add('incorrect');
+                    
                     // Trouver et marquer la bonne réponse
                     choiceButtons.forEach(btn => {
                         if (btn.getAttribute('data-value') === correctAnswer) {
@@ -392,13 +589,18 @@
                             btn.style.opacity = "1";
                         }
                     });
-                    resultMessage.innerHTML = '<i class="fas fa-times-circle"></i> Essaie encore ! Ce n\'est pas la bonne réponse.';
+                    
+                    // Message d'erreur aléatoire
+                    const randomErrorMsg = errorMessages[Math.floor(Math.random() * errorMessages.length)];
+                    resultMessage.innerHTML = randomErrorMsg;
                     resultMessage.className = 'result-message error';
                 }
                 
                 // Afficher l'explication et le message de résultat
+                explanation.classList.remove('d-none');
                 explanation.style.display = 'block';
-                resultMessage.style.display = 'block';
+                resultMessage.classList.remove('d-none');
+                resultMessage.style.display = 'flex';
                 
                 // Enregistrer la réponse
                 fetch('/api/submit-answer', {
@@ -416,25 +618,52 @@
                 .then(data => {
                     console.log('Réponse enregistrée:', data);
                     
-                    // Ajouter un bouton pour aller au tableau de bord
-                    const dashboardButton = document.createElement('a');
-                    dashboardButton.innerHTML = '<i class="fas fa-chart-line"></i> Voir mes statistiques';
-                    dashboardButton.className = 'btn btn-primary mt-4';
-                    dashboardButton.href = '/dashboard?t=' + Date.now(); // Ajouter un timestamp pour éviter le cache
-                    dashboardButton.style.display = 'block';
-                    dashboardButton.style.margin = '20px auto';
-                    dashboardButton.style.textAlign = 'center';
-                    
-                    // Ajouter le bouton après le message de résultat
-                    if (!document.querySelector('.dashboard-link')) { // Éviter les doublons
-                        dashboardButton.classList.add('dashboard-link');
+                    // Ajouter un bouton pour aller au tableau de bord ou suivant
+                    if (!document.querySelector('.dashboard-link')) {
+                        const dashboardButton = document.createElement('a');
+                        dashboardButton.innerHTML = '<i class="fas fa-chart-line"></i> Voir mes statistiques';
+                        dashboardButton.className = 'dashboard-link';
+                        dashboardButton.href = '/dashboard?t=' + Date.now();
+                        dashboardButton.setAttribute('aria-label', 'Voir mes statistiques');
+                        dashboardButton.style.display = 'block';
+                        dashboardButton.style.margin = '25px auto';
+                        dashboardButton.style.width = 'fit-content';
+                        
                         resultMessage.parentNode.insertBefore(dashboardButton, resultMessage.nextSibling);
+                        
+                        // Animation d'entrée du bouton
+                        setTimeout(() => {
+                            dashboardButton.style.opacity = '0';
+                            dashboardButton.style.transform = 'translateY(20px)';
+                            dashboardButton.style.transition = 'all 0.5s ease';
+                            
+                            setTimeout(() => {
+                                dashboardButton.style.opacity = '1';
+                                dashboardButton.style.transform = 'translateY(0)';
+                            }, 50);
+                        }, 300);
                     }
                 })
                 .catch(error => {
                     console.error('Erreur:', error);
                 });
             });
+            
+            // Effet de focus accessible
+            button.addEventListener('focus', function() {
+                this.style.boxShadow = '0 0 0 3px rgba(119, 101, 227, 0.5)';
+            });
+            
+            button.addEventListener('blur', function() {
+                this.style.boxShadow = '';
+            });
+        });
+        
+        // Support clavier pour sélectionner les réponses (touche Entrée)
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                document.activeElement.click();
+            }
         });
     });
 </script>

@@ -10,7 +10,7 @@ import secrets
 logger = get_logger(__name__)
 
 # Chargement des variables d'environnement
-load_dotenv()
+load_dotenv(override=True)  # Forcer le rechargement des variables d'environnement
 logger.info("Chargement de la configuration...")
 
 
@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api"
     PROJECT_NAME: str = "Math Trainer"
 
-    # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./math_trainer.db")
+    # Database - forcer le rechargement depuis .env
+    DATABASE_URL: str = os.environ.get("DATABASE_URL", "sqlite:///./math_trainer.db")
 
     # CORS
     CORS_ORIGINS: List[str] = [
@@ -52,20 +52,21 @@ class Settings(BaseSettings):
 
     @field_validator("DATABASE_URL")
     @classmethod
-
-
     def validate_database_url(cls, v):
         if not v:
             raise ValueError("DATABASE_URL must be set")
         return v
 
-
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Forcer la relecture depuis l'environnement
+        self.DATABASE_URL = os.environ.get("DATABASE_URL", self.DATABASE_URL)
+        
         logger.debug(f"Configuration initialisée: DATABASE_URL={self.DATABASE_URL}")
+        logger.info(f"URL de la base de données: {self.DATABASE_URL}")
         logger.debug(f"Mode debug: {self.DEBUG}")
         logger.debug(f"Hosts autorisés: {self.ALLOWED_HOSTS}")
         logger.debug(f"Niveau de log: {self.LOG_LEVEL}")
 
+# Création d'une instance unique des paramètres
 settings = Settings()

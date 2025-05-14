@@ -10,7 +10,9 @@ def test_root_endpoint():
     """Test de l'endpoint racine"""
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"message": "Bienvenue sur l'API Math Trainer"}
+    data = response.json()
+    assert data["message"] == "Bienvenue sur l'API Mathakine"
+    assert "docs" in data
 
 
 

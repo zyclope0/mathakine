@@ -4,10 +4,12 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
+from fastapi.openapi.utils import get_openapi
 import time
 import os
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Optional, Dict, Any, List
 
 from app.core.config import settings
 from app.core.logging_config import get_logger
@@ -50,10 +52,53 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Arrêt de l'application")
 
+# Définition des tags pour la documentation OpenAPI
+api_tags_metadata = [
+    {
+        "name": "users",
+        "description": "Opérations liées aux utilisateurs et à leur progression",
+    },
+    {
+        "name": "exercises",
+        "description": "Gestion des exercices mathématiques de base",
+    },
+    {
+        "name": "challenges",
+        "description": "Défis logiques avancés (Épreuves du Conseil Jedi)",
+    },
+    {
+        "name": "auth",
+        "description": "Authentification et gestion des sessions",
+    },
+]
+
 app = FastAPI(
-    title="Math Trainer API",
-    description="API pour l'application d'entraînement mathématique",
-    version="0.1.0",
+    title="Mathakine API",
+    description="""
+    API pour l'application éducative Mathakine (anciennement Math Trainer).
+    
+    Cette API permet de gérer:
+    * Les exercices mathématiques pour enfants avec thématique Star Wars
+    * Les défis logiques avancés pour les 10-15 ans
+    * Les comptes utilisateurs et leur progression
+    * L'authentification et les autorisations
+    
+    Pour accéder aux ressources protégées, utilisez l'authentification JWT avec le préfixe "Bearer".
+    """,
+    version="1.0.0",
+    terms_of_service="https://mathakine.example.com/terms/",
+    contact={
+        "name": "Équipe de développement Mathakine",
+        "email": "dev@mathakine.example.com",
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+    openapi_tags=api_tags_metadata,
+    openapi_url="/api/openapi.json",
+    docs_url=None,
+    redoc_url=None,
     debug=settings.DEBUG,
     lifespan=lifespan
 )
@@ -97,11 +142,36 @@ app.add_middleware(
 # Monter les fichiers statiques
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+# Inclure le routeur API avec le préfixe
+app.include_router(api_router, prefix="/api")
+
+# Routes de documentation OpenAPI personnalisées
+@app.get("/api/docs", include_in_schema=False)
+async def custom_swagger_ui_html(request: Request):
+    """Endpoint pour accéder à la documentation Swagger UI personnalisée"""
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=f"{app.title} - Documentation API",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4/swagger-ui.css",
+    )
+
+@app.get("/api/redoc", include_in_schema=False)
+async def redoc_html(request: Request):
+    """Endpoint pour accéder à la documentation ReDoc"""
+    return get_redoc_html(
+        openapi_url=app.openapi_url,
+        title=f"{app.title} - Documentation API (ReDoc)",
+        redoc_js_url="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js",
+        with_google_fonts=True
+    )
+
 # Routes de base
 @app.get("/")
 async def root():
     # Retourner un JSON simple pour compatibilité avec les tests
-    return {"message": "Bienvenue sur l'API Math Trainer"}
+    return {"message": "Bienvenue sur l'API Mathakine", "docs": "/api/docs"}
 
 @app.get("/home", response_class=HTMLResponse)
 async def home_page(request: Request):
@@ -276,9 +346,6 @@ async def direct_generate_exercise(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors de la génération d'exercice: {str(e)}"
         )
-
-# Inclusion du routeur API
-app.include_router(api_router, prefix=settings.API_V1_STR)
 
 if __name__ == "__main__":
     import uvicorn
