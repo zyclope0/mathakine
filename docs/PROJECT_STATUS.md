@@ -138,7 +138,8 @@ L'itération 3 est maintenant **PARTIELLEMENT TERMINÉE** avec certaines fonctio
 | **Backend API REST** | ⚠️ PARTIELLEMENT TERMINÉ | API avec structure complète mais plusieurs endpoints contiennent du code temporaire |
 | **Interface graphique Starlette** | ✅ TERMINÉ | Interface utilisateur avec thème Star Wars, intégrée via enhanced_server.py |
 | **Interface CLI** | ✅ TERMINÉ | CLI complet avec mathakine_cli.py |
-| **Génération d'exercices** | ✅ TERMINÉ | Support pour addition, soustraction, multiplication, division |
+| **Génération d'exercices** | ✅ TERMINÉ | Support pour 7 types: addition, soustraction, multiplication, division, fractions, géométrie, divers |
+| **Système de pagination** | ✅ TERMINÉ | Pagination optimisée avec vue grille/liste pour les exercices |
 | **Défis logiques** | ⚠️ EN COURS | Modèles créés, endpoints provisoires, mais fonctionnalités incomplètes |
 | **Système de progression** | ⚠️ PARTIELLEMENT | La structure existe mais l'implémentation est incomplète |
 | **Mode adaptatif** | ⚠️ EN COURS | Conception architecturale seulement |
@@ -188,33 +189,23 @@ Un rapport détaillé est disponible dans `file_analysis.md`.
    - Rotation automatique des logs
    - Niveaux de logs différenciés pour faciliter le débogage
 
-6. **Système d'auto-validation robuste**
-   - Tests organisés en catégories logiques (unitaires, API, intégration, fonctionnels)
-   - Rapports de test automatisés en plusieurs formats
-   - Vérification de compatibilité avec Python 3.13
+6. **Correction de l'affichage des exercices et pagination**
+   - Filtrage des exercices archivés (is_archived = true) dans les requêtes SQL
+   - Résolution du problème de défilement automatique lors du changement de page
+   - Optimisation de la bascule entre vue grille et vue liste
 
-## ITÉRATIONS FUTURES
+### Plan d'implémentation en cours
 
-### Itération 3 (Suite): Complétion de l'API Rebelle
-- Implémentation réelle du système d'authentification JWT
-- Finalisation des endpoints pour les défis logiques
-- Développement des fonctionnalités de progression adaptatées
-- Implémentation du moteur de génération de défis logiques
+Le prochain développement majeur concerne l'interface holographique pour les exercices :
 
-### Itération 4: "L'Interface Nouvelle" - Refonte de l'interface utilisateur
-- Interface adaptative pour différents besoins
-- Gamification de l'expérience d'apprentissage (médailles "Ordre Jedi des Mathématiques")
-- Compatibilité mobile améliorée
+1. **Interface holographique Star Wars**
+   - Développement d'effets visuels inspirés des hologrammes Star Wars
+   - Texte en jaune doré avec halo bleu clair
+   - Animation subtile de fluctuation adaptée au niveau de difficulté
+   - Adaptation pour tous les types d'exercices (texte, formules, problèmes)
+   - Support de l'accessibilité avec option pour réduire les animations
 
-### Itération 5: "Le Grand Archiviste" - Système avancé de suivi et d'analyse
-- Tableaux de bord analytiques
-- Recommandations d'exercices personnalisées
-- Rapports de progression détaillés
-
-### Itération 6: "L'Alliance Galactique" - Internationalisation et localisation
-- Support multi-langues
-- Adaptation culturelle des exercices
-- Accessibilité conforme aux normes WCAG
+Ce développement est planifié pour Mai-Juin 2025, avec des tests utilisateurs prévus fin juin pour valider l'approche et ajuster les effets si nécessaire.
 
 ## ANALYSE DU STOCKAGE DES EXERCICES
 
@@ -235,66 +226,186 @@ Le stockage des exercices dans Mathakine repose actuellement sur les éléments 
      - `is_completed`: Indicateur de complétion
      - `created_at`: Horodatage de création
 
-2. **Table associée `results`**
-   - Stocke les résultats des tentatives des utilisateurs
-   - Liée à la table `exercises` via `exercise_id`
-   - Contient `is_correct`, `attempt_count`, `time_spent`
-
-3. **Table `user_stats`**
-   - Statistiques agrégées par type d'exercice et niveau de difficulté
-   - Utilisée pour la fonctionnalité d'exercices recommandés et adaptatifs
-
-4. **Génération d'exercices**
-   - Génération algorithmique basée sur des paramètres de difficulté
-   - Option de génération via IA (API OpenAI) pour des exercices plus variés
-
-### Évaluation de la pérennité
-
-#### Points forts
-- Structure de base de données bien conçue avec relations entre tables
-- Support pour différents types d'exercices et niveaux de difficulté
-- Stockage des statistiques utilisateur pour l'adaptation du contenu
-- Double méthode de génération (algorithmique et IA)
-
-#### Limitations
-- **Dépendance à SQLite**: Résolu avec la migration vers PostgreSQL pour les environnements de production
-- **Absence de versionnement des exercices**: Pas de suivi des modifications d'exercices
-- **Stockage monolithique**: Pas de séparation entre définition d'exercice et instances d'exercices
-- **Pas de catégorisation avancée**: Taxonomie limitée (type et difficulté uniquement)
-- **Stockage des choix en JSON**: Limite les possibilités de requêtes avancées sur les options
-
-### Améliorations mises en œuvre
-
-1. **Migration vers une base de données plus robuste**
-   - ✅ Migration à PostgreSQL supportée pour les environnements de production
-   - ✅ Conservation de SQLite pour le développement local (facilité d'utilisation)
-   - ✅ Scripts de migration automatisés
-   - ✅ Gestion des différences de types entre les SGBD
-
-2. **Normalisation des données**
-   - ✅ Correction des inconsistances historiques
-   - ✅ Validateurs Pydantic stricts pour prévenir les problèmes futurs
-   - ✅ Script de correction pour les bases de données existantes
-
-### Recommandations pour la prochaine itération
-
-1. **Restructuration du modèle de données**
-   - Séparation entre modèles d'exercices (templates) et instances
-   - Table de catégories d'exercices avec taxonomie hiérarchique
-   - Table dédiée pour les choix de réponses (normalisation)
-
-2. **Système de versionnement**
-   - Suivi des modifications d'exercices pour analyses longitudinales
-   - Support pour l'évolution des exercices sans perte d'historique
-
-3. **Système de métadonnées extensible**
-   - Champs de métadonnées flexibles pour enrichir les exercices
-   - Tags et attributs personnalisables
-
 4. **Optimisations de performance**
    - Indexation appropriée pour les requêtes fréquentes
    - Mise en cache des exercices populaires
    - Stratégies de partitionnement pour les grandes quantités de données
+
+## NOUVEAUX TYPES D'EXERCICES
+
+L'application Mathakine a été enrichie avec trois nouveaux types d'exercices pour diversifier l'expérience d'apprentissage des mathématiques :
+
+1. **Fractions** : Exercices sur les opérations avec fractions
+2. **Géométrie** : Exercices sur les figures géométriques et leurs propriétés
+3. **Divers (Problèmes)** : Exercices variés sous forme de problèmes à résoudre
+
+Ces nouveaux types complètent les types existants (Addition, Soustraction, Multiplication, Division) et permettent d'explorer davantage de concepts mathématiques avec la même thématique Star Wars immersive.
+
+### 1. Exercices de Fractions
+
+#### Description
+
+Les exercices de fractions permettent aux élèves de pratiquer les opérations sur les fractions (addition, soustraction, multiplication, division) adaptées à leur niveau.
+
+#### Adaptation par niveau de difficulté
+
+- **Initié** : 
+  - Fractions simples avec dénominateurs faciles (2, 3, 4, 5)
+  - Uniquement des additions
+  - Numérateurs inférieurs aux dénominateurs (fractions propres)
+
+- **Padawan** : 
+  - Fractions avec dénominateurs intermédiaires (2-10)
+  - Additions et soustractions
+  - Fractions propres
+
+- **Chevalier** : 
+  - Fractions plus complexes avec dénominateurs jusqu'à 12
+  - Additions, soustractions et multiplications
+  - Introduction des fractions impropres
+
+- **Maître** : 
+  - Fractions avancées avec dénominateurs jusqu'à 20
+  - Toutes les opérations (y compris la division)
+  - Fractions impropres complexes
+
+#### Exemple d'exercice
+
+```
+Calcule la fraction 2/5 + 1/3
+```
+
+La résolution implique de trouver un dénominateur commun (15), puis d'effectuer l'addition:
+```
+2/5 = 6/15
+1/3 = 5/15
+6/15 + 5/15 = 11/15
+```
+
+#### Choix et distracteurs
+
+Les choix incluent la bonne réponse et des distracteurs basés sur des erreurs communes:
+- Confusion des dénominateurs
+- Inversion des fractions
+- Addition des numérateurs et dénominateurs (erreur courante)
+
+### 2. Exercices de Géométrie
+
+#### Description
+
+Les exercices de géométrie permettent aux élèves de calculer différentes propriétés des figures géométriques (périmètre, aire, etc.) en fonction de leur niveau.
+
+#### Adaptation par niveau de difficulté
+
+- **Initié** : 
+  - Formes simples : carré ou rectangle
+  - Calculs de périmètre ou d'aire
+
+- **Padawan** : 
+  - Ajout du triangle
+  - Calculs de périmètre ou d'aire
+
+- **Chevalier** : 
+  - Ajout du cercle et du trapèze
+  - Introduction de la diagonale
+
+- **Maître** : 
+  - Formes avancées incluant losange et hexagone
+  - Propriétés avancées comme rayon et apothème
+
+#### Exemple d'exercice
+
+```
+Calcule le périmètre d'un rectangle avec longueur=8 et largeur=4
+```
+
+La résolution utilise la formule du périmètre d'un rectangle:
+```
+Périmètre = 2 × (longueur + largeur) = 2 × (8 + 4) = 2 × 12 = 24
+```
+
+#### Choix et distracteurs
+
+Les choix incluent la bonne réponse et des distracteurs basés sur des erreurs communes:
+- Oubli du facteur 2 dans le périmètre
+- Confusion avec la formule de l'aire
+- Erreurs de calcul simples
+
+### 3. Exercices Divers (Problèmes)
+
+#### Description
+
+Cette catégorie propose des problèmes variés adaptés à l'âge et au niveau des élèves, couvrant différents domaines des mathématiques (monnaie, âge, vitesse, pourcentage, probabilité, etc.).
+
+#### Adaptation par niveau de difficulté
+
+- **Initié** : 
+  - Problèmes simples : monnaie, âge, vitesse simple
+  - Nombres petits et calculs directs
+
+- **Padawan** : 
+  - Problèmes intermédiaires : ajout des pourcentages
+  - Situations plus complexes
+
+- **Chevalier** : 
+  - Problèmes avancés : probabilités, mélanges
+  - Résolutions multi-étapes
+
+- **Maître** : 
+  - Problèmes experts : algébriques, séquences
+  - Raisonnement mathématique avancé
+
+#### Types de problèmes disponibles
+
+1. **Monnaie** : Calcul de monnaie à rendre
+2. **Âge** : Calcul d'âge futur ou passé
+3. **Vitesse** : Calculs de distance, temps ou vitesse
+4. **Pourcentage** : Applications des pourcentages
+5. **Probabilité** : Calcul de probabilités simples
+6. **Mélange** : Calcul de concentration d'un mélange
+7. **Algébrique** : Résolution d'équations simples
+8. **Séquence** : Identification du terme suivant
+
+#### Exemple d'exercice
+
+```
+Tu achètes un jouet qui coûte 12 euros. Tu paies avec un billet de 20 euros. Combien d'euros le vendeur doit-il te rendre?
+```
+
+La résolution est un simple calcul de soustraction:
+```
+20 - 12 = 8 euros
+```
+
+#### Choix et distracteurs
+
+Les choix varient selon le type de résultat:
+- Pour les entiers: valeurs proches et le double
+- Pour les décimaux: variations de pourcentage (±10%, ×2)
+- Pour les fractions: variations sur le numérateur et le dénominateur
+
+### Intégration dans le Système
+
+Les nouveaux types d'exercices sont parfaitement intégrés dans l'application:
+
+1. **Base de données**: Compatible avec le schéma existant
+2. **API**: Accessible via les mêmes endpoints
+3. **Interface utilisateur**: Affichage adapté dans l'interface existante
+4. **Système de difficulté**: Adaptation en fonction du niveau du joueur
+
+### Messages et Constantes
+
+Les nouveaux types utilisent le système centralisé de messages et constantes:
+
+- **Titres**: `TITLE_FRACTIONS`, `TITLE_GEOMETRIE`, `TITLE_DIVERS`
+- **Questions**: `QUESTION_FRACTIONS`, `QUESTION_GEOMETRIE`, `QUESTION_DIVERS`
+- **Explications**: Format standardisé pour chaque type
+
+### Impact et Bénéfices Pédagogiques
+
+Ces trois nouveaux types d'exercices enrichissent considérablement l'offre éducative de Mathakine en permettant d'explorer des concepts mathématiques plus variés, tout en conservant l'expérience immersive Star Wars qui caractérise l'application.
+
+Les exercices s'adaptent automatiquement au niveau de l'élève, offrant une progression pédagogique cohérente du niveau Initié au niveau Maître.
 
 ## OPTIMISATIONS PLANIFIÉES
 
@@ -342,6 +453,114 @@ Le stockage des exercices dans Mathakine repose actuellement sur les éléments 
 4. **Standardisation du code**
    - Appliquer les règles de formatage uniformes avec Black et isort
    - Mettre en place pre-commit hooks pour maintenir la qualité du code
+
+## AMÉLIORATIONS RECOMMANDÉES
+
+Suite à une analyse approfondie du projet, voici les améliorations recommandées classées par ordre de criticité.
+
+### Haute priorité
+
+1. **Amélioration de la gestion des transactions et des suppressions en cascade**
+   - **Problème**: L'implémentation actuelle utilise des requêtes SQL brutes pour contourner des problèmes de types PostgreSQL
+   - **Impact**: Risque d'incohérences de données en cas d'échec partiel d'une transaction
+   - **Solution**: Unifier l'approche entre les modèles SQLAlchemy (qui utilisent `cascade="all, delete-orphan"`) et le code des endpoints
+   - **Complexité**: Moyenne (2-3 jours)
+   - **Fichiers concernés**: 
+     - `app/api/endpoints/exercises.py`
+     - `app/models/exercise.py`
+     - `app/models/attempt.py`
+
+2. **Sécurisation des migrations Alembic en production**
+   - **Problème**: L'implémentation protège les tables héritées mais manque de procédure formalisée pour les déploiements
+   - **Impact**: Risque potentiel lors des mises à jour en production
+   - **Solution**: Créer un script de migration sécurisé avec sauvegarde automatique et validation post-migration
+   - **Complexité**: Moyenne (2-4 jours)
+   - **Fichiers à créer**: 
+     - `scripts/safe_migration_production.py` 
+     - `scripts/validate_migration.py`
+
+### Moyenne priorité
+
+1. **Centralisation de la gestion des erreurs**
+   - **Problème**: Gestion des erreurs dispersée et inconsistante entre les différents endpoints
+   - **Impact**: Messages d'erreur incohérents et difficulté de maintenance
+   - **Solution**: Créer un middleware centralisé de gestion des erreurs
+   - **Complexité**: Faible (1-2 jours)
+   - **Fichiers concernés**: 
+     - `app/core/error_handlers.py` (à créer)
+     - `app/main.py`
+
+2. **Synchronisation entre les backends FastAPI et Starlette**
+   - **Problème**: Les deux backends (enhanced_server.py et app/main.py) peuvent diverger dans leur logique
+   - **Impact**: Comportements différents selon le mode d'utilisation
+   - **Solution**: Extraire la logique métier commune dans des services partagés
+   - **Complexité**: Élevée (4-7 jours)
+   - **Fichiers concernés**: 
+     - `app/services/` (tous les fichiers)
+     - `enhanced_server.py`
+     - `app/main.py`
+
+3. **Optimisation des requêtes de base de données**
+   - **Problème**: Certaines requêtes pourraient être optimisées, notamment pour le tableau de bord
+   - **Impact**: Performances limitées pour les utilisateurs avec beaucoup de données
+   - **Solution**: Implémenter des index sur les colonnes fréquemment utilisées et optimiser les requêtes agrégées
+   - **Complexité**: Moyenne (2-3 jours)
+   - **Fichiers concernés**: 
+     - `app/db/queries.py`
+     - `app/api/endpoints/exercises.py`
+     - `migrations/versions/` (nouvelle migration pour ajouter des index)
+
+### Basse priorité
+
+1. **Enrichissement de la documentation de migration Alembic**
+   - **Problème**: Documentation complète mais manque d'exemples pour des cas d'utilisation complexes
+   - **Impact**: Courbe d'apprentissage plus raide pour les nouveaux développeurs
+   - **Solution**: Enrichir la documentation avec des exemples pour des cas typiques
+   - **Complexité**: Faible (1 jour)
+   - **Fichiers concernés**: 
+     - `docs/ALEMBIC.md`
+     - `docs/MIGRATION_EXAMPLES.md` (à créer)
+
+2. **Meilleure intégration des outils de développement**
+   - **Problème**: Les outils de développement sont intégrés mais pas complètement articulés
+   - **Impact**: Flux de travail des développeurs non optimisé
+   - **Solution**: Créer un script d'initialisation unifié et intégrer les commandes Alembic dans la CLI
+   - **Complexité**: Faible (1-2 jours)
+   - **Fichiers concernés**: 
+     - `mathakine_cli.py`
+     - `scripts/dev_setup.py` (à créer)
+
+3. **Amélioration de l'automatisation des tests**
+   - **Problème**: Le système de tests est bien organisé mais pourrait être plus automatisé
+   - **Impact**: Efficacité du processus de test sous-optimale
+   - **Solution**: Implémenter des workflows CI/CD et ajouter des tests spécifiques pour les migrations
+   - **Complexité**: Moyenne (3-4 jours)
+   - **Fichiers concernés**: 
+     - `.github/workflows/` (à créer)
+     - `tests/test_migrations.py` (à créer)
+
+## ITÉRATIONS FUTURES
+
+### Itération 3 (Suite): Complétion de l'API Rebelle
+- Implémentation réelle du système d'authentification JWT
+- Finalisation des endpoints pour les défis logiques
+- Développement des fonctionnalités de progression adaptatées
+- Implémentation du moteur de génération de défis logiques
+
+### Itération 4: "L'Interface Nouvelle" - Refonte de l'interface utilisateur
+- Interface adaptative pour différents besoins
+- Gamification de l'expérience d'apprentissage (médailles "Ordre Jedi des Mathématiques")
+- Compatibilité mobile améliorée
+
+### Itération 5: "Le Grand Archiviste" - Système avancé de suivi et d'analyse
+- Tableaux de bord analytiques
+- Recommandations d'exercices personnalisées
+- Rapports de progression détaillés
+
+### Itération 6: "L'Alliance Galactique" - Internationalisation et localisation
+- Support multi-langues
+- Adaptation culturelle des exercices
+- Accessibilité conforme aux normes WCAG
 
 ## SUIVI DES RÉVISIONS ET POINTS À CHALLENGER
 

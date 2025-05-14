@@ -11,15 +11,29 @@ Ce fichier documente toutes les modifications notables apportées au projet Math
 - ✅ Script de vérification des migrations (`pre_commit_migration_check.py`)
 - ✅ Documentation détaillée pour les suppressions en cascade et la sécurité des migrations Alembic
 - ✅ Amélioration de la documentation OpenAPI (Swagger) pour tous les endpoints
+- ✅ Système de pagination amélioré pour la page d'exercices
+- ✅ Gestion optimisée des basculements entre vue grille/liste sur la page d'exercices
+- ✅ Nouvelles animations d'apparition séquentielle pour les cartes d'exercices
+- ✅ Documentation des nouveaux types d'exercices (Fractions, Géométrie, Problèmes)
+- ✅ Document de contexte actualisé résumant l'état du projet et les prochaines étapes
 
 ### Modifications
 - 🔄 Refactorisation des relations entre les modèles SQLAlchemy avec cascade="all, delete-orphan"
 - 🔄 Standardisation des opérations de suppression dans tous les endpoints API
 - 🔄 Personnalisation de l'interface Swagger UI et ReDoc
+- 🔄 Amélioration des badges de type d'exercice et de difficulté
+- 🔄 Mise à jour de la documentation UI_GUIDE.md avec les nouvelles fonctionnalités
+- 🔄 Archivage et nettoyage des documents obsolètes ou temporaires
+- 🔄 Organisation des documents dans des dossiers d'archives datés
 
 ### Corrections
 - 🐛 Correction des potentielles fuites de mémoire lors des suppressions d'entités
 - 🐛 Prévention des erreurs d'intégrité référentielle dans la base de données
+- 🐛 Correction du défilement automatique indésirable lors du basculement de vue grille/liste
+- 🐛 Résolution d'un problème de cache avec le mécanisme de "force redraw"
+- 🐛 Correction d'un problème où les exercices archivés (is_archived = true) s'affichaient dans la liste des exercices
+- 🐛 Optimisation du contrôle de défilement pour une meilleure expérience utilisateur
+- 🐛 Désactivation complète du défilement automatique pour respecter le contrôle utilisateur
 
 ## [0.3.1] - 2025-05-11
 

@@ -262,6 +262,95 @@ Les éléments suivants ont été identifiés comme améliorations potentielles 
    - [ ] Améliorer les animations de récompense
    - [ ] Intégrer un système de guidage contextuel
 
+## AMÉLIORATIONS PRIORITAIRES POUR LA CONSOLIDATION TECHNIQUE
+
+Suite à l'implémentation d'Alembic et à l'analyse approfondie de l'architecture actuelle, les améliorations techniques suivantes ont été identifiées comme prioritaires pour renforcer la robustesse du projet avant l'itération 4:
+
+### 1. Renforcement de l'intégrité des données (Haute priorité)
+
+#### 1.1 Unification de la gestion des transactions et suppressions en cascade
+- [ ] Remplacer les requêtes SQL brutes par l'API SQLAlchemy dans les endpoints de suppression
+- [ ] Uniformiser l'utilisation de `cascade="all, delete-orphan"` dans tous les modèles avec relations
+- [ ] Implémenter un gestionnaire de transaction cohérent pour toutes les opérations critiques
+- [ ] Créer des tests spécifiques pour valider l'intégrité référentielle après les opérations de suppression
+
+#### 1.2 Sécurisation des migrations Alembic en production
+- [ ] Développer un script de migration sécurisé pour l'environnement de production avec sauvegarde automatique
+- [ ] Créer un système de validation post-migration pour vérifier l'intégrité des tables protégées
+- [ ] Implémenter des alertes en cas d'échec de migration
+- [ ] Documenter la procédure complète de déploiement sécurisé des migrations
+
+### 2. Amélioration de l'architecture (Priorité moyenne)
+
+#### 2.1 Centralisation de la gestion des erreurs
+- [ ] Créer un module `app/core/error_handlers.py` avec des gestionnaires d'exceptions standardisés
+- [ ] Implémenter des middlewares de gestion d'erreurs au niveau FastAPI
+- [ ] Normaliser les formats de réponse d'erreur dans tous les endpoints
+- [ ] Améliorer la journalisation des erreurs avec contexte enrichi
+
+#### 2.2 Harmonisation des backends FastAPI et Starlette
+- [ ] Extraire la logique métier commune dans des services partagés
+- [ ] Standardiser les formats de réponse entre les deux backends
+- [ ] Développer des tests d'intégration pour valider la cohérence des comportements
+- [ ] Créer une couche d'abstraction pour les fonctionnalités communes
+
+#### 2.3 Optimisation des performances
+- [ ] Implémenter des index sur les colonnes fréquemment utilisées dans les requêtes WHERE et ORDER BY
+- [ ] Optimiser les requêtes agrégées pour le tableau de bord
+- [ ] Ajouter des mécanismes de cache pour les données rarement modifiées
+- [ ] Créer une migration Alembic pour ajouter ces optimisations
+
+### 3. Amélioration du cycle de développement (Priorité basse)
+
+#### 3.1 Documentation et exemples
+- [ ] Enrichir la documentation d'Alembic avec des exemples de cas d'utilisation complexes
+- [ ] Créer un guide détaillé sur la gestion des types PostgreSQL vs SQLite
+- [ ] Développer une documentation sur les meilleures pratiques de migration
+
+#### 3.2 Intégration des outils
+- [ ] Intégrer les commandes Alembic dans mathakine_cli.py
+- [ ] Créer un script d'initialisation unifié pour l'environnement de développement
+- [ ] Standardiser la gestion des dépendances avec requirements-dev.txt
+
+#### 3.3 Automatisation des tests
+- [ ] Implémenter des workflows CI/CD pour l'exécution automatique des tests
+- [ ] Ajouter des tests spécifiques pour les migrations Alembic
+- [ ] Créer des tests de performance pour identifier les goulots d'étranglement
+
+### 4. Mise à jour du planning pour intégrer ces améliorations
+
+| Tâche | Priorité | Estimation | Ressources |
+|-------|---------|------------|------------|
+| Unification gestion transactions | Haute | 3 jours | Développeur backend senior |
+| Sécurisation migrations production | Haute | 4 jours | DBA + Développeur backend |
+| Centralisation gestion erreurs | Moyenne | 2 jours | Développeur backend |
+| Harmonisation backends | Moyenne | 7 jours | Architecte + Développeur |
+| Optimisation performances | Moyenne | 3 jours | DBA + Développeur backend |
+| Documentation et exemples | Basse | 1 jour | Documentation technique |
+| Intégration outils | Basse | 2 jours | DevOps |
+| Automatisation tests | Basse | 4 jours | QA + Développeur |
+
+## PROCHAINS DÉVELOPPEMENTS MAJEURS
+
+En tenant compte de ces améliorations techniques prioritaires, le calendrier de développement a été ajusté:
+
+### Phase immédiate: Amélioration de l'interface utilisateur (Mai-Juin 2025)
+- Implémentation de l'interface holographique pour les exercices (voir détails dans `docs/INTERFACE_HOLOGRAPHIQUE.md`)
+  - Création d'effets visuels Star Wars (texte doré avec halo bleu)
+  - Animation de fluctuation pour effet holographique
+  - Adaptation selon les niveaux de difficulté
+  - Respect des standards d'accessibilité
+- Amélioration du feedback visuel et sonore des réponses
+- Documentation des modifications de l'interface
+
+### Phase intermédiaire: Consolidation technique (Juillet 2025)
+- Mise en œuvre des améliorations de priorité haute (gestion des transactions et sécurisation des migrations)
+- Finalisation des fonctionnalités incomplètes de l'itération 3
+
+### Phase à long terme: Lancement de l'Itération 4 (Août-Septembre 2025)
+- Développement de l'interface adaptative et de la gamification avancée
+- Intégration des améliorations techniques dans le nouveau framework d'interface
+
 ## RISQUES ET MITIGATIONS MIS À JOUR
 
 | Risque | Probabilité | Impact | Mitigation | Statut |

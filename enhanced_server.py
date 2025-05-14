@@ -83,15 +83,15 @@ def generate_template_files():
     if not os.path.exists(error_template):
         with open(error_template, "w") as f:
             f.write("""
-            {% extends "base.html" %}
-
+        {% extends "base.html" %}
+        
 {% block title %}Erreur - Mathakine{% endblock %}
-
-            {% block content %}
+        
+        {% block content %}
     <div class="error-container">
         <div class="error-icon">
             <i class="fas fa-exclamation-triangle fa-4x"></i>
-            </div>
+        </div>
         <h2 class="error-title">{{ error }}</h2>
         <p class="error-message">{{ message }}</p>
         <div class="error-actions">
@@ -100,8 +100,8 @@ def generate_template_files():
             </a>
             </div>
             </div>
-            {% endblock %}
-
+        {% endblock %}
+        
 {% block styles %}
 <style>
     .error-container {
@@ -135,8 +135,8 @@ def generate_template_files():
         margin-top: 20px;
     }
 </style>
-    {% endblock %}
-    """)
+        {% endblock %}
+        """)
         print(f"Template d'erreur créé: {error_template}")
 
 # Handlers pour les routes
@@ -176,27 +176,28 @@ async def exercises_page(request):
             print(f"Exécution requête personnalisée par type et difficulté: ({exercise_type}, {difficulty})")
             cursor.execute("""
             SELECT * FROM exercises 
-            WHERE exercise_type = %s AND difficulty = %s
+            WHERE exercise_type = %s AND difficulty = %s AND is_archived = false
             ORDER BY id
             """, (exercise_type, difficulty))
         elif exercise_type:
             print(f"Exécution requête personnalisée par type: ({exercise_type},)")
             cursor.execute("""
             SELECT * FROM exercises 
-            WHERE exercise_type = %s
+            WHERE exercise_type = %s AND is_archived = false
             ORDER BY id
             """, (exercise_type,))
         elif difficulty:
             print(f"Exécution requête personnalisée par difficulté: ({difficulty},)")
             cursor.execute("""
             SELECT * FROM exercises 
-            WHERE difficulty = %s
+            WHERE difficulty = %s AND is_archived = false
             ORDER BY id
             """, (difficulty,))
         else:
             print("Exécution requête personnalisée pour tous les exercices")
             cursor.execute("""
             SELECT * FROM exercises 
+            WHERE is_archived = false
             ORDER BY id
             """)
 
@@ -269,8 +270,8 @@ async def exercises_page(request):
     
     try:
         response = templates.TemplateResponse("exercises.html", {
-            "request": request,
-            "exercises": exercises,
+        "request": request,
+        "exercises": exercises,
             "message": message,
             "message_type": message_type,
             "exercise_types": exercise_types,
@@ -291,7 +292,7 @@ async def get_exercise(request):
 
     conn = get_db_connection()
     cursor = conn.cursor()
-
+    
     cursor.execute(ExerciseQueries.GET_BY_ID, (exercise_id,))
 
     columns = [desc[0] for desc in cursor.description]
@@ -316,19 +317,20 @@ async def get_exercise(request):
             exercise['choices'] = []
     else:
         exercise['choices'] = []
-
+    
     conn.close()
-
+    
     return JSONResponse(exercise)
 
 async def dashboard(request):
+    """Rendu de la page de tableau de bord avec statistiques"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-
+        
         # Récupérer les statistiques globales
         cursor.execute('''
-        SELECT
+        SELECT 
             SUM(total_attempts) as total_completed,
             SUM(correct_attempts) as correct_answers
         FROM user_stats
@@ -336,79 +338,105 @@ async def dashboard(request):
 
         columns = [desc[0] for desc in cursor.description]
         row = cursor.fetchone()
-        overall_stats = dict(zip(columns, row)) if row else {"total_completed": 0
-            , "correct_answers": 0}
-
-    # Calculer le taux de réussite
+        overall_stats = dict(zip(columns, row)) if row else {"total_completed": 0, "correct_answers": 0}
+    
+        # Calculer le taux de réussite
         total_completed = overall_stats.get('total_completed', 0) or 0
         correct_answers = overall_stats.get('correct_answers', 0) or 0
         success_rate = int((correct_answers / total_completed * 100) if total_completed > 0 else 0)
-
-    # Récupérer les statistiques par type d'exercice
-        stats = {
-            'total_completed': total_completed,
-            'correct_answers': correct_answers,
-            'success_rate': success_rate,
-        }
-
-        for exercise_type in ['addition', 'subtraction', 'multiplication', 'division']:
+    
+        # Statistiques par type d'exercice
+        performance_by_type = {}
+        
+        for exercise_type in ExerciseTypes.ALL_TYPES[:4]:  # Limiter aux 4 types principaux
             cursor.execute('''
-            SELECT
+            SELECT 
                 SUM(total_attempts) as total,
                 SUM(correct_attempts) as correct
             FROM user_stats
                 WHERE exercise_type = %s
             ''', (exercise_type,))
-
+            
             columns = [desc[0] for desc in cursor.description]
             row = cursor.fetchone()
             type_stats = dict(zip(columns, row)) if row else {"total": 0, "correct": 0}
-
+            
             total = type_stats.get('total', 0) or 0
             correct = type_stats.get('correct', 0) or 0
-
-            stats[f'{exercise_type}_total'] = total
-            stats[f'{exercise_type}_correct'] = correct
-            stats[f'{exercise_type}_progress'] = int((correct / total * 100) if total > 0 else 0)
-
-    # Récupérer les exercices récents
-        try:
-            # PostgreSQL utilise created_at au lieu de date_submitted
-            cursor.execute('''
-            SELECT
-                e.question,
-                r.is_correct,
-                r.created_at as completed_at
-            FROM results r
-            JOIN exercises e ON r.exercise_id = e.id
-            ORDER BY r.created_at DESC
-            LIMIT 10
-            ''')
-
-            columns = [desc[0] for desc in cursor.description]
-            rows = cursor.fetchall()
-            recent_exercises = [dict(zip(columns, row)) for row in rows]
-        except Exception as e:
-            print(f"Erreur lors de la récupération des exercices récents: {e}")
-            recent_exercises = []
-
+            rate = int((correct / total * 100) if total > 0 else 0)
+            
+            type_fr = {
+                ExerciseTypes.ADDITION: "Addition",
+                ExerciseTypes.SUBTRACTION: "Soustraction",
+                ExerciseTypes.MULTIPLICATION: "Multiplication",
+                ExerciseTypes.DIVISION: "Division"
+            }
+            
+            exercise_type_name = type_fr.get(exercise_type, exercise_type)
+            performance_by_type[exercise_type_name] = {
+                "total": total,
+                "correct": correct,
+                "success_rate": rate
+            }
+    
+        # Récupérer les exercices récents
+        cursor.execute('''
+        SELECT 
+            e.question,
+            r.is_correct,
+            r.created_at
+        FROM results r
+        JOIN exercises e ON r.exercise_id = e.id
+        ORDER BY r.created_at DESC
+        LIMIT 10
+        ''')
+        
+        columns = [desc[0] for desc in cursor.description]
+        rows = cursor.fetchall()
+        recent_results = [dict(zip(columns, row)) for row in rows]
+        
+        # Formater les résultats pour l'affichage
+        formatted_results = []
+        for result in recent_results:
+            formatted_result = {
+                "question": result.get('question', ''),
+                "is_correct": bool(result.get('is_correct')),
+                "time": str(result.get('created_at', ''))
+            }
+            formatted_results.append(formatted_result)
+        
+        # Préparer les données pour les graphiques
+        chart_data = {
+            "performance": {
+                "labels": list(performance_by_type.keys()),
+                "values": [stats["success_rate"] for stats in performance_by_type.values()]
+            },
+            "activity": {
+                "labels": ["Jour 1", "Jour 2", "Jour 3", "Jour 4", "Jour 5", "Jour 6", "Jour 7"],
+                "values": [5, 7, 3, 8, 10, 6, 4]  # Données fictives pour l'exemple
+            }
+        }
+        
         conn.close()
-
-        return templates.TemplateResponse("dashboard.html", {
-            "request": request,
-            "stats": stats,
-            "recent_exercises": recent_exercises
-        })
+        
+        context = {
+            "user": {"username": "Padawan"},  # Utilisateur fictif
+            "total_completed": total_completed,
+            "correct_answers": correct_answers,
+            "success_rate": success_rate,
+            "performance": performance_by_type,
+            "recent_results": formatted_results,
+            "chart_data": json.dumps(chart_data)
+        }
+        
+        return templates.TemplateResponse("dashboard.html", {"request": request, **context})
     except Exception as e:
-        print(f"Erreur lors du chargement du tableau de bord: {e}")
+        print(f"Erreur lors de la génération du tableau de bord: {e}")
         traceback.print_exc()
-        if 'conn' in locals() and conn:
-            conn.close()
-
-        # Afficher un message d'erreur
-        return templates.TemplateResponse("home.html", {
-            "request": request,
-            "error_message": f"Erreur lors du chargement du tableau de bord: {str(e)}"
+        return templates.TemplateResponse("error.html", {
+            "request": request, 
+            "error": "Erreur lors de la génération du tableau de bord",
+            "details": str(e)
         }, status_code=500)
 
 async def exercise_detail_page(request):
@@ -573,7 +601,7 @@ def init_database():
     """)
 
     conn.close()
-
+    
     print("Base de données initialisée avec succès")
 
 # Fonctions pour la génération et résolution d'exercices
@@ -665,7 +693,7 @@ async def generate_exercise(request):
 
         # Rediriger vers la page des exercices
         return RedirectResponse(url="/exercises?generated=true", status_code=303)
-
+    
     except Exception as e:
         print(f"Erreur lors de la génération d'exercice: {e}")
         traceback.print_exc()
@@ -890,22 +918,24 @@ def generate_ai_exercise(exercise_type, difficulty):
         num2 = random.randint(min_val, max_val)
         result = num1 + num2
         
-        question_template = f"Tu as trouvé {num1} cristaux Kyber et ton ami en a trouvé {num2}. Combien avez-vous de cristaux au total?"
-        explanation_template = f"Pour trouver la réponse, tu dois additionner {num1} et {num2}, ce qui donne {result}."
+        question = ExerciseMessages.QUESTION_ADDITION.format(num1=num1, num2=num2)
+        explanation = f"Pour additionner {num1} et {num2}, il faut calculer leur somme, donc {num1} + {num2} = {result}."
         
         choices = [str(result), str(result-1), str(result+1), str(result+2)]
         random.shuffle(choices)
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Défaut - Addition niveau {difficulty}",
-            "question": question_template,
+            "title": ExerciseMessages.TITLE_DEFAULT,
+            "question": question,
             "correct_answer": str(result),
             "choices": choices,
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE,
             "num1": num1,
             "num2": num2,
-            "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
+            "explanation": explanation
         })
-    
+        return exercise_data
+
     # S'assurer que tous les choix sont uniques
     choices = list(set(exercise_data.get("choices", [])))
     while len(choices) < 4:
@@ -981,7 +1011,7 @@ def generate_simple_exercise(exercise_type, difficulty):
         limits = type_limits
         num1 = random.randint(limits.get("min1", 5), limits.get("max1", 20))
         num2 = random.randint(limits.get("min2", 1), min(num1-1, limits.get("max2", 5)))  # Assurer num2 < num1
-
+        
         result = num1 - num2
         question = ExerciseMessages.QUESTION_SUBTRACTION.format(num1=num1, num2=num2)
         correct_answer = str(result)
@@ -1013,7 +1043,7 @@ def generate_simple_exercise(exercise_type, difficulty):
         # Génération d'une multiplication
         min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
         num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
-
+        
         result = num1 * num2
         question = ExerciseMessages.QUESTION_MULTIPLICATION.format(num1=num1, num2=num2)
         correct_answer = str(result)
@@ -1076,26 +1106,477 @@ def generate_simple_exercise(exercise_type, difficulty):
         })
         return exercise_data
 
+    elif normalized_type == ExerciseTypes.FRACTIONS:
+        # Génération d'un exercice sur les fractions
+        min_val = type_limits.get("min", 1)
+        max_val = type_limits.get("max", 10)
+        
+        # Dénominateurs et numérateurs en fonction de la difficulté
+        if normalized_difficulty == DifficultyLevels.INITIE:
+            # Fractions simples avec dénominateurs faciles (2, 3, 4, 5)
+            denom1 = random.choice([2, 3, 4, 5])
+            denom2 = random.choice([2, 3, 4, 5])
+            num1 = random.randint(1, denom1-1)
+            num2 = random.randint(1, denom2-1)
+            operation = "+"  # Addition simple pour les débutants
+        elif normalized_difficulty == DifficultyLevels.PADAWAN:
+            # Fractions avec dénominateurs intermédiaires
+            denom1 = random.choice([2, 3, 4, 5, 6, 8, 10])
+            denom2 = random.choice([2, 3, 4, 5, 6, 8, 10])
+            num1 = random.randint(1, denom1-1)
+            num2 = random.randint(1, denom2-1)
+            operation = random.choice(["+", "-"])  # Addition ou soustraction
+        elif normalized_difficulty == DifficultyLevels.CHEVALIER:
+            # Fractions plus complexes
+            denom1 = random.randint(2, 12)
+            denom2 = random.randint(2, 12)
+            num1 = random.randint(1, denom1)
+            num2 = random.randint(1, denom2)
+            operation = random.choice(["+", "-", "×"])  # +, - ou ×
+        else:  # MAITRE
+            # Fractions avancées
+            denom1 = random.randint(2, 20)
+            denom2 = random.randint(2, 20)
+            num1 = random.randint(1, denom1*2)  # Fractions impropres
+            num2 = random.randint(1, denom2*2)
+            operation = random.choice(["+", "-", "×", "÷"])  # Toutes les opérations
+        
+        # Calculer le résultat
+        from fractions import Fraction
+        frac1 = Fraction(num1, denom1)
+        frac2 = Fraction(num2, denom2)
+        
+        if operation == "+":
+            result = frac1 + frac2
+            op_text = "addition"
+            steps = f"trouver un dénominateur commun ({denom1*denom2})"
+        elif operation == "-":
+            # S'assurer que le résultat n'est pas négatif pour les niveaux faciles
+            if normalized_difficulty in [DifficultyLevels.INITIE, DifficultyLevels.PADAWAN] and frac1 < frac2:
+                frac1, frac2 = frac2, frac1  # Échanger les fractions
+            result = frac1 - frac2
+            op_text = "soustraction"
+            steps = f"trouver un dénominateur commun ({denom1*denom2})"
+        elif operation == "×":
+            result = frac1 * frac2
+            op_text = "multiplication"
+            steps = f"multiplier les numérateurs ({num1}×{num2}) et les dénominateurs ({denom1}×{denom2})"
+        else:  # "÷"
+            # Éviter division par zéro
+            if num2 == 0:
+                num2 = 1
+            result = frac1 / frac2
+            op_text = "division"
+            steps = f"inverser la deuxième fraction et multiplier ({num1}/{denom1} × {denom2}/{num2})"
+        
+        # Formatage du résultat
+        if result.denominator == 1:
+            formatted_result = str(result.numerator)
+        else:
+            formatted_result = f"{result.numerator}/{result.denominator}"
+        
+        # Générer la question
+        question = ExerciseMessages.QUESTION_FRACTIONS.format(
+            num1=num1, num2=denom1, operation=operation, num3=num2, num4=denom2
+        )
+        
+        # Générer des choix
+        # Pour les fractions simples, on propose des variantes proches
+        incorrect1 = Fraction(num1, denom2)  # Confusion des dénominateurs
+        incorrect2 = Fraction(num2, denom1)  # Inversion
+        
+        if operation == "+":
+            incorrect3 = Fraction(num1 + num2, denom1 + denom2)  # Erreur commune: additionner num et denom
+        elif operation == "-":
+            incorrect3 = Fraction(abs(num1 - num2), abs(denom1 - denom2))  # Erreur: soustraire num et denom
+        elif operation == "×":
+            incorrect3 = Fraction(num1 + num2, denom1 * denom2)  # Erreur: addition des numérateurs
+        else:  # "÷"
+            incorrect3 = Fraction(num1 * num2, denom1 * denom2)  # Erreur: multiplication au lieu de division
+        
+        # Formater les choix
+        choices = [
+            formatted_result,  # Bonne réponse
+            f"{incorrect1.numerator}/{incorrect1.denominator}",
+            f"{incorrect2.numerator}/{incorrect2.denominator}",
+            f"{incorrect3.numerator}/{incorrect3.denominator}"
+        ]
+        random.shuffle(choices)
+        
+        explanation = ExerciseMessages.EXPLANATION_FRACTIONS.format(
+            num1=num1, num2=denom1, operation=operation, num3=num2, num4=denom2,
+            steps=steps, result=formatted_result
+        )
+        
+        exercise_data.update({
+            "title": ExerciseMessages.TITLE_FRACTIONS,
+            "question": question,
+            "correct_answer": formatted_result,
+            "choices": choices,
+            "tags": Tags.FRACTIONS + "," + Tags.ALGORITHMIC,
+            "explanation": explanation
+        })
+        return exercise_data
+
+    elif normalized_type == ExerciseTypes.GEOMETRIE:
+        # Génération d'un exercice de géométrie
+        min_val = type_limits.get("min", 1)
+        max_val = type_limits.get("max", 10)
+        
+        # Choisir une forme géométrique et une propriété à calculer en fonction de la difficulté
+        if normalized_difficulty == DifficultyLevels.INITIE:
+            # Formes simples: carré ou rectangle, périmètre ou aire
+            shape = random.choice(["carré", "rectangle"])
+            property = random.choice(["périmètre", "aire"])
+        elif normalized_difficulty == DifficultyLevels.PADAWAN:
+            # Ajout de triangle et trapèze
+            shape = random.choice(["carré", "rectangle", "triangle"])
+            property = random.choice(["périmètre", "aire"])
+        elif normalized_difficulty == DifficultyLevels.CHEVALIER:
+            # Formes plus complexes
+            shape = random.choice(["carré", "rectangle", "triangle", "cercle", "trapèze"])
+            property = random.choice(["périmètre", "aire", "diagonale"])
+        else:  # MAITRE
+            # Toutes les formes et propriétés
+            shape = random.choice(["carré", "rectangle", "triangle", "cercle", "trapèze", "losange", "hexagone"])
+            property = random.choice(["périmètre", "aire", "diagonale", "rayon", "apothème"])
+        
+        # Variables pour la question et l'explication
+        formula = ""
+        parameter1 = ""
+        parameter2 = ""
+        value1 = 0
+        value2 = 0
+        result = 0
+        
+        # Logique spécifique par forme
+        if shape == "carré":
+            parameter1 = "côté"
+            value1 = random.randint(min_val, max_val)
+            
+            if property == "périmètre":
+                result = 4 * value1
+                formula = "4 × côté"
+            elif property == "aire":
+                result = value1 * value1
+                formula = "côté²"
+            elif property == "diagonale":
+                import math
+                result = round(value1 * math.sqrt(2), 2)
+                formula = "côté × √2"
+            
+            parameter2 = "NULL"
+            value2 = 0
+            
+        elif shape == "rectangle":
+            parameter1 = "longueur"
+            parameter2 = "largeur"
+            value1 = random.randint(min_val+1, max_val)
+            value2 = random.randint(min_val, value1-1)  # Largeur < Longueur
+            
+            if property == "périmètre":
+                result = 2 * (value1 + value2)
+                formula = "2 × (longueur + largeur)"
+            elif property == "aire":
+                result = value1 * value2
+                formula = "longueur × largeur"
+            elif property == "diagonale":
+                import math
+                result = round(math.sqrt(value1*value1 + value2*value2), 2)
+                formula = "√(longueur² + largeur²)"
+            
+        elif shape == "triangle":
+            if normalized_difficulty in [DifficultyLevels.INITIE, DifficultyLevels.PADAWAN]:
+                # Triangle rectangle pour les niveaux faciles
+                parameter1 = "base"
+                parameter2 = "hauteur"
+                value1 = random.randint(min_val, max_val)
+                value2 = random.randint(min_val, max_val)
+                
+                if property == "périmètre":
+                    # Utiliser le théorème de Pythagore pour calculer l'hypoténuse
+                    import math
+                    hypotenuse = math.sqrt(value1*value1 + value2*value2)
+                    result = round(value1 + value2 + hypotenuse, 2)
+                    formula = "base + hauteur + hypoténuse"
+                elif property == "aire":
+                    result = (value1 * value2) / 2
+                    formula = "(base × hauteur) / 2"
+            else:
+                # Triangle quelconque pour les niveaux avancés
+                parameter1 = "côté1"
+                parameter2 = "côté2"
+                value1 = random.randint(min_val, max_val)
+                value2 = random.randint(min_val, max_val)
+                value3 = random.randint(max(abs(value1-value2)+1, min_val), value1+value2-1)  # Contrainte des côtés
+                
+                if property == "périmètre":
+                    result = value1 + value2 + value3
+                    formula = "côté1 + côté2 + côté3"
+                elif property == "aire":
+                    # Formule de Héron
+                    import math
+                    s = (value1 + value2 + value3) / 2
+                    result = round(math.sqrt(s * (s-value1) * (s-value2) * (s-value3)), 2)
+                    formula = "√(s(s-a)(s-b)(s-c)) où s=(a+b+c)/2"
+        
+        elif shape == "cercle":
+            parameter1 = "rayon"
+            value1 = random.randint(min_val, max_val)
+            
+            if property == "périmètre":
+                import math
+                result = round(2 * math.pi * value1, 2)
+                formula = "2 × π × rayon"
+            elif property == "aire":
+                import math
+                result = round(math.pi * value1 * value1, 2)
+                formula = "π × rayon²"
+            elif property == "diamètre":
+                result = 2 * value1
+                formula = "2 × rayon"
+            
+            parameter2 = "NULL"
+            value2 = 0
+        
+        # Générer la question
+        if parameter2 and parameter2 != "NULL":
+            question = ExerciseMessages.QUESTION_GEOMETRIE.format(
+                property=property, shape=shape, parameter1=parameter1, 
+                value1=value1, parameter2=parameter2, value2=value2
+            )
+        else:
+            question = f"Calcule le {property} d'un {shape} avec {parameter1}={value1}"
+        
+        # Générer des choix
+        # Erreurs communes
+        if property == "périmètre" and shape in ["carré", "rectangle"]:
+            incorrect1 = round(result * 0.5, 2)  # Oubli du facteur 2
+            incorrect2 = round(result * 2, 2)     # Double du périmètre
+            incorrect3 = value1 * value2 if shape == "rectangle" else value1 * value1  # Confusion avec l'aire
+        elif property == "aire" and shape in ["carré", "rectangle", "triangle"]:
+            incorrect1 = round(result * 2, 2)  # Double de l'aire
+            incorrect2 = round(result / 2, 2)  # Moitié de l'aire
+            if shape == "triangle":
+                incorrect3 = value1 * value2  # Oubli du facteur 1/2
+            else:
+                incorrect3 = 2 * (value1 + (value2 if value2 else value1))  # Confusion avec le périmètre
+        else:
+            # Valeurs proches pour les autres cas
+            incorrect1 = round(result * 0.9, 2)  # 10% de moins
+            incorrect2 = round(result * 1.1, 2)  # 10% de plus
+            incorrect3 = round(result * 1.5, 2)  # 50% de plus
+        
+        # Formater les choix
+        choices = [
+            str(result),
+            str(incorrect1),
+            str(incorrect2),
+            str(incorrect3)
+        ]
+        random.shuffle(choices)
+        
+        explanation = ExerciseMessages.EXPLANATION_GEOMETRIE.format(
+            property=property, shape=shape, formula=formula, 
+            parameter1=parameter1, value1=value1, 
+            parameter2=parameter2 if parameter2 != "NULL" else "autre paramètre", 
+            value2=value2 if parameter2 != "NULL" else "N/A", 
+            result=result
+        )
+        
+        exercise_data.update({
+            "title": ExerciseMessages.TITLE_GEOMETRIE,
+            "question": question,
+            "correct_answer": str(result),
+            "choices": choices,
+            "tags": Tags.GEOMETRY + "," + Tags.ALGORITHMIC,
+            "explanation": explanation
+        })
+        return exercise_data
+
+    elif normalized_type == ExerciseTypes.DIVERS:
+        # Génération d'un exercice divers (problèmes, défis logiques, etc.)
+        min_val = type_limits.get("min", 1)
+        max_val = type_limits.get("max", 10)
+        
+        # Choisir un type de problème en fonction de la difficulté
+        if normalized_difficulty == DifficultyLevels.INITIE:
+            # Problèmes simples pour débutants
+            problem_type = random.choice(["monnaie", "age", "vitesse_simple"])
+        elif normalized_difficulty == DifficultyLevels.PADAWAN:
+            problem_type = random.choice(["monnaie", "age", "vitesse", "pourcentage"])
+        elif normalized_difficulty == DifficultyLevels.CHEVALIER:
+            problem_type = random.choice(["vitesse", "pourcentage", "probabilité", "mélange"])
+        else:  # MAITRE
+            problem_type = random.choice(["probabilité", "mélange", "algébrique", "séquence"])
+        
+        # Logique pour chaque type de problème
+        if problem_type == "monnaie":
+            # Problème simple de monnaie: rendre la monnaie
+            prix = random.randint(min_val, max_val)
+            payé = random.randint(prix, prix + 20)
+            result = payé - prix
+            
+            problem = f"Tu achètes un jouet qui coûte {prix} euros. Tu paies avec un billet de {payé} euros. Combien d'euros le vendeur doit-il te rendre?"
+            explanation = f"Pour calculer la monnaie, tu dois soustraire le prix ({prix} euros) du montant payé ({payé} euros). Donc {payé} - {prix} = {result} euros."
+            
+        elif problem_type == "age":
+            # Problème d'âge
+            age_actuel = random.randint(min_val, max_val)
+            années = random.randint(1, 5)
+            result = age_actuel + années
+            
+            problem = f"Lucas a {age_actuel} ans aujourd'hui. Quel âge aura-t-il dans {années} ans?"
+            explanation = f"Pour trouver l'âge futur, tu ajoutes le nombre d'années à l'âge actuel. Donc {age_actuel} + {années} = {result} ans."
+            
+        elif problem_type == "vitesse_simple":
+            # Problème de vitesse simple
+            distance = random.randint(min_val, max_val) * 5  # multiple de 5 pour des distances réalistes
+            heures = random.randint(1, 5)
+            result = distance // heures  # vitesse horaire simplement arrondie
+            
+            problem = f"Une voiture parcourt {distance} kilomètres en {heures} heures à une vitesse constante. Quelle est sa vitesse en kilomètres par heure?"
+            explanation = f"La vitesse se calcule en divisant la distance par le temps. Donc {distance} ÷ {heures} = {result} km/h."
+            
+        elif problem_type == "vitesse":
+            # Problème de vitesse plus avancé
+            vitesse = random.randint(min_val, max_val) * 5  # en km/h
+            heures = random.randint(1, 5)
+            result = vitesse * heures  # distance
+            
+            problem = f"Un train roule à {vitesse} km/h pendant {heures} heures. Quelle distance parcourt-il?"
+            explanation = f"Pour calculer la distance, tu multiplies la vitesse par le temps. Donc {vitesse} × {heures} = {result} km."
+            
+        elif problem_type == "pourcentage":
+            # Problème de pourcentage
+            initial = random.randint(min_val, max_val) * 10  # montant initial
+            pourcentage = random.choice([5, 10, 15, 20, 25, 50])  # pourcentage courant
+            result = initial + (initial * pourcentage // 100)  # montant après augmentation
+            
+            problem = f"Un produit coûte {initial} euros. Son prix augmente de {pourcentage}%. Quel est son nouveau prix?"
+            explanation = f"Pour calculer l'augmentation, tu multiplies le prix initial par le pourcentage et tu divises par 100, puis tu ajoutes au prix initial. Donc {initial} + ({initial} × {pourcentage} ÷ 100) = {initial} + {initial * pourcentage // 100} = {result} euros."
+            
+        elif problem_type == "probabilité":
+            # Problème de probabilité
+            total = random.randint(10, 50)  # nombre total d'objets
+            favorables = random.randint(1, total // 2)  # cas favorables
+            result = favorables / total  # probabilité exacte
+            formatted_result = f"{favorables}/{total}"  # format fraction
+            
+            problem = f"Dans un sac, il y a {total} billes dont {favorables} sont rouges. Quelle est la probabilité de tirer une bille rouge?"
+            explanation = f"La probabilité se calcule en divisant le nombre de cas favorables par le nombre total de cas. Donc {favorables} ÷ {total} = {formatted_result}."
+            
+        elif problem_type == "mélange":
+            # Problème de mélange / concentration
+            volume1 = random.randint(min_val, max_val)
+            concentration1 = random.randint(10, 90)
+            volume2 = random.randint(min_val, max_val)
+            concentration2 = random.randint(10, 90)
+            
+            quantité1 = volume1 * concentration1 / 100
+            quantité2 = volume2 * concentration2 / 100
+            volume_total = volume1 + volume2
+            result = round((quantité1 + quantité2) / volume_total * 100, 2)  # concentration finale en %
+            
+            problem = f"On mélange {volume1}L d'une solution à {concentration1}% avec {volume2}L d'une solution à {concentration2}%. Quelle est la concentration du mélange final?"
+            explanation = f"Pour calculer la concentration finale, tu divises la quantité totale de soluté par le volume total. Donc ({volume1} × {concentration1}% + {volume2} × {concentration2}%) ÷ ({volume1} + {volume2}) = {result}%."
+            
+        elif problem_type == "algébrique":
+            # Problème algébrique
+            a = random.randint(1, 5)
+            b = random.randint(1, 10)
+            x = random.randint(1, 5)
+            result = a * x + b
+            
+            problem = f"Si ax + b = {result}, où a = {a} et b = {b}, quelle est la valeur de x?"
+            explanation = f"Pour trouver x, tu dois résoudre l'équation {a}x + {b} = {result}. En soustrayant {b} des deux côtés, tu obtiens {a}x = {result - b}. En divisant par {a}, tu trouves x = {x}."
+            
+        elif problem_type == "séquence":
+            # Problème de séquence
+            start = random.randint(1, 5)
+            diff = random.randint(1, 5)
+            sequence = [start + diff*i for i in range(5)]  # séquence arithmétique
+            result = sequence[4] + diff  # terme suivant
+            
+            problem = f"Trouve le terme suivant dans cette séquence : {sequence[0]}, {sequence[1]}, {sequence[2]}, {sequence[3]}, {sequence[4]}, ..."
+            explanation = f"Cette séquence augmente de {diff} à chaque terme. Le terme suivant après {sequence[4]} est donc {sequence[4]} + {diff} = {result}."
+        
+        else:
+            # Problème par défaut
+            a = random.randint(min_val, max_val)
+            b = random.randint(min_val, max_val)
+            result = a + b
+            
+            problem = f"Combien font {a} + {b}?"
+            explanation = f"Pour additionner {a} et {b}, il faut calculer leur somme, donc {a} + {b} = {result}."
+        
+        # Créer des choix appropriés
+        if isinstance(result, float):
+            # Pour les résultats décimaux
+            choices = [
+                str(result),
+                str(round(result * 0.9, 2)),  # 10% moins
+                str(round(result * 1.1, 2)),  # 10% plus
+                str(round(result * 2, 2))      # double
+            ]
+        elif isinstance(result, str) and "/" in result:
+            # Pour les fractions
+            num, denom = map(int, result.split("/"))
+            choices = [
+                result,
+                f"{num+1}/{denom}",  # numérateur +1
+                f"{num}/{denom+1}",  # dénominateur +1
+                f"{denom}/{num}"     # inversé
+            ]
+        else:
+            # Pour les entiers
+            choices = [
+                str(result),
+                str(result + random.randint(1, 5)),
+                str(max(1, result - random.randint(1, 5))),
+                str(result * 2)  # double
+            ]
+            
+        random.shuffle(choices)
+        
+        # Construire l'exercice
+        exercise_data.update({
+            "title": ExerciseMessages.TITLE_DIVERS,
+            "question": ExerciseMessages.QUESTION_DIVERS.format(problem=problem),
+            "correct_answer": str(result),
+            "choices": choices,
+            "tags": Tags.PROBLEM_SOLVING + "," + Tags.ALGORITHMIC,
+            "explanation": ExerciseMessages.EXPLANATION_DIVERS.format(
+                steps=explanation,
+                result=result
+            )
+        })
+        return exercise_data
+
     else:
         # Par défaut, faire une addition si le type n'est pas reconnu
-        min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
-        num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
+        min_val = type_limits.get("min", 1)
+        max_val = type_limits.get("max", 10)
         
+        num1 = random.randint(min_val, max_val)
+        num2 = random.randint(min_val, max_val)
         result = num1 + num2
+        
         question = ExerciseMessages.QUESTION_ADDITION.format(num1=num1, num2=num2)
-        correct_answer = str(result)
+        explanation = f"Pour additionner {num1} et {num2}, il faut calculer leur somme, donc {num1} + {num2} = {result}."
+        
         choices = [str(result), str(result-1), str(result+1), str(result+2)]
         random.shuffle(choices)
-
+        
         exercise_data.update({
             "title": ExerciseMessages.TITLE_DEFAULT,
             "question": question,
-            "correct_answer": correct_answer,
+            "correct_answer": str(result),
             "choices": choices,
             "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE,
             "num1": num1,
             "num2": num2,
-            "explanation": f"Pour additionner {num1} et {num2}, il faut calculer leur somme, donc {num1} + {num2} = {result}."
+            "explanation": explanation
         })
         return exercise_data
 
@@ -1114,7 +1595,7 @@ async def submit_answer(request):
         # Récupérer l'exercice pour vérifier la réponse
         conn = get_db_connection()
         cursor = conn.cursor()
-
+        
         cursor.execute(ExerciseQueries.GET_BY_ID, (exercise_id,))
         columns = [desc[0] for desc in cursor.description]
         row = cursor.fetchone()
@@ -1262,7 +1743,7 @@ async def get_exercises_list(request):
                 exercise['choices'] = []
 
             exercises.append(exercise)
-
+        
         conn.close()
 
         # Appliquer pagination manuellement
@@ -1355,28 +1836,28 @@ async def get_user_stats(request):
         print("Début de la récupération des statistiques utilisateur")
         conn = get_db_connection()
         cursor = conn.cursor()
-
+    
         # Récupérer les statistiques globales
         print("Exécution de la requête pour récupérer les statistiques globales")
-        cursor.execute("""
-        SELECT
+        cursor.execute('''
+        SELECT 
             SUM(total_attempts) as total_exercises,
             SUM(correct_attempts) as correct_answers
         FROM user_stats
-        """)
+        ''')
         
         columns = [desc[0] for desc in cursor.description]
         row = cursor.fetchone()
         print(f"Statistiques globales brutes: {row}")
         overall_stats = dict(zip(columns, row)) if row else {"total_exercises": 0, "correct_answers": 0}
         print(f"Statistiques globales formatées: {overall_stats}")
-
+    
         # Calculer le taux de réussite
         total_exercises = overall_stats.get('total_exercises', 0) or 0
         correct_answers = overall_stats.get('correct_answers', 0) or 0
         success_rate = int((correct_answers / total_exercises * 100) if total_exercises > 0 else 0)
         print(f"Taux de réussite calculé: {success_rate}%")
-
+    
         # Statistiques par type d'exercice
         performance_by_type = {}
         exercise_type_data = []  # Pour stocker les données pour le graphique de progression
@@ -1384,13 +1865,13 @@ async def get_user_stats(request):
         print("Récupération des statistiques par type d'exercice")
         for exercise_type in ExerciseTypes.ALL_TYPES[:4]:  # Pour l'instant, juste les 4 types de base
             print(f"Récupération des statistiques pour le type {exercise_type}")
-            cursor.execute("""
-            SELECT
+            cursor.execute('''
+            SELECT 
                 SUM(total_attempts) as total,
                 SUM(correct_attempts) as correct
             FROM user_stats
-            WHERE exercise_type = %s
-            """, (exercise_type,))
+                WHERE exercise_type = %s
+            ''', (exercise_type,))
             
             columns = [desc[0] for desc in cursor.description]
             row = cursor.fetchone()
@@ -1401,7 +1882,7 @@ async def get_user_stats(request):
             correct = type_stats.get('correct', 0) or 0
             success_rate_type = int((correct / total * 100) if total > 0 else 0)
             print(f"Taux de réussite pour {exercise_type}: {success_rate_type}%")
-
+        
             # Convertir les types en français pour le frontend
             type_fr = {
                 ExerciseTypes.ADDITION: 'Addition', 
@@ -1420,11 +1901,11 @@ async def get_user_stats(request):
             }
         
         print(f"Performance par type complète: {performance_by_type}")
-
+    
         # Récupérer les exercices récents pour l'activité
         print("Récupération des exercices récents")
-        cursor.execute("""
-        SELECT
+        cursor.execute('''
+        SELECT 
             e.question,
             r.is_correct,
             r.created_at as completed_at
@@ -1432,13 +1913,13 @@ async def get_user_stats(request):
         JOIN exercises e ON r.exercise_id = e.id
         ORDER BY r.created_at DESC
         LIMIT 10
-        """)
+        ''')
         
         columns = [desc[0] for desc in cursor.description]
         rows = cursor.fetchall()
         print(f"Nombre d'exercices récents trouvés: {len(rows)}")
         recent_results = [dict(zip(columns, row)) for row in rows]
-
+    
         # Formater les activités récentes
         recent_activity = []
         for result in recent_results:
@@ -1452,7 +1933,7 @@ async def get_user_stats(request):
             except Exception as e:
                 print(f"Erreur dans le formatage de la date: {e}")
                 formatted_time = str(result.get('completed_at', ''))
-
+        
             activity = {
                 'type': 'exercise_completed',
                 'is_correct': bool(result.get('is_correct')),
@@ -1534,7 +2015,7 @@ async def get_user_stats(request):
                 'backgroundColor': 'rgba(255, 206, 86, 0.2)',
             }]
         }
-
+    
         # Simuler les données de niveau pour le moment
         level_data = {
             'current': 1,
@@ -1542,7 +2023,7 @@ async def get_user_stats(request):
             'current_xp': 25,
             'next_level_xp': 100
         }
-
+    
         # Utiliser les données par type d'exercice pour le graphique de progression
         print("Construction du graphique basé sur les données réelles")
         
@@ -1570,9 +2051,9 @@ async def get_user_stats(request):
             }
         
         print(f"Structure finale du graphique: {progress_over_time}")
-
+    
         conn.close()
-
+    
         response_data = {
             'total_exercises': total_exercises,
             'correct_answers': correct_answers,
@@ -1593,31 +2074,31 @@ async def get_user_stats(request):
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500)
 
-# Configuration des routes
-routes = [
-    # Pages HTML
-    Route("/", homepage),
-    Route("/exercises", exercises_page),
-    Route("/dashboard", dashboard),
-    Route("/exercises/{exercise_id:int}", exercise_detail_page),
-    Route("/api/users/stats", get_user_stats),
-
-    # API
-    Route("/api/exercises", get_exercises_list),
-    Route("/api/exercises/{exercise_id:int}", get_exercise),
-    Route("/api/exercises/{exercise_id:int}", delete_exercise, methods=["DELETE"]),
-    Route("/api/exercises/generate", generate_exercise),
-    Route("/api/exercises/{exercise_id:int}/submit", submit_answer, methods=["POST"]),
-    Route("/api/submit-answer", submit_answer, methods=["POST"]),  # Route alternative pour la soumission des exercices
-
-    # Fichiers statiques
-    Mount("/static", StaticFiles(directory=STATIC_DIR), name="static"),
-]
-
-# Fonction d'initialisation
 async def startup():
     generate_template_files()
     init_database()
+
+# Définition des routes de l'application
+routes = [
+    Route("/", endpoint=homepage),
+    Route("/exercises", endpoint=exercises_page),
+    Route("/dashboard", endpoint=dashboard),
+    Route("/exercise/{exercise_id:int}", endpoint=exercise_detail_page),
+    
+    # Ajouter cette redirection pour résoudre le problème 404
+    Route("/exercises/{exercise_id:int}", endpoint=lambda request: RedirectResponse(url=f"/exercise/{request.path_params['exercise_id']}", status_code=302)),
+    
+    # Routes API
+    Route("/api/exercises", endpoint=get_exercises_list),
+    Route("/api/exercises/{exercise_id:int}", endpoint=get_exercise, methods=["GET"]),
+    Route("/api/exercises/{exercise_id:int}", endpoint=delete_exercise, methods=["DELETE"]),
+    Route("/api/exercises/generate", endpoint=generate_exercise),
+    Route("/api/submit-answer", endpoint=submit_answer, methods=["POST"]),
+    Route("/api/users/stats", endpoint=get_user_stats),
+    
+    # Fichiers statiques
+    Mount("/static", app=StaticFiles(directory=STATIC_DIR), name="static"),
+]
 
 # Création de l'application Starlette
 app = Starlette(
@@ -1630,8 +2111,11 @@ app = Starlette(
 
 
 def main():
-    """Point d'entrée principal de l'application"""
-    print(f"Lancement du serveur sur le port {PORT}")
+    """Point d'entrée principal pour le serveur"""
+    print("========================================")
+    print(f"ENHANCED_SERVER.PY - Serveur complet démarré sur le port {PORT}")
+    print("Serveur avec interface graphique complète")
+    print("========================================")
     uvicorn.run(
         "enhanced_server:app",
         host="0.0.0.0",
@@ -1641,4 +2125,4 @@ def main():
     )
 
 if __name__ == "__main__":
-    main()
+    main() 

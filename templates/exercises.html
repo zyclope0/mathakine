@@ -1,555 +1,11 @@
-        {% extends "base.html" %}
+{% extends "base.html" %}
         
 {% block title %}Exercices - Mathakine{% endblock %}
 
 {% block head %}
-<style>
-    .exercise-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 25px;
-    }
-    
-    .exercise-card {
-        border-radius: 12px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        position: relative;
-        padding: 20px;
-        background-color: var(--sw-card-bg);
-        border: 1px solid var(--sw-card-border);
-        overflow: hidden;
-    }
-    
-    .exercise-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, var(--sw-blue), var(--sw-accent), var(--sw-gold));
-    }
-    
-    .exercise-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 25px rgba(0,0,0,0.25);
-    }
-    
-    .exercise-card .difficulty {
-        display: inline-flex;
-        padding: 5px 10px;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        margin-bottom: 12px;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    .difficulty::before {
-        font-family: "Font Awesome 5 Free";
-        font-weight: 900;
-    }
-    
-    .difficulty.initie { 
-        background-color: rgba(21, 87, 36, 0.2);
-        color: #d4edda;
-    }
-    
-    .difficulty.initie::before {
-        content: "\f005";
-    }
-    
-    .difficulty.padawan { 
-        background-color: rgba(133, 100, 4, 0.2);
-        color: #fff3cd;
-    }
-    
-    .difficulty.padawan::before {
-        content: "\f005\f005";
-    }
-    
-    .difficulty.chevalier { 
-        background-color: rgba(114, 28, 36, 0.2);
-        color: #f8d7da;
-    }
-    
-    .difficulty.chevalier::before {
-        content: "\f005\f005\f005";
-    }
-    
-    .difficulty.maitre { 
-        background-color: rgba(0, 64, 133, 0.2);
-        color: #cce5ff;
-    }
-    
-    .difficulty.maitre::before {
-        content: "\f005\f005\f005\f005";
-    }
-    
-    .exercise-actions {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 20px;
-        gap: 10px;
-    }
-    
-    .delete-icon {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        color: rgba(220, 53, 69, 0.6);
-        cursor: pointer;
-        font-size: 1.2rem;
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-        z-index: 5;
-        background-color: rgba(0, 0, 0, 0.15);
-    }
-    
-    .delete-icon:hover {
-        color: #dc3545;
-        background-color: rgba(220, 53, 69, 0.15);
-        transform: rotate(90deg);
-    }
-    
-    .exercise-type-tag {
-        display: inline-flex;
-        background-color: rgba(107, 77, 195, 0.2);
-        padding: 5px 10px;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        color: var(--sw-accent);
-        margin-bottom: 10px;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    .exercise-type-tag::before {
-        font-family: "Font Awesome 5 Free";
-        font-weight: 900;
-        content: "\f14a";
-    }
-    
-    .exercise-card h3 {
-        margin: 12px 0;
-        font-size: 1.4rem;
-        color: var(--sw-gold);
-    }
-    
-    .exercise-card p {
-        color: var(--sw-text);
-        margin-bottom: 15px;
-        font-size: 1rem;
-        line-height: 1.5;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-    }
-    
-    /* Mise à jour des boutons d'action */
-    .action-btn {
-        border-radius: 30px;
-        padding: 10px 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: all 0.3s ease;
-        font-weight: 500;
-    }
-    
-    .action-btn i {
-        font-size: 1rem;
-    }
-    
-    .primary-action {
-        background-color: var(--sw-accent);
-        color: white;
-        flex-grow: 1;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    
-    .primary-action:hover {
-        background-color: var(--sw-blue);
-        transform: translateY(-3px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    }
-    
-    .secondary-action {
-        background-color: rgba(108, 117, 125, 0.1);
-        color: var(--sw-secondary);
-        border: 1px solid rgba(108, 117, 125, 0.3);
-    }
-    
-    .secondary-action:hover {
-        background-color: rgba(108, 117, 125, 0.2);
-        color: var(--sw-text);
-    }
-    
-    .loading-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 200px;
-    }
-    
-    .spinner {
-        width: 50px;
-        height: 50px;
-        border: 5px solid rgba(0, 0, 0, 0.1);
-        border-radius: 50%;
-        border-top-color: var(--sw-accent);
-        animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-    
-    /* Styles pour les filtres */
-    .filters-container {
-        background-color: var(--sw-card-bg);
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 25px;
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-        border: 1px solid var(--sw-card-border);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .filters-container::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, var(--sw-blue), var(--sw-accent));
-    }
-    
-    .filters-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        align-items: center;
-    }
-    
-    .filter-group {
-        flex: 1;
-        min-width: 200px;
-    }
-    
-    .filter-group label {
-        display: block;
-        margin-bottom: 8px;
-        color: var(--sw-gold);
-        font-weight: 500;
-    }
-    
-    .filter-select {
-        width: 100%;
-        padding: 10px 15px;
-        border-radius: 8px;
-        background-color: rgba(0, 0, 0, 0.2);
-        border: 1px solid var(--sw-card-border);
-        color: var(--sw-text);
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%237765e3' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 15px center;
-        padding-right: 40px;
-    }
-    
-    .filter-select:focus {
-        outline: none;
-        border-color: var(--sw-accent);
-        box-shadow: 0 0 0 2px rgba(107, 77, 195, 0.25);
-    }
-    
-    .filter-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-    }
-    
-    .reset-filters {
-        background-color: transparent;
-        color: var(--sw-secondary);
-        border: 1px solid rgba(108, 117, 125, 0.3);
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    .reset-filters:hover {
-        background-color: rgba(108, 117, 125, 0.1);
-        color: var(--sw-text);
-    }
-    
-    .apply-filters {
-        background-color: var(--sw-accent);
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    
-    .apply-filters:hover {
-        background-color: var(--sw-blue);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-    }
-    
-    /* Responsive design */
-    @media (max-width: 768px) {
-        .exercise-list {
-            grid-template-columns: 1fr;
-        }
-        
-        .filters-row {
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .filter-group {
-            width: 100%;
-        }
-    }
-    
-    /* Styles pour la boîte modale */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.7);
-        backdrop-filter: blur(5px);
-    }
-    
-    .modal-content {
-        background-color: var(--sw-card-bg);
-        margin: 10% auto;
-        padding: 25px;
-        border: 1px solid var(--sw-card-border);
-        border-radius: 12px;
-        width: 90%;
-        max-width: 500px;
-        animation: modalFadeIn 0.3s;
-        color: var(--sw-text);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-        position: relative;
-    }
-    
-    .modal-content::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, var(--sw-red), #ff8f8f);
-    }
-    
-    @keyframes modalFadeIn {
-        from {opacity: 0; transform: translateY(-30px);}
-        to {opacity: 1; transform: translateY(0);}
-    }
-    
-    .close {
-        color: var(--sw-secondary);
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
-    
-    .close:hover,
-    .close:focus {
-        color: var(--sw-accent);
-        text-decoration: none;
-        cursor: pointer;
-        transform: rotate(90deg);
-    }
-    
-    .modal-actions {
-        margin-top: 25px;
-        display: flex;
-        justify-content: flex-end;
-        gap: 15px;
-    }
-    
-    .cancel-delete {
-        background-color: transparent;
-        color: var(--sw-secondary);
-        border: 1px solid rgba(108, 117, 125, 0.3);
-        padding: 10px 20px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .cancel-delete:hover {
-        background-color: rgba(108, 117, 125, 0.1);
-        color: var(--sw-text);
-    }
-    
-    .confirm-delete {
-        background-color: var(--sw-red);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
-    }
-    
-    .confirm-delete:hover {
-        background-color: #c82333;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
-    }
-    
-    /* Styles pour les alertes */
-    .alert {
-        padding: 15px 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        animation: fadeInDown 0.5s;
-    }
-    
-    @keyframes fadeInDown {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .alert-success {
-        background-color: rgba(40, 167, 69, 0.2);
-        border: 1px solid rgba(40, 167, 69, 0.4);
-        color: #28a745;
-    }
-    
-    .alert-error {
-        background-color: rgba(220, 53, 69, 0.2);
-        border: 1px solid rgba(220, 53, 69, 0.4);
-        color: #dc3545;
-    }
-    
-    .alert i {
-        font-size: 1.5rem;
-    }
-    
-    .alert-message {
-        flex: 1;
-    }
-    
-    /* Styles pour les boutons de génération */
-    .generation-buttons {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        margin: 30px 0;
-    }
-    
-    .big-btn {
-        padding: 15px 30px;
-        border-radius: 30px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        transition: all 0.3s ease;
-    }
-    
-    .big-btn:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
-    }
-    
-    .primary-btn {
-        background-color: var(--sw-accent);
-        color: white;
-        border: none;
-    }
-    
-    .primary-btn:hover {
-        background-color: var(--sw-blue);
-    }
-    
-    .ai-btn {
-        background-color: var(--sw-gold);
-        color: var(--sw-dark);
-        border: none;
-    }
-    
-    .ai-btn:hover {
-        background-color: #ffd54f;
-    }
-    
-    /* Style pour le badge IA */
-    .ai-badge {
-        display: inline-flex;
-        align-items: center;
-        background-color: #6f42c1;
-        color: white;
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        margin-left: 8px;
-        font-weight: bold;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-    
-    .ai-badge i {
-        margin-right: 4px;
-    }
-    
-    /* Positionnement amélioré pour éviter les conflits */
-    .exercise-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 10px;
-        padding-right: 40px; /* Espace pour l'icône de suppression */
-    }
-</style>
 {% endblock %}
         
-        {% block content %}
+{% block content %}
 <div class="page-header">
     <h2>Exercices Mathématiques</h2>
     <p>Choisissez parmi les exercices ou générez-en un nouveau</p>
@@ -566,7 +22,7 @@
                     {% for type_value, type_name in exercise_types.items() %}
                     <option value="{{ type_value }}" {% if request.query_params.get('exercise_type') == type_value %}selected{% endif %}>{{ type_name }}</option>
                     {% endfor %}
-                </select>
+                        </select>
                     </div>
         
                     <div class="filter-group">
@@ -576,19 +32,29 @@
                     {% for difficulty_value, difficulty_name in difficulty_levels.items() %}
                     <option value="{{ difficulty_value }}" {% if request.query_params.get('difficulty') == difficulty_value %}selected{% endif %}>{{ difficulty_name }}</option>
                     {% endfor %}
-                </select>
+                        </select>
         </div>
         
             <div class="filter-actions">
                 <button type="button" id="reset-filters" class="reset-filters">
                     <i class="fas fa-times"></i> Réinitialiser
-                </button>
+        </button>
                 <button type="submit" class="apply-filters">
                     <i class="fas fa-filter"></i> Appliquer
         </button>
             </div>
         </div>
     </form>
+</div>
+
+<!-- Boutons de génération DÉPLACÉS en haut de page -->
+<div class="generation-buttons">
+    <button id="generate-exercise-btn" class="btn primary-btn big-btn">
+        <i class="fas fa-jedi"></i> Générer un exercice personnalisé
+    </button>
+    <a href="#" id="generate-ai-exercise-btn" class="btn ai-btn big-btn">
+        <i class="fas fa-robot"></i> Générer avec l'IA
+    </a>
 </div>
 
 <!-- Message success/error -->
@@ -600,16 +66,31 @@
 {% endif %}
 
 <div class="card">
+    <div class="exercise-header">
+        <!-- Contrôles de vue -->
+        <div class="view-controls">
+            <div class="exercise-count">
+                <span>{{ exercises|length }} exercice{% if exercises|length > 1 %}s{% endif %} trouvé{% if exercises|length > 1 %}s{% endif %}</span>
+            </div>
+            <div class="view-toggle">
+                <button id="grid-view-btn" class="active" title="Vue en grille">
+                    <i class="fas fa-th-large"></i>
+                </button>
+                <button id="list-view-btn" title="Vue en liste">
+                    <i class="fas fa-list"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="loading" class="loading-container">
         <div class="spinner"></div>
         <p>Chargement des exercices...</p>
     </div>
     
-    <div id="exercise-list" class="exercise-list" style="display: none;">
+    <div id="exercise-list" class="exercise-list">
         {% for exercise in exercises %}
         <div class="exercise-card" id="exercise-{{ exercise.id }}">
-            <i class="fas fa-trash-can delete-icon" data-id="{{ exercise.id }}" title="Supprimer"></i>
-            
             <div class="exercise-meta">
                 <span class="difficulty {{ exercise.difficulty }}">
                     {% if exercise.difficulty in difficulty_display %}
@@ -619,7 +100,7 @@
                     {% endif %}
                 </span>
                 
-                <span class="exercise-type-tag">
+                <span class="exercise-type-tag {{ exercise.exercise_type }}">
                     {% if exercise.exercise_type in exercise_type_display %}
                     {{ exercise_type_display[exercise.exercise_type] }}
                     {% else %}
@@ -645,11 +126,13 @@
                 </a>
                 <button class="action-btn secondary-action show-details-btn" data-id="{{ exercise.id }}">
                     <i class="fas fa-info-circle"></i> Détails
-        </button>
+                </button>
             </div>
+            
+            <i class="fas fa-trash-can delete-icon" data-id="{{ exercise.id }}" title="Supprimer"></i>
         </div>
         {% endfor %}
-        </div>
+    </div>
 
     {% if not exercises %}
     <div class="empty-state">
@@ -661,16 +144,23 @@
         </a>
     </div>
     {% endif %}
-</div>
-
-<!-- Boutons de génération -->
-<div class="generation-buttons">
-    <button id="generate-exercise-btn" class="btn accent-btn big-btn">
-        <i class="fas fa-jedi"></i> Générer un exercice personnalisé
-    </button>
-    <a href="#" id="generate-ai-exercise-btn" class="btn ai-btn big-btn">
-        <i class="fas fa-robot"></i> Générer avec l'IA
-    </a>
+    
+    <!-- Système de pagination -->
+    {% if exercises|length > 9 %}
+    <div class="pagination">
+        <button class="pagination-nav" id="prev-page">
+            <i class="fas fa-chevron-left"></i> Précédent
+        </button>
+        
+        <div id="pagination-numbers" class="pagination-numbers">
+            <!-- Les numéros de page seront générés par JavaScript -->
+        </div>
+        
+        <button class="pagination-nav" id="next-page">
+            Suivant <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Modal de confirmation suppression -->
@@ -683,273 +173,486 @@
             <button id="cancel-delete" class="cancel-delete">Annuler</button>
             <button id="confirm-delete" class="confirm-delete">Supprimer</button>
         </div>
-            </div>
-        </div>
+    </div>
+</div>
 
 <!-- Modal de détails d'exercice -->
 <div id="details-modal" class="modal">
     <div class="modal-content details-modal-content">
         <span class="close details-close">&times;</span>
         <div id="exercise-details-content">
-    <div class="loading-container">
-        <div class="spinner"></div>
+            <div class="loading-container">
+                <div class="spinner"></div>
                 <p>Chargement des détails...</p>
             </div>
         </div>
             </div>
         </div>
-        {% endblock %}
+{% endblock %}
         
-        {% block scripts %}
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-        // Afficher la liste d'exercices après chargement de la page
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('exercise-list').style.display = 'grid';
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+// Force le scroll en haut de la page au chargement initial
+window.scrollTo({top: 0, behavior: 'smooth'});
+
+// Afficher la liste d'exercices après chargement de la page
+document.getElementById('loading').style.display = 'none';
+
+// Animation d'entrée pour les cartes d'exercices
+const exerciseCards = document.querySelectorAll('.exercise-card');
+exerciseCards.forEach((card, index) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    
+    setTimeout(() => {
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+    }, 100 + (index * 50)); // Délai progressif pour chaque carte
+});
+
+// Variables pour la pagination
+const exercisesPerPage = 9;
+let currentPage = 1;
+const totalPages = Math.ceil(exerciseCards.length / exercisesPerPage);
+
+// Fonction pour créer la pagination
+function setupPagination() {
+    if (exerciseCards.length <= exercisesPerPage) return;
+    
+    const paginationNumbers = document.getElementById('pagination-numbers');
+    if (!paginationNumbers) return;
+    
+    paginationNumbers.innerHTML = '';
+    
+    // Limiter le nombre de numéros de page affichés
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+    
+    // Ajuster si on est proche de la fin
+    if (endPage - startPage + 1 < maxPagesToShow) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+    
+    // Ajouter le premier numéro de page si nécessaire
+    if (startPage > 1) {
+        const firstPageButton = document.createElement('button');
+        firstPageButton.className = 'pagination-item';
+        firstPageButton.textContent = '1';
+        firstPageButton.addEventListener('click', () => goToPage(1));
+        paginationNumbers.appendChild(firstPageButton);
         
-        // Réinitialiser les filtres
-        document.getElementById('reset-filters').addEventListener('click', function() {
-            document.getElementById('exercise_type').value = '';
-            document.getElementById('difficulty').value = '';
-            document.getElementById('filters-form').submit();
+        if (startPage > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'pagination-ellipsis';
+            ellipsis.textContent = '...';
+            paginationNumbers.appendChild(ellipsis);
+        }
+    }
+    
+    // Ajouter les numéros de page
+    for (let i = startPage; i <= endPage; i++) {
+        const pageButton = document.createElement('button');
+        pageButton.className = 'pagination-item';
+        if (i === currentPage) pageButton.classList.add('active');
+        pageButton.textContent = i;
+        pageButton.addEventListener('click', () => goToPage(i));
+        paginationNumbers.appendChild(pageButton);
+    }
+    
+    // Ajouter le dernier numéro de page si nécessaire
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'pagination-ellipsis';
+            ellipsis.textContent = '...';
+            paginationNumbers.appendChild(ellipsis);
+        }
+        
+        const lastPageButton = document.createElement('button');
+        lastPageButton.className = 'pagination-item';
+        lastPageButton.textContent = totalPages;
+        lastPageButton.addEventListener('click', () => goToPage(totalPages));
+        paginationNumbers.appendChild(lastPageButton);
+    }
+    
+    // Mettre à jour les boutons de navigation
+    const prevButton = document.getElementById('prev-page');
+    const nextButton = document.getElementById('next-page');
+    
+    if (prevButton) {
+        prevButton.disabled = currentPage === 1;
+        prevButton.classList.toggle('disabled', currentPage === 1);
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) goToPage(currentPage - 1);
         });
-        
-        // Gestion des liens de génération d'exercices avec paramètres
-        document.getElementById('generate-exercise-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Récupérer les valeurs actuelles des filtres
-            const exerciseType = document.getElementById('exercise_type').value;
-            const difficulty = document.getElementById('difficulty').value;
-            
-            console.log('Génération d\'exercice avec:', {exercise_type: exerciseType, difficulty: difficulty});
-            
-            // Construire l'URL avec les paramètres
-            let url = '/api/exercises/generate';
-            const params = new URLSearchParams();
-            
-            if (exerciseType) {
-                params.append('type', exerciseType);
-            }
-            
-            if (difficulty) {
-                params.append('difficulty', difficulty);
-            }
-            
-            if (params.toString()) {
-                url += '?' + params.toString();
-            }
-            
-            console.log('URL de génération:', url);
-            window.location.href = url;
+    }
+    
+    if (nextButton) {
+        nextButton.disabled = currentPage === totalPages;
+        nextButton.classList.toggle('disabled', currentPage === totalPages);
+        nextButton.addEventListener('click', () => {
+            if (currentPage < totalPages) goToPage(currentPage + 1);
         });
+    }
+}
+
+// Fonction pour aller à une page spécifique
+function goToPage(page, skipScroll = false) {
+    if (page < 1 || page > totalPages) return;
+    
+    currentPage = page;
+    const startIndex = (page - 1) * exercisesPerPage;
+    const endIndex = Math.min(startIndex + exercisesPerPage, exerciseCards.length);
+    
+    // Masquer tous les exercices avec une animation
+    exerciseCards.forEach((card, index) => {
+        if (index >= startIndex && index < endIndex) {
+            // Animer l'apparition des cartes visibles
+            card.style.display = '';
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 50 * (index - startIndex));
+        } else {
+            // Masquer les cartes non visibles
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.display = 'none';
+            }, 300);
+        }
+    });
+    
+    // Mettre à jour la pagination
+    setupPagination();
+    
+    // Complètement désactiver le défilement automatique, car il cause des problèmes d'UX
+    // Le défilement doit rester sous le contrôle de l'utilisateur
+}
+
+// Initialiser la pagination
+if (exerciseCards.length > exercisesPerPage) {
+    setupPagination();
+    // S'assurer que la première page est affichée au chargement initial, sans défilement
+    goToPage(1, true);
+} else {
+    // Afficher tous les exercices s'il n'y a pas de pagination
+    exerciseCards.forEach(card => {
+        card.style.display = '';
+    });
+}
+
+// Bascule entre vue grille et vue liste avec gestion améliorée du cache
+const exerciseList = document.getElementById('exercise-list');
+const gridViewBtn = document.getElementById('grid-view-btn');
+const listViewBtn = document.getElementById('list-view-btn');
+
+if (gridViewBtn && listViewBtn && exerciseList) {
+    // Restaurer la préférence de l'utilisateur au chargement
+    const savedViewMode = localStorage.getItem('exerciseViewMode');
+
+    function applyViewMode(mode) {
+        if (mode === 'list') {
+            exerciseList.classList.add('list-view');
+            listViewBtn.classList.add('active');
+            gridViewBtn.classList.remove('active');
+            
+            // Force redraw pour éviter les problèmes de cache
+            exerciseList.style.display = 'none';
+            setTimeout(() => {
+                exerciseList.style.display = 'flex';
+            }, 10);
+        } else {
+            // Mode grille par défaut
+            exerciseList.classList.remove('list-view');
+            gridViewBtn.classList.add('active');
+            listViewBtn.classList.remove('active');
+            
+            // Force redraw pour éviter les problèmes de cache
+            exerciseList.style.display = 'none';
+            setTimeout(() => {
+                exerciseList.style.display = 'grid';
+            }, 10);
+        }
+    }
+
+    // Appliquer le mode sauvegardé ou le mode par défaut
+    applyViewMode(savedViewMode === 'list' ? 'list' : 'grid');
+    
+    // Configurer la vue en grille
+    gridViewBtn.addEventListener('click', function() {
+        applyViewMode('grid');
+        localStorage.setItem('exerciseViewMode', 'grid');
         
-        document.getElementById('generate-ai-exercise-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Récupérer les valeurs actuelles des filtres
-            const exerciseType = document.getElementById('exercise_type').value;
-            const difficulty = document.getElementById('difficulty').value;
-            
-            // Construire l'URL avec les paramètres
-            let url = '/api/exercises/generate?ai=true';
-            
-            if (exerciseType) {
-                url += `&type=${exerciseType}`;
-            }
-            
-            if (difficulty) {
-                url += `&difficulty=${difficulty}`;
-            }
-            
-            console.log('URL de génération avec IA:', url);
-            window.location.href = url;
-        });
+        // Réorganiser les cartes après changement de vue sans défilement
+        setTimeout(() => {
+            goToPage(currentPage, true);
+        }, 50);
+    });
+    
+    // Configurer la vue en liste
+    listViewBtn.addEventListener('click', function() {
+        applyViewMode('list');
+        localStorage.setItem('exerciseViewMode', 'list');
         
-        // Gestion modale de suppression
-        const deleteModal = document.getElementById('delete-modal');
-        const closeButton = document.querySelector('.close');
-        const cancelButton = document.getElementById('cancel-delete');
-        const deleteButtons = document.querySelectorAll('.delete-icon');
-        const confirmButton = document.getElementById('confirm-delete');
-        let exerciseToDelete = null;
-        
-        // Ouvrir la modale au clic sur l'icône de suppression
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                exerciseToDelete = this.getAttribute('data-id');
-                deleteModal.style.display = 'block';
-            });
-        });
-        
-        // Fermer la modale
-        closeButton.addEventListener('click', function() {
+        // Réorganiser les cartes après changement de vue sans défilement
+        setTimeout(() => {
+            goToPage(currentPage, true);
+        }, 50);
+    });
+}
+
+// Supprimer la classe d-none et remettre le display à grid/list selon le mode actuel
+if (exerciseList) {
+    exerciseList.classList.remove('d-none');
+}
+
+// Réinitialiser les filtres
+document.getElementById('reset-filters').addEventListener('click', function() {
+    document.getElementById('exercise_type').value = '';
+    document.getElementById('difficulty').value = '';
+    document.getElementById('filters-form').submit();
+});
+
+// Gestion des liens de génération d'exercices avec paramètres
+document.getElementById('generate-exercise-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    // Récupérer les valeurs actuelles des filtres
+    const exerciseType = document.getElementById('exercise_type').value;
+    const difficulty = document.getElementById('difficulty').value;
+    
+    console.log('Génération d\'exercice avec:', {exercise_type: exerciseType, difficulty: difficulty});
+    
+    // Construire l'URL avec les paramètres
+    let url = '/api/exercises/generate';
+    const params = new URLSearchParams();
+    
+    if (exerciseType) {
+        params.append('type', exerciseType);
+    }
+    
+    if (difficulty) {
+        params.append('difficulty', difficulty);
+    }
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+    
+    console.log('URL de génération:', url);
+    window.location.href = url;
+});
+
+document.getElementById('generate-ai-exercise-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    // Récupérer les valeurs actuelles des filtres
+    const exerciseType = document.getElementById('exercise_type').value;
+    const difficulty = document.getElementById('difficulty').value;
+    
+    // Construire l'URL avec les paramètres
+    let url = '/api/exercises/generate?ai=true';
+    
+    if (exerciseType) {
+        url += `&type=${exerciseType}`;
+    }
+    
+    if (difficulty) {
+        url += `&difficulty=${difficulty}`;
+    }
+    
+    console.log('URL de génération avec IA:', url);
+                window.location.href = url;
+});
+
+// Gestion modale de suppression
+const deleteModal = document.getElementById('delete-modal');
+const closeButton = document.querySelector('.close');
+const cancelButton = document.getElementById('cancel-delete');
+const deleteButtons = document.querySelectorAll('.delete-icon');
+const confirmButton = document.getElementById('confirm-delete');
+let exerciseToDelete = null;
+
+// Ouvrir la modale au clic sur l'icône de suppression
+deleteButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        exerciseToDelete = this.getAttribute('data-id');
+        deleteModal.style.display = 'block';
+    });
+});
+
+// Fermer la modale
+closeButton.addEventListener('click', function() {
+    deleteModal.style.display = 'none';
+});
+
+cancelButton.addEventListener('click', function() {
+    deleteModal.style.display = 'none';
+});
+
+// Fermer la modale au clic en dehors
+window.addEventListener('click', function(event) {
+    if (event.target == deleteModal) {
+        deleteModal.style.display = 'none';
+    }
+    if (event.target == detailsModal) {
+        detailsModal.style.display = 'none';
+    }
+});
+
+// Confirmer la suppression
+confirmButton.addEventListener('click', function() {
+    if (!exerciseToDelete) return;
+    
+    fetch(`/api/exercises/${exerciseToDelete}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.ok || response.status === 204) {
+            // Supprimer l'élément du DOM
+            document.getElementById(`exercise-${exerciseToDelete}`).remove();
             deleteModal.style.display = 'none';
-        });
-        
-        cancelButton.addEventListener('click', function() {
-            deleteModal.style.display = 'none';
-        });
-        
-        // Fermer la modale au clic en dehors
-        window.addEventListener('click', function(event) {
-            if (event.target == deleteModal) {
-                deleteModal.style.display = 'none';
-            }
-            if (event.target == detailsModal) {
-                detailsModal.style.display = 'none';
-            }
-        });
-        
-        // Confirmer la suppression
-        confirmButton.addEventListener('click', function() {
-            if (!exerciseToDelete) return;
             
-            fetch(`/api/exercises/${exerciseToDelete}`, {
-                method: 'DELETE'
-            })
-            .then(response => {
-                if (response.ok || response.status === 204) {
-                    // Supprimer l'élément du DOM
-                    document.getElementById(`exercise-${exerciseToDelete}`).remove();
-                    deleteModal.style.display = 'none';
-                    
-                    // Afficher un message de succès
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-success';
-                    alert.innerHTML = `
-                        <i class="fas fa-check-circle"></i>
-                        <div class="alert-message">L'exercice a été supprimé avec succès.</div>
-                    `;
-                    document.querySelector('.page-header').insertAdjacentElement('afterend', alert);
-                    
-                    // Faire disparaître le message après 3 secondes
-                    setTimeout(() => {
-                        alert.style.opacity = '0';
-                        alert.style.transition = 'opacity 0.5s';
-                        setTimeout(() => alert.remove(), 500);
-                    }, 3000);
-                } else {
-                    throw new Error('Erreur lors de la suppression');
-                }
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                deleteModal.style.display = 'none';
-                
-                // Afficher un message d'erreur
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-error';
-                alert.innerHTML = `
-                    <i class="fas fa-exclamation-circle"></i>
-                    <div class="alert-message">Une erreur est survenue lors de la suppression de l'exercice.</div>
-                `;
-                document.querySelector('.page-header').insertAdjacentElement('afterend', alert);
-                
-                // Faire disparaître le message après 3 secondes
-                setTimeout(() => {
-                    alert.style.opacity = '0';
-                    alert.style.transition = 'opacity 0.5s';
-                    setTimeout(() => alert.remove(), 500);
-                }, 3000);
-            });
-        });
+            // Afficher un message de succès
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success';
+            alert.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <div class="alert-message">L'exercice a été archivé avec succès.</div>
+            `;
+            document.querySelector('.page-header').insertAdjacentElement('afterend', alert);
+            
+            // Faire disparaître le message après 3 secondes
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s';
+                setTimeout(() => alert.remove(), 500);
+            }, 3000);
+        } else {
+            throw new Error('Erreur lors de la suppression');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        deleteModal.style.display = 'none';
         
-        // Gestion modale des détails
-        const detailsModal = document.getElementById('details-modal');
-        const detailsCloseButton = document.querySelector('.details-close');
-        const detailsButtons = document.querySelectorAll('.show-details-btn');
-        const detailsContent = document.getElementById('exercise-details-content');
+        // Afficher un message d'erreur
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-error';
+        alert.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <div class="alert-message">Une erreur est survenue lors de la suppression de l'exercice.</div>
+        `;
+        document.querySelector('.page-header').insertAdjacentElement('afterend', alert);
         
-        // Ouvrir la modale de détails
-        detailsButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const exerciseId = this.getAttribute('data-id');
-                detailsModal.style.display = 'block';
-                
-                // Afficher le spinner de chargement
-                detailsContent.innerHTML = `
-                    <div class="loading-container">
-                        <div class="spinner"></div>
-                        <p>Chargement des détails...</p>
-                    </div>
-                `;
-                
-                // Charger les détails de l'exercice
-                fetch(`/api/exercises/${exerciseId}`)
-                    .then(response => response.json())
-                    .then(exercise => {
-                        // Formater les choix si présents
-                        let choicesHtml = '';
-                        if (exercise.choices && exercise.choices.length > 0) {
-                            choicesHtml = '<div class="exercise-choices">';
-                            exercise.choices.forEach(choice => {
-                                choicesHtml += `
-                                    <div class="choice-item">
-                                        ${choice}
-                                    </div>
-                                `;
-                            });
-                            choicesHtml += '</div>';
-                        }
-                        
-                        // Construire le contenu de la modale
-                        detailsContent.innerHTML = `
-                            <h3>${exercise.title}</h3>
-                            
-                            <div class="exercise-meta-details">
-                                <span class="difficulty ${exercise.difficulty}">
-                                    ${exercise.difficulty === 'initie' ? 'Initié' : 
-                                      exercise.difficulty === 'padawan' ? 'Padawan' :
-                                      exercise.difficulty === 'chevalier' ? 'Chevalier' :
-                                      exercise.difficulty === 'maitre' ? 'Maître' : exercise.difficulty}
-                                </span>
-                                
-                                <span class="exercise-type-tag">
-                                    ${exercise.exercise_type === 'addition' ? 'Addition' :
-                                      exercise.exercise_type === 'soustraction' ? 'Soustraction' :
-                                      exercise.exercise_type === 'multiplication' ? 'Multiplication' :
-                                      exercise.exercise_type === 'division' ? 'Division' :
-                                      exercise.exercise_type === 'fractions' ? 'Fractions' :
-                                      exercise.exercise_type === 'geometrie' ? 'Géométrie' : exercise.exercise_type}
-                                </span>
-                            </div>
-                            
-                            <div class="question-preview">
-                                <h4>Question:</h4>
-                                <p>${exercise.question}</p>
-                            </div>
-                            
-                            ${choicesHtml ? `
-                                <div class="choices-preview">
-                                    <h4>Choix disponibles:</h4>
-                                    ${choicesHtml}
-                                </div>
-                            ` : ''}
-                            
-                            <div class="modal-actions">
-                                <a href="/exercises/${exercise.id}" class="confirm-delete">
-                                    <i class="fas fa-play-circle"></i> Démarrer l'exercice
-                                </a>
-                            </div>
-                        `;
-                    })
-                    .catch(error => {
-                        console.error('Erreur:', error);
-                        detailsContent.innerHTML = `
-                            <div class="error-message">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <p>Une erreur est survenue lors du chargement des détails de l'exercice.</p>
+        // Faire disparaître le message après 3 secondes
+        setTimeout(() => {
+            alert.style.opacity = '0';
+            alert.style.transition = 'opacity 0.5s';
+            setTimeout(() => alert.remove(), 500);
+        }, 3000);
+    });
+});
+
+// Gestion modale des détails
+const detailsModal = document.getElementById('details-modal');
+const detailsCloseButton = document.querySelector('.details-close');
+const detailsButtons = document.querySelectorAll('.show-details-btn');
+const detailsContent = document.getElementById('exercise-details-content');
+
+// Ouvrir la modale de détails
+detailsButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        const exerciseId = this.getAttribute('data-id');
+        detailsModal.style.display = 'block';
+        
+        // Afficher le spinner de chargement
+        detailsContent.innerHTML = `
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Chargement des détails...</p>
+            </div>
+        `;
+        
+        // Charger les détails de l'exercice
+        fetch(`/api/exercises/${exerciseId}`)
+            .then(response => response.json())
+            .then(exercise => {
+                // Formater les choix si présents
+                let choicesHtml = '';
+                if (exercise.choices && exercise.choices.length > 0) {
+                    choicesHtml = '<div class="exercise-choices">';
+                    exercise.choices.forEach(choice => {
+                        choicesHtml += `
+                            <div class="choice-item">
+                                ${choice}
                             </div>
                         `;
                     });
+                    choicesHtml += '</div>';
+                }
+                
+                // Construire le contenu de la modale
+                detailsContent.innerHTML = `
+                    <h3>${exercise.title}</h3>
+                    
+                    <div class="exercise-meta-details">
+                        <span class="difficulty ${exercise.difficulty}">
+                            ${exercise.difficulty === 'initie' ? 'Initié' : 
+                              exercise.difficulty === 'padawan' ? 'Padawan' :
+                              exercise.difficulty === 'chevalier' ? 'Chevalier' :
+                              exercise.difficulty === 'maitre' ? 'Maître' : exercise.difficulty}
+                        </span>
+                        
+                        <span class="exercise-type-tag ${exercise.exercise_type}">
+                            ${exercise.exercise_type === 'addition' ? 'Addition' :
+                              exercise.exercise_type === 'soustraction' ? 'Soustraction' :
+                              exercise.exercise_type === 'multiplication' ? 'Multiplication' :
+                              exercise.exercise_type === 'division' ? 'Division' :
+                              exercise.exercise_type === 'fractions' ? 'Fractions' :
+                              exercise.exercise_type === 'geometrie' ? 'Géométrie' : exercise.exercise_type}
+                        </span>
+                    </div>
+                    
+                    <div class="question-preview">
+                        <h4>Question:</h4>
+                        <p>${exercise.question}</p>
+                    </div>
+                    
+                    ${choicesHtml ? `
+                        <div class="choices-preview">
+                            <h4>Choix disponibles:</h4>
+                            ${choicesHtml}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="modal-actions">
+                        <a href="/exercises/${exercise.id}" class="confirm-delete">
+                            <i class="fas fa-play-circle"></i> Démarrer l'exercice
+                        </a>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                detailsContent.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Une erreur est survenue lors du chargement des détails de l'exercice.</p>
+                    </div>
+                `;
             });
-        });
-        
-        // Fermer la modale de détails
-        detailsCloseButton.addEventListener('click', function() {
-            detailsModal.style.display = 'none';
-        });
     });
+});
+
+// Fermer la modale de détails
+detailsCloseButton.addEventListener('click', function() {
+    detailsModal.style.display = 'none';
+});
+});
 </script>
 {% endblock %}
