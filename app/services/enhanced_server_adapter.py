@@ -171,6 +171,59 @@ class EnhancedServerAdapter:
         return None
     
     @staticmethod
+    def create_generated_exercise(
+        db: Session, 
+        exercise_type: str, 
+        difficulty: str, 
+        title: str,
+        question: str,
+        correct_answer: str,
+        choices: List[str],
+        explanation: str,
+        hint: Optional[str] = None,
+        tags: Optional[str] = None,
+        ai_generated: bool = False
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Crée un nouvel exercice généré.
+        Cette méthode est spécifiquement conçue pour les fonctions de génération d'exercices
+        dans enhanced_server.py.
+        
+        Args:
+            db: Session de base de données
+            exercise_type: Type d'exercice
+            difficulty: Niveau de difficulté
+            title: Titre de l'exercice
+            question: Question de l'exercice
+            correct_answer: Réponse correcte
+            choices: Liste des choix de réponses
+            explanation: Explication de la réponse
+            hint: Indice (optionnel)
+            tags: Tags (optionnel)
+            ai_generated: Si l'exercice a été généré par IA
+            
+        Returns:
+            Un dictionnaire contenant les données de l'exercice créé ou None
+        """
+        exercise_data = {
+            'title': title,
+            'exercise_type': exercise_type,
+            'difficulty': difficulty,
+            'question': question,
+            'correct_answer': correct_answer,
+            'choices': choices,
+            'explanation': explanation,
+            'hint': hint,
+            'tags': tags or "generated",
+            'ai_generated': ai_generated,
+            'is_active': True,
+            'is_archived': False
+        }
+        
+        logger.info(f"Création d'un exercice généré de type {exercise_type}, difficulté {difficulty}")
+        return EnhancedServerAdapter.create_exercise(db, exercise_data)
+    
+    @staticmethod
     def update_exercise(db: Session, exercise_id: int, exercise_data: Dict[str, Any]) -> bool:
         """
         Met à jour un exercice existant.
