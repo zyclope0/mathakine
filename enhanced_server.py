@@ -19,6 +19,8 @@ from starlette.staticfiles import StaticFiles
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.templating import Jinja2Templates
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 
 # Import des constantes et messages centralisés
 from app.core.constants import ExerciseTypes, DifficultyLevels, DISPLAY_NAMES, DIFFICULTY_LIMITS, Messages, Tags
@@ -142,7 +144,41 @@ def generate_template_files():
 
 # Handlers pour les routes
 async def homepage(request):
-    return templates.TemplateResponse("home.html", {"request": request})
+    return templates.TemplateResponse("home.html", {"request": request, "current_user": {"is_authenticated": False}})
+
+async def login_page(request):
+    """Rendu de la page de connexion"""
+    return templates.TemplateResponse("login.html", {"request": request, "current_user": {"is_authenticated": False}})
+
+async def register_page(request):
+    """Rendu de la page d'inscription"""
+    return templates.TemplateResponse("register.html", {"request": request, "current_user": {"is_authenticated": False}})
+
+async def logout(request):
+    """Déconnexion de l'utilisateur"""
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie("token")
+    return response
+
+# Middleware d'authentification
+async def auth_middleware(request: Request, call_next):
+    """Middleware pour vérifier l'authentification"""
+    # Liste des routes qui ne nécessitent pas d'authentification
+    public_routes = ["/", "/login", "/register", "/api/auth/login", "/api/users/"]
+    
+    # Vérifier si la route est publique
+    if request.url.path in public_routes or request.url.path.startswith("/static/"):
+        response = await call_next(request)
+        return response
+    
+    # Vérifier le token
+    token = request.cookies.get("token")
+    if not token:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    # Continuer avec la requête
+    response = await call_next(request)
+    return response
 
 async def exercises_page(request):
     # Vérifier si nous venons d'une génération d'exercices
@@ -279,7 +315,8 @@ async def exercises_page(request):
             "difficulty_levels": difficulty_levels,
             "exercise_type_display": exercise_type_display,
             "difficulty_display": difficulty_display,
-            "ai_prefix": ai_prefix
+            "ai_prefix": ai_prefix,
+            "current_user": {"is_authenticated": False}
         })
         print("Template rendu avec succès")
         return response
@@ -427,7 +464,8 @@ async def dashboard(request):
             "success_rate": success_rate,
             "performance": performance_by_type,
             "recent_results": formatted_results,
-            "chart_data": json.dumps(chart_data)
+            "chart_data": json.dumps(chart_data),
+            "current_user": {"is_authenticated": False}
         }
         
         return templates.TemplateResponse("dashboard.html", {"request": request, **context})
@@ -437,7 +475,8 @@ async def dashboard(request):
         return templates.TemplateResponse("error.html", {
             "request": request, 
             "error": "Erreur lors de la génération du tableau de bord",
-            "details": str(e)
+            "details": str(e),
+            "current_user": {"is_authenticated": False}
         }, status_code=500)
 
 async def exercise_detail_page(request):
@@ -464,7 +503,8 @@ async def exercise_detail_page(request):
             return templates.TemplateResponse("error.html", {
                 "request": request,
                 "error": "Exercice non trouvé",
-                "message": f"L'exercice avec l'ID {exercise_id} n'existe pas ou a été supprimé."
+                "message": f"L'exercice avec l'ID {exercise_id} n'existe pas ou a été supprimé.",
+                "current_user": {"is_authenticated": False}
             }, status_code=404)
         
         # Convertir en dictionnaire
@@ -493,7 +533,8 @@ async def exercise_detail_page(request):
         return templates.TemplateResponse("error.html", {
             "request": request,
             "error": "Erreur de base de données",
-            "message": f"Une erreur est survenue lors de la récupération de l'exercice: {str(e)}"
+            "message": f"Une erreur est survenue lors de la récupération de l'exercice: {str(e)}",
+            "current_user": {"is_authenticated": False}
         }, status_code=500)
     
     finally:
@@ -510,7 +551,8 @@ async def exercise_detail_page(request):
             "request": request,
             "exercise": exercise,
             "exercise_type_display": exercise_type_display,
-            "difficulty_display": difficulty_display
+            "difficulty_display": difficulty_display,
+            "current_user": {"is_authenticated": False}
         })
     except Exception as template_error:
         print(f"ERREUR lors du rendu du template: {str(template_error)}")
@@ -518,7 +560,8 @@ async def exercise_detail_page(request):
         return templates.TemplateResponse("error.html", {
             "request": request,
             "error": "Erreur de template",
-            "message": f"Une erreur est survenue lors du rendu du template: {str(template_error)}"
+            "message": f"Une erreur est survenue lors du rendu du template: {str(template_error)}",
+            "current_user": {"is_authenticated": False}
         }, status_code=500)
 
 # Fonction pour normaliser le type d'exercice
@@ -1867,6 +1910,9 @@ async def startup():
 # Définition des routes de l'application
 routes = [
     Route("/", endpoint=homepage),
+    Route("/login", endpoint=login_page),
+    Route("/register", endpoint=register_page),
+    Route("/logout", endpoint=logout),
     Route("/exercises", endpoint=exercises_page),
     Route("/dashboard", endpoint=dashboard),
     Route("/exercise/{exercise_id:int}", endpoint=exercise_detail_page),
@@ -1886,11 +1932,19 @@ routes = [
     Mount("/static", app=StaticFiles(directory=STATIC_DIR), name="static"),
 ]
 
-# Création de l'application Starlette
+# Création de l'application Starlette avec middleware d'authentification
 app = Starlette(
     debug=DEBUG,
     routes=routes,
-    middleware=middleware,
+    middleware=[
+        Middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_methods=["*"],
+            allow_headers=["*"],
+        ),
+        Middleware(BaseHTTPMiddleware, dispatch=auth_middleware)
+    ],
     on_startup=[startup]
 )
 

@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion - Mathakine{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>Connexion au Temple Jedi</h2>
+            <p>Identifiez-vous pour accéder à votre entraînement</p>
+        </div>
+
+        <form id="login-form" class="auth-form" method="POST" action="/api/auth/login">
+            {% if error %}
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="username">Nom d'utilisateur</label>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" name="username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn primary-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                Se connecter
+            </button>
+        </form>
+
+        <div class="test-user-info">
+            <h3>Utilisateur de test (Phase Alpha)</h3>
+            <p>Vous pouvez utiliser les identifiants suivants pour tester l'application:</p>
+            <div class="credentials">
+                <div class="credential-item">
+                    <span class="credential-label">Nom d'utilisateur:</span>
+                    <span class="credential-value">test_user</span>
+                </div>
+                <div class="credential-item">
+                    <span class="credential-label">Mot de passe:</span>
+                    <span class="credential-value">padawan123</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-footer">
+            <p>Pas encore de compte ?</p>
+            <a href="/register" class="btn secondary-btn">
+                <i class="fas fa-user-plus"></i>
+                S'inscrire
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .auth-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 100px);
+        padding: 20px;
+    }
+
+    .auth-card {
+        background-color: var(--sw-card-bg);
+        border-radius: 12px;
+        padding: 40px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--sw-card-border);
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .auth-header h2 {
+        color: var(--sw-gold);
+        margin-bottom: 10px;
+    }
+
+    .auth-header p {
+        color: var(--sw-text-secondary);
+    }
+
+    .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group label {
+        color: var(--sw-text);
+        font-weight: 500;
+    }
+
+    .input-group {
+        display: flex;
+        align-items: center;
+        background-color: var(--sw-input-bg);
+        border: 1px solid var(--sw-input-border);
+        border-radius: 6px;
+        padding: 0 15px;
+    }
+
+    .input-group i {
+        color: var(--sw-text-secondary);
+        margin-right: 10px;
+    }
+
+    .input-group input {
+        flex: 1;
+        background: none;
+        border: none;
+        padding: 12px 0;
+        color: var(--sw-text);
+        font-size: 16px;
+    }
+
+    .input-group input:focus {
+        outline: none;
+    }
+
+    .error-message {
+        background-color: var(--sw-red-transparent);
+        color: var(--sw-red);
+        padding: 12px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .test-user-info {
+        margin-top: 30px;
+        padding: 15px;
+        background-color: rgba(0, 120, 250, 0.1);
+        border: 1px dashed var(--sw-blue);
+        border-radius: 6px;
+    }
+
+    .test-user-info h3 {
+        color: var(--sw-blue);
+        font-size: 1.1em;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .test-user-info p {
+        margin-bottom: 10px;
+        color: var(--sw-text);
+        font-size: 0.9em;
+    }
+
+    .credentials {
+        background-color: rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        border-radius: 4px;
+    }
+
+    .credential-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        padding: 5px 0;
+    }
+
+    .credential-label {
+        font-weight: bold;
+        color: var(--sw-text);
+    }
+
+    .credential-value {
+        font-family: monospace;
+        color: var(--sw-gold);
+        font-weight: bold;
+    }
+
+    .auth-footer {
+        margin-top: 30px;
+        text-align: center;
+        color: var(--sw-text-secondary);
+    }
+
+    .auth-footer p {
+        margin-bottom: 15px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 12px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .primary-btn {
+        background-color: var(--sw-blue);
+        color: white;
+        border: none;
+    }
+
+    .primary-btn:hover {
+        background-color: var(--sw-blue-hover);
+    }
+
+    .secondary-btn {
+        background-color: transparent;
+        color: var(--sw-blue);
+        border: 1px solid var(--sw-blue);
+    }
+
+    .secondary-btn:hover {
+        background-color: var(--sw-blue-transparent);
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value
+    };
+
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Stocker le token
+            localStorage.setItem('token', data.access_token);
+            // Rediriger vers le tableau de bord
+            window.location.href = '/dashboard';
+        } else {
+            // Afficher l'erreur
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                ${data.detail || 'Erreur de connexion'}
+            `;
+            
+            const form = document.getElementById('login-form');
+            form.insertBefore(errorDiv, form.firstChild);
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+    }
+});
+</script>
+{% endblock %} 
