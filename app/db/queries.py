@@ -25,8 +25,8 @@ class ExerciseQueries:
         is_archived BOOLEAN DEFAULT FALSE,
         ai_generated BOOLEAN DEFAULT FALSE,
         view_count INTEGER DEFAULT 0,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """
     
@@ -147,7 +147,7 @@ class ResultQueries:
         is_correct BOOLEAN NOT NULL,
         attempt_count INTEGER,
         time_spent REAL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """
     

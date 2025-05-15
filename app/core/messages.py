@@ -14,13 +14,14 @@ class SystemMessages:
     ERROR_INVALID_REQUEST = "Requête invalide"
     ERROR_NOT_IMPLEMENTED = "Fonctionnalité non implémentée"
     ERROR_RESOURCE_NOT_FOUND = "Ressource non trouvée"
+    ERROR_DATABASE = "Erreur de base de données"
     
     # Succès
     SUCCESS_OPERATION_COMPLETED = "Opération réussie"
     SUCCESS_CREATED = "Ressource créée avec succès"
     SUCCESS_UPDATED = "Ressource mise à jour avec succès"
     SUCCESS_DELETED = "Ressource supprimée avec succès"
-    SUCCESS_ARCHIVED = "Ressource archivée avec succès"
+    SUCCESS_ARCHIVED = "Exercice archivé avec succès"
     
     # Messages d'information
     INFO_TRYING_CONNECTION = "Tentative de connexion à la base de données"
@@ -31,14 +32,14 @@ class SystemMessages:
 # Messages liés aux exercices
 class ExerciseMessages:
     # Titres des exercices
-    TITLE_ADDITION = "Addition de nombres"
-    TITLE_SUBTRACTION = "Soustraction de nombres"
-    TITLE_MULTIPLICATION = "Multiplication de nombres"
-    TITLE_DIVISION = "Division de nombres"
-    TITLE_FRACTIONS = "Calcul de fractions"
-    TITLE_GEOMETRIE = "Exercice de géométrie"
-    TITLE_DIVERS = "Exercice divers"
-    TITLE_DEFAULT = "Exercice de calcul"
+    TITLE_ADDITION = "Addition galactique"
+    TITLE_SUBTRACTION = "Soustraction stellaire"
+    TITLE_MULTIPLICATION = "Multiplication cosmique"
+    TITLE_DIVISION = "Division spatiale"
+    TITLE_FRACTIONS = "Fractions de l'hyperespace"
+    TITLE_GEOMETRIE = "Géométrie des constellations"
+    TITLE_DIVERS = "Défi mathématique"
+    TITLE_DEFAULT = "Exercice mathématique"
     TITLE_AI_PREFIX = "TEST-ZAXXON"
     
     # Messages de résultats
@@ -47,13 +48,13 @@ class ExerciseMessages:
     RESULT_HINT = "Indice: {hint}"
     
     # Questions types
-    QUESTION_ADDITION = "Combien font {num1} + {num2}?"
-    QUESTION_SUBTRACTION = "Combien font {num1} - {num2}?"
-    QUESTION_MULTIPLICATION = "Combien font {num1} × {num2}?"
-    QUESTION_DIVISION = "Combien font {num1} ÷ {num2}?"
-    QUESTION_FRACTIONS = "Calcule la fraction {num1}/{num2} {operation} {num3}/{num4}"
-    QUESTION_GEOMETRIE = "Calcule {property} {shape} avec {parameter1}={value1} et {parameter2}={value2}"
-    QUESTION_DIVERS = "Résous ce problème: {problem}"
+    QUESTION_ADDITION = "Calcule {num1} + {num2}"
+    QUESTION_SUBTRACTION = "Calcule {num1} - {num2}"
+    QUESTION_MULTIPLICATION = "Calcule {num1} × {num2}"
+    QUESTION_DIVISION = "Calcule {num1} ÷ {num2}"
+    QUESTION_FRACTIONS = "Calcule {num1}/{num2} {operation} {num3}/{num4}"
+    QUESTION_GEOMETRIE = "Calcule le {property} du {shape} avec {parameter1}={value1} et {parameter2}={value2}"
+    QUESTION_DIVERS = "{problem}"
     
     # Textes éducatifs
     EXPLANATION_ADDITION = "{num1} + {num2} = {result}"
@@ -61,8 +62,8 @@ class ExerciseMessages:
     EXPLANATION_MULTIPLICATION = "{num1} × {num2} = {result}"
     EXPLANATION_DIVISION = "{num1} ÷ {num2} = {result}"
     EXPLANATION_FRACTIONS = "Pour calculer {num1}/{num2} {operation} {num3}/{num4}, il faut {steps}. Le résultat est {result}."
-    EXPLANATION_GEOMETRIE = "Pour calculer {property} {shape}, on utilise la formule {formula}. Avec {parameter1}={value1} et {parameter2}={value2}, on obtient {result}."
-    EXPLANATION_DIVERS = "Pour résoudre ce problème, on procède ainsi: {steps}. La réponse est {result}."
+    EXPLANATION_GEOMETRIE = "Pour calculer le {property} du {shape}, on utilise la formule: {formula}. Avec {parameter1}={value1} et {parameter2}={value2}, on obtient {result}."
+    EXPLANATION_DIVERS = "Voici comment résoudre ce problème: {steps}. La réponse est {result}."
     
     # Tags
     TAGS_ALGORITHMIC = "algorithmique,simple"
@@ -179,7 +180,7 @@ class InterfaceTexts:
     FOOTER_VERSION = "Version 3.0 - L'API Rebelle"
     
     # Boutons génériques
-    BUTTON_SUBMIT = "Soumettre"
+    BUTTON_SUBMIT = "Valider"
     BUTTON_CANCEL = "Annuler"
     BUTTON_CONFIRM = "Confirmer"
     BUTTON_NEXT = "Suivant"
@@ -190,6 +191,9 @@ class InterfaceTexts:
     BUTTON_SAVE = "Enregistrer"
     BUTTON_BACK = "Retour"
     BUTTON_REFRESH = "Actualiser"
+    BUTTON_RETRY = "Réessayer"
+    BUTTON_GENERATE = "Générer"
+    BUTTON_ARCHIVE = "Archiver"
     
     # En-têtes et titres de pages
     PAGE_TITLE_HOME = "Accueil | Mathakine"
@@ -204,7 +208,6 @@ class InterfaceTexts:
     BUTTON_LOGIN = "Connexion"
     BUTTON_REGISTER = "Inscription"
     BUTTON_LOGOUT = "Déconnexion"
-    BUTTON_GENERATE = "Générer un exercice"
     
     # Libellés
     LABEL_NAME = "Nom"
@@ -212,8 +215,8 @@ class InterfaceTexts:
     LABEL_PASSWORD = "Mot de passe"
     LABEL_CONFIRM_PASSWORD = "Confirmer le mot de passe"
     LABEL_EXERCISE_TYPE = "Type d'exercice"
-    LABEL_DIFFICULTY = "Difficulté"
-    LABEL_ANSWER = "Réponse"
+    LABEL_DIFFICULTY = "Niveau de difficulté"
+    LABEL_ANSWER = "Ta réponse"
     
     # Textes de page d'accueil
     HOME_WELCOME = "Bienvenue sur Mathakine - L'API Rebelle"
