@@ -1,80 +1,96 @@
-# Mathakine
+# 🌟 Mathakine (anciennement Math Trainer)
+
+> Une académie Jedi pour l'apprentissage des mathématiques, spécialement conçue pour les jeunes Padawans autistes.
 
 [![Tests](https://github.com/mathakine/math-trainer/actions/workflows/tests.yml/badge.svg)](https://github.com/mathakine/math-trainer/actions/workflows/tests.yml)
 [![Coverage](https://codecov.io/gh/mathakine/math-trainer/branch/main/graph/badge.svg)](https://codecov.io/gh/mathakine/math-trainer)
 [![Version](https://img.shields.io/github/v/release/mathakine/math-trainer)](https://github.com/mathakine/math-trainer/releases)
 [![License](https://img.shields.io/github/license/mathakine/math-trainer)](LICENSE)
-[![Discord](https://img.shields.io/discord/1234567890)](https://discord.mathakine.fr)
 
-> Plateforme d'entraînement mathématique adaptative et personnalisée
+## 🚀 La Force des Nombres
 
-## 🚀 Liens Rapides
+Mathakine transforme l'apprentissage des mathématiques en une aventure Star Wars immersive :
 
-- [Guide de démarrage](docs/Core/QUICKSTART.md)
-- [Documentation](docs/README.md)
-- [Contribuer](docs/Core/CONTRIBUTING.md)
-- [Changelog](docs/CHANGELOG.md)
+- 🎯 **Progression adaptative** : Du niveau Initié à Maître Jedi
+- 🌌 **Interface holographique** : Design Star Wars avec effets visuels adaptatifs
+- 📊 **Archives du Temple** : Suivi détaillé des progrès du Padawan
+- 🏆 **Défis du Conseil** : Exercices spéciaux pour tester vos compétences
+- ⚡ **Optimisations 2025** : Architecture améliorée et performances accrues
 
-## ✨ Fonctionnalités
-
-- 🎯 Exercices adaptatifs selon le niveau
-- 📊 Suivi détaillé de la progression
-- 🏆 Système de récompenses
-- 📱 Interface responsive
-- 🔄 Mode hors-ligne
-- 📈 Analyses et statistiques
-
-## 🛠 Installation
+## 🛠️ Démarrage Rapide
 
 ```bash
-# Cloner le projet
+# Cloner l'académie
 git clone https://github.com/mathakine/math-trainer.git
-cd math-trainer
+cd mathakine
 
-# Installer les dépendances
+# Préparer votre environnement
 python -m venv venv
 source venv/bin/activate  # Linux/macOS
 # ou
 venv\Scripts\activate     # Windows
 
+# Installer les artefacts Jedi
 pip install -r requirements.txt
 
-# Configuration
+# Configuration de votre holocron
 cp .env.example .env
-# Éditer .env avec vos paramètres
+# Configurer .env selon vos besoins
 
-# Lancer l'application
+# Activer l'académie
 python mathakine_cli.py run
 ```
 
-## 📖 Documentation
+## 📚 Les Holocrons (Documentation)
 
-La documentation complète est disponible dans le dossier [docs/](docs/README.md).
-
-### Structure
+Notre documentation est organisée comme les archives du Temple Jedi :
 
 ```
 docs/
-├── Core/           # Documentation principale
-├── Tech/           # Documentation technique
-├── Features/       # Documentation fonctionnelle
-└── assets/         # Ressources visuelles
+├── Core/           # Les enseignements fondamentaux
+├── Tech/           # Les secrets techniques
+├── Features/       # Les pouvoirs spéciaux
+└── TABLE_DES_MATIERES_NOUVELLE.md  # L'index des connaissances
 ```
 
-## 🤝 Contribution
+## ⚔️ Niveaux d'Entraînement
 
-Les contributions sont les bienvenues ! Consultez notre [guide de contribution](docs/Core/CONTRIBUTING.md).
+| Rang | Description | Portée Numérique |
+|------|-------------|------------------|
+| Initié | Premiers pas dans la Force | 1-10 |
+| Padawan | Apprentissage fondamental | 10-50 |
+| Chevalier | Maîtrise croissante | 50-100 |
+| Maître | Sagesse complète | 100-500 |
 
-## 📝 License
+## 🌟 Fonctionnalités Spéciales
 
-Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.
+- **Interface Holographique** : Design immersif avec effets Star Wars
+- **Accessibilité Avancée** : Modes adaptés (contraste, dyslexie, réduction des animations)
+- **Système de Cache Intelligent** : Performance optimisée
+- **Architecture Dual-Core** : FastAPI + Starlette pour flexibilité maximale
+- **Défis Logiques** : Exercices avancés pour différents groupes d'âge
 
-## 📫 Contact
+## 🛡️ Optimisations Récentes (2025)
+
+- Nouveau système de transactions unifié
+- Protection contre les fuites de mémoire
+- Gestion optimisée des sessions
+- Cache intelligent avec invalidation
+- Support complet Python 3.13
+
+## 🤝 Rejoindre l'Ordre
+
+Les contributions sont bienvenues ! Consultez notre [guide de contribution](docs/Core/CONTRIBUTING.md).
+
+## 📫 Communications
 
 - Site : [mathakine.fr](https://mathakine.fr)
 - Email : contact@mathakine.fr
-- Discord : [discord.mathakine.fr](https://discord.mathakine.fr)
+
+## 📜 License
+
+Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE).
 
 ---
 
-Fait avec ❤️ par l'équipe Mathakine 
+*Que la Force des mathématiques soit avec vous* ✨ 
