@@ -35,6 +35,8 @@ def setup_parser():
     run_parser.add_argument("--host", default="127.0.0.1", help="Host à utiliser (défaut: 127.0.0.1)")
     run_parser.add_argument("--debug", action="store_true", help="Activer le mode debug")
     run_parser.add_argument("--api-only", action="store_true", help="Lancer le serveur API sans interface graphique")
+    run_parser.add_argument("--ui-only", action="store_true", help="Lancer uniquement l'interface graphique (par défaut si aucune option n'est spécifiée)")
+    run_parser.add_argument("--all", action="store_true", help="Lancer à la fois l'API FastAPI et l'interface graphique")
 
     # Commande: init
     init_parser = subparsers.add_parser("init", help="Initialiser la base de données")
@@ -133,8 +135,30 @@ def cmd_run(args):
     os.environ["MATH_TRAINER_PORT"] = str(args.port)
     os.environ["MATH_TRAINER_PROFILE"] = "dev"  # Toujours utiliser l'environnement de développement par défaut
 
-    # Par défaut, lancer le serveur amélioré sauf si --api-only est utilisé
-    if not args.api_only:
+    # Déterminer quels composants lancer basé sur les arguments
+    launch_api = args.api_only or args.all
+    launch_ui = (not args.api_only) or args.ui_only or args.all  # Par défaut, lancer l'UI si rien n'est spécifié
+    
+    processes = []
+    
+    # Lancer le serveur API si demandé
+    if launch_api:
+        logger.info("Lancement du serveur API FastAPI")
+        try:
+            # Utiliser uvicorn directement pour lancer l'application FastAPI
+            api_process = subprocess.Popen([
+                sys.executable, "-m", "uvicorn", "app.main:app",
+                "--host", args.host, "--port", str(args.port), 
+                "--reload" if args.reload else ""
+            ])
+            processes.append(api_process)
+            logger.success("Serveur API démarré avec succès sur le port {}".format(args.port))
+        except Exception as e:
+            logger.error(f"Erreur lors du lancement du serveur API: {e}")
+            return 1
+
+    # Lancer l'interface graphique si demandée
+    if launch_ui:
         logger.info("Lancement du serveur amélioré (enhanced_server.py) avec interface graphique complète")
         try:
             # Vérifier que enhanced_server.py existe
@@ -142,30 +166,38 @@ def cmd_run(args):
                 logger.error("Le fichier enhanced_server.py n'existe pas!")
                 return 1
                 
-            logger.info(f"Exécution de: {sys.executable} enhanced_server.py")
-            process = subprocess.Popen([sys.executable, "enhanced_server.py"])
-            logger.success("Serveur amélioré démarré avec succès")
-            logger.info("Appuyez sur Ctrl+C pour arrêter le serveur")
-            process.wait()
-        except KeyboardInterrupt:
-            logger.info("Arrêt du serveur Mathakine")
-            process.terminate()
-            process.wait()
-    else:
-        logger.info("Lancement du serveur API uniquement")
-        try:
-            # Utiliser uvicorn directement pour lancer l'application FastAPI
-            process = subprocess.Popen([
-                sys.executable, "-m", "uvicorn", "app.main:app",
-                "--host", "0.0.0.0", "--port", str(args.port), "--reload" if args.debug else ""
-            ])
-            logger.success("Serveur API démarré avec succès")
-            logger.info("Appuyez sur Ctrl+C pour arrêter le serveur")
-            process.wait()
-        except KeyboardInterrupt:
-            logger.info("Arrêt du serveur Mathakine API")
-            process.terminate()
-            process.wait()
+            # Si on lance à la fois l'API et l'UI, utiliser un port différent pour l'UI
+            ui_port = args.port + 1 if launch_api else args.port
+            os.environ["PORT"] = str(ui_port)
+            
+            logger.info(f"Exécution de: {sys.executable} enhanced_server.py (port {ui_port})")
+            ui_process = subprocess.Popen([sys.executable, "enhanced_server.py"])
+            processes.append(ui_process)
+            logger.success(f"Serveur amélioré démarré avec succès sur le port {ui_port}")
+        except Exception as e:
+            logger.error(f"Erreur lors du lancement du serveur amélioré: {e}")
+            # Arrêter les autres processus déjà lancés
+            for p in processes:
+                p.terminate()
+            return 1
+    
+    if not processes:
+        logger.warning("Aucun serveur n'a été lancé. Utilisez --api-only, --ui-only, ou --all pour spécifier quoi lancer.")
+        return 1
+        
+    logger.info("Appuyez sur Ctrl+C pour arrêter les serveurs")
+    
+    try:
+        # Attendre que tous les processus se terminent
+        for p in processes:
+            p.wait()
+    except KeyboardInterrupt:
+        logger.info("Arrêt des serveurs Mathakine")
+        for p in processes:
+            p.terminate()
+            p.wait()
+    
+    return 0
 
 
 
