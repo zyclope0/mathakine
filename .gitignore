@@ -110,4 +110,13 @@ migrations/versions/*
 mathakine.db
 .env.test
 .env.prod
-.env.staging 
+.env.staging
+
+# Archives et backups
+archives/
+backups/
+*.sql.gz
+*.zip
+*.tar
+*.tar.gz
+*.7z 
