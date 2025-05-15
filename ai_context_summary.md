@@ -234,6 +234,13 @@ Mathakine est une application éducative backend pour un site d'entraînement ma
 ### 1. enhanced_server.py
 Le serveur principal combinant l'interface utilisateur web et l'API, construit avec Starlette pour une meilleure compatibilité Python 3.13.
 
+**Architecture optimisée**:
+- Structure modulaire dans le dossier `server/`
+- Adaptateur `EnhancedServerAdapter` pour la gestion unifiée des transactions
+- Système de cache intelligent pour les templates et données fréquentes
+- Gestion optimisée des sessions avec pool de connexions
+- Protection contre les fuites de mémoire
+
 **Fonctionnalités principales**:
 - Interface web complète avec templates HTML et CSS
 - API REST simple avec endpoints JSON
@@ -241,6 +248,30 @@ Le serveur principal combinant l'interface utilisateur web et l'API, construit a
 - Soumission de réponses et feedback
 - Tableau de bord avec statistiques
 - Gestion des exercices (liste, détails, suppression)
+
+**Interface holographique**:
+- Effets visuels Star Wars optimisés
+- Animations adaptatives selon difficulté
+- Désactivation automatique sur appareils moins puissants
+- Feedback sonore thématique
+- Performance optimisée avec lazy loading
+
+**Accessibilité avancée**:
+- Mode contraste élevé (Alt+C)
+- Texte plus grand (Alt+T)
+- Réduction des animations (Alt+M)
+- Mode dyslexie (Alt+D)
+- Support complet des lecteurs d'écran
+- Navigation clavier
+- Préférences persistantes
+
+**Optimisations de performance**:
+- Compression HTTP avec gzip
+- Minification automatique des assets
+- Pagination optimisée avec curseurs
+- Requêtes SQL optimisées
+- Chargement asynchrone des données non critiques
+- Cache intelligent avec invalidation
 
 **Routes principales**:
 - Pages HTML: "/", "/exercises", "/dashboard", "/exercise/{id}"
@@ -252,6 +283,8 @@ Le serveur principal combinant l'interface utilisateur web et l'API, construit a
 - Gestion des choix en format JSON
 - Statistiques par type d'exercice et niveau
 - Suivi de progression via des graphiques de performance
+- Gestion sécurisée des sessions
+- Validation centralisée des données
 
 ### 2. app/ (Application FastAPI)
 Contient l'implémentation API REST pure utilisant FastAPI, organisée selon les meilleures pratiques.
