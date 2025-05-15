@@ -1537,5 +1537,75 @@ footer {
     transform: translateY(-5px);
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
 }
+
+/* Styles pour les éléments d'authentification */
+.auth-links {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-left: auto;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--sw-text-color);
+    font-weight: 600;
+    padding: 0.5rem;
+    background: var(--sw-bg-secondary);
+    border-radius: var(--sw-border-radius);
+}
+
+.user-info i {
+    color: var(--sw-accent-color);
+}
+
+.btn-danger {
+    background-color: var(--sw-danger);
+    color: var(--sw-text-color);
+}
+
+.btn-danger:hover {
+    background-color: var(--sw-danger-hover);
+}
+
+.btn-primary {
+    background-color: var(--sw-primary);
+    color: var(--sw-text-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--sw-primary-hover);
+}
+
+.btn-success {
+    background-color: var(--sw-success);
+    color: var(--sw-text-color);
+}
+
+.btn-success:hover {
+    background-color: var(--sw-success-hover);
+}
+
+/* Responsive design pour les éléments d'authentification */
+@media (max-width: 768px) {
+    .auth-links {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .auth-links a {
+        width: 100%;
+        text-align: center;
+    }
+
+    .user-info {
+        width: 100%;
+        justify-content: center;
+    }
+}
         
         

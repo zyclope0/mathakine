@@ -30,6 +30,23 @@
     --sw-input-border: #d0d4e4;
     --sw-accent-hover: #6455c3;
     
+    /* Variables pour les boutons d'authentification */
+    --sw-primary: var(--sw-blue);
+    --sw-primary-hover: #2a9ed9;
+    --sw-success: var(--success-color);
+    --sw-success-hover: #218838;
+    --sw-danger: var(--sw-red);
+    --sw-danger-hover: #e04141;
+    --sw-text-color: var(--sw-text);
+    --sw-bg-secondary: var(--sw-space);
+    --sw-border-radius: var(--border-radius);
+    
+    /* Effets de transparence */
+    --sw-blue-transparent: rgba(61, 180, 242, 0.1);
+    --sw-red-transparent: rgba(255, 87, 87, 0.1);
+    --sw-text-secondary: var(--sw-secondary);
+    --sw-blue-hover: #2a9ed9;
+    
     /* Dimensions et espacement */
     --container-max-width: 1200px;
     --spacing-xs: 5px;
