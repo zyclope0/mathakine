@@ -10,6 +10,7 @@ from app.models.progress import Progress
 from app.models.setting import Setting
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt, LogicChallengeType\
     , AgeGroup
+from app.models.recommendation import Recommendation
 
 # Export all models
 __all__ = [
@@ -24,5 +25,6 @@ __all__ = [
     "LogicChallenge",
     "LogicChallengeAttempt",
     "LogicChallengeType",
-    "AgeGroup"
+    "AgeGroup",
+    "Recommendation"
 ]

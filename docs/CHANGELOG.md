@@ -5,6 +5,9 @@ Ce fichier documente toutes les modifications notables apportées au projet Math
 ## [Unreleased]
 
 ### Ajouts
+- ✅ Système de recommandations personnalisées avec modèle de données et migration
+- ✅ Nouvelles colonnes pour les exercices (age_group, context_theme, complexity)
+- ✅ Stockage de la maîtrise des concepts et de la courbe d'apprentissage en JSON
 - ✅ Système de gestion unifiée des transactions avec `TransactionManager`
 - ✅ Adaptateur de base de données (`DatabaseAdapter`) pour interface commune SQL/SQLAlchemy
 - ✅ Services métier pour les exercices, défis logiques et utilisateurs
@@ -60,6 +63,11 @@ Ce fichier documente toutes les modifications notables apportées au projet Math
 - 🐛 Désactivation complète du défilement automatique pour respecter le contrôle utilisateur
 - 🐛 Correction des liens brisés dans la documentation suite à la restructuration
 - 🐛 Résolution des incohérences dans les références entre documents consolidés
+- 🐛 Correction du problème d'accès non autorisé aux pages d'exercices sans authentification
+- 🐛 Ajout de contrôles d'authentification sur les routes exercise_detail_page et exercises_page
+- 🐛 Mise à jour du système de déconnexion pour gérer les tokens access_token et refresh_token
+- 🐛 Correction de l'importation du modèle Recommendation dans all_models.py
+- 🐛 Résolution des erreurs d'intégrité référentielle liées aux recommandations utilisateur
 
 ## [0.3.1] - 2025-05-11
 

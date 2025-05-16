@@ -147,13 +147,18 @@ async def register_page(request: Request):
 async def logout(request: Request):
     """Déconnexion de l'utilisateur"""
     response = RedirectResponse(url="/", status_code=303)
-    response.delete_cookie("token")
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
     return response
 
 # Page des exercices
 async def exercises_page(request: Request):
     """Rendu de la page des exercices"""
     current_user = await get_current_user(request) or {"is_authenticated": False}
+    
+    # Vérifier si l'utilisateur est connecté
+    if not current_user["is_authenticated"]:
+        return RedirectResponse(url="/login", status_code=302)
     
     # Vérifier si nous venons d'une génération d'exercices
     just_generated = request.query_params.get('generated', 'false') == 'true'
@@ -303,6 +308,40 @@ async def dashboard(request: Request):
                 }
             }
             
+            # Récupérer les recommandations personnalisées
+            from app.services.recommendation_service import RecommendationService
+            recommendations = RecommendationService.get_user_recommendations(db, user.id, limit=3)
+            
+            # Si aucune recommandation n'existe, générer de nouvelles recommandations
+            if not recommendations:
+                RecommendationService.generate_recommendations(db, user.id)
+                recommendations = RecommendationService.get_user_recommendations(db, user.id, limit=3)
+            
+            # Préparer les données de recommandation pour le template
+            recommendations_data = []
+            for rec in recommendations:
+                # Marquer comme affichée
+                RecommendationService.mark_recommendation_as_shown(db, rec.id)
+                
+                rec_data = {
+                    "id": rec.id,
+                    "exercise_type": rec.exercise_type,
+                    "difficulty": rec.difficulty,
+                    "priority": rec.priority,
+                    "reason": rec.reason,
+                    "exercise_id": rec.exercise_id
+                }
+                
+                # Ajouter les informations de l'exercice si présent
+                if rec.exercise_id:
+                    from app.models.exercise import Exercise
+                    exercise = db.query(Exercise).filter(Exercise.id == rec.exercise_id).first()
+                    if exercise:
+                        rec_data["exercise_title"] = exercise.title
+                        rec_data["exercise_question"] = exercise.question
+                
+                recommendations_data.append(rec_data)
+            
         finally:
             EnhancedServerAdapter.close_db_session(db)
             
@@ -314,7 +353,8 @@ async def dashboard(request: Request):
             "performance": performance_by_type,
             "recent_results": recent_results,
             "chart_data": json.dumps(chart_data),
-            "current_user": current_user
+            "current_user": current_user,
+            "recommendations": recommendations_data  # Ajouter les recommandations au contexte
         }
         
         return render_template("dashboard.html", request, context)
@@ -333,6 +373,11 @@ async def dashboard(request: Request):
 async def exercise_detail_page(request: Request):
     """Rendu de la page de détail d'un exercice"""
     current_user = await get_current_user(request) or {"is_authenticated": False}
+    
+    # Vérifier si l'utilisateur est connecté
+    if not current_user["is_authenticated"]:
+        return RedirectResponse(url="/login", status_code=302)
+    
     exercise_id = request.path_params["exercise_id"]
     
     try:

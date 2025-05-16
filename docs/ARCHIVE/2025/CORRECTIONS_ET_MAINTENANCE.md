@@ -257,7 +257,77 @@ console.log(`Tentative de suppression de l'exercice ${exerciseId}`);
 2. S'assurer que la chaîne de connexion PostgreSQL est correcte
 3. Exécuter les migrations de base de données avant le déploiement
 
-## 3. Ressources supplémentaires
+## 3. Corrections récentes (Mai 2025)
+
+### Problème d'accès non autorisé aux exercices
+
+#### Résumé du problème
+Les utilisateurs non connectés pouvaient accéder aux pages d'exercices et à leurs détails, exposant potentiellement des données sensibles ou des contenus pédagogiques réservés aux utilisateurs authentifiés.
+
+#### Cause
+Les fonctions `exercises_page` et `exercise_detail_page` dans `server/views.py` ne vérifiaient pas correctement si l'utilisateur était authentifié avant d'afficher le contenu. La vérification d'authentification était implémentée pour le tableau de bord mais pas pour les pages d'exercices.
+
+#### Solution implémentée
+Ajout de vérifications d'authentification dans les fonctions de rendu des pages d'exercices avec redirection vers la page de connexion si l'utilisateur n'est pas connecté :
+
+```python
+async def exercises_page(request: Request):
+    """Rendu de la page des exercices"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    
+    # Vérifier si l'utilisateur est connecté
+    if not current_user["is_authenticated"]:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    # ... reste du code existant ...
+```
+
+Une modification similaire a été apportée à la fonction `exercise_detail_page` pour assurer la cohérence du contrôle d'accès.
+
+### Problème de déconnexion
+
+#### Résumé du problème
+La fonction de déconnexion ne fonctionnait pas correctement car elle supprimait un cookie nommé "token" qui n'était plus utilisé dans la version actuelle du système d'authentification.
+
+#### Cause
+Le système d'authentification a été mis à jour pour utiliser deux cookies (`access_token` et `refresh_token`) conformément aux bonnes pratiques JWT, mais la fonction de déconnexion continuait à supprimer un ancien cookie nommé "token".
+
+#### Solution implémentée
+Mise à jour de la fonction `logout` dans `server/views.py` pour supprimer les cookies corrects :
+
+```python
+async def logout(request: Request):
+    """Déconnexion de l'utilisateur"""
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
+    return response
+```
+
+### Problème d'intégrité référentielle avec le modèle Recommendation
+
+#### Résumé du problème
+Au démarrage de l'application, des erreurs d'intégrité référentielle se produisaient en relation avec le modèle `Recommendation` récemment ajouté. Ces erreurs empêchaient le chargement complet des données et causaient des problèmes lors de l'accès aux exercices.
+
+#### Cause
+Le modèle `Recommendation` était correctement défini mais n'était pas importé dans le fichier `all_models.py`, ce qui empêchait SQLAlchemy de le prendre en compte lors de l'initialisation de la base de données et de la création des relations.
+
+#### Solution implémentée
+Mise à jour du fichier `app/models/all_models.py` pour inclure le modèle `Recommendation` :
+
+```python
+from app.models.recommendation import Recommendation
+
+# Export all models
+__all__ = [
+    # ... modèles existants ...
+    "Recommendation"
+]
+```
+
+Cette correction a permis de résoudre les erreurs d'intégrité référentielle et d'assurer le bon fonctionnement du système de recommandations personnalisées.
+
+## 4. Ressources supplémentaires
 
 - [Documentation PostgreSQL](https://www.postgresql.org/docs/)
 - [Documentation SQLAlchemy](https://docs.sqlalchemy.org/)

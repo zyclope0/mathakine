@@ -597,11 +597,15 @@ tests/run_tests.bat --functional
 - Documentation complète des tests implémentés
 
 **Améliorations récentes (Mai 2025)**:
-- Correction de l'authentification dans les tests de défis logiques
-- Amélioration de la gestion des transactions pour éviter les avertissements
-- Support des fonctions asynchrones avec pytest-asyncio
-- Nouveau test de vérification du démarrage du serveur
-- Nouveaux endpoints pour les tentatives d'exercices et stats utilisateur
+- Correction du système d'authentification et d'accès
+- **Problème d'accès non autorisé aux exercices**: Correction du système de contrôle d'accès pour empêcher l'accès aux pages d'exercices et leurs détails sans authentification
+- **Modification des vues**: Ajout de vérifications `if not current_user["is_authenticated"]` avec redirection vers `/login` dans toutes les routes sensibles
+- **Système de déconnexion**: Mise à jour de la fonction `logout` pour supprimer les cookies `access_token` et `refresh_token` au lieu de l'ancien cookie `token`
+- **Intégration du modèle Recommendation**: Correction de l'importation du modèle de recommandation dans `all_models.py` pour résoudre les erreurs d'intégrité référentielle
+- **Sécurisation des données**: S'assure que les exercices et données personnelles sont uniquement disponibles après authentification
+- **Tests d'authentification**: Validation du mécanisme d'authentification avec l'adaptateur EnhancedServerAdapter
+
+Ces corrections garantissent la sécurité des données utilisateur et le bon fonctionnement du système d'authentification basé sur tokens JWT. L'application gère désormais correctement les sessions utilisateur, les expirations de tokens, et les tentatives d'accès non autorisées aux ressources protégées.
 
 ## Niveaux de difficulté (Thème Star Wars)
 - **Initié**: Niveau facile pour débutants (nombres 1-10)
