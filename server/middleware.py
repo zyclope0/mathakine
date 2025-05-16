@@ -37,23 +37,34 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             "/login", 
             "/register", 
             "/api/auth/login", 
-            "/api/users/"
+            "/api/users/",
+            "/static",
+            "/exercises"  # On permet l'accès à la liste des exercices sans connexion
         ]
         
-        # Check if the route is public or a static file
-        if request.url.path in public_routes or request.url.path.startswith("/static/"):
+        # Check if the route is public
+        if any(request.url.path.startswith(route) for route in public_routes):
             response = await call_next(request)
             return response
         
         # Check for authentication token
-        token = request.cookies.get("token")
-        if not token:
+        access_token = request.cookies.get("access_token")
+        if not access_token:
             logger.info(f"Unauthorized access attempt to {request.url.path}, redirecting to login")
             return RedirectResponse(url="/login", status_code=303)
-        
-        # Continue with the request
-        response = await call_next(request)
-        return response
+            
+        try:
+            # Verify the token
+            from app.core.security import decode_token
+            payload = decode_token(access_token)
+            
+            # Continue with the request if token is valid
+            response = await call_next(request)
+            return response
+            
+        except Exception as e:
+            logger.error(f"Invalid token for {request.url.path}: {str(e)}")
+            return RedirectResponse(url="/login", status_code=303)
 
 def get_middleware() -> List[Middleware]:
     """

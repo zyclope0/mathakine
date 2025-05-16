@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from typing import Optional, Dict, Any
 from datetime import datetime
 from app.models.user import UserRole
+from enum import Enum
 
 # Schémas pour la manipulation des utilisateurs
 
@@ -113,14 +114,24 @@ class UserLogin(BaseModel):
 
 
 
+class UserRole(str, Enum):
+    PADAWAN = "padawan"
+    CHEVALIER = "chevalier"
+    MAITRE = "maitre"
+    ADMIN = "admin"
+
 class Token(BaseModel):
-    """Schéma pour un token d'authentification (Cristal d'Identité)"""
     access_token: str
-    token_type: str
-
-
+    refresh_token: str
+    token_type: str = "bearer"
 
 class TokenData(BaseModel):
-    """Données contenues dans un token (Données du Cristal)"""
-    username: Optional[str] = None
-    role: Optional[UserRole] = None
+    username: str
+    role: Optional[str] = None
+    exp: Optional[int] = None
+
+class TokenPayload(BaseModel):
+    sub: str
+    exp: int
+    type: str  # "access" ou "refresh"
+    role: Optional[str] = None

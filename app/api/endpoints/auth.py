@@ -7,7 +7,7 @@ from typing import Any
 
 from app.api.deps import get_db_session, get_current_user
 from app.schemas.user import UserLogin, Token, User
-from app.services.auth_service import authenticate_user, create_user_token
+from app.services.auth_service import authenticate_user, create_user_token, refresh_access_token
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -22,21 +22,50 @@ def login(
     """
     Se connecter avec le nom d'utilisateur et le mot de passe.
     """
+    logger.debug(f"Tentative de connexion reçue pour l'utilisateur: {user_login.username}")
+    
     # Tenter d'authentifier l'utilisateur
-    user = authenticate_user(db, user_login.username, user_login.password)
-    if not user:
-        logger.warning(f"Échec de connexion pour l'utilisateur: {user_login.username}")
+    try:
+        user = authenticate_user(db, user_login.username, user_login.password)
+        if not user:
+            logger.warning(f"Échec de connexion pour l'utilisateur: {user_login.username}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Nom d'utilisateur ou mot de passe incorrect",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Créer les tokens d'accès et de rafraîchissement
+        token_data = create_user_token(user)
+        logger.info(f"Connexion réussie pour l'utilisateur: {user.username}")
+        return token_data
+    except Exception as e:
+        logger.error(f"Erreur lors de la connexion: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Nom d'utilisateur ou mot de passe incorrect",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors de la connexion",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    # Créer un token d'accès
-    token_data = create_user_token(user)
-    logger.info(f"Connexion réussie pour l'utilisateur: {user.username}")
-    return token_data
 
+@router.post("/refresh", response_model=Token)
+def refresh_token(
+    refresh_token: str,
+    db: Session = Depends(get_db_session)
+) -> Any:
+    """
+    Rafraîchit le token d'accès en utilisant un refresh token valide.
+    """
+    try:
+        new_token = refresh_access_token(db, refresh_token)
+        return new_token
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Erreur lors du rafraîchissement du token: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors du rafraîchissement du token"
+        )
 
 @router.post("/logout")
 def logout(current_user: User = Depends(get_current_user)) -> Any:

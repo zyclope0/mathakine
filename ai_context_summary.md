@@ -9,6 +9,9 @@
 - Base de données: PostgreSQL (prod) / SQLite (dev)
 - Migrations avec Alembic
 - Tests structurés en 4 niveaux
+- Système d'authentification JWT avec cookies HTTP-only
+- Interface holographique style Star Wars
+- Accessibilité avancée (contraste, taille texte, animations, dyslexie)
 
 ## 🔀 Relations entre composants clés
 ```
@@ -216,6 +219,11 @@ Mathakine est une application éducative backend pour un site d'entraînement ma
   - Architecture MVC moderne avec séparation claire entre modèles/schémas/services/API
   - API REST documentée via Swagger/OpenAPI (appelée "Les Holocrons" dans la terminologie du projet)
   - Tests répartis en 4 catégories: unitaires, API, intégration, fonctionnels
+  - **Handlers API modulaires** dans `server/handlers/`:
+    - `exercise_handlers.py`: Gestion des exercices (génération, récupération, soumission)
+    - `user_handlers.py`: Gestion des utilisateurs et statistiques
+    - Pattern de gestion des sessions avec EnhancedServerAdapter
+    - Organisation par domaine fonctionnel
   - **Centralisation des constantes et messages** pour améliorer la maintenabilité
   - **Système de variables CSS** pour une apparence cohérente
   - **Requêtes SQL centralisées** pour faciliter la maintenance et éviter la duplication
@@ -236,10 +244,24 @@ Le serveur principal combinant l'interface utilisateur web et l'API, construit a
 
 **Architecture optimisée**:
 - Structure modulaire dans le dossier `server/`
+  - `handlers/`: Logique métier par domaine (exercices, utilisateurs)
+  - `views/`: Gestion des pages HTML
+  - `routes.py`: Configuration centralisée des routes
+  - `api_routes.py`: Routes API restantes
 - Adaptateur `EnhancedServerAdapter` pour la gestion unifiée des transactions
 - Système de cache intelligent pour les templates et données fréquentes
 - Gestion optimisée des sessions avec pool de connexions
 - Protection contre les fuites de mémoire
+
+**Handlers API**:
+- `exercise_handlers.py`:
+  - Génération d'exercices (standard et IA)
+  - Récupération et gestion des exercices
+  - Soumission et validation des réponses
+- `user_handlers.py`:
+  - Statistiques utilisateur
+  - Tableaux de bord
+  - Suivi de progression
 
 **Fonctionnalités principales**:
 - Interface web complète avec templates HTML et CSS

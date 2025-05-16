@@ -82,29 +82,51 @@ POST /api/auth/login
 }
 ```
 
-Réponse :
+Réponse avec cookies HTTP-only :
 ```json
 {
     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "token_type": "bearer"
 }
 ```
 
+Les cookies sont configurés avec :
+- access_token : 1 heure de validité
+- refresh_token : 30 jours de validité
+- httponly=True
+- secure=True
+- samesite="lax"
+
 ### 3. Utilisation du token pour les requêtes authentifiées
 
-Pour toutes les routes protégées, incluez l'en-tête d'autorisation :
-
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
+Le middleware d'authentification vérifie automatiquement les tokens dans les cookies pour les routes protégées. Les routes publiques sont :
+- /
+- /login
+- /register
+- /api/auth/login
+- /api/users/
+- /static
+- /exercises
 
 ### 4. Récupération de l'utilisateur actuel
 
-```
+```python
 GET /api/auth/me
 ```
 
 Retourne les informations de l'utilisateur connecté.
+
+### 5. Rafraîchissement du token
+
+```python
+POST /api/auth/refresh
+{
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+Retourne un nouveau token d'accès si le refresh token est valide.
 
 ## Protection des routes et vérification des rôles
 

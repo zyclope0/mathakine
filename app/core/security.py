@@ -3,11 +3,12 @@ Utilitaires de sécurité pour l'authentification
 """
 from datetime import datetime, timedelta, UTC
 from typing import Optional, Union, Any
-from jose import jwt
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from app.core.constants import SecurityConfig
 from app.core.config import settings
 from app.core.logging_config import get_logger
+from fastapi import HTTPException
 
 # Obtenir un logger nommé pour ce module
 logger = get_logger(__name__)
@@ -17,6 +18,29 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Clé secrète pour la signature des tokens (à mettre en variable d'environnement en production)
 SECRET_KEY = settings.SECRET_KEY
+
+def decode_token(token: str) -> dict:
+    """
+    Décode et vérifie un token JWT.
+    
+    Args:
+        token: Le token JWT à décoder
+        
+    Returns:
+        Le contenu décodé du token
+        
+    Raises:
+        HTTPException: Si le token est invalide ou expiré
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[SecurityConfig.ALGORITHM])
+        return payload
+    except JWTError as e:
+        logger.error(f"Erreur lors du décodage du token: {str(e)}")
+        raise HTTPException(
+            status_code=401,
+            detail="Token invalide ou expiré"
+        )
 
 def create_access_token(
     subject: Union[str, Any], 
@@ -61,7 +85,17 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True si les mots de passe correspondent, False sinon
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    logger.debug(f"Vérification du mot de passe")
+    logger.debug(f"Mot de passe en clair: {plain_password}")
+    logger.debug(f"Hash à comparer: {hashed_password}")
+    
+    try:
+        result = pwd_context.verify(plain_password, hashed_password)
+        logger.debug(f"Résultat de la vérification: {result}")
+        return result
+    except Exception as e:
+        logger.error(f"Erreur lors de la vérification du mot de passe: {str(e)}")
+        raise
 
 def get_password_hash(password: str) -> str:
     """
@@ -73,4 +107,11 @@ def get_password_hash(password: str) -> str:
     Returns:
         Version hachée du mot de passe
     """
-    return pwd_context.hash(password) 
+    logger.debug(f"Génération du hash pour le mot de passe")
+    try:
+        hashed = pwd_context.hash(password)
+        logger.debug(f"Hash généré: {hashed}")
+        return hashed
+    except Exception as e:
+        logger.error(f"Erreur lors de la génération du hash: {str(e)}")
+        raise 

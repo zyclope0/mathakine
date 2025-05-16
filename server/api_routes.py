@@ -7,217 +7,33 @@ from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from server.exercise_generator import generate_ai_exercise, generate_simple_exercise, ensure_explanation
+from server.handlers.exercise_handlers import (
+    generate_exercise,
+    get_exercise,
+    submit_answer,
+    get_exercises_list
+)
 from app.core.messages import SystemMessages
+from server.handlers.user_handlers import get_user_stats
 
 # Fonction pour gérer la génération d'exercices
-async def generate_exercise(request):
-    """Génère un nouvel exercice"""
-    # Récupérer les paramètres (type d'exercice, difficulté)
-    params = request.query_params
-    exercise_type = params.get('type')
-    difficulty = params.get('difficulty')
-    use_ai = params.get('ai', False)
-    
-    # Si on demande de l'IA, utiliser la fonction de génération IA
-    ai_generated = False
-    if use_ai and str(use_ai).lower() in ['true', '1', 'yes', 'y']:
-        exercise_dict = generate_ai_exercise(exercise_type, difficulty)
-        ai_generated = True
-    else:
-        # Génération algorithmique simple
-        exercise_dict = generate_simple_exercise(exercise_type, difficulty)
-    
-    # S'assurer que l'explication est définie
-    exercise_dict = ensure_explanation(exercise_dict)
-    
-    print(f"Explication générée: {exercise_dict['explanation']}")
-    
-    try:
-        # Utiliser l'adaptateur pour créer l'exercice
-        db = EnhancedServerAdapter.get_db_session()
-        
-        try:
-            # Créer l'exercice avec l'adaptateur
-            created_exercise = EnhancedServerAdapter.create_generated_exercise(
-                db=db,
-                exercise_type=exercise_dict['exercise_type'],
-                difficulty=exercise_dict['difficulty'],
-                title=exercise_dict['title'],
-                question=exercise_dict['question'],
-                correct_answer=exercise_dict['correct_answer'],
-                choices=exercise_dict['choices'],
-                explanation=exercise_dict['explanation'],
-                hint=exercise_dict.get('hint'),
-                tags=exercise_dict.get('tags', 'generated'),
-                ai_generated=ai_generated
-            )
-            
-            if created_exercise:
-                exercise_id = created_exercise['id']
-                print(f"Nouvel exercice créé avec ID={exercise_id}, explication: {exercise_dict['explanation']}")
-            else:
-                print("Erreur: L'exercice n'a pas été créé")
-                # Récupérer les templates via une fonction externe ou un paramètre
-                templates = request.app.state.templates
-                return templates.TemplateResponse("error.html", {
-                    "request": request,
-                    "error": "Erreur de génération",
-                    "message": "Impossible de créer l'exercice dans la base de données."
-                }, status_code=500)
-                
-        finally:
-            # Fermer la session dans tous les cas
-            EnhancedServerAdapter.close_db_session(db)
-
-        # Rediriger vers la page des exercices
-        return RedirectResponse(url="/exercises?generated=true", status_code=303)
-    
-    except Exception as e:
-        print(f"Erreur lors de la génération d'exercice: {e}")
-        traceback.print_exc()
-        # Récupérer les templates via une fonction externe ou un paramètre
-        templates = request.app.state.templates
-        return templates.TemplateResponse("error.html", {
-            "request": request,
-            "error": "Erreur de génération",
-            "message": f"Impossible de générer l'exercice: {str(e)}"
-        }, status_code=500)
+# async def generate_exercise(request):
+#     ... (supprimé car déplacé)
 
 
 # Fonction pour obtenir un exercice spécifique
-async def get_exercise(request):
-    """Récupère un exercice par son ID"""
-    exercise_id = request.path_params.get('exercise_id')
-
-    try:
-        # Utiliser l'adaptateur pour récupérer l'exercice
-        db = EnhancedServerAdapter.get_db_session()
-        
-        try:
-            exercise = EnhancedServerAdapter.get_exercise_by_id(db, exercise_id)
-            
-            if not exercise:
-                return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
-                
-            return JSONResponse(exercise)
-        
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
-    
-    except Exception as e:
-        print(f"Erreur lors de la récupération de l'exercice: {e}")
-        traceback.print_exc()
-        return JSONResponse({"error": f"Erreur: {str(e)}"}, status_code=500)
+# async def get_exercise(request):
+#     ... (supprimé car déplacé)
 
 
 # Fonction pour soumettre une réponse
-async def submit_answer(request):
-    """Traite la soumission d'une réponse à un exercice"""
-    try:
-        # Récupérer les données de la requête
-        data = await request.json()
-        exercise_id = data.get('exercise_id')
-        selected_answer = data.get('selected_answer')
-        time_spent = data.get('time_spent', 0)
-        user_id = data.get('user_id', 1)  # Utiliser l'ID 1 par défaut pour un utilisateur non authentifié
-
-        print(f"Traitement de la réponse: exercise_id={exercise_id}, selected_answer={selected_answer}")
-
-        # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
-        db = EnhancedServerAdapter.get_db_session()
-        
-        try:
-            # Récupérer l'exercice pour vérifier la réponse
-            exercise = EnhancedServerAdapter.get_exercise_by_id(db, exercise_id)
-            if not exercise:
-                return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
-
-            is_correct = selected_answer == exercise['correct_answer']
-            print(f"Réponse correcte? {is_correct}")
-
-            # Enregistrer la tentative avec notre adaptateur
-            attempt_data = {
-                "user_id": user_id,
-                "exercise_id": exercise_id,
-                "user_answer": selected_answer,
-                "is_correct": is_correct,
-                "time_spent": time_spent
-            }
-            
-            attempt = EnhancedServerAdapter.record_attempt(db, attempt_data)
-            
-            if not attempt:
-                print("ERREUR: La tentative n'a pas été enregistrée correctement")
-                return JSONResponse({
-                    "is_correct": is_correct,
-                    "correct_answer": exercise['correct_answer'],
-                    "explanation": exercise.get('explanation', ""),
-                    "error": "Erreur lors de l'enregistrement de la tentative"
-                }, status_code=500)
-                
-            print("Tentative enregistrée avec succès")
-
-            # Retourner le résultat
-            return JSONResponse({
-                "is_correct": is_correct,
-                "correct_answer": exercise['correct_answer'],
-                "explanation": exercise.get('explanation', "")
-            })
-            
-        finally:
-            # Fermer la session dans tous les cas
-            EnhancedServerAdapter.close_db_session(db)
-
-    except Exception as e:
-        print(f"Erreur lors du traitement de la réponse: {e}")
-        traceback.print_exc()
-        return JSONResponse({"error": f"Erreur: {str(e)}"}, status_code=500)
+# async def submit_answer(request):
+#     ... (supprimé car déplacé)
 
 
 # Fonction pour lister les exercices
-async def get_exercises_list(request):
-    """Retourne la liste des exercices récents"""
-    try:
-        # Récupérer les paramètres de requête
-        limit = int(request.query_params.get('limit', 10))
-        skip = int(request.query_params.get('skip', 0))
-        exercise_type = request.query_params.get('exercise_type', None)
-        difficulty = request.query_params.get('difficulty', None)
-        
-        print(f"API - Paramètres reçus: exercise_type={exercise_type}, difficulty={difficulty}")
-        
-        # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
-        db = EnhancedServerAdapter.get_db_session()
-        
-        try:
-            # Utiliser l'adaptateur pour lister les exercices
-            exercises = EnhancedServerAdapter.list_exercises(
-                db,
-                exercise_type=exercise_type,
-                difficulty=difficulty,
-                limit=None  # Nous gérons la pagination manuellement pour être cohérent avec l'existant
-            )
-            
-            # Appliquer pagination manuellement
-            total = len(exercises)
-            paginated_exercises = exercises[skip:skip+limit] if skip < total else []
-
-            return JSONResponse({
-                "items": paginated_exercises,
-                "total": total,
-                "skip": skip,
-                "limit": limit
-            })
-            
-        finally:
-            # Fermer la session dans tous les cas
-            EnhancedServerAdapter.close_db_session(db)
-
-    except Exception as e:
-        print(f"Erreur lors de la récupération des exercices: {e}")
-        traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+# async def get_exercises_list(request):
+#     ... (supprimé car déplacé)
 
 
 # Fonction pour supprimer (archiver) un exercice
@@ -262,6 +78,11 @@ async def delete_exercise(request):
         print(f"Erreur lors de l'archivage de l'exercice {exercise_id}: {error}")
         traceback.print_exc()
         return JSONResponse({"error": f"Erreur: {str(error)}"}, status_code=500)
+
+
+# Fonction pour récupérer les statistiques utilisateur
+# async def get_user_stats(request):
+#     ... (supprimé car déplacé)
 
 
 # Fonction pour récupérer les statistiques utilisateur

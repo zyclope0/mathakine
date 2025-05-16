@@ -23,12 +23,11 @@ from server.views import (
 # Importer les fonctions d'API
 from server.api_routes import (
     get_exercises_list,
-    get_exercise,
-    delete_exercise,
-    generate_exercise,
-    submit_answer,
-    get_user_stats
+    delete_exercise
 )
+
+from server.handlers.exercise_handlers import generate_exercise, get_exercise, submit_answer
+from server.handlers.user_handlers import get_user_stats
 
 def get_routes() -> List:
     """

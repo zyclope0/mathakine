@@ -12,18 +12,60 @@ from app.core.constants import ExerciseTypes, DifficultyLevels, DISPLAY_NAMES, M
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from server.template_handler import render_template, render_error
 
+# Fonction pour récupérer l'utilisateur courant
+async def get_current_user(request: Request):
+    """Récupère l'utilisateur actuellement connecté à partir du token"""
+    try:
+        access_token = request.cookies.get("access_token")
+        if not access_token:
+            return None
+            
+        # Utiliser le service d'authentification pour décoder le token
+        from app.core.security import decode_token
+        from app.services.auth_service import get_user_by_username
+        
+        # Décoder le token pour obtenir le nom d'utilisateur
+        payload = decode_token(access_token)
+        username = payload.get("sub")
+        
+        if not username:
+            return None
+            
+        # Récupérer l'utilisateur depuis la base de données
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            user = get_user_by_username(db, username)
+            if user:
+                return {
+                    "is_authenticated": True,
+                    "username": user.username,
+                    "role": user.role
+                }
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+    except Exception as e:
+        print(f"Erreur lors de la récupération de l'utilisateur: {str(e)}")
+        traceback.print_exc()
+        
+    return None
+
 # Page d'accueil
 async def homepage(request: Request):
     """Rendu de la page d'accueil"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
     return render_template("home.html", request, {
-        "current_user": {"is_authenticated": False}
+        "current_user": current_user
     })
 
 # Page de connexion
 async def login_page(request: Request):
     """Rendu de la page de connexion"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    if current_user["is_authenticated"]:
+        return RedirectResponse(url="/", status_code=302)
     return render_template("login.html", request, {
-        "current_user": {"is_authenticated": False}
+        "current_user": current_user
     })
 
 # Traitement de l'authentification API
@@ -41,22 +83,51 @@ async def api_login(request: Request):
                 status_code=400
             )
         
-        # Vérifier les identifiants (simple exemple)
-        # Dans une application réelle, vous devriez vérifier dans la base de données
-        if username == "admin" and password == "admin":
-            # Générer un token (dummy)
-            token = "dummy_token_123456"
-            return JSONResponse({
-                "access_token": token,
-                "token_type": "bearer"
-            })
-        else:
-            return JSONResponse(
-                {"detail": "Nom d'utilisateur ou mot de passe incorrect"},
-                status_code=401
-            )
+        # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
+        db = EnhancedServerAdapter.get_db_session()
+        
+        try:
+            # Utiliser le service d'authentification pour vérifier les identifiants
+            from app.services.auth_service import authenticate_user, create_user_token
+            
+            user = authenticate_user(db, username, password)
+            if user:
+                # Générer les tokens d'accès et de rafraîchissement
+                tokens = create_user_token(user)
+                
+                # Créer une réponse de redirection
+                response = RedirectResponse(url="/", status_code=302)
+                
+                # Définir les cookies avec les tokens
+                response.set_cookie(
+                    key="access_token",
+                    value=tokens["access_token"],
+                    httponly=True,
+                    secure=True,
+                    samesite="lax",
+                    max_age=3600  # 1 heure
+                )
+                response.set_cookie(
+                    key="refresh_token",
+                    value=tokens["refresh_token"],
+                    httponly=True,
+                    secure=True,
+                    samesite="lax",
+                    max_age=86400 * 30  # 30 jours
+                )
+                
+                return response
+            else:
+                return JSONResponse(
+                    {"detail": "Nom d'utilisateur ou mot de passe incorrect"},
+                    status_code=401
+                )
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
     except Exception as e:
         print(f"Erreur lors de l'authentification API: {str(e)}")
+        traceback.print_exc()
         return JSONResponse(
             {"detail": "Erreur lors de l'authentification"},
             status_code=500
@@ -65,8 +136,11 @@ async def api_login(request: Request):
 # Page d'inscription
 async def register_page(request: Request):
     """Rendu de la page d'inscription"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    if current_user["is_authenticated"]:
+        return RedirectResponse(url="/", status_code=302)
     return render_template("register.html", request, {
-        "current_user": {"is_authenticated": False}
+        "current_user": current_user
     })
 
 # Déconnexion
@@ -79,6 +153,8 @@ async def logout(request: Request):
 # Page des exercices
 async def exercises_page(request: Request):
     """Rendu de la page des exercices"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    
     # Vérifier si nous venons d'une génération d'exercices
     just_generated = request.query_params.get('generated', 'false') == 'true'
     print(f"Page d'exercices chargée, just_generated={just_generated}")
@@ -151,19 +227,35 @@ async def exercises_page(request: Request):
         "exercise_type_display": exercise_type_display,
         "difficulty_display": difficulty_display,
         "ai_prefix": ai_prefix,
-        "current_user": {"is_authenticated": False}
+        "current_user": current_user
     })
 
 # Page du tableau de bord
 async def dashboard(request: Request):
     """Rendu de la page de tableau de bord avec statistiques"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    
+    if not current_user["is_authenticated"]:
+        return RedirectResponse(url="/login", status_code=302)
+        
     try:
         # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
         db = EnhancedServerAdapter.get_db_session()
         
         try:
-            # Utiliser l'adaptateur pour récupérer les statistiques utilisateur
-            stats = EnhancedServerAdapter.get_user_stats(db, 1)  # ID utilisateur factice
+            # Récupérer l'utilisateur complet pour avoir son ID
+            from app.services.auth_service import get_user_by_username
+            user = get_user_by_username(db, current_user["username"])
+            if not user:
+                return render_error(
+                    request=request,
+                    error="Utilisateur non trouvé",
+                    message="Impossible de récupérer les statistiques de l'utilisateur",
+                    status_code=404
+                )
+            
+            # Utiliser l'adaptateur pour récupérer les statistiques utilisateur avec le bon ID
+            stats = EnhancedServerAdapter.get_user_stats(db, user.id)
             
             if not stats:
                 print("Aucune statistique trouvée, utilisation de valeurs par défaut")
@@ -215,14 +307,14 @@ async def dashboard(request: Request):
             EnhancedServerAdapter.close_db_session(db)
             
         context = {
-            "user": {"username": "Padawan"},  # Utilisateur fictif
+            "user": current_user,
             "total_completed": total_completed,
             "correct_answers": correct_answers,
             "success_rate": success_rate,
             "performance": performance_by_type,
             "recent_results": recent_results,
             "chart_data": json.dumps(chart_data),
-            "current_user": {"is_authenticated": False}
+            "current_user": current_user
         }
         
         return render_template("dashboard.html", request, context)
@@ -240,8 +332,8 @@ async def dashboard(request: Request):
 # Page de détail d'un exercice
 async def exercise_detail_page(request: Request):
     """Rendu de la page de détail d'un exercice"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
     exercise_id = request.path_params["exercise_id"]
-    print(f"Accès à la page de détail de l'exercice {exercise_id}")
     
     try:
         # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
@@ -270,7 +362,7 @@ async def exercise_detail_page(request: Request):
             "exercise": exercise,
             "exercise_type_display": exercise_type_display,
             "difficulty_display": difficulty_display,
-            "current_user": {"is_authenticated": False}
+            "current_user": current_user
         })
         
     except Exception as e:

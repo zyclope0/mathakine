@@ -8,7 +8,7 @@ from datetime import timedelta
 
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserUpdate, TokenData
-from app.core.security import verify_password, get_password_hash, create_access_token
+from app.core.security import verify_password, get_password_hash, create_access_token, decode_token
 from app.core.config import settings
 from app.core.logging_config import get_logger
 
@@ -67,15 +67,29 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
     Returns:
         Instance de User si l'authentification réussit, None sinon
     """
+    logger.debug(f"Tentative d'authentification pour l'utilisateur: {username}")
+    
     user = get_user_by_username(db, username)
     if not user:
-        logger.warning(f"Tentative d'authentification avec un utilisateur inexistant: {username}")
+        logger.warning(f"Utilisateur non trouvé: {username}")
         return None
-    if not verify_password(password, user.hashed_password):
-        logger.warning(f"Échec d'authentification pour l'utilisateur: {username}")
+        
+    logger.debug(f"Utilisateur trouvé: {username}")
+    logger.debug(f"Hash stocké: {user.hashed_password}")
+    
+    try:
+        is_valid = verify_password(password, user.hashed_password)
+        logger.debug(f"Résultat de la vérification du mot de passe: {is_valid}")
+        
+        if not is_valid:
+            logger.warning(f"Mot de passe incorrect pour l'utilisateur: {username}")
+            return None
+            
+        logger.info(f"Authentification réussie pour l'utilisateur: {username}")
+        return user
+    except Exception as e:
+        logger.error(f"Erreur lors de la vérification du mot de passe: {str(e)}")
         return None
-    logger.info(f"Authentification réussie pour l'utilisateur: {username}")
-    return user
 
 def create_user(db: Session, user_in: UserCreate) -> User:
     """
@@ -135,19 +149,21 @@ def create_user(db: Session, user_in: UserCreate) -> User:
 
 def create_user_token(user: User) -> dict:
     """
-    Crée un token d'accès pour un utilisateur.
+    Crée un token d'accès et un refresh token pour un utilisateur.
     
     Args:
         user: Instance de l'utilisateur
     
     Returns:
-        Dictionnaire contenant le token d'accès et son type
+        Dictionnaire contenant le token d'accès, le refresh token et leur type
     """
-    # Créer un access token avec une durée d'expiration spécifiée
+    # Créer un access token avec une durée d'expiration courte
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     
-    # Inclure le rôle de l'utilisateur dans le token
-    additional_data = {"role": user.role}
+    # Inclure le rôle de l'utilisateur dans les tokens
+    additional_data = {"role": user.role, "type": "access"}
+    refresh_data = {"role": user.role, "type": "refresh"}
     
     access_token = create_access_token(
         subject=user.username,
@@ -155,11 +171,75 @@ def create_user_token(user: User) -> dict:
         additional_data=additional_data
     )
     
-    logger.info(f"Token créé pour l'utilisateur: {user.username}")
+    refresh_token = create_access_token(
+        subject=user.username,
+        expires_delta=refresh_token_expires,
+        additional_data=refresh_data
+    )
+    
+    logger.info(f"Tokens créés pour l'utilisateur: {user.username}")
     return {
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer"
     }
+
+def refresh_access_token(db: Session, refresh_token: str) -> dict:
+    """
+    Crée un nouveau token d'accès à partir d'un refresh token valide.
+    
+    Args:
+        db: Session de base de données
+        refresh_token: Le refresh token à valider
+    
+    Returns:
+        Nouveau token d'accès
+        
+    Raises:
+        HTTPException: Si le refresh token est invalide ou expiré
+    """
+    try:
+        # Vérifier et décoder le refresh token
+        payload = decode_token(refresh_token)
+        
+        # Vérifier que c'est bien un refresh token
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token invalide"
+            )
+        
+        # Récupérer l'utilisateur
+        username = payload.get("sub")
+        user = get_user_by_username(db, username)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Utilisateur non trouvé"
+            )
+        
+        # Créer un nouveau token d'accès
+        access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        additional_data = {"role": user.role, "type": "access"}
+        
+        new_access_token = create_access_token(
+            subject=user.username,
+            expires_delta=access_token_expires,
+            additional_data=additional_data
+        )
+        
+        logger.info(f"Nouveau token d'accès créé pour l'utilisateur: {user.username}")
+        return {
+            "access_token": new_access_token,
+            "token_type": "bearer"
+        }
+        
+    except Exception as e:
+        logger.error(f"Erreur lors du rafraîchissement du token: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide ou expiré"
+        )
 
 def update_user(db: Session, user: User, user_in: UserUpdate) -> User:
     """

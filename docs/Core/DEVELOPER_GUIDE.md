@@ -140,6 +140,54 @@ Le système d'authentification de Mathakine (surnommé "Les Cristaux d'Identité
 - Gestion de sessions sans état via JWT
 - Système de rôles utilisateurs hiérarchiques
 - Middleware de sécurité pour protéger les routes
+- Stockage sécurisé des tokens dans des cookies HTTP-only
+- Protection CSRF avec SameSite=Lax
+- Refresh tokens avec rotation automatique
+
+### Configuration des tokens
+
+Les tokens sont configurés avec les paramètres suivants :
+
+```python
+# Dans app/core/constants.py
+class SecurityConfig:
+    ALGORITHM = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 1 heure
+    REFRESH_TOKEN_EXPIRE_DAYS = 30    # 30 jours
+```
+
+Les cookies sont configurés avec les paramètres de sécurité suivants :
+```python
+response.set_cookie(
+    key="access_token",
+    value=tokens["access_token"],
+    httponly=True,
+    secure=True,
+    samesite="lax",
+    max_age=3600  # 1 heure
+)
+```
+
+### Middleware d'authentification
+
+Le middleware d'authentification (`server/middleware.py`) gère :
+- La vérification automatique des tokens
+- La redirection vers la page de connexion
+- La protection des routes
+- La journalisation des tentatives d'accès
+
+Routes publiques (accessibles sans authentification) :
+```python
+public_routes = [
+    "/", 
+    "/login", 
+    "/register", 
+    "/api/auth/login", 
+    "/api/users/",
+    "/static",
+    "/exercises"
+]
+```
 
 ### Rôles utilisateurs
 

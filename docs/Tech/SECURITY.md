@@ -16,16 +16,32 @@ Ce guide détaille les mesures de sécurité implémentées dans Mathakine et le
 ## Authentification
 
 ### JWT (JSON Web Tokens)
-- Durée de validité : 24 heures
-- Rotation des clés de signature
-- Stockage sécurisé des tokens
-- Refresh tokens avec durée de vie de 30 jours
+- Durée de validité : 1 heure pour le token d'accès, 30 jours pour le refresh token
+- Stockage sécurisé des tokens dans des cookies HTTP-only
+- Protection CSRF avec SameSite=Lax
+- Refresh tokens avec rotation automatique
+- Validation des tokens avec vérification du rôle utilisateur
 
 ### Mots de passe
-- Hachage avec Argon2
+- Hachage avec bcrypt
 - Règles de complexité minimale
 - Protection contre les attaques par force brute
 - Réinitialisation sécurisée
+
+### Middleware d'authentification
+- Vérification automatique des tokens pour les routes protégées
+- Redirection vers la page de connexion pour les utilisateurs non authentifiés
+- Routes publiques configurées (/, /login, /register, /api/auth/login, /api/users/, /static, /exercises)
+- Journalisation des tentatives d'accès non autorisées
+
+### Cookies sécurisés
+- access_token : Token d'accès principal (1 heure)
+- refresh_token : Token de rafraîchissement (30 jours)
+- Configuration sécurisée :
+  - httponly=True
+  - secure=True
+  - samesite="lax"
+  - max_age configuré selon le type de token
 
 ## Autorisation
 
