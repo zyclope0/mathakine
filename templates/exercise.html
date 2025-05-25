@@ -192,313 +192,153 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/exercise.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const exerciseId = "{{ exercise.id }}";
         const exerciseContent = document.getElementById('exercise-content');
         const loading = document.getElementById('loading');
         const question = document.getElementById('question');
-        const choices = document.getElementById('choices');
-        const feedback = document.getElementById('feedback');
-        const nextExerciseBtn = document.getElementById('next-exercise');
+        const choicesContainer = document.getElementById('choices');
+        const feedbackElement = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-exercise');
         const backToListBtn = document.getElementById('back-to-list');
         
+        // Obtenir les paramètres d'URL - notamment l'ID de recommandation
+        const urlParams = new URLSearchParams(window.location.search);
+        const recommendationId = urlParams.get('rec_id');
+        
         // Charger l'exercice
-        const exerciseData = JSON.parse('{{ exercise|tojson|safe }}');
-        console.log("Données de l'exercice:", exerciseData);
+        loadExercise();
         
-        // S'assurer que exerciseData contient des données valides
-        if (exerciseData && exerciseData.id) {
-            displayExercise(exerciseData);
+        // Gestion du bouton "Exercice suivant"
+        nextBtn.addEventListener('click', function() {
+            if (recommendationId) {
+                // Si on vient d'une recommandation, générer un nouvel exercice du même type
+                window.exerciseAPI.generateNewExercise(
+                    "{{ exercise.exercise_type }}", 
+                    "{{ exercise.difficulty }}",
+                    false
+                ).then(result => {
+                    if (result && result.id) {
+                        window.location.href = `/exercise/${result.id}`;
+                    }
+                });
         } else {
-            console.error("Données d'exercice invalides:", exerciseData);
-            // Afficher un message d'erreur à l'utilisateur
-            loading.style.display = 'none';
-            exerciseContent.style.display = 'block';
-            exerciseContent.innerHTML = `
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Une erreur est survenue lors du chargement de l'exercice.</p>
-                    <button id="error-back-btn" class="btn primary-btn">
-                        <i class="fas fa-arrow-left"></i> Retour aux exercices
-                    </button>
-                </div>
-            `;
-            document.getElementById('error-back-btn').addEventListener('click', function() {
-                window.location.href = '/exercises';
-            });
-        }
-        
-        // Écouteurs d'événements
-        nextExerciseBtn.addEventListener('click', function() {
-            window.location.href = '/api/exercises/generate';
+                // Sinon, générer un exercice aléatoire
+                window.location.href = `/api/exercises/generate`;
+            }
         });
         
+        // Gestion du bouton "Retour à la liste"
         backToListBtn.addEventListener('click', function() {
             window.location.href = '/exercises';
         });
         
-        // Fonction pour charger l'exercice (non utilisée, mais conservée pour référence)
-        function loadExercise(id) {
-            fetch(`/api/exercises/${id}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Erreur HTTP: ${response.status}`);
-                    }
-                    return response.json();
-                })
+        // Fonction pour charger l'exercice depuis l'API
+        function loadExercise() {
+            fetch(`/api/exercises/${exerciseId}`)
+                .then(response => response.json())
                 .then(data => {
-                    console.log("Données de l'exercice:", data);
                     displayExercise(data);
                 })
                 .catch(error => {
-                    console.error('Erreur:', error);
-                    alert('Une erreur est survenue lors du chargement de l\'exercice. Veuillez réessayer.');
-                    window.location.href = '/exercises';
+                    console.error('Erreur lors du chargement de l\'exercice:', error);
+                    feedbackElement.textContent = 'Erreur lors du chargement de l\'exercice.';
+                    feedbackElement.style.display = 'block';
                 });
-        }
-        
-        // Fonction pour vérifier si une chaîne est un nombre
-        function isNumeric(str) {
-            if (typeof str !== 'string') return false;
-            return !isNaN(str) && !isNaN(parseFloat(str));
-        }
-        
-        // Fonction pour nettoyer et valider les choix
-        function cleanChoices(choices, correctAnswer) {
-            // S'assurer que tous les choix sont des chaînes
-            let cleanedChoices = choices.map(choice => String(choice).trim());
-            
-            // Filtrer les choix vides ou non valides
-            cleanedChoices = cleanedChoices.filter(choice => choice.length > 0);
-            
-            // Filtrer les choix qui sont des caractères uniques (sauf si la réponse correcte est un caractère unique)
-            if (String(correctAnswer).length > 1) {
-                cleanedChoices = cleanedChoices.filter(choice => 
-                    choice.length > 1 || choice === String(correctAnswer)
-                );
-            }
-            
-            // Éliminer les doublons
-            cleanedChoices = [...new Set(cleanedChoices)];
-            
-            // S'assurer que la réponse correcte est incluse
-            if (!cleanedChoices.includes(String(correctAnswer))) {
-                cleanedChoices.push(String(correctAnswer));
-            }
-            
-            return cleanedChoices;
-        }
-        
-        // Fonction pour créer des choix alternatifs cohérents basés sur la réponse
-        function generateAlternativeChoices(correctAnswer) {
-            const answer = String(correctAnswer);
-            let alternatives = [];
-            
-            // Si la réponse est un nombre, générer des alternatives numériques
-            if (isNumeric(answer)) {
-                const numAnswer = parseInt(answer);
-                
-                // Créer des options numériques proches
-                alternatives = [
-                    String(numAnswer + 1),
-                    String(numAnswer - 1),
-                    String(numAnswer + 10),
-                    String(numAnswer - 10 > 0 ? numAnswer - 10 : numAnswer + 5)
-                ];
-                
-                // Ajouter des erreurs typiques pour les opérations mathématiques
-                // Par exemple, interversion de chiffres pour les nombres à deux chiffres
-                if (numAnswer >= 10 && numAnswer <= 99) {
-                    const tens = Math.floor(numAnswer / 10);
-                    const units = numAnswer % 10;
-                    if (tens !== units) {
-                        alternatives.push(String(units * 10 + tens));
-                    }
-                }
-            } else {
-                // Pour les réponses non numériques, créer des variations simples
-                alternatives = [
-                    answer + "1",
-                    "1" + answer,
-                    answer.toUpperCase(),
-                    answer.charAt(0)
-                ];
-            }
-            
-            // Ajouter la réponse correcte et éliminer les doublons
-            alternatives.push(answer);
-            return [...new Set(alternatives)];
         }
         
         // Fonction pour afficher l'exercice
         function displayExercise(exercise) {
-            try {
-                // Cacher le chargement et afficher le contenu
-                loading.style.display = 'none';
-                exerciseContent.style.display = 'block';
+            // Afficher la question
+            question.textContent = exercise.question;
+            
+            // Générer les boutons de choix
+            let choices = [];
+            
+            // Utiliser les choix s'ils existent, sinon en générer
+            if (exercise.choices && Array.isArray(exercise.choices)) {
+                choices = exercise.choices;
+            } else {
+                // S'il n'y a pas de choix, en créer de faux
+                const correctAnswer = parseFloat(exercise.correct_answer);
+                const isDecimal = exercise.correct_answer.includes('.');
+                const precision = isDecimal ? 1 : 0;
                 
-                // Afficher la question en la formatant avec des espaces pour meilleure lisibilité
-                let formattedQuestion = exercise.question || "Question non disponible";
+                // Générer 3 réponses incorrectes en plus de la correcte
+                choices = [
+                    correctAnswer.toFixed(precision), 
+                    (correctAnswer + 1).toFixed(precision),
+                    (correctAnswer - 1).toFixed(precision),
+                    (correctAnswer + 2).toFixed(precision)
+                ];
                 
-                // Améliorer la mise en forme pour les opérations mathématiques
-                if (formattedQuestion.includes('+') || formattedQuestion.includes('-') || 
-                    formattedQuestion.includes('×') || formattedQuestion.includes('÷')) {
-                    formattedQuestion = formattedQuestion.replace(/(\d+)\s*([\+\-\×\÷])\s*(\d+)/g, '$1 $2 $3');
-                }
-                
-                question.textContent = formattedQuestion;
-                
-                // Afficher les choix - mais limitons le nombre à maximum 4 pour plus de clarté
-                choices.innerHTML = '';
-                
-                let exerciseChoices = [];
-                const correctAnswer = String(exercise.correct_answer || "").trim();
-                
-                // Traitement des différents cas de figure pour les choix
-                if (Array.isArray(exercise.choices) && exercise.choices.length > 0) {
-                    // Nettoyer et valider les choix existants
-                    exerciseChoices = cleanChoices(exercise.choices, correctAnswer);
-                    
-                    // Si après nettoyage nous avons moins de 2 choix, générer des alternatives
-                    if (exerciseChoices.length < 2) {
-                        exerciseChoices = generateAlternativeChoices(correctAnswer);
-                    }
-                } else {
-                    // Si pas de choix ou choix invalides, générer des alternatives
-                    exerciseChoices = generateAlternativeChoices(correctAnswer);
-                }
-                
-                // Limiter à 4 choix maximum pour plus de clarté
-                if (exerciseChoices.length > 4) {
-                    // Garder la réponse correcte et prendre 3 autres choix aléatoires
-                    const otherChoices = exerciseChoices.filter(c => c !== correctAnswer);
-                    shuffleArray(otherChoices);
-                    exerciseChoices = [correctAnswer, ...otherChoices.slice(0, 3)];
-                }
-                
-                // Mélanger les choix pour que la bonne réponse ne soit pas toujours au même endroit
-                shuffleArray(exerciseChoices);
-                
-                // Créer les boutons de choix
-                exerciseChoices.forEach(choice => {
-                    const button = document.createElement('button');
-                    button.className = 'choice-btn';
-                    button.textContent = choice;
-                    button.addEventListener('click', function() {
-                        submitAnswer(exercise.id, choice);
-                        
-                        // Désactiver tous les boutons immédiatement après le clic
-                        document.querySelectorAll('.choice-btn').forEach(btn => {
-                            btn.disabled = true;
-                            btn.style.opacity = "0.7";
+                // Mélanger les choix
+                choices = shuffleArray(choices);
+            }
+            
+            // Créer les boutons de choix
+            choicesContainer.innerHTML = '';
+            choices.forEach(choice => {
+                const button = document.createElement('button');
+                button.classList.add('choice-btn');
+                button.textContent = choice;
+                button.addEventListener('click', function() {
+                    // Soumettre la réponse avec notre API
+                    window.exerciseAPI.submitAnswer(exerciseId, choice)
+                        .then(result => {
+                            handleSubmitResult(result, choice, exercise.correct_answer);
+                        })
+                        .catch(error => {
+                            console.error('Erreur lors de la soumission:', error);
                         });
-                        
-                        // Mettre en évidence le bouton cliqué
-                        this.style.opacity = "1";
-                        this.style.borderColor = "var(--sw-blue)";
-                    });
-                    choices.appendChild(button);
                 });
-            } catch (error) {
-                console.error("Erreur lors de l'affichage de l'exercice:", error);
-                // Afficher un message d'erreur à l'utilisateur
-                loading.style.display = 'none';
-                exerciseContent.innerHTML = `
-                    <div class="error-message text-center" >
-                        <i class="fas fa-exclamation-triangle error-icon" ></i>
-                        <p class="mb-3">Une erreur est survenue lors de l'affichage de l'exercice.</p>
-                        <button id="error-back-btn" class="btn primary-btn">
-                            <i class="fas fa-arrow-left"></i> Retour aux exercices
-                        </button>
-                    </div>
+                choicesContainer.appendChild(button);
+            });
+            
+            // Afficher l'exercice et cacher le chargement
+            exerciseContent.classList.remove('d-none');
+            loading.classList.add('d-none');
+        }
+        
+        // Fonction pour gérer le résultat de la soumission
+        function handleSubmitResult(result, userChoice, correctAnswer) {
+            // Désactiver tous les boutons de choix
+            const buttons = document.querySelectorAll('.choice-btn');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent === correctAnswer) {
+                    btn.style.borderColor = 'var(--success-color)';
+                }
+            });
+            
+            // Afficher le feedback
+            feedbackElement.style.display = 'block';
+            
+            if (result.is_correct) {
+                feedbackElement.classList.add('correct');
+                feedbackElement.innerHTML = `
+                    <h3><i class="fas fa-check-circle"></i> Correct!</h3>
+                    <p>Votre réponse "${userChoice}" est correcte. Félicitations!</p>
                 `;
-                document.getElementById('error-back-btn').addEventListener('click', function() {
-                    window.location.href = '/exercises';
-                });
+            } else {
+                feedbackElement.classList.add('incorrect');
+                feedbackElement.innerHTML = `
+                    <h3><i class="fas fa-times-circle"></i> Incorrect</h3>
+                    <p>Votre réponse "${userChoice}" est incorrecte. La bonne réponse est "${correctAnswer}".</p>
+                `;
             }
         }
         
-        // Fonction pour mélanger un tableau (algorithme de Fisher-Yates)
+        // Fonction pour mélanger un tableau
         function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
             }
-            return array;
-        }
-        
-        // Fonction pour soumettre une réponse
-        function submitAnswer(exerciseId, answer) {
-            fetch(`/api/exercises/${exerciseId}/submit`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    exercise_id: exerciseId,
-                    selected_answer: answer,
-                    time_spent: 0
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                showFeedback(data);
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                alert('Une erreur est survenue lors de la soumission de votre réponse. Veuillez réessayer.');
-            });
-        }
-        
-        // Fonction pour afficher le feedback
-        function showFeedback(result) {
-            const feedback = document.querySelector('.feedback');
-            feedback.style.display = 'block';
-            feedback.classList.remove('success', 'error');
-            
-            // Déterminer le type de feedback
-            if(result.is_correct) {
-                feedback.classList.add('success');
-                feedback.innerHTML = '<p><i class="fas fa-check-circle"></i> Bravo ! Ta réponse est correcte.</p>';
-                
-                // Jouer le son de succès
-                playSound('success');
-            } else {
-                feedback.classList.add('error');
-                feedback.innerHTML = `<p><i class="fas fa-times-circle"></i> Dommage ! La bonne réponse était: ${result.correct_answer}</p>`;
-                
-                // Jouer le son d'erreur
-                playSound('error');
-            }
-            
-            // Ajouter l'explication si disponible
-            if (result.explanation && result.explanation !== 'None' && result.explanation.trim() !== '') {
-                const explanation = document.createElement('p');
-                explanation.style.marginTop = "0.8rem";
-                explanation.style.fontStyle = "italic";
-                explanation.innerHTML = `<strong>Explication:</strong> ${result.explanation}`;
-                feedback.appendChild(explanation);
-            } else {
-                // Ajouter une explication par défaut
-                const explanation = document.createElement('p');
-                explanation.style.marginTop = "0.8rem";
-                explanation.style.fontStyle = "italic";
-                explanation.innerHTML = `<strong>Explication:</strong> La réponse correcte est ${result.correct_answer}.`;
-                feedback.appendChild(explanation);
-            }
-            
-            // Faire défiler vers l'explication
-            feedback.scrollIntoView({ behavior: 'smooth' });
-            
-            // Ajouter le bouton pour l'exercice suivant
-            const nextButton = document.createElement('button');
-            nextButton.className = 'btn btn-primary mt-3';
-            nextButton.innerHTML = '<i class="fas fa-arrow-right"></i> Exercice suivant';
-            nextButton.addEventListener('click', () => {
-                window.location.href = '/exercises/random';
-            });
-            feedback.appendChild(nextButton);
+            return newArray;
         }
     });
 </script>

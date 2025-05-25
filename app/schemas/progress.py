@@ -12,6 +12,9 @@ class ProgressBase(BaseModel):
     difficulty: str = Field(..., description="Niveau de difficulté")
     total_attempts: int = Field(0, ge=0, description="Nombre total de tentatives")
     correct_attempts: int = Field(0, ge=0, description="Nombre de tentatives réussies")
+    average_time: Optional[float] = Field(None, ge=0.0, description="Temps moyen pour résoudre (secondes)")
+    completion_rate: Optional[float] = Field(None, ge=0.0, le=100.0, description="Taux de complétion (%)")
+    mastery_level: int = Field(1, description="Niveau de maîtrise (1-5)")
 
     @field_validator('correct_attempts')
     @classmethod
@@ -27,17 +30,7 @@ class ProgressBase(BaseModel):
 
 class ProgressCreate(ProgressBase):
     """Schéma pour la création d'un enregistrement de progression"""
-    average_time: Optional[float] = Field(None, ge=0.0, description="Temps moyen pour résoudre")
-    completion_rate: Optional[float] = Field(None, ge=0.0, le=100.0, description="Taux de complétion (%)")
-
-    @field_validator('average_time')
-    @classmethod
-
-
-    def average_time_positive(cls, v):
-        if v is not None and v < 0:
-            raise ValueError("Le temps moyen ne peut pas être négatif")
-        return v
+    user_id: int = Field(..., description="ID de l'utilisateur associé")
 
 
 
@@ -118,3 +111,28 @@ class UserProgressSummary(BaseModel):
     next_recommended_exercise_types: Optional[List[str]] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ProgressResponse(ProgressBase):
+    """Schéma pour la réponse de progrès utilisateur"""
+    last_updated: Optional[str] = Field(None, description="Date de dernière mise à jour")
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RecentAttempt(BaseModel):
+    """Schéma pour les tentatives récentes"""
+    exercise_id: int = Field(..., description="ID de l'exercice")
+    exercise_title: str = Field(..., description="Titre de l'exercice")
+    is_correct: bool = Field(..., description="Si la tentative est correcte")
+    time_spent: float = Field(..., description="Temps passé (secondes)")
+    date: Optional[str] = Field(None, description="Date de la tentative")
+
+
+class ProgressDetail(ProgressResponse):
+    """Schéma détaillé pour les progrès utilisateur"""
+    streak: int = Field(0, description="Série actuelle d'exercices réussis")
+    highest_streak: int = Field(0, description="Meilleure série")
+    strengths: Optional[str] = Field(None, description="Points forts identifiés")
+    areas_to_improve: Optional[str] = Field(None, description="Domaines à améliorer")
+    recent_attempts: List[RecentAttempt] = Field(default_factory=list, description="Tentatives récentes")

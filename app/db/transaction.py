@@ -5,6 +5,7 @@ This module provides consistent transaction management across the application.
 from contextlib import contextmanager
 from sqlalchemy.orm import Session
 from loguru import logger
+from sqlalchemy import text
 
 
 class TransactionManager:
@@ -34,13 +35,26 @@ class TransactionManager:
                 session.add(model)
                 # Pas besoin de faire session.commit() - c'est géré automatiquement
         """
+        # Créer un point de sauvegarde pour permettre un rollback partiel
+        # même si nous sommes dans une transaction externe
         try:
-            logger.debug(f"{log_prefix}: Début de la transaction")
+            savepoint = db_session.begin_nested()
+            logger.debug(f"{log_prefix}: Début de la transaction (avec savepoint)")
+            
             yield db_session
+            
             if auto_commit:
-                db_session.commit()
+                # Commit du savepoint
+                savepoint.commit()
+                # Commit de la transaction principale si nous ne sommes pas dans une transaction de test
+                if not savepoint.is_active:
+                    db_session.commit()
                 logger.debug(f"{log_prefix}: Transaction validée (commit)")
         except Exception as e:
+            # Rollback au savepoint
+            if 'savepoint' in locals() and savepoint.is_active:
+                savepoint.rollback()
+            # Également rollback de la transaction principale
             db_session.rollback()
             logger.error(f"{log_prefix}: Transaction annulée (rollback) suite à l'erreur: {e}")
             raise
@@ -84,12 +98,32 @@ class TransactionManager:
             bool: True si la suppression a réussi, False sinon
         """
         try:
+            # Supprimer directement l'objet
             db_session.delete(obj)
             logger.debug(f"{log_prefix}: Objet {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}) marqué pour suppression")
             
             if auto_commit:
-                db_session.commit()
-                logger.debug(f"{log_prefix}: Suppression confirmée avec succès")
+                # Utiliser un savepoint pour pouvoir faire un rollback partiel en cas d'erreur
+                try:
+                    db_session.commit()
+                    logger.debug(f"{log_prefix}: Suppression confirmée avec succès")
+                    return True
+                except Exception as e:
+                    db_session.rollback()
+                    logger.error(f"{log_prefix}: Échec de la suppression lors du commit: {e}")
+                    
+                    # Alternative: tenter une suppression sans cascade si la première méthode échoue
+                    try:
+                        # Suppression directe par ID pour éviter de charger les relations
+                        stmt = f"DELETE FROM {obj.__tablename__} WHERE id = :id"
+                        db_session.execute(text(stmt), {"id": obj.id})
+                        db_session.commit()
+                        logger.info(f"{log_prefix}: Suppression alternative réussie pour {obj.__class__.__name__}(id={obj.id})")
+                        return True
+                    except Exception as e2:
+                        db_session.rollback()
+                        logger.error(f"{log_prefix}: Échec de la suppression alternative: {e2}")
+                        return False
             
             return True
         except Exception as e:

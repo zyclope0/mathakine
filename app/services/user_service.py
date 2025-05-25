@@ -9,11 +9,12 @@ from loguru import logger
 
 from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.exercise import Exercise
 from app.models.attempt import Attempt
 from app.models.progress import Progress
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+from app.utils.db_helpers import get_enum_value, adapt_enum_for_db
 
 
 class UserService:
@@ -119,6 +120,12 @@ class UserService:
                 logger.error(f"Un utilisateur avec l'email '{email}' existe déjà")
                 return None
             
+            # Adapter le rôle utilisateur pour le moteur de base de données actuel
+            role = user_data.get("role")
+            if role:
+                user_data["role"] = adapt_enum_for_db("UserRole", role, session)
+                logger.debug(f"Rôle adapté: de '{role}' à '{user_data['role']}'")
+            
             return DatabaseAdapter.create(session, User, user_data)
     
     @staticmethod
@@ -138,6 +145,12 @@ class UserService:
         if not user:
             logger.error(f"Utilisateur avec ID {user_id} non trouvé pour mise à jour")
             return False
+        
+        # Adapter le rôle utilisateur si présent dans les données de mise à jour
+        if "role" in user_data:
+            role = user_data["role"]
+            user_data["role"] = adapt_enum_for_db("UserRole", role, db)
+            logger.debug(f"Rôle adapté pour mise à jour: de '{role}' à '{user_data['role']}'")
         
         return DatabaseAdapter.update(db, user, user_data)
     
@@ -192,68 +205,87 @@ class UserService:
         Returns:
             Dictionnaire contenant les statistiques de l'utilisateur
         """
+        user = UserService.get_user(db, user_id)
+        if not user:
+            logger.error(f"Utilisateur avec ID {user_id} non trouvé pour récupération des statistiques")
+            return {}
+        
         try:
-            # Vérifier que l'utilisateur existe
-            user = UserService.get_user(db, user_id)
-            if not user:
-                logger.error(f"Utilisateur avec ID {user_id} non trouvé pour récupération des statistiques")
-                return {}
+            # Statistiques de base
+            attempts_query = db.query(Attempt).filter(Attempt.user_id == user_id)
+            total_attempts = attempts_query.count()
+            correct_attempts = attempts_query.filter(Attempt.is_correct == True).count()
             
-            # Nombre total de tentatives
-            total_attempts = db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar() or 0
-            
-            # Nombre de tentatives correctes
-            correct_attempts = db.query(func.count(Attempt.id)).filter(
-                Attempt.user_id == user_id,
-                Attempt.is_correct == True
-            ).scalar() or 0
-            
-            # Calcul du taux de réussite
-            success_rate = round((correct_attempts / total_attempts * 100) if total_attempts > 0 else 0)
+            # Calculer le taux de réussite (éviter la division par zéro)
+            success_rate = round((correct_attempts / total_attempts) * 100) if total_attempts > 0 else 0
             
             # Statistiques par type d'exercice
-            exercise_stats = {}
-            exercise_types = db.query(Exercise.exercise_type).distinct().all()
+            exercise_types_stats = {}
             
-            for (exercise_type,) in exercise_types:
-                # Nombre de tentatives pour ce type
-                type_attempts = db.query(func.count(Attempt.id)).join(
-                    Exercise, Attempt.exercise_id == Exercise.id
-                ).filter(
-                    Attempt.user_id == user_id,
-                    Exercise.exercise_type == exercise_type
-                ).scalar() or 0
+            # Récupérer tous les types d'exercices disponibles
+            exercise_types = db.query(Exercise.exercise_type).distinct().all()
+            exercise_types = [et[0] for et in exercise_types]
+            
+            # Pour chaque type, calculer les statistiques
+            for ex_type in exercise_types:
+                # Récupérer les tentatives de ce type
+                type_attempts = (
+                    db.query(Attempt)
+                    .join(Exercise, Exercise.id == Attempt.exercise_id)
+                    .filter(Attempt.user_id == user_id)
+                    .filter(Exercise.exercise_type == ex_type)
+                    .all()
+                )
                 
-                # Nombre de tentatives correctes pour ce type
-                type_correct = db.query(func.count(Attempt.id)).join(
-                    Exercise, Attempt.exercise_id == Exercise.id
-                ).filter(
-                    Attempt.user_id == user_id,
-                    Exercise.exercise_type == exercise_type,
-                    Attempt.is_correct == True
-                ).scalar() or 0
+                total_type = len(type_attempts)
+                correct_type = sum(1 for a in type_attempts if a.is_correct)
+                success_rate_type = round((correct_type / total_type) * 100) if total_type > 0 else 0
                 
-                # Calcul du taux de réussite pour ce type
-                type_success_rate = round((type_correct / type_attempts * 100) if type_attempts > 0 else 0)
-                
-                exercise_stats[exercise_type] = {
-                    "total": type_attempts,
-                    "correct": type_correct,
-                    "success_rate": type_success_rate
+                exercise_types_stats[ex_type] = {
+                    "total": total_type,
+                    "correct": correct_type,
+                    "success_rate": success_rate_type
                 }
             
-            return {
-                "total_attempts": total_attempts,
-                "correct_attempts": correct_attempts,
-                "success_rate": success_rate,
-                "by_exercise_type": exercise_stats,
+            # Récupérer les données de progression si disponibles
+            progress_records = db.query(Progress).filter(Progress.user_id == user_id).all()
+            progress_data = {}
+            
+            for record in progress_records:
+                ex_type = record.exercise_type
+                difficulty = record.difficulty
+                
+                if ex_type not in progress_data:
+                    progress_data[ex_type] = {}
+                
+                progress_data[ex_type][difficulty] = {
+                    "mastery_level": record.mastery_level,
+                    "streak": record.streak,
+                    "highest_streak": record.highest_streak,
+                    "total_attempts": record.total_attempts,
+                    "correct_attempts": record.correct_attempts
+                }
+            
+            # Assembler toutes les statistiques
+            stats = {
                 "user": {
                     "id": user.id,
                     "username": user.username,
-                    "role": user.role
-                }
+                    "role": user.role,
+                    "grade_level": user.grade_level
+                },
+                "total_attempts": total_attempts,
+                "correct_attempts": correct_attempts,
+                "success_rate": success_rate,
+                "by_exercise_type": exercise_types_stats
             }
             
+            # Ajouter les données de progression si disponibles
+            if progress_data:
+                stats["progress"] = progress_data
+            
+            return stats
+            
         except Exception as e:
-            logger.error(f"Erreur lors de la récupération des statistiques de l'utilisateur {user_id}: {e}")
-            return {} 
+            logger.error(f"Erreur lors de la récupération des statistiques: {e}")
+            return {"stats_error": "Erreur lors de la récupération des statistiques"} 

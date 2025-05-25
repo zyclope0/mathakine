@@ -244,4 +244,44 @@ class NotificationMessages:
     INFO_REGISTERED = "Inscription réussie"
     WARNING_SESSION_EXPIRED = "Ta session a expiré, reconnecte-toi"
     ERROR_INVALID_CREDENTIALS = "Email ou mot de passe incorrect"
-    ERROR_EMAIL_EXISTS = "Cet email est déjà utilisé" 
+    ERROR_EMAIL_EXISTS = "Cet email est déjà utilisé"
+
+# Messages spécifiques aux utilisateurs
+class UserMessages:
+    # Connexion et inscription
+    SUCCESS_REGISTRATION = "Inscription réussie ! Bienvenue dans l'Ordre Jedi."
+    SUCCESS_LOGIN = "Connexion réussie ! Que la Force soit avec toi."
+    SUCCESS_LOGOUT = "Déconnexion réussie. Que la Force te guide."
+    ERROR_INVALID_CREDENTIALS = "Les informations d'identification sont incorrectes."
+    ERROR_USERNAME_EXISTS = "Ce nom d'utilisateur est déjà pris."
+    ERROR_EMAIL_EXISTS = "Cette adresse email est déjà utilisée."
+    ERROR_PASSWORD_MISMATCH = "Les mots de passe ne correspondent pas."
+    ERROR_INACTIVE_ACCOUNT = "Ce compte a été désactivé."
+    
+    # Validation des champs
+    ERROR_PASSWORD_WEAK = "Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre."
+    ERROR_USERNAME_INVALID = "Le nom d'utilisateur ne peut contenir que des lettres, chiffres, tirets et underscores."
+    ERROR_EMAIL_INVALID = "L'adresse email n'est pas valide."
+    
+    # Profil utilisateur
+    SUCCESS_PROFILE_UPDATE = "Profil mis à jour avec succès."
+    SUCCESS_PASSWORD_UPDATE = "Mot de passe mis à jour avec succès."
+    ERROR_CURRENT_PASSWORD = "Le mot de passe actuel est incorrect."
+    
+    # Permissions
+    ERROR_NOT_AUTHORIZED = "Tu n'es pas autorisé à effectuer cette action."
+    ERROR_ADMIN_REQUIRED = "Seuls les administrateurs peuvent effectuer cette action."
+    ERROR_GARDIEN_REQUIRED = "Seuls les Gardiens et Archivistes peuvent effectuer cette action."
+    ERROR_CHEVALIER_REQUIRED = "Seuls les Chevaliers Jedi et supérieurs peuvent effectuer cette action."
+    
+    # Progression
+    SUCCESS_PROGRESS_RESET = "Ta progression a été réinitialisée."
+    INFO_LEVEL_UP = "Félicitations ! Tu as atteint le niveau {level}."
+    INFO_ACHIEVEMENT_UNLOCKED = "Nouvel accomplissement débloqué : {achievement}"
+    
+    # Gestion des utilisateurs
+    SUCCESS_USER_CREATED = "Utilisateur créé avec succès."
+    SUCCESS_USER_UPDATED = "Utilisateur mis à jour avec succès."
+    SUCCESS_USER_DELETED = "Utilisateur supprimé avec succès."
+    ERROR_USER_NOT_FOUND = "Utilisateur non trouvé."
+    ERROR_CANNOT_DELETE_SELF = "Vous ne pouvez pas supprimer votre propre compte." 

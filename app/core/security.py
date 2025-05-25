@@ -1,7 +1,7 @@
 """
 Utilitaires de sécurité pour l'authentification
 """
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, UTC, timezone
 from typing import Optional, Union, Any
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -42,36 +42,35 @@ def decode_token(token: str) -> dict:
             detail="Token invalide ou expiré"
         )
 
-def create_access_token(
-    subject: Union[str, Any], 
-    expires_delta: Optional[timedelta] = None,
-    additional_data: Optional[dict] = None
-) -> str:
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
-    Crée un token JWT (Cristal d'Identité) pour l'utilisateur.
+    Crée un token JWT d'accès
     
     Args:
-        subject: Sujet du token (généralement username)
-        expires_delta: Durée de validité du token
-        additional_data: Données supplémentaires à inclure dans le token
+        data: Données à inclure dans le token
+        expires_delta: Délai d'expiration du token
     
     Returns:
-        Token JWT encodé
+        Token encodé
     """
+    to_encode = data.copy()
+    
+    # Convertir les objets enum en valeurs de chaîne
+    for key, value in to_encode.items():
+        if hasattr(value, 'value'):
+            to_encode[key] = value.value
+    
+    # Calculer l'expiration
     if expires_delta:
-        expire = datetime.now(UTC) + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(UTC) + timedelta(minutes=SecurityConfig.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    # Créer les données à encoder dans le token
-    to_encode = {"exp": expire, "sub": str(subject)}
+    # Ajouter l'expiration et le type de token
+    to_encode.update({"exp": expire, "type": "access"})
     
-    # Ajouter des données supplémentaires si fournies
-    if additional_data:
-        to_encode.update(additional_data)
-    
-    # Encoder le token avec la clé secrète et l'algorithme spécifié
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=SecurityConfig.ALGORITHM)
+    # Encoder le token
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.db.session import get_db
+from app.db.base import get_db
 from app.services.recommendation_service import RecommendationService
 from app.schemas.recommendation import RecommendationResponse
 from app.api.deps import get_current_user

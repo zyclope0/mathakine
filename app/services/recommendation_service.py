@@ -1,8 +1,8 @@
 from sqlalchemy.sql import func
-from sqlalchemy import or_, and_
-from datetime import datetime, timedelta
+from sqlalchemy import or_, and_, exists
+from datetime import datetime, timedelta, timezone
 from app.models.recommendation import Recommendation
-from app.models.exercise import Exercise
+from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
 from app.models.attempt import Attempt
 from app.models.progress import Progress
 from app.models.user import User
@@ -27,6 +27,11 @@ class RecommendationService:
         """
         try:
             # Récupérer les données utilisateur
+            user_exists = db.query(exists().where(User.id == user_id)).scalar()
+            if not user_exists:
+                logger.warning(f"Tentative de génération de recommandations pour un utilisateur inexistant: {user_id}")
+                return []
+            
             user = db.query(User).filter(User.id == user_id).first()
             if not user:
                 logger.error(f"Utilisateur {user_id} non trouvé")
@@ -51,10 +56,16 @@ class RecommendationService:
             # 1. Recommandations basées sur les domaines à améliorer
             for progress in progress_records:
                 if progress.calculate_completion_rate() < 70:
+                    # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
+                    valid_types = [t.value for t in ExerciseType]
+                    valid_difficulties = [d.value for d in DifficultyLevel]
+                    
                     # Trouver des exercices appropriés pour améliorer cette compétence
                     exercises = db.query(Exercise).filter(
                         Exercise.exercise_type == progress.exercise_type,
                         Exercise.difficulty == progress.difficulty,
+                        Exercise.exercise_type.in_(valid_types),
+                        Exercise.difficulty.in_(valid_difficulties),
                         Exercise.is_archived == False,
                         Exercise.is_active == True
                     ).order_by(func.random()).limit(2).all()
@@ -82,9 +93,15 @@ class RecommendationService:
                     # Proposer des exercices du niveau supérieur
                     next_difficulty = RecommendationService._get_next_difficulty(progress.difficulty)
                     if next_difficulty:
+                        # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
+                        valid_types = [t.value for t in ExerciseType]
+                        valid_difficulties = [d.value for d in DifficultyLevel]
+                        
                         exercises = db.query(Exercise).filter(
                             Exercise.exercise_type == progress.exercise_type,
                             Exercise.difficulty == next_difficulty,
+                            Exercise.exercise_type.in_(valid_types),
+                            Exercise.difficulty.in_(valid_difficulties),
                             Exercise.is_archived == False,
                             Exercise.is_active == True
                         ).order_by(func.random()).limit(1).all()
@@ -101,12 +118,28 @@ class RecommendationService:
             
             # 3. Recommandations pour maintenir les compétences (réactivation)
             # Trouver les compétences non pratiquées récemment
-            all_exercise_types = db.query(Exercise.exercise_type).distinct().all()
+            # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides dès le départ
+            valid_types = [t.value for t in ExerciseType]
+            valid_difficulties = [d.value for d in DifficultyLevel]
+            
+            all_exercise_types = db.query(Exercise.exercise_type).filter(
+                Exercise.exercise_type.in_(valid_types),
+                Exercise.difficulty.in_(valid_difficulties)
+            ).distinct().all()
+            
             for ex_type in all_exercise_types:
                 ex_type = ex_type[0]  # Extraction du tuple
                 # Vérifier si ce type d'exercice a été pratiqué récemment
-                recent_type_attempts = [a for a in recent_attempts if 
-                                      db.query(Exercise).filter(Exercise.id == a.exercise_id).first().exercise_type == ex_type]
+                # Utiliser une requête filtrée pour éviter les erreurs d'énumération
+                recent_type_attempts = []
+                for a in recent_attempts:
+                    exercise = db.query(Exercise).filter(
+                        Exercise.id == a.exercise_id,
+                        Exercise.exercise_type.in_(valid_types),
+                        Exercise.difficulty.in_(valid_difficulties)
+                    ).first()
+                    if exercise and exercise.exercise_type == ex_type:
+                        recent_type_attempts.append(a)
                 
                 if not recent_type_attempts:
                     # Trouver le niveau le plus élevé maîtrisé par l'utilisateur pour ce type
@@ -123,6 +156,8 @@ class RecommendationService:
                     exercises = db.query(Exercise).filter(
                         Exercise.exercise_type == ex_type,
                         Exercise.difficulty == user_level,
+                        Exercise.exercise_type.in_(valid_types),
+                        Exercise.difficulty.in_(valid_difficulties),
                         Exercise.is_archived == False,
                         Exercise.is_active == True
                     ).order_by(func.random()).limit(1).all()
@@ -143,9 +178,15 @@ class RecommendationService:
             new_types = all_types - practised_types
             
             for new_type in new_types:
+                # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
+                valid_types = [t.value for t in ExerciseType]
+                valid_difficulties = [d.value for d in DifficultyLevel]
+                
                 exercises = db.query(Exercise).filter(
                     Exercise.exercise_type == new_type,
                     Exercise.difficulty == "Initié",  # Commencer par le niveau le plus simple
+                    Exercise.exercise_type.in_(valid_types),
+                    Exercise.difficulty.in_(valid_difficulties),
                     Exercise.is_archived == False,
                     Exercise.is_active == True
                 ).order_by(func.random()).limit(1).all()
@@ -162,10 +203,24 @@ class RecommendationService:
             
             # Si aucune recommandation n'a été générée, proposer quelques exercices aléatoires
             if not recommendations:
+                # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
+                valid_types = [t.value for t in ExerciseType]
+                valid_difficulties = [d.value for d in DifficultyLevel]
+                
+                logger.debug(f"Aucune recommandation générée, recherche d'exercices aléatoires...")
+                logger.debug(f"Types valides: {valid_types}")
+                logger.debug(f"Difficultés valides: {valid_difficulties}")
+                
                 random_exercises = db.query(Exercise).filter(
+                    Exercise.exercise_type.in_(valid_types),
+                    Exercise.difficulty.in_(valid_difficulties),
                     Exercise.is_archived == False,
                     Exercise.is_active == True
                 ).order_by(func.random()).limit(3).all()
+                
+                logger.debug(f"Exercices trouvés: {len(random_exercises)}")
+                for ex in random_exercises:
+                    logger.debug(f"  - {ex.title} ({ex.exercise_type}/{ex.difficulty})")
                 
                 for ex in random_exercises:
                     recommendations.append(Recommendation(
@@ -176,6 +231,8 @@ class RecommendationService:
                         priority=3,
                         reason="Pour continuer votre apprentissage"
                     ))
+                
+                logger.debug(f"Recommandations fallback créées: {len(recommendations)}")
             
             # Ajouter toutes les recommandations
             db.add_all(recommendations)
@@ -207,6 +264,7 @@ class RecommendationService:
             recommendation = db.query(Recommendation).filter(Recommendation.id == recommendation_id).first()
             if recommendation:
                 recommendation.clicked_count += 1
+                recommendation.last_clicked_at = datetime.now(timezone.utc)
                 db.commit()
         except Exception as e:
             logger.error(f"Erreur lors du marquage de la recommandation comme cliquée: {str(e)}")
@@ -219,6 +277,7 @@ class RecommendationService:
             recommendation = db.query(Recommendation).filter(Recommendation.id == recommendation_id).first()
             if recommendation:
                 recommendation.is_completed = True
+                recommendation.completed_at = datetime.now(timezone.utc)
                 db.commit()
         except Exception as e:
             logger.error(f"Erreur lors du marquage de la recommandation comme complétée: {str(e)}")
@@ -235,9 +294,10 @@ class RecommendationService:
     @staticmethod
     def _get_next_difficulty(current_difficulty):
         """Retourne le niveau de difficulté suivant"""
-        difficulty_levels = ["Initié", "Padawan", "Chevalier", "Maître"]
+        # Utiliser les mêmes valeurs que les énumérations DifficultyLevel
+        difficulty_levels = ["initie", "padawan", "chevalier", "maitre"]
         try:
-            current_index = difficulty_levels.index(current_difficulty)
+            current_index = difficulty_levels.index(current_difficulty.lower())
             if current_index < len(difficulty_levels) - 1:
                 return difficulty_levels[current_index + 1]
         except ValueError:

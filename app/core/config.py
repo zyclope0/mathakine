@@ -13,61 +13,86 @@ logger = get_logger(__name__)
 load_dotenv(override=True)  # Forcer le rechargement des variables d'environnement
 logger.info("Chargement de la configuration...")
 
+# Base de données
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost/mathakine")
 
+# Fichier temporaire supprimé, utilisation exclusive de PostgreSQL
+# SQLALCHEMY_DATABASE_URL = DATABASE_URL if "test" not in DATABASE_URL else DATABASE_URL
 
-class Settings(BaseSettings):
+# Pour les tests, utiliser une URL spécifique
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql://postgres:postgres@localhost/test_mathakine")
+
+# Classe de configuration
+class Settings:
+    """
+    Classe contenant les paramètres de configuration de l'application.
+    """
+    PROJECT_NAME: str = "Mathakine"
+    PROJECT_VERSION: str = "1.5.0"
+    
     API_V1_STR: str = "/api"
-    PROJECT_NAME: str = "Math Trainer"
-
-    # Database - forcer le rechargement depuis .env
-    DATABASE_URL: str = os.environ.get("DATABASE_URL", "sqlite:///./math_trainer.db")
-
-    # CORS
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",  # Front-end React/Vue
-        "http://localhost:8080",
-    ]
-
-    # Security
-    ALLOWED_HOSTS: List[str] = ["*"] if os.getenv("DEBUG", "True").lower() == "true" else [
-        "localhost",
-        "127.0.0.1",
-        os.getenv("DOMAIN", "localhost")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
+    if not SECRET_KEY:
+        SECRET_KEY = secrets.token_urlsafe(32)
+    
+    # 60 minutes * 24 heures * 7 jours = 7 jours
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
+    # Nombre de jours pour l'expiration du refresh token
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+    # Algorithme de chiffrement pour JWT
+    ALGORITHM: str = "HS256"
+    
+    # Configuration de la base de données
+    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "postgres")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "mathakine")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}")
+    
+    # URL pour les tests
+    TEST_DATABASE_URL: str = os.getenv("TEST_DATABASE_URL", "postgresql://postgres:postgres@localhost/test_mathakine")
+    
+    # Mode de test
+    TESTING: bool = os.getenv("TESTING", "false").lower() == "true"
+    
+    # Utilisez cette URL pour les tests
+    SQLALCHEMY_DATABASE_URL: str = TEST_DATABASE_URL if TESTING else DATABASE_URL
+    
+    # Utilisateurs par défaut
+    DEFAULT_ADMIN_EMAIL: str = os.getenv("DEFAULT_ADMIN_EMAIL", "admin@mathakine.com")
+    DEFAULT_ADMIN_PASSWORD: str = os.getenv("DEFAULT_ADMIN_PASSWORD", "admin")
+    
+    # Paramètres CORS
+    BACKEND_CORS_ORIGINS: List[str] = [
+        "http://localhost:8000",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:8000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        os.getenv("FRONTEND_URL", ""),
     ]
     
-    # JWT Security
-    SECRET_KEY: str = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 15))  # 15 minutes
-    REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))  # 7 jours
+    # Configuration de logging
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+    LOG_FILE: str = os.getenv("LOG_FILE", "logs/mathakine.log")
+    LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    
+    # Nombre d'exercices par page
+    EXERCISES_PER_PAGE: int = 10
+    
+    # Nombre d'exercices générés automatiquement
+    AUTO_GENERATE_EXERCISES: int = 50
+    
+    # Pourcentage d'exercices générés par IA
+    AI_GENERATED_PERCENT: int = 20
+    
+    class Config:
+        case_sensitive = True
 
-    # Debug mode
-    DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
-
-    # API Security
-    API_KEY_HEADER: str = "X-API-Key"
-    API_KEY: str = os.getenv("API_KEY", "dev-key")
-
-    # Logs
-    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "DEBUG" if DEBUG else "INFO")
-    LOGS_DIR: str = os.getenv("LOGS_DIR", "logs")
-
-    @field_validator("DATABASE_URL")
-    @classmethod
-    def validate_database_url(cls, v):
-        if not v:
-            raise ValueError("DATABASE_URL must be set")
-        return v
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Forcer la relecture depuis l'environnement
-        self.DATABASE_URL = os.environ.get("DATABASE_URL", self.DATABASE_URL)
-        
-        logger.debug(f"Configuration initialisée: DATABASE_URL={self.DATABASE_URL}")
-        logger.info(f"URL de la base de données: {self.DATABASE_URL}")
-        logger.debug(f"Mode debug: {self.DEBUG}")
-        logger.debug(f"Hosts autorisés: {self.ALLOWED_HOSTS}")
-        logger.debug(f"Niveau de log: {self.LOG_LEVEL}")
-
-# Création d'une instance unique des paramètres
 settings = Settings()
+
+# Configuration pour les tests
+if settings.TESTING:
+    print(f"Mode test détecté, utilisation de l'URL de base de données: {settings.SQLALCHEMY_DATABASE_URL}")
+    # Autres configurations spécifiques aux tests

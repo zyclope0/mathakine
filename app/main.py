@@ -99,14 +99,14 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
     docs_url=None,
     redoc_url=None,
-    debug=settings.DEBUG,
+    debug=settings.LOG_LEVEL == "DEBUG",
     lifespan=lifespan
 )
 
 # Middleware de sécurité
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["*"] if settings.DEBUG else settings.ALLOWED_HOSTS
+    allowed_hosts=["*"] if settings.LOG_LEVEL == "DEBUG" else settings.BACKEND_CORS_ORIGINS
 )
 
 # Middleware de logging pour les requêtes
@@ -126,14 +126,22 @@ async def log_requests(request: Request, call_next):
         logger.info(f"Requête traitée: {request.method} {request.url} - Status: {response.status_code} - Temps: {process_time:.4f}s")
 
         return response
+    except HTTPException as http_exc:
+        # Re-lancer les HTTPException sans les modifier (401, 403, 404, etc.)
+        process_time = time.time() - start_time
+        logger.info(f"Requête traitée: {request.method} {request.url} - Status: {http_exc.status_code} - Temps: {process_time:.4f}s")
+        raise http_exc
     except Exception as e:
-        logger.error(f"Erreur lors du traitement de la requête: {str(e)}")
+        # Ne transformer en 500 que les vraies erreurs non-HTTP
+        logger.error(f"Erreur interne lors du traitement de la requête: {str(e)}")
+        process_time = time.time() - start_time
+        logger.error(f"Requête échouée: {request.method} {request.url} - Erreur: {str(e)} - Temps: {process_time:.4f}s")
         raise HTTPException(status_code=500, detail="Erreur interne du serveur")
 
 # Configuration CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -215,13 +223,13 @@ async def exercise_page(request: Request, exercise_id: int):
 @app.get("/debug")
 async def debug_info():
     """Endpoint pour vérifier l'état de l'application (utile pour le débogage)"""
-    if not settings.DEBUG:
+    if settings.LOG_LEVEL != "DEBUG":
         raise HTTPException(status_code=403, detail="Endpoint de debug désactivé en production")
 
     logger.debug("Accès aux informations de débogage")
     return {
         "app_name": settings.PROJECT_NAME,
-        "debug_mode": settings.DEBUG,
+        "debug_mode": settings.LOG_LEVEL == "DEBUG",
         "database_url": settings.DATABASE_URL.replace("://", "://*****:*****@") if "://" in settings.DATABASE_URL else settings.DATABASE_URL,
         "api_version": "0.1.0",
         "static_dir": STATIC_DIR,
@@ -355,7 +363,7 @@ if __name__ == "__main__":
     logger.info("Démarrage du serveur")
 
     # En environnement de développement, lancer l'interface complète par défaut
-    if settings.DEBUG and os.environ.get("MATH_TRAINER_PROFILE", "dev") == "dev":
+    if settings.LOG_LEVEL == "DEBUG" and os.environ.get("MATH_TRAINER_PROFILE", "dev") == "dev":
         try:
             logger.info("Lancement de l'interface graphique complète (mode développement)")
             sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

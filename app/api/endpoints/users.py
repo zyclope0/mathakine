@@ -1,15 +1,26 @@
 """
 Endpoints API pour la gestion des utilisateurs
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from sqlalchemy.orm import Session
-from typing import Any, List, Optional
+from sqlalchemy import func, desc, Integer
+from typing import Any, List, Optional, Dict
+from datetime import datetime, timedelta, timezone
+import logging
 
-from app.api.deps import get_db_session, get_current_user, get_current_gardien_or_archiviste, get_current_archiviste
-from app.schemas.user import User, UserCreate, UserUpdate
-from app.services.auth_service import create_user, get_user_by_id, update_user
+from app.api.deps import get_db_session, get_current_user, get_current_gardien_or_archiviste, get_current_archiviste, get_current_active_user
+from app.schemas.user import User, UserCreate, UserUpdate, UserInDB, UserPasswordUpdate
+from app.schemas.progress import ProgressResponse, ProgressDetail
+from app.services.auth_service import create_user, get_user_by_id, update_user, update_user_password
+from app.services.user_service import UserService
 from app.core.logging_config import get_logger
 from app.models.user import User as UserModel, UserRole
+from app.models.attempt import Attempt
+from app.models.progress import Progress
+from app.models.exercise import Exercise
+from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+from app.core.constants import Messages, UserRoles
+from app.core.messages import SystemMessages, UserMessages
 
 logger = get_logger(__name__)
 
@@ -29,10 +40,32 @@ def get_users(
     Récupérer tous les utilisateurs.
     Accessible uniquement aux Gardiens et Archivistes.
     """
-    # Requête réelle à la base de données
-    users = db.query(User).offset(skip).limit(limit).all()
+    # Requête réelle à la base de données avec le bon modèle
+    users_db = db.query(UserModel).offset(skip).limit(limit).all()
+    
+    # Convertir en schémas Pydantic en gérant les valeurs None
+    users_response = []
+    for user_db in users_db:
+        # Créer un dictionnaire avec les valeurs corrigées
+        user_dict = {
+            "id": user_db.id,
+            "username": user_db.username,
+            "email": user_db.email,
+            "full_name": user_db.full_name,
+            "role": user_db.role,
+            "is_active": user_db.is_active,
+            "created_at": user_db.created_at or datetime.now(timezone.utc),
+            "updated_at": user_db.updated_at or datetime.now(timezone.utc),
+            "grade_level": user_db.grade_level,
+            "learning_style": user_db.learning_style,
+            "preferred_difficulty": user_db.preferred_difficulty,
+            "preferred_theme": user_db.preferred_theme or "light",  # Valeur par défaut si None
+            "accessibility_settings": user_db.accessibility_settings
+        }
+        users_response.append(user_dict)
+    
     logger.info(f"Liste des utilisateurs récupérée par {current_user.username}")
-    return users
+    return users_response
 
 
 @router.post("/", response_model=User, status_code=201)
@@ -60,6 +93,35 @@ def get_user_me(
     """
     logger.debug(f"Récupération des informations personnelles par {current_user.username}")
     return current_user
+
+
+@router.put("/me/password", status_code=200)
+def update_user_password_me(
+    *,
+    db: Session = Depends(get_db_session),
+    password_update: UserPasswordUpdate,
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Mettre à jour le mot de passe de l'utilisateur actuellement connecté.
+    """
+    try:
+        update_user_password(
+            db=db,
+            user=current_user,
+            current_password=password_update.current_password,
+            new_password=password_update.new_password
+        )
+        logger.info(f"Mot de passe mis à jour pour l'utilisateur {current_user.username}")
+        return {"message": "Mot de passe mis à jour avec succès"}
+    except HTTPException:
+        raise  # Re-lancer l'exception HTTPException telle quelle
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour du mot de passe pour {current_user.username}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur interne lors de la mise à jour du mot de passe"
+        )
 
 
 @router.get("/{user_id}", response_model=User)
@@ -185,6 +247,99 @@ def get_user_challenges_progress(
     }
 
 
+@router.get("/me/progress", response_model=List[ProgressResponse])
+def get_user_progress_me(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db_session)
+) -> Any:
+    """
+    Récupère tous les progrès de l'utilisateur actuel.
+    """
+    # Récupérer l'utilisateur actuel
+    user_id = current_user.id
+    
+    # Récupérer tous les progrès de l'utilisateur
+    progress_records = db.query(Progress).filter(Progress.user_id == user_id).all()
+    
+    # Convertir en liste de réponses
+    result = []
+    for record in progress_records:
+        result.append({
+            "exercise_type": record.exercise_type,
+            "difficulty": record.difficulty,
+            "total_attempts": record.total_attempts,
+            "correct_attempts": record.correct_attempts,
+            "average_time": record.average_time,
+            "completion_rate": record.completion_rate or record.calculate_completion_rate(),
+            "mastery_level": record.mastery_level,
+            "last_updated": record.last_updated.isoformat() if record.last_updated else None
+        })
+    
+    return result
+
+
+@router.get("/me/progress/{exercise_type}", response_model=ProgressDetail)
+def get_user_progress_by_type_me(
+    exercise_type: str = Path(..., description="Type d'exercice à consulter"),
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db_session)
+) -> Any:
+    """
+    Récupère les progrès de l'utilisateur actuel pour un type d'exercice spécifique.
+    """
+    # Récupérer l'utilisateur actuel
+    user_id = current_user.id
+    
+    # Récupérer le progrès pour le type d'exercice spécifique
+    progress = db.query(Progress).filter(
+        Progress.user_id == user_id,
+        Progress.exercise_type == exercise_type
+    ).first()
+    
+    if not progress:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Aucun progrès trouvé pour le type d'exercice '{exercise_type}'"
+        )
+    
+    # Récupérer des statistiques supplémentaires
+    recent_attempts = db.query(Attempt).join(
+        Exercise, Attempt.exercise_id == Exercise.id
+    ).filter(
+        Attempt.user_id == user_id,
+        Exercise.exercise_type == exercise_type
+    ).order_by(desc(Attempt.created_at)).limit(5).all()
+    
+    recent_attempts_data = []
+    for attempt in recent_attempts:
+        exercise = db.query(Exercise).filter(Exercise.id == attempt.exercise_id).first()
+        if exercise:
+            recent_attempts_data.append({
+                "exercise_id": attempt.exercise_id,
+                "exercise_title": exercise.title,
+                "is_correct": attempt.is_correct,
+                "time_spent": attempt.time_spent,
+                "date": attempt.created_at.isoformat() if attempt.created_at else None
+            })
+    
+    # Construire la réponse détaillée
+    return {
+        "exercise_type": progress.exercise_type,
+        "difficulty": progress.difficulty,
+        "total_attempts": progress.total_attempts,
+        "correct_attempts": progress.correct_attempts,
+        "average_time": progress.average_time,
+        "completion_rate": progress.completion_rate or progress.calculate_completion_rate(),
+        "mastery_level": progress.mastery_level,
+        "streak": progress.streak,
+        "highest_streak": progress.highest_streak,
+        "strengths": progress.strengths,
+        "areas_to_improve": progress.areas_to_improve,
+        "recent_attempts": recent_attempts_data,
+        "last_updated": progress.last_updated.isoformat() if progress.last_updated else None
+    }
+
+
 @router.get("/{user_id}/progress", response_model=dict)
 def get_user_progress(
     *,
@@ -255,7 +410,6 @@ def delete_user(
     Seul un Archiviste peut supprimer un utilisateur.
     """
     from sqlalchemy.exc import SQLAlchemyError
-    import logging
     import traceback
 
     logger = logging.getLogger(__name__)
@@ -337,7 +491,6 @@ def get_user_stats(
         )
     
     # Récupérer les tentatives d'exercices de l'utilisateur
-    from app.models.attempt import Attempt
     attempts = db.query(Attempt).filter(Attempt.user_id == user_id).all()
     
     # Calculer les statistiques d'exercices
@@ -346,10 +499,6 @@ def get_user_stats(
     success_rate = (correct_attempts / total_attempts * 100) if total_attempts > 0 else 0
     
     # Statistiques de tentatives par exercice
-    from sqlalchemy import func, Integer
-    from app.models.exercise import Exercise
-    
-    # Compter le nombre d'exercices distincts tentés
     exercise_count = db.query(func.count(func.distinct(Attempt.exercise_id))). \
         filter(Attempt.user_id == user_id).scalar() or 0
     
@@ -369,9 +518,6 @@ def get_user_stats(
         }
     
     # Statistiques des défis logiques
-    from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
-    
-    # Récupérer les tentatives de défis logiques de l'utilisateur
     logic_attempts = db.query(LogicChallengeAttempt).filter(LogicChallengeAttempt.user_id == user_id).all()
     
     # Calculer les statistiques de défis logiques
@@ -420,3 +566,76 @@ def get_user_stats(
         "stats_by_type": stats_by_type,
         "logic_challenge_stats": logic_challenge_stats
     }
+
+
+@router.get("/me/statistics", response_model=Dict[str, Any])
+def get_user_statistics(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db_session)
+) -> Any:
+    """
+    Récupère les statistiques globales de l'utilisateur actuel.
+    """
+    # Récupérer l'utilisateur actuel
+    user_id = current_user.id
+    
+    # Récupérer les statistiques de tentatives
+    attempts_count = db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar() or 0
+    correct_attempts = db.query(func.count(Attempt.id)).filter(
+        Attempt.user_id == user_id, 
+        Attempt.is_correct == True
+    ).scalar() or 0
+    
+    # Calculer le taux de réussite
+    success_rate = 0
+    if attempts_count > 0:
+        success_rate = (correct_attempts / attempts_count) * 100
+    
+    # Récupérer le temps moyen par exercice
+    avg_time = db.query(func.avg(Attempt.time_spent)).filter(Attempt.user_id == user_id).scalar() or 0
+    
+    # Récupérer les statistiques de progression par type d'exercice
+    progress_records = db.query(Progress).filter(Progress.user_id == user_id).all()
+    
+    # Organiser les données de progression par type d'exercice
+    progress_by_type = {}
+    for record in progress_records:
+        progress_by_type[record.exercise_type] = {
+            "mastery_level": record.mastery_level,
+            "total_attempts": record.total_attempts,
+            "correct_attempts": record.correct_attempts,
+            "completion_rate": record.completion_rate or record.calculate_completion_rate(),
+            "average_time": record.average_time
+        }
+    
+    # Tentatives récentes (les 5 dernières)
+    recent_attempts = db.query(Attempt).filter(
+        Attempt.user_id == user_id
+    ).order_by(desc(Attempt.created_at)).limit(5).all()
+    
+    recent_attempts_data = []
+    for attempt in recent_attempts:
+        exercise = db.query(Exercise).filter(Exercise.id == attempt.exercise_id).first()
+        if exercise:
+            recent_attempts_data.append({
+                "exercise_id": attempt.exercise_id,
+                "exercise_title": exercise.title,
+                "exercise_type": exercise.exercise_type,
+                "is_correct": attempt.is_correct,
+                "time_spent": attempt.time_spent,
+                "date": attempt.created_at.isoformat() if attempt.created_at else None
+            })
+    
+    # Assembler toutes les statistiques
+    statistics = {
+        "global": {
+            "total_attempts": attempts_count,
+            "correct_attempts": correct_attempts,
+            "success_rate": success_rate,
+            "average_time": float(avg_time) if avg_time else 0
+        },
+        "progress_by_type": progress_by_type,
+        "recent_attempts": recent_attempts_data
+    }
+    
+    return statistics

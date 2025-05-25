@@ -102,3 +102,13 @@ class AttemptStats(BaseModel):
     streak: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class AttemptResponse(BaseModel):
+    """Schéma pour la réponse à une tentative d'exercice"""
+    is_correct: bool = Field(..., description="Si la réponse est correcte")
+    correct_answer: Optional[str] = Field(None, description="La réponse correcte (si incorrecte)")
+    feedback: str = Field(..., description="Retour sur la tentative")
+    time_spent: Optional[float] = Field(None, description="Temps passé en secondes")
+    mastery_progress: Optional[int] = Field(None, description="Progression dans la maîtrise du sujet")
+    
+    model_config = ConfigDict(from_attributes=True)

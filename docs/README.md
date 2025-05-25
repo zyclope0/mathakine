@@ -77,3 +77,83 @@ Pour toute question sur la documentation :
 ---
 
 © 2024-2025 Équipe Mathakine - [mathakine.fr](https://mathakine.fr)
+
+# Mathakine - Plateforme d'apprentissage des mathématiques
+
+## Important: Base de données PostgreSQL
+
+Mathakine utilise **exclusivement PostgreSQL** comme système de gestion de base de données.
+SQLite n'est plus supporté pour le développement ou les tests.
+
+## Configuration de la base de données
+
+### Prérequis
+- PostgreSQL 13+ installé
+- Un utilisateur et une base de données créés
+
+### Configuration de l'environnement
+Copiez le fichier `.env.example` en `.env` et configurez les variables suivantes:
+
+```
+DATABASE_URL=postgresql://user:password@localhost/mathakine
+TEST_DATABASE_URL=postgresql://user:password@localhost/test_mathakine
+```
+
+### Création des bases de données
+
+```bash
+# Connectez-vous à PostgreSQL
+psql -U postgres
+
+# Créez les bases de données
+CREATE DATABASE mathakine;
+CREATE DATABASE test_mathakine;
+
+# Créez un utilisateur (optionnel)
+CREATE USER mathakine_user WITH PASSWORD 'password';
+GRANT ALL PRIVILEGES ON DATABASE mathakine TO mathakine_user;
+GRANT ALL PRIVILEGES ON DATABASE test_mathakine TO mathakine_user;
+```
+
+## Migrations de base de données
+
+Les migrations sont gérées avec Alembic:
+
+```bash
+# Appliquer toutes les migrations
+alembic upgrade head
+
+# Créer une nouvelle migration
+alembic revision --autogenerate -m "Description de la migration"
+```
+
+## Tests
+
+Les tests utilisent également PostgreSQL:
+
+```bash
+# Exécuter tous les tests
+python -m pytest
+
+# Exécuter un test spécifique
+python -m pytest tests/test_enum_adaptation.py -v
+```
+
+## Types d'énumération PostgreSQL
+
+PostgreSQL utilise des types d'énumération stricts qui nécessitent une gestion spéciale.
+Voir `docs/ENUM_COMPATIBILITY.md` pour plus de détails sur la gestion des énumérations.
+
+## Développement
+
+### Installer les dépendances
+
+```bash
+pip install -r requirements.txt
+```
+
+### Lancer le serveur de développement
+
+```bash
+python mathakine_cli.py run
+```

@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.db.base import Base, engine
 from app.api.deps import get_db_session, get_current_user, get_current_gardien_or_archiviste
 from app.core.config import settings
+from app.utils.db_helpers import get_enum_value
 import uuid
 
 # Client pour tester l'API

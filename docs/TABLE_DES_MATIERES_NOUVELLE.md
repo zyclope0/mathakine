@@ -20,6 +20,7 @@
 ## Documentation des fonctionnalités (Features/)
 
 - [Défis logiques](Features/LOGIC_CHALLENGES.md) - Documentation des défis logiques
+- [Système de recommandations](Features/RECOMMENDATIONS_SYSTEM.md) - Les Conseils du Conseil Jedi
 
 ## Documents de référence
 
@@ -49,4 +50,4 @@ Les documents archivés sont organisés par année dans le dossier [ARCHIVE/](AR
 
 ---
 
-*Dernière mise à jour : 15 juin 2025* 
+*Dernière mise à jour : 16 mai 2025* 

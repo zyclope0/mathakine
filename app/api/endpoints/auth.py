@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from typing import Any
 
 from app.api.deps import get_db_session, get_current_user
-from app.schemas.user import UserLogin, Token, User
+from app.schemas.user import UserLogin, Token, User, RefreshTokenRequest, RefreshTokenResponse
 from app.services.auth_service import authenticate_user, create_user_token, refresh_access_token
 from app.core.logging_config import get_logger
 
@@ -39,27 +39,32 @@ def login(
         token_data = create_user_token(user)
         logger.info(f"Connexion réussie pour l'utilisateur: {user.username}")
         return token_data
+    except HTTPException:
+        # Re-lancer les HTTPException sans les modifier (401, 403, etc.)
+        raise
     except Exception as e:
-        logger.error(f"Erreur lors de la connexion: {str(e)}")
+        # Ne transformer en 500 que les vraies erreurs non-HTTP
+        logger.error(f"Erreur interne lors de la connexion: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur lors de la connexion",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-@router.post("/refresh", response_model=Token)
+@router.post("/refresh", response_model=RefreshTokenResponse)
 def refresh_token(
-    refresh_token: str,
+    request: RefreshTokenRequest,
     db: Session = Depends(get_db_session)
 ) -> Any:
     """
     Rafraîchit le token d'accès en utilisant un refresh token valide.
     """
     try:
-        new_token = refresh_access_token(db, refresh_token)
+        new_token = refresh_access_token(db, request.refresh_token)
         return new_token
-    except HTTPException as e:
-        raise e
+    except HTTPException:
+        # Re-lancer les HTTPException sans les modifier (elles ont déjà le bon code de statut)
+        raise
     except Exception as e:
         logger.error(f"Erreur lors du rafraîchissement du token: {str(e)}")
         raise HTTPException(

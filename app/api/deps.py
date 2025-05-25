@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.base import get_db
 from typing import Generator, Optional
 from jose import jwt, JWTError
+from jose.exceptions import ExpiredSignatureError
 from pydantic import ValidationError
 
 from app.models.user import User, UserRole
@@ -50,9 +51,12 @@ def get_current_user(
         HTTPException: Si le token est invalide ou l'utilisateur n'existe pas
     """
     try:
-        # Décoder le token JWT
+        # Décoder le token JWT avec vérification de l'expiration
         payload = jwt.decode(
-            token, SECRET_KEY, algorithms=[SecurityConfig.ALGORITHM]
+            token, 
+            SECRET_KEY, 
+            algorithms=[SecurityConfig.ALGORITHM],
+            options={"verify_exp": True}  # Vérifier explicitement l'expiration
         )
         # Extraire les données du token
         token_data = TokenData(username=payload.get("sub"), role=payload.get("role"))
@@ -61,6 +65,13 @@ def get_current_user(
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token invalide",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except ExpiredSignatureError:
+        logger.warning("Tentative d'accès avec un token expiré")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expiré",
                 headers={"WWW-Authenticate": "Bearer"},
             )
     except (JWTError, ValidationError) as e:
@@ -125,7 +136,7 @@ def get_current_maitre_user(current_user: User = Depends(get_current_user)) -> U
     Raises:
         HTTPException: Si l'utilisateur n'a pas le rôle Maître
     """
-    if current_user.role != UserRole.MAITRE:
+    if current_user.role != UserRole.MAITRE.value:
         logger.warning(f"Tentative d'accès à une fonctionnalité Maître par {current_user.username} (rôle: {current_user.role})")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -146,7 +157,22 @@ def get_current_gardien_or_archiviste(current_user: User = Depends(get_current_u
     Raises:
         HTTPException: Si l'utilisateur n'a pas le rôle Gardien ou Archiviste
     """
-    if current_user.role not in [UserRole.GARDIEN, UserRole.ARCHIVISTE]:
+    # Gérer les objets enum ET les valeurs string
+    user_role = current_user.role
+    if hasattr(user_role, 'value'):
+        user_role_value = user_role.value  # Si c'est un enum, prendre la valeur
+    else:
+        user_role_value = user_role  # Si c'est déjà une string
+    
+    # Vérifier les valeurs Python ET PostgreSQL pour compatibilité
+    valid_roles = [
+        "gardien",      # Valeur Python
+        "GARDIEN",      # Valeur PostgreSQL
+        "archiviste",   # Valeur Python 
+        "ARCHIVISTE"    # Valeur PostgreSQL
+    ]
+    
+    if user_role_value not in valid_roles:
         logger.warning(f"Tentative d'accès à une fonctionnalité administrative par {current_user.username} (rôle: {current_user.role})")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -167,7 +193,7 @@ def get_current_archiviste(current_user: User = Depends(get_current_user)) -> Us
     Raises:
         HTTPException: Si l'utilisateur n'a pas le rôle Archiviste
     """
-    if current_user.role != UserRole.ARCHIVISTE:
+    if current_user.role != UserRole.ARCHIVISTE.value:
         logger.warning(f"Tentative d'accès à une fonctionnalité Archiviste par {current_user.username} (rôle: {current_user.role})")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

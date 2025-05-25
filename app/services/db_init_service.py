@@ -11,6 +11,7 @@ from app.models.user import User, UserRole
 from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
 from app.models.attempt import Attempt
 from app.models.logic_challenge import LogicChallenge, LogicChallengeType, AgeGroup
+from app.utils.db_helpers import get_enum_value
 
 
 
@@ -72,12 +73,12 @@ def create_test_users(db: Session):
         logger.info("Des utilisateurs existent déjà, création ignorée")
         return
 
+    # Maintenant que le modèle utilise des énumérations natives, on peut les utiliser directement
     users = [
         User(
             username="maitre_yoda",
             email="yoda@jedi-temple.sw",
-            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"\
-                ,  # "password"
+            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",  # "password"
             full_name="Maître Yoda",
             role=UserRole.MAITRE,
             grade_level=12,
@@ -86,8 +87,7 @@ def create_test_users(db: Session):
         User(
             username="padawan1",
             email="padawan1@jedi-temple.sw",
-            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"\
-                ,  # "password"
+            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",  # "password"
             full_name="Anakin Skywalker",
             role=UserRole.PADAWAN,
             grade_level=5,
@@ -96,8 +96,7 @@ def create_test_users(db: Session):
         User(
             username="gardien1",
             email="gardien1@jedi-temple.sw",
-            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"\
-                ,  # "password"
+            hashed_password="$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",  # "password"
             full_name="Mace Windu",
             role=UserRole.GARDIEN,
             grade_level=10,
@@ -126,6 +125,7 @@ def create_test_exercises(db: Session):
     # Récupérer l'utilisateur Maître Yoda
     yoda = db.query(User).filter(User.username == "maitre_yoda").first()
 
+    # Maintenant que le modèle utilise des énumérations natives, on peut les utiliser directement
     exercises = [
         Exercise(
             title="Addition simple",
@@ -180,7 +180,7 @@ def create_test_attempts(db: Session):
         logger.info("Des tentatives existent déjà, création ignorée")
         return
 
-    # Récupérer un utilisateur Padawan
+    # Récupérer un utilisateur Padawan avec l'énumération native
     padawan = db.query(User).filter(User.role == UserRole.PADAWAN).first()
 
     if not padawan:
@@ -202,46 +202,42 @@ def create_test_attempts(db: Session):
             exercise_id=exercise.id,
             user_answer=exercise.correct_answer,
             is_correct=True,
-            time_spent=random.randint(5, 30),  # Entre 5 et 30 secondes
-            attempt_number=1,  # Définir explicitement
-            hints_used=0,      # Définir explicitement
-            created_at=datetime.now() - timedelta(days=random.randint(1, 10)),
+            time_spent=random.randint(5, 30),
+            attempt_number=1,
+            hints_used=0,
+            created_at=datetime.now() - timedelta(days=random.randint(0, 10)),
         )
         db.add(successful_attempt)
-
-        # Valider chaque insertion individuellement
-        try:
-            db.flush()
-            logger.info(f"Tentative réussie créée pour l'exercice {exercise.id}")
-        except Exception as e:
-            db.rollback()
-            logger.error(f"Erreur lors de la création de la tentative réussie: {e}")
-            continue  # Passer à l'exercice suivant
+        db.flush()
+        logger.info(f"Tentative réussie créée pour l'exercice {exercise.id}")
 
         # Créer une tentative échouée
-        incorrect_answers = [c for c in exercise.choices if c != exercise.correct_answer]
-        if incorrect_answers:
-            failed_attempt = Attempt(
-                user_id=padawan.id,
-                exercise_id=exercise.id,
-                user_answer=random.choice(incorrect_answers),
-                is_correct=False,
-                time_spent=random.randint(3, 20),  # Entre 3 et 20 secondes
-                attempt_number=2,  # Définir explicitement un numéro différent
-                hints_used=1,      # Définir explicitement
-                created_at=datetime.now() - timedelta(days=random.randint(11, 20)),
-            )
-            db.add(failed_attempt)
+        failed_answer = ""
+        
+        if exercise.choices and len(exercise.choices) > 0:
+            incorrect_choices = [c for c in exercise.choices if c != exercise.correct_answer]
+            if incorrect_choices:
+                failed_answer = random.choice(incorrect_choices)
+        
+        # Si on n'a pas trouvé de mauvaise réponse, on utilise juste un espace
+        if not failed_answer:
+            failed_answer = " "
+            
+        failed_attempt = Attempt(
+            user_id=padawan.id,
+            exercise_id=exercise.id,
+            user_answer=failed_answer,
+            is_correct=False,
+            time_spent=random.randint(2, 15),
+            attempt_number=2,
+            hints_used=1,
+            created_at=datetime.now() - timedelta(days=random.randint(10, 20)),
+        )
+        db.add(failed_attempt)
+        db.flush()
+        logger.info(f"Tentative échouée créée pour l'exercice {exercise.id}")
 
-            # Valider chaque insertion individuellement
-            try:
-                db.flush()
-                logger.info(f"Tentative échouée créée pour l'exercice {exercise.id}")
-            except Exception as e:
-                db.rollback()
-                logger.error(f"Erreur lors de la création de la tentative échouée: {e}")
-
-    logger.info("Tentatives créées avec succès")
+    logger.info(f"Tentatives créées pour {len(exercises)} exercices")
 
 
 
@@ -260,51 +256,36 @@ def create_test_logic_challenges(db: Session):
     # Récupérer l'utilisateur Maître Yoda
     yoda = db.query(User).filter(User.username == "maitre_yoda").first()
 
+    # Maintenant que le modèle utilise des énumérations natives, on peut les utiliser directement
     logic_challenges = [
         LogicChallenge(
-            title="Le chemin du Jedi",
+            title="Séquence de nombres",
             creator_id=yoda.id if yoda else None,
             challenge_type=LogicChallengeType.SEQUENCE,
             age_group=AgeGroup.GROUP_10_12,
-            description="Qui reste dans cette séquence : 1, 4, 9, 16, 25, 36, ?",
-            correct_answer="49",
-            solution_explanation="Ce sont les carrés des nombres entiers : 1², 2²\
-                , 3², 4², 5², 6², 7²",
-            hint_level1="Observe le rapport entre la position et la valeur",
-            hint_level2="Pense aux opérations mathématiques de base",
+            description="Trouvez le prochain nombre dans la séquence",
+            question="Complète la séquence: 2, 4, 6, 8, ...",
+            correct_answer="10",
+            choices=["9", "10", "12", "16"],
+            solution="C'est une séquence de nombres pairs, donc le prochain nombre est 10.",
+            solution_explanation="C'est une séquence de nombres pairs, donc le prochain nombre est 10.",
+            content="Trouvez le prochain nombre dans la séquence: 2, 4, 6, 8, ...",
+            hints=[],
             created_at=datetime.now(),
         ),
         LogicChallenge(
-            title="Les cristaux Kyber",
+            title="Énigme du Sphinx",
             creator_id=yoda.id if yoda else None,
             challenge_type=LogicChallengeType.PUZZLE,
-            age_group=AgeGroup.GROUP_10_12,
-            description="Un maître Jedi a trouvé 3 cristaux Kyber rouges, 4 bleus et 5 verts. "
-                        "Combien de sabres différents peut-il construire s'il doit utiliser exactement un cristal par sabre ?",
-            correct_answer="12",
-            solution_explanation="Le maître peut construire 3 + 4 + 5 = 12 sabres différents\
-                , un pour chaque cristal disponible.",
-            hint_level1="Chaque cristal ne peut être utilisé qu'une seule fois",
-            hint_level2="Compte le nombre total de cristaux",
-            created_at=datetime.now(),
-        ),
-        LogicChallenge(
-            title="Le code d'accès",
-            creator_id=yoda.id if yoda else None,
-            challenge_type=LogicChallengeType.DEDUCTION,
-            age_group=AgeGroup.GROUP_13_15,
-            description="Pour accéder à l'archive Jedi, un code est nécessaire. Tu sais que :\n"
-                        "- C'est un nombre à 3 chiffres\n"
-                        "- Le premier chiffre est le double du dernier\n"
-                        "- La somme des trois chiffres est 13\n"
-                        "Quel est ce code ?",
-            correct_answer="841",
-            solution_explanation="Si on note le code abc, on a a = 2c et a + b + c\
-                = 13. En remplaçant a par 2c, on obtient "
-                        "2c + b + c = 13, donc 3c + b = 13. En testant les valeurs possibles\
-                            , on trouve c = 1, b = 4 et a = 8.",
-            hint_level1="Utilise les équations pour représenter les conditions",
-            hint_level2="Essaie différentes valeurs pour le dernier chiffre",
+            age_group=AgeGroup.ALL_AGES,
+            description="Résoudre l'énigme du Sphinx",
+            question="Je suis grand quand je suis jeune et petit quand je suis vieux. Qui suis-je?",
+            correct_answer="Une bougie",
+            choices=["Un arbre", "Une bougie", "Un homme", "Une montagne"],
+            solution="Une bougie est grande quand elle est neuve et se réduit à mesure qu'elle brûle.",
+            solution_explanation="Une bougie est grande quand elle est neuve et se réduit à mesure qu'elle brûle.",
+            content="Je suis grand quand je suis jeune et petit quand je suis vieux. Qui suis-je?",
+            hints=[],
             created_at=datetime.now(),
         ),
     ]
@@ -318,7 +299,12 @@ def create_test_logic_challenges(db: Session):
 
 def initialize_database():
     """
-    Initialise la base de données et ajoute des données de test.
+    Initialise la base de données avec les tables et les données nécessaires.
     """
-    create_tables()
-    populate_test_data()
+    try:
+        create_tables()
+        populate_test_data()
+        logger.success("Base de données initialisée avec succès")
+    except Exception as e:
+        logger.error(f"Erreur lors de l'initialisation de la base de données: {str(e)}")
+        raise 

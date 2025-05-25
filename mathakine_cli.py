@@ -185,8 +185,8 @@ def cmd_run(args):
         logger.warning("Aucun serveur n'a été lancé. Utilisez --api-only, --ui-only, ou --all pour spécifier quoi lancer.")
         return 1
         
-    logger.info("Appuyez sur Ctrl+C pour arrêter les serveurs")
-    
+        logger.info("Appuyez sur Ctrl+C pour arrêter les serveurs")
+
     try:
         # Attendre que tous les processus se terminent
         for p in processes:
@@ -196,7 +196,7 @@ def cmd_run(args):
         for p in processes:
             p.terminate()
             p.wait()
-    
+
     return 0
 
 

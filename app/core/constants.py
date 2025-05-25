@@ -12,9 +12,11 @@ class ExerciseTypes:
     DIVISION = ExerciseType.DIVISION.value
     FRACTIONS = ExerciseType.FRACTIONS.value
     GEOMETRIE = ExerciseType.GEOMETRIE.value
+    TEXTE = ExerciseType.TEXTE.value
+    MIXTE = ExerciseType.MIXTE.value
     DIVERS = ExerciseType.DIVERS.value
     
-    ALL_TYPES = [ADDITION, SUBTRACTION, MULTIPLICATION, DIVISION, FRACTIONS, GEOMETRIE, DIVERS]
+    ALL_TYPES = [ADDITION, SUBTRACTION, MULTIPLICATION, DIVISION, FRACTIONS, GEOMETRIE, TEXTE, MIXTE, DIVERS]
     
     # Mapping pour la normalisation des types
     TYPE_ALIASES = {
@@ -24,6 +26,8 @@ class ExerciseTypes:
         DIVISION: [DIVISION, "divide", "div", "/", "÷"],
         FRACTIONS: [FRACTIONS, "fraction", "frac"],
         GEOMETRIE: [GEOMETRIE, "geometry", "geo"],
+        TEXTE: [TEXTE, "text", "texte", "question"],
+        MIXTE: [MIXTE, "mixed", "mixte", "combiné", "combine"],
         DIVERS: [DIVERS, "misc", "divers", "other"]
     }
 
@@ -44,6 +48,27 @@ class DifficultyLevels:
         MAITRE: [MAITRE, "maître", "expert", "très difficile", "tres difficile"]
     }
 
+# Rôles d'utilisateurs
+class UserRoles:
+    PADAWAN = "padawan"
+    CHEVALIER = "chevalier"
+    MAITRE = "maitre"
+    GARDIEN = "gardien"
+    ARCHIVISTE = "archiviste"
+    ADMIN = "admin"
+    
+    ALL_ROLES = [PADAWAN, CHEVALIER, MAITRE, GARDIEN, ARCHIVISTE, ADMIN]
+    
+    # Mapping des permissions par rôle (hiérarchique)
+    ROLE_PERMISSIONS = {
+        PADAWAN: ["view_own"],
+        CHEVALIER: ["view_own", "create_exercises"],
+        MAITRE: ["view_own", "create_exercises", "modify_own"],
+        GARDIEN: ["view_own", "view_all", "create_exercises", "modify_own", "modify_all"],
+        ARCHIVISTE: ["view_own", "view_all", "create_exercises", "modify_own", "modify_all", "delete"],
+        ADMIN: ["view_own", "view_all", "create_exercises", "modify_own", "modify_all", "delete", "admin"]
+    }
+
 # Noms d'affichage pour les types et niveaux
 DISPLAY_NAMES = {
     # Types d'exercices
@@ -53,6 +78,8 @@ DISPLAY_NAMES = {
     ExerciseTypes.DIVISION: "Division",
     ExerciseTypes.FRACTIONS: "Fractions",
     ExerciseTypes.GEOMETRIE: "Géométrie",
+    ExerciseTypes.TEXTE: "Question textuelle",
+    ExerciseTypes.MIXTE: "Exercice mixte",
     ExerciseTypes.DIVERS: "Divers",
     
     # Niveaux de difficulté
@@ -69,6 +96,7 @@ DIFFICULTY_LIMITS = {
         ExerciseTypes.SUBTRACTION: {"min1": 5, "max1": 20, "min2": 1, "max2": 5},
         ExerciseTypes.MULTIPLICATION: {"min": 1, "max": 5},
         ExerciseTypes.DIVISION: {"min_divisor": 2, "max_divisor": 5, "min_result": 1, "max_result": 5},
+        ExerciseTypes.MIXTE: {"min": 1, "max": 10, "operations": 2},
         "default": {"min": 1, "max": 10}
     },
     DifficultyLevels.PADAWAN: {
@@ -76,6 +104,7 @@ DIFFICULTY_LIMITS = {
         ExerciseTypes.SUBTRACTION: {"min1": 20, "max1": 70, "min2": 10, "max2": 20},
         ExerciseTypes.MULTIPLICATION: {"min": 5, "max": 10},
         ExerciseTypes.DIVISION: {"min_divisor": 2, "max_divisor": 10, "min_result": 5, "max_result": 10},
+        ExerciseTypes.MIXTE: {"min": 5, "max": 20, "operations": 2},
         "default": {"min": 10, "max": 50}
     },
     DifficultyLevels.CHEVALIER: {
@@ -83,6 +112,7 @@ DIFFICULTY_LIMITS = {
         ExerciseTypes.SUBTRACTION: {"min1": 100, "max1": 250, "min2": 50, "max2": 100},
         ExerciseTypes.MULTIPLICATION: {"min": 10, "max": 20},
         ExerciseTypes.DIVISION: {"min_divisor": 5, "max_divisor": 15, "min_result": 8, "max_result": 20},
+        ExerciseTypes.MIXTE: {"min": 10, "max": 50, "operations": 3},
         "default": {"min": 50, "max": 200}
     },
     DifficultyLevels.MAITRE: {
@@ -90,6 +120,7 @@ DIFFICULTY_LIMITS = {
         ExerciseTypes.SUBTRACTION: {"min1": 250, "max1": 1000, "min2": 100, "max2": 500},
         ExerciseTypes.MULTIPLICATION: {"min": 20, "max": 50},
         ExerciseTypes.DIVISION: {"min_divisor": 10, "max_divisor": 30, "min_result": 10, "max_result": 50},
+        ExerciseTypes.MIXTE: {"min": 20, "max": 100, "operations": 4},
         "default": {"min": 200, "max": 1000}
     }
 }

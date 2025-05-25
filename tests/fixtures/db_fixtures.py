@@ -1,147 +1,54 @@
 """
-Fixtures pour les sessions de base de données à utiliser dans les tests.
-Ce module fournit des sessions de base de données préconfigurées,
-facilitant les tests avec SQLite ou PostgreSQL.
+Fixtures de base de données pour les tests,
+facilitant les tests avec PostgreSQL.
 """
-import pytest
 import os
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import NullPool
-
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from app.db.base import Base
-from app.models.user import User, UserRole
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
-from app.models.attempt import Attempt
-from app.models.logic_challenge import LogicChallenge, LogicChallengeType, AgeGroup
-from app.services.db_init_service import create_test_users, create_test_exercises
+from app.core.config import settings
+from app.utils.db_helpers import get_enum_value
 
-
-
-
-def get_database_url():
-    """Récupère l'URL de la base de données depuis l'environnement ou utilise SQLite par défaut."""
-    return os.environ.get("TEST_DATABASE_URL", "sqlite:///./test.db")
-
+def get_test_database_url():
+    """Récupère l'URL de la base de données depuis l'environnement ou utilise PostgreSQL par défaut."""
+    return settings.TEST_DATABASE_URL
 
 @pytest.fixture(scope="session")
+def test_database_url():
+    """Fixture qui fournit l'URL de la base de données de test."""
+    return get_test_database_url()
 
-
-def db_engine():
-    """Crée un moteur de base de données pour les tests."""
-    database_url = get_database_url()
-
-    # Créer le moteur avec NullPool pour éviter les problèmes de connexions persistantes
+@pytest.fixture(scope="session")
+def test_engine(test_database_url):
+    """Crée le moteur de base de données pour les tests."""
     engine = create_engine(
-        database_url,
-        poolclass=NullPool,
-        connect_args={"check_same_thread": False} if database_url.startswith("sqlite") else {}
+        test_database_url,
+        # PostgreSQL ne nécessite pas de configuration spéciale pour le threading
+        pool_pre_ping=True,
+        echo=False  # Mettre à True pour voir les requêtes SQL
     )
+    return engine
 
-    # Créer toutes les tables
-    Base.metadata.create_all(bind=engine)
-
-    yield engine
-
-    # Nettoyer après les tests
-    if database_url.startswith("sqlite"):
-        Base.metadata.drop_all(bind=engine)
-
+@pytest.fixture(scope="session")
+def create_test_tables(test_engine):
+    """Crée les tables de test."""
+    # PostgreSQL utilise des schémas avancés
+    Base.metadata.create_all(bind=test_engine)
+    yield
+    Base.metadata.drop_all(bind=test_engine)
 
 @pytest.fixture
-
-
-def db_session(db_engine):
-    """Fournit une session de base de données pour les tests."""
-    # Créer une session
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
+def test_session(test_engine, create_test_tables):
+    """Crée une session de test avec rollback automatique."""
+    connection = test_engine.connect()
+    transaction = connection.begin()
+    
+    SessionLocal = sessionmaker(bind=connection)
     session = SessionLocal()
-
-    try:
-        yield session
-    finally:
-        session.rollback()  # Annuler les modifications non validées
-        session.close()
-
-
-@pytest.fixture
-
-
-def empty_db_session(db_engine):
-    """Fournit une session de base de données vide."""
-    # Créer une session
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
-    session = SessionLocal()
-
-    try:
-        # Supprimer toutes les données existantes
-        tables = Base.metadata.tables.keys()
-        for table in reversed(list(tables)):
-            session.execute(text(f"DELETE FROM {table}"))
-        session.commit()
-
-        yield session
-    finally:
-        session.rollback()
-        session.close()
-
-
-@pytest.fixture
-
-
-def populated_db_session(db_engine):
-    """Fournit une session de base de données préremplie avec des données de test."""
-    # Créer une session
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
-    session = SessionLocal()
-
-    try:
-        # Supprimer toutes les données existantes
-        tables = Base.metadata.tables.keys()
-        for table in reversed(list(tables)):
-            session.execute(text(f"DELETE FROM {table}"))
-        session.commit()
-
-        # Créer des données de test
-        create_test_users(session)
-        create_test_exercises(session)
-
-        # Valider les modifications
-        session.commit()
-
-        yield session
-    finally:
-        session.rollback()
-        session.close()
-
-
-@pytest.fixture
-
-
-def has_tables(db_engine):
-    """Vérifie quelles tables existent dans la base de données."""
-    inspector = db_engine.dialect.inspector
-    existing_tables = inspector.get_table_names()
-
-    table_exists = {
-        "users": "users" in existing_tables,
-        "exercises": "exercises" in existing_tables,
-        "attempts": "attempts" in existing_tables,
-        "logic_challenges": "logic_challenges" in existing_tables
-    }
-
-    return table_exists
-
-
-@pytest.fixture
-
-
-def valid_values():
-    """Retourne les valeurs valides pour les champs énumérés."""
-    return {
-        "roles": [role.value.lower() for role in UserRole],
-        "exercise_types": [e_type.value.lower() for e_type in ExerciseType],
-        "difficulties": [level.value.lower() for level in DifficultyLevel],
-        "challenge_types": [c_type.value.lower() for c_type in LogicChallengeType],
-        "age_groups": [group.value.lower() for group in AgeGroup]
-    }
+    
+    yield session
+    
+    session.close()
+    transaction.rollback()
+    connection.close()

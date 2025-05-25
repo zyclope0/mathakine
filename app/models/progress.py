@@ -28,6 +28,11 @@ class Progress(Base):
     streak = Column(Integer, default=0)                # Série actuelle d'exercices réussis
     highest_streak = Column(Integer, default=0)        # Meilleure série
 
+    # Métriques pédagogiques avancées
+    concept_mastery = Column(JSON, nullable=True)       # Maîtrise fine des concepts mathématiques
+    learning_curve = Column(JSON, nullable=True)        # Courbe d'apprentissage en JSON
+    last_active_date = Column(DateTime(timezone=True), nullable=True)  # Dernière session active
+    
     # Niveau de maîtrise (compatible avec le thème Star Wars)
     # 1: Novice, 2: Initié, 3: Padawan, 4: Chevalier, 5: Maître
     mastery_level = Column(Integer, default=1)

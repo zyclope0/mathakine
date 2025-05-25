@@ -242,6 +242,8 @@ async def dashboard(request: Request):
     
     if not current_user["is_authenticated"]:
         return RedirectResponse(url="/login", status_code=302)
+    
+    print(f"Accès au tableau de bord pour l'utilisateur: {current_user.get('username')}")
         
     try:
         # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
@@ -252,6 +254,7 @@ async def dashboard(request: Request):
             from app.services.auth_service import get_user_by_username
             user = get_user_by_username(db, current_user["username"])
             if not user:
+                print(f"Utilisateur {current_user['username']} non trouvé dans la base de données")
                 return render_error(
                     request=request,
                     error="Utilisateur non trouvé",
@@ -259,26 +262,42 @@ async def dashboard(request: Request):
                     status_code=404
                 )
             
-            # Utiliser l'adaptateur pour récupérer les statistiques utilisateur avec le bon ID
-            stats = EnhancedServerAdapter.get_user_stats(db, user.id)
+            print(f"Utilisateur trouvé avec ID={user.id}, récupération des statistiques")
             
-            if not stats:
-                print("Aucune statistique trouvée, utilisation de valeurs par défaut")
-                stats = {
-                    "total_attempts": 0,
-                    "correct_attempts": 0,
-                    "success_rate": 0,
-                    "by_exercise_type": {}
-                }
+            # Préparer les données par défaut au cas où la récupération échoue
+            stats = {
+                "total_attempts": 0,
+                "correct_attempts": 0,
+                "success_rate": 0,
+                "by_exercise_type": {}
+            }
+            
+            # Utiliser l'adaptateur pour récupérer les statistiques utilisateur avec le bon ID
+            try:
+                user_stats = EnhancedServerAdapter.get_user_stats(db, user.id)
+                if user_stats:
+                    stats = user_stats
+                    print(f"Statistiques récupérées avec succès")
+                else:
+                    print("Aucune statistique trouvée pour l'utilisateur")
+            except Exception as stats_error:
+                print(f"Erreur lors de la récupération des statistiques: {str(stats_error)}")
+                traceback.print_exc()
+                # Continuer avec les statistiques par défaut
                 
             # Préparer les données pour le rendu
             total_completed = stats.get("total_attempts", 0)
             correct_answers = stats.get("correct_attempts", 0)
             success_rate = stats.get("success_rate", 0)
             
-            # Performance par type d'exercice
+            # Performance par type d'exercice (avec gestion des cas où by_exercise_type n'existe pas)
             performance_by_type = {}
-            for exercise_type, type_stats in stats.get("by_exercise_type", {}).items():
+            by_exercise_type = stats.get("by_exercise_type", {})
+            if not isinstance(by_exercise_type, dict):
+                by_exercise_type = {}
+            
+            for exercise_type, type_stats in by_exercise_type.items():
+                # Mapping des noms de types d'exercice
                 type_fr = {
                     ExerciseTypes.ADDITION: "Addition",
                     ExerciseTypes.SUBTRACTION: "Soustraction",
@@ -292,15 +311,24 @@ async def dashboard(request: Request):
                     "correct": type_stats.get("correct", 0),
                     "success_rate": type_stats.get("success_rate", 0)
                 }
-                
+            
+            # Ajouter des types d'exercice vides si nécessaire
+            for type_key, type_name in type_fr.items():
+                if type_name not in performance_by_type:
+                    performance_by_type[type_name] = {
+                        "total": 0,
+                        "correct": 0,
+                        "success_rate": 0
+                    }
+            
             # Récupérer les exercices récents (simulation)
             recent_results = []
             
             # Préparer les données pour les graphiques
             chart_data = {
                 "performance": {
-                    "labels": list(performance_by_type.keys()),
-                    "values": [stats["success_rate"] for stats in performance_by_type.values()]
+                    "labels": list(performance_by_type.keys()) or ["Aucune donnée"],
+                    "values": [stats.get("success_rate", 0) for stats in performance_by_type.values()] or [0]
                 },
                 "activity": {
                     "labels": ["Jour 1", "Jour 2", "Jour 3", "Jour 4", "Jour 5", "Jour 6", "Jour 7"],
@@ -309,38 +337,54 @@ async def dashboard(request: Request):
             }
             
             # Récupérer les recommandations personnalisées
-            from app.services.recommendation_service import RecommendationService
-            recommendations = RecommendationService.get_user_recommendations(db, user.id, limit=3)
-            
-            # Si aucune recommandation n'existe, générer de nouvelles recommandations
-            if not recommendations:
-                RecommendationService.generate_recommendations(db, user.id)
-                recommendations = RecommendationService.get_user_recommendations(db, user.id, limit=3)
-            
-            # Préparer les données de recommandation pour le template
             recommendations_data = []
-            for rec in recommendations:
-                # Marquer comme affichée
-                RecommendationService.mark_recommendation_as_shown(db, rec.id)
+            try:
+                from app.services.recommendation_service import RecommendationService
+                print("Récupération des recommandations...")
+                recommendations = RecommendationService.get_user_recommendations(db, user.id, limit=3)
                 
-                rec_data = {
-                    "id": rec.id,
-                    "exercise_type": rec.exercise_type,
-                    "difficulty": rec.difficulty,
-                    "priority": rec.priority,
-                    "reason": rec.reason,
-                    "exercise_id": rec.exercise_id
-                }
+                # Si aucune recommandation n'existe, générer de nouvelles recommandations
+                if not recommendations:
+                    print("Aucune recommandation trouvée, génération de nouvelles recommandations...")
+                    try:
+                        RecommendationService.generate_recommendations(db, user.id)
+                        recommendations = RecommendationService.get_user_recommendations(db, user.id, limit=3)
+                    except Exception as gen_error:
+                        print(f"Erreur lors de la génération des recommandations: {str(gen_error)}")
+                        traceback.print_exc()
+                        recommendations = []
                 
-                # Ajouter les informations de l'exercice si présent
-                if rec.exercise_id:
-                    from app.models.exercise import Exercise
-                    exercise = db.query(Exercise).filter(Exercise.id == rec.exercise_id).first()
-                    if exercise:
-                        rec_data["exercise_title"] = exercise.title
-                        rec_data["exercise_question"] = exercise.question
-                
-                recommendations_data.append(rec_data)
+                # Préparer les données de recommandation pour le template
+                for rec in recommendations:
+                    # Marquer comme affichée (avec gestion d'erreur)
+                    try:
+                        RecommendationService.mark_recommendation_as_shown(db, rec.id)
+                    except Exception as mark_error:
+                        print(f"Erreur lors du marquage de la recommandation comme affichée: {str(mark_error)}")
+                        # Continuer même en cas d'erreur
+                    
+                    rec_data = {
+                        "id": rec.id,
+                        "exercise_type": rec.exercise_type,
+                        "difficulty": rec.difficulty,
+                        "priority": rec.priority,
+                        "reason": rec.reason,
+                        "exercise_id": rec.exercise_id
+                    }
+                    
+                    # Ajouter les informations de l'exercice si présent
+                    if rec.exercise_id:
+                        from app.models.exercise import Exercise
+                        exercise = db.query(Exercise).filter(Exercise.id == rec.exercise_id).first()
+                        if exercise:
+                            rec_data["exercise_title"] = exercise.title
+                            rec_data["exercise_question"] = exercise.question
+                    
+                    recommendations_data.append(rec_data)
+            except Exception as rec_error:
+                print(f"Erreur lors de la récupération des recommandations: {str(rec_error)}")
+                traceback.print_exc()
+                # Continuer sans recommandations
             
         finally:
             EnhancedServerAdapter.close_db_session(db)
@@ -357,7 +401,20 @@ async def dashboard(request: Request):
             "recommendations": recommendations_data  # Ajouter les recommandations au contexte
         }
         
-        return render_template("dashboard.html", request, context)
+        print("Tentative de rendu du template dashboard.html")
+        try:
+            return render_template("dashboard.html", request, context)
+        except Exception as template_error:
+            print(f"Erreur de rendu du template dashboard.html: {str(template_error)}")
+            traceback.print_exc()
+            
+            # En cas d'erreur, afficher une page d'erreur
+            return render_error(
+                request=request,
+                error="Erreur d'affichage du tableau de bord",
+                message="Une erreur est survenue lors de l'affichage du tableau de bord. L'équipe technique a été informée.",
+                status_code=500
+            )
         
     except Exception as e:
         print(f"Erreur lors de la génération du tableau de bord: {e}")
@@ -379,6 +436,7 @@ async def exercise_detail_page(request: Request):
         return RedirectResponse(url="/login", status_code=302)
     
     exercise_id = request.path_params["exercise_id"]
+    print(f"Tentative d'accès à l'exercice ID={exercise_id}")
     
     try:
         # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
@@ -389,12 +447,37 @@ async def exercise_detail_page(request: Request):
             exercise = EnhancedServerAdapter.get_exercise_by_id(db, exercise_id)
             
             if not exercise:
+                print(f"Exercice ID={exercise_id} non trouvé dans la base de données")
                 return render_error(
                     request=request,
                     error="Exercice non trouvé",
                     message=f"L'exercice avec l'ID {exercise_id} n'existe pas ou a été supprimé.",
                     status_code=404
                 )
+            
+            print(f"Exercice trouvé: {exercise.get('title')}")
+            
+            # S'assurer que l'exercice a des choix valides
+            if not exercise.get('choices'):
+                # Générer des choix aléatoires si non présents
+                import random
+                correct = exercise.get('correct_answer')
+                # Générer quelques valeurs autour de la réponse correcte
+                try:
+                    correct_int = int(correct)
+                    choices = [str(correct_int + random.randint(-10, 10)) for _ in range(3)]
+                    choices.append(correct)
+                    # Shuffle et s'assurer que la réponse correcte est dedans
+                    random.shuffle(choices)
+                    if correct not in choices:
+                        choices[0] = correct
+                except (ValueError, TypeError):
+                    # Si la réponse n'est pas un nombre, créer des choix de base
+                    choices = [correct, "Option A", "Option B", "Option C"]
+                    random.shuffle(choices)
+                
+                exercise['choices'] = choices
+                print(f"Choix générés pour l'exercice: {choices}")
                 
         finally:
             EnhancedServerAdapter.close_db_session(db)
@@ -403,12 +486,49 @@ async def exercise_detail_page(request: Request):
         exercise_type_display = DISPLAY_NAMES
         difficulty_display = DISPLAY_NAMES
         
-        return render_template("exercise_detail.html", request, {
-            "exercise": exercise,
-            "exercise_type_display": exercise_type_display,
-            "difficulty_display": difficulty_display,
-            "current_user": current_user
-        })
+        print(f"Tentative de rendu du template avec l'exercice ID={exercise_id}")
+        try:
+            return render_template("exercise_detail.html", request, {
+                "exercise": exercise,
+                "exercise_type_display": exercise_type_display,
+                "difficulty_display": difficulty_display,
+                "current_user": current_user
+            })
+        except Exception as template_error:
+            print(f"Erreur de rendu du template exercise_detail.html: {str(template_error)}")
+            traceback.print_exc()
+            
+            # Si le template exercise_detail.html pose problème, essayer avec exercise.html
+            print("Tentative avec le template exercise.html...")
+            try:
+                return render_template("exercise.html", request, {
+                    "exercise": exercise,
+                    "exercise_type_display": exercise_type_display,
+                    "difficulty_display": difficulty_display,
+                    "current_user": current_user
+                })
+            except Exception as template_error2:
+                print(f"Erreur également avec exercise.html: {str(template_error2)}")
+                traceback.print_exc()
+                
+                # Si les deux templates échouent, essayer exercise_simple.html comme dernier recours
+                try:
+                    return render_template("exercise_simple.html", request, {
+                        "exercise": exercise,
+                        "exercise_type_display": exercise_type_display,
+                        "difficulty_display": difficulty_display,
+                        "current_user": current_user
+                    })
+                except Exception as template_error3:
+                    print(f"Erreur avec tous les templates: {str(template_error3)}")
+                    
+                    # En dernier recours, afficher une page d'erreur
+                    return render_error(
+                        request=request,
+                        error="Erreur d'affichage de l'exercice",
+                        message="Une erreur est survenue lors de l'affichage de l'exercice. L'équipe technique a été informée.",
+                        status_code=500
+                    )
         
     except Exception as e:
         print(f"Exception lors de la récupération de l'exercice {exercise_id}: {str(e)}")
@@ -450,4 +570,11 @@ def normalize_difficulty(difficulty):
             return level_key
             
     # Si aucune correspondance trouvée, retourner la difficulté telle quelle
-    return difficulty 
+    return difficulty
+
+# Fonction de redirection pour les anciennes URLs d'exercices
+async def redirect_old_exercise_url(request: Request):
+    """Redirige de /exercises/{id} vers /exercise/{id}"""
+    exercise_id = request.path_params["exercise_id"]
+    print(f"Redirection de /exercises/{exercise_id} vers /exercise/{exercise_id}")
+    return RedirectResponse(url=f"/exercise/{exercise_id}", status_code=301) 

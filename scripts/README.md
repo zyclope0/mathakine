@@ -1,63 +1,117 @@
-# Scripts de Mathakine Backend
+# Scripts de Correction et Maintenance
 
-Ce répertoire contient tous les scripts utilitaires pour installer, configurer, exécuter et tester l'application Mathakine.
+Ce dossier contient plusieurs scripts utilitaires pour corriger des problèmes courants et maintenir la compatibilité du code dans le projet Mathakine.
 
-## Structure des répertoires
+## Scripts unifiés
 
-- **`/scripts/`** - Scripts d'installation, de configuration, de lancement serveur, etc.
-- **`/scripts/utils/`** - Scripts utilitaires divers (gestion d'environnement, encodage, etc.)
+### `fix_all_issues.py` (recommandé)
 
-## Points d'entrée principaux
+Script tout-en-un qui combine les fonctionnalités de plusieurs scripts de correction.
 
-Depuis la racine du projet :
+```bash
+# Exécuter toutes les corrections
+python scripts/fix_all_issues.py
 
-- **`scripts/scripts.bat`** - Menu principal en mode batch (CMD)
-- **`../Scripts-Menu.ps1`** - Menu principal en PowerShell
+# Mode simulation (n'applique pas les modifications)
+python scripts/fix_all_issues.py --dry-run
 
-## Scripts de configuration
+# Mode verbose 
+python scripts/fix_all_issues.py --verbose
 
-- **`scripts/config_menu.bat`** - Menu de configuration en mode batch
-- **`scripts/Config-Menu.ps1`** - Menu de configuration en PowerShell
+# Uniquement les tests
+python scripts/fix_all_issues.py --tests-only
 
-## Gestion des environnements
+# Corriger seulement les énumérations
+python scripts/fix_all_issues.py --enum
 
-Les variables d'environnement sont gérées avec :
+# Corriger seulement les méthodes Pydantic
+python scripts/fix_all_issues.py --pydantic
 
-- **`scripts/utils/env_manager.bat`** - Gestionnaire d'environnement en batch
-- **`scripts/utils/env_manager.ps1`** - Gestionnaire d'environnement en PowerShell
+# Corriger seulement les méthodes Response
+python scripts/fix_all_issues.py --response
 
-## Profils disponibles
-
-Le système supporte trois profils d'environnement :
-
-- **`dev`** - Environnement de développement
-- **`test`** - Environnement de test
-- **`prod`** - Environnement de production
-
-## Documentation supplémentaire
-
-- **`scripts/utils/README_ENV.md`** - Documentation du système d'environnement
-- **`scripts/utils/README_POWERSHELL.md`** - Guide de syntaxe PowerShell vs Batch
-- **`scripts/utils/ENCODING_GUIDE.md`** - Guide sur la gestion des encodages
-
-## Exemples d'utilisation
-
-### Installation complète
-```
-scripts/setup.bat
+# Traiter un fichier spécifique
+python scripts/fix_all_issues.py --file app/models/user.py
 ```
 
-### Démarrer le serveur
-```
-scripts/start_render.sh
+## Scripts spécialisés
+
+### 1. Correction des énumérations
+
+#### `fix_enum_names.py`
+Corrige les noms d'énumérations incorrects comme `UserRole.PADAWA` → `UserRole.PADAWAN`.
+
+```bash
+python scripts/fix_enum_names.py [--dry-run] [--verbose] [--tests-only]
 ```
 
-### Exécuter les tests
-```
-scripts/tests/run_tests.bat
+#### `fix_malformed_enums.py`
+Corrige les énumérations malformées comme `UserRole.PADAWA.value` → `UserRole.PADAWAN.value`.
+
+```bash
+python scripts/fix_malformed_enums.py [--dry-run] [--verbose] [--tests-only]
 ```
 
-### Configurer l'environnement
+### 2. Corrections liées à Pydantic v2
+
+#### `fix_pydantic_methods.py`
+Remplace les méthodes obsolètes de Pydantic v1 par leurs équivalents v2 :
+- `.json()` → `.model_dump_json()`
+- `.dict()` → `.model_dump()`
+- `.parse_obj()` → `.model_validate()`
+
+```bash
+python scripts/fix_pydantic_methods.py [--dry-run] [--verbose] [--tests-only]
 ```
-scripts/config_menu.bat
-``` 
+
+### 3. Corrections pour les objets Response
+
+#### `fix_response_methods.py`
+Remplace les appels incorrects comme `response.model_dump_json()` par `response.json()` sur les objets Response FastAPI.
+
+```bash
+python scripts/fix_response_methods.py [--dry-run] [--verbose]
+```
+
+### 4. Vérification de compatibilité
+
+#### `check_compatibility.py`
+Script complet qui vérifie plusieurs aspects de compatibilité et peut appliquer des corrections.
+
+```bash
+# Vérifier sans corriger
+python scripts/check_compatibility.py
+
+# Corriger les problèmes liés aux énumérations
+python scripts/check_compatibility.py --fix-enums
+
+# Corriger les problèmes liés à Pydantic v2
+python scripts/check_compatibility.py --fix-pydantic
+
+# Mode verbeux
+python scripts/check_compatibility.py --verbose
+```
+
+## Procédure recommandée
+
+Pour une approche systématique, suivez cette procédure :
+
+1. **Vérification initiale** : Exécutez d'abord en mode simulation pour voir les problèmes
+   ```bash
+   python scripts/fix_all_issues.py --dry-run --verbose
+   ```
+
+2. **Correction** : Appliquez les corrections en fonction des résultats
+   ```bash
+   python scripts/fix_all_issues.py
+   ```
+
+3. **Vérification finale** : Exécutez à nouveau pour vous assurer que tous les problèmes ont été résolus
+   ```bash
+   python scripts/fix_all_issues.py --dry-run
+   ```
+
+4. **Tests** : Exécutez les tests pour confirmer que les corrections n'ont pas introduit de régressions
+   ```bash
+   python -m pytest tests/
+   ``` 

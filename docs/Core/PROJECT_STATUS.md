@@ -20,7 +20,8 @@ Mathakine est une application éducative conçue pour les enfants autistes, perm
 | **Système de progression** | ⚠️ PARTIELLEMENT | Structure avancée avec niveaux de maîtrise |
 | **Mode adaptatif** | ⚠️ EN COURS | Conception architecturale et début d'implémentation |
 | **Migration PostgreSQL** | ✅ TERMINÉ | Support complet pour SQLite (dev) et PostgreSQL (prod) |
-| **Authentification** | ⚠️ NON IMPLÉMENTÉ | Modèles et endpoints définis mais implémentation réelle manquante |
+| **Authentification** | ✅ PARTIELLEMENT TERMINÉ | Système JWT implémenté et fonctionnel, permissions en cours |
+| **Système de recommandations** | ✅ TERMINÉ | Modèle de recommandations personnalisées implémenté |
 | **Tests automatisés** | ⚠️ PARTIELLEMENT | Tests unitaires et d'intégration présents, mais incomplets |
 | **Documentation** | ✅ TERMINÉ | Documentation exhaustive dans le dossier docs/ |
 | **Compatibilité Python 3.13** | ✅ TERMINÉ | Support complet pour les dernières versions de Python |
@@ -217,7 +218,10 @@ Mathakine est une application éducative conçue pour les enfants autistes, perm
 - ✅ Protection contre les attaques par force brute
 - ✅ Validation Pydantic renforcée
 - ✅ Configuration RGPD
-- ⚠️ Système de rôles et permissions en cours
+- ✅ Système d'authentification fonctionnel avec cookies HTTP-only
+- ✅ Contrôle d'accès sur les routes sensibles
+- ✅ Gestion correcte des tokens d'authentification et de rafraîchissement
+- ⚠️ Système de rôles et permissions avancé en cours
 
 ### 3. Optimisation du Code
 - ✅ Nettoyage des fichiers temporaires et obsolètes
@@ -265,6 +269,20 @@ Mathakine est une application éducative conçue pour les enfants autistes, perm
    - Configuration unifiée dans app/core/logging_config.py
    - Rotation automatique des logs
    - Niveaux de logs différenciés pour faciliter le débogage
+
+6. **Système de recommandations personnalisées**
+   - Implémentation du modèle Recommendation dans le schéma de données
+   - Création des relations avec les utilisateurs et exercices
+   - API pour générer et consulter les recommandations personnalisées
+   - Intégration des recommandations dans le tableau de bord utilisateur
+   - Interface visuelle pour présenter les recommandations dans le style "Conseils du Conseil Jedi"
+
+7. **Correction du système d'authentification**
+   - Sécurisation de l'accès aux pages d'exercices et leurs détails
+   - Mise à jour de la fonction de déconnexion pour gérer les cookies actuels
+   - Vérification systématique de l'authentification pour les routes sensibles
+   - Résolution des problèmes d'intégrité référentielle liés au modèle de recommandation
+   - Amélioration de la sécurité générale de l'application
 
 ## NOUVEAUX TYPES D'EXERCICES
 

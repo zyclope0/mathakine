@@ -1,3 +1,4 @@
+import json
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
@@ -7,12 +8,13 @@ from app.api.deps import get_current_user, get_db_session, get_current_gardien_o
 from sqlalchemy.orm import Session
 from app.models.exercise import Exercise
 from app.models.attempt import Attempt
+from app.utils.db_helpers import get_enum_value
 import uuid
 
 client = TestClient(app)
 
 @pytest.fixture
-def test_authenticated_user():
+def test_authenticated_user(db_session):
     """
     Crée un utilisateur de test authentifié pour les tests qui nécessitent l'authentification.
     Override la dépendance get_current_user pour simuler un utilisateur authentifié.
@@ -23,7 +25,7 @@ def test_authenticated_user():
         username="test_padawan",
         email="test_padawan@example.com",
         hashed_password="hashed_password",
-        role=UserRole.PADAWAN
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
     )
     
     # Override la dépendance pour simuler un utilisateur authentifié
@@ -45,18 +47,30 @@ def test_authenticated_user():
     else:
         del app.dependency_overrides[get_current_user]
 
-def test_get_exercises():
+def test_get_exercises(test_authenticated_user):
     """Test de l'endpoint pour récupérer tous les exercices"""
-    response = client.get("/api/exercises/")
-    assert response.status_code == 200
-    data = response.json()
-    assert "exercises" in data
-    assert isinstance(data["exercises"], list)
-    assert "total" in data
-    assert "limit" in data
-    assert "skip" in data
-
-
+    # Override la dépendance pour l'authentification
+    def mock_auth():
+        return test_authenticated_user
+    
+    original_override = app.dependency_overrides.get(get_current_user)
+    app.dependency_overrides[get_current_user] = mock_auth
+    
+    try:
+        response = client.get("/api/exercises/")
+        assert response.status_code == 200
+        data = response.json()
+        assert "exercises" in data
+        assert isinstance(data["exercises"], list)
+        assert "total" in data
+        assert "limit" in data
+        assert "skip" in data
+    finally:
+        # Nettoyer l'override
+        if original_override:
+            app.dependency_overrides[get_current_user] = original_override
+        else:
+            app.dependency_overrides.pop(get_current_user, None)
 
 def test_get_exercise_types():
     """Test de l'endpoint pour récupérer tous les types d'exercices"""
@@ -78,7 +92,7 @@ def test_get_difficulty_levels():
 
 
 
-def test_create_exercise():
+def test_create_exercise(test_authenticated_user):
     """Test de l'endpoint pour créer un exercice"""
     exercise_data = {
         "title": "Test Exercise",
@@ -93,6 +107,14 @@ def test_create_exercise():
         "is_archived": False,
         "view_count": 0
     }
+    
+    # Override la dépendance pour l'authentification
+    def mock_auth():
+        return test_authenticated_user
+    
+    original_override = app.dependency_overrides.get(get_current_user)
+    app.dependency_overrides[get_current_user] = mock_auth
+    
     try:
         response = client.post("/api/exercises/", json=exercise_data)
         assert response.status_code == 200
@@ -105,13 +127,31 @@ def test_create_exercise():
         # Il est possible que ce test échoue en raison du middleware qui capture les erreurs
         # Ce n'est pas grave pour nos tests actuels
         pass
+    finally:
+        # Nettoyer l'override
+        if original_override:
+            app.dependency_overrides[get_current_user] = original_override
+        else:
+            app.dependency_overrides.pop(get_current_user, None)
 
-
-
-def test_get_nonexistent_exercise():
+def test_get_nonexistent_exercise(test_authenticated_user):
     """Test de l'endpoint pour récupérer un exercice inexistant"""
-    response = client.get("/api/exercises/0")
-    assert response.status_code == 404
+    # Override la dépendance pour l'authentification
+    def mock_auth():
+        return test_authenticated_user
+    
+    original_override = app.dependency_overrides.get(get_current_user)
+    app.dependency_overrides[get_current_user] = mock_auth
+    
+    try:
+        response = client.get("/api/exercises/0")
+        assert response.status_code == 404
+    finally:
+        # Nettoyer l'override
+        if original_override:
+            app.dependency_overrides[get_current_user] = original_override
+        else:
+            app.dependency_overrides.pop(get_current_user, None)
 
 # Ces deux tests sont susceptibles d'échouer à cause du middleware de logging qui capture toutes les erreurs
 # Nous les laissons commentés car ils ne sont pas cruciaux pour vérifier la structure du code
@@ -149,18 +189,18 @@ def test_get_exercise_by_id():
         pass
 """
 
-def test_delete_exercise_cascade(test_authenticated_user):
+def test_delete_exercise_cascade(test_authenticated_user, db_session):
     """Test de la suppression d'un exercice avec suppression en cascade des tentatives."""
     # Nous avons besoin d'une session de base de données pour créer les données de test
     db = next(get_db_session())
     
-    # Créer un utilisateur réel dans la base de données
+    # Créer un utilisateur GARDIEN (qui a le droit de supprimer) au lieu de PADAWAN
     unique_user_id = uuid.uuid4().hex[:8]
     user = User(
         username=f"cascade_test_user_{unique_user_id}",
         email=f"cascade_test_user_{unique_user_id}@example.com",
         hashed_password="hashed_password",
-        role=UserRole.PADAWAN
+        role=get_enum_value(UserRole, UserRole.GARDIEN.value, db_session)  # GARDIEN au lieu de PADAWAN
     )
     db.add(user)
     db.commit()
@@ -170,8 +210,8 @@ def test_delete_exercise_cascade(test_authenticated_user):
     unique_id = uuid.uuid4().hex[:8]
     test_exercise = Exercise(
         title=f"Test Cascade Delete {unique_id}",
-        exercise_type=ExerciseType.ADDITION,
-        difficulty=DifficultyLevel.INITIE,
+        exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
+        difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
         question="2 + 2 = ?",
         correct_answer="4",
         choices=["3", "4", "5", "6"],
@@ -197,13 +237,12 @@ def test_delete_exercise_cascade(test_authenticated_user):
     exercise_id = test_exercise.id
     attempt_id = test_attempt.id
     
-    # Override la dépendance pour l'authentification
-    original = app.dependency_overrides.get(get_current_gardien_or_archiviste)
-    
+    # Override la dépendance pour l'authentification avec un utilisateur GARDIEN
     def mock_auth():
         return user
     
-    app.dependency_overrides[get_current_gardien_or_archiviste] = mock_auth
+    original_override = app.dependency_overrides.get(get_current_user)
+    app.dependency_overrides[get_current_user] = mock_auth
     
     try:
         # Supprimer l'exercice via l'API
@@ -223,7 +262,106 @@ def test_delete_exercise_cascade(test_authenticated_user):
         assert attempt is not None, "La tentative a été supprimée alors que l'exercice est archivé"
     finally:
         # Restaurer la dépendance originale et nettoyer
-        if original:
-            app.dependency_overrides[get_current_gardien_or_archiviste] = original
+        if original_override:
+            app.dependency_overrides[get_current_user] = original_override
         else:
-            del app.dependency_overrides[get_current_gardien_or_archiviste]
+            app.dependency_overrides.pop(get_current_user, None)
+
+def test_create_exercise_with_invalid_data(test_authenticated_user):
+    """Test de l'endpoint pour créer un exercice avec des données invalides"""
+    # Exercice sans titre (champ requis)
+    invalid_exercise_data = {
+        "exercise_type": "addition",
+        "difficulty": "initie",
+        "question": "Combien font 2+2?",
+        "correct_answer": "4",
+        "choices": ["2", "3", "4", "5"]
+    }
+
+    # Override la dépendance pour l'authentification
+    def mock_auth():
+        return test_authenticated_user
+    
+    original_override = app.dependency_overrides.get(get_current_user)
+    app.dependency_overrides[get_current_user] = mock_auth
+    
+    try:
+        response = client.post("/api/exercises/", json=invalid_exercise_data)
+        
+        # La validaton devrait échouer et retourner une erreur 422 (Unprocessable Entity)
+        assert response.status_code == 422, f"Le code d'état devrait être 422, reçu {response.status_code}"
+        
+        # Vérifier que le corps de la réponse contient des détails sur l'erreur
+    finally:
+        # Nettoyer l'override
+        if original_override:
+            app.dependency_overrides[get_current_user] = original_override
+        else:
+            app.dependency_overrides.pop(get_current_user, None)
+
+def test_create_exercise_with_invalid_type(test_authenticated_user):
+    """Test de l'endpoint pour créer un exercice avec un type invalide"""
+    # Exercice avec un type d'exercice invalide
+    invalid_exercise_data = {
+        "title": "Test Exercise",
+        "exercise_type": "invalid_type",  # Type invalide
+        "difficulty": "initie",
+        "question": "Combien font 2+2?",
+        "correct_answer": "4",
+        "choices": ["2", "3", "4", "5"]
+    }
+
+    # Override la dépendance pour l'authentification
+    def mock_auth():
+        return test_authenticated_user
+    
+    original_override = app.dependency_overrides.get(get_current_user)
+    app.dependency_overrides[get_current_user] = mock_auth
+    
+    try:
+        response = client.post("/api/exercises/", json=invalid_exercise_data)
+        
+        # La validation devrait échouer et retourner une erreur 422 (Unprocessable Entity)
+        assert response.status_code == 422, f"Le code d'état devrait être 422, reçu {response.status_code}"
+        
+        # Vérifier que le corps de la réponse contient des détails sur l'erreur
+    finally:
+        # Nettoyer l'override
+        if original_override:
+            app.dependency_overrides[get_current_user] = original_override
+        else:
+            app.dependency_overrides.pop(get_current_user, None)
+
+def test_create_exercise_with_centralized_fixtures(padawan_client, mock_exercise):
+    """Teste la création d'un exercice en utilisant les fixtures centralisées."""
+    # Récupérer le client authentifié
+    client = padawan_client["client"]
+    
+    # Utiliser la fixture mock_exercise pour générer les données
+    exercise_data = mock_exercise(
+        title="Exercice généré via fixture",
+        exercise_type="addition",
+        difficulty="initie",
+        question="Combien font 3+4?",
+        correct_answer="7",
+        choices=["5", "6", "7", "8"]
+    )
+    
+    # Créer l'exercice
+    response = client.post("/api/exercises/", json=exercise_data)
+    
+    # Vérifier que la création a réussi
+    assert response.status_code == 200, f"Le code d'état devrait être 200, reçu {response.status_code}"
+    
+    # Vérifier les données retournées
+    data = response.json()
+    assert "id" in data, "La réponse devrait contenir l'ID de l'exercice créé"
+    assert data["title"] == exercise_data["title"], "Le titre de l'exercice ne correspond pas"
+    assert data["exercise_type"] == exercise_data["exercise_type"], "Le type d'exercice ne correspond pas"
+    assert data["difficulty"] == exercise_data["difficulty"], "La difficulté ne correspond pas"
+    
+    # L'exercice est créé mais pourrait ne pas être immédiatement visible
+    # Nous ne testons pas la récupération, qui est testée séparément
+    
+    # Note: En production, nous devrions pouvoir récupérer l'exercice,
+    # mais dans l'environnement de test, il peut y avoir des problèmes de transactions

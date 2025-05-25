@@ -17,13 +17,15 @@ from server.views import (
     logout,
     exercises_page,
     dashboard,
-    exercise_detail_page
+    exercise_detail_page,
+    redirect_old_exercise_url
 )
 
 # Importer les fonctions d'API
 from server.api_routes import (
     get_exercises_list,
-    delete_exercise
+    delete_exercise,
+    handle_recommendation_complete
 )
 
 from server.handlers.exercise_handlers import generate_exercise, get_exercise, submit_answer
@@ -46,6 +48,7 @@ def get_routes() -> List:
         Route("/exercises", endpoint=exercises_page),
         Route("/dashboard", endpoint=dashboard),
         Route("/exercise/{exercise_id:int}", endpoint=exercise_detail_page),
+        Route("/exercises/{exercise_id:int}", endpoint=redirect_old_exercise_url),
         
         # API routes
         Route("/api/exercises", endpoint=get_exercises_list),
@@ -54,6 +57,7 @@ def get_routes() -> List:
         Route("/api/exercises/generate", endpoint=generate_exercise),
         Route("/api/submit-answer", endpoint=submit_answer, methods=["POST"]),
         Route("/api/users/stats", endpoint=get_user_stats),
+        Route("/api/recommendations/complete", endpoint=handle_recommendation_complete, methods=["POST"]),
         
         # Static files
         Mount("/static", app=StaticFiles(directory="static"), name="static")

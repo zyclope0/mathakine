@@ -8,7 +8,8 @@ from loguru import logger
 
 from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
-from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt, LogicChallengeType, AgeGroup
+from app.utils.db_helpers import get_enum_value, adapt_enum_for_db
 
 
 class LogicChallengeService:
@@ -56,10 +57,16 @@ class LogicChallengeService:
             query = db.query(LogicChallenge).filter(LogicChallenge.is_archived == False)
             
             if challenge_type:
-                query = query.filter(LogicChallenge.challenge_type == challenge_type)
+                # Adapter le type de défi pour le moteur de base de données actuel
+                adapted_type = adapt_enum_for_db("LogicChallengeType", challenge_type, db)
+                logger.debug(f"Type de défi adapté: de '{challenge_type}' à '{adapted_type}'")
+                query = query.filter(LogicChallenge.challenge_type == adapted_type)
             
             if age_group:
-                query = query.filter(LogicChallenge.age_group == age_group)
+                # Adapter le groupe d'âge pour le moteur de base de données actuel
+                adapted_age = adapt_enum_for_db("AgeGroup", age_group, db)
+                logger.debug(f"Groupe d'âge adapté: de '{age_group}' à '{adapted_age}'")
+                query = query.filter(LogicChallenge.age_group == adapted_age)
             
             if offset is not None:
                 query = query.offset(offset)
@@ -84,6 +91,17 @@ class LogicChallengeService:
         Returns:
             Le défi créé ou None en cas d'erreur
         """
+        # Adapter les valeurs d'enum pour le moteur de base de données actuel
+        if "challenge_type" in challenge_data:
+            challenge_type = challenge_data["challenge_type"]
+            challenge_data["challenge_type"] = adapt_enum_for_db("LogicChallengeType", challenge_type, db)
+            logger.debug(f"Type de défi adapté: de '{challenge_type}' à '{challenge_data['challenge_type']}'")
+        
+        if "age_group" in challenge_data:
+            age_group = challenge_data["age_group"]
+            challenge_data["age_group"] = adapt_enum_for_db("AgeGroup", age_group, db)
+            logger.debug(f"Groupe d'âge adapté: de '{age_group}' à '{challenge_data['age_group']}'")
+        
         return DatabaseAdapter.create(db, LogicChallenge, challenge_data)
     
     @staticmethod
@@ -103,6 +121,17 @@ class LogicChallengeService:
         if not challenge:
             logger.error(f"Défi avec ID {challenge_id} non trouvé pour mise à jour")
             return False
+        
+        # Adapter les valeurs d'enum pour le moteur de base de données actuel
+        if "challenge_type" in challenge_data:
+            challenge_type = challenge_data["challenge_type"]
+            challenge_data["challenge_type"] = adapt_enum_for_db("LogicChallengeType", challenge_type, db)
+            logger.debug(f"Type de défi adapté pour mise à jour: de '{challenge_type}' à '{challenge_data['challenge_type']}'")
+        
+        if "age_group" in challenge_data:
+            age_group = challenge_data["age_group"]
+            challenge_data["age_group"] = adapt_enum_for_db("AgeGroup", age_group, db)
+            logger.debug(f"Groupe d'âge adapté pour mise à jour: de '{age_group}' à '{challenge_data['age_group']}'")
         
         return DatabaseAdapter.update(db, challenge, challenge_data)
     

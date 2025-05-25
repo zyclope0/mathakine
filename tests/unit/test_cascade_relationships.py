@@ -7,6 +7,8 @@ from app.models.user import User
 from app.models.exercise import Exercise 
 from app.models.attempt import Attempt
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+from app.models.recommendation import Recommendation
+from app.utils.db_helpers import get_enum_value
 
 
 def test_exercise_cascade_relationship():
@@ -27,6 +29,7 @@ def test_user_cascade_relationships():
         'created_exercises': inspect(User).relationships.get('created_exercises'),
         'attempts': inspect(User).relationships.get('attempts'),
         'progress_records': inspect(User).relationships.get('progress_records'),
+        'recommendations': inspect(User).relationships.get('recommendations'),
         'created_logic_challenges': inspect(User).relationships.get('created_logic_challenges'),
         'logic_challenge_attempts': inspect(User).relationships.get('logic_challenge_attempts')
     }
@@ -46,4 +49,16 @@ def test_logic_challenge_cascade_relationship():
     # Vérifier que la cascade est bien configurée
     assert relationship is not None
     assert 'delete' in relationship.cascade
-    assert 'delete-orphan' in relationship.cascade 
+    assert 'delete-orphan' in relationship.cascade
+
+
+def test_recommendation_exercise_relationship():
+    """Vérifie que la relation entre Recommendation et Exercise est correctement configurée"""
+    # Récupérer la relation "exercise" du modèle Recommendation
+    relationship = inspect(Recommendation).relationships.get('exercise')
+    
+    # Vérifier que la relation est configurée correctement (sans cascade de suppression)
+    assert relationship is not None
+    # La relation ne doit pas supprimer l'exercice si la recommandation est supprimée
+    assert 'delete' not in relationship.cascade
+    assert 'delete-orphan' not in relationship.cascade 

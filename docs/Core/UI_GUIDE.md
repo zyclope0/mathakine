@@ -1,435 +1,437 @@
-# Guide de l'Interface Graphique de Mathakine
+# Guide de l'Interface Utilisateur - Mathakine
 
-Ce guide détaille l'interface graphique de Mathakine, son architecture, et comment la personnaliser.
+## Table des Matières
+
+1. [Vue d'ensemble](#vue-densemble)
+2. [Architecture Frontend](#architecture-frontend)
+3. [Design System](#design-system)
+4. [Composants de l'Interface](#composants-de-linterface)
+5. [Flux Utilisateur](#flux-utilisateur)
+6. [Accessibilité](#accessibilité)
+7. [Performance](#performance)
+8. [Développement](#développement)
 
 ## Vue d'ensemble
 
-L'application Mathakine dispose d'une interface graphique moderne avec un thème spatial inspiré de l'univers Star Wars. Cette interface est construite avec :
+Mathakine propose une interface utilisateur immersive basée sur le thème Star Wars, conçue spécifiquement pour les enfants autistes. L'interface privilégie la clarté, l'accessibilité et l'engagement à travers des éléments visuels apaisants et des interactions prévisibles.
 
-- Starlette pour le backend (enhanced_server.py)
-- Jinja2 pour les templates HTML
-- CSS moderne avec variables et animations
-- JavaScript pour les interactions côté client
+### Principes de Design
 
-## Architecture des fichiers
+- **Cohérence** : Interface uniforme à travers toutes les pages
+- **Clarté** : Hiérarchie visuelle forte et navigation intuitive
+- **Accessibilité** : Conformité WCAG 2.1 AA
+- **Engagement** : Éléments thématiques Star Wars intégrés subtilement
+- **Performance** : Chargement rapide et interactions fluides
 
-### Structure des dossiers
+## Architecture Frontend
+
+### Stack Technologique
 
 ```
-mathakine/
-├── app/                       # Code de l'application standard FastAPI (API sans UI)
-│   └── main.py                # Point d'entrée de l'API standard
-├── enhanced_server.py         # Serveur amélioré avec interface graphique
-├── static/                    # Fichiers statiques
-│   ├── style.css              # Styles de base
-│   ├── space-theme.css        # Thème spatial
-│   ├── home-styles.css        # Styles spécifiques à la page d'accueil
-│   └── img/                   # Images
-│       ├── mathakine-logo.svg # Logo de l'application
-│       └── favicon.svg        # Favicon
-├── templates/                 # Templates HTML
-│   ├── base.html              # Template de base avec structure commune
-│   ├── home.html              # Page d'accueil
-│   ├── exercises.html         # Page des exercices
-│   ├── exercise_detail.html   # Page de détail d'un exercice
-│   └── dashboard.html         # Tableau de bord
-├── mathakine_cli.py           # Interface en ligne de commande pour lancer l'application
-└── check_ui_setup.py          # Utilitaire pour vérifier la configuration de l'interface
+┌─────────────────────────────────────────────────┐
+│                Templates (Jinja2)                │
+│  ┌─────────────┐  ┌──────────────┐  ┌────────┐ │
+│  │   base.html  │  │ Components   │  │ Pages  │ │
+│  │  (Layout)    │  │  (Partials)  │  │(Views) │ │
+│  └─────────────┘  └──────────────┘  └────────┘ │
+└─────────────────────────────────────────────────┘
+                        │
+┌─────────────────────────────────────────────────┐
+│              Styles (CSS Modulaire)              │
+│  ┌─────────────┐  ┌──────────────┐  ┌────────┐ │
+│  │ normalize   │  │  variables   │  │ utils  │ │
+│  │   .css      │  │    .css      │  │  .css  │ │
+│  └─────────────┘  └──────────────┘  └────────┘ │
+│  ┌─────────────┐  ┌──────────────┐             │
+│  │  style.css  │  │ space-theme  │             │
+│  │  (Global)   │  │    .css      │             │
+│  └─────────────┘  └──────────────┘             │
+└─────────────────────────────────────────────────┘
+                        │
+┌─────────────────────────────────────────────────┐
+│           JavaScript (Modules ES6)               │
+│  ┌─────────────┐  ┌──────────────┐  ┌────────┐ │
+│  │   main.js   │  │accessibility │  │ utils  │ │
+│  │  (Core)     │  │     .js      │  │  .js   │ │
+│  └─────────────┘  └──────────────┘  └────────┘ │
+└─────────────────────────────────────────────────┘
 ```
 
-## Pages principales
+### Structure des Fichiers
 
-### 1. Page d'accueil (home.html)
+```
+templates/
+├── base.html               # Layout principal avec navigation
+├── partials/               # Composants réutilisables
+│   ├── nav.html           # Barre de navigation
+│   ├── footer.html        # Pied de page
+│   └── modal.html         # Template de modal
+├── home.html              # Page d'accueil
+├── login.html             # Authentification
+├── register.html          # Inscription
+├── dashboard.html         # Tableau de bord
+├── exercises.html         # Liste des exercices
+├── exercise.html          # Résolution d'exercice
+├── exercise_detail.html   # Détails d'exercice
+└── error.html             # Pages d'erreur
 
-La page d'accueil présente l'application avec :
-- Une bannière (hero section) compacte et horizontale avec trois composants clés:
-  - **Contenu textuel**: Message d'accueil et explication concise
-  - **Statistiques**: Affichage des métriques principales (nombre d'exercices, niveaux, possibilités)
-  - **Illustration spatiale**: Représentation visuelle de l'univers Star Wars avec animation
-- Un unique bouton d'appel à l'action (CTA) principal qui réduit les redondances avec la barre de navigation
-- Des cartes de fonctionnalités expliquant les capacités de l'application
-- Une section sur la progression avec les différents niveaux disponibles
+static/
+├── css/
+│   ├── normalize.css      # Reset navigateur
+│   ├── variables.css      # Variables CSS globales
+│   ├── utils.css          # Classes utilitaires
+│   ├── style.css          # Styles principaux
+│   ├── space-theme.css    # Thème Star Wars
+│   └── [page].css         # Styles spécifiques
+├── js/
+│   ├── main.js            # JavaScript principal
+│   ├── accessibility.js   # Fonctions d'accessibilité
+│   └── [page].js          # Scripts spécifiques
+└── images/
+    ├── logo/              # Logos et favicons
+    └── star-wars/         # Assets thématiques
+```
 
-#### Structure de la Hero Section
+## Design System
+
+### Palette de Couleurs
+
+```css
+/* Couleurs principales */
+--sw-primary: #7765e3;      /* Violet principal */
+--sw-secondary: #3db4f2;    /* Bleu secondaire */
+--sw-accent: #ffd700;       /* Or d'accent */
+
+/* Couleurs de fond */
+--bg-dark: #1a1a2e;         /* Fond sombre */
+--bg-medium: #2d2d44;       /* Fond moyen */
+--bg-light: #3d3d5c;        /* Fond clair */
+
+/* Couleurs de texte */
+--text-primary: #ffffff;    /* Texte principal */
+--text-secondary: #b8b8c8;  /* Texte secondaire */
+--text-muted: #7c7c92;      /* Texte discret */
+
+/* États */
+--success: #4caf50;         /* Succès */
+--warning: #ff9800;         /* Avertissement */
+--error: #f44336;           /* Erreur */
+--info: #2196f3;            /* Information */
+```
+
+### Typographie
+
+```css
+/* Hiérarchie typographique */
+--font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+--font-family-heading: 'Orbitron', var(--font-family-base);
+--font-family-mono: 'Fira Code', monospace;
+
+/* Tailles */
+--font-size-xs: 0.75rem;    /* 12px */
+--font-size-sm: 0.875rem;   /* 14px */
+--font-size-base: 1rem;     /* 16px */
+--font-size-lg: 1.125rem;   /* 18px */
+--font-size-xl: 1.25rem;    /* 20px */
+--font-size-2xl: 1.5rem;    /* 24px */
+--font-size-3xl: 1.875rem;  /* 30px */
+--font-size-4xl: 2.25rem;   /* 36px */
+
+/* Poids */
+--font-weight-normal: 400;
+--font-weight-medium: 500;
+--font-weight-bold: 700;
+```
+
+### Espacement
+
+```css
+/* Système d'espacement (base 8px) */
+--space-1: 0.25rem;  /* 4px */
+--space-2: 0.5rem;   /* 8px */
+--space-3: 1rem;     /* 16px */
+--space-4: 1.5rem;   /* 24px */
+--space-5: 2rem;     /* 32px */
+--space-6: 3rem;     /* 48px */
+--space-7: 4rem;     /* 64px */
+--space-8: 6rem;     /* 96px */
+```
+
+## Composants de l'Interface
+
+### 1. Navigation
+
 ```html
-<div class="hero-section">
-    <div class="stars-container">
-        <!-- Étoiles générées par JavaScript -->
-    </div>
-    
-    <div class="card hero-card">
-        <div class="hero-flex">
-            <div class="hero-content">
-                <h2>Bienvenue dans la galaxie Mathakine</h2>
-                <p class="hero-subtitle">Embarquez pour un voyage stellaire...</p>
-                
-                <div class="hero-stats">
-                    <div class="stat-item">
-                        <div class="stat-number"><i class="fas fa-calculator"></i> 150+</div>
-                        <div class="stat-label">Exercices</div>
-                    </div>
-                    <!-- Autres statistiques -->
-                </div>
-                
-                <a href="/api/exercises/generate?ai=true" class="btn big-btn primary-btn">
-                    <i class="fas fa-jedi"></i> Commencer l'aventure
-                </a>
-            </div>
-            <div class="hero-image">
-                <div class="space-object"></div>
-            </div>
+<nav class="navbar" role="navigation" aria-label="Navigation principale">
+    <div class="nav-container">
+        <a href="/" class="nav-brand">
+            <img src="/static/images/logo/mathakine-logo.svg" alt="Mathakine">
+        </a>
+        <ul class="nav-menu">
+            <li><a href="/exercises" class="nav-link">Exercices</a></li>
+            <li><a href="/dashboard" class="nav-link">Tableau de bord</a></li>
+            <li><a href="/profile" class="nav-link">Profil</a></li>
+        </ul>
+        <div class="nav-actions">
+            <button class="btn btn-primary">Se connecter</button>
         </div>
     </div>
-</div>
+</nav>
 ```
 
-#### Design responsive
-La hero section utilise un layout flexible qui s'adapte aux différentes tailles d'écran:
-- Sur desktop: Affichage horizontal avec contenu à gauche et image à droite
-- Sur mobile: Bascule vers un affichage vertical avec image en haut et contenu en dessous
-- Optimisation de l'espace tout en conservant l'expérience immersive Star Wars
-
-#### Bonnes pratiques implémentées
-- **Réduction des redondances UI**: Suppression des boutons duplicatifs avec la navigation
-- **Hiérarchie visuelle claire**: Un seul CTA principal qui guide l'utilisateur
-- **Métrique de conversion**: Mise en avant des statistiques pour engager l'utilisateur
-- **Équilibre texte/visuel**: Combinaison efficace d'informations textuelles et d'éléments visuels
-- **Animations subtiles**: Effet de pulsation et rotation sur l'objet spatial pour attirer l'attention sans distraire
-
-### 2. Page des exercices (exercises.html)
-
-La page des exercices permet aux utilisateurs de :
-- Filtrer les exercices par type et difficulté
-- Visualiser les exercices disponibles sous forme de cartes (vues grille ou liste)
-- Générer de nouveaux exercices (standard ou avec IA)
-- Naviguer entre les pages d'exercices avec la pagination
-- Commencer un exercice ou voir ses détails via un modal
-- Supprimer un exercice avec confirmation
-
-#### Fonctionnalités d'interface avancées
-- **Système de pagination amélioré** : Navigation intuitive entre les pages avec numéros de page, boutons précédent/suivant et ellipses pour les grandes plages
-- **Double vue** : Basculement entre vue en grille (par défaut) et vue en liste avec persistance du choix via localStorage
-- **Modals interactifs** : 
-  - Modal de détails avec chargement asynchrone des informations de l'exercice
-  - Modal de confirmation pour la suppression sécurisée
-- **Animations optimisées** : Apparition séquentielle des cartes d'exercices avec délais progressifs
-- **Cache et performance** :
-  - Mécanisme de "force redraw" pour éviter les problèmes de cache lors du changement de vue
-  - Prévention du défilement automatique indésirable lors du basculement entre vues grille/liste
-
-#### Badges et indicateurs
-- **Badges de type d'exercice** : Identification visuelle rapide par code couleur (Addition en vert, Soustraction en orange, etc.)
-- **Badges de difficulté** : Indication claire du niveau (Initié, Padawan, Chevalier, Maître) par couleur
-- **Badge IA** : Identification des exercices générés par IA avec une icône de robot
-
-#### Code JavaScript clé
-Le JavaScript de la page implémente des fonctionnalités importantes :
-```javascript
-// Pagination avec prévention du défilement automatique indésirable
-function goToPage(page, skipScroll = false) {
-    // ... logique de pagination ...
-    
-    // Scroll en haut de la liste uniquement si skipScroll est false
-    if (!skipScroll) {
-        setTimeout(() => {
-            const exerciseList = document.querySelector('.exercise-list');
-            if (exerciseList) {
-                exerciseList.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }, 100);
-    }
-}
-
-// Bascule entre vue grille et vue liste avec persistance
-function applyViewMode(mode) {
-    if (mode === 'list') {
-        exerciseList.classList.add('list-view');
-        // ... configuration vue liste ...
-    } else {
-        exerciseList.classList.remove('list-view');
-        // ... configuration vue grille ...
-    }
-    
-    // Force redraw pour éviter les problèmes de cache
-    exerciseList.style.display = 'none';
-    setTimeout(() => {
-        exerciseList.style.display = mode === 'list' ? 'flex' : 'grid';
-    }, 10);
-}
-```
-
-### 3. Page de détail d'exercice (exercise_detail.html)
-
-La page de détail d'un exercice permet à l'utilisateur de :
-- Voir l'énoncé de l'exercice et sa difficulté
-- Choisir parmi les réponses proposées
-- Recevoir un feedback immédiat sur sa réponse
-- Consulter l'explication de l'exercice
-
-### 4. Tableau de bord (dashboard.html)
-
-Le tableau de bord affiche :
-- Les statistiques de l'utilisateur (exercices résolus, taux de réussite, points d'expérience)
-- Des graphiques de progression
-- Le niveau actuel et la progression vers le niveau suivant
-- L'activité récente
-
-## Lancement de l'application avec interface graphique
-
-### Méthode 1 : Utilisation de mathakine_cli.py (recommandé)
-
-```bash
-python mathakine_cli.py run
-```
-
-L'interface graphique est maintenant lancée par défaut. Si vous souhaitez uniquement l'API sans interface, utilisez :
-
-```bash
-python mathakine_cli.py run --api-only
-```
-
-### Méthode 2 : Lancement direct du serveur amélioré
-
-```bash
-python enhanced_server.py
-```
-
-## Personnalisation
-
-### Structure CSS normalisée
-
-L'interface de Mathakine utilise une structure CSS normalisée pour améliorer la maintenabilité et la cohérence du code :
-
-#### 1. Organisation des fichiers CSS
-
-Les fichiers CSS sont organisés comme suit :
-
-- **normalize.css** - Réinitialisation CSS standardisée qui normalise le rendu entre navigateurs
-- **variables.css** - Variables CSS globales (couleurs, espacements, typographie, etc.)
-- **utils.css** - Classes utilitaires réutilisables (marges, paddings, alignements, etc.)
-- **style.css** - Styles principaux de l'application (importe normalize.css, variables.css et utils.css)
-- **space-theme.css** - Styles spécifiques au thème Star Wars
-- **home-styles.css** - Styles spécifiques à la page d'accueil
-
-#### 2. Bonnes pratiques
-
-- Utiliser les variables CSS définies dans `variables.css` plutôt que des valeurs codées en dur
-- Privilégier les classes utilitaires de `utils.css` plutôt que des styles en ligne
-- Suivre l'ordre d'importation des fichiers CSS : normalize → variables → utils → style → theme
-- Éviter d'ajouter des styles en ligne directement dans le HTML
-- Utiliser les classes utilitaires pour les mises en page communes
-
-#### 3. Classes utilitaires
-
-Un système de classes utilitaires est disponible pour les besoins courants :
+### 2. Cartes d'Exercice
 
 ```html
-<!-- Alignement de texte -->
-<div class="text-center">Texte centré</div>
-<div class="text-left">Texte aligné à gauche</div>
-
-<!-- Marges -->
-<div class="mt-3">Marge supérieure moyenne</div>
-<div class="mb-4">Marge inférieure grande</div>
-
-<!-- Display et Flexbox -->
-<div class="d-flex justify-between">Conteneur flex avec espace entre</div>
-<div class="d-none">Élément masqué</div>
-
-<!-- Padding -->
-<div class="p-3">Padding moyen sur tous les côtés</div>
-```
-
-#### 4. Script de normalisation
-
-Un script utilitaire est disponible pour normaliser les styles en ligne existants :
-
-```bash
-python scripts/normalize_css.py
-```
-
-Ce script analyse les fichiers HTML dans le dossier templates et remplace les styles en ligne par des classes utilitaires appropriées.
-
-### Styles CSS
-
-L'interface utilise un système de variables CSS pour faciliter la personnalisation :
-
-```css
-:root {
-  --sw-accent: #7765e3;     /* Couleur principale */
-  --sw-blue: #3db4f2;       /* Couleur secondaire */
-  --sw-gold: #ffd700;       /* Couleur d'accentuation */
-  /* ... autres variables ... */
-}
-```
-
-Pour modifier le thème, vous pouvez simplement ajuster ces variables dans `static/space-theme.css`.
-
-### Templates HTML
-
-Tous les templates héritent de `base.html` qui fournit :
-- La structure HTML commune
-- Le menu de navigation
-- Les méta-données et liens CSS
-- Les scripts JavaScript communs
-
-Pour ajouter une nouvelle page, créez un nouveau template qui étend `base.html` :
-
-```html
-{% extends "base.html" %}
-
-{% block title %}Titre de la page{% endblock %}
-
-{% block content %}
-  <!-- Contenu de la page -->
-{% endblock %}
-
-{% block scripts %}
-  <!-- Scripts spécifiques à la page -->
-{% endblock %}
-```
-
-### Composants réutilisables
-
-Les composants réutilisables peuvent être définis dans des fichiers partiels et inclus dans les templates avec `{% include %}`.
-
-### Modales et Interactions
-
-L'interface utilise des fenêtres modales pour plusieurs fonctionnalités :
-- Affichage des détails d'un exercice sans naviguer vers une nouvelle page
-- Confirmation de suppression d'un exercice
-- Affichage des messages d'erreur ou de succès
-
-Exemple d'implémentation d'une modale :
-```html
-<!-- Structure HTML de la modale -->
-<div id="detail-modal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <div id="modal-content">
-      <!-- Contenu chargé dynamiquement -->
+<article class="exercise-card" data-exercise-id="123">
+    <header class="card-header">
+        <h3 class="card-title">Addition Simple</h3>
+        <div class="card-badges">
+            <span class="badge badge-type-addition">Addition</span>
+            <span class="badge badge-difficulty-initie">Initié</span>
+        </div>
+    </header>
+    <div class="card-body">
+        <p class="card-question">Combien font 5 + 3 ?</p>
     </div>
-  </div>
+    <footer class="card-footer">
+        <button class="btn btn-sm btn-primary">Commencer</button>
+        <button class="btn btn-sm btn-secondary">Détails</button>
+    </footer>
+</article>
+```
+
+### 3. Modal
+
+```html
+<div class="modal" id="exercise-modal" role="dialog" aria-modal="true">
+    <div class="modal-overlay" data-modal-close></div>
+    <div class="modal-content">
+        <header class="modal-header">
+            <h2 class="modal-title" id="modal-title">Titre</h2>
+            <button class="modal-close" aria-label="Fermer">×</button>
+        </header>
+        <div class="modal-body">
+            <!-- Contenu dynamique -->
+        </div>
+        <footer class="modal-footer">
+            <button class="btn btn-secondary" data-modal-close>Annuler</button>
+            <button class="btn btn-primary">Confirmer</button>
+        </footer>
+    </div>
 </div>
-
-<!-- JavaScript pour gérer la modale -->
-<script>
-  // Ouvrir la modale
-  document.querySelector('.show-details').addEventListener('click', function() {
-    document.getElementById('detail-modal').style.display = 'block';
-    // Charger le contenu via AJAX
-    fetch('/api/exercises/123')
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById('modal-content').innerHTML = renderExerciseDetails(data);
-      });
-  });
-  
-  // Fermer la modale
-  document.querySelector('.close').addEventListener('click', function() {
-    document.getElementById('detail-modal').style.display = 'none';
-  });
-</script>
 ```
 
-### Animations
+### 4. Formulaires
 
-L'interface utilise des animations CSS pour les transitions et les effets visuels. Pour les performances, les animations respectent la préférence `prefers-reduced-motion` :
-
-```css
-@media (prefers-reduced-motion: reduce) {
-    .animation {
-        animation: none;
-    }
-}
+```html
+<form class="form" method="post">
+    <div class="form-group">
+        <label for="username" class="form-label">Nom d'utilisateur</label>
+        <input type="text" id="username" name="username" class="form-control" required>
+        <span class="form-hint">Choisissez un nom unique</span>
+    </div>
+    
+    <div class="form-group">
+        <label for="password" class="form-label">Mot de passe</label>
+        <input type="password" id="password" name="password" class="form-control" required>
+        <span class="form-error" role="alert">Le mot de passe est requis</span>
+    </div>
+    
+    <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+</form>
 ```
 
-## Intégration avec l'API
+## Flux Utilisateur
 
-L'interface communique avec l'API via des requêtes fetch JavaScript :
+### 1. Parcours Nouvel Utilisateur
 
-```javascript
-fetch('/api/exercises')
-    .then(response => response.json())
-    .then(data => {
-        // Traitement des données
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-    });
+```mermaid
+graph LR
+    A[Page d'accueil] --> B[Inscription]
+    B --> C[Tutoriel interactif]
+    C --> D[Premier exercice]
+    D --> E[Feedback et progression]
+    E --> F[Tableau de bord]
 ```
 
-## Routes principales dans l'interface
+### 2. Résolution d'Exercice
 
-| URL | Description |
-|-----|-------------|
-| `/` | Page d'accueil |
-| `/exercises` | Liste des exercices disponibles |
-| `/exercise/{id}` | Détail d'un exercice spécifique |
-| `/dashboard` | Tableau de bord de l'utilisateur |
-| `/debug` | Page de débogage (uniquement en mode développement) |
-| `/api/exercises` | API pour récupérer la liste des exercices |
-| `/api/exercises/{id}` | API pour récupérer les détails d'un exercice spécifique |
-| `/api/exercises/generate` | API pour générer un nouvel exercice |
-| `/api/submit-answer` | API pour soumettre une réponse (POST) |
-
-## Bonnes pratiques
-
-1. **Performance** :
-   - Minimisez les requêtes HTTP en regroupant les ressources
-   - Utilisez `preload` pour les ressources critiques
-   - Chargez les polices et icônes avec `media="print" onload="this.media='all'"`
-   - Utilisez des modales pour afficher des informations sans recharger la page
-
-2. **Accessibilité** :
-   - Utilisez des attributs alt pour les images
-   - Assurez un bon contraste de couleurs
-   - Permettez la navigation au clavier
-   - Assurez-vous que les modales sont utilisables au clavier (focus trap)
-
-3. **Responsive design** :
-   - Utilisez des media queries pour adapter l'interface à différentes tailles d'écran
-   - Implémentez une approche "mobile-first"
-   - Assurez-vous que les modales s'affichent correctement sur mobile
+```mermaid
+graph TD
+    A[Liste exercices] --> B[Sélection exercice]
+    B --> C[Affichage question]
+    C --> D{Réponse}
+    D -->|Correcte| E[Feedback positif]
+    D -->|Incorrecte| F[Feedback constructif]
+    E --> G[Exercice suivant]
+    F --> H[Nouvel essai]
+    H --> C
+```
 
 ## Accessibilité
 
-### Barre d'outils d'accessibilité
+### Fonctionnalités d'Accessibilité
 
-Une barre d'outils d'accessibilité flottante est disponible sur toutes les pages de l'application. Elle propose les fonctionnalités suivantes :
+#### Barre d'Outils
+- **Contraste élevé** (Alt+C) : Améliore la lisibilité
+- **Texte agrandi** (Alt+T) : Augmente de 20%
+- **Sans animations** (Alt+M) : Désactive les mouvements
+- **Mode dyslexie** (Alt+D) : Police et espacement adaptés
 
-- **Mode contraste élevé** (Alt+C) : Augmente le contraste des couleurs pour améliorer la lisibilité
-- **Texte plus grand** (Alt+T) : Augmente la taille du texte de 20%
-- **Réduction des animations** (Alt+M) : Désactive les animations qui pourraient poser problème aux utilisateurs photosensibles
-- **Mode dyslexie** (Alt+D) : Utilise une police adaptée aux personnes dyslexiques et améliore l'espacement des lettres
+#### Conformité WCAG 2.1 AA
+- **Contraste** : Ratio minimum 4.5:1 (texte normal), 3:1 (texte large)
+- **Navigation clavier** : Tous les éléments interactifs accessibles
+- **ARIA** : Labels et rôles appropriés
+- **Focus visible** : Indicateur clair de focus
 
-Les préférences d'accessibilité sont enregistrées dans le stockage local du navigateur et automatiquement restaurées lors des visites ultérieures.
+### Support Technologies d'Assistance
 
-### Accessibilité de l'interface holographique
+```html
+<!-- Exemple de structure accessible -->
+<main role="main" aria-labelledby="page-title">
+    <h1 id="page-title">Exercices de Mathématiques</h1>
+    
+    <section aria-label="Filtres">
+        <!-- Filtres avec labels appropriés -->
+    </section>
+    
+    <section aria-label="Liste des exercices">
+        <h2 class="sr-only">Exercices disponibles</h2>
+        <!-- Liste d'exercices avec structure sémantique -->
+    </section>
+</main>
+```
 
-L'interface holographique Star Wars a été conçue pour être entièrement conforme aux normes WCAG 2.1 AA :
+## Performance
 
-- Les effets visuels sont désactivés automatiquement lorsque `prefers-reduced-motion` est activé
-- En mode contraste élevé, les effets holographiques sont simplifiés pour maximiser la lisibilité
-- Tous les éléments interactifs sont accessibles au clavier avec un focus visible
-- Des attributs ARIA sont utilisés pour informer les lecteurs d'écran du rôle et de l'état des composants
-- Des messages audio peuvent être désactivés selon les préférences utilisateur
+### Optimisations Implémentées
 
-### Compatibilité avec les technologies d'assistance
+#### 1. Chargement des Ressources
+```html
+<!-- Préchargement des ressources critiques -->
+<link rel="preload" href="/static/css/variables.css" as="style">
+<link rel="preload" href="/static/fonts/orbitron.woff2" as="font" crossorigin>
 
-- **Lecteurs d'écran** : Structure sémantique avec landmarks, headings et attributs ARIA appropriés
-- **Navigation au clavier** : Ordre de tabulation logique et focus visible pour tous les éléments interactifs
-- **Préférences système** : Respect des préférences système via les media queries (`prefers-contrast`, `prefers-reduced-motion`)
-- **Zoom** : Interface entièrement fonctionnelle jusqu'à 400% de zoom sans perte de contenu ou de fonctionnalité
+<!-- Chargement différé des ressources non critiques -->
+<link rel="stylesheet" href="/static/css/animations.css" media="print" onload="this.media='all'">
+```
 
-## Lien avec d'autres documents
+#### 2. Images Optimisées
+```html
+<!-- Images responsives avec lazy loading -->
+<img src="placeholder.jpg" 
+     data-src="image.jpg" 
+     srcset="image-320w.jpg 320w,
+             image-640w.jpg 640w,
+             image-1280w.jpg 1280w"
+     sizes="(max-width: 320px) 280px,
+            (max-width: 640px) 600px,
+            1200px"
+     loading="lazy"
+     alt="Description">
+```
 
-Pour plus d'informations sur l'architecture technique et l'API sous-jacente, consultez :
-- [Core/ARCHITECTURE.md](ARCHITECTURE.md) pour la structure technique globale
-- [Core/DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) pour les détails sur l'API et les services
-- [Tech/TRANSACTION_SYSTEM.md](../Tech/TRANSACTION_SYSTEM.md) pour la gestion des données
-- [Core/PROJECT_STATUS.md](PROJECT_STATUS.md) pour l'état actuel du projet et les améliorations planifiées
+#### 3. Cache et Compression
+- Assets statiques avec cache longue durée
+- Compression Gzip/Brotli activée
+- Minification CSS/JS en production
+- Service Worker pour cache offline
+
+### Métriques de Performance
+
+| Métrique | Cible | Actuel |
+|----------|-------|---------|
+| First Contentful Paint | < 1.8s | 1.2s |
+| Largest Contentful Paint | < 2.5s | 2.1s |
+| Time to Interactive | < 3.8s | 3.2s |
+| Cumulative Layout Shift | < 0.1 | 0.05 |
+
+## Développement
+
+### Classes Utilitaires
+
+```css
+/* Alignement */
+.text-center, .text-left, .text-right
+
+/* Marges */
+.mt-{1-8}, .mb-{1-8}, .ml-{1-8}, .mr-{1-8}
+.mx-{1-8}, .my-{1-8}, .m-{1-8}
+
+/* Padding */
+.pt-{1-8}, .pb-{1-8}, .pl-{1-8}, .pr-{1-8}
+.px-{1-8}, .py-{1-8}, .p-{1-8}
+
+/* Display */
+.d-none, .d-block, .d-flex, .d-grid
+.d-{sm|md|lg|xl}-{none|block|flex|grid}
+
+/* Flexbox */
+.justify-start, .justify-center, .justify-between
+.align-start, .align-center, .align-end
+.flex-row, .flex-column, .flex-wrap
+
+/* Grille */
+.grid-cols-{1-12}, .gap-{1-8}
+```
+
+### Conventions JavaScript
+
+```javascript
+// Structure modulaire
+import { initAccessibility } from './modules/accessibility.js';
+import { initExercises } from './modules/exercises.js';
+
+// Initialisation au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    initAccessibility();
+    initExercises();
+});
+
+// Gestion d'événements
+document.addEventListener('click', (e) => {
+    // Délégation d'événements pour performance
+    if (e.target.matches('[data-action="submit"]')) {
+        handleSubmit(e);
+    }
+});
+
+// API calls avec gestion d'erreur
+async function fetchExercises() {
+    try {
+        const response = await fetch('/api/exercises');
+        if (!response.ok) throw new Error('Erreur réseau');
+        return await response.json();
+    } catch (error) {
+        console.error('Erreur:', error);
+        showNotification('Erreur de chargement', 'error');
+    }
+}
+```
+
+### Outils de Développement
+
+```bash
+# Normalisation CSS automatique
+python scripts/normalize_css.py
+
+# Vérification accessibilité
+npm run audit:a11y
+
+# Analyse performance
+npm run audit:lighthouse
+
+# Build production
+npm run build:prod
+```
+
+## Références
+
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [MDN Web Docs](https://developer.mozilla.org/)
+- [Web.dev Performance](https://web.dev/performance/)
+- [A11y Project](https://www.a11yproject.com/)
 
 ---
 
-*Dernière mise à jour : 12 juin 2025* 
+*Dernière mise à jour : 26 mai 2025* 

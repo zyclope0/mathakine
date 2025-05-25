@@ -1,3 +1,4 @@
+import json
 """
 Tests des endpoints API pour les défis logiques.
 """
@@ -7,12 +8,13 @@ from app.main import app
 from app.models.logic_challenge import LogicChallengeType, AgeGroup
 from app.models.user import User, UserRole
 from app.api.deps import get_current_user
+from app.utils.db_helpers import get_enum_value
 from tests.fixtures.model_fixtures import test_logic_challenge, test_logic_challenges
 
 client = TestClient(app)
 
 @pytest.fixture
-def test_authenticated_user():
+def test_authenticated_user(db_session):
     """
     Crée un utilisateur de test authentifié pour les tests qui nécessitent l'authentification.
     Override la dépendance get_current_user pour simuler un utilisateur authentifié.
@@ -23,7 +25,7 @@ def test_authenticated_user():
         username="test_padawan",
         email="test_padawan@example.com",
         hashed_password="hashed_password",
-        role=UserRole.PADAWAN
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
     )
     
     # Override la dépendance pour simuler un utilisateur authentifié
@@ -170,3 +172,129 @@ def test_filter_challenges_by_type():
     for challenge in challenges:
         challenge_type = challenge.get("type") or challenge.get("challenge_type")
         assert challenge_type.lower() == "sequence"
+
+
+def test_challenge_attempt_missing_data(test_authenticated_user):
+    """Test de la soumission d'une tentative sans données pour un défi logique."""
+    challenge_id = 1
+    
+    # Soumettre une tentative sans données
+    attempt_data = {}  # Données vides, manque le champ 'answer'
+    response = client.post(f"/api/challenges/{challenge_id}/attempt", json=attempt_data)
+    
+    # Devrait retourner 422 Unprocessable Entity
+    assert response.status_code == 422, f"Le code d'état devrait être 422, reçu {response.status_code}"
+    
+    # Vérifier que l'erreur mentionne le champ manquant
+    data = response.json()
+    assert "detail" in data, "La réponse devrait contenir des détails sur l'erreur"
+    validation_errors = data["detail"]
+    assert any("answer" in str(error) for error in validation_errors), "L'erreur devrait mentionner le champ 'answer' manquant"
+
+
+def test_challenge_attempt_nonexistent_challenge(test_authenticated_user):
+    """Test de la soumission d'une tentative pour un défi inexistant."""
+    # Utiliser un ID de défi qui n'existe probablement pas
+    challenge_id = 9999
+    
+    attempt_data = {"answer": "Une réponse quelconque"}
+    response = client.post(f"/api/challenges/{challenge_id}/attempt", json=attempt_data)
+    
+    # Devrait retourner 404 Not Found
+    assert response.status_code == 404, f"Le code d'état devrait être 404, reçu {response.status_code}"
+    
+    # Vérifier le message d'erreur
+    data = response.json()
+    assert "detail" in data, "La réponse devrait contenir des détails sur l'erreur"
+    error_message = data["detail"].lower()
+    assert ("not found" in error_message or 
+            "introuvable" in error_message or 
+            "non trouvé" in error_message or
+            "non trouve" in error_message), f"Le message devrait indiquer que le défi n'existe pas. Message reçu: {data['detail']}"
+
+
+def test_challenge_hint_invalid_level(test_authenticated_user):
+    """Test de la récupération d'un indice avec un niveau invalide."""
+    challenge_id = 1
+    
+    # Tester avec un niveau d'indice négatif
+    response = client.get(f"/api/challenges/{challenge_id}/hint", params={"level": -1})
+    
+    # Devrait retourner 422 Unprocessable Entity
+    assert response.status_code == 422, f"Le code d'état devrait être 422, reçu {response.status_code}"
+    
+    # Vérifier que l'erreur mentionne le problème avec le niveau
+    data = response.json()
+    assert "detail" in data, "La réponse devrait contenir des détails sur l'erreur"
+    validation_errors = data["detail"]
+    assert any("level" in str(error) for error in validation_errors), "L'erreur devrait mentionner le problème avec le champ 'level'"
+
+
+def test_challenge_attempt_unauthenticated():
+    """Test de la soumission d'une tentative sans authentification."""
+    challenge_id = 1
+    
+    # S'assurer qu'il n'y a pas d'authentification
+    if get_current_user in app.dependency_overrides:
+        del app.dependency_overrides[get_current_user]
+    
+    # Soumettre une tentative
+    attempt_data = {"answer": "Une réponse quelconque"}
+    response = client.post(f"/api/challenges/{challenge_id}/attempt", json=attempt_data)
+    
+    # Devrait retourner 401 Unauthorized
+    assert response.status_code == 401, f"Le code d'état devrait être 401, reçu {response.status_code}"
+    
+    # Vérifier le message d'erreur
+    data = response.json()
+    assert "detail" in data, "La réponse devrait contenir des détails sur l'erreur"
+    error_message = data["detail"].lower()
+    assert ("authentication" in error_message or 
+            "authentification" in error_message or
+            "not authenticated" in error_message or
+            "non authentifié" in error_message), f"Le message devrait indiquer un problème d'authentification. Message reçu: {data['detail']}"
+
+
+def test_challenge_with_centralized_fixtures(padawan_client, mock_request, mock_api_response):
+    """Test d'un défi logique en utilisant les fixtures centralisées."""
+    # Récupérer le client authentifié
+    client = padawan_client["client"]
+    
+    # Récupérer un défi existant
+    response = client.get("/api/challenges/1")
+    assert response.status_code == 200, "Impossible de récupérer le défi logique"
+    challenge = response.json()
+    challenge_id = challenge["id"]
+    
+    # Tester la soumission d'une réponse en utilisant mock_request
+    # Simuler une requête qui sera utilisée pour des tests unitaires
+    request = mock_request(
+        authenticated=True,
+        role="padawan",
+        json_data={"answer": challenge["correct_answer"]},
+        path_params={"challenge_id": challenge_id}
+    )
+    
+    # Simuler une réponse d'API (utile pour les mocks de tests)
+    success_response = mock_api_response(
+        status_code=200,
+        data={
+            "is_correct": True,
+            "feedback": "Excellente réponse, jeune Padawan!",
+            "explanation": challenge.get("solution_explanation", ""),
+            "hints": None
+        }
+    )
+    
+    # Test réel avec le client
+    attempt_data = {"answer": challenge["correct_answer"]}
+    response = client.post(f"/api/challenges/{challenge_id}/attempt", json=attempt_data)
+    
+    # Vérifier que la tentative a réussi
+    assert response.status_code == 200, f"Le code d'état devrait être 200, reçu {response.status_code}"
+    
+    # Vérifier la réponse
+    result = response.json()
+    assert result["is_correct"] is True, "La réponse devrait être marquée comme correcte"
+    assert "feedback" in result, "La réponse devrait contenir un feedback"
+    assert "explanation" in result, "La réponse devrait contenir une explication"

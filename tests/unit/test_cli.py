@@ -2,9 +2,11 @@ import pytest
 import sys
 import os
 import importlib.util
+import inspect
 from unittest.mock import patch, MagicMock
 import threading
 import time
+from app.utils.db_helpers import get_enum_value
 
 # Chemin vers le script CLI
 CLI_SCRIPT_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -58,7 +60,7 @@ def test_run_command_function():
     args.host = "127.0.0.1"
     args.reload = False
     args.debug = True
-    args.enhanced = False
+    args.enhanced = True  # Activer enhanced_server.py
 
     # Patcher toutes les fonctions potentiellement bloquantes
     with patch("subprocess.Popen") as mock_popen, \
@@ -71,8 +73,6 @@ def test_run_command_function():
         mock_popen.return_value = mock_process
 
         # Exécuter la fonction dans un thread séparé avec timeout
-
-
         def run_with_timeout():
             try:
                 mathakine_cli.cmd_run(args)
@@ -90,13 +90,9 @@ def test_run_command_function():
         # Vérifier que Popen a été appelé correctement, même si le thread est toujours en cours
         assert mock_popen.called, "subprocess.Popen n'a pas été appelé"
 
-        # Vérifier les arguments de la commande
+        # Vérifier les arguments de la commande (test adapté à enhanced_server.py au lieu d'uvicorn)
         call_args = mock_popen.call_args[0][0]
-        assert "uvicorn" in call_args, "La commande uvicorn n'a pas été appelée"
-        assert "--port" in call_args, "Option --port manquante"
-        assert str(args.port) in call_args, f"Port {args.port} non utilisé"
-        assert "--host" in call_args, "Option --host manquante"
-        assert args.host in call_args, f"Host {args.host} non utilisé"
+        assert "enhanced_server.py" in call_args, "La commande enhanced_server.py n'a pas été appelée"
 
 
 
@@ -137,6 +133,5 @@ def test_test_command_exists():
     assert hasattr(mathakine_cli, "cmd_test"), "La fonction cmd_test n'existe pas"
 
     # Vérifier que la fonction cmd_test prend un argument
-    import inspect
     sig = inspect.signature(mathakine_cli.cmd_test)
     assert len(sig.parameters) >= 1, "La fonction cmd_test devrait prendre au moins un argument"

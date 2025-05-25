@@ -8,7 +8,7 @@ from loguru import logger
 
 from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
-from app.models.exercise import Exercise
+from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
 from app.models.attempt import Attempt
 
 
@@ -55,6 +55,14 @@ class ExerciseService:
         """
         try:
             query = db.query(Exercise).filter(Exercise.is_archived == False)
+            
+            # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
+            # pour éviter les erreurs d'énumération
+            valid_types = [t.value for t in ExerciseType]
+            valid_difficulties = [d.value for d in DifficultyLevel]
+            
+            query = query.filter(Exercise.exercise_type.in_(valid_types))
+            query = query.filter(Exercise.difficulty.in_(valid_difficulties))
             
             if exercise_type:
                 query = query.filter(Exercise.exercise_type == exercise_type)

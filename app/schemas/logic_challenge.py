@@ -21,12 +21,8 @@ class LogicChallengeBase(BaseModel):
                                   description="Explication détaillée de la solution")
 
     # Champs optionnels
-    hint_level1: Optional[str] = Field(None,
-                                    description="Premier indice (aide basique)")
-    hint_level2: Optional[str] = Field(None,
-                                    description="Deuxième indice (aide intermédiaire)")
-    hint_level3: Optional[str] = Field(None,
-                                    description="Troisième indice (aide avancée)")
+    hints: Optional[List[str]] = Field(None,
+                                    description="Liste des indices (aide progressive)")
     difficulty_rating: float = Field(3.0, ge=1.0, le=5.0,
                                  description="Niveau de difficulté (1-5)")
     estimated_time_minutes: int = Field(15, ge=1, le=120,
@@ -77,9 +73,7 @@ class LogicChallengeUpdate(BaseModel):
     correct_answer: Optional[str] = None
     solution_explanation: Optional[str] = Field(None, min_length=10)
     visual_data: Optional[Dict[str, Any]] = None
-    hint_level1: Optional[str] = None
-    hint_level2: Optional[str] = None
-    hint_level3: Optional[str] = None
+    hints: Optional[List[str]] = None
     difficulty_rating: Optional[float] = Field(None, ge=1.0, le=5.0)
     estimated_time_minutes: Optional[int] = Field(None, ge=1, le=120)
     image_url: Optional[str] = None
@@ -131,15 +125,13 @@ class LogicChallenge(LogicChallengeInDB):
 class LogicChallengeAttemptBase(BaseModel):
     """Schéma de base pour les tentatives de résolution de défis logiques"""
     challenge_id: int = Field(..., description="ID du défi logique")
-    user_answer: str = Field(..., description="Réponse fournie par l'utilisateur")
+    user_solution: str = Field(..., description="Réponse fournie par l'utilisateur")
     time_spent: Optional[float] = Field(None, ge=0.0,
                                      description="Temps passé en secondes")
-    hint_level1_used: bool = Field(False, description="Premier indice utilisé")
-    hint_level2_used: bool = Field(False, description="Deuxième indice utilisé")
-    hint_level3_used: bool = Field(False, description="Troisième indice utilisé")
+    hints_used: Optional[List[int]] = Field(None, description="Liste des indices utilisés (ex: [1, 2])")
     notes: Optional[str] = Field(None, description="Notes personnelles de l'utilisateur")
 
-    @field_validator('user_answer')
+    @field_validator('user_solution')
     @classmethod
     def answer_not_empty(cls, v):
         if not v or v.isspace():
@@ -152,15 +144,13 @@ class LogicChallengeAttemptCreate(LogicChallengeAttemptBase):
 
 class LogicChallengeAttemptUpdate(BaseModel):
     """Schéma pour la mise à jour d'une tentative de résolution"""
-    user_answer: Optional[str] = None
+    user_solution: Optional[str] = None
     is_correct: Optional[bool] = None
     time_spent: Optional[float] = Field(None, ge=0.0)
-    hint_level1_used: Optional[bool] = None
-    hint_level2_used: Optional[bool] = None
-    hint_level3_used: Optional[bool] = None
+    hints_used: Optional[List[int]] = None
     notes: Optional[str] = None
 
-    @field_validator('user_answer')
+    @field_validator('user_solution')
     @classmethod
     def answer_not_empty(cls, v):
         if v is not None and (not v or v.isspace()):

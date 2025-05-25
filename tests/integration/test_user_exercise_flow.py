@@ -1,9 +1,11 @@
+import json
 """
 Tests d'intégration pour le flux d'utilisateur-exercice
 """
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
+from app.utils.db_helpers import get_enum_value
 import uuid
 from datetime import datetime, timezone
 import logging

@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 from app.models.user import UserRole
 from enum import Enum
+import json
 
 # Schémas pour la manipulation des utilisateurs
 
@@ -15,7 +16,7 @@ class UserBase(BaseModel):
     email: EmailStr = Field(..., description="Adresse email valide")
     full_name: Optional[str] = Field(None, min_length=2, max_length=100,
                                   description="Nom complet de l'utilisateur")
-    role: Optional[UserRole] = Field(default=UserRole.PADAWAN,
+    role: Optional[UserRole] = Field(default="PADAWAN",
                                   description="Rôle dans l'Ordre Jedi des Mathématiques")
     grade_level: Optional[int] = Field(None, ge=1, le=12,
                                     description="Niveau scolaire (1-12)")
@@ -66,22 +67,42 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    """Schéma pour la mise à jour d'un utilisateur (Évolution d'un Jedi)"""
-    username: Optional[str] = Field(None, min_length=3, max_length=50,
-                                description="Nom d'utilisateur unique (3-50 caractères)")
+    """Schéma pour la mise à jour d'un utilisateur"""
     email: Optional[EmailStr] = None
-    password: Optional[str] = Field(None, min_length=8,
-                                description="Nouveau mot de passe (8 caractères minimum)")
-    full_name: Optional[str] = Field(None, min_length=2, max_length=100)
-    role: Optional[UserRole] = None
-    grade_level: Optional[int] = Field(None, ge=1, le=12)
+    full_name: Optional[str] = None
+    password: Optional[str] = None
+    is_active: Optional[bool] = None
+    grade_level: Optional[int] = None
     learning_style: Optional[str] = None
     preferred_difficulty: Optional[str] = None
-    preferred_theme: Optional[str] = None
-    accessibility_settings: Optional[Dict[str, Any]] = None
-    is_active: Optional[bool] = None
+    preferred_theme: Optional[str] = Field(None, description="Thème préféré (light pour Côté Lumineux, dark pour Côté Obscur)")
+    accessibility_settings: Optional[Dict[str, bool]] = Field(None, description="Paramètres d'accessibilité")
     
-    model_config = ConfigDict(extra="forbid", validate_default=True)
+    @field_validator("preferred_theme")
+    @classmethod
+    def validate_theme(cls, v):
+        if v is not None and v not in ["light", "dark"]:
+            raise ValueError("Le thème doit être 'light' (Côté Lumineux) ou 'dark' (Côté Obscur)")
+        return v
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "email": "luke@jedi.com",
+                "full_name": "Luke Skywalker",
+                "password": "NewPassword123!",
+                "is_active": True,
+                "grade_level": 5,
+                "learning_style": "visuel",
+                "preferred_difficulty": "chevalier",
+                "preferred_theme": "light",
+                "accessibility_settings": {"high_contrast": True, "large_text": False}
+            }
+        },
+        "json_encoders": {
+            dict: lambda v: json.dumps(v)
+        }
+    }
 
 
 
@@ -114,7 +135,7 @@ class UserLogin(BaseModel):
 
 
 
-class UserRole(str, Enum):
+class SchemaUserRole(str, Enum):
     PADAWAN = "padawan"
     CHEVALIER = "chevalier"
     MAITRE = "maitre"
@@ -123,6 +144,12 @@ class UserRole(str, Enum):
 class Token(BaseModel):
     access_token: str
     refresh_token: str
+    token_type: str = "bearer"
+    user_id: Optional[int] = None
+
+class RefreshTokenResponse(BaseModel):
+    """Schéma pour la réponse de rafraîchissement de token"""
+    access_token: str
     token_type: str = "bearer"
 
 class TokenData(BaseModel):
@@ -135,3 +162,24 @@ class TokenPayload(BaseModel):
     exp: int
     type: str  # "access" ou "refresh"
     role: Optional[str] = None
+
+class RefreshTokenRequest(BaseModel):
+    """Schéma pour la requête de rafraîchissement de token"""
+    refresh_token: str = Field(..., description="Token de rafraîchissement à utiliser")
+
+class UserPasswordUpdate(BaseModel):
+    """Schéma pour la mise à jour du mot de passe d'un utilisateur"""
+    current_password: str = Field(..., description="Mot de passe actuel")
+    new_password: str = Field(..., min_length=8, description="Nouveau mot de passe (8 caractères minimum)")
+    
+    @field_validator('new_password')
+    @classmethod
+    def password_strength(cls, v):
+        """Vérifie que le mot de passe est suffisamment fort"""
+        if len(v) < 8:
+            raise ValueError("Le mot de passe doit faire au moins 8 caractères")
+        if not any(char.isdigit() for char in v):
+            raise ValueError("Le mot de passe doit contenir au moins un chiffre")
+        if not any(char.isupper() for char in v):
+            raise ValueError("Le mot de passe doit contenir au moins une majuscule")
+        return v

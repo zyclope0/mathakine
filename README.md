@@ -1,96 +1,171 @@
-# 🌟 Mathakine (anciennement Math Trainer)
-
-> Une académie Jedi pour l'apprentissage des mathématiques, spécialement conçue pour les jeunes Padawans autistes.
+# 🌟 Mathakine - Plateforme Éducative d'Apprentissage des Mathématiques
 
 [![Tests](https://github.com/mathakine/math-trainer/actions/workflows/tests.yml/badge.svg)](https://github.com/mathakine/math-trainer/actions/workflows/tests.yml)
 [![Coverage](https://codecov.io/gh/mathakine/math-trainer/branch/main/graph/badge.svg)](https://codecov.io/gh/mathakine/math-trainer)
 [![Version](https://img.shields.io/github/v/release/mathakine/math-trainer)](https://github.com/mathakine/math-trainer/releases)
 [![License](https://img.shields.io/github/license/mathakine/math-trainer)](LICENSE)
 
-## 🚀 La Force des Nombres
+## 📚 Description du Projet
 
-Mathakine transforme l'apprentissage des mathématiques en une aventure Star Wars immersive :
+Mathakine est une plateforme web éducative innovante pour l'apprentissage des mathématiques, spécialement conçue pour les enfants autistes. L'application utilise une interface thématique Star Wars immersive pour créer un environnement d'apprentissage engageant et adapté aux besoins spécifiques de ce public.
 
-- 🎯 **Progression adaptative** : Du niveau Initié à Maître Jedi
-- 🌌 **Interface holographique** : Design Star Wars avec effets visuels adaptatifs
-- 📊 **Archives du Temple** : Suivi détaillé des progrès du Padawan
-- 🏆 **Défis du Conseil** : Exercices spéciaux pour tester vos compétences
-- ⚡ **Optimisations 2025** : Architecture améliorée et performances accrues
+### Caractéristiques Principales
 
-## 🛠️ Démarrage Rapide
+- **🎯 Apprentissage Adaptatif** : Progression personnalisée selon le niveau et les capacités de l'élève
+- **🌌 Interface Immersive** : Thème Star Wars avec effets visuels et sonores adaptés
+- **📊 Suivi Détaillé** : Tableaux de bord complets pour élèves, enseignants et parents
+- **♿ Accessibilité Avancée** : Support complet pour différents besoins (dyslexie, photosensibilité, etc.)
+- **🏆 Système de Motivation** : Progression par rangs Jedi et récompenses virtuelles
+
+## 🏗️ Architecture Technique
+
+### Stack Technologique
+
+#### Backend
+- **Frameworks** : FastAPI 0.115.12 + Starlette 0.31.1
+- **ORM** : SQLAlchemy 2.0.40
+- **Base de données** : PostgreSQL (production) / SQLite (développement)
+- **Authentification** : JWT via python-jose
+- **Validation** : Pydantic 2.11.0
+
+#### Frontend
+- **Templates** : Jinja2 3.1.2
+- **Styles** : CSS personnalisé avec système de variables
+- **JavaScript** : Vanilla JS avec modules ES6
+- **Accessibilité** : WCAG 2.1 AA compliant
+
+#### Infrastructure
+- **Serveur** : Uvicorn 0.23.2 (ASGI)
+- **Migrations** : Alembic 1.13.1
+- **Tests** : Pytest 7.4.3 avec couverture
+- **CI/CD** : GitHub Actions + Docker
+
+## 🚀 Installation et Configuration
+
+### Prérequis
+- Python 3.11 ou supérieur
+- PostgreSQL 14+ (production) ou SQLite (développement)
+- Git
+
+### Installation Locale
 
 ```bash
-# Cloner l'académie
+# Cloner le repository
 git clone https://github.com/mathakine/math-trainer.git
 cd mathakine
 
-# Préparer votre environnement
+# Créer l'environnement virtuel
 python -m venv venv
 source venv/bin/activate  # Linux/macOS
 # ou
 venv\Scripts\activate     # Windows
 
-# Installer les artefacts Jedi
+# Installer les dépendances
 pip install -r requirements.txt
 
-# Configuration de votre holocron
+# Configuration
 cp .env.example .env
-# Configurer .env selon vos besoins
+# Éditer .env avec vos paramètres
 
-# Activer l'académie
+# Initialiser la base de données
+python mathakine_cli.py init
+
+# Lancer l'application
 python mathakine_cli.py run
 ```
 
-## 📚 Les Holocrons (Documentation)
+### Configuration Docker
 
-Notre documentation est organisée comme les archives du Temple Jedi :
+```bash
+# Construction de l'image
+docker build -t mathakine .
+
+# Lancement avec docker-compose
+docker-compose up -d
+```
+
+## 📖 Documentation
+
+La documentation complète est organisée dans le dossier `docs/` :
 
 ```
 docs/
-├── Core/           # Les enseignements fondamentaux
-├── Tech/           # Les secrets techniques
-├── Features/       # Les pouvoirs spéciaux
-└── TABLE_DES_MATIERES_NOUVELLE.md  # L'index des connaissances
+├── Core/               # Documentation principale
+│   ├── QUICKSTART.md   # Guide de démarrage rapide
+│   ├── USER_GUIDE.md   # Guide utilisateur
+│   └── ADMIN_GUIDE.md  # Guide administrateur
+├── Tech/               # Documentation technique
+│   ├── API_REFERENCE.md    # Référence API REST
+│   ├── DATABASE_SCHEMA.md  # Schéma de base de données
+│   └── DEPLOYMENT.md       # Guide de déploiement
+└── Features/           # Documentation fonctionnelle
 ```
 
-## ⚔️ Niveaux d'Entraînement
+## 🧪 Tests
 
-| Rang | Description | Portée Numérique |
-|------|-------------|------------------|
-| Initié | Premiers pas dans la Force | 1-10 |
-| Padawan | Apprentissage fondamental | 10-50 |
-| Chevalier | Maîtrise croissante | 50-100 |
-| Maître | Sagesse complète | 100-500 |
+### Exécution des Tests
 
-## 🌟 Fonctionnalités Spéciales
+```bash
+# Tous les tests
+python tests/unified_test_runner.py --all
 
-- **Interface Holographique** : Design immersif avec effets Star Wars
-- **Accessibilité Avancée** : Modes adaptés (contraste, dyslexie, réduction des animations)
-- **Système de Cache Intelligent** : Performance optimisée
-- **Architecture Dual-Core** : FastAPI + Starlette pour flexibilité maximale
-- **Défis Logiques** : Exercices avancés pour différents groupes d'âge
+# Tests unitaires uniquement
+python tests/unified_test_runner.py --unit
 
-## 🛡️ Optimisations Récentes (2025)
+# Tests avec couverture
+python tests/unified_test_runner.py --all --coverage
+```
 
-- Nouveau système de transactions unifié
-- Protection contre les fuites de mémoire
-- Gestion optimisée des sessions
-- Cache intelligent avec invalidation
-- Support complet Python 3.13
+### Structure des Tests
+- **Unit** : Tests des composants isolés (73% de couverture)
+- **API** : Tests des endpoints REST
+- **Integration** : Tests des flux complets
+- **Functional** : Tests de l'interface utilisateur
 
-## 🤝 Rejoindre l'Ordre
+## 🛡️ Sécurité
 
-Les contributions sont bienvenues ! Consultez notre [guide de contribution](docs/Core/CONTRIBUTING.md).
+- **Authentification** : JWT avec tokens de rafraîchissement
+- **Mots de passe** : Hachage Bcrypt avec salt
+- **Validation** : Entrées validées via Pydantic
+- **CORS** : Configuration restrictive
+- **XSS/CSRF** : Protection native via frameworks
 
-## 📫 Communications
+## 📊 Performances
 
-- Site : [mathakine.fr](https://mathakine.fr)
-- Email : contact@mathakine.fr
+- **Cache** : Stratégie de cache intelligent
+- **Pagination** : Curseurs optimisés pour grandes données
+- **Lazy Loading** : Chargement différé des ressources
+- **Compression** : Gzip activé sur tous les assets
 
-## 📜 License
+## 🤝 Contribution
 
-Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE).
+Les contributions sont les bienvenues ! Veuillez consulter notre [guide de contribution](docs/Core/CONTRIBUTING.md) pour les détails.
+
+### Processus de Contribution
+1. Fork du projet
+2. Créer une branche (`git checkout -b feature/AmazingFeature`)
+3. Commit des changements (`git commit -m 'feat: Add AmazingFeature'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrir une Pull Request
+
+## 📄 Licence
+
+Ce projet est distribué sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+
+## 👥 Équipe et Contact
+
+- **Développeur Principal** : [Nom]
+- **Email** : contact@mathakine.fr
+- **Site Web** : [mathakine.fr](https://mathakine.fr)
+
+## 🙏 Remerciements
+
+- L'équipe pédagogique pour leur expertise en éducation spécialisée
+- La communauté open source pour les outils utilisés
+- Les testeurs et utilisateurs pour leurs retours précieux
 
 ---
 
-*Que la Force des mathématiques soit avec vous* ✨ 
+*"Que la Force des mathématiques soit avec vous"* ✨
+
+**Version actuelle** : 1.0.0 | **Dernière mise à jour** : 26 mai 2025 

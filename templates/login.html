@@ -10,7 +10,7 @@
             <p>Identifiez-vous pour accéder à votre entraînement</p>
         </div>
 
-        <form id="login-form" class="auth-form" method="POST" action="/api/auth/login">
+        <form id="login-form" class="auth-form">
             {% if error %}
             <div class="error-message">
                 <i class="fas fa-exclamation-circle"></i>
@@ -254,35 +254,72 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     };
 
     try {
+        // Afficher un indicateur de chargement
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion en cours...';
+        submitBtn.disabled = true;
+
+        // Supprime les messages d'erreur précédents
+        const previousError = document.querySelector('.error-message');
+        if (previousError) {
+            previousError.remove();
+        }
+
         const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(formData),
+            redirect: 'follow'
         });
 
-        const data = await response.json();
+        if (response.redirected) {
+            // Si la réponse est une redirection, suivre la redirection
+            window.location.href = response.url;
+            return;
+        }
 
         if (response.ok) {
-            // Stocker le token
-            localStorage.setItem('token', data.access_token);
-            // Rediriger vers le tableau de bord
-            window.location.href = '/dashboard';
+            // Si la réponse est OK mais pas une redirection, rediriger manuellement
+            window.location.href = '/';
         } else {
             // Afficher l'erreur
+            const errorData = await response.json();
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message';
             errorDiv.innerHTML = `
                 <i class="fas fa-exclamation-circle"></i>
-                ${data.detail || 'Erreur de connexion'}
+                ${errorData.detail || 'Erreur de connexion'}
             `;
             
             const form = document.getElementById('login-form');
             form.insertBefore(errorDiv, form.firstChild);
+            
+            // Restaurer le bouton
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
         }
     } catch (error) {
         console.error('Erreur:', error);
+        
+        // Afficher une erreur générique
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            Erreur de connexion au serveur. Veuillez réessayer.
+        `;
+        
+        const form = document.getElementById('login-form');
+        form.insertBefore(errorDiv, form.firstChild);
+        
+        // Restaurer le bouton
+        const submitBtn = document.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
+        submitBtn.disabled = false;
     }
 });
 </script>

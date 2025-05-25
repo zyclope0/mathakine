@@ -31,6 +31,8 @@ class Recommendation(Base):
     # Statistiques d'utilisation
     shown_count = Column(Integer, default=0)  # Nombre de fois que cette recommandation a été affichée
     clicked_count = Column(Integer, default=0)  # Nombre de fois que l'utilisateur a cliqué dessus
+    last_clicked_at = Column(DateTime(timezone=True), nullable=True)  # Date du dernier clic
+    completed_at = Column(DateTime(timezone=True), nullable=True)  # Date de complétion
     
     # Horodatage
     created_at = Column(DateTime(timezone=True), default=func.now())

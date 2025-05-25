@@ -9,6 +9,7 @@ import os
 import signal
 import sys
 from pathlib import Path
+from app.utils.db_helpers import get_enum_value
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Ce test est conçu pour Windows")
 def test_server_startup():
@@ -39,7 +40,16 @@ def test_server_startup():
         # Vérifier si le processus est toujours en cours d'exécution
         if process.poll() is not None:
             # Lire stderr pour obtenir l'erreur
-            stderr = process.stderr.read().decode("utf-8")
+            stderr_bytes = process.stderr.read()
+            # Essayer différents encodages courants sous Windows
+            try:
+                stderr = stderr_bytes.decode("utf-8", errors="replace")
+            except:
+                try:
+                    stderr = stderr_bytes.decode("cp1252", errors="replace")
+                except:
+                    stderr = stderr_bytes.decode("latin-1", errors="replace")
+                
             if "DATABASE_URL" in stderr or "base de données" in stderr.lower():
                 pytest.skip("Test ignoré car la base de données n'est pas configurée")
             else:
