@@ -34,9 +34,8 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn primary-btn">
-                <i class="fas fa-sign-in-alt"></i>
-                Se connecter
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Se connecter
             </button>
         </form>
 
@@ -53,11 +52,15 @@
                     <span class="credential-value">padawan123</span>
                 </div>
             </div>
+            <button type="button" id="fill-test-credentials" class="btn btn-ghost" style="margin-top: 15px; width: 100%;">
+                <i class="fas fa-magic"></i>
+                Remplir automatiquement
+            </button>
         </div>
 
         <div class="auth-footer">
             <p>Pas encore de compte ?</p>
-            <a href="/register" class="btn secondary-btn">
+            <a href="/register" class="btn btn-ghost">
                 <i class="fas fa-user-plus"></i>
                 S'inscrire
             </a>
@@ -221,23 +224,23 @@
         transition: all 0.3s ease;
     }
 
-    .primary-btn {
+    .btn-primary {
         background-color: var(--sw-blue);
         color: white;
         border: none;
     }
 
-    .primary-btn:hover {
+    .btn-primary:hover {
         background-color: var(--sw-blue-hover);
     }
 
-    .secondary-btn {
+    .btn-ghost {
         background-color: transparent;
         color: var(--sw-blue);
         border: 1px solid var(--sw-blue);
     }
 
-    .secondary-btn:hover {
+    .btn-ghost:hover {
         background-color: var(--sw-blue-transparent);
     }
 </style>
@@ -245,6 +248,23 @@
 
 {% block scripts %}
 <script>
+// Fonction pour remplir automatiquement les champs de test
+document.getElementById('fill-test-credentials').addEventListener('click', function() {
+    document.getElementById('username').value = 'test_user';
+    document.getElementById('password').value = 'padawan123';
+    
+    // Animation visuelle pour indiquer que les champs ont été remplis
+    const button = this;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i> Rempli !';
+    button.style.backgroundColor = 'var(--sw-success)';
+    
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.style.backgroundColor = '';
+    }, 2000);
+});
+
 document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     

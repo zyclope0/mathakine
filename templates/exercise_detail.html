@@ -3,7 +3,6 @@
 {% block title %}{{ exercise.title }} - Mathakine{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', path='holographic-effect.css') }}">
 <style>
     /* Styles globaux pour l'exercice */
     .exercise-detail {
@@ -443,10 +442,10 @@
     
     <!-- Éléments audio pour le feedback sonore -->
     <audio class="audio-feedback" id="audio-correct">
-        <source src="{{ url_for('static', path='sounds/lightsaber-on.mp3') }}" type="audio/mpeg">
+        <source src="/static/sounds/lightsaber-on.mp3" type="audio/mpeg">
     </audio>
     <audio class="audio-feedback" id="audio-incorrect">
-        <source src="{{ url_for('static', path='sounds/lightsaber-clash.mp3') }}" type="audio/mpeg">
+        <source src="/static/sounds/lightsaber-clash.mp3" type="audio/mpeg">
     </audio>
 </div>
 {% endblock %}
@@ -552,16 +551,14 @@
                 const timeSpent = (Date.now() - startTime) / 1000; // en secondes
                 
                 // Envoyer la réponse au serveur
-                fetch('/api/exercises/' + {{ exercise.id }} + '/submit', {
+                fetch('/api/submit-answer', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        answer: userAnswer,
-                        correct_answer: correctAnswer,
-                        is_correct: isCorrect,
-                        time_spent: timeSpent
+                        exercise_id: {{ exercise.id }},
+                        answer: userAnswer
                     })
                 })
                 .then(response => response.json())

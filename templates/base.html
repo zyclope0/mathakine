@@ -6,113 +6,310 @@
     <meta name="description" content="Mathakine - L'API Rebelle, une plateforme d'exercices mathématiques interactifs avec un thème spatial">
     <title>{% block title %}Mathakine{% endblock %} | L'API Rebelle</title>
     
-    <!-- Preload des ressources critiques -->
-    <link rel="preload" href="/static/normalize.css" as="style">
-    <link rel="preload" href="/static/variables.css" as="style">
-    <link rel="preload" href="/static/utils.css" as="style">
-    <link rel="preload" href="/static/style.css" as="style">
-    <link rel="preload" href="/static/space-theme-dark.css" as="style">
-    <link rel="preload" href="/static/accessibility.css" as="style">
-    <link rel="preload" href="/static/img/mathakine-logo.svg" as="image">
+    <!-- DNS Prefetch pour optimiser les connexions externes -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    
+    <!-- Preconnect pour les ressources critiques -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Preload des ressources critiques avec priorité -->
+    <link rel="preload" href="/static/normalize.css" as="style" importance="high">
+    <link rel="preload" href="/static/variables.css" as="style" importance="high">
+    <link rel="preload" href="/static/utils.css" as="style" importance="high">
+    <link rel="preload" href="/static/style.css" as="style" importance="high">
+    <link rel="preload" href="/static/img/mathakine-logo.svg" as="image" importance="high">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" as="style">
     
-    <!-- Styles -->
+    <!-- Styles critiques en ligne pour éviter le FOUC -->
+    <style>
+        /* Critical CSS inline pour éviter le flash */
+        body { 
+            font-family: 'Exo 2', sans-serif; 
+            background-color: #121212; 
+            color: #FFFFFF; 
+            margin: 0; 
+            opacity: 0; 
+            transition: opacity 0.3s ease;
+        }
+        body.loaded { opacity: 1; }
+        .loading-screen { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: #121212; 
+            z-index: 9999; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+    </style>
+    
+    <!-- Styles avec chargement optimisé -->
     <link rel="stylesheet" href="/static/normalize.css">
     <link rel="stylesheet" href="/static/variables.css">
     <link rel="stylesheet" href="/static/utils.css">
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/space-theme-dark.css">
-    <link rel="stylesheet" href="/static/accessibility.css">
+    <link rel="stylesheet" href="/static/accessibility.css" media="print" onload="this.media='all'">
+    
+    <!-- NOUVEAUX SYSTÈMES CSS -->
+    <link rel="stylesheet" href="/static/notifications.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/static/breadcrumbs.css" media="print" onload="this.media='all'">
+    
+    <!-- Favicon optimisé -->
     <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
+    
     {% block head %}{% endblock %}
     
     <!-- CSS spécifique pour la page d'accueil avec chargement conditionnel -->
     {% if request.path == '/' %}
-    <link rel="stylesheet" href="/static/home-styles.css">
+    <link rel="stylesheet" href="/static/home-styles.css" media="print" onload="this.media='all'">
     {% endif %}
     
-    <!-- Ajouter Google Fonts avec display=swap pour un rendu optimal -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Google Fonts avec display=swap optimisé -->
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     
-    <!-- Ajout d'une police pour les icônes avec chargement différé -->
+    <!-- Font Awesome avec chargement différé -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     
     <!-- Fallback pour les navigateurs qui ne supportent pas le onload -->
     <noscript>
         <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="/static/space-theme-dark.css">
+        <link rel="stylesheet" href="/static/accessibility.css">
+        <link rel="stylesheet" href="/static/notifications.css">
+        <link rel="stylesheet" href="/static/breadcrumbs.css">
+        {% if request.path == '/' %}
+        <link rel="stylesheet" href="/static/home-styles.css">
+        {% endif %}
     </noscript>
+    
+    <!-- Meta tags pour les performances -->
+    <meta name="theme-color" content="#1a1e33">
+    <meta name="msapplication-TileColor" content="#1a1e33">
+    <meta name="format-detection" content="telephone=no">
 </head>
 <body>
-    <!-- Barre d'accessibilité -->
-    <div class="accessibility-bar" role="toolbar" aria-label="Options d'accessibilité">
-        <button id="high-contrast-toggle" aria-pressed="false" title="Mode contraste élevé">
-            <i class="fas fa-adjust"></i>
-        </button>
-        <button id="large-text-toggle" aria-pressed="false" title="Texte plus grand">
-            <i class="fas fa-text-height"></i>
-        </button>
-        <button id="reduced-motion-toggle" aria-pressed="false" title="Réduire les animations">
-            <i class="fas fa-running"></i>
-        </button>
-        <button id="dyslexic-toggle" aria-pressed="false" title="Mode dyslexie">
-            <i class="fas fa-font"></i>
-        </button>
+    <!-- Skip links pour accessibilité -->
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <a href="#main-navigation" class="skip-link">Aller à la navigation</a>
+    
+    <!-- Écran de chargement pour éviter le FOUC -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="spinner"></div>
     </div>
     
-    <header>
-        <div class="logo-container">
-            <img src="/static/img/mathakine-logo.svg" alt="Mathakine" class="logo preload" width="60" height="60" onload="this.classList.add('loaded')">
-            <div class="logo-text">
-                <h1>Mathakine</h1>
-                <div class="logo-subtitle">L'API Rebelle</div>
-            </div>
-        </div>
-        <nav>
-            <a href="/" class="btn{% if request.path == '/' %} active{% endif %}"><i class="fas fa-home"></i> Accueil</a>
-            <a href="/exercises" class="btn{% if request.path == '/exercises' %} active{% endif %}"><i class="fas fa-pencil-alt"></i> Exercices</a>
-            <a href="/dashboard" class="btn{% if request.path == '/dashboard' %} active{% endif %}"><i class="fas fa-chart-line"></i> Tableau de bord</a>
-            <a href="/api/exercises/generate" class="btn{% if request.path == '/api/exercises/generate' %} active{% endif %}"><i class="fas fa-plus"></i> Nouvel exercice</a>
+    <!-- Barre d'accessibilité optimisée -->
+    <div class="accessibility-bar" role="toolbar" aria-label="Options d'accessibilité" id="accessibility-bar">
+        <!-- Bouton de toggle pour masquer/afficher -->
+        <button class="accessibility-toggle" 
+                id="accessibility-toggle" 
+                aria-label="Afficher/masquer les options d'accessibilité"
+                title="Options d'accessibilité">
+            <i class="fas fa-universal-access" aria-hidden="true"></i>
+        </button>
+        
+        <!-- Conteneur des contrôles -->
+        <div class="accessibility-controls" id="accessibility-controls">
+            <button id="high-contrast-toggle" 
+                    aria-pressed="false" 
+                    title="Mode contraste élevé (Alt+C)"
+                    aria-label="Activer le mode contraste élevé">
+                <i class="fas fa-adjust" aria-hidden="true"></i>
+                <span class="btn-text">Contraste</span>
+            </button>
+            <button id="large-text-toggle" 
+                    aria-pressed="false" 
+                    title="Texte plus grand (Alt+T)"
+                    aria-label="Agrandir le texte">
+                <i class="fas fa-text-height" aria-hidden="true"></i>
+                <span class="btn-text">Texte+</span>
+            </button>
+            <button id="reduced-motion-toggle" 
+                    aria-pressed="false" 
+                    title="Réduire les animations (Alt+M)"
+                    aria-label="Réduire les animations">
+                <i class="fas fa-running" aria-hidden="true"></i>
+                <span class="btn-text">Animations</span>
+            </button>
+            <button id="dyslexic-toggle" 
+                    aria-pressed="false" 
+                    title="Mode dyslexie (Alt+D)"
+                    aria-label="Activer la police dyslexie">
+                <i class="fas fa-font" aria-hidden="true"></i>
+                <span class="btn-text">Dyslexie</span>
+            </button>
             
-            <!-- Liens d'authentification -->
-            {% if current_user.is_authenticated %}
-                <div class="auth-links">
-                    <span class="user-info">
-                        <i class="fas fa-user"></i> {{ current_user.username }}
-                    </span>
-                    <a href="/logout" class="btn btn-danger">
-                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+            <!-- Bouton pour masquer complètement la barre -->
+            <button id="hide-accessibility-bar" 
+                    aria-label="Masquer la barre d'accessibilité"
+                    title="Masquer cette barre (Maj+Alt+H)">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- NAVIGATION SIMPLIFIÉE ET OPTIMISÉE -->
+    <header role="banner">
+        <nav class="navbar-primary" role="navigation" aria-label="Navigation principale" id="main-navigation">
+            <!-- Logo et titre -->
+            <div class="nav-brand">
+                <a href="/" class="brand-link">
+                    <img src="/static/img/mathakine-logo.svg" alt="Mathakine" class="logo preload" width="60" height="60" onload="this.classList.add('loaded')">
+                    <div class="logo-text">
+                        <h1 class="nav-title">Mathakine</h1>
+                        <div class="logo-subtitle">L'API Rebelle</div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Navigation principale (3 éléments max selon plan UX) -->
+            <ul class="nav-main">
+                <li>
+                    <a href="/exercises" class="nav-link{% if request.path == '/exercises' %} active{% endif %}" aria-current="{% if request.path == '/exercises' %}page{% endif %}">
+                        <i class="fas fa-calculator" aria-hidden="true"></i>
+                        <span>Exercices</span>
                     </a>
-                </div>
-            {% else %}
-                <div class="auth-links">
-                    <a href="/login" class="btn btn-primary{% if request.path == '/login' %} active{% endif %}">
-                        <i class="fas fa-sign-in-alt"></i> Connexion
+                </li>
+                <li>
+                    <a href="/dashboard" class="nav-link{% if request.path == '/dashboard' %} active{% endif %}" aria-current="{% if request.path == '/dashboard' %}page{% endif %}">
+                        <i class="fas fa-chart-line" aria-hidden="true"></i>
+                        <span>Progression</span>
                     </a>
-                    <a href="/register" class="btn btn-success{% if request.path == '/register' %} active{% endif %}">
-                        <i class="fas fa-user-plus"></i> Inscription
+                </li>
+                {% if current_user['is_authenticated'] %}
+                <li>
+                    <a href="/profile" class="nav-link{% if request.path == '/profile' %} active{% endif %}" aria-current="{% if request.path == '/profile' %}page{% endif %}">
+                        <i class="fas fa-user" aria-hidden="true"></i>
+                        <span>Profil</span>
                     </a>
-                </div>
-            {% endif %}
+                </li>
+                {% endif %}
+            </ul>
+            
+            <!-- Actions utilisateur dans menu dédié -->
+            <div class="nav-user">
+                {% if current_user['is_authenticated'] %}
+                    <div class="user-menu">
+                        <button class="user-menu-toggle" aria-expanded="false" aria-haspopup="true">
+                            <img src="/static/img/avatar-default.svg" alt="Menu utilisateur" class="user-avatar">
+                            <span class="user-name">{{ current_user['username'] }}</span>
+                            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="user-menu-dropdown" role="menu">
+                            <a href="/api/exercises/generate" class="menu-item" role="menuitem">
+                                <i class="fas fa-plus" aria-hidden="true"></i>
+                                Nouvel exercice
+                            </a>
+                            <a href="/settings" class="menu-item" role="menuitem">
+                                <i class="fas fa-cog" aria-hidden="true"></i>
+                                Paramètres
+                            </a>
+                            <hr class="menu-separator">
+                            <a href="/logout" class="menu-item menu-item-danger" role="menuitem">
+                                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                                Déconnexion
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="auth-links">
+                        <a href="/login" class="btn btn-primary{% if request.path == '/login' %} active{% endif %}">
+                            <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                            Connexion
+                        </a>
+                        <a href="/register" class="btn btn-success{% if request.path == '/register' %} active{% endif %}">
+                            <i class="fas fa-user-plus" aria-hidden="true"></i>
+                            Inscription
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
         </nav>
     </header>
+    
+    <!-- SYSTÈME DE BREADCRUMBS -->
+    {% if request.path != '/' %}
+    <nav class="breadcrumbs star-wars" aria-label="Fil d'Ariane">
+        <div class="breadcrumb-container">
+            <ol class="breadcrumb-list">
+                <li>
+                    <a href="/">
+                        <i class="fas fa-home" aria-hidden="true"></i>
+                        Accueil
+                    </a>
+                </li>
+                {% if request.path.startswith('/exercises') %}
+                    <li>
+                        <a href="/exercises">
+                            <i class="fas fa-calculator" aria-hidden="true"></i>
+                            Exercices
+                        </a>
+                    </li>
+                    {% if '/exercise/' in request.path %}
+                        <li aria-current="page">
+                            <i class="fas fa-play" aria-hidden="true"></i>
+                            Exercice en cours
+                        </li>
+                    {% endif %}
+                {% elif request.path == '/dashboard' %}
+                    <li aria-current="page">
+                        <i class="fas fa-chart-line" aria-hidden="true"></i>
+                        Tableau de bord
+                    </li>
+                {% elif request.path == '/profile' %}
+                    <li aria-current="page">
+                        <i class="fas fa-user" aria-hidden="true"></i>
+                        Profil
+                    </li>
+                {% elif request.path == '/login' %}
+                    <li aria-current="page">
+                        <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                        Connexion
+                    </li>
+                {% elif request.path == '/register' %}
+                    <li aria-current="page">
+                        <i class="fas fa-user-plus" aria-hidden="true"></i>
+                        Inscription
+                    </li>
+                {% endif %}
+            </ol>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <!-- ZONE DE NOTIFICATIONS GLOBALE -->
+    <div class="notification-zone" role="region" aria-label="Notifications" aria-live="polite">
+        <!-- Les notifications seront ajoutées dynamiquement ici -->
+    </div>
     
     <!-- Indicateur de chargement -->
     <div id="loading-indicator" class="loading-indicator"></div>
     
-    <div class="container">
-        {% block content %}{% endblock %}
-    </div>
+    <!-- Contenu principal -->
+    <main role="main" aria-label="Contenu principal" id="main-content">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
     
-    <footer>
-        <p>Mathakine - Exerce-toi aux mathématiques de façon amusante !</p>
-        <div class="footer-links">
-            <a href="https://github.com/zyclope0/mathakine" class="github-link" target="_blank">
-                <i class="fab fa-github"></i> Projet GitHub
-            </a>
-            <span class="version">Version 4.0 - L'API Rebelle</span>
+    <footer role="contentinfo">
+        <div class="container">
+            <p>Mathakine - Exerce-toi aux mathématiques de façon amusante !</p>
+            <div class="footer-links">
+                <a href="https://github.com/zyclope0/mathakine" class="github-link" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-github" aria-hidden="true"></i> 
+                    Projet GitHub
+                </a>
+                <span class="version">Version 4.0 - L'API Rebelle</span>
+            </div>
         </div>
     </footer>
     
@@ -121,123 +318,317 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Application Mathakine chargée');
             
-            // Gestionnaire d'indicateur de chargement pour les requêtes AJAX
-            const loadingIndicator = document.getElementById('loading-indicator');
+            // Masquer l'écran de chargement et afficher le contenu
+            const loadingScreen = document.getElementById('loading-screen');
+            const body = document.body;
             
-            // Interception des requêtes fetch pour afficher l'indicateur
-            const originalFetch = window.fetch;
-            window.fetch = function() {
-                loadingIndicator.classList.remove('d-none');
-                loadingIndicator.classList.add('d-block');
-                return originalFetch.apply(this, arguments)
-                    .then(response => {
-                        loadingIndicator.classList.add('d-none');
-                        loadingIndicator.classList.remove('d-block');
-                        return response;
-                    })
-                    .catch(error => {
-                        loadingIndicator.classList.add('d-none');
-                        loadingIndicator.classList.remove('d-block');
-                        throw error;
-                    });
+            // Attendre que toutes les ressources soient chargées
+            window.addEventListener('load', function() {
+                // Masquer l'écran de chargement
+                if (loadingScreen) {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 300);
+                }
+                
+                // Afficher le contenu principal
+                body.classList.add('loaded');
+            });
+            
+            // Fallback si window.load ne se déclenche pas
+            setTimeout(() => {
+                if (loadingScreen && loadingScreen.style.display !== 'none') {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 300);
+                    body.classList.add('loaded');
+                }
+            }, 3000);
+            
+            // === SYSTÈME DE NOTIFICATIONS ===
+            window.NotificationSystem = {
+                show: function(type, title, message, duration = 5000) {
+                    const zone = document.querySelector('.notification-zone');
+                    if (!zone) return;
+                    
+                    const notification = document.createElement('div');
+                    notification.className = `notification notification-${type}`;
+                    notification.setAttribute('role', type === 'error' ? 'alert' : 'status');
+                    notification.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+                    
+                    notification.innerHTML = `
+                        <i class="fas fa-${this.getIcon(type)}" aria-hidden="true"></i>
+                        <div class="notification-content">
+                            <h4>${title}</h4>
+                            <p>${message}</p>
+                        </div>
+                        <button class="notification-close" aria-label="Fermer la notification">×</button>
+                        ${duration > 0 ? '<div class="notification-progress"></div>' : ''}
+                    `;
+                    
+                    // Ajouter les événements
+                    const closeBtn = notification.querySelector('.notification-close');
+                    closeBtn.addEventListener('click', () => this.remove(notification));
+                    
+                    // Auto-dismiss si durée spécifiée
+                    if (duration > 0) {
+                        setTimeout(() => this.remove(notification), duration);
+                    }
+                    
+                    zone.appendChild(notification);
+                    
+                    // Forcer le reflow pour l'animation
+                    notification.offsetHeight;
+                },
+                
+                remove: function(notification) {
+                    notification.classList.add('removing');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                },
+                
+                getIcon: function(type) {
+                    const icons = {
+                        success: 'check-circle',
+                        error: 'exclamation-circle',
+                        warning: 'exclamation-triangle',
+                        info: 'info-circle'
+                    };
+                    return icons[type] || 'info-circle';
+                }
             };
-        });
-    </script>
-    
-    {% block scripts %}{% endblock %}
-    
-    <!-- Script d'accessibilité -->
-    <script>
-        // Gestionnaire des fonctionnalités d'accessibilité
-        document.addEventListener('DOMContentLoaded', function() {
-            // Récupérer les préférences sauvegardées
-            const highContrast = localStorage.getItem('highContrast') === 'true';
-            const largeText = localStorage.getItem('largeText') === 'true';
-            const reducedMotion = localStorage.getItem('reducedMotion') === 'true';
-            const dyslexicFont = localStorage.getItem('dyslexicFont') === 'true';
             
-            // Appliquer les préférences sauvegardées
-            if (highContrast) {
-                document.body.classList.add('high-contrast');
-                document.getElementById('high-contrast-toggle').classList.add('active');
-                document.getElementById('high-contrast-toggle').setAttribute('aria-pressed', 'true');
+            // === MENU UTILISATEUR ===
+            const userMenuToggle = document.querySelector('.user-menu-toggle');
+            const userMenuDropdown = document.querySelector('.user-menu-dropdown');
+            
+            if (userMenuToggle && userMenuDropdown) {
+                userMenuToggle.addEventListener('click', function() {
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                    this.setAttribute('aria-expanded', !isExpanded);
+                    userMenuDropdown.classList.toggle('show');
+                });
+                
+                // Fermer le menu en cliquant ailleurs
+                document.addEventListener('click', function(e) {
+                    if (!userMenuToggle.contains(e.target) && !userMenuDropdown.contains(e.target)) {
+                        userMenuToggle.setAttribute('aria-expanded', 'false');
+                        userMenuDropdown.classList.remove('show');
+                    }
+                });
             }
             
-            if (largeText) {
-                document.body.classList.add('large-text');
-                document.getElementById('large-text-toggle').classList.add('active');
-                document.getElementById('large-text-toggle').setAttribute('aria-pressed', 'true');
-            }
-            
-            if (reducedMotion) {
-                document.body.classList.add('reduced-motion');
-                document.getElementById('reduced-motion-toggle').classList.add('active');
-                document.getElementById('reduced-motion-toggle').setAttribute('aria-pressed', 'true');
-            }
-            
-            if (dyslexicFont) {
-                document.body.classList.add('dyslexic-friendly');
-                document.getElementById('dyslexic-toggle').classList.add('active');
-                document.getElementById('dyslexic-toggle').setAttribute('aria-pressed', 'true');
-            }
-            
-            // Bouton contraste élevé
-            document.getElementById('high-contrast-toggle').addEventListener('click', function() {
-                document.body.classList.toggle('high-contrast');
-                this.classList.toggle('active');
-                const isActive = document.body.classList.contains('high-contrast');
-                this.setAttribute('aria-pressed', isActive);
-                localStorage.setItem('highContrast', isActive);
-            });
-            
-            // Bouton texte plus grand
-            document.getElementById('large-text-toggle').addEventListener('click', function() {
-                document.body.classList.toggle('large-text');
-                this.classList.toggle('active');
-                const isActive = document.body.classList.contains('large-text');
-                this.setAttribute('aria-pressed', isActive);
-                localStorage.setItem('largeText', isActive);
-            });
-            
-            // Bouton réduction des animations
-            document.getElementById('reduced-motion-toggle').addEventListener('click', function() {
-                document.body.classList.toggle('reduced-motion');
-                this.classList.toggle('active');
-                const isActive = document.body.classList.contains('reduced-motion');
-                this.setAttribute('aria-pressed', isActive);
-                localStorage.setItem('reducedMotion', isActive);
-            });
-            
-            // Bouton texte dyslexie-friendly
-            document.getElementById('dyslexic-toggle').addEventListener('click', function() {
-                document.body.classList.toggle('dyslexic-friendly');
-                this.classList.toggle('active');
-                const isActive = document.body.classList.contains('dyslexic-friendly');
-                this.setAttribute('aria-pressed', isActive);
-                localStorage.setItem('dyslexicFont', isActive);
-            });
-            
-            // Raccourcis clavier pour l'accessibilité
+            // === GESTION DES RACCOURCIS CLAVIER ===
             document.addEventListener('keydown', function(e) {
-                // Alt+C : Contraste élevé
+                // Alt + C : Contraste élevé
                 if (e.altKey && e.key === 'c') {
-                    document.getElementById('high-contrast-toggle').click();
+                    e.preventDefault();
+                    document.getElementById('high-contrast-toggle')?.click();
                 }
-                // Alt+T : Texte plus grand
-                else if (e.altKey && e.key === 't') {
-                    document.getElementById('large-text-toggle').click();
+                // Alt + T : Texte plus grand
+                if (e.altKey && e.key === 't') {
+                    e.preventDefault();
+                    document.getElementById('large-text-toggle')?.click();
                 }
-                // Alt+M : Réduire les animations
-                else if (e.altKey && e.key === 'm') {
-                    document.getElementById('reduced-motion-toggle').click();
+                // Alt + M : Réduire animations
+                if (e.altKey && e.key === 'm') {
+                    e.preventDefault();
+                    document.getElementById('reduced-motion-toggle')?.click();
                 }
-                // Alt+D : Mode dyslexie
-                else if (e.altKey && e.key === 'd') {
-                    document.getElementById('dyslexic-toggle').click();
+                // Alt + D : Mode dyslexie
+                if (e.altKey && e.key === 'd') {
+                    e.preventDefault();
+                    document.getElementById('dyslexic-toggle')?.click();
+                }
+                // Maj + Alt + H : Masquer la barre d'accessibilité
+                if (e.shiftKey && e.altKey && e.key === 'h') {
+                    e.preventDefault();
+                    document.getElementById('hide-accessibility-bar')?.click();
                 }
             });
+            
+            // === BARRE D'ACCESSIBILITÉ OPTIMISÉE ===
+            const accessibilityBar = document.getElementById('accessibility-bar');
+            const accessibilityToggle = document.getElementById('accessibility-toggle');
+            const accessibilityControls = document.getElementById('accessibility-controls');
+            const hideAccessibilityBar = document.getElementById('hide-accessibility-bar');
+            
+            // Gestion des préférences utilisateur
+            const AccessibilityManager = {
+                // Clés de stockage local
+                STORAGE_KEYS: {
+                    HIGH_CONTRAST: 'mathakine_high_contrast',
+                    LARGE_TEXT: 'mathakine_large_text',
+                    REDUCED_MOTION: 'mathakine_reduced_motion',
+                    DYSLEXIC_FRIENDLY: 'mathakine_dyslexic_friendly',
+                    BAR_HIDDEN: 'mathakine_accessibility_bar_hidden',
+                    BAR_EXPANDED: 'mathakine_accessibility_bar_expanded'
+                },
+                
+                // Initialiser les préférences au chargement
+                init: function() {
+                    this.loadPreferences();
+                    this.setupEventListeners();
+                    this.setupAutoHide();
+                },
+                
+                // Charger les préférences sauvegardées
+                loadPreferences: function() {
+                    // Charger l'état de la barre
+                    const isBarHidden = localStorage.getItem(this.STORAGE_KEYS.BAR_HIDDEN) === 'true';
+                    const isBarExpanded = localStorage.getItem(this.STORAGE_KEYS.BAR_EXPANDED) === 'true';
+                    
+                    if (isBarHidden) {
+                        accessibilityBar.classList.add('hidden');
+                    } else if (isBarExpanded) {
+                        accessibilityBar.classList.add('expanded');
+                    }
+                    
+                    // Charger les préférences d'accessibilité
+                    this.loadToggleState('high-contrast-toggle', this.STORAGE_KEYS.HIGH_CONTRAST, 'high-contrast');
+                    this.loadToggleState('large-text-toggle', this.STORAGE_KEYS.LARGE_TEXT, 'large-text');
+                    this.loadToggleState('reduced-motion-toggle', this.STORAGE_KEYS.REDUCED_MOTION, 'reduced-motion');
+                    this.loadToggleState('dyslexic-toggle', this.STORAGE_KEYS.DYSLEXIC_FRIENDLY, 'dyslexic-friendly');
+                },
+                
+                // Charger l'état d'un toggle spécifique
+                loadToggleState: function(buttonId, storageKey, bodyClass) {
+                    const button = document.getElementById(buttonId);
+                    const isActive = localStorage.getItem(storageKey) === 'true';
+                    
+                    if (button && isActive) {
+                        button.setAttribute('aria-pressed', 'true');
+                        button.classList.add('active');
+                        document.body.classList.add(bodyClass);
+                    }
+                },
+                
+                // Configurer les événements
+                setupEventListeners: function() {
+                    // Toggle de la barre
+                    if (accessibilityToggle) {
+                        accessibilityToggle.addEventListener('click', () => {
+                            const isExpanded = accessibilityBar.classList.contains('expanded');
+                            if (isExpanded) {
+                                accessibilityBar.classList.remove('expanded');
+                                localStorage.setItem(this.STORAGE_KEYS.BAR_EXPANDED, 'false');
+                            } else {
+                                accessibilityBar.classList.add('expanded');
+                                localStorage.setItem(this.STORAGE_KEYS.BAR_EXPANDED, 'true');
+                            }
+                        });
+                    }
+                    
+                    // Masquer la barre
+                    if (hideAccessibilityBar) {
+                        hideAccessibilityBar.addEventListener('click', () => {
+                            accessibilityBar.classList.add('hidden');
+                            localStorage.setItem(this.STORAGE_KEYS.BAR_HIDDEN, 'true');
+                            
+                            // Afficher une notification pour indiquer comment la réafficher
+                            window.NotificationSystem?.show('info', 'Barre d\'accessibilité masquée', 
+                                'Double-cliquez dans le coin supérieur droit pour la réafficher', 8000);
+                        });
+                    }
+                    
+                    // Toggles d'accessibilité
+                    this.setupToggle('high-contrast-toggle', this.STORAGE_KEYS.HIGH_CONTRAST, 'high-contrast');
+                    this.setupToggle('large-text-toggle', this.STORAGE_KEYS.LARGE_TEXT, 'large-text');
+                    this.setupToggle('reduced-motion-toggle', this.STORAGE_KEYS.REDUCED_MOTION, 'reduced-motion');
+                    this.setupToggle('dyslexic-toggle', this.STORAGE_KEYS.DYSLEXIC_FRIENDLY, 'dyslexic-friendly');
+                },
+                
+                // Configurer un toggle spécifique
+                setupToggle: function(buttonId, storageKey, bodyClass) {
+                    const button = document.getElementById(buttonId);
+                    if (!button) return;
+                    
+                    button.addEventListener('click', () => {
+                        const isActive = button.getAttribute('aria-pressed') === 'true';
+                        const newState = !isActive;
+                        
+                        button.setAttribute('aria-pressed', newState);
+                        button.classList.toggle('active', newState);
+                        document.body.classList.toggle(bodyClass, newState);
+                        
+                        localStorage.setItem(storageKey, newState);
+                        
+                        // Notification de confirmation
+                        const featureName = this.getFeatureName(buttonId);
+                        const action = newState ? 'activé' : 'désactivé';
+                        window.NotificationSystem?.show('success', `${featureName} ${action}`, 
+                            `Le mode ${featureName.toLowerCase()} a été ${action}.`, 3000);
+                    });
+                },
+                
+                // Obtenir le nom de la fonctionnalité
+                getFeatureName: function(buttonId) {
+                    const names = {
+                        'high-contrast-toggle': 'Contraste élevé',
+                        'large-text-toggle': 'Texte agrandi',
+                        'reduced-motion-toggle': 'Animations réduites',
+                        'dyslexic-toggle': 'Mode dyslexie'
+                    };
+                    return names[buttonId] || 'Fonctionnalité';
+                },
+                
+                // Configuration du masquage automatique
+                setupAutoHide: function() {
+                    let hideTimeout;
+                    
+                    // Masquer automatiquement après inactivité (sauf si épinglé)
+                    const resetHideTimer = () => {
+                        clearTimeout(hideTimeout);
+                        if (!accessibilityBar.classList.contains('expanded')) {
+                            hideTimeout = setTimeout(() => {
+                                if (!accessibilityBar.matches(':hover') && !accessibilityBar.matches(':focus-within')) {
+                                    // La barre se réduit automatiquement après 10 secondes d'inactivité
+                                }
+                            }, 10000);
+                        }
+                    };
+                    
+                    // Réafficher la barre si masquée (double-clic coin supérieur droit)
+                    let clickCount = 0;
+                    document.addEventListener('click', (e) => {
+                        const isTopRightCorner = e.clientX > window.innerWidth - 100 && e.clientY < 100;
+                        
+                        if (isTopRightCorner && accessibilityBar.classList.contains('hidden')) {
+                            clickCount++;
+                            if (clickCount === 1) {
+                                setTimeout(() => { clickCount = 0; }, 500);
+                            } else if (clickCount === 2) {
+                                accessibilityBar.classList.remove('hidden');
+                                localStorage.setItem(this.STORAGE_KEYS.BAR_HIDDEN, 'false');
+                                window.NotificationSystem?.show('success', 'Barre d\'accessibilité réaffichée', 
+                                    'La barre d\'accessibilité est de nouveau visible.', 3000);
+                                clickCount = 0;
+                            }
+                        }
+                    });
+                    
+                    // Événements pour le timer de masquage automatique
+                    accessibilityBar.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+                    accessibilityBar.addEventListener('mouseleave', resetHideTimer);
+                    accessibilityBar.addEventListener('focusin', () => clearTimeout(hideTimeout));
+                    accessibilityBar.addEventListener('focusout', resetHideTimer);
+                    
+                    resetHideTimer();
+                }
+            };
+            
+            // Initialiser le gestionnaire d'accessibilité
+            AccessibilityManager.init();
         });
     </script>
+    
+    <!-- Scripts spécifiques aux pages -->
+    {% block scripts %}{% endblock %}
 </body>
 </html>
         

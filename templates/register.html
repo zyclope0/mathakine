@@ -51,15 +51,14 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn primary-btn">
-                <i class="fas fa-user-plus"></i>
-                Créer mon compte
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> S'inscrire
             </button>
         </form>
 
         <div class="auth-footer">
             <p>Déjà un compte ?</p>
-            <a href="/login" class="btn secondary-btn">
+            <a href="/login" class="btn btn-ghost">
                 <i class="fas fa-sign-in-alt"></i>
                 Se connecter
             </a>
@@ -247,7 +246,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         username: document.getElementById('username').value,
         email: document.getElementById('email').value,
         password: password,
-        role: "padawan"  // Rôle par défaut
+        role: "padawan"  // Rôle par défaut en minuscules
     };
 
     try {
@@ -266,21 +265,37 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
             const loginResponse = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     username: formData.username,
                     password: formData.password
-                })
+                }),
+                redirect: 'follow'
             });
 
-            const loginData = await loginResponse.json();
+            if (loginResponse.redirected) {
+                // Si la réponse est une redirection, suivre la redirection
+                window.location.href = loginResponse.url;
+                return;
+            }
 
             if (loginResponse.ok) {
-                // Stocker le token
-                localStorage.setItem('token', loginData.access_token);
                 // Rediriger vers le tableau de bord
                 window.location.href = '/dashboard';
+            } else {
+                // Afficher l'erreur de connexion
+                const loginData = await loginResponse.json();
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    Compte créé mais erreur de connexion : ${loginData.detail || 'Veuillez vous connecter manuellement'}
+                `;
+                
+                const form = document.getElementById('register-form');
+                form.insertBefore(errorDiv, form.firstChild);
             }
         } else {
             // Afficher l'erreur
