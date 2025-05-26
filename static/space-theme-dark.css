@@ -2004,9 +2004,6 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-xs);
-  transition: all var(--transition-fast) ease;
-  opacity: 0;
 }
 
 .exercise-card:hover .enhanced-delete {
@@ -2168,5 +2165,271 @@ body::after {
   
   .exercise-list {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+/* ==============================
+   OPTIMISATIONS INTERFACE COMPACTE
+   ============================== */
+
+/* En-tête compact */
+.page-header.compact-header {
+  padding: var(--space-md) 0;
+  margin-bottom: var(--space-lg);
+}
+
+.page-header.compact-header .header-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-lg);
+  align-items: center;
+}
+
+.compact-title {
+  font-size: 1.8rem !important;
+  margin: 0 0 var(--space-xs) 0 !important;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.compact-description {
+  margin: 0 !important;
+  font-size: 0.95rem !important;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
+/* Statistiques compactes */
+.compact-stats {
+  background: var(--sw-card-bg);
+  border-radius: var(--border-radius);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid rgba(164, 181, 225, 0.2);
+  min-width: 280px;
+}
+
+.compact-stats .progress-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+}
+
+.compact-stats .stat-item {
+  text-align: center;
+  padding: var(--space-xs);
+}
+
+.compact-stats .stat-number {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--sw-gold);
+  display: block;
+  line-height: 1;
+}
+
+.compact-stats .stat-label {
+  font-size: 0.8rem;
+  color: var(--sw-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: var(--space-xs);
+}
+
+/* Contrôles compacts */
+.compact-controls {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+  margin-bottom: var(--space-lg);
+}
+
+/* Actions compactes */
+.compact-actions {
+  margin: 0;
+}
+
+.compact-generation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 200px;
+}
+
+/* Boutons compacts */
+.compact-btn {
+  padding: var(--space-sm) var(--space-md) !important;
+  font-size: 0.9rem !important;
+  min-height: auto !important;
+  border-radius: var(--border-radius) !important;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  justify-content: center;
+  transition: all var(--transition-fast) ease;
+  white-space: nowrap;
+}
+
+.compact-btn .btn-text {
+  font-weight: 500;
+  line-height: 1;
+}
+
+.compact-btn i {
+  font-size: 1rem;
+}
+
+/* Bouton principal compact */
+.compact-btn.btn-primary {
+  background: linear-gradient(135deg, var(--sw-accent), var(--sw-purple));
+  border: 1px solid var(--sw-accent);
+  color: white;
+}
+
+.compact-btn.btn-primary:hover {
+  background: linear-gradient(135deg, var(--sw-purple), var(--sw-accent));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(119, 101, 227, 0.3);
+}
+
+/* Bouton IA compact */
+.compact-btn.ai-btn {
+  background: linear-gradient(135deg, var(--sw-purple), var(--sw-gold));
+  border: 1px solid var(--sw-purple);
+  color: white;
+}
+
+.compact-btn.ai-btn:hover {
+  background: linear-gradient(135deg, var(--sw-gold), var(--sw-purple));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(248, 215, 107, 0.3);
+}
+
+/* Filtres compacts */
+.compact-filters {
+  margin: 0;
+}
+
+.compact-filters .filters-container {
+  background: var(--sw-card-bg);
+  border-radius: var(--border-radius);
+  padding: var(--space-md);
+  border: 1px solid rgba(164, 181, 225, 0.2);
+}
+
+.compact-filters .filters-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--space-md);
+  align-items: end;
+}
+
+.compact-filters .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.compact-filters .filter-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--sw-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.compact-filters .filter-select {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.9rem;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(164, 181, 225, 0.3);
+  background: var(--sw-bg);
+  color: var(--sw-text);
+}
+
+.compact-filters .filter-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+/* Boutons petits */
+.btn-sm {
+  padding: var(--space-xs) var(--space-sm) !important;
+  font-size: 0.85rem !important;
+  min-height: auto !important;
+  border-radius: var(--border-radius-sm) !important;
+}
+
+/* Responsive pour interface compacte */
+@media (max-width: 1024px) {
+  .compact-controls {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+  
+  .compact-generation {
+    flex-direction: row;
+    justify-content: center;
+    min-width: auto;
+  }
+  
+  .compact-btn {
+    flex: 1;
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header.compact-header .header-content {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+    text-align: center;
+  }
+  
+  .compact-stats {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .compact-generation {
+    flex-direction: column;
+  }
+  
+  .compact-btn {
+    max-width: none;
+  }
+  
+  .compact-filters .filters-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+  
+  .compact-filters .filter-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .compact-title {
+    font-size: 1.5rem !important;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  
+  .compact-stats .progress-stats {
+    grid-template-columns: 1fr;
+    gap: var(--space-xs);
+  }
+  
+  .compact-stats .stat-item {
+    padding: var(--space-xs) 0;
+    border-bottom: 1px solid rgba(164, 181, 225, 0.1);
+  }
+  
+  .compact-stats .stat-item:last-child {
+    border-bottom: none;
   }
 } 

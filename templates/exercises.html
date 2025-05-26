@@ -6,35 +6,19 @@
 {% endblock %}
         
 {% block content %}
-<!-- Breadcrumb compact -->
-<nav class="breadcrumb" aria-label="Fil d'Ariane">
-    <ol class="breadcrumb-list">
-        <li class="breadcrumb-item">
-            <a href="/" aria-label="Retour à l'accueil">
-                <i class="fas fa-home" aria-hidden="true"></i>
-                <span>Accueil</span>
-            </a>
-        </li>
-        <li class="breadcrumb-item active" aria-current="page">
-            <i class="fas fa-calculator" aria-hidden="true"></i>
-            <span>Exercices</span>
-        </li>
-    </ol>
-</nav>
-
-<!-- En-tête optimisé avec layout horizontal -->
-<div class="page-header enhanced-header">
+<!-- En-tête optimisé et compact -->
+<div class="page-header compact-header">
     <div class="header-content">
         <div class="header-text">
-            <h1 class="page-title">
+            <h1 class="page-title compact-title">
                 <i class="fas fa-jedi" aria-hidden="true"></i>
                 Exercices Mathématiques
             </h1>
-            <p class="page-description">Choisissez parmi les exercices disponibles ou générez-en un nouveau adapté à votre niveau</p>
+            <p class="page-description compact-description">Choisissez un exercice ou générez-en un nouveau</p>
         </div>
         
-        <!-- Indicateur de progression compact à droite -->
-        <div class="progress-indicator" role="status" aria-label="Progression globale">
+        <!-- Statistiques compactes à droite -->
+        <div class="progress-indicator compact-stats" role="status" aria-label="Progression globale">
             <div class="progress-stats">
                 <div class="stat-item">
                     <span class="stat-number" id="total-exercises">{{ exercises|length }}</span>
@@ -53,45 +37,39 @@
     </div>
 </div>
 
-<!-- Actions et filtres combinés pour économiser l'espace -->
-<div class="controls-container">
-    <!-- Boutons de génération compacts -->
-    <section class="actions-section" aria-labelledby="actions-title">
+<!-- Actions et filtres optimisés -->
+<div class="controls-container compact-controls">
+    <!-- Boutons de génération compacts et repositionnés -->
+    <section class="actions-section compact-actions" aria-labelledby="actions-title">
         <h2 id="actions-title" class="sr-only">Actions disponibles</h2>
         
-        <div class="generation-buttons enhanced-generation">
-            <button id="generate-exercise-btn" class="btn btn-primary btn-large cta-primary" 
+        <div class="generation-buttons compact-generation">
+            <button id="generate-exercise-btn" class="btn btn-primary compact-btn" 
                     aria-describedby="generate-help">
                 <i class="fas fa-jedi" aria-hidden="true"></i> 
-                <span class="btn-text">
-                    Générer un exercice
-                    <span class="btn-subtitle">Adapté à votre niveau</span>
-                </span>
+                <span class="btn-text">Générer un exercice</span>
             </button>
-            <a href="#" id="generate-ai-exercise-btn" class="btn btn-large ai-btn cta-secondary" 
+            <a href="#" id="generate-ai-exercise-btn" class="btn compact-btn ai-btn" 
                aria-describedby="ai-help">
                 <i class="fas fa-robot" aria-hidden="true"></i> 
-                <span class="btn-text">
-                    Générer avec l'IA
-                    <span class="btn-subtitle">Contexte Star Wars</span>
-                </span>
+                <span class="btn-text">Générer avec l'IA</span>
             </a>
         </div>
     </section>
 
-    <!-- Filtres compacts en ligne -->
-    <section class="filters-section" aria-labelledby="filters-title">
+    <!-- Filtres compacts -->
+    <section class="filters-section compact-filters" aria-labelledby="filters-title">
         <h2 id="filters-title" class="sr-only">Filtrer les exercices</h2>
         
-        <div class="filters-container enhanced-filters">
+        <div class="filters-container">
             <form id="filters-form" method="GET" action="/exercises" role="search" aria-label="Filtrer les exercices">
                 <div class="filters-row">
                     <div class="filter-group">
                         <label for="exercise_type" class="filter-label">
                             <i class="fas fa-calculator" aria-hidden="true"></i>
-                            Type d'exercice
+                            Type
                         </label>
-                        <select id="exercise_type" name="exercise_type" class="filter-select enhanced-select">
+                        <select id="exercise_type" name="exercise_type" class="filter-select">
                             <option value="">Tous les types</option>
                             {% for type_value, type_name in exercise_types.items() %}
                             <option value="{{ type_value }}" 
@@ -105,10 +83,10 @@
                     <div class="filter-group">
                         <label for="difficulty" class="filter-label">
                             <i class="fas fa-chart-line" aria-hidden="true"></i>
-                            Niveau de difficulté
+                            Niveau
                         </label>
-                        <select id="difficulty" name="difficulty" class="filter-select enhanced-select">
-                            <option value="">Tous les niveaux</option>
+                        <select id="difficulty" name="difficulty" class="filter-select">
+                            <option value="">Tous niveaux</option>
                             {% for difficulty_value, difficulty_name in difficulty_levels.items() %}
                             <option value="{{ difficulty_value }}" 
                                     {% if request.query_params.get('difficulty') == difficulty_value %}selected{% endif %}>
@@ -119,12 +97,12 @@
                     </div>
             
                     <div class="filter-actions">
-                        <button type="button" id="reset-filters" class="btn btn-ghost reset-filters"
+                        <button type="button" id="reset-filters" class="btn btn-ghost btn-sm"
                                 aria-label="Réinitialiser tous les filtres">
                             <i class="fas fa-times" aria-hidden="true"></i> 
                             <span>Reset</span>
                         </button>
-                        <button type="submit" class="btn btn-primary apply-filters"
+                        <button type="submit" class="btn btn-primary btn-sm"
                                 aria-label="Appliquer les filtres sélectionnés">
                             <i class="fas fa-search" aria-hidden="true"></i> 
                             <span>Filtrer</span>
