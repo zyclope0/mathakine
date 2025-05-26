@@ -1,0 +1,739 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Profil - Mathakine{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1>Mon Profil Jedi</h1>
+        <p>Gérez vos informations personnelles et vos préférences</p>
+    </div>
+
+    <div class="profile-content">
+        <!-- Section Avatar et Infos de base -->
+        <div class="profile-card avatar-section">
+            <h2 class="section-title">
+                <span class="section-icon">👤</span>
+                Informations personnelles
+            </h2>
+            
+            <div class="avatar-container">
+                <div class="avatar-wrapper">
+                    <img src="/static/img/avatar-default.svg" alt="Avatar" class="user-avatar">
+                    <button class="avatar-edit-btn" title="Changer l'avatar">
+                        <span class="edit-icon">📸</span>
+                    </button>
+                </div>
+                <div class="user-info">
+                    <h3 class="username">{{ current_user.username }}</h3>
+                    <p class="user-role">
+                        <span class="role-badge">{{ current_user.role }}</span>
+                    </p>
+                    <p class="member-since">Membre depuis {{ current_user.created_at.strftime('%d/%m/%Y') if current_user.created_at else 'Date inconnue' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Informations du compte -->
+        <div class="profile-card">
+            <h2 class="section-title">
+                <span class="section-icon">⚙️</span>
+                Informations du compte
+            </h2>
+            
+            <form id="profile-form" class="profile-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username" class="form-label">Nom d'utilisateur</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            class="form-input"
+                            value="{{ current_user.username }}"
+                            readonly
+                        >
+                        <div class="field-hint">Le nom d'utilisateur ne peut pas être modifié</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            class="form-input"
+                            value="{{ current_user.email }}"
+                            required
+                        >
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="full_name" class="form-label">Nom complet</label>
+                        <input 
+                            type="text" 
+                            id="full_name" 
+                            name="full_name" 
+                            class="form-input"
+                            value="{{ current_user.full_name or '' }}"
+                            placeholder="Votre nom complet"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="grade_level" class="form-label">Niveau scolaire</label>
+                        <select id="grade_level" name="grade_level" class="form-input">
+                            <option value="">Non spécifié</option>
+                            {% for i in range(1, 13) %}
+                            <option value="{{ i }}" {% if current_user.grade_level == i %}selected{% endif %}>
+                                {{ i }}{% if i == 1 %}ère{% else %}ème{% endif %} année
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="save-btn">
+                    <span class="btn-icon">💾</span>
+                    Enregistrer les modifications
+                </button>
+            </form>
+        </div>
+
+        <!-- Section Préférences d'apprentissage -->
+        <div class="profile-card">
+            <h2 class="section-title">
+                <span class="section-icon">🎯</span>
+                Préférences d'apprentissage
+            </h2>
+            
+            <form id="preferences-form" class="preferences-form">
+                <div class="form-group">
+                    <label for="learning_style" class="form-label">Style d'apprentissage</label>
+                    <select id="learning_style" name="learning_style" class="form-input">
+                        <option value="">Non spécifié</option>
+                        <option value="visual" {% if current_user.learning_style == 'visual' %}selected{% endif %}>Visuel</option>
+                        <option value="auditory" {% if current_user.learning_style == 'auditory' %}selected{% endif %}>Auditif</option>
+                        <option value="kinesthetic" {% if current_user.learning_style == 'kinesthetic' %}selected{% endif %}>Kinesthésique</option>
+                        <option value="mixed" {% if current_user.learning_style == 'mixed' %}selected{% endif %}>Mixte</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="preferred_difficulty" class="form-label">Difficulté préférée</label>
+                    <select id="preferred_difficulty" name="preferred_difficulty" class="form-input">
+                        <option value="">Automatique</option>
+                        <option value="initie" {% if current_user.preferred_difficulty == 'initie' %}selected{% endif %}>Initié</option>
+                        <option value="padawan" {% if current_user.preferred_difficulty == 'padawan' %}selected{% endif %}>Padawan</option>
+                        <option value="chevalier" {% if current_user.preferred_difficulty == 'chevalier' %}selected{% endif %}>Chevalier</option>
+                        <option value="maitre" {% if current_user.preferred_difficulty == 'maitre' %}selected{% endif %}>Maître</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="preferred_theme" class="form-label">Thème préféré</label>
+                    <select id="preferred_theme" name="preferred_theme" class="form-input">
+                        <option value="">Par défaut (Star Wars)</option>
+                        <option value="space" {% if current_user.preferred_theme == 'space' %}selected{% endif %}>Espace</option>
+                        <option value="nature" {% if current_user.preferred_theme == 'nature' %}selected{% endif %}>Nature</option>
+                        <option value="ocean" {% if current_user.preferred_theme == 'ocean' %}selected{% endif %}>Océan</option>
+                        <option value="fantasy" {% if current_user.preferred_theme == 'fantasy' %}selected{% endif %}>Fantaisie</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="save-btn">
+                    <span class="btn-icon">💾</span>
+                    Enregistrer les préférences
+                </button>
+            </form>
+        </div>
+
+        <!-- Section Sécurité -->
+        <div class="profile-card">
+            <h2 class="section-title">
+                <span class="section-icon">🔒</span>
+                Sécurité
+            </h2>
+            
+            <div class="security-actions">
+                <button class="action-btn" id="change-password-btn">
+                    <span class="btn-icon">🔑</span>
+                    Changer le mot de passe
+                </button>
+                
+                <button class="action-btn secondary" id="download-data-btn">
+                    <span class="btn-icon">📥</span>
+                    Télécharger mes données
+                </button>
+                
+                <button class="action-btn danger" id="delete-account-btn">
+                    <span class="btn-icon">⚠️</span>
+                    Supprimer mon compte
+                </button>
+            </div>
+        </div>
+
+        <!-- Section Statistiques -->
+        <div class="profile-card stats-section">
+            <h2 class="section-title">
+                <span class="section-icon">📊</span>
+                Statistiques rapides
+            </h2>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Exercices complétés</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">0%</div>
+                    <div class="stat-label">Taux de réussite</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Jours d'activité</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Badges obtenus</div>
+                </div>
+            </div>
+            
+            <a href="/dashboard" class="view-full-stats">
+                Voir toutes les statistiques
+                <span class="link-arrow">→</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Modal pour changer le mot de passe -->
+<div id="password-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Changer le mot de passe</h3>
+            <button class="modal-close" onclick="closePasswordModal()">×</button>
+        </div>
+        <form id="password-form" class="password-form">
+            <div class="form-group">
+                <label for="current_password" class="form-label">Mot de passe actuel</label>
+                <input type="password" id="current_password" name="current_password" class="form-input" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="new_password" class="form-label">Nouveau mot de passe</label>
+                <input type="password" id="new_password" name="new_password" class="form-input" required minlength="8">
+                <div class="field-hint">Au moins 8 caractères avec majuscule, chiffre et caractère spécial</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_new_password" class="form-label">Confirmer le nouveau mot de passe</label>
+                <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-input" required>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closePasswordModal()">Annuler</button>
+                <button type="submit" class="btn-primary">Changer le mot de passe</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Container principal */
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header */
+.profile-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.profile-header h1 {
+    font-size: 2.5rem;
+    color: var(--sw-gold);
+    margin-bottom: 10px;
+}
+
+.profile-header p {
+    color: var(--sw-text-secondary);
+    font-size: 1.1rem;
+}
+
+/* Content layout */
+.profile-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+}
+
+/* Profile cards */
+.profile-card {
+    background: var(--sw-card-bg);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--sw-card-border);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3rem;
+    color: var(--sw-gold);
+    margin-bottom: 25px;
+}
+
+.section-icon {
+    font-size: 1.5rem;
+}
+
+/* Avatar section */
+.avatar-container {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.avatar-wrapper {
+    position: relative;
+}
+
+.user-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid var(--sw-gold);
+}
+
+.avatar-edit-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: var(--sw-primary);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.avatar-edit-btn:hover {
+    background: var(--sw-primary-hover);
+    transform: scale(1.1);
+}
+
+.user-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: var(--sw-text);
+}
+
+.role-badge {
+    background: var(--sw-gold);
+    color: var(--sw-dark);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.member-since {
+    color: var(--sw-text-secondary);
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+/* Forms */
+.profile-form,
+.preferences-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--sw-text);
+}
+
+.form-input {
+    background: var(--sw-input-bg);
+    border: 1px solid var(--sw-input-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--sw-text);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--sw-primary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.form-input[readonly] {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.field-hint {
+    font-size: 0.85rem;
+    color: var(--sw-text-secondary);
+}
+
+/* Buttons */
+.save-btn,
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    font-size: 1rem;
+}
+
+.save-btn {
+    background: var(--sw-primary);
+    color: white;
+    margin-top: 10px;
+}
+
+.save-btn:hover {
+    background: var(--sw-primary-hover);
+    transform: translateY(-2px);
+}
+
+.action-btn {
+    background: var(--sw-primary);
+    color: white;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.action-btn.secondary {
+    background: var(--sw-gray);
+}
+
+.action-btn.danger {
+    background: var(--sw-red);
+}
+
+.action-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* Security actions */
+.security-actions {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Stats section */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 20px;
+    background: var(--sw-bg-secondary);
+    border-radius: 12px;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--sw-gold);
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--sw-text-secondary);
+}
+
+.view-full-stats {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--sw-primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.view-full-stats:hover {
+    color: var(--sw-primary-hover);
+    transform: translateX(2px);
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--sw-card-bg);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.modal-header h3 {
+    font-size: 1.5rem;
+    color: var(--sw-gold);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--sw-text-secondary);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+    color: var(--sw-text);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: var(--sw-primary);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--sw-gray);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .avatar-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Charger les statistiques
+    loadUserStats();
+    
+    // Formulaire principal
+    document.getElementById('profile-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            email: document.getElementById('email').value,
+            full_name: document.getElementById('full_name').value,
+            grade_level: parseInt(document.getElementById('grade_level').value) || null
+        };
+        
+        try {
+            const response = await fetch('/api/users/me', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(formData)
+            });
+            
+            if (response.ok) {
+                window.NotificationSystem.show('success', 'Profil mis à jour', 'Vos informations ont été enregistrées avec succès.');
+            } else {
+                const error = await response.json();
+                window.NotificationSystem.show('error', 'Erreur', error.detail || 'Erreur lors de la mise à jour du profil.');
+            }
+        } catch (error) {
+            window.NotificationSystem.show('error', 'Erreur', 'Erreur de connexion au serveur.');
+        }
+    });
+    
+    // Formulaire des préférences
+    document.getElementById('preferences-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            learning_style: document.getElementById('learning_style').value || null,
+            preferred_difficulty: document.getElementById('preferred_difficulty').value || null,
+            preferred_theme: document.getElementById('preferred_theme').value || null
+        };
+        
+        try {
+            const response = await fetch('/api/users/me', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(formData)
+            });
+            
+            if (response.ok) {
+                window.NotificationSystem.show('success', 'Préférences mises à jour', 'Vos préférences ont été enregistrées.');
+            } else {
+                const error = await response.json();
+                window.NotificationSystem.show('error', 'Erreur', error.detail || 'Erreur lors de la mise à jour.');
+            }
+        } catch (error) {
+            window.NotificationSystem.show('error', 'Erreur', 'Erreur de connexion au serveur.');
+        }
+    });
+    
+    // Bouton changer mot de passe
+    document.getElementById('change-password-btn').addEventListener('click', function() {
+        document.getElementById('password-modal').style.display = 'flex';
+    });
+    
+    // Formulaire de changement de mot de passe
+    document.getElementById('password-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const newPassword = document.getElementById('new_password').value;
+        const confirmPassword = document.getElementById('confirm_new_password').value;
+        
+        if (newPassword !== confirmPassword) {
+            window.NotificationSystem.show('error', 'Erreur', 'Les mots de passe ne correspondent pas.');
+            return;
+        }
+        
+        // TODO: Implémenter l'endpoint de changement de mot de passe
+        window.NotificationSystem.show('info', 'Non implémenté', 'Cette fonctionnalité sera bientôt disponible.');
+        closePasswordModal();
+    });
+    
+    // Bouton télécharger données
+    document.getElementById('download-data-btn').addEventListener('click', function() {
+        window.NotificationSystem.show('info', 'Non implémenté', 'Le téléchargement de données sera bientôt disponible.');
+    });
+    
+    // Bouton supprimer compte
+    document.getElementById('delete-account-btn').addEventListener('click', function() {
+        if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+            window.NotificationSystem.show('info', 'Non implémenté', 'La suppression de compte sera bientôt disponible.');
+        }
+    });
+});
+
+// Charger les statistiques utilisateur
+async function loadUserStats() {
+    try {
+        const response = await fetch('/api/users/stats', {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const stats = await response.json();
+            
+            // Mettre à jour les valeurs
+            document.querySelector('.stat-item:nth-child(1) .stat-value').textContent = stats.total_attempts || 0;
+            document.querySelector('.stat-item:nth-child(2) .stat-value').textContent = (stats.success_rate || 0) + '%';
+            // Les autres stats seront calculées plus tard
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des statistiques:', error);
+    }
+}
+
+// Fermer le modal
+function closePasswordModal() {
+    document.getElementById('password-modal').style.display = 'none';
+    document.getElementById('password-form').reset();
+}
+
+// Fermer le modal en cliquant à l'extérieur
+window.onclick = function(event) {
+    const modal = document.getElementById('password-modal');
+    if (event.target === modal) {
+        closePasswordModal();
+    }
+}
+</script>
+{% endblock %} 

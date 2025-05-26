@@ -3,344 +3,721 @@
 {% block title %}Connexion - Mathakine{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <h2>Connexion au Temple Jedi</h2>
-            <p>Identifiez-vous pour accéder à votre entraînement</p>
+<div class="login-container">
+    <!-- Étoiles d'arrière-plan -->
+    <div class="stars-bg"></div>
+    
+    <div class="login-card">
+        <!-- En-tête avec logo -->
+        <div class="login-header">
+            <div class="logo-container">
+                <div class="logo-icon">🚀</div>
+                <h1 class="logo-title">Mathakine</h1>
+                <p class="logo-subtitle">L'API Rebelle</p>
+            </div>
         </div>
 
-        <form id="login-form" class="auth-form">
-            {% if error %}
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                {{ error }}
+        <!-- Section de démonstration -->
+        <div class="demo-section">
+            <div class="demo-badge">
+                <span class="demo-icon">🧪</span>
+                <span class="demo-text">MODE DÉMONSTRATION</span>
             </div>
-            {% endif %}
+            
+            <div class="demo-content">
+                <h3>Accès de démonstration</h3>
+                <p>Testez l'application avec ces identifiants :</p>
+                
+                <div class="credentials-grid">
+                    <div class="credential-item">
+                        <span class="credential-label">Utilisateur :</span>
+                        <code class="credential-value">test_user</code>
+                    </div>
+                    <div class="credential-item">
+                        <span class="credential-label">Mot de passe :</span>
+                        <code class="credential-value">test_password</code>
+                    </div>
+                </div>
+                
+                <button type="button" id="auto-fill-btn" class="auto-fill-button">
+                    <span class="button-icon">✨</span>
+                    Remplir automatiquement
+                </button>
+            </div>
+        </div>
+
+        <!-- Formulaire de connexion -->
+        <form id="login-form" class="login-form">
+            <div class="form-group">
+                <label for="username" class="form-label">
+                    <span class="label-icon">👤</span>
+                    Nom d'utilisateur *
+                </label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    class="form-input"
+                    placeholder="Entrez votre nom d'utilisateur"
+                    required
+                    autocomplete="username"
+                >
+                <div class="input-focus-line"></div>
+            </div>
 
             <div class="form-group">
-                <label for="username">Nom d'utilisateur</label>
-                <div class="input-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="username" name="username" required>
+                <label for="password" class="form-label">
+                    <span class="label-icon">🔒</span>
+                    Mot de passe *
+                </label>
+                <div class="password-wrapper">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input"
+                        placeholder="Entrez votre mot de passe"
+                        required
+                        autocomplete="current-password"
+                    >
+                    <button type="button" class="password-toggle" id="password-toggle">
+                        <span class="toggle-icon">👁️</span>
+                    </button>
                 </div>
+                <div class="input-focus-line"></div>
             </div>
 
-            <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="password" name="password" required>
-                </div>
+            <div class="form-options">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="remember-me" name="remember">
+                    <span class="checkmark"></span>
+                    Se souvenir de moi
+                </label>
+                <a href="/forgot-password" class="forgot-link">Mot de passe oublié ?</a>
             </div>
 
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-sign-in-alt"></i> Se connecter
+            <button type="submit" class="submit-button" id="submit-btn">
+                <span class="button-content">
+                    <span class="button-icon">🚀</span>
+                    <span class="button-text">Se connecter</span>
+                </span>
+                <div class="button-loading">
+                    <div class="loading-spinner"></div>
+                    <span>Connexion...</span>
+                </div>
             </button>
+
+            <!-- Messages d'erreur -->
+            <div id="error-message" class="error-message" style="display: none;"></div>
         </form>
 
-        <div class="test-user-info">
-            <h3>Utilisateur de test (Phase Alpha)</h3>
-            <p>Vous pouvez utiliser les identifiants suivants pour tester l'application:</p>
-            <div class="credentials">
-                <div class="credential-item">
-                    <span class="credential-label">Nom d'utilisateur:</span>
-                    <span class="credential-value">test_user</span>
-                </div>
-                <div class="credential-item">
-                    <span class="credential-label">Mot de passe:</span>
-                    <span class="credential-value">padawan123</span>
-                </div>
-            </div>
-            <button type="button" id="fill-test-credentials" class="btn btn-ghost" style="margin-top: 15px; width: 100%;">
-                <i class="fas fa-magic"></i>
-                Remplir automatiquement
-            </button>
-        </div>
-
-        <div class="auth-footer">
+        <!-- Pied de page -->
+        <div class="login-footer">
             <p>Pas encore de compte ?</p>
-            <a href="/register" class="btn btn-ghost">
-                <i class="fas fa-user-plus"></i>
-                S'inscrire
+            <a href="/register" class="register-link">
+                Créer un compte
+                <span class="link-arrow">→</span>
             </a>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block styles %}
 <style>
-    .auth-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: calc(100vh - 100px);
+/* Variables CSS pour le thème Star Wars */
+:root {
+    --sw-primary: #8b5cf6;
+    --sw-primary-dark: #7c3aed;
+    --sw-secondary: #fbbf24;
+    --sw-gold: #fcd34d;
+    --sw-dark: #1e1b4b;
+    --sw-darker: #0f0c29;
+    --sw-light: #f8fafc;
+    --sw-gray: #64748b;
+    --sw-error: #ef4444;
+    --sw-success: #10b981;
+    
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    --gradient-dark: linear-gradient(135deg, #1e1b4b 0%, #0f0c29 100%);
+    
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.25);
+    
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+}
+
+/* Container principal */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-dark);
+    position: relative;
+    overflow: hidden;
+    padding: 20px;
+}
+
+/* Étoiles d'arrière-plan */
+.stars-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+    background-repeat: repeat;
+    background-size: 200px 100px;
+    animation: twinkle 4s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.8; }
+}
+
+/* Carte de connexion */
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 540px;
+    padding: 55px;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+.login-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+    border-radius: 0;
+}
+
+/* En-tête avec logo */
+.login-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo-icon {
+    font-size: 3rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.logo-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
+
+.logo-subtitle {
+    color: var(--sw-gray);
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Section démonstration */
+.demo-section {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    margin-bottom: 35px;
+    border: 1px solid #f59e0b;
+}
+
+.demo-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.demo-icon {
+    font-size: 1.2rem;
+}
+
+.demo-text {
+    font-weight: 700;
+    color: #92400e;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+
+.demo-content h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #92400e;
+    margin: 0 0 10px 0;
+}
+
+.demo-content p {
+    color: #a16207;
+    margin: 0 0 15px 0;
+    font-size: 0.9rem;
+}
+
+.credentials-grid {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.credential-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.credential-label {
+    font-weight: 500;
+    color: #92400e;
+    font-size: 0.9rem;
+}
+
+.credential-value {
+    background: rgba(146, 64, 14, 0.1);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #92400e;
+    border: 1px solid rgba(146, 64, 14, 0.2);
+    font-weight: 500;
+}
+
+.auto-fill-button {
+    width: 100%;
+    background: var(--gradient-gold);
+    color: #92400e;
+    border: none;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.auto-fill-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Formulaire */
+.login-form {
+    margin-bottom: 35px;
+}
+
+.form-group {
+    margin-bottom: 28px;
+    position: relative;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--sw-dark);
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.label-icon {
+    font-size: 1rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 16px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #fff;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--sw-primary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.input-focus-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
+}
+
+.form-input:focus + .input-focus-line {
+    width: 100%;
+}
+
+/* Wrapper mot de passe */
+.password-wrapper {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.password-toggle:hover {
+    background: rgba(139, 92, 246, 0.1);
+}
+
+.toggle-icon {
+    font-size: 1.1rem;
+}
+
+/* Options du formulaire */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--sw-gray);
+}
+
+.checkbox-container input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--sw-primary);
+}
+
+.forgot-link {
+    color: var(--sw-primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.forgot-link:hover {
+    color: var(--sw-primary-dark);
+    text-decoration: underline;
+}
+
+/* Bouton de soumission */
+.submit-button {
+    width: 100%;
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    padding: 16px 24px;
+    border-radius: var(--radius);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.submit-button:active {
+    transform: translateY(0);
+}
+
+.button-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.button-loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Message d'erreur */
+.error-message {
+    background: #fef2f2;
+    color: var(--sw-error);
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    border: 1px solid #fecaca;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+/* Pied de page */
+.login-footer {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.login-footer p {
+    color: var(--sw-gray);
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+}
+
+.register-link {
+    color: var(--sw-primary);
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+}
+
+.register-link:hover {
+    color: var(--sw-primary-dark);
+    transform: translateX(2px);
+}
+
+.link-arrow {
+    transition: transform 0.2s ease;
+}
+
+.register-link:hover .link-arrow {
+    transform: translateX(3px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 15px;
+    }
+    
+    .login-card {
+        padding: 35px 30px;
+        max-width: 95%;
+    }
+    
+    .logo-title {
+        font-size: 2rem;
+    }
+    
+    .form-options {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 30px 25px;
+    }
+    
+    .demo-section {
         padding: 20px;
     }
+}
 
-    .auth-card {
-        background-color: var(--sw-card-bg);
-        border-radius: 12px;
-        padding: 40px;
-        width: 100%;
-        max-width: 500px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        border: 1px solid var(--sw-card-border);
-    }
+/* États de chargement */
+.submit-button.loading .button-content {
+    display: none;
+}
 
-    .auth-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
+.submit-button.loading .button-loading {
+    display: flex;
+}
 
-    .auth-header h2 {
-        color: var(--sw-gold);
-        margin-bottom: 10px;
-    }
-
-    .auth-header p {
-        color: var(--sw-text-secondary);
-    }
-
-    .auth-form {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .form-group label {
-        color: var(--sw-text);
-        font-weight: 500;
-    }
-
-    .input-group {
-        display: flex;
-        align-items: center;
-        background-color: var(--sw-input-bg);
-        border: 1px solid var(--sw-input-border);
-        border-radius: 6px;
-        padding: 0 15px;
-    }
-
-    .input-group i {
-        color: var(--sw-text-secondary);
-        margin-right: 10px;
-    }
-
-    .input-group input {
-        flex: 1;
-        background: none;
-        border: none;
-        padding: 12px 0;
-        color: var(--sw-text);
-        font-size: 16px;
-    }
-
-    .input-group input:focus {
-        outline: none;
-    }
-
-    .error-message {
-        background-color: var(--sw-red-transparent);
-        color: var(--sw-red);
-        padding: 12px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .test-user-info {
-        margin-top: 30px;
-        padding: 15px;
-        background-color: rgba(0, 120, 250, 0.1);
-        border: 1px dashed var(--sw-blue);
-        border-radius: 6px;
-    }
-
-    .test-user-info h3 {
-        color: var(--sw-blue);
-        font-size: 1.1em;
-        margin-bottom: 10px;
-        text-align: center;
-    }
-
-    .test-user-info p {
-        margin-bottom: 10px;
-        color: var(--sw-text);
-        font-size: 0.9em;
-    }
-
-    .credentials {
-        background-color: rgba(0, 0, 0, 0.1);
-        padding: 10px;
-        border-radius: 4px;
-    }
-
-    .credential-item {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 5px;
-        padding: 5px 0;
-    }
-
-    .credential-label {
-        font-weight: bold;
-        color: var(--sw-text);
-    }
-
-    .credential-value {
-        font-family: monospace;
-        color: var(--sw-gold);
-        font-weight: bold;
-    }
-
-    .auth-footer {
-        margin-top: 30px;
-        text-align: center;
-        color: var(--sw-text-secondary);
-    }
-
-    .auth-footer p {
-        margin-bottom: 15px;
-    }
-
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        width: 100%;
-        padding: 12px;
-        border-radius: 6px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary {
-        background-color: var(--sw-blue);
-        color: white;
-        border: none;
-    }
-
-    .btn-primary:hover {
-        background-color: var(--sw-blue-hover);
-    }
-
-    .btn-ghost {
-        background-color: transparent;
-        color: var(--sw-blue);
-        border: 1px solid var(--sw-blue);
-    }
-
-    .btn-ghost:hover {
-        background-color: var(--sw-blue-transparent);
-    }
+.submit-button.loading {
+    cursor: not-allowed;
+    opacity: 0.8;
+}
 </style>
-{% endblock %}
 
-{% block scripts %}
 <script>
-// Fonction pour remplir automatiquement les champs de test
-document.getElementById('fill-test-credentials').addEventListener('click', function() {
-    document.getElementById('username').value = 'test_user';
-    document.getElementById('password').value = 'padawan123';
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('login-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const autoFillBtn = document.getElementById('auto-fill-btn');
+    const passwordToggle = document.getElementById('password-toggle');
+    const passwordInput = document.getElementById('password');
+    const errorMessage = document.getElementById('error-message');
     
-    // Animation visuelle pour indiquer que les champs ont été remplis
-    const button = this;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="fas fa-check"></i> Rempli !';
-    button.style.backgroundColor = 'var(--sw-success)';
+    // Remplissage automatique
+    autoFillBtn.addEventListener('click', function() {
+        document.getElementById('username').value = 'test_user';
+        document.getElementById('password').value = 'test_password';
+        
+        // Animation de feedback
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = 'scale(1)';
+        }, 150);
+    });
     
-    setTimeout(() => {
-        button.innerHTML = originalText;
-        button.style.backgroundColor = '';
-    }, 2000);
-});
-
-document.getElementById('login-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
+    // Toggle mot de passe
+    passwordToggle.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        const icon = this.querySelector('.toggle-icon');
+        icon.textContent = type === 'password' ? '👁️' : '🙈';
+    });
     
-    const formData = {
-        username: document.getElementById('username').value,
-        password: document.getElementById('password').value
-    };
-
-    try {
-        // Afficher un indicateur de chargement
-        const submitBtn = document.querySelector('button[type="submit"]');
-        const originalBtnText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion en cours...';
-        submitBtn.disabled = true;
-
-        // Supprime les messages d'erreur précédents
-        const previousError = document.querySelector('.error-message');
-        if (previousError) {
-            previousError.remove();
-        }
-
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(formData),
-            redirect: 'follow'
-        });
-
-        if (response.redirected) {
-            // Si la réponse est une redirection, suivre la redirection
-            window.location.href = response.url;
+    // Soumission du formulaire
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const remember = document.getElementById('remember-me').checked;
+        
+        if (!username || !password) {
+            showError('Veuillez remplir tous les champs obligatoires.');
             return;
         }
-
-        if (response.ok) {
-            // Si la réponse est OK mais pas une redirection, rediriger manuellement
-            window.location.href = '/';
-        } else {
-            // Afficher l'erreur
-            const errorData = await response.json();
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.innerHTML = `
-                <i class="fas fa-exclamation-circle"></i>
-                ${errorData.detail || 'Erreur de connexion'}
-            `;
+        
+        // État de chargement
+        window.LoadingHelper.setButtonLoading(submitBtn, true);
+        hideError();
+        
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    remember: remember
+                }),
+                redirect: 'manual' // Important : gérer manuellement les redirections
+            });
             
-            const form = document.getElementById('login-form');
-            form.insertBefore(errorDiv, form.firstChild);
+            // Si c'est une redirection (302), c'est un succès
+            if (response.type === 'opaqueredirect' || response.status === 302) {
+                // Succès - redirection vers le dashboard
+                window.location.href = '/dashboard';
+                return;
+            }
             
-            // Restaurer le bouton
-            submitBtn.innerHTML = originalBtnText;
-            submitBtn.disabled = false;
+            // Si c'est un succès (200)
+            if (response.ok) {
+                window.location.href = '/dashboard';
+                return;
+            }
+            
+            // Si c'est une erreur, essayer de lire le JSON
+            try {
+                const data = await response.json();
+                showError(data.detail || 'Nom d\'utilisateur ou mot de passe incorrect');
+            } catch (jsonError) {
+                // Si on ne peut pas lire le JSON, afficher un message générique
+                showError('Nom d\'utilisateur ou mot de passe incorrect');
+            }
+            
+        } catch (error) {
+            console.error('Erreur de connexion:', error);
+            showError('Erreur de connexion. Veuillez réessayer.');
+        } finally {
+            window.LoadingHelper.setButtonLoading(submitBtn, false);
         }
-    } catch (error) {
-        console.error('Erreur:', error);
-        
-        // Afficher une erreur générique
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            Erreur de connexion au serveur. Veuillez réessayer.
-        `;
-        
-        const form = document.getElementById('login-form');
-        form.insertBefore(errorDiv, form.firstChild);
-        
-        // Restaurer le bouton
-        const submitBtn = document.querySelector('button[type="submit"]');
-        submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
-        submitBtn.disabled = false;
+    });
+    
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+    
+    function hideError() {
+        errorMessage.style.display = 'none';
+    }
+    
+    // Animation d'entrée
+    setTimeout(() => {
+        document.querySelector('.login-card').style.opacity = '1';
+        document.querySelector('.login-card').style.transform = 'translateY(0)';
+    }, 100);
 });
+
+// Style initial pour l'animation d'entrée
+document.querySelector('.login-card').style.opacity = '0';
+document.querySelector('.login-card').style.transform = 'translateY(20px)';
+document.querySelector('.login-card').style.transition = 'all 0.6s ease';
 </script>
-{% endblock %} 
+{% endblock %}

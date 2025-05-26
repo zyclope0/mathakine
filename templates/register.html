@@ -3,357 +3,795 @@
 {% block title %}Inscription - Mathakine{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <div class="auth-header">
-            <h2>Rejoindre l'Académie Jedi</h2>
-            <p>Créez votre compte pour commencer votre formation</p>
+<div class="register-container">
+    <!-- Étoiles d'arrière-plan -->
+    <div class="stars-bg"></div>
+    
+    <div class="register-card">
+        <!-- En-tête avec logo -->
+        <div class="register-header">
+            <div class="logo-container">
+                <div class="logo-icon">🚀</div>
+                <h1 class="logo-title">Mathakine</h1>
+                <p class="logo-subtitle">Rejoindre l'Académie Jedi</p>
+            </div>
         </div>
 
-        <form id="register-form" class="auth-form" method="POST" action="/api/users/">
-            {% if error %}
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                {{ error }}
+        <!-- Formulaire d'inscription -->
+        <form id="register-form" class="register-form">
+            <div class="form-group">
+                <label for="username" class="form-label">
+                    <span class="label-icon">👤</span>
+                    Nom d'utilisateur *
+                </label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    class="form-input"
+                    placeholder="Choisissez votre nom d'utilisateur"
+                    required
+                    autocomplete="username"
+                    minlength="3"
+                    maxlength="30"
+                >
+                <div class="input-focus-line"></div>
+                <div class="field-hint">Entre 3 et 30 caractères</div>
             </div>
-            {% endif %}
 
             <div class="form-group">
-                <label for="username">Nom d'utilisateur</label>
-                <div class="input-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="username" name="username" required>
+                <label for="email" class="form-label">
+                    <span class="label-icon">📧</span>
+                    Email *
+                </label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    class="form-input"
+                    placeholder="votre@email.com"
+                    required
+                    autocomplete="email"
+                >
+                <div class="input-focus-line"></div>
+                <div class="field-hint">Utilisé pour récupérer votre compte</div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <span class="label-icon">🔒</span>
+                    Mot de passe *
+                </label>
+                <div class="password-wrapper">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input"
+                        placeholder="Créez un mot de passe sécurisé"
+                        required
+                        autocomplete="new-password"
+                        minlength="8"
+                    >
+                    <button type="button" class="password-toggle" id="password-toggle">
+                        <span class="toggle-icon">👁️</span>
+                    </button>
+                </div>
+                <div class="input-focus-line"></div>
+                <div class="password-requirements">
+                    <div class="requirement" data-rule="length">
+                        <span class="requirement-icon">⚪</span>
+                        Au moins 8 caractères
+                    </div>
+                    <div class="requirement" data-rule="uppercase">
+                        <span class="requirement-icon">⚪</span>
+                        Une majuscule
+                    </div>
+                    <div class="requirement" data-rule="number">
+                        <span class="requirement-icon">⚪</span>
+                        Un chiffre
+                    </div>
+                    <div class="requirement" data-rule="special">
+                        <span class="requirement-icon">⚪</span>
+                        Un caractère spécial (!@#$%^&*)
+                    </div>
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="email">Email</label>
-                <div class="input-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="email" name="email" required>
+                <label for="confirm_password" class="form-label">
+                    <span class="label-icon">🔒</span>
+                    Confirmer le mot de passe *
+                </label>
+                <div class="password-wrapper">
+                    <input 
+                        type="password" 
+                        id="confirm_password" 
+                        name="confirm_password" 
+                        class="form-input"
+                        placeholder="Confirmez votre mot de passe"
+                        required
+                        autocomplete="new-password"
+                    >
+                    <button type="button" class="password-toggle" id="confirm-password-toggle">
+                        <span class="toggle-icon">👁️</span>
+                    </button>
                 </div>
+                <div class="input-focus-line"></div>
+                <div class="field-error" id="confirm-password-error"></div>
             </div>
 
             <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                <small class="password-hint">Au moins 8 caractères, incluant une majuscule, un chiffre et un caractère spécial</small>
+                <label class="checkbox-container">
+                    <input type="checkbox" id="accept-terms" name="accept-terms" required>
+                    <span class="checkmark"></span>
+                    J'accepte les <a href="/terms" target="_blank">conditions d'utilisation</a>
+                </label>
             </div>
 
-            <div class="form-group">
-                <label for="confirm_password">Confirmer le mot de passe</label>
-                <div class="input-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="confirm_password" name="confirm_password" required>
+            <button type="submit" class="submit-button" id="submit-btn">
+                <span class="button-content">
+                    <span class="button-icon">✨</span>
+                    <span class="button-text">Créer mon compte</span>
+                </span>
+                <div class="button-loading">
+                    <div class="loading-spinner"></div>
+                    <span>Création en cours...</span>
                 </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-user-plus"></i> S'inscrire
             </button>
+
+            <!-- Messages d'erreur -->
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            <div id="success-message" class="success-message" style="display: none;"></div>
         </form>
 
-        <div class="auth-footer">
+        <!-- Pied de page -->
+        <div class="register-footer">
             <p>Déjà un compte ?</p>
-            <a href="/login" class="btn btn-ghost">
-                <i class="fas fa-sign-in-alt"></i>
+            <a href="/login" class="login-link">
                 Se connecter
+                <span class="link-arrow">→</span>
             </a>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block styles %}
 <style>
-    .auth-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: calc(100vh - 100px);
-        padding: 20px;
-    }
+/* Variables CSS cohérentes avec login */
+:root {
+    --sw-primary: #8b5cf6;
+    --sw-primary-dark: #7c3aed;
+    --sw-secondary: #fbbf24;
+    --sw-gold: #fcd34d;
+    --sw-dark: #1e1b4b;
+    --sw-darker: #0f0c29;
+    --sw-light: #f8fafc;
+    --sw-gray: #64748b;
+    --sw-error: #ef4444;
+    --sw-success: #10b981;
+    
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    --gradient-dark: linear-gradient(135deg, #1e1b4b 0%, #0f0c29 100%);
+    
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.25);
+    
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+}
 
-    .auth-card {
-        background-color: var(--sw-card-bg);
-        border-radius: 12px;
-        padding: 40px;
-        width: 100%;
-        max-width: 500px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        border: 1px solid var(--sw-card-border);
-    }
+/* Container principal (même style que login) */
+.register-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-dark);
+    position: relative;
+    overflow: hidden;
+    padding: 20px;
+}
 
-    .auth-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
+/* Étoiles d'arrière-plan (même animation que login) */
+.stars-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+    background-repeat: repeat;
+    background-size: 200px 100px;
+    animation: twinkle 4s ease-in-out infinite alternate;
+}
 
-    .auth-header h2 {
-        color: var(--sw-gold);
-        margin-bottom: 10px;
-    }
+@keyframes twinkle {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.8; }
+}
 
-    .auth-header p {
-        color: var(--sw-text-secondary);
-    }
+/* Carte d'inscription */
+.register-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 540px;
+    padding: 55px;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
 
-    .auth-form {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
+.register-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+    border-radius: 0;
+}
 
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
+/* En-tête avec logo */
+.register-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
 
-    .form-group label {
-        color: var(--sw-text);
-        font-weight: 500;
-    }
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
 
-    .input-group {
-        display: flex;
-        align-items: center;
-        background-color: var(--sw-input-bg);
-        border: 1px solid var(--sw-input-border);
-        border-radius: 6px;
-        padding: 0 15px;
-    }
+.logo-icon {
+    font-size: 3rem;
+    animation: float 3s ease-in-out infinite;
+}
 
-    .input-group i {
-        color: var(--sw-text-secondary);
-        margin-right: 10px;
-    }
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
 
-    .input-group input {
-        flex: 1;
-        background: none;
-        border: none;
-        padding: 12px 0;
-        color: var(--sw-text);
-        font-size: 16px;
-    }
+.logo-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
 
-    .input-group input:focus {
-        outline: none;
-    }
+.logo-subtitle {
+    color: var(--sw-gray);
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 500;
+}
 
-    .password-hint {
-        color: var(--sw-text-secondary);
-        font-size: 0.85em;
-        margin-top: 4px;
-    }
+/* Formulaire */
+.register-form {
+    margin-bottom: 35px;
+}
 
-    .error-message {
-        background-color: var(--sw-red-transparent);
-        color: var(--sw-red);
-        padding: 12px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+.form-group {
+    margin-bottom: 25px;
+    position: relative;
+}
 
-    .auth-footer {
-        margin-top: 30px;
-        text-align: center;
-        color: var(--sw-text-secondary);
-    }
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--sw-dark);
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
 
-    .auth-footer p {
-        margin-bottom: 15px;
-    }
+.label-icon {
+    font-size: 1rem;
+}
 
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        width: 100%;
-        padding: 12px;
-        border-radius: 6px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
+.form-input {
+    width: 100%;
+    padding: 16px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #fff;
+    position: relative;
+    box-sizing: border-box;
+}
 
-    .primary-btn {
-        background-color: var(--sw-blue);
-        color: white;
-        border: none;
-    }
+.form-input:focus {
+    outline: none;
+    border-color: var(--sw-primary);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
 
-    .primary-btn:hover {
-        background-color: var(--sw-blue-hover);
-    }
+.form-input.error {
+    border-color: var(--sw-error);
+}
 
-    .secondary-btn {
-        background-color: transparent;
-        color: var(--sw-blue);
-        border: 1px solid var(--sw-blue);
-    }
+.input-focus-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
+}
 
-    .secondary-btn:hover {
-        background-color: var(--sw-blue-transparent);
-    }
+.form-input:focus + .input-focus-line,
+.form-input:focus ~ .input-focus-line {
+    width: 100%;
+}
 
-    .input-group.error {
-        border-color: var(--sw-red);
-    }
+/* Hints et erreurs */
+.field-hint {
+    font-size: 0.85rem;
+    color: var(--sw-gray);
+    margin-top: 4px;
+}
 
-    .validation-message {
-        font-size: 0.85em;
-        margin-top: 4px;
-    }
+.field-error {
+    font-size: 0.85rem;
+    color: var(--sw-error);
+    margin-top: 4px;
+}
 
-    .validation-message.error {
-        color: var(--sw-red);
-    }
+/* Wrapper mot de passe */
+.password-wrapper {
+    position: relative;
+}
 
-    .validation-message.success {
-        color: var(--sw-green);
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.password-toggle:hover {
+    background: rgba(139, 92, 246, 0.1);
+}
+
+.toggle-icon {
+    font-size: 1.1rem;
+}
+
+/* Requirements du mot de passe */
+.password-requirements {
+    margin-top: 10px;
+    display: grid;
+    gap: 6px;
+}
+
+.requirement {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--sw-gray);
+    transition: color 0.2s ease;
+}
+
+.requirement.valid {
+    color: var(--sw-success);
+}
+
+.requirement.invalid {
+    color: var(--sw-error);
+}
+
+.requirement-icon {
+    font-size: 0.8rem;
+}
+
+/* Checkbox */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--sw-gray);
+}
+
+.checkbox-container input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--sw-primary);
+}
+
+.checkbox-container a {
+    color: var(--sw-primary);
+    text-decoration: none;
+}
+
+.checkbox-container a:hover {
+    text-decoration: underline;
+}
+
+/* Bouton de soumission */
+.submit-button {
+    width: 100%;
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    padding: 16px 24px;
+    border-radius: var(--radius);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-button:hover:not(.loading) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.submit-button:active {
+    transform: translateY(0);
+}
+
+.button-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.button-loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Messages */
+.error-message,
+.success-message {
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.error-message {
+    background: #fef2f2;
+    color: var(--sw-error);
+    border: 1px solid #fecaca;
+}
+
+.success-message {
+    background: #f0fdf4;
+    color: var(--sw-success);
+    border: 1px solid #bbf7d0;
+}
+
+/* Pied de page */
+.register-footer {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.register-footer p {
+    color: var(--sw-gray);
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+}
+
+.login-link {
+    color: var(--sw-primary);
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+}
+
+.login-link:hover {
+    color: var(--sw-primary-dark);
+    transform: translateX(2px);
+}
+
+.link-arrow {
+    transition: transform 0.2s ease;
+}
+
+.login-link:hover .link-arrow {
+    transform: translateX(3px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .register-container {
+        padding: 15px;
     }
+    
+    .register-card {
+        padding: 35px 30px;
+        max-width: 95%;
+    }
+    
+    .logo-title {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-card {
+        padding: 30px 25px;
+    }
+    
+    .password-requirements {
+        font-size: 0.8rem;
+    }
+}
+
+/* États de chargement */
+.submit-button.loading .button-content {
+    display: none;
+}
+
+.submit-button.loading .button-loading {
+    display: flex;
+}
+
+.submit-button.loading {
+    cursor: not-allowed;
+    opacity: 0.8;
+}
 </style>
-{% endblock %}
 
-{% block scripts %}
 <script>
-document.getElementById('register-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('register-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    const passwordToggle = document.getElementById('password-toggle');
+    const confirmPasswordToggle = document.getElementById('confirm-password-toggle');
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
     
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirm_password').value;
+    // Toggle mots de passe
+    passwordToggle.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.querySelector('.toggle-icon').textContent = type === 'password' ? '👁️' : '🙈';
+    });
     
-    if (password !== confirmPassword) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            Les mots de passe ne correspondent pas
-        `;
-        const form = document.getElementById('register-form');
-        form.insertBefore(errorDiv, form.firstChild);
-        return;
+    confirmPasswordToggle.addEventListener('click', function() {
+        const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPasswordInput.setAttribute('type', type);
+        this.querySelector('.toggle-icon').textContent = type === 'password' ? '👁️' : '🙈';
+    });
+    
+    // Validation du mot de passe en temps réel
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        
+        // Vérifier chaque règle
+        const rules = {
+            length: password.length >= 8,
+            uppercase: /[A-Z]/.test(password),
+            number: /[0-9]/.test(password),
+            special: /[!@#$%^&*]/.test(password)
+        };
+        
+        // Mettre à jour l'affichage
+        Object.entries(rules).forEach(([rule, valid]) => {
+            const requirement = document.querySelector(`[data-rule="${rule}"]`);
+            if (requirement) {
+                requirement.classList.toggle('valid', valid);
+                requirement.classList.toggle('invalid', !valid);
+                requirement.querySelector('.requirement-icon').textContent = valid ? '✅' : '⚪';
+            }
+        });
+        
+        // Vérifier la correspondance si le champ de confirmation est rempli
+        if (confirmPasswordInput.value) {
+            validatePasswordMatch();
+        }
+    });
+    
+    // Validation de la confirmation du mot de passe
+    confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+    
+    function validatePasswordMatch() {
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const errorDiv = document.getElementById('confirm-password-error');
+        
+        if (confirmPassword && password !== confirmPassword) {
+            confirmPasswordInput.classList.add('error');
+            errorDiv.textContent = 'Les mots de passe ne correspondent pas';
+        } else {
+            confirmPasswordInput.classList.remove('error');
+            errorDiv.textContent = '';
+        }
     }
     
-    const formData = {
-        username: document.getElementById('username').value,
-        email: document.getElementById('email').value,
-        password: password,
-        role: "padawan"  // Rôle par défaut en minuscules
-    };
-
-    try {
-        const response = await fetch('/api/users/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            // Connexion automatique après inscription
-            const loginResponse = await fetch('/api/auth/login', {
+    // Soumission du formulaire
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Validation finale
+        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const acceptTerms = document.getElementById('accept-terms').checked;
+        
+        // Vérifier que tous les champs sont remplis
+        if (!username || !email || !password || !confirmPassword) {
+            showError('Veuillez remplir tous les champs obligatoires.');
+            return;
+        }
+        
+        // Vérifier la correspondance des mots de passe
+        if (password !== confirmPassword) {
+            showError('Les mots de passe ne correspondent pas.');
+            return;
+        }
+        
+        // Vérifier l'acceptation des conditions
+        if (!acceptTerms) {
+            showError('Veuillez accepter les conditions d\'utilisation.');
+            return;
+        }
+        
+        // Vérifier la force du mot de passe
+        const passwordValid = password.length >= 8 && 
+                            /[A-Z]/.test(password) && 
+                            /[0-9]/.test(password) && 
+                            /[!@#$%^&*]/.test(password);
+        
+        if (!passwordValid) {
+            showError('Le mot de passe ne respecte pas tous les critères de sécurité.');
+            return;
+        }
+        
+        // État de chargement
+        submitBtn.classList.add('loading');
+        hideMessages();
+        
+        try {
+            // Créer le compte
+            const response = await fetch('/api/users/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    username: formData.username,
-                    password: formData.password
-                }),
-                redirect: 'follow'
+                    username: username,
+                    email: email,
+                    password: password,
+                    role: 'padawan',
+                    full_name: username  // Par défaut, on utilise le username
+                })
             });
-
-            if (loginResponse.redirected) {
-                // Si la réponse est une redirection, suivre la redirection
-                window.location.href = loginResponse.url;
-                return;
-            }
-
-            if (loginResponse.ok) {
-                // Rediriger vers le tableau de bord
-                window.location.href = '/dashboard';
-            } else {
-                // Afficher l'erreur de connexion
-                const loginData = await loginResponse.json();
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'error-message';
-                errorDiv.innerHTML = `
-                    <i class="fas fa-exclamation-circle"></i>
-                    Compte créé mais erreur de connexion : ${loginData.detail || 'Veuillez vous connecter manuellement'}
-                `;
-                
-                const form = document.getElementById('register-form');
-                form.insertBefore(errorDiv, form.firstChild);
-            }
-        } else {
-            // Afficher l'erreur
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.innerHTML = `
-                <i class="fas fa-exclamation-circle"></i>
-                ${data.detail || 'Erreur lors de l\'inscription'}
-            `;
             
-            const form = document.getElementById('register-form');
-            form.insertBefore(errorDiv, form.firstChild);
-        }
-    } catch (error) {
-        console.error('Erreur:', error);
-    }
-});
-
-// Validation en temps réel du mot de passe
-document.getElementById('password').addEventListener('input', (e) => {
-    const password = e.target.value;
-    const validations = {
-        length: password.length >= 8,
-        uppercase: /[A-Z]/.test(password),
-        number: /[0-9]/.test(password),
-        special: /[!@#$%^&*]/.test(password)
-    };
-
-    // Mettre à jour les messages de validation
-    Object.entries(validations).forEach(([key, isValid]) => {
-        const messageElement = document.querySelector(`.validation-${key}`);
-        if (messageElement) {
-            messageElement.className = `validation-message ${isValid ? 'success' : 'error'}`;
+            if (response.ok) {
+                const userData = await response.json();
+                showSuccess('Compte créé avec succès ! Connexion en cours...');
+                
+                // Connexion automatique
+                setTimeout(async () => {
+                    try {
+                        const loginResponse = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                                username: username,
+                                password: password
+                            }),
+                            redirect: 'manual'
+                        });
+                        
+                        if (loginResponse.type === 'opaqueredirect' || loginResponse.status === 302 || loginResponse.ok) {
+                            window.location.href = '/dashboard';
+                        } else {
+                            window.location.href = '/login';
+                        }
+                    } catch (loginError) {
+                        window.location.href = '/login';
+                    }
+                }, 1000);
+                
+            } else {
+                const errorData = await response.json();
+                if (errorData.detail) {
+                    showError(errorData.detail);
+                } else {
+                    showError('Erreur lors de la création du compte.');
+                }
+            }
+            
+        } catch (error) {
+            console.error('Erreur:', error);
+            showError('Erreur de connexion au serveur. Veuillez réessayer.');
+        } finally {
+            submitBtn.classList.remove('loading');
         }
     });
+    
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        successMessage.style.display = 'none';
+        errorMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    function showSuccess(message) {
+        successMessage.textContent = message;
+        successMessage.style.display = 'block';
+        errorMessage.style.display = 'none';
+    }
+    
+    function hideMessages() {
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+    }
+    
+    // Animation d'entrée
+    setTimeout(() => {
+        document.querySelector('.register-card').style.opacity = '1';
+        document.querySelector('.register-card').style.transform = 'translateY(0)';
+    }, 100);
 });
 
-// Validation en temps réel de la confirmation du mot de passe
-document.getElementById('confirm_password').addEventListener('input', (e) => {
-    const password = document.getElementById('password').value;
-    const confirmPassword = e.target.value;
-    
-    const inputGroup = e.target.closest('.input-group');
-    const validationMessage = document.querySelector('.validation-match');
-    
-    if (password === confirmPassword) {
-        inputGroup.classList.remove('error');
-        if (validationMessage) {
-            validationMessage.className = 'validation-message success';
-            validationMessage.textContent = 'Les mots de passe correspondent';
-        }
-    } else {
-        inputGroup.classList.add('error');
-        if (validationMessage) {
-            validationMessage.className = 'validation-message error';
-            validationMessage.textContent = 'Les mots de passe ne correspondent pas';
-        }
-    }
-});
+// Style initial pour l'animation d'entrée
+document.querySelector('.register-card').style.opacity = '0';
+document.querySelector('.register-card').style.transform = 'translateY(20px)';
+document.querySelector('.register-card').style.transition = 'all 0.6s ease';
 </script>
 {% endblock %} 

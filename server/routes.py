@@ -15,6 +15,8 @@ from server.views import (
     login_page,
     api_login,
     register_page,
+    forgot_password_page,
+    profile_page,
     logout,
     exercises_page,
     dashboard,
@@ -26,7 +28,8 @@ from server.views import (
 from server.api_routes import (
     get_exercises_list,
     delete_exercise,
-    handle_recommendation_complete
+    handle_recommendation_complete,
+    api_forgot_password
 )
 
 from server.handlers.exercise_handlers import generate_exercise, get_exercise, submit_answer
@@ -46,6 +49,8 @@ def get_routes() -> List:
         Route("/login", endpoint=login_page),
         Route("/api/auth/login", endpoint=api_login, methods=["POST"]),
         Route("/register", endpoint=register_page),
+        Route("/forgot-password", endpoint=forgot_password_page),
+        Route("/profile", endpoint=profile_page),
         Route("/logout", endpoint=logout),
         Route("/exercises", endpoint=exercises_page),
         Route("/dashboard", endpoint=dashboard),
@@ -60,6 +65,7 @@ def get_routes() -> List:
         Route("/api/submit-answer", endpoint=submit_answer, methods=["POST"]),
         Route("/api/users/stats", endpoint=get_user_stats),
         Route("/api/recommendations/complete", endpoint=handle_recommendation_complete, methods=["POST"]),
+        Route("/api/auth/forgot-password", endpoint=api_forgot_password, methods=["POST"]),
         
         # Static files
         Mount("/static", app=StaticFiles(directory="static"), name="static")

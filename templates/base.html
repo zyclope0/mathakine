@@ -60,6 +60,8 @@
     <!-- NOUVEAUX SYSTÈMES CSS -->
     <link rel="stylesheet" href="/static/notifications.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="/static/breadcrumbs.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/static/loading-states.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/static/dark-mode.css" media="print" onload="this.media='all'">
     
     <!-- Favicon optimisé -->
     <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
@@ -143,21 +145,21 @@
                     aria-label="Réduire les animations">
                 <i class="fas fa-running" aria-hidden="true"></i>
                 <span class="btn-text">Animations</span>
-            </button>
+        </button>
             <button id="dyslexic-toggle" 
                     aria-pressed="false" 
                     title="Mode dyslexie (Alt+D)"
                     aria-label="Activer la police dyslexie">
                 <i class="fas fa-font" aria-hidden="true"></i>
                 <span class="btn-text">Dyslexie</span>
-            </button>
+        </button>
             
             <!-- Bouton pour masquer complètement la barre -->
             <button id="hide-accessibility-bar" 
                     aria-label="Masquer la barre d'accessibilité"
                     title="Masquer cette barre (Maj+Alt+H)">
                 <i class="fas fa-times" aria-hidden="true"></i>
-            </button>
+        </button>
         </div>
     </div>
     
@@ -167,10 +169,10 @@
             <!-- Logo et titre -->
             <div class="nav-brand">
                 <a href="/" class="brand-link">
-                    <img src="/static/img/mathakine-logo.svg" alt="Mathakine" class="logo preload" width="60" height="60" onload="this.classList.add('loaded')">
-                    <div class="logo-text">
+            <img src="/static/img/mathakine-logo.svg" alt="Mathakine" class="logo preload" width="60" height="60" onload="this.classList.add('loaded')">
+            <div class="logo-text">
                         <h1 class="nav-title">Mathakine</h1>
-                        <div class="logo-subtitle">L'API Rebelle</div>
+                <div class="logo-subtitle">L'API Rebelle</div>
                     </div>
                 </a>
             </div>
@@ -227,19 +229,19 @@
                                 Déconnexion
                             </a>
                         </div>
-                    </div>
-                {% else %}
-                    <div class="auth-links">
-                        <a href="/login" class="btn btn-primary{% if request.path == '/login' %} active{% endif %}">
+                </div>
+            {% else %}
+                <div class="auth-links">
+                    <a href="/login" class="btn btn-primary{% if request.path == '/login' %} active{% endif %}">
                             <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
                             Connexion
-                        </a>
-                        <a href="/register" class="btn btn-success{% if request.path == '/register' %} active{% endif %}">
+                    </a>
+                    <a href="/register" class="btn btn-success{% if request.path == '/register' %} active{% endif %}">
                             <i class="fas fa-user-plus" aria-hidden="true"></i>
                             Inscription
-                        </a>
-                    </div>
-                {% endif %}
+                    </a>
+                </div>
+            {% endif %}
             </div>
         </nav>
     </header>
@@ -309,15 +311,15 @@
     
     <!-- Contenu principal -->
     <main role="main" aria-label="Contenu principal" id="main-content">
-        <div class="container">
-            {% block content %}{% endblock %}
-        </div>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
     </main>
     
     <footer role="contentinfo">
         <div class="container">
-            <p>Mathakine - Exerce-toi aux mathématiques de façon amusante !</p>
-            <div class="footer-links">
+        <p>Mathakine - Exerce-toi aux mathématiques de façon amusante !</p>
+        <div class="footer-links">
                 <a href="/about" class="footer-link">
                     <i class="fas fa-info-circle" aria-hidden="true"></i>
                     À propos
@@ -325,13 +327,19 @@
                 <a href="https://github.com/zyclope0/mathakine" class="github-link" target="_blank" rel="noopener noreferrer">
                     <i class="fab fa-github" aria-hidden="true"></i> 
                     Projet GitHub
-                </a>
-                <span class="version">Version 4.0 - L'API Rebelle</span>
+            </a>
+            <span class="version">Version 4.0 - L'API Rebelle</span>
             </div>
         </div>
     </footer>
     
+    <!-- Toggle Mode Sombre -->
+    <button class="dark-mode-toggle" id="dark-mode-toggle" aria-label="Basculer le mode sombre" title="Mode sombre (Alt+S)">
+        <i class="fas fa-moon" id="dark-mode-icon"></i>
+    </button>
+    
     <!-- Scripts communs -->
+    <script src="/static/loading-helper.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Application Mathakine chargée');
@@ -642,6 +650,81 @@
             
             // Initialiser le gestionnaire d'accessibilité
             AccessibilityManager.init();
+            
+            // === GESTION DU MODE SOMBRE ===
+            const DarkModeManager = {
+                STORAGE_KEY: 'mathakine_dark_mode',
+                
+                init: function() {
+                    const darkModeToggle = document.getElementById('dark-mode-toggle');
+                    const darkModeIcon = document.getElementById('dark-mode-icon');
+                    
+                    // Charger la préférence sauvegardée
+                    const isDarkMode = localStorage.getItem(this.STORAGE_KEY) === 'true';
+                    if (isDarkMode) {
+                        document.body.classList.add('dark-mode');
+                        darkModeIcon.classList.remove('fa-moon');
+                        darkModeIcon.classList.add('fa-sun');
+                    }
+                    
+                    // Événement de toggle
+                    darkModeToggle?.addEventListener('click', () => {
+                        const isCurrentlyDark = document.body.classList.contains('dark-mode');
+                        this.toggleDarkMode(!isCurrentlyDark);
+                    });
+                    
+                    // Raccourci clavier Alt + S
+                    document.addEventListener('keydown', (e) => {
+                        if (e.altKey && e.key === 's') {
+                            e.preventDefault();
+                            const isCurrentlyDark = document.body.classList.contains('dark-mode');
+                            this.toggleDarkMode(!isCurrentlyDark);
+                        }
+                    });
+                    
+                    // Détection des préférences système
+                    if (window.matchMedia) {
+                        const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                        
+                        // Si pas de préférence sauvegardée, utiliser la préférence système
+                        if (localStorage.getItem(this.STORAGE_KEY) === null && darkModeQuery.matches) {
+                            this.toggleDarkMode(true);
+                        }
+                        
+                        // Écouter les changements de préférence système
+                        darkModeQuery.addEventListener('change', (e) => {
+                            if (localStorage.getItem(this.STORAGE_KEY) === null) {
+                                this.toggleDarkMode(e.matches);
+                            }
+                        });
+                    }
+                },
+                
+                toggleDarkMode: function(enable) {
+                    const darkModeIcon = document.getElementById('dark-mode-icon');
+                    
+                    if (enable) {
+                        document.body.classList.add('dark-mode');
+                        darkModeIcon?.classList.remove('fa-moon');
+                        darkModeIcon?.classList.add('fa-sun');
+                        localStorage.setItem(this.STORAGE_KEY, 'true');
+                        
+                        window.NotificationSystem?.show('success', 'Mode sombre activé', 
+                            'Le mode sombre a été activé pour réduire la fatigue oculaire.', 3000);
+                    } else {
+                        document.body.classList.remove('dark-mode');
+                        darkModeIcon?.classList.remove('fa-sun');
+                        darkModeIcon?.classList.add('fa-moon');
+                        localStorage.setItem(this.STORAGE_KEY, 'false');
+                        
+                        window.NotificationSystem?.show('success', 'Mode clair activé', 
+                            'Le mode clair a été activé.', 3000);
+                    }
+                }
+            };
+            
+            // Initialiser le gestionnaire de mode sombre
+            DarkModeManager.init();
         });
     </script>
     

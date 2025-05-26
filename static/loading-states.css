@@ -1,0 +1,190 @@
+/* États de chargement pour les boutons */
+
+/* Classe pour bouton en chargement */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin-left: -8px;
+    margin-top: -8px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: btn-spinner 0.6s linear infinite;
+}
+
+/* Masquer le contenu du bouton pendant le chargement */
+.btn-loading > * {
+    visibility: hidden;
+}
+
+/* Animation du spinner */
+@keyframes btn-spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Classes pour différents types de boutons */
+.btn-primary.btn-loading::after,
+.save-btn.btn-loading::after,
+.submit-btn.btn-loading::after {
+    border-top-color: #ffffff;
+}
+
+.btn-secondary.btn-loading::after {
+    border-top-color: var(--sw-gray);
+}
+
+.btn-danger.btn-loading::after {
+    border-top-color: #ffffff;
+}
+
+/* États de chargement pour les cartes */
+.card-loading {
+    position: relative;
+    min-height: 200px;
+}
+
+.card-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.card-loading::before {
+    content: '';
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    top: 50%;
+    left: 50%;
+    margin-left: -20px;
+    margin-top: -20px;
+    border: 3px solid transparent;
+    border-top-color: var(--sw-gold);
+    border-radius: 50%;
+    animation: btn-spinner 0.8s linear infinite;
+    z-index: 11;
+}
+
+/* Skeleton loading pour les listes */
+.skeleton-loader {
+    background: linear-gradient(
+        90deg,
+        var(--sw-bg-secondary) 25%,
+        var(--sw-bg-tertiary) 50%,
+        var(--sw-bg-secondary) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 8px;
+    height: 20px;
+    margin-bottom: 10px;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Classes utilitaires pour différentes tailles */
+.skeleton-loader.skeleton-title {
+    height: 30px;
+    width: 60%;
+}
+
+.skeleton-loader.skeleton-text {
+    height: 16px;
+    width: 100%;
+}
+
+.skeleton-loader.skeleton-short {
+    width: 40%;
+}
+
+/* État de chargement pour les formulaires */
+.form-loading {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.form-loading input,
+.form-loading select,
+.form-loading textarea {
+    background-color: var(--sw-bg-secondary);
+    cursor: not-allowed;
+}
+
+/* Indicateur de chargement pour les sections */
+.section-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--sw-text-secondary);
+}
+
+.section-loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid var(--sw-bg-secondary);
+    border-top-color: var(--sw-primary);
+    border-radius: 50%;
+    animation: btn-spinner 0.8s linear infinite;
+    margin-bottom: 20px;
+}
+
+.section-loading-text {
+    font-size: 1.1rem;
+}
+
+/* État de chargement inline */
+.loading-inline {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--sw-bg-secondary);
+    border-top-color: var(--sw-primary);
+    border-radius: 50%;
+    animation: btn-spinner 0.6s linear infinite;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+/* Désactiver les interactions pendant le chargement */
+.loading-disabled {
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Transition fluide pour les états */
+.btn,
+.card,
+.form-input,
+.form {
+    transition: opacity 0.2s ease;
+} 

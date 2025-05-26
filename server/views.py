@@ -152,6 +152,70 @@ async def register_page(request: Request):
         "current_user": current_user
     })
 
+# Page mot de passe oublié
+async def forgot_password_page(request: Request):
+    """Rendu de la page mot de passe oublié"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    if current_user["is_authenticated"]:
+        return RedirectResponse(url="/", status_code=302)
+    return render_template("forgot_password.html", request, {
+        "current_user": current_user
+    })
+
+# Page de profil
+async def profile_page(request: Request):
+    """Rendu de la page de profil utilisateur"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    
+    # Vérifier si l'utilisateur est connecté
+    if not current_user["is_authenticated"]:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    # Obtenir l'utilisateur complet depuis la base de données
+    try:
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.services.auth_service import get_user_by_username
+            user = get_user_by_username(db, current_user["username"])
+            if not user:
+                return render_error(
+                    request=request,
+                    error="Utilisateur non trouvé",
+                    message="Impossible de récupérer les informations de l'utilisateur",
+                    status_code=404
+                )
+            
+            # Convertir l'utilisateur en dictionnaire pour le template
+            user_dict = {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": user.role.value if hasattr(user.role, 'value') else user.role,
+                "is_active": user.is_active,
+                "created_at": user.created_at,
+                "grade_level": user.grade_level,
+                "learning_style": user.learning_style,
+                "preferred_difficulty": user.preferred_difficulty,
+                "preferred_theme": user.preferred_theme,
+                "is_authenticated": True
+            }
+            
+            return render_template("profile.html", request, {
+                "current_user": user_dict
+            })
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+    except Exception as e:
+        print(f"Erreur lors de la récupération du profil: {str(e)}")
+        traceback.print_exc()
+        return render_error(
+            request=request,
+            error="Erreur lors du chargement du profil",
+            message="Une erreur est survenue lors du chargement de votre profil",
+            status_code=500
+        )
+
 # Déconnexion
 async def logout(request: Request):
     """Déconnexion de l'utilisateur"""

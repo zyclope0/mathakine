@@ -183,3 +183,12 @@ class UserPasswordUpdate(BaseModel):
         if not any(char.isupper() for char in v):
             raise ValueError("Le mot de passe doit contenir au moins une majuscule")
         return v
+
+class ForgotPasswordRequest(BaseModel):
+    """Schéma pour la demande de réinitialisation de mot de passe"""
+    email: EmailStr = Field(..., description="Adresse email associée au compte")
+
+class ForgotPasswordResponse(BaseModel):
+    """Schéma pour la réponse de demande de réinitialisation"""
+    message: str = Field(..., description="Message de confirmation")
+    success: bool = Field(..., description="Statut de la demande")

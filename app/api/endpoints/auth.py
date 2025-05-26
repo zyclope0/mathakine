@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 from typing import Any
 
 from app.api.deps import get_db_session, get_current_user
-from app.schemas.user import UserLogin, Token, User, RefreshTokenRequest, RefreshTokenResponse
-from app.services.auth_service import authenticate_user, create_user_token, refresh_access_token
+from app.schemas.user import UserLogin, Token, User, RefreshTokenRequest, RefreshTokenResponse, ForgotPasswordRequest, ForgotPasswordResponse
+from app.services.auth_service import authenticate_user, create_user_token, refresh_access_token, get_user_by_email
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -86,6 +86,48 @@ def logout(current_user: User = Depends(get_current_user)) -> Any:
     """
     logger.info(f"Déconnexion de l'utilisateur: {current_user.username}")
     return {"detail": "Déconnecté avec succès"}
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db_session)
+) -> Any:
+    """
+    Demander la réinitialisation du mot de passe.
+    
+    Note: Dans cette implémentation de démonstration, nous simulons l'envoi d'email.
+    En production, il faudrait intégrer un service d'email réel (SendGrid, AWS SES, etc.)
+    """
+    try:
+        # Vérifier si l'utilisateur existe
+        user = get_user_by_email(db, request.email)
+        
+        if user:
+            logger.info(f"Demande de réinitialisation de mot de passe pour: {request.email}")
+            # En production, ici on générerait un token de réinitialisation
+            # et on enverrait un email avec le lien de réinitialisation
+            
+            # Pour la démo, on simule l'envoi d'email
+            return ForgotPasswordResponse(
+                message="Si cette adresse email est associée à un compte, vous recevrez un email avec les instructions de réinitialisation.",
+                success=True
+            )
+        else:
+            # Pour des raisons de sécurité, on retourne le même message
+            # même si l'utilisateur n'existe pas (évite l'énumération d'emails)
+            logger.warning(f"Tentative de réinitialisation pour email inexistant: {request.email}")
+            return ForgotPasswordResponse(
+                message="Si cette adresse email est associée à un compte, vous recevrez un email avec les instructions de réinitialisation.",
+                success=True
+            )
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de la demande de réinitialisation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors du traitement de la demande"
+        )
 
 
 @router.get("/me", response_model=User)

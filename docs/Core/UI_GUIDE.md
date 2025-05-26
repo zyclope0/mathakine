@@ -467,12 +467,12 @@ Suite aux retours utilisateur sur l'ergonomie de la page des exercices, une refo
       <p class="page-description compact-description">
         Choisissez un exercice ou générez-en un nouveau
       </p>
-    </div>
+            </div>
     <div class="progress-indicator compact-stats">
       <!-- Statistiques compactes -->
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
 <!-- Contrôles compacts -->
 <div class="controls-container compact-controls">
@@ -1037,19 +1037,19 @@ static/
 ```html
 <div class="modal" id="exercise-modal" role="dialog" aria-modal="true">
     <div class="modal-overlay" data-modal-close></div>
-    <div class="modal-content">
+  <div class="modal-content">
         <header class="modal-header">
             <h2 class="modal-title" id="modal-title">Titre</h2>
             <button class="modal-close" aria-label="Fermer">×</button>
         </header>
         <div class="modal-body">
             <!-- Contenu dynamique -->
-        </div>
+    </div>
         <footer class="modal-footer">
             <button class="btn btn-secondary" data-modal-close>Annuler</button>
             <button class="btn btn-primary">Confirmer</button>
         </footer>
-    </div>
+  </div>
 </div>
 ```
 

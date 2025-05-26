@@ -643,9 +643,9 @@
     
     .hero-actions {
         flex-direction: column;
-        align-items: center;
-    }
-    
+    align-items: center;
+}
+
     .cta-primary,
     .cta-secondary {
         width: 100%;

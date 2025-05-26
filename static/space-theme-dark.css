@@ -719,7 +719,7 @@ body::after {
     grid-column: 1;
     justify-content: flex-end;
   }
-}
+} 
 
 /* Actions des exercices */
 .exercise-actions {
