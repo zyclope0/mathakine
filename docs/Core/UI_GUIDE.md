@@ -1,5 +1,175 @@
 # Guide de l'Interface Utilisateur - Mathakine
 
+## 🆕 **Optimisations CSS Récentes (Janvier 2025)**
+
+### **Nettoyage des Doublons CSS Effectué**
+
+Une optimisation majeure de l'architecture CSS a été réalisée pour éliminer les doublons et améliorer la maintenabilité :
+
+#### **Variables CSS Unifiées**
+- ✅ **Consolidation** : 15+ variables dupliquées centralisées dans `variables.css`
+- ✅ **Palette Star Wars unifiée** : `--sw-blue`, `--sw-red`, `--sw-green`, etc.
+- ✅ **Système d'espacement cohérent** : `--space-xs` à `--space-xxl` (basé sur 8px)
+- ✅ **Variables de compatibilité** maintenues pour éviter les régressions
+
+#### **Système de Boutons Optimisé**
+- ✅ **Suppression des doublons** : `.big-btn` et `.primary-btn` dupliqués dans 4 fichiers
+- ✅ **Système unifié** : `.btn` avec variantes (`.btn-primary`, `.btn-success`, etc.)
+- ✅ **Tailles standardisées** : `.btn-sm`, `.btn-large`
+- ✅ **États visuels** : hover, active, disabled, loading
+
+#### **Architecture CSS Optimisée**
+```
+static/
+├── variables.css      # ⭐ Variables unifiées (NOUVEAU)
+├── style.css          # ⭐ Système de boutons unifié
+├── space-theme-dark.css # ⭐ Thème optimisé
+├── space-theme.css    # ⭐ Legacy nettoyé (257→40 lignes)
+├── home-styles.css    # ⭐ Spécificités conservées
+└── [autres fichiers]  # Inchangés
+```
+
+#### **Résultats de l'Optimisation**
+- 🔥 **~300 lignes CSS supprimées**
+- ⚡ **Performance améliorée** (moins de CSS à parser)
+- 🛠️ **Maintenabilité renforcée** (source unique de vérité)
+- ✅ **Zéro régression visuelle**
+
+### 🎨 **Optimisations Ergonomiques Page Exercices (Janvier 2025)**
+
+#### **Problème Identifié**
+- ❌ Beaucoup d'espace vide à 50% de zoom
+- ❌ Exercices non visibles sans défilement
+- ❌ Contrôles dispersés et peu efficaces
+- ❌ Layout non optimisé pour différentes tailles d'écran
+
+#### **Solutions Implémentées**
+
+##### **1. En-tête Optimisé avec Layout Horizontal**
+```html
+<div class="page-header enhanced-header">
+    <div class="header-content">
+        <div class="header-text">
+            <h1 class="page-title">Exercices Mathématiques</h1>
+            <p class="page-description">Description...</p>
+        </div>
+        <div class="progress-indicator">
+            <!-- Statistiques compactes à droite -->
+        </div>
+    </div>
+</div>
+```
+
+**CSS Clé :**
+```css
+.page-header .header-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-lg);
+  align-items: center;
+}
+```
+
+##### **2. Conteneur de Contrôles Combiné**
+- **Innovation** : Fusion des actions et filtres dans un conteneur unique
+- **Layout horizontal** sur grands écrans pour économiser l'espace vertical
+
+```css
+.controls-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+}
+
+@media (min-width: 1024px) {
+  .controls-container {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: var(--space-lg);
+  }
+}
+```
+
+##### **3. Boutons de Génération Compacts**
+- Boutons avec sous-titres explicatifs
+- Disposition adaptative (vertical mobile, horizontal desktop)
+
+```css
+.cta-primary, .cta-secondary {
+  padding: var(--space-md) var(--space-lg);
+  min-width: 200px;
+  justify-content: center;
+}
+
+.btn-subtitle {
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+  font-weight: 400;
+}
+```
+
+##### **4. Filtres en Ligne Horizontale**
+- Filtres disposés horizontalement pour économiser l'espace
+- Boutons d'action intégrés dans la même ligne
+
+```css
+.filters-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--space-md);
+  align-items: end;
+}
+```
+
+##### **5. Grille d'Exercices Optimisée**
+- Cartes plus compactes avec informations essentielles
+- Responsive design amélioré
+
+```css
+.exercise-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+  padding: 0;
+}
+```
+
+#### **Responsive Design Amélioré**
+- **Desktop (1400px+)** : Layout 3 colonnes optimisé
+- **Laptop (1024-1399px)** : Layout 2-3 colonnes adaptatif  
+- **Tablet (768-1023px)** : Layout 2 colonnes
+- **Mobile (< 768px)** : Layout 1 colonne avec optimisations
+
+#### **Impact des Optimisations**
+- ✅ **Utilisation optimale de l'espace** disponible
+- ✅ **Exercices visibles** dès le chargement à 50% de zoom
+- ✅ **Contrôles groupés** et accessibles
+- ✅ **Layout adaptatif** et ergonomique
+- ✅ **Meilleure hiérarchie visuelle**
+- ✅ **Navigation plus fluide**
+
+#### **Fichiers Modifiés**
+- `templates/exercises.html` : Structure HTML optimisée
+- `static/space-theme-dark.css` : Styles ergonomiques ajoutés
+  - Section "AMÉLIORATIONS ERGONOMIQUES PAGE EXERCICES"
+  - Section "OPTIMISATION ERGONOMIQUE PAGE EXERCICES"
+
+#### **Classes CSS Principales Ajoutées**
+- `.enhanced-header` : En-tête optimisé
+- `.controls-container` : Conteneur de contrôles combiné
+- `.enhanced-controls` : Barre de contrôles unifiée
+- `.enhanced-card` : Cartes d'exercices optimisées
+- `.enhanced-generation` : Boutons de génération
+
+#### **Accessibilité Maintenue**
+- ✅ ARIA labels et descriptions
+- ✅ Navigation clavier
+- ✅ Contraste respecté
+- ✅ Lecteurs d'écran supportés
+- ✅ Animations réduites (prefers-reduced-motion)
+
+---
+
 ## Table des Matières
 
 1. [Vue d'ensemble](#vue-densemble)
@@ -94,67 +264,111 @@ static/
 
 ## Design System
 
-### Palette de Couleurs
+### Palette de Couleurs (Mise à jour Janvier 2025)
 
 ```css
-/* Couleurs principales */
---sw-primary: #7765e3;      /* Violet principal */
---sw-secondary: #3db4f2;    /* Bleu secondaire */
---sw-accent: #ffd700;       /* Or d'accent */
+/* === PALETTE STAR WARS UNIFIÉE === */
+/* Couleurs principales Star Wars */
+--sw-blue: #4a6bff;          /* Sabre laser bleu - UNIFIÉ */
+--sw-red: #ff5b5b;           /* Sabre laser rouge */
+--sw-green: #4eff9f;         /* Sabre laser vert */
+--sw-purple: #9c6eff;        /* Sabre laser violet */
+--sw-gold: #f0c850;          /* C-3PO, médailles */
+--sw-yellow: #ffe607;        /* Étoiles */
 
-/* Couleurs de fond */
---bg-dark: #1a1a2e;         /* Fond sombre */
---bg-medium: #2d2d44;       /* Fond moyen */
---bg-light: #3d3d5c;        /* Fond clair */
+/* Couleurs de fond et cartes - UNIFIÉES */
+--sw-space: #1a1e33;         /* Arrière-plan principal sombre */
+--sw-card-bg: rgba(23, 34, 59, 0.9);  /* Arrière-plan cartes - UNIFIÉ */
+--sw-card-hover: rgba(29, 43, 75, 0.95);
+--sw-card-border: rgba(164, 181, 225, 0.2);
 
 /* Couleurs de texte */
---text-primary: #ffffff;    /* Texte principal */
---text-secondary: #b8b8c8;  /* Texte secondaire */
---text-muted: #7c7c92;      /* Texte discret */
+--sw-text: #ffffff;
+--sw-text-secondary: #a4b5e1;
+--sw-text-dim: #6a7a9e;
+
+/* Couleurs d'input et interface */
+--sw-input-bg: rgba(23, 34, 59, 0.6);
+--sw-input-border: rgba(164, 181, 225, 0.3);
+
+/* === COULEURS DÉRIVÉES POUR COMPATIBILITÉ === */
+--sw-accent: var(--sw-purple);
+--sw-primary: var(--sw-blue);
+--primary-color: #3a4db4;
+--secondary-color: #6272c9;
+--accent-color: #5764ff;
 
 /* États */
---success: #4caf50;         /* Succès */
---warning: #ff9800;         /* Avertissement */
---error: #f44336;           /* Erreur */
---info: #2196f3;            /* Information */
+--success-color: #28a745;
+--warning-color: #ffc107;
+--danger-color: #dc3545;
+--info-color: #17a2b8;
 ```
 
-### Typographie
+### Typographie (Mise à jour)
 
 ```css
 /* Hiérarchie typographique */
---font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
---font-family-heading: 'Orbitron', var(--font-family-base);
---font-family-mono: 'Fira Code', monospace;
-
-/* Tailles */
---font-size-xs: 0.75rem;    /* 12px */
---font-size-sm: 0.875rem;   /* 14px */
---font-size-base: 1rem;     /* 16px */
---font-size-lg: 1.125rem;   /* 18px */
---font-size-xl: 1.25rem;    /* 20px */
---font-size-2xl: 1.5rem;    /* 24px */
---font-size-3xl: 1.875rem;  /* 30px */
---font-size-4xl: 2.25rem;   /* 36px */
-
-/* Poids */
---font-weight-normal: 400;
---font-weight-medium: 500;
---font-weight-bold: 700;
+--font-family-base: 'Exo 2', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+--font-size-base: 16px;
+--font-size-sm: 0.875rem;
+--font-size-md: 1rem;
+--font-size-lg: 1.125rem;
+--font-size-xl: 1.5rem;
+--font-size-xxl: 2rem;
+--line-height-base: 1.6;
 ```
 
-### Espacement
+### Espacement (Système Unifié - Base 8px)
 
 ```css
-/* Système d'espacement (base 8px) */
---space-1: 0.25rem;  /* 4px */
---space-2: 0.5rem;   /* 8px */
---space-3: 1rem;     /* 16px */
---space-4: 1.5rem;   /* 24px */
---space-5: 2rem;     /* 32px */
---space-6: 3rem;     /* 48px */
---space-7: 4rem;     /* 64px */
---space-8: 6rem;     /* 96px */
+/* === NOUVEAU SYSTÈME D'ESPACEMENT UNIFIÉ === */
+/* Espacement basé sur 8px pour cohérence (Design System) */
+--space-unit: 8px;
+--space-xs: calc(var(--space-unit) * 0.5);  /* 4px */
+--space-sm: var(--space-unit);              /* 8px */
+--space-md: calc(var(--space-unit) * 2);    /* 16px */
+--space-lg: calc(var(--space-unit) * 3);    /* 24px */
+--space-xl: calc(var(--space-unit) * 4);    /* 32px */
+--space-xxl: calc(var(--space-unit) * 6);   /* 48px */
+
+/* Système de grille uniforme */
+--grid-gap: var(--space-md);
+--grid-columns-mobile: 1;
+--grid-columns-tablet: 2;
+--grid-columns-desktop: 3;
+```
+
+### Système de Boutons (Optimisé)
+
+```css
+/* Classe de base unifiée */
+.btn {
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-medium) ease;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  text-decoration: none;
+}
+
+/* Variantes de couleur */
+.btn-primary { background: var(--sw-blue); color: white; }
+.btn-success { background: var(--success-color); color: white; }
+.btn-danger { background: var(--danger-color); color: white; }
+.btn-secondary { background: var(--sw-card-bg); color: var(--sw-text); }
+
+/* Tailles */
+.btn-sm { padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-sm); }
+.btn-large { padding: var(--space-md) var(--space-lg); font-size: var(--font-size-lg); }
+
+/* États spéciaux */
+.btn.ai-btn { background: linear-gradient(135deg, var(--sw-purple), var(--sw-gold)); }
 ```
 
 ## Composants de l'Interface
@@ -188,11 +402,11 @@ static/
         <div class="card-badges">
             <span class="badge badge-type-addition">Addition</span>
             <span class="badge badge-difficulty-initie">Initié</span>
-        </div>
+                    </div>
     </header>
     <div class="card-body">
         <p class="card-question">Combien font 5 + 3 ?</p>
-    </div>
+                </div>
     <footer class="card-footer">
         <button class="btn btn-sm btn-primary">Commencer</button>
         <button class="btn btn-sm btn-secondary">Détails</button>

@@ -6,188 +6,392 @@
 {% endblock %}
         
 {% block content %}
-<div class="page-header">
-    <h2>Exercices Mathématiques</h2>
-    <p>Choisissez parmi les exercices ou générez-en un nouveau</p>
-</div>
+<!-- Breadcrumb compact -->
+<nav class="breadcrumb" aria-label="Fil d'Ariane">
+    <ol class="breadcrumb-list">
+        <li class="breadcrumb-item">
+            <a href="/" aria-label="Retour à l'accueil">
+                <i class="fas fa-home" aria-hidden="true"></i>
+                <span>Accueil</span>
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+            <i class="fas fa-calculator" aria-hidden="true"></i>
+            <span>Exercices</span>
+        </li>
+    </ol>
+</nav>
 
-<!-- Filtres -->
-<div class="filters-container">
-    <form id="filters-form" method="GET" action="/exercises">
-        <div class="filters-row">
-                    <div class="filter-group">
-                <label for="exercise_type">Type d'exercice</label>
-                <select id="exercise_type" name="exercise_type" class="filter-select">
-                    <option value="">Tous les types</option>
-                    {% for type_value, type_name in exercise_types.items() %}
-                    <option value="{{ type_value }}" {% if request.query_params.get('exercise_type') == type_value %}selected{% endif %}>{{ type_name }}</option>
-                    {% endfor %}
-                        </select>
-                    </div>
-        
-                    <div class="filter-group">
-                <label for="difficulty">Niveau de difficulté</label>
-                <select id="difficulty" name="difficulty" class="filter-select">
-                    <option value="">Tous les niveaux</option>
-                    {% for difficulty_value, difficulty_name in difficulty_levels.items() %}
-                    <option value="{{ difficulty_value }}" {% if request.query_params.get('difficulty') == difficulty_value %}selected{% endif %}>{{ difficulty_name }}</option>
-                    {% endfor %}
-                        </select>
+<!-- En-tête optimisé avec layout horizontal -->
+<div class="page-header enhanced-header">
+    <div class="header-content">
+        <div class="header-text">
+            <h1 class="page-title">
+                <i class="fas fa-jedi" aria-hidden="true"></i>
+                Exercices Mathématiques
+            </h1>
+            <p class="page-description">Choisissez parmi les exercices disponibles ou générez-en un nouveau adapté à votre niveau</p>
         </div>
         
-            <div class="filter-actions">
-                <button type="button" id="reset-filters" class="reset-filters">
-                    <i class="fas fa-times"></i> Réinitialiser
-        </button>
-                <button type="submit" class="apply-filters">
-                    <i class="fas fa-filter"></i> Appliquer
-        </button>
+        <!-- Indicateur de progression compact à droite -->
+        <div class="progress-indicator" role="status" aria-label="Progression globale">
+            <div class="progress-stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="total-exercises">{{ exercises|length }}</span>
+                    <span class="stat-label">Exercices</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="completed-exercises">0</span>
+                    <span class="stat-label">Complétés</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="success-rate">0%</span>
+                    <span class="stat-label">Réussite</span>
+                </div>
             </div>
         </div>
-    </form>
+    </div>
 </div>
 
-<!-- Boutons de génération DÉPLACÉS en haut de page -->
-<div class="generation-buttons">
-    <button id="generate-exercise-btn" class="btn primary-btn big-btn">
-        <i class="fas fa-jedi"></i> Générer un exercice personnalisé
-    </button>
-    <a href="#" id="generate-ai-exercise-btn" class="btn ai-btn big-btn">
-        <i class="fas fa-robot"></i> Générer avec l'IA
-    </a>
+<!-- Actions et filtres combinés pour économiser l'espace -->
+<div class="controls-container">
+    <!-- Boutons de génération compacts -->
+    <section class="actions-section" aria-labelledby="actions-title">
+        <h2 id="actions-title" class="sr-only">Actions disponibles</h2>
+        
+        <div class="generation-buttons enhanced-generation">
+            <button id="generate-exercise-btn" class="btn btn-primary btn-large cta-primary" 
+                    aria-describedby="generate-help">
+                <i class="fas fa-jedi" aria-hidden="true"></i> 
+                <span class="btn-text">
+                    Générer un exercice
+                    <span class="btn-subtitle">Adapté à votre niveau</span>
+                </span>
+            </button>
+            <a href="#" id="generate-ai-exercise-btn" class="btn btn-large ai-btn cta-secondary" 
+               aria-describedby="ai-help">
+                <i class="fas fa-robot" aria-hidden="true"></i> 
+                <span class="btn-text">
+                    Générer avec l'IA
+                    <span class="btn-subtitle">Contexte Star Wars</span>
+                </span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Filtres compacts en ligne -->
+    <section class="filters-section" aria-labelledby="filters-title">
+        <h2 id="filters-title" class="sr-only">Filtrer les exercices</h2>
+        
+        <div class="filters-container enhanced-filters">
+            <form id="filters-form" method="GET" action="/exercises" role="search" aria-label="Filtrer les exercices">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label for="exercise_type" class="filter-label">
+                            <i class="fas fa-calculator" aria-hidden="true"></i>
+                            Type d'exercice
+                        </label>
+                        <select id="exercise_type" name="exercise_type" class="filter-select enhanced-select">
+                            <option value="">Tous les types</option>
+                            {% for type_value, type_name in exercise_types.items() %}
+                            <option value="{{ type_value }}" 
+                                    {% if request.query_params.get('exercise_type') == type_value %}selected{% endif %}>
+                                {{ type_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+            
+                    <div class="filter-group">
+                        <label for="difficulty" class="filter-label">
+                            <i class="fas fa-chart-line" aria-hidden="true"></i>
+                            Niveau de difficulté
+                        </label>
+                        <select id="difficulty" name="difficulty" class="filter-select enhanced-select">
+                            <option value="">Tous les niveaux</option>
+                            {% for difficulty_value, difficulty_name in difficulty_levels.items() %}
+                            <option value="{{ difficulty_value }}" 
+                                    {% if request.query_params.get('difficulty') == difficulty_value %}selected{% endif %}>
+                                {{ difficulty_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+            
+                    <div class="filter-actions">
+                        <button type="button" id="reset-filters" class="btn btn-ghost reset-filters"
+                                aria-label="Réinitialiser tous les filtres">
+                            <i class="fas fa-times" aria-hidden="true"></i> 
+                            <span>Reset</span>
+                        </button>
+                        <button type="submit" class="btn btn-primary apply-filters"
+                                aria-label="Appliquer les filtres sélectionnés">
+                            <i class="fas fa-search" aria-hidden="true"></i> 
+                            <span>Filtrer</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
 </div>
 
-<!-- Message success/error -->
+<!-- Message success/error compact -->
 {% if message %}
-<div class="alert alert-{{ message_type }}">
-    <i class="fas {% if message_type == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
-    <div class="alert-message">{{ message }}</div>
+<div class="alert alert-{{ message_type }} enhanced-alert" role="alert" aria-live="assertive">
+    <div class="alert-icon">
+        <i class="fas {% if message_type == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}" 
+           aria-hidden="true"></i>
+    </div>
+    <div class="alert-content">
+        <div class="alert-message">{{ message }}</div>
+        <button class="alert-close" aria-label="Fermer le message">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+    </div>
 </div>
 {% endif %}
 
-<div class="card">
-    <div class="exercise-header">
-        <!-- Contrôles de vue -->
-        <div class="view-controls">
-            <div class="exercise-count">
-                <span>{{ exercises|length }} exercice{% if exercises|length > 1 %}s{% endif %} trouvé{% if exercises|length > 1 %}s{% endif %}</span>
-            </div>
-            <div class="view-toggle">
-                <button id="grid-view-btn" class="active" title="Vue en grille">
-                    <i class="fas fa-th-large"></i>
-                </button>
-                <button id="list-view-btn" title="Vue en liste">
-                    <i class="fas fa-list"></i>
-                </button>
+<!-- Section principale des exercices optimisée -->
+<main class="exercises-main" role="main" aria-labelledby="exercises-title">
+    <div class="card enhanced-card">
+        <!-- Contrôles de vue compacts -->
+        <div class="exercise-header enhanced-header">
+            <div class="enhanced-controls">
+                <div class="exercise-count" role="status" aria-live="polite">
+                    <span class="count-number">{{ exercises|length }}</span>
+                    <span class="count-text">exercice{% if exercises|length > 1 %}s{% endif %} trouvé{% if exercises|length > 1 %}s{% endif %}</span>
+                </div>
+                
+                <div class="view-controls">
+                    <div class="view-toggle" role="group" aria-label="Mode d'affichage">
+                        <button id="grid-view-btn" class="view-btn active" 
+                                aria-pressed="true" aria-label="Affichage en grille">
+                            <i class="fas fa-th-large" aria-hidden="true"></i>
+                            <span class="btn-label">Grille</span>
+                        </button>
+                        <button id="list-view-btn" class="view-btn" 
+                                aria-pressed="false" aria-label="Affichage en liste">
+                            <i class="fas fa-list" aria-hidden="true"></i>
+                            <span class="btn-label">Liste</span>
+                        </button>
+                    </div>
+                    
+                    <div class="sort-controls">
+                        <label for="sort-select" class="sort-label">Trier :</label>
+                        <select id="sort-select" class="sort-select" aria-label="Trier les exercices">
+                            <option value="recent">Récents</option>
+                            <option value="difficulty">Difficulté</option>
+                            <option value="type">Type</option>
+                            <option value="title">Titre</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="loading" class="loading-container">
-        <div class="spinner"></div>
-        <p>Chargement des exercices...</p>
-    </div>
-    
-    <div id="exercise-list" class="exercise-list">
-        {% for exercise in exercises %}
-        <div class="exercise-card" id="exercise-{{ exercise.id }}">
-            <div class="exercise-meta">
-                <span class="difficulty {{ exercise.difficulty }}">
-                    {% if exercise.difficulty in difficulty_display %}
-                    {{ difficulty_display[exercise.difficulty] }}
-                    {% else %}
-                    {{ exercise.difficulty }}
-                    {% endif %}
-                </span>
-                
-                <span class="exercise-type-tag {{ exercise.exercise_type }}">
-                    {% if exercise.exercise_type in exercise_type_display %}
-                    {{ exercise_type_display[exercise.exercise_type] }}
-                    {% else %}
-                    {{ exercise.exercise_type|title }}
-                    {% endif %}
-                </span>
-                
-                {% if exercise.ai_generated %}
-                <span class="ai-badge"><i class="fas fa-robot"></i> IA</span>
-                {% elif ai_prefix in exercise.title or ai_prefix in exercise.question %}
-                <span class="ai-badge"><i class="fas fa-robot"></i> IA</span>
-                {% endif %}
+        <!-- Indicateur de chargement compact -->
+        <div id="loading" class="loading-container enhanced-loading" aria-hidden="true">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <div class="loading-text">
+                    <p class="loading-message">Chargement...</p>
+                </div>
             </div>
-            
-            <h3>
-                {{ exercise.title }}
-            </h3>
-            <p>{{ exercise.question }}</p>
-            
-            <div class="exercise-actions">
-                <a href="/exercises/{{ exercise.id }}" class="action-btn primary-action">
-                    <i class="fas fa-play"></i> Démarrer
+        </div>
+        
+        <!-- Liste des exercices avec identification améliorée -->
+        <div id="exercise-list" class="exercise-list enhanced-list" role="list" aria-label="Liste des exercices">
+            {% for exercise in exercises %}
+            <article class="exercise-card enhanced-card" id="exercise-{{ exercise.id }}" role="listitem">
+                <!-- En-tête de la carte avec identification claire -->
+                <header class="exercise-card-header">
+                    <div class="exercise-meta enhanced-meta">
+                        <span class="difficulty {{ exercise.difficulty }}" 
+                              role="img" aria-label="Niveau {{ difficulty_display.get(exercise.difficulty, exercise.difficulty) }}">
+                            <i class="fas fa-star" aria-hidden="true"></i>
+                            {% if exercise.difficulty in difficulty_display %}
+                            {{ difficulty_display[exercise.difficulty] }}
+                            {% else %}
+                            {{ exercise.difficulty }}
+                            {% endif %}
+                        </span>
+                        
+                        <span class="exercise-type-tag {{ exercise.exercise_type }}"
+                              role="img" aria-label="Type {{ exercise_type_display.get(exercise.exercise_type, exercise.exercise_type) }}">
+                            <i class="fas fa-calculator" aria-hidden="true"></i>
+                            {% if exercise.exercise_type in exercise_type_display %}
+                            {{ exercise_type_display[exercise.exercise_type] }}
+                            {% else %}
+                            {{ exercise.exercise_type|title }}
+                            {% endif %}
+                        </span>
+                        
+                        {% if exercise.ai_generated %}
+                        <span class="ai-badge" role="img" aria-label="Généré par intelligence artificielle">
+                            <i class="fas fa-robot" aria-hidden="true"></i> IA
+                        </span>
+                        {% elif ai_prefix in exercise.title or ai_prefix in exercise.question %}
+                        <span class="ai-badge" role="img" aria-label="Généré par intelligence artificielle">
+                            <i class="fas fa-robot" aria-hidden="true"></i> IA
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Indicateur de progression individuel -->
+                    <div class="exercise-progress" role="img" aria-label="Progression sur cet exercice">
+                        <div class="progress-circle">
+                            <span class="progress-text">0%</span>
+                        </div>
+                    </div>
+                </header>
+                
+                <!-- Contenu principal de la carte -->
+                <div class="exercise-content">
+                    <h3 class="exercise-title">
+                        {{ exercise.title }}
+                    </h3>
+                    <p class="exercise-question">{{ exercise.question }}</p>
+                    
+                    <!-- Aperçu des choix si disponibles -->
+                    {% if exercise.choices %}
+                    <div class="exercise-preview">
+                        <span class="preview-label">Choix disponibles :</span>
+                        <span class="choices-count">{{ exercise.choices|length }} options</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Actions de la carte -->
+                <footer class="exercise-actions enhanced-actions">
+                    <a href="/exercise/{{ exercise.id }}" 
+                       class="action-btn primary-action"
+                       aria-label="Démarrer l'exercice {{ exercise.title }}">
+                        <i class="fas fa-play" aria-hidden="true"></i> 
+                        <span>Démarrer</span>
+                    </a>
+                    <button class="action-btn secondary-action show-details-btn" 
+                            data-id="{{ exercise.id }}"
+                            aria-label="Voir les détails de l'exercice {{ exercise.title }}">
+                        <i class="fas fa-info-circle" aria-hidden="true"></i> 
+                        <span>Détails</span>
+                    </button>
+                    <button class="action-btn tertiary-action bookmark-btn" 
+                            data-id="{{ exercise.id }}"
+                            aria-label="Ajouter aux favoris">
+                        <i class="fas fa-bookmark" aria-hidden="true"></i>
+                    </button>
+                </footer>
+                
+                <!-- Bouton de suppression avec confirmation -->
+                <button class="delete-icon enhanced-delete" 
+                        data-id="{{ exercise.id }}" 
+                        aria-label="Supprimer l'exercice {{ exercise.title }}"
+                        title="Supprimer cet exercice">
+                    <i class="fas fa-trash-can" aria-hidden="true"></i>
+                </button>
+            </article>
+            {% endfor %}
+        </div>
+
+        <!-- État vide amélioré -->
+        {% if not exercises %}
+        <div class="empty-state enhanced-empty">
+            <div class="empty-icon">
+                <i class="fas fa-jedi" aria-hidden="true"></i>
+            </div>
+            <h3 class="empty-title">Aucun exercice trouvé</h3>
+            <p class="empty-description">
+                Aucun exercice ne correspond à vos critères de recherche. 
+                Essayez de modifier vos filtres ou générez un nouvel exercice.
+            </p>
+            <div class="empty-actions">
+                <a href="/api/exercises/generate" class="btn btn-primary btn-large">
+                    <i class="fas fa-meteor" aria-hidden="true"></i> 
+                    Générer un nouvel exercice
                 </a>
-                <button class="action-btn secondary-action show-details-btn" data-id="{{ exercise.id }}">
-                    <i class="fas fa-info-circle"></i> Détails
+                <button id="clear-filters-empty" class="btn btn-ghost">
+                    <i class="fas fa-times" aria-hidden="true"></i> 
+                    Effacer les filtres
                 </button>
             </div>
+        </div>
+        {% endif %}
+        
+        <!-- Système de pagination amélioré -->
+        {% if exercises|length > 9 %}
+        <nav class="pagination enhanced-pagination" role="navigation" aria-label="Navigation des pages">
+            <button class="pagination-nav" id="prev-page" aria-label="Page précédente">
+                <i class="fas fa-chevron-left" aria-hidden="true"></i> 
+                <span>Précédent</span>
+            </button>
             
-            <i class="fas fa-trash-can delete-icon" data-id="{{ exercise.id }}" title="Supprimer"></i>
-        </div>
-        {% endfor %}
+            <div id="pagination-numbers" class="pagination-numbers" role="list">
+                <!-- Les numéros de page seront générés par JavaScript -->
+            </div>
+            
+            <button class="pagination-nav" id="next-page" aria-label="Page suivante">
+                <span>Suivant</span> 
+                <i class="fas fa-chevron-right" aria-hidden="true"></i>
+            </button>
+            
+            <!-- Informations de pagination -->
+            <div class="pagination-info" role="status" aria-live="polite">
+                <span id="pagination-status">Page 1 sur 1</span>
+            </div>
+        </nav>
+        {% endif %}
     </div>
+</main>
 
-    {% if not exercises %}
-    <div class="empty-state">
-        <i class="fas fa-jedi fa-3x"></i>
-        <h3>Aucun exercice trouvé</h3>
-        <p>Modifiez vos filtres ou générez un nouvel exercice.</p>
-        <a href="/api/exercises/generate" class="btn primary-btn big-btn">
-            <i class="fas fa-meteor"></i> Générer un nouvel exercice
-        </a>
-    </div>
-    {% endif %}
-    
-    <!-- Système de pagination -->
-    {% if exercises|length > 9 %}
-    <div class="pagination">
-        <button class="pagination-nav" id="prev-page">
-            <i class="fas fa-chevron-left"></i> Précédent
-        </button>
-        
-        <div id="pagination-numbers" class="pagination-numbers">
-            <!-- Les numéros de page seront générés par JavaScript -->
-        </div>
-        
-        <button class="pagination-nav" id="next-page">
-            Suivant <i class="fas fa-chevron-right"></i>
-        </button>
-    </div>
-    {% endif %}
-</div>
-
+<!-- Modals améliorées avec meilleure accessibilité -->
 <!-- Modal de confirmation suppression -->
-<div id="delete-modal" class="modal">
+<div id="delete-modal" class="modal enhanced-modal" role="dialog" aria-labelledby="delete-title" aria-hidden="true">
+    <div class="modal-overlay" aria-hidden="true"></div>
     <div class="modal-content">
-        <span class="close">&times;</span>
-        <h3>Confirmer la suppression</h3>
-        <p>Êtes-vous sûr de vouloir supprimer cet exercice ? Cette action est irréversible.</p>
-        <div class="modal-actions">
-            <button id="cancel-delete" class="cancel-delete">Annuler</button>
-            <button id="confirm-delete" class="confirm-delete">Supprimer</button>
+        <header class="modal-header">
+            <h3 id="delete-title" class="modal-title">
+                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                Confirmer la suppression
+            </h3>
+            <button class="modal-close" aria-label="Fermer la boîte de dialogue">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </header>
+        <div class="modal-body">
+            <p>Êtes-vous sûr de vouloir supprimer cet exercice ? Cette action est irréversible.</p>
         </div>
+        <footer class="modal-actions">
+            <button id="cancel-delete" class="btn btn-ghost">
+                <i class="fas fa-times" aria-hidden="true"></i>
+                Annuler
+            </button>
+            <button id="confirm-delete" class="btn btn-danger">
+                <i class="fas fa-trash" aria-hidden="true"></i>
+                Supprimer
+            </button>
+        </footer>
     </div>
 </div>
 
 <!-- Modal de détails d'exercice -->
-<div id="details-modal" class="modal">
+<div id="details-modal" class="modal enhanced-modal" role="dialog" aria-labelledby="details-title" aria-hidden="true">
+    <div class="modal-overlay" aria-hidden="true"></div>
     <div class="modal-content details-modal-content">
-        <span class="close details-close">&times;</span>
-        <div id="exercise-details-content">
+        <header class="modal-header">
+            <h3 id="details-title" class="modal-title">Détails de l'exercice</h3>
+            <button class="modal-close details-close" aria-label="Fermer la boîte de dialogue">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </header>
+        <div id="exercise-details-content" class="modal-body">
             <div class="loading-container">
                 <div class="spinner"></div>
                 <p>Chargement des détails...</p>
             </div>
         </div>
-            </div>
-        </div>
+    </div>
+</div>
 {% endblock %}
         
 {% block scripts %}
@@ -631,7 +835,7 @@ detailsButtons.forEach(button => {
                     ` : ''}
                     
                     <div class="modal-actions">
-                        <a href="/exercises/${exercise.id}" class="confirm-delete">
+                        <a href="/exercise/${exercise.id}" class="confirm-delete">
                             <i class="fas fa-play-circle"></i> Démarrer l'exercice
                         </a>
                     </div>
