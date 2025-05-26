@@ -1,0 +1,202 @@
+# 🧪 Configuration des Tests Mathakine
+# Classification et organisation des tests par criticité
+
+test_classification:
+  critical:
+    description: "Tests critiques qui bloquent le déploiement"
+    blocking: true
+    timeout: 180
+    max_failures: 1
+    suites:
+      - name: "Tests Fonctionnels"
+        paths:
+          - "tests/functional/"
+        description: "Tests end-to-end des fonctionnalités principales"
+        
+      - name: "Services Utilisateur"
+        paths:
+          - "tests/unit/test_user_service.py"
+        description: "Tests du service de gestion des utilisateurs"
+        
+      - name: "Services Exercices"
+        paths:
+          - "tests/unit/test_exercise_service.py"
+        description: "Tests du service de gestion des exercices"
+        
+      - name: "Services Défis Logiques"
+        paths:
+          - "tests/unit/test_logic_challenge_service.py"
+        description: "Tests du service de défis logiques"
+        
+      - name: "Authentification"
+        paths:
+          - "tests/unit/test_auth_service.py"
+          - "tests/api/test_auth.py"
+        description: "Tests du système d'authentification"
+
+  important:
+    description: "Tests importants mais non-bloquants"
+    blocking: false
+    timeout: 120
+    max_failures: 5
+    suites:
+      - name: "Tests d'Intégration"
+        paths:
+          - "tests/integration/"
+        description: "Tests d'intégration entre composants"
+        
+      - name: "Modèles de Données"
+        paths:
+          - "tests/unit/test_models.py"
+        description: "Tests des modèles SQLAlchemy"
+        
+      - name: "Adaptateurs"
+        paths:
+          - "tests/unit/test_enhanced_server_adapter.py"
+          - "tests/unit/test_db_adapter.py"
+        description: "Tests des adaptateurs de base de données"
+        
+      - name: "API Utilisateurs"
+        paths:
+          - "tests/api/test_users.py"
+        description: "Tests des endpoints API utilisateurs"
+        
+      - name: "API Défis"
+        paths:
+          - "tests/api/test_challenges.py"
+        description: "Tests des endpoints API défis logiques"
+
+  supplementary:
+    description: "Tests complémentaires informatifs"
+    blocking: false
+    timeout: 60
+    max_failures: 10
+    suites:
+      - name: "Interface CLI"
+        paths:
+          - "tests/unit/test_cli.py"
+        description: "Tests de l'interface en ligne de commande"
+        
+      - name: "Initialisation DB"
+        paths:
+          - "tests/unit/test_db_init_service.py"
+        description: "Tests du service d'initialisation de base de données"
+        
+      - name: "Recommandations"
+        paths:
+          - "tests/unit/test_recommendation_service.py"
+        description: "Tests du système de recommandations"
+        
+      - name: "Validation Réponses"
+        paths:
+          - "tests/unit/test_answer_validation.py"
+          - "tests/unit/test_answer_validation_formats.py"
+        description: "Tests de validation des réponses"
+
+# Configuration des environnements
+environments:
+  local:
+    database_url: "sqlite:///./test_mathakine.db"
+    parallel_tests: false
+    coverage_required: false
+    
+  ci:
+    database_url: "postgresql://postgres:postgres@localhost:5432/mathakine_test"
+    parallel_tests: true
+    coverage_required: true
+    coverage_threshold: 60
+    
+  staging:
+    database_url: "postgresql://user:pass@staging-db:5432/mathakine_staging"
+    parallel_tests: true
+    coverage_required: true
+    coverage_threshold: 70
+
+# Configuration des rapports
+reporting:
+  formats:
+    - "json"
+    - "html"
+    - "markdown"
+  
+  artifacts:
+    - "test_results.json"
+    - "coverage_report.html"
+    - "test_summary.md"
+  
+  notifications:
+    slack:
+      enabled: false
+      webhook_url: ""
+      channels:
+        - "#dev-mathakine"
+    
+    email:
+      enabled: false
+      recipients:
+        - "dev-team@mathakine.com"
+
+# Configuration de la qualité du code
+code_quality:
+  tools:
+    black:
+      enabled: true
+      blocking: false
+      config: "pyproject.toml"
+      
+    isort:
+      enabled: true
+      blocking: false
+      config: "pyproject.toml"
+      
+    flake8:
+      enabled: true
+      blocking: false
+      config: "setup.cfg"
+      
+    mypy:
+      enabled: false
+      blocking: false
+      config: "mypy.ini"
+      
+    bandit:
+      enabled: true
+      blocking: false
+      config: ".bandit"
+      
+    safety:
+      enabled: true
+      blocking: false
+
+# Configuration des hooks Git
+git_hooks:
+  pre_commit:
+    enabled: true
+    run_critical_tests: true
+    run_code_quality: true
+    timeout: 300
+    
+  pre_push:
+    enabled: false
+    run_all_tests: true
+    timeout: 600
+    
+  post_merge:
+    enabled: true
+    update_dependencies: true
+    check_migrations: true
+
+# Métriques et seuils
+metrics:
+  coverage:
+    minimum: 60
+    target: 75
+    excellent: 85
+    
+  performance:
+    max_test_duration: 300  # 5 minutes
+    max_suite_duration: 600  # 10 minutes
+    
+  reliability:
+    max_flaky_tests: 3
+    max_consecutive_failures: 5 

@@ -1,0 +1,19 @@
+#!/bin/bash
+# 🔄 Hook post-merge pour Mathakine
+# Met à jour les dépendances après un merge
+
+echo "🔄 Post-merge: Vérification des mises à jour..."
+
+# Vérifier si requirements.txt a changé
+if git diff-tree -r --name-only --no-commit-id HEAD@{1} HEAD | grep -q "requirements.txt"; then
+    echo "📦 requirements.txt a changé, mise à jour des dépendances..."
+    pip install -r requirements.txt
+fi
+
+# Vérifier si des migrations sont nécessaires
+if git diff-tree -r --name-only --no-commit-id HEAD@{1} HEAD | grep -q "migrations/"; then
+    echo "🗃️  Nouvelles migrations détectées"
+    echo "💡 Pensez à exécuter: python mathakine_cli.py migrate"
+fi
+
+echo "✅ Post-merge terminé"
