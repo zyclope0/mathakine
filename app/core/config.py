@@ -87,6 +87,25 @@ class Settings:
     # Pourcentage d'exercices générés par IA
     AI_GENERATED_PERCENT: int = 20
     
+    # Configuration d'optimisation performance
+    ENABLE_QUERY_CACHE: bool = os.getenv("ENABLE_QUERY_CACHE", "true").lower() == "true"
+    CACHE_TTL_SECONDS: int = int(os.getenv("CACHE_TTL_SECONDS", "300"))  # 5 minutes
+    MAX_CONNECTIONS_POOL: int = int(os.getenv("MAX_CONNECTIONS_POOL", "20"))
+    POOL_RECYCLE_SECONDS: int = int(os.getenv("POOL_RECYCLE_SECONDS", "3600"))  # 1 heure
+    
+    # Configuration sécurité
+    RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
+    MAX_CONTENT_LENGTH: int = int(os.getenv("MAX_CONTENT_LENGTH", "16777216"))  # 16MB
+    SECURE_HEADERS: bool = os.getenv("SECURE_HEADERS", "true").lower() == "true"
+    
+    # Configuration monitoring
+    ENABLE_METRICS: bool = os.getenv("ENABLE_METRICS", "true").lower() == "true"
+    METRICS_PORT: int = int(os.getenv("METRICS_PORT", "9090"))
+    
+    # Configuration compression
+    ENABLE_GZIP: bool = os.getenv("ENABLE_GZIP", "true").lower() == "true"
+    GZIP_MINIMUM_SIZE: int = int(os.getenv("GZIP_MINIMUM_SIZE", "1024"))  # 1KB
+    
     class Config:
         case_sensitive = True
 

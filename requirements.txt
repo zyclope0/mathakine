@@ -40,4 +40,20 @@ pytest-cov==4.1.0
 httpx==0.27.0  # Client HTTP pour les tests
 
 # Documentation (pour les développeurs)
-sphinx==7.2.6 
+sphinx==7.2.6
+
+# Optimisations de performance
+psutil==5.9.8  # Monitoring système pour optimisations
+pillow==10.2.0  # Optimisation d'images
+redis==5.0.1  # Cache en mémoire pour optimisations
+gunicorn==21.2.0  # Serveur WSGI optimisé pour production
+uvloop==0.19.0  # Boucle d'événements optimisée (Unix seulement)
+
+# Compression et optimisation
+brotli==1.1.0  # Compression Brotli
+cssmin==0.2.0  # Minification CSS
+jsmin==3.0.1  # Minification JavaScript
+
+# Monitoring et métriques
+prometheus-client==0.19.0  # Métriques Prometheus
+sentry-sdk==1.40.6  # Monitoring d'erreurs 

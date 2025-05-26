@@ -128,7 +128,7 @@ async def submit_answer(request):
         # Récupérer les données de la requête
         data = await request.json()
         exercise_id = data.get('exercise_id')
-        selected_answer = data.get('selected_answer')
+        selected_answer = data.get('answer') or data.get('selected_answer')  # Support both formats
         time_spent = data.get('time_spent', 0)
         user_id = current_user.get('id', 1)  # Utiliser l'ID de l'utilisateur authentifié
 

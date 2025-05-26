@@ -12,20 +12,37 @@ async def get_user_stats(request):
     Route: /api/users/stats
     """
     try:
-        # ID utilisateur fictif pour l'instant (sera remplacé par l'authentification plus tard)
-        user_id = 1
-        print("Début de la récupération des statistiques utilisateur")
+        # Récupérer l'utilisateur connecté au lieu d'utiliser un ID fixe
+        from server.views import get_current_user
+        current_user = await get_current_user(request)
+        
+        if not current_user or not current_user.get("is_authenticated", False):
+            print("Utilisateur non authentifié pour récupération des statistiques")
+            return JSONResponse({"error": "Authentification requise"}, status_code=401)
+        
+        user_id = current_user.get("id")
+        username = current_user.get("username")
+        
+        if not user_id:
+            print(f"ID utilisateur manquant pour {username}")
+            return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
+        
+        print(f"Début de la récupération des statistiques pour l'utilisateur {username} (ID: {user_id})")
+        
         db = EnhancedServerAdapter.get_db_session()
         try:
             stats = EnhancedServerAdapter.get_user_stats(db, user_id)
             if not stats:
-                print("Aucune statistique trouvée, utilisation de valeurs par défaut")
+                print(f"Aucune statistique trouvée pour l'utilisateur {username}, utilisation de valeurs par défaut")
                 stats = {
                     "total_attempts": 0,
                     "correct_attempts": 0,
                     "success_rate": 0,
                     "by_exercise_type": {}
                 }
+            
+            print(f"Statistiques récupérées pour {username}: {stats.get('total_attempts', 0)} tentatives")
+            
             experience_points = stats.get("total_attempts", 0) * 10
             performance_by_type = {}
             for exercise_type, type_stats in stats.get("by_exercise_type", {}).items():
@@ -38,7 +55,7 @@ async def get_user_stats(request):
             level_data = {
                 'current': 1,
                 'title': 'Débutant Stellaire',
-                'current_xp': 25,
+                'current_xp': experience_points,
                 'next_level_xp': 100
             }
             progress_over_time = {
@@ -46,10 +63,10 @@ async def get_user_stats(request):
                 'datasets': [{
                     'label': 'Exercices résolus',
                     'data': [
-                        performance_by_type.get('addition', {}).get('completed', 10),
-                        performance_by_type.get('soustraction', {}).get('completed', 5),
-                        performance_by_type.get('multiplication', {}).get('completed', 8),
-                        performance_by_type.get('division', {}).get('completed', 3)
+                        performance_by_type.get('addition', {}).get('completed', 0),
+                        performance_by_type.get('soustraction', {}).get('completed', 0),
+                        performance_by_type.get('multiplication', {}).get('completed', 0),
+                        performance_by_type.get('division', {}).get('completed', 0)
                     ]
                 }]
             }
@@ -82,7 +99,7 @@ async def get_user_stats(request):
                 'progress_over_time': progress_over_time,
                 'exercises_by_day': exercises_by_day
             }
-            print("Données du tableau de bord générées avec le nouvel adaptateur")
+            print(f"Données du tableau de bord générées pour {username} avec {stats.get('total_attempts', 0)} tentatives")
             return JSONResponse(response_data)
         finally:
             EnhancedServerAdapter.close_db_session(db)

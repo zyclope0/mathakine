@@ -223,8 +223,8 @@ class UserService:
             exercise_types_stats = {}
             
             # Récupérer tous les types d'exercices disponibles
-            exercise_types = db.query(Exercise.exercise_type).distinct().all()
-            exercise_types = [et[0] for et in exercise_types]
+            exercise_types_query = db.query(Exercise.exercise_type).distinct()
+            exercise_types = [et[0] for et in exercise_types_query.all()]
             
             # Pour chaque type, calculer les statistiques
             for ex_type in exercise_types:
@@ -268,6 +268,8 @@ class UserService:
             
             # Assembler toutes les statistiques
             stats = {
+                "user_id": user.id,
+                "username": user.username,
                 "user": {
                     "id": user.id,
                     "username": user.username,

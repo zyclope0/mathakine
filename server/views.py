@@ -38,6 +38,7 @@ async def get_current_user(request: Request):
             if user:
                 return {
                     "is_authenticated": True,
+                    "id": user.id,
                     "username": user.username,
                     "role": user.role
                 }

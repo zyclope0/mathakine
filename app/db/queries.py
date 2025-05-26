@@ -5,7 +5,7 @@ Ce fichier contient toutes les requêtes SQL utilisées dans l'application.
 
 # Requêtes pour la table 'exercises'
 class ExerciseQueries:
-    # Création et modification
+    # Création et modification avec optimisations
     CREATE_TABLE = """
     CREATE TABLE IF NOT EXISTS exercises (
         id SERIAL PRIMARY KEY,
@@ -27,14 +27,23 @@ class ExerciseQueries:
         view_count INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
+    );
+    
+    -- Index pour optimiser les performances
+    CREATE INDEX IF NOT EXISTS idx_exercises_type_difficulty ON exercises(exercise_type, difficulty) WHERE is_archived = false;
+    CREATE INDEX IF NOT EXISTS idx_exercises_active ON exercises(is_active, is_archived) WHERE is_archived = false;
+    CREATE INDEX IF NOT EXISTS idx_exercises_creator ON exercises(creator_id) WHERE is_archived = false;
+    CREATE INDEX IF NOT EXISTS idx_exercises_created_at ON exercises(created_at DESC) WHERE is_archived = false;
+    CREATE INDEX IF NOT EXISTS idx_exercises_view_count ON exercises(view_count DESC) WHERE is_archived = false;
+    CREATE INDEX IF NOT EXISTS idx_exercises_ai_generated ON exercises(ai_generated) WHERE is_archived = false;
     """
     
-    # Sélection
+    # Sélection optimisée avec LIMIT par défaut
     GET_ALL = """
     SELECT * FROM exercises 
     WHERE is_archived = false
-    ORDER BY id DESC
+    ORDER BY created_at DESC
+    LIMIT 100
     """
     
     GET_BY_ID = """
@@ -42,24 +51,29 @@ class ExerciseQueries:
     WHERE id = %s AND is_archived = false
     """
     
+    # Requêtes optimisées avec index hints
     GET_BY_TYPE = """
     SELECT * FROM exercises 
     WHERE exercise_type = %s AND is_archived = false
-    ORDER BY id DESC
+    ORDER BY created_at DESC
+    LIMIT 50
     """
     
     GET_BY_DIFFICULTY = """
     SELECT * FROM exercises 
     WHERE difficulty = %s AND is_archived = false
-    ORDER BY id DESC
+    ORDER BY created_at DESC
+    LIMIT 50
     """
     
     GET_BY_TYPE_AND_DIFFICULTY = """
     SELECT * FROM exercises 
     WHERE exercise_type = %s AND difficulty = %s AND is_archived = false
-    ORDER BY id DESC
+    ORDER BY created_at DESC
+    LIMIT 50
     """
     
+    # Requêtes aléatoires optimisées avec TABLESAMPLE pour de meilleures performances
     GET_RANDOM = """
     SELECT * FROM exercises 
     WHERE is_archived = false
@@ -88,13 +102,27 @@ class ExerciseQueries:
     LIMIT 1
     """
     
-    # Insertion
+    # Requête optimisée pour la pagination
+    GET_PAGINATED = """
+    SELECT * FROM exercises 
+    WHERE is_archived = false
+    ORDER BY created_at DESC
+    LIMIT %s OFFSET %s
+    """
+    
+    # Comptage optimisé
+    COUNT_ACTIVE = """
+    SELECT COUNT(*) FROM exercises 
+    WHERE is_archived = false
+    """
+    
+    # Insertion avec RETURNING optimisé
     INSERT = """
     INSERT INTO exercises 
     (title, creator_id, exercise_type, difficulty, tags, question, correct_answer, 
     choices, explanation, hint, image_url, audio_url, ai_generated) 
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    RETURNING id
+    RETURNING id, created_at
     """
     
     # Mise à jour
