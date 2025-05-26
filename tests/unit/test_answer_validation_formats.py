@@ -320,7 +320,7 @@ async def test_empty_answer_validation(db_session):
 @pytest.mark.parametrize("original_answer,spaces_answer,expected_result", [
     ("42", "42", True),          # Réponse exacte pour numérique
     ("Paris", "Paris", True),    # Réponse exacte pour textuel
-    ("Paris", "paris", True),    # Casse différente pour textuel
+    ("Paris", "paris", True),    # Casse différente pour textuel - devrait être acceptée pour type TEXTE
 ])
 async def test_text_answer_validation_with_special_exercise_type(original_answer, spaces_answer, expected_result, db_session):
     """
@@ -335,7 +335,7 @@ async def test_text_answer_validation_with_special_exercise_type(original_answer
         "id": 1,
         "question": "Question test",
         "correct_answer": original_answer,
-        "exercise_type": get_enum_value(ExerciseType, ExerciseType.TEXTE.value, db_session),  # Type textuel spécial
+        "exercise_type": ExerciseType.TEXTE.value,  # Utiliser la valeur exacte "texte"
         "difficulty": get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
         "explanation": "Explication test"
     }
@@ -358,13 +358,17 @@ async def test_text_answer_validation_with_special_exercise_type(original_answer
         "is_authenticated": True
     }
     
+    # Déterminer is_correct en fonction du type d'exercice
+    # Pour TEXTE, la comparaison devrait être insensible à la casse
+    is_correct_expected = spaces_answer.lower().strip() == original_answer.lower().strip()
+    
     # Définir un dictionnaire sérialisable au lieu d'un MagicMock
     mock_attempt = {
         "id": 123,
         "exercise_id": 1,
         "user_id": 1,
         "user_answer": spaces_answer,
-        "is_correct": expected_result,
+        "is_correct": is_correct_expected,
         "time_spent": 8.0
     }
     
@@ -383,7 +387,7 @@ async def test_text_answer_validation_with_special_exercise_type(original_answer
     
     # Vérifications
     assert response.status_code == 200
-    assert result_json["is_correct"] == expected_result, f"La validation de '{spaces_answer}' pour le type TEXTE devrait être {expected_result}"
+    assert result_json["is_correct"] == is_correct_expected, f"La validation de '{spaces_answer}' pour le type TEXTE devrait être {is_correct_expected}"
 
 
 @pytest.mark.asyncio

@@ -361,10 +361,13 @@ def test_delete_exercise_cascade(db_session):
 
 def test_get_exercise_attempts(db_session):
     """Teste la récupération des tentatives pour un exercice."""
-    # Créer un utilisateur
+    # Utiliser un timestamp pour avoir des identifiants uniques
+    timestamp = str(int(time.time() * 1000))
+    
+    # Créer un utilisateur avec des identifiants uniques
     user = User(
-        username="test_attempts_user",
-        email="attempts@example.com",
+        username=f"test_attempts_user_{timestamp}",
+        email=f"attempts_{timestamp}@example.com",
         hashed_password="test_password",
         role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
     )
@@ -421,10 +424,13 @@ def test_get_exercise_attempts(db_session):
 
 def test_record_attempt(db_session):
     """Teste l'enregistrement d'une tentative pour un exercice."""
-    # Créer un utilisateur
+    # Utiliser un timestamp pour avoir des identifiants uniques
+    timestamp = str(int(time.time() * 1000))
+    
+    # Créer un utilisateur avec des identifiants uniques
     user = User(
-        username="test_record_user",
-        email="record@example.com",
+        username=f"test_record_user_{timestamp}",
+        email=f"record_{timestamp}@example.com",
         hashed_password="test_password",
         role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
     )
@@ -559,7 +565,11 @@ def test_list_exercises_with_mock(mock_db_adapter, mock_adapt_enum):
     
     # Vérifier que la requête a été appelée correctement
     mock_session.query.assert_called_once()
-    mock_query.filter.assert_called_once()
+    # La méthode list_exercises fait 3 appels filter par défaut:
+    # 1. filter(Exercise.is_archived == False)
+    # 2. filter(Exercise.exercise_type.in_(valid_types))
+    # 3. filter(Exercise.difficulty.in_(valid_difficulties))
+    assert mock_query.filter.call_count == 3
     
     # Vérifier les résultats
     assert len(result) == 2
@@ -578,7 +588,12 @@ def test_list_exercises_with_mock(mock_db_adapter, mock_adapt_enum):
     
     # Vérifier que les filtres ont été appelés correctement
     assert mock_session.query.call_count == 1
-    assert mock_query.filter.call_count >= 1
+    # Avec un filtre par type, on a 4 appels filter:
+    # 1. filter(Exercise.is_archived == False)
+    # 2. filter(Exercise.exercise_type.in_(valid_types))
+    # 3. filter(Exercise.difficulty.in_(valid_difficulties))
+    # 4. filter(Exercise.exercise_type == exercise_type)
+    assert mock_query.filter.call_count == 4
     
     # Vérifier les résultats
     assert len(result_by_type) == 1
