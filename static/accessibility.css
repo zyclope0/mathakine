@@ -183,28 +183,178 @@ body.dyslexic-friendly {
     word-spacing: 0.2em;
 }
 
-/* Barre d'accessibilité flottante */
+/* Barre d'accessibilité flottante optimisée */
 .accessibility-bar {
     position: fixed;
-    top: 0;
-    right: 0;
-    background-color: #333;
-    padding: 5px 10px;
-    border-radius: 0 0 0 10px;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(51, 51, 51, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 8px;
+    border-radius: 12px;
     z-index: 9999;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    /* État réduit par défaut */
+    transform: translateX(calc(100% - 50px));
+    width: auto;
+    max-width: 300px;
 }
 
-.accessibility-bar button {
-    background: none;
-    border: 1px solid #fff;
+/* État étendu au survol ou focus */
+.accessibility-bar:hover,
+.accessibility-bar:focus-within,
+.accessibility-bar.expanded {
+    transform: translateX(0);
+}
+
+/* Bouton de toggle pour masquer/afficher */
+.accessibility-toggle {
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(51, 51, 51, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: #fff;
-    margin: 0 5px;
-    padding: 5px 10px;
-    border-radius: 5px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px 0 0 8px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.accessibility-toggle:hover {
+    background-color: rgba(74, 144, 226, 0.8);
+    transform: translateY(-50%) scale(1.05);
+}
+
+/* Conteneur des boutons */
+.accessibility-controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Styles des boutons d'accessibilité */
+.accessibility-bar button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.accessibility-bar button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
 }
 
 .accessibility-bar button.active {
-    background-color: #fff;
+    background-color: var(--sw-gold, #f8d76b);
     color: #333;
+    border-color: var(--sw-gold, #f8d76b);
+    box-shadow: 0 2px 8px rgba(248, 215, 107, 0.3);
+}
+
+/* Icônes pour les boutons */
+.accessibility-bar button i {
+    font-size: 10px;
+}
+
+/* État masqué complètement */
+.accessibility-bar.hidden {
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Responsive - masquer sur très petits écrans */
+@media (max-width: 480px) {
+    .accessibility-bar {
+        transform: translateX(calc(100% - 40px));
+        padding: 6px;
+    }
+    
+    .accessibility-bar:hover,
+    .accessibility-bar:focus-within,
+    .accessibility-bar.expanded {
+        transform: translateX(0);
+    }
+    
+    .accessibility-toggle {
+        left: -35px;
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+    
+    .accessibility-controls {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .accessibility-bar button {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+}
+
+/* Mode contraste élevé pour la barre elle-même */
+body.high-contrast .accessibility-bar {
+    background-color: #000;
+    border: 2px solid #fff;
+}
+
+body.high-contrast .accessibility-bar button {
+    background-color: #333;
+    border-color: #fff;
+    color: #fff;
+}
+
+body.high-contrast .accessibility-bar button.active {
+    background-color: #fff;
+    color: #000;
+}
+
+/* Animation d'entrée */
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(calc(100% - 50px));
+        opacity: 1;
+    }
+}
+
+.accessibility-bar {
+    animation: slideInFromRight 0.5s ease-out 1s both;
+}
+
+/* Préférences utilisateur - masquer si animations réduites */
+@media (prefers-reduced-motion: reduce) {
+    .accessibility-bar {
+        animation: none;
+        transition: none;
+    }
+    
+    .accessibility-bar button {
+        transition: none;
+    }
 } 

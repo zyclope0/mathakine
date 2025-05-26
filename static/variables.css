@@ -4,7 +4,30 @@
  */
 
 :root {
-    /* Palette de couleurs principale */
+    /* === NOUVEAU SYSTÈME D'ESPACEMENT UNIFIÉ === */
+    /* Espacement basé sur 8px pour cohérence (Design System) */
+    --space-unit: 8px;
+    --space-xs: calc(var(--space-unit) * 0.5);  /* 4px */
+    --space-sm: var(--space-unit);              /* 8px */
+    --space-md: calc(var(--space-unit) * 2);    /* 16px */
+    --space-lg: calc(var(--space-unit) * 3);    /* 24px */
+    --space-xl: calc(var(--space-unit) * 4);    /* 32px */
+    --space-xxl: calc(var(--space-unit) * 6);   /* 48px */
+    
+    /* Système de grille uniforme */
+    --grid-gap: var(--space-md);
+    --grid-columns-mobile: 1;
+    --grid-columns-tablet: 2;
+    --grid-columns-desktop: 3;
+    
+    /* === TIMING ADAPTÉ AUX ENFANTS AUTISTES === */
+    /* Transitions plus lentes et prévisibles */
+    --transition-slow: 0.5s;
+    --transition-medium: 0.3s;
+    --transition-fast: 0.15s;
+    
+    /* === PALETTE DE COULEURS UNIFIÉE === */
+    /* Couleurs principales */
     --primary-color: #3a4db4;
     --secondary-color: #6272c9;
     --accent-color: #5764ff;
@@ -15,47 +38,52 @@
     --danger-color: #dc3545;
     --info-color: #17a2b8;
     
-    /* Palette Star Wars - Version claire */
-    --sw-blue: #3db4f2;
-    --sw-dark: #2c3e50;
-    --sw-space: #f0f2f8;
-    --sw-accent: #7765e3;
-    --sw-gold: #d9b846;
-    --sw-red: #ff5757;
-    --sw-text: #333333;
-    --sw-secondary: #666666;
-    --sw-card-bg: #ffffff;
-    --sw-card-border: #e0e4f0;
-    --sw-input-bg: #ffffff;
-    --sw-input-border: #d0d4e4;
-    --sw-accent-hover: #6455c3;
+    /* === PALETTE STAR WARS UNIFIÉE === */
+    /* Couleurs principales Star Wars */
+    --sw-blue: #4a6bff;          /* Sabre laser bleu - UNIFIÉ */
+    --sw-red: #ff5b5b;           /* Sabre laser rouge */
+    --sw-green: #4eff9f;         /* Sabre laser vert */
+    --sw-purple: #9c6eff;        /* Sabre laser violet */
+    --sw-gold: #f0c850;          /* C-3PO, médailles */
+    --sw-yellow: #ffe607;        /* Étoiles */
     
-    /* Variables pour les boutons d'authentification */
+    /* Couleurs de fond et cartes - UNIFIÉES */
+    --sw-space: #1a1e33;         /* Arrière-plan principal sombre */
+    --sw-card-bg: rgba(23, 34, 59, 0.9);  /* Arrière-plan cartes - UNIFIÉ */
+    --sw-card-hover: rgba(29, 43, 75, 0.95);
+    --sw-card-border: rgba(164, 181, 225, 0.2);
+    
+    /* Couleurs de texte */
+    --sw-text: #ffffff;
+    --sw-text-secondary: #a4b5e1;
+    --sw-text-dim: #6a7a9e;
+    
+    /* Couleurs d'input et interface */
+    --sw-input-bg: rgba(23, 34, 59, 0.6);
+    --sw-input-border: rgba(164, 181, 225, 0.3);
+    
+    /* === COULEURS DÉRIVÉES POUR COMPATIBILITÉ === */
+    --sw-accent: var(--sw-purple);
+    --sw-accent-hover: #8555d3;
     --sw-primary: var(--sw-blue);
-    --sw-primary-hover: #2a9ed9;
+    --sw-primary-hover: #3a5bef;
     --sw-success: var(--success-color);
     --sw-success-hover: #218838;
-    --sw-danger: var(--sw-red);
-    --sw-danger-hover: #e04141;
-    --sw-text-color: var(--sw-text);
-    --sw-bg-secondary: var(--sw-space);
-    --sw-border-radius: var(--border-radius);
+    --sw-danger: var(--danger-color);
+    --sw-danger-hover: #c82333;
     
     /* Effets de transparence */
-    --sw-blue-transparent: rgba(61, 180, 242, 0.1);
-    --sw-red-transparent: rgba(255, 87, 87, 0.1);
-    --sw-text-secondary: var(--sw-secondary);
-    --sw-blue-hover: #2a9ed9;
+    --sw-blue-transparent: rgba(74, 107, 255, 0.1);
+    --sw-red-transparent: rgba(255, 91, 91, 0.1);
+    --sw-green-transparent: rgba(78, 255, 159, 0.1);
+    --sw-purple-transparent: rgba(156, 110, 255, 0.1);
     
-    /* Dimensions et espacement */
+    /* === SYSTÈME DE CONTENEURS === */
     --container-max-width: 1200px;
-    --spacing-xs: 5px;
-    --spacing-sm: 10px;
-    --spacing-md: 15px;
-    --spacing-lg: 25px;
-    --spacing-xl: 40px;
+    --container-padding: var(--space-md);
+    --container-margin: 0 auto;
     
-    /* Typographie */
+    /* === TYPOGRAPHIE === */
     --font-family-base: 'Exo 2', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     --font-size-base: 16px;
     --font-size-sm: 0.875rem;
@@ -65,28 +93,53 @@
     --font-size-xxl: 2rem;
     --line-height-base: 1.6;
     
-    /* Effets */
-    --transition-speed: 0.3s;
-    --default-transition: all var(--transition-speed) ease;
-    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --box-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.15);
+    /* === SYSTÈME D'OMBRES UNIFIÉ === */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.15);
+    --shadow-elevated: 0 8px 25px rgba(0, 0, 0, 0.15);
+    
+    /* === SYSTÈME DE FOCUS UNIFIÉ === */
+    --focus-color: var(--sw-accent);
+    --focus-width: 2px;
+    --focus-offset: 2px;
+    --focus-style: solid;
+    
+    /* === BORDURES ET RAYONS === */
     --border-radius: 6px;
     --border-radius-lg: 12px;
+    --border-color: var(--sw-card-border);
+    --border-color-light: rgba(164, 181, 225, 0.1);
+    --border-color-dark: rgba(164, 181, 225, 0.4);
+    
+    /* === EFFETS ET TRANSITIONS === */
+    --default-transition: all var(--transition-medium) ease;
     --hover-transform: translateY(-3px);
     
-    /* Z-index layers */
+    /* === Z-INDEX LAYERS === */
     --z-index-modal: 1000;
     --z-index-popup: 100;
     --z-index-header: 50;
     --z-index-dropdown: 40;
+    --z-index-notification: 1050;
     
-    /* Animations */
-    --animation-duration-slow: 1s;
-    --animation-duration-normal: 0.5s;
-    --animation-duration-fast: 0.3s;
+    /* === VARIABLES D'OPTIMISATION PERFORMANCE === */
+    --gpu-acceleration: translateZ(0);
+    --will-change-transform: transform;
+    --will-change-opacity: opacity;
+    --will-change-auto: auto;
+    --contain-layout: layout;
+    --contain-style: style;
+    --contain-paint: paint;
+    --contain-strict: strict;
+    
+    /* Variables pour la gestion mémoire */
+    --max-animation-elements: 50;
+    --debounce-scroll: 16ms;
+    --debounce-resize: 100ms;
 }
 
-/* Media queries breakpoints - pour référence */
+/* === BREAKPOINTS POUR RÉFÉRENCE === */
 :root {
     /* Ces variables ne peuvent pas être utilisées dans les media queries directement
        mais sont listées ici pour référence et cohérence */
@@ -97,29 +150,39 @@
     --breakpoint-xl: 1200px;
 }
 
-/* Dark mode variables */
+/* === MODE SOMBRE (PRÉFÉRENCE SYSTÈME) === */
 @media (prefers-color-scheme: dark) {
     :root {
+        /* Ajustements pour le mode sombre système */
         --primary-color: #4a5dc4;
         --secondary-color: #7282d9;
         
-        /* Star Wars theme - dark mode */
-        --sw-space: #1a1e33;
-        --sw-card-bg: #21273c;
-        --sw-card-border: #3a3f5c;
-        --sw-text: #FFFFFF;
-        --sw-secondary: #d8d8d8;
-        --sw-input-bg: #2a3045;
-        --sw-input-border: #3e4563;
+        /* Renforcement du contraste en mode sombre */
+        --sw-card-border: rgba(164, 181, 225, 0.3);
+        --border-color: rgba(164, 181, 225, 0.3);
+        --border-color-light: rgba(164, 181, 225, 0.1);
+        --border-color-dark: rgba(164, 181, 225, 0.5);
     }
 }
 
-/* Reduced motion preference */
+/* === PRÉFÉRENCES UTILISATEUR POUR ENFANTS AUTISTES === */
+/* Reduced motion preference - CRITIQUE pour enfants autistes */
 @media (prefers-reduced-motion: reduce) {
     :root {
         --default-transition: none;
-        --animation-duration-slow: 0s;
-        --animation-duration-normal: 0s;
-        --animation-duration-fast: 0s;
+        --transition-slow: 0.01ms;
+        --transition-medium: 0.01ms;
+        --transition-fast: 0.01ms;
+    }
+}
+
+/* High contrast preference */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: #000000;
+        --sw-card-border: #000000;
+        --focus-width: 3px;
+        --border-color-light: #333333;
+        --border-color-dark: #000000;
     }
 } 

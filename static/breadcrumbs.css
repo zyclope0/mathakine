@@ -1,0 +1,285 @@
+/* 
+ * Système de Breadcrumbs (Fil d'Ariane) - Mathakine
+ * Navigation secondaire pour l'orientation des enfants autistes
+ */
+
+/* === CONTENEUR PRINCIPAL === */
+.breadcrumbs {
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border-color-light);
+    padding: var(--space-md) 0;
+    margin-bottom: var(--space-lg);
+    backdrop-filter: blur(5px);
+}
+
+.breadcrumb-container {
+    max-width: var(--container-max-width);
+    margin: var(--container-margin);
+    padding: 0 var(--container-padding);
+}
+
+/* === LISTE DE BREADCRUMBS === */
+.breadcrumb-list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--font-size-sm);
+}
+
+/* === ÉLÉMENTS INDIVIDUELS === */
+.breadcrumb-list li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.breadcrumb-list li:not(:last-child)::after {
+    content: '›';
+    color: var(--sw-secondary);
+    font-size: 1.2em;
+    font-weight: 300;
+    margin-left: var(--space-xs);
+    opacity: 0.7;
+}
+
+/* === LIENS DE BREADCRUMBS === */
+.breadcrumb-list a {
+    color: var(--sw-accent);
+    text-decoration: none;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius);
+    transition: all var(--transition-fast) ease;
+    position: relative;
+    
+    /* Amélioration de l'accessibilité */
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumb-list a:hover {
+    background: rgba(119, 101, 227, 0.1);
+    color: var(--sw-accent-hover);
+    transform: translateY(-1px);
+}
+
+.breadcrumb-list a:focus-visible {
+    outline: var(--focus-width) var(--focus-style) var(--focus-color);
+    outline-offset: var(--focus-offset);
+}
+
+/* === ÉLÉMENT ACTUEL (DERNIER) === */
+.breadcrumb-list li[aria-current="page"] {
+    color: var(--sw-text);
+    font-weight: 500;
+    padding: var(--space-xs) var(--space-sm);
+    background: rgba(119, 101, 227, 0.1);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(119, 101, 227, 0.2);
+}
+
+/* === ICÔNES DANS LES BREADCRUMBS === */
+.breadcrumb-list i {
+    font-size: 0.9em;
+    margin-right: var(--space-xs);
+    opacity: 0.8;
+}
+
+/* === VARIANTE COMPACTE === */
+.breadcrumbs.compact {
+    padding: var(--space-sm) 0;
+    margin-bottom: var(--space-md);
+}
+
+.breadcrumbs.compact .breadcrumb-list {
+    font-size: var(--font-size-sm);
+    gap: var(--space-xs);
+}
+
+.breadcrumbs.compact .breadcrumb-list a,
+.breadcrumbs.compact .breadcrumb-list li[aria-current="page"] {
+    padding: var(--space-xs);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .breadcrumb-container {
+        padding: 0 var(--space-md);
+    }
+    
+    .breadcrumb-list {
+        font-size: var(--font-size-sm);
+    }
+    
+    /* Masquer les éléments intermédiaires sur mobile si trop long */
+    .breadcrumb-list li:not(:first-child):not(:last-child):not(:nth-last-child(2)) {
+        display: none;
+    }
+    
+    /* Ajouter des points de suspension */
+    .breadcrumb-list li:first-child:not(:nth-last-child(2))::after {
+        content: '… ›';
+        margin-left: var(--space-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .breadcrumbs {
+        padding: var(--space-sm) 0;
+    }
+    
+    .breadcrumb-list {
+        gap: var(--space-xs);
+    }
+    
+    .breadcrumb-list a,
+    .breadcrumb-list li[aria-current="page"] {
+        padding: var(--space-xs);
+        font-size: var(--font-size-sm);
+    }
+}
+
+/* === ACCESSIBILITÉ POUR ENFANTS AUTISTES === */
+/* Respect des préférences de mouvement réduit */
+@media (prefers-reduced-motion: reduce) {
+    .breadcrumb-list a:hover {
+        transform: none;
+    }
+    
+    .breadcrumb-list a {
+        transition: color var(--transition-fast) ease;
+    }
+}
+
+/* Mode contraste élevé */
+@media (prefers-contrast: high) {
+    .breadcrumbs {
+        background: transparent;
+        border-bottom: 2px solid var(--border-color);
+    }
+    
+    .breadcrumb-list a {
+        border: 1px solid var(--sw-accent);
+    }
+    
+    .breadcrumb-list li[aria-current="page"] {
+        border: 2px solid var(--sw-text);
+        background: var(--sw-accent);
+        color: white;
+    }
+}
+
+/* === VARIANTES THÉMATIQUES === */
+.breadcrumbs.star-wars {
+    background: linear-gradient(135deg, 
+        rgba(26, 30, 51, 0.8) 0%, 
+        rgba(45, 61, 80, 0.6) 100%);
+    border-bottom: 1px solid rgba(119, 101, 227, 0.3);
+}
+
+.breadcrumbs.star-wars .breadcrumb-list li:not(:last-child)::after {
+    content: '⟩';
+    color: var(--sw-gold);
+    text-shadow: 0 0 4px rgba(217, 184, 70, 0.5);
+}
+
+/* === ANIMATIONS SUBTILES === */
+.breadcrumb-list a {
+    position: relative;
+    overflow: hidden;
+}
+
+.breadcrumb-list a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(119, 101, 227, 0.2), 
+        transparent);
+    transition: left var(--transition-medium) ease;
+}
+
+.breadcrumb-list a:hover::before {
+    left: 100%;
+}
+
+/* === ÉTATS POUR LECTEURS D'ÉCRAN === */
+.breadcrumb-list .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* === BREADCRUMBS AVEC DROPDOWN === */
+.breadcrumb-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.breadcrumb-dropdown-toggle {
+    background: none;
+    border: none;
+    color: var(--sw-accent);
+    cursor: pointer;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius);
+    transition: all var(--transition-fast) ease;
+}
+
+.breadcrumb-dropdown-toggle:hover {
+    background: rgba(119, 101, 227, 0.1);
+}
+
+.breadcrumb-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--sw-card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    min-width: 200px;
+    z-index: var(--z-index-dropdown);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--transition-fast) ease;
+}
+
+.breadcrumb-dropdown:hover .breadcrumb-dropdown-menu,
+.breadcrumb-dropdown-toggle:focus + .breadcrumb-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.breadcrumb-dropdown-menu a {
+    display: block;
+    padding: var(--space-sm) var(--space-md);
+    color: var(--sw-text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.breadcrumb-dropdown-menu a:last-child {
+    border-bottom: none;
+}
+
+.breadcrumb-dropdown-menu a:hover {
+    background: var(--sw-blue-transparent);
+    color: var(--sw-accent);
+} 
