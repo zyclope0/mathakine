@@ -185,7 +185,7 @@
                 <!-- En-tête de la carte avec identification claire -->
                 <header class="exercise-card-header">
                     <div class="exercise-meta enhanced-meta">
-                        <span class="difficulty {{ exercise.difficulty }}" 
+                        <span class="difficulty {{ exercise.difficulty|lower }}" 
                               role="img" aria-label="Niveau {{ difficulty_display.get(exercise.difficulty, exercise.difficulty) }}">
                             <i class="fas fa-star" aria-hidden="true"></i>
                             {% if exercise.difficulty in difficulty_display %}
@@ -195,7 +195,7 @@
                             {% endif %}
                         </span>
                         
-                        <span class="exercise-type-tag {{ exercise.exercise_type }}"
+                        <span class="exercise-type-tag {{ exercise.exercise_type|lower }}"
                               role="img" aria-label="Type {{ exercise_type_display.get(exercise.exercise_type, exercise.exercise_type) }}">
                             <i class="fas fa-calculator" aria-hidden="true"></i>
                             {% if exercise.exercise_type in exercise_type_display %}
@@ -511,6 +511,11 @@ function goToPage(page, skipScroll = false) {
     // Mettre à jour la pagination
     setupPagination();
     
+    // Réattacher les événements des boutons de détails
+    setTimeout(() => {
+        attachDetailsEvents();
+    }, 350); // Attendre que l'animation soit terminée
+    
     // Complètement désactiver le défilement automatique, car il cause des problèmes d'UX
     // Le défilement doit rester sous le contrôle de l'utilisateur
 }
@@ -653,7 +658,7 @@ document.getElementById('generate-ai-exercise-btn').addEventListener('click', fu
 
 // Gestion modale de suppression
 const deleteModal = document.getElementById('delete-modal');
-const closeButton = document.querySelector('.close');
+const closeButton = document.querySelector('.modal-close');
 const cancelButton = document.getElementById('cancel-delete');
 const deleteButtons = document.querySelectorAll('.delete-icon');
 const confirmButton = document.getElementById('confirm-delete');
@@ -663,140 +668,145 @@ let exerciseToDelete = null;
 deleteButtons.forEach(button => {
     button.addEventListener('click', function() {
         exerciseToDelete = this.getAttribute('data-id');
-        deleteModal.style.display = 'block';
+        deleteModal.style.display = 'flex';
+        deleteModal.classList.add('show');
+        document.body.style.overflow = 'hidden'; // Empêcher le scroll
     });
 });
 
 // Fermer la modale
-closeButton.addEventListener('click', function() {
+function closeDeleteModal() {
     deleteModal.style.display = 'none';
-});
+    deleteModal.classList.remove('show');
+    document.body.style.overflow = 'auto'; // Restaurer le scroll
+}
 
-cancelButton.addEventListener('click', function() {
-    deleteModal.style.display = 'none';
-});
+if (closeButton) {
+    closeButton.addEventListener('click', closeDeleteModal);
+}
+
+if (cancelButton) {
+    cancelButton.addEventListener('click', closeDeleteModal);
+}
 
 // Fermer la modale au clic en dehors
 window.addEventListener('click', function(event) {
-    if (event.target == deleteModal) {
-        deleteModal.style.display = 'none';
+    if (event.target === deleteModal || event.target.classList.contains('modal-overlay')) {
+        closeDeleteModal();
     }
-    if (event.target == detailsModal) {
-        detailsModal.style.display = 'none';
+    if (event.target === detailsModal || event.target.classList.contains('modal-overlay')) {
+        closeDetailsModal();
     }
 });
 
 // Confirmer la suppression
-confirmButton.addEventListener('click', function() {
-    if (!exerciseToDelete) return;
-    
-    fetch(`/api/exercises/${exerciseToDelete}`, {
-        method: 'DELETE'
-    })
-    .then(response => {
-        if (response.ok || response.status === 204) {
-            // Supprimer l'élément du DOM
-            document.getElementById(`exercise-${exerciseToDelete}`).remove();
-            deleteModal.style.display = 'none';
-            
-            // Afficher un message de succès
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-success';
-            alert.innerHTML = `
-                <i class="fas fa-check-circle"></i>
-                <div class="alert-message">L'exercice a été archivé avec succès.</div>
-            `;
-            document.querySelector('.page-header').insertAdjacentElement('afterend', alert);
-            
-            // Faire disparaître le message après 3 secondes
-            setTimeout(() => {
-                alert.style.opacity = '0';
-                alert.style.transition = 'opacity 0.5s';
-                setTimeout(() => alert.remove(), 500);
-            }, 3000);
-        } else {
-            throw new Error('Erreur lors de la suppression');
-        }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        deleteModal.style.display = 'none';
+if (confirmButton) {
+    confirmButton.addEventListener('click', function() {
+        if (!exerciseToDelete) return;
         
-        // Afficher un message d'erreur
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-error';
-        alert.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            <div class="alert-message">Une erreur est survenue lors de la suppression de l'exercice.</div>
-        `;
-        document.querySelector('.page-header').insertAdjacentElement('afterend', alert);
-        
-        // Faire disparaître le message après 3 secondes
-        setTimeout(() => {
-            alert.style.opacity = '0';
-            alert.style.transition = 'opacity 0.5s';
-            setTimeout(() => alert.remove(), 500);
-        }, 3000);
-    });
-});
-
-// Gestion modale des détails
-const detailsModal = document.getElementById('details-modal');
-const detailsCloseButton = document.querySelector('.details-close');
-const detailsButtons = document.querySelectorAll('.show-details-btn');
-const detailsContent = document.getElementById('exercise-details-content');
-
-// Ouvrir la modale de détails
-detailsButtons.forEach(button => {
-    button.addEventListener('click', function() {
-        const exerciseId = this.getAttribute('data-id');
-        detailsModal.style.display = 'block';
-        
-        // Afficher le spinner de chargement
-        detailsContent.innerHTML = `
-            <div class="loading-container">
-                <div class="spinner"></div>
-                <p>Chargement des détails...</p>
-            </div>
-        `;
-        
-        // Charger les détails de l'exercice
-        fetch(`/api/exercises/${exerciseId}`)
-            .then(response => response.json())
-            .then(exercise => {
-                // Formater les choix si présents
-                let choicesHtml = '';
-                if (exercise.choices && exercise.choices.length > 0) {
-                    choicesHtml = '<div class="exercise-choices">';
-                    exercise.choices.forEach(choice => {
-                        choicesHtml += `
-                            <div class="choice-item">
-                                ${choice}
-                            </div>
-                        `;
-                    });
-                    choicesHtml += '</div>';
+        fetch(`/api/exercises/${exerciseToDelete}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (response.ok || response.status === 204) {
+                // Supprimer l'élément du DOM
+                const exerciseElement = document.getElementById(`exercise-${exerciseToDelete}`);
+                if (exerciseElement) {
+                    exerciseElement.remove();
                 }
+                closeDeleteModal();
                 
-                // Construire le contenu de la modale
-                detailsContent.innerHTML = `
+                // Afficher un message de succès
+                showAlert('success', 'L\'exercice a été archivé avec succès.');
+            } else {
+                throw new Error('Erreur lors de la suppression');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            closeDeleteModal();
+            showAlert('error', 'Une erreur est survenue lors de la suppression de l\'exercice.');
+        });
+    });
+}
+
+// Fonction pour réattacher les événements aux boutons de détails
+function attachDetailsEvents() {
+    const detailsButtons = document.querySelectorAll('.show-details-btn');
+    detailsButtons.forEach(button => {
+        // Supprimer les anciens événements pour éviter les doublons
+        button.removeEventListener('click', handleDetailsClick);
+        button.addEventListener('click', handleDetailsClick);
+    });
+}
+
+// Fonction pour gérer le clic sur les boutons de détails
+function handleDetailsClick() {
+    const exerciseId = this.getAttribute('data-id');
+    detailsModal.style.display = 'flex';
+    detailsModal.classList.add('show');
+    document.body.style.overflow = 'hidden'; // Empêcher le scroll
+    
+    // Afficher le spinner de chargement
+    detailsContent.innerHTML = `
+        <div class="loading-container">
+            <div class="spinner"></div>
+            <p>Chargement des détails...</p>
+        </div>
+    `;
+    
+    // Charger les détails de l'exercice
+    fetch(`/api/exercises/${exerciseId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur lors du chargement');
+            }
+            return response.json();
+        })
+        .then(exercise => {
+            // Formater les choix si présents
+            let choicesHtml = '';
+            if (exercise.choices && exercise.choices.length > 0) {
+                choicesHtml = `
+                    <div class="choices-preview">
+                        <h4>Choix disponibles:</h4>
+                        <div class="exercise-choices">
+                `;
+                exercise.choices.forEach(choice => {
+                    choicesHtml += `<div class="choice-item">${choice}</div>`;
+                });
+                choicesHtml += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Construire le contenu de la modale
+            detailsContent.innerHTML = `
+                <div class="modal-header">
+                    <h3 class="modal-title">Détails de l'exercice</h3>
+                    <button class="modal-close details-close" aria-label="Fermer">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
                     <h3>${exercise.title}</h3>
                     
                     <div class="exercise-meta-details">
                         <span class="difficulty ${exercise.difficulty}">
-                            ${exercise.difficulty === 'initie' ? 'Initié' : 
-                              exercise.difficulty === 'padawan' ? 'Padawan' :
-                              exercise.difficulty === 'chevalier' ? 'Chevalier' :
-                              exercise.difficulty === 'maitre' ? 'Maître' : exercise.difficulty}
+                            ${exercise.difficulty === 'INITIE' ? 'Initié' : 
+                              exercise.difficulty === 'PADAWAN' ? 'Padawan' :
+                              exercise.difficulty === 'CHEVALIER' ? 'Chevalier' :
+                              exercise.difficulty === 'MAITRE' ? 'Maître' : exercise.difficulty}
                         </span>
                         
                         <span class="exercise-type-tag ${exercise.exercise_type}">
-                            ${exercise.exercise_type === 'addition' ? 'Addition' :
-                              exercise.exercise_type === 'soustraction' ? 'Soustraction' :
-                              exercise.exercise_type === 'multiplication' ? 'Multiplication' :
-                              exercise.exercise_type === 'division' ? 'Division' :
-                              exercise.exercise_type === 'fractions' ? 'Fractions' :
-                              exercise.exercise_type === 'geometrie' ? 'Géométrie' : exercise.exercise_type}
+                            ${exercise.exercise_type === 'ADDITION' ? 'Addition' :
+                              exercise.exercise_type === 'SOUSTRACTION' ? 'Soustraction' :
+                              exercise.exercise_type === 'MULTIPLICATION' ? 'Multiplication' :
+                              exercise.exercise_type === 'DIVISION' ? 'Division' :
+                              exercise.exercise_type === 'FRACTIONS' ? 'Fractions' :
+                              exercise.exercise_type === 'GEOMETRIE' ? 'Géométrie' : exercise.exercise_type}
                         </span>
                     </div>
                     
@@ -805,35 +815,106 @@ detailsButtons.forEach(button => {
                         <p>${exercise.question}</p>
                     </div>
                     
-                    ${choicesHtml ? `
-                        <div class="choices-preview">
-                            <h4>Choix disponibles:</h4>
-                            ${choicesHtml}
-                        </div>
-                    ` : ''}
+                    ${choicesHtml}
                     
                     <div class="modal-actions">
-                        <a href="/exercise/${exercise.id}" class="confirm-delete">
+                        <a href="/exercise/${exercise.id}" class="btn confirm-delete">
                             <i class="fas fa-play-circle"></i> Démarrer l'exercice
                         </a>
                     </div>
-                `;
-            })
-            .catch(error => {
-                console.error('Erreur:', error);
-                detailsContent.innerHTML = `
+                </div>
+            `;
+            
+            // Réattacher l'événement de fermeture au nouveau bouton
+            const newCloseButton = detailsContent.querySelector('.details-close');
+            if (newCloseButton) {
+                newCloseButton.addEventListener('click', closeDetailsModal);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            detailsContent.innerHTML = `
+                <div class="modal-header">
+                    <h3 class="modal-title">Erreur</h3>
+                    <button class="modal-close details-close" aria-label="Fermer">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
                     <div class="error-message">
                         <i class="fas fa-exclamation-triangle"></i>
                         <p>Une erreur est survenue lors du chargement des détails de l'exercice.</p>
                     </div>
-                `;
-            });
-    });
-});
+                </div>
+            `;
+            
+            // Réattacher l'événement de fermeture
+            const newCloseButton = detailsContent.querySelector('.details-close');
+            if (newCloseButton) {
+                newCloseButton.addEventListener('click', closeDetailsModal);
+            }
+        });
+}
+
+// Gestion modale des détails
+const detailsModal = document.getElementById('details-modal');
+const detailsCloseButton = document.querySelector('.details-close');
+const detailsContent = document.getElementById('exercise-details-content');
+
+// Attacher les événements initialement
+attachDetailsEvents();
+
+// Fonction pour fermer la modale de détails
+function closeDetailsModal() {
+    detailsModal.style.display = 'none';
+    detailsModal.classList.remove('show');
+    document.body.style.overflow = 'auto'; // Restaurer le scroll
+}
+
+// Fonction utilitaire pour afficher les alertes
+function showAlert(type, message) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+    const iconClass = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    
+    const alert = document.createElement('div');
+    alert.className = `alert ${alertClass}`;
+    alert.innerHTML = `
+        <i class="${iconClass}"></i>
+        <div class="alert-message">${message}</div>
+    `;
+    
+    const pageHeader = document.querySelector('.page-header');
+    if (pageHeader) {
+        pageHeader.insertAdjacentElement('afterend', alert);
+        
+        // Faire disparaître le message après 3 secondes
+        setTimeout(() => {
+            alert.style.opacity = '0';
+            alert.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 500);
+        }, 3000);
+    }
+}
 
 // Fermer la modale de détails
-detailsCloseButton.addEventListener('click', function() {
-    detailsModal.style.display = 'none';
+if (detailsCloseButton) {
+    detailsCloseButton.addEventListener('click', closeDetailsModal);
+}
+
+// Fermer les modales avec la touche Escape
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        if (deleteModal && deleteModal.classList.contains('show')) {
+            closeDeleteModal();
+        }
+        if (detailsModal && detailsModal.classList.contains('show')) {
+            closeDetailsModal();
+        }
+    }
 });
 });
 </script>

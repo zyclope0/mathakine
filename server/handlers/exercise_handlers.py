@@ -103,6 +103,12 @@ async def get_exercise(request):
             
             if not exercise:
                 return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
+            
+            # Convertir les objets datetime en chaînes pour la sérialisation JSON
+            if 'created_at' in exercise and exercise['created_at']:
+                exercise['created_at'] = exercise['created_at'].isoformat()
+            if 'updated_at' in exercise and exercise['updated_at']:
+                exercise['updated_at'] = exercise['updated_at'].isoformat()
                 
             return JSONResponse(exercise)
         

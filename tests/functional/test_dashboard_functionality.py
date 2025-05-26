@@ -38,7 +38,7 @@ def authenticated_user_with_data(test_client):
         user_data = UserCreate(
             username=username,
             email=email,
-            password="testpassword123",
+            password="TestPassword123",
             full_name="Dashboard Test User",
             role="padawan"
         )
@@ -58,7 +58,7 @@ def authenticated_user_with_data(test_client):
         for ex_type, title in exercise_types:
             exercise = Exercise(
                 title=f"{title} - Test {unique_id}",
-                exercise_type=get_enum_value(ex_type, ex_type.value, db),
+                exercise_type=get_enum_value(ExerciseType, ex_type.value, db),
                 difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db),
                 question=f"Question de test pour {title}",
                 correct_answer="42",
@@ -208,7 +208,7 @@ def test_dashboard_api_with_no_data(test_client):
         user_data = UserCreate(
             username=username,
             email=email,
-            password="testpassword123",
+            password="TestPassword123",
             full_name="Empty Test User",
             role="padawan"
         )
