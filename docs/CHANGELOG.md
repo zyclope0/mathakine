@@ -5,6 +5,59 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-01-26
+
+### 🚀 Nouveau : Système CI/CD avec Classification Intelligente des Tests
+
+#### Added
+- ✨ **Pipeline GitHub Actions complet** (`.github/workflows/ci.yml`)
+  - Tests critiques, importants et complémentaires en parallèle
+  - Analyse de couverture de code automatique
+  - Vérifications de qualité (Black, isort, Flake8, Bandit, Safety)
+  - Génération de rapports détaillés et artifacts
+- 🔧 **Script de vérification pre-commit** (`scripts/pre_commit_check.py`)
+  - Classification automatique des tests par criticité
+  - Timeouts adaptés (3min critiques, 2min importants, 1min complémentaires)
+  - Feedback détaillé avec conseils de résolution
+- 🪝 **Système de hooks Git** (`.githooks/` + `scripts/setup_git_hooks.py`)
+  - Hook pre-commit automatique pour tests critiques
+  - Hook post-merge pour mises à jour de dépendances
+  - Installation/désinstallation simplifiée
+- ⚙️ **Configuration centralisée** (`tests/test_config.yml`)
+  - Classification YAML des tests par niveaux
+  - Configuration par environnement (local/CI/staging)
+  - Paramètres de qualité et métriques
+- 🔄 **Mise à jour automatique des tests** (`scripts/update_tests_after_changes.py`)
+  - Détection des changements Git depuis dernier commit
+  - Analyse des nouvelles fonctions/classes/endpoints
+  - Génération automatique de templates de tests
+  - Suggestions classées par priorité (critique/important/complémentaire)
+- 📚 **Documentation complète** (`docs/CI_CD_GUIDE.md`)
+  - Guide d'installation et d'utilisation
+  - Troubleshooting et bonnes pratiques
+  - Configuration et personnalisation
+  - Métriques et monitoring
+
+#### Changed
+- 🔄 **Classification des tests en 3 niveaux** :
+  - **🔴 Critiques** : Bloquent déploiement (fonctionnels, services core, auth)
+  - **🟡 Importants** : Avertissement (intégration, modèles, adaptateurs, API)
+  - **🟢 Complémentaires** : Informatifs (CLI, init, recommandations)
+- 📊 **Workflow de développement optimisé** :
+  - Tests automatiques avant chaque commit
+  - Feedback immédiat (3 min max pour critiques)
+  - Prévention des régressions automatique
+- 🎯 **Métriques et monitoring intégrés** :
+  - Taux de réussite par catégorie
+  - Temps d'exécution des suites
+  - Couverture de code (objectif 75%)
+  - Rapports JSON/HTML/Markdown
+
+#### Benefits
+- **Pour Développeurs** : Feedback rapide, priorités claires, suggestions automatiques
+- **Pour Équipe** : Déploiements sécurisés, qualité maintenue, métriques performance
+- **Pour Maintenance** : Tests mis à jour automatiquement, configuration centralisée
+
 ## [1.2.0] - 2025-05-26
 
 ### 🚀 Mise à jour majeure : Refactoring complet et améliorations
@@ -208,3 +261,121 @@ Ce fichier documente toutes les modifications notables apportées au projet Math
 
 > Note: Ce fichier a été consolidé à partir de CHANGELOG.md et RECENT_UPDATES.md le 2025-05-08.
 > Dernière mise à jour : 22/06/2025
+
+## [Non publié]
+
+### Ajouté
+- Système CI/CD complet avec classification intelligente des tests
+- Tests fonctionnels pour validation du tableau de bord
+- Script de création de données de test pour utilisateurs
+
+### Corrigé
+- **CRITIQUE** : Tableau de bord dysfonctionnel - utilisait un ID utilisateur fixe au lieu de l'utilisateur connecté
+- Authentification correcte dans tous les handlers API
+- Gestion des erreurs améliorée avec messages explicites
+
+### Modifié
+- Handler `get_user_stats` pour utiliser l'authentification réelle
+- Logs détaillés pour debugging des statistiques utilisateur
+
+## [1.3.0] - 2025-01-15
+
+### Ajouté
+- **Système CI/CD complet** avec GitHub Actions
+- **Classification intelligente des tests** en 3 niveaux (Critique/Important/Complémentaire)
+- **Hooks Git automatiques** avec vérifications pre-commit
+- **Scripts de mise à jour automatique** des tests après modifications
+- **Configuration centralisée** des tests et métriques qualité
+- **Rapports détaillés** de couverture et performance
+- **Documentation complète** du système CI/CD dans `docs/CI_CD_GUIDE.md`
+
+### Amélioré
+- **Workflow de développement** optimisé avec feedback rapide
+- **Prévention des régressions** automatique
+- **Métriques de qualité** suivies en continu
+- **Documentation** mise à jour dans tous les guides pertinents
+
+### Technique
+- Pipeline GitHub Actions multi-étapes avec exécution parallèle
+- Tests critiques avec timeout 3 minutes et échec rapide
+- Analyse de sécurité automatique (Bandit, Safety)
+- Vérifications de style automatiques (Black, isort, Flake8)
+
+## [1.2.0] - 2024-12-20
+
+### Ajouté
+- **Système de suppression en cascade** complet pour maintenir l'intégrité des données
+- **Documentation CASCADE_DELETION.md** détaillant le système
+- **Tests complets** pour valider les suppressions en cascade à tous les niveaux
+- **Interface holographique** style Star Wars pour les exercices
+- **Fonctionnalités d'accessibilité avancées** (contraste, taille texte, animations, dyslexie)
+- **Système unifié de gestion des transactions** avec TransactionManager
+- **EnhancedServerAdapter** pour l'intégration avec enhanced_server.py
+
+### Corrigé
+- **Problèmes d'affichage** des exercices archivés dans les listes
+- **Défilement automatique** indésirable lors des changements de page
+- **Tests de suppression** en cascade pour tous les composants
+- **Gestion des erreurs** dans les opérations de base de données
+
+### Amélioré
+- **Couverture des tests** de 64% à 68%
+- **Support des tests asynchrones** avec meilleure gestion
+- **Scripts de test** avec logging standard et gestion propre des ressources
+- **Documentation** mise à jour avec les nouvelles fonctionnalités
+
+## [1.1.0] - 2024-11-15
+
+### Ajouté
+- **Migration vers PostgreSQL** pour la production
+- **Système de migrations Alembic** pour la gestion du schéma
+- **Scripts de migration sécurisée** avec sauvegarde automatique
+- **Compatibilité SQLite/PostgreSQL** maintenue pour le développement
+- **Documentation POSTGRESQL_MIGRATION.md** et **ALEMBIC.md**
+
+### Corrigé
+- **Normalisation des types de données** entre SQLite et PostgreSQL
+- **Gestion des énumérations** selon le moteur de base de données
+- **Scripts de basculement** entre les deux systèmes
+
+### Technique
+- Configuration automatique du moteur selon l'environnement
+- Préservation des tables héritées lors des migrations
+- Validation de l'intégrité post-migration
+
+## [1.0.0] - 2024-10-01
+
+### Ajouté
+- **Architecture dual-backend** : FastAPI (API) + Starlette (interface web)
+- **Système d'authentification JWT** avec cookies HTTP-only
+- **Génération d'exercices** algorithmique et pseudo-IA
+- **Tableau de bord** avec statistiques et graphiques
+- **Défis logiques** pour les 10-15 ans
+- **Thème Star Wars** complet avec terminologie Jedi
+- **Tests structurés** en 4 niveaux (unitaires, API, intégration, fonctionnels)
+- **Documentation complète** avec guides techniques
+
+### Fonctionnalités principales
+- Exercices mathématiques adaptatifs (Addition, Soustraction, Multiplication, Division)
+- Niveaux de difficulté thématiques (Initié, Padawan, Chevalier, Maître)
+- Suivi de progression avec statistiques détaillées
+- Interface utilisateur responsive avec thème spatial
+- API REST complète avec documentation OpenAPI
+
+### Technique
+- Base de données SQLite avec modèles SQLAlchemy 2.0
+- Validation des données avec Pydantic 2.0
+- Architecture MVC avec séparation claire des responsabilités
+- Système de journalisation centralisé avec loguru
+- Interface CLI complète pour l'administration
+
+---
+
+## Légende des types de modifications
+
+- **Ajouté** : Nouvelles fonctionnalités
+- **Modifié** : Modifications de fonctionnalités existantes
+- **Déprécié** : Fonctionnalités qui seront supprimées dans une version future
+- **Supprimé** : Fonctionnalités supprimées dans cette version
+- **Corrigé** : Corrections de bugs
+- **Sécurité** : Corrections de vulnérabilités de sécurité

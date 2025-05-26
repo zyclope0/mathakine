@@ -1,10 +1,10 @@
 # Guide complet du système de tests - Mathakine
 
-Ce document décrit l'architecture de test complète du projet Mathakine, incluant la structure, les types de tests, l'exécution et les bonnes pratiques.
+Ce document décrit l'architecture de test complète du projet Mathakine, incluant la structure, les types de tests, l'exécution, le système CI/CD intégré et les bonnes pratiques.
 
 ## 1. Vue d'ensemble du système de tests
 
-Le projet Mathakine implémente une architecture de tests en 4 niveaux pour assurer la qualité et la fiabilité du code. Cette approche permet de tester l'application sous différents angles, de l'unité individuelle jusqu'au système complet.
+Le projet Mathakine implémente une architecture de tests en 4 niveaux avec un système CI/CD intégré pour assurer la qualité et la fiabilité du code. Cette approche permet de tester l'application sous différents angles, de l'unité individuelle jusqu'au système complet.
 
 ### Niveaux de tests
 
@@ -12,6 +12,55 @@ Le projet Mathakine implémente une architecture de tests en 4 niveaux pour assu
 2. **Tests API** - Tests pour valider les endpoints REST
 3. **Tests d'Intégration** - Tests des composants en interaction
 4. **Tests Fonctionnels** - Tests du système complet, basés sur les cas d'utilisation
+
+### Système CI/CD avec Classification Intelligente
+
+Le projet utilise un système de classification des tests en 3 niveaux de criticité :
+
+#### 🔴 Tests Critiques (BLOQUANTS)
+- **Impact** : Bloquent le commit et le déploiement
+- **Timeout** : 3 minutes maximum
+- **Échecs max** : 1 seul échec autorisé
+- **Contenu** : Tests fonctionnels, services core, authentification
+
+#### 🟡 Tests Importants (NON-BLOQUANTS)  
+- **Impact** : Avertissement, commit autorisé
+- **Timeout** : 2 minutes maximum
+- **Échecs max** : 5 échecs autorisés
+- **Contenu** : Tests d'intégration, modèles, adaptateurs
+
+#### 🟢 Tests Complémentaires (INFORMATIFS)
+- **Impact** : Information seulement
+- **Timeout** : 1 minute maximum
+- **Échecs max** : 10 échecs autorisés
+- **Contenu** : CLI, initialisation, fonctionnalités secondaires
+
+### Installation du Système CI/CD
+
+```bash
+# Installation des hooks Git
+python scripts/setup_git_hooks.py
+
+# Vérification manuelle
+python scripts/pre_commit_check.py
+
+# Tests par catégorie
+python -m pytest tests/functional/ -v      # Critiques
+python -m pytest tests/integration/ -v     # Importants
+python -m pytest tests/unit/test_cli.py -v # Complémentaires
+```
+
+### Pipeline GitHub Actions
+
+Le pipeline CI/CD s'exécute automatiquement et comprend :
+1. **Tests Critiques** en parallèle (fail-fast)
+2. **Tests Importants** si critiques passent
+3. **Tests Complémentaires** informatifs
+4. **Analyse de couverture** de code
+5. **Vérifications qualité** (Black, Flake8, Bandit)
+6. **Génération de rapports** et artifacts
+
+Pour plus de détails, consultez le [Guide CI/CD complet](../CI_CD_GUIDE.md).
 
 ### Structure des fichiers
 

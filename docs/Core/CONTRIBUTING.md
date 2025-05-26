@@ -7,6 +7,7 @@
 - [Processus de contribution](#processus-de-contribution)
 - [Standards de code](#standards-de-code)
 - [Tests](#tests)
+- [Système CI/CD](#système-cicd)
 - [Documentation](#documentation)
 - [Soumission des modifications](#soumission-des-modifications)
 
@@ -44,6 +45,11 @@ Merci de votre intérêt pour contribuer à Mathakine ! Ce guide vous aidera à 
    # Modifier les variables dans .env selon votre configuration
    ```
 
+5. Installer les hooks Git pour le CI/CD :
+   ```bash
+   python scripts/setup_git_hooks.py
+   ```
+
 ## Processus de contribution
 1. Créer une branche pour votre fonctionnalité :
    ```bash
@@ -56,6 +62,7 @@ Merci de votre intérêt pour contribuer à Mathakine ! Ce guide vous aidera à 
    ```bash
    git add .
    git commit -m "Description claire des modifications"
+   # Les tests critiques s'exécutent automatiquement via le hook pre-commit
    ```
 
 4. Pousser vers votre fork :
@@ -79,6 +86,76 @@ Merci de votre intérêt pour contribuer à Mathakine ! Ce guide vous aidera à 
   ```bash
   pytest
   ```
+
+## Système CI/CD
+
+### Classification des Tests
+
+Le projet utilise un système de classification des tests en 3 niveaux :
+
+#### 🔴 Tests Critiques (BLOQUANTS)
+- **Impact** : Bloquent le commit et le déploiement
+- **Timeout** : 3 minutes
+- **Contenu** : Tests fonctionnels, services utilisateur, authentification
+- **Commande** : `python scripts/pre_commit_check.py`
+
+#### 🟡 Tests Importants (NON-BLOQUANTS)
+- **Impact** : Avertissement, commit autorisé
+- **Timeout** : 2 minutes  
+- **Contenu** : Tests d'intégration, modèles, adaptateurs
+
+#### 🟢 Tests Complémentaires (INFORMATIFS)
+- **Impact** : Information seulement
+- **Timeout** : 1 minute
+- **Contenu** : CLI, initialisation, fonctionnalités secondaires
+
+### Hooks Git Automatiques
+
+Les hooks Git sont automatiquement installés et exécutent :
+- **Pre-commit** : Tests critiques avant chaque commit
+- **Post-merge** : Mise à jour des dépendances après merge
+
+### Commandes Utiles
+
+```bash
+# Vérification manuelle pre-commit
+python scripts/pre_commit_check.py
+
+# Tests par catégorie
+python -m pytest tests/functional/ -v  # Critiques
+python -m pytest tests/integration/ -v  # Importants
+
+# Mise à jour automatique des tests après modifications
+python scripts/update_tests_after_changes.py --auto-create
+
+# Bypass temporaire (non recommandé)
+git commit --no-verify
+```
+
+### Pipeline GitHub Actions
+
+Le pipeline CI/CD s'exécute automatiquement sur :
+- Push vers `main` ou `develop`
+- Pull Requests
+- Workflow manuel
+
+**Étapes du pipeline :**
+1. Tests critiques (bloquants)
+2. Tests importants (parallèles)
+3. Tests complémentaires (informatifs)
+4. Analyse de couverture
+5. Vérifications qualité (Black, Flake8, Bandit)
+6. Génération de rapports
+
+### Bonnes Pratiques CI/CD
+
+1. **Toujours corriger** les tests critiques qui échouent
+2. **Surveiller** les avertissements des tests importants
+3. **Utiliser** `--auto-create` pour générer les tests manquants
+4. **Consulter** les rapports de couverture
+5. **Documenter** les nouveaux tests ajoutés
+
+Pour plus de détails, consultez le [Guide CI/CD complet](../CI_CD_GUIDE.md).
 
 ## Documentation
 - Mettre à jour la documentation pour toute nouvelle fonctionnalité

@@ -7,10 +7,11 @@ Ce guide complet fournit toutes les informations nécessaires pour les développ
 2. [Architecture du projet](#2-architecture-du-projet)
 3. [Système d'authentification](#3-système-dauthentification)
 4. [Référence API](#4-référence-api)
-5. [Guide d'extension du projet](#5-guide-dextension-du-projet)
-6. [Bonnes pratiques et normes de codage](#6-bonnes-pratiques-et-normes-de-codage)
-7. [Déploiement](#7-déploiement)
-8. [Résolution des problèmes courants](#8-résolution-des-problèmes-courants)
+5. [Tests et CI/CD](#5-tests-et-cicd)
+6. [Guide d'extension du projet](#6-guide-dextension-du-projet)
+7. [Bonnes pratiques et normes de codage](#7-bonnes-pratiques-et-normes-de-codage)
+8. [Déploiement](#8-déploiement)
+9. [Résolution des problèmes courants](#9-résolution-des-problèmes-courants)
 
 ## 1. Démarrage rapide
 
@@ -488,7 +489,176 @@ La plupart des endpoints de liste supportent :
 
 Pour la liste complète des endpoints API, consultez la documentation interactive (`/api/docs`).
 
-## 5. Guide d'extension du projet
+## 5. Tests et CI/CD
+
+### Architecture des Tests
+
+Le projet Mathakine utilise une architecture de tests en 4 niveaux avec un système CI/CD intégré pour garantir la qualité du code.
+
+#### Structure des Tests
+```
+tests/
+├── unit/                 # Tests unitaires (composants isolés)
+├── api/                  # Tests API REST
+├── integration/          # Tests d'intégration (composants multiples)
+├── functional/           # Tests fonctionnels (end-to-end)
+├── fixtures/             # Données de test partagées
+└── conftest.py           # Configuration pytest
+```
+
+### Système CI/CD avec Classification Intelligente
+
+#### Classification des Tests en 3 Niveaux
+
+**🔴 Tests Critiques (BLOQUANTS)**
+- **Impact** : Bloquent le commit et le déploiement
+- **Timeout** : 3 minutes maximum
+- **Échecs max** : 1 seul échec autorisé
+- **Contenu** :
+  - Tests fonctionnels (end-to-end)
+  - Services utilisateur et authentification
+  - Services exercices et défis logiques
+  - Fonctionnalités core business
+
+**🟡 Tests Importants (NON-BLOQUANTS)**
+- **Impact** : Avertissement, commit autorisé
+- **Timeout** : 2 minutes maximum
+- **Échecs max** : 5 échecs autorisés
+- **Contenu** :
+  - Tests d'intégration
+  - Modèles de données
+  - Adaptateurs et API REST
+
+**🟢 Tests Complémentaires (INFORMATIFS)**
+- **Impact** : Information seulement
+- **Timeout** : 1 minute maximum
+- **Échecs max** : 10 échecs autorisés
+- **Contenu** :
+  - Interface CLI
+  - Services d'initialisation
+  - Fonctionnalités secondaires
+
+### Installation du Système CI/CD
+
+```bash
+# Installation des hooks Git
+python scripts/setup_git_hooks.py
+
+# Vérification de l'installation
+ls -la .git/hooks/
+
+# Test manuel du système
+python scripts/pre_commit_check.py
+```
+
+### Workflow de Développement avec CI/CD
+
+#### Développement Local
+1. **Modification du code**
+2. **Tests automatiques** (hook pre-commit)
+3. **Commit** (si tests critiques passent)
+4. **Push** vers GitHub
+
+#### Pipeline GitHub Actions
+1. **Déclenchement** : Push ou Pull Request
+2. **Tests Critiques** : Exécution en parallèle (fail-fast)
+3. **Tests Importants** : Si critiques passent
+4. **Analyse Qualité** : Black, Flake8, Bandit, Safety
+5. **Rapport Final** : Artifacts et commentaires PR
+
+### Commandes Essentielles
+
+```bash
+# Vérification pre-commit complète
+python scripts/pre_commit_check.py
+
+# Tests par catégorie
+python -m pytest tests/functional/ -v      # Critiques
+python -m pytest tests/integration/ -v     # Importants
+python -m pytest tests/unit/test_cli.py -v # Complémentaires
+
+# Mise à jour automatique des tests
+python scripts/update_tests_after_changes.py --auto-create
+
+# Tests avec couverture
+python -m pytest tests/unit/ --cov=app --cov-report=html
+
+# Bypass temporaire (non recommandé)
+git commit --no-verify
+```
+
+### Configuration et Personnalisation
+
+#### Modification des Tests Critiques
+Éditez `scripts/pre_commit_check.py` pour ajuster la classification :
+
+```python
+TestSuite(
+    name="Nouveau Test Critique",
+    level=TestLevel.CRITICAL,
+    paths=["tests/unit/test_nouveau.py"],
+    blocking=True,
+    timeout=180
+)
+```
+
+#### Configuration Centralisée
+Le fichier `tests/test_config.yml` permet de configurer :
+- Classification des tests par environnement
+- Timeouts et seuils d'échec
+- Paramètres de qualité de code
+- Notifications et rapports
+
+### Métriques et Monitoring
+
+#### Métriques Suivies
+- **Taux de réussite** par catégorie de tests
+- **Temps d'exécution** des suites
+- **Couverture de code** (objectif : 75%)
+- **Nombre d'échecs** consécutifs
+
+#### Rapports Générés
+- **JSON** : Données structurées pour analyse
+- **HTML** : Rapports visuels de couverture
+- **Markdown** : Résumés pour GitHub
+
+### Bonnes Pratiques CI/CD
+
+1. **Corriger immédiatement** les tests critiques qui échouent
+2. **Surveiller** les avertissements des tests importants
+3. **Utiliser** la génération automatique de tests
+4. **Maintenir** une couverture de code élevée
+5. **Documenter** les nouveaux tests ajoutés
+
+### Résolution de Problèmes
+
+#### Tests Critiques Échouent
+```bash
+# Identifier le problème
+python scripts/pre_commit_check.py
+
+# Reproduire localement
+python -m pytest tests/functional/test_specific.py -v
+
+# Analyser les logs détaillés
+python -m pytest tests/functional/ --tb=long
+```
+
+#### Hook Pre-commit Bloqué
+```bash
+# Diagnostic complet
+python scripts/pre_commit_check.py
+
+# Réinstallation des hooks
+python scripts/setup_git_hooks.py
+
+# Bypass temporaire (urgence seulement)
+git commit --no-verify
+```
+
+Pour plus de détails, consultez le [Guide CI/CD complet](../CI_CD_GUIDE.md).
+
+## 6. Guide d'extension du projet
 
 ### Ajouter un nouveau type d'exercice
 
@@ -660,7 +830,7 @@ Pour la liste complète des endpoints API, consultez la documentation interactiv
 
    Si vous utilisez des scripts de migration, créez-en un nouveau dans `migrations/`.
 
-## 6. Bonnes pratiques et normes de codage
+## 7. Bonnes pratiques et normes de codage
 
 ### Style de code
 
@@ -703,7 +873,7 @@ Pour la liste complète des endpoints API, consultez la documentation interactiv
    - Utilisez les dépendances FastAPI pour vérifier les autorisations
    - Testez les cas limites (token expiré, mauvais rôle, etc.)
 
-## 7. Déploiement
+## 8. Déploiement
 
 ### Déploiement sur Render
 
@@ -736,7 +906,7 @@ Pour la liste complète des endpoints API, consultez la documentation interactiv
      mathakine:latest
    ```
 
-## 8. Résolution des problèmes courants
+## 9. Résolution des problèmes courants
 
 Pour une liste complète des problèmes courants et leurs solutions, consultez le document [CORRECTIONS_ET_MAINTENANCE.md](../CORRECTIONS_ET_MAINTENANCE.md).
 

@@ -38,6 +38,74 @@ python -m tests.run_tests --api      # Tests d'API
 python -m tests.run_tests --integration  # Tests d'intégration
 ```
 
+#### Système CI/CD et Qualité
+
+```bash
+# Installation du système CI/CD
+python scripts/setup_git_hooks.py
+
+# Vérification pre-commit manuelle
+python scripts/pre_commit_check.py
+
+# Tests par niveau de criticité
+python -m pytest tests/functional/ -v      # Tests critiques (bloquants)
+python -m pytest tests/integration/ -v     # Tests importants (non-bloquants)
+python -m pytest tests/unit/test_cli.py -v # Tests complémentaires (informatifs)
+
+# Mise à jour automatique des tests après modifications
+python scripts/update_tests_after_changes.py --auto-create
+
+# Vérifications de qualité du code
+black --check .                    # Formatage
+isort --check-only .               # Imports
+flake8 .                          # Linting
+bandit -r app/                    # Sécurité
+safety check                      # Vulnérabilités dépendances
+```
+
+### Classification des Tests CI/CD
+
+Le système utilise 3 niveaux de criticité :
+
+#### 🔴 Tests Critiques (BLOQUANTS)
+- **Impact** : Bloquent le déploiement
+- **Timeout** : 3 minutes
+- **Contenu** : Fonctionnels, services core, authentification
+- **Commande** : `python -m pytest tests/functional/ -v`
+
+#### 🟡 Tests Importants (NON-BLOQUANTS)
+- **Impact** : Avertissement seulement
+- **Timeout** : 2 minutes
+- **Contenu** : Intégration, modèles, adaptateurs
+- **Commande** : `python -m pytest tests/integration/ -v`
+
+#### 🟢 Tests Complémentaires (INFORMATIFS)
+- **Impact** : Information seulement
+- **Timeout** : 1 minute
+- **Contenu** : CLI, initialisation, fonctionnalités secondaires
+- **Commande** : `python -m pytest tests/unit/test_cli.py -v`
+
+### Workflow de Développement
+
+1. **Modification du code**
+2. **Tests automatiques** (hook pre-commit)
+3. **Commit** (si tests critiques passent)
+4. **Push** → Pipeline GitHub Actions
+5. **Déploiement** (si tous les tests critiques passent)
+
+### Monitoring et Métriques
+
+```bash
+# Génération de rapports de couverture
+python -m pytest tests/unit/ --cov=app --cov-report=html
+
+# Analyse des métriques de qualité
+python scripts/generate_quality_report.py
+
+# Vérification de l'état du système
+python scripts/health_check.py
+```
+
 ### Tester les composants centralisés
 
 ```bash

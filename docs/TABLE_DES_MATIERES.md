@@ -15,6 +15,7 @@
 - [ALEMBIC.md](ALEMBIC.md) - Guide d'utilisation d'Alembic
 - [LOGGING.md](LOGGING.md) - Guide du système de journalisation
 - [CASCADE_DELETION.md](CASCADE_DELETION.md) - Documentation du système de suppression en cascade
+- [CI_CD_GUIDE.md](CI_CD_GUIDE.md) - Guide du système CI/CD et classification des tests
 
 ## Mises à Jour et Optimisations
 - [OPTIMISATIONS_MAI_2025.md](OPTIMISATIONS_MAI_2025.md) - Refactorisation et modularisation des handlers API

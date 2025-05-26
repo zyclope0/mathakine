@@ -16,6 +16,7 @@ Mathakine est une plateforme web éducative innovante pour l'apprentissage des m
 - **📊 Suivi Détaillé** : Tableaux de bord complets pour élèves, enseignants et parents
 - **♿ Accessibilité Avancée** : Support complet pour différents besoins (dyslexie, photosensibilité, etc.)
 - **🏆 Système de Motivation** : Progression par rangs Jedi et récompenses virtuelles
+- **🔄 CI/CD Intégré** : Système de tests automatisés avec classification intelligente
 
 ## 🏗️ Architecture Technique
 
@@ -67,6 +68,9 @@ pip install -r requirements.txt
 cp .env.example .env
 # Éditer .env avec vos paramètres
 
+# Installer le système CI/CD (hooks Git)
+python scripts/setup_git_hooks.py
+
 # Initialiser la base de données
 python mathakine_cli.py init
 
@@ -83,6 +87,55 @@ docker build -t mathakine .
 # Lancement avec docker-compose
 docker-compose up -d
 ```
+
+## 🔄 Système CI/CD
+
+### Classification Intelligente des Tests
+
+Le projet utilise un système de classification des tests en 3 niveaux :
+
+#### 🔴 Tests Critiques (BLOQUANTS)
+- **Impact** : Bloquent le commit et le déploiement
+- **Timeout** : 3 minutes
+- **Contenu** : Tests fonctionnels, services core, authentification
+
+#### 🟡 Tests Importants (NON-BLOQUANTS)
+- **Impact** : Avertissement, commit autorisé
+- **Timeout** : 2 minutes
+- **Contenu** : Tests d'intégration, modèles, adaptateurs
+
+#### 🟢 Tests Complémentaires (INFORMATIFS)
+- **Impact** : Information seulement
+- **Timeout** : 1 minute
+- **Contenu** : CLI, initialisation, fonctionnalités secondaires
+
+### Workflow de Développement
+
+1. **Modification du code**
+2. **Tests automatiques** (hook pre-commit)
+3. **Commit** (si tests critiques passent)
+4. **Push** → Pipeline GitHub Actions
+5. **Déploiement** (si tous les tests critiques passent)
+
+### Commandes CI/CD
+
+```bash
+# Vérification manuelle pre-commit
+python scripts/pre_commit_check.py
+
+# Tests par catégorie
+python -m pytest tests/functional/ -v      # Critiques
+python -m pytest tests/integration/ -v     # Importants
+python -m pytest tests/unit/test_cli.py -v # Complémentaires
+
+# Mise à jour automatique des tests
+python scripts/update_tests_after_changes.py --auto-create
+
+# Bypass temporaire (non recommandé)
+git commit --no-verify
+```
+
+Pour plus de détails, consultez le [Guide CI/CD complet](docs/CI_CD_GUIDE.md).
 
 ## 📖 Documentation
 
@@ -147,6 +200,8 @@ Les contributions sont les bienvenues ! Veuillez consulter notre [guide de contr
 3. Commit des changements (`git commit -m 'feat: Add AmazingFeature'`)
 4. Push vers la branche (`git push origin feature/AmazingFeature`)
 5. Ouvrir une Pull Request
+
+**Note** : Les tests critiques s'exécutent automatiquement avant chaque commit via le hook pre-commit.
 
 ## 📄 Licence
 
