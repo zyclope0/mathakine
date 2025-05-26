@@ -326,7 +326,9 @@
                 ? '/api/users/stats?nocache=' + Date.now() 
                 : '/api/users/stats';
                 
-            fetch(url)
+            fetch(url, {
+                credentials: 'include'  // Inclure les cookies d'authentification
+            })
                 .then(response => {
                     console.log('API Response status:', response.status);
                     if (response.ok) {

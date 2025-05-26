@@ -2009,3 +2009,31 @@ Ajouter des étapes dans `.github/workflows/ci.yml` selon les besoins.
 - ✅ Évolutivité et maintenance facilitées
 
 **Le projet Mathakine dispose maintenant d'un système CI/CD professionnel qui garantit la qualité et facilite le développement en équipe, avec une documentation complète et intégrée dans tous les guides pertinents !** 🚀
+
+### ✅ **14. CORRECTION TABLEAU DE BORD - AFFICHAGE STATISTIQUES (Janvier 2025) - CORRECTION CRITIQUE**
+- **Problème identifié** : Page tableau de bord n'affichait pas les statistiques utilisateur
+- **Cause racine** : Appel `fetch()` JavaScript sans transmission des cookies d'authentification
+- **Symptômes** :
+  - API `/api/users/stats` retournait erreur 401 "Authentification requise"
+  - Statistiques restaient à 0 (valeurs par défaut)
+  - Graphiques vides dans le tableau de bord
+  - Console JavaScript montrait erreurs d'authentification
+- **Solution implémentée** :
+  - **Correction JavaScript** : Ajout de `credentials: 'include'` dans l'appel `fetch()`
+  - **Création utilisateur test valide** : Script `create_valid_test_user.py` avec hash bcrypt correct
+  - **Vérification routes** : Confirmation que `/api/users/stats` et `/api/auth/login` fonctionnent
+- **Fichiers modifiés** :
+  - `templates/dashboard.html` : Ajout `credentials: 'include'` ligne 328
+  - `create_valid_test_user.py` : Script pour créer utilisateur test avec mot de passe valide
+  - `test_dashboard_api.py` : Script de test pour vérifier l'API
+  - `test_simple_dashboard.py` : Diagnostic simple du tableau de bord
+- **Impact technique** :
+  - ✅ **Authentification fonctionnelle** : Cookies transmis correctement
+  - ✅ **API statistiques accessible** : Retourne données utilisateur authentifié
+  - ✅ **Tableau de bord opérationnel** : Affichage des vraies statistiques
+  - ✅ **Tests de validation** : Scripts pour vérifier le bon fonctionnement
+- **Procédure de test** :
+  1. Connexion via interface web : `test_user` / `test_password`
+  2. Accès tableau de bord : `/dashboard`
+  3. Vérification affichage statistiques en temps réel
+  4. Validation graphiques et données utilisateur

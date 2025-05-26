@@ -5,6 +5,38 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] - 2025-05-26
+
+### 🔧 Correction Critique : Affichage Statistiques Tableau de Bord
+
+#### Fixed
+- 🚨 **Correction affichage statistiques** - Tableau de bord affiche maintenant les vraies données
+  - **Problème** : API `/api/users/stats` retournait erreur 401 même pour utilisateurs connectés
+  - **Cause** : Appel `fetch()` JavaScript sans transmission des cookies d'authentification
+  - **Symptômes** : Statistiques restaient à 0, graphiques vides, erreurs console
+  - **Solution** :
+    - Ajout `credentials: 'include'` dans `fetch()` de `templates/dashboard.html`
+    - Création script `create_valid_test_user.py` pour utilisateur test avec hash bcrypt
+    - Scripts de test `test_dashboard_api.py` et `test_simple_dashboard.py`
+  - **Résultat** : Tableau de bord fonctionnel avec vraies statistiques utilisateur
+
+#### Technical
+- 📁 **Fichiers modifiés** :
+  - `templates/dashboard.html` : Correction appel API avec authentification
+  - `create_valid_test_user.py` : Création utilisateur test valide
+  - `test_dashboard_api.py` : Test complet API tableau de bord
+  - `test_simple_dashboard.py` : Diagnostic simple connectivité
+- 🔐 **Authentification** : Transmission correcte des cookies de session
+- 📊 **API** : `/api/users/stats` accessible pour utilisateurs authentifiés
+- ✅ **Tests** : Scripts de validation du bon fonctionnement
+
+#### Testing
+- 🧪 **Procédure de test** :
+  1. Connexion : `test_user` / `test_password`
+  2. Accès `/dashboard`
+  3. Vérification affichage statistiques temps réel
+  4. Validation graphiques et données utilisateur
+
 ## [1.4.1] - 2025-05-26
 
 ### 🔧 Correction Critique : Route "À propos" Fonctionnelle
