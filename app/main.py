@@ -208,6 +208,14 @@ async def dashboard(request: Request):
         logger.error(f"Erreur lors du chargement du template dashboard.html: {str(e)}")
         return {"error": "Page non disponible"}
 
+@app.get("/about", response_class=HTMLResponse)
+async def about_page(request: Request):
+    try:
+        return templates.TemplateResponse("about.html", {"request": request})
+    except Exception as e:
+        logger.error(f"Erreur lors du chargement du template about.html: {str(e)}")
+        return {"error": "Page non disponible"}
+
 @app.get("/exercise/{exercise_id}", response_class=HTMLResponse)
 async def exercise_page(request: Request, exercise_id: int):
     try:

@@ -213,6 +213,10 @@
                                 <i class="fas fa-plus" aria-hidden="true"></i>
                                 Nouvel exercice
                             </a>
+                            <a href="/about" class="menu-item" role="menuitem">
+                                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                                À propos
+                            </a>
                             <a href="/settings" class="menu-item" role="menuitem">
                                 <i class="fas fa-cog" aria-hidden="true"></i>
                                 Paramètres
@@ -284,6 +288,11 @@
                         <i class="fas fa-user-plus" aria-hidden="true"></i>
                         Inscription
                     </li>
+                {% elif request.path == '/about' %}
+                    <li aria-current="page">
+                        <i class="fas fa-info-circle" aria-hidden="true"></i>
+                        À propos
+                    </li>
                 {% endif %}
             </ol>
         </div>
@@ -309,6 +318,10 @@
         <div class="container">
             <p>Mathakine - Exerce-toi aux mathématiques de façon amusante !</p>
             <div class="footer-links">
+                <a href="/about" class="footer-link">
+                    <i class="fas fa-info-circle" aria-hidden="true"></i>
+                    À propos
+                </a>
                 <a href="https://github.com/zyclope0/mathakine" class="github-link" target="_blank" rel="noopener noreferrer">
                     <i class="fab fa-github" aria-hidden="true"></i> 
                     Projet GitHub

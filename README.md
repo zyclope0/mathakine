@@ -9,6 +9,8 @@
 
 Mathakine est une plateforme web éducative innovante pour l'apprentissage des mathématiques, spécialement conçue pour les enfants autistes. L'application utilise une interface thématique Star Wars immersive pour créer un environnement d'apprentissage engageant et adapté aux besoins spécifiques de ce public.
 
+**Histoire personnelle** : Créé par un père pour son fils Anakin, 9 ans, passionné par les concours de mathélogique, Mathakine est né du besoin de trouver un outil vraiment interactif et amusant pour s'entraîner aux mathématiques. Ce qui a commencé comme un projet personnel s'est transformé en une mission partagée pour offrir à tous les enfants une expérience d'apprentissage exceptionnelle.
+
 ### Caractéristiques Principales
 
 - **🎯 Apprentissage Adaptatif** : Progression personnalisée selon le niveau et les capacités de l'élève
@@ -17,6 +19,8 @@ Mathakine est une plateforme web éducative innovante pour l'apprentissage des m
 - **♿ Accessibilité Avancée** : Support complet pour différents besoins (dyslexie, photosensibilité, etc.)
 - **🏆 Système de Motivation** : Progression par rangs Jedi et récompenses virtuelles
 - **🔄 CI/CD Intégré** : Système de tests automatisés avec classification intelligente
+- **💫 Interface Premium v3.0** : Optimisations ergonomiques avec thème spatial immersif
+- **📖 Page "À propos"** : Histoire inspirante de la création de Mathakine et valeurs du projet
 
 ## 🏗️ Architecture Technique
 

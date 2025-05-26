@@ -35,6 +35,183 @@ static/
 - 🛠️ **Maintenabilité renforcée** (source unique de vérité)
 - ✅ **Zéro régression visuelle**
 
+### 📖 **Page "À propos" - Nouvelle Fonctionnalité (Janvier 2025)**
+
+Une page "À propos" inspirante a été créée pour raconter l'histoire personnelle derrière Mathakine et humaniser l'application.
+
+#### **Contenu et Sections**
+
+**Histoire Narrative :**
+- **L'Étincelle** : Récit de l'origine avec Anakin, 9 ans, passionné par les concours de mathélogique
+- **La Décision** : Choix de développer l'outil parfait plutôt que de subir les limitations existantes
+- **L'Évolution** : Transformation d'un projet personnel en mission partagée pour tous les enfants
+
+**Valeurs Fondamentales :**
+- 🎮 **Apprentissage Ludique** : Transformer l'apprentissage en jeu
+- 🚀 **Innovation Pédagogique** : Expériences d'apprentissage uniques
+- 👨‍👦 **Approche Familiale** : Créé par un parent pour des parents
+- 🌟 **Excellence Accessible** : Éducation de qualité sans barrières
+
+**Statistiques Visuelles :**
+- 150+ exercices disponibles
+- 4 niveaux de difficulté (Initié à Maître)
+- 9 types d'exercices différents
+- ∞ possibilités d'apprentissage
+
+#### **Design et Animations**
+
+**Hero Section Galactique :**
+```css
+.about-hero {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(51, 65, 85, 0.9));
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.about-hero::before {
+  content: '';
+  position: absolute;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  animation: heroGlow 8s ease-in-out infinite alternate;
+}
+```
+
+**Sections avec Effets de Balayage :**
+```css
+.story-section {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(51, 65, 85, 0.8));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  backdrop-filter: blur(15px);
+  position: relative;
+  overflow: hidden;
+}
+
+.story-section::before {
+  content: '';
+  position: absolute;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+  animation: sweepLight 3s ease-in-out infinite;
+}
+```
+
+**Cartes de Valeurs Interactives :**
+```css
+.value-card {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.value-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(139, 92, 246, 0.6);
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+}
+```
+
+**Citations Inspirantes :**
+```css
+.quote-section {
+  background: linear-gradient(135deg, rgba(51, 65, 85, 0.9), rgba(30, 41, 59, 0.8));
+  border-left: 4px solid #8b5cf6;
+  backdrop-filter: blur(10px);
+}
+
+.quote-text {
+  font-style: italic;
+  font-size: 1.1rem;
+  color: #e2e8f0;
+  line-height: 1.6;
+}
+
+.quote-author {
+  color: #8b5cf6;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+```
+
+#### **Intégration Navigation**
+
+**Menu Utilisateur :**
+```html
+<a href="/about" class="menu-item" role="menuitem">
+    <i class="fas fa-info-circle" aria-hidden="true"></i>
+    À propos
+</a>
+```
+
+**Footer :**
+```html
+<a href="/about" class="footer-link">
+    <i class="fas fa-info-circle"></i>
+    À propos
+</a>
+```
+
+**Breadcrumb :**
+```html
+{% elif request.path == '/about' %}
+    <li aria-current="page">
+        <i class="fas fa-info-circle" aria-hidden="true"></i>
+        À propos
+    </li>
+{% endif %}
+```
+
+#### **Animations JavaScript**
+
+**Particules Scintillantes :**
+```javascript
+// Génération de 20 particules aléatoires
+for (let i = 0; i < 20; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.top = Math.random() * 100 + '%';
+    particle.style.animationDelay = Math.random() * 3 + 's';
+    heroSection.appendChild(particle);
+}
+```
+
+**Effets d'Entrée :**
+```javascript
+// Animation d'entrée pour les sections
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+```
+
+#### **Impact et Objectifs**
+
+**Dimension Humaine :**
+- Ajoute une histoire personnelle touchante qui humanise l'application
+- Transforme la motivation personnelle en vision partagée
+- Rend l'application plus attachante et mémorable pour les utilisateurs
+
+**Transparence :**
+- Montre l'origine et les valeurs du projet
+- Explique pourquoi Mathakine a été créé
+- Inspire confiance en révélant la motivation parentale
+
+**Engagement :**
+- Crée un lien émotionnel avec les utilisateurs
+- Encourage l'adoption par d'autres parents
+- Renforce l'identité de marque de Mathakine
+
 ### 🎨 **Optimisations Interface Compacte (Janvier 2025) - MISE À JOUR**
 
 Suite aux retours utilisateur sur l'ergonomie de la page des exercices, une refonte complète de l'interface a été effectuée pour optimiser l'utilisation de l'espace et améliorer l'expérience utilisateur.

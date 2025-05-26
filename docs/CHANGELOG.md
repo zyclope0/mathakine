@@ -5,6 +5,85 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2025-05-26
+
+### 🔧 Correction Critique : Route "À propos" Fonctionnelle
+
+#### Fixed
+- 🚨 **Correction route `/about`** - Page "À propos" maintenant accessible
+  - **Problème** : Route définie uniquement dans FastAPI mais pas dans Starlette
+  - **Symptôme** : Erreur 404 lors de l'accès à `/about` depuis l'interface web
+  - **Cause** : Serveur Starlette (`enhanced_server.py`) ne connaissait pas la route
+  - **Solution** :
+    - Ajout de `about_page()` dans `server/views.py` avec gestion utilisateur connecté
+    - Ajout de `Route("/about", endpoint=about_page)` dans `server/routes.py`
+    - Import de `about_page` dans les fonctions de vues
+  - **Résultat** : Page "À propos" accessible et fonctionnelle (status 200 OK)
+
+#### Technical
+- 📁 **Fichiers modifiés** :
+  - `server/views.py` : Nouvelle fonction `about_page()` 
+  - `server/routes.py` : Route `/about` ajoutée et import de `about_page`
+- 🔄 **Compatibilité** : Route accessible depuis FastAPI et Starlette
+- ✅ **Tests** : Page "À propos" charge correctement avec animations et contenu
+
+#### Impact
+- **Fonctionnalité restaurée** : Les utilisateurs peuvent maintenant accéder à l'histoire inspirante de Mathakine
+- **Navigation complète** : Tous les liens "À propos" (menu, footer) fonctionnent correctement
+- **Expérience utilisateur** : Aucune interruption dans la navigation
+- **Architecture cohérente** : Même logique de gestion utilisateur que les autres pages
+
+## [1.4.0] - 2025-01-26
+
+### 🌟 Nouveau : Page "À propos" et Optimisations Ergonomiques v3.0
+
+#### Added
+- ✨ **Page "À propos" inspirante** (`templates/about.html`)
+  - Histoire personnelle touchante de la création de Mathakine
+  - Récit de l'étincelle : Anakin, 9 ans, passionné par les concours de mathélogique
+  - Transformation d'un projet personnel en mission partagée
+  - Design premium avec animations galactiques et particules scintillantes
+  - Sections narratives avec effets de balayage lumineux
+  - Citations inspirantes d'Einstein et Nelson Mandela
+  - Cartes de valeurs interactives (Apprentissage Ludique, Innovation Pédagogique, Approche Familiale, Excellence Accessible)
+  - Statistiques visuelles de Mathakine (150+ exercices, 4 niveaux, 9 types, ∞ possibilités)
+  - Section contact avec lien GitHub stylisé
+- 🎨 **Optimisations Ergonomiques v3.0** - Interface Premium
+  - **Page Exercices** : Effets de survol premium, balayage lumineux, bordures dynamiques, étoiles scintillantes
+  - **Page d'Accueil** : Hero Section galactique, statistiques dorées, bouton CTA avec fusée, 50 étoiles scintillantes, 3 planètes flottantes
+  - **Système de badges colorés** : 9 types d'exercices avec couleurs et icônes spécifiques
+  - **Système de difficultés** : 4 niveaux avec étoiles (Initié ⭐, Padawan ⭐⭐, Chevalier ⭐⭐⭐, Maître ⭐⭐⭐⭐)
+  - **Cohérence visuelle** : Palette violette unifiée (#8b5cf6), backdrop blur, animations synchronisées
+- 🧭 **Navigation améliorée**
+  - Lien "À propos" dans le menu utilisateur et footer
+  - Breadcrumb configuré pour la page "À propos"
+  - Styles CSS harmonisés avec le thème spatial
+- 🎭 **Animations et effets premium**
+  - Particules scintillantes générées dynamiquement
+  - Effets d'entrée séquentiels pour les cartes
+  - Animations fluides avec courbes cubic-bezier
+  - Effets de Force pour les cartes de niveaux Jedi
+
+#### Changed
+- 🔄 **Interface utilisateur transformée** : Passage d'une interface fonctionnelle à une expérience premium immersive
+- 🎨 **Thème spatial renforcé** : Intégration complète de l'univers Star Wars dans tous les éléments visuels
+- 📱 **Responsive optimisé** : Effets adaptés pour mobile et desktop
+- 🎯 **Expérience utilisateur** : Navigation plus intuitive avec dimension humaine ajoutée
+
+#### Technical
+- 📁 **Route `/about`** ajoutée dans `app/main.py`
+- 🎨 **Version CSS** mise à jour : `v=3.0.20250115`
+- 🖼️ **Styles CSS** : Nouveaux composants pour la page "À propos" et optimisations ergonomiques
+- ⚡ **JavaScript** : Animations d'entrée et effets de particules
+- 🔗 **Intégration complète** : Templates, routes, navigation, breadcrumbs
+
+#### Impact
+- **Dimension humaine** : Ajoute une histoire personnelle touchante qui humanise l'application
+- **Mission inspirante** : Transforme la motivation personnelle en vision partagée pour tous les parents
+- **Attachement émotionnel** : Rend l'application plus attachante et mémorable
+- **Expérience premium** : Interface digne d'une application moderne avec immersion totale
+- **Transparence** : Montre l'origine, les valeurs et la philosophie du projet
+
 ## [1.3.0] - 2025-01-26
 
 ### 🚀 Nouveau : Système CI/CD avec Classification Intelligente des Tests

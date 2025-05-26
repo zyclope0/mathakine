@@ -59,6 +59,14 @@ async def homepage(request: Request):
         "current_user": current_user
     })
 
+# Page "À propos"
+async def about_page(request: Request):
+    """Rendu de la page À propos"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    return render_template("about.html", request, {
+        "current_user": current_user
+    })
+
 # Page de connexion
 async def login_page(request: Request):
     """Rendu de la page de connexion"""

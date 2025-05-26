@@ -2755,3 +2755,34 @@ body::after {
     display: none !important;
   }
 }
+
+.github-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6);
+  text-decoration: none;
+  color: white;
+}
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #cbd5e1;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.footer-link:hover {
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.3);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.footer-link i {
+  font-size: 0.9rem;
+}

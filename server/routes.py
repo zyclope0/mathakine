@@ -11,6 +11,7 @@ from typing import List
 # Importer les fonctions de vues (pages HTML)
 from server.views import (
     homepage,
+    about_page,
     login_page,
     api_login,
     register_page,
@@ -41,6 +42,7 @@ def get_routes() -> List:
     return [
         # Main routes
         Route("/", endpoint=homepage),
+        Route("/about", endpoint=about_page),
         Route("/login", endpoint=login_page),
         Route("/api/auth/login", endpoint=api_login, methods=["POST"]),
         Route("/register", endpoint=register_page),
