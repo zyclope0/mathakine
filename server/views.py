@@ -369,15 +369,15 @@ async def dashboard(request: Request):
             if not isinstance(by_exercise_type, dict):
                 by_exercise_type = {}
             
+            # Mapping des noms de types d'exercice (défini en dehors de la boucle)
+            type_fr = {
+                ExerciseTypes.ADDITION: "Addition",
+                ExerciseTypes.SUBTRACTION: "Soustraction",
+                ExerciseTypes.MULTIPLICATION: "Multiplication",
+                ExerciseTypes.DIVISION: "Division"
+            }
+            
             for exercise_type, type_stats in by_exercise_type.items():
-                # Mapping des noms de types d'exercice
-                type_fr = {
-                    ExerciseTypes.ADDITION: "Addition",
-                    ExerciseTypes.SUBTRACTION: "Soustraction",
-                    ExerciseTypes.MULTIPLICATION: "Multiplication",
-                    ExerciseTypes.DIVISION: "Division"
-                }
-                
                 exercise_type_name = type_fr.get(exercise_type, exercise_type)
                 performance_by_type[exercise_type_name] = {
                     "total": type_stats.get("total", 0),
