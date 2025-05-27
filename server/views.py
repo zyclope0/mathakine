@@ -371,10 +371,11 @@ async def dashboard(request: Request):
             
             # Mapping des noms de types d'exercice (défini en dehors de la boucle)
             type_fr = {
-                ExerciseTypes.ADDITION: "Addition",
-                ExerciseTypes.SUBTRACTION: "Soustraction",
-                ExerciseTypes.MULTIPLICATION: "Multiplication",
-                ExerciseTypes.DIVISION: "Division"
+                "addition": "Addition",
+                "subtraction": "Soustraction", 
+                "multiplication": "Multiplication",
+                "division": "Division",
+                "mixed": "Mixte"
             }
             
             for exercise_type, type_stats in by_exercise_type.items():

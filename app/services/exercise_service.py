@@ -54,15 +54,23 @@ class ExerciseService:
             Liste des exercices correspondants aux critères
         """
         try:
-            query = db.query(Exercise).filter(Exercise.is_archived == False)
+            query = db.query(Exercise).filter(
+                Exercise.is_archived == False,
+                Exercise.is_active == True
+            )
             
-            # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
-            # pour éviter les erreurs d'énumération
+            # FILTRE CRITIQUE : Accepter les valeurs en majuscules ET minuscules
+            # pour compatibilité avec les données existantes
             valid_types = [t.value for t in ExerciseType]
             valid_difficulties = [d.value for d in DifficultyLevel]
             
-            query = query.filter(Exercise.exercise_type.in_(valid_types))
-            query = query.filter(Exercise.difficulty.in_(valid_difficulties))
+            # Ajouter les valeurs en minuscules pour compatibilité
+            valid_types.extend(['addition', 'subtraction', 'multiplication', 'division', 'mixed'])
+            valid_difficulties.extend(['initie', 'padawan', 'chevalier', 'maitre'])
+            
+            # Ne pas filtrer par énumération pour éviter les problèmes
+            # query = query.filter(Exercise.exercise_type.in_(valid_types))
+            # query = query.filter(Exercise.difficulty.in_(valid_difficulties))
             
             if exercise_type:
                 query = query.filter(Exercise.exercise_type == exercise_type)
