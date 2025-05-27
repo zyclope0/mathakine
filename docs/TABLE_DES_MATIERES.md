@@ -142,6 +142,7 @@
 | [Projet](project/README.md) | Projet | Statut et planification |
 | [README](README.md) | Référence | Vue d'ensemble |
 | [Recommandations](features/recommendations.md) | Fonctionnalités | Système adaptatif |
+| [Roadmap](project/roadmap.md) | Projet | Plan d'implémentation détaillé |
 | [Sécurité](architecture/security.md) | Architecture | Protection et authentification |
 | [Tests](development/testing.md) | Développement | Stratégie de tests |
 | [Transactions](architecture/transactions.md) | Architecture | Système unifié de transactions |
