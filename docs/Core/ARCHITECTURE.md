@@ -47,7 +47,7 @@ app/api/
 ├── deps.py                  # Dépendances FastAPI (dont l'authentification)
 ├── endpoints/               # Endpoints API groupés par fonctionnalité
 │   ├── __init__.py
-│   ├── auth.py              # Authentification (login, logout)
+│   ├── auth.py              # Authentification (login, logout, forgot-password)
 │   ├── exercises.py         # Gestion des exercices
 │   ├── users.py             # Gestion des utilisateurs
 │   ├── attempts.py          # Tentatives et résultats

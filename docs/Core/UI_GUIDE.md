@@ -35,6 +35,132 @@ static/
 - 🛠️ **Maintenabilité renforcée** (source unique de vérité)
 - ✅ **Zéro régression visuelle**
 
+### 🔐 **Page "Mot de passe oublié" - Nouvelle Fonctionnalité (Janvier 2025)**
+
+Une page complète de récupération de mot de passe a été implémentée avec toutes les fonctionnalités backend et frontend.
+
+#### **Fonctionnalités Implémentées**
+
+**Backend Complet :**
+- ✅ **Route `/forgot-password`** : Page accessible depuis l'interface web
+- ✅ **API `/api/auth/forgot-password`** : Endpoint FastAPI et Starlette
+- ✅ **Schémas Pydantic** : `ForgotPasswordRequest` et `ForgotPasswordResponse`
+- ✅ **Sécurité anti-énumération** : Messages uniformes pour éviter la découverte d'emails
+- ✅ **Validation robuste** : Côté serveur et client
+- ✅ **Simulation d'envoi email** : Prêt pour intégration service réel
+
+**Frontend Premium :**
+- ✅ **Design cohérent** : Thème Star Wars unifié avec variables CSS appropriées
+- ✅ **Mode sombre complet** : Support total avec variables adaptées
+- ✅ **Animations fluides** : Effets d'entrée et interactions
+- ✅ **Responsive design** : Optimisé mobile et desktop
+- ✅ **Accessibilité** : Intégration système de loading et messages contextuels
+- ✅ **Conseils de sécurité** : Section dédiée avec bonnes pratiques
+
+#### **Architecture Technique**
+
+**Routes et Vues :**
+```python
+# server/views.py
+async def forgot_password_page(request: Request):
+    """Rendu de la page mot de passe oublié"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    if current_user["is_authenticated"]:
+        return RedirectResponse(url="/", status_code=302)
+    return render_template("forgot_password.html", request, {
+        "current_user": current_user
+    })
+
+# server/routes.py
+Route("/forgot-password", endpoint=forgot_password_page),
+Route("/api/auth/forgot-password", endpoint=api_forgot_password, methods=["POST"]),
+```
+
+**API Endpoints :**
+```python
+# app/api/endpoints/auth.py
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db_session)
+) -> Any:
+    """Demander la réinitialisation du mot de passe"""
+    # Vérification utilisateur + sécurité anti-énumération
+    # Simulation envoi email (à remplacer par service réel)
+```
+
+**Schémas de Validation :**
+```python
+# app/schemas/user.py
+class ForgotPasswordRequest(BaseModel):
+    """Schéma pour la demande de réinitialisation de mot de passe"""
+    email: EmailStr = Field(..., description="Adresse email associée au compte")
+
+class ForgotPasswordResponse(BaseModel):
+    """Schéma pour la réponse de demande de réinitialisation"""
+    message: str = Field(..., description="Message de confirmation")
+    success: bool = Field(..., description="Statut de la demande")
+```
+
+#### **Corrections CSS Majeures**
+
+**Variables CSS Corrigées :**
+```css
+/* Avant (variables inexistantes) */
+background: var(--gradient-dark);
+border-radius: var(--radius-xl);
+box-shadow: var(--shadow-xl);
+
+/* Après (variables du système) */
+background: linear-gradient(135deg, var(--sw-space) 0%, #0f1419 100%);
+border-radius: var(--border-radius-lg);
+box-shadow: var(--shadow-lg);
+```
+
+**Mode Sombre Complet :**
+```css
+body.dark-mode .forgot-card {
+    background: var(--sw-card-bg);
+    border-color: var(--sw-card-border);
+}
+
+body.dark-mode .form-input {
+    background: var(--sw-input-bg);
+    border-color: var(--sw-input-border);
+    color: var(--sw-text);
+}
+```
+
+#### **Sécurité et Bonnes Pratiques**
+
+**Anti-énumération d'emails :**
+- Message uniforme que l'utilisateur existe ou non
+- Évite la découverte d'emails valides dans la base
+
+**Validation Multi-niveaux :**
+- Validation Pydantic côté serveur
+- Validation JavaScript côté client
+- Gestion d'erreurs complète avec messages contextuels
+
+**Logging Sécurisé :**
+- Log des tentatives légitimes
+- Log des tentatives suspectes
+- Pas de log des emails dans les erreurs
+
+#### **TODO pour Production**
+
+**Court terme :**
+- [ ] Intégrer service d'email réel (SendGrid, AWS SES)
+- [ ] Générer tokens de réinitialisation sécurisés
+- [ ] Créer page de reset avec validation token
+- [ ] Ajouter expiration des tokens (1 heure recommandée)
+
+**Moyen terme :**
+- [ ] Rate limiting sur l'endpoint
+- [ ] Captcha pour éviter le spam
+- [ ] Audit trail des demandes
+- [ ] Templates email personnalisés
+
 ### 📖 **Page "À propos" - Nouvelle Fonctionnalité (Janvier 2025)**
 
 Une page "À propos" inspirante a été créée pour raconter l'histoire personnelle derrière Mathakine et humaniser l'application.

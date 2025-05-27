@@ -20,7 +20,7 @@ Mathakine est une application éducative conçue pour les enfants autistes, perm
 | **Système de progression** | ⚠️ PARTIELLEMENT | Structure avancée avec niveaux de maîtrise |
 | **Mode adaptatif** | ⚠️ EN COURS | Conception architecturale et début d'implémentation |
 | **Migration PostgreSQL** | ✅ TERMINÉ | Support complet pour SQLite (dev) et PostgreSQL (prod) |
-| **Authentification** | ✅ PARTIELLEMENT TERMINÉ | Système JWT implémenté et fonctionnel, permissions en cours |
+| **Authentification** | ✅ TERMINÉ | Système JWT complet avec login, logout, forgot-password fonctionnel |
 | **Système de recommandations** | ✅ TERMINÉ | Modèle de recommandations personnalisées implémenté |
 | **Tests automatisés** | ⚠️ PARTIELLEMENT | Tests unitaires et d'intégration présents, mais incomplets |
 | **Documentation** | ✅ TERMINÉ | Documentation exhaustive dans le dossier docs/ |

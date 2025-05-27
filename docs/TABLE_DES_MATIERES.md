@@ -25,6 +25,7 @@
 ## Maintenance et Corrections
 - [CORRECTIONS_ET_MAINTENANCE.md](CORRECTIONS_ET_MAINTENANCE.md) - Documentation des corrections
 - [MAINTENANCE_ET_NETTOYAGE.md](MAINTENANCE_ET_NETTOYAGE.md) - Résumé des opérations de nettoyage
+- [CORRECTION_FORGOT_PASSWORD.md](../CORRECTION_FORGOT_PASSWORD.md) - Correction page mot de passe oublié
 
 ## Historique
 - [CHANGELOG.md](CHANGELOG.md) - Historique des modifications 

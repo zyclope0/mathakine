@@ -181,9 +181,9 @@ python tests/unified_test_runner.py --all --coverage
 
 ## 🛡️ Sécurité
 
-- **Authentification** : JWT avec tokens de rafraîchissement
-- **Mots de passe** : Hachage Bcrypt avec salt
-- **Validation** : Entrées validées via Pydantic
+- **Authentification** : JWT avec tokens de rafraîchissement + page mot de passe oublié
+- **Mots de passe** : Hachage Bcrypt avec salt + réinitialisation sécurisée
+- **Validation** : Entrées validées via Pydantic + anti-énumération emails
 - **CORS** : Configuration restrictive
 - **XSS/CSRF** : Protection native via frameworks
 

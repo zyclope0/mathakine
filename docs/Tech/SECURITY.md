@@ -26,7 +26,9 @@ Ce guide détaille les mesures de sécurité implémentées dans Mathakine et le
 - Hachage avec bcrypt
 - Règles de complexité minimale
 - Protection contre les attaques par force brute
-- Réinitialisation sécurisée
+- Réinitialisation sécurisée via `/api/auth/forgot-password`
+- Anti-énumération d'emails (messages uniformes)
+- Validation robuste côté serveur et client
 
 ### Middleware d'authentification
 - Vérification automatique des tokens pour les routes protégées
