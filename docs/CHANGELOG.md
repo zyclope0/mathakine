@@ -5,6 +5,78 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.4] - 2025-05-27
+
+### 🧹 Nettoyage Critique : Données de Test et Réorganisation Documentation
+
+#### Fixed
+- 🚨 **Pollution massive de la base de données résolue**
+  - **Problème critique** : 67.3% de la base constituée de données de test non nettoyées
+  - **41 utilisateurs de test supprimés** avec patterns suspects (test_, new_test_, cascade_, etc.)
+  - **5 défis logiques de test supprimés** créés par les tests
+  - **18 exercices valides préservés** (données légitimes maintenues)
+  - **Gestion des contraintes FK** : Suppression dans l'ordre correct pour éviter les erreurs
+  - **Script de nettoyage sécurisé** : `scripts/cleanup_test_data.py` avec mode dry-run par défaut
+
+#### Added
+- 🔧 **Scripts de maintenance des tests**
+  - `scripts/cleanup_test_data.py` : Nettoyage complet avec préservation des exercices
+  - `scripts/check_test_data.py` : Analyse de l'état de la base après tests
+  - `scripts/analyze_test_cleanup.py` : Diagnostic approfondi des patterns de test
+- 📚 **Documentation consolidée dans `docs/development/testing.md`**
+  - Section complète "Analyse et Nettoyage des Données de Test"
+  - Analyse technique des causes de pollution
+  - Solutions implémentées avec exemples de code
+  - Bonnes pratiques pour éviter la pollution future
+  - Scripts de validation continue et monitoring
+
+#### Changed
+- 🗂️ **Réorganisation de la racine du projet**
+  - **Scripts déplacés** : `analyze_test_cleanup.py`, `check_test_data.py`, `keep_test_user.py`, `fix_test_user_password.py`, `install_hooks.py` → `scripts/`
+  - **Documentation consolidée** : Informations intégrées dans les documents existants
+  - **Racine nettoyée** : Suppression des fichiers de documentation redondants
+- 📋 **Analyse technique approfondie**
+  - Identification des problèmes dans `conftest.py` (pas de rollback)
+  - Problèmes dans les tests API (commit permanent sans nettoyage)
+  - Absence de base de données de test séparée
+  - Solutions avec fixtures à rollback automatique
+
+#### Removed
+- ❌ **Fichiers de documentation redondants supprimés de la racine**
+  - `ANALYSE_DETAILLEE_TESTS_CLEANUP.md` → Intégré dans `docs/development/testing.md`
+  - `REORGANISATION_DOCUMENTATION_BDD.md` → Informations dans CHANGELOG
+  - `RESUME_REORGANISATION_BDD.md` → Informations dans CHANGELOG
+  - `REPARATION_CI_CD.md` → Intégré dans `docs/CI_CD_GUIDE.md`
+  - Autres fichiers de rapport temporaires
+
+#### Technical
+- 🔍 **Patterns d'utilisateurs de test identifiés** :
+  - `test_%`, `new_test_%`, `duplicate_%`, `cascade_%`, `user_stats_%`
+  - `rec_cascade_%`, `starlette_%`, `creator_%`, `jedi_%`
+- 🛡️ **Sécurité du nettoyage** :
+  - Mode dry-run par défaut pour éviter les suppressions accidentelles
+  - Préservation explicite des exercices valides
+  - Gestion des contraintes de clés étrangères
+  - Rapport détaillé des suppressions effectuées
+- 📊 **Résultats du nettoyage** :
+  - Base de données parfaitement nettoyée (0 utilisateurs de test restants)
+  - 18 exercices valides préservés
+  - Performance améliorée des tests
+  - Isolation parfaite entre les tests
+
+#### Impact
+- **Fiabilité des tests** : Élimination des faux positifs dus aux données existantes
+- **Performance** : Base de données allégée, tests plus rapides
+- **Maintenance** : Documentation centralisée, racine du projet organisée
+- **Qualité** : Environnement de test propre et prévisible
+- **Développement** : Bonnes pratiques établies pour éviter la pollution future
+
+#### Monitoring
+- **Validation continue** : Scripts de vérification post-tests
+- **Alertes automatiques** : Si > 10 utilisateurs de test détectés
+- **Métriques** : Taille de base, temps d'exécution, taux de réussite
+- **Critères de succès** : 0 données de test persistantes, exercices préservés, isolation parfaite
+
 ## [1.4.3] - 2025-01-15
 
 ### 🔐 Nouveau : Page Mot de Passe Oublié Complète

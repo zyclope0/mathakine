@@ -17,6 +17,7 @@
 - [Architecture Backend](architecture/backend.md) - Détails techniques du serveur
 - [Base de Données](architecture/database.md) - Schéma et modèles de données
 - [Base de Données Avancée](architecture/database-advanced.md) - Migrations PostgreSQL et optimisations
+- [Évolution Base de Données](architecture/database-evolution.md) - Spécifications techniques évolution BDD
 - [Système de Transactions](architecture/transactions.md) - Gestion unifiée des transactions
 - [Sécurité](architecture/security.md) - Authentification et protection
 - [Déploiement](architecture/deployment.md) - Configuration production
@@ -44,7 +45,8 @@
 
 ### Statut et Planification
 - [**Statut du Projet**](project/README.md) - État actuel et métriques
-- [**Roadmap Détaillée**](project/roadmap.md) - Plan d'implémentation complet
+- [**Roadmap Fonctionnalités Futures**](project/roadmap.md) - Vision 2025-2026 et fonctionnalités avancées
+- [**Évolution Base de Données**](project/EVOLUTION_BDD_ROADMAP.md) - Roadmap évolution BDD et nouvelles fonctionnalités
 - [Notes de Version](project/releases.md) - Historique des versions
 - [Historique](project/history.md) - Évolution du projet
 
@@ -100,6 +102,7 @@
 - [Architecture Générale](architecture/README.md)
 - [Base de Données](architecture/database.md)
 - [Base de Données Avancée](architecture/database-advanced.md)
+- [Évolution Base de Données](architecture/database-evolution.md)
 - [Système de Transactions](architecture/transactions.md)
 - [API Reference](development/api-reference.md)
 - [Sécurité](architecture/security.md)
@@ -128,6 +131,8 @@
 | [Authentification](features/authentication.md) | Fonctionnalités | Système de connexion |
 | [Base de Données](architecture/database.md) | Architecture | Schéma et modèles |
 | [Base de Données Avancée](architecture/database-advanced.md) | Architecture | Migrations et optimisations |
+| [Évolution Base de Données](architecture/database-evolution.md) | Architecture | Spécifications techniques évolution BDD |
+| [Évolution BDD Roadmap](project/EVOLUTION_BDD_ROADMAP.md) | Projet | Roadmap évolution BDD et nouvelles fonctionnalités |
 | [CHANGELOG](CHANGELOG.md) | Référence | Historique des modifications |
 | [CI/CD](CI_CD_GUIDE.md) | Développement | Intégration continue |
 | [Contribution](development/contributing.md) | Développement | Guide de contribution |
@@ -142,7 +147,7 @@
 | [Projet](project/README.md) | Projet | Statut et planification |
 | [README](README.md) | Référence | Vue d'ensemble |
 | [Recommandations](features/recommendations.md) | Fonctionnalités | Système adaptatif |
-| [Roadmap](project/roadmap.md) | Projet | Plan d'implémentation détaillé |
+| [Roadmap](project/roadmap.md) | Projet | Vision 2025-2026 et fonctionnalités avancées |
 | [Sécurité](architecture/security.md) | Architecture | Protection et authentification |
 | [Tests](development/testing.md) | Développement | Stratégie de tests |
 | [Transactions](architecture/transactions.md) | Architecture | Système unifié de transactions |
@@ -163,4 +168,4 @@
 
 **Documentation organisée pour une navigation intuitive** 📚⭐
 
-*Dernière mise à jour : 15 janvier 2025* 
+*Dernière mise à jour : 27 mai 2025* 

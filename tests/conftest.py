@@ -649,3 +649,60 @@ from app.utils.db_helpers import (
     get_enum_value, 
     adapt_enum_for_db
 )
+
+# Ajouter l'import du nouveau module de nettoyage
+from tests.utils.test_data_cleanup import TestDataManager, pytest_cleanup_test_data
+
+@pytest.fixture(autouse=True, scope="function")
+def auto_cleanup_test_data(db_session):
+    """
+    Fixture de nettoyage automatique des données de test.
+    S'exécute automatiquement après chaque test pour garantir l'isolation.
+    
+    Cette fixture :
+    1. S'exécute après chaque test (autouse=True)
+    2. Identifie automatiquement les données de test
+    3. Les supprime de manière sécurisée
+    4. Préserve les utilisateurs permanents (ObiWan, maitre_yoda, etc.)
+    5. Respecte les contraintes de clés étrangères
+    """
+    # Le test s'exécute ici
+    yield
+    
+    # Nettoyage automatique après le test
+    try:
+        manager = TestDataManager(db_session)
+        result = manager.cleanup_test_data(dry_run=False)
+        
+        if result.get('success', False):
+            total_deleted = result.get('total_deleted', 0)
+            if total_deleted > 0:
+                print(f"\n🧹 Nettoyage automatique : {total_deleted} éléments de test supprimés")
+        elif not result.get('dry_run', False):
+            # Erreur lors du nettoyage
+            error = result.get('error', 'Erreur inconnue')
+            print(f"\n⚠️ Erreur lors du nettoyage automatique : {error}")
+            
+    except Exception as e:
+        # En cas d'erreur critique, on log mais on ne fait pas échouer le test
+        print(f"\n❌ Erreur critique lors du nettoyage automatique : {str(e)}")
+
+@pytest.fixture
+def test_data_manager(db_session):
+    """
+    Fixture pour obtenir une instance de TestDataManager.
+    Utile pour les tests qui ont besoin de contrôler manuellement le nettoyage.
+    """
+    return TestDataManager(db_session)
+
+@pytest.fixture
+def isolated_test_user(db_session):
+    """
+    Fixture pour créer un utilisateur de test avec nettoyage automatique garanti.
+    Utilise le nouveau système de gestion des données de test.
+    """
+    manager = TestDataManager(db_session)
+    return manager.create_test_user(
+        username_prefix="isolated_test",
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
+    )

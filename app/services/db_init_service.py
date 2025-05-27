@@ -75,6 +75,16 @@ def create_test_users(db: Session):
 
     # Maintenant que le modèle utilise des énumérations natives, on peut les utiliser directement
     users = [
+        # Utilisateur permanent pour les tests et démonstrations
+        User(
+            username="ObiWan",
+            email="obiwan.kenobi@jedi-temple.sw",
+            hashed_password="$2b$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",  # "HelloThere123!"
+            full_name="Obi-Wan Kenobi",
+            role=UserRole.MAITRE,
+            grade_level=12,
+            created_at=datetime.now(),
+        ),
         User(
             username="maitre_yoda",
             email="yoda@jedi-temple.sw",
@@ -106,7 +116,7 @@ def create_test_users(db: Session):
 
     db.add_all(users)
     db.flush()
-    logger.info(f"{len(users)} utilisateurs créés")
+    logger.info(f"{len(users)} utilisateurs créés (incluant ObiWan permanent)")
 
 
 

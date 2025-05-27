@@ -53,6 +53,32 @@ jobs:
       run: |
         python mathakine_cli.py init --force
         
+    - name: Sauvegarder l'utilisateur ObiWan
+      run: |
+        echo "🔐 Sauvegarde de l'utilisateur permanent ObiWan..."
+        python scripts/keep_obiwan_user.py save --file .obiwan_user_hash
+        echo "✅ Hash ObiWan sauvegardé"
+      
+    - name: Exécuter les tests
+      run: |
+        echo "🧪 Exécution des tests..."
+        python -m pytest tests/ -v --tb=short
+        echo "✅ Tests terminés"
+      
+    - name: Restaurer l'utilisateur ObiWan
+      if: always()  # Toujours exécuter même si les tests échouent
+      run: |
+        echo "🔄 Restauration de l'utilisateur permanent ObiWan..."
+        python scripts/keep_obiwan_user.py restore --file .obiwan_user_hash
+        echo "✅ Utilisateur ObiWan restauré"
+        
+    - name: Vérifier l'utilisateur ObiWan
+      if: always()
+      run: |
+        echo "🔍 Vérification de l'utilisateur ObiWan..."
+        python scripts/keep_obiwan_user.py ensure
+        echo "✅ Utilisateur ObiWan vérifié"
+
     - name: 🔴 Run Critical Tests
       id: critical_tests
       run: |
