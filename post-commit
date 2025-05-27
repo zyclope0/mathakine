@@ -1,0 +1,29 @@
+#!/bin/sh
+# post-commit hook pour restaurer le mot de passe de l'utilisateur test après chaque commit
+
+# Vérifier si Python est disponible
+command -v python >/dev/null 2>&1 || {
+    echo "❌ Python non trouvé, impossible de restaurer le mot de passe de test_user"
+    exit 0
+}
+
+# Chemin vers le script keep_test_user.py
+SCRIPT_PATH="./keep_test_user.py"
+
+# Vérifier si le script existe
+if [ -f "$SCRIPT_PATH" ]; then
+    echo "🔐 Restauration du mot de passe de l'utilisateur test..."
+    python "$SCRIPT_PATH" restore
+    RESTORE_STATUS=$?
+    
+    if [ $RESTORE_STATUS -eq 0 ]; then
+        echo "✅ Mot de passe restauré avec succès"
+    else
+        echo "⚠️ Impossible de restaurer le mot de passe"
+    fi
+else
+    echo "⚠️ Script $SCRIPT_PATH non trouvé, impossible de restaurer le mot de passe"
+fi
+
+# Toujours terminer avec succès
+exit 0 
