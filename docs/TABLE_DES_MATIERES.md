@@ -16,6 +16,8 @@
 - [**Architecture Générale**](architecture/README.md) - Vision globale du système
 - [Architecture Backend](architecture/backend.md) - Détails techniques du serveur
 - [Base de Données](architecture/database.md) - Schéma et modèles de données
+- [Base de Données Avancée](architecture/database-advanced.md) - Migrations PostgreSQL et optimisations
+- [Système de Transactions](architecture/transactions.md) - Gestion unifiée des transactions
 - [Sécurité](architecture/security.md) - Authentification et protection
 - [Déploiement](architecture/deployment.md) - Configuration production
 
@@ -31,7 +33,7 @@
 ## ✨ Fonctionnalités
 
 ### Fonctionnalités Utilisateur
-- [**Vue d'Ensemble**](features/README.md) - Toutes les fonctionnalités disponibles
+- [**Vue d'Ensemble Complète**](features/README.md) - Toutes les fonctionnalités disponibles
 - [Système d'Authentification](features/authentication.md) - Connexion et sécurité
 - [Exercices Mathématiques](features/exercises.md) - Types et génération d'exercices
 - [Défis Logiques](features/challenges.md) - Défis avancés par âge
@@ -42,7 +44,7 @@
 
 ### Statut et Planification
 - [**Statut du Projet**](project/README.md) - État actuel et métriques
-- [Feuille de Route](project/roadmap.md) - Planification future
+- [**Roadmap Détaillée**](project/roadmap.md) - Plan d'implémentation complet
 - [Notes de Version](project/releases.md) - Historique des versions
 - [Historique](project/history.md) - Évolution du projet
 
@@ -97,6 +99,8 @@
 #### 🏗️ **Architecture & Technique**
 - [Architecture Générale](architecture/README.md)
 - [Base de Données](architecture/database.md)
+- [Base de Données Avancée](architecture/database-advanced.md)
+- [Système de Transactions](architecture/transactions.md)
 - [API Reference](development/api-reference.md)
 - [Sécurité](architecture/security.md)
 
@@ -123,6 +127,7 @@
 | [Architecture](architecture/README.md) | Architecture | Vue d'ensemble technique |
 | [Authentification](features/authentication.md) | Fonctionnalités | Système de connexion |
 | [Base de Données](architecture/database.md) | Architecture | Schéma et modèles |
+| [Base de Données Avancée](architecture/database-advanced.md) | Architecture | Migrations et optimisations |
 | [CHANGELOG](CHANGELOG.md) | Référence | Historique des modifications |
 | [CI/CD](CI_CD_GUIDE.md) | Développement | Intégration continue |
 | [Contribution](development/contributing.md) | Développement | Guide de contribution |
@@ -139,6 +144,7 @@
 | [Recommandations](features/recommendations.md) | Fonctionnalités | Système adaptatif |
 | [Sécurité](architecture/security.md) | Architecture | Protection et authentification |
 | [Tests](development/testing.md) | Développement | Stratégie de tests |
+| [Transactions](architecture/transactions.md) | Architecture | Système unifié de transactions |
 
 ## 📞 Support et Contact
 
