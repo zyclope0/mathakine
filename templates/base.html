@@ -193,6 +193,12 @@
                 </li>
                 {% if current_user['is_authenticated'] %}
                 <li>
+                    <a href="/badges" class="nav-link{% if request.path == '/badges' %} active{% endif %}" aria-current="{% if request.path == '/badges' %}page{% endif %}">
+                        <i class="fas fa-medal" aria-hidden="true"></i>
+                        <span>Badges</span>
+                    </a>
+                </li>
+                <li>
                     <a href="/profile" class="nav-link{% if request.path == '/profile' %} active{% endif %}" aria-current="{% if request.path == '/profile' %}page{% endif %}">
                         <i class="fas fa-user" aria-hidden="true"></i>
                         <span>Profil</span>
@@ -274,6 +280,11 @@
                     <li aria-current="page">
                         <i class="fas fa-chart-line" aria-hidden="true"></i>
                         Tableau de bord
+                    </li>
+                {% elif request.path == '/badges' %}
+                    <li aria-current="page">
+                        <i class="fas fa-medal" aria-hidden="true"></i>
+                        Mes Badges
                     </li>
                 {% elif request.path == '/profile' %}
                     <li aria-current="page">

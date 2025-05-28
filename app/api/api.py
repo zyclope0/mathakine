@@ -3,7 +3,7 @@ API principale regroupant tous les routeurs
 """
 from fastapi import APIRouter
 
-from app.api.endpoints import users, exercises, challenges, auth, recommendations
+from app.api.endpoints import users, exercises, challenges, auth, recommendations, badges
 
 api_router = APIRouter()
 
@@ -13,5 +13,6 @@ api_router.include_router(exercises.router, prefix="/exercises", tags=["exercise
 api_router.include_router(challenges.router, prefix="/challenges", tags=["challenges"])
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(recommendations.router, prefix="/recommendations", tags=["recommendations"])
+api_router.include_router(badges.router, prefix="/badges", tags=["badges"])
 
 # Ajouter d'autres routeurs selon les besoins

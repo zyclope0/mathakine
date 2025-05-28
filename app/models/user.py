@@ -62,6 +62,13 @@ class User(Base):
     preferred_theme = Column(String(50))
     accessibility_settings = Column(JSONEncodedDict)
 
+    # Colonnes de gamification (système de badges)
+    total_points = Column(Integer, default=0)
+    current_level = Column(Integer, default=1)
+    experience_points = Column(Integer, default=0)
+    jedi_rank = Column(String(50), default='youngling')
+    avatar_url = Column(String(255), nullable=True)
+
     # Relations
     created_exercises = relationship("Exercise", back_populates="creator", cascade="all, delete-orphan")
     attempts = relationship("Attempt", back_populates="user", cascade="all, delete-orphan")
@@ -71,6 +78,9 @@ class User(Base):
     # Relations avec les défis logiques
     created_logic_challenges = relationship("LogicChallenge", back_populates="creator", cascade="all, delete-orphan")
     logic_challenge_attempts = relationship("LogicChallengeAttempt", back_populates="user", cascade="all, delete-orphan")
+
+    # Relations avec le système de badges
+    user_achievements = relationship("UserAchievement", back_populates="user", cascade="all, delete-orphan")
 
 
 

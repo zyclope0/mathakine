@@ -21,7 +21,8 @@ from server.views import (
     exercises_page,
     dashboard,
     exercise_detail_page,
-    redirect_old_exercise_url
+    redirect_old_exercise_url,
+    badges_page
 )
 
 # Importer les fonctions d'API
@@ -34,6 +35,7 @@ from server.api_routes import (
 
 from server.handlers.exercise_handlers import generate_exercise, get_exercise, submit_answer, generate_exercise_api
 from server.handlers.user_handlers import get_user_stats
+from server.handlers.badge_handlers import get_user_badges, get_available_badges, check_user_badges, get_user_gamification_stats
 
 def get_routes() -> List:
     """
@@ -54,6 +56,7 @@ def get_routes() -> List:
         Route("/logout", endpoint=logout),
         Route("/exercises", endpoint=exercises_page),
         Route("/dashboard", endpoint=dashboard),
+        Route("/badges", endpoint=badges_page),
         Route("/exercise/{exercise_id:int}", endpoint=exercise_detail_page),
         Route("/exercises/{exercise_id:int}", endpoint=redirect_old_exercise_url),
         
@@ -65,6 +68,10 @@ def get_routes() -> List:
         Route("/api/exercises/generate", endpoint=generate_exercise_api, methods=["POST"]),
         Route("/api/submit-answer", endpoint=submit_answer, methods=["POST"]),
         Route("/api/users/stats", endpoint=get_user_stats),
+        Route("/api/badges/user", endpoint=get_user_badges),
+        Route("/api/badges/available", endpoint=get_available_badges),
+        Route("/api/badges/check", endpoint=check_user_badges, methods=["POST"]),
+        Route("/api/badges/stats", endpoint=get_user_gamification_stats),
         Route("/api/recommendations/complete", endpoint=handle_recommendation_complete, methods=["POST"]),
         Route("/api/auth/forgot-password", endpoint=api_forgot_password, methods=["POST"]),
         

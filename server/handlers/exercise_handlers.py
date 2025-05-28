@@ -9,6 +9,9 @@ from server.exercise_generator import generate_ai_exercise, generate_simple_exer
 from app.core.messages import SystemMessages
 from app.models.exercise import ExerciseType
 
+# Import du service de badges
+from app.services.badge_service import BadgeService
+
 # Fonction pour obtenir l'utilisateur courant
 async def get_current_user(request):
     """Récupère l'utilisateur actuellement authentifié"""
@@ -215,13 +218,46 @@ async def submit_answer(request):
                 
             print("Tentative enregistrée avec succès")
 
-            # Retourner le résultat avec l'ID de tentative
-            return JSONResponse({
+            # 🎖️ NOUVEAU: Vérifier et attribuer les badges
+            new_badges = []
+            try:
+                badge_service = BadgeService(db)
+                
+                # Préparer les données de la tentative pour l'évaluation des badges
+                attempt_for_badges = {
+                    "exercise_type": exercise.get('exercise_type'),
+                    "is_correct": is_correct,
+                    "time_spent": time_spent,
+                    "exercise_id": exercise_id
+                }
+                
+                # Vérifier et attribuer les nouveaux badges
+                new_badges = badge_service.check_and_award_badges(user_id, attempt_for_badges)
+                
+                if new_badges:
+                    print(f"🎖️ {len(new_badges)} nouveaux badges attribués à l'utilisateur {user_id}")
+                    for badge in new_badges:
+                        print(f"   - {badge['name']} ({badge['star_wars_title']})")
+                
+            except Exception as badge_error:
+                print(f"⚠️ Erreur lors de la vérification des badges: {badge_error}")
+                # Ne pas faire échouer la soumission si les badges échouent
+                pass
+
+            # Retourner le résultat avec l'ID de tentative et les nouveaux badges
+            response_data = {
                 "is_correct": is_correct,
                 "correct_answer": exercise['correct_answer'],
                 "explanation": exercise.get('explanation', ""),
-                "attempt_id": attempt.get('id', 0)  # Ajouter l'ID de tentative
-            })
+                "attempt_id": attempt.get('id', 0)
+            }
+            
+            # Ajouter les nouveaux badges à la réponse
+            if new_badges:
+                response_data["new_badges"] = new_badges
+                response_data["badges_earned"] = len(new_badges)
+            
+            return JSONResponse(response_data)
             
         finally:
             # Fermer la session dans tous les cas

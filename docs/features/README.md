@@ -34,6 +34,10 @@
 - **Système dual** : Progress individuels + UserStats globales
 - **Enregistrement fiable** : Transactions sécurisées avec rollback automatique
 - **Tests validés** : Scénarios multiples (utilisateur unique, multi-utilisateurs, types variés)
+- **🔧 Authentification corrigée** : Système de cookies de session fonctionnel
+- **📊 Graphiques temps réel** : Données réelles avec mise à jour immédiate
+- **🎯 Validation instantanée** : Statistiques incrémentées lors de la soumission d'exercices
+- **📈 Graphique quotidien** : Affichage des vraies tentatives sur 30 jours (corrigé Mai 2025)
 
 ### 🎨 Interface Utilisateur Premium
 

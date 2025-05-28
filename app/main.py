@@ -70,6 +70,10 @@ api_tags_metadata = [
         "name": "auth",
         "description": "Authentification et gestion des sessions",
     },
+    {
+        "name": "badges",
+        "description": "Système de badges et achievements avec gamification Star Wars",
+    },
 ]
 
 app = FastAPI(

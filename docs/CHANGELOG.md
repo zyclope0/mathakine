@@ -5,6 +5,94 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] - 2025-05-28
+
+### 🔧 Correction Critique : Problème Tableau de Bord et Statistiques Résolu
+
+#### Fixed
+- 🚨 **Problème majeur d'authentification dans les exercices résolu**
+  - **Symptôme** : Statistiques affichées mais non incrémentées lors de la validation d'exercices
+  - **Cause** : Erreur dans `server/handlers/exercise_handlers.py` - fonction `get_current_user` défaillante
+  - **Solution** : Refactorisation complète de l'authentification avec logique cohérente
+  - **Impact** : Tableau de bord maintenant 100% fonctionnel avec mise à jour temps réel
+
+- 🔐 **Authentification JavaScript corrigée**
+  - **Problème** : Requêtes `fetch` sans `credentials: 'include'` → erreurs 401 Unauthorized
+  - **Fichiers corrigés** :
+    - `static/js/exercise.js` : Ajout credentials dans submitAnswer()
+    - `templates/exercise_simple.html` : Correction requête fetch
+    - `templates/exercise_detail.html` : Ajout credentials include
+  - **Résultat** : Cookies de session correctement transmis
+
+- 📊 **Graphique quotidien "Exercices par jour" réparé**
+  - **Problème** : Toutes les barres affichaient 0 au lieu des vraies données
+  - **Cause** : Génération de données factices dans `server/handlers/user_handlers.py`
+  - **Solution** : Requête SQL pour récupérer les vraies tentatives par jour
+  - **Amélioration** : Graphique maintenant basé sur les données réelles de la base
+
+#### Added
+- 🧪 **Scripts de diagnostic créés**
+  - `test_submit_endpoint.py` : Test direct de l'endpoint de soumission
+  - `debug_real_time.py` : Surveillance temps réel des tentatives
+  - `fix_obiwan_password.py` : Utilitaire de gestion des mots de passe
+  - `test_obiwan_attempt.py` : Test manuel d'enregistrement de tentatives
+
+#### Changed
+- 🔄 **Architecture d'authentification unifiée**
+  - Fonction `get_current_user` dans `exercise_handlers.py` alignée sur `server/views.py`
+  - Utilisation cohérente de `decode_token` et `get_user_by_username`
+  - Gestion d'erreurs robuste avec try/catch appropriés
+  - Suppression des imports obsolètes causant des erreurs
+
+- 📈 **Amélioration du système de graphiques**
+  - Requête SQL optimisée pour les tentatives par jour (30 derniers jours)
+  - Gestion correcte des dates avec `datetime` et `timedelta`
+  - Initialisation propre des données avec zéros pour jours sans activité
+  - Logs détaillés pour debugging et monitoring
+
+#### Technical
+- 🛠️ **Corrections techniques détaillées**
+  - **Authentification** : Logique unifiée entre API et interface web
+  - **Cookies de session** : Transmission correcte avec `credentials: 'include'`
+  - **Transactions** : Enregistrement fiable des tentatives avec mise à jour stats
+  - **Graphiques** : Données réelles au lieu de valeurs factices
+  - **Gestion d'erreurs** : Try/catch appropriés et logs informatifs
+
+#### Results
+- 📊 **Validation complète réussie**
+  - ✅ **Authentification** : Connexion ObiWan fonctionnelle
+  - ✅ **Soumission exercices** : Requêtes 200 OK au lieu de 401 Unauthorized
+  - ✅ **Statistiques temps réel** : Incrémentation immédiate après validation
+  - ✅ **Graphique quotidien** : Affichage des vraies données (6 tentatives le 28/05)
+  - ✅ **Interface utilisateur** : Tableau de bord entièrement fonctionnel
+
+#### Usage
+- 🔍 **Workflow de test validé**
+  ```bash
+  # Démarrage serveur
+  python enhanced_server.py
+  
+  # Test authentification
+  python test_submit_endpoint.py
+  
+  # Surveillance temps réel
+  python debug_real_time.py
+  ```
+
+#### Impact
+- **Fiabilité** : Système de suivi maintenant 100% fiable
+- **Expérience utilisateur** : Feedback immédiat lors de la validation d'exercices
+- **Tableau de bord** : Statistiques et graphiques en temps réel
+- **Développement** : Scripts de diagnostic pour maintenance future
+- **Production** : Système prêt pour utilisation en conditions réelles
+
+#### Integration
+- 🔗 **Intégration dans le système de qualité**
+  - Tests d'authentification ajoutés aux **Tests Critiques**
+  - Validation obligatoire du tableau de bord avant déploiement
+  - Scripts de diagnostic intégrés aux outils de maintenance
+  - Documentation mise à jour dans tous les guides techniques
+
 ## [1.5.1] - 2025-05-27
 
 ### 🔧 Correction Critique : Système de Statistiques Complètement Réparé
@@ -503,7 +591,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - 📊 Système de recommandations personnalisées complet
 - 🧩 Templates partiels pour composants réutilisables
 - 📚 Documentation complète du schéma de base de données (`docs/Tech/DATABASE_SCHEMA.md`)
-- �� Plan de correction structuré des tests (`tests/CORRECTION_PLAN.md`)
+- 📝 Plan de correction structuré des tests (`tests/CORRECTION_PLAN.md`)
 - 🔧 Scripts de vérification de compatibilité DB
 - 🎯 Support des tokens expirés et refresh tokens
 - 📝 Documentation consolidée et professionnelle

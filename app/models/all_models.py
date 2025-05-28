@@ -11,6 +11,7 @@ from app.models.setting import Setting
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt, LogicChallengeType\
     , AgeGroup
 from app.models.recommendation import Recommendation
+from app.models.achievement import Achievement, UserAchievement
 
 # Export all models
 __all__ = [
@@ -26,5 +27,7 @@ __all__ = [
     "LogicChallengeAttempt",
     "LogicChallengeType",
     "AgeGroup",
-    "Recommendation"
+    "Recommendation",
+    "Achievement",
+    "UserAchievement"
 ]

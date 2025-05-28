@@ -651,4 +651,27 @@ async def redirect_old_exercise_url(request: Request):
     """Redirige de /exercises/{id} vers /exercise/{id}"""
     exercise_id = request.path_params["exercise_id"]
     print(f"Redirection de /exercises/{exercise_id} vers /exercise/{exercise_id}")
-    return RedirectResponse(url=f"/exercise/{exercise_id}", status_code=301) 
+    return RedirectResponse(url=f"/exercise/{exercise_id}", status_code=301)
+
+# Page des badges
+async def badges_page(request: Request):
+    """Rendu de la page des badges et achievements"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    
+    # Vérifier si l'utilisateur est connecté
+    if not current_user["is_authenticated"]:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    try:
+        return render_template("badges.html", request, {
+            "current_user": current_user
+        })
+    except Exception as e:
+        print(f"Erreur lors du chargement de la page badges: {str(e)}")
+        traceback.print_exc()
+        return render_error(
+            request=request,
+            error="Erreur de chargement",
+            message=f"Impossible de charger la page des badges: {str(e)}",
+            status_code=500
+        ) 

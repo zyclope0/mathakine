@@ -28,6 +28,7 @@
 - [**Guide Développeur**](development/README.md) - Documentation complète pour développeurs
 - [Guide de Contribution](development/contributing.md) - Comment contribuer au projet
 - [Tests et CI/CD](development/testing.md) - Stratégie de tests et intégration continue
+- [**🚨 Correction Critique Tableau de Bord**](development/dashboard-fix-critical.md) - Résolution problème authentification et statistiques ⭐ **NOUVEAU**
 - [Référence API](development/api-reference.md) - Documentation des endpoints
 - [Opérations](development/operations.md) - Maintenance et monitoring
 
