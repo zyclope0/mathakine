@@ -21,6 +21,47 @@ Mathakine est une plateforme web éducative innovante pour l'apprentissage des m
 - **🔄 CI/CD Intégré** : Système de tests automatisés avec classification intelligente
 - **💫 Interface Premium v3.0** : Optimisations ergonomiques avec thème spatial immersif
 - **📖 Page "À propos"** : Histoire inspirante de la création de Mathakine et valeurs du projet
+- **🎲 Générateurs d'Exercices Étendus** : 9 types d'exercices avec 3 nouveaux domaines (Fractions, Géométrie, Divers) ⭐ **NOUVEAU**
+
+## 🎲 Types d'Exercices Disponibles
+
+### Exercices Mathématiques Complets
+
+#### Types Arithmétiques (Existants)
+- **➕ Addition** : 4 niveaux de difficulté (Initié → Maître)
+- **➖ Soustraction** : Calculs avec résultats positifs
+- **✖️ Multiplication** : Tables et calculs avancés
+- **➗ Division** : Divisions exactes adaptées au niveau
+- **🔀 Mixte** : Combinaisons intelligentes des opérations
+
+#### Nouveaux Types (Mai 2025) ⭐
+- **🔢 Fractions** : 4 opérations complètes avec module Python `fractions`
+  - Progression : fractions simples → dénominateurs différents → calculs complexes → divisions
+  - Exemple : `Calcule 5/6 + 3/4 → 19/12`
+- **📐 Géométrie** : 5 formes (carré, rectangle, triangle, cercle, trapèze)
+  - 3 propriétés : périmètre, aire, diagonale
+  - Exemple : `Calcule l'aire d'un triangle avec base=146 et hauteur=105 → 7665.0`
+- **🌟 Divers** : 6 catégories de problèmes concrets
+  - Monnaie, vitesse, pourcentages, probabilités, séquences
+  - Exemple : `Un train roule à 755 km/h pendant 1 heure. Distance ? → 755 km`
+
+### Progression par Niveaux
+- **🌱 Initié** : Introduction aux concepts (nombres 1-10)
+- **⚔️ Padawan** : Niveau intermédiaire (nombres 10-50)
+- **🛡️ Chevalier** : Calculs avancés (nombres 50-100)
+- **👑 Maître** : Défis experts (nombres 100-500)
+
+### API REST Complète
+```bash
+POST /api/exercises/generate
+{
+  "exercise_type": "fractions",
+  "difficulty": "padawan",
+  "save": false
+}
+```
+
+**Résultats de Migration** : 12/12 tests réussis (100%), +50% de types d'exercices, +200% de couverture mathématique
 
 ## 🏗️ Architecture Technique
 

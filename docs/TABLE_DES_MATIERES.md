@@ -37,6 +37,7 @@
 - [**Vue d'Ensemble Complète**](features/README.md) - Toutes les fonctionnalités disponibles
 - [Système d'Authentification](features/authentication.md) - Connexion et sécurité
 - [Exercices Mathématiques](features/exercises.md) - Types et génération d'exercices
+- **[Migration Générateurs d'Exercices](features/exercise-generators-migration.md)** - Extension avec Fractions, Géométrie, Divers ⭐ **NOUVEAU**
 - [Défis Logiques](features/challenges.md) - Défis avancés par âge
 - [Interface Utilisateur](features/ui-interface.md) - Design et accessibilité
 - [Recommandations](features/recommendations.md) - Système adaptatif
@@ -49,6 +50,14 @@
 - [**Évolution Base de Données**](project/EVOLUTION_BDD_ROADMAP.md) - Roadmap évolution BDD et nouvelles fonctionnalités
 - [Notes de Version](project/releases.md) - Historique des versions
 - [Historique](project/history.md) - Évolution du projet
+
+## 📋 **PLANIFICATION ET ROADMAP**
+- [Roadmap du Projet](project/roadmap.md) - Vision et planification à long terme
+- [État du Projet](project/PROJECT_STATUS.md) - Statut actuel et prochaines étapes
+- [Plan d'Implémentation](project/IMPLEMENTATION_PLAN.md) - Stratégie de développement
+- [Évolution BDD](project/EVOLUTION_BDD_ROADMAP.md) - Roadmap évolution base de données
+- **[Priorités Exercices Détaillées](project/PRIORITES_EXERCICES_DETAILLEES.md)** - Spécifications nouveaux types ⭐ **NOUVEAU**
+- **[Plan d'Action Immédiat](../PLAN_ACTION_IMMEDIAT.md)** - Planning 2-4 semaines ⭐ **NOUVEAU**
 
 ## 📖 Documents de Référence
 
@@ -168,4 +177,14 @@
 
 **Documentation organisée pour une navigation intuitive** 📚⭐
 
-*Dernière mise à jour : 27 mai 2025* 
+*Dernière mise à jour : 27 mai 2025*
+
+## 📋 Documentation Projet
+
+### Gestion et Suivi
+- [**Table des Matières**](TABLE_DES_MATIERES.md) - Navigation complète de la documentation
+- [**Résumé Exécutif Migration Générateurs**](MIGRATION_GENERATEURS_RESUME.md) - Synthèse de la migration v1.5.0 ⭐ **NOUVEAU**
+- [Changelog](CHANGELOG.md) - Historique des versions et modifications
+- [Roadmap](project/ROADMAP.md) - Feuille de route et objectifs futurs
+- [Priorités Exercices](project/PRIORITES_EXERCICES_DETAILLEES.md) - Spécifications détaillées des exercices
+- [Analyse Besoins](project/ANALYSE_BESOINS.md) - Étude des besoins utilisateurs 
