@@ -25,6 +25,7 @@ async function submitAnswer(exerciseId, answer) {
             headers: {
                 'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify(data)
         });
         
@@ -52,6 +53,7 @@ async function markRecommendationAsCompleted(recommendationId) {
             headers: {
                 'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify({ recommendation_id: recommendationId })
         });
         
@@ -83,7 +85,9 @@ async function generateNewExercise(exerciseType, difficulty, fromRecommendation 
             url += '?' + params.toString();
         }
         
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            credentials: 'include'
+        });
         const result = await response.json();
         
         // Si l'exercice est généré à partir d'une recommandation, ajouter le paramètre à l'URL

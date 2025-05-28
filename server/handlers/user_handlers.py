@@ -70,15 +70,50 @@ async def get_user_stats(request):
                     ]
                 }]
             }
+            # Générer le graphique des exercices par jour avec les vraies données
             from datetime import datetime, timedelta
             current_date = datetime.now().date()
+            
+            # Initialiser avec zéro pour chaque jour des 30 derniers jours
             daily_exercises = {}
             for i in range(30, -1, -1):
                 day = current_date - timedelta(days=i)
                 day_str = day.strftime("%d/%m")
                 daily_exercises[day_str] = 0
+            
+            # Récupérer les vraies données des tentatives par jour
+            try:
+                from sqlalchemy import func, text
+                from app.models.attempt import Attempt
+                
+                # Requête pour compter les tentatives par jour pour cet utilisateur
+                daily_attempts_query = db.query(
+                    func.date(Attempt.created_at).label('attempt_date'),
+                    func.count(Attempt.id).label('count')
+                ).filter(
+                    Attempt.user_id == user_id,
+                    Attempt.created_at >= current_date - timedelta(days=30)
+                ).group_by(
+                    func.date(Attempt.created_at)
+                ).all()
+                
+                print(f"Tentatives par jour trouvées: {len(daily_attempts_query)} jours avec des données")
+                
+                # Remplir avec les données réelles
+                for attempt_date, count in daily_attempts_query:
+                    day_str = attempt_date.strftime("%d/%m")
+                    if day_str in daily_exercises:
+                        daily_exercises[day_str] = count
+                        print(f"Jour {day_str}: {count} tentatives")
+                        
+            except Exception as e:
+                print(f"Erreur lors de la récupération des tentatives quotidiennes: {e}")
+                # En cas d'erreur, garder les valeurs à 0
+            
             daily_labels = list(daily_exercises.keys())
             daily_counts = list(daily_exercises.values())
+            
+            print(f"Données du graphique quotidien: {sum(daily_counts)} tentatives au total sur {len(daily_labels)} jours")
             exercises_by_day = {
                 'labels': daily_labels,
                 'datasets': [{

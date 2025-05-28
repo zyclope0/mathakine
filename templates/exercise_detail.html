@@ -556,6 +556,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include',
                     body: JSON.stringify({
                         exercise_id: {{ exercise.id }},
                         answer: userAnswer

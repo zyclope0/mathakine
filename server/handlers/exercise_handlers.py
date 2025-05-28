@@ -8,28 +8,44 @@ from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from server.exercise_generator import generate_ai_exercise, generate_simple_exercise, ensure_explanation
 from app.core.messages import SystemMessages
 from app.models.exercise import ExerciseType
-from app.api.deps import get_current_user as api_get_current_user
 
 # Fonction pour obtenir l'utilisateur courant
 async def get_current_user(request):
     """Récupère l'utilisateur actuellement authentifié"""
     try:
-        # Tenter d'obtenir le token depuis les cookies
-        token = request.cookies.get("access_token")
-        if not token:
-            # Si pas de token dans les cookies, vérifier les headers
-            auth_header = request.headers.get("Authorization")
-            if auth_header and auth_header.startswith("Bearer "):
-                token = auth_header.replace("Bearer ", "")
-        
-        if not token:
+        access_token = request.cookies.get("access_token")
+        if not access_token:
             return None
             
-        # Utiliser la fonction d'authentification de l'API
-        return await api_get_current_user(token=token)
+        # Utiliser le service d'authentification pour décoder le token
+        from app.core.security import decode_token
+        from app.services.auth_service import get_user_by_username
+        
+        # Décoder le token pour obtenir le nom d'utilisateur
+        payload = decode_token(access_token)
+        username = payload.get("sub")
+        
+        if not username:
+            return None
+            
+        # Récupérer l'utilisateur depuis la base de données
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            user = get_user_by_username(db, username)
+            if user:
+                return {
+                    "is_authenticated": True,
+                    "id": user.id,
+                    "username": user.username,
+                    "role": user.role
+                }
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
     except Exception as e:
-        print(f"Erreur lors de la récupération de l'utilisateur: {e}")
-        return None
+        print(f"Erreur lors de la récupération de l'utilisateur: {str(e)}")
+        
+    return None
 
 # Fonction pour obtenir une session de base de données
 def get_session():
