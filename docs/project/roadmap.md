@@ -16,8 +16,11 @@ Transformer Mathakine en une plateforme éducative de référence pour l'apprent
 - ✅ **Système CI/CD** : Classification intelligente des tests
 - ✅ **Réorganisation documentation** : Structure optimisée
 
-### Q2 2025 (Avril - Juin) 🔄 EN COURS
-- 🔄 **Finalisation interface holographique** : Phases 2-4
+### Q2 2025 (Avril - Juin) 🔄 EN COURS - **PRIORITÉS MISES À JOUR**
+- 🔄 **Complétion système génération d'exercices** : Géométrie, texte, mixte, divers ⭐ **PRIORITÉ #1**
+- 🔄 **Système de contrôle qualité** : Validation cohérence standard/IA ⭐ **PRIORITÉ #2**
+- 🔄 **Finalisation interface holographique** : Phases 2-4 avec adaptation par type
+- 🔄 **Système de badges et achievements** : Récompenses par domaine mathématique
 - 🔄 **Système de rôles complet** : Permissions granulaires
 - 🔄 **Optimisations performance** : Cache, compression
 - 🔄 **Documentation des nouveautés** : Guides utilisateur

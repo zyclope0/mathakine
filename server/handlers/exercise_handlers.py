@@ -257,4 +257,69 @@ async def get_exercises_list(request):
     except Exception as e:
         print(f"Erreur lors de la récupération des exercices: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500) 
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+async def generate_exercise_api(request):
+    """Génère un nouvel exercice via API JSON (POST)"""
+    try:
+        # Récupérer les données JSON de la requête
+        data = await request.json()
+        exercise_type = data.get('exercise_type')
+        difficulty = data.get('difficulty')
+        use_ai = data.get('ai', False)
+        
+        print(f"Génération API: type={exercise_type}, difficulté={difficulty}, IA={use_ai}")
+        
+        # Valider les paramètres
+        if not exercise_type or not difficulty:
+            return JSONResponse({
+                "error": "Les paramètres 'exercise_type' et 'difficulty' sont requis"
+            }, status_code=400)
+        
+        # Générer l'exercice
+        ai_generated = False
+        if use_ai and str(use_ai).lower() in ['true', '1', 'yes', 'y']:
+            exercise_dict = generate_ai_exercise(exercise_type, difficulty)
+            ai_generated = True
+        else:
+            exercise_dict = generate_simple_exercise(exercise_type, difficulty)
+        
+        exercise_dict = ensure_explanation(exercise_dict)
+        
+        # Optionnellement sauvegarder en base de données
+        save_to_db = data.get('save', True)
+        if save_to_db:
+            try:
+                db = EnhancedServerAdapter.get_db_session()
+                try:
+                    created_exercise = EnhancedServerAdapter.create_generated_exercise(
+                        db=db,
+                        exercise_type=exercise_dict['exercise_type'],
+                        difficulty=exercise_dict['difficulty'],
+                        title=exercise_dict['title'],
+                        question=exercise_dict['question'],
+                        correct_answer=exercise_dict['correct_answer'],
+                        choices=exercise_dict['choices'],
+                        explanation=exercise_dict['explanation'],
+                        hint=exercise_dict.get('hint'),
+                        tags=exercise_dict.get('tags', 'generated'),
+                        ai_generated=ai_generated
+                    )
+                    if created_exercise:
+                        exercise_dict['id'] = created_exercise['id']
+                        print(f"Exercice sauvegardé avec ID={created_exercise['id']}")
+                finally:
+                    EnhancedServerAdapter.close_db_session(db)
+            except Exception as e:
+                print(f"Erreur lors de la sauvegarde: {e}")
+                # Continuer même si la sauvegarde échoue
+        
+        # Retourner l'exercice généré
+        return JSONResponse(exercise_dict)
+        
+    except Exception as e:
+        print(f"Erreur lors de la génération d'exercice API: {e}")
+        traceback.print_exc()
+        return JSONResponse({
+            "error": f"Erreur lors de la génération: {str(e)}"
+        }, status_code=500) 

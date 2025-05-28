@@ -651,7 +651,7 @@ from app.utils.db_helpers import (
 )
 
 # Ajouter l'import du nouveau module de nettoyage
-from tests.utils.test_data_cleanup import TestDataManager, pytest_cleanup_test_data
+from tests.utils.test_data_cleanup import TestDataManager
 
 @pytest.fixture(autouse=True, scope="function")
 def auto_cleanup_test_data(db_session):

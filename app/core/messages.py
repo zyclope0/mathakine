@@ -3,6 +3,8 @@ Messages et textes centralisés pour l'application Mathakine
 Ce fichier contient tous les messages et textes utilisés dans l'application.
 """
 
+import random
+
 # Messages système
 class SystemMessages:
     # Erreurs
@@ -106,8 +108,80 @@ class StarWarsNarratives:
         "Cantina de Mos Eisley", "Temple Jedi", "l'Étoile de la Mort", "la Base Starkiller", "Geonosis"
     ]
     
-    # Préfixes pour les explications (contexte et importance des mathématiques)
-    EXPLANATION_PREFIXES = [
+    # Préfixes pour les explications - OPTIMISÉS par difficulté
+    EXPLANATION_PREFIXES = {
+        "INITIE": [
+            "Jeune Padawan, comme l'enseigne Maître Yoda :",
+            "Dans tes premiers pas vers la maîtrise de la Force :",
+            "Pour un apprenti Jedi, cette leçon est fondamentale :",
+            "R2-D2 bipe d'approbation car :",
+            "Luke a appris cette technique de base :",
+            "C-3PO calcule que :",
+        ],
+        "PADAWAN": [
+            "En progressant dans ta formation Jedi :",
+            "Les archives du Temple enseignent que :",
+            "Comme l'a découvert Anakin Skywalker :",
+            "La Résistance utilise cette stratégie car :",
+            "Obi-Wan explique à ses élèves que :",
+            "Dans les missions de reconnaissance :",
+        ],
+        "CHEVALIER": [
+            "Un Chevalier Jedi maîtrise ces calculs car :",
+            "Dans les batailles galactiques complexes :",
+            "Le Conseil Jedi reconnaît l'importance de :",
+            "Lors des missions diplomatiques critiques :",
+            "Les stratèges de l'Alliance savent que :",
+            "Face aux défis de l'Empire :",
+        ],
+        "MAITRE": [
+            "Un Maître Jedi comprend que :",
+            "Dans la sagesse millénaire de l'Ordre :",
+            "Les grands stratèges galactiques enseignent :",
+            "Face aux mystères de la Force :",
+            "Dans les décisions qui façonnent la galaxie :",
+            "Comme l'ont prouvé les anciens Maîtres :",
+        ]
+    }
+    
+    # Conclusions pour les explications - OPTIMISÉES par difficulté
+    EXPLANATION_SUFFIXES = {
+        "INITIE": [
+            "Continue ainsi, jeune Padawan !",
+            "Tu progresses bien dans ta formation.",
+            "La Force grandit en toi.",
+            "Même R2-D2 est impressionné !",
+            "Tu es sur la bonne voie vers la maîtrise.",
+            "Que la Force t'accompagne dans tes calculs.",
+        ],
+        "PADAWAN": [
+            "Tu maîtrises les bases comme un vrai Jedi.",
+            "Tes compétences s'affinent, continue !",
+            "La voie du Jedi s'éclaire devant toi.",
+            "Tu honores l'enseignement de tes Maîtres.",
+            "Ces connaissances te serviront dans tes missions.",
+            "Tu progresses vers le rang de Chevalier.",
+        ],
+        "CHEVALIER": [
+            "Digne d'un Chevalier Jedi accompli.",
+            "Ta maîtrise égale celle des grands stratèges.",
+            "Le Conseil Jedi serait fier de tes progrès.",
+            "Tu démontres la sagesse d'un vrai Jedi.",
+            "Ces compétences te distinguent dans la galaxie.",
+            "Tu es prêt pour les défis les plus complexes.",
+        ],
+        "MAITRE": [
+            "Sagesse digne d'un Maître Jedi.",
+            "Tu atteins les sommets de la connaissance.",
+            "Même Yoda approuverait ta maîtrise.",
+            "Ta sagesse éclairera les générations futures.",
+            "Tu incarnes l'excellence de l'Ordre Jedi.",
+            "Que ta sagesse guide la galaxie vers la paix.",
+        ]
+    }
+    
+    # Préfixes génériques (fallback pour compatibilité)
+    EXPLANATION_PREFIXES_GENERIC = [
         "Dans l'univers Star Wars, il est important de partager équitablement les ressources, comme les armes laser.",
         "Les Jedi enseignent que la maîtrise des mathématiques est essentielle à l'équilibre de la Force.",
         "Comme le dit souvent Maître Yoda, 'Par les calculs, plus clair l'avenir devient.'",
@@ -120,8 +194,8 @@ class StarWarsNarratives:
         "Même les droïdes comme R2-D2 doivent maîtriser ces calculs pour naviguer dans l'hyperespace."
     ]
     
-    # Conclusions pour les explications (encouragement et lien avec l'univers Star Wars)
-    EXPLANATION_SUFFIXES = [
+    # Suffixes génériques (fallback pour compatibilité)
+    EXPLANATION_SUFFIXES_GENERIC = [
         "Cette compétence te rapproche du rang de Maître Jedi.",
         "En maîtrisant ces calculs, tu progresses sur le chemin de la Force.",
         "Que la Force des mathématiques soit avec toi, jeune Padawan.",
@@ -133,6 +207,42 @@ class StarWarsNarratives:
         "La Résistance a besoin de cerveaux brillants comme le tien.",
         "Avec de telles compétences, même le Conseil Jedi pourrait te remarquer."
     ]
+
+    # Contextes spécialisés par type d'exercice
+    CONTEXTS_BY_TYPE = {
+        "ADDITION": {
+            "objects": ["cristaux Kyber", "vaisseaux rebelles", "droïdes", "soldats", "crédits"],
+            "actions": ["rejoignent", "s'allient", "se rassemblent", "fusionnent", "s'unissent"],
+            "locations": ["base rebelle", "cantina", "hangar", "temple Jedi", "station spatiale"]
+        },
+        "SUBTRACTION": {
+            "objects": ["TIE Fighters", "stormtroopers", "ressources", "munitions", "vaisseaux"],
+            "actions": ["sont détruits", "désertent", "sont perdus", "sont confisqués", "disparaissent"],
+            "locations": ["bataille spatiale", "raid impérial", "mission secrète", "combat", "siège"]
+        },
+        "MULTIPLICATION": {
+            "objects": ["escadrons", "bataillons", "flottes", "systèmes", "garnisons"],
+            "actions": ["se multiplient", "se déploient", "s'organisent", "se coordonnent", "s'étendent"],
+            "locations": ["secteur galactique", "front de guerre", "territoire", "zone d'influence", "région"]
+        },
+        "DIVISION": {
+            "objects": ["ressources", "troupes", "équipements", "territoires", "responsabilités"],
+            "actions": ["se répartissent", "se divisent", "se distribuent", "se partagent", "s'organisent"],
+            "locations": ["bases", "planètes", "secteurs", "commandements", "divisions"]
+        }
+    }
+
+    @classmethod
+    def get_explanation_prefix(cls, difficulty="PADAWAN"):
+        """Récupère un préfixe d'explication adapté à la difficulté"""
+        prefixes = cls.EXPLANATION_PREFIXES.get(difficulty.upper(), cls.EXPLANATION_PREFIXES_GENERIC)
+        return random.choice(prefixes)
+    
+    @classmethod
+    def get_explanation_suffix(cls, difficulty="PADAWAN"):
+        """Récupère un suffixe d'explication adapté à la difficulté"""
+        suffixes = cls.EXPLANATION_SUFFIXES.get(difficulty.upper(), cls.EXPLANATION_SUFFIXES_GENERIC)
+        return random.choice(suffixes)
 
 # Textes de l'interface
 class InterfaceTexts:
