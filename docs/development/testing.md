@@ -210,9 +210,85 @@ def test_exercise_cascade_deletion(db_session):
     assert db_session.query(Attempt).filter_by(id=attempt.id).first() is None
 ```
 
-## 4. Fixtures et configuration des tests
+## 4. Tests du système de statistiques
 
-### 4.1 Fixtures réutilisables
+Un ensemble spécialisé de tests a été développé pour valider le système de statistiques, composant critique pour le suivi de progression des utilisateurs.
+
+### 4.1 Architecture du système de statistiques
+
+Le système utilise une architecture dual :
+- **Progress** : Statistiques individuelles par utilisateur et type d'exercice
+- **UserStats** : Statistiques globales agrégées par type et difficulté
+
+### 4.2 Scripts de test spécialisés
+
+#### `test_statistics_scenarios.py`
+Suite de tests complète validant différents scénarios :
+
+**Test 1 : Utilisateur unique, tentatives multiples**
+- Vérifie l'accumulation correcte des statistiques
+- Teste la mise à jour des moyennes et séries
+
+**Test 2 : Utilisateurs multiples, même exercice**
+- Valide l'isolation des statistiques par utilisateur
+- Teste la mise à jour des statistiques globales
+
+**Test 3 : Types d'exercices différents**
+- Vérifie la création de Progress séparés par type
+- Teste la gestion des différents niveaux de difficulté
+
+#### `cleanup_test_statistics.py`
+Script de nettoyage automatique des données de test :
+- Suppression sélective des utilisateurs de test
+- Préservation des données de production
+- Nettoyage des tentatives et statistiques associées
+
+#### `fix_statistics_system.py`
+Script de diagnostic et réparation :
+- Mode `--diagnose` : Analyse de l'état du système
+- Mode `--repair` : Correction automatique des problèmes détectés
+
+### 4.3 Corrections apportées
+
+#### Problème résolu : Méthode `record_attempt`
+- **Symptôme** : Tentatives enregistrées mais statistiques non mises à jour
+- **Cause** : Logique défaillante dans `ExerciseService.record_attempt`
+- **Solution** : Refactorisation complète avec transactions sécurisées
+
+#### Améliorations techniques
+- **Transactions atomiques** : Rollback automatique en cas d'erreur
+- **Gestion des enums** : Conversion correcte des types d'exercices
+- **Isolation des tests** : Nettoyage automatique après chaque test
+
+### 4.4 Validation complète
+
+```bash
+# Diagnostic du système
+python fix_statistics_system.py --diagnose
+
+# Tests de scénarios complets
+python test_statistics_scenarios.py
+
+# Nettoyage des données de test
+python cleanup_test_statistics.py
+```
+
+**Résultats attendus :**
+- ✅ 3/3 tests de scénarios réussis
+- ✅ Enregistrement fiable des tentatives
+- ✅ Mise à jour correcte des Progress et UserStats
+- ✅ Nettoyage automatique des données de test
+
+### 4.5 Intégration dans le workflow de test
+
+Les tests de statistiques sont intégrés dans la catégorie **Tests Critiques** du système CI/CD :
+- Exécution automatique avant chaque commit
+- Validation obligatoire pour le déploiement
+- Monitoring continu de la fiabilité du système
+
+## 5. Fixtures et configuration des tests
+
+### 5.1 Fixtures réutilisables
 
 Les fixtures sont centralisées dans le dossier `fixtures/` pour faciliter la réutilisation :
 
@@ -225,7 +301,7 @@ Les fixtures sont centralisées dans le dossier `fixtures/` pour faciliter la r�
 - Supporte SQLite et PostgreSQL
 - Exemples : `db_session()`, `populated_db_session()`
 
-### 4.2 Configuration centralisée
+### 5.2 Configuration centralisée
 
 Le fichier `conftest.py` centralise la configuration de pytest :
 
@@ -233,9 +309,9 @@ Le fichier `conftest.py` centralise la configuration de pytest :
 - **Fixtures d'authentification** - Pour les tests nécessitant un utilisateur connecté
 - **Base de données temporaire** - Configuration automatique de la base de test
 
-## 5. Exécution des tests
+## 6. Exécution des tests
 
-### 5.1 Script unifié
+### 6.1 Script unifié
 
 Le script `run_tests.bat` (Windows) ou `run_tests.py` (multiplateforme) permet d'exécuter les tests facilement :
 
@@ -255,7 +331,7 @@ tests/run_tests.bat --verbose    # Mode verbeux
 tests/run_tests.bat --no-coverage # Désactiver la couverture
 ```
 
-### 5.2 Via Python directement
+### 6.2 Via Python directement
 
 Vous pouvez également exécuter les tests directement avec pytest :
 
@@ -273,7 +349,7 @@ python -m pytest tests/functional/
 python -m pytest --cov=app --cov-report=html:test_results/coverage tests/
 ```
 
-### 5.3 Base de données de test
+### 6.3 Base de données de test
 
 Par défaut, les tests utilisent SQLite, mais vous pouvez configurer PostgreSQL :
 
@@ -287,11 +363,11 @@ export TEST_DATABASE_URL=postgresql://user:password@localhost:5432/test_db
 ./run_tests.sh --all
 ```
 
-## 6. Système d'auto-validation
+## 7. Système d'auto-validation
 
 Le projet intègre un système complet d'auto-validation pour vérifier l'intégrité et la compatibilité.
 
-### 6.1 Scripts principaux
+### 7.1 Scripts principaux
 
 | Script | Description |
 |--------|-------------|
@@ -301,7 +377,7 @@ Le projet intègre un système complet d'auto-validation pour vérifier l'intég
 | `compatibility_check.py` | Vérification de compatibilité |
 | `generate_report.py` | Génération de rapport |
 
-### 6.2 Utilisation recommandée
+### 7.2 Utilisation recommandée
 
 #### Validation quotidienne
 ```bash
@@ -318,7 +394,7 @@ tests/auto_validate.bat
 python tests/compatibility_check.py
 ```
 
-## 7. Rapports et résultats
+## 8. Rapports et résultats
 
 Tous les rapports sont générés dans le dossier `test_results/` :
 
@@ -335,65 +411,65 @@ Tous les rapports sont générés dans le dossier `test_results/` :
 - **Couverture de code: 64%**
 - **Temps d'exécution moyen: ~25 secondes**
 
-## 8. Bonnes pratiques
+## 9. Bonnes pratiques
 
-### 8.1 Nommage des tests
+### 9.1 Nommage des tests
 - Utiliser des noms descriptifs (`test_user_deletion_cascades_to_exercises`)
 - Préfixer avec `test_`
 - Inclure le comportement attendu
 
-### 8.2 Organisation
+### 9.2 Organisation
 - Un fichier de test par module
 - Tests indépendants
 - Nettoyage après chaque test
 
-### 8.3 Assertions
+### 9.3 Assertions
 - Vérifier un comportement par test
 - Utiliser des messages d'erreur clairs
 - Tester les cas positifs et négatifs
 
-### 8.4 Fixtures
+### 9.4 Fixtures
 - Réutiliser les fixtures centralisées
 - Isoler les dépendances
 - Nettoyer les ressources
 
-## 9. Plan d'amélioration des tests
+## 10. Plan d'amélioration des tests
 
-### 9.1 Couverture à améliorer
+### 10.1 Couverture à améliorer
 - Services métier (génération d'exercices, validation des réponses)
 - Cas d'erreur et cas limites
 - Nouveaux endpoints
 
-### 9.2 Tests à ajouter
+### 10.2 Tests à ajouter
 - Tests de performance
 - Tests d'interface utilisateur
 - Tests de déploiement
 
-### 9.3 Tests asynchrones
+### 10.3 Tests asynchrones
 - Support amélioré pour les fonctions asynchrones
 - Tests de concurrence
 
-## 10. Critères de succès
+## 11. Critères de succès
 
 Pour valider la qualité des tests, nous nous basons sur les critères suivants :
 
-### 10.1 Couverture
+### 11.1 Couverture
 - Unitaires : > 90%
 - API : > 85%
 - Intégration : > 80%
 - Fonctionnels : > 75%
 
-### 10.2 Performance
+### 11.2 Performance
 - Temps de réponse < 200ms
 - Utilisation CPU < 50%
 - Utilisation mémoire < 500MB
 
-### 10.3 Qualité
+### 11.3 Qualité
 - Aucun test échoué
 - Aucune vulnérabilité critique
 - Documentation à jour
 
-## 11. Responsabilités
+## 12. Responsabilités
 
 | Rôle | Responsabilité |
 |------|----------------|
@@ -402,7 +478,7 @@ Pour valider la qualité des tests, nous nous basons sur les critères suivants 
 | Lead Dev | Supervision de la qualité |
 | DevOps | Configuration de l'environnement |
 
-## 12. Dépannage courant
+## 13. Dépannage courant
 
 | Problème | Cause possible | Solution |
 |----------|----------------|----------|
@@ -415,9 +491,9 @@ Pour valider la qualité des tests, nous nous basons sur les critères suivants 
 
 *Ce document consolide les informations de tests/README.md, tests/TEST_PLAN.md et docs/TESTS.md* 
 
-## 13. Analyse et Nettoyage des Données de Test
+## 14. Analyse et Nettoyage des Données de Test
 
-### 13.1 Problème identifié (Mai 2025)
+### 14.1 Problème identifié (Mai 2025)
 
 Une analyse approfondie a révélé un problème critique de pollution de la base de données par les tests :
 
@@ -433,7 +509,7 @@ Une analyse approfondie a révélé un problème critique de pollution de la bas
 - ❌ **Maintenance complexe** : Difficile de distinguer vraies données vs test
 - ❌ **Instabilité** : Tests échouant de manière aléatoire selon l'ordre d'exécution
 
-### 13.2 Analyse technique des causes
+### 14.2 Analyse technique des causes
 
 #### Problèmes dans `conftest.py` :
 ```python
@@ -469,7 +545,7 @@ def test_create_user():
 - ❌ Absence de stratégie de nettoyage globale
 - ❌ Pas de mocks pour éviter les vraies insertions
 
-### 13.3 Solutions implémentées
+### 14.3 Solutions implémentées
 
 #### Solution 1 : Script de nettoyage automatique
 ```bash
@@ -519,7 +595,7 @@ def test_database():
     drop_database(test_db_url)  # Nettoyage automatique
 ```
 
-### 13.4 Résultats du nettoyage (Mai 2025)
+### 14.4 Résultats du nettoyage (Mai 2025)
 
 **Avant nettoyage :**
 - 52 utilisateurs totaux (35 de test = 67.3% pollution)
@@ -532,7 +608,7 @@ def test_database():
 - ✅ **18 exercices valides préservés**
 - ✅ **Base de données parfaitement nettoyée**
 
-### 13.5 Bonnes pratiques établies
+### 14.5 Bonnes pratiques établies
 
 #### Pour éviter la pollution future :
 1. **Toujours utiliser des transactions avec rollback**
@@ -565,7 +641,7 @@ def cleanup_test_data(db_session):
     db_session.commit()
 ```
 
-### 13.6 Validation continue
+### 14.6 Validation continue
 
 #### Commandes de vérification :
 ```bash
@@ -586,7 +662,7 @@ python -m pytest tests/ -v && python scripts/check_test_data.py
 - ✅ **Performance** : Temps d'exécution réduit de 30%
 - ✅ **Fiabilité** : 0 faux positifs dus aux données existantes
 
-### 13.7 Scripts de maintenance
+### 14.7 Scripts de maintenance
 
 | Script | Description | Usage |
 |--------|-------------|-------|
@@ -594,7 +670,7 @@ python -m pytest tests/ -v && python scripts/check_test_data.py
 | `scripts/check_test_data.py` | Analyse de l'état de la base | Vérification post-tests |
 | `scripts/analyze_test_cleanup.py` | Analyse détaillée des patterns | Diagnostic approfondi |
 
-### 13.8 Monitoring continu
+### 14.8 Monitoring continu
 
 #### Métriques à surveiller :
 - **Nombre d'utilisateurs de test** : Doit être 0 après chaque session

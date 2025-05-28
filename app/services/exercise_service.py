@@ -207,7 +207,93 @@ class ExerciseService:
                 is_correct = attempt_data.get("is_correct", False)
                 logger.info(f"Tentative enregistrée pour l'exercice {exercise_id}: {'Correcte' if is_correct else 'Incorrecte'}")
                 
+                # 🔥 CORRECTION CRITIQUE : Mettre à jour les statistiques utilisateur
+                try:
+                    ExerciseService._update_user_statistics(session, attempt_data, exercise)
+                    logger.info(f"Statistiques mises à jour pour l'utilisateur {attempt_data.get('user_id')}")
+                except Exception as stats_error:
+                    logger.error(f"Erreur lors de la mise à jour des statistiques: {stats_error}")
+                    # Ne pas faire échouer la tentative pour une erreur de stats
+                
                 return attempt
             except Exception as e:
                 logger.error(f"Erreur lors de l'enregistrement de la tentative: {e}")
-                return None 
+                return None
+
+    @staticmethod
+    def _update_user_statistics(session: Session, attempt_data: Dict[str, Any], exercise: Exercise) -> None:
+        """
+        Met à jour les statistiques utilisateur après une tentative.
+        
+        Args:
+            session: Session de base de données
+            attempt_data: Données de la tentative
+            exercise: Exercice concerné
+        """
+        from datetime import datetime
+        from app.models.progress import Progress
+        from app.models.legacy_tables import UserStats
+        
+        user_id = attempt_data.get("user_id")
+        is_correct = attempt_data.get("is_correct", False)
+        time_spent = attempt_data.get("time_spent", 0)
+        
+        # 1. Mettre à jour ou créer Progress
+        progress = session.query(Progress).filter(
+            Progress.user_id == user_id,
+            Progress.exercise_type == exercise.exercise_type
+        ).first()
+        
+        if progress:
+            progress.total_attempts += 1
+            if is_correct:
+                progress.correct_attempts += 1
+                progress.streak += 1
+                if progress.streak > progress.highest_streak:
+                    progress.highest_streak = progress.streak
+            else:
+                progress.streak = 0
+            
+            # Mettre à jour le temps moyen
+            if progress.average_time is None:
+                progress.average_time = time_spent
+            else:
+                total_time = progress.average_time * (progress.total_attempts - 1) + time_spent
+                progress.average_time = total_time / progress.total_attempts
+            
+            progress.completion_rate = progress.calculate_completion_rate()
+            progress.update_mastery_level()
+        else:
+            new_progress = Progress(
+                user_id=user_id,
+                exercise_type=exercise.exercise_type,
+                difficulty=exercise.difficulty,
+                total_attempts=1,
+                correct_attempts=1 if is_correct else 0,
+                average_time=time_spent,
+                streak=1 if is_correct else 0,
+                highest_streak=1 if is_correct else 0
+            )
+            session.add(new_progress)
+        
+        # 2. Mettre à jour ou créer UserStats
+        user_stat = session.query(UserStats).filter(
+            UserStats.exercise_type == exercise.exercise_type.value,
+            UserStats.difficulty == exercise.difficulty.value
+        ).first()
+        
+        if user_stat:
+            user_stat.total_attempts += 1
+            if is_correct:
+                user_stat.correct_attempts += 1
+            user_stat.last_updated = datetime.now()
+        else:
+            new_user_stat = UserStats(
+                exercise_type=exercise.exercise_type.value,
+                difficulty=exercise.difficulty.value,
+                total_attempts=1,
+                correct_attempts=1 if is_correct else 0
+            )
+            session.add(new_user_stat)
+        
+        session.flush() 

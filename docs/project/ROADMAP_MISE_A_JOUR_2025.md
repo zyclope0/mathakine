@@ -111,6 +111,16 @@ CREATE TABLE user_achievements (
 3. **Spéciaux** : "Explorateur Galactique", "Sage des Nombres"
 4. **Événements** : Badges saisonniers et défis communautaires
 
+### **🔥 PRIORITÉ #0 : RÉPARATION SYSTÈME STATISTIQUES (CRITIQUE)**
+- **Problème identifié** : Les statistiques utilisateur ne s'incrémentent plus après les réponses aux exercices
+- **Cause racine** : La méthode `record_attempt` enregistre les tentatives mais ne met pas à jour les tables de statistiques
+- **Impact** : Tableaux de bord vides, suivi des progrès impossible, recommandations IA défaillantes
+- **Solution requise** : 
+  - Modifier `ExerciseService.record_attempt()` pour mettre à jour automatiquement les statistiques
+  - Réparer les tables `user_stats`, `statistics` et `progress`
+  - Créer un script de migration pour recalculer les statistiques existantes
+- **Délai** : **URGENT - 48h maximum**
+
 ---
 
 ## 📋 **ROADMAP DÉTAILLÉE 2025-2026**

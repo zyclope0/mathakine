@@ -6,6 +6,21 @@
 
 Transformer Mathakine en une plateforme éducative de référence pour l'apprentissage mathématique adapté aux enfants autistes, avec une expérience immersive Star Wars et des technologies d'avant-garde.
 
+## 🎯 Priorités Actuelles
+
+### 🔥 PRIORITÉ #0 : RÉPARATION SYSTÈME STATISTIQUES (CRITIQUE)
+**Délai : 48h maximum**
+
+**Problème identifié** : Les statistiques utilisateur ne s'incrémentent plus après les réponses aux exercices, causant des tableaux de bord vides et un suivi des progrès défaillant.
+
+**Actions requises** :
+- [ ] Modifier `ExerciseService.record_attempt()` pour mettre à jour automatiquement les statistiques
+- [ ] Réparer les tables `user_stats`, `statistics` et `progress`
+- [ ] Créer un script de migration pour recalculer les statistiques existantes
+- [ ] Tester le système de bout en bout
+
+### 🎖️ PRIORITÉ #1 : SYSTÈME DE BADGES ET ACHIEVEMENTS
+
 ## 📅 Planning Général - **MISE À JOUR MAI 2025**
 
 ### Q1 2025 (Janvier - Mars) ✅ TERMINÉ

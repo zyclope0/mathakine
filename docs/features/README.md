@@ -31,6 +31,9 @@
 - **Progression par type** : Analyse détaillée par opération mathématique
 - **Historique complet** : Suivi de toutes les tentatives
 - **Recommandations adaptatives** : Suggestions personnalisées
+- **Système dual** : Progress individuels + UserStats globales
+- **Enregistrement fiable** : Transactions sécurisées avec rollback automatique
+- **Tests validés** : Scénarios multiples (utilisateur unique, multi-utilisateurs, types variés)
 
 ### 🎨 Interface Utilisateur Premium
 

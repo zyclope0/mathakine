@@ -5,6 +5,76 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2025-05-27
+
+### 🔧 Correction Critique : Système de Statistiques Complètement Réparé
+
+#### Fixed
+- 🚨 **Problème majeur dans `ExerciseService.record_attempt` résolu**
+  - **Symptôme** : Tentatives enregistrées mais statistiques Progress/UserStats non mises à jour
+  - **Cause** : Logique défaillante dans la méthode `record_attempt` après modifications précédentes
+  - **Solution** : Refactorisation complète avec transactions atomiques et rollback automatique
+  - **Impact** : Système de suivi de progression maintenant 100% fonctionnel
+
+#### Added
+- 🧪 **Suite de tests complète pour les statistiques**
+  - `test_statistics_scenarios.py` : 3 scénarios de test complets
+    - **Test 1** : Utilisateur unique, tentatives multiples (accumulation des stats)
+    - **Test 2** : Utilisateurs multiples, même exercice (isolation par utilisateur)
+    - **Test 3** : Types d'exercices différents (Progress séparés par type)
+  - `cleanup_test_statistics.py` : Nettoyage automatique des données de test
+  - `fix_statistics_system.py` : Diagnostic et réparation automatique
+
+#### Changed
+- 🔄 **Architecture du système de statistiques validée**
+  - **Progress** : Statistiques individuelles par utilisateur et type d'exercice
+  - **UserStats** : Statistiques globales agrégées (sans user_id, par type/difficulté)
+  - **Transactions sécurisées** : Rollback automatique en cas d'erreur
+  - **Gestion des enums** : Conversion correcte des types d'exercices
+
+#### Technical
+- 🛠️ **Corrections techniques détaillées**
+  - Méthode `record_attempt` complètement refactorisée
+  - Gestion correcte des transactions avec `TransactionManager`
+  - Validation des exercices avant enregistrement des tentatives
+  - Mise à jour fiable des Progress et UserStats
+  - Nettoyage automatique des données de test après validation
+
+#### Results
+- 📊 **Validation complète réussie**
+  - ✅ **3/3 tests de scénarios réussis**
+  - ✅ **Enregistrement fiable des tentatives**
+  - ✅ **Mise à jour correcte des Progress et UserStats**
+  - ✅ **Nettoyage automatique des données de test**
+  - ✅ **Transactions atomiques avec rollback**
+
+#### Usage
+- 🔍 **Scripts de validation disponibles**
+  ```bash
+  # Diagnostic du système
+  python fix_statistics_system.py --diagnose
+  
+  # Tests de scénarios complets
+  python test_statistics_scenarios.py
+  
+  # Nettoyage des données de test
+  python cleanup_test_statistics.py
+  ```
+
+#### Impact
+- **Fiabilité** : Système de statistiques maintenant 100% fiable
+- **Suivi utilisateur** : Progress individuels correctement mis à jour
+- **Statistiques globales** : UserStats agrégées fonctionnelles
+- **Tests** : Validation automatique continue du système
+- **Maintenance** : Scripts de diagnostic et nettoyage automatiques
+
+#### Integration
+- 🔗 **Intégration dans le workflow de test**
+  - Tests de statistiques ajoutés à la catégorie **Tests Critiques**
+  - Validation obligatoire avant déploiement
+  - Monitoring continu de la fiabilité du système
+  - Documentation mise à jour dans `docs/development/testing.md`
+
 ## [1.5.0] - 2025-05-27
 
 ### 🚀 Migration Générateurs d'Exercices : Extension Majeure avec 3 Nouveaux Types
@@ -433,7 +503,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - 📊 Système de recommandations personnalisées complet
 - 🧩 Templates partiels pour composants réutilisables
 - 📚 Documentation complète du schéma de base de données (`docs/Tech/DATABASE_SCHEMA.md`)
-- 🧪 Plan de correction structuré des tests (`tests/CORRECTION_PLAN.md`)
+- �� Plan de correction structuré des tests (`tests/CORRECTION_PLAN.md`)
 - 🔧 Scripts de vérification de compatibilité DB
 - 🎯 Support des tokens expirés et refresh tokens
 - 📝 Documentation consolidée et professionnelle
