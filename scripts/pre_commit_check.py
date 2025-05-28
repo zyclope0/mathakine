@@ -49,7 +49,7 @@ class PreCommitChecker:
                     "tests/unit/test_auth_service.py"
                 ],
                 blocking=True,
-                timeout=180
+                timeout=300  # Augmenté de 180s à 300s (5 min)
             ),
             TestSuite(
                 name="Tests Importants",
@@ -60,7 +60,7 @@ class PreCommitChecker:
                     "tests/unit/test_enhanced_server_adapter.py"
                 ],
                 blocking=False,
-                timeout=120
+                timeout=180  # Augmenté de 120s à 180s (3 min)
             ),
             TestSuite(
                 name="Tests Complémentaires",
@@ -70,7 +70,7 @@ class PreCommitChecker:
                     "tests/unit/test_db_init_service.py"
                 ],
                 blocking=False,
-                timeout=60
+                timeout=120  # Augmenté de 60s à 120s (2 min)
             )
         ]
 

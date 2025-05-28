@@ -133,6 +133,12 @@ def test_create_test_users_integration(db_session):
         
         mock_users = [
             MagicMock(
+                username=f"obiwan_{timestamp}",
+                email=f"obiwan_{timestamp}@jedi-temple.sw",
+                role=UserRole.MAITRE,
+                id=0
+            ),
+            MagicMock(
                 username=f"maitre_yoda_{timestamp}",
                 email=f"yoda_{timestamp}@jedi-temple.sw",
                 role=UserRole.MAITRE,
@@ -172,7 +178,7 @@ def test_create_test_users_integration(db_session):
             
             # Vérifier que les utilisateurs ont été créés avec les bons rôles
             called_users = mock_add_all.call_args[0][0]
-            assert len(called_users) == 3
+            assert len(called_users) == 4
             
             # Vérifier qu'il y a un utilisateur avec le rôle Maître
             maitre_users = [u for u in called_users if hasattr(u, 'role') and u.role == UserRole.MAITRE]
