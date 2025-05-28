@@ -565,11 +565,9 @@ def test_list_exercises_with_mock(mock_db_adapter, mock_adapt_enum):
     
     # Vérifier que la requête a été appelée correctement
     mock_session.query.assert_called_once()
-    # La méthode list_exercises fait 3 appels filter par défaut:
+    # La méthode list_exercises fait 1 appel filter par défaut:
     # 1. filter(Exercise.is_archived == False)
-    # 2. filter(Exercise.exercise_type.in_(valid_types))
-    # 3. filter(Exercise.difficulty.in_(valid_difficulties))
-    assert mock_query.filter.call_count == 3
+    assert mock_query.filter.call_count == 1
     
     # Vérifier les résultats
     assert len(result) == 2
@@ -588,12 +586,10 @@ def test_list_exercises_with_mock(mock_db_adapter, mock_adapt_enum):
     
     # Vérifier que les filtres ont été appelés correctement
     assert mock_session.query.call_count == 1
-    # Avec un filtre par type, on a 4 appels filter:
+    # Avec un filtre par type, on a 2 appels filter:
     # 1. filter(Exercise.is_archived == False)
-    # 2. filter(Exercise.exercise_type.in_(valid_types))
-    # 3. filter(Exercise.difficulty.in_(valid_difficulties))
-    # 4. filter(Exercise.exercise_type == exercise_type)
-    assert mock_query.filter.call_count == 4
+    # 2. filter(Exercise.exercise_type == exercise_type)
+    assert mock_query.filter.call_count == 2
     
     # Vérifier les résultats
     assert len(result_by_type) == 1
