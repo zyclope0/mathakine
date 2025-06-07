@@ -1,0 +1,59 @@
+/**
+ * CORRECTION - Page Header qui reste en focus et passe devant la navigation
+ * 
+ * Problème identifié : Les en-têtes de page (.page-header) restent collés 
+ * en haut de l'écran et passent devant la navigation principale.
+ * 
+ * Solution : Forcer position static et z-index auto pour tous les éléments
+ */
+
+/* CORRECTION PRINCIPALE */
+.page-header {
+    position: static !important;
+    z-index: auto !important;
+    /* S'assurer qu'il n'y a pas de sticky/fixed/absolute */
+}
+
+.page-header__title,
+.page-header__subtitle {
+    position: static !important;
+    z-index: auto !important;
+}
+
+/* Correction pour tous les éléments enfants du page-header */
+.page-header * {
+    position: static !important;
+    z-index: auto !important;
+}
+
+/* S'assurer que la navigation reste au-dessus */
+header.header,
+.navbar-primary {
+    z-index: var(--z-index-header) !important; /* 50 */
+}
+
+/* Correction spécifique pour les nouvelles pages */
+.main .page-header {
+    position: static !important;
+    z-index: auto !important;
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg) 0;
+}
+
+/* Reset complet de tous les positionnements problématiques */
+.page-header,
+.page-header h1,
+.page-header h2, 
+.page-header h3,
+.page-header p,
+.page-header div,
+.page-header span {
+    position: static !important;
+    z-index: auto !important;
+}
+
+/* Debugging - permet de voir visuellement si le problème persiste */
+.page-header {
+    /* Retire temporairement cette ligne si besoin de debug visuel */
+    /* outline: 2px solid red; */
+} 

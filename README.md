@@ -11,6 +11,43 @@ Mathakine est une plateforme web éducative innovante pour l'apprentissage des m
 
 **Histoire personnelle** : Créé par un père pour son fils Anakin, 9 ans, passionné par les concours de mathélogique, Mathakine est né du besoin de trouver un outil vraiment interactif et amusant pour s'entraîner aux mathématiques. Ce qui a commencé comme un projet personnel s'est transformé en une mission partagée pour offrir à tous les enfants une expérience d'apprentissage exceptionnelle.
 
+---
+
+## 📖 **Documentation Complète**
+
+### 🚀 **Guides de Démarrage**
+- [Installation et Setup](docs/getting-started/README.md) - Guide complet d'installation
+- [Premiers Pas](docs/getting-started/README.md#premiers-pas) - Navigation et fonctionnalités de base
+- [Configuration](docs/getting-started/README.md#configuration-base-de-données) - SQLite et PostgreSQL
+
+### 🏗️ **Architecture et Technique**
+- [Architecture Globale](docs/architecture/README.md) - Vue d'ensemble des composants
+- [Documentation API](docs/api/api.md) - 40+ endpoints avec exemples complets
+- [Guide Développeur](docs/development/README.md) - Architecture, tests, standards (916 lignes)
+- [Tests et CI/CD](docs/development/testing.md) - Système à 4 niveaux avec classification
+
+### 🎨 **Interface et Expérience Utilisateur**
+- [Guide UI/UX Complet](docs/ui-ux/ui-ux.md) - Interface Star Wars et accessibilité
+- [Composants](docs/ui-ux/ui-ux.md#composants-ui-réutilisables) - Boutons, cartes, modales
+- [Accessibilité](docs/ui-ux/ui-ux.md#accessibilité-wcag-21-aa) - WCAG 2.1 AA avec barre d'outils
+
+### ✨ **Fonctionnalités**
+- [Fonctionnalités Principales](docs/features/README.md) - 9 types d'exercices + défis logiques
+- [Système de Badges](docs/features/BADGE_SYSTEM.md) - Progression et récompenses
+- [Tableau de Bord](docs/features/README.md#suivi-de-progression) - Statistiques temps réel
+
+### 📊 **Gestion de Projet**
+- [Statut du Projet](docs/project/README.md) - État des fonctionnalités et métriques
+- [Roadmap 2025-2026](docs/project/roadmap.md) - Vision et planification future
+- [Rapport de Mise à Jour](docs/rapport/rapport-mise-a-jour.md) - Dernière analyse complète (juin 2025)
+
+### 📚 **Documentation Générale**
+- [Index Documentation](docs/README.md) - Navigation dans toute la documentation
+- [Glossaire](docs/GLOSSARY.md) - Terminologie technique et métier
+- [Changelog](docs/CHANGELOG.md) - Historique des versions
+
+---
+
 ### Caractéristiques Principales
 
 - **🎯 Apprentissage Adaptatif** : Progression personnalisée selon le niveau et les capacités de l'élève
@@ -21,7 +58,7 @@ Mathakine est une plateforme web éducative innovante pour l'apprentissage des m
 - **🔄 CI/CD Intégré** : Système de tests automatisés avec classification intelligente
 - **💫 Interface Premium v3.0** : Optimisations ergonomiques avec thème spatial immersif
 - **📖 Page "À propos"** : Histoire inspirante de la création de Mathakine et valeurs du projet
-- **🎲 Générateurs d'Exercices Étendus** : 9 types d'exercices avec 3 nouveaux domaines (Fractions, Géométrie, Divers) ⭐ **NOUVEAU**
+- **🎲 Générateurs d'Exercices Étendus** : 9 types d'exercices avec 4 nouveaux domaines (Fractions, Géométrie, Texte, Divers) ⭐ **NOUVEAU**
 
 ## 🎲 Types d'Exercices Disponibles
 
@@ -182,90 +219,38 @@ git commit --no-verify
 
 Pour plus de détails, consultez le [Guide CI/CD complet](docs/CI_CD_GUIDE.md).
 
-## 📖 Documentation
+---
 
-La documentation complète est organisée dans le dossier `docs/` :
+## 📱 **Accès à l'Application**
 
-```
-docs/
-├── Core/               # Documentation principale
-│   ├── QUICKSTART.md   # Guide de démarrage rapide
-│   ├── USER_GUIDE.md   # Guide utilisateur
-│   └── ADMIN_GUIDE.md  # Guide administrateur
-├── Tech/               # Documentation technique
-│   ├── API_REFERENCE.md    # Référence API REST
-│   ├── DATABASE_SCHEMA.md  # Schéma de base de données
-│   └── DEPLOYMENT.md       # Guide de déploiement
-└── Features/           # Documentation fonctionnelle
-```
-
-## 🧪 Tests
-
-### Exécution des Tests
-
+### **Démarrage Local**
 ```bash
-# Tous les tests
-python tests/unified_test_runner.py --all
-
-# Tests unitaires uniquement
-python tests/unified_test_runner.py --unit
-
-# Tests avec couverture
-python tests/unified_test_runner.py --all --coverage
+python mathakine_cli.py run
 ```
+🌐 **Interface** : http://localhost:8000  
+📖 **API Docs** : http://localhost:8000/docs
 
-### Structure des Tests
-- **Unit** : Tests des composants isolés (73% de couverture)
-- **API** : Tests des endpoints REST
-- **Integration** : Tests des flux complets
-- **Functional** : Tests de l'interface utilisateur
-
-## 🛡️ Sécurité
-
-- **Authentification** : JWT avec tokens de rafraîchissement + page mot de passe oublié
-- **Mots de passe** : Hachage Bcrypt avec salt + réinitialisation sécurisée
-- **Validation** : Entrées validées via Pydantic + anti-énumération emails
-- **CORS** : Configuration restrictive
-- **XSS/CSRF** : Protection native via frameworks
-
-## 📊 Performances
-
-- **Cache** : Stratégie de cache intelligent
-- **Pagination** : Curseurs optimisés pour grandes données
-- **Lazy Loading** : Chargement différé des ressources
-- **Compression** : Gzip activé sur tous les assets
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! Veuillez consulter notre [guide de contribution](docs/Core/CONTRIBUTING.md) pour les détails.
-
-### Processus de Contribution
-1. Fork du projet
-2. Créer une branche (`git checkout -b feature/AmazingFeature`)
-3. Commit des changements (`git commit -m 'feat: Add AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
-
-**Note** : Les tests critiques s'exécutent automatiquement avant chaque commit via le hook pre-commit.
-
-## 📄 Licence
-
-Ce projet est distribué sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
-
-## 👥 Équipe et Contact
-
-- **Développeur Principal** : [Nom]
-- **Email** : contact@mathakine.fr
-- **Site Web** : [mathakine.fr](https://mathakine.fr)
-
-## 🙏 Remerciements
-
-- L'équipe pédagogique pour leur expertise en éducation spécialisée
-- La communauté open source pour les outils utilisés
-- Les testeurs et utilisateurs pour leurs retours précieux
+### **Compte de Test**
+- **Utilisateur** : `test_user`
+- **Mot de passe** : `test_password`
 
 ---
 
-*"Que la Force des mathématiques soit avec vous"* ✨
+## 🤝 **Contribution et Support**
 
-**Version actuelle** : 1.0.0 | **Dernière mise à jour** : 26 mai 2025 
+### **Pour Contribuer**
+1. **Fork** le repository
+2. **Lire** le [Guide de Contribution](docs/development/contributing.md)
+3. **Respecter** les standards de code et tests
+4. **Soumettre** une Pull Request
+
+### **Support**
+- **🐛 Issues** : Pour bugs et demandes de fonctionnalités
+- **💬 Discussions** : Pour questions générales
+- **📖 Documentation** : Guide complet dans [docs/](docs/)
+
+---
+
+**Que la Force des Mathématiques soit avec vous !** ⭐🚀
+
+*Développé avec ❤️ pour l'apprentissage inclusif* 

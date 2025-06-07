@@ -139,7 +139,7 @@ class SchemaUserRole(str, Enum):
     PADAWAN = "padawan"
     CHEVALIER = "chevalier"
     MAITRE = "maitre"
-    ADMIN = "admin"
+
 
 class Token(BaseModel):
     access_token: str

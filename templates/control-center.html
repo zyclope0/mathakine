@@ -1,0 +1,715 @@
+{% extends "base.html" %}
+
+{% block title %}Centre de contrôle parental - Mathakine{% endblock %}
+
+{% block content %}
+<main class="main">
+    <div class="container">
+        <!-- En-tête avec thème Star Wars -->
+        <header class="page-header">
+            <h1 class="page-header__title">
+                <i class="fas fa-shield-alt"></i>
+                Conseil Jedi Parental
+            </h1>
+            <p class="page-header__subtitle">
+                Guidez l'entraînement de votre jeune Padawan 🌟⚔️
+            </p>
+        </header>
+
+    <!-- Profil de l'enfant -->
+        <section class="mb-8">
+            <div class="card child-profile">
+                <h2 class="text-xl mb-4">👤 Profil de l'enfant</h2>
+                
+                <div class="profile-info">
+                    <div class="profile-info__avatar">
+                        <i class="fas fa-user-astronaut"></i>
+                    </div>
+                    <div class="profile-info__details">
+                        <h3 class="text-lg">{{ current_user.username if current_user else 'Jeune Padawan' }}</h3>
+                        <p class="text-muted">Niveau : {{ current_user.jedi_rank if current_user else 'Youngling' }}</p>
+                        <p class="text-muted">Points : {{ current_user.total_points if current_user else '0' }} ⭐</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Grille de contrôles -->
+    <div class="control-grid">
+            <!-- Préférences sensorielles -->
+            <section class="card control-section">
+                <h2 class="control-section__title">
+                    <i class="fas fa-brain"></i>
+                    Préférences sensorielles
+                </h2>
+                
+                <div class="form__group">
+                    <label class="form__label">Mode de navigation</label>
+                    <select class="form__select" id="navigation-mode">
+                        <option value="simple">🟢 Simple (2 boutons max)</option>
+                        <option value="standard" selected>🟡 Standard (normal)</option>
+                        <option value="expert">🔴 Expert (tout visible)</option>
+                    </select>
+                </div>
+                
+                <div class="form__group">
+                    <label class="form__label">Profil sensoriel</label>
+                    <select class="form__select" id="sensory-profile">
+                        <option value="standard" selected>Standard</option>
+                        <option value="hypersensitive">Hypersensible (moins de stimuli)</option>
+                        <option value="hyposensitive">Hyposensible (plus de stimuli)</option>
+                </select>
+            </div>
+            
+                <div class="checkbox-group">
+                    <label class="checkbox">
+                        <input type="checkbox" id="reduce-animations">
+                        <span>Réduire les animations</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" id="high-contrast">
+                        <span>Contraste élevé</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" id="large-text">
+                        <span>Texte agrandi</span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- Statistiques d'apprentissage -->
+            <section class="card control-section">
+                <h2 class="control-section__title">
+                    <i class="fas fa-chart-line"></i>
+                    Statistiques d'apprentissage
+                </h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-item__value">42</div>
+                        <div class="stat-item__label">Exercices terminés</div>
+            </div>
+                    <div class="stat-item">
+                        <div class="stat-item__value">85%</div>
+                        <div class="stat-item__label">Taux de réussite</div>
+        </div>
+                    <div class="stat-item">
+                        <div class="stat-item__value">7</div>
+                        <div class="stat-item__label">Jours actifs</div>
+                </div>
+                    <div class="stat-item">
+                        <div class="stat-item__value">3</div>
+                        <div class="stat-item__label">Badges gagnés</div>
+                </div>
+            </div>
+            
+                <button class="btn btn--secondary btn--full mt-4">
+                    <i class="fas fa-download"></i>
+                    Télécharger le rapport
+                </button>
+            </section>
+
+            <!-- Gestion de la difficulté -->
+            <section class="card control-section">
+                <h2 class="control-section__title">
+                    <i class="fas fa-sliders-h"></i>
+                    Gestion de la difficulté
+                </h2>
+                
+                <div class="form__group">
+                    <label class="form__label">Mode d'adaptation</label>
+                    <select class="form__select" id="difficulty-mode">
+                        <option value="auto" selected>🤖 Automatique (IA)</option>
+                        <option value="manual">👤 Manuel</option>
+                        <option value="assisted">🤝 Assisté</option>
+                    </select>
+                </div>
+                
+                <div class="form__group">
+                    <label class="form__label">Niveau actuel</label>
+                    <div class="difficulty-selector">
+                        <button class="difficulty-btn difficulty-btn--active" data-level="initie">
+                            <i class="fas fa-baby"></i>
+                            Initié
+                        </button>
+                        <button class="difficulty-btn" data-level="padawan">
+                            <i class="fas fa-user-graduate"></i>
+                            Padawan
+                        </button>
+                        <button class="difficulty-btn" data-level="chevalier">
+                            <i class="fas fa-user-ninja"></i>
+                            Chevalier
+                        </button>
+                        <button class="difficulty-btn" data-level="maitre">
+                            <i class="fas fa-user-tie"></i>
+                            Maître
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form__group">
+                    <label class="form__label">Types d'exercices autorisés</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox">
+                            <input type="checkbox" checked>
+                            <span>➕ Addition</span>
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox" checked>
+                            <span>➖ Soustraction</span>
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox">
+                            <span>✖️ Multiplication</span>
+                        </label>
+                        <label class="checkbox">
+                            <input type="checkbox">
+                            <span>➗ Division</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Temps et sessions -->
+            <section class="card control-section">
+                <h2 class="control-section__title">
+                    <i class="fas fa-clock"></i>
+                    Temps et sessions
+                </h2>
+                
+                <div class="form__group">
+                    <label class="form__label">Durée de session recommandée</label>
+                    <input type="range" class="form__range" id="session-duration" 
+                           min="5" max="45" value="15" step="5">
+                    <output class="form__output" for="session-duration">15 minutes</output>
+            </div>
+                
+                <div class="form__group">
+                    <label class="form__label">Pause entre exercices</label>
+                    <input type="range" class="form__range" id="break-duration" 
+                           min="0" max="10" value="2" step="1">
+                    <output class="form__output" for="break-duration">2 minutes</output>
+        </div>
+
+                <div class="form__group">
+                    <label class="checkbox">
+                        <input type="checkbox" id="daily-reminder">
+                        <span>Rappel quotidien</span>
+                    </label>
+                    <input type="time" class="form__input" value="16:00" 
+                           id="reminder-time" style="margin-top: 0.5rem;">
+                </div>
+            </section>
+
+            <!-- Suivi des progrès -->
+            <section class="card control-section">
+                <h2 class="control-section__title">
+                    <i class="fas fa-trophy"></i>
+                    Suivi des progrès
+                </h2>
+                
+                <div class="achievements-list">
+                    <h3 class="text-md mb-3">Derniers accomplissements</h3>
+                    <ul class="timeline">
+                        <li class="timeline__item">
+                            <i class="fas fa-medal"></i>
+                            <div>
+                                <strong>Badge "Persévérance"</strong>
+                                <small>Il y a 2 jours</small>
+                            </div>
+                        </li>
+                        <li class="timeline__item">
+                            <i class="fas fa-star"></i>
+                            <div>
+                                <strong>10 exercices réussis</strong>
+                                <small>Il y a 1 semaine</small>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="next-goals mt-4">
+                    <h3 class="text-md mb-3">Prochains objectifs</h3>
+                    <div class="goal">
+                        <span>Badge "Vitesse de l'éclair"</span>
+                        <div class="progress">
+                            <div class="progress__bar" style="width: 70%"></div>
+                        </div>
+                        <small>7/10 exercices rapides</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Actions rapides -->
+            <section class="card control-section">
+                <h2 class="control-section__title">
+                    <i class="fas fa-bolt"></i>
+                    Actions rapides
+                </h2>
+                
+                <div class="actions-grid">
+                    <button class="btn btn--primary btn--full">
+                        <i class="fas fa-plus"></i>
+                        Créer un exercice
+                </button>
+                    <button class="btn btn--secondary btn--full">
+                        <i class="fas fa-file-pdf"></i>
+                        Rapport PDF
+                </button>
+                    <button class="btn btn--secondary btn--full">
+                        <i class="fas fa-gift"></i>
+                        Débloquer un badge
+                </button>
+                    <button class="btn btn--danger btn--full">
+                        <i class="fas fa-redo"></i>
+                        Réinitialiser
+                </button>
+            </div>
+            </section>
+        </div>
+    </div>
+</main>
+
+<style>
+/* Styles spécifiques au centre de contrôle */
+.control-header {
+    text-align: center;
+    margin-bottom: var(--space-8);
+}
+
+.control-header__title {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-2);
+}
+
+.control-header__subtitle {
+    color: var(--text-secondary);
+    font-size: var(--text-lg);
+}
+
+/* Profil enfant */
+.child-profile {
+    padding: var(--space-6);
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.profile-info__avatar {
+    width: 80px;
+    height: 80px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: white;
+}
+
+.profile-info__details h3 {
+    margin-bottom: var(--space-1);
+}
+
+/* Grille de contrôles */
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--space-6);
+}
+
+.control-section {
+    padding: var(--space-6);
+}
+
+.control-section__title {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+/* Stats grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+}
+
+.stat-item {
+    text-align: center;
+    padding: var(--space-3);
+    background: var(--surface-secondary);
+    border-radius: var(--radius-md);
+}
+
+.stat-item__value {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.stat-item__label {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+
+/* Difficulty selector */
+.difficulty-selector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2);
+}
+
+.difficulty-btn {
+    padding: var(--space-3);
+    background: var(--surface-secondary);
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.difficulty-btn:hover {
+    border-color: var(--primary);
+}
+
+.difficulty-btn--active {
+    background: var(--primary);
+    color: white;
+}
+
+/* Checkbox group */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    cursor: pointer;
+}
+
+.checkbox input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* Timeline */
+.timeline {
+    list-style: none;
+    padding: 0;
+}
+
+.timeline__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border-secondary);
+}
+
+.timeline__item:last-child {
+    border-bottom: none;
+}
+
+.timeline__item i {
+    color: var(--accent);
+    font-size: 1.25rem;
+}
+
+.timeline__item small {
+    display: block;
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+}
+
+/* Goal progress */
+.goal {
+    margin-bottom: var(--space-3);
+}
+
+.progress {
+    height: 8px;
+    background: var(--surface-secondary);
+    border-radius: var(--radius-full);
+    margin: var(--space-2) 0;
+    overflow: hidden;
+}
+
+.progress__bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s;
+}
+
+/* Actions grid */
+.actions-grid {
+    display: grid;
+    gap: var(--space-3);
+}
+
+/* Range output */
+.form__output {
+    display: block;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    margin-top: var(--space-1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .control-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .difficulty-selector {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+// Gestion des interactions du centre de contrôle
+document.addEventListener('DOMContentLoaded', function() {
+    // Mise à jour des valeurs de range
+    const ranges = document.querySelectorAll('input[type="range"]');
+    ranges.forEach(range => {
+        const output = document.querySelector(`output[for="${range.id}"]`);
+        if (output) {
+            range.addEventListener('input', function() {
+                let value = this.value;
+                let unit = this.id === 'session-duration' || this.id === 'break-duration' ? ' minutes' : '';
+                output.textContent = value + unit;
+            });
+        }
+    });
+    
+    // Gestion des boutons de difficulté
+    const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+    difficultyBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            difficultyBtns.forEach(b => b.classList.remove('difficulty-btn--active'));
+            this.classList.add('difficulty-btn--active');
+        });
+    });
+    
+    // Charger les préférences sauvegardées
+    loadPreferences();
+    
+    // Sauvegarde automatique
+    const inputs = document.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            savePreference(this.id, this.type === 'checkbox' ? this.checked : this.value);
+            
+            // Appliquer immédiatement certaines préférences
+            applyPreference(this.id, this.type === 'checkbox' ? this.checked : this.value);
+            
+            // Notification visuelle
+            showNotification('✅ Paramètres sauvegardés');
+        });
+    });
+    
+    // Fonction pour charger les préférences
+    function loadPreferences() {
+        const preferences = JSON.parse(localStorage.getItem('mathakine_control_center') || '{}');
+        
+        Object.keys(preferences).forEach(key => {
+            const element = document.getElementById(key);
+            if (element) {
+                if (element.type === 'checkbox') {
+                    element.checked = preferences[key];
+                } else {
+                    element.value = preferences[key];
+                }
+                
+                // Mettre à jour les outputs pour les ranges
+                if (element.type === 'range') {
+                    const output = document.querySelector(`output[for="${key}"]`);
+                    if (output) {
+                        let unit = key.includes('duration') ? ' minutes' : '';
+                        output.textContent = element.value + unit;
+                    }
+                }
+            }
+        });
+        
+        // Charger le niveau de difficulté actif
+        const savedDifficulty = preferences.currentDifficulty || 'initie';
+        const diffBtn = document.querySelector(`[data-level="${savedDifficulty}"]`);
+        if (diffBtn) {
+            document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('difficulty-btn--active'));
+            diffBtn.classList.add('difficulty-btn--active');
+        }
+    }
+    
+    // Fonction pour sauvegarder une préférence
+    function savePreference(key, value) {
+        const preferences = JSON.parse(localStorage.getItem('mathakine_control_center') || '{}');
+        preferences[key] = value;
+        localStorage.setItem('mathakine_control_center', JSON.stringify(preferences));
+        
+        // Sauvegarder aussi dans le serveur si l'utilisateur est connecté
+        if (window.CONFIG?.currentUser) {
+            fetch('/api/settings/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    key: `control_center.${key}`,
+                    value: value
+                })
+            }).catch(err => console.error('Erreur de sauvegarde serveur:', err));
+        }
+    }
+    
+    // Fonction pour appliquer une préférence immédiatement
+    function applyPreference(key, value) {
+        switch(key) {
+            case 'navigation-mode':
+                if (window.MathakineNavigation) {
+                    window.MathakineNavigation.setNavigationMode(value);
+                }
+                break;
+            case 'sensory-profile':
+                if (window.MathakineAutismFriendly) {
+                    window.MathakineAutismFriendly.changeSensoryProfile(value);
+                }
+                break;
+            case 'reduce-animations':
+                document.body.classList.toggle('reduced-animations', value);
+                break;
+            case 'high-contrast':
+                document.body.classList.toggle('high-contrast', value);
+                break;
+            case 'large-text':
+                document.body.classList.toggle('large-text', value);
+                break;
+        }
+    }
+    
+    // Fonction pour afficher une notification
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification notification--success';
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: var(--success);
+            color: white;
+            border-radius: var(--radius-md);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.remove(), 3000);
+    }
+});
+
+// Système de persistance complet
+(function() {
+    // Charger les préférences au démarrage
+    loadAllPreferences();
+    
+    // Fonction pour charger toutes les préférences
+    function loadAllPreferences() {
+        const saved = JSON.parse(localStorage.getItem('mathakine_control_center') || '{}');
+        
+        // Restaurer les valeurs
+        Object.keys(saved).forEach(key => {
+            const element = document.getElementById(key);
+            if (element) {
+                if (element.type === 'checkbox') {
+                    element.checked = saved[key];
+                } else {
+                    element.value = saved[key];
+                }
+                
+                // Appliquer immédiatement la préférence
+                applyPreference(key, saved[key]);
+            }
+        });
+        
+        // Niveau de difficulté
+        if (saved.currentDifficulty) {
+            const btn = document.querySelector(`[data-level="${saved.currentDifficulty}"]`);
+            if (btn) {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('difficulty-btn--active'));
+                btn.classList.add('difficulty-btn--active');
+            }
+        }
+    }
+    
+    // Ajouter la sauvegarde aux boutons de difficulté
+    document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const level = this.getAttribute('data-level');
+            savePreference('currentDifficulty', level);
+        });
+    });
+    
+    // Fonction pour sauvegarder une préférence
+    function savePreference(key, value) {
+        const saved = JSON.parse(localStorage.getItem('mathakine_control_center') || '{}');
+        saved[key] = value;
+        localStorage.setItem('mathakine_control_center', JSON.stringify(saved));
+    }
+    
+    // Fonction pour appliquer une préférence
+    function applyPreference(key, value) {
+        switch(key) {
+            case 'navigation-mode':
+                if (window.adaptiveNavigation) {
+                    window.adaptiveNavigation.setNavigationMode(value);
+                }
+                break;
+            case 'sensory-profile':
+                if (window.autismFriendly) {
+                    window.autismFriendly.changeSensoryProfile(value);
+                }
+                break;
+            case 'reduce-animations':
+                document.body.classList.toggle('reduced-animations', value);
+                break;
+            case 'high-contrast':
+                document.body.classList.toggle('high-contrast', value);
+                break;
+            case 'large-text':
+                document.body.classList.toggle('large-text', value);
+                break;
+        }
+    }
+    
+    // Ajouter la sauvegarde persistante à tous les inputs
+    document.querySelectorAll('input, select').forEach(input => {
+        input.addEventListener('change', function() {
+            const value = this.type === 'checkbox' ? this.checked : this.value;
+            savePreference(this.id, value);
+            applyPreference(this.id, value);
+        });
+    });
+})();
+</script>
+{% endblock %} 

@@ -427,8 +427,7 @@ class UserRole(str, Enum):
     PADAWAN = "padawan"       # Utilisateur standard
     MAITRE = "maitre"         # Enseignant
     GARDIEN = "gardien"       # Modérateur
-    ARCHIVISTE = "archiviste" # Administrateur système
-    ADMIN = "admin"           # Super administrateur
+    ARCHIVISTE = "archiviste" # Administrateur système avec tous les privilèges
 ```
 
 ### ExerciseType

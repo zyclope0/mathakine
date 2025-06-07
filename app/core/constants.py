@@ -55,9 +55,8 @@ class UserRoles:
     MAITRE = "maitre"
     GARDIEN = "gardien"
     ARCHIVISTE = "archiviste"
-    ADMIN = "admin"
     
-    ALL_ROLES = [PADAWAN, CHEVALIER, MAITRE, GARDIEN, ARCHIVISTE, ADMIN]
+    ALL_ROLES = [PADAWAN, CHEVALIER, MAITRE, GARDIEN, ARCHIVISTE]
     
     # Mapping des permissions par rôle (hiérarchique)
     ROLE_PERMISSIONS = {
@@ -65,8 +64,7 @@ class UserRoles:
         CHEVALIER: ["view_own", "create_exercises"],
         MAITRE: ["view_own", "create_exercises", "modify_own"],
         GARDIEN: ["view_own", "view_all", "create_exercises", "modify_own", "modify_all"],
-        ARCHIVISTE: ["view_own", "view_all", "create_exercises", "modify_own", "modify_all", "delete"],
-        ADMIN: ["view_own", "view_all", "create_exercises", "modify_own", "modify_all", "delete", "admin"]
+        ARCHIVISTE: ["view_own", "view_all", "create_exercises", "modify_own", "modify_all", "delete", "admin"]
     }
 
 # Noms d'affichage pour les types et niveaux

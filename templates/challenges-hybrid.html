@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+
+{% block title %}Défis Galactiques Hybrides - Mathakine{% endblock %}
+
+{% block head %}
+<style>
+    /* Styles pour le système hybride de challenges */
+    .page-header {
+        position: static !important;
+        z-index: auto !important;
+    }
+    
+    .page-header__title,
+    .page-header__subtitle {
+        position: static !important;
+        z-index: auto !important;
+    }
+    
+    /* Sections des challenges */
+    .challenge-section {
+        margin-bottom: var(--space-xxl);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+        padding: var(--space-lg);
+        background: var(--sw-card-bg);
+        border-radius: var(--border-radius-lg);
+        border-left: 6px solid var(--sw-blue);
+        box-shadow: var(--shadow-card);
+    }
+    
+    .section-icon {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, var(--sw-blue), var(--sw-purple));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .section-content h2 {
+        margin: 0;
+        color: var(--sw-blue);
+        font-size: 1.75rem;
+        font-weight: bold;
+    }
+    
+    .section-content p {
+        margin: 0.5rem 0 0 0;
+        color: var(--sw-text-secondary);
+        font-size: var(--font-size-md);
+    }
+    
+    .challenges-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: var(--space-lg);
+        margin-bottom: var(--space-xl);
+    }
+    
+    .challenge-card {
+        position: relative;
+        background: var(--sw-card-bg);
+        border: 1px solid var(--sw-card-border);
+        border-radius: var(--border-radius-lg);
+        padding: var(--space-lg);
+        text-align: center;
+        transition: var(--default-transition);
+        overflow: hidden;
+        cursor: pointer;
+    }
+    
+    /* Types de challenges avec bordures colorées */
+    .challenge-card.exercise-type::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--sw-blue), var(--sw-purple));
+        transition: var(--default-transition);
+    }
+    
+    .challenge-card.logic-type::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #f59e0b, #f97316);
+        transition: var(--default-transition);
+    }
+    
+    .challenge-card.hybrid-type::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--sw-green), var(--sw-blue), var(--sw-purple));
+        transition: var(--default-transition);
+    }
+    
+    .challenge-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: var(--shadow-elevated);
+        border-color: var(--sw-accent);
+    }
+    
+    .challenge-type-badge {
+        position: absolute;
+        top: var(--space-md);
+        right: var(--space-md);
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: 20px;
+        font-size: var(--font-size-xs);
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .type-exercise { 
+        background: rgba(74, 107, 255, 0.2); 
+        color: var(--sw-blue); 
+        border: 1px solid rgba(74, 107, 255, 0.5);
+    }
+    .type-logic { 
+        background: rgba(245, 158, 11, 0.2); 
+        color: #f59e0b; 
+        border: 1px solid rgba(245, 158, 11, 0.5);
+    }
+    .type-hybrid { 
+        background: rgba(16, 185, 129, 0.2); 
+        color: var(--sw-green); 
+        border: 1px solid rgba(16, 185, 129, 0.5);
+    }
+    
+    .challenge-icon {
+        font-size: 3rem;
+        margin-bottom: var(--space-md);
+        display: block;
+    }
+    
+    .challenge-icon.exercise { color: var(--sw-blue); }
+    .challenge-icon.logic { color: #f59e0b; }
+    .challenge-icon.hybrid { color: var(--sw-green); }
+    
+    .challenge-title {
+        margin: 0 0 var(--space-sm) 0;
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: var(--sw-text-primary);
+    }
+    
+    .challenge-story {
+        margin-bottom: var(--space-md);
+        color: var(--sw-text-secondary);
+        font-size: var(--font-size-sm);
+        line-height: 1.5;
+        font-style: italic;
+    }
+    
+    .challenge-target {
+        background: rgba(164, 181, 225, 0.1);
+        border: 1px solid rgba(164, 181, 225, 0.3);
+        border-radius: var(--border-radius-md);
+        padding: var(--space-sm);
+        margin-bottom: var(--space-md);
+        font-size: var(--font-size-sm);
+    }
+    
+    .challenge-reward {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.1));
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        border-radius: var(--border-radius-md);
+        padding: var(--space-sm);
+        margin-bottom: var(--space-md);
+        color: #ffd700;
+        font-weight: bold;
+        font-size: var(--font-size-sm);
+    }
+    
+    .challenge-button {
+        width: 100%;
+        padding: var(--space-md);
+        border: none;
+        border-radius: var(--border-radius-md);
+        font-weight: bold;
+        font-size: var(--font-size-md);
+        cursor: pointer;
+        transition: var(--default-transition);
+        background: linear-gradient(135deg, var(--sw-blue), var(--sw-purple));
+        color: white;
+    }
+    
+    .challenge-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(74, 107, 255, 0.4);
+    }
+    
+    .challenge-button.logic-button {
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+    }
+    
+    .challenge-button.logic-button:hover {
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    }
+    
+    .challenge-button.hybrid-button {
+        background: linear-gradient(135deg, var(--sw-green), var(--sw-blue));
+    }
+    
+    .challenge-button.hybrid-button:hover {
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+    
+    /* Weekly challenge special styling */
+    .weekly-challenge {
+        background: linear-gradient(135deg, var(--sw-space), rgba(16, 185, 129, 0.1));
+        border: 2px solid var(--sw-green);
+        box-shadow: 0 12px 40px rgba(16, 185, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .weekly-challenge::after {
+        content: '🌟 HEBDOMADAIRE';
+        position: absolute;
+        top: var(--space-sm);
+        left: var(--space-sm);
+        background: var(--sw-green);
+        color: white;
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: 20px;
+        font-size: var(--font-size-xs);
+        font-weight: bold;
+        letter-spacing: 0.5px;
+    }
+    
+    .challenge-timer {
+        font-family: 'Courier New', monospace;
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: var(--sw-gold);
+        margin-top: var(--space-sm);
+        background: rgba(255, 215, 0, 0.1);
+        padding: var(--space-sm);
+        border-radius: var(--border-radius-md);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+    }
+</style>
+
+<script src="/static/js/challenges-hybrid.js"></script>
+<script>
+// Initialisation du système hybride
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🌟 Système de Challenges Hybride activé');
+    
+    // Animation des cartes au survol
+    const cards = document.querySelectorAll('.challenge-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<main class="main">
+    <div class="container">
+        <!-- En-tête principal -->
+        <header class="page-header">
+            <h1 class="page-header__title">
+                <i class="fas fa-galaxy"></i>
+                Défis Galactiques Hybrides
+            </h1>
+            <p class="page-header__subtitle">
+                Exercices, énigmes logiques et missions complètes vous attendent ! ⚔️🧠✨
+            </p>
+        </header>
+
+        <!-- SECTION 1: Missions Hybrides (Hebdomadaires) -->
+        <section class="challenge-section">
+            <div class="section-header">
+                <div class="section-icon">⚔️</div>
+                <div class="section-content">
+                    <h2>Missions Hybrides</h2>
+                    <p>Défis complets combinant exercices et énigmes logiques</p>
+                </div>
+            </div>
+            
+            <div class="challenges-grid">
+                <!-- Mission Alderaan (Hybride) -->
+                <div class="challenge-card hybrid-type weekly-challenge" onclick="startChallenge(999)">
+                    <div class="challenge-type-badge type-hybrid">Hybride</div>
+                    <div class="challenge-icon hybrid">🏆</div>
+                    <h3 class="challenge-title">Mission Alderaan</h3>
+                    <p class="challenge-story">
+                        Mission complète pour sauver Alderaan ! Exercices de géométrie + énigmes logiques complexes.
+                    </p>
+                    <div class="challenge-target">
+                        📚 15 exercices géométrie + 🧩 3 énigmes logiques
+                    </div>
+                    <div class="challenge-reward">
+                        🏆 500 ⭐ + Badge Héros d'Alderaan + Accès Maître Jedi
+                    </div>
+                    <div class="challenge-timer">
+                        ⏰ Temps restant : 4j 12h 33m
+                    </div>
+                    <button class="challenge-button hybrid-button">
+                        🚀 Lancer la Mission
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Défis d'Exercices Classiques -->
+        <section class="challenge-section">
+            <div class="section-header">
+                <div class="section-icon">📚</div>
+                <div class="section-content">
+                    <h2>Défis d'Exercices</h2>
+                    <p>Challenges basés sur la résolution d'exercices mathématiques</p>
+                </div>
+            </div>
+            
+            <div class="challenges-grid">
+                <!-- Défi Addition -->
+                <div class="challenge-card exercise-type" onclick="startChallenge(1)">
+                    <div class="challenge-type-badge type-exercise">Exercices</div>
+                    <div class="challenge-icon exercise">🌅</div>
+                    <h3 class="challenge-title">Sommes de Tatooine</h3>
+                    <p class="challenge-story">
+                        Aide Luke Skywalker à compter ses crédits avant son départ pour l'aventure !
+                    </p>
+                    <div class="challenge-target">
+                        5 exercices d'addition niveau Initié
+                    </div>
+                    <div class="challenge-reward">
+                        50 ⭐ + Badge Compteur de Tatooine
+                    </div>
+                    <button class="challenge-button">
+                        ✨ Commencer la Mission
+                    </button>
+                </div>
+
+                <!-- Défi Multiplication -->
+                <div class="challenge-card exercise-type" onclick="startChallenge(2)">
+                    <div class="challenge-type-badge type-exercise">Exercices</div>
+                    <div class="challenge-icon exercise">⚡</div>
+                    <h3 class="challenge-title">Calculs Hyperspatiaux</h3>
+                    <p class="challenge-story">
+                        Calcule les vitesses des vaisseaux rebelles pour échapper à l'Empire !
+                    </p>
+                    <div class="challenge-target">
+                        8 exercices de multiplication niveau Padawan
+                    </div>
+                    <div class="challenge-reward">
+                        120 ⭐ + Badge Pilote Hyperespace
+                    </div>
+                    <button class="challenge-button">
+                        ✨ Commencer la Mission
+                    </button>
+                </div>
+
+                <!-- Défi Fractions -->
+                <div class="challenge-card exercise-type" onclick="startChallenge(3)">
+                    <div class="challenge-type-badge type-exercise">Exercices</div>
+                    <div class="challenge-icon exercise">🍞</div>
+                    <h3 class="challenge-title">Partage des Rations</h3>
+                    <p class="challenge-story">
+                        Distribue équitablement les provisions aux soldats de l'Alliance Rebelle !
+                    </p>
+                    <div class="challenge-target">
+                        6 exercices de fractions niveau Chevalier
+                    </div>
+                    <div class="challenge-reward">
+                        200 ⭐ + Badge Maître des Rations
+                    </div>
+                    <button class="challenge-button">
+                        ✨ Commencer la Mission
+                    </button>
+                </div>
+
+                <!-- Défi Géométrie -->
+                <div class="challenge-card exercise-type" onclick="startChallenge(4)">
+                    <div class="challenge-type-badge type-exercise">Exercices</div>
+                    <div class="challenge-icon exercise">🔧</div>
+                    <h3 class="challenge-title">Architecture Étoile Noire</h3>
+                    <p class="challenge-story">
+                        Analyse les plans secrets pour trouver les points faibles de l'Étoile Noire !
+                    </p>
+                    <div class="challenge-target">
+                        10 exercices de géométrie niveau Maître
+                    </div>
+                    <div class="challenge-reward">
+                        500 ⭐ + Badge Architecte Impérial
+                    </div>
+                    <button class="challenge-button">
+                        ✨ Commencer la Mission
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Énigmes Logiques -->
+        <section class="challenge-section">
+            <div class="section-header">
+                <div class="section-icon">🧠</div>
+                <div class="section-content">
+                    <h2>Énigmes Logiques</h2>
+                    <p>Défis de raisonnement pur et puzzles mathématiques avancés</p>
+                </div>
+            </div>
+            
+            <div class="challenges-grid">
+                <!-- DEBUG: {{ logic_challenges|length if logic_challenges else 0 }} énigmes trouvées -->
+                {% if logic_challenges %}
+                {% for challenge in logic_challenges %}
+                <div class="challenge-card logic-type" onclick="startChallenge({{ challenge.id }})">
+                    <div class="challenge-type-badge type-logic">Logique</div>
+                    <div class="challenge-icon logic">{{ challenge.icon }}</div>
+                    <h3 class="challenge-title">{{ challenge.name }}</h3>
+                    <p class="challenge-story">
+                        {{ challenge.story }}
+                    </p>
+                    <div class="challenge-target">
+                        {{ challenge.target }}
+                    </div>
+                    <div class="challenge-reward">
+                        {{ challenge.reward }}
+                    </div>
+                    <button class="challenge-button logic-button">
+                        🧩 Résoudre l'Énigme
+                    </button>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="challenge-card" style="border: 2px solid var(--sw-red);">
+                    <div class="challenge-icon" style="color: var(--sw-red);">⚠️</div>
+                    <h3 class="challenge-title">Aucune énigme disponible</h3>
+                    <p class="challenge-story">Les énigmes logiques sont en cours de chargement...</p>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Section Statistiques -->
+        <section class="challenge-section">
+            <div class="section-header">
+                <div class="section-icon">📊</div>
+                <div class="section-content">
+                    <h2>Tes Statistiques</h2>
+                    <p>Suivi de tes progrès dans l'Alliance Rebelle</p>
+                </div>
+            </div>
+            
+            <div class="challenges-grid">
+                <div class="challenge-card" style="border: 2px solid var(--sw-gold);">
+                    <div class="challenge-icon" style="color: var(--sw-gold);">🌟</div>
+                    <h3 class="challenge-title">Total des Étoiles</h3>
+                    <p style="font-size: 2rem; font-weight: bold; color: var(--sw-gold); margin: 0;">1,250 ⭐</p>
+                    <p class="challenge-story">Continue pour rejoindre le rang de Maître Jedi !</p>
+                </div>
+                
+                <div class="challenge-card" style="border: 2px solid var(--sw-blue);">
+                    <div class="challenge-icon" style="color: var(--sw-blue);">🎯</div>
+                    <h3 class="challenge-title">Challenges Complétés</h3>
+                    <p style="font-size: 2rem; font-weight: bold; color: var(--sw-blue); margin: 0;">7/10</p>
+                    <p class="challenge-story">Plus que 3 défis pour devenir une légende !</p>
+                </div>
+                
+                <div class="challenge-card" style="border: 2px solid var(--sw-purple);">
+                    <div class="challenge-icon" style="color: var(--sw-purple);">🏆</div>
+                    <h3 class="challenge-title">Rang Actuel</h3>
+                    <p style="font-size: 1.5rem; font-weight: bold; color: var(--sw-purple); margin: 0;">Chevalier Jedi</p>
+                    <p class="challenge-story">Prochaine étape : Maître Jedi</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %} 

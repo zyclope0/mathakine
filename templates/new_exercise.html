@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+
+{% block title %}Créer un exercice - Mathakine{% endblock %}
+
+{% block content %}
+<main class="main">
+    <div class="container container--medium">
+        <!-- En-tête avec thème Star Wars -->
+        <header class="page-header mb-6">
+            <a href="/exercises" class="btn btn--secondary btn--sm mb-4 btn-unified">
+                <i class="fas fa-arrow-left"></i>
+                Retour à l'Arsenal
+            </a>
+            
+            <h1 class="page-header__title">
+                <i class="fas fa-plus-circle"></i>
+                Forger un Nouveau Défi
+            </h1>
+            <p class="page-header__subtitle">
+                Transmettez votre savoir à l'Alliance Rebelle des Mathématiques 🌟⚔️
+            </p>
+        </header>
+
+        <!-- Formulaire de création -->
+        <form id="create-exercise-form" class="exercise-form" method="POST" action="/new-exercise">
+            <!-- Section informations générales -->
+            <section class="card-unified mb-6">
+                <h2 class="text-lg mb-4">
+                    <i class="fas fa-info-circle"></i>
+                    Informations générales
+                </h2>
+                
+                <div class="form__group">
+                    <label for="title" class="form__label required">
+                        Titre de l'exercice
+                    </label>
+                    <input type="text" 
+                           id="title" 
+                           name="title" 
+                           class="form__input"
+                           placeholder="Ex: Addition de fractions simples"
+                           required
+                           autofocus>
+                    <span class="form__help">Un titre clair et descriptif</span>
+                </div>
+
+                <div class="form__row">
+                    <div class="form__group">
+                        <label for="exercise_type" class="form__label required">
+                            Type d'exercice
+                        </label>
+                        <select id="exercise_type" name="exercise_type" class="form__select" required>
+                            <option value="">Sélectionner un type</option>
+                            <option value="addition">Addition</option>
+                            <option value="soustraction">Soustraction</option>
+                            <option value="multiplication">Multiplication</option>
+                            <option value="division">Division</option>
+                            <option value="fractions">Fractions</option>
+                            <option value="geometrie">Géométrie</option>
+                            <option value="texte">Problème texte</option>
+                            <option value="logique">Logique</option>
+                            <option value="mixte">Mixte</option>
+                        </select>
+                    </div>
+
+                    <div class="form__group">
+                        <label for="difficulty" class="form__label required">
+                            Niveau de difficulté
+                        </label>
+                        <select id="difficulty" name="difficulty" class="form__select" required>
+                            <option value="">Sélectionner</option>
+                            <option value="initie">Initié</option>
+                            <option value="padawan">Padawan</option>
+                            <option value="chevalier">Chevalier</option>
+                            <option value="maitre">Maître</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section contenu -->
+            <section class="card-unified mb-6">
+                <h2 class="text-lg mb-4">
+                    <i class="fas fa-question-circle"></i>
+                    Contenu de l'exercice
+                </h2>
+
+                <div class="form__group">
+                    <label for="question" class="form__label required">
+                        Question
+                    </label>
+                    <textarea id="question" 
+                              name="question" 
+                              class="form__textarea"
+                              rows="4"
+                              placeholder="Écrivez votre question ici..."
+                              required></textarea>
+                    <span class="form__help">Soyez clair et précis dans votre énoncé</span>
+                </div>
+
+                <div class="form__group">
+                    <label for="answer_type" class="form__label">
+                        Type de réponse
+                    </label>
+                    <div class="form__radio-group">
+                        <label class="form__radio">
+                            <input type="radio" 
+                                   name="answer_type" 
+                                   value="text" 
+                                   checked
+                                   onchange="toggleAnswerType()">
+                            <span>Réponse libre</span>
+                        </label>
+                        <label class="form__radio">
+                            <input type="radio" 
+                                   name="answer_type" 
+                                   value="multiple" 
+                                   onchange="toggleAnswerType()">
+                            <span>Choix multiples</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Réponse simple -->
+                <div id="simple-answer" class="form__group">
+                    <label for="correct_answer" class="form__label required">
+                        Réponse correcte
+                    </label>
+                    <input type="text" 
+                           id="correct_answer" 
+                           name="correct_answer" 
+                           class="form__input"
+                           placeholder="La bonne réponse"
+                           required>
+                </div>
+
+                <!-- Choix multiples -->
+                <div id="multiple-choices" class="form__group" style="display: none;">
+                    <label class="form__label required">
+                        Options de réponse
+                    </label>
+                    <div id="choices-container">
+                        <div class="choice-item">
+                            <input type="text" 
+                                   name="choices[]" 
+                                   class="form__input mb-2"
+                                   placeholder="Option 1 (correcte)">
+                            <label class="form__checkbox">
+                                <input type="radio" name="correct_choice" value="0" checked>
+                                <span>Correcte</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn--secondary btn--sm" onclick="addChoice()">
+                        <i class="fas fa-plus"></i>
+                        Ajouter une option
+                    </button>
+                </div>
+
+                <div class="form__group">
+                    <label for="explanation" class="form__label">
+                        Explication (optionnelle)
+                    </label>
+                    <textarea id="explanation" 
+                              name="explanation" 
+                              class="form__textarea"
+                              rows="3"
+                              placeholder="Expliquez la solution ou la méthode..."></textarea>
+                    <span class="form__help">Aidez les apprenants à comprendre la solution</span>
+                </div>
+            </section>
+
+            <!-- Actions -->
+            <div class="form__actions">
+                <button type="button" class="btn btn--secondary btn-unified" onclick="previewExercise()">
+                    <i class="fas fa-eye"></i>
+                    Prévisualiser
+                </button>
+                <button type="submit" class="btn btn--primary btn-unified">
+                    <i class="fas fa-save"></i>
+                    Créer l'exercice
+                </button>
+            </div>
+        </form>
+
+        <!-- Zone de prévisualisation -->
+        <div id="preview-modal" class="modal" style="display: none;">
+            <div class="modal__content">
+                <div class="modal__header">
+                    <h3>Prévisualisation de l'exercice</h3>
+                    <button type="button" class="modal__close" onclick="closePreview()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal__body" id="preview-content">
+                    <!-- Le contenu de prévisualisation sera injecté ici -->
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+/* Styles du formulaire */
+.exercise-form {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+}
+
+.form__label.required::after {
+    content: " *";
+    color: var(--danger);
+}
+
+.form__radio-group {
+    display: flex;
+    gap: var(--space-4);
+}
+
+.form__radio {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.form__radio input {
+    margin-right: var(--space-2);
+}
+
+.choice-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.choice-item .form__input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.form__actions {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: flex-end;
+}
+
+/* Modal de prévisualisation */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal__content {
+    background: var(--surface-primary);
+    border-radius: var(--radius-lg);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.modal__close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: var(--text-xl);
+    cursor: pointer;
+    padding: var(--space-2);
+}
+
+.modal__close:hover {
+    color: var(--text-primary);
+}
+
+.modal__body {
+    padding: var(--space-4);
+    overflow-y: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form__row {
+        grid-template-columns: 1fr;
+    }
+    
+    .form__actions {
+        flex-direction: column;
+    }
+    
+    .form__actions .btn {
+        width: 100%;
+    }
+}
+
+/* Mode focus */
+.focus-mode .form__help,
+.focus-mode .page-header__subtitle {
+    display: none;
+}
+</style>
+
+<script>
+// Gestion du type de réponse
+function toggleAnswerType() {
+    const answerType = document.querySelector('input[name="answer_type"]:checked').value;
+    const simpleAnswer = document.getElementById('simple-answer');
+    const multipleChoices = document.getElementById('multiple-choices');
+    
+    if (answerType === 'text') {
+        simpleAnswer.style.display = 'block';
+        multipleChoices.style.display = 'none';
+        document.getElementById('correct_answer').required = true;
+    } else {
+        simpleAnswer.style.display = 'none';
+        multipleChoices.style.display = 'block';
+        document.getElementById('correct_answer').required = false;
+    }
+}
+
+// Ajouter un choix
+let choiceCount = 1;
+function addChoice() {
+    const container = document.getElementById('choices-container');
+    const newChoice = document.createElement('div');
+    newChoice.className = 'choice-item';
+    newChoice.innerHTML = `
+        <input type="text" 
+               name="choices[]" 
+               class="form__input"
+               placeholder="Option ${++choiceCount}">
+        <label class="form__checkbox">
+            <input type="radio" name="correct_choice" value="${choiceCount - 1}">
+            <span>Correcte</span>
+        </label>
+        <button type="button" class="btn btn--danger btn--sm" onclick="removeChoice(this)">
+            <i class="fas fa-trash"></i>
+        </button>
+    `;
+    container.appendChild(newChoice);
+}
+
+// Supprimer un choix
+function removeChoice(button) {
+    button.parentElement.remove();
+}
+
+// Prévisualisation
+function previewExercise() {
+    const form = document.getElementById('create-exercise-form');
+    const formData = new FormData(form);
+    
+    // Construire le contenu de prévisualisation
+    const preview = `
+        <div class="exercise-preview">
+            <h2>${formData.get('title') || 'Titre de l\'exercice'}</h2>
+            <div class="exercise-meta mb-4">
+                <span class="badge badge--${formData.get('difficulty') || 'initie'}">
+                    ${formData.get('difficulty') || 'Difficulté'}
+                </span>
+                <span class="badge badge--type">
+                    ${formData.get('exercise_type') || 'Type'}
+                </span>
+            </div>
+            <div class="card mb-4">
+                <h3>Question</h3>
+                <p>${formData.get('question') || 'Votre question apparaîtra ici...'}</p>
+            </div>
+            ${formData.get('explanation') ? `
+                <div class="card">
+                    <h4>Explication</h4>
+                    <p>${formData.get('explanation')}</p>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    document.getElementById('preview-content').innerHTML = preview;
+    document.getElementById('preview-modal').style.display = 'flex';
+}
+
+// Fermer la prévisualisation
+function closePreview() {
+    document.getElementById('preview-modal').style.display = 'none';
+}
+
+// Validation du formulaire
+document.getElementById('create-exercise-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Validation supplémentaire si nécessaire
+    const answerType = document.querySelector('input[name="answer_type"]:checked').value;
+    
+    if (answerType === 'multiple') {
+        const choices = document.querySelectorAll('input[name="choices[]"]');
+        const filledChoices = Array.from(choices).filter(c => c.value.trim() !== '');
+        
+        if (filledChoices.length < 2) {
+            alert('Veuillez fournir au moins 2 options de réponse.');
+            return;
+        }
+    }
+    
+    // Soumettre le formulaire
+    this.submit();
+});
+</script>
+{% endblock %} 

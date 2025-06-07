@@ -5,18 +5,46 @@
 ## 🎯 Fonctionnalités Principales
 
 ### 🧮 Système d'Exercices Mathématiques
-- **Types d'exercices** : Addition, Soustraction, Multiplication, Division, Mixte
+
+#### Types d'Exercices Disponibles (9 types - Version 1.5.0)
+
+**Types Arithmétiques de Base** :
+- **➕ Addition** : 4 niveaux de difficulté (Initié → Maître)
+- **➖ Soustraction** : Calculs avec résultats positifs
+- **✖️ Multiplication** : Tables et calculs avancés
+- **➗ Division** : Divisions exactes adaptées au niveau
+- **🔀 Mixte** : Combinaisons intelligentes des opérations
+
+**Nouveaux Types (Mai 2025)** ⭐ :
+- **🔢 Fractions** : 4 opérations complètes avec module Python `fractions`
+  - Progression : fractions simples → dénominateurs différents → calculs complexes → divisions
+  - Exemple : `Calcule 5/6 + 3/4 → 19/12`
+- **📐 Géométrie** : 5 formes (carré, rectangle, triangle, cercle, trapèze)
+  - 3 propriétés : périmètre, aire, diagonale
+  - Exemple : `Calcule l'aire d'un triangle avec base=146 et hauteur=105 → 7665.0`
+- **📝 Texte** : Questions textuelles avec énoncés élaborés et contextualisés
+  - Problèmes concrets avec mise en contexte Star Wars
+- **🌟 Divers** : 6 catégories de problèmes concrets
+  - Monnaie, vitesse, pourcentages, probabilités, séquences
+  - Exemple : `Un train roule à 755 km/h pendant 1 heure. Distance ? → 755 km`
+
+#### Fonctionnalités Système
 - **Niveaux de difficulté** : Initié, Padawan, Chevalier, Maître (thème Star Wars)
 - **Génération intelligente** : Algorithmes adaptatifs selon le niveau
 - **Génération IA** : Exercices thématiques Star Wars avec libellés élaborés
 - **Validation automatique** : Correction immédiate avec explications
+- **API REST complète** : Génération via `/api/exercises/generate`
 
 ### 🧩 Défis Logiques (Épreuves du Conseil Jedi)
-- **Types de défis** : Visuels, abstraits, patterns, mots
-- **Groupes d'âge** : 10-11, 12-13, 14-15 ans
-- **Système d'indices** : 3 niveaux progressifs
+- **12 types de défis** : Séquences, motifs, visuels, puzzles, énigmes, déduction, spatial, probabilités, graphes, codage, échecs, personnalisés
+- **9 groupes d'âge** : De 9-12 ans à adulte avec groupes spécialisés
+- **Système d'indices** : 3 niveaux progressifs avec pénalités adaptées
 - **Solutions détaillées** : Explications complètes après résolution
 - **Thématique immersive** : Intégration complète de l'univers Star Wars
+- **API complète** : 7 endpoints REST pour gestion et résolution
+- **Interface avancée** : 3 sections organisées (exercices, logique, hybrides)
+
+> 📖 **[Documentation complète des Défis Logiques](./challenges.md)** - Architecture technique, types de défis, API, interface utilisateur, système de badges et métriques de performance.
 
 ### 👤 Système d'Authentification
 - **Connexion sécurisée** : JWT tokens avec cookies HTTP-only

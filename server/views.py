@@ -674,4 +674,257 @@ async def badges_page(request: Request):
             error="Erreur de chargement",
             message=f"Impossible de charger la page des badges: {str(e)}",
             status_code=500
+        )
+
+# Page des exercices en mode simple
+async def exercises_simple_page(request: Request):
+    """Rendu de la page des exercices en mode simplifié"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    
+    # Vérifier si l'utilisateur est connecté
+    if not current_user["is_authenticated"]:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    # Mode simple = exercices de niveau initié uniquement
+    difficulty = "initie"
+    
+    try:
+        # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
+        db = EnhancedServerAdapter.get_db_session()
+        
+        try:
+            # Récupérer seulement les exercices de niveau initié
+            exercises = EnhancedServerAdapter.list_exercises(
+                db,
+                exercise_type=None,
+                difficulty=difficulty
+            )
+            
+            print(f"Mode simple : {len(exercises)} exercices de niveau initié récupérés")
+                
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+    except Exception as e:
+        print(f"Erreur lors de la récupération des exercices simples: {e}")
+        traceback.print_exc()
+        exercises = []
+    
+    # Créer des dictionnaires pour l'affichage des types et niveaux
+    exercise_types = {key: DISPLAY_NAMES[key] for key in ExerciseTypes.ALL_TYPES}
+    difficulty_levels = {key: DISPLAY_NAMES[key] for key in DifficultyLevels.ALL_LEVELS}
+    
+    # Mappings pour l'affichage des exercices dans la liste
+    exercise_type_display = DISPLAY_NAMES
+    difficulty_display = DISPLAY_NAMES
+    
+    # Préfixe IA pour les templates
+    ai_prefix = Messages.AI_EXERCISE_PREFIX
+
+    # Message pour indiquer qu'on est en mode simple
+    message = "Mode Simple : Seuls les exercices de niveau Initié sont affichés"
+    message_type = "info"
+    
+    return render_template("exercises.html", request, {
+        "exercises": exercises,
+        "message": message,
+        "message_type": message_type,
+        "exercise_types": exercise_types,
+        "difficulty_levels": difficulty_levels,
+        "exercise_type_display": exercise_type_display,
+        "difficulty_display": difficulty_display,
+        "ai_prefix": ai_prefix,
+        "current_user": current_user,
+        "simple_mode": True  # Indicateur pour le template
+    })
+
+async def new_exercise_page(request):
+    # This function is mentioned in the code block but not implemented in the original file or the new file
+    # It's assumed to exist as it's called in the exercises_page function
+    pass
+
+# Page des exercices simples
+async def simple_exercises_page(request: Request):
+    """Rendu de la page des exercices simples (addition, soustraction, division uniquement)"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    
+    # Vérifier si l'utilisateur est connecté
+    if not current_user["is_authenticated"]:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    try:
+        # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
+        db = EnhancedServerAdapter.get_db_session()
+        
+        try:
+            # Récupérer uniquement les exercices de base (addition, soustraction, division)
+            basic_types = ['ADDITION', 'SOUSTRACTION', 'DIVISION']
+            exercises = EnhancedServerAdapter.get_exercises_by_types(db, basic_types, limit=20)
+            
+            print(f"Nombre d'exercices simples récupérés: {len(exercises)}")
+            
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+        
+        # Types d'exercices pour la page simple
+        exercise_types = ['ADDITION', 'SOUSTRACTION', 'DIVISION']
+        difficulty_levels = ['INITIE', 'PADAWAN', 'CHEVALIER']
+        
+        # Mappings pour l'affichage
+        exercise_type_display = DISPLAY_NAMES
+        difficulty_display = DISPLAY_NAMES
+        
+        # Rendu avec un template spécialisé
+        return render_template("simple_exercises.html", request, {
+            "exercises": exercises,
+            "exercise_types": exercise_types,
+            "difficulty_levels": difficulty_levels,
+            "exercise_type_display": exercise_type_display,
+            "difficulty_display": difficulty_display,
+            "current_user": current_user
+        })
+        
+    except Exception as e:
+        print(f"Erreur lors du chargement des exercices simples: {str(e)}")
+        traceback.print_exc()
+        return render_error(
+            request=request,
+            error="Erreur de chargement",
+            message=f"Impossible de charger les exercices simples: {str(e)}",
+            status_code=500
+        )
+
+# Génération d'exercice simple
+async def generate_simple_exercise(request: Request):
+    """Génère un exercice simple aléatoire (addition, soustraction, division)"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    
+    # Vérifier si l'utilisateur est connecté
+    if not current_user["is_authenticated"]:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    try:
+        import random
+        from server.handlers.exercise_handlers import ExerciseGenerator
+        
+        # Types d'exercices simples
+        basic_types = ['ADDITION', 'SOUSTRACTION', 'DIVISION']
+        exercise_type = random.choice(basic_types)
+        
+        # Difficulté adaptée pour exercices simples (plus facile)
+        difficulties = ['INITIE', 'PADAWAN']
+        difficulty = random.choice(difficulties)
+        
+        print(f"Génération d'exercice simple: {exercise_type} - {difficulty}")
+        
+        # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
+        db = EnhancedServerAdapter.get_db_session()
+        
+        try:
+            # Générer l'exercice
+            generator = ExerciseGenerator()
+            exercise_data = generator.generate_exercise(exercise_type, difficulty)
+            
+            # Sauvegarder l'exercice
+            new_exercise = EnhancedServerAdapter.create_exercise(
+                db, 
+                exercise_data, 
+                current_user["id"]
+            )
+            
+            print(f"Exercice simple créé avec ID: {new_exercise.get('id')}")
+            
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+        
+        # Rediriger vers l'exercice avec le template simple
+        return RedirectResponse(url=f"/exercise/simple/{new_exercise['id']}", status_code=302)
+        
+    except Exception as e:
+        print(f"Erreur lors de la génération d'exercice simple: {str(e)}")
+        traceback.print_exc()
+        return render_error(
+            request=request,
+            error="Erreur de génération",
+            message=f"Impossible de générer un exercice simple: {str(e)}",
+            status_code=500
+        )
+
+# Page d'exercice simple individuel
+async def simple_exercise_page(request: Request):
+    """Rendu d'un exercice simple avec le template exercise_simple.html"""
+    current_user = await get_current_user(request) or {"is_authenticated": False}
+    
+    # Vérifier si l'utilisateur est connecté
+    if not current_user["is_authenticated"]:
+        return RedirectResponse(url="/login", status_code=302)
+    
+    exercise_id = request.path_params["exercise_id"]
+    print(f"Accès à l'exercice simple ID={exercise_id}")
+    
+    try:
+        # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
+        db = EnhancedServerAdapter.get_db_session()
+        
+        try:
+            # Récupérer l'exercice
+            exercise = EnhancedServerAdapter.get_exercise_by_id(db, exercise_id)
+            
+            if not exercise:
+                print(f"Exercice simple ID={exercise_id} non trouvé")
+                return render_error(
+                    request=request,
+                    error="Exercice non trouvé",
+                    message=f"L'exercice avec l'ID {exercise_id} n'existe pas.",
+                    status_code=404
+                )
+            
+            # Vérifier que c'est bien un exercice de base
+            if exercise.get('exercise_type') not in ['ADDITION', 'SOUSTRACTION', 'DIVISION']:
+                print(f"Exercice ID={exercise_id} n'est pas un exercice simple")
+                return RedirectResponse(url=f"/exercise/{exercise_id}", status_code=302)
+            
+            print(f"Exercice simple trouvé: {exercise.get('title')}")
+            
+            # S'assurer que l'exercice a des choix valides
+            if not exercise.get('choices'):
+                import random
+                correct = exercise.get('correct_answer')
+                try:
+                    correct_int = int(correct)
+                    choices = [str(correct_int + random.randint(-5, 5)) for _ in range(3)]
+                    choices.append(correct)
+                    random.shuffle(choices)
+                    if correct not in choices:
+                        choices[0] = correct
+                except (ValueError, TypeError):
+                    choices = [correct, "Option A", "Option B", "Option C"]
+                    random.shuffle(choices)
+                
+                exercise['choices'] = choices
+                print(f"Choix générés pour l'exercice simple: {choices}")
+                
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+        # Mappings pour l'affichage
+        exercise_type_display = DISPLAY_NAMES
+        difficulty_display = DISPLAY_NAMES
+        
+        # Forcer l'utilisation du template simple
+        return render_template("exercise_simple.html", request, {
+            "exercise": exercise,
+            "exercise_type_display": exercise_type_display,
+            "difficulty_display": difficulty_display,
+            "current_user": current_user
+        })
+        
+    except Exception as e:
+        print(f"Erreur lors de l'accès à l'exercice simple {exercise_id}: {str(e)}")
+        traceback.print_exc()
+        return render_error(
+            request=request,
+            error="Erreur de base de données",
+            message=f"Une erreur est survenue: {str(e)}",
+            status_code=500
         ) 

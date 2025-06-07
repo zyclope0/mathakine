@@ -1,191 +1,240 @@
 # 📚 Table des Matières - Documentation Mathakine
 
-**Navigation complète de la documentation** organisée par catégories logiques.
-
-## 🚀 Démarrage Rapide
-
-### Pour Commencer
-- [**Guide de Démarrage**](getting-started/README.md) - Installation et premiers pas
-- [Installation Détaillée](getting-started/installation.md) - Configuration complète
-- [Premiers Pas](getting-started/first-steps.md) - Utilisation de base
-- [Dépannage](getting-started/troubleshooting.md) - Résolution de problèmes
-
-## 🏗️ Architecture
-
-### Vue d'Ensemble Technique
-- [**Architecture Générale**](architecture/README.md) - Vision globale du système
-- [Architecture Backend](architecture/backend.md) - Détails techniques du serveur
-- [Base de Données](architecture/database.md) - Schéma et modèles de données
-- [Base de Données Avancée](architecture/database-advanced.md) - Migrations PostgreSQL et optimisations
-- [Évolution Base de Données](architecture/database-evolution.md) - Spécifications techniques évolution BDD
-- [Système de Transactions](architecture/transactions.md) - Gestion unifiée des transactions
-- [Sécurité](architecture/security.md) - Authentification et protection
-- [Déploiement](architecture/deployment.md) - Configuration production
-
-## 👨‍💻 Développement
-
-### Guides Développeur
-- [**Guide Développeur**](development/README.md) - Documentation complète pour développeurs
-- [Guide de Contribution](development/contributing.md) - Comment contribuer au projet
-- [Tests et CI/CD](development/testing.md) - Stratégie de tests et intégration continue
-- [**🚨 Correction Critique Tableau de Bord**](development/dashboard-fix-critical.md) - Résolution problème authentification et statistiques ⭐ **NOUVEAU**
-- [Référence API](development/api-reference.md) - Documentation des endpoints
-- [Opérations](development/operations.md) - Maintenance et monitoring
-
-## ✨ Fonctionnalités
-
-### Fonctionnalités Utilisateur
-- [**Vue d'Ensemble Complète**](features/README.md) - Toutes les fonctionnalités disponibles
-- [Système d'Authentification](features/authentication.md) - Connexion et sécurité
-- [Exercices Mathématiques](features/exercises.md) - Types et génération d'exercices
-- **[Migration Générateurs d'Exercices](features/exercise-generators-migration.md)** - Extension avec Fractions, Géométrie, Divers ⭐ **NOUVEAU**
-- [Défis Logiques](features/challenges.md) - Défis avancés par âge
-- [Interface Utilisateur](features/ui-interface.md) - Design et accessibilité
-- [Recommandations](features/recommendations.md) - Système adaptatif
-
-## 📋 Gestion de Projet
-
-### Statut et Planification
-- [**Statut du Projet**](project/README.md) - État actuel et métriques
-- [**Roadmap Fonctionnalités Futures**](project/roadmap.md) - Vision 2025-2026 et fonctionnalités avancées
-- [**Évolution Base de Données**](project/EVOLUTION_BDD_ROADMAP.md) - Roadmap évolution BDD et nouvelles fonctionnalités
-- [Notes de Version](project/releases.md) - Historique des versions
-- [Historique](project/history.md) - Évolution du projet
-
-## 📋 **PLANIFICATION ET ROADMAP**
-- [Roadmap du Projet](project/roadmap.md) - Vision et planification à long terme
-- [État du Projet](project/PROJECT_STATUS.md) - Statut actuel et prochaines étapes
-- [Plan d'Implémentation](project/IMPLEMENTATION_PLAN.md) - Stratégie de développement
-- [Évolution BDD](project/EVOLUTION_BDD_ROADMAP.md) - Roadmap évolution base de données
-- **[Priorités Exercices Détaillées](project/PRIORITES_EXERCICES_DETAILLEES.md)** - Spécifications nouveaux types ⭐ **NOUVEAU**
-- **[Plan d'Action Immédiat](../PLAN_ACTION_IMMEDIAT.md)** - Planning 2-4 semaines ⭐ **NOUVEAU**
-
-## 📖 Documents de Référence
-
-### Documentation Générale
-- [**README Principal**](README.md) - Vue d'ensemble du projet
-- [**CHANGELOG**](CHANGELOG.md) - Historique détaillé des modifications
-- [**Glossaire**](GLOSSARY.md) - Terminologie et définitions
-
-### Guides Spécialisés
-- [Guide CI/CD](CI_CD_GUIDE.md) - Intégration et déploiement continus
-
-## 📦 Archives
-
-### Documents Archivés
-- [**Archives**](archive/README.md) - Index des documents archivés
-- [Archives 2024](archive/2024/) - Documents de l'année 2024
-- [Archives 2025](archive/2025/) - Documents de l'année 2025
-- [Documents Obsolètes](archive/obsolete/) - Fichiers obsolètes conservés
-
-## 🎯 Navigation Rapide
-
-### Par Rôle
-
-#### 👨‍💻 **Développeurs**
-1. [Guide de Démarrage](getting-started/README.md)
-2. [Architecture](architecture/README.md)
-3. [Guide Développeur](development/README.md)
-4. [Tests](development/testing.md)
-
-#### 🎮 **Utilisateurs**
-1. [Guide de Démarrage](getting-started/README.md)
-2. [Fonctionnalités](features/README.md)
-3. [Interface](features/ui-interface.md)
-4. [Dépannage](getting-started/troubleshooting.md)
-
-#### 📊 **Gestionnaires de Projet**
-1. [Statut du Projet](project/README.md)
-2. [Feuille de Route](project/roadmap.md)
-3. [CHANGELOG](CHANGELOG.md)
-4. [Métriques](project/README.md#métriques)
-
-#### 🔧 **Administrateurs**
-1. [Déploiement](architecture/deployment.md)
-2. [Sécurité](architecture/security.md)
-3. [Opérations](development/operations.md)
-4. [CI/CD](CI_CD_GUIDE.md)
-
-### Par Sujet
-
-#### 🏗️ **Architecture & Technique**
-- [Architecture Générale](architecture/README.md)
-- [Base de Données](architecture/database.md)
-- [Base de Données Avancée](architecture/database-advanced.md)
-- [Évolution Base de Données](architecture/database-evolution.md)
-- [Système de Transactions](architecture/transactions.md)
-- [API Reference](development/api-reference.md)
-- [Sécurité](architecture/security.md)
-
-#### 🧪 **Tests & Qualité**
-- [Guide des Tests](development/testing.md)
-- [CI/CD](CI_CD_GUIDE.md)
-- [Opérations](development/operations.md)
-
-#### 🎨 **Interface & UX**
-- [Interface Utilisateur](features/ui-interface.md)
-- [Accessibilité](features/ui-interface.md#accessibilité)
-- [Design System](features/ui-interface.md#design)
-
-#### 📚 **Apprentissage & Pédagogie**
-- [Exercices](features/exercises.md)
-- [Défis Logiques](features/challenges.md)
-- [Recommandations](features/recommendations.md)
-
-## 🔍 Index Alphabétique
-
-| Document | Catégorie | Description |
-|----------|-----------|-------------|
-| [API Reference](development/api-reference.md) | Développement | Documentation des endpoints |
-| [Architecture](architecture/README.md) | Architecture | Vue d'ensemble technique |
-| [Authentification](features/authentication.md) | Fonctionnalités | Système de connexion |
-| [Base de Données](architecture/database.md) | Architecture | Schéma et modèles |
-| [Base de Données Avancée](architecture/database-advanced.md) | Architecture | Migrations et optimisations |
-| [Évolution Base de Données](architecture/database-evolution.md) | Architecture | Spécifications techniques évolution BDD |
-| [Évolution BDD Roadmap](project/EVOLUTION_BDD_ROADMAP.md) | Projet | Roadmap évolution BDD et nouvelles fonctionnalités |
-| [CHANGELOG](CHANGELOG.md) | Référence | Historique des modifications |
-| [CI/CD](CI_CD_GUIDE.md) | Développement | Intégration continue |
-| [Contribution](development/contributing.md) | Développement | Guide de contribution |
-| [Défis Logiques](features/challenges.md) | Fonctionnalités | Défis avancés |
-| [Démarrage](getting-started/README.md) | Démarrage | Installation et premiers pas |
-| [Déploiement](architecture/deployment.md) | Architecture | Configuration production |
-| [Exercices](features/exercises.md) | Fonctionnalités | Système d'exercices |
-| [Fonctionnalités](features/README.md) | Fonctionnalités | Vue d'ensemble |
-| [Glossaire](GLOSSARY.md) | Référence | Terminologie |
-| [Interface](features/ui-interface.md) | Fonctionnalités | Design et accessibilité |
-| [Opérations](development/operations.md) | Développement | Maintenance |
-| [Projet](project/README.md) | Projet | Statut et planification |
-| [README](README.md) | Référence | Vue d'ensemble |
-| [Recommandations](features/recommendations.md) | Fonctionnalités | Système adaptatif |
-| [Roadmap](project/roadmap.md) | Projet | Vision 2025-2026 et fonctionnalités avancées |
-| [Sécurité](architecture/security.md) | Architecture | Protection et authentification |
-| [Tests](development/testing.md) | Développement | Stratégie de tests |
-| [Transactions](architecture/transactions.md) | Architecture | Système unifié de transactions |
-
-## 📞 Support et Contact
-
-### Aide
-- **Documentation** : Cette table des matières
-- **Dépannage** : [troubleshooting.md](getting-started/troubleshooting.md)
-- **FAQ** : Questions fréquentes dans chaque section
-
-### Contact
-- **Issues GitHub** : Pour les bugs et demandes de fonctionnalités
-- **Discussions** : Pour les questions générales
-- **Email** : Pour le support direct
+**Navigation complète de la documentation** organisée par catégories logiques.  
+*Dernière mise à jour : 6 février 2025*
 
 ---
 
-**Documentation organisée pour une navigation intuitive** 📚⭐
+## 🚀 **Démarrage Rapide**
 
-*Dernière mise à jour : 27 mai 2025*
+### Pour Commencer
+- [**Guide de Démarrage**](getting-started/README.md) - Installation et premiers pas complets
+- [**README Principal**](../README.md) - Vue d'ensemble du projet et sommaire
 
-## 📋 Documentation Projet
+---
 
-### Gestion et Suivi
-- [**Table des Matières**](TABLE_DES_MATIERES.md) - Navigation complète de la documentation
-- [**Résumé Exécutif Migration Générateurs**](MIGRATION_GENERATEURS_RESUME.md) - Synthèse de la migration v1.5.0 ⭐ **NOUVEAU**
-- [Changelog](CHANGELOG.md) - Historique des versions et modifications
-- [Roadmap](project/ROADMAP.md) - Feuille de route et objectifs futurs
-- [Priorités Exercices](project/PRIORITES_EXERCICES_DETAILLEES.md) - Spécifications détaillées des exercices
-- [Analyse Besoins](project/ANALYSE_BESOINS.md) - Étude des besoins utilisateurs 
+## 🏗️ **Architecture Technique**
+
+### Documentation Technique Complète
+- [**Architecture Générale**](architecture/README.md) - Vue d'ensemble système dual-backend
+- [Backend](architecture/backend.md) - FastAPI + Starlette détaillé
+- [Base de Données](architecture/database.md) - PostgreSQL/SQLite compatibility
+- [Base de Données Avancée](architecture/database-advanced.md) - Migrations et optimisations
+- [Évolution Base de Données](architecture/database-evolution.md) - Spécifications techniques
+- [Système de Transactions](architecture/transactions.md) - Gestion unifiée ACID
+- [Sécurité](architecture/security.md) - JWT, CORS, protection des données
+
+---
+
+## 📡 **API et Intégrations**
+
+### Documentation API Complète
+- [**API Complète**](api/api.md) - 40+ endpoints documentés avec exemples ⭐ **NOUVEAU**
+- [Authentification API](api/api.md#authentification) - JWT et cookies sécurisés
+- [Codes d'Erreur](api/api.md#codes-derreur) - Gestion standardisée des erreurs
+
+---
+
+## 🎨 **Interface Utilisateur**
+
+### Guide UI/UX Complet
+- [**Guide UI/UX Complet**](ui-ux/ui-ux.md) - Interface Star Wars et accessibilité ⭐ **NOUVEAU**
+- [Composants UI](ui-ux/ui-ux.md#composants-ui-réutilisables) - Boutons, cartes, modales
+- [Thème Star Wars](ui-ux/ui-ux.md#thème-star-wars-immersif) - Couleurs, animations, effets
+- [Accessibilité](ui-ux/ui-ux.md#accessibilité-wcag-21-aa) - WCAG 2.1 AA complet
+- [Analyse des Templates](ui-ux/templates-analysis.md) - Analyse redondance templates HTML
+
+---
+
+## ✨ **Fonctionnalités**
+
+### Fonctionnalités Principales
+- [**Vue d'Ensemble Complète**](features/README.md) - 9 types d'exercices + défis logiques
+- [Système de Badges](features/BADGE_SYSTEM.md) - Progression et récompenses
+- [Exercices Simples](features/simple-exercises.md) - Implémentation interface simplifiée
+
+---
+
+## 👨‍💻 **Développement**
+
+### Guides Développeur
+- [**Guide Développeur**](development/README.md) - Documentation complète (916 lignes)
+- [Guide de Contribution](development/contributing.md) - Workflow Git et standards
+- [Tests et CI/CD](development/testing.md) - 4 niveaux avec classification intelligente
+- [Opérations](development/operations.md) - Maintenance et monitoring
+- [Correction Critique Tableau de Bord](development/dashboard-fix-critical.md) - Fix authentification
+- [Nettoyage Tests](development/TESTS_CLEANUP_IMPLEMENTATION.md) - Implémentation cleanup
+- [Troubleshooting CI/CD](development/ci-cd-troubleshooting.md) - Résolution échecs CI/CD
+
+---
+
+## 📊 **Gestion de Projet**
+
+### Statut et Planification
+- [**Statut du Projet**](project/README.md) - État fonctionnalités et métriques v1.5.0
+- [**Roadmap**](project/roadmap.md) - Vision 2025-2026 et fonctionnalités futures
+
+---
+
+## 📋 **Rapports et Analyses**
+
+### Documentation des Mises à Jour
+- [**Rapport Mise à Jour**](rapport/rapport-mise-a-jour.md) - Audit complet documentation (juin 2025)
+- [**Analyse Exhaustive**](rapport/analyse-exhaustive-documentation.md) - Consolidation 107 fichiers .md
+- [**Nettoyage Février 2025**](rapport/nettoyage-fevrier-2025.md) - Optimisation -43% du volume
+
+---
+
+## 📖 **Documents de Référence**
+
+### Documentation Générale
+- [**CHANGELOG**](CHANGELOG.md) - Historique détaillé des modifications
+- [**Glossaire**](GLOSSARY.md) - Terminologie technique et métier
+- [Guide CI/CD](CI_CD_GUIDE.md) - Intégration et déploiement continus
+
+### Ressources
+- [Assets](assets/README.md) - Images, diagrammes, ressources
+
+---
+
+## 📁 **Archives**
+
+### Documents Archivés et Historiques
+- [**Index des Archives**](archived/archive-index.md) - Documents obsolètes archivés
+- [Archives Complètes](ARCHIVE/) - Documentation historique organisée par période
+  - [Archives 2024](ARCHIVE/2024/) - Documentation année 2024
+  - [Archives 2025](ARCHIVE/2025/) - Documentation année 2025
+  - [Archives Obsolètes](ARCHIVE/obsolete/) - Fichiers obsolètes conservés
+
+---
+
+## 🎯 **Navigation Rapide**
+
+### Par Rôle Utilisateur
+
+#### 🆕 **Nouveaux Utilisateurs**
+1. [Guide de démarrage](getting-started/README.md) - Installation et premiers pas
+2. [Fonctionnalités](features/README.md) - Découverte des capacités
+3. [Interface](ui-ux/ui-ux.md) - Guide de l'interface utilisateur
+
+#### 👨‍💻 **Développeurs**
+1. [Guide développeur](development/README.md) - Setup et architecture complète
+2. [API](api/api.md) - Documentation des 40+ endpoints
+3. [Architecture](architecture/README.md) - Composants techniques détaillés
+4. [Tests](development/testing.md) - Système de tests à 4 niveaux
+
+#### 🏗️ **Architectes**
+1. [Architecture](architecture/README.md) - Vue d'ensemble technique
+2. [Base de données](architecture/database.md) - Modélisation et migrations
+3. [Sécurité](architecture/security.md) - Standards et implémentation
+4. [Transactions](architecture/transactions.md) - Gestion ACID
+
+#### 📊 **Gestionnaires de Projet**
+1. [Statut projet](project/README.md) - État des fonctionnalités
+2. [Roadmap](project/roadmap.md) - Planification future
+3. [Rapports](rapport/) - Analyses et mises à jour
+4. [CHANGELOG](CHANGELOG.md) - Historique des versions
+
+### Par Catégorie Technique
+
+#### 🏗️ **Architecture & Backend**
+- [Architecture Générale](architecture/README.md) - Dual-backend FastAPI + Starlette
+- [Base de Données](architecture/database.md) - PostgreSQL/SQLite compatibility
+- [Sécurité](architecture/security.md) - JWT, authentification, protection
+- [Transactions](architecture/transactions.md) - Système unifié de gestion
+
+#### 📡 **API & Intégrations**
+- [API Complète](api/api.md) - 40+ endpoints avec exemples
+- [Authentification](api/api.md#authentification) - JWT et cookies
+- [Codes d'erreur](api/api.md#codes-derreur) - Gestion standardisée
+
+#### 🎨 **Interface & UX**
+- [Guide UI/UX](ui-ux/ui-ux.md) - Interface Star Wars complète
+- [Templates](ui-ux/templates-analysis.md) - Analyse et optimisation
+- [Accessibilité](ui-ux/ui-ux.md#accessibilité) - WCAG 2.1 AA
+
+#### 🧪 **Tests & Qualité**
+- [Tests](development/testing.md) - 4 niveaux avec classification
+- [CI/CD](CI_CD_GUIDE.md) - Intégration continue
+- [Troubleshooting](development/ci-cd-troubleshooting.md) - Résolution problèmes
+
+#### ✨ **Fonctionnalités**
+- [Exercices](features/README.md) - 9 types avec nouveautés 2025
+- [Badges](features/BADGE_SYSTEM.md) - Système de progression
+- [Exercices Simples](features/simple-exercises.md) - Interface simplifiée
+
+---
+
+## 📊 **Métriques Documentation**
+
+### Statistiques Actuelles (Février 2025) ⭐ **OPTIMISÉ**
+- **📁 Total fichiers .md** : **71 fichiers** organisés (-40% après nettoyage)
+- **📚 Documents principaux** : 5 fichiers racine essentiels
+- **🏗️ Architecture** : 7 documents techniques
+- **👨‍💻 Développement** : 7 guides développeur
+- **✨ Fonctionnalités** : 4 documents utilisateur
+- **📊 Rapports** : 6 analyses complètes (+ rapport nettoyage février)
+- **📁 Archives** : 28 documents historiques essentiels conservés
+- **📁 Archived** : 7 documents archivés actifs
+
+### Couverture Documentation
+- ✅ **API** : 40+ endpoints documentés
+- ✅ **Interface** : Guide UI/UX complet
+- ✅ **Architecture** : Dual-backend détaillé
+- ✅ **Tests** : 4 niveaux classifiés
+- ✅ **Déploiement** : Guide complet
+- ✅ **Sécurité** : Standards et implémentation
+
+---
+
+## 🔍 **Index Alphabétique**
+
+| Document | Catégorie | Description |
+|----------|-----------|-------------|
+| [Analyse Exhaustive](rapport/analyse-exhaustive-documentation.md) | Rapport | Consolidation 107 fichiers .md |
+| [API Complète](api/api.md) | API | 40+ endpoints avec exemples |
+| [Architecture](architecture/README.md) | Architecture | Vue d'ensemble dual-backend |
+| [Archives Index](archived/archive-index.md) | Archive | Index fichiers archivés |
+| [Assets](assets/README.md) | Ressource | Images et diagrammes |
+| [Base de Données](architecture/database.md) | Architecture | PostgreSQL/SQLite |
+| [Badges](features/BADGE_SYSTEM.md) | Fonctionnalité | Système progression |
+| [CHANGELOG](CHANGELOG.md) | Référence | Historique versions |
+| [CI/CD Guide](CI_CD_GUIDE.md) | Développement | Intégration continue |
+| [Contribution](development/contributing.md) | Développement | Guide contribution |
+| [Démarrage](getting-started/README.md) | Guide | Installation premiers pas |
+| [Développeur](development/README.md) | Développement | Guide complet 916 lignes |
+| [Exercices Simples](features/simple-exercises.md) | Fonctionnalité | Interface simplifiée |
+| [Fonctionnalités](features/README.md) | Fonctionnalité | 9 types exercices |
+| [Glossaire](GLOSSARY.md) | Référence | Terminologie |
+| [Guide UI/UX](ui-ux/ui-ux.md) | Interface | Guide Star Wars complet |
+| [Opérations](development/operations.md) | Développement | Maintenance monitoring |
+| [Projet](project/README.md) | Projet | Statut métriques v1.5.0 |
+| [Rapport](rapport/rapport-mise-a-jour.md) | Rapport | Audit documentation |
+| [README](../README.md) | Référence | Vue d'ensemble projet |
+| [Roadmap](project/roadmap.md) | Projet | Vision 2025-2026 |
+| [Sécurité](architecture/security.md) | Architecture | JWT protection |
+| [Templates](ui-ux/templates-analysis.md) | Interface | Analyse optimisation |
+| [Tests](development/testing.md) | Développement | 4 niveaux classification |
+| [Transactions](architecture/transactions.md) | Architecture | Gestion unifiée |
+| [Troubleshooting](development/ci-cd-troubleshooting.md) | Développement | Résolution CI/CD |
+
+---
+
+## 📞 **Support et Contact**
+
+### Aide et Documentation
+- **Navigation** : Cette table des matières
+- **Installation** : [Guide de démarrage](getting-started/README.md)
+- **Développement** : [Guide développeur](development/README.md)
+- **API** : [Documentation complète](api/api.md)
+
+### Contact
+- **🐛 Issues GitHub** : Pour bugs et demandes de fonctionnalités
+- **💬 Discussions** : Pour questions générales et suggestions
+- **📖 Documentation** : Guides complets dans chaque section
+
+---
+
+**Documentation organisée pour une navigation intuitive et professionnelle** 📚⭐
+
+*Table des matières consolidée - 6 février 2025* 

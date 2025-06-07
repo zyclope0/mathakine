@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+
+{% block title %}Paramètres - Mathakine{% endblock %}
+
+{% block content %}
+<main class="main">
+    <div class="container">
+        <!-- En-tête avec thème Star Wars -->
+        <header class="page-header">
+            <h1 class="page-header__title">
+                <i class="fas fa-cog"></i>
+                Console de Configuration
+            </h1>
+            <p class="page-header__subtitle">
+                Personnalise ton vaisseau de l'Alliance Rebelle ⚙️🚀
+            </p>
+        </header>
+
+        <!-- Navigation par onglets -->
+        <nav class="settings-nav">
+            <button class="settings-nav__tab settings-nav__tab--active" data-tab="general">
+                <i class="fas fa-sliders-h"></i>
+                Général
+            </button>
+            <button class="settings-nav__tab" data-tab="accessibility">
+                <i class="fas fa-universal-access"></i>
+                Accessibilité
+            </button>
+            <button class="settings-nav__tab" data-tab="notifications">
+                <i class="fas fa-bell"></i>
+                Notifications
+            </button>
+            <button class="settings-nav__tab" data-tab="privacy">
+                <i class="fas fa-shield-alt"></i>
+                Confidentialité
+            </button>
+        </nav>
+
+        <!-- Contenu des onglets -->
+        <div class="settings-content">
+            <!-- Onglet Général -->
+            <div class="settings-panel settings-panel--active" id="panel-general">
+                <section class="mb-6">
+                    <h2 class="text-xl mb-4">🎮 Préférences de jeu</h2>
+                    
+                    <div class="card">
+                        <form class="form">
+                            <div class="form__group">
+                                <label for="theme" class="form__label">
+                                    <i class="fas fa-palette"></i>
+                                    Thème visuel
+                                </label>
+                                <select id="theme" name="theme" class="form__select">
+                                    <option value="star-wars">🌟 Star Wars (recommandé)</option>
+                                    <option value="ocean">🌊 Océan calme</option>
+                                    <option value="forest">🌲 Forêt apaisante</option>
+                                    <option value="space">🚀 Espace minimaliste</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form__group">
+                                <label for="sound" class="form__label">
+                                    <i class="fas fa-volume-up"></i>
+                                    Sons et musique
+                                </label>
+                                <select id="sound" name="sound" class="form__select">
+                                    <option value="on">Activés</option>
+                                    <option value="effects-only">Effets sonores uniquement</option>
+                                    <option value="music-only">Musique uniquement</option>
+                                    <option value="off">Désactivés</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form__group">
+                                <label for="auto-advance" class="form__label">
+                                    <i class="fas fa-forward"></i>
+                                    Passage automatique
+                                </label>
+                                <label class="form__checkbox">
+                                    <input type="checkbox" name="auto_advance" id="auto-advance">
+                                    <span>Passer automatiquement à l'exercice suivant</span>
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn--primary">
+                                <i class="fas fa-save"></i>
+                                Enregistrer
+                            </button>
+                        </form>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-xl mb-4">📚 Préférences d'apprentissage</h2>
+                    
+                    <div class="card">
+                        <form class="form">
+                            <div class="form__group">
+                                <label for="exercise-duration" class="form__label">
+                                    <i class="fas fa-clock"></i>
+                                    Durée des sessions
+                                </label>
+                                <select id="exercise-duration" name="duration" class="form__select">
+                                    <option value="5">5 minutes (courte pause)</option>
+                                    <option value="10">10 minutes (recommandé)</option>
+                                    <option value="15">15 minutes</option>
+                                    <option value="20">20 minutes (session longue)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form__group">
+                                <label for="break-reminder" class="form__label">
+                                    <i class="fas fa-coffee"></i>
+                                    Rappels de pause
+                                </label>
+                                <label class="form__checkbox">
+                                    <input type="checkbox" name="break_reminder" id="break-reminder" checked>
+                                    <span>Me rappeler de faire une pause toutes les 20 minutes</span>
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn--primary">
+                                <i class="fas fa-save"></i>
+                                Enregistrer
+                            </button>
+                        </form>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Onglet Accessibilité -->
+            <div class="settings-panel" id="panel-accessibility">
+                <section>
+                    <h2 class="text-xl mb-4">♿ Options d'accessibilité</h2>
+                    
+                    <div class="card">
+                        <form class="form" id="accessibility-form">
+                            <div class="form__group">
+                                <h3 class="text-lg mb-3">Vision</h3>
+                                
+                                <label class="form__checkbox mb-3">
+                                    <input type="checkbox" name="high_contrast" id="high-contrast">
+                                    <span>Contraste élevé</span>
+                                </label>
+                                
+                                <label class="form__checkbox mb-3">
+                                    <input type="checkbox" name="large_text" id="large-text">
+                                    <span>Texte plus grand</span>
+                                </label>
+                                
+                                <label class="form__checkbox mb-3">
+                                    <input type="checkbox" name="color_blind" id="color-blind">
+                                    <span>Mode daltonien</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form__group">
+                                <h3 class="text-lg mb-3">Mouvement</h3>
+                                
+                                <label class="form__checkbox mb-3">
+                                    <input type="checkbox" name="reduce_motion" id="reduce-motion">
+                                    <span>Réduire les animations</span>
+                                </label>
+                                
+                                <label class="form__checkbox mb-3">
+                                    <input type="checkbox" name="no_autoplay" id="no-autoplay">
+                                    <span>Désactiver les vidéos automatiques</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form__group">
+                                <h3 class="text-lg mb-3">Interaction</h3>
+                                
+                                <label class="form__checkbox mb-3">
+                                    <input type="checkbox" name="keyboard_nav" id="keyboard-nav">
+                                    <span>Navigation au clavier améliorée</span>
+                                </label>
+                                
+                                <label class="form__checkbox mb-3">
+                                    <input type="checkbox" name="focus_indicators" id="focus-indicators" checked>
+                                    <span>Indicateurs de focus visibles</span>
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn--primary">
+                                <i class="fas fa-save"></i>
+                                Appliquer les changements
+                            </button>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="mt-6">
+                    <h2 class="text-xl mb-4">🧠 Profil sensoriel</h2>
+                    
+                    <div class="card">
+                        <div class="sensory-profiles">
+                            <label class="sensory-profile">
+                                <input type="radio" name="sensory_profile" value="standard" checked>
+                                <div class="sensory-profile__content">
+                                    <h3>Standard</h3>
+                                    <p>Configuration par défaut</p>
+                                </div>
+                            </label>
+                            
+                            <label class="sensory-profile">
+                                <input type="radio" name="sensory_profile" value="hypersensitive">
+                                <div class="sensory-profile__content">
+                                    <h3>Hypersensible</h3>
+                                    <p>Couleurs douces, moins de stimuli</p>
+                                </div>
+                            </label>
+                            
+                            <label class="sensory-profile">
+                                <input type="radio" name="sensory_profile" value="hyposensitive">
+                                <div class="sensory-profile__content">
+                                    <h3>Hyposensible</h3>
+                                    <p>Couleurs vives, plus de stimuli</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Onglet Notifications -->
+            <div class="settings-panel" id="panel-notifications">
+                <section>
+                    <h2 class="text-xl mb-4">🔔 Préférences de notifications</h2>
+                    
+                    <div class="card">
+                        <form class="form">
+                            <div class="form__group">
+                                <h3 class="text-lg mb-3">Notifications dans l'application</h3>
+                                
+                                <label class="form__checkbox mb-3">
+                                    <input type="checkbox" name="achievement_notifications" checked>
+                                    <span>Nouveaux badges débloqués</span>
+                                </label>
+                                
+                                <label class="form__checkbox mb-3">
+                                    <input type="checkbox" name="progress_notifications" checked>
+                                    <span>Mises à jour de progression</span>
+                                </label>
+                                
+                                <label class="form__checkbox mb-3">
+                                    <input type="checkbox" name="encouragement_notifications" checked>
+                                    <span>Messages d'encouragement</span>
+                                </label>
+                                
+                                <label class="form__checkbox mb-3">
+                                    <input type="checkbox" name="tips_notifications">
+                                    <span>Conseils et astuces</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form__group">
+                                <label for="notification-sound" class="form__label">
+                                    <i class="fas fa-bell"></i>
+                                    Son des notifications
+                                </label>
+                                <select id="notification-sound" name="notification_sound" class="form__select">
+                                    <option value="default">Son par défaut</option>
+                                    <option value="gentle">Son doux</option>
+                                    <option value="none">Silencieux</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn btn--primary">
+                                <i class="fas fa-save"></i>
+                                Enregistrer
+                            </button>
+                        </form>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Onglet Confidentialité -->
+            <div class="settings-panel" id="panel-privacy">
+                <section>
+                    <h2 class="text-xl mb-4">🔒 Confidentialité et données</h2>
+                    
+                    <div class="card mb-6">
+                        <h3 class="text-lg mb-3">Partage des données</h3>
+                        
+                        <form class="form">
+                            <label class="form__checkbox mb-3">
+                                <input type="checkbox" name="share_progress" checked>
+                                <span>Partager ma progression avec mes professeurs</span>
+                            </label>
+                            
+                            <label class="form__checkbox mb-3">
+                                <input type="checkbox" name="anonymous_stats">
+                                <span>Contribuer aux statistiques anonymes</span>
+                            </label>
+                            
+                            <button type="submit" class="btn btn--primary">
+                                <i class="fas fa-save"></i>
+                                Enregistrer
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="card">
+                        <h3 class="text-lg mb-3">Gestion des données</h3>
+                        
+                        <div class="data-actions">
+                            <button class="btn btn--secondary" onclick="downloadMyData()">
+                                <i class="fas fa-download"></i>
+                                Télécharger mes données
+                            </button>
+                            
+                            <button class="btn btn--ghost" onclick="requestDataDeletion()">
+                                <i class="fas fa-trash"></i>
+                                Demander la suppression
+                            </button>
+                        </div>
+                        
+                        <div class="alert alert--info mt-4">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Tes données sont protégées et ne sont jamais vendues. Consulte notre <a href="/privacy">politique de confidentialité</a>.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+/* Styles spécifiques aux paramètres */
+.settings-header {
+    text-align: center;
+    margin-bottom: var(--space-8);
+}
+
+.settings-header__title {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-2);
+}
+
+.settings-header__subtitle {
+    color: var(--text-secondary);
+    font-size: var(--text-lg);
+}
+
+/* Navigation par onglets */
+.settings-nav {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+}
+
+.settings-nav__tab {
+    background: none;
+    border: none;
+    padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--text-base);
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+}
+
+.settings-nav__tab:hover {
+    color: var(--text-primary);
+}
+
+.settings-nav__tab--active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+/* Panneaux de contenu */
+.settings-panel {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.settings-panel--active {
+    display: block;
+}
+
+/* Profils sensoriels */
+.sensory-profiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+}
+
+.sensory-profile {
+    cursor: pointer;
+}
+
+.sensory-profile input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.sensory-profile__content {
+    padding: var(--space-4);
+    background: var(--surface-secondary);
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+
+.sensory-profile input:checked + .sensory-profile__content {
+    border-color: var(--primary);
+    background: var(--surface-primary);
+}
+
+.sensory-profile__content h3 {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-1);
+}
+
+.sensory-profile__content p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+}
+
+/* Actions de données */
+.data-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .settings-nav {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .sensory-profiles {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<script>
+// Gestion des onglets
+document.querySelectorAll('.settings-nav__tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        const targetPanel = this.getAttribute('data-tab');
+        
+        // Retirer les classes actives
+        document.querySelectorAll('.settings-nav__tab').forEach(t => t.classList.remove('settings-nav__tab--active'));
+        document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('settings-panel--active'));
+        
+        // Ajouter les classes actives
+        this.classList.add('settings-nav__tab--active');
+        document.getElementById(`panel-${targetPanel}`).classList.add('settings-panel--active');
+    });
+});
+
+// Gestion du formulaire d'accessibilité
+document.getElementById('accessibility-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Appliquer les préférences immédiatement
+    const highContrast = document.getElementById('high-contrast').checked;
+    const largeText = document.getElementById('large-text').checked;
+    const reduceMotion = document.getElementById('reduce-motion').checked;
+    
+    document.body.classList.toggle('high-contrast', highContrast);
+    document.body.classList.toggle('large-text', largeText);
+    document.body.classList.toggle('reduce-motion', reduceMotion);
+    
+    // Sauvegarder dans localStorage
+    localStorage.setItem('mathakine_high_contrast', highContrast);
+    localStorage.setItem('mathakine_large_text', largeText);
+    localStorage.setItem('mathakine_reduce_motion', reduceMotion);
+    
+    // Feedback visuel
+    const btn = this.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> Appliqué !';
+    btn.disabled = true;
+    
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }, 2000);
+});
+
+// Gestion des profils sensoriels
+document.querySelectorAll('input[name="sensory_profile"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const profile = this.value;
+        
+        // Appliquer le profil
+        if (window.autismFriendlySystem) {
+            window.autismFriendlySystem.settings.sensoryProfile = profile;
+            window.autismFriendlySystem.applySensoryProfile(profile);
+            
+            // Sauvegarder
+            window.autismFriendlySystem.saveSettings();
+        }
+    });
+});
+
+// Actions de données
+function downloadMyData() {
+    // Animation du bouton
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Préparation...';
+    btn.disabled = true;
+    
+    // Simuler le téléchargement
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-check"></i> Téléchargé !';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
+    }, 2000);
+}
+
+function requestDataDeletion() {
+    if (confirm('Es-tu sûr de vouloir demander la suppression de tes données ?')) {
+        alert('Une demande de suppression a été envoyée. Tu recevras un email de confirmation.');
+    }
+}
+
+// Charger les préférences au démarrage
+document.addEventListener('DOMContentLoaded', function() {
+    // Charger les préférences d'accessibilité
+    document.getElementById('high-contrast').checked = localStorage.getItem('mathakine_high_contrast') === 'true';
+    document.getElementById('large-text').checked = localStorage.getItem('mathakine_large_text') === 'true';
+    document.getElementById('reduce-motion').checked = localStorage.getItem('mathakine_reduce_motion') === 'true';
+    
+    // Charger le profil sensoriel
+    if (window.autismFriendlySystem) {
+        const profile = window.autismFriendlySystem.settings.sensoryProfile;
+        document.querySelector(`input[name="sensory_profile"][value="${profile}"]`).checked = true;
+    }
+});
+</script>
+{% endblock %} 

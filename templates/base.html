@@ -63,6 +63,11 @@
     <link rel="stylesheet" href="/static/loading-states.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="/static/dark-mode.css" media="print" onload="this.media='all'">
     
+    <!-- COMPOSANTS UNIFIÉS (Phase 1 - Test) -->
+    <link rel="stylesheet" href="/static/styles/components/buttons.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/static/styles/components/cards.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/static/styles/ui-enhancements.css" media="print" onload="this.media='all'">
+    
     <!-- Favicon optimisé -->
     <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
@@ -217,17 +222,30 @@
                             <i class="fas fa-chevron-down" aria-hidden="true"></i>
                         </button>
                         <div class="user-menu-dropdown" role="menu">
-                            <a href="/api/exercises/generate" class="menu-item" role="menuitem">
+                            <a href="/new-exercise" class="menu-item" role="menuitem">
                                 <i class="fas fa-plus" aria-hidden="true"></i>
-                                Nouvel exercice
+                                Créer un exercice
                             </a>
-                            <a href="/about" class="menu-item" role="menuitem">
-                                <i class="fas fa-info-circle" aria-hidden="true"></i>
-                                À propos
+                            <a href="/exercises/simple" class="menu-item" role="menuitem">
+                                <i class="fas fa-baby" aria-hidden="true"></i>
+                                Exercices simples
+                            </a>
+                            <a href="/challenges" class="menu-item" role="menuitem">
+                                <i class="fas fa-puzzle-piece" aria-hidden="true"></i>
+                                Défis logiques
+                            </a>
+                            <hr class="menu-separator">
+                            <a href="/control-center" class="menu-item" role="menuitem">
+                                <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                                Contrôle parental
                             </a>
                             <a href="/settings" class="menu-item" role="menuitem">
                                 <i class="fas fa-cog" aria-hidden="true"></i>
                                 Paramètres
+                            </a>
+                            <a href="/about" class="menu-item" role="menuitem">
+                                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                                À propos
                             </a>
                             <hr class="menu-separator">
                             <a href="/logout" class="menu-item menu-item-danger" role="menuitem">
@@ -305,6 +323,26 @@
                     <li aria-current="page">
                         <i class="fas fa-info-circle" aria-hidden="true"></i>
                         À propos
+                    </li>
+                {% elif request.path == '/new-exercise' %}
+                    <li aria-current="page">
+                        <i class="fas fa-plus" aria-hidden="true"></i>
+                        Créer un exercice
+                    </li>
+                {% elif request.path == '/challenges' %}
+                    <li aria-current="page">
+                        <i class="fas fa-puzzle-piece" aria-hidden="true"></i>
+                        Défis logiques
+                    </li>
+                {% elif request.path == '/control-center' %}
+                    <li aria-current="page">
+                        <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                        Contrôle parental
+                    </li>
+                {% elif request.path == '/settings' %}
+                    <li aria-current="page">
+                        <i class="fas fa-cog" aria-hidden="true"></i>
+                        Paramètres
                     </li>
                 {% endif %}
             </ol>
@@ -737,6 +775,12 @@
             // Initialiser le gestionnaire de mode sombre
             DarkModeManager.init();
         });
+    </script>
+    
+    <!-- Module d'améliorations UI -->
+    <script type="module">
+        import { UIImprovements } from '/static/js/modules/ui-improvements.js';
+        window.uiImprovements = new UIImprovements();
     </script>
     
     <!-- Scripts spécifiques aux pages -->

@@ -47,13 +47,27 @@ Ce document contient tous les termes spécifiques utilisés dans le projet Matha
 
 ## Types d'exercices
 
+**Types Arithmétiques de Base** :
 | Terme | Équivalent technique | Description |
 |-------|---------------------|-------------|
 | **Addition** | addition | Exercices d'addition de nombres. |
 | **Soustraction** | subtraction | Exercices de soustraction de nombres. |
 | **Multiplication** | multiplication | Exercices de multiplication de nombres. |
 | **Division** | division | Exercices de division de nombres. |
-| **Défis de logique** | logic_challenge | Problèmes de logique pour les 10-15 ans. |
+| **Mixte** | mixed | Combinaisons intelligentes de plusieurs opérations. |
+
+**Nouveaux Types (Mai 2025 - Version 1.5.0)** ⭐ :
+| Terme | Équivalent technique | Description |
+|-------|---------------------|-------------|
+| **Fractions** | fractions | Exercices sur les 4 opérations avec fractions (module Python `fractions`). |
+| **Géométrie** | geometrie | Calculs de périmètre, aire, diagonale sur 5 formes géométriques. |
+| **Texte** | texte | Questions textuelles avec énoncés élaborés et contextualisés. |
+| **Divers** | divers | 6 catégories : monnaie, vitesse, pourcentages, probabilités, séquences. |
+
+**Défis Spéciaux** :
+| Terme | Équivalent technique | Description |
+|-------|---------------------|-------------|
+| **Défis de logique** | logic_challenge | Problèmes de logique pour les 10-15 ans (Épreuves du Conseil Jedi). |
 
 ## Métaphores Star Wars
 
@@ -145,4 +159,4 @@ Ce document contient tous les termes spécifiques utilisés dans le projet Matha
 
 *Ce glossaire est en constante évolution à mesure que le projet se développe.*
 
-*Dernière mise à jour : 15/06/2025* 
+*Dernière mise à jour : 29/01/2025 - Correction des 9 types d'exercices (Version 1.5.0)* 

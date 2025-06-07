@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Système Hybride - Mathakine</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 2rem; 
+            background: #1a1f3a; 
+            color: #e2e8f0; 
+        }
+        .test-section {
+            background: #2a2f4a;
+            border: 2px solid #4a6bff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .challenge-button {
+            background: linear-gradient(135deg, #4a6bff, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 0.5rem;
+            transition: transform 0.2s ease;
+        }
+        .challenge-button:hover {
+            transform: translateY(-2px);
+        }
+        .exercise-btn { background: linear-gradient(135deg, #4a6bff, #8b5cf6); }
+        .logic-btn { background: linear-gradient(135deg, #f59e0b, #f97316); }
+        .hybrid-btn { background: linear-gradient(135deg, #10b981, #4a6bff); }
+        .log { 
+            background: #111827; 
+            padding: 1rem; 
+            border-radius: 8px; 
+            font-family: monospace; 
+            max-height: 200px; 
+            overflow-y: auto; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test du Système Hybride de Challenges</h1>
+    
+    <div class="test-section">
+        <h2>📚 Challenges d'Exercices (IDs 1-4)</h2>
+        <p>Teste les redirections vers la page exercices avec filtres</p>
+        <button class="challenge-button exercise-btn" onclick="startChallenge(1)">
+            🌅 Challenge 1: Sommes de Tatooine
+        </button>
+        <button class="challenge-button exercise-btn" onclick="startChallenge(2)">
+            ⚡ Challenge 2: Calculs Hyperspatiaux
+        </button>
+        <button class="challenge-button exercise-btn" onclick="startChallenge(3)">
+            🍞 Challenge 3: Partage des Rations
+        </button>
+        <button class="challenge-button exercise-btn" onclick="startChallenge(4)">
+            🔧 Challenge 4: Architecture Étoile Noire
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>🧠 Logic Challenges (IDs 100-102)</h2>
+        <p>Teste les énigmes logiques basées sur la table logic_challenges</p>
+        <button class="challenge-button logic-btn" onclick="startChallenge(100)">
+            🔍 Challenge 100: Codes Secrets de l'Empire
+        </button>
+        <button class="challenge-button logic-btn" onclick="startChallenge(101)">
+            🧩 Challenge 101: Énigme du Maître Yoda
+        </button>
+        <button class="challenge-button logic-btn" onclick="startChallenge(102)">
+            🔄 Challenge 102: Formation de l'Escadron
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>⚔️ Missions Hybrides (ID 999)</h2>
+        <p>Teste les missions combinant exercices + logic challenges</p>
+        <button class="challenge-button hybrid-btn" onclick="startChallenge(999)">
+            🏆 Mission 999: Mission Alderaan (Hybride)
+        </button>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Console de Test</h2>
+        <div id="test-log" class="log">
+            Système hybride en attente...
+        </div>
+        <button class="challenge-button" onclick="clearLog()">Nettoyer le log</button>
+        <button class="challenge-button" onclick="testAllChallenges()">Test automatique</button>
+    </div>
+
+    <!-- Inclusion du système hybride -->
+    <script src="/static/js/challenges-hybrid.js"></script>
+    
+    <script>
+        // Override console.log pour capturer les messages
+        const originalLog = console.log;
+        const logDiv = document.getElementById('test-log');
+        
+        console.log = function(...args) {
+            originalLog(...args);
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+            ).join(' ');
+            
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+        
+        function clearLog() {
+            logDiv.innerHTML = 'Log nettoyé...<br>';
+        }
+        
+        function testAllChallenges() {
+            console.log('🧪 DÉBUT DU TEST AUTOMATIQUE');
+            console.log('================================');
+            
+            const challengesToTest = [1, 2, 3, 4, 100, 101, 102, 999];
+            let currentIndex = 0;
+            
+            function testNext() {
+                if (currentIndex >= challengesToTest.length) {
+                    console.log('✅ Tous les challenges testés !');
+                    return;
+                }
+                
+                const challengeId = challengesToTest[currentIndex];
+                console.log(`🎯 Test du challenge ${challengeId}...`);
+                
+                // Tester sans redirection réelle
+                if (window.hybridChallengeSystem) {
+                    try {
+                        // Simuler l'affichage de la modal
+                        window.hybridChallengeSystem.showChallengeModal(challengeId);
+                        console.log(`✅ Challenge ${challengeId} - Modal affichée`);
+                        
+                        // Fermer la modal après 1 seconde
+                        setTimeout(() => {
+                            window.hybridChallengeSystem.closeModal();
+                            currentIndex++;
+                            
+                            // Tester le suivant après 500ms
+                            setTimeout(testNext, 500);
+                        }, 1000);
+                        
+                    } catch (error) {
+                        console.log(`❌ Challenge ${challengeId} - Erreur: ${error.message}`);
+                        currentIndex++;
+                        setTimeout(testNext, 500);
+                    }
+                } else {
+                    console.log('❌ Système hybride non disponible');
+                    return;
+                }
+            }
+            
+            testNext();
+        }
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🌟 Page de test du système hybride chargée');
+            
+            if (window.hybridChallengeSystem) {
+                console.log('✅ HybridChallengeSystem détecté');
+                console.log('📊 Types disponibles:', Object.keys(window.hybridChallengeSystem.exerciseChallenges).length, 'exercices,', Object.keys(window.hybridChallengeSystem.logicChallenges).length, 'logic,', Object.keys(window.hybridChallengeSystem.weeklyChallenge).length, 'hybride');
+            } else {
+                console.log('❌ HybridChallengeSystem NON détecté');
+            }
+        });
+    </script>
+</body>
+</html> 

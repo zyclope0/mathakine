@@ -740,6 +740,31 @@
    10. ACCESSIBILITÉ
    ============================== */
 
+/* Améliorations progressives UI */
+.feature-card {
+    will-change: transform, box-shadow;
+}
+
+.feature-card:hover {
+    animation: cardLift 0.3s ease forwards;
+}
+
+@keyframes cardLift {
+    to {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+    }
+}
+
+.stat-item {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-item:hover .stat-number {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .hero-card,
     .feature-card,

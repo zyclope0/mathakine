@@ -24,6 +24,7 @@ from app.models.user import User
 from app.services.logic_challenge_service import LogicChallengeService
 from app.utils.db_helpers import get_enum_value, adapt_enum_for_db
 from app.api.endpoints.users import _challenges_progress
+from app.core.deps import get_db
 
 router = APIRouter()
 
@@ -670,3 +671,69 @@ def delete_logic_challenge(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors de la suppression du défi logique: {str(e)}"
         )
+
+@router.get("/api/challenges/start/{challenge_id}")
+async def start_challenge(challenge_id: int, db: Session = Depends(get_db)):
+    """
+    API pour démarrer un défi depuis la page challenges.html
+    """
+    try:
+        service = LogicChallengeService(db)
+        challenge = service.get_challenge_by_id(challenge_id)
+        
+        if not challenge:
+            raise HTTPException(status_code=404, detail="Défi non trouvé")
+            
+        # Redirection vers la page d'exercice appropriée
+        if challenge.challenge_type == "SEQUENCE":
+            return {"redirect": f"/exercise/{challenge_id}", "type": "sequence"}
+        elif challenge.challenge_type == "PATTERN":
+            return {"redirect": f"/exercise/{challenge_id}", "type": "pattern"}
+        else:
+            return {"redirect": f"/exercise/{challenge_id}", "type": "general"}
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors du démarrage du défi: {str(e)}")
+
+@router.get("/api/challenges/list")
+async def list_challenges(limit: int = 10, db: Session = Depends(get_db)):
+    """
+    Liste des défis disponibles pour la page challenges
+    """
+    try:
+        service = LogicChallengeService(db)
+        challenges = service.get_all_challenges(limit=limit)
+        
+        # Formater pour la page challenges avec thème Star Wars
+        formatted_challenges = []
+        for challenge in challenges:
+            difficulty_map = {
+                "GROUP_10_12": "initie",
+                "GROUP_13_15": "padawan", 
+                "AGE_9_12": "initie",
+                "AGE_13_16": "chevalier"
+            }
+            
+            category_map = {
+                "SEQUENCE": "hyperespace",
+                "PATTERN": "reconnaissance",
+                "PUZZLE": "strategie",
+                "VISUAL": "navigation"
+            }
+            
+            formatted_challenges.append({
+                "id": challenge.id,
+                "title": challenge.title,
+                "description": challenge.description,
+                "difficulty": difficulty_map.get(challenge.age_group, "padawan"),
+                "category": category_map.get(challenge.challenge_type, "logique"),
+                "points": int(50 + (challenge.difficulty_rating * 25)),
+                "status": "available",
+                "is_new": True,
+                "time_limit": challenge.estimated_time_minutes
+            })
+            
+        return {"challenges": formatted_challenges, "total": len(formatted_challenges)}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des défis: {str(e)}")

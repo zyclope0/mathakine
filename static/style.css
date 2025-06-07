@@ -112,11 +112,19 @@ header {
     transform: translateY(-2px);
 }
 
+.brand-link:hover .logo {
+    transform: rotate(5deg) scale(1.05);
+}
+
+.brand-link:hover .nav-title {
+    text-shadow: 0 0 15px rgba(217, 184, 70, 0.8);
+}
+
 .logo {
     width: 60px;
     height: 60px;
     opacity: 0;
-    transition: opacity var(--transition-medium) ease;
+    transition: all var(--transition-medium) ease;
 }
 
 .logo.loaded {
@@ -446,14 +454,35 @@ footer p {
     flex-wrap: wrap;
 }
 
+.footer-link {
+    color: var(--sw-secondary);
+    text-decoration: none;
+    transition: all var(--transition-fast) ease;
+    padding: var(--space-sm);
+    border-radius: var(--border-radius);
+}
+
+.footer-link:hover {
+    color: var(--sw-accent);
+    transform: translateX(2px);
+}
+
+.footer-link:focus-visible {
+    outline: var(--focus-width) var(--focus-style) var(--focus-color);
+    outline-offset: var(--focus-offset);
+}
+
 .github-link {
     color: var(--sw-accent);
     text-decoration: none;
-    transition: color var(--transition-fast) ease;
+    transition: all var(--transition-fast) ease;
+    padding: var(--space-sm);
+    border-radius: var(--border-radius);
 }
 
 .github-link:hover {
     color: var(--sw-accent-hover);
+    transform: translateY(-2px);
 }
 
 .version {

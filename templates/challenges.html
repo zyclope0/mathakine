@@ -1,0 +1,555 @@
+{% extends "base.html" %}
+
+{% block title %}Défis Galactiques - Mathakine{% endblock %}
+
+{% block head %}
+<style>
+    /* CORRECTION DU PROBLÈME DE PAGE-HEADER QUI RESTE EN FOCUS */
+    .page-header {
+        position: static !important;
+        z-index: auto !important;
+    }
+    
+    .page-header__title,
+    .page-header__subtitle {
+        position: static !important;
+        z-index: auto !important;
+    }
+    
+    /* Sections des challenges hybrides */
+    .challenge-section {
+        margin-bottom: var(--space-xl);
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+        padding: var(--space-md);
+        background: var(--sw-card-bg);
+        border-radius: var(--border-radius-lg);
+        border-left: 4px solid var(--sw-blue);
+    }
+    
+    .section-icon {
+        font-size: 2rem;
+    }
+    
+    .section-title {
+        margin: 0;
+        color: var(--sw-blue);
+        font-size: 1.5rem;
+    }
+    
+    .section-description {
+        margin: 0;
+        color: var(--sw-text-secondary);
+        font-size: var(--font-size-sm);
+    }
+    
+    .challenges-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: var(--space-lg);
+        margin-bottom: var(--space-xl);
+    }
+    
+    .challenge-card {
+        position: relative;
+        background: var(--sw-card-bg);
+        border: 1px solid var(--sw-card-border);
+        border-radius: var(--border-radius-lg);
+        padding: var(--space-lg);
+        text-align: center;
+        transition: var(--default-transition);
+        overflow: hidden;
+    }
+    
+    /* Types de challenges */
+    .challenge-card.exercise-type::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--sw-blue), var(--sw-purple));
+        transition: var(--default-transition);
+    }
+    
+    .challenge-card.logic-type::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--sw-gold), var(--sw-orange));
+        transition: var(--default-transition);
+    }
+    
+    .challenge-card.hybrid-type::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--sw-green), var(--sw-blue), var(--sw-purple));
+        transition: var(--default-transition);
+    }
+    
+    .challenge-card:hover {
+        transform: var(--hover-transform);
+        box-shadow: var(--shadow-elevated);
+        border-color: var(--sw-accent);
+    }
+    
+    .challenge-icon {
+        font-size: 3rem;
+        margin-bottom: var(--space-md);
+        background: linear-gradient(135deg, var(--sw-blue), var(--sw-purple));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .challenge-type-badge {
+        position: absolute;
+        top: var(--space-sm);
+        right: var(--space-sm);
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: 20px;
+        font-size: var(--font-size-xs);
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .type-exercise { background: rgba(74, 107, 255, 0.2); color: var(--sw-blue); }
+    .type-logic { background: rgba(245, 158, 11, 0.2); color: var(--sw-gold); }
+    .type-hybrid { background: rgba(16, 185, 129, 0.2); color: var(--sw-green); }
+    
+    .challenge-difficulty {
+        display: inline-block;
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: 20px;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        margin-bottom: var(--space-md);
+    }
+    
+    .difficulty-initie { background: var(--sw-green-transparent); color: var(--sw-green); }
+    .difficulty-padawan { background: var(--sw-blue-transparent); color: var(--sw-blue); }
+    .difficulty-chevalier { background: var(--sw-purple-transparent); color: var(--sw-purple); }
+    .difficulty-maitre { background: var(--sw-red-transparent); color: var(--sw-red); }
+    
+    .challenge-progress {
+        margin-top: var(--space-md);
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(164, 181, 225, 0.2);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--sw-blue), var(--sw-purple));
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+    
+    .leaderboard-card {
+        background: var(--sw-card-bg);
+        border: 1px solid var(--sw-card-border);
+        border-radius: var(--border-radius-lg);
+        padding: var(--space-lg);
+    }
+    
+    .leaderboard-item {
+        display: flex;
+        align-items: center;
+        padding: var(--space-sm) 0;
+        border-bottom: 1px solid rgba(164, 181, 225, 0.1);
+    }
+    
+    .leaderboard-item:last-child {
+        border-bottom: none;
+    }
+    
+    .rank-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: var(--space-md);
+    }
+    
+    .rank-1 { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #000; }
+    .rank-2 { background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #000; }
+    .rank-3 { background: linear-gradient(135deg, #cd7f32, #d4a574); color: #fff; }
+    .rank-other { background: var(--sw-card-hover); color: var(--sw-text-secondary); }
+    
+    .weekly-challenge {
+        background: linear-gradient(135deg, var(--sw-space), rgba(74, 107, 255, 0.1));
+        border: 2px solid var(--sw-blue);
+        box-shadow: 0 8px 32px rgba(74, 107, 255, 0.3);
+    }
+    
+    .challenge-timer {
+        font-family: 'Courier New', monospace;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--sw-gold);
+        margin-top: var(--space-sm);
+    }
+</style>
+
+<script src="/static/js/challenges-hybrid.js"></script>
+<script>
+// Mathakine - Initialisation du système hybride
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🌟 Système Hybride initialisé - Exercices + Logic Challenges');
+    
+    // Défis quotidiens - ajouter handlers aux boutons sans onclick
+    const challengeButtons = document.querySelectorAll('.challenges-grid .btn--primary:not([onclick])');
+    const types = ['multiplication', 'fractions', 'geometry'];
+    let typeIndex = 0;
+    
+    challengeButtons.forEach((btn) => {
+        const challengeId = typeIndex + 2; // +2 car le premier défi (addition) a déjà onclick
+        btn.onclick = () => startChallenge(challengeId, types[typeIndex]);
+        typeIndex++;
+    });
+    
+    // Animation des cartes au survol
+    const cards = document.querySelectorAll('.challenge-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-4px) scale(1.02)';
+            card.style.transition = 'all 0.3s ease';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<main class="main">
+    <div class="container">
+        <!-- En-tête des défis -->
+        <header class="page-header">
+            <h1 class="page-header__title">
+                <i class="fas fa-star-shooting"></i>
+                Défis Galactiques
+            </h1>
+            <p class="page-header__subtitle">
+                Testez vos compétences de Padawan des mathématiques ! ⚔️✨
+            </p>
+        </header>
+
+        <!-- Défi hebdomadaire spécial -->
+        <section class="mb-8">
+            <div class="card-unified weekly-challenge">
+                <div class="challenge-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h2 class="text-xl mb-4">🌟 Défi de la Semaine : Mission Alderaan</h2>
+                <p class="text-lg mb-4">
+                    La princesse Leia a besoin de votre aide pour calculer les coordonnées 
+                    hyperspace vers Alderaan ! Résolvez 20 exercices de géométrie.
+                </p>
+                
+                <div class="challenge-difficulty difficulty-chevalier">
+                    <i class="fas fa-user-ninja"></i> Niveau Chevalier Jedi
+                </div>
+                
+                <div class="challenge-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 35%"></div>
+                    </div>
+                    <small class="text-muted">7/20 exercices terminés</small>
+                </div>
+                
+                <div class="challenge-timer">
+                    ⏰ Temps restant : 4j 12h 33m
+                </div>
+                
+                <div class="mt-4">
+                    <button class="btn btn--primary btn-unified" onclick="continueWeeklyChallenge()">
+                        <i class="fas fa-play"></i>
+                        Continuer la mission
+                    </button>
+                    <button class="btn btn--secondary btn-unified ml-3" onclick="showRewards(999)">
+                        <i class="fas fa-trophy"></i>
+                        Récompenses (250 ⭐)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Grille des défis quotidiens -->
+        <section class="mb-8">
+            <h2 class="text-xl mb-6">
+                <i class="fas fa-calendar-day"></i>
+                Défis Quotidiens de l'Alliance Rebelle
+            </h2>
+            
+            <div class="challenges-grid">
+                <!-- Défi Addition -->
+                <div class="challenge-card card-unified">
+                    <div class="challenge-icon">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <h3 class="text-lg mb-3">Sommes de Tatooine</h3>
+                    <p class="text-muted mb-4">
+                        Luke doit compter ses crédits avant de partir !
+                    </p>
+                    
+                    <div class="challenge-difficulty difficulty-initie">
+                        <i class="fas fa-baby"></i> Initié
+                    </div>
+                    
+                    <div class="challenge-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 80%"></div>
+                        </div>
+                        <small class="text-muted">4/5 exercices</small>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button class="btn btn--primary btn-unified" onclick="startChallenge(1, 'addition')">
+                            <i class="fas fa-play"></i>
+                            Commencer
+                        </button>
+                        <div class="text-sm text-muted mt-2">
+                            Récompense : 50 ⭐
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Défi Multiplication -->
+                <div class="challenge-card card-unified">
+                    <div class="challenge-icon">
+                        <i class="fas fa-times"></i>
+                    </div>
+                    <h3 class="text-lg mb-3">Calculs Hyperspatiaux</h3>
+                    <p class="text-muted mb-4">
+                        Calculez les vitesses des vaisseaux rebelles !
+                    </p>
+                    
+                    <div class="challenge-difficulty difficulty-padawan">
+                        <i class="fas fa-user-graduate"></i> Padawan
+                    </div>
+                    
+                    <div class="challenge-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <small class="text-muted">0/8 exercices</small>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button class="btn btn--primary btn-unified" onclick="startChallenge(2, 'multiplication')">
+                            <i class="fas fa-rocket"></i>
+                            Lancer
+                        </button>
+                        <div class="text-sm text-muted mt-2">
+                            Récompense : 120 ⭐
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Défi Fractions -->
+                <div class="challenge-card card-unified">
+                    <div class="challenge-icon">
+                        <i class="fas fa-pizza-slice"></i>
+                    </div>
+                    <h3 class="text-lg mb-3">Partage des Rations</h3>
+                    <p class="text-muted mb-4">
+                        Distribuez équitablement les provisions sur Hoth !
+                    </p>
+                    
+                    <div class="challenge-difficulty difficulty-chevalier">
+                        <i class="fas fa-user-ninja"></i> Chevalier
+                    </div>
+                    
+                    <div class="challenge-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 50%"></div>
+                        </div>
+                        <small class="text-muted">3/6 exercices</small>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button class="btn btn--primary btn-unified">
+                            <i class="fas fa-snowflake"></i>
+                            Continuer
+                        </button>
+                        <div class="text-sm text-muted mt-2">
+                            Récompense : 200 ⭐
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Défi Géométrie -->
+                <div class="challenge-card card-unified">
+                    <div class="challenge-icon">
+                        <i class="fas fa-shapes"></i>
+                    </div>
+                    <h3 class="text-lg mb-3">Architecture de l'Étoile Noire</h3>
+                    <p class="text-muted mb-4">
+                        Analysez les plans secrets de l'Empire !
+                    </p>
+                    
+                    <div class="challenge-difficulty difficulty-maitre">
+                        <i class="fas fa-user-tie"></i> Maître
+                    </div>
+                    
+                    <div class="challenge-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <small class="text-muted">0/10 exercices</small>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button class="btn btn--danger btn-unified">
+                            <i class="fas fa-skull"></i>
+                            Défi Expert
+                        </button>
+                        <div class="text-sm text-muted mt-2">
+                            Récompense : 500 ⭐
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tableau des meneurs -->
+        <section class="grid grid--2-cols">
+            <div class="leaderboard-card">
+                <h3 class="text-lg mb-4">
+                    <i class="fas fa-trophy"></i>
+                    Top Padawans de la Semaine
+                </h3>
+                
+                <div class="leaderboard-item">
+                    <div class="rank-badge rank-1">1</div>
+                    <div class="flex-grow">
+                        <div class="font-semibold">Maître Yoda</div>
+                        <div class="text-sm text-muted">2,450 ⭐</div>
+                    </div>
+                    <div class="text-right">
+                        <i class="fas fa-crown text-yellow-400"></i>
+                    </div>
+                </div>
+                
+                <div class="leaderboard-item">
+                    <div class="rank-badge rank-2">2</div>
+                    <div class="flex-grow">
+                        <div class="font-semibold">Obi-Wan Kenobi</div>
+                        <div class="text-sm text-muted">2,180 ⭐</div>
+                    </div>
+                    <div class="text-right">
+                        <i class="fas fa-medal" style="color: #c0c0c0;"></i>
+                    </div>
+                </div>
+                
+                <div class="leaderboard-item">
+                    <div class="rank-badge rank-3">3</div>
+                    <div class="flex-grow">
+                        <div class="font-semibold">Luke Skywalker</div>
+                        <div class="text-sm text-muted">1,950 ⭐</div>
+                    </div>
+                    <div class="text-right">
+                        <i class="fas fa-medal" style="color: #cd7f32;"></i>
+                    </div>
+                </div>
+                
+                <div class="leaderboard-item">
+                    <div class="rank-badge rank-other">4</div>
+                    <div class="flex-grow">
+                        <div class="font-semibold">Princesse Leia</div>
+                        <div class="text-sm text-muted">1,720 ⭐</div>
+                    </div>
+                </div>
+                
+                <div class="leaderboard-item">
+                    <div class="rank-badge rank-other">5</div>
+                    <div class="flex-grow">
+                        <div class="font-semibold">{{ current_user.username if current_user else 'Vous' }}</div>
+                        <div class="text-sm text-muted">{{ current_user.total_points if current_user else '0' }} ⭐</div>
+                    </div>
+                    <div class="text-right">
+                        <i class="fas fa-user text-blue-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Badges et récompenses -->
+            <div class="leaderboard-card">
+                <h3 class="text-lg mb-4">
+                    <i class="fas fa-medal"></i>
+                    Badges à Débloquer
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center p-3 bg-gray-800 rounded-lg">
+                        <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-fire text-white"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <div class="font-semibold">Série de Victoires</div>
+                            <div class="text-sm text-muted">Réussir 5 défis d'affilée</div>
+                            <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center p-3 bg-gray-800 rounded-lg">
+                        <div class="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-star text-white"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <div class="font-semibold">Maître des Fractions</div>
+                            <div class="text-sm text-muted">Terminer 20 exercices de fractions</div>
+                            <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                                <div class="bg-purple-600 h-2 rounded-full" style="width: 35%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center p-3 bg-gray-800 rounded-lg opacity-50">
+                        <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-crown text-white"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <div class="font-semibold">Empereur des Maths</div>
+                            <div class="text-sm text-muted">Être #1 du classement</div>
+                            <div class="w-full bg-gray-700 rounded-full h-2 mt-2">
+                                <div class="bg-red-600 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script src="{{ url_for('static', path='js/challenges-improved.js') }}"></script>
+{% endblock %}

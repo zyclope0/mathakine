@@ -16,19 +16,27 @@
   text-align: center;
   margin-bottom: var(--space-xl);
   padding: var(--space-lg) 0;
+  position: static; /* Force position normale */
+  z-index: auto; /* Pas de z-index élevé */
 }
 
-.page-header h2 {
+.page-header h2,
+.page-header__title {
   color: var(--sw-gold);
   font-size: var(--font-size-xxl);
   margin-bottom: var(--space-sm);
   text-shadow: 0 0 10px rgba(255, 230, 7, 0.3);
+  position: static;
+  z-index: auto;
 }
 
-.page-header p {
+.page-header p,
+.page-header__subtitle {
   color: var(--space-text-secondary);
   font-size: var(--font-size-lg);
   margin: 0;
+  position: static;
+  z-index: auto;
 }
 
 /* Cartes génériques */

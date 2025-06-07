@@ -19,7 +19,6 @@ class UserRole(PyEnum):
     MAITRE = "maitre"       # Enseignant, créateur d'exercices
     GARDIEN = "gardien"     # Modérateur, gestion des utilisateurs
     ARCHIVISTE = "archiviste"  # Administrateur, accès complet
-    ADMIN = "admin"
 
 
 

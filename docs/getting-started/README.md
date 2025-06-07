@@ -83,12 +83,22 @@ python enhanced_server.py
 
 ## 🎮 Fonctionnalités Clés
 
-### Types d'Exercices
+### Types d'Exercices (9 types disponibles - Version 1.5.0)
+
+**Types Arithmétiques de Base** :
 - **Addition** : Opérations d'addition adaptées au niveau
 - **Soustraction** : Opérations de soustraction avec valeurs positives
 - **Multiplication** : Tables de multiplication
 - **Division** : Divisions sans reste
 - **Mixte** : Combinaison de plusieurs types
+
+**Nouveaux Types (Mai 2025)** ⭐ :
+- **Fractions** : 4 opérations complètes (addition, soustraction, multiplication, division)
+- **Géométrie** : Calculs sur 5 formes (carré, rectangle, triangle, cercle, trapèze)
+- **Texte** : Questions textuelles avec énoncés élaborés et contextualisés
+- **Divers** : 6 catégories (monnaie, vitesse, pourcentages, probabilités, séquences)
+
+**Génération via API** : Tous types accessibles via `/api/exercises/generate`
 
 ### Niveaux de Difficulté (Thème Star Wars)
 - **Initié** : Niveau facile (nombres 1-10)

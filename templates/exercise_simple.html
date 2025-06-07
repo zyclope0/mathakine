@@ -23,7 +23,7 @@
                 <div class="row g-3">
                     {% for choice in exercise.choices %}
                     <div class="col-md-6">
-                        <button class="btn btn-outline-primary choice-btn w-100 p-3" data-answer="{{ choice }}">
+                        <button class="btn btn-outline-primary choice-btn btn-unified w-100 p-3" data-answer="{{ choice }}">
                             {{ choice }}
                         </button>
                     </div>
@@ -43,8 +43,8 @@
             </div>
             
             <div class="actions">
-                <a href="/exercises" class="btn btn-secondary">Retour aux exercices</a>
-                <button id="next-exercise" class="btn btn-primary d-none">Exercice suivant</button>
+                <a href="/exercises/simple" class="btn btn-secondary btn-unified">Retour aux exercices simples</a>
+                <button id="next-exercise" class="btn btn-primary btn-unified d-none">Exercice suivant</button>
             </div>
         </div>
     </div>
@@ -54,6 +54,7 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const startTime = Date.now(); // Mesure du temps de début
         const choiceButtons = document.querySelectorAll('.choice-btn');
         const resultDiv = document.getElementById('result');
         const explanationDiv = document.getElementById('explanation');
@@ -79,7 +80,7 @@
                         body: JSON.stringify({
                             exercise_id: {{ exercise.id }},
                             selected_answer: selectedAnswer,
-                            time_spent: 0
+                            time_spent: Math.floor((Date.now() - startTime) / 1000) || 0
                         })
                     });
                     
@@ -110,7 +111,7 @@
                     // Show next button
                     nextButton.classList.remove('d-none');
                     nextButton.addEventListener('click', function() {
-                        window.location.href = '/exercises';
+                        window.location.href = '/api/exercises/generate';
                     });
                     
                 } catch (error) {

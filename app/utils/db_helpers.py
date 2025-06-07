@@ -39,7 +39,7 @@ ENUM_MAPPING = {
     ("UserRole", "maitre"): "MAITRE",
     ("UserRole", "gardien"): "GARDIEN",
     ("UserRole", "archiviste"): "ARCHIVISTE",
-    ("UserRole", "admin"): "ARCHIVISTE",  # admin mapping vers archiviste
+    # Note: Le rôle ADMIN a été supprimé - ARCHIVISTE est maintenant le rôle admin suprême
     
     # ExerciseType - Valeurs PostgreSQL exactes  
     ("ExerciseType", "addition"): "ADDITION",
@@ -159,7 +159,7 @@ def get_all_enum_values(db: Optional[Session] = None) -> Dict[str, Any]:
             "maitre": get_enum_value(UserRole, UserRole.MAITRE),
             "gardien": get_enum_value(UserRole, UserRole.GARDIEN),
             "archiviste": get_enum_value(UserRole, UserRole.ARCHIVISTE),
-            "admin": get_enum_value(UserRole, UserRole.ADMIN)
+            # Note: ADMIN supprimé - ARCHIVISTE couvre maintenant tous les privilèges admin
         },
         "exercise_types": {
             "addition": get_enum_value(ExerciseType, ExerciseType.ADDITION),
