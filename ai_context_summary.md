@@ -1090,7 +1090,504 @@ alembic upgrade head
 
 ---
 
-## 🛡️ FINAL CONSTRAINTS
+## � DEVELOPMENT BEST PRACTICES - MANDATORY STANDARDS
+
+### **Python Code Standards - NEVER VIOLATE**
+```python
+# ✅ CORRECT: Type hints are MANDATORY
+def calculate_points(user_id: int, correct_answers: int) -> int:
+    """Calculate user points based on correct answers."""
+    return correct_answers * 10
+
+# ✅ CORRECT: Docstrings for all functions
+def process_exercise_attempt(attempt_data: dict) -> dict:
+    """
+    Process an exercise attempt and update user statistics.
+    
+    Args:
+        attempt_data: Dictionary containing attempt information
+        
+    Returns:
+        Dictionary with processing results
+        
+    Raises:
+        ValidationError: If attempt_data is invalid
+        DatabaseError: If database operation fails
+    """
+    pass
+
+# ✅ CORRECT: Error handling with specific exceptions
+try:
+    result = risky_database_operation()
+except SQLAlchemyError as e:
+    logger.error(f"Database error: {e}")
+    raise DatabaseError("Failed to process attempt")
+except ValidationError as e:
+    logger.warning(f"Validation error: {e}")
+    raise HTTPException(400, "Invalid data format")
+
+# ❌ NEVER USE: Bare except clauses
+# try:
+#     risky_operation()
+# except:  # NEVER do this
+#     pass
+```
+
+### **FastAPI Standards - CONSISTENT PATTERNS**
+```python
+# ✅ CORRECT: Endpoint structure with proper dependencies
+@router.post("/exercises/attempt", response_model=AttemptResponse)
+async def submit_exercise_attempt(
+    attempt: AttemptCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+) -> AttemptResponse:
+    """Submit an exercise attempt - STAR WARS THEMED RESPONSE"""
+    try:
+        # Validate attempt data
+        if not attempt.exercise_id:
+            raise HTTPException(400, "L'exercice est requis, jeune Padawan")
+        
+        # Process attempt
+        service = ExerciseService(db)
+        result = service.record_attempt(
+            user_id=current_user.id,
+            attempt_data=attempt.dict()
+        )
+        
+        return AttemptResponse(
+            success=True,
+            message="Tentative enregistrée avec succès !",
+            data=result
+        )
+        
+    except ValidationError as e:
+        logger.warning(f"Validation error for user {current_user.id}: {e}")
+        raise HTTPException(400, f"Données invalides: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        raise HTTPException(500, "Une erreur inattendue s'est produite")
+
+# ✅ CORRECT: Response models with Star Wars theme
+class AttemptResponse(BaseModel):
+    success: bool
+    message: str = Field(..., description="Message en français avec thème Star Wars")
+    data: Optional[dict] = None
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "success": True,
+                "message": "Excellente réponse, jeune Padawan !",
+                "data": {"points_earned": 10, "badges_unlocked": []}
+            }
+        }
+```
+
+### **Database Best Practices - MANDATORY PATTERNS**
+```python
+# ✅ CORRECT: Transaction management
+from contextlib import contextmanager
+
+@contextmanager
+def transaction_scope(db_session):
+    """Database transaction context manager."""
+    try:
+        yield db_session
+        db_session.commit()
+    except Exception:
+        db_session.rollback()
+        raise
+    finally:
+        db_session.close()
+
+# ✅ CORRECT: Query optimization with indexes
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(255), unique=True, index=True)  # INDEXED
+    email = Column(String(255), unique=True, index=True)     # INDEXED
+    created_at = Column(TIMESTAMP(timezone=True), index=True) # INDEXED for queries
+    
+    # Composite index for common queries
+    __table_args__ = (
+        Index('idx_user_activity', 'username', 'created_at'),
+    )
+
+# ✅ CORRECT: Bulk operations for performance
+def update_user_statistics_bulk(db: Session, user_stats: List[dict]):
+    """Update multiple user statistics efficiently."""
+    try:
+        db.bulk_update_mappings(UserStats, user_stats)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Bulk update failed: {e}")
+        raise
+
+# ❌ NEVER USE: Individual updates in loops
+# for stat in user_stats:
+#     db.query(UserStats).filter(UserStats.id == stat['id']).update(stat)
+#     db.commit()  # INEFFICIENT - One commit per update
+```
+
+### **Security Best Practices - CRITICAL IMPLEMENTATION**
+```python
+# ✅ CORRECT: Input sanitization for all user inputs
+import bleach
+from html import escape
+
+def sanitize_user_input(text: str) -> str:
+    """Sanitize user input to prevent XSS and injection attacks."""
+    # Remove potentially dangerous HTML tags
+    allowed_tags = []  # No HTML allowed in math exercises
+    cleaned = bleach.clean(text, tags=allowed_tags, strip=True)
+    
+    # Escape any remaining HTML entities
+    return escape(cleaned.strip())
+
+# ✅ CORRECT: Rate limiting implementation
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+
+@router.post("/exercises/attempt")
+@limiter.limit("10/minute")  # Max 10 attempts per minute
+async def submit_attempt(request: Request, ...):
+    pass
+
+# ✅ CORRECT: SQL injection prevention with parameterized queries
+def get_user_exercises(db: Session, user_id: int, exercise_type: str):
+    """Get user exercises - SQL injection safe."""
+    return db.query(Exercise)\
+        .filter(Exercise.user_id == user_id)\
+        .filter(Exercise.exercise_type == exercise_type)\
+        .all()
+
+# ❌ NEVER USE: String formatting in SQL queries
+# query = f"SELECT * FROM exercises WHERE user_id = {user_id}"  # SQL INJECTION RISK
+```
+
+### **Git Workflow Standards - MANDATORY PROCESS**
+```bash
+# ✅ CORRECT: Branch naming convention
+feature/add-geometry-exercises    # New features
+bugfix/fix-badge-attribution      # Bug fixes
+hotfix/security-patch            # Critical fixes
+refactor/optimize-db-queries     # Code improvements
+
+# ✅ CORRECT: Commit message format
+git commit -m "feat(exercises): add geometry exercise generation
+
+- Add perimeter and area calculations
+- Implement Star Wars themed geometry problems
+- Add tests for new exercise types
+- Update constants.py with new exercise types
+
+Closes #123"
+
+# ✅ CORRECT: Pre-commit checks
+#!/bin/bash
+# Run before every commit
+python -m pytest tests/functional/test_logic_challenge_isolated.py -v
+python -m flake8 app/ server/ --max-line-length=100
+python -m mypy app/ server/ --ignore-missing-imports
+```
+
+### **Code Review Standards - MANDATORY CHECKLIST**
+```markdown
+## Code Review Checklist - EVERY PR MUST PASS
+
+### Functionality ✅
+- [ ] All functional tests pass (6/6)
+- [ ] New code follows established patterns
+- [ ] Star Wars theme maintained in all UI text
+- [ ] Error handling implemented properly
+
+### Security ✅
+- [ ] Input validation implemented
+- [ ] Authentication properly handled
+- [ ] No hardcoded credentials or secrets
+- [ ] SQL injection prevention verified
+
+### Performance ✅
+- [ ] Database queries optimized
+- [ ] No N+1 query problems
+- [ ] Proper caching implemented where needed
+- [ ] Frontend performance maintained
+
+### Code Quality ✅
+- [ ] Type hints on all functions
+- [ ] Docstrings for public functions
+- [ ] Error messages in French with Star Wars theme
+- [ ] Logging implemented with proper context
+
+### Testing ✅
+- [ ] Unit tests for new functions
+- [ ] Integration tests for API endpoints
+- [ ] Edge cases covered
+- [ ] Test fixtures use explicit dates
+```
+
+### **Documentation Standards - MANDATORY FORMAT**
+```python
+# ✅ CORRECT: Module documentation
+"""
+Exercise Generation Module
+
+This module handles the generation of math exercises with Star Wars theme.
+All exercises are generated in French with pedagogical explanations.
+
+Constants:
+    EXERCISE_TYPES: Available exercise types
+    DIFFICULTY_LEVELS: Available difficulty levels
+    
+Example:
+    generator = ExerciseGenerator()
+    exercise = generator.generate("addition", "padawan")
+"""
+
+# ✅ CORRECT: Class documentation
+class ExerciseGenerator:
+    """
+    Generate themed math exercises for children.
+    
+    This class creates math exercises with Star Wars theme, appropriate
+    for children aged 6-16 with special needs. All content is in French.
+    
+    Attributes:
+        theme_templates: Star Wars themed question templates
+        difficulty_ranges: Number ranges for each difficulty level
+        
+    Example:
+        >>> generator = ExerciseGenerator()
+        >>> exercise = generator.generate("addition", "padawan")
+        >>> print(exercise["question"])
+        "Luke a trouvé 15 cristaux de kyber..."
+    """
+    
+    def generate(self, exercise_type: str, difficulty: str) -> dict:
+        """
+        Generate a single exercise.
+        
+        Args:
+            exercise_type: Type of exercise (addition, soustraction, etc.)
+            difficulty: Difficulty level (initie, padawan, chevalier, maitre)
+            
+        Returns:
+            Dictionary containing exercise data with Star Wars theme
+            
+        Raises:
+            ValueError: If exercise_type or difficulty is invalid
+            
+        Example:
+            >>> exercise = generator.generate("addition", "padawan")
+            >>> exercise["correct_answer"]
+            "27"
+        """
+        pass
+```
+
+### **Testing Standards - COMPREHENSIVE COVERAGE**
+```python
+# ✅ CORRECT: Test structure and naming
+class TestExerciseGeneration:
+    """Test exercise generation functionality."""
+    
+    def test_addition_padawan_generates_valid_exercise(self):
+        """Test that addition exercises for padawan level are valid."""
+        # Arrange
+        generator = ExerciseGenerator()
+        
+        # Act
+        exercise = generator.generate("addition", "padawan")
+        
+        # Assert
+        assert exercise["exercise_type"] == "addition"
+        assert exercise["difficulty"] == "padawan"
+        assert "cristaux" in exercise["question"]  # Star Wars theme
+        assert len(exercise["choices"]) == 4
+        assert exercise["correct_answer"] in exercise["choices"]
+    
+    def test_invalid_exercise_type_raises_error(self):
+        """Test that invalid exercise type raises ValueError."""
+        generator = ExerciseGenerator()
+        
+        with pytest.raises(ValueError, match="Type d'exercice invalide"):
+            generator.generate("invalid_type", "padawan")
+    
+    @pytest.mark.parametrize("exercise_type,difficulty", [
+        ("addition", "initie"),
+        ("soustraction", "padawan"),
+        ("multiplication", "chevalier"),
+        ("division", "maitre")
+    ])
+    def test_all_combinations_generate_valid_exercises(self, exercise_type, difficulty):
+        """Test all exercise type and difficulty combinations."""
+        generator = ExerciseGenerator()
+        exercise = generator.generate(exercise_type, difficulty)
+        
+        assert exercise is not None
+        assert exercise["exercise_type"] == exercise_type
+        assert exercise["difficulty"] == difficulty
+
+# ✅ CORRECT: Test fixtures with explicit dates
+@pytest.fixture
+def sample_user():
+    """Create a sample user for testing."""
+    return User(
+        id=1,
+        username="test_padawan",
+        email="test@mathakine.com",
+        hashed_password="$2b$12$hash...",
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+        total_points=0,
+        jedi_rank="youngling"
+    )
+```
+
+### **Performance Standards - MANDATORY BENCHMARKS**
+```python
+# ✅ CORRECT: Performance monitoring
+import time
+from functools import wraps
+
+def performance_monitor(func):
+    """Monitor function execution time."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        execution_time = time.time() - start_time
+        
+        if execution_time > 1.0:  # Log slow operations
+            logger.warning(f"Slow operation: {func.__name__} took {execution_time:.2f}s")
+        
+        return result
+    return wrapper
+
+@performance_monitor
+def generate_exercise(exercise_type: str, difficulty: str) -> dict:
+    """Generate exercise with performance monitoring."""
+    # Implementation here
+    pass
+
+# ✅ CORRECT: Database query performance
+def get_user_dashboard_data(db: Session, user_id: int) -> dict:
+    """Get dashboard data with single optimized query."""
+    # Single query with joins instead of multiple queries
+    result = db.query(User)\
+        .options(
+            joinedload(User.attempts),
+            joinedload(User.user_achievements),
+            selectinload(User.progress)
+        )\
+        .filter(User.id == user_id)\
+        .first()
+    
+    return {
+        "user": result,
+        "recent_attempts": result.attempts[-10:],
+        "badges": result.user_achievements,
+        "statistics": result.progress
+    }
+```
+
+### **Deployment Standards - PRODUCTION READY**
+```python
+# ✅ CORRECT: Environment configuration
+from pydantic import BaseSettings
+
+class Settings(BaseSettings):
+    """Application settings with environment validation."""
+    
+    # Database
+    DATABASE_URL: str = "postgresql://user:pass@localhost/mathakine"
+    
+    # Security
+    SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
+    # Performance
+    REDIS_URL: str = "redis://localhost:6379"
+    MAX_WORKERS: int = 4
+    
+    # Logging
+    LOG_LEVEL: str = "INFO"
+    LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+
+# ✅ CORRECT: Health check endpoint
+@router.get("/health")
+async def health_check(db: Session = Depends(get_db)):
+    """Health check for load balancer."""
+    try:
+        # Check database connection
+        db.execute("SELECT 1")
+        
+        # Check Redis connection (if used)
+        redis_client.ping()
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "version": "4.0"
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        raise HTTPException(503, "Service temporarily unavailable")
+```
+
+### **Error Handling Standards - COMPREHENSIVE COVERAGE**
+```python
+# ✅ CORRECT: Custom exception hierarchy
+class MathakineException(Exception):
+    """Base exception for Mathakine application."""
+    pass
+
+class ValidationError(MathakineException):
+    """Raised when data validation fails."""
+    pass
+
+class AuthenticationError(MathakineException):
+    """Raised when authentication fails."""
+    pass
+
+class ExerciseGenerationError(MathakineException):
+    """Raised when exercise generation fails."""
+    pass
+
+# ✅ CORRECT: Global exception handler
+@app.exception_handler(MathakineException)
+async def mathakine_exception_handler(request: Request, exc: MathakineException):
+    """Handle custom Mathakine exceptions."""
+    logger.error(f"Mathakine error: {exc}")
+    
+    # Star Wars themed error messages
+    error_messages = {
+        ValidationError: "Les données ne sont pas conformes, jeune Padawan",
+        AuthenticationError: "Votre identité n'a pas pu être vérifiée",
+        ExerciseGenerationError: "Impossible de générer l'exercice pour le moment"
+    }
+    
+    message = error_messages.get(type(exc), "Une erreur inattendue s'est produite")
+    
+    return JSONResponse(
+        status_code=400,
+        content={"error": message, "type": type(exc).__name__}
+    )
+```
+
+---
+
+## �🛡️ FINAL CONSTRAINTS
 
 ### **NEVER MODIFY WITHOUT TESTING**
 - Enum mapping functions in `db_helpers.py`
