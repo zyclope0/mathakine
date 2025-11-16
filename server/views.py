@@ -162,20 +162,22 @@ async def api_login(request: Request):
                 is_production = os.getenv("MATH_TRAINER_PROFILE", "dev") == "prod"
                 
                 # Définir les cookies avec les tokens
+                # Pour cross-domain (frontend et backend sur domaines différents), 
+                # il FAUT samesite="none" et secure=True
                 response.set_cookie(
                     key="access_token",
                     value=tokens["access_token"],
                     httponly=True,
-                    secure=is_production,  # Secure uniquement en production (HTTPS requis)
-                    samesite="lax",
+                    secure=True,  # Toujours True pour samesite=none
+                    samesite="none",  # Permet cross-domain
                     max_age=access_token_max_age  # Aligné avec ACCESS_TOKEN_EXPIRE_MINUTES
                 )
                 response.set_cookie(
                     key="refresh_token",
                     value=tokens["refresh_token"],
                     httponly=True,
-                    secure=is_production,  # Secure uniquement en production
-                    samesite="lax",
+                    secure=True,  # Toujours True pour samesite=none
+                    samesite="none",  # Permet cross-domain
                     max_age=86400 * 30  # 30 jours
                 )
                 
@@ -666,8 +668,8 @@ async def api_refresh_token(request: Request):
                 key="access_token",
                 value=new_token_data["access_token"],
                 httponly=True,
-                secure=is_production,
-                samesite="lax",
+                secure=True,  # Toujours True pour samesite=none
+                samesite="none",  # Permet cross-domain
                 max_age=access_token_max_age
             )
             
