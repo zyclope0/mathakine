@@ -142,26 +142,23 @@ export default function DashboardPage() {
                   icon={CheckCircle}
                   value={stats.total_exercises || 0}
                   label={t('stats.exercisesSolved')}
-                  lastUpdate={stats.lastUpdated}
                 />
                 <StatsCard
                   icon={Zap}
-                  value={`${stats.success_rate || 0}%`}
+                  value={`${Math.round((stats.correct_answers / (stats.correct_answers + stats.incorrect_answers)) * 100) || 0}%`}
                   label={t('stats.successRate')}
-                  lastUpdate={stats.lastUpdated}
                 />
                 <StatsCard
                   icon={Trophy}
-                  value={stats.experience_points || 0}
-                  label={t('stats.experiencePointsLabel')}
-                  lastUpdate={stats.lastUpdated}
+                  value={stats.total_challenges || 0}
+                  label={t('stats.challengesCompleted')}
                 />
               </div>
               {/* Métadonnées temporelles */}
-              {stats.lastUpdated && (
+              {stats.recent_activity && stats.recent_activity.length > 0 && (
                 <div className="text-xs text-muted-foreground text-center mt-2">
                   {t('lastUpdate', { 
-                    time: new Date(stats.lastUpdated).toLocaleString('fr-FR', {
+                    time: new Date(stats.recent_activity[0].completed_at).toLocaleString('fr-FR', {
                       day: '2-digit',
                       month: '2-digit',
                       hour: '2-digit',
