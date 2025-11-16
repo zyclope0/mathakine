@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import type { User } from '@/types/api';
 
 export interface SettingsUpdateData {
+  notification_preferences?: Record<string, boolean>;
   language_preference?: string;
   timezone?: string;
   is_public_profile?: boolean;
