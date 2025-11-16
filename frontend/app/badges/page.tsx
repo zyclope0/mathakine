@@ -31,8 +31,8 @@ function getJediRankInfo(rank: string, t: any): { title: string; icon: string; c
   
   return {
     title: t(`jediRanks.${rank}`) || t('jediRanks.youngling'),
-    icon: icons[rank] || icons.youngling,
-    color: colors[rank] || colors.youngling,
+    icon: icons[rank] ?? icons.youngling,
+    color: colors[rank] ?? colors.youngling,
   };
 }
 
