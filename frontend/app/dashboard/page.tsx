@@ -179,9 +179,16 @@ export default function DashboardPage() {
                 Nécessite transformation des données ou nouveau endpoint API */}
 
             {/* Niveau actuel */}
-            {stats.level && (
+            {stats.level && stats.xp !== undefined && stats.next_level_xp !== undefined && (
               <PageSection className="space-y-3 animate-fade-in-up-delay-3">
-                <LevelIndicator level={stats.level} />
+                <LevelIndicator 
+                  level={{
+                    current: stats.level,
+                    title: `Niveau ${stats.level}`,
+                    current_xp: stats.xp,
+                    next_level_xp: stats.next_level_xp,
+                  }} 
+                />
               </PageSection>
             )}
 
