@@ -158,7 +158,7 @@ export default function BadgesPage() {
         )}
 
         {/* Statistiques de performance */}
-        {gamificationStats && (
+        {gamificationStats && gamificationStats.performance && (
           <PageSection className="space-y-4 animate-fade-in-up-delay-2">
             <Card className="card-spatial-depth">
               <CardHeader>
@@ -193,7 +193,7 @@ export default function BadgesPage() {
                 </div>
 
                 {/* Répartition par catégorie */}
-                {Object.keys(gamificationStats.badges_summary.by_category).length > 0 && (
+                {gamificationStats.badges_summary?.by_category && Object.keys(gamificationStats.badges_summary.by_category).length > 0 && (
                   <div className="mt-6 pt-6 border-t border-border">
                     <div className="text-sm font-medium text-muted-foreground mb-3">
                       {t('performance.byCategory')}
