@@ -170,7 +170,6 @@ export default function DashboardPage() {
             </PageSection>
 
             {/* Graphiques */}
-            {/* Graphiques */}
             {/* TODO: Ajouter progress_over_time, exercises_by_day et performance_by_type au type UserStats si nécessaire */}
             {/* Ces propriétés ne sont pas disponibles dans le type UserStats actuel */}
             
