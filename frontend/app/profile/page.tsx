@@ -938,7 +938,7 @@ function ProfilePageContent() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">{tStatistics('totalAttempts')}</span>
-                      <span className="text-lg font-semibold">{stats.total_attempts || 0}</span>
+                      <span className="text-lg font-semibold">{(stats.correct_answers || 0) + (stats.incorrect_answers || 0)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">{tStatistics('successRate')}</span>
