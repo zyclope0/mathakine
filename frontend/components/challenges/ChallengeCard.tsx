@@ -127,7 +127,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               <Eye className="h-4 w-4" aria-hidden="true" />
               <span>{challenge.view_count || 0}</span>
             </div>
-            {challenge.success_rate !== undefined && challenge.success_rate > 0 && (
+            {challenge.success_rate !== undefined && challenge.success_rate !== null && challenge.success_rate > 0 && (
               <div className="flex items-center gap-1" aria-label={`Taux de réussite: ${Math.round(challenge.success_rate * 100)}%`}>
                 <TrendingUp className="h-4 w-4" aria-hidden="true" />
                 <span>{Math.round(challenge.success_rate * 100)}%</span>
