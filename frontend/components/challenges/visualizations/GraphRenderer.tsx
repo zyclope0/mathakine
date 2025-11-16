@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 
 interface GraphRendererProps {
   visualData: any;
-  className?: string;
+  className?: string | undefined;
 }
 
 /**

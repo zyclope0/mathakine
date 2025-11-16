@@ -7,8 +7,8 @@ import { motion } from 'framer-motion';
 
 interface PatternRendererProps {
   visualData: any;
-  className?: string;
-  onAnswerChange?: (answer: string) => void;
+  className?: string | undefined;
+  onAnswerChange?: ((answer: string) => void) | undefined;
 }
 
 /**

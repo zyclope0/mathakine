@@ -24,8 +24,8 @@ import { CSS } from '@dnd-kit/utilities';
 
 interface PuzzleRendererProps {
   visualData: any;
-  className?: string;
-  onOrderChange?: (order: string[]) => void;
+  className?: string | undefined;
+  onOrderChange?: ((order: string[]) => void) | undefined;
 }
 
 interface SortableItemProps {

@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 
 interface VisualRendererProps {
   visualData: any;
-  className?: string;
+  className?: string | undefined;
 }
 
 /**

@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 interface DefaultRendererProps {
   visualData: any;
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
