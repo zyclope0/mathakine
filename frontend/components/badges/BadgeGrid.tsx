@@ -54,13 +54,17 @@ export function BadgeGrid({ badges, earnedBadges, isLoading }: BadgeGridProps) {
     if (!aEarned && bEarned) return 1;
 
     // Puis par catégorie
-    const categoryOrder = { progression: 0, mastery: 1, special: 2 };
-    const categoryDiff = categoryOrder[a.category] - categoryOrder[b.category];
+    const categoryOrder: Record<string, number> = { progression: 0, mastery: 1, special: 2 };
+    const aCategory = a.category || '';
+    const bCategory = b.category || '';
+    const categoryDiff = (categoryOrder[aCategory] ?? 999) - (categoryOrder[bCategory] ?? 999);
     if (categoryDiff !== 0) return categoryDiff;
 
     // Puis par difficulté
-    const difficultyOrder = { bronze: 0, silver: 1, gold: 2 };
-    return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
+    const difficultyOrder: Record<string, number> = { bronze: 0, silver: 1, gold: 2 };
+    const aDifficulty = a.difficulty || '';
+    const bDifficulty = b.difficulty || '';
+    return (difficultyOrder[aDifficulty] ?? 999) - (difficultyOrder[bDifficulty] ?? 999);
   });
 
   // Variantes pour le conteneur avec staggerChildren
