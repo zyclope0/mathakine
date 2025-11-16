@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge as UIBadge } from '@/components/ui/badge';
+import type { UserBadge } from '@/types/api';
 import { 
   User, 
   Mail, 
@@ -986,7 +987,7 @@ function ProfilePageContent() {
             className="animate-fade-in-up-delay-6"
           >
             <div className="grid gap-4 md:grid-cols-3">
-              {recentBadges.map((badge: { id: number; name?: string; description?: string; points?: number; earned_at?: string; code?: string }, index: number) => (
+              {recentBadges.map((badge: UserBadge & { earned_at: string }, index: number) => (
                 <Card 
                   key={badge.id} 
                   className={cn(
