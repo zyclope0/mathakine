@@ -234,7 +234,7 @@ function ProfilePageContent() {
   }, [earnedBadges]);
 
   // Formatage de la date
-  const formatDate = (dateString: string | undefined) => {
+  const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return '-';
     try {
       return format(new Date(dateString), 'dd MMMM yyyy', { locale: fr });
