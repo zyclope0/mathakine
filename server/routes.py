@@ -14,6 +14,12 @@ from server.views import (
     about_page,
     login_page,
     api_login,
+    api_refresh_token,
+    api_get_user_me,
+    api_update_user_me,
+    api_change_password,
+    api_export_user_data,
+    api_delete_user_account,
     register_page,
     forgot_password_page,
     profile_page,
@@ -37,12 +43,16 @@ from server.api_routes import (
     get_exercises_list,
     delete_exercise,
     handle_recommendation_complete,
+    api_logout,
     api_forgot_password
 )
 
-from server.handlers.exercise_handlers import generate_exercise, get_exercise, submit_answer, generate_exercise_api
+from server.handlers.exercise_handlers import generate_exercise, get_exercise, submit_answer, generate_exercise_api, generate_ai_exercise_stream, get_completed_exercises_ids
 from server.handlers.user_handlers import get_user_stats
 from server.handlers.badge_handlers import get_user_badges, get_available_badges, check_user_badges, get_user_gamification_stats
+from server.handlers.challenge_handlers import get_challenges_list, get_challenge, submit_challenge_answer, get_challenge_hint, get_completed_challenges_ids, generate_ai_challenge_stream
+from server.handlers.recommendation_handlers import get_recommendations, generate_recommendations
+from server.handlers.chat_handlers import chat_api, chat_api_stream
 
 # Importer les fonctions API pour les challenges
 from server.api_challenges import (
@@ -612,6 +622,8 @@ def get_routes() -> List:
         Route("/about", endpoint=about_page),
         Route("/login", endpoint=login_page),
         Route("/api/auth/login", endpoint=api_login, methods=["POST"]),
+        Route("/api/auth/refresh", endpoint=api_refresh_token, methods=["POST"]),
+        Route("/api/auth/logout", endpoint=api_logout, methods=["POST"]),
         Route("/register", endpoint=register_page),
         Route("/forgot-password", endpoint=forgot_password_page),
         Route("/profile", endpoint=profile_page),
@@ -638,19 +650,36 @@ def get_routes() -> List:
         Route("/api/exercises/{exercise_id:int}", endpoint=delete_exercise, methods=["DELETE"]),
         Route("/api/exercises/generate", endpoint=generate_exercise, methods=["GET"]),
         Route("/api/exercises/generate", endpoint=generate_exercise_api, methods=["POST"]),
+        Route("/api/exercises/generate-ai-stream", endpoint=generate_ai_exercise_stream, methods=["GET"]),
+        Route("/api/exercises/completed-ids", endpoint=get_completed_exercises_ids, methods=["GET"]),
         Route("/api/submit-answer", endpoint=submit_answer, methods=["POST"]),
+        Route("/api/users/me", endpoint=api_get_user_me),
+        Route("/api/users/me", endpoint=api_update_user_me, methods=["PUT"]),
+        Route("/api/users/me", endpoint=api_delete_user_account, methods=["DELETE"]),
+        Route("/api/users/me/password", endpoint=api_change_password, methods=["PUT"]),
+        Route("/api/users/me/export", endpoint=api_export_user_data),
         Route("/api/users/stats", endpoint=get_user_stats),
         Route("/api/badges/user", endpoint=get_user_badges),
         Route("/api/badges/available", endpoint=get_available_badges),
         Route("/api/badges/check", endpoint=check_user_badges, methods=["POST"]),
         Route("/api/badges/stats", endpoint=get_user_gamification_stats),
+        Route("/api/recommendations", endpoint=get_recommendations, methods=["GET"]),
+        Route("/api/recommendations/generate", endpoint=generate_recommendations, methods=["POST"]),
         Route("/api/recommendations/complete", endpoint=handle_recommendation_complete, methods=["POST"]),
         Route("/api/auth/forgot-password", endpoint=api_forgot_password, methods=["POST"]),
+        Route("/api/chat", endpoint=chat_api, methods=["POST"]),
+        Route("/api/chat/stream", endpoint=chat_api_stream, methods=["POST"]),
         
         # API routes pour les challenges
+        Route("/api/challenges", endpoint=get_challenges_list, methods=["GET"]),
+        Route("/api/challenges/{challenge_id:int}", endpoint=get_challenge, methods=["GET"]),
+        Route("/api/challenges/{challenge_id:int}/attempt", endpoint=submit_challenge_answer, methods=["POST"]),
+        Route("/api/challenges/{challenge_id:int}/hint", endpoint=get_challenge_hint, methods=["GET"]),
+        Route("/api/challenges/completed-ids", endpoint=get_completed_challenges_ids, methods=["GET"]),
         Route("/api/challenges/start/{challenge_id:int}", endpoint=api_start_challenge, methods=["POST"]),
         Route("/api/challenges/progress/{challenge_id:int}", endpoint=api_get_challenge_progress),
         Route("/api/challenges/rewards/{challenge_id:int}", endpoint=api_get_challenge_rewards),
+        Route("/api/challenges/generate-ai-stream", endpoint=generate_ai_challenge_stream, methods=["GET"]),
         Route("/api/users/leaderboard", endpoint=api_get_users_leaderboard),
         Route("/api/challenges/badges/progress", endpoint=api_get_user_badges_progress),
         

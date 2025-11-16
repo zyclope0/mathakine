@@ -1,0 +1,231 @@
+/* Styles d'accessibilité pour Mathakine */
+
+/* Mode Contraste Élevé */
+.high-contrast {
+  --background: #000000;
+  --surface: #1a1a1a;
+  --surface-elevated: #2a2a2a;
+  --text-primary: #ffffff;
+  --text-secondary: #ffffff;
+  --text-muted: #cccccc;
+  --primary: #ffffff;
+  --primary-dark: #ffffff;
+  --primary-light: #ffffff;
+  --border: #ffffff;
+  --border-width: 2px;
+}
+
+.high-contrast * {
+  border-color: var(--border) !important;
+}
+
+.high-contrast button,
+.high-contrast a,
+.high-contrast input,
+.high-contrast select,
+.high-contrast textarea {
+  border: 2px solid var(--border) !important;
+}
+
+/* Mode Texte Plus Grand */
+.large-text {
+  font-size: 1.2em;
+}
+
+.large-text h1 {
+  font-size: 2.4em;
+}
+
+.large-text h2 {
+  font-size: 2em;
+}
+
+.large-text h3 {
+  font-size: 1.6em;
+}
+
+.large-text p,
+.large-text li,
+.large-text span {
+  font-size: 1.2em;
+  line-height: 1.8;
+}
+
+.large-text button {
+  font-size: 1.2em;
+  padding: 0.75rem 1.5rem;
+  min-height: 48px;
+}
+
+/* Mode Réduction des Animations */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Mode Dyslexie */
+.dyslexia-mode {
+  font-family: 'Comic Sans MS', 'OpenDyslexic', 'Dyslexie', sans-serif;
+  letter-spacing: 0.1em;
+  word-spacing: 0.2em;
+  line-height: 1.8;
+}
+
+.dyslexia-mode p,
+.dyslexia-mode li,
+.dyslexia-mode span {
+  font-size: 1.1em;
+}
+
+/* Mode Focus TSA/TDAH (Phase 1 - Mode Unique) */
+.focus-mode {
+  /* Réduire les distractions visuelles */
+  --background: #000000;
+  --surface: #0a0a0a;
+  --surface-elevated: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  
+  /* Masquer éléments non essentiels */
+}
+
+.focus-mode .navigation-secondary,
+.focus-mode .footer,
+.focus-mode .recommendations,
+.focus-mode .sidebar,
+.focus-mode .badges-preview,
+.focus-mode .stars,
+.focus-mode .particles,
+.focus-mode .planets {
+  display: none !important;
+}
+
+/* Agrandir et optimiser zone de focus */
+.focus-mode .exercise-solver,
+.focus-mode .challenge-solver,
+.focus-mode main > div,
+.focus-mode [role="main"] > div {
+  max-width: 100% !important;
+  padding: 3rem 2rem !important;
+  margin: 0 auto !important;
+}
+
+/* Conteneurs de contenu principal */
+.focus-mode .container,
+.focus-mode [class*="max-w"] {
+  max-width: 100% !important;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+}
+
+/* Réduire animations (respect prefers-reduced-motion) */
+.focus-mode * {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+}
+
+/* Focus visible renforcé pour TSA/TDAH (WCAG 2.1 AAA) */
+.focus-mode *:focus-visible {
+  outline: 5px solid var(--primary) !important;
+  outline-offset: 5px !important;
+  box-shadow: 0 0 0 10px rgba(124, 58, 237, 0.4) !important;
+  border-radius: 2px !important;
+}
+
+/* Focus encore plus visible pour éléments interactifs */
+.focus-mode button:focus-visible,
+.focus-mode a:focus-visible,
+.focus-mode input:focus-visible,
+.focus-mode select:focus-visible,
+.focus-mode textarea:focus-visible {
+  outline: 6px solid var(--primary) !important;
+  outline-offset: 6px !important;
+  box-shadow: 0 0 0 12px rgba(124, 58, 237, 0.5) !important;
+}
+
+/* Simplifier les cartes */
+.focus-mode .card {
+  border: 2px solid var(--primary);
+  box-shadow: none;
+}
+
+/* Agrandir les boutons pour meilleure accessibilité */
+.focus-mode button,
+.focus-mode [role="button"],
+.focus-mode a[role="button"] {
+  min-height: 52px !important;
+  min-width: 52px !important;
+  padding: 0.875rem 1.75rem !important;
+  font-size: 1.05em !important;
+  border: 2px solid var(--border) !important;
+}
+
+/* Espacement augmenté pour lisibilité */
+.focus-mode p,
+.focus-mode li,
+.focus-mode span,
+.focus-mode div {
+  line-height: 1.9 !important;
+}
+
+.focus-mode p,
+.focus-mode li {
+  margin-bottom: 1.25rem !important;
+}
+
+/* Typographie améliorée */
+.focus-mode h1 {
+  font-size: 2.25rem !important;
+  line-height: 1.3 !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.focus-mode h2 {
+  font-size: 1.875rem !important;
+  line-height: 1.4 !important;
+  margin-bottom: 1.25rem !important;
+}
+
+.focus-mode h3 {
+  font-size: 1.5rem !important;
+  line-height: 1.5 !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Inputs et formulaires */
+.focus-mode input,
+.focus-mode textarea,
+.focus-mode select {
+  min-height: 52px !important;
+  padding: 0.875rem 1rem !important;
+  font-size: 1.05em !important;
+  border: 2px solid var(--border) !important;
+  background: var(--card) !important;
+}
+
+/* Support des préférences système */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --background: #000000;
+    --surface: #1a1a1a;
+    --text-primary: #ffffff;
+    --border: #ffffff;
+    --border-width: 2px;
+  }
+}
+

@@ -24,7 +24,6 @@ from app.models.user import User
 from app.services.logic_challenge_service import LogicChallengeService
 from app.utils.db_helpers import get_enum_value, adapt_enum_for_db
 from app.api.endpoints.users import _challenges_progress
-from app.core.deps import get_db
 
 router = APIRouter()
 

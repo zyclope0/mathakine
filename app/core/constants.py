@@ -159,9 +159,11 @@ class LoggingLevels:
 
 # Configuration de sécurité
 class SecurityConfig:
-    TOKEN_EXPIRY_MINUTES = 60 * 24 * 7  # 7 jours
+    TOKEN_EXPIRY_MINUTES = 60 * 24 * 7  # 7 jours (pour compatibilité)
     ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 30
+    # Utiliser la valeur de settings.ACCESS_TOKEN_EXPIRE_MINUTES (7 jours) pour cohérence
+    # Cette constante est dépréciée, utiliser app.core.config.settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 jours (aligné avec config.py)
     
 # Statut des exercices
 class ExerciseStatus:

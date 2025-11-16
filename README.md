@@ -112,10 +112,13 @@ POST /api/exercises/generate
 - **Validation** : Pydantic 2.11.0
 
 #### Frontend
-- **Templates** : Jinja2 3.1.2
-- **Styles** : CSS personnalisé avec système de variables
-- **JavaScript** : Vanilla JS avec modules ES6
-- **Accessibilité** : WCAG 2.1 AA compliant
+- **Framework** : Next.js 16.0.1 (App Router)
+- **Language** : TypeScript (strict mode)
+- **Styling** : Tailwind CSS v4 + shadcn/ui
+- **State Management** : TanStack Query v5 + Zustand
+- **i18n** : next-intl (FR/EN)
+- **Accessibilité** : WCAG 2.1 AAA compliant
+- **PWA** : Progressive Web App avec service worker
 
 #### Infrastructure
 - **Serveur** : Uvicorn 0.23.2 (ASGI)

@@ -1,0 +1,851 @@
+{
+  "common": {
+    "appName": "Mathakine",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "export": "Export",
+    "exportPDF": "Export as PDF",
+    "exportExcel": "Export as Excel",
+    "selectLanguage": "Select language"
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "description": "Access your Mathakine account",
+      "username": "Username",
+      "password": "Password",
+      "usernamePlaceholder": "Enter your username",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Sign in",
+      "connecting": "Connecting...",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don't have an account?",
+      "register": "Sign up",
+      "demoMode": "Demo mode",
+      "demoModeTitle": "DEMO MODE",
+      "demoDescription": "Test the application with these credentials:",
+      "userLabel": "User:",
+      "passwordLabel": "Password:",
+      "fillAuto": "Fill automatically",
+      "fillTestCredentials": "Fill test credentials",
+      "demoInfo": "Click to automatically fill test credentials"
+    },
+    "register": {
+      "title": "Sign up",
+      "description": "Create your Mathakine account",
+      "username": "Username",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "fullName": "Full name (optional)",
+      "usernamePlaceholder": "Choose a username",
+      "emailPlaceholder": "your@email.com",
+      "fullNamePlaceholder": "Your full name",
+      "passwordPlaceholder": "Minimum 6 characters",
+      "confirmPasswordPlaceholder": "Repeat the password",
+      "submit": "Sign up",
+      "registering": "Registering...",
+      "hasAccount": "Already have an account?",
+      "login": "Sign in",
+      "successMessage": "Registration successful! You can now sign in.",
+      "validation": {
+        "usernameMinLength": "Username must be at least 3 characters",
+        "emailInvalid": "Invalid email",
+        "passwordMinLength": "Password must be at least 6 characters",
+        "passwordsMismatch": "Passwords do not match"
+      }
+    },
+    "forgotPassword": {
+      "title": "Forgot password",
+      "description": "Reset your password",
+      "email": "Email address",
+      "emailPlaceholder": "your@email.com",
+      "emailHint": "Enter the email address associated with your account",
+      "submit": "Send reset link",
+      "sending": "Sending...",
+      "backToLogin": "Back to login",
+      "validation": {
+        "emailRequired": "Email address is required",
+        "emailInvalid": "Invalid email"
+      },
+      "success": {
+        "title": "Email sent!",
+        "message": "If an account exists with this email address, you will receive a reset link.",
+        "securityTips": "Security tips:",
+        "checkSpam": "Check your spam folder if you don't receive the email",
+        "linkExpires": "The reset link expires after 1 hour",
+        "neverShare": "Never share your password"
+      },
+      "error": "Error sending email"
+    },
+    "logout": "Logout"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "exercises": "Exercises",
+    "challenges": "Logic Challenges",
+    "badges": "Badges",
+    "profile": "Profile",
+    "settings": "Settings",
+    "about": "About"
+  },
+  "exercises": {
+    "title": "Math Exercises",
+    "description": "Choose your exercise type and start progressing",
+    "pageDescription": "Choose an exercise or generate a new one",
+    "generate": "Generate an exercise",
+    "generateAI": "Generate with AI",
+    "solve": "Solve",
+    "filters": {
+      "title": "Filters",
+      "reset": "Reset",
+      "exerciseType": "Exercise type",
+      "difficulty": "Difficulty level",
+      "allTypes": "All types",
+      "allDifficulties": "All difficulties",
+      "allLevels": "All levels",
+      "aiGenerated": "AI Generated",
+      "standard": "Standard"
+    },
+    "search": {
+      "placeholder": "Search by title or question...",
+      "noResults": "No exercises found for \"{query}\"",
+      "clear": "Clear search"
+    },
+    "list": {
+      "loading": "Loading...",
+      "count": "{count} exercise",
+      "countPlural": "{count} exercises",
+      "empty": "No exercises found with these filters.",
+      "emptyHint": "Try modifying the filters or generate a new exercise.",
+      "error": {
+        "title": "Loading error",
+        "description": "Unable to load exercises"
+      },
+      "pagination": {
+        "showing": "Showing {start} to {end} of {total} exercises",
+        "previous": "Previous page",
+        "next": "Next page",
+        "page": "Page {page}"
+      }
+    },
+    "card": {
+      "views": "{count} view",
+      "viewsPlural": "{count} views",
+      "createdOn": "Created on {date}",
+      "aiGenerated": "Generated by artificial intelligence",
+      "difficulty": "Difficulty: {difficulty}",
+      "type": "Type: {type}",
+      "solveExercise": "Solve exercise: {title}",
+      "completed": "Completed"
+    },
+    "generator": {
+      "title": "Generate an exercise",
+      "description": "Create a new mathematical exercise",
+      "exerciseType": "Exercise type",
+      "difficulty": "Difficulty level",
+      "selectType": "Select a type",
+      "selectDifficulty": "Select a level",
+      "generating": "Generating...",
+      "generate": "Generate an exercise"
+    },
+    "aiGenerator": {
+      "title": "Generate with AI",
+      "description": "Create a personalized exercise with artificial intelligence",
+      "exerciseType": "Exercise type",
+      "difficulty": "Difficulty level",
+      "selectType": "Select a type",
+      "selectDifficulty": "Select a difficulty",
+      "customPrompt": "Custom description (optional)",
+      "customPromptPlaceholder": "Ex: A multiplication problem with spaceships and planets...",
+      "generating": "Generating...",
+      "cancel": "Cancel",
+      "cancelGeneration": "Cancel generation",
+      "close": "Close",
+      "exerciseGenerated": "Exercise generated!",
+      "viewExercise": "View exercise",
+      "generate": "Generate with AI",
+      "success": "Exercise generated successfully!",
+      "successDescription": "\"{title}\" has been created.",
+      "error": "Generation error",
+      "errorDescription": "An error occurred during generation.",
+      "connectionError": "Connection error",
+      "connectionErrorDescription": "Generation was interrupted. Check your connection.",
+      "startError": "Error",
+      "startErrorDescription": "Unable to start generation."
+    },
+    "types": {
+      "addition": "Addition",
+      "subtraction": "Subtraction",
+      "multiplication": "Multiplication",
+      "division": "Division",
+      "fractions": "Fractions",
+      "geometry": "Geometry",
+      "text": "Word problems",
+      "mixed": "Mixed",
+      "divers": "Miscellaneous"
+    },
+    "difficulty": {
+      "initie": "Initiate",
+      "padawan": "Padawan",
+      "chevalier": "Knight",
+      "maitre": "Master"
+    },
+    "solver": {
+      "question": "Question",
+      "selectAnswer": "Select your answer",
+      "submit": "Submit",
+      "correct": "Well done! Correct answer",
+      "incorrect": "That's not the right answer. Try again!",
+      "explanation": "Explanation",
+      "nextExercise": "Next exercise",
+      "loading": "Loading exercise...",
+      "back": "Back",
+      "backToExercises": "Back to exercises",
+      "error": {
+        "title": "Loading error",
+        "notFound": "This exercise does not exist or has been deleted.",
+        "generic": "Unable to load the exercise."
+      },
+      "noChoices": "This exercise has no multiple choice. The expected answer is:",
+      "validating": "Validating...",
+      "validateAnswer": "Validate answer",
+      "saving": "Saving...",
+      "validateMyAnswer": "Validate my answer",
+      "correctTitle": "Well done! Correct answer 🎉",
+      "incorrectTitle": "Incorrect answer",
+      "correctAnswerWas": "The correct answer was:",
+      "hint": "See a hint",
+      "newExercise": "New exercise",
+      "answerCorrect": "Correct answer",
+      "answerIncorrect": "Incorrect answer",
+      "option": "Option {index}"
+    },
+    "error": {
+      "invalidId": "Invalid exercise ID",
+      "invalidIdMessage": "The identifier \"{id}\" is not a valid number."
+    }
+  },
+  "challenges": {
+    "title": "Logic Challenges",
+    "description": "Test your logic with mathematical challenges",
+    "pageDescription": "Test your logic and reasoning with our mathematical logic challenges",
+    "solve": "Solve",
+    "filters": {
+      "title": "Filters",
+      "reset": "Reset",
+      "challengeType": "Challenge type",
+      "ageGroup": "Age group",
+      "allTypes": "All types",
+      "allGroups": "All groups"
+    },
+    "search": {
+      "label": "Search",
+      "placeholder": "Search for a challenge...",
+      "noResults": "No challenges found for \"{query}\""
+    },
+    "aiGenerator": {
+      "title": "AI Generation",
+      "description": "Create a personalized math logic challenge with AI",
+      "challengeType": "Challenge type",
+      "ageGroup": "Age group",
+      "selectType": "Select a type",
+      "selectAgeGroup": "Select a group",
+      "customPrompt": "Custom prompt (optional)",
+      "customPromptPlaceholder": "Describe the type of challenge you want...",
+      "generate": "Generate",
+      "generating": "Generating...",
+      "success": "Challenge generated successfully!",
+      "successDescription": "Challenge \"{title}\" has been created",
+      "error": "Generation error",
+      "errorDescription": "An error occurred during generation",
+      "connectionError": "Connection error",
+      "connectionErrorDescription": "Unable to connect to server",
+      "startError": "Start error",
+      "startErrorDescription": "Unable to start generation",
+      "cancel": "Cancel",
+      "viewChallenge": "View challenge"
+    },
+    "list": {
+      "loading": "Loading...",
+      "count": "{count} challenge",
+      "countPlural": "{count} challenges",
+      "empty": "No challenges found with these filters.",
+      "emptyHint": "Try modifying the filters to see more challenges."
+    },
+    "card": {
+      "completed": "Completed",
+      "aiGenerated": "Generated by artificial intelligence"
+    },
+    "types": {
+      "visual": "Visual",
+      "abstract": "Abstract",
+      "pattern": "Pattern",
+      "word": "Words",
+      "sequence": "Sequence"
+    },
+    "ageGroups": {
+      "9-12": "9-12 years",
+      "10-12": "10-12 years",
+      "12-13": "12-13 years",
+      "13-15": "13-15 years",
+      "13+": "13+ years",
+      "all": "All ages"
+    },
+    "solver": {
+      "description": "Description",
+      "hints": "Hints",
+      "hint": "Hint",
+      "useHint": "Use a hint",
+      "hintsUsed": "Hints used",
+      "submit": "Submit",
+      "solution": "Solution",
+      "explanation": "Explanation",
+      "correct": "Well done! You found the correct answer",
+      "incorrect": "That's not the right answer. Try again!",
+      "estimatedTime": "Estimated time",
+      "minutes": "minutes",
+      "loading": "Loading challenge...",
+      "back": "Back to challenges",
+      "error": {
+        "title": "Loading error",
+        "notFound": "This challenge does not exist or has been deleted.",
+        "generic": "Unable to load the challenge."
+      },
+      "notFound": {
+        "title": "Challenge not found",
+        "message": "Challenge #{id} does not exist or is no longer available."
+      },
+      "noTitle": "Untitled challenge",
+      "noDescription": "No description available for this challenge.",
+      "challengeImage": "Challenge illustration",
+      "challengeNumber": "Challenge #{id}",
+      "yourAnswer": "Your answer",
+      "currentOrder": "Current order:",
+      "reorderHint": "Reorder the elements above to modify the order. The answer will be validated automatically.",
+      "orderAutoGenerated": "The order will be generated automatically...",
+      "puzzleAnswerLabel": "Puzzle answer (auto-generated)",
+      "yourAnswerLabel": "Your answer:",
+      "modifyInVisualization": "Modify your answer directly in the visualization above.",
+      "answerFromVisualization": "Answer generated from visualization...",
+      "sequenceAnswerLabel": "Sequence answer (generated from visualization)",
+      "patternAnswerLabel": "Pattern answer (generated from visualization)",
+      "enterAnswer": "Enter your answer...",
+      "answerFieldLabel": "Answer field for the logic challenge",
+      "validating": "Validating...",
+      "validateAnswer": "Validate challenge answer",
+      "checking": "Checking...",
+      "validate": "Validate",
+      "requestHint": "Request hint {current} of {total}",
+      "requestHintGeneric": "Request a hint",
+      "hintButton": "Hint ({current}/{total})",
+      "hintButtonGeneric": "Hint",
+      "correctTitle": "Well done! Correct answer!",
+      "incorrectTitle": "Incorrect answer",
+      "explanationLabel": "Explanation:",
+      "tryAgain": "Try again! You can use a hint if needed.",
+      "seeNextHint": "See next hint",
+      "retryLabel": "Retry challenge",
+      "retry": "Retry",
+      "nextChallenge": "Next challenge",
+      "option": "Option {index}"
+    },
+    "error": {
+      "invalidId": "Invalid challenge ID",
+      "invalidIdMessage": "The identifier \"{id}\" is not a valid number."
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "Visualize your progress and performance in your mathematical learning",
+    "welcome": "Welcome",
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "error": {
+      "title": "Error loading statistics",
+      "retry": "Retry"
+    },
+    "empty": {
+      "message": "No statistics available. Start solving exercises!"
+    },
+    "lastUpdate": "Last update: {time}",
+    "stats": {
+      "totalExercises": "Total exercises",
+      "totalAttempts": "Total attempts",
+      "successRate": "Success rate",
+      "currentLevel": "Current level",
+      "experiencePoints": "Experience points",
+      "jediRank": "Jedi Rank",
+      "exercisesSolved": "Exercises solved",
+      "experiencePointsLabel": "Experience points"
+    },
+    "progress": {
+      "title": "Progress",
+      "byType": "By exercise type",
+      "daily": "Daily exercises"
+    },
+    "performanceByType": {
+      "title": "Performance by type",
+      "completed": "completed",
+      "empty": "No performance data available",
+      "excellent": "Excellent!"
+    },
+    "recommendations": {
+      "title": "Recommendations",
+      "generate": "Generate recommendations",
+      "generating": "Generating...",
+      "noRecommendations": "No recommendations at the moment",
+      "loading": "Loading recommendations...",
+      "empty": "No recommendations at the moment.",
+      "emptyHint": "Keep training!",
+      "trainNow": "Train now",
+      "refresh": "Refresh",
+      "priority": "Priority"
+    },
+    "recentActivity": {
+      "title": "Recent activity",
+      "noActivity": "No recent activity",
+      "empty": "No recent activity.",
+      "emptyHint": "Start solving exercises to see your progress!"
+    },
+    "levelIndicator": {
+      "title": "Current level",
+      "level": "Level",
+      "xp": "XP",
+      "nextLevel": "Next level",
+      "xpForNextLevel": "XP for level {level}"
+    },
+    "export": {
+      "pdf": "Export PDF",
+      "excel": "Export Excel",
+      "pdfLabel": "Export to PDF",
+      "excelLabel": "Export to Excel",
+      "noData": "No data available",
+      "noDataDescription": "Please wait for statistics to load.",
+      "pdfSuccess": "PDF export successful!",
+      "pdfSuccessDescription": "Your report has been downloaded.",
+      "excelSuccess": "Excel export successful!",
+      "excelSuccessDescription": "Your Excel file has been downloaded.",
+      "pdfError": "PDF export error",
+      "pdfErrorDescription": "An error occurred while generating the PDF.",
+      "excelError": "Excel export error",
+      "excelErrorDescription": "An error occurred while generating the Excel file."
+    },
+    "charts": {
+      "progressByType": {
+        "title": "Progress by exercise type",
+        "ariaLabel": "Progress chart showing the number of exercises solved by type",
+        "loading": "Loading chart..."
+      },
+      "dailyExercises": {
+        "title": "Daily exercises (last 30 days)",
+        "ariaLabel": "Bar chart showing the number of exercises solved each day over the last 30 days",
+        "loading": "Loading chart..."
+      }
+    },
+    "timeRange": {
+      "7days": "Last 7 days",
+      "30days": "Last 30 days",
+      "90days": "Last 3 months",
+      "all": "All"
+    }
+  },
+  "badges": {
+    "title": "Badges and Rewards",
+    "description": "Collect badges by progressing in your learning",
+    "loading": "Loading badges...",
+    "earned": "Earned",
+    "locked": "Locked",
+    "checkBadges": "Check badges",
+    "checking": "Checking...",
+    "collection": {
+      "title": "Badge Collection",
+      "count": "({earned}/{total})"
+    },
+    "performance": {
+      "title": "Performance",
+      "totalAttempts": "Total attempts",
+      "correctAttempts": "Correct attempts",
+      "successRate": "Success rate",
+      "avgTime": "Average time",
+      "byCategory": "Badges by category"
+    },
+    "jediRanks": {
+      "youngling": "Youngling",
+      "padawan": "Padawan",
+      "knight": "Jedi Knight",
+      "master": "Jedi Master",
+      "grand_master": "Grand Master"
+    },
+    "stats": {
+      "totalPoints": "Force Points",
+      "currentLevel": "Level",
+      "jediRank": "Jedi Rank",
+      "badgesEarned": "Badges Earned"
+    },
+    "categories": {
+      "progression": "Progression",
+      "mastery": "Mastery",
+      "special": "Special",
+      "performance": "Performance",
+      "regularity": "Regularity",
+      "discovery": "Discovery"
+    },
+    "difficulties": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold",
+      "legendary": "Legendary"
+    }
+  },
+  "accessibility": {
+    "toolbar": {
+      "highContrast": "High contrast mode (Alt+C)",
+      "largeText": "Larger text (Alt+T)",
+      "reducedMotion": "Reduce animations (Alt+M)",
+      "dyslexiaMode": "Dyslexia mode (Alt+D)",
+      "focusMode": "Focus mode TSA/ADHD (Alt+F)"
+    }
+  },
+  "theme": {
+    "spatial": "Spatial",
+    "minimalist": "Minimalist",
+    "ocean": "Ocean",
+    "neutral": "Neutral",
+    "selectTheme": "Choose a theme"
+  },
+  "errors": {
+    "404": {
+      "title": "Page not found",
+      "message": "The page you are looking for does not exist",
+      "backHome": "Back to home"
+    },
+    "500": {
+      "title": "Server error",
+      "message": "An error occurred",
+      "retry": "Retry"
+    },
+    "network": "Connection error",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Access forbidden",
+    "notFound": "Resource not found",
+    "generic": "An error occurred"
+  },
+  "toasts": {
+    "auth": {
+      "loginSuccess": "Login successful!",
+      "loginError": "Login error",
+      "registerSuccess": "Registration successful!",
+      "registerError": "Registration error",
+      "logoutSuccess": "Logout successful",
+      "forgotPasswordSuccess": "Email sent!",
+      "forgotPasswordError": "Error sending email"
+    },
+    "exercises": {
+      "generateSuccess": "Exercise generated!",
+      "generateError": "Generation error",
+      "aiGenerateSuccess": "Exercise generated successfully!",
+      "aiGenerateError": "Generation error",
+      "connectionError": "Connection error"
+    },
+    "recommendations": {
+      "updatedSuccess": "Recommendations updated!",
+      "updateError": "Error",
+      "updateErrorDescription": "Unable to update recommendations."
+    },
+    "badges": {
+      "checkError": "Error",
+      "checkErrorDescription": "Unable to check badges."
+    },
+    "challenges": {
+      "loadError": "Error",
+      "loadErrorDescription": "Unable to load challenges.",
+      "submitError": "Error",
+      "submitErrorDescription": "Unable to submit answer."
+    },
+    "dashboard": {
+      "statsUpdated": "Statistics updated!"
+    },
+    "profile": {
+      "updateSuccess": "Profile updated!",
+      "updateSuccessDescription": "Your information has been updated successfully.",
+      "updateError": "Update error",
+      "unauthorized": "You are not authorized to perform this action.",
+      "passwordChangeSuccess": "Password changed!",
+      "passwordChangeSuccessDescription": "Your password has been changed successfully.",
+      "passwordChangeError": "Error changing password",
+      "passwordIncorrect": "Current password is incorrect."
+    },
+    "export": {
+      "noData": "No data available",
+      "noDataDescription": "Cannot export without data.",
+      "pdfSuccess": "PDF export successful!",
+      "pdfError": "Error exporting PDF",
+      "excelSuccess": "Excel export successful!",
+      "excelError": "Error exporting Excel"
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "description": "Manage your personal information and preferences",
+    "personalInfo": {
+      "title": "Personal Information",
+      "description": "Your account information",
+      "username": "Username",
+      "usernameDescription": "Your username cannot be changed",
+      "email": "Email address",
+      "emailPlaceholder": "your@email.com",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Your full name",
+      "role": "Role",
+      "memberSince": "Member since",
+      "lastUpdate": "Last update"
+    },
+    "learningPreferences": {
+      "title": "Learning Preferences",
+      "description": "Customize your learning experience",
+      "gradeLevel": "Grade level",
+      "gradeLevelPlaceholder": "Select your level",
+      "learningStyle": "Learning style",
+      "learningStylePlaceholder": "Select your style",
+      "preferredDifficulty": "Preferred difficulty",
+      "preferredDifficultyPlaceholder": "Select your difficulty"
+    },
+    "security": {
+      "title": "Security",
+      "description": "Manage your account security",
+      "changePassword": "Change password",
+      "currentPassword": "Current password",
+      "currentPasswordPlaceholder": "Enter your current password",
+      "newPassword": "New password",
+      "newPasswordPlaceholder": "Enter your new password",
+      "confirmPassword": "Confirm new password",
+      "confirmPasswordPlaceholder": "Repeat your new password",
+      "passwordMismatch": "Passwords do not match",
+      "passwordMinLength": "Password must be at least 8 characters"
+    },
+    "accessibility": {
+      "title": "Accessibility",
+      "description": "Customize interface accessibility",
+      "theme": "Theme",
+      "themeDescription": "Choose your preferred theme from the 4 available themes",
+      "highContrast": "High contrast",
+      "highContrastDescription": "Improves contrast for better readability",
+      "largeText": "Large text",
+      "largeTextDescription": "Increases text size",
+      "reduceMotion": "Reduce animations",
+      "reduceMotionDescription": "Reduces animations for better accessibility"
+    },
+    "statistics": {
+      "title": "Statistics",
+      "description": "Your progress and performance",
+      "overallPerformance": "Overall Performance",
+      "totalAttempts": "Total attempts",
+      "successRate": "Success rate"
+    },
+    "badges": {
+      "title": "Earned Badges",
+      "description": "Your rewards and achievements",
+      "viewAll": "View all badges"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "description": "Your latest activities"
+    },
+    "actions": {
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "changePassword": "Change password",
+      "changingPassword": "Changing...",
+      "edit": "Edit",
+      "viewDashboard": "View dashboard"
+    },
+    "validation": {
+      "emailRequired": "Email address is required",
+      "emailInvalid": "Invalid email",
+      "passwordRequired": "Password is required",
+      "currentPasswordRequired": "Current password is required",
+      "newPasswordRequired": "New password is required",
+      "confirmPasswordRequired": "Password confirmation is required"
+    },
+    "error": {
+      "title": "Profile unavailable",
+      "description": "Unable to load your profile information."
+    },
+    "learningStyles": {
+      "visuel": "Visual",
+      "auditif": "Auditory",
+      "kinesthésique": "Kinesthetic",
+      "lecture": "Reading"
+    },
+    "difficulties": {
+      "initie": "Beginner",
+      "padawan": "Padawan",
+      "chevalier": "Knight",
+      "maitre": "Master"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Configure your account and preferences",
+    "language": {
+      "title": "Language and region",
+      "description": "Customize language and timezone",
+      "language": "Language",
+      "languageDescription": "Choose your preferred language",
+      "timezone": "Timezone",
+      "timezoneDescription": "Select your timezone"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Manage your notification preferences",
+      "achievements": "Badges and achievements",
+      "achievementsDescription": "Receive notifications for new badges",
+      "progress": "Progress",
+      "progressDescription": "Receive progress notifications",
+      "recommendations": "Recommendations",
+      "recommendationsDescription": "Receive exercise recommendations",
+      "news": "News",
+      "newsDescription": "Receive news and updates"
+    },
+    "privacy": {
+      "title": "Privacy",
+      "description": "Control your profile visibility",
+      "publicProfile": "Public profile",
+      "publicProfileDescription": "Make your profile visible to other users",
+      "friendRequests": "Friend requests",
+      "friendRequestsDescription": "Allow friend requests",
+      "leaderboards": "Leaderboards",
+      "leaderboardsDescription": "Show my name in leaderboards",
+      "dataRetention": "Data retention",
+      "dataRetentionDescription": "Allow retention of my data to improve the service",
+      "marketing": "Marketing",
+      "marketingDescription": "Receive marketing communications (optional)"
+    },
+    "sessions": {
+      "title": "Active sessions",
+      "description": "Manage your active sessions on different devices",
+      "currentSession": "Current session",
+      "device": "Device",
+      "location": "Location",
+      "lastActivity": "Last activity",
+      "revoke": "Revoke",
+      "revokeAll": "Revoke all other sessions",
+      "noSessions": "No other active sessions"
+    },
+    "data": {
+      "title": "Data and account",
+      "description": "Manage your personal data",
+      "export": "Export my data",
+      "exportDescription": "Download a copy of all your personal data",
+      "exporting": "Exporting...",
+      "delete": "Delete my account",
+      "deleteDescription": "Permanently delete your account and all your data",
+      "deleteWarning": "This action is irreversible. All your data will be permanently deleted.",
+      "deleteConfirm": "Confirm deletion",
+      "deleting": "Deleting..."
+    },
+    "actions": {
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "export": "Export",
+      "delete": "Delete"
+    },
+    "toasts": {
+      "updateSuccess": "Settings updated!",
+      "updateSuccessDescription": "Your settings have been saved successfully.",
+      "updateError": "Update error",
+      "exportSuccess": "Export successful!",
+      "exportSuccessDescription": "Your data has been exported successfully.",
+      "exportError": "Export error",
+      "deleteSuccess": "Account deleted",
+      "deleteSuccessDescription": "Your account has been deleted successfully.",
+      "deleteError": "Delete error",
+      "sessionRevoked": "Session revoked",
+      "sessionRevokedDescription": "The session has been revoked successfully."
+    }
+  },
+  "home": {
+    "hero": {
+      "title": "Mathakine",
+      "subtitle": "Adaptive Math Learning Platform",
+      "ctaStart": "Start for Free",
+      "ctaLogin": "Log In",
+      "ctaDashboard": "Go to Dashboard",
+      "ctaExercises": "View Exercises"
+    },
+    "howItWorks": {
+      "title": "How It Works?",
+      "description": "Three simple steps to start your learning journey",
+      "step1": {
+        "number": "1",
+        "title": "Create Your Account",
+        "description": "Sign up for free in a few clicks"
+      },
+      "step2": {
+        "number": "2",
+        "title": "Choose Your Exercises",
+        "description": "Select the type and level that suits you"
+      },
+      "step3": {
+        "number": "3",
+        "title": "Progress at Your Own Pace",
+        "description": "Track your stats and get personalized recommendations"
+      }
+    },
+    "features": {
+      "title": "Features",
+      "description": "Everything you need to progress in mathematics",
+      "feature1": {
+        "title": "Adaptive Exercises",
+        "description": "Personalized math exercises based on your level and needs"
+      },
+      "feature2": {
+        "title": "Logic Challenges",
+        "description": "Develop your reasoning with progressive and stimulating challenges"
+      },
+      "feature3": {
+        "title": "Gamification",
+        "description": "Earn badges and progress in your learning in a fun way"
+      },
+      "feature4": {
+        "title": "Accessibility",
+        "description": "Designed for everyone, with tools adapted to specific needs"
+      }
+    },
+    "chatbot": {
+      "title": "Math Assistant",
+      "description": "Ask your math or logic questions, I'm here to help!",
+      "initialMessage": "Hello! I'm Mathakine's math assistant. 🧮\n\nHere's a little question to get started: If you have 3 apples and give away 1, how many do you have left?",
+      "inputPlaceholder": "Ask your question...",
+      "inputLabel": "Message to send",
+      "sendButton": "Send message",
+      "info": "Ask your math or logic questions!",
+      "expandLabel": "Expand chat",
+      "collapseLabel": "Collapse chat"
+    },
+    "cta": {
+      "title": "Ready to start?",
+      "description": "Join Mathakine and discover a new way to learn mathematics",
+      "button": "Create Free Account"
+    }
+  }
+}
+

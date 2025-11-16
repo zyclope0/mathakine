@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from typing import List
 import os
 from dotenv import load_dotenv
@@ -106,10 +106,38 @@ class Settings:
     ENABLE_GZIP: bool = os.getenv("ENABLE_GZIP", "true").lower() == "true"
     GZIP_MINIMUM_SIZE: int = int(os.getenv("GZIP_MINIMUM_SIZE", "1024"))  # 1KB
     
+    # Configuration OpenAI pour génération IA
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")  # Modèle par défaut
+    
     class Config:
         case_sensitive = True
 
 settings = Settings()
+
+# Validation post-initialisation pour la sécurité en production
+def validate_production_settings():
+    """Valide les paramètres de sécurité en production après initialisation"""
+    is_production = (
+        os.getenv("NODE_ENV") == "production" or 
+        os.getenv("ENVIRONMENT") == "production" or
+        os.getenv("MATH_TRAINER_PROFILE") == "prod"
+    )
+    
+    if is_production:
+        # Forcer LOG_LEVEL à INFO minimum en production
+        if settings.LOG_LEVEL.upper() == "DEBUG":
+            logger.warning("LOG_LEVEL=DEBUG détecté en production - Forcé à INFO pour sécurité")
+            settings.LOG_LEVEL = "INFO"
+        
+        # Vérifier que SECRET_KEY n'est pas vide
+        if not settings.SECRET_KEY or settings.SECRET_KEY == "":
+            logger.error("SECRET_KEY non défini en production - CRITIQUE")
+            # Ne pas lever d'exception ici pour permettre le démarrage avec génération auto
+            # mais logger l'erreur pour alerter l'administrateur
+
+# Valider les paramètres au chargement du module
+validate_production_settings()
 
 # Configuration pour les tests
 if settings.TESTING:

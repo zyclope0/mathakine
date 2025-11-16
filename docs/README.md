@@ -27,8 +27,12 @@ Bienvenue dans la documentation de **Mathakine**, plateforme éducative mathéma
 - [Gestion d'erreurs](api/api.md#codes-derreur) - Codes d'erreur standardisés
 
 ### 🎨 **Interface Utilisateur**  
-- [Guide UI/UX Complet](ui-ux/ui-ux.md) - Interface Star Wars et accessibilité
-- [Composants](ui-ux/ui-ux.md#composants-ui-réutilisables) - Boutons, cartes, modales
+- [Frontend Next.js](../frontend/README.md) - Documentation complète du frontend moderne
+- [Guide Composants](../frontend/docs/COMPONENTS_GUIDE.md) - Composants React réutilisables
+- [Guide Accessibilité](../frontend/docs/ACCESSIBILITY_GUIDE.md) - Standards WCAG AAA
+- [Audits Consolidés](AUDITS_CONSOLIDATED.md) - Tous les audits de qualité consolidés
+- [Corrections Historiques](CORRECTIONS_HISTORIQUES.md) - Toutes les corrections appliquées
+- [Guide UI/UX Complet](ui-ux/ui-ux.md) - Interface Star Wars et accessibilité (legacy)
 - [Thème Star Wars](ui-ux/ui-ux.md#thème-star-wars-immersif) - Couleurs, animations, effets
 
 ### ✨ **Fonctionnalités**
@@ -93,7 +97,7 @@ Bienvenue dans la documentation de **Mathakine**, plateforme éducative mathéma
 ### **Architecture Technique**
 - **Backend** : FastAPI 0.115.12 + Starlette 0.31.1
 - **Base de données** : PostgreSQL (prod) / SQLite (dev) avec Alembic
-- **Frontend** : Templates Jinja2 + CSS/JS modulaire
+- **Frontend** : Next.js 16.0.1 (App Router) + TypeScript + Tailwind CSS
 - **Tests** : 52%+ couverture avec classification intelligente
 
 ### **Documentation**

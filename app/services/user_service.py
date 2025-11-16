@@ -4,7 +4,7 @@ Implémente les opérations métier liées aux utilisateurs et utilise le transa
 """
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, text
 from loguru import logger
 
 from app.db.adapter import DatabaseAdapter
@@ -194,13 +194,14 @@ class UserService:
         return DatabaseAdapter.update(db, user, {"is_active": False})
     
     @staticmethod
-    def get_user_stats(db: Session, user_id: int) -> Dict[str, Any]:
+    def get_user_stats(db: Session, user_id: int, time_range: str = "30") -> Dict[str, Any]:
         """
         Récupère les statistiques d'un utilisateur.
         
         Args:
             db: Session de base de données
             user_id: ID de l'utilisateur
+            time_range: Période de temps ("7", "30", "90", "all")
             
         Returns:
             Dictionnaire contenant les statistiques de l'utilisateur
@@ -211,8 +212,19 @@ class UserService:
             return {}
         
         try:
-            # Statistiques de base
+            from datetime import datetime, timedelta, timezone
+            
+            # Calculer la date de début selon time_range
+            date_filter = None
+            if time_range != "all":
+                days = int(time_range)
+                date_filter = datetime.now(timezone.utc) - timedelta(days=days)
+            
+            # Statistiques de base avec filtre temporel
             attempts_query = db.query(Attempt).filter(Attempt.user_id == user_id)
+            if date_filter:
+                attempts_query = attempts_query.filter(Attempt.created_at >= date_filter)
+            
             total_attempts = attempts_query.count()
             correct_attempts = attempts_query.filter(Attempt.is_correct == True).count()
             
@@ -222,26 +234,50 @@ class UserService:
             # Statistiques par type d'exercice
             exercise_types_stats = {}
             
-            # Récupérer tous les types d'exercices disponibles
-            exercise_types_query = db.query(Exercise.exercise_type).distinct()
-            exercise_types = [et[0] for et in exercise_types_query.all()]
+            # Récupérer les statistiques directement avec SQL brut pour éviter les problèmes d'enum
+            # et gérer les types en MAJUSCULES/minuscules mélangés
+            # Ajouter le filtre temporel dans la requête SQL
+            if date_filter:
+                stats_query = text("""
+                    SELECT 
+                        LOWER(e.exercise_type::text) as exercise_type_normalized,
+                        COUNT(*) as total,
+                        SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) as correct
+                    FROM attempts a
+                    JOIN exercises e ON e.id = a.exercise_id
+                    WHERE a.user_id = :user_id
+                      AND a.created_at >= :date_filter
+                    GROUP BY LOWER(e.exercise_type::text)
+                    ORDER BY total DESC
+                """)
+                result = db.execute(stats_query, {
+                    "user_id": user_id,
+                    "date_filter": date_filter
+                })
+            else:
+                stats_query = text("""
+                    SELECT 
+                        LOWER(e.exercise_type::text) as exercise_type_normalized,
+                        COUNT(*) as total,
+                        SUM(CASE WHEN a.is_correct THEN 1 ELSE 0 END) as correct
+                    FROM attempts a
+                    JOIN exercises e ON e.id = a.exercise_id
+                    WHERE a.user_id = :user_id
+                    GROUP BY LOWER(e.exercise_type::text)
+                    ORDER BY total DESC
+                """)
+                result = db.execute(stats_query, {"user_id": user_id})
             
-            # Pour chaque type, calculer les statistiques
-            for ex_type in exercise_types:
-                # Récupérer les tentatives de ce type
-                type_attempts = (
-                    db.query(Attempt)
-                    .join(Exercise, Exercise.id == Attempt.exercise_id)
-                    .filter(Attempt.user_id == user_id)
-                    .filter(Exercise.exercise_type == ex_type)
-                    .all()
-                )
-                
-                total_type = len(type_attempts)
-                correct_type = sum(1 for a in type_attempts if a.is_correct)
+            stats_rows = result.fetchall()
+            
+            # Construire le dictionnaire de statistiques par type normalisé
+            for row in stats_rows:
+                ex_type_normalized = row[0]
+                total_type = row[1]
+                correct_type = row[2]
                 success_rate_type = round((correct_type / total_type) * 100) if total_type > 0 else 0
                 
-                exercise_types_stats[ex_type] = {
+                exercise_types_stats[ex_type_normalized] = {
                     "total": total_type,
                     "correct": correct_type,
                     "success_rate": success_rate_type

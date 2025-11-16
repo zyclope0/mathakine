@@ -4,9 +4,13 @@ Routes des vues pour Mathakine.
 Ce module contient les fonctions de rendu pour les pages web.
 """
 from starlette.requests import Request
-from starlette.responses import RedirectResponse, JSONResponse
+from starlette.responses import RedirectResponse, JSONResponse, Response
 import traceback
 import json
+import os
+from datetime import datetime, timezone
+from fastapi import HTTPException
+from loguru import logger
 
 from app.core.constants import ExerciseTypes, DifficultyLevels, DISPLAY_NAMES, Messages
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
@@ -25,7 +29,18 @@ async def get_current_user(request: Request):
         from app.services.auth_service import get_user_by_username
         
         # Décoder le token pour obtenir le nom d'utilisateur
-        payload = decode_token(access_token)
+        try:
+            payload = decode_token(access_token)
+        except (HTTPException, Exception) as decode_error:
+            # Token invalide ou expiré, retourner None silencieusement
+            # Ne pas logger comme erreur car c'est normal si l'utilisateur n'est pas connecté
+            error_msg = str(decode_error)
+            if "Signature verification failed" in error_msg or "Token" in type(decode_error).__name__:
+                logger.debug(f"Token invalide ou expiré: {error_msg}")
+            else:
+                logger.debug(f"Erreur lors du décodage du token: {error_msg}")
+            return None
+        
         username = payload.get("sub")
         
         if not username:
@@ -46,8 +61,14 @@ async def get_current_user(request: Request):
             EnhancedServerAdapter.close_db_session(db)
             
     except Exception as e:
-        print(f"Erreur lors de la récupération de l'utilisateur: {str(e)}")
-        traceback.print_exc()
+        error_msg = str(e)
+        error_type = type(e).__name__
+        # Ne pas logger les erreurs de token invalide comme des erreurs critiques
+        if "Signature verification failed" in error_msg or "Token" in error_type:
+            logger.debug(f"Token invalide ou expiré: {error_msg}")
+        else:
+            logger.error(f"Erreur lors de la récupération de l'utilisateur: {error_type}: {error_msg}")
+            logger.debug(traceback.format_exc())
         
     return None
 
@@ -104,23 +125,56 @@ async def api_login(request: Request):
                 # Générer les tokens d'accès et de rafraîchissement
                 tokens = create_user_token(user)
                 
-                # Créer une réponse de redirection
-                response = RedirectResponse(url="/", status_code=302)
+                # Préparer les données utilisateur pour la réponse JSON
+                # Convertir le rôle en string si c'est un enum
+                role_value = user.role if isinstance(user.role, str) else user.role.value.lower()
+                
+                user_data = {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "full_name": user.full_name,
+                    "role": role_value,
+                    "is_active": user.is_active,
+                    "total_points": getattr(user, 'total_points', 0) or 0,
+                    "current_level": getattr(user, 'current_level', 1) or 1,
+                    "jedi_rank": getattr(user, 'jedi_rank', 'youngling') or 'youngling',
+                    "created_at": user.created_at.isoformat() if user.created_at else None,
+                    "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+                }
+                
+                # Importer settings pour la durée de vie du token
+                from app.core.config import settings
+                access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60  # Convertir minutes en secondes
+                
+                # Créer une réponse JSON avec les données utilisateur et tokens
+                response_data = {
+                    "access_token": tokens["access_token"],
+                    "refresh_token": tokens["refresh_token"],
+                    "token_type": tokens.get("token_type", "bearer"),
+                    "expires_in": access_token_max_age,  # Aligné avec ACCESS_TOKEN_EXPIRE_MINUTES
+                    "user": user_data
+                }
+                
+                response = JSONResponse(response_data, status_code=200)
+                
+                # Déterminer si on est en production (pour secure cookie)
+                is_production = os.getenv("MATH_TRAINER_PROFILE", "dev") == "prod"
                 
                 # Définir les cookies avec les tokens
                 response.set_cookie(
                     key="access_token",
                     value=tokens["access_token"],
                     httponly=True,
-                    secure=True,
+                    secure=is_production,  # Secure uniquement en production (HTTPS requis)
                     samesite="lax",
-                    max_age=3600  # 1 heure
+                    max_age=access_token_max_age  # Aligné avec ACCESS_TOKEN_EXPIRE_MINUTES
                 )
                 response.set_cookie(
                     key="refresh_token",
                     value=tokens["refresh_token"],
                     httponly=True,
-                    secure=True,
+                    secure=is_production,  # Secure uniquement en production
                     samesite="lax",
                     max_age=86400 * 30  # 30 jours
                 )
@@ -134,11 +188,365 @@ async def api_login(request: Request):
         finally:
             EnhancedServerAdapter.close_db_session(db)
             
-    except Exception as e:
-        print(f"Erreur lors de l'authentification API: {str(e)}")
-        traceback.print_exc()
+    except json.JSONDecodeError as e:
+        logger.error(f"Erreur de parsing JSON lors de l'authentification: {str(e)}")
         return JSONResponse(
-            {"detail": "Erreur lors de l'authentification"},
+            {"detail": "Format de requête invalide"},
+            status_code=400
+        )
+    except Exception as e:
+        error_type = type(e).__name__
+        error_msg = str(e)
+        logger.error(f"Erreur lors de l'authentification API: {error_type}: {error_msg}")
+        logger.debug(traceback.format_exc())
+        # Retourner un message d'erreur plus informatif en développement
+        detail_msg = "Erreur lors de l'authentification"
+        if os.getenv("MATH_TRAINER_PROFILE", "dev") == "dev":
+            detail_msg = f"Erreur lors de l'authentification: {error_type}: {error_msg}"
+        return JSONResponse(
+            {"detail": detail_msg},
+            status_code=500
+        )
+
+# API pour récupérer l'utilisateur actuel
+async def api_get_user_me(request: Request):
+    """API pour récupérer les informations de l'utilisateur actuellement connecté"""
+    try:
+        current_user = await get_current_user(request)
+        
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse(
+                {"detail": "Non authentifié"},
+                status_code=401
+            )
+        
+        # Récupérer l'utilisateur complet depuis la base de données
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.services.auth_service import get_user_by_username
+            user = get_user_by_username(db, current_user["username"])
+            
+            if not user:
+                return JSONResponse(
+                    {"detail": "Utilisateur non trouvé"},
+                    status_code=404
+                )
+            
+            # Retourner les informations de l'utilisateur au format JSON
+            return JSONResponse({
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": user.role.value if hasattr(user.role, 'value') else str(user.role),
+                "is_active": user.is_active,
+                "created_at": user.created_at.isoformat() if user.created_at else None,
+                "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+                "grade_level": user.grade_level,
+                "learning_style": user.learning_style,
+                "preferred_difficulty": user.preferred_difficulty,
+                "preferred_theme": user.preferred_theme,
+                "accessibility_settings": user.accessibility_settings,
+                "language_preference": getattr(user, 'language_preference', None),
+                "timezone": getattr(user, 'timezone', None),
+                "is_public_profile": getattr(user, 'is_public_profile', None),
+                "allow_friend_requests": getattr(user, 'allow_friend_requests', None),
+                "show_in_leaderboards": getattr(user, 'show_in_leaderboards', None),
+                "data_retention_consent": getattr(user, 'data_retention_consent', None),
+                "marketing_consent": getattr(user, 'marketing_consent', None),
+            })
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération de l'utilisateur: {str(e)}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse(
+            {"detail": "Erreur lors de la récupération de l'utilisateur"},
+            status_code=500
+        )
+
+# API pour mettre à jour le profil utilisateur
+async def api_update_user_me(request: Request):
+    """API pour mettre à jour les informations de l'utilisateur actuellement connecté"""
+    try:
+        current_user = await get_current_user(request)
+        
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse(
+                {"detail": "Non authentifié"},
+                status_code=401
+            )
+        
+        # Lire les données JSON de la requête
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse(
+                {"detail": "Données JSON invalides"},
+                status_code=400
+            )
+        
+        # Valider les données avec le schéma UserUpdate
+        from app.schemas.user import UserUpdate
+        try:
+            user_update = UserUpdate(**body)
+        except Exception as e:
+            logger.debug(f"Erreur de validation UserUpdate: {str(e)}")
+            return JSONResponse(
+                {"detail": f"Données invalides: {str(e)}"},
+                status_code=400
+            )
+        
+        # Récupérer l'utilisateur depuis la base de données
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.services.auth_service import get_user_by_username, update_user
+            user = get_user_by_username(db, current_user["username"])
+            
+            if not user:
+                return JSONResponse(
+                    {"detail": "Utilisateur non trouvé"},
+                    status_code=404
+                )
+            
+            # Mettre à jour l'utilisateur
+            updated_user = update_user(db, user, user_update)
+            
+            # Gérer notification_preferences (stocké dans accessibility_settings pour MVP)
+            if 'notification_preferences' in body:
+                if not updated_user.accessibility_settings:
+                    updated_user.accessibility_settings = {}
+                updated_user.accessibility_settings['notification_preferences'] = body['notification_preferences']
+                db.add(updated_user)
+                db.commit()
+                db.refresh(updated_user)
+            
+            # Retourner les informations mises à jour
+            return JSONResponse({
+                "id": updated_user.id,
+                "username": updated_user.username,
+                "email": updated_user.email,
+                "full_name": updated_user.full_name,
+                "role": updated_user.role.value if hasattr(updated_user.role, 'value') else str(updated_user.role),
+                "is_active": updated_user.is_active,
+                "created_at": updated_user.created_at.isoformat() if updated_user.created_at else None,
+                "updated_at": updated_user.updated_at.isoformat() if updated_user.updated_at else None,
+                "grade_level": updated_user.grade_level,
+                "learning_style": updated_user.learning_style,
+                "preferred_difficulty": updated_user.preferred_difficulty,
+                "preferred_theme": updated_user.preferred_theme,
+                "accessibility_settings": updated_user.accessibility_settings,
+                "language_preference": getattr(updated_user, 'language_preference', None),
+                "timezone": getattr(updated_user, 'timezone', None),
+                "is_public_profile": getattr(updated_user, 'is_public_profile', None),
+                "allow_friend_requests": getattr(updated_user, 'allow_friend_requests', None),
+                "show_in_leaderboards": getattr(updated_user, 'show_in_leaderboards', None),
+                "data_retention_consent": getattr(updated_user, 'data_retention_consent', None),
+                "marketing_consent": getattr(updated_user, 'marketing_consent', None),
+            })
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour de l'utilisateur: {str(e)}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse(
+            {"detail": "Erreur lors de la mise à jour de l'utilisateur"},
+            status_code=500
+        )
+
+# API pour changer le mot de passe
+async def api_change_password(request: Request):
+    """API pour changer le mot de passe de l'utilisateur actuellement connecté"""
+    try:
+        current_user = await get_current_user(request)
+        
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse(
+                {"detail": "Non authentifié"},
+                status_code=401
+            )
+        
+        # Lire les données JSON de la requête
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse(
+                {"detail": "Données JSON invalides"},
+                status_code=400
+            )
+        
+        # Valider les données avec le schéma UserPasswordUpdate
+        from app.schemas.user import UserPasswordUpdate
+        try:
+            password_update = UserPasswordUpdate(**body)
+        except Exception as e:
+            logger.debug(f"Erreur de validation UserPasswordUpdate: {str(e)}")
+            return JSONResponse(
+                {"detail": f"Données invalides: {str(e)}"},
+                status_code=400
+            )
+        
+        # Récupérer l'utilisateur depuis la base de données
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.services.auth_service import get_user_by_username, update_user_password
+            user = get_user_by_username(db, current_user["username"])
+            
+            if not user:
+                return JSONResponse(
+                    {"detail": "Utilisateur non trouvé"},
+                    status_code=404
+                )
+            
+            # Changer le mot de passe
+            success = update_user_password(
+                db, 
+                user, 
+                password_update.current_password, 
+                password_update.new_password
+            )
+            
+            if success:
+                return JSONResponse({
+                    "message": "Mot de passe mis à jour avec succès",
+                    "success": True
+                })
+            else:
+                return JSONResponse(
+                    {"detail": "Erreur lors de la mise à jour du mot de passe"},
+                    status_code=500
+                )
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+    except HTTPException:
+        # Re-lancer les HTTPException (ex: mot de passe incorrect)
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors du changement de mot de passe: {str(e)}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse(
+            {"detail": "Erreur lors du changement de mot de passe"},
+            status_code=500
+        )
+
+# API pour exporter les données utilisateur (RGPD)
+async def api_export_user_data(request: Request):
+    """API pour exporter toutes les données de l'utilisateur connecté"""
+    try:
+        current_user = await get_current_user(request)
+        
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse(
+                {"detail": "Non authentifié"},
+                status_code=401
+            )
+        
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.services.auth_service import get_user_by_username
+            user = get_user_by_username(db, current_user["username"])
+            
+            if not user:
+                return JSONResponse(
+                    {"detail": "Utilisateur non trouvé"},
+                    status_code=404
+                )
+            
+            # Collecter toutes les données utilisateur
+            export_data = {
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "full_name": user.full_name,
+                    "role": user.role.value if hasattr(user.role, 'value') else str(user.role),
+                    "created_at": user.created_at.isoformat() if user.created_at else None,
+                    "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+                    "grade_level": user.grade_level,
+                    "learning_style": user.learning_style,
+                    "preferred_difficulty": user.preferred_difficulty,
+                    "preferred_theme": user.preferred_theme,
+                    "accessibility_settings": user.accessibility_settings,
+                    "language_preference": getattr(user, 'language_preference', None),
+                    "timezone": getattr(user, 'timezone', None),
+                },
+                "statistics": {
+                    "total_points": user.total_points if hasattr(user, 'total_points') else 0,
+                    "current_level": user.current_level if hasattr(user, 'current_level') else 1,
+                    "experience_points": user.experience_points if hasattr(user, 'experience_points') else 0,
+                    "jedi_rank": user.jedi_rank if hasattr(user, 'jedi_rank') else None,
+                },
+                "export_date": datetime.now(timezone.utc).isoformat(),
+            }
+            
+            # Retourner en JSON avec headers pour téléchargement
+            return Response(
+                content=json.dumps(export_data, indent=2, ensure_ascii=False),
+                media_type="application/json",
+                headers={
+                    "Content-Disposition": f'attachment; filename="mathakine-data-{user.username}-{datetime.now().strftime("%Y%m%d")}.json"'
+                }
+            )
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de l'export des données: {str(e)}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse(
+            {"detail": "Erreur lors de l'export des données"},
+            status_code=500
+        )
+
+# API pour supprimer le compte utilisateur (RGPD)
+async def api_delete_user_account(request: Request):
+    """API pour supprimer le compte de l'utilisateur connecté"""
+    try:
+        current_user = await get_current_user(request)
+        
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse(
+                {"detail": "Non authentifié"},
+                status_code=401
+            )
+        
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.services.auth_service import get_user_by_username
+            user = get_user_by_username(db, current_user["username"])
+            
+            if not user:
+                return JSONResponse(
+                    {"detail": "Utilisateur non trouvé"},
+                    status_code=404
+                )
+            
+            # Marquer le compte comme supprimé (soft delete pour MVP)
+            # Pour une vraie suppression, on pourrait utiliser is_deleted si le champ existe
+            user.is_active = False
+            if hasattr(user, 'is_deleted'):
+                user.is_deleted = True
+            if hasattr(user, 'deletion_requested_at'):
+                user.deletion_requested_at = datetime.now(timezone.utc)
+            
+            db.add(user)
+            db.commit()
+            
+            return JSONResponse({
+                "message": "Compte supprimé avec succès",
+                "success": True
+            })
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de la suppression du compte: {str(e)}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse(
+            {"detail": "Erreur lors de la suppression du compte"},
             status_code=500
         )
 
@@ -216,6 +624,72 @@ async def profile_page(request: Request):
             status_code=500
         )
 
+# API pour rafraîchir le token d'accès
+async def api_refresh_token(request: Request):
+    """API pour rafraîchir le token d'accès en utilisant le refresh token depuis les cookies"""
+    try:
+        # Récupérer le refresh token depuis les cookies
+        refresh_token = request.cookies.get("refresh_token")
+        
+        if not refresh_token:
+            return JSONResponse(
+                {"detail": "Refresh token manquant"},
+                status_code=401
+            )
+        
+        # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
+        db = EnhancedServerAdapter.get_db_session()
+        
+        try:
+            # Utiliser le service d'authentification pour rafraîchir le token
+            from app.services.auth_service import refresh_access_token
+            
+            new_token_data = refresh_access_token(db, refresh_token)
+            
+            # Importer settings pour la durée de vie du token
+            from app.core.config import settings
+            
+            # Créer une réponse JSON
+            response = JSONResponse({
+                "access_token": new_token_data["access_token"],
+                "token_type": new_token_data.get("token_type", "bearer"),
+                "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            }, status_code=200)
+            
+            # Déterminer si on est en production (pour secure cookie)
+            is_production = os.getenv("MATH_TRAINER_PROFILE", "dev") == "prod"
+            
+            # Mettre à jour le cookie access_token avec le nouveau token
+            access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            
+            response.set_cookie(
+                key="access_token",
+                value=new_token_data["access_token"],
+                httponly=True,
+                secure=is_production,
+                samesite="lax",
+                max_age=access_token_max_age
+            )
+            
+            return response
+            
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+    except HTTPException as e:
+        # Re-lancer les HTTPException (401, etc.)
+        return JSONResponse(
+            {"detail": e.detail},
+            status_code=e.status_code
+        )
+    except Exception as e:
+        logger.error(f"Erreur lors du rafraîchissement du token: {str(e)}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse(
+            {"detail": "Erreur lors du rafraîchissement du token"},
+            status_code=500
+        )
+
 # Déconnexion
 async def logout(request: Request):
     """Déconnexion de l'utilisateur"""
@@ -235,21 +709,21 @@ async def exercises_page(request: Request):
     
     # Vérifier si nous venons d'une génération d'exercices
     just_generated = request.query_params.get('generated', 'false') == 'true'
-    print(f"Page d'exercices chargée, just_generated={just_generated}")
+    logger.debug(f"Page d'exercices chargée, just_generated={just_generated}")
     
     # Récupérer les paramètres de filtrage
     exercise_type = request.query_params.get('exercise_type', None)
     difficulty = request.query_params.get('difficulty', None)
     
-    print(f"Paramètres reçus - exercise_type: {exercise_type}, difficulty: {difficulty}")
+    logger.debug(f"Paramètres reçus - exercise_type: {exercise_type}, difficulty: {difficulty}")
     
     # Normaliser les paramètres si présents
     if exercise_type:
         exercise_type = normalize_exercise_type(exercise_type)
-        print(f"Type d'exercice normalisé: {exercise_type}")
+        logger.debug(f"Type d'exercice normalisé: {exercise_type}")
     if difficulty:
         difficulty = normalize_difficulty(difficulty)
-        print(f"Difficulté normalisée: {difficulty}")
+        logger.debug(f"Difficulté normalisée: {difficulty}")
 
     try:
         # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
@@ -263,17 +737,17 @@ async def exercises_page(request: Request):
                 difficulty=difficulty
             )
             
-            print(f"Nombre d'exercices récupérés: {len(exercises)}")
+            logger.debug(f"Nombre d'exercices récupérés: {len(exercises)}")
             if len(exercises) > 0:
-                print(f"Premier exercice: ID={exercises[0].get('id')}, Titre={exercises[0].get('title')}")
-                print(f"Dernier exercice: ID={exercises[-1].get('id')}, Titre={exercises[-1].get('title')}")
+                logger.debug(f"Premier exercice: ID={exercises[0].get('id')}, Titre={exercises[0].get('title')}")
+                logger.debug(f"Dernier exercice: ID={exercises[-1].get('id')}, Titre={exercises[-1].get('title')}")
                 
         finally:
             EnhancedServerAdapter.close_db_session(db)
             
     except Exception as e:
-        print(f"Erreur lors de la récupération des exercices: {e}")
-        traceback.print_exc()
+        logger.error(f"Erreur lors de la récupération des exercices: {e}")
+        logger.debug(traceback.format_exc())
         exercises = []
     
     # Message pour indiquer si on vient de générer un exercice
@@ -294,7 +768,7 @@ async def exercises_page(request: Request):
     # Préfixe IA pour les templates
     ai_prefix = Messages.AI_EXERCISE_PREFIX
 
-    print(f"Préparation du rendu template avec {len(exercises)} exercices")
+    logger.debug(f"Préparation du rendu template avec {len(exercises)} exercices")
     
     return render_template("exercises.html", request, {
         "exercises": exercises,

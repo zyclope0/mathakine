@@ -2,8 +2,9 @@
 Service pour la gestion des exercices mathématiques.
 Implémente les opérations métier liées aux exercices et utilise le transaction manager.
 """
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from loguru import logger
 
 from app.db.adapter import DatabaseAdapter
@@ -192,16 +193,67 @@ class ExerciseService:
             try:
                 # Vérifier que l'exercice existe
                 exercise_id = attempt_data.get("exercise_id")
+                logger.info(f"Tentative d'enregistrement pour l'exercice {exercise_id}")
+                
                 exercise = ExerciseService.get_exercise(session, exercise_id)
+                
+                # Si SQLAlchemy ne trouve pas l'exercice, essayer avec PostgreSQL direct
+                if not exercise:
+                    logger.warning(f"SQLAlchemy n'a pas trouvé l'exercice {exercise_id}, tentative avec PostgreSQL direct")
+                    try:
+                        from app.services.exercise_service_translations import get_exercise as get_exercise_pg
+                        exercise_dict = get_exercise_pg(exercise_id, locale="fr")
+                        if exercise_dict:
+                            logger.info(f"Exercice {exercise_id} trouvé via PostgreSQL direct")
+                            # Créer un objet Exercise temporaire pour compatibilité avec le reste du code
+                            # On va utiliser une requête SQL directe pour récupérer l'objet SQLAlchemy
+                            exercise = session.query(Exercise).filter(Exercise.id == exercise_id).first()
+                            if not exercise:
+                                # Si toujours pas trouvé, utiliser une requête SQL brute pour forcer le refresh
+                                result = session.execute(text("SELECT * FROM exercises WHERE id = :id"), {"id": exercise_id})
+                                row = result.fetchone()
+                                if row:
+                                    # Forcer SQLAlchemy à recharger depuis la BDD
+                                    session.expire_all()
+                                    exercise = session.query(Exercise).filter(Exercise.id == exercise_id).first()
+                    except Exception as pg_error:
+                        logger.error(f"Erreur lors de la récupération PostgreSQL directe: {pg_error}")
                 
                 if not exercise:
                     logger.error(f"Tentative d'enregistrement d'une tentative pour un exercice inexistant (ID {exercise_id})")
+                    # Essayer de vérifier si l'exercice existe vraiment en BDD avec une requête directe
+                    from server.database import get_db_connection
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    try:
+                        cursor.execute("SELECT id FROM exercises WHERE id = %s", (exercise_id,))
+                        exists = cursor.fetchone()
+                        if exists:
+                            logger.warning(f"L'exercice {exercise_id} existe en BDD mais n'est pas trouvé par SQLAlchemy ORM")
+                            # Forcer le refresh de la session SQLAlchemy
+                            session.expire_all()
+                            exercise = session.query(Exercise).filter(Exercise.id == exercise_id).first()
+                            if not exercise:
+                                logger.error(f"Impossible de charger l'exercice {exercise_id} même après refresh")
+                                return None
+                        else:
+                            logger.error(f"L'exercice {exercise_id} n'existe vraiment pas en BDD")
+                            return None
+                    finally:
+                        cursor.close()
+                        conn.close()
+                
+                if not exercise:
                     return None
                 
+                logger.info(f"Exercice {exercise_id} trouvé: {exercise.title}")
+                
                 # Créer la tentative
+                logger.info(f"Création de la tentative avec attempt_data: {attempt_data}")
                 attempt = Attempt(**attempt_data)
                 session.add(attempt)
                 session.flush()
+                logger.info(f"Tentative créée avec ID: {attempt.id}")
                 
                 # Log de l'action
                 is_correct = attempt_data.get("is_correct", False)
@@ -217,18 +269,22 @@ class ExerciseService:
                 
                 return attempt
             except Exception as e:
-                logger.error(f"Erreur lors de l'enregistrement de la tentative: {e}")
+                error_type = type(e).__name__
+                error_msg = str(e)
+                import traceback
+                logger.error(f"❌ ERREUR lors de l'enregistrement de la tentative: {error_type}: {error_msg}")
+                logger.error(f"Traceback complet:\n{traceback.format_exc()}")
                 return None
 
     @staticmethod
-    def _update_user_statistics(session: Session, attempt_data: Dict[str, Any], exercise: Exercise) -> None:
+    def _update_user_statistics(session: Session, attempt_data: Dict[str, Any], exercise: Union[Exercise, Dict[str, Any], None]) -> None:
         """
         Met à jour les statistiques utilisateur après une tentative.
         
         Args:
             session: Session de base de données
             attempt_data: Données de la tentative
-            exercise: Exercice concerné
+            exercise: Exercice concerné (objet Exercise, dict, ou None)
         """
         from datetime import datetime
         from app.models.progress import Progress
@@ -238,10 +294,26 @@ class ExerciseService:
         is_correct = attempt_data.get("is_correct", False)
         time_spent = attempt_data.get("time_spent", 0)
         
+        # Extraire exercise_type et difficulty depuis exercise (objet ou dict)
+        if exercise is None:
+            logger.warning("Aucun exercice fourni pour mettre à jour les statistiques")
+            return
+        
+        if isinstance(exercise, dict):
+            exercise_type = exercise.get("exercise_type")
+            difficulty = exercise.get("difficulty")
+        else:
+            exercise_type = exercise.exercise_type
+            difficulty = exercise.difficulty
+        
+        if not exercise_type:
+            logger.warning(f"Impossible de déterminer le type d'exercice pour les statistiques")
+            return
+        
         # 1. Mettre à jour ou créer Progress
         progress = session.query(Progress).filter(
             Progress.user_id == user_id,
-            Progress.exercise_type == exercise.exercise_type
+            Progress.exercise_type == exercise_type
         ).first()
         
         if progress:
@@ -266,8 +338,8 @@ class ExerciseService:
         else:
             new_progress = Progress(
                 user_id=user_id,
-                exercise_type=exercise.exercise_type,
-                difficulty=exercise.difficulty,
+                exercise_type=exercise_type,
+                difficulty=difficulty if difficulty else "initie",
                 total_attempts=1,
                 correct_attempts=1 if is_correct else 0,
                 average_time=time_spent,

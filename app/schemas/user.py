@@ -24,8 +24,8 @@ class UserBase(BaseModel):
                                       description="Style d'apprentissage préféré")
     preferred_difficulty: Optional[str] = Field(None,
                                            description="Difficulté préférée")
-    preferred_theme: Optional[str] = Field("light",
-                                      description="Thème préféré: 'light' (Côté Lumineux) ou 'dark' (Côté Obscur)")
+    preferred_theme: Optional[str] = Field("spatial",
+                                      description="Thème préféré: 'spatial', 'minimalist', 'ocean' ou 'neutral'")
     accessibility_settings: Optional[Dict[str, Any]] = Field(None,
                                                         description="Paramètres d'accessibilité personnalisés")
 
@@ -75,14 +75,23 @@ class UserUpdate(BaseModel):
     grade_level: Optional[int] = None
     learning_style: Optional[str] = None
     preferred_difficulty: Optional[str] = None
-    preferred_theme: Optional[str] = Field(None, description="Thème préféré (light pour Côté Lumineux, dark pour Côté Obscur)")
+    preferred_theme: Optional[str] = Field(None, description="Thème préféré (spatial, minimalist, ocean, neutral)")
     accessibility_settings: Optional[Dict[str, bool]] = Field(None, description="Paramètres d'accessibilité")
+    # Paramètres Settings
+    notification_preferences: Optional[Dict[str, bool]] = Field(None, description="Préférences de notifications (achievements, progress, recommendations, news)")
+    language_preference: Optional[str] = Field(None, description="Langue préférée (fr, en)")
+    timezone: Optional[str] = Field(None, description="Fuseau horaire")
+    is_public_profile: Optional[bool] = Field(None, description="Profil public")
+    allow_friend_requests: Optional[bool] = Field(None, description="Autoriser les demandes d'amis")
+    show_in_leaderboards: Optional[bool] = Field(None, description="Afficher dans les classements")
+    data_retention_consent: Optional[bool] = Field(None, description="Consentement conservation données")
+    marketing_consent: Optional[bool] = Field(None, description="Consentement marketing")
     
     @field_validator("preferred_theme")
     @classmethod
     def validate_theme(cls, v):
-        if v is not None and v not in ["light", "dark"]:
-            raise ValueError("Le thème doit être 'light' (Côté Lumineux) ou 'dark' (Côté Obscur)")
+        if v is not None and v not in ["spatial", "minimalist", "ocean", "neutral"]:
+            raise ValueError("Le thème doit être 'spatial', 'minimalist', 'ocean' ou 'neutral'")
         return v
     
     model_config = {
@@ -95,7 +104,7 @@ class UserUpdate(BaseModel):
                 "grade_level": 5,
                 "learning_style": "visuel",
                 "preferred_difficulty": "chevalier",
-                "preferred_theme": "light",
+                "preferred_theme": "spatial",
                 "accessibility_settings": {"high_contrast": True, "large_text": False}
             }
         },

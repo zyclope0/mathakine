@@ -107,16 +107,27 @@ mathakine/
 │   ├── models/             # Modèles SQLAlchemy
 │   ├── schemas/            # Schémas Pydantic
 │   └── services/           # Logique métier
+├── frontend/               # Frontend Next.js (moderne) ⭐
+│   ├── app/                # Next.js App Router
+│   ├── components/         # Composants React
+│   ├── hooks/              # Custom hooks
+│   ├── lib/                # Utilitaires et stores
+│   └── messages/           # Traductions i18n
 ├── docs/                   # Documentation complète
 ├── logs/                   # Journaux applicatifs
 ├── migrations/             # Scripts de migration
 ├── scripts/                # Scripts utilitaires
-├── static/                 # Fichiers statiques (CSS, JS)
-├── templates/              # Templates HTML (Jinja2)
+├── static/                 # Fichiers statiques legacy (CSS, JS)
+├── templates/              # Templates HTML legacy (Jinja2)
 ├── tests/                  # Tests (unitaires, API, intégration)
 ├── enhanced_server.py      # Serveur principal (UI + API)
 ├── mathakine_cli.py        # Interface en ligne de commande
 └── app/main.py             # Point d'entrée API FastAPI
+```
+
+**Note** : Le frontend principal utilise maintenant **Next.js 16.0.1**.  
+Voir [`../frontend/README.md`](../frontend/README.md) pour la documentation complète du frontend moderne.  
+Les dossiers `static/` et `templates/` sont legacy mais encore utilisés par certaines routes du backend Starlette.
 ```
 
 ### Flux d'authentification et d'utilisation
@@ -732,7 +743,7 @@ Pour plus de détails, consultez le [Guide CI/CD complet](../CI_CD_GUIDE.md).
 
 4. **Mettre à jour l'interface utilisateur**
 
-   Ajoutez une option pour le nouveau type d'exercice dans `templates/exercises.html`.
+   Ajoutez une option pour le nouveau type d'exercice dans le frontend Next.js (`frontend/app/exercises/page.tsx`) ou dans `templates/exercises.html` (legacy).
 
 5. **Mettre à jour les messages**
 
@@ -908,9 +919,17 @@ Pour plus de détails, consultez le [Guide CI/CD complet](../CI_CD_GUIDE.md).
 
 ## 9. Résolution des problèmes courants
 
-Pour une liste complète des problèmes courants et leurs solutions, consultez le document [CORRECTIONS_ET_MAINTENANCE.md](../CORRECTIONS_ET_MAINTENANCE.md).
+Pour une liste complète des problèmes courants et leurs solutions, consultez le document [CORRECTIONS_ET_MAINTENANCE.md](../ARCHIVE/2025/CORRECTIONS_ET_MAINTENANCE.md).
+
+### Documents de dépannage récents
+
+- **[backend-dependencies-fix.md](./backend-dependencies-fix.md)** : Corrections des dépendances Python (FastAPI, Pydantic, psycopg2)
+- **[backend-setup-complete.md](./backend-setup-complete.md)** : Guide complet de configuration du backend
+- **[python-313-fix.md](./python-313-fix.md)** : Corrections de compatibilité Python 3.13
+- **[corrections-appliquees.md](./corrections-appliquees.md)** : Récapitulatif des corrections appliquées
+- **[dependencies-complete.md](./dependencies-complete.md)** : Liste complète des dépendances installées
 
 ---
 
 *Ce document consolidé remplace les anciens documents GUIDE_DEVELOPPEUR.md, AUTH_GUIDE.md et API_REFERENCE.md.*
-*Dernière mise à jour : 14 Mai 2025* 
+*Dernière mise à jour : Janvier 2025* 

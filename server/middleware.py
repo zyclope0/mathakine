@@ -11,6 +11,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from typing import List, Callable
 from loguru import logger
+import os
 
 class AuthenticationMiddleware(BaseHTTPMiddleware):
     """
@@ -37,6 +38,8 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             "/login", 
             "/register", 
             "/api/auth/login", 
+            "/api/auth/logout",  # Permet la déconnexion même sans token valide
+            "/api/auth/forgot-password",
             "/api/users/",
             "/static",
             "/exercises"  # On permet l'accès à la liste des exercices sans connexion
@@ -73,12 +76,31 @@ def get_middleware() -> List[Middleware]:
     Returns:
         List of Middleware instances
     """
+    # Liste des origines autorisées pour CORS
+    # IMPORTANT: Ne pas utiliser "*" quand credentials='include' est utilisé côté client
+    # Le navigateur bloque les requêtes avec credentials si Access-Control-Allow-Origin est "*"
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+    ]
+    
+    # Ajouter FRONTEND_URL si définie
+    frontend_url = os.getenv("FRONTEND_URL", "")
+    if frontend_url:
+        allowed_origins.append(frontend_url)
+    
+    # Filtrer les chaînes vides
+    allowed_origins = [origin for origin in allowed_origins if origin]
+    
     return [
         Middleware(
             CORSMiddleware,
-            allow_origins=["*"],
-            allow_methods=["*"],
+            allow_origins=allowed_origins,
+            allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
             allow_headers=["*"],
+            allow_credentials=True,  # Important pour les cookies HTTP-only
         ),
         Middleware(AuthenticationMiddleware)
-    ] 
+    ]

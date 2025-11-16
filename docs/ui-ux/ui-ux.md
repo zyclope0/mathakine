@@ -1,7 +1,17 @@
 # 🎨 Guide Interface Utilisateur Mathakine
 
 **Documentation complète UI/UX** - Version 3.0  
-*Dernière mise à jour : 6 juin 2025*
+*Dernière mise à jour : Novembre 2025*
+
+---
+
+## ⚠️ **Note Importante**
+
+**Ce document décrit l'interface legacy (templates Jinja2).**  
+Le frontend principal utilise maintenant **Next.js 16.0.1** avec TypeScript et Tailwind CSS.
+
+- **Frontend moderne** : Voir [`../frontend/README.md`](../frontend/README.md) et [`../frontend/docs/DESIGN_SYSTEM_GUIDE.md`](../frontend/docs/DESIGN_SYSTEM_GUIDE.md)
+- **Ce document** : Décrit l'interface legacy encore utilisée par certaines routes du backend Starlette
 
 ---
 

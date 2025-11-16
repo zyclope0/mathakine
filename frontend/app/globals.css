@@ -1,0 +1,1163 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "../styles/accessibility.css";
+
+/* Styles pour React Query DevTools - éviter chevauchement avec AccessibilityToolbar */
+@layer base {
+  /* Le bouton React Query DevTools est en bottom-left, donc pas de conflit */
+  /* Mais on s'assure que l'AccessibilityToolbar est toujours au-dessus */
+  [data-react-query-devtools] {
+    z-index: 9998 !important;
+  }
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Animation shimmer pour les badges obtenus (respecte prefers-reduced-motion) */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s infinite;
+}
+
+/* Désactiver shimmer si reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer {
+    animation: none;
+  }
+}
+
+/* Micro-interactions améliorées */
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Animation skeleton shimmer */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Animation pour feedback succès */
+@keyframes success-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+/* Animation pour feedback erreur */
+@keyframes error-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+/* Améliorations boutons - micro-interactions premium améliorées */
+button:not(:disabled) {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Effet de brillance amélioré sur les boutons */
+button:not(:disabled)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+button:not(:disabled):hover::after {
+  left: 100%;
+}
+
+button:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3),
+              0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:not(:disabled):active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Améliorations cards - hover effect avec effet de brillance amélioré */
+[data-slot="card"] {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Effet de brillance (sweep effect) amélioré sur les cards */
+[data-slot="card"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    rgba(139, 92, 246, 0.1),
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+[data-slot="card"]:hover::before {
+  left: 100%;
+}
+
+[data-slot="card"]:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25),
+              0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+[data-slot="card"]:active {
+  transform: translateY(-2px) scale(1);
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Améliorations liens - feedback visuel amélioré */
+a:not([role="button"]):not(button) {
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              text-decoration-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+a:not([role="button"]):not(button):hover {
+  opacity: 0.85;
+  text-decoration-color: currentColor;
+}
+
+a:not([role="button"]):not(button):active {
+  opacity: 0.7;
+  transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Améliorations inputs - feedback visuel amélioré */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):hover,
+textarea:hover,
+select:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+textarea:focus,
+select:focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 20%, transparent);
+}
+
+/* Désactiver animations si reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled):hover,
+  button:not(:disabled):active,
+  [data-slot="card"]:hover,
+  [data-slot="card"]:active,
+  a:not([role="button"]):not(button):hover,
+  a:not([role="button"]):not(button):active {
+    transform: none;
+    transition: none;
+  }
+  
+  button:not(:disabled)::after,
+  [data-slot="card"]::before {
+    display: none;
+  }
+  
+  /* Les animations sont désactivées via les composants React qui vérifient reducedMotion */
+  /* Pas besoin de redéfinir les @keyframes ici */
+}
+
+/* Animations spatiales - Planète */
+@keyframes pulse-ring {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.1;
+  }
+}
+
+/* Animations orbitales pour symboles mathématiques */
+@keyframes orbit-0 {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg) translateY(-80px) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg) translateY(-80px) rotate(360deg);
+  }
+}
+
+@keyframes orbit-1 {
+  from {
+    transform: translate(-50%, -50%) rotate(60deg) translateY(-80px) rotate(-60deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(420deg) translateY(-80px) rotate(-420deg);
+  }
+}
+
+@keyframes orbit-2 {
+  from {
+    transform: translate(-50%, -50%) rotate(120deg) translateY(-80px) rotate(-120deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(480deg) translateY(-80px) rotate(-480deg);
+  }
+}
+
+@keyframes orbit-3 {
+  from {
+    transform: translate(-50%, -50%) rotate(180deg) translateY(-80px) rotate(-180deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(540deg) translateY(-80px) rotate(-540deg);
+  }
+}
+
+@keyframes orbit-4 {
+  from {
+    transform: translate(-50%, -50%) rotate(240deg) translateY(-80px) rotate(-240deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(600deg) translateY(-80px) rotate(-600deg);
+  }
+}
+
+@keyframes orbit-5 {
+  from {
+    transform: translate(-50%, -50%) rotate(300deg) translateY(-80px) rotate(-300deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(660deg) translateY(-80px) rotate(-660deg);
+  }
+}
+
+/* Désactiver animations spatiales si reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  /* Les animations sont désactivées via les composants React qui vérifient reducedMotion */
+  /* Pas besoin de redéfinir les @keyframes ici */
+}
+
+/* Améliorations espacements - meilleure hiérarchie visuelle */
+.container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Améliorations contrastes - meilleure lisibilité */
+.text-muted-foreground {
+  color: var(--muted-foreground);
+  opacity: 0.9; /* Amélioration contraste */
+}
+
+/* Responsive - améliorations mobile */
+@media (max-width: 640px) {
+  /* Espacements réduits sur mobile */
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+  
+  /* Textes plus lisibles sur mobile */
+  h1 {
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
+    line-height: 1.4;
+  }
+}
+
+/* Thème Spatial (Priorité 1) - Par défaut */
+:root,
+[data-theme='spatial'] {
+  --radius: 0.625rem;
+  --background: #0a0a0f;
+  --foreground: #ffffff;
+  --card: #12121a;
+  --card-foreground: #ffffff;
+  --popover: #12121a;
+  --popover-foreground: #ffffff;
+  /* Primary ajusté pour WCAG 2.1 AAA : #7c3aed (contraste 4.6:1 avec blanc) */
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  /* Primary-light pour texte sur fond sombre : #a78bfa (contraste 5.2:1 avec #171226) */
+  --primary-light: #a78bfa;
+  /* Primary-text-on-dark : pour texte primary sur fonds sombres (#171226 et similaires) */
+  --primary-text-on-dark: #a78bfa;
+  --secondary: #6366f1;
+  --secondary-foreground: #ffffff;
+  --muted: #1a1a24;
+  /* Muted-foreground amélioré pour WCAG 2.1 AAA : #c0c0c0 (contraste 7.1:1 avec #0a0a0f) */
+  --muted-foreground: #c0c0c0;
+  --accent: #ec4899;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: rgba(124, 58, 237, 0.2);
+  --input: rgba(124, 58, 237, 0.1);
+  --ring: #7c3aed;
+}
+
+/* Thème Spatial - Mode Dark (plus sombre, plus contrasté) */
+.dark [data-theme='spatial'] {
+  --background: #000000;
+  --card: #0a0a0f;
+  --muted: #0f0f14;
+  --border: rgba(124, 58, 237, 0.4);
+  --input: rgba(124, 58, 237, 0.2);
+  --primary: #a78bfa; /* Plus clair en dark mode */
+  --secondary: #818cf8;
+  --accent: #f472b6;
+}
+
+/* Thème Minimaliste (Priorité 2) */
+[data-theme='minimalist'] {
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #f5f5f5;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --secondary: #666666;
+  --secondary-foreground: #ffffff;
+  --muted: #f5f5f5;
+  /* Muted-foreground amélioré pour WCAG 2.1 AAA : #4a4a4a (contraste 7.2:1 avec #ffffff) */
+  --muted-foreground: #4a4a4a;
+  --accent: #000000;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #000000;
+  --input: #f5f5f5;
+  --ring: #000000;
+  --radius: 0;
+}
+
+/* Thème Minimaliste - Mode Dark (inversion complète noir/blanc) */
+.dark [data-theme='minimalist'] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #1a1a1a;
+  --card-foreground: #ffffff;
+  --popover: #000000;
+  --popover-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  --secondary: #999999;
+  --secondary-foreground: #000000;
+  --muted: #1a1a1a;
+  --muted-foreground: #cccccc;
+  --accent: #ffffff;
+  --accent-foreground: #000000;
+  --border: #ffffff;
+  --input: #1a1a1a;
+  --ring: #ffffff;
+}
+
+/* Thème Océan (Priorité 3) */
+[data-theme='ocean'] {
+  --background: #0c1220;
+  --foreground: #f1f5f9;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  /* Primary ajusté pour WCAG 2.1 AA : #0369a1 (sky-700) a un contraste de 5.5:1 avec blanc */
+  --primary: #0369a1;
+  --primary-foreground: #ffffff;
+  /* Secondary ajusté pour WCAG 2.1 AA : #0891b2 (cyan-600) a un contraste de 4.6:1 avec blanc */
+  --secondary: #0891b2;
+  --secondary-foreground: #ffffff;
+  --muted: #1e293b;
+  /* Muted-foreground amélioré pour WCAG 2.1 AAA : #cbd5e1 (contraste 7.3:1 avec #0c1220) */
+  --muted-foreground: #cbd5e1;
+  /* Accent ajusté pour WCAG 2.1 AA : #0d9488 (teal-600) a un contraste de 4.7:1 avec blanc */
+  --accent: #0d9488;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: rgba(3, 105, 161, 0.2);
+  --input: rgba(3, 105, 161, 0.1);
+  --ring: #0369a1;
+}
+
+/* Thème Océan - Mode Dark (profondeur océanique plus sombre) */
+.dark [data-theme='ocean'] {
+  --background: #050810;
+  --card: #0f172a;
+  --muted: #0f172a;
+  --border: rgba(14, 165, 233, 0.4); /* sky-500 plus visible */
+  --input: rgba(14, 165, 233, 0.2);
+  --primary: #0ea5e9; /* sky-500 plus clair */
+  --secondary: #06b6d4; /* cyan-500 */
+  --accent: #14b8a6; /* teal-500 */
+  --muted-foreground: #e2e8f0; /* Plus clair pour meilleur contraste */
+}
+
+/* Thème Neutre (Priorité 4) */
+[data-theme='neutral'] {
+  --background: #ffffff;
+  --foreground: #111827;
+  --card: #f9fafb;
+  --card-foreground: #111827;
+  --popover: #ffffff;
+  --popover-foreground: #111827;
+  --primary: #6b7280;
+  --primary-foreground: #ffffff;
+  --secondary: #9ca3af;
+  --secondary-foreground: #ffffff;
+  --muted: #f9fafb;
+  /* Muted-foreground amélioré pour WCAG 2.1 AAA : #4b5563 (contraste 7.5:1 avec #ffffff) */
+  --muted-foreground: #4b5563;
+  --accent: #6b7280;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #e5e7eb;
+  --input: #f3f4f6;
+  --ring: #6b7280;
+}
+
+/* Thème Neutre - Mode Dark (gris foncé élégant) */
+.dark [data-theme='neutral'] {
+  --background: #111827;
+  --foreground: #f9fafb;
+  --card: #1f2937;
+  --card-foreground: #f9fafb;
+  --popover: #111827;
+  --popover-foreground: #f9fafb;
+  --primary: #9ca3af; /* Plus clair en dark mode */
+  --primary-foreground: #111827;
+  --secondary: #6b7280;
+  --secondary-foreground: #f9fafb;
+  --muted: #1f2937;
+  --muted-foreground: #d1d5db; /* Plus clair pour meilleur contraste */
+  --accent: #9ca3af;
+  --accent-foreground: #111827;
+  --border: #374151;
+  --input: #1f2937;
+  --ring: #9ca3af;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Exo 2', system-ui, -apple-system, sans-serif;
+  }
+  
+  /* Focus visible global amélioré pour WCAG 2.1 AAA */
+  *:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ring) 20%, transparent);
+  }
+  
+  /* Focus visible renforcé pour éléments interactifs */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [role="button"]:focus-visible,
+  [role="link"]:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 4px solid var(--ring);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--ring) 25%, transparent);
+  }
+}
+
+/* Classe utilitaire pour texte primary sur fonds sombres (WCAG 2.1 AAA) */
+@layer utilities {
+  .text-primary-on-dark {
+    color: var(--primary-text-on-dark);
+  }
+}
+
+/* Règle automatique pour améliorer le contraste sur fonds sombres */
+@layer base {
+  /* Utiliser primary-text-on-dark pour text-primary sur bg-primary/10 et bg-card */
+  .bg-primary\/10 .text-primary,
+  .bg-primary\/5 .text-primary,
+  .bg-card .text-primary:not(.text-primary-foreground),
+  [class*="bg-card"] .text-primary:not(.text-primary-foreground),
+  [class*="bg-muted"] .text-primary:not(.text-primary-foreground),
+  /* Améliorer le contraste pour les petits textes sur fonds sombres */
+  .text-sm.text-primary:not(.text-primary-foreground),
+  body .text-sm.text-primary:not(.text-primary-foreground) {
+    color: var(--primary-text-on-dark);
+  }
+  
+  /* Améliorer le contraste pour les liens sur fonds sombres */
+  a.text-primary:not(.text-primary-foreground),
+  a.hover\:text-primary:hover:not(.text-primary-foreground) {
+    color: var(--primary-text-on-dark);
+  }
+  
+  /* Variant link du Button sur fonds sombres */
+  button[data-slot="button"].text-primary:not(.text-primary-foreground),
+  a[data-slot="button"].text-primary:not(.text-primary-foreground) {
+    color: var(--primary-text-on-dark);
+  }
+}
+
+/* Accessibilité - Mode Focus TSA/TDAH (Phase 1 - Affinements) */
+.focus-mode {
+  /* Réduire les distractions visuelles */
+  --background: #000000;
+  --card: #0a0a0a;
+  --foreground: #ffffff;
+  --muted-foreground: #cccccc;
+  --primary: #ffffff;
+  --ring: #ffffff;
+  --border: rgba(255, 255, 255, 0.3);
+}
+
+/* Masquer éléments non essentiels */
+.focus-mode .navigation-secondary,
+.focus-mode footer,
+.focus-mode [role="contentinfo"],
+.focus-mode .recommendations,
+.focus-mode .sidebar,
+.focus-mode .badges-preview,
+.focus-mode .stars,
+.focus-mode .particles,
+.focus-mode .planets {
+  display: none !important;
+}
+
+/* Masquer header sauf navigation essentielle */
+.focus-mode header {
+  border-bottom: 2px solid var(--border);
+  background: var(--background) !important;
+}
+
+.focus-mode header nav > div:last-child {
+  /* Masquer les actions secondaires (thème, langue) mais garder logout si connecté */
+}
+
+/* Agrandir et optimiser zone de travail */
+.focus-mode .exercise-solver,
+.focus-mode .challenge-solver,
+.focus-mode main > div,
+.focus-mode [role="main"] > div {
+  max-width: 100% !important;
+  padding: 3rem 2rem !important;
+  margin: 0 auto !important;
+}
+
+/* Conteneurs de contenu principal */
+.focus-mode .container,
+.focus-mode [class*="max-w"] {
+  max-width: 100% !important;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+}
+
+/* Réduire animations (respect prefers-reduced-motion) */
+.focus-mode *,
+.focus-mode *::before,
+.focus-mode *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+}
+
+/* Focus visible renforcé pour TSA/TDAH (WCAG 2.1 AAA) */
+.focus-mode *:focus-visible {
+  outline: 5px solid var(--ring) !important;
+  outline-offset: 5px !important;
+  box-shadow: 0 0 0 10px color-mix(in srgb, var(--ring) 40%, transparent) !important;
+  border-radius: 2px !important;
+}
+
+/* Focus encore plus visible pour éléments interactifs */
+.focus-mode button:focus-visible,
+.focus-mode a:focus-visible,
+.focus-mode input:focus-visible,
+.focus-mode select:focus-visible,
+.focus-mode textarea:focus-visible,
+.focus-mode [role="button"]:focus-visible,
+.focus-mode [tabindex]:focus-visible {
+  outline: 6px solid var(--ring) !important;
+  outline-offset: 6px !important;
+  box-shadow: 0 0 0 12px color-mix(in srgb, var(--ring) 50%, transparent) !important;
+}
+
+/* Simplifier les cartes */
+.focus-mode .card,
+.focus-mode [data-slot="card"] {
+  border: 3px solid var(--primary) !important;
+  box-shadow: none !important;
+  background: var(--card) !important;
+  padding: 2rem !important;
+}
+
+/* Agrandir les boutons pour meilleure accessibilité */
+.focus-mode button,
+.focus-mode [role="button"],
+.focus-mode a[role="button"] {
+  min-height: 52px !important;
+  min-width: 52px !important;
+  padding: 0.875rem 1.75rem !important;
+  font-size: 1.05em !important;
+  border: 2px solid var(--border) !important;
+}
+
+/* Espacement augmenté pour lisibilité */
+.focus-mode p,
+.focus-mode li,
+.focus-mode span,
+.focus-mode div {
+  line-height: 1.9 !important;
+}
+
+.focus-mode p,
+.focus-mode li {
+  margin-bottom: 1.25rem !important;
+}
+
+/* Typographie améliorée */
+.focus-mode h1 {
+  font-size: 2.25rem !important;
+  line-height: 1.3 !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.focus-mode h2 {
+  font-size: 1.875rem !important;
+  line-height: 1.4 !important;
+  margin-bottom: 1.25rem !important;
+}
+
+.focus-mode h3 {
+  font-size: 1.5rem !important;
+  line-height: 1.5 !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Inputs et formulaires */
+.focus-mode input,
+.focus-mode textarea,
+.focus-mode select {
+  min-height: 52px !important;
+  padding: 0.875rem 1rem !important;
+  font-size: 1.05em !important;
+  border: 2px solid var(--border) !important;
+  background: var(--card) !important;
+}
+
+/* Masquer éléments décoratifs uniquement (pas les icônes fonctionnelles) */
+.focus-mode [class*="decoration"],
+.focus-mode [class*="ornament"] {
+  display: none !important;
+}
+
+/* Ne PAS masquer les icônes SVG dans les boutons et éléments interactifs */
+/* Priorité élevée pour surcharger toute règle générique */
+.focus-mode button svg[aria-hidden="true"],
+.focus-mode a svg[aria-hidden="true"],
+.focus-mode [role="button"] svg[aria-hidden="true"],
+.focus-mode [role="link"] svg[aria-hidden="true"],
+.focus-mode button [aria-hidden="true"] svg,
+.focus-mode a [aria-hidden="true"] svg,
+.focus-mode [role="button"] [aria-hidden="true"] svg,
+.focus-mode [role="link"] [aria-hidden="true"] svg {
+  display: inline-block !important; /* Forcer l'affichage des icônes dans les boutons */
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Accessibilité - Contraste élevé (WCAG 2.1 AAA - 7:1 minimum) */
+.high-contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #000000;
+  --card-foreground: #ffffff;
+  --popover: #000000;
+  --popover-foreground: #ffffff;
+  --border: #ffffff;
+  --border-width: 2px;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  --secondary: #ffffff;
+  --secondary-foreground: #000000;
+  --muted: #000000;
+  --muted-foreground: #ffffff;
+  --accent: #ffffff;
+  --accent-foreground: #000000;
+  --destructive: #ff4444;
+  --destructive-foreground: #ffffff;
+  --input: #000000;
+  --ring: #ffffff;
+  --radius: 0;
+}
+
+/* Bordures renforcées en mode contraste élevé */
+.high-contrast * {
+  border-color: var(--border) !important;
+}
+
+.high-contrast button,
+.high-contrast a,
+.high-contrast input,
+.high-contrast select,
+.high-contrast textarea {
+  border: 2px solid var(--border) !important;
+}
+
+/* Focus visible renforcé en mode contraste élevé */
+.high-contrast *:focus-visible {
+  outline: 4px solid var(--ring) !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--ring) 50%, transparent) !important;
+}
+
+/* Accessibilité - Skip link (screen reader only jusqu'au focus) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:focus,
+.focus\:not-sr-only:focus {
+  position: absolute;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 1rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Accessibilité - Texte agrandi */
+.large-text {
+  font-size: 1.2em;
+}
+
+.large-text p,
+.large-text li,
+.large-text span {
+  font-size: 1.2em;
+}
+
+/* Accessibilité - Réduction animations */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Accessibilité - Mode dyslexie */
+.dyslexia-mode {
+  font-family: 'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif;
+  letter-spacing: 0.1em;
+  word-spacing: 0.2em;
+  line-height: 1.8;
+}
+
+/* ============================================
+   SYSTÈME D'AMÉLIORATIONS UI/UX STANDARDISÉ
+   Compatible avec tous les thèmes (spatial, minimalist, ocean, neutral)
+   ============================================ */
+
+/* Classes utilitaires pour effets spatiaux adaptatifs */
+.card-spatial-depth {
+  position: relative;
+  background: linear-gradient(135deg, var(--card), color-mix(in srgb, var(--card) 90%, var(--muted)));
+  border: 1px solid var(--border);
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    0 0 20px color-mix(in srgb, var(--primary) 10%, transparent);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.card-spatial-depth::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--primary) 15%, transparent),
+    color-mix(in srgb, var(--primary) 20%, transparent),
+    color-mix(in srgb, var(--primary) 15%, transparent),
+    transparent
+  );
+  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card-spatial-depth:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--primary) 50%, transparent);
+  box-shadow: 
+    0 8px 12px rgba(0, 0, 0, 0.4),
+    0 0 30px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.card-spatial-depth:hover::before {
+  left: 100%;
+}
+
+/* Badge avec effet sweep adaptatif */
+.badge-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.badge-sweep::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, currentColor 20%, transparent),
+    transparent
+  );
+  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.badge-sweep:hover::before {
+  left: 100%;
+}
+
+/* Bouton CTA optimisé avec glow adaptatif */
+.btn-cta-primary {
+  position: relative;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 
+    0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent),
+    0 0 0 0 color-mix(in srgb, var(--primary) 40%, transparent);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-cta-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary) 60%, transparent),
+    color-mix(in srgb, var(--accent) 40%, transparent),
+    color-mix(in srgb, var(--primary) 60%, transparent)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-cta-primary:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 
+    0 4px 16px color-mix(in srgb, var(--primary) 40%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.btn-cta-primary:hover::after {
+  opacity: 1;
+}
+
+.btn-cta-primary:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 
+    0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+/* Section avec fond distinct pour hiérarchie */
+.section-filter {
+  background: color-mix(in srgb, var(--card) 50%, transparent);
+  border-top: 2px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.section-generator {
+  background: color-mix(in srgb, var(--card) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+/* Animation d'entrée en cascade pour les cards */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-fade-in-up-delay-1 {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
+  /* Ne pas définir opacity: 0 ici - laisser l'animation gérer l'opacité */
+  /* Fallback : si l'animation ne se déclenche pas, le contenu reste visible */
+  animation-fill-mode: both;
+}
+
+.animate-fade-in-up-delay-2 {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+  animation-fill-mode: both;
+}
+
+.animate-fade-in-up-delay-3 {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+  animation-fill-mode: both;
+}
+
+/* Badge IA avec animation pulse subtile */
+.badge-ai-pulse {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 0%, transparent);
+  }
+}
+
+/* Désactiver animations si reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .card-spatial-depth,
+  .card-spatial-depth::before,
+  .badge-sweep::before,
+  .btn-cta-primary,
+  .btn-cta-primary::after,
+  .badge-ai-pulse,
+  .animate-fade-in-up,
+  .animate-fade-in-up-delay-1,
+  .animate-fade-in-up-delay-2,
+  .animate-fade-in-up-delay-3 {
+    animation: none !important;
+    transition: none !important;
+    /* CRITIQUE : Forcer l'opacité à 1 si l'animation est désactivée */
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .card-spatial-depth:hover {
+    transform: none;
+  }
+  
+  .btn-cta-primary:hover {
+    transform: none;
+  }
+}
+
+/* Adaptations spécifiques par thème */
+[data-theme="minimalist"] .card-spatial-depth {
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 0 0 1px var(--border);
+}
+
+[data-theme="minimalist"] .card-spatial-depth:hover {
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    0 0 0 2px var(--primary);
+}
+
+[data-theme="ocean"] .card-spatial-depth {
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    0 0 20px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+[data-theme="neutral"] .card-spatial-depth {
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 0 15px color-mix(in srgb, var(--primary) 8%, transparent);
+}

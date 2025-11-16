@@ -108,9 +108,20 @@ app = FastAPI(
 )
 
 # Middleware de sécurité
+# Protection supplémentaire : ne jamais utiliser "*" en production
+is_production = (
+    os.getenv("NODE_ENV") == "production" or 
+    os.getenv("ENVIRONMENT") == "production" or
+    os.getenv("MATH_TRAINER_PROFILE") == "prod"
+)
+allowed_hosts_for_cors = (
+    ["*"] if (settings.LOG_LEVEL == "DEBUG" and not is_production) 
+    else settings.BACKEND_CORS_ORIGINS
+)
+
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["*"] if settings.LOG_LEVEL == "DEBUG" else settings.BACKEND_CORS_ORIGINS
+    allowed_hosts=allowed_hosts_for_cors
 )
 
 # Middleware de logging pour les requêtes

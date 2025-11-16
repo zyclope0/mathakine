@@ -59,7 +59,7 @@ def get_users(
             "grade_level": user_db.grade_level,
             "learning_style": user_db.learning_style,
             "preferred_difficulty": user_db.preferred_difficulty,
-            "preferred_theme": user_db.preferred_theme or "light",  # Valeur par défaut si None
+            "preferred_theme": user_db.preferred_theme or "spatial",  # Valeur par défaut si None
             "accessibility_settings": user_db.accessibility_settings
         }
         users_response.append(user_dict)

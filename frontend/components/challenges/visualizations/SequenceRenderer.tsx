@@ -1,0 +1,115 @@
+'use client';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { TrendingUp, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+
+interface SequenceRendererProps {
+  visualData: any;
+  className?: string;
+  onAnswerChange?: (answer: string) => void;
+}
+
+/**
+ * Renderer pour les défis de type SEQUENCE.
+ * Affiche une séquence de manière interactive avec animation.
+ */
+export function SequenceRenderer({ visualData, className, onAnswerChange }: SequenceRendererProps) {
+  // Parser les données de séquence
+  const sequence = Array.isArray(visualData) 
+    ? visualData 
+    : visualData?.sequence 
+    ? visualData.sequence 
+    : visualData?.items
+    ? visualData.items
+    : [];
+
+  const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
+  const [nextValue, setNextValue] = useState<string>('');
+
+  if (!sequence || sequence.length === 0) {
+    return (
+      <Card className={`bg-card border-primary/20 ${className || ''}`}>
+        <CardContent className="p-4 text-center text-muted-foreground">
+          Aucune séquence disponible
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className={`bg-card border-primary/20 ${className || ''}`}>
+      <CardContent className="p-4">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <h4 className="text-sm font-semibold text-foreground">Séquence à analyser</h4>
+          </div>
+          
+          <div className="flex flex-wrap items-center justify-center gap-3 p-4 bg-muted/30 rounded-lg">
+            {sequence.map((item: any, index: number) => {
+              const isHighlighted = highlightedIndex === index;
+              const itemValue = typeof item === 'object' ? item.value || item.label || JSON.stringify(item) : String(item);
+              
+              return (
+                <div key={index} className="flex items-center gap-2">
+                  <motion.div
+                    className={`
+                      px-4 py-2 rounded-lg border-2 font-semibold text-lg
+                      transition-all cursor-pointer
+                      ${isHighlighted 
+                        ? 'bg-primary text-primary-foreground border-primary shadow-lg scale-110' 
+                        : 'bg-card text-foreground border-primary/30 hover:border-primary/50'
+                      }
+                    `}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setHighlightedIndex(isHighlighted ? null : index)}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    {itemValue}
+                  </motion.div>
+                  {index < sequence.length - 1 && (
+                    <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {visualData?.pattern && (
+            <div className="text-xs text-muted-foreground italic text-center">
+              Pattern suggéré: {visualData.pattern}
+            </div>
+          )}
+
+          {/* Zone de réponse pour le prochain élément */}
+          {onAnswerChange && (
+            <div className="space-y-2 pt-2 border-t border-primary/20">
+              <label className="text-sm font-medium text-foreground">
+                Quel est le prochain élément ?
+              </label>
+              <input
+                type="text"
+                value={nextValue}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setNextValue(value);
+                  if (onAnswerChange) {
+                    onAnswerChange(value);
+                  }
+                }}
+                placeholder="Entrez le prochain nombre..."
+                className="w-full px-3 py-2 rounded-lg border-2 border-primary/30 bg-card text-foreground focus:border-primary focus:outline-none"
+              />
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+

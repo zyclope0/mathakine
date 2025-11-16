@@ -64,10 +64,14 @@ Database:
   - SQLite (développement)
   - Migrations Alembic configurées
 Frontend:
-  - Templates Jinja2 (14 pages)
-  - Architecture CSS modulaire (16 fichiers)
-  - JavaScript vanilla intégré
-  - Thème Star Wars holographique
+  - Next.js 16.0.1 (App Router) - Frontend moderne principal
+  - TypeScript strict mode
+  - Tailwind CSS v4 + shadcn/ui
+  - TanStack Query + Zustand pour state management
+  - next-intl pour i18n (FR/EN)
+  - PWA avec service worker
+  - Templates Jinja2 (legacy - encore utilisé par backend Starlette pour certaines routes)
+  - Architecture CSS modulaire (legacy - dans /static)
 Tests:
   - pytest avec structure 4 niveaux
   - Scripts de diagnostic et maintenance

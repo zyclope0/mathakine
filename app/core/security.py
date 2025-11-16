@@ -36,7 +36,12 @@ def decode_token(token: str) -> dict:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[SecurityConfig.ALGORITHM])
         return payload
     except JWTError as e:
-        logger.error(f"Erreur lors du décodage du token: {str(e)}")
+        # Logger en debug plutôt qu'en error car c'est normal si le token est invalide/expiré
+        error_msg = str(e)
+        if "Signature verification failed" in error_msg:
+            logger.debug(f"Signature verification failed (token invalide ou expiré)")
+        else:
+            logger.debug(f"Erreur lors du décodage du token: {error_msg}")
         raise HTTPException(
             status_code=401,
             detail="Token invalide ou expiré"
@@ -89,6 +94,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     logger.debug(f"Hash à comparer: {hashed_password}")
     
     try:
+        # S'assurer que le mot de passe est une chaîne UTF-8 valide
+        if not isinstance(plain_password, str):
+            plain_password = str(plain_password)
+        
+        # Limiter la longueur à 72 bytes pour bcrypt (sécurité)
+        password_bytes = plain_password.encode('utf-8')
+        if len(password_bytes) > 72:
+            logger.warning(f"Mot de passe trop long ({len(password_bytes)} bytes), tronqué à 72 bytes")
+            plain_password = password_bytes[:72].decode('utf-8', errors='ignore')
+        
         result = pwd_context.verify(plain_password, hashed_password)
         logger.debug(f"Résultat de la vérification: {result}")
         return result

@@ -21,9 +21,10 @@ def normalize_exercise_type(exercise_type):
     for type_key, aliases in ExerciseTypes.TYPE_ALIASES.items():
         if exercise_type in aliases:
             return type_key
-            
-    # Si aucune correspondance trouvée, retourner le type tel quel
-    return exercise_type
+    
+    # Si aucune correspondance trouvée, logger un avertissement et retourner ADDITION par défaut
+    print(f"⚠️ Type d'exercice non reconnu: {exercise_type}, utilisation de ADDITION par défaut")
+    return ExerciseTypes.ADDITION
 
 def normalize_difficulty(difficulty):
     """Normalise le niveau de difficulté"""
@@ -39,6 +40,34 @@ def normalize_difficulty(difficulty):
             
     # Si aucune correspondance trouvée, retourner la difficulté telle quelle
     return difficulty
+
+
+def normalize_and_validate_exercise_params(exercise_type_raw: Optional[str], difficulty_raw: Optional[str]) -> tuple:
+    """
+    Normalise et valide les paramètres d'exercice de manière centralisée.
+    
+    Args:
+        exercise_type_raw: Type d'exercice brut (peut être None)
+        difficulty_raw: Difficulté brute (peut être None)
+    
+    Returns:
+        Tuple (exercise_type, difficulty) normalisés et validés
+    
+    Raises:
+        ValueError: Si les paramètres sont invalides après normalisation
+    """
+    from app.core.constants import ExerciseTypes
+    
+    # Normaliser les paramètres
+    exercise_type = normalize_exercise_type(exercise_type_raw)
+    difficulty = normalize_difficulty(difficulty_raw)
+    
+    # Valider que le type normalisé est valide
+    if exercise_type not in ExerciseTypes.ALL_TYPES:
+        print(f"⚠️ Type normalisé invalide: {exercise_type}, utilisation de ADDITION par défaut")
+        exercise_type = ExerciseTypes.ADDITION
+    
+    return exercise_type, difficulty
 
 # Fonctions de génération d'exercices
 def generate_ai_exercise(exercise_type, difficulty):
@@ -1107,7 +1136,232 @@ def generate_simple_exercise(exercise_type, difficulty):
         
         return exercise_data
 
+    elif normalized_type == ExerciseTypes.FRACTIONS:
+        # Génération d'un exercice sur les fractions
+        from fractions import Fraction
+        
+        if normalized_difficulty == DifficultyLevels.INITIE:
+            denominator = random.choice([2, 3, 4])
+            numerator = 1
+        elif normalized_difficulty == DifficultyLevels.PADAWAN:
+            denominator = random.choice([2, 3, 4, 5])
+            numerator = random.randint(1, denominator - 1)
+        elif normalized_difficulty == DifficultyLevels.CHEVALIER:
+            denominator = random.choice([4, 5, 6, 8])
+            numerator = random.randint(1, denominator - 1)
+        else:  # MAITRE
+            denominator = random.choice([6, 8, 9, 12])
+            numerator = random.randint(1, denominator - 1)
+        
+        question = f"Quelle fraction représente {numerator} part{'s' if numerator > 1 else ''} sur {denominator} ?"
+        correct_answer = f"{numerator}/{denominator}"
+        
+        choices = [
+            correct_answer,
+            f"{denominator}/{numerator}",  # Inversion
+            f"{numerator}/{denominator + 1}",  # Dénominateur incorrect
+            f"{numerator + 1}/{denominator}"  # Numérateur incorrect
+        ]
+        random.shuffle(choices)
+        
+        exercise_data.update({
+            "title": "Exercice sur les fractions",
+            "question": question,
+            "correct_answer": correct_answer,
+            "choices": choices,
+            "tags": Tags.ALGORITHMIC + "," + Tags.FRACTIONS,
+            "explanation": f"Une fraction représente une partie d'un tout. {numerator} part{'s' if numerator > 1 else ''} sur {denominator} s'écrit {correct_answer}."
+        })
+        return exercise_data
+
+    elif normalized_type == ExerciseTypes.GEOMETRIE:
+        # Génération d'un exercice de géométrie
+        import math
+        
+        if normalized_difficulty == DifficultyLevels.INITIE:
+            shape = random.choice(["carré", "rectangle"])
+            if shape == "carré":
+                side = random.randint(3, 10)
+                property_type = random.choice(["périmètre", "aire"])
+                if property_type == "périmètre":
+                    result = 4 * side
+                    question = f"Un carré a un côté de {side} cm. Quel est son périmètre ?"
+                    explanation = f"Le périmètre d'un carré = 4 × côté = 4 × {side} = {result} cm."
+                else:
+                    result = side * side
+                    question = f"Un carré a un côté de {side} cm. Quelle est son aire ?"
+                    explanation = f"L'aire d'un carré = côté × côté = {side} × {side} = {result} cm²."
+            else:  # rectangle
+                length = random.randint(4, 10)
+                width = random.randint(3, length - 1)
+                property_type = random.choice(["périmètre", "aire"])
+                if property_type == "périmètre":
+                    result = 2 * (length + width)
+                    question = f"Un rectangle mesure {length} cm de longueur et {width} cm de largeur. Quel est son périmètre ?"
+                    explanation = f"Le périmètre d'un rectangle = 2 × (longueur + largeur) = 2 × ({length} + {width}) = {result} cm."
+                else:
+                    result = length * width
+                    question = f"Un rectangle mesure {length} cm de longueur et {width} cm de largeur. Quelle est son aire ?"
+                    explanation = f"L'aire d'un rectangle = longueur × largeur = {length} × {width} = {result} cm²."
+        else:
+            shape = random.choice(["carré", "rectangle", "triangle", "cercle"])
+            property_type = random.choice(["périmètre", "aire"])
+            
+            if shape == "carré":
+                side = random.randint(5, 15)
+                if property_type == "périmètre":
+                    result = 4 * side
+                    question = f"Un carré a un côté de {side} cm. Quel est son périmètre ?"
+                    explanation = f"Le périmètre d'un carré = 4 × côté = 4 × {side} = {result} cm."
+                else:
+                    result = side * side
+                    question = f"Un carré a un côté de {side} cm. Quelle est son aire ?"
+                    explanation = f"L'aire d'un carré = côté² = {side}² = {result} cm²."
+            elif shape == "rectangle":
+                length = random.randint(6, 20)
+                width = random.randint(4, length - 1)
+                if property_type == "périmètre":
+                    result = 2 * (length + width)
+                    question = f"Un rectangle mesure {length} cm × {width} cm. Quel est son périmètre ?"
+                    explanation = f"Le périmètre = 2 × (longueur + largeur) = 2 × ({length} + {width}) = {result} cm."
+                else:
+                    result = length * width
+                    question = f"Un rectangle mesure {length} cm × {width} cm. Quelle est son aire ?"
+                    explanation = f"L'aire = longueur × largeur = {length} × {width} = {result} cm²."
+            elif shape == "triangle":
+                base = random.randint(5, 15)
+                height = random.randint(4, 12)
+                if property_type == "aire":
+                    result = (base * height) / 2
+                    question = f"Un triangle a une base de {base} cm et une hauteur de {height} cm. Quelle est son aire ?"
+                    explanation = f"L'aire d'un triangle = (base × hauteur) ÷ 2 = ({base} × {height}) ÷ 2 = {result} cm²."
+                else:
+                    hypotenuse = round(math.sqrt(base*base + height*height), 1)
+                    result = round(base + height + hypotenuse, 1)
+                    question = f"Un triangle rectangle a une base de {base} cm et une hauteur de {height} cm. Quel est son périmètre approximatif ?"
+                    explanation = f"Le périmètre ≈ base + hauteur + hypoténuse ≈ {base} + {height} + {hypotenuse} ≈ {result} cm."
+            else:  # cercle
+                radius = random.randint(3, 10)
+                if property_type == "périmètre":
+                    result = round(2 * math.pi * radius, 2)
+                    question = f"Un cercle a un rayon de {radius} cm. Quel est son périmètre ? (Utilise π ≈ 3.14)"
+                    explanation = f"Le périmètre d'un cercle = 2 × π × rayon = 2 × 3.14 × {radius} ≈ {result} cm."
+                else:
+                    result = round(math.pi * radius * radius, 2)
+                    question = f"Un cercle a un rayon de {radius} cm. Quelle est son aire ? (Utilise π ≈ 3.14)"
+                    explanation = f"L'aire d'un cercle = π × rayon² = 3.14 × {radius}² ≈ {result} cm²."
+        
+        choices = [
+            str(result),
+            str(round(result * 0.5, 2)),
+            str(round(result * 2, 2)),
+            str(round(result * 1.5, 2))
+        ]
+        random.shuffle(choices)
+        
+        exercise_data.update({
+            "title": "Exercice de géométrie",
+            "question": question,
+            "correct_answer": str(result),
+            "choices": choices,
+            "tags": Tags.ALGORITHMIC + "," + Tags.GEOMETRY,
+            "explanation": explanation
+        })
+        return exercise_data
+
+    elif normalized_type == ExerciseTypes.MIXTE:
+        # Génération d'un exercice mixte (combinaison d'opérations)
+        operation_types = [ExerciseTypes.ADDITION, ExerciseTypes.SUBTRACTION, 
+                          ExerciseTypes.MULTIPLICATION, ExerciseTypes.DIVISION]
+        chosen_operation = random.choice(operation_types)
+        
+        if chosen_operation == ExerciseTypes.ADDITION:
+            min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
+            num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
+            result = num1 + num2
+            question = f"Calcule : {num1} + {num2} = ?"
+            explanation = f"Pour additionner, on calcule {num1} + {num2} = {result}."
+        elif chosen_operation == ExerciseTypes.SUBTRACTION:
+            num1 = random.randint(type_limits.get("min1", 10), type_limits.get("max1", 20))
+            num2 = random.randint(type_limits.get("min2", 1), min(num1-1, type_limits.get("max2", 5)))
+            result = num1 - num2
+            question = f"Calcule : {num1} - {num2} = ?"
+            explanation = f"Pour soustraire, on calcule {num1} - {num2} = {result}."
+        elif chosen_operation == ExerciseTypes.MULTIPLICATION:
+            min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
+            num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
+            result = num1 * num2
+            question = f"Calcule : {num1} × {num2} = ?"
+            explanation = f"Pour multiplier, on calcule {num1} × {num2} = {result}."
+        else:  # DIVISION
+            num2 = random.randint(type_limits.get("min_divisor", 2), type_limits.get("max_divisor", 5))
+            result = random.randint(type_limits.get("min_result", 1), type_limits.get("max_result", 5))
+            num1 = num2 * result
+            question = f"Calcule : {num1} ÷ {num2} = ?"
+            explanation = f"Pour diviser, on calcule {num1} ÷ {num2} = {result}."
+        
+        choices = [
+            str(result),
+            str(result + random.randint(1, 3)),
+            str(max(1, result - random.randint(1, 3))),
+            str(result + random.randint(4, 6))
+        ]
+        random.shuffle(choices)
+        
+        exercise_data.update({
+            "title": "Exercice mixte",
+            "question": question,
+            "correct_answer": str(result),
+            "choices": choices,
+            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE,
+            "explanation": explanation
+        })
+        return exercise_data
+
+    elif normalized_type == ExerciseTypes.DIVERS:
+        # Génération d'un exercice divers (probabilités, séquences, etc.)
+        problem_type = random.choice(["sequence", "age", "monnaie"])
+        
+        if problem_type == "sequence":
+            start = random.randint(1, 5)
+            step = random.randint(1, 3)
+            sequence = [start + step*i for i in range(4)]
+            result = sequence[-1] + step
+            question = f"Quelle est la suite logique : {sequence[0]}, {sequence[1]}, {sequence[2]}, {sequence[3]}, ... ?"
+            explanation = f"Cette séquence augmente de {step} à chaque terme. Le terme suivant est donc {sequence[3]} + {step} = {result}."
+        elif problem_type == "age":
+            age_actuel = random.randint(8, 20)
+            années = random.randint(1, 10)
+            result = age_actuel + années
+            question = f"Si tu as {age_actuel} ans maintenant, quel âge auras-tu dans {années} ans ?"
+            explanation = f"Pour trouver l'âge futur, on additionne l'âge actuel et les années : {age_actuel} + {années} = {result} ans."
+        else:  # monnaie
+            pieces = random.randint(5, 20)
+            valeur_piece = random.randint(1, 5)
+            result = pieces * valeur_piece
+            question = f"Si tu as {pieces} pièces de {valeur_piece} crédits chacune, combien de crédits as-tu en tout ?"
+            explanation = f"Pour trouver le total, on multiplie le nombre de pièces par leur valeur : {pieces} × {valeur_piece} = {result} crédits."
+        
+        choices = [
+            str(result),
+            str(result + random.randint(1, 3)),
+            str(max(1, result - random.randint(1, 3))),
+            str(result + random.randint(4, 6))
+        ]
+        random.shuffle(choices)
+        
+        exercise_data.update({
+            "title": "Exercice divers",
+            "question": question,
+            "correct_answer": str(result),
+            "choices": choices,
+            "tags": Tags.ALGORITHMIC + "," + Tags.LOGIC,
+            "explanation": explanation
+        })
+        return exercise_data
+
     # Si aucun type correspondant, retourner un exercice d'addition par défaut
+    print(f"⚠️ Type d'exercice non géré dans generate_simple_exercise: {normalized_type}, utilisation de ADDITION par défaut")
     min_val = type_limits.get("min", 1)
     max_val = type_limits.get("max", 10)
     num1 = random.randint(min_val, max_val)
@@ -1115,7 +1369,7 @@ def generate_simple_exercise(exercise_type, difficulty):
     result = num1 + num2
     
     exercise_data.update({
-        "title": ExerciseMessages.TITLE_DEFAULT,
+        "title": ExerciseMessages.TITLE_DEFAULT if hasattr(ExerciseMessages, 'TITLE_DEFAULT') else "Exercice par défaut",
         "question": ExerciseMessages.QUESTION_ADDITION.format(num1=num1, num2=num2),
         "correct_answer": str(result),
         "choices": [str(result), str(result-1), str(result+1), str(result+2)],

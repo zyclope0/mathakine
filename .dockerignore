@@ -1,7 +1,10 @@
 # Environnements virtuels
 venv/
 ENV/
+env/
 .env
+.env.local
+.env.*.local
 
 # Fichiers temporaires Python
 __pycache__/
@@ -10,19 +13,149 @@ __pycache__/
 *.so
 .Python
 
-# Tests et documentation
+# Build/Cache Python
+build/
+dist/
+*.egg-info/
+.eggs/
+wheels/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Node (Frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js Build/Cache
+frontend/.next/
+frontend/out/
+frontend/.turbo/
+frontend/.swc/
+frontend/.vercel/
+frontend/node_modules/
+
+# Tests
 tests/
-docs/
-test_results/
-
-# Fichiers système
-.git
-.gitignore
-.dockerignore
-
-# Logs
-*.log
+frontend/__tests__/
+**/*.test.*
+**/*.spec.*
+**/test_*.py
+**/*_test.py
+coverage/
+playwright-report/
+test-results/
+frontend/vitest.config.ts
+frontend/playwright.config.ts
+pytest.ini
 .pytest_cache/
 
+# Documentation de développement
+docs/ARCHIVE/
+docs/archived/
+docs/AUDIT_*.md
+docs/CORRECTIONS_*.md
+docs/CLEANUP_*.md
+docs/development/
+docs/rapport/
+docs/TEST_*.md
+docs/TODO_*.md
+
+# Scripts de développement
+scripts/test_*.py
+scripts/dev_*.py
+scripts/phase5_*.py
+scripts/create_test_*.py
+scripts/check_test_*.py
+scripts/cleanup_test_*.py
+scripts/analyze_test_*.py
+scripts/test_*.py
+scripts/utils/.env_test_validation
+scripts/utils/*.bat
+scripts/utils/*.ps1
+scripts/server/*.bat
+scripts/server/*.ps1
+scripts/setup/*.bat
+scripts/setup/*.ps1
+
+# Archives et backups
+archives/
+backups/
+*.sql.gz
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Fichiers système
+.git/
+.gitignore
+.dockerignore
+*.md
+!README.md
+
+# Sources et fichiers temporaires
+sources/
+*.bak
+*.backup
+*.tmp
+*.temp
+tmp/
+temp/
+.temp/
+
 # Base de données de développement
-math_trainer.db 
+*.db
+*.sqlite
+math_trainer.db
+mathakine.db
+
+# Fichiers de configuration locaux
+*.local.py
+config.local.py
+.env.test
+.env.prod
+.env.staging
+
+# Fichiers de déploiement sensibles
+*.pem
+*.key
+*.crt
+*.cert
+
+# Fichiers de migration (garder seulement les versions)
+migrations/versions/*
+!migrations/versions/.gitkeep
+
+# Fichiers de vérification
+check_*.py
+check-*.ps1
+check-*.bat
+
+# Scripts de démarrage locaux
+start-frontend.bat
+start-frontend.sh
+
+# Fichiers de configuration dev
+setup.cfg
+alembic.ini

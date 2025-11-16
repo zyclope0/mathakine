@@ -235,6 +235,37 @@ async def handle_recommendation_complete(request):
             status_code=500
         )
 
+async def api_logout(request):
+    """
+    API pour la déconnexion de l'utilisateur.
+    Route: /api/auth/logout
+    """
+    try:
+        # Créer une réponse JSON
+        response = JSONResponse({
+            "detail": "Déconnecté avec succès",
+            "message": "Déconnexion réussie"
+        })
+        
+        # Supprimer les cookies d'authentification
+        response.delete_cookie("access_token", path="/")
+        response.delete_cookie("refresh_token", path="/")
+        
+        print("Déconnexion API réussie")
+        return response
+        
+    except Exception as e:
+        print(f"Erreur lors de la déconnexion: {str(e)}")
+        traceback.print_exc()
+        # Même en cas d'erreur, on supprime les cookies
+        response = JSONResponse({
+            "detail": "Déconnexion effectuée",
+            "message": "Déconnexion réussie"
+        })
+        response.delete_cookie("access_token", path="/")
+        response.delete_cookie("refresh_token", path="/")
+        return response
+
 async def api_forgot_password(request):
     """
     API pour la demande de réinitialisation de mot de passe.

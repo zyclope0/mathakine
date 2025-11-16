@@ -9,8 +9,12 @@ import sys
 import traceback
 import psycopg2
 from loguru import logger
+from dotenv import load_dotenv
 
 from app.db.queries import ExerciseQueries, ResultQueries, UserStatsQueries
+
+# Charger les variables d'environnement depuis .env
+load_dotenv(override=True)
 
 def get_database_url() -> str:
     """
@@ -19,10 +23,22 @@ def get_database_url() -> str:
     Returns:
         Database URL as a string
     """
+    # Essayer d'abord la variable d'environnement DATABASE_URL
     db_url = os.environ.get("DATABASE_URL", "")
+    
+    # Si pas définie, construire depuis les variables individuelles
     if not db_url:
-        logger.error("DATABASE_URL environment variable not set")
+        postgres_server = os.getenv("POSTGRES_SERVER", "localhost")
+        postgres_user = os.getenv("POSTGRES_USER", "postgres")
+        postgres_password = os.getenv("POSTGRES_PASSWORD", "postgres")
+        postgres_db = os.getenv("POSTGRES_DB", "mathakine")
+        db_url = f"postgresql://{postgres_user}:{postgres_password}@{postgres_server}/{postgres_db}"
+        logger.info(f"Using default DATABASE_URL: postgresql://{postgres_user}:***@{postgres_server}/{postgres_db}")
+    
+    if not db_url:
+        logger.error("DATABASE_URL environment variable not set and no defaults available")
         sys.exit(1)
+    
     return db_url
 
 def get_db_connection():

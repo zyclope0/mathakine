@@ -16,6 +16,58 @@ from app.models.logic_challenge import LogicChallenge
 from app.db.base import SessionLocal
 
 from loguru import logger
+import json
+
+
+def _serialize_exercise(exercise: Exercise) -> Dict[str, Any]:
+    """
+    Helper pour sérialiser un objet Exercise en dictionnaire JSON-sérialisable.
+    
+    Args:
+        exercise: Objet Exercise SQLAlchemy
+        
+    Returns:
+        Dictionnaire sérialisable en JSON
+    """
+    # Convertir les énumérations en strings
+    exercise_type_value = exercise.exercise_type.value if hasattr(exercise.exercise_type, 'value') else str(exercise.exercise_type)
+    difficulty_value = exercise.difficulty.value if hasattr(exercise.difficulty, 'value') else str(exercise.difficulty)
+    
+    # Convertir les dates en ISO format strings
+    created_at_str = exercise.created_at.isoformat() if exercise.created_at else None
+    updated_at_str = exercise.updated_at.isoformat() if exercise.updated_at else None
+    
+    # Gérer les choices (peut être JSON string ou list)
+    choices_value = exercise.choices
+    if isinstance(choices_value, str):
+        try:
+            choices_value = json.loads(choices_value)
+        except (json.JSONDecodeError, TypeError):
+            choices_value = []
+    elif choices_value is None:
+        choices_value = []
+    
+    return {
+        'id': exercise.id,
+        'title': exercise.title,
+        'creator_id': exercise.creator_id,
+        'exercise_type': exercise_type_value,
+        'difficulty': difficulty_value,
+        'tags': exercise.tags,
+        'question': exercise.question,
+        'correct_answer': exercise.correct_answer,
+        'choices': choices_value,
+        'explanation': exercise.explanation,
+        'hint': exercise.hint,
+        'image_url': exercise.image_url,
+        'audio_url': exercise.audio_url,
+        'is_active': exercise.is_active,
+        'is_archived': exercise.is_archived,
+        'ai_generated': getattr(exercise, 'ai_generated', False),
+        'view_count': exercise.view_count or 0,
+        'created_at': created_at_str,
+        'updated_at': updated_at_str,
+    }
 
 
 class EnhancedServerAdapter:
@@ -60,27 +112,7 @@ class EnhancedServerAdapter:
         """
         exercise = ExerciseService.get_exercise(db, exercise_id)
         if exercise:
-            # Convertir l'objet SQLAlchemy en dictionnaire
-            return {
-                'id': exercise.id,
-                'title': exercise.title,
-                'creator_id': exercise.creator_id,
-                'exercise_type': exercise.exercise_type,
-                'difficulty': exercise.difficulty,
-                'tags': exercise.tags,
-                'question': exercise.question,
-                'correct_answer': exercise.correct_answer,
-                'choices': exercise.choices,
-                'explanation': exercise.explanation,
-                'hint': exercise.hint,
-                'image_url': exercise.image_url,
-                'audio_url': exercise.audio_url,
-                'is_active': exercise.is_active,
-                'is_archived': exercise.is_archived,
-                'view_count': exercise.view_count,
-                'created_at': exercise.created_at,
-                'updated_at': exercise.updated_at
-            }
+            return _serialize_exercise(exercise)
         return None
     
     @staticmethod
@@ -109,30 +141,8 @@ class EnhancedServerAdapter:
             limit=limit
         )
         
-        # Convertir les objets SQLAlchemy en dictionnaires
-        return [
-            {
-                'id': ex.id,
-                'title': ex.title,
-                'creator_id': ex.creator_id,
-                'exercise_type': ex.exercise_type,
-                'difficulty': ex.difficulty,
-                'tags': ex.tags,
-                'question': ex.question,
-                'correct_answer': ex.correct_answer,
-                'choices': ex.choices,
-                'explanation': ex.explanation,
-                'hint': ex.hint,
-                'image_url': ex.image_url,
-                'audio_url': ex.audio_url,
-                'is_active': ex.is_active,
-                'is_archived': ex.is_archived,
-                'view_count': ex.view_count,
-                'created_at': ex.created_at,
-                'updated_at': ex.updated_at
-            }
-            for ex in exercises
-        ]
+        # Convertir les objets SQLAlchemy en dictionnaires avec sérialisation des dates
+        return [_serialize_exercise(ex) for ex in exercises]
     
     @staticmethod
     def create_exercise(db: Session, exercise_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -148,26 +158,7 @@ class EnhancedServerAdapter:
         """
         exercise = ExerciseService.create_exercise(db, exercise_data)
         if exercise:
-            return {
-                'id': exercise.id,
-                'title': exercise.title,
-                'creator_id': exercise.creator_id,
-                'exercise_type': exercise.exercise_type,
-                'difficulty': exercise.difficulty,
-                'tags': exercise.tags,
-                'question': exercise.question,
-                'correct_answer': exercise.correct_answer,
-                'choices': exercise.choices,
-                'explanation': exercise.explanation,
-                'hint': exercise.hint,
-                'image_url': exercise.image_url,
-                'audio_url': exercise.audio_url,
-                'is_active': exercise.is_active,
-                'is_archived': exercise.is_archived,
-                'view_count': exercise.view_count,
-                'created_at': exercise.created_at,
-                'updated_at': exercise.updated_at
-            }
+            return _serialize_exercise(exercise)
         return None
     
     @staticmethod
@@ -182,15 +173,16 @@ class EnhancedServerAdapter:
         explanation: str,
         hint: Optional[str] = None,
         tags: Optional[str] = None,
-        ai_generated: bool = False
+        ai_generated: bool = False,
+        locale: str = "fr"
     ) -> Optional[Dict[str, Any]]:
         """
-        Crée un nouvel exercice généré.
+        Crée un nouvel exercice généré avec support des traductions.
         Cette méthode est spécifiquement conçue pour les fonctions de génération d'exercices
         dans enhanced_server.py.
         
         Args:
-            db: Session de base de données
+            db: Session de base de données (non utilisée, conservée pour compatibilité)
             exercise_type: Type d'exercice
             difficulty: Niveau de difficulté
             title: Titre de l'exercice
@@ -201,10 +193,13 @@ class EnhancedServerAdapter:
             hint: Indice (optionnel)
             tags: Tags (optionnel)
             ai_generated: Si l'exercice a été généré par IA
+            locale: Locale pour la création des traductions (défaut: "fr")
             
         Returns:
             Un dictionnaire contenant les données de l'exercice créé ou None
         """
+        from app.services.exercise_service_translations import create_exercise_with_translations
+        
         exercise_data = {
             'title': title,
             'exercise_type': exercise_type,
@@ -217,11 +212,12 @@ class EnhancedServerAdapter:
             'tags': tags or "generated",
             'ai_generated': ai_generated,
             'is_active': True,
-            'is_archived': False
+            'is_archived': False,
+            'view_count': 0
         }
         
-        logger.info(f"Création d'un exercice généré de type {exercise_type}, difficulté {difficulty}")
-        return EnhancedServerAdapter.create_exercise(db, exercise_data)
+        logger.info(f"Création d'un exercice généré de type {exercise_type}, difficulté {difficulty} avec traductions (locale: {locale})")
+        return create_exercise_with_translations(exercise_data, locale=locale)
     
     @staticmethod
     def update_exercise(db: Session, exercise_id: int, exercise_data: Dict[str, Any]) -> bool:
@@ -255,44 +251,35 @@ class EnhancedServerAdapter:
     @staticmethod
     def record_attempt(db: Session, attempt_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
-        Enregistre une tentative de résolution d'exercice.
+        Enregistre une tentative de résolution d'exercice avec PostgreSQL direct.
         
         Args:
-            db: Session de base de données
+            db: Session de base de données (non utilisée, conservée pour compatibilité)
             attempt_data: Données de la tentative
             
         Returns:
             Un dictionnaire contenant les données de la tentative créée ou None
         """
-        attempt = ExerciseService.record_attempt(db, attempt_data)
-        if attempt:
-            return {
-                'id': attempt.id,
-                'user_id': attempt.user_id,
-                'exercise_id': attempt.exercise_id,
-                'user_answer': attempt.user_answer,
-                'is_correct': attempt.is_correct,
-                'time_spent': attempt.time_spent,
-                'attempt_number': attempt.attempt_number,
-                'hints_used': attempt.hints_used,
-                'device_info': attempt.device_info,
-                'created_at': attempt.created_at
-            }
-        return None
+        # Utiliser PostgreSQL direct au lieu de SQLAlchemy
+        from app.services.attempt_service_translations import create_attempt_with_postgres
+        
+        attempt = create_attempt_with_postgres(attempt_data)
+        return attempt
     
     @staticmethod
-    def get_user_stats(db: Session, user_id: int) -> Dict[str, Any]:
+    def get_user_stats(db: Session, user_id: int, time_range: str = "30") -> Dict[str, Any]:
         """
         Récupère les statistiques d'un utilisateur.
         
         Args:
             db: Session de base de données
             user_id: ID de l'utilisateur
+            time_range: Période de temps ("7", "30", "90", "all")
             
         Returns:
             Un dictionnaire contenant les statistiques de l'utilisateur
         """
-        return UserService.get_user_stats(db, user_id)
+        return UserService.get_user_stats(db, user_id, time_range=time_range)
     
     @staticmethod
     def execute_raw_query(db: Session, query: str, params: tuple = None) -> List[Dict[str, Any]]:

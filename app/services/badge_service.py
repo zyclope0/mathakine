@@ -110,7 +110,7 @@ class BadgeService:
             return self._check_consecutive_success(
                 user_id, 
                 requirements.get('exercise_type', 'addition'),
-                requirements.get('streak', 20)
+                requirements.get('consecutive_correct', 20)
             )
         
         # BADGE: Éclair de Vitesse (exercice en moins de 5 secondes)
@@ -130,6 +130,85 @@ class BadgeService:
         # BADGE: Journée Parfaite (tous les exercices d'une journée réussis)
         elif badge.code == 'perfect_day':
             return self._check_perfect_day(user_id)
+        
+        # BADGE: Maître Jedi (100 tentatives)
+        elif badge.code == 'jedi_master':
+            attempts_count = self.db.query(func.count(Attempt.id)).filter(
+                Attempt.user_id == user_id
+            ).scalar()
+            return attempts_count >= requirements.get('attempts_count', 100)
+        
+        # BADGE: Grand Maître (200 tentatives)
+        elif badge.code == 'grand_master':
+            attempts_count = self.db.query(func.count(Attempt.id)).filter(
+                Attempt.user_id == user_id
+            ).scalar()
+            return attempts_count >= requirements.get('attempts_count', 200)
+        
+        # BADGE: Maître des Soustractions (15 soustractions consécutives)
+        elif badge.code == 'subtraction_master':
+            return self._check_consecutive_success(
+                user_id,
+                requirements.get('exercise_type', 'soustraction'),
+                requirements.get('consecutive_correct', 15)
+            )
+        
+        # BADGE: Maître des Multiplications (15 multiplications consécutives)
+        elif badge.code == 'multiplication_master':
+            return self._check_consecutive_success(
+                user_id,
+                requirements.get('exercise_type', 'multiplication'),
+                requirements.get('consecutive_correct', 15)
+            )
+        
+        # BADGE: Maître des Divisions (15 divisions consécutives)
+        elif badge.code == 'division_master':
+            return self._check_consecutive_success(
+                user_id,
+                requirements.get('exercise_type', 'division'),
+                requirements.get('consecutive_correct', 15)
+            )
+        
+        # BADGE: Expert (taux de réussite ≥ 80% sur 50 tentatives)
+        elif badge.code == 'expert':
+            return self._check_success_rate(
+                user_id,
+                requirements.get('success_rate', 80),
+                requirements.get('min_attempts', 50)
+            )
+        
+        # BADGE: Perfectionniste (taux de réussite ≥ 95% sur 30 tentatives)
+        elif badge.code == 'perfectionist':
+            return self._check_success_rate(
+                user_id,
+                requirements.get('success_rate', 95),
+                requirements.get('min_attempts', 30)
+            )
+        
+        # BADGE: Semaine Parfaite (7 jours consécutifs)
+        elif badge.code == 'perfect_week':
+            return self._check_consecutive_days(
+                user_id,
+                requirements.get('consecutive_days', 7)
+            )
+        
+        # BADGE: Mois Parfait (30 jours consécutifs)
+        elif badge.code == 'perfect_month':
+            return self._check_consecutive_days(
+                user_id,
+                requirements.get('consecutive_days', 30)
+            )
+        
+        # BADGE: Explorateur (essayer tous les types d'exercices)
+        elif badge.code == 'explorer':
+            return self._check_all_exercise_types(user_id)
+        
+        # BADGE: Polyvalent (réussir au moins 5 exercices de chaque type)
+        elif badge.code == 'versatile':
+            return self._check_min_per_type(
+                user_id,
+                requirements.get('min_per_type', 5)
+            )
         
         return False
     
@@ -188,6 +267,126 @@ class BadgeService:
         
         # Tous les exercices doivent être réussis ET au moins 3 exercices
         return today_attempts.correct == today_attempts.total and today_attempts.total >= 3
+    
+    def _check_success_rate(self, user_id: int, min_success_rate: float, min_attempts: int) -> bool:
+        """Vérifier si l'utilisateur atteint un taux de réussite minimum sur un nombre minimum de tentatives"""
+        
+        stats = self.db.execute(text("""
+            SELECT 
+                COUNT(*) as total,
+                COUNT(CASE WHEN is_correct THEN 1 END) as correct
+            FROM attempts
+            WHERE user_id = :user_id
+        """), {
+            "user_id": user_id
+        }).fetchone()
+        
+        if not stats or stats.total < min_attempts:
+            return False
+        
+        success_rate = (stats.correct / stats.total) * 100
+        return success_rate >= min_success_rate
+    
+    def _check_consecutive_days(self, user_id: int, required_days: int) -> bool:
+        """Vérifier si l'utilisateur a fait des exercices pendant X jours consécutifs"""
+        
+        # Récupérer les jours uniques avec des tentatives, triés par date décroissante
+        days = self.db.execute(text("""
+            SELECT DISTINCT DATE(created_at) as day
+            FROM attempts
+            WHERE user_id = :user_id
+            ORDER BY day DESC
+            LIMIT :limit
+        """), {
+            "user_id": user_id,
+            "limit": required_days + 1  # Prendre un jour de plus pour vérifier la continuité
+        }).fetchall()
+        
+        if len(days) < required_days:
+            return False
+        
+        # Vérifier que les jours sont consécutifs
+        today = datetime.now(timezone.utc).date()
+        consecutive_count = 0
+        
+        for i, day_row in enumerate(days):
+            day = day_row.day if hasattr(day_row, 'day') else day_row[0]
+            expected_date = today - timedelta(days=i)
+            
+            if day == expected_date:
+                consecutive_count += 1
+            else:
+                break
+        
+        return consecutive_count >= required_days
+    
+    def _check_all_exercise_types(self, user_id: int) -> bool:
+        """Vérifier si l'utilisateur a essayé tous les types d'exercices disponibles"""
+        
+        # Récupérer tous les types d'exercices disponibles
+        all_types = self.db.execute(text("""
+            SELECT DISTINCT exercise_type
+            FROM exercises
+            WHERE is_active = true AND is_archived = false
+        """)).fetchall()
+        
+        if not all_types:
+            return False
+        
+        all_types_set = {row.exercise_type if hasattr(row, 'exercise_type') else row[0] for row in all_types}
+        
+        # Récupérer les types d'exercices que l'utilisateur a essayés
+        user_types = self.db.execute(text("""
+            SELECT DISTINCT e.exercise_type
+            FROM attempts a
+            JOIN exercises e ON a.exercise_id = e.id
+            WHERE a.user_id = :user_id
+        """), {
+            "user_id": user_id
+        }).fetchall()
+        
+        user_types_set = {row.exercise_type if hasattr(row, 'exercise_type') else row[0] for row in user_types}
+        
+        # Normaliser les types (lowercase pour comparaison)
+        all_types_normalized = {str(t).lower() for t in all_types_set}
+        user_types_normalized = {str(t).lower() for t in user_types_set}
+        
+        return all_types_normalized.issubset(user_types_normalized)
+    
+    def _check_min_per_type(self, user_id: int, min_count: int) -> bool:
+        """Vérifier si l'utilisateur a réussi au moins X exercices de chaque type"""
+        
+        # Récupérer tous les types d'exercices disponibles
+        all_types = self.db.execute(text("""
+            SELECT DISTINCT exercise_type
+            FROM exercises
+            WHERE is_active = true AND is_archived = false
+        """)).fetchall()
+        
+        if not all_types:
+            return False
+        
+        all_types_set = {row.exercise_type if hasattr(row, 'exercise_type') else row[0] for row in all_types}
+        
+        # Pour chaque type, vérifier si l'utilisateur a réussi au moins min_count exercices
+        for ex_type in all_types_set:
+            success_count = self.db.execute(text("""
+                SELECT COUNT(*) as count
+                FROM attempts a
+                JOIN exercises e ON a.exercise_id = e.id
+                WHERE a.user_id = :user_id
+                AND LOWER(e.exercise_type::text) = LOWER(:exercise_type)
+                AND a.is_correct = true
+            """), {
+                "user_id": user_id,
+                "exercise_type": str(ex_type)
+            }).fetchone()
+            
+            count = success_count.count if hasattr(success_count, 'count') else success_count[0]
+            if count < min_count:
+                return False
+        
+        return True
     
     def _award_badge(self, user_id: int, badge: Achievement) -> Optional[Dict[str, Any]]:
         """Attribuer un badge à un utilisateur"""
