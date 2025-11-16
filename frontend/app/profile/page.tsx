@@ -917,7 +917,16 @@ function ProfilePageContent() {
             className="animate-fade-in-up-delay-4"
           >
             <div className="grid gap-4 md:grid-cols-2">
-              {stats.level && <LevelIndicator level={stats.level} />}
+              {stats.level && stats.xp !== undefined && stats.next_level_xp !== undefined && (
+                <LevelIndicator 
+                  level={{
+                    current: stats.level,
+                    title: `Niveau ${stats.level}`,
+                    current_xp: stats.xp,
+                    next_level_xp: stats.next_level_xp,
+                  }} 
+                />
+              )}
               <Card className="transition-all duration-300 hover:shadow-lg hover:border-primary/20">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
