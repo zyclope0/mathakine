@@ -14,7 +14,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
+import { Badge as UIBadge } from '@/components/ui/badge';
+import type { Badge } from '@/types/api';
 import { 
   User, 
   Mail, 
@@ -998,7 +999,7 @@ function ProfilePageContent() {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <Award className="h-8 w-8 text-primary" />
-                      <Badge variant="secondary" className="font-semibold">{badge.points} pts</Badge>
+                      <UIBadge variant="secondary" className="font-semibold">{badge.points} pts</UIBadge>
                     </div>
                     <CardTitle className="text-lg mt-2">{badge.name}</CardTitle>
                     <CardDescription className="mt-1">{badge.description}</CardDescription>
