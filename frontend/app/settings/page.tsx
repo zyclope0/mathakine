@@ -57,11 +57,19 @@ function SettingsPageContent() {
     timezone: user?.timezone || 'UTC',
   });
 
+  const getNotificationPref = (key: string): boolean => {
+    const prefs = user?.accessibility_settings?.notification_preferences;
+    if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
+      return (prefs as Record<string, boolean>)[key] ?? (key === 'news' ? false : true);
+    }
+    return key === 'news' ? false : true;
+  };
+
   const [notificationSettings, setNotificationSettings] = useState({
-    achievements: (typeof user?.accessibility_settings?.notification_preferences === 'object' && user?.accessibility_settings?.notification_preferences?.achievements) ?? true,
-    progress: (typeof user?.accessibility_settings?.notification_preferences === 'object' && user?.accessibility_settings?.notification_preferences?.progress) ?? true,
-    recommendations: (typeof user?.accessibility_settings?.notification_preferences === 'object' && user?.accessibility_settings?.notification_preferences?.recommendations) ?? true,
-    news: (typeof user?.accessibility_settings?.notification_preferences === 'object' && user?.accessibility_settings?.notification_preferences?.news) ?? false,
+    achievements: getNotificationPref('achievements'),
+    progress: getNotificationPref('progress'),
+    recommendations: getNotificationPref('recommendations'),
+    news: getNotificationPref('news'),
   });
 
   const [privacySettings, setPrivacySettings] = useState({
@@ -102,11 +110,18 @@ function SettingsPageContent() {
         data_retention_consent: user.data_retention_consent ?? true,
         marketing_consent: user.marketing_consent || false,
       });
+      const getPref = (key: string): boolean => {
+        const prefs = user.accessibility_settings?.notification_preferences;
+        if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
+          return (prefs as Record<string, boolean>)[key] ?? (key === 'news' ? false : true);
+        }
+        return key === 'news' ? false : true;
+      };
       setNotificationSettings({
-        achievements: (typeof user.accessibility_settings?.notification_preferences === 'object' && user.accessibility_settings?.notification_preferences?.achievements) ?? true,
-        progress: (typeof user.accessibility_settings?.notification_preferences === 'object' && user.accessibility_settings?.notification_preferences?.progress) ?? true,
-        recommendations: (typeof user.accessibility_settings?.notification_preferences === 'object' && user.accessibility_settings?.notification_preferences?.recommendations) ?? true,
-        news: (typeof user.accessibility_settings?.notification_preferences === 'object' && user.accessibility_settings?.notification_preferences?.news) ?? false,
+        achievements: getPref('achievements'),
+        progress: getPref('progress'),
+        recommendations: getPref('recommendations'),
+        news: getPref('news'),
       });
 
       lastSyncedUserId.current = user.id;
