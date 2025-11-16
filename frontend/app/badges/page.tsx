@@ -13,7 +13,7 @@ import { useTranslations } from 'next-intl';
 import { PageLayout, PageHeader, PageSection, LoadingState } from '@/components/layout';
 
 function getJediRankInfo(rank: string, t: any): { title: string; icon: string; color: string } {
-  const icons: Record<string, string> = {
+  const icons = {
     youngling: '🌟',
     padawan: '⚔️',
     knight: '🗡️',
@@ -21,7 +21,7 @@ function getJediRankInfo(rank: string, t: any): { title: string; icon: string; c
     grand_master: '✨',
   };
   
-  const colors: Record<string, string> = {
+  const colors = {
     youngling: 'text-yellow-400',
     padawan: 'text-blue-400',
     knight: 'text-green-400',
@@ -31,8 +31,8 @@ function getJediRankInfo(rank: string, t: any): { title: string; icon: string; c
   
   return {
     title: t(`jediRanks.${rank}`) || t('jediRanks.youngling'),
-    icon: icons[rank] ?? icons.youngling,
-    color: colors[rank] ?? colors.youngling,
+    icon: icons[rank as keyof typeof icons] ?? icons.youngling,
+    color: colors[rank as keyof typeof colors] ?? colors.youngling,
   };
 }
 
