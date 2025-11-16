@@ -198,9 +198,18 @@ export default function DashboardPage() {
             </PageSection>
 
             {/* Activité récente */}
-            {stats.recent_activity && (
+            {stats.recent_activity && stats.recent_activity.length > 0 && (
               <PageSection className="space-y-3 animate-fade-in-up-delay-3">
-                <RecentActivity activities={stats.recent_activity} />
+                <RecentActivity 
+                  activities={stats.recent_activity.map(activity => ({
+                    id: activity.id,
+                    type: activity.type,
+                    description: `${activity.type} complété`,
+                    completed_at: activity.completed_at,
+                    time: new Date(activity.completed_at).toLocaleString('fr-FR'),
+                    score: activity.score,
+                  }))} 
+                />
               </PageSection>
             )}
           </>
