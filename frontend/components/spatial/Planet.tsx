@@ -67,7 +67,10 @@ export function Planet() {
     },
   };
 
-  const colors = planetColors[theme] || planetColors.spatial;
+  const colors = planetColors[theme] || planetColors.spatial || {
+    bg: 'radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.8), rgba(124, 58, 237, 0.6), rgba(79, 70, 229, 0.4))',
+    glow: 'rgba(139, 92, 246, 0.3)',
+  };
 
   // Ne pas rendre si mode Focus ou reduced motion
   if (focusMode || reducedMotion) {

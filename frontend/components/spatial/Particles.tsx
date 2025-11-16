@@ -43,7 +43,7 @@ export function Particles() {
       neutral: 'rgba(107, 114, 128, 0.2)', // Gris
     };
 
-    const particleColor = themeColors[theme] || themeColors.spatial;
+    const particleColor = themeColors[theme] || themeColors.spatial || 'rgba(139, 92, 246, 0.3)';
 
     // Créer les particules
     const particleCount = 50;

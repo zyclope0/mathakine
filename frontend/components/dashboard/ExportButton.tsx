@@ -5,6 +5,7 @@ import { FileText, FileSpreadsheet } from 'lucide-react';
 import { exportStatsToPDF } from '@/lib/utils/exportPDF';
 import { exportStatsToExcel } from '@/lib/utils/exportExcel';
 import { useUserStats } from '@/hooks/useUserStats';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 
@@ -14,6 +15,7 @@ interface ExportButtonProps {
 
 export function ExportButton({ timeRange = '30' }: ExportButtonProps) {
   const { stats } = useUserStats(timeRange);
+  const { user } = useAuth();
   const t = useTranslations('dashboard.export');
   
   const handleExportPDF = async () => {
@@ -24,8 +26,15 @@ export function ExportButton({ timeRange = '30' }: ExportButtonProps) {
       return;
     }
     
+    if (!user) {
+      toast.error(t('noUser', { default: 'Utilisateur non connecté' }), {
+        description: t('noUserDescription', { default: 'Veuillez vous connecter pour exporter vos statistiques.' }),
+      });
+      return;
+    }
+    
     try {
-      await exportStatsToPDF(stats);
+      await exportStatsToPDF(stats, user.username);
       toast.success(t('pdfSuccess', { default: 'Export PDF réussi !' }), {
         description: t('pdfSuccessDescription', { default: 'Votre rapport a été téléchargé.' }),
       });
@@ -46,8 +55,15 @@ export function ExportButton({ timeRange = '30' }: ExportButtonProps) {
       return;
     }
     
+    if (!user) {
+      toast.error(t('noUser', { default: 'Utilisateur non connecté' }), {
+        description: t('noUserDescription', { default: 'Veuillez vous connecter pour exporter vos statistiques.' }),
+      });
+      return;
+    }
+    
     try {
-      exportStatsToExcel(stats);
+      exportStatsToExcel(stats, user.username);
       toast.success(t('excelSuccess', { default: 'Export Excel réussi !' }), {
         description: t('excelSuccessDescription', { default: 'Votre fichier Excel a été téléchargé.' }),
       });

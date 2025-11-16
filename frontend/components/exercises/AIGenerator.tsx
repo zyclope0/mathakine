@@ -47,7 +47,7 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
       difficulty: difficulty,
     });
 
-    if (!validation.isValid) {
+    if (!validation.valid) {
       toast.error(t('aiGenerator.validationError'), {
         description: validation.errors.join(', '),
       });
@@ -57,7 +57,7 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
     // Valider le prompt personnalisé si fourni
     if (customPrompt.trim()) {
       const promptValidation = validateAIPrompt(customPrompt.trim());
-      if (!promptValidation.isValid) {
+      if (!promptValidation.valid) {
         toast.error(t('aiGenerator.promptValidationError'), {
           description: promptValidation.errors.join(', '),
         });

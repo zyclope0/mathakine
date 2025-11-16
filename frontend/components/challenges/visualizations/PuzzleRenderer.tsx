@@ -34,6 +34,12 @@ interface SortableItemProps {
   index: number;
 }
 
+interface PuzzleItem {
+  id: string;
+  value: string;
+  original: any;
+}
+
 function SortableItem({ id, value, index }: SortableItemProps) {
   const {
     attributes,
@@ -76,17 +82,17 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
   const pieces = visualData?.pieces || visualData?.items || visualData?.parts || [];
   
   // Initialiser les items avec un ordre mélangé pour rendre le puzzle intéressant
-  const initialItems = pieces.map((p: any, i: number) => ({
+  const initialItems: PuzzleItem[] = pieces.map((p: any, i: number) => ({
     id: `item-${i}`,
     value: typeof p === 'object' ? p.value || p.label || JSON.stringify(p) : String(p),
     original: p,
   }));
   
-  const [items, setItems] = useState(initialItems);
+  const [items, setItems] = useState<PuzzleItem[]>(initialItems);
   
   // Réinitialiser l'ordre quand visualData change
   useEffect(() => {
-    const newItems = pieces.map((p: any, i: number) => ({
+    const newItems: PuzzleItem[] = pieces.map((p: any, i: number) => ({
       id: `item-${i}`,
       value: typeof p === 'object' ? p.value || p.label || JSON.stringify(p) : String(p),
       original: p,
@@ -94,7 +100,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
     setItems(newItems);
     // Notifier le parent du nouvel ordre initial
     if (onOrderChangeRef.current) {
-      const order = newItems.map(item => item.value);
+      const order = newItems.map((item: PuzzleItem) => item.value);
       onOrderChangeRef.current(order);
     }
   }, [pieces.length, visualData]);

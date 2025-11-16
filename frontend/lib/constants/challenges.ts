@@ -136,11 +136,11 @@ export function getAgeGroupDisplay(value: string | null | undefined): string {
  * Gère automatiquement la normalisation
  */
 export function getAgeGroupColor(value: string | null | undefined): string {
-  if (!value) return AGE_GROUP_COLORS['all'];
+  if (!value) return AGE_GROUP_COLORS['all'] || 'bg-blue-500/20 text-blue-300 border-blue-500/30';
   
   // Essayer directement avec la valeur brute (pour les cas comme '10-12', 'GROUP_10_12', etc.)
   if (value in AGE_GROUP_COLORS) {
-    return AGE_GROUP_COLORS[value];
+    return AGE_GROUP_COLORS[value] || 'bg-blue-500/20 text-blue-300 border-blue-500/30';
   }
   
   // Normaliser et utiliser la valeur normalisée
@@ -149,10 +149,10 @@ export function getAgeGroupColor(value: string | null | undefined): string {
   
   // Essayer avec la valeur normalisée
   if (normalizedValue in AGE_GROUP_COLORS) {
-    return AGE_GROUP_COLORS[normalizedValue];
+    return AGE_GROUP_COLORS[normalizedValue] || 'bg-blue-500/20 text-blue-300 border-blue-500/30';
   }
   
   // Fallback
-  return AGE_GROUP_COLORS['all'];
+  return AGE_GROUP_COLORS['all'] || 'bg-blue-500/20 text-blue-300 border-blue-500/30';
 }
 

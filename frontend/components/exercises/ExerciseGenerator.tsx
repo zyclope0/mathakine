@@ -24,7 +24,7 @@ export function ExerciseGenerator() {
       difficulty: difficulty,
     });
 
-    if (!validation.isValid) {
+    if (!validation.valid) {
       toast.error('Erreur de validation', {
         description: validation.errors.join(', '),
       });

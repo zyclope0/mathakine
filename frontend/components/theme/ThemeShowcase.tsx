@@ -25,7 +25,7 @@ export function ThemeShowcase() {
     { id: 'neutral' as const, name: 'Neutre', icon: '⚫' },
   ];
 
-  const currentTheme = themes.find((t) => t.id === theme) || themes[0];
+  const currentTheme = themes.find((t) => t.id === theme) || themes[0] || { id: 'spatial' as const, name: 'Spatial', icon: '🚀' };
 
   return (
     <div className="space-y-8 p-6">

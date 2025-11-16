@@ -11,9 +11,9 @@ import type { Challenge } from '@/types/api';
 
 interface ChallengeVisualRendererProps {
   challenge: Challenge;
-  className?: string;
-  onPuzzleOrderChange?: (order: string[]) => void;
-  onAnswerChange?: (answer: string) => void;
+  className?: string | undefined;
+  onPuzzleOrderChange?: ((order: string[]) => void) | undefined;
+  onAnswerChange?: ((answer: string) => void) | undefined;
 }
 
 /**
@@ -30,24 +30,57 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
   // Router vers le bon composant selon le type
   switch (challengeType) {
     case CHALLENGE_TYPES.SEQUENCE:
-      return <SequenceRenderer visualData={challenge.visual_data} className={className} onAnswerChange={onAnswerChange} />;
+      return (
+        <SequenceRenderer
+          visualData={challenge.visual_data}
+          {...(className !== undefined && { className })}
+          {...(onAnswerChange !== undefined && { onAnswerChange })}
+        />
+      );
     
     case CHALLENGE_TYPES.PATTERN:
-      return <PatternRenderer visualData={challenge.visual_data} className={className} onAnswerChange={onAnswerChange} />;
+      return (
+        <PatternRenderer
+          visualData={challenge.visual_data}
+          {...(className !== undefined && { className })}
+          {...(onAnswerChange !== undefined && { onAnswerChange })}
+        />
+      );
     
     case CHALLENGE_TYPES.VISUAL:
     case CHALLENGE_TYPES.SPATIAL:
-      return <VisualRenderer visualData={challenge.visual_data} className={className} />;
+      return (
+        <VisualRenderer
+          visualData={challenge.visual_data}
+          {...(className !== undefined && { className })}
+        />
+      );
     
     case CHALLENGE_TYPES.PUZZLE:
-      return <PuzzleRenderer visualData={challenge.visual_data} className={className} onOrderChange={onPuzzleOrderChange} />;
+      return (
+        <PuzzleRenderer
+          visualData={challenge.visual_data}
+          {...(className !== undefined && { className })}
+          {...(onPuzzleOrderChange !== undefined && { onOrderChange: onPuzzleOrderChange })}
+        />
+      );
     
     case CHALLENGE_TYPES.GRAPH:
-      return <GraphRenderer visualData={challenge.visual_data} className={className} />;
+      return (
+        <GraphRenderer
+          visualData={challenge.visual_data}
+          {...(className !== undefined && { className })}
+        />
+      );
     
     default:
       // Fallback pour les types non supportés ou personnalisés
-      return <DefaultRenderer visualData={challenge.visual_data} className={className} />;
+      return (
+        <DefaultRenderer
+          visualData={challenge.visual_data}
+          {...(className !== undefined && { className })}
+        />
+      );
   }
 }
 

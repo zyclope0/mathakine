@@ -97,12 +97,12 @@ export function useBadges() {
         const badgeToAdd: Badge = {
           id: eb.id,
           code: eb.code,
-          name: eb.name,
-          category: eb.category,
-          difficulty: eb.difficulty,
-          points_reward: eb.points_reward,
+          name: eb.name ?? null,
+          category: eb.category ?? null,
+          difficulty: eb.difficulty ?? null,
+          points_reward: eb.points_reward ?? null,
           is_active: true,
-          created_at: eb.earned_at,
+          created_at: eb.earned_at ?? null,
         };
         if (eb.description !== undefined) {
           badgeToAdd.description = eb.description;
