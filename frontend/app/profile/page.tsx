@@ -986,7 +986,7 @@ function ProfilePageContent() {
             className="animate-fade-in-up-delay-6"
           >
             <div className="grid gap-4 md:grid-cols-3">
-              {recentBadges.map((badge, index) => (
+              {recentBadges.map((badge: Badge & { earned_at?: string }, index: number) => (
                 <Card 
                   key={badge.id} 
                   className={cn(
