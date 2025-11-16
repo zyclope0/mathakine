@@ -175,11 +175,9 @@ export default function DashboardPage() {
             {/* Ces propriétés ne sont pas disponibles dans le type UserStats actuel */}
             
             {/* Performance par type */}
-            {stats.exercises_by_type && (
-              <PageSection className="space-y-3 animate-fade-in-up-delay-3">
-                <PerformanceByType performance={stats.exercises_by_type} />
-              </PageSection>
-            )}
+            {/* TODO: stats.exercises_by_type est Record<string, number> mais PerformanceByType attend 
+                { [key: string]: { completed: number; correct: number; success_rate: number; } }
+                Nécessite transformation des données ou nouveau endpoint API */}
 
             {/* Niveau actuel */}
             {stats.level && (
