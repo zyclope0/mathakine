@@ -176,8 +176,9 @@ export interface UserBadgesResponse {
   data: {
     earned_badges: UserBadge[];
     user_stats?: {
-      total_badges: number;
       total_points: number;
+      current_level?: number;
+      experience_points?: number;
       jedi_rank?: string;
     };
   };
