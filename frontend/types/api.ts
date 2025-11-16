@@ -143,3 +143,53 @@ export interface ChallengeAttemptResponse {
   }>;
   points_earned?: number;
 }
+
+/**
+ * Type Badge (achievement) avec tous les champs possibles.
+ */
+export interface Badge {
+  id: number;
+  code: string;
+  name?: string | null;
+  description?: string | null;
+  category?: string | null;
+  difficulty?: string | null;
+  points_reward?: number | null;
+  star_wars_title?: string | null;
+  is_active?: boolean;
+  created_at?: string | null;
+}
+
+/**
+ * Type UserBadge (badge obtenu par un utilisateur).
+ */
+export interface UserBadge extends Badge {
+  earned_at?: string | null;
+  points?: number;
+}
+
+/**
+ * Réponse API pour les badges utilisateur.
+ */
+export interface UserBadgesResponse {
+  success: boolean;
+  data: {
+    earned_badges: UserBadge[];
+    user_stats?: {
+      total_badges: number;
+      total_points: number;
+      jedi_rank?: string;
+    };
+  };
+}
+
+/**
+ * Statistiques de gamification.
+ */
+export interface GamificationStats {
+  total_badges: number;
+  total_points: number;
+  jedi_rank?: string;
+  badges_by_category?: Record<string, number>;
+  badges_by_difficulty?: Record<string, number>;
+}
