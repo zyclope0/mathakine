@@ -1,0 +1,64 @@
+# Configuration Render pour Mathakine
+# Ce fichier automatise la création des services backend et frontend
+
+services:
+  # ============================================
+  # SERVICE BACKEND (Python/FastAPI)
+  # ============================================
+  - type: web
+    name: mathakine-backend
+    runtime: python
+    plan: free  # Changez en "starter" ou "standard" selon vos besoins
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash scripts/start_render.sh
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mathakine-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+        sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ENVIRONMENT
+        value: production
+      - key: MATH_TRAINER_PROFILE
+        value: prod
+      - key: FRONTEND_URL
+        value: https://mathakine-frontend.onrender.com
+      - key: OPENAI_API_KEY
+        sync: false  # À définir manuellement dans le dashboard Render
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # ============================================
+  # SERVICE FRONTEND (Next.js)
+  # ============================================
+  - type: web
+    name: mathakine-frontend
+    runtime: node
+    plan: free  # Changez en "starter" ou "standard" selon vos besoins
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://mathakine-backend.onrender.com
+      - key: NEXT_PUBLIC_SITE_URL
+        value: https://mathakine-frontend.onrender.com
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /
+    autoDeploy: true
+
+# ============================================
+# BASE DE DONNÉES POSTGRESQL
+# ============================================
+databases:
+  - name: mathakine-db
+    plan: free  # PostgreSQL gratuit (1GB)
+    databaseName: mathakine
+    user: mathakine_user
+    ipAllowList: []  # Vide = accès depuis tous les services Render
+
