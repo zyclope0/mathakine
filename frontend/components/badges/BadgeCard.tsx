@@ -44,7 +44,8 @@ const categoryIcons: Record<string, string> = {
 export function BadgeCard({ badge, userBadge, isEarned, index = 0 }: BadgeCardProps) {
   const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
   
-  const getDifficultyColor = (difficulty: string): { bg: string; text: string; border: string } => {
+  const getDifficultyColor = (difficulty: string | null | undefined): { bg: string; text: string; border: string } => {
+    if (!difficulty) return defaultDifficultyColor;
     const color = difficultyColors[difficulty];
     if (color) {
       return color;
@@ -52,7 +53,8 @@ export function BadgeCard({ badge, userBadge, isEarned, index = 0 }: BadgeCardPr
     return defaultDifficultyColor;
   };
   
-  const getCategoryIcon = (category: string): string => {
+  const getCategoryIcon = (category: string | null | undefined): string => {
+    if (!category) return '🏆';
     const icon = categoryIcons[category];
     return icon ?? '🏆';
   };
@@ -154,7 +156,7 @@ export function BadgeCard({ badge, userBadge, isEarned, index = 0 }: BadgeCardPr
 
             {isEarned && userBadge?.earned_at && (
               <div className="text-xs text-muted-foreground bg-green-500/10 px-2 py-1 rounded">
-                Obtenu le {new Date(userBadge.earned_at).toLocaleDateString('fr-FR')}
+                Obtenu le {new Date(userBadge.earned_at as string).toLocaleDateString('fr-FR')}
               </div>
             )}
           </div>
