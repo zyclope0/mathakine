@@ -705,7 +705,8 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                             logger.error(f"Correction automatique impossible. Erreurs restantes: {remaining_errors}")
                             validation_passed = False
                             # Envoyer un avertissement mais continuer quand même
-                            yield f"data: {json.dumps({'type': 'warning', 'message': f'Avertissement: {", ".join(remaining_errors[:2])}'})}\n\n"
+                            errors_str = ", ".join(remaining_errors[:2])
+                            yield f"data: {json.dumps({'type': 'warning', 'message': f'Avertissement: {errors_str}'})}\n\n"
                     else:
                         logger.debug("Challenge validé avec succès")
                         validation_passed = True
