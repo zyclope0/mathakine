@@ -224,8 +224,8 @@ function ProfilePageContent() {
   const recentBadges = useMemo(() => {
     if (!earnedBadges || earnedBadges.length === 0) return [];
     return earnedBadges
-      .filter((badge: { earned_at?: string }) => badge.earned_at)
-      .sort((a: { earned_at: string }, b: { earned_at: string }) => {
+      .filter((badge): badge is typeof badge & { earned_at: string } => Boolean(badge.earned_at))
+      .sort((a, b) => {
         const dateA = new Date(a.earned_at).getTime();
         const dateB = new Date(b.earned_at).getTime();
         return dateB - dateA;
