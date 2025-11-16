@@ -943,7 +943,9 @@ function ProfilePageContent() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">{tStatistics('successRate')}</span>
                       <span className="text-lg font-semibold text-primary">
-                        {stats.success_rate ? `${stats.success_rate.toFixed(1)}%` : '0%'}
+                        {stats.correct_answers + stats.incorrect_answers > 0 
+                          ? `${Math.round((stats.correct_answers / (stats.correct_answers + stats.incorrect_answers)) * 100 * 10) / 10}%`
+                          : '0%'}
                       </span>
                     </div>
                   </div>
