@@ -169,7 +169,7 @@ function ProfilePageContent() {
 
     await updateProfile({
       email: personalInfo.email,
-      full_name: personalInfo.full_name || undefined,
+      ...(personalInfo.full_name ? { full_name: personalInfo.full_name } : {}),
     });
     setIsEditingPersonalInfo(false);
   }, [personalInfo, updateProfile, validateEmail]);
@@ -177,9 +177,9 @@ function ProfilePageContent() {
   // Sauvegarder préférences d'apprentissage
   const handleSaveLearningPrefs = useCallback(async () => {
     await updateProfile({
-      grade_level: learningPrefs.grade_level ? parseInt(learningPrefs.grade_level) : undefined,
-      learning_style: learningPrefs.learning_style || undefined,
-      preferred_difficulty: learningPrefs.preferred_difficulty || undefined,
+      ...(learningPrefs.grade_level ? { grade_level: parseInt(learningPrefs.grade_level) } : {}),
+      ...(learningPrefs.learning_style ? { learning_style: learningPrefs.learning_style } : {}),
+      ...(learningPrefs.preferred_difficulty ? { preferred_difficulty: learningPrefs.preferred_difficulty } : {}),
     });
     setIsEditingLearningPrefs(false);
   }, [learningPrefs, updateProfile]);
@@ -222,16 +222,16 @@ function ProfilePageContent() {
 
   // Badges récents (3 derniers)
   const recentBadges = useMemo(() => {
-    if (!userBadges?.badges) return [];
-    return userBadges.badges
-      .filter(badge => badge.earned_at)
-      .sort((a, b) => {
-        const dateA = new Date(a.earned_at!).getTime();
-        const dateB = new Date(b.earned_at!).getTime();
+    if (!earnedBadges || earnedBadges.length === 0) return [];
+    return earnedBadges
+      .filter((badge: { earned_at?: string }) => badge.earned_at)
+      .sort((a: { earned_at: string }, b: { earned_at: string }) => {
+        const dateA = new Date(a.earned_at).getTime();
+        const dateB = new Date(b.earned_at).getTime();
         return dateB - dateA;
       })
       .slice(0, 3);
-  }, [userBadges]);
+  }, [earnedBadges]);
 
   // Formatage de la date
   const formatDate = (dateString: string | undefined) => {
