@@ -42,7 +42,7 @@ function ProfilePageContent() {
   const { user } = useAuth();
   const { updateProfile, isUpdatingProfile, changePassword, isChangingPassword } = useProfile();
   const { stats, isLoading: isLoadingStats, error: statsError } = useUserStats('30');
-  const { userBadges, isLoading: isLoadingBadges, error: badgesError } = useBadges();
+  const { earnedBadges, isLoading: isLoadingBadges, error: badgesError } = useBadges();
   const { setTheme } = useThemeStore();
   const router = useRouter();
   const t = useTranslations('profile');
