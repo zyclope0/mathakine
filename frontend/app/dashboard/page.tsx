@@ -170,21 +170,14 @@ export default function DashboardPage() {
             </PageSection>
 
             {/* Graphiques */}
-            <PageSection className="space-y-3 animate-fade-in-up-delay-2">
-              <div className="grid gap-6 md:grid-cols-2">
-                {stats.progress_over_time && (
-                  <ProgressChartLazy data={stats.progress_over_time} />
-                )}
-                {stats.exercises_by_day && (
-                  <DailyExercisesChartLazy data={stats.exercises_by_day} />
-                )}
-              </div>
-            </PageSection>
-
+            {/* Graphiques */}
+            {/* TODO: Ajouter progress_over_time, exercises_by_day et performance_by_type au type UserStats si nécessaire */}
+            {/* Ces propriétés ne sont pas disponibles dans le type UserStats actuel */}
+            
             {/* Performance par type */}
-            {stats.performance_by_type && (
+            {stats.exercises_by_type && (
               <PageSection className="space-y-3 animate-fade-in-up-delay-3">
-                <PerformanceByType performance={stats.performance_by_type} />
+                <PerformanceByType performance={stats.exercises_by_type} />
               </PageSection>
             )}
 
