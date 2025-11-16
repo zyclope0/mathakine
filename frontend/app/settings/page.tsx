@@ -58,10 +58,10 @@ function SettingsPageContent() {
   });
 
   const [notificationSettings, setNotificationSettings] = useState({
-    achievements: user?.accessibility_settings?.notification_preferences?.achievements ?? true,
-    progress: user?.accessibility_settings?.notification_preferences?.progress ?? true,
-    recommendations: user?.accessibility_settings?.notification_preferences?.recommendations ?? true,
-    news: user?.accessibility_settings?.notification_preferences?.news ?? false,
+    achievements: (typeof user?.accessibility_settings?.notification_preferences === 'object' && user?.accessibility_settings?.notification_preferences?.achievements) ?? true,
+    progress: (typeof user?.accessibility_settings?.notification_preferences === 'object' && user?.accessibility_settings?.notification_preferences?.progress) ?? true,
+    recommendations: (typeof user?.accessibility_settings?.notification_preferences === 'object' && user?.accessibility_settings?.notification_preferences?.recommendations) ?? true,
+    news: (typeof user?.accessibility_settings?.notification_preferences === 'object' && user?.accessibility_settings?.notification_preferences?.news) ?? false,
   });
 
   const [privacySettings, setPrivacySettings] = useState({
@@ -103,10 +103,10 @@ function SettingsPageContent() {
         marketing_consent: user.marketing_consent || false,
       });
       setNotificationSettings({
-        achievements: user.accessibility_settings?.notification_preferences?.achievements ?? true,
-        progress: user.accessibility_settings?.notification_preferences?.progress ?? true,
-        recommendations: user.accessibility_settings?.notification_preferences?.recommendations ?? true,
-        news: user.accessibility_settings?.notification_preferences?.news ?? false,
+        achievements: (typeof user.accessibility_settings?.notification_preferences === 'object' && user.accessibility_settings?.notification_preferences?.achievements) ?? true,
+        progress: (typeof user.accessibility_settings?.notification_preferences === 'object' && user.accessibility_settings?.notification_preferences?.progress) ?? true,
+        recommendations: (typeof user.accessibility_settings?.notification_preferences === 'object' && user.accessibility_settings?.notification_preferences?.recommendations) ?? true,
+        news: (typeof user.accessibility_settings?.notification_preferences === 'object' && user.accessibility_settings?.notification_preferences?.news) ?? false,
       });
 
       lastSyncedUserId.current = user.id;
