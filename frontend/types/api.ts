@@ -193,4 +193,14 @@ export interface GamificationStats {
   jedi_rank?: string;
   badges_by_category?: Record<string, number>;
   badges_by_difficulty?: Record<string, number>;
+  performance?: {
+    total_attempts: number;
+    correct_attempts: number;
+    success_rate: number;
+    avg_time_spent: number;
+  };
+  badges_summary?: {
+    by_category: Record<string, number>;
+    by_difficulty?: Record<string, number>;
+  };
 }
