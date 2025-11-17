@@ -696,8 +696,18 @@ async def api_refresh_token(request: Request):
 async def logout(request: Request):
     """Déconnexion de l'utilisateur"""
     response = RedirectResponse(url="/", status_code=303)
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+    # IMPORTANT: Pour supprimer des cookies cross-domain avec samesite="none",
+    # il faut spécifier les mêmes paramètres que lors de leur création
+    response.delete_cookie(
+        key="access_token",
+        secure=True,
+        samesite="none"
+    )
+    response.delete_cookie(
+        key="refresh_token",
+        secure=True,
+        samesite="none"
+    )
     return response
 
 # Page des exercices

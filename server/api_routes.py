@@ -247,9 +247,20 @@ async def api_logout(request):
             "message": "Déconnexion réussie"
         })
         
-        # Supprimer les cookies d'authentification
-        response.delete_cookie("access_token", path="/")
-        response.delete_cookie("refresh_token", path="/")
+        # IMPORTANT: Pour supprimer des cookies cross-domain avec samesite="none",
+        # il faut spécifier les mêmes paramètres que lors de leur création
+        response.delete_cookie(
+            key="access_token",
+            path="/",
+            secure=True,
+            samesite="none"
+        )
+        response.delete_cookie(
+            key="refresh_token",
+            path="/",
+            secure=True,
+            samesite="none"
+        )
         
         print("Déconnexion API réussie")
         return response
