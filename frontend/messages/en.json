@@ -392,7 +392,8 @@
       "experiencePoints": "Experience points",
       "jediRank": "Jedi Rank",
       "exercisesSolved": "Exercises solved",
-      "experiencePointsLabel": "Experience points"
+      "experiencePointsLabel": "Experience points",
+      "challengesCompleted": "Challenges completed"
     },
     "progress": {
       "title": "Progress",

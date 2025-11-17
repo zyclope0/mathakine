@@ -392,7 +392,8 @@
       "experiencePoints": "Points d'expérience",
       "jediRank": "Rang Jedi",
       "exercisesSolved": "Exercices résolus",
-      "experiencePointsLabel": "Points d'expérience"
+      "experiencePointsLabel": "Points d'expérience",
+      "challengesCompleted": "Défis réussis"
     },
     "progress": {
       "title": "Progression",

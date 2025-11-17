@@ -154,19 +154,14 @@ export default function DashboardPage() {
                   label={t('stats.challengesCompleted')}
                 />
               </div>
-              {/* Métadonnées temporelles */}
-              {stats.recent_activity && stats.recent_activity.length > 0 && stats.recent_activity[0] && (
-                <div className="text-xs text-muted-foreground text-center mt-2">
-                  {t('lastUpdate', { 
-                    time: new Date(stats.recent_activity[0].completed_at).toLocaleString('fr-FR', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })
-                  })}
-                </div>
-              )}
+            {/* Métadonnées temporelles */}
+            {stats.recent_activity && stats.recent_activity.length > 0 && stats.recent_activity[0] && stats.recent_activity[0].time && (
+              <div className="text-xs text-muted-foreground text-center mt-2">
+                {t('lastUpdate', { 
+                  time: stats.recent_activity[0].time
+                })}
+              </div>
+            )}
             </PageSection>
 
             {/* Graphiques */}
@@ -201,13 +196,11 @@ export default function DashboardPage() {
             {stats.recent_activity && stats.recent_activity.length > 0 && (
               <PageSection className="space-y-3 animate-fade-in-up-delay-3">
                 <RecentActivity 
-                  activities={stats.recent_activity.map(activity => ({
-                    id: activity.id,
-                    type: activity.type,
-                    description: `${activity.type} complété`,
-                    completed_at: activity.completed_at,
-                    time: new Date(activity.completed_at).toLocaleString('fr-FR'),
-                    score: activity.score,
+                  activities={stats.recent_activity.map((activity, index) => ({
+                    type: activity.type || 'exercise_completed',
+                    description: activity.description || `${activity.type} complété`,
+                    time: activity.time || 'Récemment',
+                    is_correct: activity.is_correct,
                   }))} 
                 />
               </PageSection>
