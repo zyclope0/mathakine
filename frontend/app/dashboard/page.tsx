@@ -196,12 +196,7 @@ export default function DashboardPage() {
             {stats.recent_activity && stats.recent_activity.length > 0 && (
               <PageSection className="space-y-3 animate-fade-in-up-delay-3">
                 <RecentActivity 
-                  activities={stats.recent_activity.map((activity, index) => ({
-                    type: activity.type || 'exercise_completed',
-                    description: activity.description || `${activity.type} complété`,
-                    time: activity.time || 'Récemment',
-                    is_correct: activity.is_correct,
-                  }))} 
+                  activities={stats.recent_activity} 
                 />
               </PageSection>
             )}

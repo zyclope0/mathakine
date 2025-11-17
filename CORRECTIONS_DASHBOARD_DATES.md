@@ -162,11 +162,34 @@ Il affiche déjà correctement `activity.time` sans transformation.
 
 ### Frontend
 - `frontend/app/dashboard/page.tsx` : Correction du mapping des activités et de la dernière mise à jour
+- `frontend/lib/validations/dashboard.ts` : **Mise à jour de l'interface `UserStats.recent_activity`** pour correspondre au backend
 - `frontend/messages/fr.json` : Ajout de la traduction `challengesCompleted`
 - `frontend/messages/en.json` : Ajout de la traduction `challengesCompleted`
 
 ### Backend (inchangé)
 - `server/handlers/user_handlers.py` : Structure correcte des données (déjà fonctionnelle)
+
+## 🔧 Fix TypeScript
+
+L'interface TypeScript pour `recent_activity` a été mise à jour pour correspondre exactement à ce que le backend retourne :
+
+```typescript
+// ❌ AVANT (interface incorrecte)
+recent_activity?: Array<{
+  id: number;
+  type: string;
+  completed_at: string;
+  score?: number;
+}>;
+
+// ✅ APRÈS (interface correcte)
+recent_activity?: Array<{
+  type: string;
+  description: string;
+  time: string;
+  is_correct?: boolean;
+}>;
+```
 
 ## 🎯 Résultat attendu
 

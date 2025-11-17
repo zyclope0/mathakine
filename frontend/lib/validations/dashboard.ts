@@ -14,10 +14,10 @@ export interface UserStats {
   exercises_by_type?: Record<string, number>;
   exercises_by_difficulty?: Record<string, number>;
   recent_activity?: Array<{
-    id: number;
     type: string;
-    completed_at: string;
-    score?: number;
+    description: string;
+    time: string;
+    is_correct?: boolean;
   }>;
 }
 
