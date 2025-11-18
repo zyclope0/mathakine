@@ -20,6 +20,35 @@ from app.core.config import settings
 from loguru import logger
 
 
+def normalize_challenge_type_for_db(challenge_type_raw: str) -> str:
+    """
+    Normalise un type de challenge vers les valeurs PostgreSQL valides.
+    
+    Valeurs PostgreSQL acceptées : SEQUENCE, PATTERN, VISUAL, SPATIAL, PUZZLE, GRAPH, RIDDLE, DEDUCTION, CHESS, CODING, PROBABILITY, CUSTOM
+    
+    Args:
+        challenge_type_raw: Valeur brute du type (peut être "sequence", "SEQUENCE", etc.)
+    
+    Returns:
+        Valeur normalisée pour PostgreSQL (en MAJUSCULES)
+    """
+    if not challenge_type_raw:
+        return None  # Pas de filtre
+    
+    # Convertir en majuscules pour correspondre aux valeurs PostgreSQL
+    normalized = challenge_type_raw.upper().strip()
+    
+    # Valeurs valides dans PostgreSQL
+    valid_types = ['SEQUENCE', 'PATTERN', 'VISUAL', 'SPATIAL', 'PUZZLE', 'GRAPH', 'RIDDLE', 'DEDUCTION', 'CHESS', 'CODING', 'PROBABILITY', 'CUSTOM']
+    
+    if normalized in valid_types:
+        return normalized
+    
+    # Si invalide, ne pas filtrer
+    logger.warning(f"Type de challenge invalide pour filtre: '{challenge_type_raw}', filtre ignoré")
+    return None
+
+
 def normalize_age_group_for_db(age_group_raw: str) -> str:
     """
     Normalise un groupe d'âge vers les valeurs PostgreSQL valides.
@@ -33,7 +62,7 @@ def normalize_age_group_for_db(age_group_raw: str) -> str:
         Valeur normalisée pour PostgreSQL (GROUP_10_12, GROUP_13_15, ou ALL_AGES)
     """
     if not age_group_raw:
-        return 'GROUP_10_12'  # Valeur par défaut
+        return None  # Pas de filtre
     
     age_group_lower = age_group_raw.lower().strip()
     
@@ -73,9 +102,9 @@ def normalize_age_group_for_db(age_group_raw: str) -> str:
     if age_group_raw.upper().startswith('GROUP_'):
         return age_group_raw.upper()
     
-    # Valeur par défaut si non trouvée
-    logger.warning(f"Groupe d'âge non reconnu '{age_group_raw}', utilisation de GROUP_10_12 par défaut")
-    return 'GROUP_10_12'
+    # Valeur invalide, ne pas filtrer
+    logger.warning(f"Groupe d'âge non reconnu '{age_group_raw}', filtre ignoré")
+    return None
 
 
 async def get_challenges_list(request: Request):
@@ -91,13 +120,17 @@ async def get_challenges_list(request: Request):
             return JSONResponse({"detail": "Non authentifié"}, status_code=401)
         
         # Récupérer les paramètres de requête
-        challenge_type = request.query_params.get('challenge_type')
-        age_group = request.query_params.get('age_group')
+        challenge_type_raw = request.query_params.get('challenge_type')
+        age_group_raw = request.query_params.get('age_group')
         search = request.query_params.get('search') or request.query_params.get('q')  # Support 'search' et 'q'
         skip = int(request.query_params.get('skip', 0))
         limit_param = request.query_params.get('limit')
         limit = int(limit_param) if limit_param else 20
         active_only = request.query_params.get('active_only', 'true').lower() == 'true'
+        
+        # Normaliser les filtres pour correspondre aux valeurs PostgreSQL
+        challenge_type = normalize_challenge_type_for_db(challenge_type_raw) if challenge_type_raw else None
+        age_group = normalize_age_group_for_db(age_group_raw) if age_group_raw else None
         
         # Calculer la page à partir de skip et limit
         page = (skip // limit) + 1 if limit > 0 else 1
@@ -106,7 +139,7 @@ async def get_challenges_list(request: Request):
         accept_language = request.headers.get('Accept-Language', 'fr')
         locale = parse_accept_language(accept_language)
 
-        logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, challenge_type={challenge_type}, age_group={age_group}, search={search}, locale={locale}")
+        logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, challenge_type_raw={challenge_type_raw}, challenge_type_normalized={challenge_type}, age_group_raw={age_group_raw}, age_group_normalized={age_group}, search={search}, locale={locale}")
 
         # Utiliser le service avec traductions
         challenges_list = list_challenges_with_locale(
@@ -438,13 +471,14 @@ async def generate_ai_challenge_stream(request: Request):
         
         # Normaliser le type de challenge
         challenge_type = challenge_type_raw.lower()
-        valid_types = ['sequence', 'pattern', 'visual', 'spatial', 'puzzle', 'graph', 'riddle', 'deduction']
+        valid_types = ['sequence', 'pattern', 'visual', 'spatial', 'puzzle', 'graph', 'riddle', 'deduction', 'chess', 'coding', 'probability', 'custom']
         if challenge_type not in valid_types:
+            logger.warning(f"Type de challenge invalide: {challenge_type_raw}, utilisation de 'sequence' par défaut")
             challenge_type = 'sequence'
         
         # Normaliser le groupe d'âge vers les valeurs PostgreSQL valides AVANT génération IA
         normalized_age_group = normalize_age_group_for_db(age_group_raw)
-        age_group = normalized_age_group  # Utiliser la valeur normalisée partout
+        age_group = normalized_age_group if normalized_age_group else 'GROUP_10_12'  # Valeur par défaut si None
         
         # Rate limiting par utilisateur
         from app.utils.rate_limiter import rate_limiter
