@@ -3,6 +3,7 @@ Handlers pour les défis logiques (API Starlette)
 """
 import traceback
 import json
+from datetime import datetime
 from starlette.responses import JSONResponse, StreamingResponse
 from starlette.requests import Request
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
