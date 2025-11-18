@@ -107,6 +107,9 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
         throw new Error('No response body');
       }
 
+      // Buffer pour accumuler les données incomplètes
+      let buffer = '';
+
       // Lire le stream
       while (true) {
         const { done, value } = await reader.read();
@@ -116,14 +119,29 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
           break;
         }
 
-        // Décoder le chunk
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+        // Décoder le chunk et l'ajouter au buffer
+        const newChunk = decoder.decode(value, { stream: true });
+        buffer += newChunk;
+        
+        if (newChunk) {
+          console.log('[AIGenerator] Received chunk:', newChunk.substring(0, 100), '...');
+        }
+        
+        // Traiter toutes les lignes complètes dans le buffer
+        const lines = buffer.split('\n');
+        
+        // Garder la dernière ligne (potentiellement incomplète) dans le buffer
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
+          const trimmedLine = line.trim();
+          
+          if (trimmedLine.startsWith('data: ')) {
             try {
-              const data = JSON.parse(line.slice(6));
+              const jsonStr = trimmedLine.slice(6);
+              const data = JSON.parse(jsonStr);
+
+              console.log('[AIGenerator] Received SSE message:', data.type);
 
               if (data.type === 'status') {
                 // Message de statut uniquement
@@ -174,7 +192,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
                 return;
               }
             } catch (parseError) {
-              console.error('Erreur de parsing SSE:', parseError);
+              console.error('[AIGenerator] Erreur de parsing SSE:', parseError, 'Line:', trimmedLine);
             }
           }
         }
