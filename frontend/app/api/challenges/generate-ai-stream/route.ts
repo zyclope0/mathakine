@@ -47,20 +47,22 @@ export async function GET(request: NextRequest) {
     const backendUrl = `${getBackendUrl()}/api/challenges/generate-ai-stream?${backendParams.toString()}`;
 
     // Récupérer les cookies de la requête (tous les cookies disponibles)
-    const cookies = request.cookies.getAll()
+    const allCookies = request.cookies.getAll();
+    const cookies = allCookies
       .map(cookie => `${cookie.name}=${cookie.value}`)
       .join('; ');
 
-    // Debug: Vérifier si les cookies d'authentification sont présents
+    // Debug: Vérifier les cookies disponibles
     const hasAuthCookie = request.cookies.get('access_token');
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[AI Stream Proxy] Auth cookie present:', !!hasAuthCookie);
-    }
-
+    console.log('[AI Stream Proxy] Total cookies:', allCookies.length);
+    console.log('[AI Stream Proxy] Cookie names:', allCookies.map(c => c.name).join(', '));
+    console.log('[AI Stream Proxy] Auth cookie present:', !!hasAuthCookie);
+    
     // Si pas de cookie d'authentification, retourner une erreur immédiatement
     if (!hasAuthCookie) {
+      console.error('[AI Stream Proxy] Missing auth cookie - returning error');
       return new Response(
-        `data: ${JSON.stringify({ type: 'error', message: 'Non authentifié' })}\n\n`,
+        `data: ${JSON.stringify({ type: 'error', message: 'Non authentifié - Cookie manquant' })}\n\n`,
         {
           status: 200, // 200 pour que EventSource reçoive le message
           headers: {
@@ -71,6 +73,8 @@ export async function GET(request: NextRequest) {
         }
       );
     }
+    
+    console.log('[AI Stream Proxy] Auth cookie found, forwarding to backend');
 
     // Créer un stream vers le backend
     const backendResponse = await fetch(backendUrl, {

@@ -43,7 +43,14 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
     if (isGenerating) return;
 
     // Vérifier l'authentification
+    console.log('[AIGenerator] User auth state:', { 
+      hasUser: !!user, 
+      userId: user?.id, 
+      username: user?.username 
+    });
+    
     if (!user) {
+      console.error('[AIGenerator] User not authenticated');
       toast.error(t('aiGenerator.authRequired'), {
         description: t('aiGenerator.authRequiredDescription'),
         action: {
@@ -54,6 +61,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
       return;
     }
 
+    console.log('[AIGenerator] User authenticated, starting generation');
     setIsGenerating(true);
     setStreamedText('');
     setGeneratedChallenge(null);
