@@ -964,17 +964,7 @@ function ProfilePageContent() {
             className="animate-fade-in-up-delay-5"
           >
             <RecentActivity 
-              activities={stats.recent_activity.map(activity => {
-                const mapped: { type: string; description: string; time: string; is_correct?: boolean } = {
-                  type: activity.type,
-                  description: `${activity.type} complété`,
-                  time: new Date(activity.completed_at).toLocaleString('fr-FR'),
-                };
-                if (activity.score !== undefined) {
-                  mapped.is_correct = activity.score > 0.5;
-                }
-                return mapped;
-              })} 
+              activities={stats.recent_activity} 
             />
           </PageSection>
         )}
