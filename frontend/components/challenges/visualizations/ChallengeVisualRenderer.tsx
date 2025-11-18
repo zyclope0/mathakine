@@ -6,6 +6,8 @@ import { PatternRenderer } from './PatternRenderer';
 import { VisualRenderer } from './VisualRenderer';
 import { PuzzleRenderer } from './PuzzleRenderer';
 import { GraphRenderer } from './GraphRenderer';
+import { DeductionRenderer } from './DeductionRenderer';
+import { RiddleRenderer } from './RiddleRenderer';
 import { DefaultRenderer } from './DefaultRenderer';
 import type { Challenge } from '@/types/api';
 
@@ -68,6 +70,22 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
     case CHALLENGE_TYPES.GRAPH:
       return (
         <GraphRenderer
+          visualData={challenge.visual_data}
+          {...(className !== undefined && { className })}
+        />
+      );
+    
+    case CHALLENGE_TYPES.DEDUCTION:
+      return (
+        <DeductionRenderer
+          visualData={challenge.visual_data}
+          {...(className !== undefined && { className })}
+        />
+      );
+    
+    case CHALLENGE_TYPES.RIDDLE:
+      return (
+        <RiddleRenderer
           visualData={challenge.visual_data}
           {...(className !== undefined && { className })}
         />
