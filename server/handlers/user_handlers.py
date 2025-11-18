@@ -337,8 +337,20 @@ async def get_user_stats(request):
             from datetime import datetime, timezone
             last_updated = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
             
+            # Compter les challenges complétés
+            try:
+                from app.models.logic_challenge import LogicChallengeAttempt
+                total_challenges = db.query(LogicChallengeAttempt).filter(
+                    LogicChallengeAttempt.user_id == user_id,
+                    LogicChallengeAttempt.is_correct == True
+                ).count()
+            except Exception as e:
+                logger.error(f"Erreur lors du comptage des challenges: {e}")
+                total_challenges = 0
+            
             response_data = {
                 'total_exercises': stats.get("total_attempts", 0),
+                'total_challenges': total_challenges,
                 'correct_answers': stats.get("correct_attempts", 0),
                 'success_rate': stats.get("success_rate", 0),
                 'experience_points': experience_points,

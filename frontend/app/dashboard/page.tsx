@@ -145,7 +145,7 @@ export default function DashboardPage() {
                 />
                 <StatsCard
                   icon={Zap}
-                  value={`${Math.round((stats.correct_answers / (stats.correct_answers + stats.incorrect_answers)) * 100) || 0}%`}
+                  value={`${Math.round(stats.success_rate || 0)}%`}
                   label={t('stats.successRate')}
                 />
                 <StatsCard
@@ -165,25 +165,26 @@ export default function DashboardPage() {
             </PageSection>
 
             {/* Graphiques */}
-            {/* TODO: Ajouter progress_over_time, exercises_by_day et performance_by_type au type UserStats si nécessaire */}
-            {/* Ces propriétés ne sont pas disponibles dans le type UserStats actuel */}
+            {stats.progress_over_time && stats.exercises_by_day && (
+              <PageSection className="space-y-3 animate-fade-in-up-delay-2">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <ProgressChartLazy data={stats.progress_over_time} />
+                  <DailyExercisesChartLazy data={stats.exercises_by_day} />
+                </div>
+              </PageSection>
+            )}
             
             {/* Performance par type */}
-            {/* TODO: stats.exercises_by_type est Record<string, number> mais PerformanceByType attend 
-                { [key: string]: { completed: number; correct: number; success_rate: number; } }
-                Nécessite transformation des données ou nouveau endpoint API */}
+            {stats.performance_by_type && Object.keys(stats.performance_by_type).length > 0 && (
+              <PageSection className="space-y-3 animate-fade-in-up-delay-3">
+                <PerformanceByType data={stats.performance_by_type} />
+              </PageSection>
+            )}
 
             {/* Niveau actuel */}
-            {stats.level && stats.xp !== undefined && stats.next_level_xp !== undefined && (
+            {stats.level && (
               <PageSection className="space-y-3 animate-fade-in-up-delay-3">
-                <LevelIndicator 
-                  level={{
-                    current: stats.level,
-                    title: `Niveau ${stats.level}`,
-                    current_xp: stats.xp,
-                    next_level_xp: stats.next_level_xp,
-                  }} 
-                />
+                <LevelIndicator level={stats.level} />
               </PageSection>
             )}
 
