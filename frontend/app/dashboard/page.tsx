@@ -177,7 +177,7 @@ export default function DashboardPage() {
             {/* Performance par type */}
             {stats.performance_by_type && Object.keys(stats.performance_by_type).length > 0 && (
               <PageSection className="space-y-3 animate-fade-in-up-delay-3">
-                <PerformanceByType data={stats.performance_by_type} />
+                <PerformanceByType performance={stats.performance_by_type} />
               </PageSection>
             )}
 
