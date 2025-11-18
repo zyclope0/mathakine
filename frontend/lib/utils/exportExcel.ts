@@ -24,11 +24,11 @@ export function exportStatsToExcel(stats: StatsData, username: string): void {
   const data = [
     ['Métrique', 'Valeur'],
     ['Exercices complétés', stats.total_exercises],
-    ['Défis complétés', stats.total_challenges],
+    ['Défis complétés', stats.total_challenges || 0],
     ['Réponses correctes', stats.correct_answers],
-    ['Réponses incorrectes', stats.incorrect_answers],
-    ['Score moyen', `${stats.average_score.toFixed(1)}%`],
-    ...(stats.level ? [['Niveau', stats.level]] : []),
+    ['Réponses incorrectes', stats.incorrect_answers || 0],
+    ['Score moyen', stats.average_score ? `${stats.average_score.toFixed(1)}%` : '0%'],
+    ...(stats.level && typeof stats.level === 'object' ? [['Niveau', stats.level.current]] : []),
     ...(stats.xp ? [['XP', stats.xp]] : []),
   ];
   
