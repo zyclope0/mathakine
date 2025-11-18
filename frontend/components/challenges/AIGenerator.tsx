@@ -24,17 +24,17 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamedText, setStreamedText] = useState('');
   const [generatedChallenge, setGeneratedChallenge] = useState<Challenge | null>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const queryClient = useQueryClient();
   const router = useRouter();
   const t = useTranslations('challenges');
   const { user, isLoading: isAuthLoading } = useAuth();
 
-  // Nettoyer l'EventSource lors du démontage
+  // Nettoyer l'AbortController lors du démontage
   useEffect(() => {
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, []);
@@ -76,97 +76,125 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
         params.append('prompt', customPrompt.trim());
       }
 
-      // Utiliser la route API Next.js qui fait le proxy avec les credentials
+      // Créer un AbortController pour pouvoir annuler la requête
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
+      // Utiliser fetch avec credentials au lieu d'EventSource (qui ne transmet pas les cookies HTTP-only)
       const url = `/api/challenges/generate-ai-stream?${params.toString()}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/event-stream',
+        },
+        credentials: 'include', // Important : envoie les cookies HTTP-only
+        signal: abortController.signal, // Permet l'annulation
+      });
 
-      // Créer l'EventSource pour SSE (via proxy Next.js qui gère les credentials)
-      const eventSource = new EventSource(url);
-      eventSourceRef.current = eventSource;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
-          if (data.type === 'status') {
-            // Message de statut uniquement
-            setStreamedText(data.message);
-          } else if (data.type === 'challenge') {
-            // Challenge complet reçu
-            const challenge = data.challenge as Challenge;
-            
-            // Vérifier que le challenge est valide
-            if (!challenge || !challenge.title) {
-              console.error('Challenge invalide reçu:', challenge);
-              toast.error(t('aiGenerator.error'), {
-                description: t('aiGenerator.errorDescription'),
-              });
-              setStreamedText('');
-              eventSource.close();
-              setIsGenerating(false);
-              eventSourceRef.current = null;
-              return;
-            }
-            
-            setGeneratedChallenge(challenge);
-            setStreamedText(''); // Nettoyer le message de statut
-            eventSource.close();
-            setIsGenerating(false);
-            eventSourceRef.current = null;
+      if (!reader) {
+        throw new Error('No response body');
+      }
 
-            // Invalider le cache pour recharger la liste
-            queryClient.invalidateQueries({ queryKey: ['challenges'] });
-            queryClient.invalidateQueries({ queryKey: ['completed-challenges'] });
-
-            toast.success(t('aiGenerator.success'), {
-              description: t('aiGenerator.successDescription', { title: challenge.title }),
-            });
-
-            // Appeler le callback si fourni
-            if (onChallengeGenerated) {
-              onChallengeGenerated(challenge);
-            }
-          } else if (data.type === 'error') {
-            setStreamedText(''); // Nettoyer le message de statut
-            eventSource.close();
-            setIsGenerating(false);
-            eventSourceRef.current = null;
-            toast.error(t('aiGenerator.error'), {
-              description: data.message || t('aiGenerator.errorDescription'),
-            });
-          } else if (data.type === 'done') {
-            // Génération terminée
-            setStreamedText('');
-            eventSource.close();
-            setIsGenerating(false);
-            eventSourceRef.current = null;
-          }
-        } catch (parseError) {
-          console.error('Erreur de parsing SSE:', parseError);
+      // Lire le stream
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          setIsGenerating(false);
+          break;
         }
-      };
 
-      eventSource.onerror = (error) => {
-        console.error('Erreur EventSource:', error);
-        setStreamedText(''); // Nettoyer le message de statut
-        eventSource.close();
-        setIsGenerating(false);
-        eventSourceRef.current = null;
-        toast.error(t('aiGenerator.connectionError'), {
-          description: t('aiGenerator.connectionErrorDescription'),
-        });
-      };
+        // Décoder le chunk
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.type === 'status') {
+                // Message de statut uniquement
+                setStreamedText(data.message);
+              } else if (data.type === 'challenge') {
+                // Challenge complet reçu
+                const challenge = data.challenge as Challenge;
+                
+                // Vérifier que le challenge est valide
+                if (!challenge || !challenge.title) {
+                  console.error('Challenge invalide reçu:', challenge);
+                  toast.error(t('aiGenerator.error'), {
+                    description: t('aiGenerator.errorDescription'),
+                  });
+                  setStreamedText('');
+                  setIsGenerating(false);
+                  return;
+                }
+                
+                setGeneratedChallenge(challenge);
+                setStreamedText(''); // Nettoyer le message de statut
+                setIsGenerating(false);
+
+                // Invalider le cache pour recharger la liste
+                queryClient.invalidateQueries({ queryKey: ['challenges'] });
+                queryClient.invalidateQueries({ queryKey: ['completed-challenges'] });
+
+                toast.success(t('aiGenerator.success'), {
+                  description: t('aiGenerator.successDescription', { title: challenge.title }),
+                });
+
+                // Appeler le callback si fourni
+                if (onChallengeGenerated) {
+                  onChallengeGenerated(challenge);
+                }
+                return;
+              } else if (data.type === 'error') {
+                setStreamedText(''); // Nettoyer le message de statut
+                setIsGenerating(false);
+                toast.error(t('aiGenerator.error'), {
+                  description: data.message || t('aiGenerator.errorDescription'),
+                });
+                return;
+              } else if (data.type === 'done') {
+                // Génération terminée
+                setStreamedText('');
+                setIsGenerating(false);
+                return;
+              }
+            } catch (parseError) {
+              console.error('Erreur de parsing SSE:', parseError);
+            }
+          }
+        }
+      }
     } catch (error) {
+      // Ne pas afficher d'erreur si la requête a été annulée par l'utilisateur
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('[AIGenerator] Génération annulée par l\'utilisateur');
+        setIsGenerating(false);
+        return;
+      }
+      
+      console.error('Erreur lors de la génération:', error);
       setIsGenerating(false);
-      toast.error(t('aiGenerator.startError'), {
-        description: t('aiGenerator.startErrorDescription'),
+      toast.error(t('aiGenerator.connectionError'), {
+        description: t('aiGenerator.connectionErrorDescription'),
       });
     }
   };
 
   const handleCancel = () => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
     setIsGenerating(false);
     setStreamedText('');
