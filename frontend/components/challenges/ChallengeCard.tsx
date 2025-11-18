@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CHALLENGE_TYPE_DISPLAY, getAgeGroupDisplay, getAgeGroupColor } from '@/lib/constants/challenges';
+import { getChallengeTypeDisplay, getAgeGroupDisplay, getAgeGroupColor } from '@/lib/constants/challenges';
 import type { Challenge } from '@/types/api';
 import { Clock, Users, TrendingUp, Eye, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
@@ -20,7 +20,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
   const t = useTranslations('challenges');
   const { isCompleted } = useCompletedChallenges();
-  const typeDisplay = CHALLENGE_TYPE_DISPLAY[challenge.challenge_type as keyof typeof CHALLENGE_TYPE_DISPLAY] || challenge.challenge_type;
+  const typeDisplay = getChallengeTypeDisplay(challenge.challenge_type);
   const ageGroupDisplay = getAgeGroupDisplay(challenge.age_group);
   const ageGroupColor = getAgeGroupColor(challenge.age_group);
   const completed = isCompleted(challenge.id);

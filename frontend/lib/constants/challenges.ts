@@ -34,6 +34,19 @@ export const CHALLENGE_TYPE_DISPLAY: Record<ChallengeType, string> = {
 };
 
 /**
+ * Obtient le libellé d'affichage pour un type de challenge
+ * Gère automatiquement la normalisation (majuscules/minuscules)
+ */
+export function getChallengeTypeDisplay(value: string | null | undefined): string {
+  if (!value) return 'Non identifié';
+  
+  // Normaliser en minuscule pour le lookup
+  const normalized = value.toLowerCase() as ChallengeType;
+  
+  return CHALLENGE_TYPE_DISPLAY[normalized] || value;
+}
+
+/**
  * Constantes pour les groupes d'âge
  */
 export const AGE_GROUPS = {

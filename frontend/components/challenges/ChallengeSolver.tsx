@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, XCircle, ArrowLeft, CheckCircle, Lightbulb, Clock, AlertCircle, RotateCcw } from 'lucide-react';
-import { CHALLENGE_TYPE_DISPLAY, getAgeGroupDisplay, getAgeGroupColor } from '@/lib/constants/challenges';
+import { getChallengeTypeDisplay, getAgeGroupDisplay, getAgeGroupColor } from '@/lib/constants/challenges';
 import { useChallenges } from '@/hooks/useChallenges';
 import { useChallenge } from '@/hooks/useChallenge';
 import { Input } from '@/components/ui/input';
@@ -231,7 +231,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
   }
 
   const ageGroupColor = getAgeGroupColor(challenge.age_group);
-  const typeDisplay = CHALLENGE_TYPE_DISPLAY[challenge.challenge_type as keyof typeof CHALLENGE_TYPE_DISPLAY] || challenge.challenge_type;
+  const typeDisplay = getChallengeTypeDisplay(challenge.challenge_type);
   const ageGroupDisplay = getAgeGroupDisplay(challenge.age_group);
   const isCorrect = submitResult?.is_correct ?? false;
   
