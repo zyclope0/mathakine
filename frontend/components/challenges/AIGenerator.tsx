@@ -80,8 +80,12 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      // Utiliser fetch avec credentials au lieu d'EventSource (qui ne transmet pas les cookies HTTP-only)
-      const url = `/api/challenges/generate-ai-stream?${params.toString()}`;
+      // Appeler directement le backend (pas d'API route proxy)
+      // C'est la même approche que tous les autres endpoints (login, exercices, etc.)
+      const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://mathakine-alpha.onrender.com';
+      const url = `${backendUrl}/api/challenges/generate-ai-stream?${params.toString()}`;
+      
+      console.log('[AIGenerator] Calling backend directly:', url);
       
       const response = await fetch(url, {
         method: 'GET',
