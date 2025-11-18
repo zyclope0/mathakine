@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Sparkles, X } from 'lucide-react';
+import { Loader2, Sparkles, X, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CHALLENGE_TYPES, CHALLENGE_TYPE_DISPLAY, AGE_GROUPS, AGE_GROUP_DISPLAY, type ChallengeType, type AgeGroup } from '@/lib/constants/challenges';
@@ -11,6 +11,7 @@ import type { Challenge } from '@/types/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AIGeneratorProps {
   onChallengeGenerated?: (challenge: Challenge) => void;
@@ -27,6 +28,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const t = useTranslations('challenges');
+  const { user, isLoading: isAuthLoading } = useAuth();
 
   // Nettoyer l'EventSource lors du démontage
   useEffect(() => {
@@ -39,6 +41,18 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
 
   const handleAIGenerate = async () => {
     if (isGenerating) return;
+
+    // Vérifier l'authentification
+    if (!user) {
+      toast.error(t('aiGenerator.authRequired'), {
+        description: t('aiGenerator.authRequiredDescription'),
+        action: {
+          label: t('aiGenerator.login'),
+          onClick: () => router.push('/login'),
+        },
+      });
+      return;
+    }
 
     setIsGenerating(true);
     setStreamedText('');
@@ -273,12 +287,24 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
           </div>
         )}
 
+        {/* Message si non authentifié */}
+        {!user && !isAuthLoading && (
+          <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-warning">
+              <p className="font-medium mb-1">{t('aiGenerator.authRequired')}</p>
+              <p className="text-xs opacity-80">{t('aiGenerator.authRequiredDescription')}</p>
+            </div>
+          </div>
+        )}
+
         {/* Bouton de génération */}
         <Button
           onClick={handleAIGenerate}
-          disabled={isGenerating}
+          disabled={isGenerating || !user || isAuthLoading}
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
           size="sm"
+          title={!user ? t('aiGenerator.authRequired') : undefined}
         >
           {isGenerating ? (
             <>

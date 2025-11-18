@@ -280,7 +280,10 @@
       "startError": "Erreur de démarrage",
       "startErrorDescription": "Impossible de démarrer la génération",
       "cancel": "Annuler",
-      "viewChallenge": "Voir le défi"
+      "viewChallenge": "Voir le défi",
+      "authRequired": "Connexion requise",
+      "authRequiredDescription": "Vous devez être connecté pour générer des défis avec l'IA",
+      "login": "Se connecter"
     },
     "list": {
       "loading": "Chargement...",

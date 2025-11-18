@@ -280,7 +280,10 @@
       "startError": "Start error",
       "startErrorDescription": "Unable to start generation",
       "cancel": "Cancel",
-      "viewChallenge": "View challenge"
+      "viewChallenge": "View challenge",
+      "authRequired": "Login required",
+      "authRequiredDescription": "You must be logged in to generate challenges with AI",
+      "login": "Log in"
     },
     "list": {
       "loading": "Loading...",

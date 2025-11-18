@@ -46,8 +46,31 @@ export async function GET(request: NextRequest) {
 
     const backendUrl = `${getBackendUrl()}/api/challenges/generate-ai-stream?${backendParams.toString()}`;
 
-    // Récupérer les cookies de la requête
-    const cookies = request.headers.get('cookie') || '';
+    // Récupérer les cookies de la requête (tous les cookies disponibles)
+    const cookies = request.cookies.getAll()
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join('; ');
+
+    // Debug: Vérifier si les cookies d'authentification sont présents
+    const hasAuthCookie = request.cookies.get('access_token');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[AI Stream Proxy] Auth cookie present:', !!hasAuthCookie);
+    }
+
+    // Si pas de cookie d'authentification, retourner une erreur immédiatement
+    if (!hasAuthCookie) {
+      return new Response(
+        `data: ${JSON.stringify({ type: 'error', message: 'Non authentifié' })}\n\n`,
+        {
+          status: 200, // 200 pour que EventSource reçoive le message
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        }
+      );
+    }
 
     // Créer un stream vers le backend
     const backendResponse = await fetch(backendUrl, {
