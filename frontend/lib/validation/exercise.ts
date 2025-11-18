@@ -9,6 +9,36 @@ export interface ExerciseParams {
   topic?: string;
 }
 
+// Types d'exercices valides (alignés avec le backend)
+const VALID_EXERCISE_TYPES = [
+  'addition',
+  'soustraction',
+  'multiplication',
+  'division',
+  'mixte',
+  'fractions',
+  'geometrie',
+  'texte',
+  'divers',
+];
+
+// Niveaux de difficulté valides (alignés avec le backend)
+const VALID_DIFFICULTY_LEVELS = [
+  'initie',
+  'padawan',
+  'chevalier',
+  'maitre',
+];
+
+// Groupes d'âge valides
+const VALID_AGE_GROUPS = [
+  '6-8',
+  '9-11',
+  '12-14',
+  '15-17',
+  '18+',
+];
+
 /**
  * Valide les paramètres d'exercice
  */
@@ -16,17 +46,17 @@ export function validateExerciseParams(params: ExerciseParams): { valid: boolean
   const errors: string[] = [];
   
   // Validation du type d'exercice
-  if (params.exercise_type && !['multiple_choice', 'open_ended', 'calculation'].includes(params.exercise_type)) {
+  if (params.exercise_type && !VALID_EXERCISE_TYPES.includes(params.exercise_type)) {
     errors.push('Type d\'exercice invalide');
   }
   
   // Validation de la difficulté
-  if (params.difficulty && !['easy', 'medium', 'hard'].includes(params.difficulty)) {
+  if (params.difficulty && !VALID_DIFFICULTY_LEVELS.includes(params.difficulty)) {
     errors.push('Niveau de difficulté invalide');
   }
   
   // Validation du groupe d'âge
-  if (params.age_group && !['6-8', '9-11', '12-14', '15-17', '18+'].includes(params.age_group)) {
+  if (params.age_group && !VALID_AGE_GROUPS.includes(params.age_group)) {
     errors.push('Groupe d\'âge invalide');
   }
   

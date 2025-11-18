@@ -184,6 +184,7 @@
       "successDescription": "\"{title}\" has been created.",
       "error": "Generation error",
       "errorDescription": "An error occurred during generation.",
+      "validationError": "Validation error",
       "connectionError": "Connection error",
       "connectionErrorDescription": "Generation was interrupted. Check your connection.",
       "startError": "Error",
