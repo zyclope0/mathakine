@@ -3,21 +3,12 @@
  */
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-
-export interface StatsData {
-  total_exercises: number;
-  total_challenges: number;
-  correct_answers: number;
-  incorrect_answers: number;
-  average_score: number;
-  level?: number;
-  xp?: number;
-}
+import type { UserStats } from '@/lib/validations/dashboard';
 
 /**
  * Exporte les statistiques utilisateur en PDF
  */
-export function exportStatsToPDF(stats: StatsData, username: string): void {
+export function exportStatsToPDF(stats: UserStats, username: string): void {
   const doc = new jsPDF();
   
   // Titre

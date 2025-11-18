@@ -2,21 +2,12 @@
  * Utilitaires d'export Excel pour les statistiques utilisateur
  */
 import * as XLSX from 'xlsx';
-
-export interface StatsData {
-  total_exercises: number;
-  total_challenges: number;
-  correct_answers: number;
-  incorrect_answers: number;
-  average_score: number;
-  level?: number;
-  xp?: number;
-}
+import type { UserStats } from '@/lib/validations/dashboard';
 
 /**
  * Exporte les statistiques utilisateur en Excel
  */
-export function exportStatsToExcel(stats: StatsData, username: string): void {
+export function exportStatsToExcel(stats: UserStats, username: string): void {
   // Créer un workbook
   const workbook = XLSX.utils.book_new();
   
