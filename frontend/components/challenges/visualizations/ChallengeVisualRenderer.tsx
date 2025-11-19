@@ -8,6 +8,9 @@ import { PuzzleRenderer } from './PuzzleRenderer';
 import { GraphRenderer } from './GraphRenderer';
 import { DeductionRenderer } from './DeductionRenderer';
 import { RiddleRenderer } from './RiddleRenderer';
+import { ChessRenderer } from './ChessRenderer';
+import { ProbabilityRenderer } from './ProbabilityRenderer';
+import { CodingRenderer } from './CodingRenderer';
 import { DefaultRenderer } from './DefaultRenderer';
 import type { Challenge } from '@/types/api';
 
@@ -86,6 +89,30 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
     case CHALLENGE_TYPES.RIDDLE:
       return (
         <RiddleRenderer
+          visualData={challenge.visual_data}
+          {...(className !== undefined && { className })}
+        />
+      );
+    
+    case CHALLENGE_TYPES.CHESS:
+      return (
+        <ChessRenderer
+          visualData={challenge.visual_data}
+          {...(className !== undefined && { className })}
+        />
+      );
+    
+    case CHALLENGE_TYPES.PROBABILITY:
+      return (
+        <ProbabilityRenderer
+          visualData={challenge.visual_data}
+          {...(className !== undefined && { className })}
+        />
+      );
+    
+    case CHALLENGE_TYPES.CODING:
+      return (
+        <CodingRenderer
           visualData={challenge.visual_data}
           {...(className !== undefined && { className })}
         />
