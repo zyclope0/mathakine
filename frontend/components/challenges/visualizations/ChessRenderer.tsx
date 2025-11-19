@@ -23,13 +23,36 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
     return null;
   }
 
+  // Fonction pour convertir notation échecs (ex: "E4") en coordonnées [row, col]
+  const chessNotationToCoords = (notation: string): [number, number] | null => {
+    if (!notation || typeof notation !== 'string' || notation.length < 2) return null;
+    const file = notation.charAt(0).toLowerCase();
+    const rank = notation.charAt(1);
+    const col = file.charCodeAt(0) - 'a'.charCodeAt(0);  // a=0, b=1, ..., h=7
+    const row = 8 - parseInt(rank);  // 8=0, 7=1, ..., 1=7
+    if (col < 0 || col > 7 || row < 0 || row > 7 || isNaN(row)) return null;
+    return [row, col];
+  };
+
   // Extraire les données
   const board = visualData.board || [];
-  const knightPosition = visualData.knight_position || visualData.position || null;
-  const reachablePositions = visualData.reachable_positions || visualData.targets || [];
+  let knightPosition = visualData.knight_position || visualData.position || null;
+  let reachablePositions = visualData.reachable_positions || visualData.targets || [];
   const currentPiece = visualData.piece || visualData.current_piece || 'knight';
   const highlightPositions = visualData.highlight_positions || [];
   const question = visualData.question || '';
+
+  // Convertir knight_position si c'est une string (ex: "E4" → [3, 4])
+  if (typeof knightPosition === 'string') {
+    knightPosition = chessNotationToCoords(knightPosition);
+  }
+
+  // Convertir reachable_positions si c'est un tableau de strings
+  if (Array.isArray(reachablePositions) && reachablePositions.length > 0 && typeof reachablePositions[0] === 'string') {
+    reachablePositions = reachablePositions
+      .map((notation: string) => chessNotationToCoords(notation))
+      .filter((coords): coords is [number, number] => coords !== null);
+  }
 
   // Dimensions de l'échiquier (standard 8x8 ou custom)
   const boardSize = board.length > 0 ? board.length : 8;
