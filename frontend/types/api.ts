@@ -12,6 +12,7 @@ export interface User {
   full_name?: string | null;
   role: string;
   is_active: boolean;
+  is_email_verified?: boolean;
   created_at?: string | null;
   updated_at?: string | null;
   grade_level?: number | null;
