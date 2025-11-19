@@ -328,6 +328,46 @@ async def create_user_account(request: Request):
             # Créer l'utilisateur
             user = create_user(db, user_create)
             
+            # Générer un token de vérification email
+            from app.utils.email_verification import generate_verification_token
+            from datetime import datetime, timezone
+            
+            verification_token = generate_verification_token()
+            user.email_verification_token = verification_token
+            user.email_verification_sent_at = datetime.now(timezone.utc)
+            user.is_email_verified = False  # Par défaut non vérifié
+            
+            # Sauvegarder les modifications
+            db.commit()
+            db.refresh(user)
+            
+            # Envoyer l'email de vérification
+            try:
+                logger.info(f"Préparation envoi email de vérification à {user.email}")
+                from app.services.email_service import EmailService
+                import os
+                frontend_url = os.getenv("FRONTEND_URL", "https://mathakine-frontend.onrender.com")
+                
+                logger.debug(f"Frontend URL: {frontend_url}, Token: {verification_token[:10]}...")
+                
+                email_sent = EmailService.send_verification_email(
+                    to_email=user.email,
+                    username=user.username,
+                    verification_token=verification_token,
+                    frontend_url=frontend_url
+                )
+                
+                if email_sent:
+                    logger.info(f"✅ Email de vérification envoyé avec succès à {user.email}")
+                else:
+                    logger.warning(f"⚠️ Échec de l'envoi de l'email de vérification à {user.email}")
+                    logger.warning(f"Vérifiez la configuration SMTP dans les variables d'environnement")
+            except Exception as email_error:
+                # Ne pas faire échouer l'inscription si l'email échoue
+                logger.error(f"❌ Erreur lors de l'envoi de l'email de vérification: {email_error}")
+                import traceback
+                logger.debug(traceback.format_exc())
+            
             # Retourner les données de l'utilisateur créé (sans le mot de passe)
             user_data = {
                 "id": user.id,
@@ -336,6 +376,7 @@ async def create_user_account(request: Request):
                 "full_name": user.full_name,
                 "role": user.role.value if hasattr(user.role, 'value') else str(user.role),
                 "is_active": user.is_active,
+                "is_email_verified": user.is_email_verified,
                 "created_at": user.created_at.isoformat() if user.created_at else None,
             }
             

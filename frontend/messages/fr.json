@@ -94,6 +94,24 @@
       },
       "error": "Erreur lors de l'envoi de l'email"
     },
+    "verifyEmail": {
+      "verifying": "Vérification en cours...",
+      "verifyingDescription": "Vérification de votre adresse email",
+      "successTitle": "Email vérifié !",
+      "successDescription": "Votre adresse email a été vérifiée avec succès.",
+      "successMessage": "Vous pouvez maintenant vous connecter et utiliser toutes les fonctionnalités de Mathakine.",
+      "errorTitle": "Erreur de vérification",
+      "error": "Une erreur s'est produite lors de la vérification.",
+      "errorMessage": "Le lien de vérification est invalide ou a expiré.",
+      "expiredMessage": "Le lien de vérification a expiré. Veuillez demander un nouveau lien.",
+      "noToken": "Aucun token de vérification fourni.",
+      "resendEmail": "Renvoyer l'email de vérification",
+      "resendSuccess": "Un nouvel email de vérification a été envoyé.",
+      "resendError": "Erreur lors du renvoi de l'email.",
+      "enterEmail": "Entrez votre adresse email :",
+      "goToLogin": "Aller à la page de connexion",
+      "backToLogin": "Retour à la connexion"
+    },
     "logout": "Déconnexion"
   },
   "navigation": {

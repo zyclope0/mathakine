@@ -127,4 +127,7 @@ backups/
 *.zip
 *.tar
 *.tar.gz
-*.7z 
+*.7z
+
+# Configuration avec mots de passe (NE JAMAIS COMMITER)
+CONFIGURATION_INFOMANIAK.md

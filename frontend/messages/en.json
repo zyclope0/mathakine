@@ -94,6 +94,24 @@
       },
       "error": "Error sending email"
     },
+    "verifyEmail": {
+      "verifying": "Verifying...",
+      "verifyingDescription": "Verifying your email address",
+      "successTitle": "Email verified!",
+      "successDescription": "Your email address has been successfully verified.",
+      "successMessage": "You can now log in and use all Mathakine features.",
+      "errorTitle": "Verification error",
+      "error": "An error occurred during verification.",
+      "errorMessage": "The verification link is invalid or has expired.",
+      "expiredMessage": "The verification link has expired. Please request a new link.",
+      "noToken": "No verification token provided.",
+      "resendEmail": "Resend verification email",
+      "resendSuccess": "A new verification email has been sent.",
+      "resendError": "Error resending email.",
+      "enterEmail": "Enter your email address:",
+      "goToLogin": "Go to login page",
+      "backToLogin": "Back to login"
+    },
     "logout": "Logout"
   },
   "navigation": {

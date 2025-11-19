@@ -100,12 +100,21 @@ export function useAuth() {
       const response = await api.post<User>('/api/users/', data);
       return response;
     },
-    onSuccess: () => {
-      toast.success(t('registerSuccess'), {
-        description: 'Vous pouvez maintenant vous connecter.',
-      });
-      // Après inscription, rediriger vers login
-      router.push('/login?registered=true');
+    onSuccess: (data) => {
+      // Vérifier si l'email est vérifié
+      const isVerified = data?.is_email_verified || false;
+      
+      if (isVerified) {
+        toast.success(t('registerSuccess'), {
+          description: 'Vous pouvez maintenant vous connecter.',
+        });
+        router.push('/login?registered=true');
+      } else {
+        toast.success(t('registerSuccess'), {
+          description: 'Un email de vérification a été envoyé. Veuillez vérifier votre boîte de réception.',
+        });
+        router.push('/login?registered=true&verify=true');
+      }
     },
     onError: (error: ApiClientError) => {
       const message = error.status === 409

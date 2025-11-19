@@ -22,6 +22,7 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   
   const registered = searchParams.get('registered') === 'true';
+  const verify = searchParams.get('verify') === 'true';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,8 +49,19 @@ function LoginForm() {
         </CardHeader>
         <CardContent>
           {registered && (
-            <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 text-sm">
-              ✅ {tRegister('successMessage')}
+            <div className={`mb-4 p-3 rounded-lg border text-sm ${
+              verify 
+                ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400'
+                : 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400'
+            }`}>
+              {verify ? (
+                <>
+                  📧 Un email de vérification a été envoyé à votre adresse. 
+                  Veuillez vérifier votre boîte de réception et cliquer sur le lien pour activer votre compte.
+                </>
+              ) : (
+                <>✅ {tRegister('successMessage')}</>
+              )}
             </div>
           )}
 

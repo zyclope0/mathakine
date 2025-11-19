@@ -34,7 +34,7 @@ loguru==0.7.2
 # Authentification et sécurité
 python-jose[cryptography]==3.5.0  # JWT
 passlib[bcrypt]==1.7.4  # Hachage des mots de passe
-bcrypt==4.3.0  # Compatible avec passlib 1.7.4
+bcrypt==4.0.1  # Version compatible avec passlib 1.7.4 (4.3.0 cause AttributeError: module 'bcrypt' has no attribute '__about__')
 
 # Tests automatisés
 pytest==7.4.3
@@ -59,4 +59,7 @@ jsmin==3.0.1  # Minification JavaScript
 
 # Monitoring et métriques
 prometheus-client==0.19.0  # Métriques Prometheus
-sentry-sdk==1.40.6  # Monitoring d'erreurs 
+sentry-sdk==1.40.6  # Monitoring d'erreurs
+
+# Envoi d'emails (optionnel - SendGrid pour production)
+sendgrid==6.11.0  # Service d'envoi d'email professionnel (optionnel)

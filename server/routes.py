@@ -49,6 +49,7 @@ from server.api_routes import (
 
 from server.handlers.exercise_handlers import generate_exercise, get_exercise, submit_answer, generate_exercise_api, generate_ai_exercise_stream, get_completed_exercises_ids
 from server.handlers.user_handlers import get_user_stats, create_user_account
+from server.handlers.auth_handlers import verify_email, resend_verification_email
 from server.handlers.badge_handlers import get_user_badges, get_available_badges, check_user_badges, get_user_gamification_stats
 from server.handlers.challenge_handlers import get_challenges_list, get_challenge, submit_challenge_answer, get_challenge_hint, get_completed_challenges_ids, generate_ai_challenge_stream
 from server.handlers.recommendation_handlers import get_recommendations, generate_recommendations
@@ -668,6 +669,8 @@ def get_routes() -> List:
         Route("/api/recommendations/generate", endpoint=generate_recommendations, methods=["POST"]),
         Route("/api/recommendations/complete", endpoint=handle_recommendation_complete, methods=["POST"]),
         Route("/api/auth/forgot-password", endpoint=api_forgot_password, methods=["POST"]),
+        Route("/api/auth/verify-email", endpoint=verify_email, methods=["GET"]),
+        Route("/api/auth/resend-verification", endpoint=resend_verification_email, methods=["POST"]),
         Route("/api/chat", endpoint=chat_api, methods=["POST"]),
         Route("/api/chat/stream", endpoint=chat_api_stream, methods=["POST"]),
         
