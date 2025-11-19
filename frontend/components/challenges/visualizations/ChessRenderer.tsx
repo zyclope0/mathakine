@@ -111,15 +111,21 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
 
   // Obtenir le contenu d'une case
   const getSquareContent = (row: number, col: number): string => {
-    // Si on a un board 2D, utiliser son contenu
+    // Si on a un board 2D avec des vraies pièces (pas des labels comme "A1", "B2")
     if (hasBoard && board[row] && board[row][col]) {
       const piece = board[row][col];
-      if (typeof piece === 'string' && piece !== '' && piece !== ' ' && piece !== '.') {
+      // Vérifier si c'est une vraie pièce (symbole court) et pas un label de case
+      if (typeof piece === 'string' && 
+          piece !== '' && 
+          piece !== ' ' && 
+          piece !== '.' && 
+          piece.length <= 2 &&  // Les labels font 2-3 chars (A1, B10), les pièces 1-2 (k, N, etc.)
+          !piece.match(/^[A-H][1-8]$/)) {  // Exclure les labels de cases (A1-H8)
         return pieceSymbols[piece.toLowerCase()] || piece;
       }
     }
 
-    // Sinon, afficher la pièce actuelle si c'est sa position
+    // Afficher la pièce actuelle si c'est sa position
     if (isCurrentPosition(row, col)) {
       return pieceSymbols[currentPiece.toLowerCase()] || '♞';
     }
