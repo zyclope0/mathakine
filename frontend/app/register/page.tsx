@@ -35,8 +35,13 @@ export default function RegisterPage() {
       errors.email = t('validation.emailInvalid');
     }
 
-    if (formData.password.length < 6) {
+    // Validation mot de passe selon les règles backend (8 caractères, chiffre, majuscule)
+    if (formData.password.length < 8) {
       errors.password = t('validation.passwordMinLength');
+    } else if (!/\d/.test(formData.password)) {
+      errors.password = t('validation.passwordRequiresDigit');
+    } else if (!/[A-Z]/.test(formData.password)) {
+      errors.password = t('validation.passwordRequiresUppercase');
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -161,6 +166,7 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 disabled={isRegistering}
                 placeholder={t('passwordPlaceholder')}
+                minLength={8}
                 aria-invalid={!!validationErrors.password}
                 aria-describedby={validationErrors.password ? 'password-error' : undefined}
               />

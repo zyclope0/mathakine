@@ -2,10 +2,17 @@
 Handlers pour la gestion des utilisateurs et statistiques (API)
 """
 import traceback
+import json
+import re
+from datetime import datetime, timedelta, timezone
 from starlette.responses import JSONResponse
+from starlette.requests import Request
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from app.services.auth_service import create_user, get_user_by_email
+from app.schemas.user import UserCreate
 from app.core.messages import SystemMessages
 from loguru import logger
+from fastapi import HTTPException, status
 
 async def get_user_stats(request):
     """
@@ -80,262 +87,121 @@ async def get_user_stats(request):
             recent_activity = []
             try:
                 from datetime import datetime, timedelta, timezone
-                from sqlalchemy import text
+                from app.models.attempt import Attempt
+                from app.models.logic_challenge import LogicChallengeAttempt
                 
-                # Calculer la date de début pour le filtre
-                date_filter = None
+                # Calculer la date limite si nécessaire
                 if time_range != "all":
                     days = int(time_range)
-                    date_filter = datetime.now(timezone.utc) - timedelta(days=days)
-                
-                # Utiliser une requête SQL brute pour éviter la validation d'enum SQLAlchemy
-                # Récupérer directement les valeurs depuis la base sans passer par les modèles
-                if date_filter:
-                    recent_attempts_query = text("""
-                        SELECT 
-                            a.id,
-                            a.is_correct,
-                            a.created_at,
-                            LOWER(e.exercise_type::text) as exercise_type,
-                            e.title as exercise_title
-                        FROM attempts a
-                        JOIN exercises e ON e.id = a.exercise_id
-                        WHERE a.user_id = :user_id
-                          AND a.created_at >= :date_filter
-                        ORDER BY a.created_at DESC
-                        LIMIT 10
-                    """)
-                    result = db.execute(recent_attempts_query, {
-                        "user_id": user_id,
-                        "date_filter": date_filter
-                    })
+                    cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
                 else:
-                    recent_attempts_query = text("""
-                        SELECT 
-                            a.id,
-                            a.is_correct,
-                            a.created_at,
-                            LOWER(e.exercise_type::text) as exercise_type,
-                            e.title as exercise_title
-                        FROM attempts a
-                        JOIN exercises e ON e.id = a.exercise_id
-                        WHERE a.user_id = :user_id
-                        ORDER BY a.created_at DESC
-                        LIMIT 10
-                    """)
-                    result = db.execute(recent_attempts_query, {"user_id": user_id})
+                    cutoff_date = None
                 
-                recent_attempts_rows = result.fetchall()
+                # Récupérer les tentatives d'exercices récentes
+                exercise_attempts_query = db.query(Attempt).filter(
+                    Attempt.user_id == user_id
+                ).order_by(Attempt.completed_at.desc()).limit(5)
                 
-                logger.debug(f"Tentatives récentes trouvées: {len(recent_attempts_rows)}")
+                if cutoff_date:
+                    exercise_attempts_query = exercise_attempts_query.filter(Attempt.completed_at >= cutoff_date)
                 
-                # Mapping des types d'exercices pour les descriptions
-                type_display_mapping = {
-                    'addition': 'Addition',
-                    'soustraction': 'Soustraction',
-                    'subtraction': 'Soustraction',
-                    'multiplication': 'Multiplication',
-                    'division': 'Division',
-                    'mixte': 'Mixte',
-                    'fractions': 'Fractions',
-                    'geometrie': 'Géométrie',
-                    'geometry': 'Géométrie',
-                    'texte': 'Texte',
-                    'text': 'Texte',
-                    'divers': 'Divers',
-                }
+                exercise_attempts = exercise_attempts_query.all()
                 
-                # Fonction pour formater le temps relatif
-                def format_relative_time(created_at):
-                    """Formate une date en temps relatif (il y a X minutes/heures/jours)"""
-                    if not created_at:
-                        return "Récemment"
-                    
-                    # Gérer les timezones correctement
-                    from datetime import timezone
-                    if created_at.tzinfo:
-                        now = datetime.now(created_at.tzinfo)
-                        attempt_time = created_at
-                    else:
-                        # Si created_at n'a pas de timezone, utiliser UTC
-                        now = datetime.now(timezone.utc)
-                        attempt_time = created_at.replace(tzinfo=timezone.utc)
-                    
-                    delta = now - attempt_time
-                    
-                    if delta.total_seconds() < 60:
-                        return "À l'instant"
-                    elif delta.total_seconds() < 3600:
-                        minutes = int(delta.total_seconds() / 60)
-                        return f"Il y a {minutes} minute{'s' if minutes > 1 else ''}"
-                    elif delta.total_seconds() < 86400:
-                        hours = int(delta.total_seconds() / 3600)
-                        return f"Il y a {hours} heure{'s' if hours > 1 else ''}"
-                    elif delta.days < 7:
-                        days = delta.days
-                        return f"Il y a {days} jour{'s' if days > 1 else ''}"
-                    else:
-                        return created_at.strftime("%d/%m/%Y")
-                
-                # Formater chaque tentative
-                for row in recent_attempts_rows:
-                    # Les données viennent directement de la requête SQL brute
-                    attempt_id = row[0]
-                    is_correct = row[1]
-                    created_at = row[2]
-                    exercise_type = row[3]  # Déjà en minuscules grâce à LOWER()
-                    exercise_title = row[4]
-                    
-                    # Normaliser le type d'exercice (déjà en minuscules depuis SQL)
-                    exercise_type = exercise_type.lower() if exercise_type else 'divers'
-                    type_label = type_display_mapping.get(exercise_type, exercise_type.capitalize())
-                    
-                    # Description de l'activité
-                    status = "réussi" if is_correct else "échoué"
-                    description = f"Exercice {type_label} {status}"
-                    
-                    # Temps relatif
-                    time_str = format_relative_time(created_at)
-                    
+                for attempt in exercise_attempts:
                     recent_activity.append({
-                        'type': 'exercise_completed',
-                        'description': description,
-                        'time': time_str,
-                        'is_correct': is_correct
+                        "type": "exercise",
+                        "description": f"Exercice complété",
+                        "time": attempt.completed_at.isoformat() if attempt.completed_at else datetime.now(timezone.utc).isoformat(),
+                        "is_correct": attempt.is_correct
                     })
                 
-                logger.debug(f"Activité récente formatée: {len(recent_activity)} items")
+                # Récupérer les tentatives de challenges récentes
+                challenge_attempts_query = db.query(LogicChallengeAttempt).filter(
+                    LogicChallengeAttempt.user_id == user_id
+                ).order_by(LogicChallengeAttempt.completed_at.desc()).limit(5)
+                
+                if cutoff_date:
+                    challenge_attempts_query = challenge_attempts_query.filter(LogicChallengeAttempt.completed_at >= cutoff_date)
+                
+                challenge_attempts = challenge_attempts_query.all()
+                
+                for attempt in challenge_attempts:
+                    recent_activity.append({
+                        "type": "challenge",
+                        "description": f"Défi logique complété",
+                        "time": attempt.completed_at.isoformat() if attempt.completed_at else datetime.now(timezone.utc).isoformat(),
+                        "is_correct": attempt.is_correct
+                    })
+                
+                # Trier par date décroissante et prendre les 10 plus récentes
+                recent_activity.sort(key=lambda x: x.get("time", ""), reverse=True)
+                recent_activity = recent_activity[:10]
                 
             except Exception as e:
                 logger.error(f"Erreur lors de la récupération de l'activité récente: {e}")
-                import traceback
-                logger.debug(traceback.format_exc())
-                # En cas d'erreur, garder la liste vide
                 recent_activity = []
             
-            level_data = {
-                'current': 1,
-                'title': 'Débutant Stellaire',
-                'current_xp': experience_points,
-                'next_level_xp': 100
-            }
+            # Calculer le niveau et XP
+            from app.services.user_service import calculate_user_level
+            level_data = calculate_user_level(experience_points)
             
-            # Générer progress_over_time dynamiquement depuis performance_by_type
-            # Mapping des types d'exercices vers leurs labels (sera traduit côté frontend)
-            type_label_mapping = {
-                'addition': 'Addition',
-                'soustraction': 'Soustraction',
-                'subtraction': 'Soustraction',
-                'multiplication': 'Multiplication',
-                'division': 'Division',
-                'mixte': 'Mixte',
-                'fractions': 'Fractions',
-                'geometrie': 'Géométrie',
-                'geometry': 'Géométrie',
-                'texte': 'Texte',
-                'text': 'Texte',
-                'divers': 'Divers',
-            }
+            # Calculer la progression dans le temps
+            progress_over_time = []
+            exercises_by_day = []
             
-            # Trier les types par nombre d'exercices complétés (décroissant)
-            # Limiter à top 8 pour lisibilité du graphique
-            sorted_types = sorted(
-                performance_by_type.items(),
-                key=lambda x: x[1].get('completed', 0),
-                reverse=True
-            )[:8]
-            
-            # Générer labels et data dynamiquement
-            progress_labels = []
-            progress_data = []
-            
-            for ex_type, type_stats in sorted_types:
-                # Utiliser le mapping ou le type original en fallback
-                label = type_label_mapping.get(ex_type.lower(), ex_type.capitalize())
-                progress_labels.append(label)
-                progress_data.append(type_stats.get('completed', 0))
-            
-            # Si aucun type n'a de données, utiliser les types principaux par défaut
-            if not progress_labels:
-                default_types = ['addition', 'soustraction', 'multiplication', 'division']
-                progress_labels = [type_label_mapping.get(t, t.capitalize()) for t in default_types]
-                progress_data = [performance_by_type.get(t, {}).get('completed', 0) for t in default_types]
-            
-            progress_over_time = {
-                'labels': progress_labels,
-                'datasets': [{
-                    'label': 'Exercices résolus',
-                    'data': progress_data
-                }]
-            }
-            # Générer le graphique des exercices par jour selon la période sélectionnée
-            from datetime import datetime, timedelta, timezone
-            current_date = datetime.now(timezone.utc).date()
-            
-            # Déterminer le nombre de jours à afficher selon time_range
-            if time_range == "all":
-                # Pour "all", on prend les 90 derniers jours pour l'affichage
-                days_to_show = 90
-            else:
-                days_to_show = int(time_range)
-            
-            # Initialiser avec zéro pour chaque jour
-            daily_exercises = {}
-            for i in range(days_to_show - 1, -1, -1):
-                day = current_date - timedelta(days=i)
-                day_str = day.strftime("%d/%m")
-                daily_exercises[day_str] = 0
-            
-            # Récupérer les vraies données des tentatives par jour
             try:
-                from sqlalchemy import func, text
-                from app.models.attempt import Attempt
+                from collections import defaultdict
+                from datetime import datetime, timedelta, timezone
                 
-                # Calculer la date de début pour le filtre
-                start_date = current_date - timedelta(days=days_to_show - 1)
-                start_datetime = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+                # Calculer la date de début selon time_range
+                if time_range == "all":
+                    start_date = datetime.now(timezone.utc) - timedelta(days=90)  # Par défaut 90 jours
+                else:
+                    start_date = datetime.now(timezone.utc) - timedelta(days=int(time_range))
                 
-                # Requête pour compter les tentatives par jour pour cet utilisateur
-                daily_attempts_query = db.query(
-                    func.date(Attempt.created_at).label('attempt_date'),
-                    func.count(Attempt.id).label('count')
-                ).filter(
+                # Récupérer les tentatives par jour
+                daily_stats = defaultdict(lambda: {"total": 0, "correct": 0})
+                
+                attempts_query = db.query(Attempt).filter(
                     Attempt.user_id == user_id,
-                    Attempt.created_at >= start_datetime
-                ).group_by(
-                    func.date(Attempt.created_at)
+                    Attempt.completed_at >= start_date
                 ).all()
                 
-                logger.debug(f"Tentatives par jour trouvées: {len(daily_attempts_query)} jours avec des données")
+                for attempt in attempts_query:
+                    if attempt.completed_at:
+                        day_key = attempt.completed_at.date().isoformat()
+                        daily_stats[day_key]["total"] += 1
+                        if attempt.is_correct:
+                            daily_stats[day_key]["correct"] += 1
                 
-                # Remplir avec les données réelles
-                for attempt_date, count in daily_attempts_query:
-                    day_str = attempt_date.strftime("%d/%m")
-                    if day_str in daily_exercises:
-                        daily_exercises[day_str] = count
-                        logger.debug(f"Jour {day_str}: {count} tentatives")
-                        
+                # Créer les datasets pour les graphiques
+                sorted_days = sorted(daily_stats.keys())
+                progress_over_time = {
+                    "labels": sorted_days,
+                    "datasets": [{
+                        "label": "Taux de réussite (%)",
+                        "data": [
+                            (daily_stats[day]["correct"] / daily_stats[day]["total"] * 100) 
+                            if daily_stats[day]["total"] > 0 else 0
+                            for day in sorted_days
+                        ]
+                    }]
+                }
+                
+                exercises_by_day = {
+                    "labels": sorted_days,
+                    "datasets": [{
+                        "label": "Exercices complétés",
+                        "data": [daily_stats[day]["total"] for day in sorted_days],
+                        "borderColor": "rgb(139, 92, 246)",
+                        "backgroundColor": "rgba(139, 92, 246, 0.1)"
+                    }]
+                }
+                
             except Exception as e:
-                logger.warning(f"Erreur lors de la récupération des tentatives quotidiennes: {e}")
-                # En cas d'erreur, garder les valeurs à 0
-            
-            daily_labels = list(daily_exercises.keys())
-            daily_counts = list(daily_exercises.values())
-            
-            logger.debug(f"Données du graphique quotidien: {sum(daily_counts)} tentatives au total sur {len(daily_labels)} jours")
-            exercises_by_day = {
-                'labels': daily_labels,
-                'datasets': [{
-                    'label': 'Exercices par jour',
-                    'data': daily_counts,
-                    'borderColor': 'rgba(255, 206, 86, 1)',
-                    'backgroundColor': 'rgba(255, 206, 86, 0.2)',
-                }]
-            }
-            # Ajouter le timestamp de dernière mise à jour
-            # Format ISO 8601 strict avec 'Z' pour UTC (compatible avec Zod datetime)
-            from datetime import datetime, timezone
-            last_updated = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+                logger.error(f"Erreur lors du calcul de la progression: {e}")
+                progress_over_time = {"labels": [], "datasets": []}
+                exercises_by_day = {"labels": [], "datasets": []}
             
             # Compter les challenges complétés
             try:
@@ -359,13 +225,150 @@ async def get_user_stats(request):
                 'level': level_data,
                 'progress_over_time': progress_over_time,
                 'exercises_by_day': exercises_by_day,
-                'lastUpdated': last_updated
+                'lastUpdated': datetime.now(timezone.utc).isoformat()
             }
-            logger.debug(f"Données du tableau de bord générées pour {username} avec {stats.get('total_attempts', 0)} tentatives")
+            
             return JSONResponse(response_data)
+            
         finally:
             EnhancedServerAdapter.close_db_session(db)
+            
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération des statistiques utilisateur: {e}")
-        traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500) 
+        logger.error(f"Erreur lors de la récupération des statistiques: {e}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse({"error": "Erreur lors de la récupération des statistiques"}, status_code=500)
+
+
+async def create_user_account(request: Request):
+    """
+    Endpoint pour créer un nouveau compte utilisateur.
+    Route: POST /api/users/
+    
+    Body JSON:
+    {
+        "username": "nom_utilisateur",
+        "email": "email@example.com",
+        "password": "MotDePasse123",
+        "full_name": "Nom Complet" (optionnel)
+    }
+    """
+    try:
+        # Récupérer les données JSON de la requête
+        data = await request.json()
+        
+        # Extraire les champs requis
+        username = data.get('username', '').strip()
+        email = data.get('email', '').strip()
+        password = data.get('password', '')
+        full_name = data.get('full_name', '').strip() or None
+        
+        # Validation basique côté serveur
+        if not username:
+            return JSONResponse(
+                {"error": "Le nom d'utilisateur est requis"},
+                status_code=400
+            )
+        
+        if len(username) < 3:
+            return JSONResponse(
+                {"error": "Le nom d'utilisateur doit contenir au moins 3 caractères"},
+                status_code=400
+            )
+        
+        if not email:
+            return JSONResponse(
+                {"error": "L'email est requis"},
+                status_code=400
+            )
+        
+        # Validation email basique
+        email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        if not re.match(email_pattern, email):
+            return JSONResponse(
+                {"error": "Format d'email invalide"},
+                status_code=400
+            )
+        
+        if not password:
+            return JSONResponse(
+                {"error": "Le mot de passe est requis"},
+                status_code=400
+            )
+        
+        # Validation mot de passe selon le schéma UserCreate
+        if len(password) < 8:
+            return JSONResponse(
+                {"error": "Le mot de passe doit contenir au moins 8 caractères"},
+                status_code=400
+            )
+        
+        if not any(char.isdigit() for char in password):
+            return JSONResponse(
+                {"error": "Le mot de passe doit contenir au moins un chiffre"},
+                status_code=400
+            )
+        
+        if not any(char.isupper() for char in password):
+            return JSONResponse(
+                {"error": "Le mot de passe doit contenir au moins une majuscule"},
+                status_code=400
+            )
+        
+        # Créer l'utilisateur via le service
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            # Créer le schéma UserCreate
+            user_create = UserCreate(
+                username=username,
+                email=email,
+                password=password,
+                full_name=full_name
+            )
+            
+            # Créer l'utilisateur
+            user = create_user(db, user_create)
+            
+            # Retourner les données de l'utilisateur créé (sans le mot de passe)
+            user_data = {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": user.role.value if hasattr(user.role, 'value') else str(user.role),
+                "is_active": user.is_active,
+                "created_at": user.created_at.isoformat() if user.created_at else None,
+            }
+            
+            logger.info(f"Nouvel utilisateur créé: {username} ({email})")
+            
+            return JSONResponse(user_data, status_code=201)
+            
+        except HTTPException as e:
+            # Gérer les erreurs HTTP (ex: utilisateur déjà existant)
+            logger.warning(f"Erreur HTTP lors de la création de l'utilisateur: {e.detail}")
+            return JSONResponse(
+                {"error": e.detail},
+                status_code=e.status_code
+            )
+        except Exception as e:
+            logger.error(f"Erreur lors de la création de l'utilisateur: {e}")
+            logger.debug(traceback.format_exc())
+            return JSONResponse(
+                {"error": "Erreur lors de la création du compte"},
+                status_code=500
+            )
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+    except json.JSONDecodeError:
+        return JSONResponse(
+            {"error": "Format JSON invalide"},
+            status_code=400
+        )
+    except Exception as e:
+        logger.error(f"Erreur inattendue lors de la création de l'utilisateur: {e}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse(
+            {"error": "Erreur lors de la création du compte"},
+            status_code=500
+        )

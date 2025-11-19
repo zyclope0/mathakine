@@ -55,7 +55,7 @@
       "usernamePlaceholder": "Choose a username",
       "emailPlaceholder": "your@email.com",
       "fullNamePlaceholder": "Your full name",
-      "passwordPlaceholder": "Minimum 6 characters",
+      "passwordPlaceholder": "Minimum 8 characters, 1 digit, 1 uppercase",
       "confirmPasswordPlaceholder": "Repeat the password",
       "submit": "Sign up",
       "registering": "Registering...",
@@ -65,7 +65,9 @@
       "validation": {
         "usernameMinLength": "Username must be at least 3 characters",
         "emailInvalid": "Invalid email",
-        "passwordMinLength": "Password must be at least 6 characters",
+        "passwordMinLength": "Password must be at least 8 characters",
+        "passwordRequiresDigit": "Password must contain at least one digit",
+        "passwordRequiresUppercase": "Password must contain at least one uppercase letter",
         "passwordsMismatch": "Passwords do not match"
       }
     },

@@ -48,7 +48,7 @@ from server.api_routes import (
 )
 
 from server.handlers.exercise_handlers import generate_exercise, get_exercise, submit_answer, generate_exercise_api, generate_ai_exercise_stream, get_completed_exercises_ids
-from server.handlers.user_handlers import get_user_stats
+from server.handlers.user_handlers import get_user_stats, create_user_account
 from server.handlers.badge_handlers import get_user_badges, get_available_badges, check_user_badges, get_user_gamification_stats
 from server.handlers.challenge_handlers import get_challenges_list, get_challenge, submit_challenge_answer, get_challenge_hint, get_completed_challenges_ids, generate_ai_challenge_stream
 from server.handlers.recommendation_handlers import get_recommendations, generate_recommendations
@@ -653,6 +653,7 @@ def get_routes() -> List:
         Route("/api/exercises/generate-ai-stream", endpoint=generate_ai_exercise_stream, methods=["GET"]),
         Route("/api/exercises/completed-ids", endpoint=get_completed_exercises_ids, methods=["GET"]),
         Route("/api/submit-answer", endpoint=submit_answer, methods=["POST"]),
+        Route("/api/users/", endpoint=create_user_account, methods=["POST"]),
         Route("/api/users/me", endpoint=api_get_user_me),
         Route("/api/users/me", endpoint=api_update_user_me, methods=["PUT"]),
         Route("/api/users/me", endpoint=api_delete_user_account, methods=["DELETE"]),
