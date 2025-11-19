@@ -27,6 +27,10 @@ create_tables()
 print('Base de données initialisée avec succès!')
 "
 
+# Appliquer la migration pour la vérification d'email
+echo "Application de la migration pour la vérification d'email..."
+python scripts/apply_email_verification_migration.py || echo "Migration email déjà appliquée ou erreur (non bloquant)"
+
 # Vérifier que la table existe avec PostgreSQL
 echo "Vérification de la table exercises sur PostgreSQL..."
 python -c "

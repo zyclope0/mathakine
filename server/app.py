@@ -48,6 +48,16 @@ async def startup():
     """
     logger.info("Starting up Mathakine server")
     init_database()
+    
+    # Appliquer automatiquement la migration pour la vérification d'email si nécessaire
+    try:
+        from scripts.apply_email_verification_migration import apply_migration
+        logger.info("Vérification des colonnes de vérification email...")
+        apply_migration()
+    except Exception as e:
+        logger.warning(f"Impossible d'appliquer la migration email automatiquement: {e}")
+        logger.warning("Les colonnes de vérification email peuvent être manquantes. Utilisez le script manuel si nécessaire.")
+    
     logger.info("Mathakine server started successfully")
 
 def run_server(host: str = "0.0.0.0", port: int = 8000, debug: bool = False):
