@@ -100,10 +100,10 @@ async def get_user_stats(request):
                 # Récupérer les tentatives d'exercices récentes
                 exercise_attempts_query = db.query(Attempt).filter(
                     Attempt.user_id == user_id
-                ).order_by(Attempt.completed_at.desc()).limit(5)
+                ).order_by(Attempt.created_at.desc()).limit(5)
                 
                 if cutoff_date:
-                    exercise_attempts_query = exercise_attempts_query.filter(Attempt.completed_at >= cutoff_date)
+                    exercise_attempts_query = exercise_attempts_query.filter(Attempt.created_at >= cutoff_date)
                 
                 exercise_attempts = exercise_attempts_query.all()
                 
@@ -111,17 +111,17 @@ async def get_user_stats(request):
                     recent_activity.append({
                         "type": "exercise",
                         "description": f"Exercice complété",
-                        "time": attempt.completed_at.isoformat() if attempt.completed_at else datetime.now(timezone.utc).isoformat(),
+                        "time": attempt.created_at.isoformat() if attempt.created_at else datetime.now(timezone.utc).isoformat(),
                         "is_correct": attempt.is_correct
                     })
                 
                 # Récupérer les tentatives de challenges récentes
                 challenge_attempts_query = db.query(LogicChallengeAttempt).filter(
                     LogicChallengeAttempt.user_id == user_id
-                ).order_by(LogicChallengeAttempt.completed_at.desc()).limit(5)
+                ).order_by(LogicChallengeAttempt.created_at.desc()).limit(5)
                 
                 if cutoff_date:
-                    challenge_attempts_query = challenge_attempts_query.filter(LogicChallengeAttempt.completed_at >= cutoff_date)
+                    challenge_attempts_query = challenge_attempts_query.filter(LogicChallengeAttempt.created_at >= cutoff_date)
                 
                 challenge_attempts = challenge_attempts_query.all()
                 
@@ -129,7 +129,7 @@ async def get_user_stats(request):
                     recent_activity.append({
                         "type": "challenge",
                         "description": f"Défi logique complété",
-                        "time": attempt.completed_at.isoformat() if attempt.completed_at else datetime.now(timezone.utc).isoformat(),
+                        "time": attempt.created_at.isoformat() if attempt.created_at else datetime.now(timezone.utc).isoformat(),
                         "is_correct": attempt.is_correct
                     })
                 
@@ -142,7 +142,53 @@ async def get_user_stats(request):
                 recent_activity = []
             
             # Calculer le niveau et XP
-            from app.services.user_service import calculate_user_level
+            def calculate_user_level(xp: int) -> dict:
+                """
+                Calcule le niveau utilisateur basé sur les points d'expérience.
+                
+                Args:
+                    xp: Points d'expérience totaux
+                
+                Returns:
+                    Dictionnaire avec current, title, current_xp, next_level_xp
+                """
+                # Seuils de niveau (100 points par niveau)
+                level_thresholds = [0, 100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500]
+                
+                # Trouver le niveau actuel
+                current_level = 1
+                for i, threshold in enumerate(level_thresholds):
+                    if xp >= threshold:
+                        current_level = i + 1
+                
+                # Calculer les XP pour le niveau actuel et suivant
+                current_xp = xp - level_thresholds[current_level - 1] if current_level > 1 else xp
+                next_level_xp = level_thresholds[current_level] - level_thresholds[current_level - 1] if current_level < len(level_thresholds) else 100
+                
+                # Titres de niveau
+                level_titles = {
+                    1: "Jeune Padawan",
+                    2: "Padawan",
+                    3: "Chevalier Jedi",
+                    4: "Maître Jedi",
+                    5: "Grand Maître",
+                    6: "Maître du Conseil",
+                    7: "Légende Jedi",
+                    8: "Gardien de la Force",
+                    9: "Seigneur Jedi",
+                    10: "Archiviste Jedi",
+                    11: "Grand Archiviste"
+                }
+                
+                title = level_titles.get(current_level, f"Niveau {current_level}")
+                
+                return {
+                    "current": current_level,
+                    "title": title,
+                    "current_xp": current_xp,
+                    "next_level_xp": next_level_xp
+                }
+            
             level_data = calculate_user_level(experience_points)
             
             # Calculer la progression dans le temps
@@ -164,12 +210,12 @@ async def get_user_stats(request):
                 
                 attempts_query = db.query(Attempt).filter(
                     Attempt.user_id == user_id,
-                    Attempt.completed_at >= start_date
+                    Attempt.created_at >= start_date
                 ).all()
                 
                 for attempt in attempts_query:
-                    if attempt.completed_at:
-                        day_key = attempt.completed_at.date().isoformat()
+                    if attempt.created_at:
+                        day_key = attempt.created_at.date().isoformat()
                         daily_stats[day_key]["total"] += 1
                         if attempt.is_correct:
                             daily_stats[day_key]["correct"] += 1
