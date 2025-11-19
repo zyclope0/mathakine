@@ -245,7 +245,7 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
       {(knightPosition || reachablePositions.length > 0) && (
         <div className="bg-card/50 border border-border rounded-lg p-4">
           <div className="space-y-2 text-sm">
-            {knightPosition && (
+            {knightPosition && Array.isArray(knightPosition) && knightPosition.length >= 2 && (
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-primary">Position actuelle :</span>
                 <code className="bg-muted px-2 py-1 rounded text-foreground">
@@ -258,14 +258,20 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
               <div>
                 <span className="font-semibold text-primary">Positions atteignables :</span>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {reachablePositions.map((pos: number[], index: number) => (
-                    <code
-                      key={index}
-                      className="bg-green-500/20 border border-green-500/30 px-2 py-1 rounded text-foreground text-xs"
-                    >
-                      {getPositionLabel(pos[0], pos[1])}
-                    </code>
-                  ))}
+                  {reachablePositions.map((pos: any, index: number) => {
+                    // Vérifier que pos est un tableau valide avec 2 éléments
+                    if (!Array.isArray(pos) || pos.length < 2 || typeof pos[0] !== 'number' || typeof pos[1] !== 'number') {
+                      return null;
+                    }
+                    return (
+                      <code
+                        key={index}
+                        className="bg-green-500/20 border border-green-500/30 px-2 py-1 rounded text-foreground text-xs"
+                      >
+                        {getPositionLabel(pos[0], pos[1])}
+                      </code>
+                    );
+                  })}
                 </div>
                 <div className="mt-2 text-muted-foreground">
                   Total : <span className="font-semibold">{reachablePositions.length}</span> positions
