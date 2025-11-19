@@ -33,7 +33,19 @@ export default function VerifyEmailPage() {
 
   const verifyToken = async (token: string) => {
     try {
-      const response = await api.get(`/api/auth/verify-email?token=${token}`);
+      interface VerifyEmailResponse {
+        success?: boolean;
+        message?: string;
+        error?: string;
+        user?: {
+          id: number;
+          username: string;
+          email: string;
+          is_email_verified: boolean;
+        };
+      }
+      
+      const response = await api.get<VerifyEmailResponse>(`/api/auth/verify-email?token=${token}`);
       
       if (response && response.success) {
         setStatus('success');
@@ -67,7 +79,12 @@ export default function VerifyEmailPage() {
     }
 
     try {
-      await api.post('/api/auth/resend-verification', { email });
+      interface ResendVerificationResponse {
+        message?: string;
+        error?: string;
+      }
+      
+      await api.post<ResendVerificationResponse>('/api/auth/resend-verification', { email });
       setMessage(t('resendSuccess'));
       setStatus('success');
     } catch (error: any) {
