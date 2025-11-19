@@ -365,7 +365,6 @@ async def create_user_account(request: Request):
             except Exception as email_error:
                 # Ne pas faire échouer l'inscription si l'email échoue
                 logger.error(f"❌ Erreur lors de l'envoi de l'email de vérification: {email_error}")
-                import traceback
                 logger.debug(traceback.format_exc())
             
             # Retourner les données de l'utilisateur créé (sans le mot de passe)
