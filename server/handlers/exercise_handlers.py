@@ -423,20 +423,32 @@ async def get_exercises_list(request):
             # Récupérer les exercices avec pagination
             exercises_objs = query.order_by(Exercise.created_at.desc()).limit(limit).offset(skip).all()
             
-            # Convertir en dicts
+            # Convertir en dicts avec parsing JSON sécurisé
             import json as json_module
+            
+            def safe_parse_json(value, default=None):
+                """Parse JSON en gérant les cas None, string vide, ou JSON invalide"""
+                if not value:  # None ou string vide
+                    return default if default is not None else []
+                if isinstance(value, str):
+                    try:
+                        return json_module.loads(value)
+                    except (json_module.JSONDecodeError, ValueError):
+                        return default if default is not None else []
+                return value  # Déjà un objet Python
+            
             exercises = [
                 {
                     "id": ex.id,
                     "title": ex.title,
-                    "exercise_type": ex.exercise_type.value,  # .value pour obtenir la string
+                    "exercise_type": ex.exercise_type.value,
                     "difficulty": ex.difficulty.value,
                     "question": ex.question,
                     "correct_answer": ex.correct_answer,
-                    "choices": json_module.loads(ex.choices) if isinstance(ex.choices, str) else ex.choices,  # Parser JSON si string
+                    "choices": safe_parse_json(ex.choices, []),
                     "explanation": ex.explanation,
                     "hint": ex.hint,
-                    "tags": json_module.loads(ex.tags) if isinstance(ex.tags, str) else ex.tags if ex.tags else [],  # Parser JSON si string
+                    "tags": safe_parse_json(ex.tags, []),
                     "is_active": ex.is_active,
                     "view_count": ex.view_count
                 } for ex in exercises_objs
