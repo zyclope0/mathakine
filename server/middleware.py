@@ -32,6 +32,9 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         Returns:
             Starlette Response
         """
+        # DEBUG: Print forcé pour voir si le middleware est appelé
+        print(f"[MIDDLEWARE DEBUG] Request: {request.method} {request.url.path}")
+        
         # List of routes that don't require authentication
         public_routes = [
             "/", 
@@ -50,8 +53,13 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         ]
         
         # Check if the route is public
-        if any(request.url.path.startswith(route) for route in public_routes):
+        is_public = any(request.url.path.startswith(route) for route in public_routes)
+        print(f"[MIDDLEWARE DEBUG] Is public route: {is_public}")
+        
+        if is_public:
+            print(f"[MIDDLEWARE DEBUG] Calling next handler...")
             response = await call_next(request)
+            print(f"[MIDDLEWARE DEBUG] Response status: {response.status_code}")
             return response
         
         # Check for authentication token
