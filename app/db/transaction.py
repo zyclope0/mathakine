@@ -50,7 +50,7 @@ class TransactionManager:
                 if not savepoint.is_active:
                     db_session.commit()
                 logger.debug(f"{log_prefix}: Transaction validée (commit)")
-        except Exception as e:
+        except Exception as savepoint_error:
             # Rollback au savepoint
             if 'savepoint' in locals() and savepoint.is_active:
                 savepoint.rollback()
@@ -66,9 +66,9 @@ class TransactionManager:
             db_session.commit()
             logger.debug(f"{log_prefix}: Transaction validée (commit)")
             return True
-        except Exception as e:
+        except Exception as commit_error:
             db_session.rollback()
-            logger.error(f"{log_prefix}: Échec de commit, transaction annulée: {e}")
+            logger.error(f"{log_prefix}: Échec de commit, transaction annulée: {commit_error}")
             return False
     
     @staticmethod
@@ -78,8 +78,8 @@ class TransactionManager:
             db_session.rollback()
             logger.debug(f"{log_prefix}: Transaction annulée (rollback)")
             return True
-        except Exception as e:
-            logger.error(f"{log_prefix}: Échec de rollback: {e}")
+        except Exception as rollback_error:
+            logger.error(f"{log_prefix}: Échec de rollback: {rollback_error}")
             return False
     
     @staticmethod
@@ -108,9 +108,9 @@ class TransactionManager:
                     db_session.commit()
                     logger.debug(f"{log_prefix}: Suppression confirmée avec succès")
                     return True
-                except Exception as e:
+                except Exception as delete_commit_error:
                     db_session.rollback()
-                    logger.error(f"{log_prefix}: Échec de la suppression lors du commit: {e}")
+                    logger.error(f"{log_prefix}: Échec de la suppression lors du commit: {delete_commit_error}")
                     
                     # Alternative: tenter une suppression sans cascade si la première méthode échoue
                     try:
@@ -126,9 +126,9 @@ class TransactionManager:
                         return False
             
             return True
-        except Exception as e:
+        except Exception as delete_error:
             db_session.rollback()
-            logger.error(f"{log_prefix}: Échec de la suppression: {e}")
+            logger.error(f"{log_prefix}: Échec de la suppression: {delete_error}")
             return False
     
     @staticmethod

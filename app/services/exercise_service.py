@@ -86,8 +86,8 @@ class ExerciseService:
                 query = query.limit(limit)
             
             return query.all()
-        except Exception as e:
-            logger.error(f"Erreur lors de la récupération des exercices: {e}")
+        except Exception as exercises_fetch_error:
+            logger.error(f"Erreur lors de la récupération des exercices: {exercises_fetch_error}")
             return []
     
     @staticmethod
@@ -201,8 +201,9 @@ class ExerciseService:
                 if not exercise:
                     logger.warning(f"SQLAlchemy n'a pas trouvé l'exercice {exercise_id}, tentative avec PostgreSQL direct")
                     try:
-                        from app.services.exercise_service_translations import get_exercise as get_exercise_pg
-                        exercise_dict = get_exercise_pg(exercise_id, locale="fr")
+                        # NOTE: exercise_service_translations archivé - fallback désactivé
+                        logger.error(f"Exercice {exercise_id} introuvable en base")
+                        exercise_dict = None
                         if exercise_dict:
                             logger.info(f"Exercice {exercise_id} trouvé via PostgreSQL direct")
                             # Créer un objet Exercise temporaire pour compatibilité avec le reste du code
@@ -268,9 +269,9 @@ class ExerciseService:
                     # Ne pas faire échouer la tentative pour une erreur de stats
                 
                 return attempt
-            except Exception as e:
-                error_type = type(e).__name__
-                error_msg = str(e)
+            except Exception as attempt_record_error:
+                error_type = type(attempt_record_error).__name__
+                error_msg = str(attempt_record_error)
                 import traceback
                 logger.error(f"❌ ERREUR lors de l'enregistrement de la tentative: {error_type}: {error_msg}")
                 logger.error(f"Traceback complet:\n{traceback.format_exc()}")

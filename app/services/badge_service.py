@@ -68,8 +68,8 @@ class BadgeService:
             
             return new_badges
             
-        except Exception as e:
-            logger.error(f"Erreur lors de la vérification des badges pour l'utilisateur {user_id}: {e}")
+        except Exception as badge_check_error:
+            logger.error(f"Erreur lors de la vérification des badges pour l'utilisateur {user_id}: {badge_check_error}")
             return []
     
     def _check_badge_requirements(self, user_id: int, badge: Achievement, attempt_data: Dict[str, Any] = None) -> bool:
@@ -413,9 +413,9 @@ class BadgeService:
                 'earned_at': user_achievement.earned_at.isoformat()
             }
             
-        except Exception as e:
+        except Exception as badge_award_error:
             self.db.rollback()
-            logger.error(f"Erreur lors de l'attribution du badge {badge.code}: {e}")
+            logger.error(f"Erreur lors de l'attribution du badge {badge.code}: {badge_award_error}")
             return None
     
     def _update_user_gamification(self, user_id: int, new_badges: List[Dict[str, Any]]):
@@ -457,9 +457,9 @@ class BadgeService:
                 self.db.commit()
                 logger.info(f"Gamification mise à jour pour l'utilisateur {user_id}: {total_points_gained} points, niveau {new_level}, rang {jedi_rank}")
                 
-        except Exception as e:
+        except Exception as gamification_update_error:
             self.db.rollback()
-            logger.error(f"Erreur mise à jour gamification pour l'utilisateur {user_id}: {e}")
+            logger.error(f"Erreur mise à jour gamification pour l'utilisateur {user_id}: {gamification_update_error}")
     
     def _calculate_jedi_rank(self, level: int) -> str:
         """Calculer le rang Jedi basé sur le niveau"""
@@ -526,8 +526,8 @@ class BadgeService:
                 }
             }
             
-        except Exception as e:
-            logger.error(f"Erreur récupération badges utilisateur {user_id}: {e}")
+        except Exception as user_badges_error:
+            logger.error(f"Erreur récupération badges utilisateur {user_id}: {user_badges_error}")
             return {'earned_badges': [], 'user_stats': {}}
     
     def get_available_badges(self) -> List[Dict[str, Any]]:
@@ -553,6 +553,6 @@ class BadgeService:
                 for badge in badges
             ]
             
-        except Exception as e:
-            logger.error(f"Erreur récupération badges disponibles: {e}")
+        except Exception as available_badges_error:
+            logger.error(f"Erreur récupération badges disponibles: {available_badges_error}")
             return [] 

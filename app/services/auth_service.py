@@ -89,8 +89,8 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
             
         logger.info(f"Authentification réussie pour l'utilisateur: {username}")
         return user
-    except Exception as e:
-        logger.error(f"Erreur lors de la vérification du mot de passe: {str(e)}")
+    except Exception as password_verification_error:
+        logger.error(f"Erreur lors de la vérification du mot de passe: {str(password_verification_error)}")
         return None
 
 def create_user(db: Session, user_in: UserCreate) -> User:
@@ -295,8 +295,8 @@ def refresh_access_token(db: Session, refresh_token: str) -> dict:
         # Ne pas intercepter les RuntimeError pour permettre aux tests de les attraper
         logger.error("Erreur RuntimeError lors du rafraîchissement du token")
         raise
-    except Exception as e:
-        logger.error(f"Erreur lors du rafraîchissement du token: {str(e)}")
+    except Exception as token_refresh_error:
+        logger.error(f"Erreur lors du rafraîchissement du token: {str(token_refresh_error)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur interne du serveur"

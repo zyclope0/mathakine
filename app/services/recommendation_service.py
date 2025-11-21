@@ -328,8 +328,8 @@ class RecommendationService:
             
             return recommendations
             
-        except Exception as e:
-            logger.error(f"Erreur dans la génération des recommandations: {str(e)}")
+        except Exception as recommendations_generation_error:
+            logger.error(f"Erreur dans la génération des recommandations: {str(recommendations_generation_error)}")
             db.rollback()
             return []
     
@@ -341,8 +341,8 @@ class RecommendationService:
             if recommendation:
                 recommendation.shown_count += 1
                 db.commit()
-        except Exception as e:
-            logger.error(f"Erreur lors du marquage de la recommandation comme montrée: {str(e)}")
+        except Exception as mark_shown_error:
+            logger.error(f"Erreur lors du marquage de la recommandation comme montrée: {str(mark_shown_error)}")
             db.rollback()
     
     @staticmethod
@@ -354,8 +354,8 @@ class RecommendationService:
                 recommendation.clicked_count += 1
                 recommendation.last_clicked_at = datetime.now(timezone.utc)
                 db.commit()
-        except Exception as e:
-            logger.error(f"Erreur lors du marquage de la recommandation comme cliquée: {str(e)}")
+        except Exception as mark_clicked_error:
+            logger.error(f"Erreur lors du marquage de la recommandation comme cliquée: {str(mark_clicked_error)}")
             db.rollback()
     
     @staticmethod
@@ -367,8 +367,8 @@ class RecommendationService:
                 recommendation.is_completed = True
                 recommendation.completed_at = datetime.now(timezone.utc)
                 db.commit()
-        except Exception as e:
-            logger.error(f"Erreur lors du marquage de la recommandation comme complétée: {str(e)}")
+        except Exception as mark_completed_error:
+            logger.error(f"Erreur lors du marquage de la recommandation comme complétée: {str(mark_completed_error)}")
             db.rollback()
     
     @staticmethod

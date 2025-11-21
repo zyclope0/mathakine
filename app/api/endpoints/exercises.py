@@ -192,9 +192,9 @@ def create_exercise(
             "image_url": new_exercise.image_url,
             "audio_url": new_exercise.audio_url
         }
-    except Exception as e:
+    except Exception as exercise_creation_error:
         db.rollback()
-        logger.error(f"Erreur lors de la création de l'exercice: {str(e)}")
+        logger.error(f"Erreur lors de la création de l'exercice: {str(exercise_creation_error)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors de la création de l'exercice: {str(e)}"
@@ -660,9 +660,9 @@ def generate_exercise(
         
         print(f"Exercice créé avec ID {new_exercise.id}, explication: {new_exercise.explanation}")
 
-    except Exception as e:
+    except Exception as exercise_creation_fallback_error:
         db.rollback()
-        print(f"Erreur lors de la création de l'exercice: {str(e)}")
+        print(f"Erreur lors de la création de l'exercice: {str(exercise_creation_fallback_error)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(
@@ -1090,7 +1090,7 @@ def delete_exercise(
     except HTTPException:
         # Re-raise HTTPException (403, 404, etc.) without modifying them
         raise
-    except Exception as e:
+    except Exception as db_general_error:
         db.rollback()
         stack_trace = traceback.format_exc()
         logger.error(f"Erreur lors de l'archivage de l'exercice {exercise_id}: {str(e)}")

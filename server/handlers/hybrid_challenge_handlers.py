@@ -118,8 +118,8 @@ async def hybrid_challenges_page(request):
                     "estimated_time": challenge.get("estimated_time_minutes", 15)
                 })
                 
-        except Exception as e:
-            print(f"Erreur récupération logic_challenges: {e}")
+        except Exception as logic_challenges_error:
+            print(f"Erreur récupération logic_challenges: {logic_challenges_error}")
             # Fallback avec vos nouvelles énigmes (IDs 2292-2296)
             logic_challenges = [
                 {
@@ -219,7 +219,7 @@ async def hybrid_challenges_page(request):
             "page_title": "Défis Galactiques Hybrides"
         })
         
-    except Exception as e:
+    except Exception as page_load_error:
         return render_error(
             request=request,
             error="Erreur système",
@@ -276,8 +276,8 @@ async def api_hybrid_start_challenge(request):
                         redirect_url = f"/logic-challenge/{fallback_ids[logic_index]}"
                     else:
                         redirect_url = None
-            except Exception as e:
-                print(f"Erreur mapping dynamique logic challenge: {e}")
+            except Exception as dynamic_mapping_error:
+                print(f"Erreur mapping dynamique logic challenge: {dynamic_mapping_error}")
                 # Fallback vers les énigmes connues
                 fallback_ids = [2292, 2293, 2294, 2295, 2296]
                 logic_index = challenge_id - 100
@@ -311,7 +311,7 @@ async def api_hybrid_start_challenge(request):
             "success": False,
             "error": "ID invalide"
         }, status_code=400)
-    except Exception as e:
+    except Exception as challenge_submission_error:
         return JSONResponse({
             "success": False,
             "error": "Erreur système",

@@ -198,7 +198,8 @@ class EnhancedServerAdapter:
         Returns:
             Un dictionnaire contenant les données de l'exercice créé ou None
         """
-        from app.services.exercise_service_translations import create_exercise_with_translations
+        # NOTE: exercise_service_translations archivé - utiliser ExerciseService ORM
+        from app.services import ExerciseService
         
         exercise_data = {
             'title': title,
@@ -216,8 +217,22 @@ class EnhancedServerAdapter:
             'view_count': 0
         }
         
-        logger.info(f"Création d'un exercice généré de type {exercise_type}, difficulté {difficulty} avec traductions (locale: {locale})")
-        return create_exercise_with_translations(exercise_data, locale=locale)
+        logger.info(f"Création d'un exercice généré de type {exercise_type}, difficulté {difficulty}")
+        # NOTE: Utiliser ExerciseService ORM directement
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.models.exercise import Exercise
+            exercise = Exercise(**exercise_data)
+            db.add(exercise)
+            db.commit()
+            db.refresh(exercise)
+            return _serialize_exercise(exercise)
+        except Exception as exercise_creation_error:
+            logger.error(f"Erreur création exercice: {exercise_creation_error}")
+            db.rollback()
+            return None
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
     
     @staticmethod
     def update_exercise(db: Session, exercise_id: int, exercise_data: Dict[str, Any]) -> bool:
@@ -260,10 +275,13 @@ class EnhancedServerAdapter:
         Returns:
             Un dictionnaire contenant les données de la tentative créée ou None
         """
-        # Utiliser PostgreSQL direct au lieu de SQLAlchemy
-        from app.services.attempt_service_translations import create_attempt_with_postgres
+        # NOTE: attempt_service_translations archivé - utiliser Attempt ORM
+        from app.models.attempt import Attempt
         
-        attempt = create_attempt_with_postgres(attempt_data)
+        attempt = Attempt(**attempt_data)
+        db.add(attempt)
+        db.commit()
+        db.refresh(attempt)
         return attempt
     
     @staticmethod

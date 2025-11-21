@@ -27,9 +27,9 @@ def get_db_session() -> Generator[Session, None, None]:
     """
     Dépendance pour obtenir une session de base de données.
     """
-    db = get_db()
+    db_session = get_db()
     try:
-        yield from db
+        yield from db_session
     finally:
         pass  # La fermeture est gérée dans get_db
 
@@ -74,8 +74,8 @@ def get_current_user(
             detail="Token expiré",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-    except (JWTError, ValidationError) as e:
-        logger.warning(f"Erreur de validation du token: {str(e)}")
+    except (JWTError, ValidationError) as token_validation_error:
+        logger.warning(f"Erreur de validation du token: {str(token_validation_error)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token invalide",

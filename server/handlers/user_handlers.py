@@ -23,7 +23,7 @@ async def get_user_stats(request):
     """
     try:
         # Récupérer l'utilisateur connecté au lieu d'utiliser un ID fixe
-        from server.views import get_current_user
+        from server.auth import get_current_user
         current_user = await get_current_user(request)
         
         if not current_user or not current_user.get("is_authenticated", False):
@@ -137,8 +137,8 @@ async def get_user_stats(request):
                 recent_activity.sort(key=lambda x: x.get("time", ""), reverse=True)
                 recent_activity = recent_activity[:10]
                 
-            except Exception as e:
-                logger.error(f"Erreur lors de la récupération de l'activité récente: {e}")
+            except Exception as activity_error:
+                logger.error(f"Erreur lors de la récupération de l'activité récente: {activity_error}")
                 recent_activity = []
             
             # Calculer le niveau et XP
@@ -244,8 +244,8 @@ async def get_user_stats(request):
                     }]
                 }
                 
-            except Exception as e:
-                logger.error(f"Erreur lors du calcul de la progression: {e}")
+            except Exception as progress_calculation_error:
+                logger.error(f"Erreur lors du calcul de la progression: {progress_calculation_error}")
                 progress_over_time = {"labels": [], "datasets": []}
                 exercises_by_day = {"labels": [], "datasets": []}
             
@@ -256,8 +256,8 @@ async def get_user_stats(request):
                     LogicChallengeAttempt.user_id == user_id,
                     LogicChallengeAttempt.is_correct == True
                 ).count()
-            except Exception as e:
-                logger.error(f"Erreur lors du comptage des challenges: {e}")
+            except Exception as challenge_count_error:
+                logger.error(f"Erreur lors du comptage des challenges: {challenge_count_error}")
                 total_challenges = 0
             
             response_data = {
@@ -279,8 +279,8 @@ async def get_user_stats(request):
         finally:
             EnhancedServerAdapter.close_db_session(db)
             
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des statistiques: {e}")
+    except Exception as stats_retrieval_error:
+        logger.error(f"Erreur lors de la récupération des statistiques: {stats_retrieval_error}")
         logger.debug(traceback.format_exc())
         return JSONResponse({"error": "Erreur lors de la récupération des statistiques"}, status_code=500)
 
@@ -429,15 +429,15 @@ async def create_user_account(request: Request):
             
             return JSONResponse(user_data, status_code=201)
             
-        except HTTPException as e:
+        except HTTPException as http_error:
             # Gérer les erreurs HTTP (ex: utilisateur déjà existant)
-            logger.warning(f"Erreur HTTP lors de la création de l'utilisateur: {e.detail}")
+            logger.warning(f"Erreur HTTP lors de la création de l'utilisateur: {http_error.detail}")
             return JSONResponse(
-                {"error": e.detail},
-                status_code=e.status_code
+                {"error": http_error.detail},
+                status_code=http_error.status_code
             )
-        except Exception as e:
-            logger.error(f"Erreur lors de la création de l'utilisateur: {e}")
+        except Exception as user_creation_error:
+            logger.error(f"Erreur lors de la création de l'utilisateur: {user_creation_error}")
             logger.debug(traceback.format_exc())
             return JSONResponse(
                 {"error": "Erreur lors de la création du compte"},
@@ -451,8 +451,8 @@ async def create_user_account(request: Request):
             {"error": "Format JSON invalide"},
             status_code=400
         )
-    except Exception as e:
-        logger.error(f"Erreur inattendue lors de la création de l'utilisateur: {e}")
+    except Exception as unexpected_creation_error:
+        logger.error(f"Erreur inattendue lors de la création de l'utilisateur: {unexpected_creation_error}")
         logger.debug(traceback.format_exc())
         return JSONResponse(
             {"error": "Erreur lors de la création du compte"},

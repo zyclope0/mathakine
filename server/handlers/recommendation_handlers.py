@@ -3,7 +3,7 @@ Handlers pour les recommandations personnalisées.
 """
 import traceback
 from starlette.responses import JSONResponse
-from server.views import get_current_user
+from server.auth import get_current_user
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.recommendation_service import RecommendationService
 from app.core.messages import SystemMessages
@@ -68,8 +68,8 @@ async def get_recommendations(request):
             return JSONResponse(recommendations_data)
         finally:
             EnhancedServerAdapter.close_db_session(db)
-    except Exception as e:
-        print(f"Erreur lors de la récupération des recommandations: {e}")
+    except Exception as recommendations_retrieval_error:
+        print(f"Erreur lors de la récupération des recommandations: {recommendations_retrieval_error}")
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -100,8 +100,8 @@ async def generate_recommendations(request):
             })
         finally:
             EnhancedServerAdapter.close_db_session(db)
-    except Exception as e:
-        print(f"Erreur lors de la génération des recommandations: {e}")
+    except Exception as recommendations_generation_error:
+        print(f"Erreur lors de la génération des recommandations: {recommendations_generation_error}")
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500)
 

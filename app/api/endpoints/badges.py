@@ -30,8 +30,8 @@ async def get_current_user_badges(
             "success": True,
             "data": user_badges_data
         }
-    except Exception as e:
-        logger.error(f"Erreur récupération badges utilisateur {current_user.id}: {e}")
+    except Exception as user_badges_fetch_error:
+        logger.error(f"Erreur récupération badges utilisateur {current_user.id}: {user_badges_fetch_error}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur lors de la récupération des badges"
@@ -52,8 +52,8 @@ async def get_available_badges(
             "success": True,
             "data": available_badges
         }
-    except Exception as e:
-        logger.error(f"Erreur récupération badges disponibles: {e}")
+    except Exception as available_badges_fetch_error:
+        logger.error(f"Erreur récupération badges disponibles: {available_badges_fetch_error}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur lors de la récupération des badges disponibles"
@@ -78,8 +78,8 @@ async def check_user_badges(
             "badges_earned": len(new_badges),
             "message": f"{len(new_badges)} nouveaux badges obtenus" if new_badges else "Aucun nouveau badge"
         }
-    except Exception as e:
-        logger.error(f"Erreur vérification badges utilisateur {current_user.id}: {e}")
+    except Exception as badge_verification_error:
+        logger.error(f"Erreur vérification badges utilisateur {current_user.id}: {badge_verification_error}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur lors de la vérification des badges"
@@ -138,8 +138,8 @@ async def get_user_gamification_stats(
             "data": response_data
         }
         
-    except Exception as e:
-        logger.error(f"Erreur récupération stats gamification utilisateur {current_user.id}: {e}")
+    except Exception as gamification_stats_error:
+        logger.error(f"Erreur récupération stats gamification utilisateur {current_user.id}: {gamification_stats_error}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur lors de la récupération des statistiques"

@@ -6,9 +6,7 @@ from starlette.responses import JSONResponse
 from starlette.requests import Request
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.badge_service import BadgeService
-from app.services.badge_service_translations import (
-    list_achievements as list_achievements_with_translation
-)
+# NOTE: badge_service_translations archivé - utiliser BadgeService ORM uniquement
 from app.utils.translation import parse_accept_language
 
 async def get_current_user(request):
@@ -43,8 +41,8 @@ async def get_current_user(request):
         finally:
             EnhancedServerAdapter.close_db_session(db)
             
-    except Exception as e:
-        print(f"Erreur lors de la récupération de l'utilisateur: {str(e)}")
+    except Exception as user_retrieval_error:
+        print(f"Erreur lors de la récupération de l'utilisateur: {str(user_retrieval_error)}")
         
     return None
 
@@ -76,8 +74,8 @@ async def get_user_badges(request):
         finally:
             EnhancedServerAdapter.close_db_session(db)
 
-    except Exception as e:
-        print(f"Erreur lors de la récupération des badges utilisateur: {e}")
+    except Exception as user_badges_error:
+        print(f"Erreur lors de la récupération des badges utilisateur: {user_badges_error}")
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -88,16 +86,21 @@ async def get_available_badges(request: Request):
         accept_language = request.headers.get('Accept-Language', 'fr')
         locale = parse_accept_language(accept_language)
         
-        # Utiliser le service avec traductions
-        available_badges = list_achievements_with_translation(locale=locale)
+        # Utiliser le service ORM BadgeService
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            badge_service = BadgeService(db)
+            available_badges = badge_service.get_all_badges()
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
         
         return JSONResponse({
             "success": True,
             "data": available_badges
         })
 
-    except Exception as e:
-        print(f"Erreur lors de la récupération des badges disponibles: {e}")
+    except Exception as available_badges_error:
+        print(f"Erreur lors de la récupération des badges disponibles: {available_badges_error}")
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -131,8 +134,8 @@ async def check_user_badges(request):
         finally:
             EnhancedServerAdapter.close_db_session(db)
 
-    except Exception as e:
-        print(f"Erreur lors de la vérification forcée des badges: {e}")
+    except Exception as badge_verification_error:
+        print(f"Erreur lors de la vérification forcée des badges: {badge_verification_error}")
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -200,7 +203,7 @@ async def get_user_gamification_stats(request):
         finally:
             EnhancedServerAdapter.close_db_session(db)
 
-    except Exception as e:
-        print(f"Erreur lors de la récupération des statistiques de gamification: {e}")
+    except Exception as gamification_stats_error:
+        print(f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}")
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500) 

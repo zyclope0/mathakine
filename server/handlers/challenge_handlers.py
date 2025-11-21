@@ -8,45 +8,21 @@ from starlette.responses import JSONResponse, StreamingResponse
 from starlette.requests import Request
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.logic_challenge_service import LogicChallengeService
-from app.services.challenge_service_translations_adapter import (
-    get_challenge_by_id_with_locale,
-    list_challenges_with_locale,
-    count_challenges_with_locale
-)
+# NOTE: challenge_service_translations_adapter archivé - utiliser fonctions de challenge_service.py
+from app.services import challenge_service
 from app.utils.translation import parse_accept_language
 from app.core.messages import SystemMessages
 from app.utils.error_handler import ErrorHandler
 from app.core.config import settings
 from loguru import logger
 
-
-def normalize_challenge_type_for_db(challenge_type_raw: str) -> str:
-    """
-    Normalise un type de challenge vers les valeurs PostgreSQL valides.
-    
-    Valeurs PostgreSQL acceptées : SEQUENCE, PATTERN, VISUAL, SPATIAL, PUZZLE, GRAPH, RIDDLE, DEDUCTION, CHESS, CODING, PROBABILITY, CUSTOM
-    
-    Args:
-        challenge_type_raw: Valeur brute du type (peut être "sequence", "SEQUENCE", etc.)
-    
-    Returns:
-        Valeur normalisée pour PostgreSQL (en MAJUSCULES)
-    """
-    if not challenge_type_raw:
-        return None  # Pas de filtre
-    
-    # Convertir en majuscules pour correspondre aux valeurs PostgreSQL
-    normalized = challenge_type_raw.upper().strip()
-    
-    # Valeurs valides dans PostgreSQL
-    valid_types = ['SEQUENCE', 'PATTERN', 'VISUAL', 'SPATIAL', 'PUZZLE', 'GRAPH', 'RIDDLE', 'DEDUCTION', 'CHESS', 'CODING', 'PROBABILITY', 'CUSTOM']
-    
-    if normalized in valid_types:
-        return normalized
-    
-    # Si invalide, ne pas filtrer
-    logger.warning(f"Type de challenge invalide pour filtre: '{challenge_type_raw}', filtre ignoré")
-    return None
+# Importer les constantes et fonctions centralisées
+from app.core.constants import (
+    normalize_challenge_type as normalize_challenge_type_for_db,
+    CHALLENGE_TYPES_API,
+    CHALLENGE_TYPES_DB,
+    calculate_difficulty_for_age_group,
+)
 
 
 def normalize_age_group_for_db(age_group_raw: str) -> str:
@@ -114,7 +90,7 @@ async def get_challenges_list(request: Request):
     """
     try:
         # Vérifier l'authentification
-        from server.views import get_current_user
+        from server.auth import get_current_user
         current_user = await get_current_user(request)
         if not current_user or not current_user.get("is_authenticated"):
             return JSONResponse({"detail": "Non authentifié"}, status_code=401)
@@ -141,27 +117,48 @@ async def get_challenges_list(request: Request):
 
         logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, challenge_type_raw={challenge_type_raw}, challenge_type_normalized={challenge_type}, age_group_raw={age_group_raw}, age_group_normalized={age_group}, search={search}, locale={locale}")
 
-        # Utiliser le service avec traductions
-        challenges_list = list_challenges_with_locale(
-            locale=locale,
-            challenge_type=challenge_type,
-            age_group=age_group,
-            search=search,
-            limit=limit,
-            offset=skip
-        )
+        # Utiliser le service ORM challenge_service
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            # Récupérer les challenges via la fonction get_challenges
+            challenges = challenge_service.get_challenges(
+                db=db,
+                challenge_type=challenge_type,
+                age_group=age_group,
+                search=search,
+                limit=limit,
+                skip=skip
+            )
+            # Convertir les objets en dicts
+            challenges_list = [
+                {
+                    "id": c.id,
+                    "title": c.title,
+                    "description": c.description,
+                    "challenge_type": c.challenge_type,
+                    "age_group": c.age_group,
+                    "difficulty": c.difficulty,
+                    "is_archived": c.is_archived
+                } for c in challenges
+            ]
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
         
         # Filtrer les défis archivés si nécessaire (déjà fait dans la query, mais double vérification)
         if active_only:
             challenges_list = [c for c in challenges_list if not c.get('is_archived', False)]
         
-        # Compter le total pour la pagination
-        total = count_challenges_with_locale(
-            locale=locale,
-            challenge_type=challenge_type,
-            age_group=age_group,
-            search=search
-        )
+        # Compter le total pour la pagination (réutiliser la même session)
+        db2 = EnhancedServerAdapter.get_db_session()
+        try:
+            total = challenge_service.count_challenges(
+                db=db2,
+                challenge_type=challenge_type,
+                age_group=age_group,
+                search=search
+            )
+        finally:
+            EnhancedServerAdapter.close_db_session(db2)
 
         # Log pour déboguer
         logger.debug(f"API - Retour de {len(challenges_list)} défis sur {total} total (limit demandé: {limit}, page: {page})")
@@ -181,17 +178,17 @@ async def get_challenges_list(request: Request):
 
         logger.info(f"Récupération réussie de {len(challenges_list)} défis logiques sur {total} total (locale: {locale})")
         return JSONResponse(response_data)
-    except ValueError as e:
-        logger.error(f"Erreur de validation des paramètres: {e}")
+    except ValueError as filter_validation_error:
+        logger.error(f"Erreur de validation des paramètres: {filter_validation_error}")
         return ErrorHandler.create_validation_error(
-            errors=[str(e)],
+            errors=[str(filter_validation_error)],
             user_message="Les paramètres de filtrage sont invalides."
         )
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des défis: {e}")
+    except Exception as challenges_retrieval_error:
+        logger.error(f"Erreur lors de la récupération des défis: {challenges_retrieval_error}")
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
-            error=e,
+            error=challenges_retrieval_error,
             status_code=500,
             user_message="Erreur lors de la récupération des défis."
         )
@@ -204,7 +201,7 @@ async def get_challenge(request: Request):
     """
     try:
         # Vérifier l'authentification
-        from server.views import get_current_user
+        from server.auth import get_current_user
         current_user = await get_current_user(request)
         if not current_user or not current_user.get("is_authenticated"):
             return JSONResponse({"detail": "Non authentifié"}, status_code=401)
@@ -215,8 +212,26 @@ async def get_challenge(request: Request):
         accept_language = request.headers.get('Accept-Language', 'fr')
         locale = parse_accept_language(accept_language)
         
-        # Utiliser le service avec traductions
-        challenge_dict = get_challenge_by_id_with_locale(challenge_id, locale=locale)
+        # Utiliser le service ORM challenge_service
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            # Récupérer le challenge via get_challenge_by_id
+            from app.models.logic_challenge import LogicChallenge
+            challenge = db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
+            if challenge:
+                challenge_dict = {
+                    "id": challenge.id,
+                    "title": challenge.title,
+                    "description": challenge.description,
+                    "challenge_type": challenge.challenge_type,
+                    "age_group": challenge.age_group,
+                    "difficulty": challenge.difficulty,
+                    "is_archived": challenge.is_archived
+                }
+            else:
+                challenge_dict = None
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
         
         if not challenge_dict:
             return ErrorHandler.create_not_found_error(
@@ -226,17 +241,17 @@ async def get_challenge(request: Request):
         
         logger.info(f"Récupération réussie du défi logique {challenge_id} (locale: {locale})")
         return JSONResponse(challenge_dict)
-    except ValueError as e:
-        logger.error(f"Erreur de validation: {e}")
+    except ValueError as id_validation_error:
+        logger.error(f"Erreur de validation: {id_validation_error}")
         return ErrorHandler.create_validation_error(
             errors=["ID de défi invalide"],
             user_message="L'identifiant du défi est invalide."
         )
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération du défi: {e}")
+    except Exception as challenge_retrieval_error:
+        logger.error(f"Erreur lors de la récupération du défi: {challenge_retrieval_error}")
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
-            error=e,
+            error=challenge_retrieval_error,
             status_code=500,
             user_message="Erreur lors de la récupération du défi."
         )
@@ -249,7 +264,7 @@ async def submit_challenge_answer(request: Request):
     """
     try:
         # Récupérer l'utilisateur actuel
-        from server.views import get_current_user
+        from server.auth import get_current_user
         current_user = await get_current_user(request)
         if not current_user or not current_user.get("is_authenticated"):
             return JSONResponse({"error": "Non authentifié"}, status_code=401)
@@ -290,8 +305,8 @@ async def submit_challenge_answer(request: Request):
                 # Comparaison simple pour les autres types
                 is_correct = user_answer_normalized == correct_answer_normalized
             
-            # Enregistrer la tentative avec PostgreSQL direct
-            from app.services.attempt_service_translations import create_challenge_attempt_with_postgres
+            # NOTE: attempt_service_translations archivé - utiliser LogicChallengeAttempt ORM
+            from app.models.logic_challenge import LogicChallengeAttempt
             
             attempt_data = {
                 "user_id": user_id,
@@ -303,8 +318,11 @@ async def submit_challenge_answer(request: Request):
             }
             
             logger.debug(f"Tentative d'enregistrement de challenge avec attempt_data: {attempt_data}")
-            attempt = create_challenge_attempt_with_postgres(attempt_data)
-            logger.debug(f"Résultat de create_challenge_attempt_with_postgres: {attempt}")
+            attempt = LogicChallengeAttempt(**attempt_data)
+            db.add(attempt)
+            db.commit()
+            db.refresh(attempt)
+            logger.debug(f"Tentative challenge créée: {attempt.id}")
             
             if not attempt:
                 logger.error("ERREUR: La tentative de challenge n'a pas été enregistrée correctement")
@@ -324,8 +342,8 @@ async def submit_challenge_answer(request: Request):
             EnhancedServerAdapter.close_db_session(db)
     except ValueError:
         return JSONResponse({"error": "ID de défi invalide"}, status_code=400)
-    except Exception as e:
-        logger.error(f"Erreur lors de la soumission de la réponse: {e}")
+    except Exception as submission_error:
+        logger.error(f"Erreur lors de la soumission de la réponse: {submission_error}")
         traceback.print_exc()
         return JSONResponse({"error": f"Erreur: {str(e)}"}, status_code=500)
 
@@ -360,8 +378,8 @@ async def get_challenge_hint(request: Request):
             EnhancedServerAdapter.close_db_session(db)
     except ValueError:
         return JSONResponse({"error": "ID de défi ou niveau invalide"}, status_code=400)
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération de l'indice: {e}")
+    except Exception as hint_retrieval_error:
+        logger.error(f"Erreur lors de la récupération de l'indice: {hint_retrieval_error}")
         traceback.print_exc()
         return JSONResponse({"error": f"Erreur: {str(e)}"}, status_code=500)
 
@@ -373,7 +391,7 @@ async def get_completed_challenges_ids(request: Request):
     """
     try:
         # Vérifier l'authentification
-        from server.views import get_current_user
+        from server.auth import get_current_user
         current_user = await get_current_user(request)
         if not current_user or not current_user.get("is_authenticated"):
             return JSONResponse({"completed_ids": []}, status_code=200)
@@ -415,11 +433,11 @@ async def get_completed_challenges_ids(request: Request):
             cursor.close()
             conn.close()
             
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des challenges complétés: {e}")
+    except Exception as completed_challenges_error:
+        logger.error(f"Erreur lors de la récupération des challenges complétés: {completed_challenges_error}")
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
-            error=e,
+            error=completed_challenges_error,
             status_code=500,
             user_message="Erreur lors de la récupération des challenges complétés."
         )
@@ -433,7 +451,7 @@ async def generate_ai_challenge_stream(request: Request):
     """
     try:
         # Vérifier l'authentification
-        from server.views import get_current_user
+        from server.auth import get_current_user
         current_user = await get_current_user(request)
         if not current_user or not current_user.get("is_authenticated"):
             async def error_generator():
@@ -807,10 +825,8 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                         
                         db = EnhancedServerAdapter.get_db_session()
                         try:
-                            # Créer le challenge via le service
-                            from app.services.challenge_service_translations import create_challenge_with_translations
-                            
-                            created_challenge = create_challenge_with_translations(
+                            # NOTE: challenge_service_translations archivé - utiliser challenge_service.create_challenge
+                            created_challenge = challenge_service.create_challenge(
                                 db=db,
                                 title=normalized_challenge['title'],
                                 description=normalized_challenge['description'],
@@ -921,8 +937,8 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
             }
         )
         
-    except Exception as e:
-        logger.error(f"Erreur dans generate_ai_challenge_stream: {e}")
+    except Exception as ai_stream_error:
+        logger.error(f"Erreur dans generate_ai_challenge_stream: {ai_stream_error}")
         logger.debug(traceback.format_exc())
         async def error_generator():
             yield f"data: {json.dumps({'type': 'error', 'message': 'Erreur lors de la génération'})}\n\n"

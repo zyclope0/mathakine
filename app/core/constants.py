@@ -170,4 +170,57 @@ class ExerciseStatus:
     ACTIVE = True
     INACTIVE = False
     ARCHIVED = True
-    NOT_ARCHIVED = False 
+    NOT_ARCHIVED = False
+
+
+# ============================================================================
+# CHALLENGES - Constantes centralisées (Phase 3, Nov 2025)
+# ============================================================================
+
+# Types de challenges (PostgreSQL ENUM)
+CHALLENGE_TYPES_DB = [
+    'SEQUENCE', 'PATTERN', 'VISUAL', 'SPATIAL', 'PUZZLE', 'GRAPH', 
+    'RIDDLE', 'DEDUCTION', 'CHESS', 'CODING', 'PROBABILITY', 'CUSTOM'
+]
+
+CHALLENGE_TYPES_API = [
+    'sequence', 'pattern', 'visual', 'spatial', 'puzzle', 'graph',
+    'riddle', 'deduction', 'chess', 'coding', 'probability', 'custom'
+]
+
+# Groupes d'âge challenges
+AGE_GROUPS_DB = ['GROUP_6_8', 'GROUP_9_11', 'GROUP_10_12', 'GROUP_13_15', 'ALL_AGES']
+
+AGE_GROUP_MAPPING = {
+    'age_6_8': 'GROUP_6_8', 'age_9_11': 'GROUP_9_11', 'age_10_12': 'GROUP_10_12',
+    'age_12_15': 'GROUP_13_15', 'all_ages': 'ALL_AGES',
+    '6-8': 'GROUP_6_8', '9-11': 'GROUP_9_11', '10-12': 'GROUP_10_12',
+    '12-15': 'GROUP_13_15', 'GROUP_6_8': 'GROUP_6_8', 'GROUP_9_11': 'GROUP_9_11',
+    'GROUP_10_12': 'GROUP_10_12', 'GROUP_13_15': 'GROUP_13_15', 'ALL_AGES': 'ALL_AGES',
+}
+
+# Difficultés par âge
+DIFFICULTY_BY_AGE_GROUP = {
+    'GROUP_6_8': 1.5, 'GROUP_9_11': 2.5, 'GROUP_10_12': 2.0,
+    'GROUP_13_15': 3.5, 'ALL_AGES': 3.0,
+}
+
+
+def normalize_challenge_type(challenge_type_raw: str):
+    """Normalise un type de challenge vers PostgreSQL."""
+    if not challenge_type_raw:
+        return None
+    normalized = challenge_type_raw.upper().strip()
+    return normalized if normalized in CHALLENGE_TYPES_DB else None
+
+
+def normalize_age_group(age_group_raw: str):
+    """Normalise un groupe d'âge vers PostgreSQL."""
+    if not age_group_raw:
+        return None
+    return AGE_GROUP_MAPPING.get(age_group_raw.lower().strip())
+
+
+def calculate_difficulty_for_age_group(age_group: str) -> float:
+    """Calcule difficulté recommandée selon âge."""
+    return DIFFICULTY_BY_AGE_GROUP.get(age_group, 3.0)

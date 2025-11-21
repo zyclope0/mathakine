@@ -59,9 +59,9 @@ async def get_current_user(request):
         finally:
             EnhancedServerAdapter.close_db_session(db)
             
-    except Exception as e:
-        error_msg = str(e)
-        error_type = type(e).__name__
+    except Exception as auth_error:
+        error_msg = str(auth_error)
+        error_type = type(auth_error).__name__
         # Ne pas logger les erreurs de token invalide comme des erreurs critiques
         if "Signature verification failed" in error_msg or "Token" in error_type:
             logger.debug(f"Token invalide ou expiré: {error_msg}")
@@ -133,8 +133,8 @@ async def generate_exercise(request):
         finally:
             EnhancedServerAdapter.close_db_session(db)
         return RedirectResponse(url="/exercises?generated=true", status_code=303)
-    except Exception as e:
-        logger.error(f"Erreur lors de la génération d'exercice: {e}")
+    except Exception as exercise_generation_error:
+        logger.error(f"Erreur lors de la génération d'exercice: {exercise_generation_error}")
         logger.debug(traceback.format_exc())
         templates = request.app.state.templates
         return templates.TemplateResponse("error.html", {
@@ -153,20 +153,38 @@ async def get_exercise(request):
         accept_language = request.headers.get("Accept-Language")
         locale = parse_accept_language(accept_language) or "fr"
         
-        # Utiliser le service avec traductions (PostgreSQL pur)
-        from app.services.exercise_service_translations_adapter import get_exercise_by_id_with_locale
-        
-        exercise = get_exercise_by_id_with_locale(exercise_id, locale=locale)
+        # Utiliser le service ORM ExerciseService
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.models.exercise import Exercise
+            exercise_obj = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+            if not exercise_obj:
+                return ErrorHandler.create_not_found_error(f"Exercice {exercise_id} non trouvé")
+            
+            exercise = {
+                "id": exercise_obj.id,
+                "title": exercise_obj.title,
+                "exercise_type": exercise_obj.exercise_type,
+                "difficulty": exercise_obj.difficulty,
+                "question": exercise_obj.question,
+                "correct_answer": exercise_obj.correct_answer,
+                "choices": exercise_obj.choices,
+                "explanation": exercise_obj.explanation,
+                "hint": exercise_obj.hint,
+                "tags": exercise_obj.tags
+            }
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
         
         if not exercise:
             return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
                 
         return JSONResponse(exercise)
     
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération de l'exercice: {e}")
+    except Exception as exercise_retrieval_error:
+        logger.error(f"Erreur lors de la récupération de l'exercice: {exercise_retrieval_error}")
         logger.debug(traceback.format_exc())
-        return ErrorHandler.create_error_response(e, status_code=500, user_message="Erreur lors de la récupération de l'exercice")
+        return ErrorHandler.create_error_response(exercise_retrieval_error, status_code=500, user_message="Erreur lors de la récupération de l'exercice")
 
 async def submit_answer(request):
     """Traite la soumission d'une réponse à un exercice"""
@@ -206,13 +224,23 @@ async def submit_answer(request):
         accept_language = request.headers.get("Accept-Language")
         locale = parse_accept_language(accept_language) or "fr"
         
-        # Utiliser le service avec traductions (PostgreSQL pur)
-        from app.services.exercise_service_translations_adapter import get_exercise_by_id_with_locale
-        
-        # Récupérer l'exercice pour vérifier la réponse
-        exercise = get_exercise_by_id_with_locale(exercise_id, locale=locale)
-        if not exercise:
-            return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
+        # Utiliser le service ORM ExerciseService
+        db_exercise = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.models.exercise import Exercise
+            exercise_obj = db_exercise.query(Exercise).filter(Exercise.id == exercise_id).first()
+            if not exercise_obj:
+                return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
+            
+            exercise = {
+                "id": exercise_obj.id,
+                "exercise_type": exercise_obj.exercise_type,
+                "correct_answer": exercise_obj.correct_answer,
+                "choices": exercise_obj.choices,
+                "question": exercise_obj.question
+            }
+        finally:
+            EnhancedServerAdapter.close_db_session(db_exercise)
 
         # Déterminer si la réponse est correcte
         is_correct = False
@@ -330,8 +358,8 @@ async def submit_answer(request):
                 "error_message": error_msg
             }, status_code=500)
 
-    except Exception as e:
-        logger.error(f"❌ ERREUR lors du traitement de la réponse: {type(e).__name__}: {str(e)}")
+    except Exception as response_processing_error:
+        logger.error(f"❌ ERREUR lors du traitement de la réponse: {type(response_processing_error).__name__}: {str(response_processing_error)}")
         logger.debug(traceback.format_exc())
         
         # Retourner une réponse d'erreur standardisée
@@ -362,26 +390,58 @@ async def get_exercises_list(request):
         
         logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, exercise_type={exercise_type}, difficulty={difficulty}, search={search}, locale={locale}")
         
-        # Utiliser le service avec traductions (PostgreSQL pur)
-        from app.services.exercise_service_translations_adapter import list_exercises_with_locale, count_exercises_with_locale
-        
-        # Récupérer les exercices avec pagination intégrée
-        exercises = list_exercises_with_locale(
-            locale=locale,
-            exercise_type=exercise_type,
-            difficulty=difficulty,
-            search=search,
-            limit=limit,
-            offset=skip
-        )
-        
-        # Compter le total pour la pagination
-        total = count_exercises_with_locale(
-            locale=locale,
-            exercise_type=exercise_type,
-            difficulty=difficulty,
-            search=search
-        )
+        # Utiliser le service ORM ExerciseService
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.models.exercise import Exercise
+            from sqlalchemy import func, or_
+            
+            # Construire la requête
+            query = db.query(Exercise).filter(Exercise.is_archived == False)
+            
+            # Filtrer par type si spécifié
+            if exercise_type:
+                query = query.filter(Exercise.exercise_type == exercise_type)
+            
+            # Filtrer par difficulté si spécifié
+            if difficulty:
+                query = query.filter(Exercise.difficulty == difficulty)
+            
+            # Recherche textuelle si spécifié
+            if search:
+                search_pattern = f"%{search}%"
+                query = query.filter(
+                    or_(
+                        Exercise.title.ilike(search_pattern),
+                        Exercise.question.ilike(search_pattern)
+                    )
+                )
+            
+            # Compter le total
+            total = query.count()
+            
+            # Récupérer les exercices avec pagination
+            exercises_objs = query.order_by(Exercise.created_at.desc()).limit(limit).offset(skip).all()
+            
+            # Convertir en dicts
+            exercises = [
+                {
+                    "id": ex.id,
+                    "title": ex.title,
+                    "exercise_type": ex.exercise_type,
+                    "difficulty": ex.difficulty,
+                    "question": ex.question,
+                    "correct_answer": ex.correct_answer,
+                    "choices": ex.choices,
+                    "explanation": ex.explanation,
+                    "hint": ex.hint,
+                    "tags": ex.tags,
+                    "is_active": ex.is_active,
+                    "view_count": ex.view_count
+                } for ex in exercises_objs
+            ]
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
 
         # Log pour déboguer
         logger.debug(f"API - Retour de {len(exercises)} exercices sur {total} total (limit demandé: {limit}, page: {page})")
@@ -401,10 +461,10 @@ async def get_exercises_list(request):
         
         return JSONResponse(response_data)
 
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des exercices: {e}")
+    except Exception as exercises_list_error:
+        logger.error(f"Erreur lors de la récupération des exercices: {exercises_list_error}")
         logger.debug(traceback.format_exc())
-        return ErrorHandler.create_error_response(e, status_code=500, user_message="Erreur lors de la récupération des exercices")
+        return ErrorHandler.create_error_response(exercises_list_error, status_code=500, user_message="Erreur lors de la récupération des exercices")
 
 async def generate_exercise_api(request):
     """Génère un nouvel exercice via API JSON (POST)"""
@@ -468,17 +528,17 @@ async def generate_exercise_api(request):
                         logger.info(f"Exercice sauvegardé avec ID={created_exercise['id']}")
                 finally:
                     EnhancedServerAdapter.close_db_session(db)
-            except Exception as e:
-                logger.warning(f"Erreur lors de la sauvegarde: {e}")
+            except Exception as save_error:
+                logger.warning(f"Erreur lors de la sauvegarde: {save_error}")
                 # Continuer même si la sauvegarde échoue
         
         # Retourner l'exercice généré
         return JSONResponse(exercise_dict)
         
-    except Exception as e:
-        logger.error(f"Erreur lors de la génération d'exercice API: {e}")
+    except Exception as api_generation_error:
+        logger.error(f"Erreur lors de la génération d'exercice API: {api_generation_error}")
         logger.debug(traceback.format_exc())
-        return ErrorHandler.create_error_response(e, status_code=500, user_message="Erreur lors de la génération de l'exercice")
+        return ErrorHandler.create_error_response(api_generation_error, status_code=500, user_message="Erreur lors de la génération de l'exercice")
 
 async def generate_ai_exercise_stream(request):
     """
@@ -646,8 +706,8 @@ Assure-toi que les choix incluent la bonne réponse et des erreurs typiques."""
                 except json.JSONDecodeError as json_error:
                     yield f"data: {json.dumps({'type': 'error', 'message': f'Erreur de parsing JSON: {str(json_error)}'})}\n\n"
                     
-            except Exception as e:
-                logger.error(f"Erreur lors de la génération IA: {e}")
+            except Exception as ai_generation_error:
+                logger.error(f"Erreur lors de la génération IA: {ai_generation_error}")
                 logger.debug(traceback.format_exc())
                 yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
         
@@ -661,8 +721,8 @@ Assure-toi que les choix incluent la bonne réponse et des erreurs typiques."""
             }
         )
         
-    except Exception as e:
-        logger.error(f"Erreur dans generate_ai_exercise_stream: {e}")
+    except Exception as stream_error:
+        logger.error(f"Erreur dans generate_ai_exercise_stream: {stream_error}")
         logger.debug(traceback.format_exc())
         async def error_generator():
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
@@ -712,8 +772,8 @@ async def get_completed_exercises_ids(request: Request):
             cursor.close()
             conn.close()
             
-    except Exception as e:
-        logger.error(f"Erreur lors de la récupération des exercices complétés: {e}")
+    except Exception as completed_retrieval_error:
+        logger.error(f"Erreur lors de la récupération des exercices complétés: {completed_retrieval_error}")
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
             error=e,

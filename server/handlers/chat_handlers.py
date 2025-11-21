@@ -236,9 +236,9 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
                 image_url = image_response.data[0].url
                 # Ne pas retourner immédiatement - continuer pour générer l'exercice complet
                 # L'image sera ajoutée à la réponse finale
-            except Exception as e:
+            except Exception as dalle_generation_error:
                 # Si erreur de génération d'image, continuer avec la réponse texte normale
-                print(f"Erreur génération image DALL-E: {str(e)}")
+                print(f"Erreur génération image DALL-E: {str(dalle_generation_error)}")
                 image_url = None
         else:
             image_url = None
@@ -324,8 +324,8 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
         
         return JSONResponse(response_data)
         
-    except Exception as e:
-        print(f"Erreur dans chat_api: {str(e)}")
+    except Exception as chat_api_error:
+        print(f"Erreur dans chat_api: {str(chat_api_error)}")
         import traceback
         traceback.print_exc()
         return JSONResponse(
@@ -423,8 +423,8 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
                 image_url = image_response.data[0].url
                 # Ne pas retourner immédiatement - continuer pour générer l'exercice complet
                 # L'image sera envoyée dans le stream avec la réponse texte complète
-            except Exception as e:
-                print(f"Erreur génération image DALL-E: {str(e)}")
+            except Exception as dalle_stream_error:
+                print(f"Erreur génération image DALL-E: {str(dalle_stream_error)}")
                 # Continuer avec le traitement texte normal
                 image_url = None
         
@@ -515,9 +515,9 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
                 # Envoyer un message de fin avec métadonnées
                 yield f"data: {json.dumps({'type': 'done', 'model_used': model, 'complexity': complexity})}\n\n"
                 
-            except Exception as e:
-                print(f"Erreur dans generate_stream: {str(e)}")
-                yield f"data: {json.dumps({'type': 'error', 'message': f'Erreur lors de la génération: {str(e)}'})}\n\n"
+            except Exception as stream_generation_error:
+                print(f"Erreur dans generate_stream: {str(stream_generation_error)}")
+                yield f"data: {json.dumps({'type': 'error', 'message': f'Erreur lors de la génération: {str(stream_generation_error)}'})}\n\n"
         
         return StreamingResponse(
             generate_stream(),
@@ -529,8 +529,8 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
             }
         )
         
-    except Exception as e:
-        print(f"Erreur dans chat_api_stream: {str(e)}")
+    except Exception as chat_stream_error:
+        print(f"Erreur dans chat_api_stream: {str(chat_stream_error)}")
         import traceback
         traceback.print_exc()
         

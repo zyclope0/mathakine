@@ -116,8 +116,8 @@ def update_user_password_me(
         return {"message": "Mot de passe mis à jour avec succès"}
     except HTTPException:
         raise  # Re-lancer l'exception HTTPException telle quelle
-    except Exception as e:
-        logger.error(f"Erreur lors de la mise à jour du mot de passe pour {current_user.username}: {str(e)}")
+    except Exception as password_update_error:
+        logger.error(f"Erreur lors de la mise à jour du mot de passe pour {current_user.username}: {str(password_update_error)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur interne lors de la mise à jour du mot de passe"
@@ -451,7 +451,7 @@ def delete_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur de base de données: {error_msg}"
         )
-    except Exception as e:
+    except Exception as user_db_error:
         db.rollback()
         stack_trace = traceback.format_exc()
         logger.error(f"Erreur lors de la suppression de l'utilisateur {user_id}: {str(e)}")

@@ -42,9 +42,9 @@ def login(
     except HTTPException:
         # Re-lancer les HTTPException sans les modifier (401, 403, etc.)
         raise
-    except Exception as e:
+    except Exception as login_internal_error:
         # Ne transformer en 500 que les vraies erreurs non-HTTP
-        logger.error(f"Erreur interne lors de la connexion: {str(e)}")
+        logger.error(f"Erreur interne lors de la connexion: {str(login_internal_error)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur lors de la connexion",
@@ -65,8 +65,8 @@ def refresh_token(
     except HTTPException:
         # Re-lancer les HTTPException sans les modifier (elles ont déjà le bon code de statut)
         raise
-    except Exception as e:
-        logger.error(f"Erreur lors du rafraîchissement du token: {str(e)}")
+    except Exception as token_refresh_internal_error:
+        logger.error(f"Erreur lors du rafraîchissement du token: {str(token_refresh_internal_error)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur lors du rafraîchissement du token"
@@ -122,8 +122,8 @@ def forgot_password(
                 success=True
             )
             
-    except Exception as e:
-        logger.error(f"Erreur lors de la demande de réinitialisation: {str(e)}")
+    except Exception as password_reset_error:
+        logger.error(f"Erreur lors de la demande de réinitialisation: {str(password_reset_error)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur lors du traitement de la demande"

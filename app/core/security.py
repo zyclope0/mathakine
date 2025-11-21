@@ -35,9 +35,9 @@ def decode_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[SecurityConfig.ALGORITHM])
         return payload
-    except JWTError as e:
+    except JWTError as jwt_decode_error:
         # Logger en debug plutôt qu'en error car c'est normal si le token est invalide/expiré
-        error_msg = str(e)
+        error_msg = str(jwt_decode_error)
         if "Signature verification failed" in error_msg:
             logger.debug(f"Signature verification failed (token invalide ou expiré)")
         else:
@@ -107,8 +107,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         result = pwd_context.verify(plain_password, hashed_password)
         logger.debug(f"Résultat de la vérification: {result}")
         return result
-    except Exception as e:
-        logger.error(f"Erreur lors de la vérification du mot de passe: {str(e)}")
+    except Exception as password_verification_error:
+        logger.error(f"Erreur lors de la vérification du mot de passe: {str(password_verification_error)}")
         raise
 
 def get_password_hash(password: str) -> str:
@@ -126,6 +126,6 @@ def get_password_hash(password: str) -> str:
         hashed = pwd_context.hash(password)
         logger.debug(f"Hash généré: {hashed}")
         return hashed
-    except Exception as e:
-        logger.error(f"Erreur lors de la génération du hash: {str(e)}")
+    except Exception as password_hashing_error:
+        logger.error(f"Erreur lors de la génération du hash: {str(password_hashing_error)}")
         raise 

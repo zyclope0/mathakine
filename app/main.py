@@ -43,8 +43,8 @@ async def lifespan(app: FastAPI):
         # Création des tables au démarrage si nécessaire
         create_tables_with_test_data()
         logger.success("Application prête")
-    except Exception as e:
-        logger.error(f"Erreur lors du démarrage: {str(e)}")
+    except Exception as startup_error:
+        logger.error(f"Erreur lors du démarrage: {str(startup_error)}")
         raise
 
     yield  # L'application est en cours d'exécution
@@ -146,9 +146,9 @@ async def log_requests(request: Request, call_next):
         process_time = time.time() - start_time
         logger.info(f"Requête traitée: {request.method} {request.url} - Status: {http_exc.status_code} - Temps: {process_time:.4f}s")
         raise http_exc
-    except Exception as e:
+    except Exception as request_processing_error:
         # Ne transformer en 500 que les vraies erreurs non-HTTP
-        logger.error(f"Erreur interne lors du traitement de la requête: {str(e)}")
+        logger.error(f"Erreur interne lors du traitement de la requête: {str(request_processing_error)}")
         process_time = time.time() - start_time
         logger.error(f"Requête échouée: {request.method} {request.url} - Erreur: {str(e)} - Temps: {process_time:.4f}s")
         raise HTTPException(status_code=500, detail="Erreur interne du serveur")
@@ -202,33 +202,33 @@ async def home_page(request: Request):
     try:
         logger.debug("Tentative de servir le template HTML")
         return templates.TemplateResponse("home.html", {"request": request})
-    except Exception as e:
+    except Exception as home_template_error:
         # Si le template n'existe pas, retourner la réponse JSON par défaut
-        logger.debug(f"Erreur de template, retour à la réponse JSON: {str(e)}")
+        logger.debug(f"Erreur de template, retour à la réponse JSON: {str(home_template_error)}")
         return {"message": "Bienvenue sur l'API Math Trainer"}
 
 @app.get("/exercises", response_class=HTMLResponse)
 async def exercises_page(request: Request):
     try:
         return templates.TemplateResponse("exercises.html", {"request": request})
-    except Exception as e:
-        logger.error(f"Erreur lors du chargement du template exercises.html: {str(e)}")
+    except Exception as exercises_template_error:
+        logger.error(f"Erreur lors du chargement du template exercises.html: {str(exercises_template_error)}")
         return {"error": "Page non disponible"}
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     try:
         return templates.TemplateResponse("dashboard.html", {"request": request})
-    except Exception as e:
-        logger.error(f"Erreur lors du chargement du template dashboard.html: {str(e)}")
+    except Exception as dashboard_template_error:
+        logger.error(f"Erreur lors du chargement du template dashboard.html: {str(dashboard_template_error)}")
         return {"error": "Page non disponible"}
 
 @app.get("/about", response_class=HTMLResponse)
 async def about_page(request: Request):
     try:
         return templates.TemplateResponse("about.html", {"request": request})
-    except Exception as e:
-        logger.error(f"Erreur lors du chargement du template about.html: {str(e)}")
+    except Exception as about_template_error:
+        logger.error(f"Erreur lors du chargement du template about.html: {str(about_template_error)}")
         return {"error": "Page non disponible"}
 
 @app.get("/exercise/{exercise_id}", response_class=HTMLResponse)
@@ -239,8 +239,8 @@ async def exercise_page(request: Request, exercise_id: int):
             "request": request,
             "exercise_id": exercise_id
         })
-    except Exception as e:
-        logger.error(f"Erreur lors du chargement du template exercise.html: {str(e)}")
+    except Exception as exercise_detail_template_error:
+        logger.error(f"Erreur lors du chargement du template exercise.html: {str(exercise_detail_template_error)}")
         return {"error": "Page non disponible"}
 
 @app.get("/debug")
@@ -291,7 +291,7 @@ async def direct_generate_exercise(
     from app.models.exercise import Exercise as ExerciseModel, ExerciseType, DifficultyLevel
 
     # Obtenir une session de base de données
-    db = next(get_db_session())
+    db_session = next(get_db_session())
 
     try:
         # Conversion des types - s'assurer que nous utilisons les valeurs valides de l'énumération
@@ -362,17 +362,17 @@ async def direct_generate_exercise(
         )
 
         # Ajouter et sauvegarder dans la base de données
-        db.add(new_exercise)
-        db.commit()
-        db.refresh(new_exercise)
+        db_session.add(new_exercise)
+        db_session.commit()
+        db_session.refresh(new_exercise)
         logger.success(f"Exercice {new_exercise.id} créé avec succès")
 
         # Rediriger vers la page des exercices
         return RedirectResponse(url="/exercises?generated=true", status_code=303)
 
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Erreur lors de la génération d'exercice: {str(e)}")
+    except Exception as exercise_generation_error:
+        db_session.rollback()
+        logger.error(f"Erreur lors de la génération d'exercice: {str(exercise_generation_error)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors de la génération d'exercice: {str(e)}"
@@ -392,8 +392,8 @@ if __name__ == "__main__":
             sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             import enhanced_server
             enhanced_server.main()
-        except ImportError as e:
-            logger.error(f"Erreur lors du chargement de l'interface graphique: {e}")
+        except ImportError as server_import_error:
+            logger.error(f"Erreur lors du chargement de l'interface graphique: {server_import_error}")
             logger.warning("Retour à l'API standard")
             uvicorn.run("app.main:app", host="0.0.0.0", port=8081, reload=True)
     else:

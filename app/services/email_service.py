@@ -94,8 +94,8 @@ class EmailService:
                 logger.error(f"Erreur SendGrid: {response.status_code} - {response.body}")
                 return False
                 
-        except Exception as e:
-            logger.error(f"Erreur lors de l'envoi via SendGrid: {e}")
+        except Exception as sendgrid_error:
+            logger.error(f"Erreur lors de l'envoi via SendGrid: {sendgrid_error}")
             return False
     
     @staticmethod
@@ -157,15 +157,15 @@ class EmailService:
             logger.info(f"✅ Email envoyé via SMTP à {to_email} depuis {smtp_from_email}")
             return True
             
-        except smtplib.SMTPAuthenticationError as e:
-            logger.error(f"❌ Erreur d'authentification SMTP: {e}")
+        except smtplib.SMTPAuthenticationError as smtp_auth_error:
+            logger.error(f"❌ Erreur d'authentification SMTP: {smtp_auth_error}")
             logger.error(f"Vérifiez SMTP_USER ({smtp_user}) et SMTP_PASSWORD")
             return False
-        except smtplib.SMTPException as e:
-            logger.error(f"❌ Erreur SMTP: {e}")
+        except smtplib.SMTPException as smtp_error:
+            logger.error(f"❌ Erreur SMTP: {smtp_error}")
             return False
-        except Exception as e:
-            logger.error(f"❌ Erreur lors de l'envoi via SMTP: {type(e).__name__}: {e}")
+        except Exception as smtp_general_error:
+            logger.error(f"❌ Erreur lors de l'envoi via SMTP: {type(smtp_general_error).__name__}: {smtp_general_error}")
             import traceback
             logger.debug(traceback.format_exc())
             return False

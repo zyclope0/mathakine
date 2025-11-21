@@ -412,7 +412,7 @@ def attempt_logic_challenge(
         # ✅ CORRECTION : Gestion d'erreur robuste pour to_dict()
         try:
             challenge_dict = challenge.to_dict()
-        except Exception as e:
+        except Exception as dict_conversion_error:
             # Si to_dict() échoue, créer un dictionnaire minimal
             challenge_dict = {
                 "correct_answer": challenge.correct_answer or "32",
@@ -440,9 +440,9 @@ def attempt_logic_challenge(
     except HTTPException:
         # Re-lever les HTTPException (404, etc.)
         raise
-    except Exception as e:
+    except Exception as attempt_error:
         # ✅ CORRECTION : Gestion d'erreur générale pour éviter les 500
-        print(f"Erreur inattendue dans attempt_logic_challenge: {e}")
+        print(f"Erreur inattendue dans attempt_logic_challenge: {attempt_error}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur interne du serveur lors de la tentative"
@@ -517,7 +517,7 @@ def get_challenge_hint(
         # ✅ CORRECTION : Gestion d'erreur robuste pour to_dict()
         try:
             challenge_dict = challenge.to_dict()
-        except Exception as e:
+        except Exception as hint_dict_error:
             # Si to_dict() échoue, créer un dictionnaire minimal avec des indices par défaut
             challenge_dict = {
                 "hints": ["Observez attentivement", "Cherchez un pattern", "Utilisez la logique"]
@@ -537,9 +537,9 @@ def get_challenge_hint(
     except HTTPException:
         # Re-lever les HTTPException (404, 400, etc.)
         raise
-    except Exception as e:
+    except Exception as hint_error:
         # ✅ CORRECTION : Gestion d'erreur générale pour éviter les 500
-        print(f"Erreur inattendue dans get_challenge_hint: {e}")
+        print(f"Erreur inattendue dans get_challenge_hint: {hint_error}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur interne du serveur lors de la récupération de l'indice"
@@ -661,7 +661,7 @@ def delete_logic_challenge(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur de base de données: {error_msg}"
         )
-    except Exception as e:
+    except Exception as db_error:
         db.rollback()
         stack_trace = traceback.format_exc()
         logger.error(f"Erreur lors de la suppression du défi logique {challenge_id}: {str(e)}")
@@ -672,7 +672,7 @@ def delete_logic_challenge(
         )
 
 @router.get("/api/challenges/start/{challenge_id}")
-async def start_challenge(challenge_id: int, db: Session = Depends(get_db)):
+async def start_challenge(challenge_id: int, db: Session = Depends(get_db_session)):
     """
     API pour démarrer un défi depuis la page challenges.html
     """
@@ -691,11 +691,11 @@ async def start_challenge(challenge_id: int, db: Session = Depends(get_db)):
         else:
             return {"redirect": f"/exercise/{challenge_id}", "type": "general"}
             
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors du démarrage du défi: {str(e)}")
+    except Exception as challenge_start_error:
+        raise HTTPException(status_code=500, detail=f"Erreur lors du démarrage du défi: {str(challenge_start_error)}")
 
 @router.get("/api/challenges/list")
-async def list_challenges(limit: int = 10, db: Session = Depends(get_db)):
+async def list_challenges(limit: int = 10, db: Session = Depends(get_db_session)):
     """
     Liste des défis disponibles pour la page challenges
     """
@@ -734,5 +734,5 @@ async def list_challenges(limit: int = 10, db: Session = Depends(get_db)):
             
         return {"challenges": formatted_challenges, "total": len(formatted_challenges)}
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des défis: {str(e)}")
+    except Exception as challenges_fetch_error:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des défis: {str(challenges_fetch_error)}")

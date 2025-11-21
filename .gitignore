@@ -109,6 +109,8 @@ temp/
 .temp/
 *.tmp
 *.temp
+*_report.txt
+*_variables_report.txt
 
 # Fichiers de migration de base de données
 migrations/versions/*
@@ -131,3 +133,16 @@ backups/
 
 # Configuration avec mots de passe (NE JAMAIS COMMITER)
 CONFIGURATION_INFOMANIAK.md
+
+# Fichiers de debug et scripts temporaires
+check_*.py
+debug_*.py
+test_*.py
+fix_*.py
+*_old_backup.py
+*_fixed.py
+
+# Rapports et logs de nettoyage
+NETTOYAGE_*.md
+RESTRUCTURATION_*.md
+*_FINAL.md

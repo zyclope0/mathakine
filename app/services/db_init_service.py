@@ -52,9 +52,9 @@ def populate_test_data():
 
         db.commit()
         logger.success("Données de test créées avec succès")
-    except Exception as e:
+    except Exception as test_data_creation_error:
         db.rollback()
-        logger.error(f"Erreur lors de la création des données de test: {str(e)}")
+        logger.error(f"Erreur lors de la création des données de test: {str(test_data_creation_error)}")
         raise
     finally:
         db.close()
@@ -315,6 +315,6 @@ def initialize_database():
         create_tables()
         populate_test_data()
         logger.success("Base de données initialisée avec succès")
-    except Exception as e:
-        logger.error(f"Erreur lors de l'initialisation de la base de données: {str(e)}")
+    except Exception as db_init_error:
+        logger.error(f"Erreur lors de l'initialisation de la base de données: {str(db_init_error)}")
         raise 

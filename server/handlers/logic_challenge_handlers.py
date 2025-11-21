@@ -77,8 +77,8 @@ async def logic_challenge_page(request):
             message="L'identifiant du défi doit être un nombre.",
             status_code=400
         )
-    except Exception as e:
-        print(f"Erreur lors du chargement du challenge {challenge_id}: {str(e)}")
+    except Exception as challenge_load_error:
+        print(f"Erreur lors du chargement du challenge {challenge_id}: {str(challenge_load_error)}")
         import traceback
         traceback.print_exc()
         return render_error(
@@ -166,7 +166,7 @@ async def hybrid_mission_page(request):
             message="L'identifiant de la mission doit être un nombre.",
             status_code=400
         )
-    except Exception as e:
+    except Exception as submission_error:
         return render_error(
             request=request,
             error="Erreur système",
@@ -245,7 +245,7 @@ async def submit_logic_challenge_answer(request):
             "success": False,
             "error": "ID invalide"
         }, status_code=400)
-    except Exception as e:
+    except Exception as hint_error:
         return JSONResponse({
             "success": False,
             "error": "Erreur système",

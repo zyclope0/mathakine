@@ -2,7 +2,7 @@
 API endpoints spécifiques pour la page Challenges - Support complet des interactions
 """
 from starlette.responses import JSONResponse
-from server.views import get_current_user
+from server.auth import get_current_user
 import json
 import asyncio
 
@@ -42,8 +42,8 @@ async def api_start_challenge(request):
             "difficulty": challenge_info["difficulty"]
         })
         
-    except Exception as e:
-        return JSONResponse({"error": f"Erreur serveur: {str(e)}"}, status_code=500)
+    except Exception as challenge_start_error:
+        return JSONResponse({"error": f"Erreur serveur: {str(challenge_start_error)}"}, status_code=500)
 
 async def api_get_challenge_progress(request):
     """
@@ -77,8 +77,8 @@ async def api_get_challenge_progress(request):
             "next_action": "continue" if progress["progress_percentage"] > 0 else "start"
         })
         
-    except Exception as e:
-        return JSONResponse({"error": f"Erreur serveur: {str(e)}"}, status_code=500)
+    except Exception as progress_api_error:
+        return JSONResponse({"error": f"Erreur serveur: {str(progress_api_error)}"}, status_code=500)
 
 async def api_get_challenge_rewards(request):
     """

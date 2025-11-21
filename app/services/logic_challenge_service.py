@@ -75,8 +75,8 @@ class LogicChallengeService:
                 query = query.limit(limit)
             
             return query.all()
-        except Exception as e:
-            logger.error(f"Erreur lors de la récupération des défis: {e}")
+        except Exception as challenges_fetch_error:
+            logger.error(f"Erreur lors de la récupération des défis: {challenges_fetch_error}")
             return []
     
     @staticmethod
@@ -220,6 +220,6 @@ class LogicChallengeService:
                 logger.info(f"Tentative enregistrée pour le défi {challenge_id}: {'Correcte' if is_correct else 'Incorrecte'}")
                 
                 return attempt
-            except Exception as e:
-                logger.error(f"Erreur lors de l'enregistrement de la tentative: {e}")
+            except Exception as attempt_save_error:
+                logger.error(f"Erreur lors de l'enregistrement de la tentative: {attempt_save_error}")
                 return None 

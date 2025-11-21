@@ -91,8 +91,8 @@ class UserService:
                 query = query.limit(limit)
             
             return query.all()
-        except Exception as e:
-            logger.error(f"Erreur lors de la récupération des utilisateurs: {e}")
+        except Exception as users_fetch_error:
+            logger.error(f"Erreur lors de la récupération des utilisateurs: {users_fetch_error}")
             return []
     
     @staticmethod
@@ -324,6 +324,6 @@ class UserService:
             
             return stats
             
-        except Exception as e:
-            logger.error(f"Erreur lors de la récupération des statistiques: {e}")
+        except Exception as stats_fetch_error:
+            logger.error(f"Erreur lors de la récupération des statistiques: {stats_fetch_error}")
             return {"stats_error": "Erreur lors de la récupération des statistiques"} 
