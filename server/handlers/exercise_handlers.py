@@ -157,6 +157,19 @@ async def get_exercise(request):
         db = EnhancedServerAdapter.get_db_session()
         try:
             from app.models.exercise import Exercise
+            import json as json_module
+            
+            def safe_parse_json(value, default=None):
+                """Parse JSON en gérant les cas None, string vide, ou JSON invalide"""
+                if not value:
+                    return default if default is not None else []
+                if isinstance(value, str):
+                    try:
+                        return json_module.loads(value)
+                    except (json_module.JSONDecodeError, ValueError):
+                        return default if default is not None else []
+                return value
+            
             exercise_obj = db.query(Exercise).filter(Exercise.id == exercise_id).first()
             if not exercise_obj:
                 return ErrorHandler.create_not_found_error(f"Exercice {exercise_id} non trouvé")
@@ -164,14 +177,14 @@ async def get_exercise(request):
             exercise = {
                 "id": exercise_obj.id,
                 "title": exercise_obj.title,
-                "exercise_type": exercise_obj.exercise_type,
-                "difficulty": exercise_obj.difficulty,
+                "exercise_type": exercise_obj.exercise_type.value,
+                "difficulty": exercise_obj.difficulty.value,
                 "question": exercise_obj.question,
                 "correct_answer": exercise_obj.correct_answer,
-                "choices": exercise_obj.choices,
+                "choices": safe_parse_json(exercise_obj.choices, []),
                 "explanation": exercise_obj.explanation,
                 "hint": exercise_obj.hint,
-                "tags": exercise_obj.tags
+                "tags": safe_parse_json(exercise_obj.tags, [])
             }
         finally:
             EnhancedServerAdapter.close_db_session(db)
