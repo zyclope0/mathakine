@@ -154,8 +154,7 @@ async def get_challenges_list(request: Request):
             total = challenge_service.count_challenges(
                 db=db2,
                 challenge_type=challenge_type,
-                age_group=age_group,
-                tags=search  # Utiliser search comme filtre tags
+                age_group=age_group
             )
         finally:
             EnhancedServerAdapter.close_db_session(db2)
