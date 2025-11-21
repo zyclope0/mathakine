@@ -40,7 +40,11 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             "/api/auth/login", 
             "/api/auth/logout",  # Permet la déconnexion même sans token valide
             "/api/auth/forgot-password",
+            "/api/auth/verify-email",
+            "/api/auth/resend-verification",
             "/api/users/",
+            "/api/exercises",  # API exercises (publique)
+            "/api/challenges",  # API challenges (publique)
             "/static",
             "/exercises"  # On permet l'accès à la liste des exercices sans connexion
         ]
