@@ -125,9 +125,9 @@ async def get_challenges_list(request: Request):
                 db=db,
                 challenge_type=challenge_type,
                 age_group=age_group,
-                search=search,
+                tags=search,  # Utiliser search comme filtre tags
                 limit=limit,
-                skip=skip
+                offset=skip
             )
             # Convertir les objets en dicts
             challenges_list = [
@@ -155,7 +155,7 @@ async def get_challenges_list(request: Request):
                 db=db2,
                 challenge_type=challenge_type,
                 age_group=age_group,
-                search=search
+                tags=search  # Utiliser search comme filtre tags
             )
         finally:
             EnhancedServerAdapter.close_db_session(db2)
