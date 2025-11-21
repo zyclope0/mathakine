@@ -120,8 +120,8 @@ async def get_challenges_list(request: Request):
         # Utiliser le service ORM challenge_service
         db = EnhancedServerAdapter.get_db_session()
         try:
-            # Récupérer les challenges via la fonction get_challenges
-            challenges = challenge_service.get_challenges(
+            # Récupérer les challenges via la fonction list_challenges
+            challenges = challenge_service.list_challenges(
                 db=db,
                 challenge_type=challenge_type,
                 age_group=age_group,

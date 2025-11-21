@@ -364,7 +364,7 @@ async def submit_answer(request):
         
         # Retourner une réponse d'erreur standardisée
         return ErrorHandler.create_error_response(
-            e,
+            response_processing_error,
             status_code=500,
             user_message="Erreur lors du traitement de la réponse"
         )
@@ -399,13 +399,15 @@ async def get_exercises_list(request):
             # Construire la requête
             query = db.query(Exercise).filter(Exercise.is_archived == False)
             
-            # Filtrer par type si spécifié
+            # Filtrer par type si spécifié (utiliser cast text pour éviter problème enum)
             if exercise_type:
-                query = query.filter(Exercise.exercise_type == exercise_type)
+                from sqlalchemy import cast, String
+                query = query.filter(cast(Exercise.exercise_type, String) == exercise_type)
             
-            # Filtrer par difficulté si spécifié
+            # Filtrer par difficulté si spécifié (utiliser cast text pour éviter problème enum)
             if difficulty:
-                query = query.filter(Exercise.difficulty == difficulty)
+                from sqlalchemy import cast, String
+                query = query.filter(cast(Exercise.difficulty, String) == difficulty)
             
             # Recherche textuelle si spécifié
             if search:
