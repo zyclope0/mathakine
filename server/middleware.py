@@ -8,7 +8,7 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, JSONResponse
 from typing import List, Callable
 from loguru import logger
 import os
@@ -57,8 +57,12 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         # Check for authentication token
         access_token = request.cookies.get("access_token")
         if not access_token:
-            logger.info(f"Unauthorized access attempt to {request.url.path}, redirecting to login")
-            return RedirectResponse(url="/login", status_code=303)
+            logger.info(f"Unauthorized access attempt to {request.url.path}")
+            # Return 401 JSON response (API backend, no HTML redirect)
+            return JSONResponse(
+                {"error": "Unauthorized", "message": "Authentication required"},
+                status_code=401
+            )
             
         try:
             # Verify the token
@@ -69,9 +73,13 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
             
-        except Exception as e:
-            logger.error(f"Invalid token for {request.url.path}: {str(e)}")
-            return RedirectResponse(url="/login", status_code=303)
+        except Exception as auth_error:
+            logger.error(f"Invalid token for {request.url.path}: {str(auth_error)}")
+            # Return 401 JSON response (API backend, no HTML redirect)
+            return JSONResponse(
+                {"error": "Unauthorized", "message": "Invalid or expired token"},
+                status_code=401
+            )
 
 def get_middleware() -> List[Middleware]:
     """
