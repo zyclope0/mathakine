@@ -390,66 +390,55 @@ async def get_exercises_list(request):
         
         logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, exercise_type={exercise_type}, difficulty={difficulty}, search={search}, locale={locale}")
         
-        # Utiliser SQL brut pour éviter problème enum PostgreSQL
+        # Utiliser le service ORM ExerciseService (100% ORM comme recommandé par l'audit)
         db = EnhancedServerAdapter.get_db_session()
         try:
-            from sqlalchemy import text
+            from app.models.exercise import Exercise
+            from sqlalchemy import or_
             
-            # Construire la requête SQL avec filtres
-            sql = """
-                SELECT 
-                    id, title, exercise_type::text as exercise_type, 
-                    difficulty::text as difficulty, question, 
-                    correct_answer, choices, explanation, hint, 
-                    tags, is_active, view_count
-                FROM exercises 
-                WHERE is_archived = false
-            """
-            params = {}
+            # Construire la requête ORM
+            query = db.query(Exercise).filter(Exercise.is_archived == False)
             
             # Filtrer par type si spécifié
             if exercise_type:
-                sql += " AND exercise_type::text = :exercise_type"
-                params['exercise_type'] = exercise_type
+                query = query.filter(Exercise.exercise_type == exercise_type)
             
             # Filtrer par difficulté si spécifié
             if difficulty:
-                sql += " AND difficulty::text = :difficulty"
-                params['difficulty'] = difficulty
+                query = query.filter(Exercise.difficulty == difficulty)
             
             # Recherche textuelle si spécifié
             if search:
-                sql += " AND (title ILIKE :search OR question ILIKE :search)"
-                params['search'] = f"%{search}%"
+                search_pattern = f"%{search}%"
+                query = query.filter(
+                    or_(
+                        Exercise.title.ilike(search_pattern),
+                        Exercise.question.ilike(search_pattern)
+                    )
+                )
             
             # Compter le total
-            count_sql = f"SELECT COUNT(*) FROM ({sql}) as subquery"
-            total = db.execute(text(count_sql), params).scalar()
+            total = query.count()
             
-            # Ajouter tri et pagination
-            sql += " ORDER BY created_at DESC LIMIT :limit OFFSET :skip"
-            params['limit'] = limit
-            params['skip'] = skip
-            
-            # Exécuter la requête
-            result = db.execute(text(sql), params)
+            # Récupérer les exercices avec pagination
+            exercises_objs = query.order_by(Exercise.created_at.desc()).limit(limit).offset(skip).all()
             
             # Convertir en dicts
             exercises = [
                 {
-                    "id": row.id,
-                    "title": row.title,
-                    "exercise_type": row.exercise_type,
-                    "difficulty": row.difficulty,
-                    "question": row.question,
-                    "correct_answer": row.correct_answer,
-                    "choices": row.choices,
-                    "explanation": row.explanation,
-                    "hint": row.hint,
-                    "tags": row.tags,
-                    "is_active": row.is_active,
-                    "view_count": row.view_count
-                } for row in result
+                    "id": ex.id,
+                    "title": ex.title,
+                    "exercise_type": ex.exercise_type.value,  # .value pour obtenir la string
+                    "difficulty": ex.difficulty.value,
+                    "question": ex.question,
+                    "correct_answer": ex.correct_answer,
+                    "choices": ex.choices,
+                    "explanation": ex.explanation,
+                    "hint": ex.hint,
+                    "tags": ex.tags,
+                    "is_active": ex.is_active,
+                    "view_count": ex.view_count
+                } for ex in exercises_objs
             ]
         finally:
             EnhancedServerAdapter.close_db_session(db)

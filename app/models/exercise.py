@@ -8,24 +8,24 @@ from app.db.base import Base
 
 class DifficultyLevel(str, enum.Enum):
     """Niveaux de difficulté des épreuves mathématiques"""
-    INITIE = "initie"       # Facile
-    PADAWAN = "padawan"     # Moyen
-    CHEVALIER = "chevalier" # Difficile
-    MAITRE = "maitre"       # Très difficile
+    INITIE = "INITIE"       # Facile
+    PADAWAN = "PADAWAN"     # Moyen
+    CHEVALIER = "CHEVALIER" # Difficile
+    MAITRE = "MAITRE"       # Très difficile
 
 
 
 class ExerciseType(str, enum.Enum):
     """Types d'épreuves mathématiques"""
-    ADDITION = "addition"           # Additions
-    SOUSTRACTION = "soustraction"   # Soustractions
-    MULTIPLICATION = "multiplication" # Multiplications
-    DIVISION = "division"           # Divisions
-    FRACTIONS = "fractions"         # Fractions
-    GEOMETRIE = "geometrie"         # Géométrie
-    TEXTE = "texte"                 # Questions textuelles
-    MIXTE = "mixte"                 # Combinaison de plusieurs opérations
-    DIVERS = "divers"               # Exercices variés
+    ADDITION = "ADDITION"           # Additions
+    SOUSTRACTION = "SOUSTRACTION"   # Soustractions
+    MULTIPLICATION = "MULTIPLICATION" # Multiplications
+    DIVISION = "DIVISION"           # Divisions
+    FRACTIONS = "FRACTIONS"         # Fractions
+    GEOMETRIE = "GEOMETRIE"         # Géométrie
+    TEXTE = "TEXTE"                 # Questions textuelles
+    MIXTE = "MIXTE"                 # Combinaison de plusieurs opérations
+    DIVERS = "DIVERS"               # Exercices variés
 
 
 
