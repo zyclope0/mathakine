@@ -15,14 +15,20 @@ def normalize_exercise_type(exercise_type):
     if not exercise_type:
         return ExerciseTypes.ADDITION
 
-    exercise_type = exercise_type.lower()
+    exercise_type_lower = exercise_type.lower()
 
     # Parcourir tous les types d'exercices et leurs alias
     for type_key, aliases in ExerciseTypes.TYPE_ALIASES.items():
-        if exercise_type in aliases:
+        if exercise_type_lower in aliases:
             return type_key
     
-    # Si aucune correspondance trouvée, logger un avertissement et retourner ADDITION par défaut
+    # Si aucune correspondance trouvée, essayer de convertir en majuscule
+    # et vérifier si c'est une valeur enum valide
+    exercise_type_upper = exercise_type.upper()
+    if exercise_type_upper in ExerciseTypes.ALL_TYPES:
+        return exercise_type_upper
+    
+    # Si toujours aucune correspondance, logger un avertissement et retourner ADDITION par défaut
     print(f"⚠️ Type d'exercice non reconnu: {exercise_type}, utilisation de ADDITION par défaut")
     return ExerciseTypes.ADDITION
 
@@ -31,15 +37,22 @@ def normalize_difficulty(difficulty):
     if not difficulty:
         return DifficultyLevels.PADAWAN
 
-    difficulty = difficulty.lower()
+    difficulty_lower = difficulty.lower()
 
     # Parcourir tous les niveaux de difficulté et leurs alias
     for level_key, aliases in DifficultyLevels.LEVEL_ALIASES.items():
-        if difficulty in aliases:
+        if difficulty_lower in aliases:
             return level_key
+    
+    # Si aucune correspondance trouvée, essayer de convertir en majuscule
+    # et vérifier si c'est une valeur enum valide
+    difficulty_upper = difficulty.upper()
+    if difficulty_upper in DifficultyLevels.ALL_LEVELS:
+        return difficulty_upper
             
-    # Si aucune correspondance trouvée, retourner la difficulté telle quelle
-    return difficulty
+    # Si toujours aucune correspondance, logger un avertissement et retourner PADAWAN par défaut
+    print(f"⚠️ Niveau de difficulté non reconnu: {difficulty}, utilisation de PADAWAN par défaut")
+    return DifficultyLevels.PADAWAN
 
 
 def normalize_and_validate_exercise_params(exercise_type_raw: Optional[str], difficulty_raw: Optional[str]) -> tuple:

@@ -20,15 +20,15 @@ class ExerciseTypes:
     
     # Mapping pour la normalisation des types
     TYPE_ALIASES = {
-        ADDITION: [ADDITION, "add", "+", "plus"],
-        SUBTRACTION: [SUBTRACTION, "subtract", "sub", "soustraction", "-", "minus"],
-        MULTIPLICATION: [MULTIPLICATION, "multiply", "mult", "times", "*", "×"],
-        DIVISION: [DIVISION, "divide", "div", "/", "÷"],
-        FRACTIONS: [FRACTIONS, "fraction", "frac"],
-        GEOMETRIE: [GEOMETRIE, "geometry", "geo"],
-        TEXTE: [TEXTE, "text", "texte", "question"],
-        MIXTE: [MIXTE, "mixed", "mixte", "combiné", "combine"],
-        DIVERS: [DIVERS, "misc", "divers", "other"]
+        ADDITION: [ADDITION, "addition", "add", "+", "plus"],
+        SUBTRACTION: [SUBTRACTION, "soustraction", "subtract", "sub", "-", "minus"],
+        MULTIPLICATION: [MULTIPLICATION, "multiplication", "multiply", "mult", "times", "*", "×"],
+        DIVISION: [DIVISION, "division", "divide", "div", "/", "÷"],
+        FRACTIONS: [FRACTIONS, "fractions", "fraction", "frac"],
+        GEOMETRIE: [GEOMETRIE, "geometrie", "geometry", "geo"],
+        TEXTE: [TEXTE, "texte", "text", "question"],
+        MIXTE: [MIXTE, "mixte", "mixed", "combiné", "combine"],
+        DIVERS: [DIVERS, "divers", "misc", "other"]
     }
 
 # Niveaux de difficulté - compatible avec l'enum DifficultyLevel
@@ -42,10 +42,10 @@ class DifficultyLevels:
     
     # Mapping pour la normalisation des niveaux
     LEVEL_ALIASES = {
-        INITIE: [INITIE, "initié", "easy", "facile", "debutant", "débutant"],
-        PADAWAN: [PADAWAN, "medium", "moyen", "intermediaire", "intermédiaire"],
-        CHEVALIER: [CHEVALIER, "hard", "difficile", "avance", "avancé"],
-        MAITRE: [MAITRE, "maître", "expert", "très difficile", "tres difficile"]
+        INITIE: [INITIE, "initié", "initie", "easy", "facile", "debutant", "débutant"],
+        PADAWAN: [PADAWAN, "padawan", "medium", "moyen", "intermediaire", "intermédiaire"],
+        CHEVALIER: [CHEVALIER, "chevalier", "hard", "difficile", "avance", "avancé"],
+        MAITRE: [MAITRE, "maitre", "maître", "expert", "très difficile", "tres difficile"]
     }
 
 # Rôles d'utilisateurs
