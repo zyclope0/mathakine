@@ -23,6 +23,10 @@ Pour démarrer uniquement l'API REST:
 import os
 import sys
 from loguru import logger
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement AVANT de les lire
+load_dotenv(override=True)
 
 # Import from our server module
 from server import create_app, run_server
