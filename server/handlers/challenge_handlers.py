@@ -218,6 +218,20 @@ async def get_challenge(request: Request):
             from app.models.logic_challenge import LogicChallenge
             challenge = db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
             if challenge:
+                # Parser les champs JSON si nécessaire
+                import json as json_module
+                
+                def safe_parse_json(value, default=None):
+                    """Parse JSON en gérant les cas None, string vide, ou JSON invalide"""
+                    if not value:
+                        return default if default is not None else []
+                    if isinstance(value, str):
+                        try:
+                            return json_module.loads(value)
+                        except (json_module.JSONDecodeError, ValueError):
+                            return default if default is not None else []
+                    return value
+                
                 challenge_dict = {
                     "id": challenge.id,
                     "title": challenge.title,
@@ -225,6 +239,13 @@ async def get_challenge(request: Request):
                     "challenge_type": challenge.challenge_type,
                     "age_group": challenge.age_group,
                     "difficulty": challenge.difficulty,
+                    "question": challenge.question,
+                    "correct_answer": challenge.correct_answer,
+                    "choices": safe_parse_json(challenge.choices, []),
+                    "solution_explanation": challenge.solution_explanation,
+                    "visual_data": safe_parse_json(challenge.visual_data, {}),
+                    "hints": safe_parse_json(challenge.hints, []),
+                    "is_active": challenge.is_active,
                     "is_archived": challenge.is_archived
                 }
             else:
