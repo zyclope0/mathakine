@@ -98,10 +98,10 @@ def render_error(
             },
             status_code=status_code
         )
-    except Exception as e:
+    except Exception as template_error:
         # If rendering error template fails, fallback to basic HTML
-        logger.critical(f"Error rendering error template: {e}")
-        traceback.print_exc()
+        logger.critical(f"Error rendering error template: {template_error}")
+        logger.critical(traceback.format_exc())
         
         return HTMLResponse(
             f"""
