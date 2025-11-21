@@ -424,6 +424,7 @@ async def get_exercises_list(request):
             exercises_objs = query.order_by(Exercise.created_at.desc()).limit(limit).offset(skip).all()
             
             # Convertir en dicts
+            import json as json_module
             exercises = [
                 {
                     "id": ex.id,
@@ -432,10 +433,10 @@ async def get_exercises_list(request):
                     "difficulty": ex.difficulty.value,
                     "question": ex.question,
                     "correct_answer": ex.correct_answer,
-                    "choices": ex.choices,
+                    "choices": json_module.loads(ex.choices) if isinstance(ex.choices, str) else ex.choices,  # Parser JSON si string
                     "explanation": ex.explanation,
                     "hint": ex.hint,
-                    "tags": ex.tags,
+                    "tags": json_module.loads(ex.tags) if isinstance(ex.tags, str) else ex.tags if ex.tags else [],  # Parser JSON si string
                     "is_active": ex.is_active,
                     "view_count": ex.view_count
                 } for ex in exercises_objs
