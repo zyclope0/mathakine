@@ -4,7 +4,7 @@ Utilitaires de sécurité pour l'authentification
 from datetime import datetime, timedelta, UTC, timezone
 from typing import Optional, Union, Any
 from jose import jwt, JWTError
-from passlib.context import CryptContext
+import bcrypt
 from app.core.constants import SecurityConfig
 from app.core.config import settings
 from app.core.logging_config import get_logger
@@ -12,9 +12,6 @@ from fastapi import HTTPException
 
 # Obtenir un logger nommé pour ce module
 logger = get_logger(__name__)
-
-# Contexte pour le hachage des mots de passe
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Clé secrète pour la signature des tokens (à mettre en variable d'environnement en production)
 SECRET_KEY = settings.SECRET_KEY
@@ -104,7 +101,14 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
             logger.warning(f"Mot de passe trop long ({len(password_bytes)} bytes), tronqué à 72 bytes")
             plain_password = password_bytes[:72].decode('utf-8', errors='ignore')
         
-        result = pwd_context.verify(plain_password, hashed_password)
+        # Utiliser bcrypt directement au lieu de passlib pour éviter les warnings de compatibilité
+        # Convertir le hash en bytes si c'est une string
+        if isinstance(hashed_password, str):
+            hashed_password_bytes = hashed_password.encode('utf-8')
+        else:
+            hashed_password_bytes = hashed_password
+        
+        result = bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password_bytes)
         logger.debug(f"Résultat de la vérification: {result}")
         return result
     except Exception as password_verification_error:
@@ -123,7 +127,11 @@ def get_password_hash(password: str) -> str:
     """
     logger.debug(f"Génération du hash pour le mot de passe")
     try:
-        hashed = pwd_context.hash(password)
+        # Utiliser bcrypt directement au lieu de passlib pour éviter les warnings de compatibilité
+        # Générer un salt et hasher le mot de passe
+        salt = bcrypt.gensalt()
+        hashed_bytes = bcrypt.hashpw(password.encode('utf-8'), salt)
+        hashed = hashed_bytes.decode('utf-8')
         logger.debug(f"Hash généré: {hashed}")
         return hashed
     except Exception as password_hashing_error:

@@ -33,8 +33,7 @@ loguru==0.7.2
 
 # Authentification et sécurité
 python-jose[cryptography]==3.5.0  # JWT
-passlib[bcrypt]==1.7.4  # Hachage des mots de passe
-bcrypt==4.0.1  # Version compatible avec passlib 1.7.4 (4.3.0 cause AttributeError: module 'bcrypt' has no attribute '__about__')
+bcrypt==4.0.1  # Hachage des mots de passe (utilisé directement, sans passlib pour éviter les warnings de compatibilité)
 
 # Tests automatisés
 pytest==7.4.3
