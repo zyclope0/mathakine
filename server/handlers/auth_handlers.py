@@ -250,17 +250,35 @@ async def api_refresh_token(request: Request):
     """
     Rafraîchit le token d'accès avec un refresh token.
     Route: POST /api/auth/refresh
-    Body: {"refresh_token": "..."}
+    Body (optionnel): {"refresh_token": "..."}
+    Cookie (optionnel): refresh_token
     Returns: New access token
     """
     try:
-        # Récupérer le refresh token du body
-        data = await request.json()
-        refresh_token = data.get('refresh_token', '').strip()
+        refresh_token = None
+        
+        # Essayer de récupérer le refresh token depuis le body JSON (pour compatibilité)
+        try:
+            body_content = await request.body()
+            if body_content:
+                import json
+                try:
+                    data = json.loads(body_content.decode('utf-8'))
+                    refresh_token = data.get('refresh_token', '').strip() if data else None
+                except (ValueError, json.JSONDecodeError):
+                    # JSON invalide, ce n'est pas grave, on essaiera les cookies
+                    pass
+        except Exception:
+            # Erreur lors de la lecture du body, ce n'est pas grave, on essaiera les cookies
+            pass
+        
+        # Si pas de token dans le body, essayer de le récupérer depuis les cookies
+        if not refresh_token:
+            refresh_token = request.cookies.get('refresh_token', '').strip()
         
         if not refresh_token:
             return JSONResponse(
-                {"error": "Refresh token requis"},
+                {"error": "Refresh token requis (body ou cookie)"},
                 status_code=400
             )
         
@@ -270,7 +288,21 @@ async def api_refresh_token(request: Request):
             new_token_data = refresh_access_token(db, refresh_token)
             
             logger.info("Token rafraîchi avec succès")
-            return JSONResponse(new_token_data, status_code=200)
+            
+            # Créer la réponse avec le nouveau token
+            response = JSONResponse(new_token_data, status_code=200)
+            
+            # Mettre à jour le cookie access_token si présent dans la réponse
+            if "access_token" in new_token_data:
+                response.set_cookie(
+                    key="access_token",
+                    value=new_token_data.get("access_token"),
+                    httponly=True,
+                    max_age=new_token_data.get("expires_in", 3600),
+                    samesite="lax"
+                )
+            
+            return response
             
         finally:
             EnhancedServerAdapter.close_db_session(db)
