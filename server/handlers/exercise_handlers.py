@@ -437,7 +437,7 @@ async def get_exercises_list(request):
         db = EnhancedServerAdapter.get_db_session()
         try:
             from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
-            from sqlalchemy import or_
+            from sqlalchemy import or_, text, cast, String
             
             # Construire la requête ORM
             query = db.query(Exercise).filter(Exercise.is_archived == False)
@@ -474,7 +474,69 @@ async def get_exercises_list(request):
             total = query.count()
             
             # Récupérer les exercices avec pagination
-            exercises_objs = query.order_by(Exercise.created_at.desc()).limit(limit).offset(skip).all()
+            # IMPORTANT: Charger les enums en tant que strings pour éviter les erreurs de conversion
+            # SQLAlchemy essaie de convertir automatiquement et échoue si la DB contient des minuscules
+            # Solution: Utiliser cast() pour forcer le chargement en string dès le début
+            exercises_objs_raw = db.query(
+                Exercise.id,
+                Exercise.title,
+                Exercise.question,
+                Exercise.correct_answer,
+                Exercise.choices,
+                Exercise.explanation,
+                Exercise.hint,
+                Exercise.tags,
+                Exercise.is_active,
+                Exercise.view_count,
+                Exercise.created_at,
+                cast(Exercise.exercise_type, String).label('exercise_type_str'),
+                cast(Exercise.difficulty, String).label('difficulty_str')
+            ).filter(Exercise.is_archived == False)
+            
+            # Appliquer les mêmes filtres que la requête principale
+            if exercise_type:
+                try:
+                    exercise_type_enum = ExerciseType(exercise_type)
+                    exercises_objs_raw = exercises_objs_raw.filter(Exercise.exercise_type == exercise_type_enum)
+                except ValueError:
+                    pass  # Déjà loggé plus haut
+            if difficulty:
+                try:
+                    difficulty_enum = DifficultyLevel(difficulty)
+                    exercises_objs_raw = exercises_objs_raw.filter(Exercise.difficulty == difficulty_enum)
+                except ValueError:
+                    pass  # Déjà loggé plus haut
+            if search:
+                search_pattern = f"%{search}%"
+                exercises_objs_raw = exercises_objs_raw.filter(
+                    or_(
+                        Exercise.title.ilike(search_pattern),
+                        Exercise.question.ilike(search_pattern)
+                    )
+                )
+            
+            exercises_objs_raw = exercises_objs_raw.order_by(Exercise.created_at.desc()).limit(limit).offset(skip).all()
+            
+            # Reconstruire les objets Exercise avec les valeurs normalisées
+            exercises_objs = []
+            for row in exercises_objs_raw:
+                # Créer un objet Exercise minimal avec les valeurs normalisées
+                ex = Exercise()
+                ex.id = row.id
+                ex.title = row.title
+                ex.question = row.question
+                ex.correct_answer = row.correct_answer
+                ex.choices = row.choices
+                ex.explanation = row.explanation
+                ex.hint = row.hint
+                ex.tags = row.tags
+                ex.is_active = row.is_active
+                ex.view_count = row.view_count
+                ex.created_at = row.created_at
+                # Stocker les valeurs enum normalisées comme attributs temporaires
+                ex._exercise_type_str = row.exercise_type_str.upper() if row.exercise_type_str else "ADDITION"
+                ex._difficulty_str = row.difficulty_str.upper() if row.difficulty_str else "PADAWAN"
+                exercises_objs.append(ex)
             
             # Convertir en dicts avec parsing JSON sécurisé
             import json as json_module
@@ -495,6 +557,11 @@ async def get_exercises_list(request):
                 try:
                     if enum_obj is None:
                         return default
+                    # Si l'objet a une valeur string temporaire (chargée via requête alternative)
+                    if hasattr(enum_obj, '_exercise_type_str'):
+                        return enum_obj._exercise_type_str
+                    if hasattr(enum_obj, '_difficulty_str'):
+                        return enum_obj._difficulty_str
                     # Si c'est déjà un enum Python, retourner sa valeur
                     if hasattr(enum_obj, 'value'):
                         return enum_obj.value
@@ -514,8 +581,8 @@ async def get_exercises_list(request):
                 {
                     "id": ex.id,
                     "title": ex.title,
-                    "exercise_type": safe_get_enum_value(ex.exercise_type, "ADDITION"),
-                    "difficulty": safe_get_enum_value(ex.difficulty, "PADAWAN"),
+                    "exercise_type": safe_get_enum_value(getattr(ex, '_exercise_type_str', None) or getattr(ex, 'exercise_type', None), "ADDITION"),
+                    "difficulty": safe_get_enum_value(getattr(ex, '_difficulty_str', None) or getattr(ex, 'difficulty', None), "PADAWAN"),
                     "question": ex.question,
                     "correct_answer": ex.correct_answer,
                     "choices": safe_parse_json(ex.choices, []),
