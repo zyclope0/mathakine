@@ -470,12 +470,32 @@ async def get_exercises_list(request):
                         return default if default is not None else []
                 return value  # Déjà un objet Python
             
+            def safe_get_enum_value(enum_obj, default="UNKNOWN"):
+                """Récupère la valeur d'un enum en gérant les erreurs de conversion"""
+                try:
+                    if enum_obj is None:
+                        return default
+                    # Si c'est déjà un enum Python, retourner sa valeur
+                    if hasattr(enum_obj, 'value'):
+                        return enum_obj.value
+                    # Si c'est une string, la retourner telle quelle (déjà normalisée)
+                    if isinstance(enum_obj, str):
+                        return enum_obj.upper()  # S'assurer que c'est en majuscule
+                    # Sinon, convertir en string et mettre en majuscule
+                    return str(enum_obj).upper()
+                except (AttributeError, ValueError, LookupError) as e:
+                    logger.warning(f"Erreur lors de la récupération de la valeur enum: {e}, valeur brute: {enum_obj}")
+                    # En cas d'erreur, essayer de récupérer la valeur brute et la normaliser
+                    if isinstance(enum_obj, str):
+                        return enum_obj.upper()
+                    return default
+            
             exercises = [
                 {
                     "id": ex.id,
                     "title": ex.title,
-                    "exercise_type": ex.exercise_type.value,
-                    "difficulty": ex.difficulty.value,
+                    "exercise_type": safe_get_enum_value(ex.exercise_type, "ADDITION"),
+                    "difficulty": safe_get_enum_value(ex.difficulty, "PADAWAN"),
                     "question": ex.question,
                     "correct_answer": ex.correct_answer,
                     "choices": safe_parse_json(ex.choices, []),
