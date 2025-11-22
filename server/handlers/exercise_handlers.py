@@ -389,9 +389,19 @@ async def get_exercises_list(request):
         limit_param = request.query_params.get('limit')
         limit = int(limit_param) if limit_param else 20
         skip = int(request.query_params.get('skip', 0))
-        exercise_type = request.query_params.get('exercise_type', None)
-        difficulty = request.query_params.get('difficulty', None)
+        exercise_type_raw = request.query_params.get('exercise_type', None)
+        difficulty_raw = request.query_params.get('difficulty', None)
         search = request.query_params.get('search') or request.query_params.get('q')  # Support 'search' et 'q'
+        
+        # Normaliser les paramètres de filtrage AVANT de les utiliser dans la requête
+        from server.exercise_generator import normalize_and_validate_exercise_params
+        exercise_type, difficulty = normalize_and_validate_exercise_params(exercise_type_raw, difficulty_raw)
+        
+        # Si aucun paramètre n'était fourni, remettre à None pour ne pas filtrer
+        if not exercise_type_raw:
+            exercise_type = None
+        if not difficulty_raw:
+            difficulty = None
         
         # Calculer la page à partir de skip et limit
         page = (skip // limit) + 1 if limit > 0 else 1
@@ -401,24 +411,34 @@ async def get_exercises_list(request):
         accept_language = request.headers.get("Accept-Language")
         locale = parse_accept_language(accept_language) or "fr"
         
-        logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, exercise_type={exercise_type}, difficulty={difficulty}, search={search}, locale={locale}")
+        logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, exercise_type_raw={exercise_type_raw}→{exercise_type}, difficulty_raw={difficulty_raw}→{difficulty}, search={search}, locale={locale}")
         
         # Utiliser le service ORM ExerciseService (100% ORM comme recommandé par l'audit)
         db = EnhancedServerAdapter.get_db_session()
         try:
-            from app.models.exercise import Exercise
+            from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
             from sqlalchemy import or_
             
             # Construire la requête ORM
             query = db.query(Exercise).filter(Exercise.is_archived == False)
             
-            # Filtrer par type si spécifié
+            # Filtrer par type si spécifié (utiliser l'enum normalisé)
             if exercise_type:
-                query = query.filter(Exercise.exercise_type == exercise_type)
+                # Convertir la string normalisée en enum ExerciseType
+                try:
+                    exercise_type_enum = ExerciseType(exercise_type)
+                    query = query.filter(Exercise.exercise_type == exercise_type_enum)
+                except ValueError:
+                    logger.warning(f"Type d'exercice invalide après normalisation: {exercise_type}")
             
-            # Filtrer par difficulté si spécifié
+            # Filtrer par difficulté si spécifiée (utiliser l'enum normalisé)
             if difficulty:
-                query = query.filter(Exercise.difficulty == difficulty)
+                # Convertir la string normalisée en enum DifficultyLevel
+                try:
+                    difficulty_enum = DifficultyLevel(difficulty)
+                    query = query.filter(Exercise.difficulty == difficulty_enum)
+                except ValueError:
+                    logger.warning(f"Difficulté invalide après normalisation: {difficulty}")
             
             # Recherche textuelle si spécifié
             if search:
