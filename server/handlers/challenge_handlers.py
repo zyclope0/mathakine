@@ -138,6 +138,11 @@ async def get_challenges_list(request: Request):
                     "challenge_type": c.challenge_type,
                     "age_group": c.age_group,
                     "difficulty": c.difficulty,
+                    "tags": c.tags,
+                    "difficulty_rating": c.difficulty_rating,
+                    "estimated_time_minutes": c.estimated_time_minutes,
+                    "success_rate": c.success_rate,
+                    "view_count": c.view_count,
                     "is_archived": c.is_archived
                 } for c in challenges
             ]
@@ -245,6 +250,11 @@ async def get_challenge(request: Request):
                     "solution_explanation": challenge.solution_explanation,
                     "visual_data": safe_parse_json(challenge.visual_data, {}),
                     "hints": safe_parse_json(challenge.hints, []),
+                    "tags": challenge.tags,
+                    "difficulty_rating": challenge.difficulty_rating,
+                    "estimated_time_minutes": challenge.estimated_time_minutes,
+                    "success_rate": challenge.success_rate,
+                    "view_count": challenge.view_count,
                     "is_active": challenge.is_active,
                     "is_archived": challenge.is_archived
                 }

@@ -184,6 +184,7 @@ async def get_exercise(request):
                 Exercise.explanation,
                 Exercise.hint,
                 Exercise.tags,
+                Exercise.ai_generated,
                 cast(Exercise.exercise_type, String).label('exercise_type_str'),
                 cast(Exercise.difficulty, String).label('difficulty_str')
             ).filter(Exercise.id == exercise_id).first()
@@ -201,7 +202,8 @@ async def get_exercise(request):
                 "choices": safe_parse_json(exercise_row.choices, []),
                 "explanation": exercise_row.explanation,
                 "hint": exercise_row.hint,
-                "tags": safe_parse_json(exercise_row.tags, [])
+                "tags": safe_parse_json(exercise_row.tags, []),
+                "ai_generated": exercise_row.ai_generated or False
             }
         finally:
             EnhancedServerAdapter.close_db_session(db)
@@ -483,6 +485,7 @@ async def get_exercises_list(request):
                 Exercise.explanation,
                 Exercise.hint,
                 Exercise.tags,
+                Exercise.ai_generated,
                 Exercise.is_active,
                 Exercise.view_count,
                 Exercise.created_at,
@@ -527,6 +530,7 @@ async def get_exercises_list(request):
                 ex.explanation = row.explanation
                 ex.hint = row.hint
                 ex.tags = row.tags
+                ex.ai_generated = row.ai_generated
                 ex.is_active = row.is_active
                 ex.view_count = row.view_count
                 ex.created_at = row.created_at
@@ -586,6 +590,7 @@ async def get_exercises_list(request):
                     "explanation": ex.explanation,
                     "hint": ex.hint,
                     "tags": safe_parse_json(ex.tags, []),
+                    "ai_generated": getattr(ex, 'ai_generated', False),
                     "is_active": ex.is_active,
                     "view_count": ex.view_count
                 } for ex in exercises_objs
