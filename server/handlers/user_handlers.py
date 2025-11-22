@@ -98,14 +98,15 @@ async def get_user_stats(request):
                     cutoff_date = None
                 
                 # Récupérer les tentatives d'exercices récentes
+                # IMPORTANT: Appliquer tous les filter() AVANT limit() et order_by()
                 exercise_attempts_query = db.query(Attempt).filter(
                     Attempt.user_id == user_id
-                ).order_by(Attempt.created_at.desc()).limit(5)
+                )
                 
                 if cutoff_date:
                     exercise_attempts_query = exercise_attempts_query.filter(Attempt.created_at >= cutoff_date)
                 
-                exercise_attempts = exercise_attempts_query.all()
+                exercise_attempts = exercise_attempts_query.order_by(Attempt.created_at.desc()).limit(5).all()
                 
                 for attempt in exercise_attempts:
                     recent_activity.append({
@@ -116,14 +117,15 @@ async def get_user_stats(request):
                     })
                 
                 # Récupérer les tentatives de challenges récentes
+                # IMPORTANT: Appliquer tous les filter() AVANT limit() et order_by()
                 challenge_attempts_query = db.query(LogicChallengeAttempt).filter(
                     LogicChallengeAttempt.user_id == user_id
-                ).order_by(LogicChallengeAttempt.created_at.desc()).limit(5)
+                )
                 
                 if cutoff_date:
                     challenge_attempts_query = challenge_attempts_query.filter(LogicChallengeAttempt.created_at >= cutoff_date)
                 
-                challenge_attempts = challenge_attempts_query.all()
+                challenge_attempts = challenge_attempts_query.order_by(LogicChallengeAttempt.created_at.desc()).limit(5).all()
                 
                 for attempt in challenge_attempts:
                     recent_activity.append({
