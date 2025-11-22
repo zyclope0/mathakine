@@ -170,6 +170,26 @@ async def get_exercise(request):
                         return default if default is not None else []
                 return value
             
+            def safe_get_enum_value(enum_obj, default="UNKNOWN"):
+                """Récupère la valeur d'un enum en gérant les erreurs de conversion"""
+                try:
+                    if enum_obj is None:
+                        return default
+                    # Si c'est déjà un enum Python, retourner sa valeur
+                    if hasattr(enum_obj, 'value'):
+                        return enum_obj.value
+                    # Si c'est une string, la retourner telle quelle (déjà normalisée)
+                    if isinstance(enum_obj, str):
+                        return enum_obj.upper()  # S'assurer que c'est en majuscule
+                    # Sinon, convertir en string et mettre en majuscule
+                    return str(enum_obj).upper()
+                except (AttributeError, ValueError, LookupError) as e:
+                    logger.warning(f"Erreur lors de la récupération de la valeur enum: {e}, valeur brute: {enum_obj}")
+                    # En cas d'erreur, essayer de récupérer la valeur brute et la normaliser
+                    if isinstance(enum_obj, str):
+                        return enum_obj.upper()
+                    return default
+            
             exercise_obj = db.query(Exercise).filter(Exercise.id == exercise_id).first()
             if not exercise_obj:
                 return ErrorHandler.create_not_found_error(f"Exercice {exercise_id} non trouvé")
@@ -177,8 +197,8 @@ async def get_exercise(request):
             exercise = {
                 "id": exercise_obj.id,
                 "title": exercise_obj.title,
-                "exercise_type": exercise_obj.exercise_type.value,
-                "difficulty": exercise_obj.difficulty.value,
+                "exercise_type": safe_get_enum_value(exercise_obj.exercise_type, "ADDITION"),
+                "difficulty": safe_get_enum_value(exercise_obj.difficulty, "PADAWAN"),
                 "question": exercise_obj.question,
                 "correct_answer": exercise_obj.correct_answer,
                 "choices": safe_parse_json(exercise_obj.choices, []),
