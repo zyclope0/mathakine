@@ -42,12 +42,13 @@ def create_test_challenges():
         user = db.query(User).first()
         if not user:
             logger.warning("Aucun utilisateur trouvé. Création d'un utilisateur de test...")
-            from passlib.context import CryptContext
-            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+            import bcrypt
+            salt = bcrypt.gensalt()
+            hashed_password = bcrypt.hashpw("test123".encode('utf-8'), salt).decode('utf-8')
             user = User(
                 username="test_creator",
                 email="test@example.com",
-                hashed_password=pwd_context.hash("test123"),
+                hashed_password=hashed_password,
                 role="padawan",
                 is_active=True,
                 created_at=datetime.now(timezone.utc),
