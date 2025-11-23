@@ -102,6 +102,11 @@ class LogicChallengeService:
             challenge_data["age_group"] = adapt_enum_for_db("AgeGroup", age_group, db)
             logger.debug(f"Groupe d'âge adapté: de '{age_group}' à '{challenge_data['age_group']}'")
         
+        # Définir explicitement created_at si non présent pour éviter les valeurs NULL
+        from datetime import datetime, timezone
+        if "created_at" not in challenge_data or challenge_data.get("created_at") is None:
+            challenge_data["created_at"] = datetime.now(timezone.utc)
+        
         return DatabaseAdapter.create(db, LogicChallenge, challenge_data)
     
     @staticmethod

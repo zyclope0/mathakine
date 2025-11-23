@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt, LogicChallengeType, AgeGroup
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from loguru import logger
 
 
@@ -52,6 +52,8 @@ def create_challenge(
     Returns:
         LogicChallenge créé
     """
+    # Définir explicitement created_at pour éviter les valeurs NULL
+    now = datetime.now(timezone.utc)
     challenge = LogicChallenge(
         title=title,
         description=description,
@@ -67,6 +69,7 @@ def create_challenge(
         tags=tags,
         creator_id=creator_id,
         is_active=True,
+        created_at=now,  # Définir explicitement la date de création
     )
     
     db.add(challenge)
