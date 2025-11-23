@@ -327,7 +327,7 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                 expected_answer = analyze_pattern(grid, row_idx, col_idx)
                 
                 if expected_answer:
-                    logger.info(f"Correction automatique: correct_answer changé de '{corrected.get('correct_answer')}' à '{expected_answer}'")
+                    logger.info(f"Correction automatique PATTERN: correct_answer changé de '{corrected.get('correct_answer')}' à '{expected_answer}'")
                     corrected['correct_answer'] = expected_answer
                     
                     # Mettre à jour l'explication si elle est contradictoire
@@ -336,6 +336,27 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                         corrected['solution_explanation'] = (
                             f"En analysant le pattern dans la grille, on observe que le motif se répète. "
                             f"Le pattern suggère que la réponse est '{expected_answer}'. "
+                            f"{explanation}"
+                        )
+    
+    # Correction pour SEQUENCE
+    if challenge_type == 'SEQUENCE' and visual_data and 'sequence' in visual_data:
+        sequence = visual_data.get('sequence', [])
+        if sequence and isinstance(sequence, list) and len(sequence) >= 2:
+            expected_answer = analyze_sequence(sequence)
+            
+            if expected_answer:
+                current_answer = corrected.get('correct_answer', '')
+                if str(current_answer).strip() != str(expected_answer).strip():
+                    logger.info(f"Correction automatique SEQUENCE: correct_answer changé de '{current_answer}' à '{expected_answer}'")
+                    corrected['correct_answer'] = expected_answer
+                    
+                    # Mettre à jour l'explication si elle est contradictoire
+                    explanation = corrected.get('solution_explanation', '')
+                    if expected_answer not in explanation:
+                        corrected['solution_explanation'] = (
+                            f"En analysant la séquence {sequence}, on observe une progression arithmétique. "
+                            f"Le prochain élément de la séquence est '{expected_answer}'. "
                             f"{explanation}"
                         )
     
