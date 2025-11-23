@@ -875,7 +875,8 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                             )
                             
                             # Vérifier que le challenge a été créé avec succès
-                            if created_challenge and created_challenge.get('title'):
+                            # created_challenge est un objet LogicChallenge, pas un dictionnaire
+                            if created_challenge and hasattr(created_challenge, 'title') and created_challenge.title:
                                 # Track token usage
                                 from app.utils.token_tracker import token_tracker
                                 usage_stats = token_tracker.track_usage(
