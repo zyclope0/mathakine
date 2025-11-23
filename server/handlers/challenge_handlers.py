@@ -856,6 +856,7 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                         db = EnhancedServerAdapter.get_db_session()
                         try:
                             # NOTE: challenge_service_translations archivé - utiliser challenge_service.create_challenge
+                            # La fonction create_challenge() n'accepte pas le paramètre locale
                             created_challenge = challenge_service.create_challenge(
                                 db=db,
                                 title=normalized_challenge['title'],
@@ -870,8 +871,7 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                                 difficulty_rating=normalized_challenge.get('difficulty_rating', 3.0),
                                 estimated_time_minutes=normalized_challenge.get('estimated_time_minutes', 10),
                                 tags=normalized_challenge.get('tags', 'ai,generated'),
-                                creator_id=current_user.get('id'),
-                                locale=locale
+                                creator_id=current_user.get('id')
                             )
                             
                             # Vérifier que le challenge a été créé avec succès
