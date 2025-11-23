@@ -57,8 +57,9 @@ jobs:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mathakine_test
         SECRET_KEY: test-secret-key-for-ci-cd-pipeline
         TESTING: true
+        PYTHONPATH: ${{ github.workspace }}
       run: |
-        pytest tests/ -v \
+        python -m pytest tests/ -v \
           --cov=app \
           --cov=server \
           --cov-report=xml \
