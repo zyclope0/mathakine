@@ -140,7 +140,12 @@ def list_challenges(
         query = query.filter(LogicChallenge.tags.contains(tags))
     
     # Trier par date de création (plus récent d'abord)
-    query = query.order_by(LogicChallenge.created_at.desc())
+    # Si created_at est NULL, utiliser l'ID comme critère secondaire (plus l'ID est élevé, plus récent)
+    from sqlalchemy import case
+    query = query.order_by(
+        LogicChallenge.created_at.desc().nullslast(),
+        LogicChallenge.id.desc()  # Critère secondaire : ID décroissant
+    )
     
     return query.offset(offset).limit(limit).all()
 
