@@ -349,8 +349,6 @@ async def submit_answer(request):
                 }
             else:
                 attempt = None
-        finally:
-            EnhancedServerAdapter.close_db_session(db_attempt)
             
             if not attempt:
                 logger.error("ERREUR: La tentative n'a pas été enregistrée correctement")
@@ -425,6 +423,8 @@ async def submit_answer(request):
                 "error_type": error_type,
                 "error_message": error_msg
             }, status_code=500)
+        finally:
+            EnhancedServerAdapter.close_db_session(db_attempt)
 
     except Exception as response_processing_error:
         logger.error(f"❌ ERREUR lors du traitement de la réponse: {type(response_processing_error).__name__}: {str(response_processing_error)}")
