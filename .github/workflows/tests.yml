@@ -52,6 +52,25 @@ jobs:
         LOG_LEVEL=INFO
         EOF
     
+    - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h localhost -p 5432 -U postgres; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        echo "PostgreSQL is ready!"
+    
+    - name: Initialize database
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mathakine_test
+        PYTHONPATH: ${{ github.workspace }}
+      run: |
+        python -c "
+        from app.db.init_db import create_tables_with_test_data
+        create_tables_with_test_data()
+        print('Database initialized successfully')
+        "
+    
     - name: Run tests
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mathakine_test
