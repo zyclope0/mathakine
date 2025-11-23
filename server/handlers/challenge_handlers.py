@@ -899,8 +899,26 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                                     duration_seconds=duration
                                 )
                                 
+                                # Convertir l'objet LogicChallenge en dictionnaire pour la réponse JSON
+                                challenge_dict = {
+                                    'id': created_challenge.id,
+                                    'title': created_challenge.title,
+                                    'description': created_challenge.description,
+                                    'challenge_type': str(created_challenge.challenge_type) if hasattr(created_challenge.challenge_type, 'value') else created_challenge.challenge_type,
+                                    'age_group': str(created_challenge.age_group) if hasattr(created_challenge.age_group, 'value') else created_challenge.age_group,
+                                    'question': created_challenge.question,
+                                    'correct_answer': created_challenge.correct_answer,
+                                    'solution_explanation': created_challenge.solution_explanation,
+                                    'hints': created_challenge.hints or [],
+                                    'visual_data': created_challenge.visual_data or {},
+                                    'difficulty_rating': created_challenge.difficulty_rating,
+                                    'estimated_time_minutes': created_challenge.estimated_time_minutes,
+                                    'tags': created_challenge.tags,
+                                    'is_active': created_challenge.is_active,
+                                    'created_at': created_challenge.created_at.isoformat() if created_challenge.created_at else None
+                                }
                                 # Envoyer le challenge complet au client
-                                yield f"data: {json.dumps({'type': 'challenge', 'challenge': created_challenge})}\n\n"
+                                yield f"data: {json.dumps({'type': 'challenge', 'challenge': challenge_dict})}\n\n"
                             else:
                                 logger.error(f"Challenge créé mais invalide: {created_challenge}")
                                 # Envoyer quand même le challenge normalisé (sans sauvegarde)
