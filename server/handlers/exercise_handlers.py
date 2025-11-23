@@ -259,17 +259,35 @@ async def submit_answer(request):
         # Utiliser le service ORM ExerciseService
         db_exercise = EnhancedServerAdapter.get_db_session()
         try:
-            from app.models.exercise import Exercise
-            exercise_obj = db_exercise.query(Exercise).filter(Exercise.id == exercise_id).first()
-            if not exercise_obj:
+            from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
+            from sqlalchemy import cast, String
+            
+            # IMPORTANT: Charger les enums en tant que strings pour éviter les erreurs de conversion
+            exercise_row = db_exercise.query(
+                Exercise.id,
+                Exercise.question,
+                Exercise.correct_answer,
+                Exercise.choices,
+                Exercise.explanation,
+                cast(Exercise.exercise_type, String).label('exercise_type_str'),
+                cast(Exercise.difficulty, String).label('difficulty_str')
+            ).filter(Exercise.id == exercise_id).first()
+            
+            if not exercise_row:
                 return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
             
+            # Normaliser les valeurs enum en majuscules
+            exercise_type_normalized = exercise_row.exercise_type_str.upper() if exercise_row.exercise_type_str else "ADDITION"
+            difficulty_normalized = exercise_row.difficulty_str.upper() if exercise_row.difficulty_str else "PADAWAN"
+            
             exercise = {
-                "id": exercise_obj.id,
-                "exercise_type": exercise_obj.exercise_type,
-                "correct_answer": exercise_obj.correct_answer,
-                "choices": exercise_obj.choices,
-                "question": exercise_obj.question
+                "id": exercise_row.id,
+                "exercise_type": exercise_type_normalized,
+                "difficulty": difficulty_normalized,
+                "correct_answer": exercise_row.correct_answer,
+                "choices": exercise_row.choices,
+                "question": exercise_row.question,
+                "explanation": exercise_row.explanation
             }
         finally:
             EnhancedServerAdapter.close_db_session(db_exercise)
