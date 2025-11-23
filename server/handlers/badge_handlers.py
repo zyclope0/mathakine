@@ -90,7 +90,7 @@ async def get_available_badges(request: Request):
         db = EnhancedServerAdapter.get_db_session()
         try:
             badge_service = BadgeService(db)
-            available_badges = badge_service.get_all_badges()
+            available_badges = badge_service.get_available_badges()
         finally:
             EnhancedServerAdapter.close_db_session(db)
         
@@ -100,9 +100,9 @@ async def get_available_badges(request: Request):
         })
 
     except Exception as available_badges_error:
-        print(f"Erreur lors de la récupération des badges disponibles: {available_badges_error}")
-        traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        logger.error(f"Erreur lors de la récupération des badges disponibles: {available_badges_error}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse({"error": str(available_badges_error)}, status_code=500)
 
 async def check_user_badges(request):
     """Forcer la vérification des badges pour un utilisateur (utile pour les tests)"""
