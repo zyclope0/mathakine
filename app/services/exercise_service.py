@@ -24,6 +24,9 @@ class ExerciseService:
         """
         Récupère un exercice par son ID.
         
+        IMPORTANT: Utilise cast() pour charger les enums en tant que strings
+        pour éviter les erreurs LookupError avec les valeurs en minuscules dans la DB.
+        
         Args:
             db: Session de base de données
             exercise_id: ID de l'exercice à récupérer
@@ -31,7 +34,73 @@ class ExerciseService:
         Returns:
             L'exercice correspondant à l'ID ou None s'il n'existe pas
         """
-        return DatabaseAdapter.get_by_id(db, Exercise, exercise_id)
+        try:
+            from sqlalchemy import cast, String
+            # Charger les enums en tant que strings pour éviter les erreurs de conversion
+            exercise_row = db.query(
+                Exercise.id,
+                Exercise.title,
+                Exercise.question,
+                Exercise.correct_answer,
+                Exercise.choices,
+                Exercise.explanation,
+                Exercise.hint,
+                Exercise.tags,
+                Exercise.ai_generated,
+                Exercise.is_active,
+                Exercise.is_archived,
+                Exercise.view_count,
+                Exercise.created_at,
+                Exercise.updated_at,
+                cast(Exercise.exercise_type, String).label('exercise_type_str'),
+                cast(Exercise.difficulty, String).label('difficulty_str')
+            ).filter(Exercise.id == exercise_id).first()
+            
+            if not exercise_row:
+                return None
+            
+            # Créer un objet Exercise avec les valeurs normalisées
+            exercise = Exercise()
+            exercise.id = exercise_row.id
+            exercise.title = exercise_row.title
+            exercise.question = exercise_row.question
+            exercise.correct_answer = exercise_row.correct_answer
+            exercise.choices = exercise_row.choices
+            exercise.explanation = exercise_row.explanation
+            exercise.hint = exercise_row.hint
+            exercise.tags = exercise_row.tags
+            exercise.ai_generated = exercise_row.ai_generated
+            exercise.is_active = exercise_row.is_active
+            exercise.is_archived = exercise_row.is_archived
+            exercise.view_count = exercise_row.view_count
+            exercise.created_at = exercise_row.created_at
+            exercise.updated_at = exercise_row.updated_at
+            
+            # Convertir les strings normalisées en enums (en majuscules)
+            from app.models.exercise import ExerciseType, DifficultyLevel
+            exercise_type_normalized = exercise_row.exercise_type_str.upper() if exercise_row.exercise_type_str else "ADDITION"
+            difficulty_normalized = exercise_row.difficulty_str.upper() if exercise_row.difficulty_str else "PADAWAN"
+            
+            try:
+                exercise.exercise_type = ExerciseType(exercise_type_normalized)
+            except ValueError:
+                logger.warning(f"Type d'exercice invalide: {exercise_type_normalized}, utilisation de ADDITION par défaut")
+                exercise.exercise_type = ExerciseType.ADDITION
+            
+            try:
+                exercise.difficulty = DifficultyLevel(difficulty_normalized)
+            except ValueError:
+                logger.warning(f"Difficulté invalide: {difficulty_normalized}, utilisation de PADAWAN par défaut")
+                exercise.difficulty = DifficultyLevel.PADAWAN
+            
+            return exercise
+        except Exception as get_exercise_error:
+            logger.error(f"Erreur lors de la récupération de l'exercice {exercise_id}: {get_exercise_error}")
+            # Fallback vers la méthode originale en cas d'erreur
+            try:
+                return DatabaseAdapter.get_by_id(db, Exercise, exercise_id)
+            except Exception:
+                return None
     
     @staticmethod
     def list_exercises(
