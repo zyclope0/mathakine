@@ -319,6 +319,7 @@ async def submit_answer(request):
         logger.debug(f"Réponse correcte? {is_correct} (selected: '{selected_answer}', correct: '{correct_answer}')")
 
         # Enregistrer la tentative avec PostgreSQL direct
+        db_attempt = EnhancedServerAdapter.get_db_session()
         try:
             # Préparer les données de la tentative
             attempt_data = {
@@ -330,9 +331,26 @@ async def submit_answer(request):
             }
             
             logger.debug(f"Tentative d'enregistrement avec attempt_data: {attempt_data}")
-            # Utiliser PostgreSQL direct (db n'est plus nécessaire mais conservé pour compatibilité)
-            attempt = EnhancedServerAdapter.record_attempt(None, attempt_data)
-            logger.debug(f"Résultat de record_attempt: {attempt}")
+            # Utiliser le service ORM ExerciseService.record_attempt
+            from app.services.exercise_service import ExerciseService
+            attempt_obj = ExerciseService.record_attempt(db_attempt, attempt_data)
+            logger.debug(f"Résultat de record_attempt: {attempt_obj}")
+            
+            # Convertir l'objet Attempt en dictionnaire pour la réponse
+            if attempt_obj:
+                attempt = {
+                    "id": attempt_obj.id,
+                    "user_id": attempt_obj.user_id,
+                    "exercise_id": attempt_obj.exercise_id,
+                    "user_answer": attempt_obj.user_answer,
+                    "is_correct": attempt_obj.is_correct,
+                    "time_spent": attempt_obj.time_spent,
+                    "created_at": attempt_obj.created_at.isoformat() if attempt_obj.created_at else None
+                }
+            else:
+                attempt = None
+        finally:
+            EnhancedServerAdapter.close_db_session(db_attempt)
             
             if not attempt:
                 logger.error("ERREUR: La tentative n'a pas été enregistrée correctement")
