@@ -323,38 +323,38 @@ async def submit_challenge_answer(request: Request):
             return JSONResponse({"error": "Réponse requise"}, status_code=400)
         
         db = EnhancedServerAdapter.get_db_session()
-            try:
-                # Récupérer le défi
-                challenge = LogicChallengeService.get_challenge(db, challenge_id)
-                if not challenge:
-                    return JSONResponse({"error": "Défi logique non trouvé"}, status_code=404)
-                
-                # Vérifier la réponse
-                # Pour les puzzles, normaliser les réponses (insensible à la casse, espaces)
-                user_answer_normalized = str(user_solution).strip().lower().replace(' ', '')
-                correct_answer_normalized = str(challenge.correct_answer).strip().lower().replace(' ', '')
-                
-                # Pour les réponses de type liste (séparées par virgules), comparer les listes
-                if ',' in user_answer_normalized or ',' in correct_answer_normalized:
-                    # Normaliser les listes : trier et comparer
-                    user_list = [item.strip() for item in user_answer_normalized.split(',') if item.strip()]
-                    correct_list = [item.strip() for item in correct_answer_normalized.split(',') if item.strip()]
-                    is_correct = user_list == correct_list
-                else:
-                    # Comparaison simple pour les autres types
-                    is_correct = user_answer_normalized == correct_answer_normalized
-                
-                # NOTE: attempt_service_translations archivé - utiliser LogicChallengeAttempt ORM
-                from app.models.logic_challenge import LogicChallengeAttempt
-                
-                attempt_data = {
-                    "user_id": user_id,
-                    "challenge_id": challenge_id,
-                    "user_solution": user_solution,
-                    "is_correct": is_correct,
-                    "time_spent": time_spent,
-                    "hints_used": hints_used_count  # Utiliser le nombre d'indices, pas la liste
-                }
+        try:
+            # Récupérer le défi
+            challenge = LogicChallengeService.get_challenge(db, challenge_id)
+            if not challenge:
+                return JSONResponse({"error": "Défi logique non trouvé"}, status_code=404)
+            
+            # Vérifier la réponse
+            # Pour les puzzles, normaliser les réponses (insensible à la casse, espaces)
+            user_answer_normalized = str(user_solution).strip().lower().replace(' ', '')
+            correct_answer_normalized = str(challenge.correct_answer).strip().lower().replace(' ', '')
+            
+            # Pour les réponses de type liste (séparées par virgules), comparer les listes
+            if ',' in user_answer_normalized or ',' in correct_answer_normalized:
+                # Normaliser les listes : trier et comparer
+                user_list = [item.strip() for item in user_answer_normalized.split(',') if item.strip()]
+                correct_list = [item.strip() for item in correct_answer_normalized.split(',') if item.strip()]
+                is_correct = user_list == correct_list
+            else:
+                # Comparaison simple pour les autres types
+                is_correct = user_answer_normalized == correct_answer_normalized
+            
+            # NOTE: attempt_service_translations archivé - utiliser LogicChallengeAttempt ORM
+            from app.models.logic_challenge import LogicChallengeAttempt
+            
+            attempt_data = {
+                "user_id": user_id,
+                "challenge_id": challenge_id,
+                "user_solution": user_solution,
+                "is_correct": is_correct,
+                "time_spent": time_spent,
+                "hints_used": hints_used_count  # Utiliser le nombre d'indices, pas la liste
+            }
             
             logger.debug(f"Tentative d'enregistrement de challenge avec attempt_data: {attempt_data}")
             attempt = LogicChallengeAttempt(**attempt_data)
