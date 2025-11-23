@@ -306,46 +306,55 @@ async def submit_challenge_answer(request: Request):
         challenge_id = int(request.path_params.get('challenge_id'))
         data = await request.json()
         
-        user_solution = data.get('user_solution') or data.get('answer')
-        time_spent = data.get('time_spent')
-        hints_used = data.get('hints_used', [])
-        
-        if not user_solution:
-            return JSONResponse({"error": "Réponse requise"}, status_code=400)
-        
-        db = EnhancedServerAdapter.get_db_session()
-        try:
-            # Récupérer le défi
-            challenge = LogicChallengeService.get_challenge(db, challenge_id)
-            if not challenge:
-                return JSONResponse({"error": "Défi logique non trouvé"}, status_code=404)
+            user_solution = data.get('user_solution') or data.get('answer')
+            time_spent = data.get('time_spent')
+            hints_used_raw = data.get('hints_used', [])
             
-            # Vérifier la réponse
-            # Pour les puzzles, normaliser les réponses (insensible à la casse, espaces)
-            user_answer_normalized = str(user_solution).strip().lower().replace(' ', '')
-            correct_answer_normalized = str(challenge.correct_answer).strip().lower().replace(' ', '')
-            
-            # Pour les réponses de type liste (séparées par virgules), comparer les listes
-            if ',' in user_answer_normalized or ',' in correct_answer_normalized:
-                # Normaliser les listes : trier et comparer
-                user_list = [item.strip() for item in user_answer_normalized.split(',') if item.strip()]
-                correct_list = [item.strip() for item in correct_answer_normalized.split(',') if item.strip()]
-                is_correct = user_list == correct_list
+            # Convertir hints_used de liste à entier (nombre d'indices utilisés)
+            # Le modèle attend un Integer, pas une liste
+            if isinstance(hints_used_raw, list):
+                hints_used_count = len(hints_used_raw)
+            elif isinstance(hints_used_raw, int):
+                hints_used_count = hints_used_raw
             else:
-                # Comparaison simple pour les autres types
-                is_correct = user_answer_normalized == correct_answer_normalized
+                hints_used_count = 0
             
-            # NOTE: attempt_service_translations archivé - utiliser LogicChallengeAttempt ORM
-            from app.models.logic_challenge import LogicChallengeAttempt
+            if not user_solution:
+                return JSONResponse({"error": "Réponse requise"}, status_code=400)
             
-            attempt_data = {
-                "user_id": user_id,
-                "challenge_id": challenge_id,
-                "user_solution": user_solution,
-                "is_correct": is_correct,
-                "time_spent": time_spent,
-                "hints_used": hints_used
-            }
+            db = EnhancedServerAdapter.get_db_session()
+            try:
+                # Récupérer le défi
+                challenge = LogicChallengeService.get_challenge(db, challenge_id)
+                if not challenge:
+                    return JSONResponse({"error": "Défi logique non trouvé"}, status_code=404)
+                
+                # Vérifier la réponse
+                # Pour les puzzles, normaliser les réponses (insensible à la casse, espaces)
+                user_answer_normalized = str(user_solution).strip().lower().replace(' ', '')
+                correct_answer_normalized = str(challenge.correct_answer).strip().lower().replace(' ', '')
+                
+                # Pour les réponses de type liste (séparées par virgules), comparer les listes
+                if ',' in user_answer_normalized or ',' in correct_answer_normalized:
+                    # Normaliser les listes : trier et comparer
+                    user_list = [item.strip() for item in user_answer_normalized.split(',') if item.strip()]
+                    correct_list = [item.strip() for item in correct_answer_normalized.split(',') if item.strip()]
+                    is_correct = user_list == correct_list
+                else:
+                    # Comparaison simple pour les autres types
+                    is_correct = user_answer_normalized == correct_answer_normalized
+                
+                # NOTE: attempt_service_translations archivé - utiliser LogicChallengeAttempt ORM
+                from app.models.logic_challenge import LogicChallengeAttempt
+                
+                attempt_data = {
+                    "user_id": user_id,
+                    "challenge_id": challenge_id,
+                    "user_solution": user_solution,
+                    "is_correct": is_correct,
+                    "time_spent": time_spent,
+                    "hints_used": hints_used_count  # Utiliser le nombre d'indices, pas la liste
+                }
             
             logger.debug(f"Tentative d'enregistrement de challenge avec attempt_data: {attempt_data}")
             attempt = LogicChallengeAttempt(**attempt_data)
@@ -365,7 +374,8 @@ async def submit_challenge_answer(request: Request):
             
             if not is_correct:
                 # Ne pas révéler la bonne réponse immédiatement, mais la donner dans l'explication après plusieurs tentatives
-                response_data['hints_remaining'] = len(challenge.hints or []) - len(hints_used) if isinstance(hints_used, list) else len(challenge.hints or [])
+                hints_list = challenge.hints if isinstance(challenge.hints, list) else []
+                response_data['hints_remaining'] = len(hints_list) - hints_used_count
             
             return JSONResponse(response_data)
         finally:
@@ -374,8 +384,9 @@ async def submit_challenge_answer(request: Request):
         return JSONResponse({"error": "ID de défi invalide"}, status_code=400)
     except Exception as submission_error:
         logger.error(f"Erreur lors de la soumission de la réponse: {submission_error}")
-        traceback.print_exc()
-        return JSONResponse({"error": f"Erreur: {str(e)}"}, status_code=500)
+        import traceback
+        logger.debug(traceback.format_exc())
+        return JSONResponse({"error": f"Erreur: {str(submission_error)}"}, status_code=500)
 
 
 async def get_challenge_hint(request: Request):
