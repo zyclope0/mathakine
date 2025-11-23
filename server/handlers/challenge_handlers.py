@@ -306,23 +306,23 @@ async def submit_challenge_answer(request: Request):
         challenge_id = int(request.path_params.get('challenge_id'))
         data = await request.json()
         
-            user_solution = data.get('user_solution') or data.get('answer')
-            time_spent = data.get('time_spent')
-            hints_used_raw = data.get('hints_used', [])
-            
-            # Convertir hints_used de liste à entier (nombre d'indices utilisés)
-            # Le modèle attend un Integer, pas une liste
-            if isinstance(hints_used_raw, list):
-                hints_used_count = len(hints_used_raw)
-            elif isinstance(hints_used_raw, int):
-                hints_used_count = hints_used_raw
-            else:
-                hints_used_count = 0
-            
-            if not user_solution:
-                return JSONResponse({"error": "Réponse requise"}, status_code=400)
-            
-            db = EnhancedServerAdapter.get_db_session()
+        user_solution = data.get('user_solution') or data.get('answer')
+        time_spent = data.get('time_spent')
+        hints_used_raw = data.get('hints_used', [])
+        
+        # Convertir hints_used de liste à entier (nombre d'indices utilisés)
+        # Le modèle attend un Integer, pas une liste
+        if isinstance(hints_used_raw, list):
+            hints_used_count = len(hints_used_raw)
+        elif isinstance(hints_used_raw, int):
+            hints_used_count = hints_used_raw
+        else:
+            hints_used_count = 0
+        
+        if not user_solution:
+            return JSONResponse({"error": "Réponse requise"}, status_code=400)
+        
+        db = EnhancedServerAdapter.get_db_session()
             try:
                 # Récupérer le défi
                 challenge = LogicChallengeService.get_challenge(db, challenge_id)
