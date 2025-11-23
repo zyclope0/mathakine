@@ -275,17 +275,8 @@ class ExerciseService:
                         exercise_dict = None
                         if exercise_dict:
                             logger.info(f"Exercice {exercise_id} trouvé via PostgreSQL direct")
-                            # Créer un objet Exercise temporaire pour compatibilité avec le reste du code
-                            # On va utiliser une requête SQL directe pour récupérer l'objet SQLAlchemy
-                            exercise = session.query(Exercise).filter(Exercise.id == exercise_id).first()
-                            if not exercise:
-                                # Si toujours pas trouvé, utiliser une requête SQL brute pour forcer le refresh
-                                result = session.execute(text("SELECT * FROM exercises WHERE id = :id"), {"id": exercise_id})
-                                row = result.fetchone()
-                                if row:
-                                    # Forcer SQLAlchemy à recharger depuis la BDD
-                                    session.expire_all()
-                                    exercise = session.query(Exercise).filter(Exercise.id == exercise_id).first()
+                            # Utiliser get_exercise qui gère correctement les enums
+                            exercise = ExerciseService.get_exercise(session, exercise_id)
                     except Exception as pg_error:
                         logger.error(f"Erreur lors de la récupération PostgreSQL directe: {pg_error}")
                 
@@ -300,9 +291,9 @@ class ExerciseService:
                         exists = cursor.fetchone()
                         if exists:
                             logger.warning(f"L'exercice {exercise_id} existe en BDD mais n'est pas trouvé par SQLAlchemy ORM")
-                            # Forcer le refresh de la session SQLAlchemy
+                            # Forcer le refresh de la session SQLAlchemy et utiliser get_exercise qui gère les enums
                             session.expire_all()
-                            exercise = session.query(Exercise).filter(Exercise.id == exercise_id).first()
+                            exercise = ExerciseService.get_exercise(session, exercise_id)
                             if not exercise:
                                 logger.error(f"Impossible de charger l'exercice {exercise_id} même après refresh")
                                 return None
