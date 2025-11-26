@@ -28,6 +28,8 @@ from app.models.logic_challenge import LogicChallengeAttempt
 
 logger = logging.getLogger(__name__)
 
+# Cette classe n'est pas un test, c'est un utilitaire
+# pytest: disable=collection
 class TestDataManager:
     """
     Gestionnaire centralisé pour les données de test.

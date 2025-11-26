@@ -8,12 +8,14 @@ from app.models.exercise import ExerciseType, DifficultyLevel
 class ExerciseTypes:
     ADDITION = ExerciseType.ADDITION.value
     SUBTRACTION = ExerciseType.SOUSTRACTION.value
+    SOUSTRACTION = ExerciseType.SOUSTRACTION.value  # Alias pour compatibilité
     MULTIPLICATION = ExerciseType.MULTIPLICATION.value
     DIVISION = ExerciseType.DIVISION.value
     FRACTIONS = ExerciseType.FRACTIONS.value
     GEOMETRIE = ExerciseType.GEOMETRIE.value
     TEXTE = ExerciseType.TEXTE.value
     MIXTE = ExerciseType.MIXTE.value
+    MIXED = ExerciseType.MIXTE.value  # Alias pour compatibilité
     DIVERS = ExerciseType.DIVERS.value
     
     ALL_TYPES = [ADDITION, SUBTRACTION, MULTIPLICATION, DIVISION, FRACTIONS, GEOMETRIE, TEXTE, MIXTE, DIVERS]
@@ -50,6 +52,7 @@ class DifficultyLevels:
 
 # Rôles d'utilisateurs
 class UserRoles:
+    INITIE = "initie"  # Alias pour compatibilité (niveau utilisateur, pas rôle)
     PADAWAN = "padawan"
     CHEVALIER = "chevalier"
     MAITRE = "maitre"
@@ -189,20 +192,21 @@ CHALLENGE_TYPES_API = [
 ]
 
 # Groupes d'âge challenges
-AGE_GROUPS_DB = ['GROUP_6_8', 'GROUP_9_11', 'GROUP_10_12', 'GROUP_13_15', 'ALL_AGES']
+AGE_GROUPS_DB = ['GROUP_6_8', 'GROUP_9_11', 'GROUP_9_12', 'GROUP_10_12', 'GROUP_13_15', 'GROUP_16_18', 'ALL_AGES']
 
 AGE_GROUP_MAPPING = {
-    'age_6_8': 'GROUP_6_8', 'age_9_11': 'GROUP_9_11', 'age_10_12': 'GROUP_10_12',
-    'age_12_15': 'GROUP_13_15', 'all_ages': 'ALL_AGES',
-    '6-8': 'GROUP_6_8', '9-11': 'GROUP_9_11', '10-12': 'GROUP_10_12',
-    '12-15': 'GROUP_13_15', 'GROUP_6_8': 'GROUP_6_8', 'GROUP_9_11': 'GROUP_9_11',
-    'GROUP_10_12': 'GROUP_10_12', 'GROUP_13_15': 'GROUP_13_15', 'ALL_AGES': 'ALL_AGES',
+    'age_6_8': 'GROUP_6_8', 'age_9_11': 'GROUP_9_11', 'age_9_12': 'GROUP_9_12', 'age_10_12': 'GROUP_10_12',
+    'age_12_15': 'GROUP_13_15', 'age_13_15': 'GROUP_13_15', 'age_16_18': 'GROUP_16_18', 'all_ages': 'ALL_AGES',
+    '6-8': 'GROUP_6_8', '9-11': 'GROUP_9_11', '9-12': 'GROUP_9_12', '10-12': 'GROUP_10_12',
+    '12-15': 'GROUP_13_15', '13-15': 'GROUP_13_15', '16-18': 'GROUP_16_18',
+    'GROUP_6_8': 'GROUP_6_8', 'GROUP_9_11': 'GROUP_9_11', 'GROUP_9_12': 'GROUP_9_12',
+    'GROUP_10_12': 'GROUP_10_12', 'GROUP_13_15': 'GROUP_13_15', 'GROUP_16_18': 'GROUP_16_18', 'ALL_AGES': 'ALL_AGES',
 }
 
 # Difficultés par âge
 DIFFICULTY_BY_AGE_GROUP = {
-    'GROUP_6_8': 1.5, 'GROUP_9_11': 2.5, 'GROUP_10_12': 2.0,
-    'GROUP_13_15': 3.5, 'ALL_AGES': 3.0,
+    'GROUP_6_8': 1.5, 'GROUP_9_11': 2.5, 'GROUP_9_12': 2.0, 'GROUP_10_12': 2.0,
+    'GROUP_13_15': 3.5, 'GROUP_16_18': 4.0, 'ALL_AGES': 3.0,
 }
 
 
@@ -218,9 +222,25 @@ def normalize_age_group(age_group_raw: str):
     """Normalise un groupe d'âge vers PostgreSQL."""
     if not age_group_raw:
         return None
-    return AGE_GROUP_MAPPING.get(age_group_raw.lower().strip())
+    normalized_input = age_group_raw.strip()
+    # Essayer d'abord avec la valeur telle quelle (pour les valeurs déjà normalisées)
+    result = AGE_GROUP_MAPPING.get(normalized_input)
+    if result:
+        return result
+    # Essayer en minuscules
+    result = AGE_GROUP_MAPPING.get(normalized_input.lower())
+    if result:
+        return result
+    # Essayer en majuscules
+    result = AGE_GROUP_MAPPING.get(normalized_input.upper())
+    if result:
+        return result
+    # Si la valeur est déjà dans AGE_GROUPS_DB, la retourner telle quelle
+    if normalized_input.upper() in AGE_GROUPS_DB:
+        return normalized_input.upper()
+    return None
 
 
 def calculate_difficulty_for_age_group(age_group: str) -> float:
     """Calcule difficulté recommandée selon âge."""
-    return DIFFICULTY_BY_AGE_GROUP.get(age_group, 3.0)
+    return DIFFICULTY_BY_AGE_GROUP.get(age_group, 2.5)

@@ -42,8 +42,8 @@ def get_logic_challenges(
     db: Session = Depends(get_db_session),
     skip: int = Query(0, description="Nombre d'éléments à sauter (pagination)"),
     limit: int = Query(100, description="Nombre maximum d'éléments à retourner"),
-    challenge_type: Optional[LogicChallengeType] = Query(None, description="Filtrer par type de défi logique"),
-    age_group: Optional[AgeGroup] = Query(None, description="Filtrer par groupe d'âge"),
+    challenge_type: Optional[str] = Query(None, description="Filtrer par type de défi logique"),
+    age_group: Optional[str] = Query(None, description="Filtrer par groupe d'âge"),
     active_only: bool = Query(True, description="Ne retourner que les défis actifs")
 ) -> Any:
     """
@@ -51,27 +51,37 @@ def get_logic_challenges(
     
     - **skip**: Nombre d'éléments à sauter (pour pagination)
     - **limit**: Nombre maximum d'éléments à retourner
-    - **challenge_type**: Filtre par type de défi (séquence, motif, etc.)
-    - **age_group**: Filtre par groupe d'âge cible
+    - **challenge_type**: Filtre par type de défi (séquence, motif, etc.) - accepte majuscules/minuscules
+    - **age_group**: Filtre par groupe d'âge cible - accepte majuscules/minuscules
     - **active_only**: Ne retourner que les défis actifs (non archivés)
     
     Retourne une liste de défis logiques correspondant aux critères.
     """
-    # Adapter les valeurs d'enum pour le moteur de base de données actuel
+    # Normaliser les valeurs d'enum (convertir majuscules en minuscules)
     adapted_challenge_type = None
     adapted_age_group = None
     
     if challenge_type:
-        if isinstance(challenge_type, str):
-            adapted_challenge_type = adapt_enum_for_db("LogicChallengeType", challenge_type, db)
-        else:
-            adapted_challenge_type = adapt_enum_for_db("LogicChallengeType", challenge_type.value, db)
+        # Normaliser en minuscules pour correspondre aux valeurs de l'enum
+        challenge_type_normalized = challenge_type.lower()
+        # Vérifier si c'est une valeur valide de l'enum
+        try:
+            enum_value = LogicChallengeType(challenge_type_normalized)
+            adapted_challenge_type = adapt_enum_for_db("LogicChallengeType", enum_value.value, db)
+        except ValueError:
+            # Si la valeur n'est pas valide, essayer avec adapt_enum_for_db qui peut gérer plus de cas
+            adapted_challenge_type = adapt_enum_for_db("LogicChallengeType", challenge_type_normalized, db)
     
     if age_group:
-        if isinstance(age_group, str):
-            adapted_age_group = adapt_enum_for_db("AgeGroup", age_group, db)
-        else:
-            adapted_age_group = adapt_enum_for_db("AgeGroup", age_group.value, db)
+        # Normaliser en minuscules pour correspondre aux valeurs de l'enum
+        age_group_normalized = age_group.lower()
+        # Vérifier si c'est une valeur valide de l'enum
+        try:
+            enum_value = AgeGroup(age_group_normalized)
+            adapted_age_group = adapt_enum_for_db("AgeGroup", enum_value.value, db)
+        except ValueError:
+            # Si la valeur n'est pas valide, essayer avec adapt_enum_for_db qui peut gérer plus de cas
+            adapted_age_group = adapt_enum_for_db("AgeGroup", age_group_normalized, db)
     
     # Utiliser le service de défi logique avec les valeurs adaptées
     challenges = LogicChallengeService.list_challenges(

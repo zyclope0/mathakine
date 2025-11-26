@@ -56,7 +56,7 @@ class TransactionManager:
                 savepoint.rollback()
             # Également rollback de la transaction principale
             db_session.rollback()
-            logger.error(f"{log_prefix}: Transaction annulée (rollback) suite à l'erreur: {e}")
+            logger.error(f"{log_prefix}: Transaction annulée (rollback) suite à l'erreur: {savepoint_error}")
             raise
     
     @staticmethod
@@ -98,6 +98,20 @@ class TransactionManager:
             bool: True si la suppression a réussi, False sinon
         """
         try:
+            # Vérifier que l'objet est attaché à la session
+            obj_id = getattr(obj, 'id', None)
+            if obj not in db_session:
+                # Essayer de récupérer l'objet depuis la session
+                if obj_id:
+                    obj_from_db = db_session.query(obj.__class__).filter(obj.__class__.id == obj_id).first()
+                    if not obj_from_db:
+                        logger.error(f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données")
+                        return False
+                    obj = obj_from_db
+                else:
+                    logger.error(f"{log_prefix}: L'objet {obj.__class__.__name__} n'a pas d'attribut id")
+                    return False
+            
             # Supprimer directement l'objet
             db_session.delete(obj)
             logger.debug(f"{log_prefix}: Objet {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}) marqué pour suppression")
@@ -114,6 +128,7 @@ class TransactionManager:
                     
                     # Alternative: tenter une suppression sans cascade si la première méthode échoue
                     try:
+                        from sqlalchemy import text
                         # Suppression directe par ID pour éviter de charger les relations
                         stmt = f"DELETE FROM {obj.__tablename__} WHERE id = :id"
                         db_session.execute(text(stmt), {"id": obj.id})
@@ -149,6 +164,20 @@ class TransactionManager:
             if not hasattr(obj, 'is_archived'):
                 logger.error(f"{log_prefix}: L'objet {obj.__class__.__name__} n'a pas d'attribut is_archived")
                 return False
+            
+            # Vérifier que l'objet est attaché à la session
+            obj_id = getattr(obj, 'id', None)
+            if obj not in db_session:
+                # Essayer de récupérer l'objet depuis la session
+                if obj_id:
+                    obj_from_db = db_session.query(obj.__class__).filter(obj.__class__.id == obj_id).first()
+                    if not obj_from_db:
+                        logger.error(f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données")
+                        return False
+                    obj = obj_from_db
+                else:
+                    # Si pas d'ID, merger l'objet
+                    obj = db_session.merge(obj)
                 
             obj.is_archived = True
             logger.debug(f"{log_prefix}: Objet {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}) marqué comme archivé")

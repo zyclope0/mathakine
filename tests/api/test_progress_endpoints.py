@@ -22,11 +22,26 @@ def test_get_user_progress(padawan_client, db_session, mock_exercise):
     # Créer un exercice pour le progrès
     exercise_data = mock_exercise()
     
+    # Normaliser les valeurs d'enum en majuscules pour PostgreSQL et utiliser les enums Python
+    exercise_type_str = exercise_data["exercise_type"].upper() if isinstance(exercise_data["exercise_type"], str) else exercise_data["exercise_type"]
+    difficulty_str = exercise_data["difficulty"].upper() if isinstance(exercise_data["difficulty"], str) else exercise_data["difficulty"]
+    
+    # Convertir les strings en enums Python
+    try:
+        exercise_type_enum = ExerciseType(exercise_type_str)
+    except ValueError:
+        exercise_type_enum = ExerciseType.ADDITION
+    
+    try:
+        difficulty_enum = DifficultyLevel(difficulty_str)
+    except ValueError:
+        difficulty_enum = DifficultyLevel.INITIE
+    
     # Convertir en instance d'Exercise pour l'ajouter à la base
     exercise = Exercise(
         title=exercise_data["title"],
-        exercise_type=exercise_data["exercise_type"],
-        difficulty=exercise_data["difficulty"],
+        exercise_type=exercise_type_enum,
+        difficulty=difficulty_enum,
         question=exercise_data["question"],
         correct_answer=exercise_data["correct_answer"],
         choices=exercise_data.get("choices"),
@@ -43,7 +58,7 @@ def test_get_user_progress(padawan_client, db_session, mock_exercise):
     progress = Progress(
         user_id=user_id,
         exercise_type=exercise.exercise_type.value,
-        difficulty=exercise.difficulty,
+        difficulty=exercise.difficulty.value if hasattr(exercise.difficulty, 'value') else str(exercise.difficulty).upper(),
         total_attempts=5,
         correct_attempts=4,
         mastery_level=3  # 3 correspond au niveau Padawan
@@ -79,11 +94,26 @@ def test_get_user_progress_by_type(padawan_client, db_session, mock_exercise):
     # Créer un exercice pour le progrès
     exercise_data = mock_exercise(exercise_type="addition")
     
+    # Normaliser les valeurs d'enum en majuscules pour PostgreSQL et utiliser les enums Python
+    exercise_type_str = exercise_data["exercise_type"].upper() if isinstance(exercise_data["exercise_type"], str) else exercise_data["exercise_type"]
+    difficulty_str = exercise_data["difficulty"].upper() if isinstance(exercise_data["difficulty"], str) else exercise_data["difficulty"]
+    
+    # Convertir les strings en enums Python
+    try:
+        exercise_type_enum = ExerciseType(exercise_type_str)
+    except ValueError:
+        exercise_type_enum = ExerciseType.ADDITION
+    
+    try:
+        difficulty_enum = DifficultyLevel(difficulty_str)
+    except ValueError:
+        difficulty_enum = DifficultyLevel.INITIE
+    
     # Convertir en instance d'Exercise pour l'ajouter à la base
     exercise = Exercise(
         title=exercise_data["title"],
-        exercise_type=exercise_data["exercise_type"],
-        difficulty=exercise_data["difficulty"],
+        exercise_type=exercise_type_enum,
+        difficulty=difficulty_enum,
         question=exercise_data["question"],
         correct_answer=exercise_data["correct_answer"],
         choices=exercise_data.get("choices"),
@@ -100,7 +130,7 @@ def test_get_user_progress_by_type(padawan_client, db_session, mock_exercise):
     progress = Progress(
         user_id=user_id,
         exercise_type=exercise.exercise_type.value,
-        difficulty=exercise.difficulty, 
+        difficulty=exercise.difficulty.value if hasattr(exercise.difficulty, 'value') else str(exercise.difficulty).upper(), 
         total_attempts=5,
         correct_attempts=4,
         mastery_level=3  # 3 correspond au niveau Padawan
@@ -149,11 +179,26 @@ def test_register_exercise_attempt(padawan_client, db_session, mock_exercise):
     # Créer un exercice pour la tentative
     exercise_data = mock_exercise()
     
+    # Normaliser les valeurs d'enum en majuscules pour PostgreSQL et utiliser les enums Python
+    exercise_type_str = exercise_data["exercise_type"].upper() if isinstance(exercise_data["exercise_type"], str) else exercise_data["exercise_type"]
+    difficulty_str = exercise_data["difficulty"].upper() if isinstance(exercise_data["difficulty"], str) else exercise_data["difficulty"]
+    
+    # Convertir les strings en enums Python
+    try:
+        exercise_type_enum = ExerciseType(exercise_type_str)
+    except ValueError:
+        exercise_type_enum = ExerciseType.ADDITION
+    
+    try:
+        difficulty_enum = DifficultyLevel(difficulty_str)
+    except ValueError:
+        difficulty_enum = DifficultyLevel.INITIE
+    
     # Convertir en instance d'Exercise pour l'ajouter à la base
     exercise = Exercise(
         title=exercise_data["title"],
-        exercise_type=exercise_data["exercise_type"],
-        difficulty=exercise_data["difficulty"],
+        exercise_type=exercise_type_enum,
+        difficulty=difficulty_enum,
         question=exercise_data["question"],
         correct_answer=exercise_data["correct_answer"],
         choices=exercise_data.get("choices"),
@@ -230,11 +275,26 @@ def test_register_exercise_attempt_incorrect(padawan_client, db_session, mock_ex
     # Créer un exercice pour la tentative
     exercise_data = mock_exercise()
     
+    # Normaliser les valeurs d'enum en majuscules pour PostgreSQL et utiliser les enums Python
+    exercise_type_str = exercise_data["exercise_type"].upper() if isinstance(exercise_data["exercise_type"], str) else exercise_data["exercise_type"]
+    difficulty_str = exercise_data["difficulty"].upper() if isinstance(exercise_data["difficulty"], str) else exercise_data["difficulty"]
+    
+    # Convertir les strings en enums Python
+    try:
+        exercise_type_enum = ExerciseType(exercise_type_str)
+    except ValueError:
+        exercise_type_enum = ExerciseType.ADDITION
+    
+    try:
+        difficulty_enum = DifficultyLevel(difficulty_str)
+    except ValueError:
+        difficulty_enum = DifficultyLevel.INITIE
+    
     # Convertir en instance d'Exercise pour l'ajouter à la base
     exercise = Exercise(
         title=exercise_data["title"],
-        exercise_type=exercise_data["exercise_type"],
-        difficulty=exercise_data["difficulty"],
+        exercise_type=exercise_type_enum,
+        difficulty=difficulty_enum,
         question=exercise_data["question"],
         correct_answer=exercise_data["correct_answer"],
         choices=exercise_data.get("choices"),
@@ -286,11 +346,26 @@ def test_get_user_statistics(padawan_client, db_session, mock_exercise):
     # Créer un exercice et enregistrer des tentatives
     exercise_data = mock_exercise()
     
+    # Normaliser les valeurs d'enum en majuscules pour PostgreSQL et utiliser les enums Python
+    exercise_type_str = exercise_data["exercise_type"].upper() if isinstance(exercise_data["exercise_type"], str) else exercise_data["exercise_type"]
+    difficulty_str = exercise_data["difficulty"].upper() if isinstance(exercise_data["difficulty"], str) else exercise_data["difficulty"]
+    
+    # Convertir les strings en enums Python
+    try:
+        exercise_type_enum = ExerciseType(exercise_type_str)
+    except ValueError:
+        exercise_type_enum = ExerciseType.ADDITION
+    
+    try:
+        difficulty_enum = DifficultyLevel(difficulty_str)
+    except ValueError:
+        difficulty_enum = DifficultyLevel.INITIE
+    
     # Convertir en instance d'Exercise pour l'ajouter à la base
     exercise = Exercise(
         title=exercise_data["title"],
-        exercise_type=exercise_data["exercise_type"],
-        difficulty=exercise_data["difficulty"],
+        exercise_type=exercise_type_enum,
+        difficulty=difficulty_enum,
         question=exercise_data["question"],
         correct_answer=exercise_data["correct_answer"],
         choices=exercise_data.get("choices"),

@@ -911,7 +911,7 @@ def create_challenge(db: Session, data: ChallengeCreate) -> LogicChallenge:
         # Création
         challenge = LogicChallenge(**data.model_dump())
         db.add(challenge)
-        db.commit()
+    db.commit()
         db.refresh(challenge)
         
         return challenge

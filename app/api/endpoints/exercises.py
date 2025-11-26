@@ -112,8 +112,9 @@ def get_exercises(
 def get_exercise_types() -> Any:
     """
     Récupérer tous les types d'exercices disponibles.
+    Retourne les valeurs en minuscules pour compatibilité avec le frontend.
     """
-    return [t.value for t in ExerciseType]
+    return [t.value.lower() for t in ExerciseType]
 
 
 @router.get("/difficulties", response_model=List[str])
@@ -122,8 +123,9 @@ def get_exercise_types() -> Any:
 def get_difficulty_levels() -> Any:
     """
     Récupérer tous les niveaux de difficulté disponibles.
+    Retourne les valeurs en minuscules pour compatibilité avec le frontend.
     """
-    return [d.value for d in DifficultyLevel]
+    return [d.value.lower() for d in DifficultyLevel]
 
 
 @router.post("/", response_model=Exercise)
@@ -140,11 +142,35 @@ def create_exercise(
     """
     # Créer un nouvel exercice dans la base de données
     try:
-        # Créer l'objet modèle
+        # Normaliser les valeurs d'enum en majuscules pour PostgreSQL
+        from app.core.constants import ExerciseTypes, DifficultyLevels
+        from app.models.exercise import ExerciseType, DifficultyLevel
+        
+        # Normaliser exercise_type
+        exercise_type_normalized = exercise_in.exercise_type.upper() if isinstance(exercise_in.exercise_type, str) else exercise_in.exercise_type
+        # Vérifier si c'est une valeur valide
+        try:
+            enum_value = ExerciseType(exercise_type_normalized)
+            exercise_type_final = enum_value.value
+        except ValueError:
+            # Si la valeur n'est pas valide, utiliser ADDITION par défaut
+            exercise_type_final = ExerciseType.ADDITION.value
+        
+        # Normaliser difficulty
+        difficulty_normalized = exercise_in.difficulty.upper() if isinstance(exercise_in.difficulty, str) else exercise_in.difficulty
+        # Vérifier si c'est une valeur valide
+        try:
+            enum_value = DifficultyLevel(difficulty_normalized)
+            difficulty_final = enum_value.value
+        except ValueError:
+            # Si la valeur n'est pas valide, utiliser INITIE par défaut
+            difficulty_final = DifficultyLevel.INITIE.value
+        
+        # Créer l'objet modèle avec les valeurs normalisées
         new_exercise = ExerciseModel(
             title=exercise_in.title,
-            exercise_type=exercise_in.exercise_type,
-            difficulty=exercise_in.difficulty,
+            exercise_type=exercise_type_final,
+            difficulty=difficulty_final,
             question=exercise_in.question,
             correct_answer=exercise_in.correct_answer,
             choices=exercise_in.choices,
@@ -197,7 +223,7 @@ def create_exercise(
         logger.error(f"Erreur lors de la création de l'exercice: {str(exercise_creation_error)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors de la création de l'exercice: {str(e)}"
+            detail=f"Erreur lors de la création de l'exercice: {str(exercise_creation_error)}"
         )
 
 
@@ -1146,9 +1172,11 @@ def attempt_exercise(
     db.commit()
     
     # Mettre à jour les progrès de l'utilisateur
+    # Normaliser exercise_type en string (majuscules pour PostgreSQL)
+    exercise_type_str = exercise.exercise_type.value if hasattr(exercise.exercise_type, 'value') else str(exercise.exercise_type).upper()
     progress = db.query(Progress).filter(
         Progress.user_id == current_user.id,
-        Progress.exercise_type == exercise.exercise_type
+        Progress.exercise_type == exercise_type_str
     ).first()
     
     if progress:
@@ -1176,10 +1204,12 @@ def attempt_exercise(
         
     else:
         # Créer un nouveau progrès
+        # Normaliser difficulty en string (majuscules pour PostgreSQL)
+        difficulty_str = exercise.difficulty.value if hasattr(exercise.difficulty, 'value') else str(exercise.difficulty).upper()
         new_progress = Progress(
             user_id=current_user.id,
-            exercise_type=exercise.exercise_type,
-            difficulty=exercise.difficulty,
+            exercise_type=exercise_type_str,
+            difficulty=difficulty_str,
             total_attempts=1,
             correct_attempts=1 if is_correct else 0,
             average_time=time_spent,
@@ -1195,13 +1225,19 @@ def attempt_exercise(
     if not is_correct and exercise.explanation:
         feedback += f" {exercise.explanation}"
     
+    # Récupérer le progrès final pour le mastery_progress
+    final_progress = db.query(Progress).filter(
+        Progress.user_id == current_user.id,
+        Progress.exercise_type == exercise_type_str
+    ).first()
+    
     # Retourner la réponse
     return {
         "is_correct": is_correct,
         "correct_answer": exercise.correct_answer if not is_correct else None,
         "feedback": feedback,
         "time_spent": time_spent,
-        "mastery_progress": progress.mastery_level if progress else (1 if is_correct else 0)
+        "mastery_progress": final_progress.mastery_level if final_progress else (1 if is_correct else 0)
     }
 
 

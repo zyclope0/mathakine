@@ -127,6 +127,20 @@ class DatabaseAdapter:
         """
         with TransactionManager.transaction(db) as session:
             try:
+                # S'assurer que l'objet est attaché à la session
+                if obj not in session:
+                    # Récupérer l'objet depuis la session si possible
+                    obj_id = getattr(obj, 'id', None)
+                    if obj_id:
+                        obj = session.query(obj.__class__).filter(obj.__class__.id == obj_id).first()
+                        if not obj:
+                            logger.error(f"Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la session")
+                            return False
+                    else:
+                        # Si pas d'ID, merger l'objet
+                        obj = session.merge(obj)
+                
+                # Mettre à jour les attributs
                 for key, value in data.items():
                     if hasattr(obj, key):
                         setattr(obj, key, value)

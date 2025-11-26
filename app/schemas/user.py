@@ -38,11 +38,11 @@ class UserBase(BaseModel):
 
     @field_validator('preferred_theme')
     @classmethod
-
-
     def theme_valid(cls, v):
-        if v not in ['light', 'dark']:
-            raise ValueError("Le thème doit être 'light' (Côté Lumineux) ou 'dark' (Côté Obscur)")
+        # Accepter les thèmes UI (light/dark) et les thèmes visuels (spatial, minimalist, ocean, neutral)
+        valid_themes = ['light', 'dark', 'spatial', 'minimalist', 'ocean', 'neutral']
+        if v is not None and v not in valid_themes:
+            raise ValueError(f"Le thème doit être l'un des suivants: {', '.join(valid_themes)}")
         return v
 
 

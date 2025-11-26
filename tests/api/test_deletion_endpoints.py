@@ -19,37 +19,61 @@ client = TestClient(app)
 
 @pytest.fixture
 def db():
-    """Fixture pour créer une session de base de données pour les tests"""
+    """Fixture pour créer une session de base de données pour les tests avec nettoyage robuste"""
     Base.metadata.create_all(bind=engine)
-    connection = engine.connect()
-    transaction = connection.begin()
+    connection = None
+    transaction = None
+    session = None
     
-    # Configure l'application pour utiliser la connexion de test
-    def override_get_db():
-        try:
-            session = Session(autocommit=False, autoflush=False, bind=connection)
-            yield session
-        finally:
-            session.close()
-    
-    # Override la dépendance
-    app.dependency_overrides[get_db_session] = override_get_db
-    
-    # Créer une session pour le test
-    session = Session(autocommit=False, autoflush=False, bind=connection)
-    yield session
-    
-    # Cleanup - gérer correctement la fermeture pour éviter l'avertissement
-    session.close()
     try:
-        # Vérifier si la transaction est toujours active avant de faire rollback
-        if transaction.is_active:
-            transaction.rollback()
-    except:
-        # Si une erreur se produit, on ignore car la transaction est probablement déjà dissociée
-        pass
-    connection.close()
-    app.dependency_overrides.clear()
+        connection = engine.connect()
+        transaction = connection.begin()
+        
+        # Configure l'application pour utiliser la connexion de test
+        def override_get_db():
+            try:
+                test_session = Session(autocommit=False, autoflush=False, bind=connection)
+                yield test_session
+            except Exception as session_error:
+                # Rollback en cas d'erreur
+                test_session.rollback()
+                raise
+            finally:
+                test_session.close()
+        
+        # Override la dépendance
+        app.dependency_overrides[get_db_session] = override_get_db
+        
+        # Créer une session pour le test
+        session = Session(autocommit=False, autoflush=False, bind=connection)
+        yield session
+        
+    finally:
+        # Cleanup - gérer correctement la fermeture pour éviter les fuites
+        if session:
+            try:
+                session.rollback()  # Rollback toute transaction non commitée
+            except Exception:
+                pass  # Ignorer si déjà rollback
+            finally:
+                session.close()
+        
+        if transaction:
+            try:
+                # Vérifier si la transaction est toujours active avant de faire rollback
+                if transaction.is_active:
+                    transaction.rollback()
+            except Exception:
+                pass  # Ignorer si déjà rollback ou dissociée
+        
+        if connection:
+            try:
+                connection.close()
+            except Exception:
+                pass  # Ignorer les erreurs de fermeture
+        
+        # Toujours nettoyer les overrides
+        app.dependency_overrides.clear()
 
 @pytest.fixture
 def admin_user(db):

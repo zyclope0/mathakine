@@ -120,20 +120,41 @@ def auth_client():
     except Exception as e:
         pytest.skip(f"Erreur pendant la configuration de l'authentification: {str(e)}")
 
+# Engine partagé pour tous les tests (scope session)
+_test_engine = None
+
+def get_test_engine():
+    """Obtient ou crée l'engine de test partagé."""
+    global _test_engine
+    if _test_engine is None:
+        _test_engine = create_engine(
+            settings.DATABASE_URL,
+            pool_pre_ping=True,  # Vérifie les connexions avant utilisation
+            pool_size=5,  # Nombre de connexions dans le pool
+            max_overflow=10,  # Nombre max de connexions supplémentaires
+            pool_recycle=3600,  # Recycle les connexions après 1h
+            echo=False
+        )
+    return _test_engine
+
 # Fixture pour créer une session de base de données pour les tests
 @pytest.fixture
 def db_session():
-    # Utiliser la base de données PostgreSQL définie dans .env
-    engine = create_engine(settings.DATABASE_URL)
-    
-    # Créer une session
+    """Crée une session de base de données avec nettoyage automatique."""
+    engine = get_test_engine()
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = SessionLocal()
     
     try:
         yield session
     finally:
-        session.close()
+        # Toujours fermer la session, même en cas d'erreur
+        try:
+            session.rollback()  # Rollback toute transaction non commitée
+        except Exception:
+            pass  # Ignorer les erreurs de rollback si la session est déjà fermée
+        finally:
+            session.close()  # Fermer la session
 
 # Fixture pour créer un token expiré
 @pytest.fixture
