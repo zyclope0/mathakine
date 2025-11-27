@@ -375,8 +375,8 @@ def mock_exercise():
         # Valeurs par défaut
         default_values = {
             "title": "Exercice de test",
-            "exercise_type": "addition",
-            "difficulty": "initie",
+            "exercise_type": "ADDITION",  # Normalisé en majuscules pour PostgreSQL
+            "difficulty": "INITIE",  # Normalisé en majuscules pour PostgreSQL
             "question": "Combien font 2+2?",
             "correct_answer": "4",
             "choices": ["3", "4", "5", "6"],
@@ -387,6 +387,12 @@ def mock_exercise():
         
         # Combiner les valeurs par défaut avec les valeurs personnalisées
         exercise_data = {**default_values, **kwargs}
+        
+        # Normaliser exercise_type et difficulty en majuscules si ce sont des strings
+        if "exercise_type" in exercise_data and isinstance(exercise_data["exercise_type"], str):
+            exercise_data["exercise_type"] = exercise_data["exercise_type"].upper()
+        if "difficulty" in exercise_data and isinstance(exercise_data["difficulty"], str):
+            exercise_data["difficulty"] = exercise_data["difficulty"].upper()
         
         return exercise_data
     

@@ -35,11 +35,12 @@ class ExerciseBase(BaseModel):
 
         # Si c'est une chaîne, vérifier qu'elle correspond à une valeur valide
         if isinstance(v, str):
-            # Convertir en minuscule pour comparaison
-            v_lower = v.lower()
-            valid_types = [t.value for t in ExerciseType]
-            if v_lower in valid_types:
-                return v_lower
+            # Convertir en majuscules pour comparaison avec les valeurs d'enum
+            v_upper = v.upper()
+            valid_types = [t.value for t in ExerciseType]  # Les valeurs sont en MAJUSCULES
+            # Vérifier si la valeur (en majuscules) correspond à une valeur valide
+            if v_upper in valid_types:
+                return v_upper
             else:
                 raise ValueError(f"Le type d'exercice '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_types)}")
 
@@ -54,11 +55,12 @@ class ExerciseBase(BaseModel):
 
         # Si c'est une chaîne, vérifier qu'elle correspond à une valeur valide
         if isinstance(v, str):
-            # Convertir en minuscule pour comparaison
-            v_lower = v.lower()
-            valid_difficulties = [d.value for d in DifficultyLevel]
-            if v_lower in valid_difficulties:
-                return v_lower
+            # Convertir en majuscules pour comparaison avec les valeurs d'enum
+            v_upper = v.upper()
+            valid_difficulties = [d.value for d in DifficultyLevel]  # Les valeurs sont en MAJUSCULES
+            # Vérifier si la valeur (en majuscules) correspond à une valeur valide
+            if v_upper in valid_difficulties:
+                return v_upper
             else:
                 raise ValueError(f"La difficulté '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_difficulties)}")
 
@@ -133,11 +135,12 @@ class ExerciseUpdate(BaseModel):
 
         # Si c'est une chaîne, vérifier qu'elle correspond à une valeur valide
         if isinstance(v, str):
-            # Convertir en minuscule pour comparaison
-            v_lower = v.lower()
-            valid_types = [t.value for t in ExerciseType]
-            if v_lower in valid_types:
-                return v_lower
+            # Convertir en majuscules pour comparaison avec les valeurs d'enum
+            v_upper = v.upper()
+            valid_types = [t.value for t in ExerciseType]  # Les valeurs sont en MAJUSCULES
+            # Vérifier si la valeur (en majuscules) correspond à une valeur valide
+            if v_upper in valid_types:
+                return v_upper
             else:
                 raise ValueError(f"Le type d'exercice '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_types)}")
 
@@ -155,11 +158,12 @@ class ExerciseUpdate(BaseModel):
 
         # Si c'est une chaîne, vérifier qu'elle correspond à une valeur valide
         if isinstance(v, str):
-            # Convertir en minuscule pour comparaison
-            v_lower = v.lower()
-            valid_difficulties = [d.value for d in DifficultyLevel]
-            if v_lower in valid_difficulties:
-                return v_lower
+            # Convertir en majuscules pour comparaison avec les valeurs d'enum
+            v_upper = v.upper()
+            valid_difficulties = [d.value for d in DifficultyLevel]  # Les valeurs sont en MAJUSCULES
+            # Vérifier si la valeur (en majuscules) correspond à une valeur valide
+            if v_upper in valid_difficulties:
+                return v_upper
             else:
                 raise ValueError(f"La difficulté '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_difficulties)}")
 

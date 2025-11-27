@@ -96,7 +96,7 @@ class RecommendationService:
                             break
                     
                     if not target_difficulty:
-                        target_difficulty = "initie"  # Par défaut
+                        target_difficulty = "INITIE"  # Par défaut
                     
                     # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
                     valid_types = [t.value for t in ExerciseType]
@@ -228,7 +228,7 @@ class RecommendationService:
                     
                     # Si aucun niveau trouvé, proposer le niveau débutant
                     if not user_level:
-                        user_level = "Initié"
+                        user_level = "INITIE"
                     
                     # Proposer un exercice pour maintenir cette compétence
                     exercises = db.query(Exercise).filter(
@@ -264,7 +264,7 @@ class RecommendationService:
                 
                 exercises = db.query(Exercise).filter(
                     Exercise.exercise_type == new_type,
-                    Exercise.difficulty == "Initié",  # Commencer par le niveau le plus simple
+                    Exercise.difficulty == "INITIE",  # Commencer par le niveau le plus simple
                     Exercise.exercise_type.in_(valid_types),
                     Exercise.difficulty.in_(valid_difficulties),
                     Exercise.is_archived == False,
@@ -382,10 +382,10 @@ class RecommendationService:
     @staticmethod
     def _get_next_difficulty(current_difficulty):
         """Retourne le niveau de difficulté suivant"""
-        # Utiliser les mêmes valeurs que les énumérations DifficultyLevel
-        difficulty_levels = ["initie", "padawan", "chevalier", "maitre"]
+        # Utiliser les mêmes valeurs que les énumérations DifficultyLevel (en majuscules)
+        difficulty_levels = ["INITIE", "PADAWAN", "CHEVALIER", "MAITRE"]
         try:
-            current_index = difficulty_levels.index(current_difficulty.lower())
+            current_index = difficulty_levels.index(current_difficulty.upper())
             if current_index < len(difficulty_levels) - 1:
                 return difficulty_levels[current_index + 1]
         except ValueError:

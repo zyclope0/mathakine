@@ -407,14 +407,24 @@ async def get_challenge_hint(request: Request):
             # Récupérer les indices
             hints = challenge.hints
             if isinstance(hints, str):
-                hints = json.loads(hints)
+                try:
+                    hints = json.loads(hints)
+                except (json.JSONDecodeError, ValueError):
+                    # Si le parsing échoue, traiter comme une liste vide
+                    hints = []
             elif hints is None:
+                hints = []
+            
+            # S'assurer que hints est une liste
+            if not isinstance(hints, list):
                 hints = []
             
             if level < 1 or level > len(hints):
                 return JSONResponse({"error": f"Indice de niveau {level} non disponible"}, status_code=400)
             
-            return JSONResponse({"hints": hints[:level]})  # Retourner tous les indices jusqu'au niveau demandé
+            # Retourner l'indice spécifique au niveau demandé (index 0-based)
+            hint_text = hints[level - 1] if level <= len(hints) else None
+            return JSONResponse({"hint": hint_text})  # Retourner l'indice spécifique au niveau
         finally:
             EnhancedServerAdapter.close_db_session(db)
     except ValueError:
@@ -422,7 +432,7 @@ async def get_challenge_hint(request: Request):
     except Exception as hint_retrieval_error:
         logger.error(f"Erreur lors de la récupération de l'indice: {hint_retrieval_error}")
         traceback.print_exc()
-        return JSONResponse({"error": f"Erreur: {str(e)}"}, status_code=500)
+        return JSONResponse({"error": f"Erreur: {str(hint_retrieval_error)}"}, status_code=500)
 
 
 async def get_completed_challenges_ids(request: Request):

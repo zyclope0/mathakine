@@ -90,8 +90,10 @@ class UserUpdate(BaseModel):
     @field_validator("preferred_theme")
     @classmethod
     def validate_theme(cls, v):
-        if v is not None and v not in ["spatial", "minimalist", "ocean", "neutral"]:
-            raise ValueError("Le thème doit être 'spatial', 'minimalist', 'ocean' ou 'neutral'")
+        # Accepter les thèmes UI (light/dark) et les thèmes visuels (spatial, minimalist, ocean, neutral)
+        valid_themes = ['light', 'dark', 'spatial', 'minimalist', 'ocean', 'neutral']
+        if v is not None and v not in valid_themes:
+            raise ValueError(f"Le thème doit être l'un des suivants: {', '.join(valid_themes)}")
         return v
     
     model_config = {
