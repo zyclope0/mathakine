@@ -44,7 +44,8 @@ jobs:
     - name: Create .env for tests
       run: |
         cat > .env << EOF
-        DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mathakine_test
+        DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_mathakine
+        TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_mathakine
         SECRET_KEY=test-secret-key-for-ci-cd-pipeline
         ALGORITHM=HS256
         ACCESS_TOKEN_EXPIRE_MINUTES=30
@@ -52,9 +53,42 @@ jobs:
         LOG_LEVEL=INFO
         EOF
     
+    - name: Create test database
+      env:
+        PYTHONPATH: ${{ github.workspace }}
+      run: |
+        python -c "
+        import psycopg2
+        from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+        
+        # Se connecter à la base de données postgres par défaut pour créer test_mathakine
+        conn = psycopg2.connect(
+            host='localhost',
+            port=5432,
+            user='postgres',
+            password='postgres',
+            database='postgres'  # Utiliser la base par défaut
+        )
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        cursor = conn.cursor()
+        
+        # Créer la base de données si elle n'existe pas
+        cursor.execute('SELECT 1 FROM pg_database WHERE datname = %s', ('test_mathakine',))
+        exists = cursor.fetchone()
+        if not exists:
+            cursor.execute('CREATE DATABASE test_mathakine')
+            print('Database test_mathakine created successfully')
+        else:
+            print('Database test_mathakine already exists')
+        
+        cursor.close()
+        conn.close()
+        "
+    
     - name: Initialize database
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mathakine_test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
+        TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
         PYTHONPATH: ${{ github.workspace }}
       run: |
         python -c "
@@ -65,7 +99,8 @@ jobs:
     
     - name: Run tests
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mathakine_test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
+        TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
         SECRET_KEY: test-secret-key-for-ci-cd-pipeline
         TESTING: true
         PYTHONPATH: ${{ github.workspace }}
