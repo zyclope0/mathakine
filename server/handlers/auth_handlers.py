@@ -235,14 +235,18 @@ async def api_login(request: Request):
             
             # Définir le cookie refresh_token (nécessaire pour le refresh automatique)
             refresh_token_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
-            if token_data.get("refresh_token"):
+            refresh_token_value = token_data.get("refresh_token")
+            if refresh_token_value:
                 response.set_cookie(
                     key="refresh_token",
-                    value=token_data.get("refresh_token"),
+                    value=refresh_token_value,
                     httponly=True,
                     max_age=refresh_token_max_age,
                     samesite="lax"
                 )
+                logger.info(f"Cookie refresh_token défini pour l'utilisateur: {user.username}")
+            else:
+                logger.error(f"ERREUR: refresh_token non créé pour l'utilisateur: {user.username}")
             
             return response
             
@@ -288,9 +292,52 @@ async def api_refresh_token(request: Request):
         if not refresh_token:
             refresh_token = request.cookies.get('refresh_token', '').strip()
         
+        # Log pour diagnostic
+        all_cookies = list(request.cookies.keys())
+        logger.debug(f"Cookies présents lors du refresh: {all_cookies}")
+        
+        if refresh_token:
+            logger.debug(f"Refresh token reçu depuis {'body' if 'refresh_token' not in request.cookies else 'cookie'} (longueur: {len(refresh_token)})")
+        else:
+            logger.warning("Aucun refresh_token trouvé dans les cookies ou le body")
+            # FALLBACK: Pour les utilisateurs existants qui n'ont pas de refresh_token,
+            # essayer d'utiliser l'access_token comme fallback temporaire
+            access_token_fallback = request.cookies.get('access_token', '').strip()
+            if access_token_fallback:
+                logger.warning("Tentative de fallback avec access_token (utilisateur existant sans refresh_token)")
+                # Essayer de décoder l'access_token pour vérifier s'il est valide
+                try:
+                    import jwt
+                    from app.core.config import settings
+                    payload = jwt.decode(
+                        access_token_fallback,
+                        settings.SECRET_KEY,
+                        algorithms=[settings.ALGORITHM],
+                        options={"verify_exp": False}  # Ne pas vérifier l'expiration pour le fallback
+                    )
+                    # Si l'access_token est valide mais expiré, créer un nouveau refresh_token
+                    username = payload.get("sub")
+                    if username:
+                        logger.info(f"Fallback: Création d'un nouveau refresh_token pour l'utilisateur existant: {username}")
+                        db_fallback = EnhancedServerAdapter.get_db_session()
+                        try:
+                            from app.services.auth_service import get_user_by_username, create_user_token
+                            user_fallback = get_user_by_username(db_fallback, username)
+                            if user_fallback:
+                                # Créer un nouveau refresh_token pour cet utilisateur
+                                new_token_data_fallback = create_user_token(user_fallback)
+                                refresh_token = new_token_data_fallback.get("refresh_token")
+                                logger.info(f"Fallback: Nouveau refresh_token créé pour {username}")
+                            else:
+                                logger.warning(f"Fallback: Utilisateur {username} non trouvé")
+                        finally:
+                            EnhancedServerAdapter.close_db_session(db_fallback)
+                except Exception as fallback_error:
+                    logger.debug(f"Fallback échoué: {fallback_error}")
+        
         if not refresh_token:
             return JSONResponse(
-                {"error": "Refresh token requis (body ou cookie)"},
+                {"error": "Refresh token requis (body ou cookie). Veuillez vous reconnecter."},
                 status_code=400
             )
         
@@ -305,14 +352,30 @@ async def api_refresh_token(request: Request):
             response = JSONResponse(new_token_data, status_code=200)
             
             # Mettre à jour le cookie access_token si présent dans la réponse
+            from app.core.config import settings
             if "access_token" in new_token_data:
+                access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
                 response.set_cookie(
                     key="access_token",
                     value=new_token_data.get("access_token"),
                     httponly=True,
-                    max_age=new_token_data.get("expires_in", 3600),
+                    max_age=access_token_max_age,
                     samesite="lax"
                 )
+            
+            # Si le refresh_token a été créé via fallback, l'ajouter au cookie
+            # Sinon, s'assurer que le refresh_token existe toujours dans les cookies
+            refresh_token_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+            if refresh_token and "refresh_token" not in request.cookies:
+                # Refresh_token créé via fallback, l'ajouter au cookie
+                response.set_cookie(
+                    key="refresh_token",
+                    value=refresh_token,
+                    httponly=True,
+                    max_age=refresh_token_max_age,
+                    samesite="lax"
+                )
+                logger.info("Cookie refresh_token créé via fallback et ajouté à la réponse")
             
             return response
             

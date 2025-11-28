@@ -200,6 +200,12 @@ def create_user_token(user: User) -> dict:
         algorithm=settings.ALGORITHM
     )
     
+    # Vérifier que le refresh_token est bien créé
+    if not refresh_token:
+        logger.error(f"ERREUR: refresh_token non créé pour l'utilisateur: {user.username}")
+    else:
+        logger.debug(f"Refresh token créé (longueur: {len(refresh_token)}) pour l'utilisateur: {user.username}")
+    
     logger.info(f"Tokens créés pour l'utilisateur: {user.username}")
     return {
         "access_token": access_token,
@@ -224,22 +230,41 @@ def refresh_access_token(db: Session, refresh_token: str) -> dict:
         RuntimeError: Si une erreur inattendue se produit
     """
     try:
+        # Log pour diagnostic
+        logger.debug(f"Tentative de décodage du refresh_token (longueur: {len(refresh_token)})")
+        
         # Décoder le token avec vérification de l'expiration
         # Si le token est expiré, jwt.ExpiredSignatureError sera levée
-        payload = jwt.decode(
-            refresh_token, 
-            settings.SECRET_KEY, 
-            algorithms=[settings.ALGORITHM],
-            options={"verify_exp": True}
-        )
+        try:
+            payload = jwt.decode(
+                refresh_token, 
+                settings.SECRET_KEY, 
+                algorithms=[settings.ALGORITHM],
+                options={"verify_exp": True}
+            )
+        except jwt.DecodeError as decode_error:
+            logger.error(f"Erreur de décodage JWT: {str(decode_error)}")
+            logger.debug(f"Token reçu (premiers 50 caractères): {refresh_token[:50] if len(refresh_token) > 50 else refresh_token}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token JWT invalide ou malformé"
+            )
+        except jwt.InvalidSignatureError as sig_error:
+            logger.error(f"Signature JWT invalide: {str(sig_error)}")
+            logger.warning("Le SECRET_KEY utilisé pour décoder ne correspond pas à celui utilisé pour encoder")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token invalide (signature incorrecte)"
+            )
         
         # Vérifier que c'est bien un token de rafraîchissement
         token_type = payload.get("type")
+        logger.debug(f"Type de token décodé: {token_type}")
         if token_type != "refresh":
-            logger.warning(f"Tentative de rafraîchissement avec un token non-refresh: {token_type}")
+            logger.warning(f"Tentative de rafraîchissement avec un token non-refresh: {token_type}. Payload: {payload}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token de rafraîchissement invalide"
+                detail=f"Token de rafraîchissement invalide (type: {token_type})"
             )
         
         # Extraire les informations utilisateur
@@ -286,8 +311,28 @@ def refresh_access_token(db: Session, refresh_token: str) -> dict:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token de rafraîchissement expiré"
         )
-    except jwt.JWTError:
-        logger.warning("Tentative de rafraîchissement avec un token JWT invalide")
+    except jwt.DecodeError as decode_err:
+        logger.error(f"Erreur de décodage JWT: {str(decode_err)}")
+        logger.debug(f"Token reçu (premiers 50 caractères): {refresh_token[:50] if len(refresh_token) > 50 else refresh_token}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token JWT invalide ou malformé"
+        )
+    except jwt.InvalidSignatureError as sig_err:
+        logger.error(f"Signature JWT invalide: {str(sig_err)}")
+        logger.warning("Le SECRET_KEY utilisé pour décoder ne correspond pas à celui utilisé pour encoder")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide (signature incorrecte)"
+        )
+    except jwt.InvalidTokenError as invalid_err:
+        logger.error(f"Token JWT invalide: {str(invalid_err)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Token invalide: {str(invalid_err)}"
+        )
+    except jwt.JWTError as jwt_err:
+        logger.warning(f"Tentative de rafraîchissement avec un token JWT invalide: {type(jwt_err).__name__}: {str(jwt_err)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token invalide"
