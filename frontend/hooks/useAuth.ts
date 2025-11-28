@@ -23,6 +23,7 @@ interface TokenResponse {
   access_token: string;
   token_type: string;
   expires_in: number;
+  refresh_token?: string; // Optionnel car peut être dans les cookies
   user: User;
 }
 
@@ -67,6 +68,15 @@ export function useAuth() {
       return response;
     },
     onSuccess: (data) => {
+      // Stocker le refresh_token si présent dans la réponse (pour cross-domain)
+      if (data.refresh_token && typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('refresh_token', data.refresh_token);
+        } catch {
+          // Ignorer les erreurs de localStorage (mode privé, etc.)
+        }
+      }
+      
       // Mettre à jour le cache directement avec les données utilisateur reçues
       // Cela évite que ProtectedRoute redirige vers /login pendant le rechargement
       queryClient.setQueryData(['auth', 'me'], data.user);
@@ -137,6 +147,14 @@ export function useAuth() {
       }
     },
     onSuccess: () => {
+      // Nettoyer le refresh_token du localStorage
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('refresh_token');
+        } catch {
+          // Ignorer les erreurs de localStorage
+        }
+      }
       toast.success(t('logoutSuccess'));
       // Nettoyer le cache
       queryClient.clear();

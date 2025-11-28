@@ -211,6 +211,7 @@ async def api_login(request: Request):
                 "access_token": token_data.get("access_token"),
                 "token_type": token_data.get("token_type", "bearer"),
                 "expires_in": access_token_max_age,
+                "refresh_token": token_data.get("refresh_token"),  # Inclure pour cross-domain support
                 "user": {
                     "id": user.id,
                     "username": user.username,
@@ -224,13 +225,25 @@ async def api_login(request: Request):
             # Créer la réponse avec le cookie
             response = JSONResponse(response_data, status_code=200)
             
+            # Déterminer la configuration des cookies selon l'environnement
+            # En production (cross-domain), utiliser SameSite=None et Secure=True
+            import os
+            is_production = (
+                os.getenv("NODE_ENV") == "production" or 
+                os.getenv("ENVIRONMENT") == "production" or
+                os.getenv("MATH_TRAINER_PROFILE") == "prod"
+            )
+            cookie_samesite = "none" if is_production else "lax"
+            cookie_secure = is_production  # Secure=True obligatoire avec SameSite=None
+            
             # Définir le cookie access_token (pour compatibilité avec l'ancien système)
             response.set_cookie(
                 key="access_token",
                 value=token_data.get("access_token"),
                 httponly=True,
                 max_age=access_token_max_age,
-                samesite="lax"
+                samesite=cookie_samesite,
+                secure=cookie_secure
             )
             
             # Définir le cookie refresh_token (nécessaire pour le refresh automatique)
@@ -242,9 +255,10 @@ async def api_login(request: Request):
                     value=refresh_token_value,
                     httponly=True,
                     max_age=refresh_token_max_age,
-                    samesite="lax"
+                    samesite=cookie_samesite,
+                    secure=cookie_secure
                 )
-                logger.info(f"Cookie refresh_token défini pour l'utilisateur: {user.username}")
+                logger.info(f"Cookie refresh_token défini pour l'utilisateur: {user.username} (SameSite={cookie_samesite}, Secure={cookie_secure})")
             else:
                 logger.error(f"ERREUR: refresh_token non créé pour l'utilisateur: {user.username}")
             
@@ -351,6 +365,17 @@ async def api_refresh_token(request: Request):
             # Créer la réponse avec le nouveau token
             response = JSONResponse(new_token_data, status_code=200)
             
+            # Déterminer la configuration des cookies selon l'environnement
+            # En production (cross-domain), utiliser SameSite=None et Secure=True
+            import os
+            is_production = (
+                os.getenv("NODE_ENV") == "production" or 
+                os.getenv("ENVIRONMENT") == "production" or
+                os.getenv("MATH_TRAINER_PROFILE") == "prod"
+            )
+            cookie_samesite = "none" if is_production else "lax"
+            cookie_secure = is_production  # Secure=True obligatoire avec SameSite=None
+            
             # Mettre à jour le cookie access_token si présent dans la réponse
             from app.core.config import settings
             if "access_token" in new_token_data:
@@ -360,7 +385,8 @@ async def api_refresh_token(request: Request):
                     value=new_token_data.get("access_token"),
                     httponly=True,
                     max_age=access_token_max_age,
-                    samesite="lax"
+                    samesite=cookie_samesite,
+                    secure=cookie_secure
                 )
             
             # Si le refresh_token a été créé via fallback, l'ajouter au cookie
@@ -373,9 +399,34 @@ async def api_refresh_token(request: Request):
                     value=refresh_token,
                     httponly=True,
                     max_age=refresh_token_max_age,
-                    samesite="lax"
+                    samesite=cookie_samesite,
+                    secure=cookie_secure
                 )
-                logger.info("Cookie refresh_token créé via fallback et ajouté à la réponse")
+                logger.info(f"Cookie refresh_token créé via fallback et ajouté à la réponse (SameSite={cookie_samesite}, Secure={cookie_secure})")
+            
+            # Toujours mettre à jour le refresh_token dans les cookies après un refresh réussi
+            # pour s'assurer qu'il reste valide
+            if "refresh_token" in new_token_data:
+                response.set_cookie(
+                    key="refresh_token",
+                    value=new_token_data.get("refresh_token"),
+                    httponly=True,
+                    max_age=refresh_token_max_age,
+                    samesite=cookie_samesite,
+                    secure=cookie_secure
+                )
+                logger.debug(f"Cookie refresh_token mis à jour après refresh réussi (SameSite={cookie_samesite}, Secure={cookie_secure})")
+            
+            # Ajouter le refresh_token dans la réponse JSON pour le cross-domain support
+            # Le frontend peut le stocker dans localStorage
+            response_data = new_token_data.copy()
+            if refresh_token and "refresh_token" not in response_data:
+                # Si le refresh_token utilisé est toujours valide, le renvoyer
+                response_data["refresh_token"] = refresh_token
+            
+            # Mettre à jour la réponse avec le refresh_token
+            import json
+            response.body = json.dumps(response_data).encode('utf-8')
             
             return response
             

@@ -41,8 +41,36 @@ let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
 
 /**
+ * Récupère le refresh_token depuis localStorage
+ */
+function getRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem('refresh_token');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Stocke le refresh_token dans localStorage
+ */
+function setRefreshToken(token: string | null): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (token) {
+      localStorage.setItem('refresh_token', token);
+    } else {
+      localStorage.removeItem('refresh_token');
+    }
+  } catch {
+    // Ignorer les erreurs de localStorage (mode privé, etc.)
+  }
+}
+
+/**
  * Tente de rafraîchir le token d'accès en utilisant le refresh token
- * Le refresh token est envoyé automatiquement via les cookies HTTP-only
+ * Le refresh token est envoyé dans le body de la requête pour supporter le cross-domain
  */
 async function refreshAccessToken(): Promise<boolean> {
   // Si un refresh est déjà en cours, attendre sa fin
@@ -53,24 +81,42 @@ async function refreshAccessToken(): Promise<boolean> {
   isRefreshing = true;
   refreshPromise = (async () => {
     try {
-      // Le refresh token est envoyé automatiquement via les cookies HTTP-only
+      // Récupérer le refresh_token depuis localStorage
+      const refreshToken = getRefreshToken();
+      
+      if (!refreshToken) {
+        console.warn('[API Client] Aucun refresh_token trouvé pour rafraîchir le token');
+        return false;
+      }
+
+      // Envoyer le refresh_token dans le body de la requête
       const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important pour les cookies HTTP-only
-        // Pas besoin de body, le backend lit le refresh_token depuis les cookies
+        credentials: 'include', // Important pour les cookies HTTP-only (fallback)
+        body: JSON.stringify({ refresh_token: refreshToken }),
       });
 
       if (response.ok) {
-        // Le nouveau token est dans les cookies, pas besoin de le stocker
+        // Le backend peut renvoyer un nouveau refresh_token dans la réponse
+        try {
+          const data = await response.json();
+          if (data.refresh_token) {
+            setRefreshToken(data.refresh_token);
+          }
+        } catch {
+          // Si la réponse n'est pas du JSON, ce n'est pas grave
+        }
         return true;
       } else {
-        // Refresh token invalide ou expiré, déconnexion nécessaire
+        // Refresh token invalide ou expiré, nettoyer le localStorage
+        setRefreshToken(null);
         return false;
       }
     } catch (error) {
+      console.error('[API Client] Erreur lors du refresh du token:', error);
       return false;
     } finally {
       isRefreshing = false;
