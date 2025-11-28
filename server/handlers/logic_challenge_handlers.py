@@ -3,8 +3,9 @@ Handlers pour les logic challenges et missions hybrides.
 """
 
 from starlette.responses import JSONResponse, RedirectResponse
-from server.views import get_current_user, render_template, render_error
+
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from server.views import get_current_user, render_error, render_template
 
 
 async def logic_challenge_page(request):

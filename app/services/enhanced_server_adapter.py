@@ -3,20 +3,20 @@ Service d'adaptation pour enhanced_server.py.
 Permet d'utiliser le système de transaction et les services avec enhanced_server.py
 sans modifier massivement le serveur existant.
 """
-from typing import Dict, List, Any, Optional, Union
-from sqlalchemy.orm import Session
-
-from app.db.transaction import TransactionManager
-from app.db.adapter import DatabaseAdapter
-from app.services import ExerciseService, UserService, LogicChallengeService
-from app.models.exercise import Exercise
-from app.models.attempt import Attempt
-from app.models.user import User
-from app.models.logic_challenge import LogicChallenge
-from app.db.base import SessionLocal
+import json
+from typing import Any, Dict, List, Optional, Union
 
 from loguru import logger
-import json
+from sqlalchemy.orm import Session
+
+from app.db.adapter import DatabaseAdapter
+from app.db.base import SessionLocal
+from app.db.transaction import TransactionManager
+from app.models.attempt import Attempt
+from app.models.exercise import Exercise
+from app.models.logic_challenge import LogicChallenge
+from app.models.user import User
+from app.services import ExerciseService, LogicChallengeService, UserService
 
 
 def _serialize_exercise(exercise: Exercise) -> Dict[str, Any]:

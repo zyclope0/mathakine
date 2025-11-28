@@ -2,14 +2,17 @@
 Service pour la gestion des défis de logique mathématique (Épreuves du Conseil Jedi).
 Implémente les opérations métier liées aux défis logiques et utilise le transaction manager.
 """
-from typing import List, Dict, Any, Optional
-from sqlalchemy.orm import Session
+from typing import Any, Dict, List, Optional
+
 from loguru import logger
+from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
-from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt, LogicChallengeType, AgeGroup
-from app.utils.db_helpers import get_enum_value, adapt_enum_for_db
+from app.models.logic_challenge import (AgeGroup, LogicChallenge,
+                                        LogicChallengeAttempt,
+                                        LogicChallengeType)
+from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
 
 class LogicChallengeService:

@@ -1,10 +1,13 @@
 """
 API endpoints spécifiques pour la page Challenges - Support complet des interactions
 """
-from starlette.responses import JSONResponse
-from server.auth import get_current_user
-import json
 import asyncio
+import json
+
+from starlette.responses import JSONResponse
+
+from server.auth import get_current_user
+
 
 async def api_start_challenge(request):
     """

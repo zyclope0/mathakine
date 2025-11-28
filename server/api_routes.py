@@ -2,18 +2,16 @@
 Routes d'API pour enhanced_server.py
 """
 import traceback
-from starlette.responses import JSONResponse, RedirectResponse
+
 from starlette.requests import Request
+from starlette.responses import JSONResponse, RedirectResponse
 from starlette.templating import Jinja2Templates
 
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from server.handlers.exercise_handlers import (
-    generate_exercise,
-    get_exercise,
-    submit_answer,
-    get_exercises_list
-)
 from app.core.messages import SystemMessages
+from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from server.handlers.exercise_handlers import (generate_exercise, get_exercise,
+                                               get_exercises_list,
+                                               submit_answer)
 from server.handlers.user_handlers import get_user_stats
 
 # Fonction pour gérer la génération d'exercices

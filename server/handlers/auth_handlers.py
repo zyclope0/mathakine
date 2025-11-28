@@ -1,21 +1,20 @@
 """
 Handlers pour l'authentification et la vérification d'email
 """
-import traceback
-from starlette.responses import JSONResponse, RedirectResponse
-from starlette.requests import Request
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.services.auth_service import (
-    get_user_by_email, 
-    authenticate_user, 
-    create_user_token,
-    refresh_access_token
-)
-from app.utils.email_verification import generate_verification_token, is_verification_token_expired
-from app.services.email_service import EmailService
-from loguru import logger
-from datetime import datetime, timezone
 import os
+import traceback
+from datetime import datetime, timezone
+
+from loguru import logger
+from starlette.requests import Request
+from starlette.responses import JSONResponse, RedirectResponse
+
+from app.services.auth_service import (authenticate_user, create_user_token,
+                                       get_user_by_email, refresh_access_token)
+from app.services.email_service import EmailService
+from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from app.utils.email_verification import (generate_verification_token,
+                                          is_verification_token_expired)
 
 
 async def verify_email(request: Request):

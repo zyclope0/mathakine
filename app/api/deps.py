@@ -1,22 +1,23 @@
 """
 Dépendances communes pour les API
 """
-from fastapi import Depends, HTTPException, status, Security
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-from app.db.base import get_db
 from typing import Generator, Optional
-from jose import jwt, JWTError
+
+from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from jose.exceptions import ExpiredSignatureError
 from pydantic import ValidationError
+from sqlalchemy.orm import Session
 
+from app.core.config import settings
+from app.core.constants import SecurityConfig
+from app.core.logging_config import get_logger
+from app.core.security import SECRET_KEY
+from app.db.base import get_db
 from app.models.user import User, UserRole
 from app.schemas.user import TokenData
-from app.core.config import settings
-from app.core.security import SECRET_KEY
-from app.core.constants import SecurityConfig
 from app.services.auth_service import get_user_by_username
-from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 

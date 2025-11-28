@@ -3,9 +3,10 @@ Configuration centralisée de la journalisation pour le projet Mathakine.
 Ce module configure loguru pour enregistrer les logs dans un dossier centralisé.
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
+
 from loguru import logger
 
 # Chemins pour les logs

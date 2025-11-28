@@ -1,13 +1,15 @@
 """
 Module de génération d'exercices pour enhanced_server.py
 """
-import random
 import json
-from typing import Dict, List, Any, Optional
+import random
+from typing import Any, Dict, List, Optional
 
-from app.core.constants import ExerciseTypes, DifficultyLevels, DIFFICULTY_LIMITS, Messages, Tags
+from app.core.constants import (DIFFICULTY_LIMITS, DifficultyLevels,
+                                ExerciseTypes, Messages, Tags)
 from app.core.messages import ExerciseMessages, StarWarsNarratives
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
+
 
 # Fonctions de normalisation
 def normalize_exercise_type(exercise_type):
@@ -70,7 +72,7 @@ def normalize_and_validate_exercise_params(exercise_type_raw: Optional[str], dif
         ValueError: Si les paramètres sont invalides après normalisation
     """
     from app.core.constants import ExerciseTypes
-    
+
     # Normaliser les paramètres
     exercise_type = normalize_exercise_type(exercise_type_raw)
     difficulty = normalize_difficulty(difficulty_raw)
@@ -288,7 +290,7 @@ def generate_ai_exercise(exercise_type, difficulty):
     elif normalized_type == ExerciseTypes.FRACTIONS:
         # Génération IA d'un exercice sur les fractions avec thème Star Wars
         from fractions import Fraction
-        
+
         # Paramètres selon la difficulté
         if normalized_difficulty == DifficultyLevels.INITIE:
             denom1, denom2 = random.choice([2, 3, 4]), random.choice([2, 3, 4])
@@ -364,7 +366,7 @@ def generate_ai_exercise(exercise_type, difficulty):
     elif normalized_type == ExerciseTypes.GEOMETRIE:
         # Génération IA d'un exercice de géométrie avec thème Star Wars
         import math
-        
+
         # Formes et propriétés selon la difficulté
         if normalized_difficulty == DifficultyLevels.INITIE:
             shape = random.choice(["carré", "rectangle"])

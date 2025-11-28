@@ -1,9 +1,11 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
-from typing import Optional, Dict, Any
-from datetime import datetime
-from app.models.user import UserRole
-from enum import Enum
 import json
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+from app.models.user import UserRole
 
 # Schémas pour la manipulation des utilisateurs
 

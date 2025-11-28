@@ -3,7 +3,8 @@ Module de validation logique pour les challenges générés par IA.
 Vérifie la cohérence entre visual_data, correct_answer et solution_explanation.
 """
 import json
-from typing import Dict, Any, Tuple, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
 from loguru import logger
 
 

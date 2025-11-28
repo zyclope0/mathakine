@@ -1,18 +1,20 @@
 """
 Service d'authentification pour gérer les utilisateurs et les connexions
 """
-from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from datetime import datetime, timedelta, timezone
 from typing import Optional
-from datetime import timedelta, datetime, timezone
-from jose import jwt, JWTError
 
-from app.models.user import User, UserRole
-from app.schemas.user import UserCreate, UserUpdate, TokenData
-from app.core.security import verify_password, get_password_hash, create_access_token, decode_token
+from fastapi import HTTPException, status
+from jose import JWTError, jwt
+from sqlalchemy.orm import Session
+
 from app.core.config import settings
 from app.core.logging_config import get_logger
-from app.utils.db_helpers import get_enum_value, adapt_enum_for_db
+from app.core.security import (create_access_token, decode_token,
+                               get_password_hash, verify_password)
+from app.models.user import User, UserRole
+from app.schemas.user import TokenData, UserCreate, UserUpdate
+from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
 logger = get_logger(__name__)
 

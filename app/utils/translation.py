@@ -13,7 +13,8 @@ Pour les arrays :
   "en": ["Choice 1", "Choice 2"]
 }
 """
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
+
 from app.core.config import settings
 
 

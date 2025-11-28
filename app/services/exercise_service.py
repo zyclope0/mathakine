@@ -2,15 +2,16 @@
 Service pour la gestion des exercices mathématiques.
 Implémente les opérations métier liées aux exercices et utilise le transaction manager.
 """
-from typing import List, Dict, Any, Optional, Union
-from sqlalchemy.orm import Session
-from sqlalchemy import text
+from typing import Any, Dict, List, Optional, Union
+
 from loguru import logger
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
 from app.models.attempt import Attempt
+from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 
 
 class ExerciseService:
@@ -35,7 +36,8 @@ class ExerciseService:
             L'exercice correspondant à l'ID ou None s'il n'existe pas
         """
         try:
-            from sqlalchemy import cast, String
+            from sqlalchemy import String, cast
+
             # Charger les enums en tant que strings pour éviter les erreurs de conversion
             exercise_row = db.query(
                 Exercise.id,
@@ -77,7 +79,7 @@ class ExerciseService:
             exercise.updated_at = exercise_row.updated_at
             
             # Convertir les strings normalisées en enums (en majuscules)
-            from app.models.exercise import ExerciseType, DifficultyLevel
+            from app.models.exercise import DifficultyLevel, ExerciseType
             exercise_type_normalized = exercise_row.exercise_type_str.upper() if exercise_row.exercise_type_str else "ADDITION"
             difficulty_normalized = exercise_row.difficulty_str.upper() if exercise_row.difficulty_str else "PADAWAN"
             
@@ -348,8 +350,9 @@ class ExerciseService:
             exercise: Exercice concerné (objet Exercise, dict, ou None)
         """
         from datetime import datetime
-        from app.models.progress import Progress
+
         from app.models.legacy_tables import UserStats
+        from app.models.progress import Progress
         
         user_id = attempt_data.get("user_id")
         is_correct = attempt_data.get("is_correct", False)

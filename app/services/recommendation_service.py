@@ -1,13 +1,15 @@
-from sqlalchemy.sql import func
-from sqlalchemy import or_, and_, exists
-from datetime import datetime, timedelta, timezone
-from app.models.recommendation import Recommendation
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
-from app.models.attempt import Attempt
-from app.models.progress import Progress
-from app.models.user import User
-import random
 import logging
+import random
+from datetime import datetime, timedelta, timezone
+
+from sqlalchemy import and_, exists, or_
+from sqlalchemy.sql import func
+
+from app.models.attempt import Attempt
+from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+from app.models.progress import Progress
+from app.models.recommendation import Recommendation
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 

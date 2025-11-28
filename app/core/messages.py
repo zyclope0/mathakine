@@ -5,6 +5,7 @@ Ce fichier contient tous les messages et textes utilisés dans l'application.
 
 import random
 
+
 # Messages système
 class SystemMessages:
     # Erreurs

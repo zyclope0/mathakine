@@ -1,9 +1,11 @@
 """
 Utilitaires pour la gestion des valeurs d'énumération PostgreSQL.
 """
-from typing import Dict, Any, Optional
-from sqlalchemy.orm import Session
+from typing import Any, Dict, Optional
+
 from sqlalchemy import inspect
+from sqlalchemy.orm import Session
+
 
 def get_db_engine(db_session: Session) -> str:
     """
@@ -148,9 +150,9 @@ def get_all_enum_values(db: Optional[Session] = None) -> Dict[str, Any]:
     Returns:
         Dictionnaire contenant toutes les valeurs d'énumération adaptées
     """
+    from app.models.exercise import DifficultyLevel, ExerciseType
+    from app.models.logic_challenge import AgeGroup, LogicChallengeType
     from app.models.user import UserRole
-    from app.models.exercise import ExerciseType, DifficultyLevel
-    from app.models.logic_challenge import LogicChallengeType, AgeGroup
     
     return {
         "engine": "postgresql",

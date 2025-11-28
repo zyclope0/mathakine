@@ -5,7 +5,7 @@ Ce module centralise les opérations courantes sur les énumérations pour évit
 les problèmes de compatibilité entre SQLite et PostgreSQL.
 """
 from enum import Enum
-from typing import Type, TypeVar, Optional, Union, Any
+from typing import Any, Optional, Type, TypeVar, Union
 
 # Type générique pour les énumérations
 T = TypeVar('T', bound=Enum)

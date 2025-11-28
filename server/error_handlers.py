@@ -6,11 +6,13 @@ error management across the application.
 
 Since the frontend is now Next.js, all error responses are JSON (no HTML templates).
 """
+import traceback
+
+from loguru import logger
+from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-from starlette.exceptions import HTTPException
-import traceback
-from loguru import logger
+
 
 async def not_found(request: Request, exc: HTTPException):
     """

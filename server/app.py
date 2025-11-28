@@ -4,16 +4,18 @@ App initialization for Mathakine.
 This module centralizes Starlette application creation and configuration.
 It ties together routes, middleware, exception handlers, and other components.
 """
-from starlette.applications import Starlette
-import uvicorn
 import os
-from loguru import logger
 
-from server.routes import get_routes
-from server.middleware import get_middleware
-from server.error_handlers import get_exception_handlers
-from server.template_handler import get_templates
+import uvicorn
+from loguru import logger
+from starlette.applications import Starlette
+
 from server.database import init_database
+from server.error_handlers import get_exception_handlers
+from server.middleware import get_middleware
+from server.routes import get_routes
+from server.template_handler import get_templates
+
 
 def create_app(debug: bool = False) -> Starlette:
     """

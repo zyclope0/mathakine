@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
 from typing import List
 
-from app.db.base import get_db
-from app.services.recommendation_service import RecommendationService
-from app.schemas.recommendation import RecommendationResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
+
 from app.api.deps import get_current_user
-from app.models.user import User
-from app.models.recommendation import Recommendation
+from app.db.base import get_db
 from app.models.exercise import Exercise
+from app.models.recommendation import Recommendation
+from app.models.user import User
+from app.schemas.recommendation import RecommendationResponse
+from app.services.recommendation_service import RecommendationService
 
 router = APIRouter(
     prefix="/recommendations",

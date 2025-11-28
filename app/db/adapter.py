@@ -2,13 +2,14 @@
 Adaptateur de base de données pour Mathakine.
 Fournit une interface unifiée entre les modèles SQLAlchemy et les requêtes SQL directes.
 """
-from typing import Type, List, Dict, Any, Optional, Union, Tuple
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from loguru import logger
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
-from app.db.transaction import TransactionManager
+from loguru import logger
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 from app.db.base import Base
+from app.db.transaction import TransactionManager
 
 
 class DatabaseAdapter:

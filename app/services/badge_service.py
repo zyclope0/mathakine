@@ -2,18 +2,19 @@
 Service de gestion des badges et achievements pour Mathakine
 """
 
-from sqlalchemy.orm import Session
-from sqlalchemy import text, func
-from typing import List, Dict, Any, Optional
 import json
-from datetime import datetime, timezone, timedelta
 import logging
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
-from app.models.user import User
+from sqlalchemy import func, text
+from sqlalchemy.orm import Session
+
+from app.core.logging_config import get_logger
 from app.models.achievement import Achievement, UserAchievement
 from app.models.attempt import Attempt
 from app.models.progress import Progress
-from app.core.logging_config import get_logger
+from app.models.user import User
 
 logger = get_logger(__name__)
 

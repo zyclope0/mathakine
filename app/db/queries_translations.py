@@ -5,7 +5,7 @@ Ces requêtes utilisent des fonctions PostgreSQL pour extraire les traductions
 depuis les colonnes JSONB selon la locale demandée.
 """
 import json
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 
 def build_translation_select(field_name: str, translations_field: str, locale_param: str = "%s") -> str:

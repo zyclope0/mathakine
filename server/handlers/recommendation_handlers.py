@@ -2,11 +2,13 @@
 Handlers pour les recommandations personnalisées.
 """
 import traceback
+
 from starlette.responses import JSONResponse
-from server.auth import get_current_user
+
+from app.core.messages import SystemMessages
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.recommendation_service import RecommendationService
-from app.core.messages import SystemMessages
+from server.auth import get_current_user
 
 
 async def get_recommendations(request):
@@ -55,7 +57,8 @@ async def get_recommendations(request):
                     rec_data["exercise_id"] = rec.exercise_id
                     # Optionnel: récupérer le titre et la question de l'exercice
                     try:
-                        from app.services.exercise_service import ExerciseService
+                        from app.services.exercise_service import \
+                            ExerciseService
                         exercise = ExerciseService.get_exercise(db, rec.exercise_id)
                         if exercise:
                             rec_data["exercise_title"] = exercise.title

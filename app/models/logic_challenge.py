@@ -1,11 +1,12 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum, Text, JSON\
-    , ForeignKey, Float, Table
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 from enum import Enum as PyEnum
-from typing import List, Optional, Dict, Any
-from app.db.base import Base
+from typing import Any, Dict, List, Optional
 
+from sqlalchemy import (JSON, Boolean, Column, DateTime, Enum, Float,
+                        ForeignKey, Integer, String, Table, Text)
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
+from app.db.base import Base
 
 
 class LogicChallengeType(str, PyEnum):
@@ -91,9 +92,10 @@ class LogicChallenge(Base):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convertit le modèle en dictionnaire avec conversion des énumérations."""
-        from app.utils.db_helpers import get_python_enum_value
         from datetime import datetime, timezone
-        
+
+        from app.utils.db_helpers import get_python_enum_value
+
         # Créer le dictionnaire de base
         result = {c.name: getattr(self, c.name) for c in self.__table__.columns}
         

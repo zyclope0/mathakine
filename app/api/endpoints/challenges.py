@@ -3,27 +3,27 @@ Endpoints API pour la gestion des défis logiques (Épreuves du Conseil Jedi).
 Ces endpoints permettent de créer, consulter, modifier et supprimer des défis logiques,
 ainsi que de soumettre des tentatives de résolution et d'obtenir des indices.
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Path, Query
-from sqlalchemy.orm import Session
-from typing import Any, List, Optional
-from pydantic import BaseModel, Field
 import json
+from typing import Any, List, Optional
 
-from app.api.deps import get_db_session, get_current_user, get_current_gardien_or_archiviste
-from app.schemas.logic_challenge import (
-    LogicChallengeInDB,
-    LogicChallengeCreate,
-    LogicChallengeAttemptBase,
-    LogicChallengeAttemptResult,
-    LogicChallenge as LogicChallengeSchema,
-    LogicChallengeUpdate,
-    LogicChallengeStats
-)
-from app.models.logic_challenge import LogicChallengeType, AgeGroup
-from app.models.user import User
-from app.services.logic_challenge_service import LogicChallengeService
-from app.utils.db_helpers import get_enum_value, adapt_enum_for_db
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+
+from app.api.deps import (get_current_gardien_or_archiviste, get_current_user,
+                          get_db_session)
 from app.api.endpoints.users import _challenges_progress
+from app.models.logic_challenge import AgeGroup, LogicChallengeType
+from app.models.user import User
+from app.schemas.logic_challenge import LogicChallenge as LogicChallengeSchema
+from app.schemas.logic_challenge import (LogicChallengeAttemptBase,
+                                         LogicChallengeAttemptResult,
+                                         LogicChallengeCreate,
+                                         LogicChallengeInDB,
+                                         LogicChallengeStats,
+                                         LogicChallengeUpdate)
+from app.services.logic_challenge_service import LogicChallengeService
+from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
 router = APIRouter()
 
@@ -382,10 +382,11 @@ def attempt_logic_challenge(
         # Si le défi n'existe pas, et que c'est l'ID 1 (utilisé par les tests), 
         # créer un défi de test temporaire
         if not challenge and challenge_id == 1:
-            from app.models.logic_challenge import LogicChallenge
-            from datetime import datetime, timezone
             import json
-            
+            from datetime import datetime, timezone
+
+            from app.models.logic_challenge import LogicChallenge
+
             # Créer un défi de test pour les tests automatisés
             test_challenge = LogicChallenge(
                 id=1,
@@ -487,10 +488,11 @@ def get_challenge_hint(
         # Si le défi n'existe pas, et que c'est l'ID 1 (utilisé par les tests), 
         # créer un défi de test temporaire
         if not challenge and challenge_id == 1:
-            from app.models.logic_challenge import LogicChallenge
-            from datetime import datetime, timezone
             import json
-            
+            from datetime import datetime, timezone
+
+            from app.models.logic_challenge import LogicChallenge
+
             # Créer un défi de test pour les tests automatisés
             test_challenge = LogicChallenge(
                 id=1,
@@ -632,10 +634,12 @@ def delete_logic_challenge(
     Génère une erreur 404 si le défi n'existe pas.
     Génère une erreur 500 en cas de problème lors de la suppression.
     """
-    from app.models.logic_challenge import LogicChallenge
-    from sqlalchemy.exc import SQLAlchemyError
     import logging
     import traceback
+
+    from sqlalchemy.exc import SQLAlchemyError
+
+    from app.models.logic_challenge import LogicChallenge
 
     logger = logging.getLogger(__name__)
     logger.info(f"Tentative de suppression du défi logique {challenge_id}")

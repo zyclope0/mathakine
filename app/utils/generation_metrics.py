@@ -2,9 +2,10 @@
 Module de métriques pour la génération IA.
 Track la qualité, performance et fiabilité des générations.
 """
+from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
-from collections import defaultdict
+
 from loguru import logger
 
 

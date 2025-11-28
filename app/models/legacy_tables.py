@@ -2,9 +2,12 @@
 Modèles SQLAlchemy pour les tables héritées de l'ancienne base de données.
 Ces modèles sont inclus pour la compatibilité avec la base de données existante.
 """
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, text
+from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Integer,
+                        String, Text, text)
 from sqlalchemy.orm import relationship
+
 from app.db.base import Base
+
 
 class Results(Base):
     """Modèle pour la table results (résultats d'exercices)."""

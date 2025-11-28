@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field, field_validator, ConfigDict
-from typing import Optional, List, Dict, Any, Union
 from datetime import datetime
-from app.models.exercise import ExerciseType, DifficultyLevel
+from typing import Any, Dict, List, Optional, Union
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.models.exercise import DifficultyLevel, ExerciseType
 
 # Schémas pour la manipulation des exercices
 

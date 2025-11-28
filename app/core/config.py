@@ -1,10 +1,12 @@
-from pydantic_settings import BaseSettings
-from pydantic import field_validator, model_validator
-from typing import List
 import os
-from dotenv import load_dotenv
-from app.core.logging_config import get_logger
 import secrets
+from typing import List
+
+from dotenv import load_dotenv
+from pydantic import field_validator, model_validator
+from pydantic_settings import BaseSettings
+
+from app.core.logging_config import get_logger
 
 # Obtenir un logger nommé pour ce module
 logger = get_logger(__name__)

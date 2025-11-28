@@ -1,9 +1,11 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum, Text, JSON, ForeignKey
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 import enum
-from app.db.base import Base
 
+from sqlalchemy import (JSON, Boolean, Column, DateTime, Enum, ForeignKey,
+                        Integer, String, Text)
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
+from app.db.base import Base
 
 
 class DifficultyLevel(str, enum.Enum):

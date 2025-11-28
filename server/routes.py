@@ -4,81 +4,51 @@ Routes API pour Mathakine (backend Starlette).
 Ce module définit uniquement les routes API JSON utilisées par le frontend Next.js.
 Toutes les routes HTML/templates ont été supprimées (frontend géré par Next.js).
 """
-from starlette.routing import Route
 from typing import List
 
-# Imports API handlers - Exercises
-from server.handlers.exercise_handlers import (
-    generate_exercise, 
-    get_exercise, 
-    submit_answer, 
-    generate_exercise_api, 
-    generate_ai_exercise_stream, 
-    get_completed_exercises_ids
-)
-
-# Imports API handlers - Users
-from server.handlers.user_handlers import (
-    get_user_stats, 
-    create_user_account
-)
-
-# Imports API handlers - Auth
-from server.handlers.auth_handlers import (
-    verify_email, 
-    resend_verification_email,
-    api_login,
-    api_refresh_token,
-    api_get_current_user
-)
-
-# Imports API handlers - Badges
-from server.handlers.badge_handlers import (
-    get_user_badges, 
-    get_available_badges, 
-    check_user_badges, 
-    get_user_gamification_stats
-)
-
-# Imports API handlers - Challenges
-from server.handlers.challenge_handlers import (
-    get_challenges_list, 
-    get_challenge, 
-    submit_challenge_answer, 
-    get_challenge_hint, 
-    get_completed_challenges_ids as get_completed_challenges_ids_challenges, 
-    generate_ai_challenge_stream
-)
-
-# Imports API handlers - Recommendations
-from server.handlers.recommendation_handlers import (
-    get_recommendations, 
-    generate_recommendations
-)
-
-# Imports API handlers - Chat
-from server.handlers.chat_handlers import (
-    chat_api, 
-    chat_api_stream
-)
-
-# Imports API routes helpers (fonctions qui existent vraiment)
-from server.api_routes import (
-    get_exercises_list,
-    delete_exercise,
-    handle_recommendation_complete,
-    api_logout,
-    api_forgot_password
-)
+from starlette.routing import Route
 
 # Imports API challenges
-from server.api_challenges import (
-    api_start_challenge, 
-    api_get_challenge_progress, 
-    api_get_challenge_rewards,
-    api_get_users_leaderboard, 
-    api_get_user_badges_progress
-)
+from server.api_challenges import (api_get_challenge_progress,
+                                   api_get_challenge_rewards,
+                                   api_get_user_badges_progress,
+                                   api_get_users_leaderboard,
+                                   api_start_challenge)
+# Imports API routes helpers (fonctions qui existent vraiment)
+from server.api_routes import (api_forgot_password, api_logout,
+                               delete_exercise, get_exercises_list,
+                               handle_recommendation_complete)
+# Imports API handlers - Auth
+from server.handlers.auth_handlers import (api_get_current_user, api_login,
+                                           api_refresh_token,
+                                           resend_verification_email,
+                                           verify_email)
+# Imports API handlers - Badges
+from server.handlers.badge_handlers import (check_user_badges,
+                                            get_available_badges,
+                                            get_user_badges,
+                                            get_user_gamification_stats)
+# Imports API handlers - Challenges
+from server.handlers.challenge_handlers import (generate_ai_challenge_stream,
+                                                get_challenge,
+                                                get_challenge_hint,
+                                                get_challenges_list)
+from server.handlers.challenge_handlers import \
+    get_completed_challenges_ids as get_completed_challenges_ids_challenges
+from server.handlers.challenge_handlers import submit_challenge_answer
+# Imports API handlers - Chat
+from server.handlers.chat_handlers import chat_api, chat_api_stream
+# Imports API handlers - Exercises
+from server.handlers.exercise_handlers import (generate_ai_exercise_stream,
+                                               generate_exercise,
+                                               generate_exercise_api,
+                                               get_completed_exercises_ids,
+                                               get_exercise, submit_answer)
+# Imports API handlers - Recommendations
+from server.handlers.recommendation_handlers import (generate_recommendations,
+                                                     get_recommendations)
+# Imports API handlers - Users
+from server.handlers.user_handlers import create_user_account, get_user_stats
 
 
 def get_routes() -> List:

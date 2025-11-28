@@ -4,6 +4,7 @@ Protection contre l'injection de prompts malveillants.
 """
 import re
 from typing import Optional
+
 from loguru import logger
 
 

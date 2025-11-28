@@ -1,21 +1,22 @@
-from fastapi import FastAPI, Request, HTTPException, Query, status
+import os
+import time
+from contextlib import asynccontextmanager
+from typing import Any, Dict, List, Optional
+
+from fastapi import FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
-from fastapi.openapi.utils import get_openapi
-import time
-import os
-from contextlib import asynccontextmanager
-from typing import Optional, Dict, Any, List
 
+from app.api.api import api_router
 from app.core.config import settings
 from app.core.logging_config import get_logger
 from app.db.init_db import create_tables_with_test_data
-from app.api.api import api_router
-from app.models.exercise import ExerciseType, DifficultyLevel
+from app.models.exercise import DifficultyLevel, ExerciseType
 
 # Obtenir un logger nommé pour ce module
 logger = get_logger(__name__)
@@ -299,8 +300,11 @@ async def direct_generate_exercise(
     """
     import random
     from datetime import datetime
+
     from app.api.deps import get_db_session
-    from app.models.exercise import Exercise as ExerciseModel, ExerciseType, DifficultyLevel
+    from app.models.exercise import DifficultyLevel
+    from app.models.exercise import Exercise as ExerciseModel
+    from app.models.exercise import ExerciseType
 
     # Obtenir une session de base de données
     db_session = next(get_db_session())
@@ -391,9 +395,10 @@ async def direct_generate_exercise(
         )
 
 if __name__ == "__main__":
-    import uvicorn
-    import sys
     import os
+    import sys
+
+    import uvicorn
 
     logger.info("Démarrage du serveur")
 

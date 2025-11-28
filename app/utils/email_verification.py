@@ -4,6 +4,7 @@ Utilitaires pour la vérification d'email
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+
 from loguru import logger
 
 

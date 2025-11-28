@@ -1,28 +1,27 @@
 """
 Handlers pour les défis logiques (API Starlette)
 """
-import traceback
 import json
+import traceback
 from datetime import datetime
-from starlette.responses import JSONResponse, StreamingResponse
+
+from loguru import logger
 from starlette.requests import Request
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.services.logic_challenge_service import LogicChallengeService
+from starlette.responses import JSONResponse, StreamingResponse
+
+from app.core.config import settings
+# Importer les constantes et fonctions centralisées
+from app.core.constants import (CHALLENGE_TYPES_API, CHALLENGE_TYPES_DB,
+                                calculate_difficulty_for_age_group)
+from app.core.constants import \
+    normalize_challenge_type as normalize_challenge_type_for_db
+from app.core.messages import SystemMessages
 # NOTE: challenge_service_translations_adapter archivé - utiliser fonctions de challenge_service.py
 from app.services import challenge_service
-from app.utils.translation import parse_accept_language
-from app.core.messages import SystemMessages
+from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from app.services.logic_challenge_service import LogicChallengeService
 from app.utils.error_handler import ErrorHandler
-from app.core.config import settings
-from loguru import logger
-
-# Importer les constantes et fonctions centralisées
-from app.core.constants import (
-    normalize_challenge_type as normalize_challenge_type_for_db,
-    CHALLENGE_TYPES_API,
-    CHALLENGE_TYPES_DB,
-    calculate_difficulty_for_age_group,
-)
+from app.utils.translation import parse_accept_language
 
 
 def normalize_age_group_for_db(age_group_raw: str) -> str:
@@ -522,7 +521,8 @@ async def generate_ai_challenge_stream(request: Request):
         prompt_raw = request.query_params.get('prompt', '')
         
         # Sanitizer le prompt utilisateur pour éviter l'injection
-        from app.utils.prompt_sanitizer import sanitize_user_prompt, validate_prompt_safety
+        from app.utils.prompt_sanitizer import (sanitize_user_prompt,
+                                                validate_prompt_safety)
         is_safe, safety_reason = validate_prompt_safety(prompt_raw)
         if not is_safe:
             logger.warning(f"Prompt utilisateur rejeté pour sécurité: {safety_reason}")
@@ -717,8 +717,9 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                 yield f"data: {json.dumps({'type': 'status', 'message': 'Génération en cours...'})}\n\n"
                 
                 # Créer le stream OpenAI avec paramètres adaptatifs et retry logic
-                from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-                from openai import RateLimitError, APIError, APITimeoutError
+                from openai import APIError, APITimeoutError, RateLimitError
+                from tenacity import (retry, retry_if_exception_type,
+                                      stop_after_attempt, wait_exponential)
                 
                 @retry(
                     stop=stop_after_attempt(AIConfig.MAX_RETRIES),
@@ -785,7 +786,8 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                         return
                     
                     # VALIDATION LOGIQUE POST-GÉNÉRATION
-                    from app.services.challenge_validator import validate_challenge_logic, auto_correct_challenge
+                    from app.services.challenge_validator import (
+                        auto_correct_challenge, validate_challenge_logic)
                     
                     challenge_data['challenge_type'] = challenge_type
                     is_valid, validation_errors = validate_challenge_logic(challenge_data)
@@ -899,7 +901,8 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                             # created_challenge est un objet LogicChallenge, pas un dictionnaire
                             if created_challenge and hasattr(created_challenge, 'title') and created_challenge.title:
                                 # Track token usage
-                                from app.utils.token_tracker import token_tracker
+                                from app.utils.token_tracker import \
+                                    token_tracker
                                 usage_stats = token_tracker.track_usage(
                                     challenge_type=challenge_type,
                                     prompt_tokens=prompt_tokens_estimate,
@@ -911,7 +914,8 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                                 # Enregistrer les métriques de génération réussie
                                 generation_success = True
                                 duration = (datetime.now() - start_time).total_seconds()
-                                from app.utils.generation_metrics import generation_metrics
+                                from app.utils.generation_metrics import \
+                                    generation_metrics
                                 generation_metrics.record_generation(
                                     challenge_type=challenge_type,
                                     success=True,

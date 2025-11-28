@@ -1,10 +1,11 @@
 """
 Helper pour la gestion standardisée des erreurs dans les handlers.
 """
-from typing import Optional, Dict, Any
-from starlette.responses import JSONResponse
-from loguru import logger
 import traceback
+from typing import Any, Dict, Optional
+
+from loguru import logger
+from starlette.responses import JSONResponse
 
 from app.core.config import settings
 

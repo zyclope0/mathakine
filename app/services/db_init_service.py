@@ -1,19 +1,19 @@
 """
 Service d'initialisation de la base de données
 """
-from loguru import logger
-from sqlalchemy.orm import Session
-from app.db.base import get_db, engine, Base
 import random
 from datetime import datetime, timedelta
 
-from app.models.user import User, UserRole
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
+from loguru import logger
+from sqlalchemy.orm import Session
+
+from app.db.base import Base, engine, get_db
 from app.models.attempt import Attempt
-from app.models.logic_challenge import LogicChallenge, LogicChallengeType, AgeGroup
+from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+from app.models.logic_challenge import (AgeGroup, LogicChallenge,
+                                        LogicChallengeType)
+from app.models.user import User, UserRole
 from app.utils.db_helpers import get_enum_value
-
-
 
 
 def create_tables():

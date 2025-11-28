@@ -4,14 +4,16 @@ Middleware for Mathakine.
 This module centralizes Starlette middleware logic for consistent
 request processing across the application.
 """
-from starlette.middleware import Middleware
-from starlette.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import RedirectResponse, JSONResponse
-from typing import List, Callable
-from loguru import logger
 import os
+from typing import Callable, List
+
+from loguru import logger
+from starlette.middleware import Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse, RedirectResponse
+
 
 class AuthenticationMiddleware(BaseHTTPMiddleware):
     """

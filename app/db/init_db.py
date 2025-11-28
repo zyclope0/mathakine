@@ -1,9 +1,9 @@
 from loguru import logger
+
 from app.db.base import Base, engine
 # Importer les modèles pour assurer qu'ils sont enregistrés par SQLAlchemy
 from app.models.all_models import __all__ as models  # Import all models
 from app.services.db_init_service import create_tables, populate_test_data
-
 
 
 def create_tables_with_test_data():

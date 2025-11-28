@@ -3,9 +3,10 @@ Transaction management utilities for database operations in Mathakine.
 This module provides consistent transaction management across the application.
 """
 from contextlib import contextmanager
-from sqlalchemy.orm import Session
+
 from loguru import logger
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 
 class TransactionManager:
@@ -129,6 +130,7 @@ class TransactionManager:
                     # Alternative: tenter une suppression sans cascade si la première méthode échoue
                     try:
                         from sqlalchemy import text
+
                         # Suppression directe par ID pour éviter de charger les relations
                         stmt = f"DELETE FROM {obj.__tablename__} WHERE id = :id"
                         db_session.execute(text(stmt), {"id": obj.id})

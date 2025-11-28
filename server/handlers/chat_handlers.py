@@ -4,7 +4,9 @@ Optimisé avec streaming SSE, smart routing, et best practices AI modernes
 """
 import json
 import os
+
 from starlette.responses import JSONResponse, StreamingResponse
+
 from app.core.config import settings
 
 try:
@@ -296,6 +298,7 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
         # Nettoyer les placeholders d'images Markdown (best practice : éviter les placeholders)
         # Supprimer les patterns comme ![texte](url) ou ![texte](placeholder)
         import re
+
         # Supprimer les images Markdown avec placeholders ou URLs suspectes
         assistant_message = re.sub(
             r'!\[([^\]]*)\]\([^)]*(?:placeholder|via\.placeholder|example\.com|example\.org)[^)]*\)',

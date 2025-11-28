@@ -2,18 +2,20 @@
 Service d'envoi d'emails pour Mathakine
 Support SMTP et SendGrid (optionnel)
 """
-import smtplib
 import os
-from email.mime.text import MIMEText
+import smtplib
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import Optional
+
 from loguru import logger
+
 from app.core.config import settings
 
 # Optionnel : Support SendGrid si API key disponible
 try:
     import sendgrid
-    from sendgrid.helpers.mail import Mail, Email, To, Content
+    from sendgrid.helpers.mail import Content, Email, Mail, To
     SENDGRID_AVAILABLE = True
 except ImportError:
     SENDGRID_AVAILABLE = False

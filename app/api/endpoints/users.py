@@ -1,26 +1,32 @@
 """
 Endpoints API pour la gestion des utilisateurs
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
-from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, Integer
-from typing import Any, List, Optional, Dict
-from datetime import datetime, timedelta, timezone
 import logging
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
 
-from app.api.deps import get_db_session, get_current_user, get_current_gardien_or_archiviste, get_current_archiviste, get_current_active_user
-from app.schemas.user import User, UserCreate, UserUpdate, UserInDB, UserPasswordUpdate
-from app.schemas.progress import ProgressResponse, ProgressDetail
-from app.services.auth_service import create_user, get_user_by_id, update_user, update_user_password
-from app.services.user_service import UserService
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from sqlalchemy import Integer, desc, func
+from sqlalchemy.orm import Session
+
+from app.api.deps import (get_current_active_user, get_current_archiviste,
+                          get_current_gardien_or_archiviste, get_current_user,
+                          get_db_session)
+from app.core.constants import Messages, UserRoles
 from app.core.logging_config import get_logger
-from app.models.user import User as UserModel, UserRole
+from app.core.messages import SystemMessages, UserMessages
 from app.models.attempt import Attempt
-from app.models.progress import Progress
 from app.models.exercise import Exercise
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
-from app.core.constants import Messages, UserRoles
-from app.core.messages import SystemMessages, UserMessages
+from app.models.progress import Progress
+from app.models.user import User as UserModel
+from app.models.user import UserRole
+from app.schemas.progress import ProgressDetail, ProgressResponse
+from app.schemas.user import (User, UserCreate, UserInDB, UserPasswordUpdate,
+                              UserUpdate)
+from app.services.auth_service import (create_user, get_user_by_id,
+                                       update_user, update_user_password)
+from app.services.user_service import UserService
 
 logger = get_logger(__name__)
 
@@ -409,8 +415,9 @@ def delete_user(
     grâce aux relations cascade définies dans les modèles.
     Seul un Archiviste peut supprimer un utilisateur.
     """
-    from sqlalchemy.exc import SQLAlchemyError
     import traceback
+
+    from sqlalchemy.exc import SQLAlchemyError
 
     logger = logging.getLogger(__name__)
     logger.info(f"Tentative de suppression de l'utilisateur {user_id} par {current_user.username}")

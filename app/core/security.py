@@ -1,14 +1,16 @@
 """
 Utilitaires de sécurité pour l'authentification
 """
-from datetime import datetime, timedelta, UTC, timezone
-from typing import Optional, Union, Any
-from jose import jwt, JWTError
+from datetime import UTC, datetime, timedelta, timezone
+from typing import Any, Optional, Union
+
 import bcrypt
-from app.core.constants import SecurityConfig
-from app.core.config import settings
-from app.core.logging_config import get_logger
 from fastapi import HTTPException
+from jose import JWTError, jwt
+
+from app.core.config import settings
+from app.core.constants import SecurityConfig
+from app.core.logging_config import get_logger
 
 # Obtenir un logger nommé pour ce module
 logger = get_logger(__name__)

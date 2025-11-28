@@ -2,19 +2,20 @@
 Service pour la gestion des utilisateurs.
 Implémente les opérations métier liées aux utilisateurs et utilise le transaction manager.
 """
-from typing import List, Dict, Any, Optional
-from sqlalchemy.orm import Session
-from sqlalchemy import func, text
+from typing import Any, Dict, List, Optional
+
 from loguru import logger
+from sqlalchemy import func, text
+from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
-from app.models.user import User, UserRole
-from app.models.exercise import Exercise
 from app.models.attempt import Attempt
-from app.models.progress import Progress
+from app.models.exercise import Exercise
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
-from app.utils.db_helpers import get_enum_value, adapt_enum_for_db
+from app.models.progress import Progress
+from app.models.user import User, UserRole
+from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
 
 class UserService:
@@ -213,7 +214,7 @@ class UserService:
         
         try:
             from datetime import datetime, timedelta, timezone
-            
+
             # Calculer la date de début selon time_range
             date_filter = None
             if time_range != "all":

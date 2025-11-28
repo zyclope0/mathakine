@@ -1,29 +1,35 @@
 """
 Endpoints API pour la gestion des exercices
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Path, Body
-from sqlalchemy.orm import Session
-from typing import Any, List, Dict, Optional
-from fastapi.responses import RedirectResponse
-import random
-import logging
-import uuid
 import json
+import logging
 import os
+import random
 import time
+import uuid
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
-from app.api.deps import get_db_session, get_current_gardien_or_archiviste, get_current_user, get_current_active_user
-from app.schemas.exercise import Exercise, ExerciseCreate, ExerciseUpdate
-from app.schemas.attempt import AttemptCreate, AttemptResponse
-from app.models.user import User
-from app.models.exercise import DifficultyLevel, ExerciseType, Exercise as ExerciseModel
-from app.models.attempt import Attempt
-from app.models.progress import Progress
-from app.schemas.common import PaginationParams
-from app.core.constants import ExerciseTypes, DifficultyLevels, Messages, Tags
-from app.core.messages import SystemMessages, ExerciseMessages, InterfaceTexts
+from fastapi import (APIRouter, Body, Depends, HTTPException, Path, Query,
+                     status)
+from fastapi.responses import RedirectResponse
+from sqlalchemy.orm import Session
+
+from app.api.deps import (get_current_active_user,
+                          get_current_gardien_or_archiviste, get_current_user,
+                          get_db_session)
+from app.core.constants import DifficultyLevels, ExerciseTypes, Messages, Tags
 from app.core.logging_config import get_logger
+from app.core.messages import ExerciseMessages, InterfaceTexts, SystemMessages
+from app.models.attempt import Attempt
+from app.models.exercise import DifficultyLevel
+from app.models.exercise import Exercise as ExerciseModel
+from app.models.exercise import ExerciseType
+from app.models.progress import Progress
+from app.models.user import User
+from app.schemas.attempt import AttemptCreate, AttemptResponse
+from app.schemas.common import PaginationParams
+from app.schemas.exercise import Exercise, ExerciseCreate, ExerciseUpdate
 
 # Logger pour ce module
 logger = get_logger(__name__)
@@ -143,9 +149,9 @@ def create_exercise(
     # Créer un nouvel exercice dans la base de données
     try:
         # Normaliser les valeurs d'enum en majuscules pour PostgreSQL
-        from app.core.constants import ExerciseTypes, DifficultyLevels
-        from app.models.exercise import ExerciseType, DifficultyLevel
-        
+        from app.core.constants import DifficultyLevels, ExerciseTypes
+        from app.models.exercise import DifficultyLevel, ExerciseType
+
         # Normaliser exercise_type
         exercise_type_normalized = exercise_in.exercise_type.upper() if isinstance(exercise_in.exercise_type, str) else exercise_in.exercise_type
         # Vérifier si c'est une valeur valide
@@ -1032,9 +1038,10 @@ def delete_exercise(
     Génère une erreur 403 si l'utilisateur n'a pas les permissions.
     Génère une erreur 500 en cas de problème lors de l'archivage.
     """
-    from sqlalchemy.exc import SQLAlchemyError
     import logging
     import traceback
+
+    from sqlalchemy.exc import SQLAlchemyError
 
     logger = logging.getLogger(__name__)
     logger.info(f"Tentative d'archivage de l'exercice {exercise_id} par l'utilisateur {current_user.username}")

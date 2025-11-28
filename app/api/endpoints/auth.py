@@ -1,14 +1,18 @@
 """
 Endpoints API pour l'authentification
 """
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import Any
 
-from app.api.deps import get_db_session, get_current_user
-from app.schemas.user import UserLogin, Token, User, RefreshTokenRequest, RefreshTokenResponse, ForgotPasswordRequest, ForgotPasswordResponse
-from app.services.auth_service import authenticate_user, create_user_token, refresh_access_token, get_user_by_email
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.api.deps import get_current_user, get_db_session
 from app.core.logging_config import get_logger
+from app.schemas.user import (ForgotPasswordRequest, ForgotPasswordResponse,
+                              RefreshTokenRequest, RefreshTokenResponse, Token,
+                              User, UserLogin)
+from app.services.auth_service import (authenticate_user, create_user_token,
+                                       get_user_by_email, refresh_access_token)
 
 logger = get_logger(__name__)
 

@@ -6,12 +6,16 @@ Utilise uniquement SQLAlchemy ORM pour la maintenabilité.
 
 Créé : Phase 4 (20 Nov 2025)
 """
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
-from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt, LogicChallengeType, AgeGroup
-from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
+
 from loguru import logger
+from sqlalchemy import and_, or_
+from sqlalchemy.orm import Session
+
+from app.models.logic_challenge import (AgeGroup, LogicChallenge,
+                                        LogicChallengeAttempt,
+                                        LogicChallengeType)
 
 
 def create_challenge(

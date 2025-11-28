@@ -1,14 +1,15 @@
 """
 Endpoints API pour la gestion des badges et achievements
 """
+from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
 
-from app.api.deps import get_db_session, get_current_active_user
-from app.services.badge_service import BadgeService
-from app.models.user import User
+from app.api.deps import get_current_active_user, get_db_session
 from app.core.logging_config import get_logger
+from app.models.user import User
+from app.services.badge_service import BadgeService
 
 logger = get_logger(__name__)
 
@@ -99,7 +100,7 @@ async def get_user_gamification_stats(
         
         # Ajouter des statistiques supplémentaires
         from sqlalchemy import text
-        
+
         # Compter les tentatives totales et réussies
         stats = db.execute(text("""
             SELECT 

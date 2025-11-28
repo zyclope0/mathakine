@@ -3,8 +3,9 @@ Handlers pour le système de challenges hybrides.
 """
 
 from starlette.responses import JSONResponse, RedirectResponse
-from server.views import get_current_user, render_template, render_error
+
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from server.views import get_current_user, render_error, render_template
 
 
 async def hybrid_challenges_page(request):
@@ -260,7 +261,8 @@ async def api_hybrid_start_challenge(request):
         # Logic challenges (100-199) - Récupération dynamique
         if 100 <= challenge_id <= 199:
             try:
-                from app.services.enhanced_server_adapter import EnhancedServerAdapter
+                from app.services.enhanced_server_adapter import \
+                    EnhancedServerAdapter
                 adapter = EnhancedServerAdapter()
                 logic_challenges_raw = adapter.get_logic_challenges(limit=10)
                 

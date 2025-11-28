@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, field_validator, ConfigDict
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # Schémas pour la manipulation des tentatives d'exercices
 

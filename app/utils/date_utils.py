@@ -1,8 +1,8 @@
 """
 Utilitaires pour le formatage des dates.
 """
-from typing import Optional, Any
 from datetime import datetime
+from typing import Any, Optional
 
 
 def format_date_for_json(date_value: Optional[Any]) -> Optional[str]:

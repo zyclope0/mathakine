@@ -2,7 +2,7 @@
 Utilitaires pour le parsing JSON.
 """
 import json
-from typing import Any, Optional, List, Union
+from typing import Any, List, Optional, Union
 
 
 def parse_choices_json(choices_value: Optional[Union[str, dict, list]]) -> Optional[List[str]]:

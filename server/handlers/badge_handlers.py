@@ -2,12 +2,15 @@
 Handlers pour la gestion des badges et achievements (API)
 """
 import traceback
-from starlette.responses import JSONResponse
+
 from starlette.requests import Request
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from starlette.responses import JSONResponse
+
 from app.services.badge_service import BadgeService
+from app.services.enhanced_server_adapter import EnhancedServerAdapter
 # NOTE: badge_service_translations archivé - utiliser BadgeService ORM uniquement
 from app.utils.translation import parse_accept_language
+
 
 async def get_current_user(request):
     """Récupère l'utilisateur actuellement authentifié"""
@@ -19,7 +22,7 @@ async def get_current_user(request):
         # Utiliser le service d'authentification pour décoder le token
         from app.core.security import decode_token
         from app.services.auth_service import get_user_by_username
-        
+
         # Décoder le token pour obtenir le nom d'utilisateur
         payload = decode_token(access_token)
         username = payload.get("sub")
@@ -161,7 +164,7 @@ async def get_user_gamification_stats(request):
             
             # Ajouter des statistiques supplémentaires
             from sqlalchemy import text
-            
+
             # Compter les tentatives totales et réussies
             stats = db.execute(text("""
                 SELECT 

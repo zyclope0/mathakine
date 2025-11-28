@@ -7,9 +7,10 @@ providing initialization, connection management, and utility functions.
 import os
 import sys
 import traceback
+
 import psycopg2
-from loguru import logger
 from dotenv import load_dotenv
+from loguru import logger
 
 from app.db.queries import ExerciseQueries, ResultQueries, UserStatsQueries
 

@@ -1,12 +1,15 @@
 """
 Vues pour les exercices simples de Mathakine - Version simplifiée
 """
+import traceback
+
 from starlette.requests import Request
 from starlette.responses import RedirectResponse
-from server.views import get_current_user, render_template, render_error
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
+
 from app.core.constants import DISPLAY_NAMES
-import traceback
+from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from server.views import get_current_user, render_error, render_template
+
 
 # Page des exercices simples
 async def simple_exercises_page(request: Request):

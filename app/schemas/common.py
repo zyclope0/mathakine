@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Any, List, Dict, Generic, TypeVar, Union
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
+
+from pydantic import BaseModel, Field
 
 # Type générique pour les réponses
 T = TypeVar('T')

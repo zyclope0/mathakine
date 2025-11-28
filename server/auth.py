@@ -4,6 +4,7 @@ Module d'authentification pour le backend Starlette.
 Fournit les fonctions d'authentification utilisées par les handlers API.
 """
 from loguru import logger
+
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 
 
@@ -31,10 +32,11 @@ async def get_current_user(request):
             return None
             
         # Utiliser le service d'authentification pour décoder le token
+        from fastapi import HTTPException
+
         from app.core.security import decode_token
         from app.services.auth_service import get_user_by_username
-        from fastapi import HTTPException
-        
+
         # Décoder le token pour obtenir le nom d'utilisateur
         try:
             payload = decode_token(access_token)

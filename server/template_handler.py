@@ -4,13 +4,14 @@ Template handler module for Mathakine.
 This module centralizes template rendering logic, providing consistent
 error handling and template context preparation across the application.
 """
-from starlette.requests import Request
-from starlette.templating import Jinja2Templates
-from starlette.responses import HTMLResponse
-from pathlib import Path
 import json
 import traceback
+from pathlib import Path
+
 from loguru import logger
+from starlette.requests import Request
+from starlette.responses import HTMLResponse
+from starlette.templating import Jinja2Templates
 
 # Get templates directory
 BASE_DIR = Path(__file__).resolve().parent.parent

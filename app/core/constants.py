@@ -2,7 +2,8 @@
 Constants centralisées pour l'application Mathakine
 Ce fichier contient toutes les constantes utilisées dans l'application.
 """
-from app.models.exercise import ExerciseType, DifficultyLevel
+from app.models.exercise import DifficultyLevel, ExerciseType
+
 
 # Types d'exercices - compatible avec l'enum ExerciseType
 class ExerciseTypes:

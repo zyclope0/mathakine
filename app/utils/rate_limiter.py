@@ -5,6 +5,7 @@ Limite le nombre de générations par utilisateur et par période.
 from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
+
 from loguru import logger
 
 

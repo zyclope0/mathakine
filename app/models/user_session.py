@@ -1,10 +1,12 @@
 """
 Modèle SQLAlchemy pour les sessions utilisateur
 """
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, JSON, ForeignKey
+from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Integer,
+                        String, Text)
+from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from sqlalchemy.dialects.postgresql import INET
+
 from app.db.base import Base
 
 
@@ -37,6 +39,6 @@ class UserSession(Base):
 
     def extend_session(self, hours: int = 24):
         """Prolonger la session"""
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta, timezone
         self.expires_at = datetime.now(timezone.utc) + timedelta(hours=hours)
         self.last_activity = datetime.now(timezone.utc)

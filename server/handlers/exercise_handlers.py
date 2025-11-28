@@ -1,20 +1,25 @@
 """
 Handlers pour la génération d'exercices (API)
 """
-import traceback
 import json
-from starlette.responses import JSONResponse, RedirectResponse, StreamingResponse
+import traceback
+
+from loguru import logger
 from starlette.requests import Request
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from server.exercise_generator import generate_ai_exercise, generate_simple_exercise, ensure_explanation
+from starlette.responses import (JSONResponse, RedirectResponse,
+                                 StreamingResponse)
+
+from app.core.config import settings
 from app.core.messages import SystemMessages
 from app.models.exercise import ExerciseType
-from app.core.config import settings
-from app.utils.error_handler import ErrorHandler
-from loguru import logger
-
 # Import du service de badges
 from app.services.badge_service import BadgeService
+from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from app.utils.error_handler import ErrorHandler
+from server.exercise_generator import (ensure_explanation,
+                                       generate_ai_exercise,
+                                       generate_simple_exercise)
+
 
 # Fonction pour obtenir l'utilisateur courant
 async def get_current_user(request):
@@ -25,10 +30,11 @@ async def get_current_user(request):
             return None
             
         # Utiliser le service d'authentification pour décoder le token
+        from fastapi import HTTPException
+
         from app.core.security import decode_token
         from app.services.auth_service import get_user_by_username
-        from fastapi import HTTPException
-        
+
         # Décoder le token pour obtenir le nom d'utilisateur
         try:
             payload = decode_token(access_token)
@@ -84,7 +90,8 @@ async def generate_exercise(request):
     use_ai = params.get('ai', False)
     
     # Normaliser et valider les paramètres de manière centralisée
-    from server.exercise_generator import normalize_and_validate_exercise_params
+    from server.exercise_generator import \
+        normalize_and_validate_exercise_params
     
     exercise_type, difficulty = normalize_and_validate_exercise_params(exercise_type_raw, difficulty_raw)
     
@@ -156,8 +163,9 @@ async def get_exercise(request):
         # Utiliser le service ORM ExerciseService
         db = EnhancedServerAdapter.get_db_session()
         try:
-            from app.models.exercise import Exercise
             import json as json_module
+
+            from app.models.exercise import Exercise
             
             def safe_parse_json(value, default=None):
                 """Parse JSON en gérant les cas None, string vide, ou JSON invalide"""
@@ -170,8 +178,8 @@ async def get_exercise(request):
                         return default if default is not None else []
                 return value
             
-            from sqlalchemy import cast, String
-            
+            from sqlalchemy import String, cast
+
             # IMPORTANT: Charger les enums en tant que strings pour éviter les erreurs de conversion
             # SQLAlchemy essaie de convertir automatiquement et échoue si la DB contient des minuscules
             # Solution: Utiliser cast() pour forcer le chargement en string dès le début
@@ -259,9 +267,11 @@ async def submit_answer(request):
         # Utiliser le service ORM ExerciseService
         db_exercise = EnhancedServerAdapter.get_db_session()
         try:
-            from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
-            from sqlalchemy import cast, String
-            
+            from sqlalchemy import String, cast
+
+            from app.models.exercise import (DifficultyLevel, Exercise,
+                                             ExerciseType)
+
             # IMPORTANT: Charger les enums en tant que strings pour éviter les erreurs de conversion
             exercise_row = db_exercise.query(
                 Exercise.id,
@@ -449,7 +459,8 @@ async def get_exercises_list(request):
         search = request.query_params.get('search') or request.query_params.get('q')  # Support 'search' et 'q'
         
         # Normaliser les paramètres de filtrage AVANT de les utiliser dans la requête
-        from server.exercise_generator import normalize_and_validate_exercise_params
+        from server.exercise_generator import \
+            normalize_and_validate_exercise_params
         exercise_type, difficulty = normalize_and_validate_exercise_params(exercise_type_raw, difficulty_raw)
         
         # Si aucun paramètre n'était fourni, remettre à None pour ne pas filtrer
@@ -471,9 +482,11 @@ async def get_exercises_list(request):
         # Utiliser le service ORM ExerciseService (100% ORM comme recommandé par l'audit)
         db = EnhancedServerAdapter.get_db_session()
         try:
-            from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
-            from sqlalchemy import or_, text, cast, String
-            
+            from sqlalchemy import String, cast, or_, text
+
+            from app.models.exercise import (DifficultyLevel, Exercise,
+                                             ExerciseType)
+
             # Construire la requête ORM
             query = db.query(Exercise).filter(Exercise.is_archived == False)
             
@@ -667,7 +680,8 @@ async def generate_exercise_api(request):
         use_ai = data.get('ai', False)
         
         # Normaliser et valider les paramètres de manière centralisée
-        from server.exercise_generator import normalize_and_validate_exercise_params
+        from server.exercise_generator import \
+            normalize_and_validate_exercise_params
         
         exercise_type, difficulty = normalize_and_validate_exercise_params(exercise_type_raw, difficulty_raw)
         
@@ -743,7 +757,8 @@ async def generate_ai_exercise_stream(request):
         prompt = request.query_params.get('prompt', '')
         
         # Normaliser et valider les paramètres de manière centralisée
-        from server.exercise_generator import normalize_and_validate_exercise_params
+        from server.exercise_generator import \
+            normalize_and_validate_exercise_params
         
         exercise_type, difficulty = normalize_and_validate_exercise_params(exercise_type_raw, difficulty_raw)
         

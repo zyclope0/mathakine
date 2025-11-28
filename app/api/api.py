@@ -3,7 +3,8 @@ API principale regroupant tous les routeurs
 """
 from fastapi import APIRouter
 
-from app.api.endpoints import users, exercises, challenges, auth, recommendations, badges
+from app.api.endpoints import (auth, badges, challenges, exercises,
+                               recommendations, users)
 
 api_router = APIRouter()
 

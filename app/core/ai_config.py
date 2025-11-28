@@ -3,8 +3,10 @@ Configuration centralisée pour la génération IA.
 Best practice : Paramètres adaptatifs selon le type de challenge.
 """
 from typing import Dict, Optional
-from app.core.config import settings
+
 from loguru import logger
+
+from app.core.config import settings
 
 
 class AIConfig:

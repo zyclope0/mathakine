@@ -1,14 +1,17 @@
 """
 Modèle SQLAlchemy pour les utilisateurs - Version étendue pour futures fonctionnalités
 """
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, Enum, Date, JSON
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql.expression import text
-from sqlalchemy.sql import func
-from sqlalchemy.types import TypeDecorator
 import json
 from datetime import datetime, timezone
 from enum import Enum as PyEnum
+
+from sqlalchemy import (JSON, Boolean, Column, Date, DateTime, Enum, Integer,
+                        String, Text)
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from sqlalchemy.sql.expression import text
+from sqlalchemy.types import TypeDecorator
+
 from app.db.base import Base
 
 

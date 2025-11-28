@@ -1,18 +1,21 @@
 """
 Handlers pour la gestion des utilisateurs et statistiques (API)
 """
-import traceback
 import json
 import re
+import traceback
 from datetime import datetime, timedelta, timezone
-from starlette.responses import JSONResponse
-from starlette.requests import Request
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.services.auth_service import create_user, get_user_by_email
-from app.schemas.user import UserCreate
-from app.core.messages import SystemMessages
-from loguru import logger
+
 from fastapi import HTTPException, status
+from loguru import logger
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+
+from app.core.messages import SystemMessages
+from app.schemas.user import UserCreate
+from app.services.auth_service import create_user, get_user_by_email
+from app.services.enhanced_server_adapter import EnhancedServerAdapter
+
 
 async def get_user_stats(request):
     """
@@ -87,9 +90,10 @@ async def get_user_stats(request):
             recent_activity = []
             try:
                 from datetime import datetime, timedelta, timezone
+
                 from app.models.attempt import Attempt
                 from app.models.logic_challenge import LogicChallengeAttempt
-                
+
                 # Calculer la date limite si nécessaire
                 if time_range != "all":
                     days = int(time_range)
@@ -200,7 +204,7 @@ async def get_user_stats(request):
             try:
                 from collections import defaultdict
                 from datetime import datetime, timedelta, timezone
-                
+
                 # Calculer la date de début selon time_range
                 if time_range == "all":
                     start_date = datetime.now(timezone.utc) - timedelta(days=90)  # Par défaut 90 jours
@@ -377,8 +381,10 @@ async def create_user_account(request: Request):
             user = create_user(db, user_create)
             
             # Générer un token de vérification email
-            from app.utils.email_verification import generate_verification_token
             from datetime import datetime, timezone
+
+            from app.utils.email_verification import \
+                generate_verification_token
             
             verification_token = generate_verification_token()
             user.email_verification_token = verification_token
@@ -392,8 +398,9 @@ async def create_user_account(request: Request):
             # Envoyer l'email de vérification
             try:
                 logger.info(f"Préparation envoi email de vérification à {user.email}")
-                from app.services.email_service import EmailService
                 import os
+
+                from app.services.email_service import EmailService
                 frontend_url = os.getenv("FRONTEND_URL", "https://mathakine-frontend.onrender.com")
                 
                 logger.debug(f"Frontend URL: {frontend_url}, Token: {verification_token[:10]}...")
