@@ -205,10 +205,12 @@ async def api_login(request: Request):
             logger.info(f"Connexion réussie pour l'utilisateur: {user.username}")
             
             # Ajouter les informations utilisateur à la réponse
+            from app.core.config import settings
+            access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
             response_data = {
                 "access_token": token_data.get("access_token"),
                 "token_type": token_data.get("token_type", "bearer"),
-                "expires_in": token_data.get("expires_in", 3600),
+                "expires_in": access_token_max_age,
                 "user": {
                     "id": user.id,
                     "username": user.username,
@@ -227,9 +229,20 @@ async def api_login(request: Request):
                 key="access_token",
                 value=token_data.get("access_token"),
                 httponly=True,
-                max_age=token_data.get("expires_in", 3600),
+                max_age=access_token_max_age,
                 samesite="lax"
             )
+            
+            # Définir le cookie refresh_token (nécessaire pour le refresh automatique)
+            refresh_token_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+            if token_data.get("refresh_token"):
+                response.set_cookie(
+                    key="refresh_token",
+                    value=token_data.get("refresh_token"),
+                    httponly=True,
+                    max_age=refresh_token_max_age,
+                    samesite="lax"
+                )
             
             return response
             

@@ -224,11 +224,13 @@ def refresh_access_token(db: Session, refresh_token: str) -> dict:
         RuntimeError: Si une erreur inattendue se produit
     """
     try:
-        # Décoder le token sans vérifier l'expiration (pour pouvoir fournir un message spécifique)
+        # Décoder le token avec vérification de l'expiration
+        # Si le token est expiré, jwt.ExpiredSignatureError sera levée
         payload = jwt.decode(
             refresh_token, 
             settings.SECRET_KEY, 
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.ALGORITHM],
+            options={"verify_exp": True}
         )
         
         # Vérifier que c'est bien un token de rafraîchissement
