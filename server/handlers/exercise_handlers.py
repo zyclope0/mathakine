@@ -403,6 +403,8 @@ async def submit_answer(request):
                 pass
 
             # Retourner le résultat avec l'ID de tentative et les nouveaux badges
+            from app.utils.json_utils import make_json_serializable
+            
             response_data = {
                 "is_correct": is_correct,
                 "correct_answer": correct_answer,
@@ -410,10 +412,13 @@ async def submit_answer(request):
                 "attempt_id": attempt.get('id') if attempt else None
             }
             
-            # Ajouter les nouveaux badges à la réponse
+            # Ajouter les nouveaux badges à la réponse (nettoyer pour sérialisation JSON)
             if new_badges:
-                response_data["new_badges"] = new_badges
+                response_data["new_badges"] = make_json_serializable(new_badges)
                 response_data["badges_earned"] = len(new_badges)
+            
+            # Nettoyer toutes les données avant sérialisation JSON (gère les MagicMock dans les tests)
+            response_data = make_json_serializable(response_data)
             
             return JSONResponse(response_data)
             

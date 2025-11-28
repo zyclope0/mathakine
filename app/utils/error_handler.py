@@ -8,6 +8,7 @@ from loguru import logger
 from starlette.responses import JSONResponse
 
 from app.core.config import settings
+from app.utils.json_utils import make_json_serializable
 
 
 class ErrorHandler:
@@ -57,6 +58,9 @@ class ErrorHandler:
         logger.error(f"{error_type}: {error_message}")
         if include_details:
             logger.debug(f"Traceback complet:\n{traceback.format_exc()}")
+        
+        # Nettoyer les données pour sérialisation JSON (gère les MagicMock dans les tests)
+        response_data = make_json_serializable(response_data)
         
         return JSONResponse(response_data, status_code=status_code)
     
