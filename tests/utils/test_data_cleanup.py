@@ -200,6 +200,22 @@ class TestDataManager:
         """
         logger.info(f"🧹 Début du nettoyage (dry_run={dry_run})...")
         
+        # Vérifier l'état de la session avant de commencer
+        from sqlalchemy.exc import InvalidRequestError, StatementError
+        
+        try:
+            # Tester si la session est utilisable
+            self.db.execute(text("SELECT 1"))
+        except (InvalidRequestError, StatementError, Exception) as session_error:
+            # La session est en état d'erreur, on ne peut pas nettoyer
+            logger.warning(f"⚠️ Session en état d'erreur, nettoyage ignoré : {session_error}")
+            return {
+                'dry_run': dry_run,
+                'success': False,
+                'error': f"Session en état d'erreur : {str(session_error)}",
+                'total_deleted': 0
+            }
+        
         # Identifier les données à supprimer
         test_data = self.identify_test_data()
         

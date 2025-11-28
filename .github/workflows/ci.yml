@@ -1,11 +1,13 @@
 name: 🚀 Mathakine CI/CD Pipeline
 
+# DÉSACTIVÉ : Ce workflow entre en conflit avec tests.yml
+# Utiliser tests.yml pour les tests automatisés
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-  workflow_dispatch:
+  workflow_dispatch:  # Seulement manuel pour éviter les conflits
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main, develop ]
 
 env:
   PYTHON_VERSION: '3.13'

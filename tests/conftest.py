@@ -140,21 +140,45 @@ def get_test_engine():
 # Fixture pour créer une session de base de données pour les tests
 @pytest.fixture
 def db_session():
-    """Crée une session de base de données avec nettoyage automatique."""
+    """
+    Crée une session de base de données avec nettoyage automatique et isolation complète.
+    
+    Cette fixture garantit :
+    1. Une nouvelle session pour chaque test (isolation)
+    2. Rollback automatique en cas d'erreur
+    3. Fermeture propre de la session
+    4. Gestion robuste des erreurs de transaction
+    """
     engine = get_test_engine()
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = SessionLocal()
     
     try:
         yield session
-    finally:
-        # Toujours fermer la session, même en cas d'erreur
+    except Exception:
+        # En cas d'erreur dans le test, rollback immédiatement
         try:
-            session.rollback()  # Rollback toute transaction non commitée
+            session.rollback()
         except Exception:
-            pass  # Ignorer les erreurs de rollback si la session est déjà fermée
+            # Si rollback échoue, la session est probablement déjà en erreur
+            pass
+        raise  # Re-raise l'erreur pour que pytest la gère
+    finally:
+        # Toujours nettoyer la session à la fin du test
+        try:
+            # Rollback toute transaction non commitée
+            # Note: En tests, on ne commit jamais, on rollback toujours
+            if session.is_active:
+                session.rollback()
+        except Exception:
+            # Si rollback échoue (session déjà fermée ou en erreur), ignorer
+            pass
         finally:
-            session.close()  # Fermer la session
+            try:
+                session.close()
+            except Exception:
+                # Ignorer les erreurs de fermeture
+                pass
 
 # Fixture pour créer un token expiré
 @pytest.fixture
@@ -692,12 +716,44 @@ def auto_cleanup_test_data(db_session):
     3. Les supprime de manière sécurisée
     4. Préserve les utilisateurs permanents (ObiWan, maitre_yoda, etc.)
     5. Respecte les contraintes de clés étrangères
+    6. Gère les sessions en état d'erreur (InFailedSqlTransaction)
     """
     # Le test s'exécute ici
     yield
     
     # Nettoyage automatique après le test
     try:
+        # Vérifier l'état de la session avant nettoyage
+        # Si la session est en état d'erreur, créer une nouvelle session pour le nettoyage
+        from sqlalchemy.exc import InvalidRequestError, StatementError
+        
+        try:
+            # Tester si la session est utilisable
+            from sqlalchemy import text
+            from sqlalchemy.exc import InvalidRequestError, StatementError
+            db_session.execute(text("SELECT 1"))
+        except (InvalidRequestError, StatementError, Exception):
+            # La session est en état d'erreur, créer une nouvelle session pour le nettoyage
+            from sqlalchemy.orm import Session
+            engine = get_test_engine()
+            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+            cleanup_session = SessionLocal()
+            try:
+                manager = TestDataManager(cleanup_session)
+                result = manager.cleanup_test_data(dry_run=False)
+                
+                if result.get('success', False):
+                    total_deleted = result.get('total_deleted', 0)
+                    if total_deleted > 0:
+                        print(f"\n🧹 Nettoyage automatique : {total_deleted} éléments de test supprimés")
+                elif not result.get('dry_run', False):
+                    error = result.get('error', 'Erreur inconnue')
+                    print(f"\n⚠️ Erreur lors du nettoyage automatique : {error}")
+            finally:
+                cleanup_session.close()
+            return
+        
+        # Si la session est utilisable, utiliser la session existante
         manager = TestDataManager(db_session)
         result = manager.cleanup_test_data(dry_run=False)
         
@@ -710,9 +766,10 @@ def auto_cleanup_test_data(db_session):
             error = result.get('error', 'Erreur inconnue')
             print(f"\n⚠️ Erreur lors du nettoyage automatique : {error}")
             
-    except Exception as e:
+    except Exception as cleanup_error:
         # En cas d'erreur critique, on log mais on ne fait pas échouer le test
-        print(f"\n❌ Erreur critique lors du nettoyage automatique : {str(e)}")
+        # Le rollback dans db_session s'occupera du nettoyage
+        print(f"\n❌ Erreur critique lors du nettoyage automatique : {str(cleanup_error)}")
 
 @pytest.fixture
 def test_data_manager(db_session):
