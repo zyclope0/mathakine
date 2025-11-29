@@ -48,6 +48,7 @@
 - ✅ **60%+ coverage**
 - ✅ **CI/CD automatisé**
 - ✅ **Tests critiques** : auth, challenges, exercises
+- ✅ **Base de test séparée** : `TEST_DATABASE_URL` obligatoire (protection production)
 
 ---
 
@@ -87,9 +88,13 @@ markers =
 ```
 
 #### conftest.py
+
+**⚠️ IMPORTANT** : Les tests utilisent maintenant `TEST_DATABASE_URL` (PostgreSQL) au lieu de SQLite. Voir [CREATE_TEST_DATABASE.md](CREATE_TEST_DATABASE.md) pour la configuration.
+
 ```python
 # tests/conftest.py
 import pytest
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient
@@ -97,13 +102,17 @@ from starlette.testclient import TestClient
 from app.db.base import Base
 from server.app import create_app
 
-# Database de test
-TEST_DATABASE_URL = "sqlite:///./test.db"
+# Database de test - DOIT être définie dans l'environnement
+# Voir docs/01-GUIDES/CREATE_TEST_DATABASE.md
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
+if not TEST_DATABASE_URL:
+    raise Exception("TEST_DATABASE_URL doit être définie pour exécuter les tests")
 
 @pytest.fixture(scope="session")
 def engine():
     """Engine SQLAlchemy pour tests"""
-    engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+    # Utilise TEST_DATABASE_URL (PostgreSQL) - protection production
+    engine = create_engine(TEST_DATABASE_URL, pool_pre_ping=True)
     Base.metadata.create_all(bind=engine)
     yield engine
     Base.metadata.drop_all(bind=engine)
@@ -622,7 +631,8 @@ jobs:
       
       - name: Run tests
         env:
-          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_mathakine
+          TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          TESTING: "true"
         run: |
           pytest tests/ -v --cov=app --cov=server --cov-report=xml
       

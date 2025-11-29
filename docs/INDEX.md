@@ -47,10 +47,11 @@ docs/
 ├── 02-FEATURES/           # 📙 Fonctionnalités (1+ docs)
 │   └── I18N.md            # Internationalisation (next-intl)
 │
-├── 03-PROJECT/            # 📕 Gestion projet (3+ docs)
+├── 03-PROJECT/            # 📕 Gestion projet (4+ docs)
 │   ├── ROADMAP.md         # Feuille de route
 │   ├── CHANGELOG.md       # Historique versions
 │   ├── BILAN_COMPLET.md   # Bilan phases 1-6
+│   ├── RAPPORT_VERIFICATION_CHALLENGES.md  # Vérification challenges (29/11/2025)
 │   └── PHASES/            # Documentation phases
 │       ├── PHASE6_PLAN.md
 │       ├── PHASE6_RESULTAT.md

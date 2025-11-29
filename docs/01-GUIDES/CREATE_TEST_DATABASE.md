@@ -18,7 +18,7 @@ Les tests peuvent supprimer ou modifier des données. Pour éviter d'affecter la
 2. Cliquez sur **"New +"** → **"PostgreSQL"**
 3. Configurez la nouvelle base :
    - **Name** : `mathakine-test` (ou `mathakine_test`)
-   - **Database** : `mathakine_test`
+   - **Database** : `mathakine_test` (ou un nom similaire)
    - **Region** : `Frankfurt` (même région que votre base de production)
    - **Plan** : `Free` (suffisant pour les tests)
 4. Cliquez sur **"Create Database"**
@@ -29,13 +29,24 @@ Les tests peuvent supprimer ou modifier des données. Pour éviter d'affecter la
 2. Dans l'onglet **"Connections"**, copiez **"Internal Database URL"**
 3. Elle ressemble à : `postgresql://user:password@host:5432/mathakine_test`
 
+**Exemple réel** (base de test créée le 29/11/2025) :
+- **Database** : `mathakine_test_jk25`
+- **Username** : `mathakine_test_jk25_user`
+- **Host** : `dpg-d4lj1n9r0fns73fc6ncg-a.frankfurt-postgres.render.com`
+- **URL** : `postgresql://mathakine_test_jk25_user:password@dpg-d4lj1n9r0fns73fc6ncg-a/mathakine_test_jk25`
+
 ### **Étape 3 : Initialiser le Schéma**
 
 Utilisez le script Python pour initialiser la base :
 
 ```bash
+# Option A : Via le script dédié (recommandé)
+python scripts/init_test_database_render.py
+
+# Option B : Manuellement
 # Définir temporairement DATABASE_URL vers la nouvelle base
 export DATABASE_URL="postgresql://user:password@host:5432/mathakine_test"
+export TESTING=true
 
 # Initialiser le schéma
 python -c "from app.db.init_db import create_tables_with_test_data; create_tables_with_test_data()"
@@ -48,10 +59,11 @@ Dans le dashboard Render, pour votre service backend (`mathakine-alpha`) :
 1. Allez dans **"Environment"**
 2. Ajoutez la variable :
    ```
-   TEST_DATABASE_URL=postgresql://user:password@host:5432/mathakine_test
+   Key: TEST_DATABASE_URL
+   Value: postgresql://user:password@host:5432/mathakine_test
    ```
-3. **Important** : Gardez `DATABASE_URL` pointant vers la base de production
-4. Sauvegardez et redéployez
+3. **IMPORTANT** : Vérifiez que `DATABASE_URL` pointe toujours vers la base de **production** (`mathakine`)
+4. Cliquez sur **"Save Changes"** (Render redéploiera automatiquement)
 
 ---
 
