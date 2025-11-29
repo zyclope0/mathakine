@@ -42,8 +42,36 @@ def setup_test_environment():
     # Définir les variables d'environnement pour les tests
     os.environ["TESTING"] = "true"
 
-    # Utiliser la base de données PostgreSQL définie dans .env
-    os.environ["TEST_DATABASE_URL"] = os.environ.get("DATABASE_URL")
+    # SÉCURITÉ CRITIQUE : Ne JAMAIS utiliser DATABASE_URL comme fallback pour les tests
+    # Si TEST_DATABASE_URL n'est pas défini, utiliser une base de test par défaut
+    if "TEST_DATABASE_URL" not in os.environ:
+        # Utiliser une base de test par défaut (locale)
+        default_test_db = "postgresql://postgres:postgres@localhost/test_mathakine"
+        os.environ["TEST_DATABASE_URL"] = default_test_db
+        print(f"⚠️  ATTENTION: TEST_DATABASE_URL non défini, utilisation de la base de test par défaut: {default_test_db}")
+        print("   Pour utiliser une base spécifique, définir TEST_DATABASE_URL dans l'environnement")
+    
+    # Vérification de sécurité : empêcher l'utilisation accidentelle de la production
+    test_db_url = os.environ.get("TEST_DATABASE_URL", "")
+    prod_db_url = os.environ.get("DATABASE_URL", "")
+    
+    # Si TEST_DATABASE_URL pointe vers la même base que DATABASE_URL, c'est dangereux
+    if test_db_url and prod_db_url and test_db_url == prod_db_url:
+        # Extraire le nom de la base de données
+        import re
+        test_db_match = re.search(r'/([^/?]+)', test_db_url)
+        prod_db_match = re.search(r'/([^/?]+)', prod_db_url)
+        if test_db_match and prod_db_match:
+            test_db_name = test_db_match.group(1)
+            prod_db_name = prod_db_match.group(1)
+            if test_db_name == prod_db_name and "test" not in test_db_name.lower():
+                raise RuntimeError(
+                    f"🚨 SÉCURITÉ: TEST_DATABASE_URL pointe vers la même base que DATABASE_URL ({test_db_name})!\n"
+                    f"   Cela pourrait supprimer les données de production!\n"
+                    f"   TEST_DATABASE_URL={test_db_url}\n"
+                    f"   DATABASE_URL={prod_db_url}\n"
+                    f"   Solution: Définir TEST_DATABASE_URL vers une base de test séparée."
+                )
 
     yield  # Exécuter les tests
 
@@ -127,8 +155,23 @@ def get_test_engine():
     """Obtient ou crée l'engine de test partagé."""
     global _test_engine
     if _test_engine is None:
+        # SÉCURITÉ CRITIQUE : Utiliser SQLALCHEMY_DATABASE_URL qui utilise TEST_DATABASE_URL si TESTING=True
+        # Ne JAMAIS utiliser settings.DATABASE_URL directement dans les tests
+        test_db_url = settings.SQLALCHEMY_DATABASE_URL
+        
+        # Vérification supplémentaire de sécurité
+        if not test_db_url or test_db_url == settings.DATABASE_URL:
+            # Si SQLALCHEMY_DATABASE_URL n'est pas différent de DATABASE_URL, c'est suspect
+            if "test" not in test_db_url.lower() and "localhost" not in test_db_url:
+                raise RuntimeError(
+                    f"🚨 SÉCURITÉ: Tentative d'utiliser la base de production dans les tests!\n"
+                    f"   SQLALCHEMY_DATABASE_URL={test_db_url}\n"
+                    f"   DATABASE_URL={settings.DATABASE_URL}\n"
+                    f"   Assurez-vous que TEST_DATABASE_URL est défini et pointe vers une base de test."
+                )
+        
         _test_engine = create_engine(
-            settings.DATABASE_URL,
+            test_db_url,
             pool_pre_ping=True,  # Vérifie les connexions avant utilisation
             pool_size=5,  # Nombre de connexions dans le pool
             max_overflow=10,  # Nombre max de connexions supplémentaires

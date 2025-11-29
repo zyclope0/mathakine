@@ -46,6 +46,22 @@ def main():
         print("ERREUR: DATABASE_URL non definie")
         return 1
     
+    # SÉCURITÉ : Vérifier qu'on n'est pas en production
+    is_production = (
+        os.getenv("NODE_ENV") == "production" or 
+        os.getenv("ENVIRONMENT") == "production" or
+        os.getenv("MATH_TRAINER_PROFILE") == "prod" or
+        "render.com" in database_url.lower() or
+        "production" in database_url.lower()
+    )
+    
+    if is_production:
+        print("🚨 ATTENTION: Ce script ne peut pas être exécuté en production!")
+        print(f"   DATABASE_URL={database_url[:50]}...")
+        print("   Pour forcer l'exécution, définir FORCE_CLEAN=true")
+        if os.getenv("FORCE_CLEAN", "").lower() != "true":
+            return 1
+    
     print(f"Connexion a: {database_url[:50]}...")
     
     # Creer engine sans pool
