@@ -48,17 +48,17 @@ export function AccessibilityToolbar() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
+          variant="default"
           size="icon"
           className={cn(
-            "fixed bottom-4 right-4 z-50 h-11 w-11 rounded-full shadow-lg",
-            "bg-background/80 backdrop-blur-sm border-2",
-            "transition-all duration-200 hover:scale-105",
-            activeCount > 0 && "border-primary ring-2 ring-primary/20"
+            "fixed bottom-4 right-4 z-[9999] h-12 w-12 rounded-full shadow-xl",
+            "bg-primary text-primary-foreground border-2 border-primary-foreground/20",
+            "transition-all duration-200 hover:scale-110 hover:shadow-2xl",
+            activeCount > 0 && "ring-4 ring-primary/30"
           )}
           aria-label={`Accessibilité${activeCount > 0 ? ` (${activeCount} actif${activeCount > 1 ? 's' : ''})` : ''}`}
         >
-          <Settings2 className="h-5 w-5" />
+          <Settings2 className="h-6 w-6" />
           {activeCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
               {activeCount}
