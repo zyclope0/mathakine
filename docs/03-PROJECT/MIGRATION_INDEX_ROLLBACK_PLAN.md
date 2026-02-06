@@ -1,5 +1,7 @@
 # Plan de Migration - Index Manquants sur `exercises`
 
+> **Statut : ✅ APPLIQUÉ** - Migration déployée en production le 06/02/2026
+
 **Date :** 2026-02-06  
 **Migration :** `20260206_1600_add_exercises_missing_indexes.py`  
 **Impact :** Performance +15-25% sur requêtes de listage exercices

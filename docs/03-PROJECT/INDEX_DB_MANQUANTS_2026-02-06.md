@@ -1,8 +1,23 @@
 # 📊 Analyse Index Base de Données - 06/02/2026
 
+> **Statut : ✅ COMPLÉTÉ** - Tous les index ont été appliqués le 06/02/2026
+
 ## 🎯 Objectif
 
 Analyser les index PostgreSQL manquants pour optimiser les performances des requêtes fréquentes.
+
+---
+
+## ✅ Résumé des actions réalisées
+
+| Migration | Index créés | Statut |
+|-----------|-------------|--------|
+| `20260206_1530_add_exercises_indexes.py` | 8 index (exercises) | ✅ Appliqué |
+| `20260206_1535_add_users_indexes.py` | 2 index (users) | ✅ Appliqué |
+| `20260206_1540_add_user_achievements_composite_idx.py` | 1 index unique (user_achievements) | ✅ Appliqué |
+| `20260206_1600_add_exercises_missing_indexes.py` | 2 index (is_archived, archived_age) | ✅ Appliqué |
+
+**Plan de rollback** : Voir [MIGRATION_INDEX_ROLLBACK_PLAN.md](MIGRATION_INDEX_ROLLBACK_PLAN.md)
 
 ---
 
@@ -139,14 +154,22 @@ Analyser les index PostgreSQL manquants pour optimiser les performances des requ
 
 ## 📋 Récapitulatif
 
-| Table | Index manquants | Priorité | Impact performance |
-|-------|-----------------|----------|-------------------|
-| **exercises** | **6 index** (3 simples + 3 composites) | 🔴 CRITIQUE | 30-50% gain |
-| **users** | 2 index simples | 🟡 HAUTE | 10-20% gain |
-| user_achievements | 1 index composite | 🟢 BASSE | 5% gain |
-| ✅ **Autres tables** | 0 | - | - |
+| Table | Index ajoutés | Migration | Statut |
+|-------|--------------|-----------|--------|
+| **exercises** | 8 index initiaux + 2 supplémentaires | `20260206_1530` + `20260206_1600` | ✅ |
+| **users** | 2 index simples | `20260206_1535` | ✅ |
+| **user_achievements** | 1 index composite unique | `20260206_1540` | ✅ |
 
-**Total** : 9 index manquants (6 critiques)
+**Total appliqué** : 13 index (tous déployés en production)
+
+### Index supplémentaires (session du 06/02/2026 soir)
+
+| Index | Colonnes | Justification |
+|-------|----------|---------------|
+| `ix_exercises_is_archived` | `is_archived` | Filtrage 90%+ des requêtes |
+| `ix_exercises_archived_age` | `(is_archived, age_group)` | Requêtes combinées fréquentes |
+
+*Note : `idx_exercises_age_group` existait déjà, donc non recréé.*
 
 ---
 
@@ -373,13 +396,13 @@ db.close()
 
 ---
 
-## 🎯 Prochaines étapes
+## 🎯 Étapes réalisées
 
 1. ✅ **Analyse complétée** (ce document)
-2. 🔄 **Créer migrations Alembic** (2 fichiers à créer)
-3. 🔄 **Tester en dev** (base SQLite ou PostgreSQL locale)
-4. 🔄 **Vérifier impact performance** (script de test)
-5. 🔄 **Déployer en production** (`alembic upgrade head`)
+2. ✅ **Migrations Alembic créées** (4 fichiers dans `migrations/versions/`)
+3. ✅ **Testé en dev** (base PostgreSQL)
+4. ✅ **Script de vérification** (`scripts/verify_indexes.py`)
+5. ✅ **Déployé en production** (Render - auto via build command)
 
 ---
 
@@ -403,6 +426,31 @@ db.close()
 ---
 
 **Date** : 06/02/2026  
-**Auteur** : Assistant IA (Claude Sonnet 4.5)  
-**Validation** : Code réel analysé  
-**Statut** : ✅ ANALYSE COMPLÉTÉE - MIGRATIONS À CRÉER
+**Auteur** : Assistant IA (Claude Opus 4.5)  
+**Validation** : Code réel analysé + migrations appliquées  
+**Statut** : ✅ COMPLÉTÉ - TOUTES MIGRATIONS DÉPLOYÉES EN PRODUCTION
+
+---
+
+## 📁 Fichiers de migration créés
+
+```
+migrations/versions/
+├── 20260206_1530_add_exercises_indexes.py       # 8 index exercises
+├── 20260206_1535_add_users_indexes.py           # 2 index users
+├── 20260206_1540_add_user_achievements_composite_idx.py  # 1 index unique
+└── 20260206_1600_add_exercises_missing_indexes.py        # 2 index (archived)
+```
+
+## 🔄 Commandes utiles
+
+```bash
+# Vérifier les index en base
+python scripts/verify_indexes.py
+
+# Rollback dernière migration
+alembic downgrade -1
+
+# État actuel
+alembic current
+```

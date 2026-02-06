@@ -1,12 +1,12 @@
 # README_TECH.md - Mathakine
 
-> Documentation technique de reference - Etat actuel du projet au 06/02/2026
+> Documentation technique de reference - Mise a jour le 06/02/2026 (soir)
 
 ---
 
 ## 1. Vue d'ensemble
 
-**Mathakine** est une plateforme educative de mathematiques gamifiee avec un theme Star Wars.
+**Mathakine** est une plateforme educative de mathematiques gamifiee avec un theme aventure spatiale.
 Elle propose des exercices, des defis logiques, des badges, un chatbot IA et un systeme de recommandations adaptatives.
 
 | Composant | Technologie | Version |
@@ -187,7 +187,7 @@ Couche independante du framework HTTP :
 | GET | `/api/users/me/sessions` | user_handlers | ✨ Sessions actives (RGPD) |
 | DELETE | `/api/users/me/sessions/{id}` | user_handlers | ✨ Revoquer session |
 | GET | `/api/exercises` | exercise_handlers | Liste exercices (filtres, pagination) |
-| GET | `/api/exercises/stats` | exercise_handlers | ✨ Statistiques Holocron (theme Star Wars) |
+| GET | `/api/exercises/stats` | exercise_handlers | ✨ Statistiques Académie (thème gamifié) |
 | GET | `/api/exercises/{id}` | exercise_handlers | Detail exercice |
 | POST | `/api/exercises/{id}/submit` | exercise_handlers | Soumettre reponse |
 | GET | `/api/challenges` | challenge_handlers | Liste defis logiques |
@@ -268,7 +268,16 @@ Le systeme utilise l'API OpenAI pour generer des exercices et defis :
 
 ## 9. Incoherences connues et dette technique
 
-### Resolues (06/02/2026)
+### Resolues (06/02/2026 soir)
+| ID | Description | Resolution |
+|---|---|---|
+| ~~FIX-1~~ | ~~Dark mode ne bascule pas~~ | Selecteurs CSS corriges (`.dark[data-theme]` vs `.dark [data-theme]`) |
+| ~~FIX-2~~ | ~~Bouton accessibilite invisible~~ | React Portal dedie + z-index 99999 |
+| ~~FIX-3~~ | ~~Generation IA "non authentifie"~~ | Cookies via `request.cookies.getAll()` |
+| ~~FIX-4~~ | ~~Erreur `max_completion_tokens`~~ | Dependance `openai>=1.40.0` |
+| ~~FIX-5~~ | ~~Index DB manquants~~ | 4 migrations Alembic (13 index) |
+
+### Resolues (06/02/2026 matin)
 | ID | Description | Resolution |
 |---|---|---|
 | ~~INC-B5~~ | ~~3 patterns de logging~~ | Unifie sur `get_logger(__name__)` (35 fichiers corriges) |

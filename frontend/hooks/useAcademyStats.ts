@@ -7,9 +7,13 @@ import { api, ApiClientError } from '@/lib/api/client';
  * Types pour les statistiques globales de l'Académie
  */
 export interface AcademyStatistics {
+  total_exercises: number;
   total_challenges: number;
-  archived_challenges: number;
+  total_content: number;
+  archived_exercises: number;
   ai_generated: number;
+  ai_generated_exercises: number;
+  ai_generated_challenges: number;
   ai_generated_percentage: number;
 }
 
@@ -36,8 +40,11 @@ export interface ApprenticeGroupData {
 
 export interface GlobalPerformance {
   total_attempts: number;
+  exercise_attempts: number;
+  challenge_attempts: number;
   successful_attempts: number;
   mastery_rate: number;
+  challenge_mastery_rate: number;
   message: string;
 }
 

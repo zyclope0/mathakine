@@ -840,6 +840,29 @@
       "title": "Prêt à commencer ?",
       "description": "Rejoignez Mathakine et découvrez une nouvelle façon d'apprendre les mathématiques",
       "button": "Créer un compte gratuit"
+    },
+    "academy": {
+      "title": "L'Académie en chiffres",
+      "exercises": {
+        "label": "Exercices",
+        "tooltip": "Nombre total d'exercices mathématiques disponibles (addition, soustraction, multiplication, division)"
+      },
+      "challenges": {
+        "label": "Défis",
+        "tooltip": "Nombre total de défis logiques disponibles (séquences, patterns, énigmes, graphes)"
+      },
+      "mastery": {
+        "label": "Maîtrise",
+        "tooltip": "Taux de réussite global de tous les utilisateurs sur l'ensemble des exercices"
+      },
+      "aiGenerated": {
+        "label": "Créés par IA",
+        "tooltip": "Exercices et défis générés automatiquement par intelligence artificielle"
+      },
+      "attempts": {
+        "label": "Tentatives",
+        "tooltip": "Nombre total de tentatives effectuées par tous les utilisateurs"
+      }
     }
   },
   "profile": {

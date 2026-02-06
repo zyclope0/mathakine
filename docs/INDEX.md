@@ -33,14 +33,16 @@ docs/
 │   └── QU_EST_CE_QUE_VENV.md  # Guide Python venv
 │
 ├── 02-FEATURES/           # 📙 Fonctionnalités
-│   └── I18N.md                 # Internationalisation (next-intl)
+│   ├── I18N.md                 # Internationalisation (next-intl)
+│   └── ANALYTICS_PROGRESSION.md  # 🆕 Idées graphiques progression
 │
 ├── 03-PROJECT/            # 📕 Gestion projet
 │   ├── BILAN_COMPLET.md        # Bilan phases 1-6
 │   ├── RAPPORT_VERIFICATION_CHALLENGES.md  # Vérification 29/11/2025
 │   ├── PLACEHOLDERS_ET_TODO.md # 13 endpoints à implémenter
 │   ├── RATIONALISATION_DOCS_2026-02-06.md  # 🆕 Rationalisation docs
-│   ├── INDEX_DB_MANQUANTS_2026-02-06.md    # 🆕 Analyse index DB
+│   ├── INDEX_DB_MANQUANTS_2026-02-06.md    # 🆕 Analyse index DB (✅ Complété)
+│   ├── MIGRATION_INDEX_ROLLBACK_PLAN.md    # 🆕 Plan rollback migrations
 │   ├── AUDIT_FINAL_DOCS_GITIGNORE_2026-02-06.md  # 🆕 Audit gitignore
 │   ├── RECAP_FINAL_2026-02-06.md           # 🆕 Récapitulatif complet
 │   ├── MISSION_COMPLETE_2026-02-06.md      # 🆕 Rapport final mission
@@ -143,7 +145,16 @@ docs/
 
 ## 🔄 Dernières mises à jour
 
-### 06/02/2026
+### 06/02/2026 (soir)
+- ✅ **Index DB appliqués** : 13 index de performance créés et déployés
+- ✅ **Accessibilité refactorisée** : Toolbar en React Portal (bottom-left)
+- ✅ **Fix génération IA** : Authentification exercices + dépendance openai>=1.40.0
+- ✅ **Fix dark mode** : Sélecteurs CSS corrigés
+- ✅ **Thème simplifié** : Suppression références Star Wars (droits d'auteur)
+- ✅ **Fix endpoint stats** : `/api/exercises/stats` avec challenges
+- 📝 **ANALYTICS_PROGRESSION.md** : Idées de graphiques de progression
+
+### 06/02/2026 (matin)
 - ✅ **Unification Starlette** : FastAPI archivé, architecture simplifiée
 - ✅ **3 nouveaux widgets dashboard** : Série, Défis, Précision
 - ✅ **Documentation rationalisée** : ~200 docs archivés supprimés

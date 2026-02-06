@@ -606,5 +606,81 @@ Avant de demander de l'aide, vérifier :
 
 ---
 
+## 🎨 THÈME ET ACCESSIBILITÉ
+
+### ❌ Dark mode ne fonctionne pas
+
+**Symptôme** : Le bouton dark mode est cliqué mais l'interface ne change pas
+
+**Cause** : Sélecteurs CSS incorrects dans `globals.css`
+
+**Solution** :
+```css
+/* ❌ INCORRECT - sélecteur descendant */
+.dark [data-theme='spatial'] { ... }
+
+/* ✅ CORRECT - même élément */
+.dark[data-theme='spatial'] { ... }
+```
+
+**Explication** : Les classes `dark` et `data-theme` sont sur le même élément (`<html>`), pas en relation parent-enfant.
+
+---
+
+### ❌ Bouton accessibilité invisible
+
+**Symptôme** : Le bouton accessibilité (roue crantée) n'apparaît pas ou est mal positionné
+
+**Causes possibles** :
+
+1. **`willChange: 'opacity, transform'`** dans un composant parent (crée un nouveau stacking context et casse `position: fixed`)
+2. **z-index insuffisant** (doit être très élevé, ex: 99999)
+3. **Conflits avec d'autres Portals** (ex: DropdownMenu de shadcn/ui)
+
+**Solution** :
+```tsx
+// Utiliser un Portal dédié avec styles inline
+useEffect(() => {
+  let container = document.getElementById('accessibility-portal');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'accessibility-portal';
+    container.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 99999;
+    `;
+    document.body.appendChild(container);
+  }
+}, []);
+
+return createPortal(<MyButton />, container);
+```
+
+---
+
+### ❌ Génération IA "non authentifié" en production
+
+**Symptôme** : Génération IA fonctionne en dev mais pas en prod
+
+**Causes** :
+
+1. **Cookies non transmis** - Utiliser `request.cookies.getAll()` au lieu de `request.headers.get('cookie')`
+2. **Vérification auth manquante** côté client
+3. **Version openai trop ancienne** - Utiliser `openai>=1.40.0`
+
+**Solution frontend (route proxy)** :
+```typescript
+// ✅ CORRECT
+const allCookies = request.cookies.getAll();
+const cookies = allCookies.map(c => `${c.name}=${c.value}`).join('; ');
+
+// ❌ INCORRECT (peut échouer en production)
+const cookies = request.headers.get('cookie');
+```
+
+---
+
 **Bon debugging !** 🔧✅
 

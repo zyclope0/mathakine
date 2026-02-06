@@ -2,23 +2,28 @@
 
 import { useAcademyStats } from '@/hooks/useAcademyStats';
 import { Card, CardContent } from '@/components/ui/card';
-import { BookOpen, Sparkles, Target, Users } from 'lucide-react';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { BookOpen, Sparkles, Target, Users, Puzzle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils/cn';
 import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
+import { useTranslations } from 'next-intl';
 
 /**
  * Widget affichant les statistiques globales de l'Académie
  * 
  * Affiche sur la page d'accueil :
- * - Nombre total d'épreuves disponibles
+ * - Nombre total d'exercices et défis disponibles
  * - Taux de maîtrise global
- * - Nombre d'épreuves générées par IA
+ * - Nombre de contenus générés par IA
  * - Citation de sagesse
+ * 
+ * Chaque stat a un tooltip explicatif au hover.
  */
 export function AcademyStatsWidget() {
   const { stats, isLoading, error } = useAcademyStats();
   const { shouldReduceMotion } = useAccessibleAnimation();
+  const t = useTranslations('home.academy');
 
   // Ne rien afficher en cas d'erreur (widget optionnel)
   if (error || (!isLoading && !stats)) {
@@ -30,8 +35,8 @@ export function AcademyStatsWidget() {
     return (
       <Card className="bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 border-primary/10">
         <CardContent className="py-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="text-center space-y-2">
                 <Skeleton className="h-8 w-8 mx-auto rounded-full" />
                 <Skeleton className="h-6 w-12 mx-auto" />
@@ -49,29 +54,41 @@ export function AcademyStatsWidget() {
   const statItems = [
     {
       icon: BookOpen,
-      value: academy_statistics.total_challenges,
-      label: 'Épreuves',
+      value: academy_statistics.total_exercises,
+      label: t('exercises.label'),
+      tooltip: t('exercises.tooltip'),
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10',
     },
     {
+      icon: Puzzle,
+      value: academy_statistics.total_challenges,
+      label: t('challenges.label'),
+      tooltip: t('challenges.tooltip'),
+      color: 'text-indigo-500',
+      bgColor: 'bg-indigo-500/10',
+    },
+    {
       icon: Target,
       value: `${Math.round(global_performance.mastery_rate)}%`,
-      label: 'Maîtrise',
+      label: t('mastery.label'),
+      tooltip: t('mastery.tooltip'),
       color: 'text-green-500',
       bgColor: 'bg-green-500/10',
     },
     {
       icon: Sparkles,
       value: academy_statistics.ai_generated,
-      label: 'Créées par IA',
+      label: t('aiGenerated.label'),
+      tooltip: t('aiGenerated.tooltip'),
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10',
     },
     {
       icon: Users,
       value: global_performance.total_attempts,
-      label: 'Tentatives',
+      label: t('attempts.label'),
+      tooltip: t('attempts.tooltip'),
       color: 'text-orange-500',
       bgColor: 'bg-orange-500/10',
     },
@@ -88,25 +105,37 @@ export function AcademyStatsWidget() {
         {/* Titre */}
         <div className="text-center">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-            L'Académie en chiffres
+            {t('title')}
           </h3>
         </div>
 
         {/* Stats en grille */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {statItems.map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.label} className="text-center space-y-1">
-                <div className={cn(
-                  "mx-auto flex h-10 w-10 items-center justify-center rounded-full",
-                  item.bgColor
-                )}>
-                  <Icon className={cn("h-5 w-5", item.color)} aria-hidden="true" />
-                </div>
-                <div className="text-xl md:text-2xl font-bold">{item.value}</div>
-                <div className="text-xs text-muted-foreground">{item.label}</div>
-              </div>
+              <Tooltip key={item.label}>
+                <TooltipTrigger asChild>
+                  <div 
+                    className="text-center space-y-1 cursor-help transition-transform hover:scale-105"
+                    tabIndex={0}
+                    role="group"
+                    aria-label={`${item.label}: ${item.value}. ${item.tooltip}`}
+                  >
+                    <div className={cn(
+                      "mx-auto flex h-10 w-10 items-center justify-center rounded-full",
+                      item.bgColor
+                    )}>
+                      <Icon className={cn("h-5 w-5", item.color)} aria-hidden="true" />
+                    </div>
+                    <div className="text-xl md:text-2xl font-bold">{item.value}</div>
+                    <div className="text-xs text-muted-foreground">{item.label}</div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs text-center">
+                  {item.tooltip}
+                </TooltipContent>
+              </Tooltip>
             );
           })}
         </div>

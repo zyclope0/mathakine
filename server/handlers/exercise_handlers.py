@@ -981,16 +981,20 @@ async def get_exercises_stats(request: Request):
     - Difficultés → Rangs de l'Académie (Initié → Grand Maître)
     - Groupes d'âge → Niveaux d'apprentissage
     """
+    logger.info("=== DEBUT get_exercises_stats ===")
     try:
+        logger.debug("Import des modules...")
         from sqlalchemy import func, case
         from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
         from app.models.attempt import Attempt
+        from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+        logger.debug("Imports OK")
         
         db = EnhancedServerAdapter.get_db_session()
         
         try:
             # ════════════════════════════════════════════════════════════════
-            # 1. STATISTIQUES GÉNÉRALES - Chroniques de l'Académie
+            # 1. STATISTIQUES GÉNÉRALES - Chroniques de l'Académie (Exercices)
             # ════════════════════════════════════════════════════════════════
             
             total_exercises = db.query(func.count(Exercise.id)).filter(
@@ -1143,24 +1147,54 @@ async def get_exercises_stats(request: Request):
                 })
             
             # ════════════════════════════════════════════════════════════════
-            # 6. CONSTRUCTION DE LA RÉPONSE - Chroniques de l'Académie
+            # 6. STATISTIQUES DES DÉFIS LOGIQUES (Challenges)
             # ════════════════════════════════════════════════════════════════
+            
+            total_logic_challenges = db.query(func.count(LogicChallenge.id)).filter(
+                LogicChallenge.is_archived == False
+            ).scalar() or 0
+            
+            # Tous les challenges sont actuellement générés par IA
+            ai_generated_challenges = total_logic_challenges
+            
+            # Tentatives sur les défis logiques
+            total_challenge_attempts = db.query(func.count(LogicChallengeAttempt.id)).scalar() or 0
+            correct_challenge_attempts = db.query(func.count(LogicChallengeAttempt.id)).filter(
+                LogicChallengeAttempt.is_correct == True
+            ).scalar() or 0
+            
+            challenge_success_rate = round((correct_challenge_attempts / total_challenge_attempts * 100), 1) if total_challenge_attempts > 0 else 0
+            
+            # ════════════════════════════════════════════════════════════════
+            # 7. CONSTRUCTION DE LA RÉPONSE - Chroniques de l'Académie
+            # ════════════════════════════════════════════════════════════════
+            
+            # Totaux combinés pour les stats AI
+            total_ai_generated = ai_generated_count + ai_generated_challenges
+            total_content = total_exercises + total_logic_challenges
             
             response_data = {
                 "archive_status": "Chroniques accessibles",
                 "academy_statistics": {
-                    "total_challenges": total_exercises,
-                    "archived_challenges": total_archived,
-                    "ai_generated": ai_generated_count,
-                    "ai_generated_percentage": round((ai_generated_count / total_exercises * 100), 1) if total_exercises > 0 else 0
+                    "total_exercises": total_exercises,
+                    "total_challenges": total_logic_challenges,
+                    "total_content": total_content,
+                    "archived_exercises": total_archived,
+                    "ai_generated": total_ai_generated,
+                    "ai_generated_exercises": ai_generated_count,
+                    "ai_generated_challenges": ai_generated_challenges,
+                    "ai_generated_percentage": round((total_ai_generated / total_content * 100), 1) if total_content > 0 else 0
                 },
                 "by_discipline": by_discipline,
                 "by_rank": by_rank,
                 "by_apprentice_group": by_apprentice_group,
                 "global_performance": {
-                    "total_attempts": total_attempts,
-                    "successful_attempts": correct_attempts,
+                    "total_attempts": total_attempts + total_challenge_attempts,
+                    "exercise_attempts": total_attempts,
+                    "challenge_attempts": total_challenge_attempts,
+                    "successful_attempts": correct_attempts + correct_challenge_attempts,
                     "mastery_rate": global_success_rate,
+                    "challenge_mastery_rate": challenge_success_rate,
                     "message": _get_mastery_message(global_success_rate)
                 },
                 "legendary_challenges": popular_challenges,
@@ -1179,7 +1213,7 @@ async def get_exercises_stats(request: Request):
         return JSONResponse({
             "archive_status": "Chroniques inaccessibles",
             "error": "Une perturbation empêche l'accès aux archives. Réessayez plus tard.",
-            "details": str(e) if settings.DEBUG else None
+            "details": str(e) if settings.LOG_LEVEL == "DEBUG" else None
         }, status_code=500)
 
 

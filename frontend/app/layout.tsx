@@ -6,6 +6,7 @@ import { AccessibilityToolbar } from "@/components/accessibility/AccessibilityTo
 import { WCAGAudit } from "@/components/accessibility/WCAGAudit";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { AlphaBanner } from "@/components/layout/AlphaBanner";
 import { LocaleInitializer } from "@/components/locale/LocaleInitializer";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -131,6 +132,7 @@ export default function RootLayout({
           <LocaleInitializer />
           <div className="flex min-h-screen flex-col">
             <Header />
+            <AlphaBanner />
             <main id="main-content" className="flex-1 relative z-10" role="main" aria-label="Contenu principal">
               <PageTransition>{children}</PageTransition>
             </main>
