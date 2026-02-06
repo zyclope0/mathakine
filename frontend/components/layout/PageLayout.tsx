@@ -25,6 +25,8 @@ const maxWidthClasses = {
  * - Padding responsive cohérent
  * - Container avec max-width
  * - Espacements verticaux standardisés
+ * 
+ * NOTE: Ne pas ajouter min-h-screen ici, c'est géré par layout.tsx
  */
 export function PageLayout({ 
   children, 
@@ -32,9 +34,9 @@ export function PageLayout({
   maxWidth = 'xl',
 }: PageLayoutProps) {
   return (
-    <div className={cn('min-h-screen p-3 sm:p-4 md:p-5 lg:p-6 relative z-10', className)}>
+    <div className={cn('py-4 px-3 sm:px-4 md:px-6 lg:px-8', className)}>
       <div className={cn(
-        'mx-auto space-y-3 md:space-y-4 lg:space-y-5',
+        'mx-auto space-y-4 md:space-y-6',
         maxWidthClasses[maxWidth]
       )}>
         {children}

@@ -62,10 +62,10 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
 
   return (
     <>
-      {/* Overlay sombre quand ouvert */}
+      {/* Overlay sombre quand ouvert - z-[100] pour être au-dessus du header (z-40) */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/20 z-40 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-black/30 z-[100] animate-in fade-in duration-200"
           onClick={() => handleOpenChange(false)}
           aria-hidden="true"
         />
@@ -74,7 +74,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
       {/* Panel de chat - Drawer depuis la droite */}
       <div 
         className={cn(
-          "fixed top-0 right-0 h-full w-full sm:w-[400px] z-50",
+          "fixed top-0 right-0 h-full w-full sm:w-[400px] z-[101]",
           "bg-background border-l shadow-2xl",
           "transition-all duration-300 ease-out",
           isOpen 
