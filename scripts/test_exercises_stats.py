@@ -34,50 +34,50 @@ async def test_exercises_stats():
     
     data = json.loads(response.body.decode('utf-8'))
     
-    # Holocron Status
-    print(f"📜 Holocron Status: {data.get('holocron_status')}")
+    # Archive Status
+    print(f"📜 Statut des Archives: {data.get('archive_status')}")
     print()
     
     # Academy Statistics
     academy = data.get('academy_statistics', {})
-    print("🏛️  STATISTIQUES DE L'ACADÉMIE JEDI")
+    print("🏛️  STATISTIQUES DE L'ACADÉMIE")
     print("-" * 50)
     print(f"   Total des épreuves: {academy.get('total_challenges')}")
     print(f"   Épreuves archivées: {academy.get('archived_challenges')}")
-    print(f"   Générées par la Force (IA): {academy.get('force_generated')} ({academy.get('force_generated_percentage')}%)")
+    print(f"   Générées par IA: {academy.get('ai_generated')} ({academy.get('ai_generated_percentage')}%)")
     print()
     
-    # By Force Art
-    by_force = data.get('by_force_art', {})
-    print("⚡ RÉPARTITION PAR ART DE LA FORCE")
+    # By Discipline
+    by_discipline = data.get('by_discipline', {})
+    print("📐 RÉPARTITION PAR DISCIPLINE")
     print("-" * 50)
-    for art_code, art_data in by_force.items():
-        print(f"   {art_data.get('force_name')}: {art_data.get('count')} ({art_data.get('percentage')}%)")
+    for disc_code, disc_data in by_discipline.items():
+        print(f"   {disc_data.get('discipline_name')}: {disc_data.get('count')} ({disc_data.get('percentage')}%)")
     print()
     
-    # By Jedi Rank
-    by_rank = data.get('by_jedi_rank', {})
-    print("🎖️  RÉPARTITION PAR RANG JEDI")
+    # By Rank
+    by_rank = data.get('by_rank', {})
+    print("🎖️  RÉPARTITION PAR RANG")
     print("-" * 50)
     for rank_code, rank_data in by_rank.items():
         print(f"   {rank_data.get('rank_name')}: {rank_data.get('count')} - {rank_data.get('description')}")
     print()
     
-    # By Padawan Group
-    by_group = data.get('by_padawan_group', {})
-    print("👥 RÉPARTITION PAR GROUPE DE PADAWANS")
+    # By Apprentice Group
+    by_group = data.get('by_apprentice_group', {})
+    print("👥 RÉPARTITION PAR GROUPE D'APPRENTIS")
     print("-" * 50)
     for group_code, group_data in by_group.items():
         print(f"   {group_data.get('group_name')} ({group_code} ans): {group_data.get('count')}")
     print()
     
-    # Galactic Performance
-    perf = data.get('galactic_performance', {})
-    print("🌌 PERFORMANCE GALACTIQUE")
+    # Global Performance
+    perf = data.get('global_performance', {})
+    print("📊 PERFORMANCE GLOBALE")
     print("-" * 50)
     print(f"   Total des tentatives: {perf.get('total_attempts')}")
     print(f"   Tentatives réussies: {perf.get('successful_attempts')}")
-    print(f"   Taux de maîtrise de la Force: {perf.get('force_mastery_rate')}%")
+    print(f"   Taux de maîtrise: {perf.get('mastery_rate')}%")
     print(f"   📢 {perf.get('message')}")
     print()
     
@@ -88,13 +88,13 @@ async def test_exercises_stats():
         print("-" * 50)
         for i, challenge in enumerate(legends, 1):
             print(f"   {i}. {challenge.get('title')}")
-            print(f"      Art: {challenge.get('force_art')} | Rang: {challenge.get('jedi_rank')}")
-            print(f"      Padawans entraînés: {challenge.get('padawans_trained')}")
+            print(f"      Discipline: {challenge.get('discipline')} | Rang: {challenge.get('rank')}")
+            print(f"      Apprentis formés: {challenge.get('apprentices_trained')}")
         print()
     
-    # Jedi Wisdom
-    wisdom = data.get('jedi_wisdom')
-    print("💫 SAGESSE JEDI")
+    # Sage Wisdom
+    wisdom = data.get('sage_wisdom')
+    print("💫 SAGESSE DES MAÎTRES")
     print("-" * 50)
     print(f"   \"{wisdom}\"")
     print()

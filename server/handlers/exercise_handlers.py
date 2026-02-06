@@ -965,21 +965,21 @@ async def delete_exercise(request: Request):
 
 async def get_exercises_stats(request: Request):
     """
-    Statistiques globales des Épreuves Jedi (exercices).
+    Statistiques globales des Épreuves de l'Académie (exercices).
     
     Route: GET /api/exercises/stats
     
     Retourne les statistiques sur l'ensemble des exercices disponibles :
     - Nombre total d'épreuves dans l'Académie
-    - Répartition par type de Force (type d'exercice)
-    - Répartition par rang Jedi (difficulté)
-    - Répartition par groupe de Padawans (groupe d'âge)
+    - Répartition par discipline (type d'exercice)
+    - Répartition par rang (difficulté)
+    - Répartition par groupe d'apprentis (groupe d'âge)
     - Statistiques de complétion globales
     
-    Thème Star Wars :
-    - Types → "Arts de la Force" (Puissance mentale, Calcul rapide, etc.)
-    - Difficultés → Rangs Jedi (Initié → Grand Maître)
-    - Groupes d'âge → "Youngling", "Padawan Junior", "Padawan Senior", etc.
+    Thème Académie des Sages :
+    - Types → Disciplines mathématiques
+    - Difficultés → Rangs de l'Académie (Initié → Grand Maître)
+    - Groupes d'âge → Niveaux d'apprentissage
     """
     try:
         from sqlalchemy import func, case
@@ -990,7 +990,7 @@ async def get_exercises_stats(request: Request):
         
         try:
             # ════════════════════════════════════════════════════════════════
-            # 1. STATISTIQUES GÉNÉRALES - Archives de l'Académie Jedi
+            # 1. STATISTIQUES GÉNÉRALES - Chroniques de l'Académie
             # ════════════════════════════════════════════════════════════════
             
             total_exercises = db.query(func.count(Exercise.id)).filter(
@@ -1007,20 +1007,20 @@ async def get_exercises_stats(request: Request):
             ).scalar() or 0
             
             # ════════════════════════════════════════════════════════════════
-            # 2. RÉPARTITION PAR TYPE DE FORCE (Type d'exercice)
+            # 2. RÉPARTITION PAR DISCIPLINE (Type d'exercice)
             # ════════════════════════════════════════════════════════════════
             
-            # Mapping thématique Star Wars pour les types
-            force_arts_names = {
-                "ADDITION": "Puissance Additive",
-                "SOUSTRACTION": "Art de la Soustraction",
-                "MULTIPLICATION": "Force Multiplicatrice",
-                "DIVISION": "Maîtrise de la Division",
+            # Noms des disciplines mathématiques
+            discipline_names = {
+                "ADDITION": "Art de l'Addition",
+                "SOUSTRACTION": "Maîtrise de la Soustraction",
+                "MULTIPLICATION": "Puissance Multiplicative",
+                "DIVISION": "Science de la Division",
                 "FRACTIONS": "Sagesse des Fractions",
                 "GEOMETRIE": "Vision Spatiale",
-                "TEXTE": "Énigmes de la Force",
-                "MIXTE": "Combat Combiné",
-                "DIVERS": "Mystères Variés"
+                "TEXTE": "Énigmes Logiques",
+                "MIXTE": "Épreuves Combinées",
+                "DIVERS": "Défis Variés"
             }
             
             by_type_query = db.query(
@@ -1030,27 +1030,27 @@ async def get_exercises_stats(request: Request):
                 Exercise.is_active == True
             ).group_by(Exercise.exercise_type).all()
             
-            by_force_art = {}
+            by_discipline = {}
             for exercise_type, count in by_type_query:
                 type_upper = str(exercise_type).upper() if exercise_type else "DIVERS"
-                force_name = force_arts_names.get(type_upper, type_upper)
-                by_force_art[type_upper] = {
+                discipline_name = discipline_names.get(type_upper, type_upper)
+                by_discipline[type_upper] = {
                     "count": count,
-                    "force_name": force_name,
+                    "discipline_name": discipline_name,
                     "percentage": round((count / total_exercises * 100), 1) if total_exercises > 0 else 0
                 }
             
             # ════════════════════════════════════════════════════════════════
-            # 3. RÉPARTITION PAR RANG JEDI (Difficulté)
+            # 3. RÉPARTITION PAR RANG (Difficulté)
             # ════════════════════════════════════════════════════════════════
             
-            # Rangs Jedi avec descriptions thématiques
-            jedi_ranks = {
-                "INITIE": {"name": "Initié", "description": "Premier pas vers la Force", "min_age": 6},
-                "PADAWAN": {"name": "Padawan", "description": "Apprenti en formation", "min_age": 9},
-                "CHEVALIER": {"name": "Chevalier Jedi", "description": "Maîtrise confirmée", "min_age": 12},
-                "MAITRE": {"name": "Maître Jedi", "description": "Sagesse avancée", "min_age": 15},
-                "GRAND_MAITRE": {"name": "Grand Maître", "description": "Sommité de l'Ordre", "min_age": 17}
+            # Rangs de l'Académie avec descriptions
+            academy_ranks = {
+                "INITIE": {"name": "Initié", "description": "Premier pas vers la sagesse", "min_age": 6},
+                "PADAWAN": {"name": "Apprenti", "description": "En cours de formation", "min_age": 9},
+                "CHEVALIER": {"name": "Chevalier", "description": "Maîtrise confirmée", "min_age": 12},
+                "MAITRE": {"name": "Maître", "description": "Sagesse avancée", "min_age": 15},
+                "GRAND_MAITRE": {"name": "Grand Maître", "description": "Sommité de l'Académie", "min_age": 17}
             }
             
             by_difficulty_query = db.query(
@@ -1060,11 +1060,11 @@ async def get_exercises_stats(request: Request):
                 Exercise.is_active == True
             ).group_by(Exercise.difficulty).all()
             
-            by_jedi_rank = {}
+            by_rank = {}
             for difficulty, count in by_difficulty_query:
                 diff_upper = str(difficulty).upper() if difficulty else "PADAWAN"
-                rank_info = jedi_ranks.get(diff_upper, {"name": diff_upper, "description": "Rang inconnu", "min_age": 10})
-                by_jedi_rank[diff_upper] = {
+                rank_info = academy_ranks.get(diff_upper, {"name": diff_upper, "description": "Rang spécial", "min_age": 10})
+                by_rank[diff_upper] = {
                     "count": count,
                     "rank_name": rank_info["name"],
                     "description": rank_info["description"],
@@ -1073,19 +1073,19 @@ async def get_exercises_stats(request: Request):
                 }
             
             # ════════════════════════════════════════════════════════════════
-            # 4. RÉPARTITION PAR GROUPE DE PADAWANS (Groupe d'âge)
+            # 4. RÉPARTITION PAR GROUPE D'APPRENTIS (Groupe d'âge)
             # ════════════════════════════════════════════════════════════════
             
-            padawan_groups = {
-                "6-8": {"name": "Younglings", "description": "Futurs espoirs de l'Ordre"},
-                "8-10": {"name": "Padawans Novices", "description": "En début de formation"},
-                "9-11": {"name": "Padawans Juniors", "description": "Formation intermédiaire"},
-                "10-12": {"name": "Padawans Confirmés", "description": "Prêts pour les épreuves"},
-                "11-13": {"name": "Apprentis Chevaliers", "description": "Sur le chemin de la maîtrise"},
-                "12-14": {"name": "Aspirants Chevaliers", "description": "Défis avancés"},
-                "14-16": {"name": "Élites Jedi", "description": "Formation d'excellence"},
+            apprentice_groups = {
+                "6-8": {"name": "Novices", "description": "Futurs espoirs de l'Académie"},
+                "8-10": {"name": "Apprentis Débutants", "description": "En début de formation"},
+                "9-11": {"name": "Apprentis Juniors", "description": "Formation intermédiaire"},
+                "10-12": {"name": "Apprentis Confirmés", "description": "Prêts pour les épreuves"},
+                "11-13": {"name": "Aspirants Chevaliers", "description": "Sur le chemin de la maîtrise"},
+                "12-14": {"name": "Chevaliers en Devenir", "description": "Défis avancés"},
+                "14-16": {"name": "Élite de l'Académie", "description": "Formation d'excellence"},
                 "15-17": {"name": "Candidats Maîtres", "description": "Ultimes épreuves"},
-                "17+": {"name": "Conseil Jedi", "description": "Niveau Grand Maître"}
+                "17+": {"name": "Conseil des Sages", "description": "Niveau Grand Maître"}
             }
             
             by_age_query = db.query(
@@ -1095,11 +1095,11 @@ async def get_exercises_stats(request: Request):
                 Exercise.is_active == True
             ).group_by(Exercise.age_group).all()
             
-            by_padawan_group = {}
+            by_apprentice_group = {}
             for age_group, count in by_age_query:
                 group_key = str(age_group) if age_group else "10-12"
-                group_info = padawan_groups.get(group_key, {"name": f"Groupe {group_key}", "description": "Formation spéciale"})
-                by_padawan_group[group_key] = {
+                group_info = apprentice_groups.get(group_key, {"name": f"Groupe {group_key}", "description": "Formation spéciale"})
+                by_apprentice_group[group_key] = {
                     "count": count,
                     "group_name": group_info["name"],
                     "description": group_info["description"],
@@ -1137,34 +1137,34 @@ async def get_exercises_stats(request: Request):
                 popular_challenges.append({
                     "id": ex_id,
                     "title": title,
-                    "force_art": force_arts_names.get(type_upper, type_upper),
-                    "jedi_rank": jedi_ranks.get(str(diff).upper(), {}).get("name", diff),
-                    "padawans_trained": attempt_count  # Nombre de Padawans ayant tenté
+                    "discipline": discipline_names.get(type_upper, type_upper),
+                    "rank": academy_ranks.get(str(diff).upper(), {}).get("name", diff),
+                    "apprentices_trained": attempt_count
                 })
             
             # ════════════════════════════════════════════════════════════════
-            # 6. CONSTRUCTION DE LA RÉPONSE - Archives Holocron
+            # 6. CONSTRUCTION DE LA RÉPONSE - Chroniques de l'Académie
             # ════════════════════════════════════════════════════════════════
             
             response_data = {
-                "holocron_status": "Archives accessibles",
+                "archive_status": "Chroniques accessibles",
                 "academy_statistics": {
                     "total_challenges": total_exercises,
                     "archived_challenges": total_archived,
-                    "force_generated": ai_generated_count,  # Générés par la Force (IA)
-                    "force_generated_percentage": round((ai_generated_count / total_exercises * 100), 1) if total_exercises > 0 else 0
+                    "ai_generated": ai_generated_count,
+                    "ai_generated_percentage": round((ai_generated_count / total_exercises * 100), 1) if total_exercises > 0 else 0
                 },
-                "by_force_art": by_force_art,
-                "by_jedi_rank": by_jedi_rank,
-                "by_padawan_group": by_padawan_group,
-                "galactic_performance": {
+                "by_discipline": by_discipline,
+                "by_rank": by_rank,
+                "by_apprentice_group": by_apprentice_group,
+                "global_performance": {
                     "total_attempts": total_attempts,
                     "successful_attempts": correct_attempts,
-                    "force_mastery_rate": global_success_rate,  # Taux de réussite global
+                    "mastery_rate": global_success_rate,
                     "message": _get_mastery_message(global_success_rate)
                 },
-                "legendary_challenges": popular_challenges,  # Épreuves légendaires
-                "jedi_wisdom": _get_jedi_wisdom()
+                "legendary_challenges": popular_challenges,
+                "sage_wisdom": _get_sage_wisdom()
             }
             
             logger.info(f"Statistiques des épreuves récupérées: {total_exercises} épreuves actives")
@@ -1177,8 +1177,8 @@ async def get_exercises_stats(request: Request):
         logger.error(f"Erreur lors de la récupération des statistiques d'exercices: {e}")
         traceback.print_exc()
         return JSONResponse({
-            "holocron_status": "Archives corrompues",
-            "error": "La Force est perturbée. Réessayez plus tard.",
+            "archive_status": "Chroniques inaccessibles",
+            "error": "Une perturbation empêche l'accès aux archives. Réessayez plus tard.",
             "details": str(e) if settings.DEBUG else None
         }, status_code=500)
 
@@ -1186,28 +1186,28 @@ async def get_exercises_stats(request: Request):
 def _get_mastery_message(success_rate: float) -> str:
     """Retourne un message thématique basé sur le taux de réussite global."""
     if success_rate >= 90:
-        return "L'Académie forme d'excellents Jedi ! La Force est puissante ici."
+        return "L'Académie forme d'excellents mathématiciens ! La sagesse règne ici."
     elif success_rate >= 75:
-        return "Bonne progression des Padawans. Le Conseil est satisfait."
+        return "Belle progression des apprentis. Le Conseil est satisfait."
     elif success_rate >= 60:
-        return "Les apprentis progressent. La patience est une vertu Jedi."
+        return "Les apprentis progressent. La patience est une vertu des sages."
     elif success_rate >= 40:
-        return "L'entraînement doit s'intensifier. La voie du Jedi est exigeante."
+        return "L'entraînement doit s'intensifier. La voie de la maîtrise est exigeante."
     else:
-        return "Beaucoup à apprendre, les Padawans ont. Persévérance, ils doivent montrer."
+        return "Beaucoup reste à apprendre. Persévérance et courage sont essentiels."
 
 
-def _get_jedi_wisdom() -> str:
-    """Retourne une citation de sagesse Jedi aléatoire."""
+def _get_sage_wisdom() -> str:
+    """Retourne une citation de sagesse aléatoire."""
     import random
     wisdoms = [
-        "La Force sera avec toi. Toujours. — Obi-Wan Kenobi",
-        "Fais-le, ou ne le fais pas. Il n'y a pas d'essai. — Maître Yoda",
-        "La peur mène à la colère, la colère mène à la haine. — Maître Yoda",
-        "Dans ma vie, j'ai appris que la Force n'a pas de côté. — Ahsoka Tano",
-        "L'apprentissage, une voie sans fin il est. — Maître Yoda",
-        "La connaissance est la première étape vers la sagesse. — Archives Jedi",
-        "Chaque erreur est une leçon de la Force. — Qui-Gon Jinn",
-        "La patience est l'arme du Jedi. — Mace Windu"
+        "La connaissance est le premier pas vers la sagesse. — Les Anciens",
+        "Fais-le, ou ne le fais pas. L'hésitation est l'ennemi du progrès. — Proverbe des Maîtres",
+        "L'erreur est le chemin de l'apprentissage. — Sagesse ancestrale",
+        "Celui qui pose des questions ne s'égare jamais. — Dicton des Sages",
+        "L'apprentissage est une voie sans fin. — Chroniques de l'Académie",
+        "La patience transforme l'apprenti en maître. — Conseil des Sages",
+        "Chaque problème résolu ouvre la porte à de nouveaux défis. — Tradition mathématique",
+        "La persévérance est l'arme secrète du mathématicien. — Archives de l'Académie"
     ]
     return random.choice(wisdoms)
