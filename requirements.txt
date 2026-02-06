@@ -24,8 +24,8 @@ colorama==0.4.6  # Colorisation des messages en console
 typer==0.9.0  # CLI améliorée
 pathlib==1.0.1  # Manipulation de chemins de fichiers
 
-# Intégration IA - compatibilité Python 3.13 avec version récente
-openai==1.12.0
+# Intégration IA - version récente pour support max_completion_tokens (GPT-5.x)
+openai>=1.40.0
 tenacity==8.2.3  # Retry logic avec backoff exponentiel
 
 # Journalisation et débogage
