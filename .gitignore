@@ -113,8 +113,10 @@ temp/
 *_variables_report.txt
 
 # Fichiers de migration de base de données
-migrations/versions/*
-!migrations/versions/.gitkeep
+# NOTE: Les migrations Alembic DOIVENT être versionnées !
+# Ne pas ignorer les migrations, sauf exceptions spécifiques
+migrations/versions/*.pyc
+migrations/versions/__pycache__/
 
 # Fichiers spécifiques au projet
 mathakine.db
@@ -134,15 +136,17 @@ backups/
 # Configuration avec mots de passe (NE JAMAIS COMMITER)
 CONFIGURATION_INFOMANIAK.md
 
-# Fichiers de debug et scripts temporaires
-check_*.py
-debug_*.py
-test_*.py
-fix_*.py
+# Fichiers de debug et scripts temporaires (RACINE SEULEMENT, pas tests/)
+# NOTE: Les vrais tests dans tests/ NE DOIVENT PAS être ignorés !
+/check_*.py
+/debug_*.py
+/test_*.py
+/fix_*.py
 *_old_backup.py
 *_fixed.py
 
-# Rapports et logs de nettoyage
+# Rapports et logs de nettoyage (temporaires uniquement)
+# NOTE: Les récapitulatifs finaux datés DOIVENT être versionnés !
 NETTOYAGE_*.md
 RESTRUCTURATION_*.md
-*_FINAL.md
+# *_FINAL.md COMMENTÉ - les récaps datés sont importants

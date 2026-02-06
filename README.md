@@ -1,248 +1,332 @@
 # 🎓 Mathakine - Plateforme Éducative Mathématique
 
-**Version** : 2.0.0  
-**Date** : 20 novembre 2025  
-**Statut** : 🟢 Production Ready
+**Plateforme d'apprentissage mathématique adaptative avec IA générative**
+
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/yourusername/mathakine)
+[![Statut](https://img.shields.io/badge/statut-production-brightgreen.svg)](https://github.com/yourusername/mathakine)
+[![Licence](https://img.shields.io/badge/licence-MIT-green.svg)](LICENSE)
+
+---
+
+## 📖 À propos
+
+**Mathakine** est une plateforme éducative mathématique interactive conçue pour offrir une expérience d'apprentissage personnalisée et engageante, particulièrement adaptée aux enfants avec besoins spéciaux.
+
+### ✨ Fonctionnalités principales
+
+- 🎯 **Exercices mathématiques adaptatifs** (addition, soustraction, multiplication, division)
+- 🧩 **Défis logiques IA** (patterns, séquences, énigmes, graphes, visuels)
+- 🏆 **Système de badges** et récompenses
+- 📊 **Suivi de progression** (séries, précision, statistiques)
+- 🤖 **Génération IA** (OpenAI GPT-5.x)
+- 🌐 **Multilingue** (Français / Anglais)
+- 🎨 **Multi-thème** (clair/sombre/système)
+- ♿ **Accessible** (WCAG 2.1 AA, animations adaptatives)
 
 ---
 
 ## 📚 Documentation
 
-**🎯 Point d'entrée** : [**docs/INDEX.md**](docs/INDEX.md) ⭐
+**🎯 Point d'entrée principal** : [**docs/INDEX.md**](docs/INDEX.md) ⭐
 
 ### Documents essentiels
-- **[Getting Started](docs/00-REFERENCE/GETTING_STARTED.md)** - Installation 15 min
-- **[Architecture](docs/00-REFERENCE/ARCHITECTURE.md)** - Vue d'ensemble technique
-- **[API Reference](docs/00-REFERENCE/API.md)** - 37 routes documentées
 
-### Par besoin
-- **Développer** : [Development Guide](docs/01-GUIDES/DEVELOPMENT.md)
-- **Déployer** : [Deployment Guide](docs/01-GUIDES/DEPLOYMENT.md)
-- **Tester** : [Testing Guide](docs/01-GUIDES/TESTING.md)
-- **Problème** : [Troubleshooting](docs/01-GUIDES/TROUBLESHOOTING.md)
-
----
-
-## 🚀 À propos
-
-**Mathakine** est une plateforme éducative mathématique conçue pour les enfants autistes, offrant une expérience d'apprentissage personnalisée et engageante.
-
-### Mission
-Rendre les mathématiques accessibles et amusantes pour tous les enfants, en particulier ceux avec des besoins spéciaux.
+| Document | Description | Priorité |
+|----------|-------------|----------|
+| **[README_TECH.md](README_TECH.md)** | Documentation technique complète (47 endpoints, architecture, stack) | 🔴 Élevée |
+| **[docs/INDEX.md](docs/INDEX.md)** | Index navigation documentation | 🔴 Élevée |
+| **[docs/00-REFERENCE/GETTING_STARTED.md](docs/00-REFERENCE/GETTING_STARTED.md)** | Installation pas-à-pas | 🔴 Élevée |
+| **[docs/01-GUIDES/DEVELOPMENT.md](docs/01-GUIDES/DEVELOPMENT.md)** | Workflow développement | 🟡 Moyenne |
+| **[docs/01-GUIDES/TESTING.md](docs/01-GUIDES/TESTING.md)** | Guide tests | 🟡 Moyenne |
+| **[docs/01-GUIDES/TROUBLESHOOTING.md](docs/01-GUIDES/TROUBLESHOOTING.md)** | Dépannage | 🟢 Basse |
 
 ---
 
-## ⚡ Installation Rapide
+## ⚡ Installation Rapide (15 min)
+
+### Prérequis
+
+- **Python** 3.11+ ([télécharger](https://www.python.org/downloads/))
+- **Node.js** 18.17+ ([télécharger](https://nodejs.org/))
+- **PostgreSQL** 15+ ([télécharger](https://www.postgresql.org/download/)) OU SQLite (dev)
+- **Git** ([télécharger](https://git-scm.com/downloads))
+
+### Installation
 
 ```bash
-# 1. Cloner
+# 1. Cloner le projet
 git clone https://github.com/yourusername/mathakine.git
 cd mathakine
 
-# 2. Backend
+# 2. Configuration backend
 python -m venv venv
-venv\Scripts\activate  # Windows
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # macOS/Linux
 pip install -r requirements.txt
+
+# 3. Variables d'environnement
 cp sample.env .env
+# Éditer .env avec vos clés API
+
+# 4. Base de données
+alembic upgrade head
+
+# 5. Lancer backend (port 10000)
 python enhanced_server.py
 
-# 3. Frontend
+# 6. Configuration frontend (nouveau terminal)
 cd frontend
 npm install
 cp .env.example .env.local
+# Éditer .env.local
+
+# 7. Lancer frontend (port 3000)
 npm run dev
 ```
 
-✅ **Frontend** : http://localhost:3000  
-✅ **Backend** : http://localhost:8000
+**✅ Application disponible** : http://localhost:3000  
+**✅ API backend** : http://localhost:10000
 
-**Guide complet** : [Getting Started](docs/00-REFERENCE/GETTING_STARTED.md)
+**Guide détaillé** : [GETTING_STARTED.md](docs/00-REFERENCE/GETTING_STARTED.md)
 
 ---
 
 ## 🏗️ Architecture
 
+### Vue d'ensemble
+
 ```
-Frontend Next.js (localhost:3000)
-    ↓ REST API + SSE
-Backend Starlette API (localhost:8000)
-    ↓ SQLAlchemy ORM
-PostgreSQL Database
+┌─────────────────────────────────────────┐
+│  Frontend Next.js (localhost:3000)      │
+│  • React 19 + TypeScript                │
+│  • Tailwind CSS + shadcn/ui             │
+│  • React Query (cache)                  │
+│  • next-intl (i18n FR/EN)               │
+└──────────────┬──────────────────────────┘
+               │ REST API + SSE
+               ↓
+┌─────────────────────────────────────────┐
+│  Backend Starlette (localhost:10000)    │
+│  • 47 routes API                        │
+│  • Handlers + middleware                │
+│  • SSE streaming (IA)                   │
+│  • Auth JWT (cookies + Bearer)          │
+└──────────────┬──────────────────────────┘
+               │
+    ┌──────────┴──────────┐
+    ↓                     ↓
+┌──────────┐        ┌────────────┐
+│ Services │        │  OpenAI    │
+│ (logique)│        │  GPT-5.x   │
+└────┬─────┘        └────────────┘
+     │ SQLAlchemy ORM
+     ↓
+┌──────────────┐
+│  PostgreSQL  │
+│  (prod/dev)  │
+└──────────────┘
 ```
 
-- **Frontend** : Next.js 16, React 19, TypeScript, Tailwind CSS, shadcn/ui
-- **Backend** : Starlette (API JSON pure, 37 routes), Python 3.11
-- **Database** : PostgreSQL 15 (prod) / SQLite (dev)
-
-**Détails** : [Architecture](docs/00-REFERENCE/ARCHITECTURE.md)
-
----
-
-## 📊 État du Projet
-
-### Qualité Code (Nov 2025)
-- **Dette technique** : 🟢 FAIBLE (-80%)
-- **Tests** : 42 fichiers, 60%+ coverage
-- **CI/CD** : ✅ GitHub Actions
-- **Code** : 95%+ lisibilité
-
-### Phases Complétées (19-20 Nov 2025)
-✅ **Phase 1** : Nettoyage code mort (-130 lignes)  
-✅ **Phase 2** : Backend 100% API (-389 lignes)  
-✅ **Phase 3** : Constants centralisées (DRY)  
-✅ **Phase 4** : Services ORM unifiés  
-✅ **Phase 5** : Tests automatisés (CI/CD)  
-✅ **Phase 6** : Nommage & Lisibilité (+95%)
-
-**Bilan** : [BILAN_COMPLET.md](docs/03-PROJECT/BILAN_COMPLET.md)
-
----
-
-## 🛠️ Technologies
+### Stack technique
 
 **Frontend**
-- Next.js 16 (App Router)
-- React 19 + TypeScript 5
-- Tailwind CSS 4 + shadcn/ui
-- TanStack Query + Zustand
-- next-intl (i18n FR/EN)
+- **Framework** : Next.js 16.0.1 (App Router)
+- **UI** : React 19.2.0, TypeScript 5.x
+- **Styling** : Tailwind CSS 4.x, shadcn/ui
+- **State** : TanStack Query 5.90.7, Zustand 5.0.8
+- **i18n** : next-intl 4.4.0
+- **Animations** : Framer Motion 12.23.24
 
 **Backend**
-- Python 3.11
-- Starlette + FastAPI
-- SQLAlchemy 2.0 (ORM)
-- PostgreSQL 15
-- Alembic (migrations)
+- **Framework** : Starlette 0.49.3 (API pure, FastAPI archivé 06/02/2026)
+- **Python** : 3.11+
+- **ORM** : SQLAlchemy 2.0.44
+- **BDD** : PostgreSQL 15+ (prod), SQLite (dev)
+- **Migrations** : Alembic 1.13.1
+- **Auth** : JWT (python-jose) + Bcrypt
+- **IA** : OpenAI 1.12.0 (GPT-5.1, GPT-5-mini, GPT-5.2)
+- **Logs** : Loguru
 
 **DevOps**
-- GitHub Actions (CI/CD)
-- Render (hosting)
-- Docker
-- Pytest + Codecov
+- **Tests** : Pytest (backend), Vitest (frontend), Playwright (E2E)
+- **CI/CD** : GitHub Actions
+- **Hosting** : Render (prod)
+- **Conteneurisation** : Docker
+
+**Documentation technique complète** : [README_TECH.md](README_TECH.md)
 
 ---
 
-## 📁 Structure
+## 📁 Structure du Projet
 
 ```
 mathakine/
-├── frontend/              # Next.js app
-│   ├── app/              # App Router pages
-│   ├── components/       # React components
-│   └── lib/              # Utilities
-├── app/                   # FastAPI
-│   ├── models/           # SQLAlchemy models
-│   ├── schemas/          # Pydantic schemas
-│   ├── services/         # Business logic (ORM)
-│   └── api/endpoints/    # API endpoints
-├── server/                # Starlette (API JSON)
-│   ├── handlers/         # Request handlers
-│   ├── routes.py         # 37 routes API
-│   └── auth.py           # Auth centralisé
-├── tests/                 # Tests (42 fichiers)
-├── docs/                  # Documentation ⭐
-│   ├── 00-REFERENCE/     # Docs de référence
-│   ├── 01-GUIDES/        # Guides pratiques
-│   ├── 02-FEATURES/      # Fonctionnalités
-│   ├── 03-PROJECT/       # Gestion projet
-│   └── INDEX.md          # Index complet
-└── .github/workflows/     # CI/CD
+├── frontend/                 # Next.js App Router
+│   ├── app/                 # Pages (dashboard, exercises, challenges, profile)
+│   ├── components/          # Composants React (ui/, dashboard/, auth/, etc.)
+│   ├── hooks/               # 16 hooks React Query
+│   ├── lib/                 # Utilitaires (api/, stores/)
+│   ├── messages/            # i18n (fr.json, en.json)
+│   └── public/              # Assets statiques
+│
+├── server/                   # Backend Starlette (couche HTTP)
+│   ├── handlers/            # 7 handlers (auth, user, exercise, challenge, etc.)
+│   ├── routes.py            # 47 routes API
+│   ├── auth.py              # Authentification centralisée
+│   ├── middleware.py        # CORS, logging, rate limiting
+│   └── app.py               # App Starlette
+│
+├── app/                      # Backend logique métier (indépendant HTTP)
+│   ├── models/              # SQLAlchemy ORM (7 tables)
+│   ├── schemas/             # Pydantic validation
+│   ├── services/            # Business logic (CRUD + logique métier)
+│   ├── core/                # Config (settings, ai_config, logging)
+│   └── utils/               # Utilitaires (rate_limiter, prompt_sanitizer, etc.)
+│
+├── tests/                    # Tests (pytest, vitest, playwright)
+├── docs/                     # Documentation (voir docs/INDEX.md)
+├── alembic/                  # Migrations DB
+├── _ARCHIVE_2026/           # Code archivé (FastAPI, docs obsolètes)
+├── enhanced_server.py       # Point d'entrée backend
+└── requirements.txt         # Dépendances Python
 ```
 
 ---
 
 ## 🧪 Tests
 
-```bash
-# Backend
-pytest tests/ -v                    # Tous les tests
-pytest tests/ -v -m critical        # Tests critiques
-pytest tests/ --cov --cov-report=html  # Avec coverage
+### Backend (Python - Pytest)
 
-# Frontend
-cd frontend
-npm run test        # Tests unitaires
-npm run test:e2e    # Tests E2E
-npm run build       # Build production
+```bash
+# Tous les tests
+pytest tests/ -v
+
+# Tests critiques seulement
+pytest tests/ -v -m critical
+
+# Avec coverage
+pytest tests/ --cov --cov-report=html
+
+# Tests spécifiques
+pytest tests/test_auth.py -v
+pytest tests/test_exercise_service.py -v
 ```
+
+### Frontend (TypeScript - Vitest + Playwright)
+
+```bash
+cd frontend
+
+# Tests unitaires
+npm run test                 # Mode watch
+npm run test:coverage        # Avec coverage
+
+# Tests E2E
+npm run test:e2e             # Headless
+npm run test:e2e:ui          # Mode UI
+
+# Build production (validation TypeScript)
+npm run build
+```
+
+**Guide complet** : [docs/01-GUIDES/TESTING.md](docs/01-GUIDES/TESTING.md)
 
 ---
 
-## 🚢 Déploiement
+## 📊 État du Projet
 
-### Production (Render)
-- **Frontend** : https://mathakine-frontend.onrender.com/
-- **Backend** : https://mathakine-backend.onrender.com/
+### Qualité code (Février 2026)
 
-### Guide complet
-[Deployment Guide](docs/01-GUIDES/DEPLOYMENT.md)
+- ✅ **Architecture unifiée** : Starlette pur (FastAPI archivé)
+- ✅ **Documentation rationalisée** : -92% docs obsolètes
+- ✅ **Tests** : 42 fichiers, 60%+ coverage
+- ✅ **Dette technique** : Faible (imports lazy à optimiser)
+- ✅ **Lisibilité** : 95%+ (nommage clair, code commenté)
+- ✅ **Sécurité** : RGPD, OWASP, rate limiting, JWT
+
+### Dernières mises à jour (06/02/2026)
+
+- ✅ **Unification backend** : FastAPI → Starlette pur
+- ✅ **3 nouveaux widgets dashboard** : Série, Défis, Précision par catégorie
+- ✅ **2 nouveaux endpoints** : `/api/users/me/progress`, `/api/users/me/challenges/progress`
+- ✅ **2 nouveaux hooks** : `useProgressStats`, `useChallengesProgress`
+- ✅ **Documentation** : Rationalisée (~15 docs actifs vs 200+ avant)
+- ✅ **Design system** : Multi-thème cohérent (CSS variables)
+
+**Historique complet** : [docs/03-PROJECT/BILAN_COMPLET.md](docs/03-PROJECT/BILAN_COMPLET.md)
+
+---
+
+## 🚀 Déploiement
+
+### Environnements
+
+- **Local** : http://localhost:3000 (frontend) + http://localhost:10000 (backend)
+- **Production** : https://mathakine.onrender.com/ (exemple)
+
+### Variables d'environnement
+
+**Backend (`.env`)**
+```env
+DATABASE_URL=postgresql://user:password@localhost/mathakine
+SECRET_KEY=your-secret-key-here
+OPENAI_API_KEY=sk-proj-xxx
+OPENAI_MODEL=gpt-5-mini
+```
+
+**Frontend (`.env.local`)**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:10000
+NEXT_PUBLIC_DEFAULT_LOCALE=fr
+```
+
+**Guide détaillé** : [docs/01-GUIDES/DEVELOPMENT.md](docs/01-GUIDES/DEVELOPMENT.md)
 
 ---
 
 ## 🤝 Contribution
 
-Contributions bienvenues ! 🎉
+Les contributions sont les bienvenues ! Veuillez suivre ces étapes :
 
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/AmazingFeature`)
-3. Commit (`git commit -m 'Add AmazingFeature'`)
-4. Push (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
+1. **Lire** : [docs/01-GUIDES/CONTRIBUTING.md](docs/01-GUIDES/CONTRIBUTING.md)
+2. **Fork** le projet
+3. **Créer** une branche (`git checkout -b feature/amazing-feature`)
+4. **Commit** vos changements (`git commit -m 'Add amazing feature'`)
+5. **Push** vers la branche (`git push origin feature/amazing-feature`)
+6. **Ouvrir** une Pull Request
 
-**Guide** : [Contributing](docs/01-GUIDES/CONTRIBUTING.md)
-
----
-
-## 📖 Ressources
-
-### Documentation
-- **[Index Documentation](docs/INDEX.md)** ⭐ - Point d'entrée complet
-- **[Architecture](docs/00-REFERENCE/ARCHITECTURE.md)** - Architecture technique
-- **[API Reference](docs/00-REFERENCE/API.md)** - 37 routes API
-- **[Glossaire](docs/00-REFERENCE/GLOSSARY.md)** - Terminologie
-
-### Guides
-- **[Getting Started](docs/00-REFERENCE/GETTING_STARTED.md)** - Installation
-- **[Development](docs/01-GUIDES/DEVELOPMENT.md)** - Développement
-- **[Testing](docs/01-GUIDES/TESTING.md)** - Tests
-- **[FAQ](docs/01-GUIDES/FAQ.md)** - Questions fréquentes
-
-### Projet
-- **[Roadmap](docs/03-PROJECT/ROADMAP.md)** - Feuille de route
-- **[Changelog](docs/03-PROJECT/CHANGELOG.md)** - Historique versions
-- **[Bilan Phases](docs/03-PROJECT/BILAN_COMPLET.md)** - Refactoring 2025
-
----
-
-## 💡 Support
-
-- **Documentation** : [docs/INDEX.md](docs/INDEX.md)
-- **Issues** : [GitHub Issues](https://github.com/yourusername/mathakine/issues)
-- **Discussions** : [GitHub Discussions](https://github.com/yourusername/mathakine/discussions)
+**Conventions** :
+- Code Python : PEP 8 + type hints
+- Code TypeScript : ESLint + Prettier
+- Messages de commit : Convention Conventional Commits
+- Tests : Obligatoires pour nouvelles fonctionnalités
 
 ---
 
 ## 📜 Licence
 
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+Ce projet est sous licence **MIT** - voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
 ---
 
-## 🎯 Quick Links
+## 📧 Contact
 
-| Besoin | Lien |
-|--------|------|
-| 🚀 Démarrer | [Getting Started](docs/00-REFERENCE/GETTING_STARTED.md) |
-| 🏗️ Architecture | [Architecture](docs/00-REFERENCE/ARCHITECTURE.md) |
-| 🔌 API | [API Reference](docs/00-REFERENCE/API.md) |
-| 💻 Dev | [Development Guide](docs/01-GUIDES/DEVELOPMENT.md) |
-| 🧪 Tests | [Testing Guide](docs/01-GUIDES/TESTING.md) |
-| 🚢 Deploy | [Deployment Guide](docs/01-GUIDES/DEPLOYMENT.md) |
-| ❓ Aide | [FAQ](docs/01-GUIDES/FAQ.md) / [Troubleshooting](docs/01-GUIDES/TROUBLESHOOTING.md) |
-| 📚 Documentation complète | [INDEX.md](docs/INDEX.md) ⭐ |
+**Projet** : [https://github.com/yourusername/mathakine](https://github.com/yourusername/mathakine)  
+**Issues** : [https://github.com/yourusername/mathakine/issues](https://github.com/yourusername/mathakine/issues)  
+**Discussions** : [https://github.com/yourusername/mathakine/discussions](https://github.com/yourusername/mathakine/discussions)
 
 ---
 
-**Made with ❤️ for children with special needs**
+## 🙏 Remerciements
 
-**Version 2.0.0** - Production Ready (Nov 2025)
+- [Next.js](https://nextjs.org/) - Framework React
+- [Starlette](https://www.starlette.io/) - Framework ASGI Python
+- [OpenAI](https://openai.com/) - Génération IA (GPT-5.x)
+- [shadcn/ui](https://ui.shadcn.com/) - Composants UI
+- [Tailwind CSS](https://tailwindcss.com/) - CSS utility-first
+
+---
+
+**Prêt à commencer ?** 🚀 Suivez le [guide d'installation](docs/00-REFERENCE/GETTING_STARTED.md) !
+
+**Version** : 2.1.0 | **Dernière mise à jour** : 06/02/2026
