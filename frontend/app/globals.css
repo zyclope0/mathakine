@@ -661,6 +661,31 @@ select:focus {
   }
 }
 
+/* WCAG Fix: Améliorer le contraste text-primary sur fonds clairs */
+/* Le violet #a78bfa sur fond clair (#f0f1f2 ou similaire) n'a que 2.4:1 de contraste */
+/* Il faut utiliser #6d28d9 (violet-700) qui a 7.1:1 sur fond blanc */
+@layer base {
+  /* Mode light / thèmes à fond clair */
+  :root:not(.dark) .text-primary,
+  html:not(.dark) .text-primary,
+  [data-theme='minimalist']:not(.dark *) .text-primary,
+  [data-theme='neutral']:not(.dark *) .text-primary {
+    color: #6d28d9; /* violet-700 - contraste 7.1:1 sur blanc */
+  }
+  
+  /* S'assurer que les icônes et textes primary sur bg-muted en light mode sont lisibles */
+  :root:not(.dark) [class*="bg-muted"] .text-primary,
+  :root:not(.dark) [class*="bg-card"] .text-primary,
+  :root:not(.dark) [class*="bg-primary/"] .text-primary {
+    color: #6d28d9;
+  }
+  
+  /* Texte muted-foreground sur fonds clairs - assurer contraste minimal 4.5:1 */
+  :root:not(.dark) .text-muted-foreground {
+    color: #525252; /* neutral-600 - contraste 7.0:1 sur blanc */
+  }
+}
+
 /* Accessibilité - Mode Focus TSA/TDAH (Phase 1 - Affinements) */
 .focus-mode {
   /* Réduire les distractions visuelles */
