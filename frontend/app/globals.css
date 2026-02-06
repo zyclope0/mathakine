@@ -457,7 +457,7 @@ select:focus {
 }
 
 /* Thème Spatial - Mode Dark (plus sombre, plus contrasté) */
-.dark [data-theme='spatial'] {
+.dark[data-theme='spatial'] {
   --background: #000000;
   --card: #0a0a0f;
   --muted: #0f0f14;
@@ -493,7 +493,7 @@ select:focus {
 }
 
 /* Thème Minimaliste - Mode Dark (inversion complète noir/blanc) */
-.dark [data-theme='minimalist'] {
+.dark[data-theme='minimalist'] {
   --background: #000000;
   --foreground: #ffffff;
   --card: #1a1a1a;
@@ -540,7 +540,7 @@ select:focus {
 }
 
 /* Thème Océan - Mode Dark (profondeur océanique plus sombre) */
-.dark [data-theme='ocean'] {
+.dark[data-theme='ocean'] {
   --background: #050810;
   --card: #0f172a;
   --muted: #0f172a;
@@ -576,7 +576,7 @@ select:focus {
 }
 
 /* Thème Neutre - Mode Dark (gris foncé élégant) */
-.dark [data-theme='neutral'] {
+.dark[data-theme='neutral'] {
   --background: #111827;
   --foreground: #f9fafb;
   --card: #1f2937;
