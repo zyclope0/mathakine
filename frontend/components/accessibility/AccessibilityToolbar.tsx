@@ -51,14 +51,14 @@ export function AccessibilityToolbar() {
           variant="default"
           size="icon"
           className={cn(
-            "fixed bottom-4 right-4 z-[9999] h-12 w-12 rounded-full shadow-xl",
+            "fixed bottom-6 right-6 z-[9999] h-14 w-14 rounded-full shadow-xl",
             "bg-primary text-primary-foreground border-2 border-primary-foreground/20",
             "transition-all duration-200 hover:scale-110 hover:shadow-2xl",
             activeCount > 0 && "ring-4 ring-primary/30"
           )}
           aria-label={`Accessibilité${activeCount > 0 ? ` (${activeCount} actif${activeCount > 1 ? 's' : ''})` : ''}`}
         >
-          <Settings2 className="h-6 w-6" />
+          <Settings2 className="h-7 w-7" />
           {activeCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
               {activeCount}

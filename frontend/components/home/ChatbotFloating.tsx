@@ -76,9 +76,12 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
         className={cn(
           "fixed top-0 right-0 h-full w-full sm:w-[400px] z-50",
           "bg-background border-l shadow-2xl",
-          "transition-transform duration-300 ease-out",
-          isOpen ? "translate-x-0" : "translate-x-full"
+          "transition-all duration-300 ease-out",
+          isOpen 
+            ? "translate-x-0 visible opacity-100" 
+            : "translate-x-full invisible opacity-0"
         )}
+        aria-hidden={!isOpen}
       >
         <Card className="flex flex-col h-full rounded-none border-0">
           {/* Header */}
@@ -196,14 +199,14 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
       <Button
         onClick={() => handleOpenChange(!isOpen)}
         className={cn(
-          "fixed bottom-4 right-20 z-[9998] h-12 w-12 rounded-full shadow-xl",
+          "fixed bottom-6 right-24 z-[9998] h-14 w-14 rounded-full shadow-xl",
           "bg-secondary hover:bg-secondary/90 text-secondary-foreground border-2 border-secondary-foreground/20",
           "transition-all duration-200 hover:scale-110 hover:shadow-2xl",
           isOpen && "opacity-0 pointer-events-none"
         )}
         aria-label="Ouvrir l'assistant mathématique"
       >
-        <MessageCircle className="h-6 w-6" />
+        <MessageCircle className="h-7 w-7" />
       </Button>
     </>
   );
