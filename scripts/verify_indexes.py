@@ -33,8 +33,10 @@ def verify_indexes():
         print()
         
         # Index attendus (crees par les migrations)
+        # NOTE: Certains index peuvent avoir 'ix_' ou 'idx_' comme préfixe
         expected_indexes = {
             'exercises': [
+                # Migration 20260206_1530
                 'ix_exercises_creator_id',
                 'ix_exercises_exercise_type',
                 'ix_exercises_difficulty',
@@ -43,6 +45,10 @@ def verify_indexes():
                 'ix_exercises_type_difficulty',
                 'ix_exercises_active_type',
                 'ix_exercises_creator_active',
+                # Migration 20260206_1600 (nouveaux - accepte ix_ ou idx_)
+                ('ix_exercises_age_group', 'idx_exercises_age_group'),      # tuple = alternatives
+                ('ix_exercises_is_archived', 'idx_exercises_is_archived'),
+                ('ix_exercises_archived_age', 'idx_exercises_archived_age'),
             ],
             'users': [
                 'ix_users_created_at',
@@ -72,19 +78,35 @@ def verify_indexes():
             result = db.execute(query, {'table_name': table}).fetchall()
             existing_indexes = {row[0]: row[1] for row in result}
             
-            for idx_name in indexes:
+            for idx_spec in indexes:
                 total_expected += 1
-                if idx_name in existing_indexes:
+                
+                # Gérer les alternatives (tuple de noms possibles)
+                if isinstance(idx_spec, tuple):
+                    idx_alternatives = idx_spec
+                    idx_display = idx_alternatives[0]  # Nom principal pour affichage
+                else:
+                    idx_alternatives = (idx_spec,)
+                    idx_display = idx_spec
+                
+                # Chercher si l'un des noms alternatifs existe
+                found_name = None
+                for alt_name in idx_alternatives:
+                    if alt_name in existing_indexes:
+                        found_name = alt_name
+                        break
+                
+                if found_name:
                     total_found += 1
-                    print(f"  [OK] {idx_name}")
+                    print(f"  [OK] {found_name}")
                     # Afficher definition (tronquee)
-                    definition = existing_indexes[idx_name]
+                    definition = existing_indexes[found_name]
                     if len(definition) > 80:
                         definition = definition[:77] + "..."
                     print(f"       -> {definition}")
                 else:
-                    print(f"  [MANQUANT] {idx_name}")
-                    missing_indexes.append(f"{table}.{idx_name}")
+                    print(f"  [MANQUANT] {idx_display}")
+                    missing_indexes.append(f"{table}.{idx_display}")
             
             # Afficher autres index existants (non dans la liste)
             other_indexes = [k for k in existing_indexes if k not in indexes]

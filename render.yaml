@@ -9,7 +9,7 @@ services:
     name: mathakine-backend
     runtime: python
     plan: free  # Changez en "starter" ou "standard" selon vos besoins
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && alembic upgrade head
     startCommand: python enhanced_server.py
     envVars:
       - key: DATABASE_URL

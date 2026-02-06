@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -22,12 +24,14 @@ import { useAccessibilityStore } from '@/lib/stores/accessibilityStore';
 import { cn } from '@/lib/utils/cn';
 
 /**
- * Toolbar d'accessibilité - Version compacte
+ * Toolbar d'accessibilité - Version compacte avec Portal
  * 
  * Un seul bouton qui ouvre un menu avec toutes les options.
- * Best practice : évite l'encombrement et les conflits avec d'autres éléments UI.
+ * Utilise un Portal pour s'assurer que le bouton est toujours visible
+ * indépendamment des transformations CSS des éléments parents.
  */
 export function AccessibilityToolbar() {
+  const [mounted, setMounted] = useState(false);
   const {
     highContrast,
     largeText,
@@ -41,10 +45,15 @@ export function AccessibilityToolbar() {
     toggleFocusMode,
   } = useAccessibilityStore();
 
+  // S'assurer que le portal est monté côté client uniquement
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Compte le nombre d'options actives
   const activeCount = [highContrast, largeText, reducedMotion, dyslexiaMode, focusMode].filter(Boolean).length;
 
-  return (
+  const toolbarContent = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
@@ -124,4 +133,13 @@ export function AccessibilityToolbar() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
+
+  // Ne pas rendre côté serveur (SSR)
+  if (!mounted) {
+    return null;
+  }
+
+  // Utiliser un portal pour rendre directement dans le body
+  // Cela évite les problèmes de positionnement causés par les transforms des parents
+  return createPortal(toolbarContent, document.body);
 }
