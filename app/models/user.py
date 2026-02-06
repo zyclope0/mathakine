@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timezone
 from enum import Enum as PyEnum
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Enum, Index, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.sql.expression import text
@@ -42,6 +42,11 @@ class JSONEncodedDict(TypeDecorator):
 class User(Base):
     """Modèle de données pour les utilisateurs de Mathakine"""
     __tablename__ = "users"
+    __table_args__ = (
+        Index('idx_users_avatar_url', 'avatar_url'),
+        Index('idx_users_jedi_rank', 'jedi_rank'),
+        Index('idx_users_total_points', 'total_points'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False, index=True)
@@ -86,6 +91,10 @@ class User(Base):
 
     # Relations avec le système de badges
     user_achievements = relationship("UserAchievement", back_populates="user", cascade="all, delete-orphan")
+
+    # Relations avec les sessions et notifications
+    user_sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 
 
 

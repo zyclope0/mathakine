@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils/cn';
-import { EXERCISE_TYPE_DISPLAY } from '@/lib/constants/exercises';
+import { useExerciseTypeDisplay } from '@/hooks/useChallengeTranslations';
 import { useTranslations } from 'next-intl';
 
 interface PerformanceByTypeProps {
@@ -93,15 +93,9 @@ const getTypeColor = (type: string): { bg: string; text: string; border: string 
   };
 };
 
-// Fonction pour obtenir le label traduit d'un type
-const getTypeLabel = (type: string): string => {
-  const typeLower = type.toLowerCase();
-  // Utiliser EXERCISE_TYPE_DISPLAY si disponible
-  return EXERCISE_TYPE_DISPLAY[typeLower as keyof typeof EXERCISE_TYPE_DISPLAY] || type;
-};
-
 export function PerformanceByType({ performance }: PerformanceByTypeProps) {
   const t = useTranslations('dashboard');
+  const getTypeDisplay = useExerciseTypeDisplay();
   
   // Memoization du tri des types pour éviter les recalculs inutiles
   // Trier les types par nombre d'exercices complétés (décroissant)
@@ -129,7 +123,7 @@ export function PerformanceByType({ performance }: PerformanceByTypeProps) {
           {sortedTypes.length > 0 ? (
             sortedTypes.map(({ type, typeKey, stats }) => {
               const colors = getTypeColor(typeKey);
-              const label = getTypeLabel(typeKey);
+              const label = getTypeDisplay(typeKey);
 
               // Badge pour performance exceptionnelle (>90%)
               const isExcellent = stats.success_rate >= 90;

@@ -52,11 +52,7 @@ export async function GET(request: NextRequest) {
       .map(cookie => `${cookie.name}=${cookie.value}`)
       .join('; ');
 
-    // Debug: Vérifier les cookies disponibles
     const hasAuthCookie = request.cookies.get('access_token');
-    console.log('[AI Stream Proxy] Total cookies:', allCookies.length);
-    console.log('[AI Stream Proxy] Cookie names:', allCookies.map(c => c.name).join(', '));
-    console.log('[AI Stream Proxy] Auth cookie present:', !!hasAuthCookie);
     
     // Si pas de cookie d'authentification, retourner une erreur immédiatement
     if (!hasAuthCookie) {
@@ -74,7 +70,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    console.log('[AI Stream Proxy] Auth cookie found, forwarding to backend');
+    // Auth cookie found, forwarding to backend
 
     // Créer un stream vers le backend
     const backendResponse = await fetch(backendUrl, {

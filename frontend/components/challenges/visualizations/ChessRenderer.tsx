@@ -61,19 +61,57 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
   const hasBoard = board.length > 0;
 
   // Symboles des pièces d'échecs
-  const pieceSymbols: Record<string, string> = {
+  // Pièces blanches (outline) - majuscules en notation FEN
+  const whitePieceSymbols: Record<string, string> = {
+    'K': '♔',
+    'Q': '♕',
+    'R': '♖',
+    'B': '♗',
+    'N': '♘',
+    'P': '♙',
     'king': '♔',
     'queen': '♕',
     'rook': '♖',
     'bishop': '♗',
     'knight': '♘',
     'pawn': '♙',
-    'k': '♔',
-    'q': '♕',
-    'r': '♖',
-    'b': '♗',
-    'n': '♘',
-    'p': '♙',
+  };
+
+  // Pièces noires (pleines) - minuscules en notation FEN
+  const blackPieceSymbols: Record<string, string> = {
+    'k': '♚',
+    'q': '♛',
+    'r': '♜',
+    'b': '♝',
+    'n': '♞',
+    'p': '♟',
+  };
+
+  // Détecter si une pièce est blanche (majuscule ou mot-clé)
+  const isWhitePiece = (piece: string): boolean => {
+    if (!piece || piece.length === 0) return false;
+    // Majuscule = blanc en notation FEN
+    if (piece.length === 1) return piece === piece.toUpperCase();
+    // Mot-clé avec préfixe white
+    return piece.toLowerCase().startsWith('white') || 
+           ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'].includes(piece.toLowerCase());
+  };
+
+  // Obtenir le symbole et la couleur d'une pièce
+  const getPieceInfo = (piece: string): { symbol: string; isWhite: boolean } | null => {
+    if (!piece || piece === '' || piece === ' ' || piece === '.') return null;
+    
+    const isWhite = isWhitePiece(piece);
+    const key = piece.length === 1 ? piece : piece.toLowerCase().replace('white', '').replace('black', '').trim();
+    
+    if (isWhite) {
+      const symbol = whitePieceSymbols[piece] || whitePieceSymbols[key.toUpperCase()] || whitePieceSymbols[key];
+      if (symbol) return { symbol, isWhite: true };
+    } else {
+      const symbol = blackPieceSymbols[piece] || blackPieceSymbols[key.toLowerCase()];
+      if (symbol) return { symbol, isWhite: false };
+    }
+    return null;
   };
 
   // Couleurs pour l'échiquier
@@ -109,8 +147,8 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
     return (row + col) % 2 === 0 ? lightSquare : darkSquare;
   };
 
-  // Obtenir le contenu d'une case
-  const getSquareContent = (row: number, col: number): string => {
+  // Obtenir le contenu d'une case avec info couleur
+  const getSquareContentInfo = (row: number, col: number): { symbol: string; isWhite: boolean } | null => {
     // Si on a un board 2D avec des vraies pièces (pas des labels comme "A1", "B2")
     if (hasBoard && board[row] && board[row][col]) {
       const piece = board[row][col];
@@ -120,17 +158,20 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
           piece !== ' ' && 
           piece !== '.' && 
           piece.length <= 2 &&  // Les labels font 2-3 chars (A1, B10), les pièces 1-2 (k, N, etc.)
-          !piece.match(/^[A-H][1-8]$/)) {  // Exclure les labels de cases (A1-H8)
-        return pieceSymbols[piece.toLowerCase()] || piece;
+          !piece.match(/^[A-H][1-8]$/i)) {  // Exclure les labels de cases (A1-H8)
+        return getPieceInfo(piece);
       }
     }
 
     // Afficher la pièce actuelle si c'est sa position
     if (isCurrentPosition(row, col)) {
-      return pieceSymbols[currentPiece.toLowerCase()] || '♞';
+      const info = getPieceInfo(currentPiece);
+      if (info) return info;
+      // Fallback pour le cavalier par défaut (blanc)
+      return { symbol: '♘', isWhite: true };
     }
 
-    return '';
+    return null;
   };
 
   // Obtenir le label d'une position (notation échecs : a1, b2, etc.)
@@ -211,7 +252,7 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
                 {Array.from({ length: boardSize }, (_, row) => (
                   <div key={row} className="flex">
                     {Array.from({ length: boardSize }, (_, col) => {
-                      const content = getSquareContent(row, col);
+                      const pieceInfo = getSquareContentInfo(row, col);
                       const bgColor = getSquareColor(row, col);
                       const posLabel = getPositionLabel(row, col);
 
@@ -222,9 +263,20 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
                           title={posLabel}
                         >
                           {/* Contenu de la case (pièce ou marqueur) */}
-                          {content ? (
-                            <span className="text-2xl select-none filter drop-shadow-sm">
-                              {content}
+                          {pieceInfo ? (
+                            <span 
+                              className="text-2xl select-none"
+                              style={{
+                                // Pièces blanches : texte clair avec contour sombre
+                                // Pièces noires : texte sombre avec contour clair
+                                color: pieceInfo.isWhite ? '#FFFFFF' : '#1a1a1a',
+                                textShadow: pieceInfo.isWhite 
+                                  ? '0 0 3px #000, 0 0 3px #000, 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000'
+                                  : '0 0 3px #fff, 0 0 3px #fff, 1px 1px 1px #fff, -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff',
+                                WebkitTextStroke: pieceInfo.isWhite ? '0.5px #333' : '0.5px #ccc',
+                              }}
+                            >
+                              {pieceInfo.symbol}
                             </span>
                           ) : isReachablePosition(row, col) ? (
                             <Target className="h-4 w-4 text-white/80" />

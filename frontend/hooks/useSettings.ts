@@ -26,13 +26,16 @@ export interface UserSession {
     device?: string;
   };
   ip_address?: string;
+  user_agent?: string;
   location_data?: {
     city?: string;
     country?: string;
   };
   last_activity: string;
   created_at: string;
+  expires_at: string;
   is_active: boolean;
+  is_current?: boolean;
 }
 
 export function useSettings() {
@@ -128,13 +131,13 @@ export function useSettings() {
     },
   });
 
-  // Récupération des sessions (pour l'instant, retourner un tableau vide)
-  // Les endpoints seront créés plus tard
+  // Récupération des sessions actives
   const getSessions = async (): Promise<UserSession[]> => {
     try {
-      // TODO: Créer l'endpoint /api/users/me/sessions
-      return [];
-    } catch {
+      const response = await api.get<UserSession[]>('/api/users/me/sessions');
+      return response;
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
       return [];
     }
   };
@@ -142,7 +145,6 @@ export function useSettings() {
   // Révoquer une session
   const revokeSessionMutation = useMutation({
     mutationFn: async (sessionId: number) => {
-      // TODO: Créer l'endpoint /api/users/me/sessions/{sessionId}
       return await api.delete(`/api/users/me/sessions/${sessionId}`);
     },
     onSuccess: () => {

@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils/cn';
 import { Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface LoadingStateProps {
   message?: string;
@@ -28,6 +29,7 @@ export function LoadingState({
   className,
   size = 'md',
 }: LoadingStateProps) {
+  const t = useTranslations('common');
   return (
     <div className={cn(
       'flex flex-col items-center justify-center py-12',
@@ -41,12 +43,10 @@ export function LoadingState({
         )} 
         aria-hidden="true"
       />
-      {message && (
-        <p className="text-sm text-muted-foreground">
-          {message}
-        </p>
-      )}
-      <span className="sr-only">Chargement en cours</span>
+      <p className="text-sm text-muted-foreground">
+        {message || t('loading', { default: 'Chargement...' })}
+      </p>
+      <span className="sr-only">{t('loading', { default: 'Chargement...' })}</span>
     </div>
   );
 }

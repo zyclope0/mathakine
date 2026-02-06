@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Sparkles, X, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CHALLENGE_TYPES, CHALLENGE_TYPE_DISPLAY, AGE_GROUPS, AGE_GROUP_DISPLAY, type ChallengeType, type AgeGroup } from '@/lib/constants/challenges';
+import { CHALLENGE_TYPES, AGE_GROUPS, type ChallengeType, type AgeGroup } from '@/lib/constants/challenges';
+import { useChallengeTranslations } from '@/hooks/useChallengeTranslations';
 import type { Challenge } from '@/types/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -19,7 +20,7 @@ interface AIGeneratorProps {
 
 export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
   const [challengeType, setChallengeType] = useState<ChallengeType>(CHALLENGE_TYPES.SEQUENCE);
-  const [ageGroup, setAgeGroup] = useState<AgeGroup>(AGE_GROUPS.GROUP_10_12);
+  const [ageGroup, setAgeGroup] = useState<AgeGroup>(AGE_GROUPS.GROUP_9_11);
   const [customPrompt, setCustomPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamedText, setStreamedText] = useState('');
@@ -28,6 +29,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const t = useTranslations('challenges');
+  const { getTypeDisplay, getAgeDisplay } = useChallengeTranslations();
   const { user, isLoading: isAuthLoading } = useAuth();
 
   // Nettoyer l'AbortController lors du démontage
@@ -43,14 +45,17 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
     if (isGenerating) return;
 
     // Vérifier l'authentification
-    console.log('[AIGenerator] User auth state:', { 
-      hasUser: !!user, 
-      userId: user?.id, 
-      username: user?.username 
-    });
+    const isDev = process.env.NODE_ENV === 'development';
+    if (isDev) {
+      console.log('[AIGenerator] User auth state:', { 
+        hasUser: !!user, 
+        userId: user?.id, 
+        username: user?.username 
+      });
+    }
     
     if (!user) {
-      console.error('[AIGenerator] User not authenticated');
+      if (isDev) console.error('[AIGenerator] User not authenticated');
       toast.error(t('aiGenerator.authRequired'), {
         description: t('aiGenerator.authRequiredDescription'),
         action: {
@@ -61,7 +66,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
       return;
     }
 
-    console.log('[AIGenerator] User authenticated, starting generation');
+    if (isDev) console.log('[AIGenerator] User authenticated, starting generation');
     setIsGenerating(true);
     setStreamedText('');
     setGeneratedChallenge(null);
@@ -82,10 +87,23 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
 
       // Appeler directement le backend (pas d'API route proxy)
       // C'est la même approche que tous les autres endpoints (login, exercices, etc.)
-      const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://mathakine-alpha.onrender.com';
-      const url = `${backendUrl}/api/challenges/generate-ai-stream?${params.toString()}`;
+      const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
       
-      console.log('[AIGenerator] Calling backend directly:', url);
+      if (!backendUrl) {
+        // En développement, utiliser localhost par défaut
+        // En production, les variables d'environnement DOIVENT être définies
+        const isDev = process.env.NODE_ENV === 'development';
+        if (!isDev) {
+          throw new Error('Configuration manquante: NEXT_PUBLIC_API_BASE_URL non défini');
+        }
+      }
+      
+      const finalUrl = backendUrl || 'http://localhost:10000';
+      const url = `${finalUrl}/api/challenges/generate-ai-stream?${params.toString()}`;
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[AIGenerator] Calling backend:', url);
+      }
       
       const response = await fetch(url, {
         method: 'GET',
@@ -123,7 +141,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
         const newChunk = decoder.decode(value, { stream: true });
         buffer += newChunk;
         
-        if (newChunk) {
+        if (newChunk && isDev) {
           console.log('[AIGenerator] Received chunk:', newChunk.substring(0, 100), '...');
         }
         
@@ -141,7 +159,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
               const jsonStr = trimmedLine.slice(6);
               const data = JSON.parse(jsonStr);
 
-              console.log('[AIGenerator] Received SSE message:', data.type);
+              if (isDev) console.log('[AIGenerator] Received SSE message:', data.type);
 
               if (data.type === 'status') {
                 // Message de statut uniquement
@@ -152,7 +170,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
                 
                 // Vérifier que le challenge est valide
                 if (!challenge || !challenge.title) {
-                  console.error('Challenge invalide reçu:', challenge);
+                  if (isDev) console.error('Challenge invalide reçu:', challenge);
                   toast.error(t('aiGenerator.error'), {
                     description: t('aiGenerator.errorDescription'),
                   });
@@ -192,7 +210,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
                 return;
               }
             } catch (parseError) {
-              console.error('[AIGenerator] Erreur de parsing SSE:', parseError, 'Line:', trimmedLine);
+              if (isDev) console.error('[AIGenerator] Erreur de parsing SSE:', parseError, 'Line:', trimmedLine);
             }
           }
         }
@@ -200,12 +218,12 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
     } catch (error) {
       // Ne pas afficher d'erreur si la requête a été annulée par l'utilisateur
       if (error instanceof Error && error.name === 'AbortError') {
-        console.log('[AIGenerator] Génération annulée par l\'utilisateur');
+        if (isDev) console.log('[AIGenerator] Génération annulée par l\'utilisateur');
         setIsGenerating(false);
         return;
       }
       
-      console.error('Erreur lors de la génération:', error);
+      if (isDev) console.error('Erreur lors de la génération:', error);
       setIsGenerating(false);
       toast.error(t('aiGenerator.connectionError'), {
         description: t('aiGenerator.connectionErrorDescription'),
@@ -224,7 +242,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
 
   const handleViewChallenge = () => {
     if (generatedChallenge?.id) {
-      router.push(`/challenges/${generatedChallenge.id}`);
+      router.push(`/challenge/${generatedChallenge.id}`);
     }
   };
 
@@ -255,9 +273,9 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
                 <SelectValue placeholder={t('aiGenerator.selectType')} />
               </SelectTrigger>
               <SelectContent className="bg-card border-primary/30">
-                {Object.entries(CHALLENGE_TYPE_DISPLAY).map(([key, value]) => (
-                  <SelectItem key={key} value={key} className="text-foreground hover:bg-primary/10">
-                    {value}
+                {Object.values(CHALLENGE_TYPES).map((type) => (
+                  <SelectItem key={type} value={type} className="text-foreground hover:bg-primary/10">
+                    {getTypeDisplay(type)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -277,9 +295,9 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
                 <SelectValue placeholder={t('aiGenerator.selectAgeGroup')} />
               </SelectTrigger>
               <SelectContent className="bg-card border-primary/30">
-                {Object.entries(AGE_GROUP_DISPLAY).map(([key, value]) => (
-                  <SelectItem key={key} value={key} className="text-foreground hover:bg-primary/10">
-                    {value}
+                {Object.values(AGE_GROUPS).map((group) => (
+                  <SelectItem key={group} value={group} className="text-foreground hover:bg-primary/10">
+                    {getAgeDisplay(group)}
                   </SelectItem>
                 ))}
               </SelectContent>

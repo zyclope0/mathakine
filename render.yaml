@@ -10,7 +10,7 @@ services:
     runtime: python
     plan: free  # Changez en "starter" ou "standard" selon vos besoins
     buildCommand: pip install -r requirements.txt
-    startCommand: bash scripts/start_render.sh
+    startCommand: python enhanced_server.py
     envVars:
       - key: DATABASE_URL
         fromDatabase:

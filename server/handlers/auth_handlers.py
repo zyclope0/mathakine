@@ -5,7 +5,9 @@ import os
 import traceback
 from datetime import datetime, timezone
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse
 
@@ -468,4 +470,41 @@ async def api_get_current_user(request: Request):
             {"error": "Erreur lors de la récupération de l'utilisateur"},
             status_code=500
         )
+
+
+async def api_forgot_password(request: Request):
+    """
+    Handler pour la fonctionnalité de mot de passe oublié (placeholder).
+    Route: POST /api/auth/forgot-password
+    """
+    logger.info("Tentative d'accès à la fonctionnalité 'mot de passe oublié'.")
+    return JSONResponse(
+        {"message": "La fonctionnalité de réinitialisation de mot de passe est en cours de développement."},
+        status_code=501  # Not Implemented
+    )
+
+
+async def api_logout(request: Request):
+    """
+    Déconnexion de l'utilisateur en effaçant les cookies d'authentification.
+    Route: POST /api/auth/logout
+    """
+    try:
+        response = JSONResponse({"message": "Déconnexion réussie"}, status_code=200)
+        
+        # Effacer les cookies d'authentification
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+        
+        logger.info("Utilisateur déconnecté : cookies d'authentification effacés.")
+        return response
+    except Exception as logout_error:
+        logger.error(f"Erreur lors de la déconnexion: {logout_error}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse(
+            {"error": "Erreur lors de la déconnexion"},
+            status_code=500
+        )
+
+
 

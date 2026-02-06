@@ -4,7 +4,9 @@ Implémente les opérations métier liées aux défis logiques et utilise le tra
 """
 from typing import Any, Dict, List, Optional
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter

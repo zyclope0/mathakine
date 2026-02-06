@@ -4,7 +4,9 @@ Service d'initialisation de la base de données
 import random
 from datetime import datetime, timedelta
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from sqlalchemy.orm import Session
 
 from app.db.base import Base, engine, get_db

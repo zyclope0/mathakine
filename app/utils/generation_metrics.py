@@ -6,7 +6,9 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class GenerationMetrics:

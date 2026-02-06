@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import (get_current_gardien_or_archiviste, get_current_user,
                           get_db_session)
+from app.core.logging_config import get_logger
 from app.api.endpoints.users import _challenges_progress
 from app.models.logic_challenge import AgeGroup, LogicChallengeType
 from app.models.user import User
@@ -23,6 +24,8 @@ from app.schemas.logic_challenge import (LogicChallengeAttemptBase,
                                          LogicChallengeStats,
                                          LogicChallengeUpdate)
 from app.services.logic_challenge_service import LogicChallengeService
+
+logger = get_logger(__name__)
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
 router = APIRouter()
@@ -431,7 +434,7 @@ def attempt_logic_challenge(
                 "hints": ["Indice non disponible"]
             }
             # Log l'erreur pour debug
-            print(f"Erreur lors de la conversion to_dict() pour le défi {challenge_id}: {e}")
+            logger.error(f"Erreur lors de la conversion to_dict() pour le défi {challenge_id}: {e}")
         
         is_correct = attempt.answer == challenge_dict["correct_answer"]
 
@@ -453,7 +456,7 @@ def attempt_logic_challenge(
         raise
     except Exception as attempt_error:
         # ✅ CORRECTION : Gestion d'erreur générale pour éviter les 500
-        print(f"Erreur inattendue dans attempt_logic_challenge: {attempt_error}")
+        logger.error(f"Erreur inattendue dans attempt_logic_challenge: {attempt_error}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur interne du serveur lors de la tentative"
@@ -535,7 +538,7 @@ def get_challenge_hint(
                 "hints": ["Observez attentivement", "Cherchez un pattern", "Utilisez la logique"]
             }
             # Log l'erreur pour debug
-            print(f"Erreur lors de la conversion to_dict() pour le défi {challenge_id}: {e}")
+            logger.error(f"Erreur lors de la conversion to_dict() pour le défi {challenge_id}: {e}")
         
         hints = challenge_dict.get("hints", [])
         if level < 1 or level > len(hints):
@@ -551,7 +554,7 @@ def get_challenge_hint(
         raise
     except Exception as hint_error:
         # ✅ CORRECTION : Gestion d'erreur générale pour éviter les 500
-        print(f"Erreur inattendue dans get_challenge_hint: {hint_error}")
+        logger.error(f"Erreur inattendue dans get_challenge_hint: {hint_error}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur interne du serveur lors de la récupération de l'indice"
@@ -634,14 +637,12 @@ def delete_logic_challenge(
     Génère une erreur 404 si le défi n'existe pas.
     Génère une erreur 500 en cas de problème lors de la suppression.
     """
-    import logging
     import traceback
 
     from sqlalchemy.exc import SQLAlchemyError
 
     from app.models.logic_challenge import LogicChallenge
 
-    logger = logging.getLogger(__name__)
     logger.info(f"Tentative de suppression du défi logique {challenge_id}")
 
     try:

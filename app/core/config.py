@@ -143,5 +143,5 @@ validate_production_settings()
 
 # Configuration pour les tests
 if settings.TESTING:
-    print(f"Mode test détecté, utilisation de l'URL de base de données: {settings.SQLALCHEMY_DATABASE_URL}")
+    logger.info(f"Mode test détecté, utilisation de l'URL de base de données: {settings.SQLALCHEMY_DATABASE_URL}")
     # Autres configurations spécifiques aux tests

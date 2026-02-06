@@ -8,7 +8,9 @@ import json
 import traceback
 from pathlib import Path
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates

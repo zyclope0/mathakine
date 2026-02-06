@@ -63,7 +63,7 @@ ENUM_MAPPING = {
     ("LogicChallengeType", "puzzle"): "PUZZLE",
     ("LogicChallengeType", "riddle"): "RIDDLE",
     ("LogicChallengeType", "deduction"): "DEDUCTION",
-    ("LogicChallengeType", "spatial"): "SPATIAL",
+    ("LogicChallengeType", "spatial"): "VISUAL",  # SPATIAL fusionné dans VISUAL
     ("LogicChallengeType", "probability"): "PROBABILITY",
     ("LogicChallengeType", "graph"): "GRAPH",
     ("LogicChallengeType", "coding"): "CODING",
@@ -187,7 +187,7 @@ def get_all_enum_values(db: Optional[Session] = None) -> Dict[str, Any]:
             "visual": get_enum_value(LogicChallengeType, LogicChallengeType.VISUAL),
             "riddle": get_enum_value(LogicChallengeType, LogicChallengeType.PUZZLE),
             "deduction": get_enum_value(LogicChallengeType, LogicChallengeType.DEDUCTION),
-            "spatial": get_enum_value(LogicChallengeType, LogicChallengeType.SPATIAL),
+            "spatial": get_enum_value(LogicChallengeType, LogicChallengeType.VISUAL),  # SPATIAL fusionné
             "probability": get_enum_value(LogicChallengeType, LogicChallengeType.PROBABILITY),
             "graph": get_enum_value(LogicChallengeType, LogicChallengeType.GRAPH),
             "coding": get_enum_value(LogicChallengeType, LogicChallengeType.CODING),
@@ -195,21 +195,27 @@ def get_all_enum_values(db: Optional[Session] = None) -> Dict[str, Any]:
             "custom": get_enum_value(LogicChallengeType, LogicChallengeType.CUSTOM)
         },
         "age_groups": {
-            "enfant": get_enum_value(AgeGroup, AgeGroup.ENFANT),
-            "adolescent": get_enum_value(AgeGroup, AgeGroup.ADOLESCENT),
-            "adulte": get_enum_value(AgeGroup, AgeGroup.ADULTE),
-            "age_9_12": get_enum_value(AgeGroup, AgeGroup.AGE_9_12),
-            "age_12_13": get_enum_value(AgeGroup, AgeGroup.AGE_12_13),
-            "age_13_plus": get_enum_value(AgeGroup, AgeGroup.AGE_13_PLUS),
+            # Seules les 3 valeurs existantes en PostgreSQL
             "group_10_12": get_enum_value(AgeGroup, AgeGroup.GROUP_10_12),
             "group_13_15": get_enum_value(AgeGroup, AgeGroup.GROUP_13_15),
             "all_ages": get_enum_value(AgeGroup, AgeGroup.ALL_AGES),
-            "9-12": get_enum_value(AgeGroup, AgeGroup.AGE_9_12),
-            "12-13": get_enum_value(AgeGroup, AgeGroup.AGE_12_13),
-            "13+": get_enum_value(AgeGroup, AgeGroup.AGE_13_PLUS),
+            # Aliases pour rétrocompatibilité (mappent vers les valeurs existantes)
             "10-12": get_enum_value(AgeGroup, AgeGroup.GROUP_10_12),
             "13-15": get_enum_value(AgeGroup, AgeGroup.GROUP_13_15),
-            "all": get_enum_value(AgeGroup, AgeGroup.ALL_AGES)
+            "all": get_enum_value(AgeGroup, AgeGroup.ALL_AGES),
+            # Frontend values (mappent vers les valeurs existantes)
+            "6-8": get_enum_value(AgeGroup, AgeGroup.GROUP_10_12),
+            "9-11": get_enum_value(AgeGroup, AgeGroup.GROUP_10_12),
+            "12-14": get_enum_value(AgeGroup, AgeGroup.GROUP_13_15),
+            "15-17": get_enum_value(AgeGroup, AgeGroup.GROUP_13_15),
+            "adulte": get_enum_value(AgeGroup, AgeGroup.GROUP_13_15),
+            "tous-ages": get_enum_value(AgeGroup, AgeGroup.ALL_AGES),
+            # Legacy values (mappent vers les valeurs existantes)
+            "enfant": get_enum_value(AgeGroup, AgeGroup.GROUP_10_12),
+            "adolescent": get_enum_value(AgeGroup, AgeGroup.GROUP_13_15),
+            "9-12": get_enum_value(AgeGroup, AgeGroup.GROUP_10_12),
+            "12-13": get_enum_value(AgeGroup, AgeGroup.GROUP_13_15),
+            "13+": get_enum_value(AgeGroup, AgeGroup.GROUP_13_15)
         }
     } 
 
@@ -254,7 +260,7 @@ def get_python_enum_value(enum_class, db_value: str) -> str:
         ("LogicChallengeType", "PUZZLE"): "puzzle",
         ("LogicChallengeType", "RIDDLE"): "riddle",
         ("LogicChallengeType", "DEDUCTION"): "deduction",
-        ("LogicChallengeType", "SPATIAL"): "spatial",
+        ("LogicChallengeType", "SPATIAL"): "visual",  # SPATIAL affiché comme visual
         ("LogicChallengeType", "PROBABILITY"): "probability",
         ("LogicChallengeType", "GRAPH"): "graph",
         ("LogicChallengeType", "CODING"): "coding",

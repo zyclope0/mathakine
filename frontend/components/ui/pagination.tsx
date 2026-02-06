@@ -20,7 +20,7 @@ export function Pagination({
   currentPage,
   totalPages,
   onPageChange,
-  itemsPerPage = 20,
+  itemsPerPage = 15,
   totalItems,
   showInfo = true,
   className,

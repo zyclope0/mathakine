@@ -5,8 +5,10 @@ import json
 import random
 from typing import Any, Dict, List, Optional
 
-from app.core.constants import (DIFFICULTY_LIMITS, DifficultyLevels,
-                                ExerciseTypes, Messages, Tags)
+from app.core.logging_config import get_logger
+from app.core.constants import (DIFFICULTY_LIMITS, DifficultyLevels, ExerciseTypes, Messages, Tags, AgeGroups, normalize_age_group)
+
+logger = get_logger(__name__)
 from app.core.messages import ExerciseMessages, StarWarsNarratives
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 
@@ -31,7 +33,7 @@ def normalize_exercise_type(exercise_type):
         return exercise_type_upper
     
     # Si toujours aucune correspondance, logger un avertissement et retourner ADDITION par défaut
-    print(f"⚠️ Type d'exercice non reconnu: {exercise_type}, utilisation de ADDITION par défaut")
+    logger.info(f"⚠️ Type d'exercice non reconnu: {exercise_type}, utilisation de ADDITION par défaut")
     return ExerciseTypes.ADDITION
 
 def normalize_difficulty(difficulty):
@@ -53,60 +55,91 @@ def normalize_difficulty(difficulty):
         return difficulty_upper
             
     # Si toujours aucune correspondance, logger un avertissement et retourner PADAWAN par défaut
-    print(f"⚠️ Niveau de difficulté non reconnu: {difficulty}, utilisation de PADAWAN par défaut")
+    logger.info(f"⚠️ Niveau de difficulté non reconnu: {difficulty}, utilisation de PADAWAN par défaut")
     return DifficultyLevels.PADAWAN
 
 
-def normalize_and_validate_exercise_params(exercise_type_raw: Optional[str], difficulty_raw: Optional[str]) -> tuple:
+def normalize_and_validate_exercise_params(exercise_type_raw: Optional[str], age_group_raw: Optional[str]) -> tuple:
     """
-    Normalise et valide les paramètres d'exercice de manière centralisée.
-    
-    Args:
-        exercise_type_raw: Type d'exercice brut (peut être None)
-        difficulty_raw: Difficulté brute (peut être None)
-    
-    Returns:
-        Tuple (exercise_type, difficulty) normalisés et validés
-    
-    Raises:
-        ValueError: Si les paramètres sont invalides après normalisation
+    Normalise et valide les paramètres d'exercice (type et groupe d'âge).
+    Retourne le type, le groupe d'âge, et la difficulté dérivée.
     """
-    from app.core.constants import ExerciseTypes
+    from app.core.constants import ExerciseTypes, AgeGroups
 
     # Normaliser les paramètres
     exercise_type = normalize_exercise_type(exercise_type_raw)
-    difficulty = normalize_difficulty(difficulty_raw)
+    age_group = normalize_age_group(age_group_raw)
+    derived_difficulty = get_difficulty_from_age_group(age_group)
     
     # Valider que le type normalisé est valide
     if exercise_type not in ExerciseTypes.ALL_TYPES:
-        print(f"⚠️ Type normalisé invalide: {exercise_type}, utilisation de ADDITION par défaut")
+        logger.info(f"⚠️ Type normalisé invalide: {exercise_type}, utilisation de ADDITION par défaut")
         exercise_type = ExerciseTypes.ADDITION
+
+    # Valider que le groupe d'âge normalisé est valide
+    if age_group not in AgeGroups.ALL_GROUPS:
+        logger.info(f"⚠️ Groupe d'âge non reconnu: {age_group_raw}, utilisation de {AgeGroups.GROUP_6_8} par défaut")
+        age_group = AgeGroups.GROUP_6_8
+        derived_difficulty = get_difficulty_from_age_group(age_group)
     
-    return exercise_type, difficulty
+    return exercise_type, age_group, derived_difficulty
+
+
+def get_difficulty_from_age_group(age_group: str) -> str:
+    """
+    Détermine le niveau de difficulté (INITIE, PADAWAN, ...) à partir du groupe d'âge.
+    
+    Mapping (aligné avec app/core/constants.py) :
+    - 6-8 ans → INITIE (débutant)
+    - 9-11 ans → PADAWAN (intermédiaire)
+    - 12-14 ans → CHEVALIER (avancé)
+    - 15-17 ans → MAITRE (expert)
+    - adulte → GRAND_MAITRE (expert+)
+    - tous-ages → PADAWAN (accessible à tous)
+    """
+    from app.core.constants import AgeGroups, DifficultyLevels
+
+    # NOTE: DifficultyLevels.INITIE etc. sont déjà des strings, pas besoin d'appeler .value
+    if age_group == AgeGroups.GROUP_6_8:
+        return DifficultyLevels.INITIE
+    elif age_group in [AgeGroups.GROUP_9_11, AgeGroups.ALL_AGES]:
+        return DifficultyLevels.PADAWAN
+    elif age_group == AgeGroups.GROUP_12_14:
+        return DifficultyLevels.CHEVALIER
+    elif age_group == AgeGroups.GROUP_15_17:
+        return DifficultyLevels.MAITRE
+    elif age_group == AgeGroups.ADULT:
+        return DifficultyLevels.GRAND_MAITRE
+    else:
+        # Valeur par défaut si le groupe d'âge n'est pas reconnu
+        logger.info(f"⚠️ Groupe d'âge non reconnu: {age_group}, utilisation de {DifficultyLevels.PADAWAN} par défaut")
+        return DifficultyLevels.PADAWAN
 
 # Fonctions de génération d'exercices
-def generate_ai_exercise(exercise_type, difficulty):
+def generate_ai_exercise(exercise_type, age_group):
     """
     Génère un exercice avec IA en utilisant des prompts et contextes Star Wars
     """
     normalized_type = normalize_exercise_type(exercise_type)
-    normalized_difficulty = normalize_difficulty(difficulty)
+    normalized_age_group = normalize_age_group(age_group)
+    derived_difficulty = get_difficulty_from_age_group(normalized_age_group) # Derive difficulty
     
     # Récupérer les limites pour ce type d'exercice et cette difficulté
-    difficulty_config = DIFFICULTY_LIMITS.get(normalized_difficulty, DIFFICULTY_LIMITS[DifficultyLevels.PADAWAN])
+    difficulty_config = DIFFICULTY_LIMITS.get(derived_difficulty, DIFFICULTY_LIMITS[DifficultyLevels.PADAWAN]) # Use derived_difficulty
     type_limits = difficulty_config.get(normalized_type, difficulty_config.get("default", {"min": 1, "max": 10}))
     
     # Structure de base commune pour tous les types d'exercices générés par IA
     exercise_data = {
         "exercise_type": normalized_type,
-        "difficulty": normalized_difficulty,
+        "age_group": normalized_age_group, # Store age_group
+        "difficulty": derived_difficulty,  # Store derived difficulty
         "ai_generated": True,
         "tags": Tags.AI + "," + Tags.GENERATIVE + "," + Tags.STARWARS
     }
     
     # Préfixe et suffixe pour enrichir l'explication
-    explanation_prefix = StarWarsNarratives.get_explanation_prefix(normalized_difficulty)
-    explanation_suffix = StarWarsNarratives.get_explanation_suffix(normalized_difficulty)
+    explanation_prefix = StarWarsNarratives.get_explanation_prefix(derived_difficulty) # Use derived_difficulty
+    explanation_suffix = StarWarsNarratives.get_explanation_suffix(derived_difficulty) # Use derived_difficulty
     
     if normalized_type == ExerciseTypes.ADDITION:
         # Utiliser les limites de difficulté pour déterminer les plages de nombres
@@ -118,14 +151,14 @@ def generate_ai_exercise(exercise_type, difficulty):
         result = num1 + num2
         
         # Thème Star Wars pour l'addition
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             question_template = random.choice([
                 f"Tu as trouvé {num1} cristaux Kyber et ton ami en a trouvé {num2}. Combien avez-vous de cristaux au total?",
                 f"Il y a {num1} droïdes dans le hangar et {num2} droïdes dans l'atelier. Combien y a-t-il de droïdes en tout?",
                 f"Tu as parcouru {num1} parsecs hier et {num2} parsecs aujourd'hui. Quelle distance as-tu parcourue en tout?"
             ])
             explanation_template = f"Pour trouver la réponse, tu dois additionner {num1} et {num2}, ce qui donne {result}."
-        else:
+        else: # Default for other difficulty levels
             question_template = random.choice([
                 f"Un escadron de {num1} X-wings et un escadron de {num2} Y-wings se préparent pour attaquer l'Étoile de la Mort. Combien de vaisseaux y a-t-il au total?",
                 f"L'Empire a envoyé {num1} stormtroopers sur Endor et {num2} stormtroopers sur Hoth. Combien de stormtroopers ont été déployés en tout?",
@@ -134,10 +167,10 @@ def generate_ai_exercise(exercise_type, difficulty):
             explanation_template = f"Pour calculer le total, on additionne les deux nombres: {num1} + {num2} = {result}."
         
         # Générer des choix intelligents avec erreurs typiques
-        choices = generate_smart_choices("ADDITION", num1, num2, result, normalized_difficulty)
+        choices = generate_smart_choices("ADDITION", num1, num2, result, derived_difficulty) # Use derived_difficulty
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Alliance Rebelle - Addition niveau {difficulty}",
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Alliance Rebelle - Addition pour les {age_group} (Niveau: {derived_difficulty})", # Update title
             "question": question_template,
             "correct_answer": str(result),
             "choices": choices,
@@ -145,8 +178,7 @@ def generate_ai_exercise(exercise_type, difficulty):
             "num2": num2,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
-        return exercise_data
-        
+        return exercise_data        
     elif normalized_type == ExerciseTypes.SUBTRACTION:
         # Paramètres pour la soustraction avec des limites adaptatives
         min1 = type_limits.get("min1", 5)
@@ -159,14 +191,14 @@ def generate_ai_exercise(exercise_type, difficulty):
         result = num1 - num2
         
         # Thème Star Wars pour la soustraction
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             question_template = random.choice([
                 f"Tu as {num1} portions de rations, mais tu en as utilisé {num2}. Combien te reste-t-il?",
                 f"Il y avait {num1} droïdes dans le hangar, mais {num2} sont partis en mission. Combien reste-t-il de droïdes?",
                 f"Tu as parcouru {num1} années-lumière, mais il te reste encore {num2} années-lumière à faire. Quelle distance as-tu déjà parcourue?"
             ])
             explanation_template = f"Pour trouver la réponse, tu dois soustraire {num2} de {num1}, ce qui donne {result}."
-        else:
+        else: # Default for other difficulty levels
             question_template = random.choice([
                 f"La flotte rebelle comptait {num1} vaisseaux, mais {num2} ont été détruits dans la bataille. Combien de vaisseaux reste-t-il?",
                 f"L'Empire avait {num1} planètes sous son contrôle, mais {num2} se sont rebellées. Combien de planètes restent loyales?",
@@ -184,7 +216,7 @@ def generate_ai_exercise(exercise_type, difficulty):
         random.shuffle(choices)
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Conflit galactique - Soustraction niveau {difficulty}",
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Conflit galactique - Soustraction pour les {age_group} (Niveau: {derived_difficulty})", # Update title
             "question": question_template,
             "correct_answer": str(result),
             "choices": choices,
@@ -192,8 +224,7 @@ def generate_ai_exercise(exercise_type, difficulty):
             "num2": num2,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
-        return exercise_data
-        
+        return exercise_data        
     elif normalized_type == ExerciseTypes.MULTIPLICATION:
         # Utiliser des limites adaptées pour la multiplication
         min_val = type_limits.get("min", 2)
@@ -204,14 +235,14 @@ def generate_ai_exercise(exercise_type, difficulty):
         result = num1 * num2
         
         # Thème Star Wars pour la multiplication
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             question_template = random.choice([
                 f"Chaque Padawan a {num2} cristaux Kyber. S'il y a {num1} Padawans, combien de cristaux y a-t-il au total?",
                 f"Chaque droïde astromech a {num2} outils. Combien d'outils ont {num1} droïdes au total?",
                 f"Chaque module de formation a {num2} exercices. Combien d'exercices y a-t-il dans {num1} modules?"
             ])
             explanation_template = f"Pour trouver le total, tu dois multiplier le nombre de {num1} par {num2}, ce qui donne {result}."
-        else:
+        else: # Default for other difficulty levels
             question_template = random.choice([
                 f"Chaque escadron comprend {num2} X-wings. Combien de X-wings y a-t-il dans {num1} escadrons?",
                 f"Chaque Star Destroyer transporte {num2} TIE Fighters. Combien de TIE Fighters y a-t-il sur {num1} Star Destroyers?",
@@ -229,7 +260,7 @@ def generate_ai_exercise(exercise_type, difficulty):
         random.shuffle(choices)
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Forces galactiques - Multiplication niveau {difficulty}",
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Forces galactiques - Multiplication pour les {age_group} (Niveau: {derived_difficulty})", # Update title
             "question": question_template,
             "correct_answer": str(result),
             "choices": choices,
@@ -237,8 +268,7 @@ def generate_ai_exercise(exercise_type, difficulty):
             "num2": num2,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
-        return exercise_data
-        
+        return exercise_data        
     elif normalized_type == ExerciseTypes.DIVISION:
         # Générer une division avec reste nul
         min_divisor = type_limits.get("min_divisor", 2)
@@ -252,14 +282,14 @@ def generate_ai_exercise(exercise_type, difficulty):
         num1 = num2 * result  # dividende
         
         # Thème Star Wars pour la division
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             question_template = random.choice([
                 f"Tu as {num1} cristaux Kyber à distribuer équitablement entre {num2} Padawans. Combien de cristaux chaque Padawan recevra-t-il?",
                 f"Il y a {num1} droïdes à répartir dans {num2} hangars. Combien de droïdes y aura-t-il dans chaque hangar?",
                 f"Tu dois parcourir {num1} parsecs en {num2} jours. Combien de parsecs dois-tu parcourir chaque jour?"
             ])
             explanation_template = f"Pour trouver la réponse, tu dois diviser {num1} par {num2}, ce qui donne {result}."
-        else:
+        else: # Default for other difficulty levels
             question_template = random.choice([
                 f"L'Alliance a {num1} soldats à répartir équitablement dans {num2} bases. Combien de soldats seront affectés à chaque base?",
                 f"L'Empire a fabriqué {num1} blasters qui doivent être distribués à {num2} escouades. Combien de blasters chaque escouade recevra-t-elle?",
@@ -277,7 +307,7 @@ def generate_ai_exercise(exercise_type, difficulty):
         random.shuffle(choices)
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Stratégie galactique - Division niveau {difficulty}",
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Stratégie galactique - Division pour les {age_group} (Niveau: {derived_difficulty})", # Update title
             "question": question_template,
             "correct_answer": str(result),
             "choices": choices,
@@ -286,21 +316,20 @@ def generate_ai_exercise(exercise_type, difficulty):
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
         return exercise_data
-
     elif normalized_type == ExerciseTypes.FRACTIONS:
         # Génération IA d'un exercice sur les fractions avec thème Star Wars
         from fractions import Fraction
 
         # Paramètres selon la difficulté
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             denom1, denom2 = random.choice([2, 3, 4]), random.choice([2, 3, 4])
             num1, num2 = random.randint(1, denom1-1), random.randint(1, denom2-1)
             operation = "+"
-        elif normalized_difficulty == DifficultyLevels.PADAWAN:
+        elif derived_difficulty == DifficultyLevels.PADAWAN: # Use derived_difficulty
             denom1, denom2 = random.choice([2, 3, 4, 5, 6]), random.choice([2, 3, 4, 5, 6])
             num1, num2 = random.randint(1, denom1-1), random.randint(1, denom2-1)
             operation = random.choice(["+", "-"])
-        elif normalized_difficulty == DifficultyLevels.CHEVALIER:
+        elif derived_difficulty == DifficultyLevels.CHEVALIER: # Use derived_difficulty
             denom1, denom2 = random.randint(2, 8), random.randint(2, 8)
             num1, num2 = random.randint(1, denom1), random.randint(1, denom2)
             operation = random.choice(["+", "-", "×"])
@@ -333,7 +362,7 @@ def generate_ai_exercise(exercise_type, difficulty):
             formatted_result = f"{result.numerator}/{result.denominator}"
         
         # Questions Star Wars selon la difficulté
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             question_template = random.choice([
                 f"Luke mange {num1}/{denom1} de sa ration et Leia mange {num2}/{denom2} de la sienne. Quelle fraction ont-ils mangée ensemble?",
                 f"R2-D2 a réparé {num1}/{denom1} des systèmes et C-3PO {num2}/{denom2}. Quelle fraction totale ont-ils réparée?",
@@ -355,26 +384,25 @@ def generate_ai_exercise(exercise_type, difficulty):
         random.shuffle(choices)
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Fractions Jedi - Niveau {difficulty}",
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Fractions Jedi - pour les {age_group} (Niveau: {derived_difficulty})", # Update title
             "question": f"Problème galactique: {question_template.replace(f'{num1}/{denom1} {operation} {num2}/{denom2}', f'{num1}/{denom1} {operation} {num2}/{denom2}')}",
             "correct_answer": formatted_result,
             "choices": choices,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} Pour {op_word} les fractions {num1}/{denom1} et {num2}/{denom2}, le résultat est {formatted_result}. {explanation_suffix}"
         })
         return exercise_data
-
     elif normalized_type == ExerciseTypes.GEOMETRIE:
         # Génération IA d'un exercice de géométrie avec thème Star Wars
         import math
 
         # Formes et propriétés selon la difficulté
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             shape = random.choice(["carré", "rectangle"])
             property = random.choice(["périmètre", "aire"])
-        elif normalized_difficulty == DifficultyLevels.PADAWAN:
+        elif derived_difficulty == DifficultyLevels.PADAWAN: # Use derived_difficulty
             shape = random.choice(["carré", "rectangle", "triangle"])
             property = random.choice(["périmètre", "aire"])
-        elif normalized_difficulty == DifficultyLevels.CHEVALIER:
+        elif derived_difficulty == DifficultyLevels.CHEVALIER: # Use derived_difficulty
             shape = random.choice(["carré", "rectangle", "triangle", "cercle"])
             property = random.choice(["périmètre", "aire"])
         else:  # MAITRE
@@ -455,23 +483,22 @@ def generate_ai_exercise(exercise_type, difficulty):
         random.shuffle(choices)
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Géométrie Galactique - Niveau {difficulty}",
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Géométrie Galactique - pour les {age_group} (Niveau: {derived_difficulty})", # Update title
             "question": question_template,
             "correct_answer": str(result),
             "choices": choices,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} Pour calculer le {property} d'un {shape}, on utilise: {formula} = {result}. {explanation_suffix}"
         })
         return exercise_data
-
     elif normalized_type == ExerciseTypes.DIVERS:
         # Génération IA d'exercices divers avec thème Star Wars
         
         # Types de problèmes selon la difficulté
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             problem_type = random.choice(["age", "monnaie", "temps"])
-        elif normalized_difficulty == DifficultyLevels.PADAWAN:
+        elif derived_difficulty == DifficultyLevels.PADAWAN: # Use derived_difficulty
             problem_type = random.choice(["age", "monnaie", "vitesse", "pourcentage_simple"])
-        elif normalized_difficulty == DifficultyLevels.CHEVALIER:
+        elif derived_difficulty == DifficultyLevels.CHEVALIER: # Use derived_difficulty
             problem_type = random.choice(["vitesse", "pourcentage", "probabilité"])
         else:  # MAITRE
             problem_type = random.choice(["probabilité", "séquence", "logique_avancée"])
@@ -573,135 +600,110 @@ def generate_ai_exercise(exercise_type, difficulty):
         random.shuffle(choices)
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Défis Galactiques - Niveau {difficulty}",
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Défis Galactiques - pour les {age_group} (Niveau: {derived_difficulty})", # Update title
             "question": question_template,
             "correct_answer": str(result),
             "choices": choices,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
         return exercise_data
-
     elif normalized_type == ExerciseTypes.MIXTE:
-        # Génération IA d'un exercice mixte avec thème Star Wars
-        operation_types = [ExerciseTypes.ADDITION, ExerciseTypes.SUBTRACTION, 
-                          ExerciseTypes.MULTIPLICATION, ExerciseTypes.DIVISION]
-        chosen_operation = random.choice(operation_types)
+        # Génération IA d'un exercice mixte avec PLUSIEURS opérations et thème Star Wars
+        min_val = type_limits.get("min", 1)
+        max_val = type_limits.get("max", 10)
         
-        # Générer un exercice du type choisi avec contexte Star Wars enrichi
-        if chosen_operation == ExerciseTypes.ADDITION:
-            min_val = type_limits.get("min", 1)
-            max_val = type_limits.get("max", 10)
-            num1 = random.randint(min_val, max_val)
-            num2 = random.randint(min_val, max_val)
-            result = num1 + num2
+        # Choisir un pattern de calcul mixte selon la difficulté avec contexte Star Wars
+        if derived_difficulty == DifficultyLevels.INITIE:
+            # Pour les débutants: 2 opérations simples
+            a = random.randint(min_val, max_val)
+            b = random.randint(2, 6)
+            c = random.randint(1, 4)
             
-            if normalized_difficulty == DifficultyLevels.INITIE:
-                question_template = random.choice([
-                    f"Dans la cantina de Mos Eisley, {num1} contrebandiers rejoignent {num2} pilotes rebelles. Combien de personnes y a-t-il maintenant?",
-                    f"Luke a collecté {num1} cristaux Kyber et Leia en a trouvé {num2} autres. Combien ont-ils de cristaux ensemble?",
-                    f"R2-D2 a {num1} outils et C-3PO en a {num2}. Combien d'outils ont-ils au total?"
-                ])
-            else:
-                question_template = random.choice([
-                    f"L'escadron Rouge compte {num1} X-wings et reçoit {num2} renforts. Combien de vaisseaux ont-ils au total?",
-                    f"Un destroyer stellaire transporte {num1} TIE Fighters et {num2} navettes impériales. Combien de vaisseaux au total?",
-                    f"La base rebelle a {num1} soldats et reçoit {num2} nouvelles recrues. Combien de soldats maintenant?"
-                ])
-            explanation_template = f"Pour cette addition galactique: {num1} + {num2} = {result}."
+            patterns = [
+                (lambda: a + b - c, f"{a} + {b} - {c}",
+                 f"Luke a trouvé {a} cristaux, puis {b} de plus, mais il en a donné {c} à Leia.",
+                 f"On calcule étape par étape: {a} + {b} = {a+b}, puis {a+b} - {c} = {a+b-c}."),
+                (lambda: a * b + c, f"{a} × {b} + {c}",
+                 f"Chaque Padawan a {b} sabres et il y a {a} Padawans, plus {c} sabres de réserve.",
+                 f"D'abord la multiplication: {a} × {b} = {a*b}, puis on ajoute {c}: {a*b} + {c} = {a*b+c}."),
+            ]
+        elif derived_difficulty == DifficultyLevels.PADAWAN:
+            # Intermédiaire: priorité des opérations
+            a = random.randint(min_val, max_val)
+            b = random.randint(2, 8)
+            c = random.randint(2, 6)
             
-        elif chosen_operation == ExerciseTypes.SUBTRACTION:
-            num1 = random.randint(type_limits.get("min1", 10), type_limits.get("max1", 25))
-            num2 = random.randint(type_limits.get("min2", 1), min(num1-1, type_limits.get("max2", 8)))
-            result = num1 - num2
+            patterns = [
+                (lambda: a + b * c, f"{a} + {b} × {c}",
+                 f"L'Alliance a {a} vaisseaux, plus {b} escadrons de {c} chasseurs chacun.",
+                 f"Attention à la priorité! D'abord {b} × {c} = {b*c}, puis {a} + {b*c} = {a + b*c}."),
+                (lambda: a * b - c, f"{a} × {b} - {c}",
+                 f"L'Empire a {a} bataillons de {b} stormtroopers, mais {c} ont déserté.",
+                 f"D'abord {a} × {b} = {a*b}, puis on soustrait {c}: {a*b} - {c} = {a*b - c}."),
+            ]
+        else:
+            # Avancé: parenthèses et opérations complexes
+            a = random.randint(min_val, max_val)
+            b = random.randint(2, 8)
+            c = random.randint(2, 6)
             
-            if normalized_difficulty == DifficultyLevels.INITIE:
-                question_template = random.choice([
-                    f"Tu as {num1} portions de rations, mais tu en as utilisé {num2}. Combien te reste-t-il?",
-                    f"Il y avait {num1} droïdes dans le hangar, mais {num2} sont partis en mission. Combien restent?",
-                    f"Yoda avait {num1} sabres laser, mais {num2} ont été perdus. Combien lui reste-t-il?"
-                ])
-            else:
-                question_template = random.choice([
-                    f"L'Empire avait {num1} TIE Fighters, mais {num2} ont été détruits par la Rébellion. Combien en reste-t-il?",
-                    f"Jabba possédait {num1} crédits, mais il en a perdu {num2} au sabacc. Combien lui reste-t-il?",
-                    f"La flotte impériale comptait {num1} vaisseaux, mais {num2} ont déserté. Combien restent loyaux?"
-                ])
-            explanation_template = f"Pour cette soustraction stratégique: {num1} - {num2} = {result}."
+            # S'assurer que a > b pour éviter les résultats négatifs
+            if a <= b:
+                a, b = b + 2, a
             
-        elif chosen_operation == ExerciseTypes.MULTIPLICATION:
-            min_val = type_limits.get("min", 2)
-            max_val = type_limits.get("max", 8)
-            num1 = random.randint(min_val, max_val)
-            num2 = random.randint(min_val, max_val)
-            result = num1 * num2
-            
-            if normalized_difficulty == DifficultyLevels.INITIE:
-                question_template = random.choice([
-                    f"Chaque Padawan a {num2} cristaux Kyber. S'il y a {num1} Padawans, combien de cristaux au total?",
-                    f"Chaque droïde a {num2} outils. Combien d'outils ont {num1} droïdes?",
-                    f"Chaque X-wing a {num2} missiles. Combien de missiles pour {num1} X-wings?"
-                ])
-            else:
-                question_template = random.choice([
-                    f"Chaque Star Destroyer transporte {num2} escadrons de {num1} TIE Fighters chacun. Combien de TIE Fighters au total?",
-                    f"Dans {num1} systèmes stellaires, il y a {num2} planètes habitées chacun. Combien de planètes au total?",
-                    f"Chaque base rebelle a {num2} hangars avec {num1} vaisseaux chacun. Combien de vaisseaux au total?"
-                ])
-            explanation_template = f"Pour cette multiplication tactique: {num1} × {num2} = {result}."
-            
-        else:  # DIVISION
-            num2 = random.randint(type_limits.get("min_divisor", 2), type_limits.get("max_divisor", 6))
-            result = random.randint(type_limits.get("min_result", 2), type_limits.get("max_result", 8))
-            num1 = num2 * result
-            
-            if normalized_difficulty == DifficultyLevels.INITIE:
-                question_template = random.choice([
-                    f"Tu as {num1} cristaux Kyber à distribuer entre {num2} Padawans. Combien chacun en recevra-t-il?",
-                    f"Il y a {num1} droïdes à répartir dans {num2} hangars. Combien par hangar?",
-                    f"Yoda a {num1} sabres laser à donner à {num2} Jedi. Combien chacun en aura-t-il?"
-                ])
-            else:
-                question_template = random.choice([
-                    f"L'Alliance doit répartir {num1} soldats équitablement dans {num2} bases. Combien de soldats par base?",
-                    f"Un convoi de {num1} containers doit être chargé sur {num2} vaisseaux. Combien de containers par vaisseau?",
-                    f"L'Empire a {num1} stormtroopers à déployer sur {num2} planètes. Combien par planète?"
-                ])
-            explanation_template = f"Pour cette division logistique: {num1} ÷ {num2} = {result}."
+            patterns = [
+                (lambda: (a + b) * c, f"({a} + {b}) × {c}",
+                 f"Luke et Leia ont ensemble {a} + {b} cristaux, chaque cristal vaut {c} crédits.",
+                 f"D'abord les parenthèses: ({a} + {b}) = {a+b}, puis × {c} = {(a+b)*c}."),
+                (lambda: (a - b) * c, f"({a} - {b}) × {c}",
+                 f"L'Empire avait {a} vaisseaux, {b} ont été détruits, les {a-b} restants ont {c} équipages chacun.",
+                 f"D'abord ({a} - {b}) = {a-b}, puis × {c} = {(a-b)*c}."),
+                (lambda: a * (b + c), f"{a} × ({b} + {c})",
+                 f"Chaque base rebelle ({a} bases) a {b} + {c} défenseurs.",
+                 f"D'abord ({b} + {c}) = {b+c}, puis {a} × {b+c} = {a*(b+c)}."),
+            ]
+        
+        calc_func, formula, context, explain = random.choice(patterns)
+        result = calc_func()
+        
+        question_template = f"{context} Combien au total? (Calcul: {formula})"
+        explanation_template = explain
         
         # Générer des choix avec erreurs typiques
         choices = [
             str(result),
             str(result + random.randint(1, 5)),
-            str(max(1, result - random.randint(1, 3))),
-            str(result + random.randint(6, 10))
+            str(max(1, result - random.randint(1, 5))),
+            str(a + b + c)  # Erreur courante: additionner tout
         ]
+        choices = list(set(choices))
+        while len(choices) < 4:
+            choices.append(str(result + random.randint(-10, 10)))
+        choices = list(set(choices))[:4]
         random.shuffle(choices)
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Opération Mixte - {chosen_operation.title()} niveau {difficulty}",
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Opération Mixte Galactique (Niveau: {derived_difficulty})",
             "question": question_template,
             "correct_answer": str(result),
             "choices": choices,
-            "num1": num1,
-            "num2": num2,
-            "operation": chosen_operation,
+            "formula": formula,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
-        return exercise_data
-        
+        return exercise_data        
     elif normalized_type == ExerciseTypes.TEXTE:
         # Génération IA d'exercices textuels avec thème Star Wars
         
         # Générer des nombres aléatoirement selon la difficulté
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             base_num = random.randint(3, 8)
             modifier = random.randint(2, 5)
             large_num = random.randint(10, 20)
-        elif normalized_difficulty == DifficultyLevels.PADAWAN:
+        elif derived_difficulty == DifficultyLevels.PADAWAN: # Use derived_difficulty
             base_num = random.randint(5, 12)
             modifier = random.randint(3, 7)
             large_num = random.randint(15, 30)
-        elif normalized_difficulty == DifficultyLevels.CHEVALIER:
+        elif derived_difficulty == DifficultyLevels.CHEVALIER: # Use derived_difficulty
             base_num = random.randint(8, 15)
             modifier = random.randint(4, 9)
             large_num = random.randint(20, 50)
@@ -711,11 +713,11 @@ def generate_ai_exercise(exercise_type, difficulty):
             large_num = random.randint(30, 100)
         
         # Choisir un type de problème selon la difficulté
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             problem_types = ["simple_addition", "simple_subtraction", "simple_multiplication"]
-        elif normalized_difficulty == DifficultyLevels.PADAWAN:
+        elif derived_difficulty == DifficultyLevels.PADAWAN: # Use derived_difficulty
             problem_types = ["two_step", "sequence", "comparison"]
-        elif normalized_difficulty == DifficultyLevels.CHEVALIER:
+        elif derived_difficulty == DifficultyLevels.CHEVALIER: # Use derived_difficulty
             problem_types = ["multi_step", "ratio", "logic_puzzle"]
         else:  # MAITRE
             problem_types = ["complex_multi_step", "algebraic", "advanced_logic"]
@@ -796,14 +798,13 @@ def generate_ai_exercise(exercise_type, difficulty):
         random.shuffle(choices)
         
         exercise_data.update({
-            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Énigme Jedi - Niveau {difficulty}",
+            "title": f"[{Messages.AI_EXERCISE_PREFIX}] Énigme Jedi - pour les {age_group} (Niveau: {derived_difficulty})", # Update title
             "question": question_template,
             "correct_answer": str(result),
             "choices": choices,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} Pour résoudre ce problème, il faut analyser les données et appliquer les bonnes opérations mathématiques. {explanation_suffix}"
         })
         return exercise_data
-
     # Si aucun type correspondant, retourner un exercice d'addition par défaut
     min_val = type_limits.get("min", 1)
     max_val = type_limits.get("max", 10)
@@ -840,20 +841,22 @@ def ensure_explanation(exercise_dict):
     
     return exercise_dict 
 
-def generate_simple_exercise(exercise_type, difficulty):
+def generate_simple_exercise(exercise_type, age_group):
     """Génère un exercice simple sans IA"""
     
     normalized_type = normalize_exercise_type(exercise_type)
-    normalized_difficulty = normalize_difficulty(difficulty)
+    normalized_age_group = normalize_age_group(age_group)
+    derived_difficulty = get_difficulty_from_age_group(normalized_age_group)
     
-    # Récupérer les limites pour ce type d'exercice et cette difficulté
-    difficulty_config = DIFFICULTY_LIMITS.get(normalized_difficulty, DIFFICULTY_LIMITS[DifficultyLevels.PADAWAN])
+    # Récupérer les limites pour ce type d'exercice et cette difficulté dérivée
+    difficulty_config = DIFFICULTY_LIMITS.get(derived_difficulty, DIFFICULTY_LIMITS[DifficultyLevels.PADAWAN])
     type_limits = difficulty_config.get(normalized_type, difficulty_config.get("default", {"min": 1, "max": 10}))
     
     # Structure de base commune pour tous les types d'exercices
     exercise_data = {
         "exercise_type": normalized_type,
-        "difficulty": normalized_difficulty,
+        "age_group": normalized_age_group,
+        "difficulty": derived_difficulty,
         "ai_generated": False,
         "tags": Tags.ALGORITHMIC
     }
@@ -995,13 +998,13 @@ def generate_simple_exercise(exercise_type, difficulty):
         min_val = type_limits.get("min", 1)
         max_val = type_limits.get("max", 10)
         
-        # Choisir un type de problème textuel en fonction de la difficulté
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        # Choisir un type de problème textuel en fonction du groupe d'âge (via la difficulté dérivée)
+        if derived_difficulty == DifficultyLevels.INITIE:
             # Problèmes textuels simples pour débutants
             problem_type = random.choice(["logique_simple", "devinette_nombre", "probleme_concret"])
-        elif normalized_difficulty == DifficultyLevels.PADAWAN:
+        elif derived_difficulty == DifficultyLevels.PADAWAN:
             problem_type = random.choice(["logique_simple", "devinette_nombre", "probleme_concret", "sequence_simple"])
-        elif normalized_difficulty == DifficultyLevels.CHEVALIER:
+        elif derived_difficulty == DifficultyLevels.CHEVALIER:
             problem_type = random.choice(["logique_avance", "enigme_math", "probleme_etapes", "sequence_avance"])
         else:  # MAITRE
             problem_type = random.choice(["logique_complexe", "enigme_complexe", "probleme_multi_etapes", "code_secret"])
@@ -1100,7 +1103,7 @@ def generate_simple_exercise(exercise_type, difficulty):
             result = scenario["calc"](nb1, nb2)
             
             problem = f"{scenario['context']}, {scenario['action'].format(nb1=nb1, nb2=nb2, prix=nb2)}. {scenario['question']}"
-            explanation = scenario["explanation"].format(nb1=nb1, nb2=nb2, result=result)
+            explanation = scenario["explanation"].format(nb1=nb1, nb2=nb2, prix=nb2, result=result)
             answer_type = "number"
             
         elif problem_type == "sequence_simple":
@@ -1155,13 +1158,13 @@ def generate_simple_exercise(exercise_type, difficulty):
         # Génération d'un exercice sur les fractions
         from fractions import Fraction
         
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             denominator = random.choice([2, 3, 4])
             numerator = 1
-        elif normalized_difficulty == DifficultyLevels.PADAWAN:
+        elif derived_difficulty == DifficultyLevels.PADAWAN: # Use derived_difficulty
             denominator = random.choice([2, 3, 4, 5])
             numerator = random.randint(1, denominator - 1)
-        elif normalized_difficulty == DifficultyLevels.CHEVALIER:
+        elif derived_difficulty == DifficultyLevels.CHEVALIER: # Use derived_difficulty
             denominator = random.choice([4, 5, 6, 8])
             numerator = random.randint(1, denominator - 1)
         else:  # MAITRE
@@ -1193,7 +1196,7 @@ def generate_simple_exercise(exercise_type, difficulty):
         # Génération d'un exercice de géométrie
         import math
         
-        if normalized_difficulty == DifficultyLevels.INITIE:
+        if derived_difficulty == DifficultyLevels.INITIE: # Use derived_difficulty
             shape = random.choice(["carré", "rectangle"])
             if shape == "carré":
                 side = random.randint(3, 10)
@@ -1283,44 +1286,80 @@ def generate_simple_exercise(exercise_type, difficulty):
             "explanation": explanation
         })
         return exercise_data
-
     elif normalized_type == ExerciseTypes.MIXTE:
-        # Génération d'un exercice mixte (combinaison d'opérations)
-        operation_types = [ExerciseTypes.ADDITION, ExerciseTypes.SUBTRACTION, 
-                          ExerciseTypes.MULTIPLICATION, ExerciseTypes.DIVISION]
-        chosen_operation = random.choice(operation_types)
+        # Génération d'un exercice mixte avec PLUSIEURS opérations combinées
+        min_val = type_limits.get("min", 1)
+        max_val = type_limits.get("max", 10)
+        num_operations = type_limits.get("operations", 2)
         
-        if chosen_operation == ExerciseTypes.ADDITION:
-            min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
-            num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
-            result = num1 + num2
-            question = f"Calcule : {num1} + {num2} = ?"
-            explanation = f"Pour additionner, on calcule {num1} + {num2} = {result}."
-        elif chosen_operation == ExerciseTypes.SUBTRACTION:
-            num1 = random.randint(type_limits.get("min1", 10), type_limits.get("max1", 20))
-            num2 = random.randint(type_limits.get("min2", 1), min(num1-1, type_limits.get("max2", 5)))
-            result = num1 - num2
-            question = f"Calcule : {num1} - {num2} = ?"
-            explanation = f"Pour soustraire, on calcule {num1} - {num2} = {result}."
-        elif chosen_operation == ExerciseTypes.MULTIPLICATION:
-            min_val, max_val = type_limits.get("min", 1), type_limits.get("max", 10)
-            num1, num2 = random.randint(min_val, max_val), random.randint(min_val, max_val)
-            result = num1 * num2
-            question = f"Calcule : {num1} × {num2} = ?"
-            explanation = f"Pour multiplier, on calcule {num1} × {num2} = {result}."
-        else:  # DIVISION
-            num2 = random.randint(type_limits.get("min_divisor", 2), type_limits.get("max_divisor", 5))
-            result = random.randint(type_limits.get("min_result", 1), type_limits.get("max_result", 5))
-            num1 = num2 * result
-            question = f"Calcule : {num1} ÷ {num2} = ?"
-            explanation = f"Pour diviser, on calcule {num1} ÷ {num2} = {result}."
+        # Choisir un pattern de calcul mixte selon la difficulté
+        if derived_difficulty == DifficultyLevels.INITIE:
+            # Pour les débutants: 2 opérations simples sans priorité complexe
+            patterns = [
+                ("add_sub", lambda a, b, c: a + b - c, "{a} + {b} - {c}"),
+                ("sub_add", lambda a, b, c: a - b + c, "{a} - {b} + {c}"),
+                ("mult_add", lambda a, b, c: a * b + c, "{a} × {b} + {c}"),
+            ]
+        elif derived_difficulty == DifficultyLevels.PADAWAN:
+            # Intermédiaire: priorité des opérations
+            patterns = [
+                ("add_mult", lambda a, b, c: a + b * c, "{a} + {b} × {c}"),
+                ("sub_mult", lambda a, b, c: a - b * c, "{a} - {b} × {c}"),
+                ("mult_sub", lambda a, b, c: a * b - c, "{a} × {b} - {c}"),
+                ("div_add", lambda a, b, c: a // b + c, "{a} ÷ {b} + {c}"),
+            ]
+        else:
+            # Avancé: parenthèses et opérations complexes
+            patterns = [
+                ("paren_add_mult", lambda a, b, c: (a + b) * c, "({a} + {b}) × {c}"),
+                ("paren_sub_mult", lambda a, b, c: (a - b) * c, "({a} - {b}) × {c}"),
+                ("mult_paren_add", lambda a, b, c: a * (b + c), "{a} × ({b} + {c})"),
+                ("div_paren", lambda a, b, c: (a * b) // c, "({a} × {b}) ÷ {c}"),
+            ]
+        
+        pattern_name, calc_func, template = random.choice(patterns)
+        
+        # Générer des nombres appropriés
+        a = random.randint(min_val, max_val)
+        b = random.randint(2, min(max_val, 10))  # Garder b petit pour éviter les grands résultats
+        c = random.randint(2, min(max_val, 10))
+        
+        # Ajustements pour éviter les résultats négatifs ou les divisions impossibles
+        if "sub" in pattern_name and "paren" not in pattern_name:
+            # Pour a - b * c, s'assurer que a > b * c
+            if a <= b * c:
+                a = b * c + random.randint(1, 10)
+        if "div" in pattern_name:
+            # S'assurer que la division est exacte
+            if "paren" in pattern_name:
+                # (a * b) ÷ c doit être exact
+                temp = a * b
+                if temp % c != 0:
+                    c = random.choice([d for d in range(2, 6) if temp % d == 0] or [1])
+            else:
+                # a ÷ b doit être exact
+                if a % b != 0:
+                    a = b * random.randint(2, 5)
+        
+        result = calc_func(a, b, c)
+        question = f"Calcule : {template.format(a=a, b=b, c=c)} = ?"
+        
+        # Explication détaillée
+        if "paren" in pattern_name:
+            explanation = f"Avec les parenthèses, on calcule d'abord l'intérieur, puis le reste. Résultat : {result}."
+        else:
+            explanation = f"Attention à la priorité des opérations ! La multiplication/division se fait avant l'addition/soustraction. Résultat : {result}."
         
         choices = [
             str(result),
-            str(result + random.randint(1, 3)),
-            str(max(1, result - random.randint(1, 3))),
-            str(result + random.randint(4, 6))
+            str(result + random.randint(1, 5)),
+            str(max(1, result - random.randint(1, 5))),
+            str(a + b + c)  # Erreur courante: additionner tout
         ]
+        choices = list(set(choices))  # Supprimer les doublons
+        while len(choices) < 4:
+            choices.append(str(result + random.randint(-10, 10)))
+        choices = list(set(choices))[:4]
         random.shuffle(choices)
         
         exercise_data.update({
@@ -1328,41 +1367,91 @@ def generate_simple_exercise(exercise_type, difficulty):
             "question": question,
             "correct_answer": str(result),
             "choices": choices,
-            "tags": Tags.ALGORITHMIC + "," + Tags.SIMPLE,
+            "tags": Tags.ALGORITHMIC + "," + Tags.ADVANCED,
             "explanation": explanation
         })
         return exercise_data
 
     elif normalized_type == ExerciseTypes.DIVERS:
-        # Génération d'un exercice divers (probabilités, séquences, etc.)
-        problem_type = random.choice(["sequence", "age", "monnaie"])
+        # Génération d'un exercice divers (logique, conversions, probabilités, etc.)
+        # Différent de TEXTE qui est orienté problèmes concrets avec contexte
+        min_val = type_limits.get("min", 1)
+        max_val = type_limits.get("max", 10)
+        problem_types = ["sequence", "conversion", "comparaison", "pourcentage", "moyenne"]
+        
+        if derived_difficulty == DifficultyLevels.INITIE:
+            problem_type = random.choice(["sequence", "comparaison"])
+        elif derived_difficulty == DifficultyLevels.PADAWAN:
+            problem_type = random.choice(["sequence", "conversion", "comparaison"])
+        else:
+            problem_type = random.choice(problem_types)
         
         if problem_type == "sequence":
-            start = random.randint(1, 5)
-            step = random.randint(1, 3)
-            sequence = [start + step*i for i in range(4)]
-            result = sequence[-1] + step
-            question = f"Quelle est la suite logique : {sequence[0]}, {sequence[1]}, {sequence[2]}, {sequence[3]}, ... ?"
-            explanation = f"Cette séquence augmente de {step} à chaque terme. Le terme suivant est donc {sequence[3]} + {step} = {result}."
-        elif problem_type == "age":
-            age_actuel = random.randint(8, 20)
-            années = random.randint(1, 10)
-            result = age_actuel + années
-            question = f"Si tu as {age_actuel} ans maintenant, quel âge auras-tu dans {années} ans ?"
-            explanation = f"Pour trouver l'âge futur, on additionne l'âge actuel et les années : {age_actuel} + {années} = {result} ans."
-        else:  # monnaie
-            pieces = random.randint(5, 20)
-            valeur_piece = random.randint(1, 5)
-            result = pieces * valeur_piece
-            question = f"Si tu as {pieces} pièces de {valeur_piece} crédits chacune, combien de crédits as-tu en tout ?"
-            explanation = f"Pour trouver le total, on multiplie le nombre de pièces par leur valeur : {pieces} × {valeur_piece} = {result} crédits."
+            # Séquence logique (plus variée selon difficulté)
+            if derived_difficulty in [DifficultyLevels.INITIE, DifficultyLevels.PADAWAN]:
+                start = random.randint(1, 10)
+                step = random.randint(1, 5)
+                sequence = [start + step*i for i in range(4)]
+                result = sequence[-1] + step
+                question = f"Trouve le nombre suivant : {sequence[0]}, {sequence[1]}, {sequence[2]}, {sequence[3]}, ?"
+                explanation = f"C'est une suite arithmétique où on ajoute {step} à chaque fois. Donc {sequence[3]} + {step} = {result}."
+            else:
+                # Séquence géométrique
+                start = random.randint(2, 4)
+                factor = random.randint(2, 3)
+                sequence = [start * (factor**i) for i in range(4)]
+                result = sequence[-1] * factor
+                question = f"Trouve le nombre suivant : {sequence[0]}, {sequence[1]}, {sequence[2]}, {sequence[3]}, ?"
+                explanation = f"C'est une suite géométrique où on multiplie par {factor} à chaque fois. Donc {sequence[3]} × {factor} = {result}."
+                
+        elif problem_type == "conversion":
+            # Conversion d'unités
+            conversions = [
+                (60, "minutes", "heure", "Combien y a-t-il de minutes dans {n} heure(s) ?", "{n} × 60 = {r} minutes"),
+                (100, "centimètres", "mètre", "Combien y a-t-il de centimètres dans {n} mètre(s) ?", "{n} × 100 = {r} centimètres"),
+                (1000, "grammes", "kilogramme", "Combien y a-t-il de grammes dans {n} kilogramme(s) ?", "{n} × 1000 = {r} grammes"),
+                (24, "heures", "jour", "Combien y a-t-il d'heures dans {n} jour(s) ?", "{n} × 24 = {r} heures"),
+            ]
+            factor, unit_small, unit_big, q_template, exp_template = random.choice(conversions)
+            n = random.randint(1, 5)
+            result = n * factor
+            question = q_template.format(n=n)
+            explanation = exp_template.format(n=n, r=result)
+            
+        elif problem_type == "comparaison":
+            # Comparaison de nombres
+            a = random.randint(min_val, max_val)
+            b = random.randint(min_val, max_val)
+            if a == b:
+                b = a + random.choice([-1, 1])
+            result = max(a, b)
+            question = f"Quel est le plus grand nombre : {a} ou {b} ?"
+            explanation = f"En comparant {a} et {b}, le plus grand est {result}."
+            
+        elif problem_type == "pourcentage":
+            # Pourcentage simple
+            base = random.choice([10, 20, 50, 100])
+            pct = random.choice([10, 20, 25, 50])
+            result = base * pct // 100
+            question = f"Combien font {pct}% de {base} ?"
+            explanation = f"Pour calculer {pct}% de {base}, on fait {base} × {pct} ÷ 100 = {result}."
+            
+        else:  # moyenne
+            # Calcul de moyenne
+            count = random.randint(3, 5)
+            numbers = [random.randint(min_val, max_val) for _ in range(count)]
+            total = sum(numbers)
+            result = total // count
+            numbers_str = ", ".join(map(str, numbers))
+            question = f"Quelle est la moyenne de ces nombres : {numbers_str} ?"
+            explanation = f"La moyenne = somme ÷ nombre de valeurs = ({total}) ÷ {count} = {result}."
         
-        choices = [
-            str(result),
-            str(result + random.randint(1, 3)),
-            str(max(1, result - random.randint(1, 3))),
-            str(result + random.randint(4, 6))
-        ]
+        # Générer les choix
+        choices = [str(result)]
+        while len(choices) < 4:
+            wrong = result + random.randint(-5, 10)
+            if wrong > 0 and str(wrong) not in choices:
+                choices.append(str(wrong))
         random.shuffle(choices)
         
         exercise_data.update({
@@ -1374,9 +1463,8 @@ def generate_simple_exercise(exercise_type, difficulty):
             "explanation": explanation
         })
         return exercise_data
-
     # Si aucun type correspondant, retourner un exercice d'addition par défaut
-    print(f"⚠️ Type d'exercice non géré dans generate_simple_exercise: {normalized_type}, utilisation de ADDITION par défaut")
+    logger.info(f"⚠️ Type d'exercice non géré dans generate_simple_exercise: {normalized_type}, utilisation de ADDITION par défaut")
     min_val = type_limits.get("min", 1)
     max_val = type_limits.get("max", 10)
     num1 = random.randint(min_val, max_val)
@@ -1395,8 +1483,8 @@ def generate_simple_exercise(exercise_type, difficulty):
     
     return exercise_data 
 
-def generate_contextual_question(operation_type, num1, num2, result, difficulty):
-    """Génère une question contextualisée selon le type d'opération et la difficulté"""
+def generate_contextual_question(operation_type, num1, num2, result, age_group):
+    """Génère une question contextualisée selon le type d'opération et le groupe d'âge"""
     contexts = StarWarsNarratives.CONTEXTS_BY_TYPE.get(operation_type.upper(), {})
     
     if not contexts:
@@ -1418,9 +1506,11 @@ def generate_contextual_question(operation_type, num1, num2, result, difficulty)
     action = random.choice(actions)
     location = random.choice(locations)
     
-    # Templates selon la difficulté et l'opération
+    derived_difficulty = get_difficulty_from_age_group(age_group)
+
+    # Templates selon la difficulté dérivée et l'opération
     if operation_type.upper() == "ADDITION":
-        if difficulty.upper() == "INITIE":
+        if derived_difficulty == DifficultyLevels.INITIE:
             templates = [
                 f"Dans {location}, tu trouves {num1} {obj} et ton ami en trouve {num2}. Combien en avez-vous ensemble?",
                 f"R2-D2 compte {num1} {obj} et C-3PO en compte {num2}. Quel est le total?",
@@ -1434,7 +1524,7 @@ def generate_contextual_question(operation_type, num1, num2, result, difficulty)
             ]
     
     elif operation_type.upper() == "SUBTRACTION":
-        if difficulty.upper() == "INITIE":
+        if derived_difficulty == DifficultyLevels.INITIE:
             templates = [
                 f"Tu avais {num1} {obj}, mais {num2} {action}. Combien te reste-t-il?",
                 f"Dans {location}, il y avait {num1} {obj}, mais {num2} {action}. Combien restent?",
@@ -1448,7 +1538,7 @@ def generate_contextual_question(operation_type, num1, num2, result, difficulty)
             ]
     
     elif operation_type.upper() == "MULTIPLICATION":
-        if difficulty.upper() == "INITIE":
+        if derived_difficulty == DifficultyLevels.INITIE:
             templates = [
                 f"Chaque Padawan a {num2} {obj}. S'il y a {num1} Padawans, combien de {obj} au total?",
                 f"Dans chaque {location}, il y a {num2} {obj}. Combien dans {num1} {location}?",
@@ -1462,7 +1552,7 @@ def generate_contextual_question(operation_type, num1, num2, result, difficulty)
             ]
     
     elif operation_type.upper() == "DIVISION":
-        if difficulty.upper() == "INITIE":
+        if derived_difficulty == DifficultyLevels.INITIE:
             templates = [
                 f"Tu as {num1} {obj} à distribuer entre {num2} Padawans. Combien chacun en aura?",
                 f"Il faut répartir {num1} {obj} dans {num2} {location}. Combien par {location}?",
@@ -1475,9 +1565,9 @@ def generate_contextual_question(operation_type, num1, num2, result, difficulty)
                 f"L'Empire divise {num1} {obj} entre {num2} {location}. Répartition par zone?"
             ]
     
-    return random.choice(templates) if 'templates' in locals() else f"Calcule {num1} {operation_type.lower()} {num2}" 
+    return random.choice(templates) if 'templates' in locals() else f"Calcule {num1} {operation_type.lower()} {num2}"
 
-def generate_smart_choices(operation_type, num1, num2, correct_result, difficulty):
+def generate_smart_choices(operation_type, num1, num2, correct_result, age_group): # Changed difficulty to age_group
     """Génère des choix de réponses avec des erreurs typiques selon l'opération"""
     choices = [str(correct_result)]
     
@@ -1513,8 +1603,9 @@ def generate_smart_choices(operation_type, num1, num2, correct_result, difficult
             str(num1 - num2) if num1 > num2 else str(correct_result + 2)  # Soustraction au lieu de division
         ])
     
-    # Ajuster selon la difficulté
-    if difficulty.upper() in ["CHEVALIER", "MAITRE"]:
+    derived_difficulty = get_difficulty_from_age_group(age_group)
+    # Ajuster selon la difficulté dérivée du groupe d'âge
+    if derived_difficulty in [DifficultyLevels.CHEVALIER, DifficultyLevels.MAITRE]:
         # Pour les niveaux avancés, ajouter des erreurs plus subtiles
         margin = max(1, int(correct_result * 0.1))
         choices[1] = str(correct_result + margin)
@@ -1523,9 +1614,13 @@ def generate_smart_choices(operation_type, num1, num2, correct_result, difficult
     # S'assurer qu'il n'y a pas de doublons et que tous les choix sont positifs
     unique_choices = []
     for choice in choices:
-        if choice not in unique_choices and int(choice) > 0:
-            unique_choices.append(choice)
-    
+        try:
+            if choice not in unique_choices and int(choice) > 0:
+                unique_choices.append(choice)
+        except (ValueError, TypeError):
+            # Ignorer les choix qui ne sont pas des entiers
+            pass
+
     # Compléter si nécessaire
     while len(unique_choices) < 4:
         new_choice = str(correct_result + random.randint(-3, 5))

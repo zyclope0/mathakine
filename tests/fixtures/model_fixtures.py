@@ -213,7 +213,7 @@ def test_logic_challenges():
             challenge_type=LogicChallengeType.PATTERN.value,
             description="Si un crayon coûte 1 crédit et un cahier coûte 5 crédits, combien coûtent 2 crayons et 3 cahiers?",
             correct_answer="17",
-            age_group=AgeGroup.AGE_9_12.value,
+            age_group=AgeGroup.GROUP_10_12.value,
             solution_explanation="2 crayons = 2 × 1 = 2 crédits, 3 cahiers = 3 × 5 = 15 crédits. Total = 2 + 15 = 17 crédits.",
             hints='["Calculez d\'abord le coût total des crayons", "Ensuite, calculez le coût total des cahiers", "Additionnez les deux résultats"]',
             difficulty_rating=1.5,

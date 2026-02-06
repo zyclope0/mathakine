@@ -10,10 +10,11 @@ from app.db.base import Base
 
 class DifficultyLevel(str, enum.Enum):
     """Niveaux de difficulté des épreuves mathématiques"""
-    INITIE = "INITIE"       # Facile
-    PADAWAN = "PADAWAN"     # Moyen
-    CHEVALIER = "CHEVALIER" # Difficile
-    MAITRE = "MAITRE"       # Très difficile
+    INITIE = "INITIE"           # Facile (6-8 ans)
+    PADAWAN = "PADAWAN"         # Moyen (9-11 ans)
+    CHEVALIER = "CHEVALIER"     # Difficile (12-14 ans)
+    MAITRE = "MAITRE"           # Très difficile (15-17 ans)
+    GRAND_MAITRE = "GRAND_MAITRE"  # Expert (adultes)
 
 
 
@@ -41,12 +42,13 @@ class Exercise(Base):
     title = Column(String, nullable=False)
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     creator = relationship("User", back_populates="created_exercises")
-    exercise_type = Column(Enum(ExerciseType, name="exercisetype", create_type=False), nullable=False)
-    difficulty = Column(Enum(DifficultyLevel, name="difficultylevel", create_type=False), nullable=False)
+    exercise_type = Column(String, nullable=False)
+    # NOTE: La DB PostgreSQL utilise VARCHAR, pas ENUM. On garde String pour la compatibilité.
+    difficulty = Column(String, nullable=False)
     tags = Column(String, nullable=True)  # Tags séparés par des virgules
     
     # Attributs de personnalisation
-    age_group = Column(String, nullable=True)  # Groupe d'âge cible (8-10, 11-13, 14-16)
+    age_group = Column(String, nullable=False)  # Groupe d'âge cible (8-10, 11-13, 14-16)
     context_theme = Column(String, nullable=True)  # Contexte Star Wars spécifique
     complexity = Column(Integer, nullable=True)  # Niveau de complexité cognitive (1-5)
     ai_generated = Column(Boolean, default=False)  # Généré par IA

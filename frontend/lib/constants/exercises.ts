@@ -1,3 +1,5 @@
+import { Plus, Minus, X, Divide, Ratio, Shapes, FileText, Combine, Calculator, BookOpenText } from 'lucide-react';
+
 /**
  * Constantes pour les types d'exercices
  */
@@ -27,35 +29,59 @@ export const EXERCISE_TYPE_DISPLAY: Record<ExerciseType, string> = {
   [EXERCISE_TYPES.DIVERS]: 'Divers',
 };
 
+// Associe chaque type d'exercice à une icône et un style de badge
+export const EXERCISE_TYPE_STYLES = {
+  [EXERCISE_TYPES.ADDITION]: { icon: Plus, className: 'border-slate-400 dark:border-slate-600' },
+  [EXERCISE_TYPES.SUBTRACTION]: { icon: Minus, className: 'border-slate-400 dark:border-slate-600' },
+  [EXERCISE_TYPES.MULTIPLICATION]: { icon: X, className: 'border-slate-400 dark:border-slate-600' },
+  [EXERCISE_TYPES.DIVISION]: { icon: Divide, className: 'border-slate-400 dark:border-slate-600' },
+  [EXERCISE_TYPES.FRACTIONS]: { icon: Ratio, className: 'border-blue-400 dark:border-blue-600' },
+  [EXERCISE_TYPES.GEOMETRIE]: { icon: Shapes, className: 'border-blue-400 dark:border-blue-600' },
+  [EXERCISE_TYPES.TEXTE]: { icon: BookOpenText, className: 'border-blue-400 dark:border-blue-600' },
+  [EXERCISE_TYPES.MIXTE]: { icon: Combine, className: 'border-purple-400 dark:border-purple-600' },
+  [EXERCISE_TYPES.DIVERS]: { icon: Calculator, className: 'border-purple-400 dark:border-purple-600' },
+};
+
 /**
- * Constantes pour les niveaux de difficulté
+ * Constantes pour les groupes d'âge
  */
-export const DIFFICULTY_LEVELS = {
-  INITIE: 'initie',
-  PADAWAN: 'padawan',
-  CHEVALIER: 'chevalier',
-  MAITRE: 'maitre',
+export const AGE_GROUPS = {
+  GROUP_6_8: '6-8',
+  GROUP_9_11: '9-11',
+  GROUP_12_14: '12-14',
+  GROUP_15_17: '15-17',
+  ADULT: 'adulte',
+  ALL_AGES: 'tous-ages',
 } as const;
 
-export type DifficultyLevel = (typeof DIFFICULTY_LEVELS)[keyof typeof DIFFICULTY_LEVELS];
+export type AgeGroup = (typeof AGE_GROUPS)[keyof typeof AGE_GROUPS];
 
-export const DIFFICULTY_DISPLAY: Record<DifficultyLevel, string> = {
-  [DIFFICULTY_LEVELS.INITIE]: 'Initié',
-  [DIFFICULTY_LEVELS.PADAWAN]: 'Padawan',
-  [DIFFICULTY_LEVELS.CHEVALIER]: 'Chevalier',
-  [DIFFICULTY_LEVELS.MAITRE]: 'Maître',
+export const AGE_GROUP_DISPLAY: Record<AgeGroup, string> = {
+  [AGE_GROUPS.GROUP_6_8]: '6-8 ans',
+  [AGE_GROUPS.GROUP_9_11]: '9-11 ans',
+  [AGE_GROUPS.GROUP_12_14]: '12-14 ans',
+  [AGE_GROUPS.GROUP_15_17]: '15-17 ans',
+  [AGE_GROUPS.ADULT]: 'Adulte',
+  [AGE_GROUPS.ALL_AGES]: 'Tous âges',
 };
 
-/**
- * Couleurs CSS pour les badges de difficulté
- * Utilisables dans tous les composants d'exercices
- */
-export const DIFFICULTY_COLORS: Record<DifficultyLevel, string> = {
-  [DIFFICULTY_LEVELS.INITIE]: 'bg-green-500/20 text-green-400 border-green-500/30 dark:bg-green-500/30 dark:text-green-300 dark:border-green-500/40',
-  [DIFFICULTY_LEVELS.PADAWAN]: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 dark:bg-yellow-500/30 dark:text-yellow-300 dark:border-yellow-500/40',
-  [DIFFICULTY_LEVELS.CHEVALIER]: 'bg-orange-500/20 text-orange-400 border-orange-500/30 dark:bg-orange-500/30 dark:text-orange-300 dark:border-orange-500/40',
-  [DIFFICULTY_LEVELS.MAITRE]: 'bg-red-500/20 text-red-400 border-red-500/30 dark:bg-red-500/30 dark:text-red-300 dark:border-red-500/40',
+export const AGE_GROUP_COLORS: Record<string, string> = {
+  '6-8': 'bg-green-500/20 text-green-300 border-green-500/30',
+  '9-11': 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+  '12-14': 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+  '15-17': 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+  'adulte': 'bg-red-500/20 text-red-300 border-red-500/30',
+  'tous-ages': 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+  'default': 'bg-gray-500/20 text-gray-300 border-gray-500/30',
 };
+
+export function getAgeGroupColor(ageGroup: string | null | undefined): string {
+  const defaultColor = 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+  if (!ageGroup) {
+    return AGE_GROUP_COLORS['default'] ?? defaultColor;
+  }
+  return AGE_GROUP_COLORS[ageGroup] ?? AGE_GROUP_COLORS['default'] ?? defaultColor;
+}
 
 /**
  * Constantes pour les types de défis logiques
@@ -75,4 +101,3 @@ export const CHALLENGE_TYPES = {
 } as const;
 
 export type ChallengeType = (typeof CHALLENGE_TYPES)[keyof typeof CHALLENGE_TYPES];
-

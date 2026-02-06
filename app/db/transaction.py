@@ -4,7 +4,9 @@ This module provides consistent transaction management across the application.
 """
 from contextlib import contextmanager
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 

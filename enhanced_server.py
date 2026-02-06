@@ -13,11 +13,8 @@ Les deux modules partagent les mêmes modèles de données et services, mais ont
 - enhanced_server.py est optimisé pour l'expérience utilisateur et l'interface web
 - app/main.py est optimisé pour les interactions programmatiques via API REST
 
-Pour démarrer ce serveur, utilisez la commande:
-    python mathakine_cli.py run
-    
-Pour démarrer uniquement l'API REST:
-    python mathakine_cli.py run --api-only
+Pour démarrer ce serveur:
+    python enhanced_server.py
 """
 
 import os

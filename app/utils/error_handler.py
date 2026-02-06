@@ -4,7 +4,9 @@ Helper pour la gestion standardisée des erreurs dans les handlers.
 import traceback
 from typing import Any, Dict, Optional
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from starlette.responses import JSONResponse
 
 from app.core.config import settings

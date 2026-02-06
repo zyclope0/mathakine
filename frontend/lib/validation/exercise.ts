@@ -4,10 +4,9 @@
 
 export interface ExerciseParams {
   exercise_type?: string;
-  difficulty?: string;
-  age_group?: string;
-  topic?: string;
+  age_group?: string; // Changed from difficulty
 }
+
 
 // Types d'exercices valides (alignés avec le backend)
 const VALID_EXERCISE_TYPES = [
@@ -22,21 +21,14 @@ const VALID_EXERCISE_TYPES = [
   'divers',
 ];
 
-// Niveaux de difficulté valides (alignés avec le backend)
-const VALID_DIFFICULTY_LEVELS = [
-  'initie',
-  'padawan',
-  'chevalier',
-  'maitre',
-];
-
-// Groupes d'âge valides
+// Groupes d'âge valides (alignés avec le backend)
 const VALID_AGE_GROUPS = [
   '6-8',
   '9-11',
   '12-14',
   '15-17',
-  '18+',
+  'adulte',
+  'tous-ages',
 ];
 
 /**
@@ -50,11 +42,6 @@ export function validateExerciseParams(params: ExerciseParams): { valid: boolean
     errors.push('Type d\'exercice invalide');
   }
   
-  // Validation de la difficulté
-  if (params.difficulty && !VALID_DIFFICULTY_LEVELS.includes(params.difficulty)) {
-    errors.push('Niveau de difficulté invalide');
-  }
-  
   // Validation du groupe d'âge
   if (params.age_group && !VALID_AGE_GROUPS.includes(params.age_group)) {
     errors.push('Groupe d\'âge invalide');
@@ -65,7 +52,6 @@ export function validateExerciseParams(params: ExerciseParams): { valid: boolean
     errors,
   };
 }
-
 /**
  * Valide le prompt IA pour la génération d'exercices
  */

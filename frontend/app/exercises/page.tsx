@@ -12,8 +12,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
-import { EXERCISE_TYPE_DISPLAY, DIFFICULTY_DISPLAY } from '@/lib/constants/exercises';
-import { Filter, X, Search } from 'lucide-react';
+import { EXERCISE_TYPE_STYLES, EXERCISE_TYPES, AGE_GROUPS } from '@/lib/constants/exercises';
+import { useExerciseTranslations } from '@/hooks/useChallengeTranslations';
+import { Filter, X, Search, LayoutGrid, List, Sparkles, CheckCircle2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { useCompletedExercises } from '@/hooks/useCompletedItems';
+import dynamic from 'next/dynamic';
+
+// Lazy load modal pour la vue liste
+const ExerciseModal = dynamic(() => import('@/components/exercises/ExerciseModal').then(mod => ({ default: mod.ExerciseModal })), {
+  loading: () => null,
+});
 import type { ExerciseFilters } from '@/hooks/useExercises';
 import { useTranslations } from 'next-intl';
 import { PageLayout, PageHeader, PageSection, PageGrid, EmptyState, LoadingState } from '@/components/layout';
@@ -21,19 +32,24 @@ import { useLocaleStore } from '@/lib/stores/localeStore';
 import { ApiClientError } from '@/lib/api/client';
 import { debugLog } from '@/lib/utils/debug';
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 15;
 
 function ExercisesPageContent() {
   const t = useTranslations('exercises');
+  const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
   const searchParams = useSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
   const pathname = usePathname();
   const { locale } = useLocaleStore();
   const [exerciseTypeFilter, setExerciseTypeFilter] = useState<string>('all');
-  const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
+  const [ageGroupFilter, setAgeGroupFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isCompleted } = useCompletedExercises();
 
   // Refetch les queries de progression quand on arrive sur la page
   useEffect(() => {
@@ -53,8 +69,8 @@ function ExercisesPageContent() {
       f.exercise_type = exerciseTypeFilter;
     }
     
-    if (difficultyFilter !== 'all') {
-      f.difficulty = difficultyFilter;
+    if (ageGroupFilter !== 'all') {
+      f.age_group = ageGroupFilter;
     }
     
     // Ajouter la recherche côté serveur si fournie
@@ -63,7 +79,7 @@ function ExercisesPageContent() {
     }
     
     return f;
-  }, [exerciseTypeFilter, difficultyFilter, searchQuery, currentPage]);
+  }, [exerciseTypeFilter, ageGroupFilter, searchQuery, currentPage]);
   
   // Détecter le paramètre generated=true et rafraîchir la liste
   useEffect(() => {
@@ -81,7 +97,7 @@ function ExercisesPageContent() {
     }
   }, [searchParams, queryClient, router]);
   
-  const { exercises, total, hasMore, isLoading, error } = useExercises(filters);
+  const { exercises, total, hasMore, isLoading, isFetching, error } = useExercises(filters);
   
   // Log pour déboguer (uniquement en développement)
   useEffect(() => {
@@ -106,11 +122,11 @@ function ExercisesPageContent() {
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = exerciseTypeFilter !== 'all' || difficultyFilter !== 'all' || searchQuery.trim() !== '';
+  const hasActiveFilters = exerciseTypeFilter !== 'all' || ageGroupFilter !== 'all' || searchQuery.trim() !== '';
 
   const clearFilters = () => {
     setExerciseTypeFilter('all');
-    setDifficultyFilter('all');
+    setAgeGroupFilter('all');
     setSearchQuery('');
     setCurrentPage(1);
   };
@@ -131,16 +147,24 @@ function ExercisesPageContent() {
         />
 
         {/* Filtres - Section avec fond distinct */}
-        <PageSection className="section-filter space-y-3 animate-fade-in-up">
-          <div className="flex items-center gap-2 mb-3">
-            <Filter className="h-5 w-5 text-primary" />
-            <h2 className="text-lg md:text-xl font-semibold">{t('filters.title')}</h2>
+        <PageSection className="section-filter space-y-4 animate-fade-in-up">
+          {/* En-tête des filtres */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold">{t('filters.title')}</h2>
+              {hasActiveFilters && (
+                <Badge variant="secondary" className="ml-1">
+                  {(exerciseTypeFilter !== 'all' ? 1 : 0) + (ageGroupFilter !== 'all' ? 1 : 0) + (searchQuery.trim() ? 1 : 0)}
+                </Badge>
+              )}
+            </div>
             {hasActiveFilters && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={clearFilters}
-                className="ml-auto"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4 mr-1" />
                 {t('filters.reset')}
@@ -159,56 +183,98 @@ function ExercisesPageContent() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-9"
+              className="pl-10 h-11"
               aria-label={t('search.placeholder')}
             />
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label htmlFor="filter-exercise-type" className="text-sm font-medium">
+          {/* Filtres principaux - Layout responsive */}
+          <div className="flex flex-col lg:flex-row lg:items-end gap-4">
+            {/* Types d'exercice */}
+            <div className="flex-1 space-y-2">
+              <label className="text-sm font-medium text-muted-foreground">
                 {t('filters.exerciseType')}
               </label>
-              <Select 
-                value={exerciseTypeFilter} 
-                onValueChange={(value) => {
-                  setExerciseTypeFilter(value);
-                  handleFilterChange();
-                }}
-              >
-                <SelectTrigger id="filter-exercise-type">
-                  <SelectValue placeholder={t('filters.allTypes')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('filters.allTypes')}</SelectItem>
-                  {Object.entries(EXERCISE_TYPE_DISPLAY).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
+              <TooltipProvider delayDuration={300}>
+                <div className="flex flex-wrap gap-1.5">
+                  {/* Bouton "Tous" */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={exerciseTypeFilter === 'all' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => {
+                          setExerciseTypeFilter('all');
+                          handleFilterChange();
+                        }}
+                        className={cn(
+                          'h-10 w-10 p-0 transition-all',
+                          exerciseTypeFilter === 'all' 
+                            ? 'ring-2 ring-primary/50 ring-offset-2 ring-offset-background shadow-md' 
+                            : 'hover:bg-accent hover:border-primary/30'
+                        )}
+                      >
+                        <Filter className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="font-medium">
+                      {t('filters.allTypes')}
+                    </TooltipContent>
+                  </Tooltip>
+                  
+                  {/* Séparateur visuel */}
+                  <div className="w-px h-10 bg-border mx-1 hidden sm:block" />
+                  
+                  {/* Boutons pour chaque type */}
+                  {Object.entries(EXERCISE_TYPE_STYLES).map(([type, { icon: Icon }]) => (
+                    <Tooltip key={type}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={exerciseTypeFilter === type ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => {
+                            setExerciseTypeFilter(type);
+                            handleFilterChange();
+                          }}
+                          className={cn(
+                            'h-10 w-10 p-0 transition-all',
+                            exerciseTypeFilter === type 
+                              ? 'ring-2 ring-primary/50 ring-offset-2 ring-offset-background shadow-md' 
+                              : 'hover:bg-accent hover:border-primary/30'
+                          )}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="font-medium">
+                        {getTypeDisplay(type)}
+                      </TooltipContent>
+                    </Tooltip>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              </TooltipProvider>
             </div>
 
-            <div className="space-y-1.5">
-              <label htmlFor="filter-difficulty" className="text-sm font-medium">
-                {t('filters.difficulty')}
+            {/* Groupe d'âge - Compact sur la même ligne en desktop */}
+            <div className="lg:w-48 space-y-2">
+              <label htmlFor="filter-age-group" className="text-sm font-medium text-muted-foreground">
+                {t('filters.ageGroup')}
               </label>
               <Select 
-                value={difficultyFilter} 
+                value={ageGroupFilter} 
                 onValueChange={(value) => {
-                  setDifficultyFilter(value);
+                  setAgeGroupFilter(value);
                   handleFilterChange();
                 }}
               >
-                <SelectTrigger id="filter-difficulty">
-                  <SelectValue placeholder={t('filters.allLevels')} />
+                <SelectTrigger id="filter-age-group" className="h-10">
+                  <SelectValue placeholder={t('filters.allAgeGroups')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('filters.allLevels')}</SelectItem>
-                  {Object.entries(DIFFICULTY_DISPLAY).map(([value, label]) => (
+                  <SelectItem value="all">{t('filters.allAgeGroups')}</SelectItem>
+                  {Object.values(AGE_GROUPS).map((value) => (
                     <SelectItem key={value} value={value}>
-                      {label}
+                      {getAgeDisplay(value)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -231,11 +297,38 @@ function ExercisesPageContent() {
             <h2 className="text-lg md:text-xl font-semibold">
               {isLoading 
                 ? t('list.loading')
-                : exercises.length === 1
-                  ? t('list.count', { count: exercises.length })
-                  : t('list.countPlural', { count: exercises.length })
+                : total === 1
+                  ? t('list.count', { count: total })
+                  : t('list.countPlural', { count: total })
               }
+              {isFetching && !isLoading && (
+                <span className="ml-2 text-sm text-muted-foreground animate-pulse">
+                  ({t('list.loading', { default: 'chargement...' })})
+                </span>
+              )}
             </h2>
+            
+            {/* Toggle Vue Grille / Liste */}
+            <div className="flex items-center gap-1 border rounded-lg p-1">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="h-8 w-8 p-0"
+                aria-label="Vue grille"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="h-8 w-8 p-0"
+                aria-label="Vue liste"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {error ? (
@@ -252,19 +345,84 @@ function ExercisesPageContent() {
             />
           ) : (
             <>
-              <PageGrid columns={{ mobile: 1, tablet: 2, desktop: 3 }} gap="sm" className="md:gap-4">
-                {exercises.map((exercise, index) => {
-                  const delayClass = index === 0 ? 'animate-fade-in-up-delay-1' 
-                    : index === 1 ? 'animate-fade-in-up-delay-2' 
-                    : index === 2 ? 'animate-fade-in-up-delay-3'
-                    : 'animate-fade-in-up-delay-3';
-                  return (
-                    <div key={exercise.id} className={delayClass}>
-                      <ExerciseCard exercise={exercise} />
-                    </div>
-                  );
-                })}
-              </PageGrid>
+              {viewMode === 'grid' ? (
+                <PageGrid columns={{ mobile: 1, tablet: 2, desktop: 3 }} gap="sm" className="md:gap-4">
+                  {exercises.map((exercise, index) => {
+                    const delayClass = index === 0 ? 'animate-fade-in-up-delay-1' 
+                      : index === 1 ? 'animate-fade-in-up-delay-2' 
+                      : index === 2 ? 'animate-fade-in-up-delay-3'
+                      : 'animate-fade-in-up-delay-3';
+                    return (
+                      <div key={exercise.id} className={delayClass}>
+                        <ExerciseCard exercise={exercise} />
+                      </div>
+                    );
+                  })}
+                </PageGrid>
+              ) : (
+                /* Vue Liste Compacte */
+                <div className="space-y-2">
+                  {exercises.map((exercise) => {
+                    const typeKey = exercise.exercise_type?.toLowerCase() as keyof typeof EXERCISE_TYPE_STYLES;
+                    const { icon: TypeIcon } = EXERCISE_TYPE_STYLES[typeKey] || EXERCISE_TYPE_STYLES.divers;
+                    const typeDisplay = getTypeDisplay(exercise.exercise_type);
+                    const ageDisplay = getAgeDisplay(exercise.age_group);
+                    const completed = isCompleted(exercise.id);
+                    
+                    return (
+                      <div
+                        key={exercise.id}
+                        onClick={() => {
+                          setSelectedExerciseId(exercise.id);
+                          setIsModalOpen(true);
+                        }}
+                        className={cn(
+                          'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all',
+                          'bg-card/80 backdrop-blur-sm border-border/60',
+                          'hover:bg-accent hover:border-primary/50 hover:shadow-md',
+                          completed && 'bg-green-500/10 border-green-500/40'
+                        )}
+                      >
+                        {/* Icône du type */}
+                        <div className={cn(
+                          'flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center',
+                          'bg-primary/10 border border-primary/20'
+                        )}>
+                          <TypeIcon className="h-5 w-5 text-primary" />
+                        </div>
+                        
+                        {/* Infos principales */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium truncate">{exercise.title}</h3>
+                            {exercise.ai_generated && (
+                              <Sparkles className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+                            )}
+                            {completed && (
+                              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {exercise.question}
+                          </p>
+                        </div>
+                        
+                        {/* Badges */}
+                        <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+                          <Badge variant="outline" className="text-xs">
+                            {typeDisplay}
+                          </Badge>
+                          {ageDisplay && (
+                            <Badge variant="outline" className="text-xs">
+                              {ageDisplay}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               
               {/* Pagination */}
               {totalPages > 1 && (
@@ -282,6 +440,19 @@ function ExercisesPageContent() {
             </>
           )}
         </PageSection>
+        
+        {/* Modal pour la vue liste */}
+        <ExerciseModal
+          exerciseId={selectedExerciseId}
+          open={isModalOpen}
+          onOpenChange={(open) => {
+            setIsModalOpen(open);
+            if (!open) setSelectedExerciseId(null);
+          }}
+          onExerciseCompleted={() => {
+            queryClient.invalidateQueries({ queryKey: ['completed-exercises'] });
+          }}
+        />
       </PageLayout>
     </ProtectedRoute>
   );

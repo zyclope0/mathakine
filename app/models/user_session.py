@@ -1,8 +1,8 @@
 """
 Modèle SQLAlchemy pour les sessions utilisateur
 """
-from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Integer,
-                        String, Text)
+from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Index,
+                        Integer, String, Text)
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -13,9 +13,12 @@ from app.db.base import Base
 class UserSession(Base):
     """Modèle pour les sessions utilisateur"""
     __tablename__ = "user_sessions"
+    __table_args__ = (
+        Index('idx_user_sessions_user_id', 'user_id'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     session_token = Column(String(255), unique=True, nullable=False, index=True)
     device_info = Column(JSON, nullable=True)
     ip_address = Column(INET, nullable=True)

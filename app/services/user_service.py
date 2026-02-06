@@ -4,7 +4,9 @@ Implémente les opérations métier liées aux utilisateurs et utilise le transa
 """
 from typing import Any, Dict, List, Optional
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 

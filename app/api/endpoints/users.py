@@ -1,7 +1,6 @@
 """
 Endpoints API pour la gestion des utilisateurs
 """
-import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
@@ -21,9 +20,11 @@ from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
 from app.models.progress import Progress
 from app.models.user import User as UserModel
 from app.models.user import UserRole
+from app.models.user_session import UserSession as UserSessionModel
 from app.schemas.progress import ProgressDetail, ProgressResponse
 from app.schemas.user import (User, UserCreate, UserInDB, UserPasswordUpdate,
                               UserUpdate)
+from app.schemas.user_session import UserSession, UserSessionRevoke
 from app.services.auth_service import (create_user, get_user_by_id,
                                        update_user, update_user_password)
 from app.services.user_service import UserService
@@ -130,6 +131,97 @@ def update_user_password_me(
         )
 
 
+@router.get("/me/sessions", response_model=List[UserSession])
+def get_user_sessions(
+    *,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Récupérer toutes les sessions actives de l'utilisateur actuellement connecté.
+    """
+    try:
+        # Récupérer toutes les sessions actives de l'utilisateur
+        sessions = db.query(UserSessionModel).filter(
+            UserSessionModel.user_id == current_user.id,
+            UserSessionModel.is_active == True,
+            UserSessionModel.expires_at > datetime.now(timezone.utc)
+        ).order_by(UserSessionModel.last_activity.desc()).all()
+        
+        logger.debug(f"Récupération de {len(sessions)} sessions actives pour {current_user.username}")
+        
+        # Convertir en schéma Pydantic
+        session_list = []
+        for session in sessions:
+            session_dict = {
+                "id": session.id,
+                "device_info": session.device_info,
+                "ip_address": str(session.ip_address) if session.ip_address else None,
+                "user_agent": session.user_agent,
+                "location_data": session.location_data,
+                "is_active": session.is_active,
+                "last_activity": session.last_activity,
+                "created_at": session.created_at,
+                "expires_at": session.expires_at,
+                "is_current": False  # TODO: Détecter la session actuelle via le token
+            }
+            session_list.append(session_dict)
+        
+        return session_list
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des sessions pour {current_user.username}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors de la récupération des sessions"
+        )
+
+
+@router.delete("/me/sessions/{session_id}", response_model=UserSessionRevoke)
+def revoke_user_session(
+    *,
+    db: Session = Depends(get_db_session),
+    session_id: int = Path(..., description="ID de la session à révoquer"),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Révoquer une session spécifique de l'utilisateur actuellement connecté.
+    L'utilisateur ne peut révoquer que ses propres sessions.
+    """
+    try:
+        # Récupérer la session
+        session = db.query(UserSessionModel).filter(
+            UserSessionModel.id == session_id,
+            UserSessionModel.user_id == current_user.id
+        ).first()
+        
+        if not session:
+            logger.warning(f"Tentative de révocation d'une session inexistante ou non autorisée: session_id={session_id}, user={current_user.username}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Session non trouvée ou vous n'avez pas l'autorisation de la révoquer"
+            )
+        
+        # Marquer la session comme inactive
+        session.is_active = False
+        db.commit()
+        
+        logger.info(f"Session {session_id} révoquée pour l'utilisateur {current_user.username}")
+        
+        return UserSessionRevoke(
+            success=True,
+            message="Session révoquée avec succès"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Erreur lors de la révocation de la session {session_id} pour {current_user.username}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erreur lors de la révocation de la session"
+        )
+
+
 @router.get("/{user_id}", response_model=User)
 def get_user(
     *,
@@ -220,36 +312,85 @@ def get_user_challenges_progress(
             detail="Utilisateur non trouvé"
         )
     
-    # TODO: Remplacer par un service réel de suivi de progression
+    # Calculer les vraies statistiques depuis la base de données
     logger.info(f"Récupération de la progression des défis pour l'utilisateur {user.username}")
-    return {
-        "completed_challenges": 3,
-        "total_challenges": 10,
-        "success_rate": 0.8,
-        "average_time": 45.5,
-        "challenges": [
-            {
-                "id": 1,
-                "title": "Défi de séquence logique",
-                "is_completed": True,
-                "attempts": 2,
-                "best_time": 35.2
-            },
-            {
-                "id": 2,
-                "title": "Défi de reconnaissance de motifs",
-                "is_completed": True,
-                "attempts": 1,
-                "best_time": 42.8
-            },
-            {
-                "id": 3,
-                "title": "Défi d'énigme",
-                "is_completed": True,
-                "attempts": 3,
-                "best_time": 58.6
+    
+    # Nombre total de défis actifs dans le système
+    total_challenges = db.query(LogicChallenge).filter(
+        LogicChallenge.is_active == True,
+        LogicChallenge.is_archived == False
+    ).count()
+    
+    # Récupérer toutes les tentatives de l'utilisateur
+    all_attempts = db.query(LogicChallengeAttempt).filter(
+        LogicChallengeAttempt.user_id == user_id
+    ).all()
+    
+    # Identifier les défis complétés (au moins une tentative correcte)
+    completed_challenge_ids = set()
+    challenge_stats = {}
+    
+    for attempt in all_attempts:
+        challenge_id = attempt.challenge_id
+        
+        if challenge_id not in challenge_stats:
+            challenge_stats[challenge_id] = {
+                "attempts": 0,
+                "correct_attempts": 0,
+                "best_time": None,
+                "times": []
             }
-        ]
+        
+        challenge_stats[challenge_id]["attempts"] += 1
+        
+        if attempt.is_correct:
+            challenge_stats[challenge_id]["correct_attempts"] += 1
+            completed_challenge_ids.add(challenge_id)
+            
+            if attempt.time_spent:
+                if challenge_stats[challenge_id]["best_time"] is None:
+                    challenge_stats[challenge_id]["best_time"] = attempt.time_spent
+                else:
+                    challenge_stats[challenge_id]["best_time"] = min(
+                        challenge_stats[challenge_id]["best_time"],
+                        attempt.time_spent
+                    )
+        
+        if attempt.time_spent:
+            challenge_stats[challenge_id]["times"].append(attempt.time_spent)
+    
+    # Calculer le success_rate global
+    total_attempts = len(all_attempts)
+    correct_attempts = sum(1 for a in all_attempts if a.is_correct)
+    success_rate = correct_attempts / total_attempts if total_attempts > 0 else 0.0
+    
+    # Calculer le temps moyen
+    all_times = [a.time_spent for a in all_attempts if a.time_spent]
+    average_time = sum(all_times) / len(all_times) if all_times else 0.0
+    
+    # Construire la liste des défis complétés avec détails
+    challenges_list = []
+    if completed_challenge_ids:
+        completed_challenges = db.query(LogicChallenge).filter(
+            LogicChallenge.id.in_(completed_challenge_ids)
+        ).all()
+        
+        for challenge in completed_challenges:
+            stats = challenge_stats.get(challenge.id, {})
+            challenges_list.append({
+                "id": challenge.id,
+                "title": challenge.title,
+                "is_completed": True,
+                "attempts": stats.get("attempts", 0),
+                "best_time": round(stats.get("best_time", 0), 2) if stats.get("best_time") else None
+            })
+    
+    return {
+        "completed_challenges": len(completed_challenge_ids),
+        "total_challenges": total_challenges,
+        "success_rate": round(success_rate, 2),
+        "average_time": round(average_time, 1),
+        "challenges": challenges_list
     }
 
 
@@ -374,30 +515,99 @@ def get_user_progress(
             detail="Utilisateur non trouvé"
         )
     
-    # TODO: Remplacer par un service réel de suivi de progression
+    # Calculer les vraies statistiques depuis la base de données
     logger.info(f"Récupération de la progression globale pour l'utilisateur {user.username}")
-    return {
-        "total_attempts": 15,
-        "correct_attempts": 12,
-        "accuracy": 0.8,
-        "average_time": 23.5,
-        "exercises_completed": 10,
-        "highest_streak": 8,
-        "current_streak": 3,
-        "by_category": {
-            "addition": {
-                "completed": 5,
-                "accuracy": 0.9
-            },
-            "multiplication": {
-                "completed": 3,
-                "accuracy": 0.7
-            },
-            "division": {
-                "completed": 2,
-                "accuracy": 0.8
-            }
+    
+    # Récupérer toutes les tentatives de l'utilisateur avec jointure sur exercises
+    attempts_query = db.query(Attempt, Exercise).join(
+        Exercise, Attempt.exercise_id == Exercise.id
+    ).filter(
+        Attempt.user_id == user_id
+    ).order_by(Attempt.created_at).all()
+    
+    if not attempts_query:
+        # Utilisateur sans tentatives
+        return {
+            "total_attempts": 0,
+            "correct_attempts": 0,
+            "accuracy": 0.0,
+            "average_time": 0.0,
+            "exercises_completed": 0,
+            "highest_streak": 0,
+            "current_streak": 0,
+            "by_category": {}
         }
+    
+    # Stats globales
+    total_attempts = len(attempts_query)
+    correct_attempts = sum(1 for attempt, _ in attempts_query if attempt.is_correct)
+    accuracy = correct_attempts / total_attempts if total_attempts > 0 else 0.0
+    
+    # Temps moyen (seulement les tentatives avec time_spent)
+    times = [attempt.time_spent for attempt, _ in attempts_query if attempt.time_spent]
+    average_time = sum(times) / len(times) if times else 0.0
+    
+    # Exercices uniques complétés (au moins une tentative correcte)
+    completed_exercise_ids = set()
+    for attempt, exercise in attempts_query:
+        if attempt.is_correct:
+            completed_exercise_ids.add(exercise.id)
+    exercises_completed = len(completed_exercise_ids)
+    
+    # Calcul des streaks (séquences de réussites consécutives)
+    streaks = []
+    current_streak = 0
+    for attempt, _ in attempts_query:
+        if attempt.is_correct:
+            current_streak += 1
+        else:
+            if current_streak > 0:
+                streaks.append(current_streak)
+            current_streak = 0
+    # Ajouter le dernier streak s'il existe
+    if current_streak > 0:
+        streaks.append(current_streak)
+    
+    highest_streak = max(streaks) if streaks else 0
+    current_streak_value = streaks[-1] if streaks else 0
+    
+    # Grouper par catégorie (exercise_type)
+    by_category = {}
+    category_attempts = {}
+    
+    for attempt, exercise in attempts_query:
+        exercise_type = exercise.exercise_type or "unknown"
+        
+        if exercise_type not in category_attempts:
+            category_attempts[exercise_type] = {
+                "total": 0,
+                "correct": 0,
+                "completed_ids": set()
+            }
+        
+        category_attempts[exercise_type]["total"] += 1
+        if attempt.is_correct:
+            category_attempts[exercise_type]["correct"] += 1
+            category_attempts[exercise_type]["completed_ids"].add(exercise.id)
+    
+    # Construire le dictionnaire by_category
+    for exercise_type, stats in category_attempts.items():
+        total = stats["total"]
+        correct = stats["correct"]
+        by_category[exercise_type] = {
+            "completed": len(stats["completed_ids"]),
+            "accuracy": round(correct / total, 2) if total > 0 else 0.0
+        }
+    
+    return {
+        "total_attempts": total_attempts,
+        "correct_attempts": correct_attempts,
+        "accuracy": round(accuracy, 2),
+        "average_time": round(average_time, 1),
+        "exercises_completed": exercises_completed,
+        "highest_streak": highest_streak,
+        "current_streak": current_streak_value,
+        "by_category": by_category
     }
 
 
@@ -419,7 +629,6 @@ def delete_user(
 
     from sqlalchemy.exc import SQLAlchemyError
 
-    logger = logging.getLogger(__name__)
     logger.info(f"Tentative de suppression de l'utilisateur {user_id} par {current_user.username}")
 
     # Vérifier qu'on ne tente pas de supprimer l'utilisateur courant

@@ -3,12 +3,14 @@ Module d'authentification pour le backend Starlette.
 
 Fournit les fonctions d'authentification utilisées par les handlers API.
 """
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 
 
-async def get_current_user(request):
+async def get_current_user(request):  # noqa: C901
     """
     Récupère l'utilisateur actuellement authentifié depuis le cookie access_token.
     
@@ -27,7 +29,15 @@ async def get_current_user(request):
         }
     """
     try:
+        # Essayer d'abord le cookie (comportement par défaut)
         access_token = request.cookies.get("access_token")
+        
+        # Si pas de cookie, essayer le header Authorization
+        if not access_token:
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                access_token = auth_header.replace("Bearer ", "")
+        
         if not access_token:
             return None
             
@@ -70,7 +80,7 @@ async def get_current_user(request):
                 "role": user.role.value if hasattr(user, 'role') else None
             }
         finally:
-            db.close()
+            EnhancedServerAdapter.close_db_session(db)
             
     except Exception as user_fetch_error:
         logger.error(f"Erreur lors de la récupération de l'utilisateur: {user_fetch_error}")

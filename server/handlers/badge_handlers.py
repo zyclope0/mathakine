@@ -6,48 +6,14 @@ import traceback
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from app.core.logging_config import get_logger
 from app.services.badge_service import BadgeService
+
+logger = get_logger(__name__)
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 # NOTE: badge_service_translations archivé - utiliser BadgeService ORM uniquement
 from app.utils.translation import parse_accept_language
-
-
-async def get_current_user(request):
-    """Récupère l'utilisateur actuellement authentifié"""
-    try:
-        access_token = request.cookies.get("access_token")
-        if not access_token:
-            return None
-            
-        # Utiliser le service d'authentification pour décoder le token
-        from app.core.security import decode_token
-        from app.services.auth_service import get_user_by_username
-
-        # Décoder le token pour obtenir le nom d'utilisateur
-        payload = decode_token(access_token)
-        username = payload.get("sub")
-        
-        if not username:
-            return None
-            
-        # Récupérer l'utilisateur depuis la base de données
-        db = EnhancedServerAdapter.get_db_session()
-        try:
-            user = get_user_by_username(db, username)
-            if user:
-                return {
-                    "is_authenticated": True,
-                    "id": user.id,
-                    "username": user.username,
-                    "role": user.role
-                }
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
-            
-    except Exception as user_retrieval_error:
-        print(f"Erreur lors de la récupération de l'utilisateur: {str(user_retrieval_error)}")
-        
-    return None
+from server.auth import get_current_user
 
 async def get_user_badges(request):
     """Récupérer tous les badges d'un utilisateur"""
@@ -78,7 +44,7 @@ async def get_user_badges(request):
             EnhancedServerAdapter.close_db_session(db)
 
     except Exception as user_badges_error:
-        print(f"Erreur lors de la récupération des badges utilisateur: {user_badges_error}")
+        logger.error(f"Erreur lors de la récupération des badges utilisateur: {user_badges_error}")
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -138,7 +104,7 @@ async def check_user_badges(request):
             EnhancedServerAdapter.close_db_session(db)
 
     except Exception as badge_verification_error:
-        print(f"Erreur lors de la vérification forcée des badges: {badge_verification_error}")
+        logger.error(f"Erreur lors de la vérification forcée des badges: {badge_verification_error}")
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -207,6 +173,33 @@ async def get_user_gamification_stats(request):
             EnhancedServerAdapter.close_db_session(db)
 
     except Exception as gamification_stats_error:
-        print(f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}")
+        logger.error(f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def get_user_badges_progress(request: Request):
+    """
+    Handler pour récupérer la progression des badges d'un utilisateur (placeholder).
+    Route: GET /api/challenges/badges/progress
+    """
+    try:
+        # Vérifier l'authentification
+        current_user = await get_current_user(request)
+        if not current_user:
+            return JSONResponse(
+                {"error": "Vous devez être authentifié pour voir la progression de vos badges."},
+                status_code=401
+            )
+        
+        user_id = current_user.get('id')
+        logger.info(f"Accès à la progression des badges pour l'utilisateur {user_id}. Fonctionnalité en développement.")
+
+        return JSONResponse(
+            {"message": f"La fonctionnalité de progression des badges pour l'utilisateur {user_id} est en cours de développement."},
+            status_code=200
+        )
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération de la progression des badges: {e}")
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500) 

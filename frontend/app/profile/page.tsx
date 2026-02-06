@@ -36,6 +36,8 @@ import { LevelIndicator } from '@/components/dashboard/LevelIndicator';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { cn } from '@/lib/utils/cn';
 import { format } from 'date-fns';
+import { AGE_GROUPS, type AgeGroup } from '@/lib/constants/exercises';
+import { useAgeGroupDisplay } from '@/hooks/useChallengeTranslations';
 import { fr } from 'date-fns/locale';
 import { useThemeStore } from '@/lib/stores/themeStore';
 
@@ -45,6 +47,7 @@ function ProfilePageContent() {
   const { stats, isLoading: isLoadingStats, error: statsError } = useUserStats('30');
   const { earnedBadges, isLoading: isLoadingBadges, error: badgesError } = useBadges();
   const { setTheme } = useThemeStore();
+  const getAgeDisplay = useAgeGroupDisplay();
   const router = useRouter();
   const t = useTranslations('profile');
   const tPersonal = useTranslations('profile.personalInfo');
@@ -487,20 +490,19 @@ function ProfilePageContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="preferred_difficulty">{tLearning('preferredDifficulty')}</Label>
+                    <Label htmlFor="preferred_age_group">{tLearning('preferredAgeGroup')}</Label>
                     <Select
                       value={learningPrefs.preferred_difficulty}
                       onValueChange={(value) => setLearningPrefs(prev => ({ ...prev, preferred_difficulty: value }))}
                       disabled={isUpdatingProfile}
                     >
-                      <SelectTrigger id="preferred_difficulty" aria-label={tLearning('preferredDifficulty')}>
-                        <SelectValue placeholder={tLearning('preferredDifficultyPlaceholder')} />
+                      <SelectTrigger id="preferred_age_group" aria-label={tLearning('preferredAgeGroup')}>
+                        <SelectValue placeholder={tLearning('preferredAgeGroupPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="initie">{t('difficulties.initie')}</SelectItem>
-                        <SelectItem value="padawan">{t('difficulties.padawan')}</SelectItem>
-                        <SelectItem value="chevalier">{t('difficulties.chevalier')}</SelectItem>
-                        <SelectItem value="maitre">{t('difficulties.maitre')}</SelectItem>
+                        {Object.values(AGE_GROUPS).map((group) => (
+                          <SelectItem key={group} value={group}>{getAgeDisplay(group)}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -553,8 +555,8 @@ function ProfilePageContent() {
                     <p className="text-sm font-medium capitalize">{user.learning_style || '-'}</p>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">{tLearning('preferredDifficulty')}</Label>
-                    <p className="text-sm font-medium capitalize">{user.preferred_difficulty || '-'}</p>
+                    <Label className="text-xs text-muted-foreground">{tLearning('preferredAgeGroup')}</Label>
+                    <p className="text-sm font-medium">{user.preferred_difficulty ? getAgeDisplay(user.preferred_difficulty) : '-'}</p>
                   </div>
                 </div>
               )}

@@ -73,17 +73,20 @@ class PostgreSQLEnumTest(unittest.TestCase):
     
     def test_age_group_adaptation(self):
         """Tester l'adaptation des groupes d'âge."""
-        # Récupérer les valeurs adaptées
-        age_9_12 = get_enum_value(AgeGroup, AgeGroup.AGE_9_12)
-        age_13_plus = get_enum_value(AgeGroup, AgeGroup.AGE_13_PLUS)
+        # Les seules valeurs existantes en PostgreSQL
+        group_10_12 = get_enum_value(AgeGroup, AgeGroup.GROUP_10_12)
+        group_13_15 = get_enum_value(AgeGroup, AgeGroup.GROUP_13_15)
+        all_ages = get_enum_value(AgeGroup, AgeGroup.ALL_AGES)
         
         # Afficher les valeurs adaptées
-        print(f"AgeGroup.AGE_9_12 adapté en: '{age_9_12}'")
-        print(f"AgeGroup.AGE_13_PLUS adapté en: '{age_13_plus}'")
+        print(f"AgeGroup.GROUP_10_12 adapté en: '{group_10_12}'")
+        print(f"AgeGroup.GROUP_13_15 adapté en: '{group_13_15}'")
+        print(f"AgeGroup.ALL_AGES adapté en: '{all_ages}'")
         
-        # Vérifier que les valeurs correspondent aux valeurs attendues pour PostgreSQL
-        self.assertEqual(age_9_12, "GROUP_10_12")
-        self.assertEqual(age_13_plus, "GROUP_13_15")  # Correction : maintenant mappé vers GROUP_13_15
+        # Vérifier que les valeurs correspondent aux valeurs PostgreSQL
+        self.assertEqual(group_10_12, "GROUP_10_12")
+        self.assertEqual(group_13_15, "GROUP_13_15")
+        self.assertEqual(all_ages, "ALL_AGES")
     
     def test_direct_adaptation(self):
         """Tester l'adaptation directe des valeurs."""

@@ -19,6 +19,10 @@ from app.models.attempt import Attempt
 from app.models.progress import Progress
 from app.models.logic_challenge import LogicChallenge
 from app.models.setting import Setting
+from app.models.achievement import Achievement, UserAchievement
+from app.models.notification import Notification
+from app.models.user_session import UserSession
+from app.models.recommendation import Recommendation
 from app.models.legacy_tables import Results, Statistics, UserStats, SchemaVersion
 from app.db.base import Base
 

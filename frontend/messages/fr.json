@@ -20,7 +20,10 @@
     "export": "Exporter",
     "exportPDF": "Exporter en PDF",
     "exportExcel": "Exporter en Excel",
-    "selectLanguage": "Choisir la langue"
+    "selectLanguage": "Choisir la langue",
+    "total": "Total",
+    "years": "ans",
+    "allAges": "Tous âges"
   },
   "auth": {
     "login": {
@@ -136,9 +139,11 @@
       "reset": "Réinitialiser",
       "exerciseType": "Type d'exercice",
       "difficulty": "Niveau de difficulté",
+      "ageGroup": "Groupe d'âge",
       "allTypes": "Tous les types",
       "allDifficulties": "Toutes les difficultés",
       "allLevels": "Tous les niveaux",
+      "allAgeGroups": "Tous les âges",
       "aiGenerated": "Générés par IA",
       "standard": "Standard"
     },
@@ -170,17 +175,21 @@
       "createdOn": "Créé le {date}",
       "aiGenerated": "Généré par intelligence artificielle",
       "difficulty": "Difficulté: {difficulty}",
+      "ageGroup": "Groupe d'âge: {ageGroup}",
       "type": "Type: {type}",
       "solveExercise": "Résoudre l'exercice: {title}",
-      "completed": "Résolu"
+      "completed": "Résolu",
+      "exerciseInfo": "Informations sur l'exercice"
     },
     "generator": {
       "title": "Générer un exercice",
       "description": "Créez un nouvel exercice mathématique",
       "exerciseType": "Type d'exercice",
       "difficulty": "Niveau de difficulté",
+      "ageGroup": "Groupe d'âge",
       "selectType": "Sélectionner un type",
       "selectDifficulty": "Sélectionner un niveau",
+      "selectAgeGroup": "Sélectionner un groupe d'âge",
       "generating": "Génération...",
       "generate": "Générer un exercice"
     },
@@ -189,8 +198,10 @@
       "description": "Créez un exercice personnalisé avec l'intelligence artificielle",
       "exerciseType": "Type d'exercice",
       "difficulty": "Niveau de difficulté",
+      "ageGroup": "Groupe d'âge",
       "selectType": "Sélectionner un type",
       "selectDifficulty": "Sélectionner une difficulté",
+      "selectAgeGroup": "Sélectionner un groupe d'âge",
       "customPrompt": "Description personnalisée (optionnel)",
       "customPromptPlaceholder": "Ex: Un problème de multiplication avec des vaisseaux spatiaux et des planètes...",
       "generating": "Génération en cours...",
@@ -212,12 +223,16 @@
     },
     "types": {
       "addition": "Addition",
+      "soustraction": "Soustraction",
       "subtraction": "Soustraction",
       "multiplication": "Multiplication",
       "division": "Division",
       "fractions": "Fractions",
+      "geometrie": "Géométrie",
       "geometry": "Géométrie",
+      "texte": "Problèmes textuels",
       "text": "Problèmes textuels",
+      "mixte": "Mixte",
       "mixed": "Mixte",
       "divers": "Divers"
     },
@@ -260,6 +275,24 @@
     "error": {
       "invalidId": "ID d'exercice invalide",
       "invalidIdMessage": "L'identifiant \"{id}\" n'est pas un numéro valide."
+    },
+    "modal": {
+      "loading": "Chargement de l'exercice...",
+      "errorTitle": "Erreur de chargement",
+      "notFound": "Cet exercice n'existe pas ou a été supprimé.",
+      "loadError": "Impossible de charger l'exercice.",
+      "answerChoicesLabel": "Choix de réponses pour l'exercice",
+      "correctAnswer": "Réponse correcte",
+      "incorrectAnswer": "Réponse incorrecte",
+      "noMultipleChoice": "Cet exercice n'a pas de choix multiples. Entrez votre réponse ci-dessous.",
+      "saving": "Enregistrement...",
+      "validateAnswer": "Valider ma réponse",
+      "correctTitle": "Bravo ! Réponse correcte 🎉",
+      "incorrectTitle": "Réponse incorrecte",
+      "correctAnswerWas": "La bonne réponse était :",
+      "explanation": "Explication",
+      "showHint": "Voir un indice",
+      "hint": "Indice"
     }
   },
   "challenges": {
@@ -310,26 +343,43 @@
       "count": "{count} défi",
       "countPlural": "{count} défis",
       "empty": "Aucun défi trouvé avec ces filtres.",
-      "emptyHint": "Essayez de modifier les filtres pour voir plus de défis."
+      "emptyHint": "Essayez de modifier les filtres pour voir plus de défis.",
+      "error": {
+        "title": "Erreur de chargement",
+        "description": "Impossible de charger les défis"
+      }
     },
     "card": {
       "completed": "Résolu",
-      "aiGenerated": "Généré par intelligence artificielle"
+      "aiGenerated": "Généré par intelligence artificielle",
+      "ageGroup": "Groupe d'âge:",
+      "difficulty": "Difficulté:",
+      "estimatedTime": "Temps estimé:",
+      "view": "vue",
+      "views": "vues",
+      "successRate": "Taux de réussite:",
+      "challengeInfo": "Informations sur le défi",
+      "solve": "Résoudre"
     },
     "types": {
-      "visual": "Visuel",
-      "abstract": "Abstrait",
-      "pattern": "Pattern",
-      "word": "Mots",
-      "sequence": "Séquence"
+      "sequence": "Séquence",
+      "pattern": "Motif",
+      "visual": "Visuel & Spatial",
+      "puzzle": "Puzzle",
+      "riddle": "Énigme",
+      "deduction": "Déduction",
+      "probability": "Probabilité",
+      "graph": "Graphe",
+      "coding": "Codage",
+      "chess": "Échecs"
     },
     "ageGroups": {
-      "9-12": "9-12 ans",
-      "10-12": "10-12 ans",
-      "12-13": "12-13 ans",
-      "13-15": "13-15 ans",
-      "13+": "13 ans et plus",
-      "all": "Tous les âges"
+      "6-8": "6-8 ans",
+      "9-11": "9-11 ans",
+      "12-14": "12-14 ans",
+      "15-17": "15-17 ans",
+      "adulte": "Adulte",
+      "tous-ages": "Tous les âges"
     },
     "solver": {
       "description": "Description",
@@ -369,6 +419,9 @@
       "answerFromVisualization": "Réponse générée depuis la visualisation...",
       "sequenceAnswerLabel": "Réponse de la séquence (générée depuis la visualisation)",
       "patternAnswerLabel": "Réponse du pattern (générée depuis la visualisation)",
+      "yourAssociations": "Vos associations",
+      "completeAssociationsAbove": "Complétez vos associations dans la grille ci-dessus",
+      "deductionAnswerLabel": "Réponse de déduction (générée depuis la grille)",
       "enterAnswer": "Entrez votre réponse...",
       "answerFieldLabel": "Champ de réponse pour le défi logique",
       "validating": "Validation en cours...",
@@ -392,6 +445,49 @@
     "error": {
       "invalidId": "ID de défi invalide",
       "invalidIdMessage": "L'identifiant \"{id}\" n'est pas un numéro valide."
+    },
+    "modal": {
+      "loading": "Chargement du défi...",
+      "errorTitle": "Erreur de chargement",
+      "title": "Défi",
+      "notFound": "Ce défi n'existe pas ou a été supprimé.",
+      "loadError": "Impossible de charger le défi.",
+      "question": "Question :",
+      "successRate": "réussite",
+      "solveChallenge": "Résoudre le défi"
+    },
+    "visualizations": {
+      "deduction": {
+        "elements": "Éléments du problème",
+        "hints": "Indices",
+        "yourAssociations": "Vos associations",
+        "associateEach": "Associez chaque {category} avec les éléments correspondants.",
+        "alreadyUsed": "(déjà utilisé)",
+        "associationsCompleted": "{made}/{total} associations complétées",
+        "peopleAndAges": "Personnes et âges",
+        "years": "ans",
+        "relationships": "Relations",
+        "entities": "Entités",
+        "rules": "Règles",
+        "challengeData": "Données du défi"
+      },
+      "probability": {
+        "items": "éléments",
+        "candies": "bonbons",
+        "marbles": "billes",
+        "cards": "cartes",
+        "dice": "dés",
+        "coins": "pièces",
+        "possibleEvents": "Événements possibles",
+        "possibleOutcomes": "Résultats possibles",
+        "probabilities": "Probabilités",
+        "calculation": "Calcul",
+        "favorableCases": "Cas favorables :",
+        "possibleCases": "Cas possibles :",
+        "probability": "Probabilité :",
+        "composition": "Composition ({total} {itemType})",
+        "total": "Total"
+      }
     }
   },
   "dashboard": {
@@ -431,7 +527,7 @@
       "excellent": "Excellent !"
     },
     "recommendations": {
-      "title": "Recommandations",
+      "title": "Conseils du Maître Jedi",
       "generate": "Générer des recommandations",
       "loading": "Chargement des recommandations...",
       "empty": "Aucune recommandation pour le moment.",
@@ -444,6 +540,28 @@
       "title": "Activité récente",
       "empty": "Aucune activité récente.",
       "emptyHint": "Commencez à résoudre des exercices pour voir votre progression !"
+    },
+    "streak": {
+      "title": "Série en cours",
+      "days": "{count, plural, =0 {jour} =1 {jour} other {jours}}",
+      "best": "Meilleure série",
+      "record": "Nouveau record !",
+      "keepGoing": "Continue comme ça ! Reviens demain pour maintenir ta série."
+    },
+    "challengesProgress": {
+      "title": "Progression des défis",
+      "completed": "complétés",
+      "successRate": "Taux de réussite",
+      "avgTime": "Temps moyen",
+      "noChallengesYet": "Commence par relever ton premier défi !"
+    },
+    "categoryAccuracy": {
+      "title": "Précision par catégorie",
+      "noData": "Aucune donnée disponible. Commence à résoudre des exercices !",
+      "exercises": "exerc.",
+      "excellent": "Excellent",
+      "good": "Bien",
+      "fair": "Moyen"
     },
     "levelIndicator": {
       "title": "Niveau actuel",
@@ -466,7 +584,22 @@
       "pdfError": "Erreur lors de l'export PDF",
       "pdfErrorDescription": "Une erreur est survenue lors de la génération du PDF.",
       "excelError": "Erreur lors de l'export Excel",
-      "excelErrorDescription": "Une erreur est survenue lors de la génération du fichier Excel."
+      "excelErrorDescription": "Une erreur est survenue lors de la génération du fichier Excel.",
+      "labels": {
+        "title": "Statistiques Mathakine",
+        "user": "Utilisateur:",
+        "date": "Date:",
+        "metric": "Métrique",
+        "value": "Valeur",
+        "exercisesCompleted": "Exercices complétés",
+        "challengesCompleted": "Défis complétés",
+        "correctAnswers": "Réponses correctes",
+        "incorrectAnswers": "Réponses incorrectes",
+        "averageScore": "Score moyen",
+        "level": "Niveau",
+        "xp": "XP",
+        "sheetName": "Statistiques"
+      }
     },
     "charts": {
       "progressByType": {
@@ -560,7 +693,8 @@
     "500": {
       "title": "Erreur serveur",
       "message": "Une erreur s'est produite",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "backHome": "Retour à l'accueil"
     },
     "network": "Erreur de connexion",
     "unauthorized": "Non autorisé",
@@ -583,7 +717,9 @@
       "generateError": "Erreur de génération",
       "aiGenerateSuccess": "Exercice généré avec succès !",
       "aiGenerateError": "Erreur de génération",
-      "connectionError": "Erreur de connexion"
+      "connectionError": "Erreur de connexion",
+      "generateSuccessDescription": "Exercice \"{title}\" créé avec succès.",
+      "generateErrorDescription": "Impossible de générer l'exercice"
     },
     "recommendations": {
       "updatedSuccess": "Recommandations actualisées !",
@@ -592,13 +728,20 @@
     },
     "badges": {
       "checkError": "Erreur",
-      "checkErrorDescription": "Impossible de vérifier les badges."
+      "checkErrorDescription": "Impossible de vérifier les badges.",
+      "badgeUnlocked": "Badge débloqué ! 🎖️",
+      "newBadgeUnlocked": "Nouveau badge débloqué ! 🎖️",
+      "noBadge": "Aucun nouveau badge",
+      "noBadgeDescription": "Continuez vos efforts pour débloquer de nouveaux badges !"
     },
     "challenges": {
       "loadError": "Erreur",
       "loadErrorDescription": "Impossible de charger les défis.",
       "submitError": "Erreur",
-      "submitErrorDescription": "Impossible de soumettre la réponse."
+      "submitErrorDescription": "Impossible d'enregistrer votre réponse.",
+      "badgeUnlocked": "Badge débloqué ! 🎖️",
+      "hintError": "Erreur",
+      "hintErrorDescription": "Impossible de récupérer l'indice."
     },
     "dashboard": {
       "statsUpdated": "Statistiques actualisées !"
@@ -620,6 +763,11 @@
       "pdfError": "Erreur lors de l'export PDF",
       "excelSuccess": "Export Excel réussi !",
       "excelError": "Erreur lors de l'export Excel"
+    },
+    "generic": {
+      "error": "Erreur",
+      "submitError": "Erreur",
+      "submitErrorDescription": "Impossible d'enregistrer votre réponse."
     }
   },
   "home": {
@@ -679,7 +827,9 @@
       "sendButton": "Envoyer le message",
       "info": "Posez vos questions mathématiques ou logiques !",
       "expandLabel": "Agrandir le chat",
-      "collapseLabel": "Réduire le chat"
+      "collapseLabel": "Réduire le chat",
+      "suggestions": "Suggestions :",
+      "loading": "Chargement de l'assistant..."
     },
     "cta": {
       "title": "Prêt à commencer ?",
@@ -710,8 +860,8 @@
       "gradeLevelPlaceholder": "Sélectionnez votre niveau",
       "learningStyle": "Style d'apprentissage",
       "learningStylePlaceholder": "Sélectionnez votre style",
-      "preferredDifficulty": "Difficulté préférée",
-      "preferredDifficultyPlaceholder": "Sélectionnez votre difficulté"
+      "preferredAgeGroup": "Groupe d'âge préféré",
+      "preferredAgeGroupPlaceholder": "Sélectionnez votre groupe d'âge"
     },
     "security": {
       "title": "Sécurité",
@@ -868,6 +1018,12 @@
       "sessionRevoked": "Session révoquée",
       "sessionRevokedDescription": "La session a été révoquée avec succès."
     }
+  },
+  "api": {
+    "errors": {
+      "sessionExpired": "Session expirée. Veuillez vous reconnecter.",
+      "networkError": "Erreur réseau",
+      "cannotConnect": "Impossible de se connecter au serveur."
+    }
   }
 }
-

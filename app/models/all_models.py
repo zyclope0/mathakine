@@ -9,10 +9,12 @@ from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import (AgeGroup, LogicChallenge,
                                         LogicChallengeAttempt,
                                         LogicChallengeType)
+from app.models.notification import Notification
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.setting import Setting
 from app.models.user import User, UserRole
+from app.models.user_session import UserSession
 
 # Export all models
 __all__ = [
@@ -30,5 +32,7 @@ __all__ = [
     "AgeGroup",
     "Recommendation",
     "Achievement",
-    "UserAchievement"
+    "UserAchievement",
+    "Notification",
+    "UserSession",
 ]

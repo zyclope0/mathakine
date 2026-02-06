@@ -5,16 +5,16 @@ import json
 import traceback
 from datetime import datetime
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse
 
 from app.core.config import settings
 # Importer les constantes et fonctions centralisées
-from app.core.constants import (CHALLENGE_TYPES_API, CHALLENGE_TYPES_DB,
-                                calculate_difficulty_for_age_group)
-from app.core.constants import \
-    normalize_challenge_type as normalize_challenge_type_for_db
+from app.core.constants import (CHALLENGE_TYPES_API, CHALLENGE_TYPES_DB, normalize_age_group, calculate_difficulty_for_age_group)
+import app.core.constants as constants
 from app.core.messages import SystemMessages
 # NOTE: challenge_service_translations_adapter archivé - utiliser fonctions de challenge_service.py
 from app.services import challenge_service
@@ -22,64 +22,6 @@ from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.logic_challenge_service import LogicChallengeService
 from app.utils.error_handler import ErrorHandler
 from app.utils.translation import parse_accept_language
-
-
-def normalize_age_group_for_db(age_group_raw: str) -> str:
-    """
-    Normalise un groupe d'âge vers les valeurs PostgreSQL valides.
-    
-    Valeurs PostgreSQL acceptées : GROUP_10_12, GROUP_13_15, ALL_AGES
-    
-    Args:
-        age_group_raw: Valeur brute du groupe d'âge (peut être "adolescent", "10-12", "GROUP_10_12", etc.)
-    
-    Returns:
-        Valeur normalisée pour PostgreSQL (GROUP_10_12, GROUP_13_15, ou ALL_AGES)
-    """
-    if not age_group_raw:
-        return None  # Pas de filtre
-    
-    age_group_lower = age_group_raw.lower().strip()
-    
-    # Mapping des valeurs vers les valeurs PostgreSQL valides
-    age_group_mapping = {
-        # Valeurs textuelles
-        'enfant': 'GROUP_10_12',
-        'adolescent': 'GROUP_13_15',
-        'adulte': 'ALL_AGES',
-        # Valeurs avec tirets
-        '9-12': 'GROUP_10_12',
-        '10-12': 'GROUP_10_12',
-        '12-13': 'GROUP_13_15',
-        '13-15': 'GROUP_13_15',
-        '13+': 'GROUP_13_15',
-        # Valeurs avec underscores (déjà normalisées)
-        'group_10_12': 'GROUP_10_12',
-        'group_13_15': 'GROUP_13_15',
-        'all_ages': 'ALL_AGES',
-        'all': 'ALL_AGES',
-        # Valeurs en majuscules (déjà normalisées)
-        'GROUP_10_12': 'GROUP_10_12',
-        'GROUP_13_15': 'GROUP_13_15',
-        'ALL_AGES': 'ALL_AGES',
-        # Valeurs avec préfixe AGE_
-        'age_9_12': 'GROUP_10_12',
-        'age_12_13': 'GROUP_13_15',
-        'age_13_plus': 'GROUP_13_15',
-    }
-    
-    # Chercher dans le mapping
-    normalized = age_group_mapping.get(age_group_lower)
-    if normalized:
-        return normalized
-    
-    # Si la valeur commence par GROUP_, la mettre en majuscules
-    if age_group_raw.upper().startswith('GROUP_'):
-        return age_group_raw.upper()
-    
-    # Valeur invalide, ne pas filtrer
-    logger.warning(f"Groupe d'âge non reconnu '{age_group_raw}', filtre ignoré")
-    return None
 
 
 async def get_challenges_list(request: Request):
@@ -92,7 +34,7 @@ async def get_challenges_list(request: Request):
         from server.auth import get_current_user
         current_user = await get_current_user(request)
         if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"detail": "Non authentifié"}, status_code=401)
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
         
         # Récupérer les paramètres de requête
         challenge_type_raw = request.query_params.get('challenge_type')
@@ -104,8 +46,11 @@ async def get_challenges_list(request: Request):
         active_only = request.query_params.get('active_only', 'true').lower() == 'true'
         
         # Normaliser les filtres pour correspondre aux valeurs PostgreSQL
-        challenge_type = normalize_challenge_type_for_db(challenge_type_raw) if challenge_type_raw else None
-        age_group = normalize_age_group_for_db(age_group_raw) if age_group_raw else None
+        challenge_type = constants.normalize_challenge_type(challenge_type_raw) if challenge_type_raw else None
+        # Utiliser normalize_age_group_for_db pour obtenir la valeur ENUM PostgreSQL
+        from app.services.challenge_service import normalize_age_group_for_db
+        age_group_db = normalize_age_group_for_db(age_group_raw) if age_group_raw else None
+        age_group = normalize_age_group(age_group_raw) if age_group_raw else None  # Format string pour logs
         
         # Calculer la page à partir de skip et limit
         page = (skip // limit) + 1 if limit > 0 else 1
@@ -114,7 +59,7 @@ async def get_challenges_list(request: Request):
         accept_language = request.headers.get('Accept-Language', 'fr')
         locale = parse_accept_language(accept_language)
 
-        logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, challenge_type_raw={challenge_type_raw}, challenge_type_normalized={challenge_type}, age_group_raw={age_group_raw}, age_group_normalized={age_group}, search={search}, locale={locale}")
+        logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, challenge_type_raw={challenge_type_raw}, challenge_type_normalized={challenge_type}, age_group_raw={age_group_raw}, age_group_db={age_group_db}, search={search}, locale={locale}")
 
         # Utiliser le service ORM challenge_service
         db = EnhancedServerAdapter.get_db_session()
@@ -123,19 +68,20 @@ async def get_challenges_list(request: Request):
             challenges = challenge_service.list_challenges(
                 db=db,
                 challenge_type=challenge_type,
-                age_group=age_group,
+                age_group=age_group_db,  # Utiliser la valeur ENUM DB
                 tags=search,  # Utiliser search comme filtre tags
                 limit=limit,
                 offset=skip
             )
-            # Convertir les objets en dicts
+            # Convertir les objets en dicts avec normalisation age_group pour frontend
+            from app.services.challenge_service import normalize_age_group_for_frontend
             challenges_list = [
                 {
                     "id": c.id,
                     "title": c.title,
                     "description": c.description,
                     "challenge_type": c.challenge_type,
-                    "age_group": c.age_group,
+                    "age_group": normalize_age_group_for_frontend(c.age_group),
                     "difficulty": c.difficulty,
                     "tags": c.tags,
                     "difficulty_rating": c.difficulty_rating,
@@ -145,23 +91,19 @@ async def get_challenges_list(request: Request):
                     "is_archived": c.is_archived
                 } for c in challenges
             ]
+            
+            # Compter le total pour la pagination (même session)
+            total = challenge_service.count_challenges(
+                db=db,
+                challenge_type=challenge_type,
+                age_group=age_group_db  # Utiliser la valeur ENUM DB
+            )
         finally:
             EnhancedServerAdapter.close_db_session(db)
         
         # Filtrer les défis archivés si nécessaire (déjà fait dans la query, mais double vérification)
         if active_only:
             challenges_list = [c for c in challenges_list if not c.get('is_archived', False)]
-        
-        # Compter le total pour la pagination (réutiliser la même session)
-        db2 = EnhancedServerAdapter.get_db_session()
-        try:
-            total = challenge_service.count_challenges(
-                db=db2,
-                challenge_type=challenge_type,
-                age_group=age_group
-            )
-        finally:
-            EnhancedServerAdapter.close_db_session(db2)
 
         # Log pour déboguer
         logger.debug(f"API - Retour de {len(challenges_list)} défis sur {total} total (limit demandé: {limit}, page: {page})")
@@ -207,7 +149,7 @@ async def get_challenge(request: Request):
         from server.auth import get_current_user
         current_user = await get_current_user(request)
         if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"detail": "Non authentifié"}, status_code=401)
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
         
         challenge_id = int(request.path_params.get('challenge_id'))
         
@@ -236,12 +178,15 @@ async def get_challenge(request: Request):
                             return default if default is not None else []
                     return value
                 
+                # Normaliser age_group pour le frontend
+                from app.services.challenge_service import normalize_age_group_for_frontend
+                
                 challenge_dict = {
                     "id": challenge.id,
                     "title": challenge.title,
                     "description": challenge.description,
                     "challenge_type": challenge.challenge_type,
-                    "age_group": challenge.age_group,
+                    "age_group": normalize_age_group_for_frontend(challenge.age_group),
                     "difficulty": challenge.difficulty,
                     "question": challenge.question,
                     "correct_answer": challenge.correct_answer,
@@ -329,19 +274,104 @@ async def submit_challenge_answer(request: Request):
                 return JSONResponse({"error": "Défi logique non trouvé"}, status_code=404)
             
             # Vérifier la réponse
-            # Pour les puzzles, normaliser les réponses (insensible à la casse, espaces)
-            user_answer_normalized = str(user_solution).strip().lower().replace(' ', '')
-            correct_answer_normalized = str(challenge.correct_answer).strip().lower().replace(' ', '')
+            # Fonction helper pour parser une réponse (gère format liste Python et CSV)
+            def parse_answer_to_list(answer: str) -> list:
+                """Parse une réponse en liste, gérant plusieurs formats."""
+                answer = str(answer).strip()
+                
+                # Format liste Python : "['Rouge', 'Vert', 'Jaune', 'Bleu']"
+                if answer.startswith('[') and answer.endswith(']'):
+                    try:
+                        import ast
+                        parsed = ast.literal_eval(answer)
+                        if isinstance(parsed, list):
+                            return [str(item).strip().lower() for item in parsed]
+                    except (ValueError, SyntaxError):
+                        pass
+                    # Fallback: retirer les crochets et parser manuellement
+                    inner = answer[1:-1]
+                    # Retirer les quotes autour de chaque élément
+                    items = []
+                    for item in inner.split(','):
+                        item = item.strip().strip("'").strip('"').strip().lower()
+                        if item:
+                            items.append(item)
+                    return items
+                
+                # Format CSV simple : "Rouge,Vert,Jaune,Bleu"
+                if ',' in answer:
+                    return [item.strip().lower() for item in answer.split(',') if item.strip()]
+                
+                # Valeur simple
+                return [answer.lower()] if answer else []
             
-            # Pour les réponses de type liste (séparées par virgules), comparer les listes
-            if ',' in user_answer_normalized or ',' in correct_answer_normalized:
-                # Normaliser les listes : trier et comparer
-                user_list = [item.strip() for item in user_answer_normalized.split(',') if item.strip()]
-                correct_list = [item.strip() for item in correct_answer_normalized.split(',') if item.strip()]
-                is_correct = user_list == correct_list
+            def compare_deduction_answers(user_answer: str, correct_answer: str) -> bool:
+                """
+                Compare les réponses pour les défis de déduction.
+                Format attendu: "Emma:Chimie:700,Lucas:Info:600,..." ou format dict-like
+                L'ordre des associations n'a pas d'importance, seul le contenu compte.
+                """
+                def parse_associations(answer: str) -> set:
+                    """Parse les associations en set de tuples normalisés."""
+                    answer = str(answer).strip().lower()
+                    associations = set()
+                    
+                    # Format "entité:val1:val2,..."
+                    if ':' in answer:
+                        for part in answer.split(','):
+                            part = part.strip()
+                            if part:
+                                # Normaliser : trier les éléments pour ignorer l'ordre interne
+                                elements = tuple(sorted([e.strip() for e in part.split(':') if e.strip()]))
+                                if elements:
+                                    associations.add(elements)
+                    # Format dict-like ou JSON
+                    elif '{' in answer:
+                        try:
+                            import json
+                            data = json.loads(answer.replace("'", '"'))
+                            if isinstance(data, dict):
+                                for key, values in data.items():
+                                    if isinstance(values, dict):
+                                        elements = tuple(sorted([str(key).lower()] + [str(v).lower() for v in values.values()]))
+                                    else:
+                                        elements = tuple(sorted([str(key).lower(), str(values).lower()]))
+                                    associations.add(elements)
+                        except (json.JSONDecodeError, ValueError, TypeError, AttributeError):
+                            pass
+                    
+                    return associations
+                
+                user_assoc = parse_associations(user_answer)
+                correct_assoc = parse_associations(correct_answer)
+                
+                logger.debug(f"Deduction comparison - User: {user_assoc}, Correct: {correct_assoc}")
+                
+                # Comparer les sets
+                return user_assoc == correct_assoc
+            
+            # Déterminer le type de challenge pour choisir la méthode de comparaison
+            challenge_type = str(challenge.challenge_type).lower() if challenge.challenge_type else ''
+            
+            # Comparaison spéciale pour les défis de déduction
+            if 'deduction' in challenge_type and ':' in user_solution:
+                is_correct = compare_deduction_answers(user_solution, challenge.correct_answer)
+                logger.debug(f"Comparaison déduction - User: {user_solution[:100]}, Correct: {challenge.correct_answer[:100] if challenge.correct_answer else 'None'}, Result: {is_correct}")
             else:
-                # Comparaison simple pour les autres types
-                is_correct = user_answer_normalized == correct_answer_normalized
+                # Parser les deux réponses pour autres types
+                user_list = parse_answer_to_list(user_solution)
+                correct_list = parse_answer_to_list(challenge.correct_answer)
+                
+                logger.debug(f"Comparaison réponse - User: {user_list}, Correct: {correct_list}")
+                
+                # Comparer les listes (ordre important pour les puzzles)
+                if len(user_list) > 1 or len(correct_list) > 1:
+                    is_correct = user_list == correct_list
+                else:
+                    # Comparaison simple pour les réponses à un seul élément
+                    user_normalized = user_list[0] if user_list else ''
+                    correct_normalized = correct_list[0] if correct_list else ''
+                    is_correct = user_normalized == correct_normalized
             
             # NOTE: attempt_service_translations archivé - utiliser LogicChallengeAttempt ORM
             from app.models.logic_challenge import LogicChallengeAttempt
@@ -361,10 +391,6 @@ async def submit_challenge_answer(request: Request):
             db.commit()
             db.refresh(attempt)
             logger.debug(f"Tentative challenge créée: {attempt.id}")
-            
-            if not attempt:
-                logger.error("ERREUR: La tentative de challenge n'a pas été enregistrée correctement")
-                # On continue quand même pour retourner le résultat à l'utilisateur
             
             response_data = {
                 'is_correct': is_correct,
@@ -493,6 +519,86 @@ async def get_completed_challenges_ids(request: Request):
         )
 
 
+async def start_challenge(request: Request):
+    """
+    Handler pour démarrer un défi (placeholder).
+    Route: POST /api/challenges/start/{challenge_id}
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        challenge_id = int(request.path_params.get('challenge_id'))
+        user_id = current_user.get('id')
+        logger.info(f"Défi {challenge_id} démarré par l'utilisateur {user_id}. Fonctionnalité en développement.")
+
+        return JSONResponse(
+            {"message": f"Le défi {challenge_id} a été enregistré comme démarré pour l'utilisateur {user_id}. La fonctionnalité est en cours de développement."},
+            status_code=200
+        )
+    except ValueError:
+        return JSONResponse({"error": "ID de défi invalide"}, status_code=400)
+    except Exception as e:
+        logger.error(f"Erreur lors du démarrage du défi: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def get_challenge_progress(request: Request):
+    """
+    Handler pour récupérer la progression d'un défi pour l'utilisateur actuel (placeholder).
+    Route: GET /api/challenges/progress/{challenge_id}
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        challenge_id = int(request.path_params.get('challenge_id'))
+        user_id = current_user.get('id')
+        logger.info(f"Accès à la progression du défi {challenge_id} pour l'utilisateur {user_id}. Fonctionnalité en développement.")
+
+        return JSONResponse(
+            {"message": f"La fonctionnalité de progression pour le défi {challenge_id} pour l'utilisateur {user_id} est en cours de développement."},
+            status_code=200
+        )
+    except ValueError:
+        return JSONResponse({"error": "ID de défi invalide"}, status_code=400)
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération de la progression du défi: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def get_challenge_rewards(request: Request):
+    """
+    Handler pour récupérer les récompenses d'un défi (placeholder).
+    Route: GET /api/challenges/rewards/{challenge_id}
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        challenge_id = int(request.path_params.get('challenge_id'))
+        logger.info(f"Accès aux récompenses du défi {challenge_id} par l'utilisateur {current_user.get('id')}. Fonctionnalité en développement.")
+
+        return JSONResponse(
+            {"message": f"La fonctionnalité de récompenses pour le défi {challenge_id} est en cours de développement."},
+            status_code=200
+        )
+    except ValueError:
+        return JSONResponse({"error": "ID de défi invalide"}, status_code=400)
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des récompenses du défi: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
 async def generate_ai_challenge_stream(request: Request):
     """
     Génère un challenge avec OpenAI en streaming SSE.
@@ -540,14 +646,14 @@ async def generate_ai_challenge_stream(request: Request):
         
         # Normaliser le type de challenge
         challenge_type = challenge_type_raw.lower()
-        valid_types = ['sequence', 'pattern', 'visual', 'spatial', 'puzzle', 'graph', 'riddle', 'deduction', 'chess', 'coding', 'probability', 'custom']
+        valid_types = ['sequence', 'pattern', 'visual', 'puzzle', 'graph', 'riddle', 'deduction', 'chess', 'coding', 'probability']
         if challenge_type not in valid_types:
             logger.warning(f"Type de challenge invalide: {challenge_type_raw}, utilisation de 'sequence' par défaut")
             challenge_type = 'sequence'
         
-        # Normaliser le groupe d'âge vers les valeurs PostgreSQL valides AVANT génération IA
-        normalized_age_group = normalize_age_group_for_db(age_group_raw)
-        age_group = normalized_age_group if normalized_age_group else 'GROUP_10_12'  # Valeur par défaut si None
+        # Normaliser le groupe d'âge
+        normalized_age_group = normalize_age_group(age_group_raw)
+        age_group = normalized_age_group if normalized_age_group else constants.AgeGroups.GROUP_6_8  # Valeur par défaut
         
         # Rate limiting par utilisateur
         from app.utils.rate_limiter import rate_limiter
@@ -610,19 +716,45 @@ async def generate_ai_challenge_stream(request: Request):
                 )
                 
                 # Construire le prompt système avec instructions pour les challenges mathélogiques
-                system_prompt = f"""Tu es un assistant pédagogique spécialisé dans la création de défis mathélogiques (logique mathématique) pour enfants de 5 à 15 ans.
+                # Définir les paramètres de difficulté selon le groupe d'âge
+                age_group_params = {
+                    "6-8": {"complexity": "très simple", "numbers_max": 20, "steps": "1-2", "vocabulary": "élémentaire, mots simples", "display": "6-8 ans"},
+                    "9-11": {"complexity": "simple à moyen", "numbers_max": 100, "steps": "2-3", "vocabulary": "accessible aux enfants", "display": "9-11 ans"},
+                    "12-14": {"complexity": "moyen", "numbers_max": 500, "steps": "3-4", "vocabulary": "langage courant", "display": "12-14 ans"},
+                    "15-17": {"complexity": "moyen à complexe", "numbers_max": 1000, "steps": "4-5", "vocabulary": "langage précis", "display": "15-17 ans"},
+                    "adulte": {"complexity": "complexe", "numbers_max": 10000, "steps": "5+", "vocabulary": "langage technique possible", "display": "adultes"},
+                    "tous-ages": {"complexity": "simple à moyen", "numbers_max": 100, "steps": "2-3", "vocabulary": "accessible à tous", "display": "tous âges"},
+                }
+                
+                # Log pour debug
+                logger.info(f"Génération challenge: type={challenge_type}, age_group_raw={age_group_raw}, age_group_normalized={age_group}")
+                
+                # Obtenir les paramètres ou fallback
+                if age_group not in age_group_params:
+                    logger.warning(f"Groupe d'âge '{age_group}' non trouvé dans le mapping, utilisation de '9-11' par défaut")
+                params = age_group_params.get(age_group, age_group_params["9-11"])
+                
+                system_prompt = f"""Tu es un assistant pédagogique spécialisé dans la création de défis mathélogiques (logique mathématique).
 
 RÈGLE ABSOLUE : Tu DOIS créer un défi de type "{challenge_type}" uniquement. Ne crée JAMAIS un défi d'un autre type.
+
+GROUPE D'ÂGE CIBLE : {age_group} ans
+- Complexité : {params["complexity"]}
+- Nombres : max {params["numbers_max"]}
+- Étapes de raisonnement : {params["steps"]}
+- Vocabulaire : {params["vocabulary"]}
 
 Types de défis possibles :
 - "sequence" : Défis de séquences logiques (nombres, formes, motifs qui se suivent)
 - "pattern" : Défis de motifs à identifier dans une grille ou un arrangement
-- "visual" : Défis visuels avec formes, couleurs, arrangements spatiaux
-- "spatial" : Défis de raisonnement spatial (rotation, symétrie, positionnement)
+- "visual" : Défis visuels et spatiaux (formes, couleurs, rotation, symétrie, positionnement)
 - "puzzle" : Défis de puzzle (réorganisation, ordre logique, étapes)
 - "graph" : Défis avec graphes et relations (chemins, connexions, réseaux)
 - "riddle" : Énigmes logiques avec raisonnement
 - "deduction" : Défis de déduction logique (inférence, conclusion)
+- "probability" : Défis de probabilités simples
+- "coding" : Défis de CRYPTOGRAPHIE et DÉCODAGE (code César, substitution alphabétique, binaire, symboles secrets)
+- "chess" : Défis d'échecs (mat en X coups, meilleur coup)
 
 CONTEXTE MATHÉLOGIQUE :
 Inspire-toi des exercices de mathélogique qui combinent :
@@ -646,13 +778,82 @@ VISUAL_DATA OBLIGATOIRE :
 Tu DOIS créer un objet visual_data adapté au type de défi :
 - SEQUENCE : {{"sequence": [2, 4, 6, 8], "pattern": "n+2"}}
 - PATTERN : {{"grid": [["X", "O", "X"], ["O", "X", "O"], ["X", "O", "?"]], "size": 3}}
-- PUZZLE : {{"pieces": ["Étape1", "Étape2", "Étape3", "Étape4"]}}
+- PUZZLE : {{"pieces": ["Rouge", "Bleu", "Vert", "Jaune"], "hints": ["L'indice 1 qui aide à trouver l'ordre", "L'indice 2 qui aide à trouver l'ordre", "L'indice 3 qui aide à trouver l'ordre"], "description": "Description du contexte du puzzle"}}
+  IMPORTANT PUZZLE : Tu DOIS toujours fournir des indices (hints) suffisants pour que l'utilisateur puisse déduire l'ordre correct ! Sans indices, le puzzle est impossible à résoudre.
 - GRAPH : {{"nodes": ["A", "B", "C", "D"], "edges": [["A", "B"], ["B", "C"], ["C", "D"], ["D", "A"]]}} // IMPORTANT : Tous les noms de nœuds dans edges DOIVENT exister dans nodes
-- VISUAL/SPATIAL : 
-  * Pour symétrie : {{"type": "symmetry", "symmetry_line": "vertical", "layout": [{{"position": 0, "shape": "triangle", "side": "left"}}, {{"position": 1, "shape": "rectangle", "side": "left"}}, {{"position": 2, "shape": "?", "side": "right", "question": true}}, {{"position": 3, "shape": "cercle", "side": "right"}}], "shapes": ["triangle", "rectangle", "?", "cercle"], "arrangement": "horizontal", "description": "Ligne de symétrie verticale au centre"}}
+- DEDUCTION (grille logique) : {{"type": "logic_grid", "entities": {{"personnes": ["Alice", "Bob", "Charlie"], "metiers": ["Médecin", "Avocat", "Ingénieur"], "villes": ["Paris", "Lyon", "Marseille"]}}, "clues": ["Alice n'est pas médecin", "L'avocat vit à Lyon", "Charlie ne vit pas à Paris"], "description": "Grille de déduction logique à trois dimensions"}}
+  IMPORTANT DEDUCTION : 
+  - Le visual_data DOIT contenir "type": "logic_grid" et "entities" avec les catégories
+  - La première catégorie dans "entities" est celle sur laquelle l'utilisateur fait ses associations (personnes, élèves, etc.)
+  - correct_answer DOIT être au format : "Alice:Médecin:Paris,Bob:Avocat:Lyon,Charlie:Ingénieur:Marseille"
+  - Les associations sont séparées par des virgules, les éléments de chaque association par des ":"
+  - Les clues doivent permettre de déduire la solution unique
+- VISUAL (inclut spatial) : 
+  * Pour symétrie/rotation : {{"type": "symmetry", "symmetry_line": "vertical", "layout": [{{"position": 0, "shape": "triangle", "side": "left"}}, {{"position": 1, "shape": "rectangle", "side": "left"}}, {{"position": 2, "shape": "?", "side": "right", "question": true}}, {{"position": 3, "shape": "cercle", "side": "right"}}], "shapes": ["triangle", "rectangle", "?", "cercle"], "arrangement": "horizontal", "description": "Ligne de symétrie verticale au centre"}}
+  * Pour formes colorées : {{"shapes": ["cercle rouge", "triangle vert", "carré bleu", "cercle rouge", "triangle vert", "carré ?"], "arrangement": "ligne"}}
   * Pour autres : {{"shapes": ["cercle", "carré", "triangle"], "arrangement": "ligne"}} ou {{"ascii": "ASCII art"}}
+- CODING (cryptographie et décodage) :
+  * Pour code César : {{"type": "caesar", "encoded_message": "KHOOR", "shift": 3, "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "hint": "Chaque lettre est décalée de 3 positions", "description": "Décode ce message secret en utilisant le code César"}}
+  * Pour substitution : {{"type": "substitution", "encoded_message": "YFWJ", "key": {{"A": "Y", "B": "Z", "C": "A", "D": "B", "E": "C", "F": "D", "G": "E", "H": "F", "I": "G", "J": "H", "K": "I", "L": "J", "M": "K", "N": "L", "O": "M", "P": "N", "Q": "O", "R": "P", "S": "Q", "T": "R", "U": "S", "V": "T", "W": "U", "X": "V", "Y": "W", "Z": "X"}}, "partial_key": {{"Y": "A", "F": "H", "W": "E", "J": "L"}}, "description": "Utilise la table de correspondance partielle pour décoder le message"}}
+  * Pour binaire : {{"type": "binary", "encoded_message": "01001000 01001001", "hint": "Chaque groupe de 8 bits représente une lettre ASCII", "description": "Convertis ce code binaire en lettres"}}
+  * Pour symboles : {{"type": "symbols", "encoded_message": "★●★ ▲■", "key": {{"★": "A", "●": "B", "▲": "C", "■": "D"}}, "description": "Utilise la clé pour décoder les symboles"}}
+  * Pour algorithme simple : {{"type": "algorithm", "steps": ["Prends le nombre de départ", "Multiplie par 2", "Ajoute 5", "Divise par le nombre de départ", "Résultat ?"], "input": 3, "description": "Suis les étapes avec le nombre donné"}}
+  ⚠️⚠️⚠️ RÈGLES CRITIQUES POUR CODING - LIRE ATTENTIVEMENT ⚠️⚠️⚠️
   
-IMPORTANT pour SPATIAL : Si le défi concerne la symétrie, tu DOIS utiliser la structure "symmetry" avec "layout" et "symmetry_line". Ne génère JAMAIS de JSON malformé avec des clés comme "arrangement": "[" ou des valeurs invalides.
+  ❌ CE QUI EST STRICTEMENT INTERDIT POUR LE TYPE "coding" :
+  - "sequence" avec des nombres (2, 4, 8, 16...) → C'est le type SEQUENCE, pas CODING !
+  - "pattern" avec motifs → C'est le type PATTERN, pas CODING !
+  - "shapes", "formes", "couleurs" → C'est le type VISUAL, pas CODING !
+  - Multiplications simples (n*2, n+3) → C'est SEQUENCE ou PATTERN !
+  - Tout défi qui n'implique pas de DÉCODER UN MESSAGE SECRET
+  
+  ✅ CE QU'EST VRAIMENT LE TYPE "coding" (CRYPTOGRAPHIE) :
+  - DÉCODER un MESSAGE SECRET composé de LETTRES ou SYMBOLES
+  - Le visual_data DOIT contenir "type" parmi : "caesar", "substitution", "binary", "symbols", "maze"
+  - correct_answer = le MOT ou la PHRASE décodé(e) (ex: "CHAT", "BONJOUR", "OUI")
+  
+  ✅ EXEMPLES VALIDES DE DÉFIS "coding" :
+  - Code César : "FKDW" avec décalage 3 → réponse "CHAT"
+  - Substitution : "YFW" avec A→Y, H→F, E→W → réponse "AHE"
+  - Binaire : "01000011 01000001 01010100" → réponse "CAT"
+  - Symboles : "★●★" avec ★=O, ●=U, →=I → réponse "OUO"
+  - Labyrinthe : grille avec robot à programmer → réponse "BAS, DROITE, DROITE"
+  
+  ❌ EXEMPLES INVALIDES (NE PAS FAIRE POUR "coding") :
+  - Séquence 5, 10, 20, 40, ? → UTILISER LE TYPE "sequence" !
+  - Grille avec formes et couleurs → UTILISER LE TYPE "visual" !
+  - Pattern dans une grille → UTILISER LE TYPE "pattern" !
+  - "Labyrinthe de nombres" avec numbers: [1,2,3,4,5...] et target: X → CE N'EST PAS DE LA CRYPTO !
+  - Tout défi avec "numbers", "target", "movement_options" → INVALIDE !
+  - Robot qui navigue dans une liste de NOMBRES → UTILISER SEQUENCE ou PUZZLE !
+  
+  ⛔⛔⛔ ERREURS FATALES À ÉVITER ABSOLUMENT ⛔⛔⛔
+  SI TU GÉNÈRES UN DÉFI "coding" AVEC :
+  - "numbers": [1, 2, 3, 4, 5, 6, 7, 8, 9] → ERREUR FATALE
+  - "target": un_nombre → ERREUR FATALE  
+  - "movement_options": [1, 2] → ERREUR FATALE
+  - N'importe quelle liste de nombres sans MESSAGE À DÉCODER → ERREUR FATALE
+  
+  CODING = DÉCODER UN MESSAGE SECRET EN LETTRES/SYMBOLES, PAS naviguer dans des nombres !
+
+- CHESS (échecs) :
+  * Pour mat en X coups : {{"board": [["r", "n", "b", "q", "k", "b", "n", "r"], ["p", "p", "p", "p", "p", "p", "p", "p"], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["P", "P", "P", "P", "P", "P", "P", "P"], ["R", "N", "B", "Q", "K", "B", "N", "R"]], "turn": "white", "objective": "mat_en_3", "question": "Les blancs jouent et font mat en 3 coups"}}
+  * Notation des pièces : K/k=Roi, Q/q=Dame, R/r=Tour, B/b=Fou, N/n=Cavalier, P/p=Pion
+  * MAJUSCULE = pièce BLANCHE, minuscule = pièce noire
+  * Cases vides = "" (chaîne vide)
+  * board[0] = rangée 8 (haut), board[7] = rangée 1 (bas)
+  * board[row][0] = colonne a, board[row][7] = colonne h
+  * correct_answer = notation algébrique des coups : "Qh7+, Kf8, Qf7#" ou "Dd7+, Rf8, Df7#"
+  * IMPORTANT : Le board doit représenter une position RÉALISTE avec une solution VÉRIFIABLE
+  * Inclure "highlight_positions" pour montrer les pièces clés : [["row", "col"], ...]
+  
+IMPORTANT pour VISUAL :
+- Si le défi utilise des associations forme-couleur, tu DOIS montrer AU MOINS UN EXEMPLE VISIBLE de chaque association AVANT la question.
+  Exemple MAUVAIS : ["cercle rouge", "triangle vert", "carré ?"] → L'utilisateur ne sait pas quelle couleur va avec "carré"
+  Exemple BON : ["cercle rouge", "carré bleu", "triangle vert", "cercle rouge", "carré ?"] → L'utilisateur voit que carré = bleu
+- L'utilisateur doit pouvoir DÉDUIRE la réponse à partir des éléments visibles, pas deviner au hasard.
+- Si le défi concerne la symétrie, tu DOIS utiliser la structure "symmetry" avec "layout" et "symmetry_line".
+- Ne génère JAMAIS de JSON malformé avec des clés comme "arrangement": "[" ou des valeurs invalides.
 
 VALIDATION LOGIQUE OBLIGATOIRE :
 Avant de retourner le JSON, tu DOIS vérifier la cohérence logique :
@@ -674,10 +875,56 @@ Avant de retourner le JSON, tu DOIS vérifier la cohérence logique :
      → correct_answer DOIT être "10"
 
 3. Pour PUZZLE :
+   - Tu DOIS fournir des indices (hints) qui permettent de DÉDUIRE l'ordre
+   - Chaque indice doit donner une information utile (ex: "Le rouge vient avant le bleu", "Le vert est en 3ème position")
    - Vérifie que correct_answer contient tous les éléments de pieces
-   - Vérifie que l'ordre est logique
+   - Vérifie que l'ordre donné par correct_answer est DÉDUCTIBLE à partir des indices
+   - L'explication doit montrer comment utiliser les indices pour trouver l'ordre
 
-4. Vérification finale :
+4. Pour VISUAL avec formes et couleurs :
+   - Si la réponse est une couleur (ex: "bleu", "rouge"), tu DOIS montrer cette couleur AVEC une autre forme dans les éléments visibles
+   - Exemple : Si correct_answer = "bleu" et c'est pour un carré manquant, il DOIT y avoir un autre "carré bleu" visible dans shapes
+   - L'utilisateur ne peut PAS deviner une couleur qu'il n'a jamais vue associée à une forme
+   - La description doit expliquer la règle à trouver (ex: "Chaque forme a sa propre couleur")
+
+5. Pour DEDUCTION (grille logique) :
+   - Tu DOIS fournir des clues (indices) qui permettent de déduire UNE SEULE solution
+   - Chaque entité de la première catégorie doit être associée à exactement une valeur de chaque autre catégorie
+   - correct_answer DOIT utiliser le format "Entité1:Val1:Val2,Entité2:Val1:Val2,..."
+   - Exemple : Si entities = {{"eleves": ["Emma", "Lucas"], "matieres": ["Maths", "Français"], "scores": [80, 90]}}
+     Et la solution est Emma→Maths→90, Lucas→Français→80
+     → correct_answer = "Emma:Maths:90,Lucas:Français:80"
+   - L'ordre des associations (Emma avant Lucas) n'a pas d'importance
+   - Vérifie que les indices permettent de trouver cette solution unique
+
+6. Pour CODING (cryptographie) - VALIDATION STRICTE :
+   - Tu DOIS fournir un "type" parmi : "caesar", "substitution", "binary", "symbols", "algorithm", "maze"
+   - ERREUR FATALE si visual_data contient : "shapes", "arrangement", "cercle", "carré", "triangle", "couleur"
+   - ERREUR FATALE si visual_data contient : "numbers", "target", "movement_options" (ce n'est pas de la crypto !)
+   - Ces éléments appartiennent au type "visual", "pattern" ou "sequence", PAS à "coding" !
+   - Pour "caesar" : fournis "encoded_message" (lettres encodées), "shift" (1-25), correct_answer = mot décodé
+     Exemple : encoded_message="FKDW", shift=3, correct_answer="CHAT"
+   - Pour "substitution" : fournis "encoded_message", "key" ou "partial_key" (table lettre→lettre)
+   - Pour "binary" : fournis "encoded_message" (groupes de 8 bits : "01001111 01010101 01001001"), correct_answer = "OUI"
+   - Pour "symbols" : fournis "encoded_message" avec symboles (★●▲), "key" (table symbole→lettre)
+   - Pour "algorithm" : fournis "steps" (instructions), "input" (nombre), correct_answer = résultat
+   - Pour "maze" : fournis "maze" (grille de murs #), "start", "end", correct_answer = directions (BAS, DROITE...)
+   - correct_answer est TOUJOURS du texte en clair (lettres/mots décodés, directions, ou un nombre pour algorithm)
+
+7. Pour CHESS (échecs) :
+   - Tu DOIS fournir "board" : tableau 2D de 8x8 représentant l'échiquier
+   - Notation : K=Roi blanc, k=roi noir, Q/q=Dame, R/r=Tour, B/b=Fou, N/n=Cavalier, P/p=Pion
+   - MAJUSCULE = BLANC, minuscule = noir, "" = case vide
+   - board[0] = rangée 8 (côté noir), board[7] = rangée 1 (côté blanc)
+   - "turn" : "white" ou "black" pour indiquer qui joue
+   - "objective" : "mat_en_1", "mat_en_2", "mat_en_3", "meilleur_coup", etc.
+   - correct_answer : notation algébrique française (Dd4+, Txe5, Cf3, O-O, e4, etc.) ou standard (Qd4+, Rxe5, Nf3, O-O, e4)
+   - Pour mat en X coups : donner la séquence complète séparée par virgules
+   - Exemple : correct_answer = "Dd7+, Rf8, Df7#" (Dame d7 échec, Roi f8, Dame f7 mat)
+   - IMPORTANT : La position doit être LÉGALE et la solution VÉRIFIABLE
+   - Éviter les positions impossibles (ex: 10 fous, roi en échec au mauvais tour)
+
+8. Vérification finale :
    - La solution_explanation DOIT expliquer pourquoi correct_answer est correct
    - L'explication DOIT être cohérente avec le visual_data
    - L'explication NE DOIT PAS être contradictoire avec correct_answer
@@ -696,22 +943,43 @@ solution_explanation: "En observant la colonne de droite et la ligne du bas, le 
 
 Retourne uniquement le défi au format JSON valide avec ces champs:
 {{
-  "title": "Titre du défi mathélogique",
-  "description": "Description du problème avec contexte clair",
-  "question": "Question spécifique à résoudre",
+  "title": "Titre du défi mathélogique (accrocheur, adapté à {age_group} ans)",
+  "description": "Description claire du problème avec contexte engageant",
+  "question": "Question spécifique et précise à résoudre",
   "correct_answer": "Réponse correcte (VALIDÉE pour correspondre au pattern)",
-  "solution_explanation": "Explication détaillée de la solution et de la méthode (COHÉRENTE avec correct_answer)",
-  "hints": ["Indice 1 (piste pédagogique)", "Indice 2 (piste pédagogique)", "Indice 3 (piste pédagogique)"],
-  "visual_data": {{...}} // Objet JSON adapté au type de défi
+  "solution_explanation": "Explication détaillée adaptée à {age_group} ans (COHÉRENTE avec correct_answer)",
+  "hints": ["Indice 1 (piste pédagogique)", "Indice 2 (piste)", "Indice 3 (piste)"],
+  "visual_data": {{...}},
+  "difficulty_rating": X.X // Note de 1.0 à 5.0 adaptée au groupe d'âge
 }}
+
+RÈGLES DE DIFFICULTÉ (difficulty_rating) :
+- 6-8 ans : 1.0 à 2.0 (très facile)
+- 9-11 ans : 2.0 à 3.0 (facile à moyen)
+- 12-14 ans : 3.0 à 4.0 (moyen)
+- 15-17 ans : 3.5 à 4.5 (moyen-difficile)
+- adulte : 4.0 à 5.0 (difficile)
 
 Assure-toi que le visual_data est complet et permet une visualisation interactive.
 IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."""
                 
                 # Construire le prompt utilisateur avec le groupe d'âge normalisé
-                user_prompt = f"Crée un défi mathélogique de type {challenge_type} pour le groupe d'âge {age_group}. IMPORTANT : Le défi DOIT être de type {challenge_type}, pas un autre type. Le visual_data DOIT être adapté à ce type. Le groupe d'âge du défi DOIT correspondre à {age_group}."
+                user_prompt = f"""Crée un défi mathélogique de type "{challenge_type}" pour des enfants/élèves de {age_group} ans.
+
+CONTRAINTES OBLIGATOIRES :
+- Type de défi : {challenge_type} (pas un autre type !)
+- Groupe d'âge : {age_group} ans (adapter la complexité et le vocabulaire)
+- Le visual_data DOIT correspondre au type {challenge_type}
+- La difficulté doit être adaptée à {age_group} ans"""
+                
+                # Si l'utilisateur a fourni un prompt personnalisé, l'intégrer en priorité
                 if prompt:
-                    user_prompt += f" {prompt}"
+                    user_prompt += f"""
+
+DEMANDE PERSONNALISÉE DE L'UTILISATEUR (à respecter en priorité) :
+{prompt}
+
+Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" et le groupe d'âge {age_group}."""
                 
                 # Envoyer un message de démarrage
                 yield f"data: {json.dumps({'type': 'status', 'message': 'Génération en cours...'})}\n\n"
@@ -732,17 +1000,32 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                     reraise=True
                 )
                 async def create_stream_with_retry():
-                    return await client.chat.completions.create(
-                        model=ai_params["model"],
-                        messages=[
+                    # Construire les paramètres selon le modèle
+                    api_kwargs = {
+                        "model": ai_params["model"],
+                        "messages": [
                             {"role": "system", "content": system_prompt},
                             {"role": "user", "content": user_prompt}
                         ],
-                        stream=True,
-                        temperature=ai_params["temperature"],
-                        max_tokens=ai_params["max_tokens"],
-                        response_format={"type": "json_object"}  # Forcer JSON
-                    )
+                        "stream": True,
+                        "response_format": {"type": "json_object"}
+                    }
+                    
+                    # GPT-5.x utilise max_completion_tokens, reasoning_effort et verbosity
+                    if AIConfig.is_gpt5_model(ai_params["model"]):
+                        api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
+                        api_kwargs["reasoning_effort"] = ai_params.get("reasoning_effort", "medium")
+                        api_kwargs["verbosity"] = ai_params.get("verbosity", "low")
+                        # Temperature seulement si reasoning = none
+                        if ai_params.get("reasoning_effort") == "none" and "temperature" in ai_params:
+                            api_kwargs["temperature"] = ai_params["temperature"]
+                    else:
+                        # Modèles legacy (GPT-4.x) utilisent max_tokens et temperature
+                        api_kwargs["max_tokens"] = ai_params["max_tokens"]
+                        api_kwargs["temperature"] = ai_params.get("temperature", 0.5)
+                    
+                    logger.info(f"Appel API avec params: model={ai_params['model']}, reasoning={ai_params.get('reasoning_effort', 'N/A')}")
+                    return await client.chat.completions.create(**api_kwargs)
                 
                 try:
                     stream = await create_stream_with_retry()
@@ -776,8 +1059,83 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                         completion_tokens_estimate = chunk.usage.completion_tokens or completion_tokens_estimate
                 
                 # Parser la réponse JSON complète
+                # GPT-5.1 avec reasoning peut inclure du texte avant/après le JSON
+                logger.info(f"Réponse reçue: {len(full_response)} caractères, ~{len(full_response)//4} tokens estimés")
+                
                 try:
-                    challenge_data = json.loads(full_response)
+                    # Essayer d'abord le parsing direct
+                    try:
+                        challenge_data = json.loads(full_response)
+                    except json.JSONDecodeError:
+                        # Chercher le JSON dans la réponse (entre { et })
+                        logger.warning("Parsing JSON direct échoué, tentative d'extraction...")
+                        json_match = None
+                        
+                        # Trouver le premier { et le dernier }
+                        start_idx = full_response.find('{')
+                        end_idx = full_response.rfind('}')
+                        
+                        if start_idx != -1:
+                            # JSON commence par {, extraire jusqu'au dernier }
+                            if end_idx != -1 and end_idx > start_idx:
+                                json_str = full_response[start_idx:end_idx + 1]
+                            else:
+                                # JSON tronqué - pas de } trouvé, prendre tout depuis {
+                                json_str = full_response[start_idx:]
+                                logger.warning(f"JSON tronqué détecté (pas de '}}' final), longueur: {len(json_str)}")
+                            
+                            try:
+                                challenge_data = json.loads(json_str)
+                                logger.info("JSON extrait avec succès après nettoyage")
+                            except json.JSONDecodeError as inner_error:
+                                # Essayer de nettoyer les commentaires // ou /* */
+                                import re
+                                json_cleaned = re.sub(r'//.*?\n', '\n', json_str)  # Supprimer // comments
+                                json_cleaned = re.sub(r'/\*.*?\*/', '', json_cleaned, flags=re.DOTALL)  # Supprimer /* */ comments
+                                
+                                try:
+                                    challenge_data = json.loads(json_cleaned)
+                                    logger.info("JSON extrait après suppression des commentaires")
+                                except json.JSONDecodeError as clean_error:
+                                    # JSON tronqué - essayer de le compléter automatiquement
+                                    logger.warning(f"JSON invalide, tentative de complétion automatique... Erreur: {clean_error}")
+                                    
+                                    # Compter les accolades et crochets non fermés
+                                    open_braces = json_cleaned.count('{') - json_cleaned.count('}')
+                                    open_brackets = json_cleaned.count('[') - json_cleaned.count(']')
+                                    
+                                    logger.info(f"Accolades non fermées: {open_braces}, Crochets non fermés: {open_brackets}")
+                                    
+                                    # Fermer les strings ouvertes (chercher le dernier " non échappé)
+                                    if json_cleaned.count('"') % 2 == 1:
+                                        # Terminer la string en cours avec une valeur vide
+                                        json_cleaned += '..."'
+                                        logger.info("String non terminée fermée")
+                                    
+                                    # Si on est au milieu d'une valeur (après un :), ajouter une valeur par défaut
+                                    last_colon = json_cleaned.rfind(':')
+                                    last_close = max(json_cleaned.rfind('}'), json_cleaned.rfind(']'), json_cleaned.rfind('"'))
+                                    if last_colon > last_close:
+                                        # On est après un : sans valeur
+                                        json_cleaned += '""'
+                                        logger.info("Valeur manquante ajoutée")
+                                    
+                                    # Fermer les structures ouvertes
+                                    json_cleaned += ']' * open_brackets
+                                    json_cleaned += '}' * open_braces
+                                    
+                                    try:
+                                        challenge_data = json.loads(json_cleaned)
+                                        logger.info("JSON récupéré après complétion automatique")
+                                    except json.JSONDecodeError as final_error:
+                                        logger.error(f"Impossible de parser le JSON même après complétion: {final_error}")
+                                        logger.info(f"Réponse brute (1500 chars): {full_response[:1500]}")
+                                        logger.info(f"JSON après complétion (500 chars fin): ...{json_cleaned[-500:]}")
+                                        raise
+                        else:
+                            logger.error(f"Pas de JSON trouvé dans la réponse (pas de '{{' trouvé)")
+                            logger.info(f"Réponse brute (1500 chars): {full_response[:1500]}")
+                            raise json.JSONDecodeError("Pas de JSON trouvé", full_response, 0)
                     
                     # Vérifier que les données essentielles sont présentes
                     if not challenge_data.get("title") or not challenge_data.get("description"):
@@ -826,21 +1184,11 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                     # Toujours utiliser le groupe d'âge normalisé depuis le frontend
                     final_age_group = age_group
                     
-                    # Calculer la difficulté adaptée au groupe d'âge
-                    def calculate_difficulty_for_age_group(age_group: str) -> float:
-                        """Calcule une difficulté appropriée selon le groupe d'âge."""
-                        difficulty_map = {
-                            'GROUP_10_12': 2.0,  # Facile pour 10-12 ans
-                            'GROUP_13_15': 3.5,  # Moyen-difficile pour 13-15 ans
-                            'ALL_AGES': 3.0,     # Moyen pour tous âges
-                        }
-                        return difficulty_map.get(age_group, 3.0)
-                    
                     # Utiliser la difficulté de l'IA si fournie et valide, sinon calculer selon l'âge
                     ai_difficulty = challenge_data.get("difficulty_rating")
+                    expected_difficulty = calculate_difficulty_for_age_group(final_age_group)
                     if ai_difficulty and isinstance(ai_difficulty, (int, float)) and 1.0 <= ai_difficulty <= 5.0:
                         # Vérifier que la difficulté est adaptée au groupe d'âge
-                        expected_difficulty = calculate_difficulty_for_age_group(final_age_group)
                         # Si la difficulté de l'IA est trop éloignée, utiliser celle calculée
                         if abs(ai_difficulty - expected_difficulty) > 1.5:
                             logger.info(f"Difficulté IA ({ai_difficulty}) ajustée pour groupe d'âge {final_age_group} -> {expected_difficulty}")
@@ -848,7 +1196,7 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                         else:
                             final_difficulty = float(ai_difficulty)
                     else:
-                        final_difficulty = calculate_difficulty_for_age_group(final_age_group)
+                        final_difficulty = expected_difficulty
                     
                     normalized_challenge = {
                         "challenge_type": challenge_type.upper(),
@@ -925,12 +1273,13 @@ IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."
                                 )
                                 
                                 # Convertir l'objet LogicChallenge en dictionnaire pour la réponse JSON
+                                from app.services.challenge_service import normalize_age_group_for_frontend
                                 challenge_dict = {
                                     'id': created_challenge.id,
                                     'title': created_challenge.title,
                                     'description': created_challenge.description,
                                     'challenge_type': str(created_challenge.challenge_type) if hasattr(created_challenge.challenge_type, 'value') else created_challenge.challenge_type,
-                                    'age_group': str(created_challenge.age_group) if hasattr(created_challenge.age_group, 'value') else created_challenge.age_group,
+                                    'age_group': normalize_age_group_for_frontend(created_challenge.age_group),
                                     'question': created_challenge.question,
                                     'correct_answer': created_challenge.correct_answer,
                                     'solution_explanation': created_challenge.solution_explanation,

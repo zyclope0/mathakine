@@ -76,9 +76,11 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
                     className={`
                       w-12 h-12 rounded border-2 font-semibold text-sm
                       transition-all flex items-center justify-center
-                      ${isSelected 
-                        ? 'bg-primary text-primary-foreground border-primary shadow-lg' 
-                        : 'bg-card text-foreground border-primary/30 hover:border-primary/50 hover:bg-primary/10'
+                      ${cellValue === '?' 
+                        ? 'bg-primary/20 text-primary border-primary border-dashed animate-pulse' 
+                        : isSelected 
+                          ? 'bg-primary text-primary-foreground border-primary shadow-lg' 
+                          : 'bg-card text-foreground border-primary/30 hover:border-primary/50 hover:bg-primary/10'
                       }
                     `}
                     whileHover={{ scale: 1.1 }}
@@ -88,7 +90,7 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.02 }}
                   >
-                    {cellValue}
+                    {cellValue === '?' ? <span className="text-lg font-bold">?</span> : cellValue}
                   </motion.button>
                 );
               })}

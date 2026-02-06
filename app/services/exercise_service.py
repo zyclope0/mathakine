@@ -4,7 +4,9 @@ Implémente les opérations métier liées aux exercices et utilise le transacti
 """
 from typing import Any, Dict, List, Optional, Union
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -413,9 +415,13 @@ class ExerciseService:
             session.add(new_progress)
         
         # 2. Mettre à jour ou créer UserStats
+        # Gérer le cas où exercise_type et difficulty peuvent être des strings ou des enums
+        exercise_type_value = exercise.exercise_type.value if hasattr(exercise.exercise_type, 'value') else str(exercise.exercise_type)
+        difficulty_value = exercise.difficulty.value if hasattr(exercise.difficulty, 'value') else str(exercise.difficulty)
+        
         user_stat = session.query(UserStats).filter(
-            UserStats.exercise_type == exercise.exercise_type.value,
-            UserStats.difficulty == exercise.difficulty.value
+            UserStats.exercise_type == exercise_type_value,
+            UserStats.difficulty == difficulty_value
         ).first()
         
         if user_stat:
@@ -425,8 +431,8 @@ class ExerciseService:
             user_stat.last_updated = datetime.now()
         else:
             new_user_stat = UserStats(
-                exercise_type=exercise.exercise_type.value,
-                difficulty=exercise.difficulty.value,
+                exercise_type=exercise_type_value,
+                difficulty=difficulty_value,
                 total_attempts=1,
                 correct_attempts=1 if is_correct else 0
             )

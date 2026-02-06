@@ -9,6 +9,7 @@ export interface Recommendation {
   id: number;
   exercise_type: string;
   difficulty: string;
+  age_group?: string;
   reason: string;
   exercise_title?: string;
   exercise_question?: string;

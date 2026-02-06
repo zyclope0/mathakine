@@ -32,13 +32,14 @@ export async function GET(request: NextRequest) {
     // Récupérer les paramètres de la requête
     const searchParams = request.nextUrl.searchParams;
     const exerciseType = searchParams.get('exercise_type') || 'addition';
-    const difficulty = searchParams.get('difficulty') || 'initie';
+    // Support des deux paramètres : age_group (nouveau) et difficulty (legacy)
+    const ageGroup = searchParams.get('age_group') || searchParams.get('difficulty') || '6-8';
     const prompt = searchParams.get('prompt') || '';
 
-    // Construire l'URL du backend
+    // Construire l'URL du backend avec age_group
     const backendParams = new URLSearchParams({
       exercise_type: exerciseType,
-      difficulty: difficulty,
+      age_group: ageGroup,
     });
     if (prompt) {
       backendParams.append('prompt', prompt);

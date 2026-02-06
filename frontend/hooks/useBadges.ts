@@ -5,11 +5,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ApiClientError } from '@/lib/api/client';
 import type { UserBadgesResponse, GamificationStats, Badge, UserBadge } from '@/types/api';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import { useLocaleStore } from '@/lib/stores/localeStore';
 
 export function useBadges() {
   const queryClient = useQueryClient();
   const { locale } = useLocaleStore();
+  const t = useTranslations('toasts');
 
   // Invalider les queries quand la locale change
   useEffect(() => {
@@ -59,20 +61,20 @@ export function useBadges() {
       // Pour l'instant, garder les messages en français comme fallback
       if (data.new_badges && data.new_badges.length > 0) {
         data.new_badges.forEach((badge) => {
-          toast.success(`Nouveau badge débloqué ! 🎖️`, {
+          toast.success(t('badges.newBadgeUnlocked'), {
             description: `${badge.name}${badge.star_wars_title ? ` - ${badge.star_wars_title}` : ''}`,
             duration: 5000,
           });
         });
       } else {
-        toast.info('Aucun nouveau badge', {
-          description: 'Continuez vos efforts pour débloquer de nouveaux badges !',
+        toast.info(t('badges.noBadge'), {
+          description: t('badges.noBadgeDescription'),
         });
       }
     },
     onError: (error: ApiClientError) => {
-      toast.error('Erreur', {
-        description: error.message || 'Impossible de vérifier les badges.',
+      toast.error(t('badges.checkError'), {
+        description: error.message || t('badges.checkErrorDescription'),
       });
     },
   });

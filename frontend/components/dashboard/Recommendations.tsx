@@ -7,12 +7,13 @@ import { Sparkles, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useRecommendations } from '@/hooks/useRecommendations';
 import { cn } from '@/lib/utils/cn';
-import { EXERCISE_TYPE_DISPLAY, DIFFICULTY_DISPLAY } from '@/lib/constants/exercises';
+import { useExerciseTranslations } from '@/hooks/useChallengeTranslations';
 import { useTranslations } from 'next-intl';
 
 export function Recommendations() {
   const { recommendations, isLoading, generate, isGenerating } = useRecommendations();
   const t = useTranslations('dashboard.recommendations');
+  const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
 
   const handleRefresh = async () => {
     await generate();
@@ -56,12 +57,10 @@ export function Recommendations() {
           <div className="space-y-3">
             {recommendations.map((recommendation, index) => {
               // Traduire le type d'exercice
-              const exerciseTypeKey = recommendation.exercise_type.toLowerCase();
-              const exerciseTypeDisplay = EXERCISE_TYPE_DISPLAY[exerciseTypeKey as keyof typeof EXERCISE_TYPE_DISPLAY] || recommendation.exercise_type;
+              const exerciseTypeDisplay = getTypeDisplay(recommendation.exercise_type);
               
-              // Traduire la difficulté
-              const difficultyKey = recommendation.difficulty.toLowerCase();
-              const difficultyDisplay = DIFFICULTY_DISPLAY[difficultyKey as keyof typeof DIFFICULTY_DISPLAY] || recommendation.difficulty;
+              // Traduire le groupe d'âge
+              const ageGroupDisplay = getAgeDisplay(recommendation.age_group);
               
               // Déterminer la couleur de priorité selon la priorité (si disponible)
               const priority = (recommendation as any).priority || 5;
@@ -77,7 +76,7 @@ export function Recommendations() {
                       : "border-primary/10 hover:border-primary/30"
                   )}
                   role="article"
-                  aria-label={`Recommandation: ${exerciseTypeDisplay} - ${difficultyDisplay}`}
+                  aria-label={`Recommandation: ${exerciseTypeDisplay} - ${ageGroupDisplay}`}
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex gap-2 flex-wrap">
@@ -91,7 +90,7 @@ export function Recommendations() {
                         {exerciseTypeDisplay}
                       </Badge>
                       <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/30">
-                        {difficultyDisplay}
+                        {ageGroupDisplay}
                       </Badge>
                       {isHighPriority && (
                         <Badge className="bg-primary/20 text-primary-on-dark text-xs">

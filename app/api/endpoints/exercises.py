@@ -2,7 +2,6 @@
 Endpoints API pour la gestion des exercices
 """
 import json
-import logging
 import os
 import random
 import time
@@ -438,7 +437,7 @@ def generate_ai_exercise(exercise_type, difficulty):
         explanation = f"[{Messages.AI_EXERCISE_PREFIX}] Tu avais {num1} crédits et tu en as gagné {num2} de plus. Donc {num1} + {num2} = {result} crédits au total."
 
         # Log pour le débogage
-        print(f"Attention: Type d'exercice non géré: {exercise_type}, génération d'une addition par défaut")
+        logger.warning(f"Attention: Type d'exercice non géré: {exercise_type}, génération d'une addition par défaut")
 
     # Mélanger les choix pour éviter que la bonne réponse soit toujours à la même position
     random.shuffle(choices)
@@ -663,7 +662,7 @@ def generate_exercise(
         if explanation is None or explanation == "" or explanation == "None":
             explanation = f"[{Messages.AI_EXERCISE_PREFIX}] La réponse est {correct_answer}."
             
-        print(f"Création d'un nouvel exercice avec explication: {explanation}")
+        logger.info(f"Création d'un nouvel exercice avec explication: {explanation}")
             
         # Créer l'exercice en utilisant le modèle ORM directement
         from datetime import datetime
@@ -690,11 +689,11 @@ def generate_exercise(
         db.commit()
         db.refresh(new_exercise)
         
-        print(f"Exercice créé avec ID {new_exercise.id}, explication: {new_exercise.explanation}")
+        logger.info(f"Exercice créé avec ID {new_exercise.id}, explication: {new_exercise.explanation}")
 
     except Exception as exercise_creation_fallback_error:
         db.rollback()
-        print(f"Erreur lors de la création de l'exercice: {str(exercise_creation_fallback_error)}")
+        logger.error(f"Erreur lors de la création de l'exercice: {str(exercise_creation_fallback_error)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(
@@ -1038,12 +1037,10 @@ def delete_exercise(
     Génère une erreur 403 si l'utilisateur n'a pas les permissions.
     Génère une erreur 500 en cas de problème lors de l'archivage.
     """
-    import logging
     import traceback
 
     from sqlalchemy.exc import SQLAlchemyError
 
-    logger = logging.getLogger(__name__)
     logger.info(f"Tentative d'archivage de l'exercice {exercise_id} par l'utilisateur {current_user.username}")
 
     try:

@@ -34,7 +34,20 @@ export function ExportButton({ timeRange = '30' }: ExportButtonProps) {
     }
     
     try {
-      await exportStatsToPDF(stats, user.username);
+      await exportStatsToPDF(stats, user.username, {
+        title: t('labels.title', { default: 'Statistiques Mathakine' }),
+        user: t('labels.user', { default: 'Utilisateur:' }),
+        date: t('labels.date', { default: 'Date:' }),
+        metric: t('labels.metric', { default: 'Métrique' }),
+        value: t('labels.value', { default: 'Valeur' }),
+        exercisesCompleted: t('labels.exercisesCompleted', { default: 'Exercices complétés' }),
+        challengesCompleted: t('labels.challengesCompleted', { default: 'Défis complétés' }),
+        correctAnswers: t('labels.correctAnswers', { default: 'Réponses correctes' }),
+        incorrectAnswers: t('labels.incorrectAnswers', { default: 'Réponses incorrectes' }),
+        averageScore: t('labels.averageScore', { default: 'Score moyen' }),
+        level: t('labels.level', { default: 'Niveau' }),
+        xp: t('labels.xp', { default: 'XP' }),
+      });
       toast.success(t('pdfSuccess', { default: 'Export PDF réussi !' }), {
         description: t('pdfSuccessDescription', { default: 'Votre rapport a été téléchargé.' }),
       });
@@ -63,7 +76,18 @@ export function ExportButton({ timeRange = '30' }: ExportButtonProps) {
     }
     
     try {
-      exportStatsToExcel(stats, user.username);
+      exportStatsToExcel(stats, user.username, {
+        metric: t('labels.metric', { default: 'Métrique' }),
+        value: t('labels.value', { default: 'Valeur' }),
+        exercisesCompleted: t('labels.exercisesCompleted', { default: 'Exercices complétés' }),
+        challengesCompleted: t('labels.challengesCompleted', { default: 'Défis complétés' }),
+        correctAnswers: t('labels.correctAnswers', { default: 'Réponses correctes' }),
+        incorrectAnswers: t('labels.incorrectAnswers', { default: 'Réponses incorrectes' }),
+        averageScore: t('labels.averageScore', { default: 'Score moyen' }),
+        level: t('labels.level', { default: 'Niveau' }),
+        xp: t('labels.xp', { default: 'XP' }),
+        sheetName: t('labels.sheetName', { default: 'Statistiques' }),
+      });
       toast.success(t('excelSuccess', { default: 'Export Excel réussi !' }), {
         description: t('excelSuccessDescription', { default: 'Votre fichier Excel a été téléchargé.' }),
       });

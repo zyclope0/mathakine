@@ -6,7 +6,9 @@ sans modifier massivement le serveur existant.
 import json
 from typing import Any, Dict, List, Optional, Union
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter
@@ -165,6 +167,7 @@ class EnhancedServerAdapter:
     def create_generated_exercise(
         db: Session, 
         exercise_type: str, 
+        age_group: str,  # Ajout du paramètre manquant
         difficulty: str, 
         title: str,
         question: str,
@@ -184,6 +187,7 @@ class EnhancedServerAdapter:
         Args:
             db: Session de base de données (non utilisée, conservée pour compatibilité)
             exercise_type: Type d'exercice
+            age_group: Groupe d'âge de l'exercice
             difficulty: Niveau de difficulté
             title: Titre de l'exercice
             question: Question de l'exercice
@@ -204,6 +208,7 @@ class EnhancedServerAdapter:
         exercise_data = {
             'title': title,
             'exercise_type': exercise_type,
+            'age_group': age_group,  # Utilisation du nouveau paramètre
             'difficulty': difficulty,
             'question': question,
             'correct_answer': correct_answer,
@@ -217,7 +222,7 @@ class EnhancedServerAdapter:
             'view_count': 0
         }
         
-        logger.info(f"Création d'un exercice généré de type {exercise_type}, difficulté {difficulty}")
+        logger.info(f"Création d'un exercice généré de type {exercise_type}, groupe d'âge {age_group}, difficulté {difficulty}")
         # NOTE: Utiliser ExerciseService ORM directement
         db = EnhancedServerAdapter.get_db_session()
         try:

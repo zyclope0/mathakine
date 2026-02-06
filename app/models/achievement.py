@@ -1,8 +1,8 @@
 """
 Modèles SQLAlchemy pour le système de badges
 """
-from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Integer,
-                        String, Text)
+from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Index,
+                        Integer, String, Text)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -12,13 +12,16 @@ from app.db.base import Base
 class Achievement(Base):
     """Modèle pour les badges/achievements"""
     __tablename__ = "achievements"
+    __table_args__ = (
+        Index('idx_achievements_category', 'category'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String(100), unique=True, nullable=False, index=True)
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     icon_url = Column(String(255), nullable=True)
-    category = Column(String(50), nullable=True, index=True)
+    category = Column(String(50), nullable=True)
     difficulty = Column(String(50), nullable=True)  # bronze, silver, gold, legendary
     points_reward = Column(Integer, default=0)
     is_secret = Column(Boolean, default=False)

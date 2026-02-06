@@ -3,6 +3,8 @@
 import { useCallback, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserStats, type TimeRange } from '@/hooks/useUserStats';
+import { useProgressStats } from '@/hooks/useProgressStats';
+import { useChallengesProgress } from '@/hooks/useChallengesProgress';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, CheckCircle, Zap, Trophy } from 'lucide-react';
@@ -13,6 +15,9 @@ import { PerformanceByType } from '@/components/dashboard/PerformanceByType';
 import { LevelIndicator } from '@/components/dashboard/LevelIndicator';
 import { Recommendations } from '@/components/dashboard/Recommendations';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
+import { StreakWidget } from '@/components/dashboard/StreakWidget';
+import { ChallengesProgressWidget } from '@/components/dashboard/ChallengesProgressWidget';
+import { CategoryAccuracyChart } from '@/components/dashboard/CategoryAccuracyChart';
 import { ExportButton } from '@/components/dashboard/ExportButton';
 import { TimeRangeSelector } from '@/components/dashboard/TimeRangeSelector';
 import { toast } from 'sonner';
@@ -31,6 +36,8 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState<TimeRange>('30');
   const { stats, isLoading, error, refetch } = useUserStats(timeRange);
+  const { data: progressStats, isLoading: isLoadingProgress } = useProgressStats();
+  const { data: challengesProgress, isLoading: isLoadingChallenges } = useChallengesProgress();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const t = useTranslations('dashboard');
@@ -162,6 +169,30 @@ export default function DashboardPage() {
                 })}
               </div>
             )}
+            </PageSection>
+
+            {/* Nouveaux widgets de progression */}
+            <PageSection className="space-y-3 animate-fade-in-up-delay-2">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-stretch">
+                <StreakWidget
+                  currentStreak={progressStats?.current_streak || 0}
+                  highestStreak={progressStats?.highest_streak || 0}
+                  isLoading={isLoadingProgress}
+                />
+                <ChallengesProgressWidget
+                  completedChallenges={challengesProgress?.completed_challenges || 0}
+                  totalChallenges={challengesProgress?.total_challenges || 0}
+                  successRate={challengesProgress?.success_rate || 0}
+                  averageTime={challengesProgress?.average_time || 0}
+                  isLoading={isLoadingChallenges}
+                />
+                <div className="md:col-span-2 lg:col-span-1">
+                  <CategoryAccuracyChart
+                    categoryData={progressStats?.by_category || {}}
+                    isLoading={isLoadingProgress}
+                  />
+                </div>
+              </div>
             </PageSection>
 
             {/* Graphiques */}

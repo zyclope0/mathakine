@@ -7,7 +7,9 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Dict, Optional
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class TokenTracker:

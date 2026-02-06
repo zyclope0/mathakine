@@ -1,5 +1,6 @@
-import logging
 import random
+
+from app.core.logging_config import get_logger
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import and_, exists, or_
@@ -11,7 +12,7 @@ from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.user import User
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class RecommendationService:
     """Service analysant les performances et générant des recommandations personnalisées"""

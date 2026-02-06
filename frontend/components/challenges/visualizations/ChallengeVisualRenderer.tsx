@@ -53,7 +53,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
       );
     
     case CHALLENGE_TYPES.VISUAL:
-    case CHALLENGE_TYPES.SPATIAL:
+      // VISUAL inclut les défis spatiaux (rotation, symétrie, etc.)
       return (
         <VisualRenderer
           visualData={challenge.visual_data}
@@ -83,6 +83,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
         <DeductionRenderer
           visualData={challenge.visual_data}
           {...(className !== undefined && { className })}
+          {...(onAnswerChange !== undefined && { onAnswerChange })}
         />
       );
     

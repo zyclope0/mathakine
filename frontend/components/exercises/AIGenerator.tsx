@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Sparkles, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { EXERCISE_TYPES, EXERCISE_TYPE_DISPLAY, DIFFICULTY_LEVELS, DIFFICULTY_DISPLAY, type ExerciseType, type DifficultyLevel } from '@/lib/constants/exercises';
+import { EXERCISE_TYPES, AGE_GROUPS, type ExerciseType, type AgeGroup } from '@/lib/constants/exercises';
+import { useExerciseTranslations } from '@/hooks/useChallengeTranslations';
 import type { Exercise } from '@/types/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
@@ -19,7 +20,7 @@ interface AIGeneratorProps {
 
 export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
   const [exerciseType, setExerciseType] = useState<ExerciseType>(EXERCISE_TYPES.ADDITION);
-  const [difficulty, setDifficulty] = useState<DifficultyLevel>(DIFFICULTY_LEVELS.INITIE);
+  const [ageGroup, setAgeGroup] = useState<AgeGroup>(AGE_GROUPS.GROUP_6_8);
   const [customPrompt, setCustomPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamedText, setStreamedText] = useState('');
@@ -28,6 +29,7 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const t = useTranslations('exercises');
+  const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
 
   // Nettoyer l'EventSource lors du démontage
   useEffect(() => {
@@ -44,7 +46,7 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
     // Valider les paramètres avant de générer
     const validation = validateExerciseParams({
       exercise_type: exerciseType,
-      difficulty: difficulty,
+      age_group: ageGroup,
     });
 
     if (!validation.valid) {
@@ -73,7 +75,7 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
       // Construire l'URL avec les paramètres
       const params = new URLSearchParams({
         exercise_type: exerciseType,
-        difficulty: difficulty,
+        age_group: ageGroup,
       });
       if (customPrompt.trim()) {
         params.append('prompt', customPrompt.trim());
@@ -192,9 +194,9 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
                 <SelectValue placeholder={t('aiGenerator.selectType')} />
               </SelectTrigger>
               <SelectContent className="bg-card border-primary/30">
-                {Object.entries(EXERCISE_TYPE_DISPLAY).map(([key, value]) => (
-                  <SelectItem key={key} value={key} className="text-foreground hover:bg-primary/10">
-                    {value}
+                {Object.values(EXERCISE_TYPES).map((type) => (
+                  <SelectItem key={type} value={type} className="text-foreground hover:bg-primary/10">
+                    {getTypeDisplay(type)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -202,21 +204,21 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="ai-difficulty" className="block text-xs font-medium text-muted-foreground">
-              {t('aiGenerator.difficulty')}
+            <label htmlFor="ai-age-group" className="block text-xs font-medium text-muted-foreground">
+              {t('aiGenerator.ageGroup')}
             </label>
             <Select
-              value={difficulty}
-              onValueChange={(value: DifficultyLevel) => setDifficulty(value)}
+              value={ageGroup}
+              onValueChange={(value: AgeGroup) => setAgeGroup(value)}
               disabled={isGenerating}
             >
-              <SelectTrigger id="ai-difficulty" className="w-full h-8 text-xs bg-background text-foreground border-primary/30">
-                <SelectValue placeholder={t('aiGenerator.selectDifficulty')} />
+              <SelectTrigger id="ai-age-group" className="w-full h-8 text-xs bg-background text-foreground border-primary/30">
+                <SelectValue placeholder={t('aiGenerator.selectAgeGroup')} />
               </SelectTrigger>
               <SelectContent className="bg-card border-primary/30">
-                {Object.entries(DIFFICULTY_DISPLAY).map(([key, value]) => (
-                  <SelectItem key={key} value={key} className="text-foreground hover:bg-primary/10">
-                    {value}
+                {Object.values(AGE_GROUPS).map((group) => (
+                  <SelectItem key={group} value={group} className="text-foreground hover:bg-primary/10">
+                    {getAgeDisplay(group)}
                   </SelectItem>
                 ))}
               </SelectContent>

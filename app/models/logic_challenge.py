@@ -2,7 +2,7 @@ from enum import Enum as PyEnum
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import (JSON, Boolean, Column, DateTime, Enum, Float,
-                        ForeignKey, Integer, String, Table, Text)
+                        ForeignKey, Index, Integer, String, Table, Text)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -13,11 +13,10 @@ class LogicChallengeType(str, PyEnum):
     """Types de défis logiques"""
     SEQUENCE = "sequence"          # Suites logiques (nombres, formes, etc.)
     PATTERN = "pattern"            # Reconnaissance de motifs
-    VISUAL = "visual"              # Défis visuels et spatiaux  
-    PUZZLE = "puzzle"              # Énigmes et puzzles
-    RIDDLE = "riddle"              # Énigmes et puzzles
-    DEDUCTION = "deduction"        # Raisonnement déductif
-    SPATIAL = "spatial"            # Raisonnement spatial
+    VISUAL = "visual"              # Défis visuels et spatiaux (inclut rotation, symétrie)
+    PUZZLE = "puzzle"              # Puzzles interactifs (réorganisation, ordre)
+    RIDDLE = "riddle"              # Énigmes textuelles avec grilles
+    DEDUCTION = "deduction"        # Raisonnement déductif (grilles logiques)
     PROBABILITY = "probability"    # Probabilités simples
     GRAPH = "graph"                # Problèmes de graphes
     CODING = "coding"              # Codage et décryptage
@@ -27,22 +26,41 @@ class LogicChallengeType(str, PyEnum):
 
 
 class AgeGroup(str, PyEnum):
-    """Groupes d'âge pour les défis logiques"""
-    ENFANT = "enfant"
-    ADOLESCENT = "adolescent"
-    ADULTE = "adulte"
-    AGE_9_12 = "9-12"      # Pour les 9-12 ans (niveau débutant)
-    AGE_12_13 = "12-13"    # Pour les 12-13 ans (niveau intermédiaire)
-    AGE_13_PLUS = "13+"    # Pour les 13 ans et plus (niveau avancé)
-    GROUP_10_12 = "10-12"  # Pour les 10-12 ans (niveau débutant, alias)
-    GROUP_13_15 = "13-15"  # Pour les 13-15 ans (niveau intermédiaire, alias)
-    ALL_AGES = "all"       # Tous âges (avec indices adaptables)
+    """
+    Groupes d'âge pour les défis logiques.
+    
+    IMPORTANT: Les valeurs DOIVENT correspondre EXACTEMENT aux valeurs de l'ENUM PostgreSQL.
+    
+    Mapping frontend → DB:
+    - "6-8"      → GROUP_6_8
+    - "9-11"     → GROUP_10_12
+    - "12-14"    → GROUP_13_15
+    - "15-17"    → GROUP_15_17
+    - "adulte"   → ADULT
+    - "tous-ages"→ ALL_AGES
+    """
+    # Groupes d'âge - alignés avec les valeurs PostgreSQL
+    GROUP_6_8 = "GROUP_6_8"      # 6-8 ans (CP-CE2)
+    GROUP_10_12 = "GROUP_10_12"  # 9-11 ans (CM1-CM2-6e) - legacy name, kept for compatibility
+    GROUP_13_15 = "GROUP_13_15"  # 12-14 ans (5e-4e-3e) - legacy name, kept for compatibility
+    GROUP_15_17 = "GROUP_15_17"  # 15-17 ans (Lycée)
+    ADULT = "ADULT"              # Adultes (18+)
+    ALL_AGES = "ALL_AGES"        # Tous âges
+    # AGE_9_12 = "9-12"         # SUPPRIMÉ - n'existe pas en DB
+    # AGE_12_13 = "12-13"       # SUPPRIMÉ - n'existe pas en DB
+    # AGE_13_PLUS = "13+"       # SUPPRIMÉ - n'existe pas en DB
 
 
 
 class LogicChallenge(Base):
     """Modèle pour les défis logiques"""
     __tablename__ = "logic_challenges"
+    
+    # Index composites pour les requêtes de filtrage fréquentes
+    __table_args__ = (
+        Index('ix_challenges_type_age', 'challenge_type', 'age_group'),
+        Index('ix_challenges_archived_type', 'is_archived', 'challenge_type'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
 
@@ -64,8 +82,8 @@ class LogicChallenge(Base):
     
     hints = Column(JSON, nullable=True)
     is_active = Column(Boolean, default=True)
-    creator_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    creator_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # Tri chronologique
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Métadonnées d'évaluation
@@ -83,7 +101,7 @@ class LogicChallenge(Base):
     generation_parameters = Column(JSON, nullable=True)  # Paramètres pour la génération
 
     # États
-    is_archived = Column(Boolean, default=False)
+    is_archived = Column(Boolean, default=False, index=True)  # Filtrage fréquent
     view_count = Column(Integer, default=0)
 
     # Relations
@@ -138,18 +156,24 @@ class LogicChallenge(Base):
 class LogicChallengeAttempt(Base):
     """Modèle pour les tentatives de résolution de défis logiques"""
     __tablename__ = "logic_challenge_attempts"
+    
+    # Index composites pour les requêtes fréquentes
+    __table_args__ = (
+        Index('ix_logic_attempts_user_challenge', 'user_id', 'challenge_id'),
+        Index('ix_logic_attempts_user_correct', 'user_id', 'is_correct'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # Relations
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    # Relations (avec index sur les FK pour les JOINs)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     user = relationship("User", back_populates="logic_challenge_attempts")
-    challenge_id = Column(Integer, ForeignKey("logic_challenges.id"), nullable=False)
+    challenge_id = Column(Integer, ForeignKey("logic_challenges.id"), nullable=False, index=True)
     challenge = relationship("LogicChallenge", back_populates="attempts")
 
     # Données de tentative
     user_solution = Column(Text, nullable=False)
-    is_correct = Column(Boolean, nullable=False)
+    is_correct = Column(Boolean, nullable=False, index=True)  # Filtrage fréquent
     time_spent = Column(Float, nullable=True)  # Temps passé en secondes
 
     # Indices utilisés
@@ -160,7 +184,7 @@ class LogicChallengeAttempt(Base):
     notes = Column(Text, nullable=True)  # Notes de l'utilisateur
 
     # Horodatage
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # Tri chronologique
 
     def __repr__(self):
         status = "réussie" if self.is_correct else "échouée"

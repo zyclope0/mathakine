@@ -7,7 +7,9 @@ import traceback
 from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException, status
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -83,7 +85,7 @@ async def get_user_stats(request):
                 performance_by_type[type_key] = {
                     "completed": type_stats.get("total", 0),
                     "correct": type_stats.get("correct", 0),
-                    "success_rate": type_stats.get("success_rate", 0)
+                    "success_rate": (type_stats.get("correct", 0) / type_stats.get("total", 1) * 100)
                 }
             # Récupérer l'activité récente (dernières 10 tentatives)
             # Filtrer selon time_range si différent de "all"
@@ -334,7 +336,7 @@ async def create_user_account(request: Request):
             )
         
         # Validation email basique
-        email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+        email_pattern = r'^[^@\]+@[^@\]+\.[^@\]+$'
         if not re.match(email_pattern, email):
             return JSONResponse(
                 {"error": "Format d'email invalide"},
@@ -467,3 +469,506 @@ async def create_user_account(request: Request):
             {"error": "Erreur lors de la création du compte"},
             status_code=500
         )
+
+
+async def get_all_users(request: Request):
+    """
+    Handler pour récupérer tous les utilisateurs (placeholder).
+    Route: GET /api/users/
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        logger.info(f"Accès à la liste de tous les utilisateurs par {current_user.get('username')}. Fonctionnalité en développement.")
+
+        return JSONResponse(
+            {"message": "La liste de tous les utilisateurs est en cours de développement."},
+            status_code=200
+        )
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération de tous les utilisateurs: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def get_users_leaderboard(request: Request):
+    """
+    Handler pour récupérer le classement des utilisateurs (placeholder).
+    Route: GET /api/users/leaderboard
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        logger.info(f"Accès au classement des utilisateurs par {current_user.get('username')}. Fonctionnalité en développement.")
+
+        return JSONResponse(
+            {"message": "Le classement des utilisateurs est en cours de développement."},
+            status_code=200
+        )
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération du classement des utilisateurs: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def get_all_user_progress(request: Request):
+    """
+    Handler pour récupérer la progression globale de l'utilisateur avec vraies données.
+    Route: GET /api/users/me/progress
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        user_id = current_user.get('id')
+        logger.info(f"Récupération de la progression globale pour l'utilisateur {user_id}")
+        
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.models.attempt import Attempt
+            from app.models.exercise import Exercise
+            
+            # Récupérer toutes les tentatives avec jointure sur exercises
+            attempts_query = db.query(Attempt, Exercise).join(
+                Exercise, Attempt.exercise_id == Exercise.id
+            ).filter(
+                Attempt.user_id == user_id
+            ).order_by(Attempt.created_at).all()
+            
+            if not attempts_query:
+                return JSONResponse({
+                    "total_attempts": 0,
+                    "correct_attempts": 0,
+                    "accuracy": 0.0,
+                    "average_time": 0.0,
+                    "exercises_completed": 0,
+                    "highest_streak": 0,
+                    "current_streak": 0,
+                    "by_category": {}
+                }, status_code=200)
+            
+            # Stats globales
+            total_attempts = len(attempts_query)
+            correct_attempts = sum(1 for attempt, _ in attempts_query if attempt.is_correct)
+            accuracy = correct_attempts / total_attempts if total_attempts > 0 else 0.0
+            
+            # Temps moyen
+            times = [attempt.time_spent for attempt, _ in attempts_query if attempt.time_spent]
+            average_time = sum(times) / len(times) if times else 0.0
+            
+            # Exercices uniques complétés
+            completed_exercise_ids = set()
+            for attempt, exercise in attempts_query:
+                if attempt.is_correct:
+                    completed_exercise_ids.add(exercise.id)
+            exercises_completed = len(completed_exercise_ids)
+            
+            # Calcul des streaks
+            streaks = []
+            current_streak = 0
+            for attempt, _ in attempts_query:
+                if attempt.is_correct:
+                    current_streak += 1
+                else:
+                    if current_streak > 0:
+                        streaks.append(current_streak)
+                    current_streak = 0
+            if current_streak > 0:
+                streaks.append(current_streak)
+            
+            highest_streak = max(streaks) if streaks else 0
+            current_streak_value = streaks[-1] if streaks else 0
+            
+            # Grouper par catégorie
+            by_category = {}
+            category_attempts = {}
+            
+            for attempt, exercise in attempts_query:
+                exercise_type = exercise.exercise_type or "unknown"
+                
+                if exercise_type not in category_attempts:
+                    category_attempts[exercise_type] = {
+                        "total": 0,
+                        "correct": 0,
+                        "completed_ids": set()
+                    }
+                
+                category_attempts[exercise_type]["total"] += 1
+                if attempt.is_correct:
+                    category_attempts[exercise_type]["correct"] += 1
+                    category_attempts[exercise_type]["completed_ids"].add(exercise.id)
+            
+            for exercise_type, stats in category_attempts.items():
+                total = stats["total"]
+                correct = stats["correct"]
+                by_category[exercise_type] = {
+                    "completed": len(stats["completed_ids"]),
+                    "accuracy": round(correct / total, 2) if total > 0 else 0.0
+                }
+            
+            return JSONResponse({
+                "total_attempts": total_attempts,
+                "correct_attempts": correct_attempts,
+                "accuracy": round(accuracy, 2),
+                "average_time": round(average_time, 1),
+                "exercises_completed": exercises_completed,
+                "highest_streak": highest_streak,
+                "current_streak": current_streak_value,
+                "by_category": by_category
+            }, status_code=200)
+        
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération de la progression globale de l'utilisateur: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def get_user_progress_by_exercise_type(request: Request):
+    """
+    Handler pour récupérer la progression de l'utilisateur par type d'exercice (placeholder).
+    Route: GET /api/users/me/progress/{exercise_type}
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        user_id = current_user.get('id')
+        exercise_type = request.path_params.get('exercise_type')
+        logger.info(f"Accès à la progression de l'utilisateur {user_id} pour le type d'exercice '{exercise_type}'. Fonctionnalité en développement.")
+
+        return JSONResponse(
+            {"message": f"La progression de l'utilisateur {user_id} pour le type d'exercice '{exercise_type}' est en cours de développement."},
+            status_code=200
+        )
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération de la progression par type d'exercice: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def get_challenges_progress(request: Request):
+    """
+    Handler pour récupérer la progression des défis logiques de l'utilisateur.
+    Route: GET /api/users/me/challenges/progress
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        user_id = current_user.get('id')
+        logger.info(f"Récupération de la progression des défis pour l'utilisateur {user_id}")
+        
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+            
+            # Nombre total de défis actifs dans le système
+            total_challenges = db.query(LogicChallenge).filter(
+                LogicChallenge.is_active == True,
+                LogicChallenge.is_archived == False
+            ).count()
+            
+            # Récupérer toutes les tentatives de l'utilisateur
+            all_attempts = db.query(LogicChallengeAttempt).filter(
+                LogicChallengeAttempt.user_id == user_id
+            ).all()
+            
+            if not all_attempts:
+                return JSONResponse({
+                    "completed_challenges": 0,
+                    "total_challenges": total_challenges,
+                    "success_rate": 0.0,
+                    "average_time": 0.0,
+                    "challenges": []
+                }, status_code=200)
+            
+            # Identifier les défis complétés
+            completed_challenge_ids = set()
+            challenge_stats = {}
+            
+            for attempt in all_attempts:
+                challenge_id = attempt.challenge_id
+                
+                if challenge_id not in challenge_stats:
+                    challenge_stats[challenge_id] = {
+                        "attempts": 0,
+                        "correct_attempts": 0,
+                        "best_time": None,
+                        "times": []
+                    }
+                
+                challenge_stats[challenge_id]["attempts"] += 1
+                
+                if attempt.is_correct:
+                    challenge_stats[challenge_id]["correct_attempts"] += 1
+                    completed_challenge_ids.add(challenge_id)
+                    
+                    if attempt.time_spent:
+                        if challenge_stats[challenge_id]["best_time"] is None:
+                            challenge_stats[challenge_id]["best_time"] = attempt.time_spent
+                        else:
+                            challenge_stats[challenge_id]["best_time"] = min(
+                                challenge_stats[challenge_id]["best_time"],
+                                attempt.time_spent
+                            )
+                
+                if attempt.time_spent:
+                    challenge_stats[challenge_id]["times"].append(attempt.time_spent)
+            
+            # Calculer le success_rate global
+            total_attempts = len(all_attempts)
+            correct_attempts = sum(1 for a in all_attempts if a.is_correct)
+            success_rate = correct_attempts / total_attempts if total_attempts > 0 else 0.0
+            
+            # Calculer le temps moyen
+            all_times = [a.time_spent for a in all_attempts if a.time_spent]
+            average_time = sum(all_times) / len(all_times) if all_times else 0.0
+            
+            # Construire la liste des défis complétés avec détails
+            challenges_list = []
+            if completed_challenge_ids:
+                completed_challenges = db.query(LogicChallenge).filter(
+                    LogicChallenge.id.in_(completed_challenge_ids)
+                ).all()
+                
+                for challenge in completed_challenges:
+                    stats = challenge_stats.get(challenge.id, {})
+                    challenges_list.append({
+                        "id": challenge.id,
+                        "title": challenge.title,
+                        "is_completed": True,
+                        "attempts": stats.get("attempts", 0),
+                        "best_time": round(stats.get("best_time", 0), 2) if stats.get("best_time") else None
+                    })
+            
+            return JSONResponse({
+                "completed_challenges": len(completed_challenge_ids),
+                "total_challenges": total_challenges,
+                "success_rate": round(success_rate, 2),
+                "average_time": round(average_time, 1),
+                "challenges": challenges_list
+            }, status_code=200)
+        
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération de la progression des défis: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def update_user_me(request: Request):
+    """
+    Handler pour mettre à jour les informations de l'utilisateur actuel (placeholder).
+    Route: PUT /api/users/me
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        user_id = current_user.get('id')
+        data = await request.json()
+        logger.info(f"Tentative de mise à jour de l'utilisateur {user_id} avec les données: {data}. Fonctionnalité en développement.")
+
+        return JSONResponse(
+            {"message": f"La mise à jour de l'utilisateur {user_id} est en cours de développement."},
+            status_code=200
+        )
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour de l'utilisateur: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def update_user_password_me(request: Request):
+    """
+    Handler pour mettre à jour le mot de passe de l'utilisateur actuel (placeholder).
+    Route: PUT /api/users/me/password
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        user_id = current_user.get('id')
+        data = await request.json()
+        logger.info(f"Tentative de mise à jour du mot de passe de l'utilisateur {user_id}. Fonctionnalité en développement.")
+
+        return JSONResponse(
+            {"message": f"La mise à jour du mot de passe de l'utilisateur {user_id} est en cours de développement."},
+            status_code=200
+        )
+    except Exception as e:
+        logger.error(f"Erreur lors de la mise à jour du mot de passe de l'utilisateur: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def delete_user(request: Request):
+    """
+    Handler pour supprimer un utilisateur par ID (placeholder).
+    Route: DELETE /api/users/{user_id}
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        user_to_delete_id = int(request.path_params.get('user_id'))
+        current_user_id = current_user.get('id')
+        
+        # Simple authorization check: only allow deleting self for now
+        # In a real app, this would check for admin roles etc.
+        if user_to_delete_id != current_user_id:
+            return JSONResponse({"error": "Non autorisé à supprimer cet utilisateur"}, status_code=403)
+            
+        logger.info(f"Tentative de suppression de l'utilisateur {user_to_delete_id} par l'utilisateur {current_user_id}. Fonctionnalité en développement.")
+
+        return JSONResponse(
+            {"message": f"La suppression de l'utilisateur {user_to_delete_id} est en cours de développement."},
+            status_code=200
+        )
+    except ValueError:
+        return JSONResponse({"error": "ID utilisateur invalide"}, status_code=400)
+    except Exception as e:
+        logger.error(f"Erreur lors de la suppression de l'utilisateur: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def get_user_sessions(request: Request):
+    """
+    Handler pour récupérer les sessions actives de l'utilisateur.
+    Route: GET /api/users/me/sessions
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        
+        if not current_user or not current_user.get("is_authenticated", False):
+            logger.debug("Utilisateur non authentifié pour récupération des sessions")
+            return JSONResponse({"error": "Authentification requise"}, status_code=401)
+        
+        user_id = current_user.get("id")
+        
+        # Récupérer la session DB
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.models.user_session import UserSession
+            from sqlalchemy import and_
+            
+            # Récupérer toutes les sessions actives non expirées
+            sessions = db.query(UserSession).filter(
+                and_(
+                    UserSession.user_id == user_id,
+                    UserSession.is_active == True,
+                    UserSession.expires_at > datetime.now(timezone.utc)
+                )
+            ).order_by(UserSession.last_activity.desc()).all()
+            
+            logger.debug(f"Récupération de {len(sessions)} sessions actives pour user_id={user_id}")
+            
+            # Convertir en dict
+            session_list = []
+            for session in sessions:
+                session_dict = {
+                    "id": session.id,
+                    "device_info": session.device_info,
+                    "ip_address": str(session.ip_address) if session.ip_address else None,
+                    "user_agent": session.user_agent,
+                    "location_data": session.location_data,
+                    "is_active": session.is_active,
+                    "last_activity": session.last_activity.isoformat(),
+                    "created_at": session.created_at.isoformat(),
+                    "expires_at": session.expires_at.isoformat(),
+                    "is_current": False  # TODO: Détecter la session actuelle via le token
+                }
+                session_list.append(session_dict)
+            
+            return JSONResponse(session_list, status_code=200)
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+    
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des sessions: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": "Erreur lors de la récupération des sessions"}, status_code=500)
+
+
+async def revoke_user_session(request: Request):
+    """
+    Handler pour révoquer une session utilisateur spécifique.
+    Route: DELETE /api/users/me/sessions/{session_id}
+    """
+    try:
+        from server.auth import get_current_user
+        current_user = await get_current_user(request)
+        
+        if not current_user or not current_user.get("is_authenticated", False):
+            logger.debug("Utilisateur non authentifié pour révocation de session")
+            return JSONResponse({"error": "Authentification requise"}, status_code=401)
+        
+        user_id = current_user.get("id")
+        session_id = int(request.path_params.get('session_id'))
+        
+        # Récupérer la session DB
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.models.user_session import UserSession
+            
+            # Récupérer la session
+            session = db.query(UserSession).filter(
+                UserSession.id == session_id,
+                UserSession.user_id == user_id
+            ).first()
+            
+            if not session:
+                logger.warning(f"Tentative de révocation d'une session inexistante ou non autorisée: session_id={session_id}, user_id={user_id}")
+                return JSONResponse(
+                    {"error": "Session non trouvée ou vous n'avez pas l'autorisation de la révoquer"},
+                    status_code=404
+                )
+            
+            # Marquer la session comme inactive
+            session.is_active = False
+            db.commit()
+            
+            logger.info(f"Session {session_id} révoquée pour user_id={user_id}")
+            
+            return JSONResponse({
+                "success": True,
+                "message": "Session révoquée avec succès"
+            }, status_code=200)
+        
+        except Exception as e:
+            db.rollback()
+            raise
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+    
+    except ValueError:
+        return JSONResponse({"error": "ID de session invalide"}, status_code=400)
+    except Exception as e:
+        logger.error(f"Erreur lors de la révocation de la session: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": "Erreur lors de la révocation de la session"}, status_code=500)

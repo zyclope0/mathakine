@@ -16,15 +16,27 @@ interface SequenceRendererProps {
  * Affiche une séquence de manière interactive avec animation.
  */
 export function SequenceRenderer({ visualData, className, onAnswerChange }: SequenceRendererProps) {
-  // Parser les données de séquence
-  const sequence = Array.isArray(visualData) 
-    ? visualData 
-    : visualData?.sequence 
-    ? visualData.sequence 
-    : visualData?.items
-    ? visualData.items
-    : [];
+  // Parser les données de séquence avec gestion robuste des différents formats
+  const parseSequence = (data: any): any[] => {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (typeof data === 'string') {
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed?.sequence) return parsed.sequence;
+        if (parsed?.items) return parsed.items;
+      } catch {
+        // Si c'est une séquence sous forme de string séparée par des virgules
+        return data.split(',').map((s: string) => s.trim()).filter(Boolean);
+      }
+    }
+    if (data?.sequence) return Array.isArray(data.sequence) ? data.sequence : [];
+    if (data?.items) return Array.isArray(data.items) ? data.items : [];
+    return [];
+  };
 
+  const sequence = parseSequence(visualData);
   const [highlightedIndex, setHighlightedIndex] = useState<number | null>(null);
   const [nextValue, setNextValue] = useState<string>('');
 

@@ -81,6 +81,10 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
   // Parser les données de puzzle
   const pieces = visualData?.pieces || visualData?.items || visualData?.parts || [];
   
+  // Parser les indices pour aider à résoudre le puzzle
+  const hints = visualData?.hints || visualData?.rules || visualData?.clues || visualData?.indices || [];
+  const description = visualData?.description || '';
+  
   // Initialiser les items avec un ordre mélangé pour rendre le puzzle intéressant
   const initialItems: PuzzleItem[] = pieces.map((p: any, i: number) => ({
     id: `item-${i}`,
@@ -169,6 +173,30 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
             </span>
           </div>
           
+          {/* Afficher la description si disponible */}
+          {description && (
+            <div className="bg-muted/30 rounded-lg p-3 text-sm text-foreground">
+              {description}
+            </div>
+          )}
+          
+          {/* Afficher les indices pour aider à résoudre */}
+          {hints && hints.length > 0 && (
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-2">
+              <h5 className="text-xs font-semibold text-primary uppercase tracking-wide">
+                Indices pour trouver l&apos;ordre
+              </h5>
+              <ul className="space-y-1">
+                {hints.map((hint: string, idx: number) => (
+                  <li key={idx} className="text-sm text-foreground flex items-start gap-2">
+                    <span className="text-primary font-bold">{idx + 1}.</span>
+                    <span>{typeof hint === 'string' ? hint : JSON.stringify(hint)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -181,7 +209,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
                     key={item.id}
                     id={item.id}
                     value={item.value}
-                    index={index + 1}
+                    index={index}
                   />
                 ))}
               </div>

@@ -1,8 +1,8 @@
 """
 Modèle SQLAlchemy pour les notifications
 """
-from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Integer,
-                        String, Text)
+from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Index,
+                        Integer, String, Text)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -12,9 +12,12 @@ from app.db.base import Base
 class Notification(Base):
     """Modèle pour les notifications utilisateur"""
     __tablename__ = "notifications"
+    __table_args__ = (
+        Index('idx_notifications_user', 'user_id'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     type = Column(String(50), nullable=False, index=True)
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=True)

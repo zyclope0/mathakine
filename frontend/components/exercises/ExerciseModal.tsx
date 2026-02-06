@@ -12,7 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useExercise } from '@/hooks/useExercise';
 import { useSubmitAnswer } from '@/hooks/useSubmitAnswer';
-import { EXERCISE_TYPE_DISPLAY, DIFFICULTY_DISPLAY, DIFFICULTY_COLORS } from '@/lib/constants/exercises';
+import { useExerciseTranslations } from '@/hooks/useChallengeTranslations';
+import { useTranslations } from 'next-intl';
 import { Loader2, CheckCircle2, XCircle, Lightbulb, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
@@ -33,9 +34,12 @@ export function ExerciseModal({
   const queryClient = useQueryClient();
   const { exercise, isLoading, error } = useExercise(exerciseId || 0);
   const { submitAnswer, isSubmitting, submitResult } = useSubmitAnswer();
+  const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
+  const t = useTranslations('exercises.modal');
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const startTimeRef = useRef<number>(Date.now());
 
   // Réinitialiser l'état quand la modal s'ouvre ou l'exercice change
@@ -44,6 +48,7 @@ export function ExerciseModal({
       setSelectedAnswer(null);
       setHasSubmitted(false);
       setShowExplanation(false);
+      setShowHint(false);
       startTimeRef.current = Date.now();
     }
   }, [open, exerciseId]);
@@ -64,19 +69,17 @@ export function ExerciseModal({
     }
   }, [submitResult, queryClient]);
 
-  // Fermer la modal après un délai si l'exercice est complété
+  // Notifier le parent si l'exercice est complété (réponse correcte uniquement)
   useEffect(() => {
-    if (hasSubmitted && submitResult) {
+    if (hasSubmitted && submitResult?.is_correct) {
       const timer = setTimeout(() => {
         if (onExerciseCompleted) {
           onExerciseCompleted();
         }
-        // Fermer automatiquement après 3 secondes (optionnel)
-        // onOpenChange(false);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [hasSubmitted, submitResult, onExerciseCompleted, onOpenChange]);
+  }, [hasSubmitted, submitResult, onExerciseCompleted]);
 
   const handleSelectAnswer = (answer: string) => {
     if (hasSubmitted) return;
@@ -116,14 +119,8 @@ export function ExerciseModal({
     return null;
   }
 
-  const difficultyKey = exercise?.difficulty?.toLowerCase() as keyof typeof DIFFICULTY_COLORS;
-  const difficultyColor = DIFFICULTY_COLORS[difficultyKey] || DIFFICULTY_COLORS.initie;
-  const typeDisplay =
-    EXERCISE_TYPE_DISPLAY[exercise?.exercise_type as keyof typeof EXERCISE_TYPE_DISPLAY] ||
-    exercise?.exercise_type;
-  const difficultyDisplay =
-    DIFFICULTY_DISPLAY[exercise?.difficulty?.toLowerCase() as keyof typeof DIFFICULTY_DISPLAY] ||
-    exercise?.difficulty;
+  const typeDisplay = getTypeDisplay(exercise?.exercise_type);
+  const ageGroupDisplay = getAgeDisplay(exercise?.age_group);
   const isCorrect = submitResult?.is_correct ?? false;
   const choices = exercise?.choices && exercise.choices.length > 0 ? exercise.choices : [];
 
@@ -132,18 +129,20 @@ export function ExerciseModal({
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           {isLoading ? (
-            <DialogTitle>Chargement de l'exercice...</DialogTitle>
+            <DialogTitle>{t('loading')}</DialogTitle>
           ) : error ? (
-            <DialogTitle>Erreur de chargement</DialogTitle>
+            <DialogTitle>{t('errorTitle')}</DialogTitle>
           ) : exercise ? (
             <>
-              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <DialogTitle className="text-xl">{exercise.title}</DialogTitle>
                   <div className="flex gap-2">
-                    <Badge variant="outline" className={difficultyColor}>
-                      {difficultyDisplay}
-                    </Badge>
+                    {ageGroupDisplay && (
+                      <Badge variant="outline">
+                        {ageGroupDisplay}
+                      </Badge>
+                    )}
                     <Badge variant="outline">{typeDisplay}</Badge>
                   </div>
                 </div>
@@ -161,7 +160,7 @@ export function ExerciseModal({
           <div className="flex items-center justify-center min-h-[300px]">
             <div className="text-center space-y-4">
               <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-              <p className="text-muted-foreground">Chargement de l'exercice...</p>
+              <p className="text-muted-foreground">{t('loading')}</p>
             </div>
           </div>
         ) : error ? (
@@ -170,8 +169,8 @@ export function ExerciseModal({
             <div>
               <p className="text-muted-foreground mt-2">
                 {error.status === 404
-                  ? "Cet exercice n'existe pas ou a été supprimé."
-                  : error.message || "Impossible de charger l'exercice."}
+                  ? t('notFound')
+                  : error.message || t('loadError')}
               </p>
             </div>
           </div>
@@ -184,11 +183,11 @@ export function ExerciseModal({
                 <div 
                   className="grid grid-cols-2 gap-3"
                   role="radiogroup"
-                  aria-label="Choix de réponses pour l'exercice"
+                  aria-label={t('answerChoicesLabel')}
                 >
                   {choices.map((choice, index) => {
                     const isSelected = selectedAnswer === choice;
-                    const isCorrectChoice = choice === exercise.correct_answer;
+                    const isCorrectChoice = hasSubmitted && submitResult?.correct_answer ? choice === submitResult.correct_answer : false;
                     const showCorrect = hasSubmitted && isCorrectChoice;
                     const showIncorrect = hasSubmitted && isSelected && !isCorrectChoice;
 
@@ -210,7 +209,7 @@ export function ExerciseModal({
                         disabled={hasSubmitted}
                         role="radio"
                         aria-checked={isSelected}
-                        aria-label={`Option ${index + 1}: ${choice}${hasSubmitted ? (isCorrectChoice ? ' - Réponse correcte' : (showIncorrect ? ' - Réponse incorrecte' : '')) : ''}`}
+                        aria-label={`Option ${index + 1}: ${choice}${hasSubmitted ? (isCorrectChoice ? ` - ${t('correctAnswer')}` : (showIncorrect ? ` - ${t('incorrectAnswer')}` : '')) : ''}`}
                         tabIndex={isSelected ? 0 : -1}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
@@ -238,8 +237,7 @@ export function ExerciseModal({
               ) : (
                 <div className="p-4 border rounded-lg bg-muted/50">
                   <p className="text-muted-foreground text-sm">
-                    Cet exercice n'a pas de choix multiples. La réponse attendue est :{' '}
-                    <strong>{exercise.correct_answer}</strong>
+                    {t('noMultipleChoice')}
                   </p>
                 </div>
               )}
@@ -255,10 +253,10 @@ export function ExerciseModal({
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Enregistrement...
+                      {t('saving')}
                     </>
                   ) : (
-                    'Valider ma réponse'
+                    t('validateAnswer')
                   )}
                 </Button>
               )}
@@ -281,11 +279,11 @@ export function ExerciseModal({
                     )}
                     <div className="flex-1">
                       <p className="font-semibold mb-1">
-                        {isCorrect ? 'Bravo ! Réponse correcte 🎉' : 'Réponse incorrecte'}
+                        {isCorrect ? t('correctTitle') : t('incorrectTitle')}
                       </p>
                       {!isCorrect && (
                         <p className="text-sm opacity-90">
-                          La bonne réponse était : <strong>{submitResult.correct_answer}</strong>
+                          {t('correctAnswerWas')} <strong>{submitResult.correct_answer}</strong>
                         </p>
                       )}
                     </div>
@@ -299,7 +297,7 @@ export function ExerciseModal({
                   <div className="flex items-start gap-3">
                     <Lightbulb className="h-5 w-5 text-primary-on-dark mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
-                      <h4 className="font-semibold text-primary-on-dark mb-2">Explication</h4>
+                      <h4 className="font-semibold text-primary-on-dark mb-2">{t('explanation')}</h4>
                       <p className="text-sm text-text-secondary">
                         {submitResult?.explanation || exercise.explanation}
                       </p>
@@ -309,16 +307,27 @@ export function ExerciseModal({
               )}
 
               {/* Indice (si disponible et pas encore soumis) */}
-              {!hasSubmitted && exercise.hint && (
+              {!hasSubmitted && exercise.hint && !showHint && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowExplanation(true)}
+                  onClick={() => setShowHint(true)}
                   className="w-full"
                 >
                   <Lightbulb className="mr-2 h-4 w-4" />
-                  Voir un indice
+                  {t('showHint')}
                 </Button>
+              )}
+              {showHint && exercise.hint && (
+                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                  <div className="flex items-start gap-3">
+                    <Lightbulb className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-yellow-400 mb-1">{t('hint')}</h4>
+                      <p className="text-sm text-text-secondary">{exercise.hint}</p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </>

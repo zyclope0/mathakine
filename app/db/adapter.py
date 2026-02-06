@@ -4,7 +4,9 @@ Fournit une interface unifiée entre les modèles SQLAlchemy et les requêtes SQ
 """
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 

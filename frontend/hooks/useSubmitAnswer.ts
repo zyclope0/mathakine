@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, ApiClientError } from '@/lib/api/client';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 export interface SubmitAnswerPayload {
   exercise_id: number;
@@ -26,10 +27,14 @@ export interface SubmitAnswerResponse {
 
 export function useSubmitAnswer() {
   const queryClient = useQueryClient();
+  const t = useTranslations('toasts');
 
   const submitMutation = useMutation<SubmitAnswerResponse, ApiClientError, SubmitAnswerPayload>({
     mutationFn: async (payload) => {
-      return api.post<SubmitAnswerResponse>('/api/submit-answer', payload);
+      const exerciseId = payload.exercise_id;
+      // Remove exercise_id from payload as it's now in the URL path
+      const { exercise_id, ...dataToSend } = payload;
+      return api.post<SubmitAnswerResponse>(`/api/exercises/${exerciseId}/attempt`, dataToSend);
     },
     onSuccess: (data, variables) => {
       // Invalider le cache de l'exercice pour recharger les stats
@@ -47,7 +52,7 @@ export function useSubmitAnswer() {
       // Afficher les badges gagnés si présents
       if (data.new_badges && data.new_badges.length > 0) {
         data.new_badges.forEach((badge) => {
-          toast.success(`Badge débloqué ! 🎖️`, {
+          toast.success(t('badges.badgeUnlocked'), {
             description: `${badge.name}${badge.star_wars_title ? ` - ${badge.star_wars_title}` : ''}`,
             duration: 5000,
           });
@@ -55,8 +60,8 @@ export function useSubmitAnswer() {
       }
     },
     onError: (error: ApiClientError) => {
-      toast.error('Erreur', {
-        description: error.message || 'Impossible d\'enregistrer votre réponse.',
+      toast.error(t('generic.submitError'), {
+        description: error.message || t('generic.submitErrorDescription'),
       });
     },
   });

@@ -8,7 +8,9 @@ Since the frontend is now Next.js, all error responses are JSON (no HTML templat
 """
 import traceback
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse

@@ -24,16 +24,18 @@ from app.schemas.logic_challenge import (LogicChallenge, LogicChallengeAttempt,
 from app.schemas.progress import (Progress, ProgressBase, ProgressCreate,
                                   ProgressInDB, ProgressUpdate,
                                   UserProgressSummary)
-from app.schemas.setting import (Setting, SettingBase, SettingBatch,
-                                 SettingCreate, SettingInDB, SettingUpdate,
-                                 SettingValueResponse)
 from app.schemas.user import (Token, TokenData, User, UserBase, UserCreate,
                               UserInDB, UserLogin, UserUpdate)
+from app.schemas.user_session import (UserSession, UserSessionBase,
+                                      UserSessionInDB, UserSessionRevoke)
 
 # Export all schemas
 __all__ = [
     # User schemas
     "UserBase", "UserCreate", "UserUpdate", "UserInDB", "User", "UserLogin", "Token", "TokenData",
+    
+    # User Session schemas
+    "UserSessionBase", "UserSessionInDB", "UserSession", "UserSessionRevoke",
 
     # Exercise schemas
     "ExerciseBase", "ExerciseCreate", "ExerciseUpdate", "ExerciseInDB", "Exercise", "ExerciseStats",
@@ -45,10 +47,6 @@ __all__ = [
     # Progress schemas
     "ProgressBase", "ProgressCreate", "ProgressUpdate", "ProgressInDB", "Progress"\
         , "UserProgressSummary",
-
-    # Setting schemas
-    "SettingBase", "SettingCreate", "SettingUpdate", "SettingInDB", "Setting", "SettingValueResponse"\
-        , "SettingBatch",
 
     # Logic Challenge schemas
     "LogicChallengeBase", "LogicChallengeCreate", "LogicChallengeUpdate", "LogicChallengeInDB"\

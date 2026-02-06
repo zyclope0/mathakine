@@ -1,5 +1,5 @@
 from sqlalchemy import (JSON, Boolean, Column, DateTime, Float, ForeignKey,
-                        Integer, String)
+                        Index, Integer, String)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -10,16 +10,22 @@ from app.models.exercise import ExerciseType
 class Progress(Base):
     """Modèle pour suivre la progression des utilisateurs (Chemin vers la Maîtrise)"""
     __tablename__ = "progress"
+    
+    # Index composites pour les requêtes fréquentes
+    __table_args__ = (
+        Index('ix_progress_user_type', 'user_id', 'exercise_type'),
+        Index('ix_progress_user_difficulty', 'user_id', 'difficulty'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # Relations
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    # Relations (avec index sur les FK pour les JOINs)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     user = relationship("User", back_populates="progress_records")
 
-    # Données de progression
-    exercise_type = Column(String, nullable=False)  # Type d'exercice (addition, soustraction, etc.)
-    difficulty = Column(String, nullable=False)     # Niveau de difficulté
+    # Données de progression (avec index pour filtrage)
+    exercise_type = Column(String, nullable=False, index=True)  # Type d'exercice (addition, soustraction, etc.)
+    difficulty = Column(String, nullable=False, index=True)     # Niveau de difficulté
     total_attempts = Column(Integer, default=0)     # Nombre total de tentatives
     correct_attempts = Column(Integer, default=0)   # Nombre de tentatives réussies
 

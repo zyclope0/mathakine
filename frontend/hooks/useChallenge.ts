@@ -23,7 +23,8 @@ export function useChallenge(challengeId: number) {
       return await api.get<Challenge>(`/api/challenges/${challengeId}`);
     },
     enabled: !!challengeId && challengeId > 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000, // 30 secondes (cohérent avec useChallenges)
+    gcTime: 5 * 60 * 1000, // 5 minutes de cache
   });
 
   return {

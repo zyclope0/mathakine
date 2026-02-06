@@ -4,7 +4,9 @@ Handlers pour la génération d'exercices (API)
 import json
 import traceback
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from starlette.requests import Request
 from starlette.responses import (JSONResponse, RedirectResponse,
                                  StreamingResponse)
@@ -16,66 +18,11 @@ from app.models.exercise import ExerciseType
 from app.services.badge_service import BadgeService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.utils.error_handler import ErrorHandler
+from server.auth import get_current_user
 from server.exercise_generator import (ensure_explanation,
                                        generate_ai_exercise,
                                        generate_simple_exercise)
 
-
-# Fonction pour obtenir l'utilisateur courant
-async def get_current_user(request):
-    """Récupère l'utilisateur actuellement authentifié"""
-    try:
-        access_token = request.cookies.get("access_token")
-        if not access_token:
-            return None
-            
-        # Utiliser le service d'authentification pour décoder le token
-        from fastapi import HTTPException
-
-        from app.core.security import decode_token
-        from app.services.auth_service import get_user_by_username
-
-        # Décoder le token pour obtenir le nom d'utilisateur
-        try:
-            payload = decode_token(access_token)
-        except HTTPException:
-            # Token invalide ou expiré, retourner None silencieusement
-            return None
-        except Exception as decode_error:
-            # Autre erreur de décodage
-            logger.debug(f"Erreur lors du décodage du token: {decode_error}")
-            return None
-        
-        username = payload.get("sub")
-        
-        if not username:
-            return None
-            
-        # Récupérer l'utilisateur depuis la base de données
-        db = EnhancedServerAdapter.get_db_session()
-        try:
-            user = get_user_by_username(db, username)
-            if user:
-                return {
-                    "is_authenticated": True,
-                    "id": user.id,
-                    "username": user.username,
-                    "role": user.role
-                }
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
-            
-    except Exception as auth_error:
-        error_msg = str(auth_error)
-        error_type = type(auth_error).__name__
-        # Ne pas logger les erreurs de token invalide comme des erreurs critiques
-        if "Signature verification failed" in error_msg or "Token" in error_type:
-            logger.debug(f"Token invalide ou expiré: {error_msg}")
-        else:
-            logger.error(f"Erreur lors de la récupération de l'utilisateur: {error_type}: {error_msg}")
-            logger.debug(traceback.format_exc())
-        
-    return None
 
 # Fonction pour obtenir une session de base de données
 def get_session():
@@ -83,38 +30,41 @@ def get_session():
     return EnhancedServerAdapter.get_db_session()
 
 async def generate_exercise(request):
-    """Génère un nouvel exercice"""
+    """Génère un nouvel exercice en utilisant le groupe d'âge."""
     params = request.query_params
     exercise_type_raw = params.get('type') or params.get('exercise_type')
-    difficulty_raw = params.get('difficulty')
+    age_group_raw = params.get('age_group') # Changed from difficulty
     use_ai = params.get('ai', False)
     
-    # Normaliser et valider les paramètres de manière centralisée
+    # Normaliser et valider les paramètres
     from server.exercise_generator import \
         normalize_and_validate_exercise_params
     
-    exercise_type, difficulty = normalize_and_validate_exercise_params(exercise_type_raw, difficulty_raw)
+    exercise_type, age_group, derived_difficulty = normalize_and_validate_exercise_params(exercise_type_raw, age_group_raw)
     
     ai_generated = False
     if use_ai and str(use_ai).lower() in ['true', '1', 'yes', 'y']:
-        exercise_dict = generate_ai_exercise(exercise_type, difficulty)
+        exercise_dict = generate_ai_exercise(exercise_type, age_group)
         ai_generated = True
     else:
-        exercise_dict = generate_simple_exercise(exercise_type, difficulty)
+        exercise_dict = generate_simple_exercise(exercise_type, age_group)
+        
     exercise_dict = ensure_explanation(exercise_dict)
     logger.debug(f"Explication générée: {exercise_dict['explanation']}")
     try:
-        # Extraire la locale depuis le header Accept-Language
+        # Extraire la locale
         from app.utils.translation import parse_accept_language
         accept_language = request.headers.get("Accept-Language")
         locale = parse_accept_language(accept_language) or "fr"
         
         db = EnhancedServerAdapter.get_db_session()
         try:
+            # Sauvegarder l'exercice avec age_group et la difficulté dérivée
             created_exercise = EnhancedServerAdapter.create_generated_exercise(
                 db=db,
                 exercise_type=exercise_dict['exercise_type'],
-                difficulty=exercise_dict['difficulty'],
+                age_group=exercise_dict['age_group'], # Save age_group
+                difficulty=exercise_dict['difficulty'], # Save derived difficulty
                 title=exercise_dict['title'],
                 question=exercise_dict['question'],
                 correct_answer=exercise_dict['correct_answer'],
@@ -147,7 +97,7 @@ async def generate_exercise(request):
         return templates.TemplateResponse("error.html", {
             "request": request,
             "error": "Erreur de génération",
-            "message": f"Impossible de générer l'exercice: {str(e)}"
+            "message": f"Impossible de générer l'exercice: {str(exercise_generation_error)}"
         }, status_code=500)
 
 async def get_exercise(request):
@@ -193,6 +143,7 @@ async def get_exercise(request):
                 Exercise.hint,
                 Exercise.tags,
                 Exercise.ai_generated,
+                Exercise.age_group,
                 cast(Exercise.exercise_type, String).label('exercise_type_str'),
                 cast(Exercise.difficulty, String).label('difficulty_str')
             ).filter(Exercise.id == exercise_id).first()
@@ -205,8 +156,9 @@ async def get_exercise(request):
                 "title": exercise_row.title,
                 "exercise_type": exercise_row.exercise_type_str.upper() if exercise_row.exercise_type_str else "ADDITION",
                 "difficulty": exercise_row.difficulty_str.upper() if exercise_row.difficulty_str else "PADAWAN",
+                "age_group": exercise_row.age_group,
                 "question": exercise_row.question,
-                "correct_answer": exercise_row.correct_answer,
+                # correct_answer volontairement omis pour éviter la triche (renvoyé uniquement après soumission)
                 "choices": safe_parse_json(exercise_row.choices, []),
                 "explanation": exercise_row.explanation,
                 "hint": exercise_row.hint,
@@ -239,17 +191,13 @@ async def submit_answer(request):
         
         # Récupérer les données de la requête
         data = await request.json()
-        exercise_id = data.get('exercise_id')
+        exercise_id = int(request.path_params.get('exercise_id')) # Get from path_params
         selected_answer = data.get('answer') or data.get('selected_answer')  # Support both formats
         time_spent = data.get('time_spent', 0)
         user_id = current_user.get('id', 1)  # Utiliser l'ID de l'utilisateur authentifié
 
         # Valider les paramètres requis
-        if exercise_id is None:
-            return JSONResponse(
-                {"error": "L'ID de l'exercice est requis."},
-                status_code=400
-            )
+        # exercise_id est maintenant garanti par le path_params, donc pas besoin de vérifier s'il est None
         
         if selected_answer is None:
             return JSONResponse(
@@ -373,10 +321,11 @@ async def submit_answer(request):
 
             # 🎖️ NOUVEAU: Vérifier et attribuer les badges
             new_badges = []
+            db_badges = None
             try:
                 # Obtenir une session SQLAlchemy uniquement pour BadgeService (si nécessaire)
-                db = EnhancedServerAdapter.get_db_session()
-                badge_service = BadgeService(db)
+                db_badges = EnhancedServerAdapter.get_db_session()
+                badge_service = BadgeService(db_badges)
                 
                 # Préparer les données de la tentative pour l'évaluation des badges
                 attempt_for_badges = {
@@ -394,13 +343,13 @@ async def submit_answer(request):
                     for badge in new_badges:
                         logger.debug(f"   - {badge['name']} ({badge['star_wars_title']})")
                 
-                EnhancedServerAdapter.close_db_session(db)
-                
             except Exception as badge_error:
                 logger.warning(f"⚠️ Erreur lors de la vérification des badges: {badge_error}")
                 logger.debug(traceback.format_exc())
                 # Ne pas faire échouer la soumission si les badges échouent
-                pass
+            finally:
+                if db_badges:
+                    EnhancedServerAdapter.close_db_session(db_badges)
 
             # Retourner le résultat avec l'ID de tentative et les nouveaux badges
             from app.utils.json_utils import make_json_serializable
@@ -455,24 +404,30 @@ async def submit_answer(request):
 async def get_exercises_list(request):
     """Retourne la liste des exercices récents avec support des traductions et pagination standardisée"""
     try:
+        logger.debug("[STEP 1] Début de get_exercises_list")
+        
         # Récupérer les paramètres de requête
         limit_param = request.query_params.get('limit')
         limit = int(limit_param) if limit_param else 20
         skip = int(request.query_params.get('skip', 0))
         exercise_type_raw = request.query_params.get('exercise_type', None)
-        difficulty_raw = request.query_params.get('difficulty', None)
+        age_group_raw = request.query_params.get('age_group', None) # Changed from difficulty
         search = request.query_params.get('search') or request.query_params.get('q')  # Support 'search' et 'q'
         
-        # Normaliser les paramètres de filtrage AVANT de les utiliser dans la requête
+        logger.debug(f"[STEP 2] Params: limit={limit}, skip={skip}, type={exercise_type_raw}, age_group={age_group_raw}")
+        
+        # Normaliser les paramètres de filtrage
         from server.exercise_generator import \
             normalize_and_validate_exercise_params
-        exercise_type, difficulty = normalize_and_validate_exercise_params(exercise_type_raw, difficulty_raw)
+        exercise_type, age_group, _ = normalize_and_validate_exercise_params(exercise_type_raw, age_group_raw)
+        
+        logger.debug(f"[STEP 3] Après normalisation: type={exercise_type}, age_group={age_group}")
         
         # Si aucun paramètre n'était fourni, remettre à None pour ne pas filtrer
         if not exercise_type_raw:
             exercise_type = None
-        if not difficulty_raw:
-            difficulty = None
+        if not age_group_raw:
+            age_group = None
         
         # Calculer la page à partir de skip et limit
         page = (skip // limit) + 1 if limit > 0 else 1
@@ -482,36 +437,31 @@ async def get_exercises_list(request):
         accept_language = request.headers.get("Accept-Language")
         locale = parse_accept_language(accept_language) or "fr"
         
-        logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, exercise_type_raw={exercise_type_raw}→{exercise_type}, difficulty_raw={difficulty_raw}→{difficulty}, search={search}, locale={locale}")
+        logger.debug(f"[STEP 4] API - Paramètres finaux: limit={limit}, skip={skip}, page={page}, exercise_type={exercise_type}, age_group={age_group}, search={search}, locale={locale}")
         
         # Utiliser le service ORM ExerciseService (100% ORM comme recommandé par l'audit)
         db = EnhancedServerAdapter.get_db_session()
+        logger.debug("[STEP 5] Session DB obtenue")
         try:
+            logger.debug("[STEP 6] Début du bloc try DB")
             from sqlalchemy import String, cast, or_, text
 
             from app.models.exercise import (DifficultyLevel, Exercise,
                                              ExerciseType)
 
+            logger.debug("[STEP 7] Imports effectués")
+            
             # Construire la requête ORM
             query = db.query(Exercise).filter(Exercise.is_archived == False)
+            logger.debug("[STEP 8] Query de base créée")
             
             # Filtrer par type si spécifié (utiliser l'enum normalisé)
             if exercise_type:
-                # Convertir la string normalisée en enum ExerciseType
-                try:
-                    exercise_type_enum = ExerciseType(exercise_type)
-                    query = query.filter(Exercise.exercise_type == exercise_type_enum)
-                except ValueError:
-                    logger.warning(f"Type d'exercice invalide après normalisation: {exercise_type}")
+                query = query.filter(Exercise.exercise_type == exercise_type)
             
-            # Filtrer par difficulté si spécifiée (utiliser l'enum normalisé)
-            if difficulty:
-                # Convertir la string normalisée en enum DifficultyLevel
-                try:
-                    difficulty_enum = DifficultyLevel(difficulty)
-                    query = query.filter(Exercise.difficulty == difficulty_enum)
-                except ValueError:
-                    logger.warning(f"Difficulté invalide après normalisation: {difficulty}")
+            # Filtrer par groupe d'âge si spécifié
+            if age_group:
+                query = query.filter(Exercise.age_group == age_group)
             
             # Recherche textuelle si spécifié
             if search:
@@ -523,13 +473,13 @@ async def get_exercises_list(request):
                     )
                 )
             
+            logger.debug("[STEP 9] Filtres appliqués")
+            
             # Compter le total
             total = query.count()
+            logger.debug(f"[STEP 10] Total compté: {total}")
             
             # Récupérer les exercices avec pagination
-            # IMPORTANT: Charger les enums en tant que strings pour éviter les erreurs de conversion
-            # SQLAlchemy essaie de convertir automatiquement et échoue si la DB contient des minuscules
-            # Solution: Utiliser cast() pour forcer le chargement en string dès le début
             exercises_objs_raw = db.query(
                 Exercise.id,
                 Exercise.title,
@@ -544,22 +494,15 @@ async def get_exercises_list(request):
                 Exercise.view_count,
                 Exercise.created_at,
                 cast(Exercise.exercise_type, String).label('exercise_type_str'),
-                cast(Exercise.difficulty, String).label('difficulty_str')
+                cast(Exercise.difficulty, String).label('difficulty_str'),
+                Exercise.age_group # Récupérer aussi le groupe d'âge
             ).filter(Exercise.is_archived == False)
             
             # Appliquer les mêmes filtres que la requête principale
             if exercise_type:
-                try:
-                    exercise_type_enum = ExerciseType(exercise_type)
-                    exercises_objs_raw = exercises_objs_raw.filter(Exercise.exercise_type == exercise_type_enum)
-                except ValueError:
-                    pass  # Déjà loggé plus haut
-            if difficulty:
-                try:
-                    difficulty_enum = DifficultyLevel(difficulty)
-                    exercises_objs_raw = exercises_objs_raw.filter(Exercise.difficulty == difficulty_enum)
-                except ValueError:
-                    pass  # Déjà loggé plus haut
+                exercises_objs_raw = exercises_objs_raw.filter(Exercise.exercise_type == exercise_type)
+            if age_group:
+                exercises_objs_raw = exercises_objs_raw.filter(Exercise.age_group == age_group)
             if search:
                 search_pattern = f"%{search}%"
                 exercises_objs_raw = exercises_objs_raw.filter(
@@ -570,94 +513,45 @@ async def get_exercises_list(request):
                 )
             
             exercises_objs_raw = exercises_objs_raw.order_by(Exercise.created_at.desc()).limit(limit).offset(skip).all()
+            logger.debug(f"[STEP 11] Exercices récupérés: {len(exercises_objs_raw)} éléments")
             
-            # Reconstruire les objets Exercise avec les valeurs normalisées
-            exercises_objs = []
-            for row in exercises_objs_raw:
-                # Créer un objet Exercise minimal avec les valeurs normalisées
-                ex = Exercise()
-                ex.id = row.id
-                ex.title = row.title
-                ex.question = row.question
-                ex.correct_answer = row.correct_answer
-                ex.choices = row.choices
-                ex.explanation = row.explanation
-                ex.hint = row.hint
-                ex.tags = row.tags
-                ex.ai_generated = row.ai_generated
-                ex.is_active = row.is_active
-                ex.view_count = row.view_count
-                ex.created_at = row.created_at
-                # Stocker les valeurs enum normalisées comme attributs temporaires
-                ex._exercise_type_str = row.exercise_type_str.upper() if row.exercise_type_str else "ADDITION"
-                ex._difficulty_str = row.difficulty_str.upper() if row.difficulty_str else "PADAWAN"
-                exercises_objs.append(ex)
-            
-            # Convertir en dicts avec parsing JSON sécurisé
             import json as json_module
-            
             def safe_parse_json(value, default=None):
-                """Parse JSON en gérant les cas None, string vide, ou JSON invalide"""
-                if not value:  # None ou string vide
-                    return default if default is not None else []
+                if not value: return default if default is not None else []
                 if isinstance(value, str):
-                    try:
-                        return json_module.loads(value)
-                    except (json_module.JSONDecodeError, ValueError):
-                        return default if default is not None else []
-                return value  # Déjà un objet Python
-            
-            def safe_get_enum_value(enum_obj, default="UNKNOWN"):
-                """Récupère la valeur d'un enum en gérant les erreurs de conversion"""
+                    try: return json_module.loads(value)
+                    except (json_module.JSONDecodeError, ValueError): return default if default is not None else []
+                return value
+
+            logger.debug("[STEP 12] Début de la construction de la liste d'exercices")
+            exercises = []
+            for idx, row in enumerate(exercises_objs_raw):
                 try:
-                    if enum_obj is None:
-                        return default
-                    # Si l'objet a une valeur string temporaire (chargée via requête alternative)
-                    if hasattr(enum_obj, '_exercise_type_str'):
-                        return enum_obj._exercise_type_str
-                    if hasattr(enum_obj, '_difficulty_str'):
-                        return enum_obj._difficulty_str
-                    # Si c'est déjà un enum Python, retourner sa valeur
-                    if hasattr(enum_obj, 'value'):
-                        return enum_obj.value
-                    # Si c'est une string, la retourner telle quelle (déjà normalisée)
-                    if isinstance(enum_obj, str):
-                        return enum_obj.upper()  # S'assurer que c'est en majuscule
-                    # Sinon, convertir en string et mettre en majuscule
-                    return str(enum_obj).upper()
-                except (AttributeError, ValueError, LookupError) as e:
-                    logger.warning(f"Erreur lors de la récupération de la valeur enum: {e}, valeur brute: {enum_obj}")
-                    # En cas d'erreur, essayer de récupérer la valeur brute et la normaliser
-                    if isinstance(enum_obj, str):
-                        return enum_obj.upper()
-                    return default
-            
-            exercises = [
-                {
-                    "id": ex.id,
-                    "title": ex.title,
-                    "exercise_type": safe_get_enum_value(getattr(ex, '_exercise_type_str', None) or getattr(ex, 'exercise_type', None), "ADDITION"),
-                    "difficulty": safe_get_enum_value(getattr(ex, '_difficulty_str', None) or getattr(ex, 'difficulty', None), "PADAWAN"),
-                    "question": ex.question,
-                    "correct_answer": ex.correct_answer,
-                    "choices": safe_parse_json(ex.choices, []),
-                    "explanation": ex.explanation,
-                    "hint": ex.hint,
-                    "tags": safe_parse_json(ex.tags, []),
-                    "ai_generated": getattr(ex, 'ai_generated', False),
-                    "is_active": ex.is_active,
-                    "view_count": ex.view_count
-                } for ex in exercises_objs
-            ]
+                    logger.debug(f"[STEP 12.{idx}] Processing row id={row.id}, type={type(row.exercise_type_str)}, diff={type(row.difficulty_str)}")
+                    exercise_dict = {
+                        "id": row.id,
+                        "title": row.title,
+                        "exercise_type": row.exercise_type_str.upper() if row.exercise_type_str else "ADDITION",
+                        "difficulty": row.difficulty_str.upper() if row.difficulty_str else "PADAWAN",
+                        "age_group": row.age_group,
+                        "question": row.question,
+                        "correct_answer": row.correct_answer,
+                        "choices": safe_parse_json(row.choices, []),
+                        "explanation": row.explanation,
+                        "hint": row.hint,
+                        "tags": safe_parse_json(row.tags, []),
+                        "ai_generated": row.ai_generated,
+                        "is_active": row.is_active,
+                        "view_count": row.view_count
+                    }
+                    exercises.append(exercise_dict)
+                except Exception as row_error:
+                    logger.error(f"[STEP 12.{idx}] ERROR processing row: {row_error}")
+                    raise
+            logger.debug(f"[STEP 13] Liste d'exercices construite: {len(exercises)} éléments")
         finally:
             EnhancedServerAdapter.close_db_session(db)
 
-        # Log pour déboguer
-        logger.debug(f"API - Retour de {len(exercises)} exercices sur {total} total (limit demandé: {limit}, page: {page})")
-        if len(exercises) > 0:
-            logger.debug(f"API - Premier exercice: id={exercises[0].get('id')}, title={exercises[0].get('title')}")
-        
-        # Retourner le format paginé standardisé
         has_more = (skip + len(exercises)) < total
         
         response_data = {
@@ -676,35 +570,35 @@ async def get_exercises_list(request):
         return ErrorHandler.create_error_response(exercises_list_error, status_code=500, user_message="Erreur lors de la récupération des exercices")
 
 async def generate_exercise_api(request):
-    """Génère un nouvel exercice via API JSON (POST)"""
+    """Génère un nouvel exercice via API JSON (POST) en utilisant le groupe d'âge."""
     try:
         # Récupérer les données JSON de la requête
         data = await request.json()
         exercise_type_raw = data.get('exercise_type')
-        difficulty_raw = data.get('difficulty')
+        age_group_raw = data.get('age_group') # Changed from difficulty
         use_ai = data.get('ai', False)
         
-        # Normaliser et valider les paramètres de manière centralisée
+        # Normaliser et valider les paramètres
         from server.exercise_generator import \
             normalize_and_validate_exercise_params
         
-        exercise_type, difficulty = normalize_and_validate_exercise_params(exercise_type_raw, difficulty_raw)
+        exercise_type, age_group, derived_difficulty = normalize_and_validate_exercise_params(exercise_type_raw, age_group_raw)
         
-        logger.debug(f"Génération API: type={exercise_type_raw}→{exercise_type}, difficulté={difficulty_raw}→{difficulty}, IA={use_ai}")
+        logger.debug(f"Génération API: type={exercise_type_raw}→{exercise_type}, groupe d'âge={age_group_raw}→{age_group}, IA={use_ai}")
         
         # Valider les paramètres
-        if not exercise_type_raw or not difficulty_raw:
+        if not exercise_type_raw or not age_group_raw:
             return JSONResponse({
-                "error": "Les paramètres 'exercise_type' et 'difficulty' sont requis"
+                "error": "Les paramètres 'exercise_type' et 'age_group' sont requis"
             }, status_code=400)
         
-        # Générer l'exercice avec les paramètres normalisés
+        # Générer l'exercice
         ai_generated = False
         if use_ai and str(use_ai).lower() in ['true', '1', 'yes', 'y']:
-            exercise_dict = generate_ai_exercise(exercise_type, difficulty)
+            exercise_dict = generate_ai_exercise(exercise_type, age_group)
             ai_generated = True
         else:
-            exercise_dict = generate_simple_exercise(exercise_type, difficulty)
+            exercise_dict = generate_simple_exercise(exercise_type, age_group)
         
         exercise_dict = ensure_explanation(exercise_dict)
         
@@ -712,17 +606,19 @@ async def generate_exercise_api(request):
         save_to_db = data.get('save', True)
         if save_to_db:
             try:
-                # Extraire la locale depuis le header Accept-Language
+                # Extraire la locale
                 from app.utils.translation import parse_accept_language
                 accept_language = request.headers.get("Accept-Language")
                 locale = parse_accept_language(accept_language) or "fr"
                 
                 db = EnhancedServerAdapter.get_db_session()
                 try:
+                    # Sauvegarder l'exercice avec age_group et la difficulté dérivée
                     created_exercise = EnhancedServerAdapter.create_generated_exercise(
                         db=db,
                         exercise_type=exercise_dict['exercise_type'],
-                        difficulty=exercise_dict['difficulty'],
+                        age_group=exercise_dict['age_group'], # Save age_group
+                        difficulty=exercise_dict['difficulty'], # Save derived difficulty
                         title=exercise_dict['title'],
                         question=exercise_dict['question'],
                         correct_answer=exercise_dict['correct_answer'],
@@ -756,16 +652,49 @@ async def generate_ai_exercise_stream(request):
     Permet un affichage progressif de la génération pour une meilleure UX.
     """
     try:
+        # Vérifier l'authentification
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            async def auth_error_generator():
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Non authentifié'})}\n\n"
+            return StreamingResponse(
+                auth_error_generator(),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                }
+            )
+
         # Récupérer les paramètres de la requête
         exercise_type_raw = request.query_params.get('exercise_type', 'addition')
-        difficulty_raw = request.query_params.get('difficulty', 'initie')
-        prompt = request.query_params.get('prompt', '')
+        # Support des deux paramètres : age_group (nouveau) et difficulty (legacy)
+        age_group_raw = request.query_params.get('age_group') or request.query_params.get('difficulty', '6-8')
+        prompt_raw = request.query_params.get('prompt', '')
+
+        # Sanitizer le prompt utilisateur pour éviter l'injection
+        from app.utils.prompt_sanitizer import (sanitize_user_prompt,
+                                                validate_prompt_safety)
+        is_safe, safety_reason = validate_prompt_safety(prompt_raw)
+        if not is_safe:
+            logger.warning(f"Prompt utilisateur rejeté pour sécurité: {safety_reason}")
+            async def safety_error_generator():
+                yield f"data: {json.dumps({'type': 'error', 'message': f'Prompt invalide: {safety_reason}'})}\n\n"
+            return StreamingResponse(
+                safety_error_generator(),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                }
+            )
+        prompt = sanitize_user_prompt(prompt_raw)
         
         # Normaliser et valider les paramètres de manière centralisée
         from server.exercise_generator import \
             normalize_and_validate_exercise_params
         
-        exercise_type, difficulty = normalize_and_validate_exercise_params(exercise_type_raw, difficulty_raw)
+        exercise_type, age_group, derived_difficulty = normalize_and_validate_exercise_params(exercise_type_raw, age_group_raw)
         
         # Vérifier que la clé OpenAI est configurée
         if not settings.OPENAI_API_KEY:
@@ -792,50 +721,63 @@ async def generate_ai_exercise_stream(request):
                 
                 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
                 
-                # Construire le prompt système avec instructions strictes sur le type
-                system_prompt = f"""Tu es un assistant pédagogique spécialisé dans la création d'exercices mathématiques pour enfants de 5 à 15 ans.
-
-RÈGLE ABSOLUE : Tu DOIS créer un exercice de type "{exercise_type}" uniquement. Ne crée JAMAIS un exercice d'un autre type.
-
-Types d'exercices possibles :
-- "addition" : Exercices d'addition uniquement
-- "soustraction" : Exercices de soustraction uniquement
-- "multiplication" : Exercices de multiplication uniquement
-- "division" : Exercices de division uniquement
-- "fractions" : Exercices sur les fractions uniquement
-- "geometrie" : Exercices de géométrie (périmètres, aires, volumes) uniquement
-- "texte" : Problèmes textuels/logiques uniquement
-- "mixte" : Exercices combinant plusieurs opérations
-- "divers" : Exercices variés (probabilités, séquences, etc.)
-
-Crée des exercices adaptés au niveau "{difficulty}" avec un contexte spatial/galactique (sans références Star Wars identifiables pour éviter les droits d'auteur).
-
-RÈGLE IMPORTANTE POUR L'INDICE :
-L'indice (hint) doit être une PISTE pédagogique qui guide l'élève vers la solution, MAIS NE DOIT JAMAIS donner la réponse directement.
-- ✅ BON : "Pense à décomposer le nombre en dizaines et unités"
-- ✅ BON : "Quelle opération permet de trouver le total ?"
-- ✅ BON : "Regarde bien les nombres dans la question"
-- ❌ MAUVAIS : "La réponse est 15"
-- ❌ MAUVAIS : "Il faut faire 10 + 5"
-- ❌ MAUVAIS : "Additionne 10 et 5 pour obtenir 15"
-
-L'indice doit encourager la réflexion sans révéler la solution.
-
-Retourne uniquement l'exercice au format JSON valide avec ces champs:
-{{
-  "title": "Titre de l'exercice",
-  "question": "Question mathématique avec contexte spatial",
-  "correct_answer": "Réponse correcte (nombre)",
-  "choices": ["choix1", "choix2", "choix3", "choix4"],
-  "explanation": "Explication pédagogique de la solution",
-  "hint": "Piste pédagogique qui guide sans donner la réponse"
-}}
-Assure-toi que les choix incluent la bonne réponse et des erreurs typiques."""
+                # Définir les plages de nombres selon la difficulté
+                difficulty_ranges = {
+                    "INITIE": {"min": 1, "max": 20, "desc": "nombres simples de 1 à 20"},
+                    "PADAWAN": {"min": 1, "max": 100, "desc": "nombres jusqu'à 100"},
+                    "CHEVALIER": {"min": 10, "max": 500, "desc": "nombres jusqu'à 500, calculs intermédiaires"},
+                    "MAITRE": {"min": 50, "max": 1000, "desc": "nombres jusqu'à 1000, problèmes complexes"},
+                    "GRAND_MAITRE": {"min": 100, "max": 10000, "desc": "grands nombres, problèmes avancés"}
+                }
+                diff_info = difficulty_ranges.get(derived_difficulty, difficulty_ranges["PADAWAN"])
                 
-                # Construire le prompt utilisateur avec le type normalisé
-                user_prompt = f"Crée un exercice de type {exercise_type} niveau {difficulty}. IMPORTANT : L'exercice DOIT être de type {exercise_type}, pas un autre type."
-                if prompt:
-                    user_prompt += f" {prompt}"
+                # Déterminer le contexte thématique
+                has_custom_theme = prompt and any(word in prompt.lower() for word in ['thème', 'theme', 'contexte', 'histoire', 'univers', 'monde'])
+                default_theme = "spatial/galactique (vaisseaux, planètes, étoiles - sans références Star Wars)" if not has_custom_theme else ""
+                
+                # Construire le prompt système optimisé
+                system_prompt = f"""Tu es un créateur d'exercices mathématiques pédagogiques.
+
+## CONTRAINTES OBLIGATOIRES
+- Type d'exercice : **{exercise_type}** (STRICTEMENT ce type, aucun autre)
+- Niveau : {derived_difficulty} ({diff_info['desc']})
+- Groupe d'âge cible : {age_group}
+{f"- Contexte par défaut : {default_theme}" if default_theme else ""}
+
+## GUIDE PAR TYPE
+- addition/soustraction/multiplication/division : opération unique du type demandé
+- fractions : opérations avec fractions (addition, simplification, comparaison)
+- geometrie : périmètres, aires, volumes avec formules adaptées au niveau
+- texte : problème concret avec mise en situation, nécessitant raisonnement
+- mixte : combiner 2-3 opérations différentes dans un même calcul
+- divers : suites logiques, pourcentages, conversions, probabilités simples
+
+## RÈGLES QUALITÉ
+1. La question doit être claire et sans ambiguïté
+2. Les 4 choix doivent inclure : la bonne réponse + 3 erreurs plausibles (erreurs de calcul typiques)
+3. L'explication doit détailler le raisonnement étape par étape
+4. L'indice doit GUIDER sans donner la réponse (ex: "Quelle opération pour trouver le total ?")
+
+## FORMAT JSON STRICT
+{{
+  "title": "Titre court et engageant",
+  "question": "Énoncé complet du problème",
+  "correct_answer": "Réponse numérique uniquement",
+  "choices": ["choix1", "choix2", "choix3", "choix4"],
+  "explanation": "Explication pédagogique détaillée",
+  "hint": "Piste sans révéler la solution"
+}}"""
+                
+                # Construire le prompt utilisateur - PRIORITÉ à la description personnalisée
+                if prompt and prompt.strip():
+                    # Si l'utilisateur a une description, elle est PRIORITAIRE
+                    user_prompt = f"""INSTRUCTIONS PERSONNALISÉES DE L'UTILISATEUR (PRIORITAIRES) :
+"{prompt.strip()}"
+
+Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respectant ces instructions personnalisées."""
+                else:
+                    # Pas de description personnalisée, utiliser le contexte par défaut
+                    user_prompt = f"Crée un exercice de type {exercise_type} pour le niveau {derived_difficulty} avec un contexte spatial engageant."
                 
                 # Envoyer un message de démarrage (sans afficher le JSON brut)
                 yield f"data: {json.dumps({'type': 'status', 'message': 'Génération en cours...'})}\n\n"
@@ -869,8 +811,9 @@ Assure-toi que les choix incluent la bonne réponse et des erreurs typiques."""
                     # Utiliser les valeurs normalisées (déjà normalisées plus haut)
                     normalized_exercise = {
                         "exercise_type": exercise_type,  # Déjà normalisé
-                        "difficulty": difficulty,  # Déjà normalisé
-                        "title": exercise_data.get("title", f"Exercice {exercise_type} {difficulty}"),
+                        "age_group": age_group,  # Groupe d'âge normalisé
+                        "difficulty": derived_difficulty,  # Difficulté dérivée du groupe d'âge
+                        "title": exercise_data.get("title", f"Exercice {exercise_type} {age_group}"),
                         "question": exercise_data.get("question", ""),
                         "correct_answer": str(exercise_data.get("correct_answer", "")),
                         "choices": exercise_data.get("choices", []),
@@ -892,6 +835,7 @@ Assure-toi que les choix incluent la bonne réponse et des erreurs typiques."""
                             created_exercise = EnhancedServerAdapter.create_generated_exercise(
                                 db=db,
                                 exercise_type=normalized_exercise['exercise_type'],
+                                age_group=normalized_exercise['age_group'],
                                 difficulty=normalized_exercise['difficulty'],
                                 title=normalized_exercise['title'],
                                 question=normalized_exercise['question'],
@@ -920,7 +864,7 @@ Assure-toi que les choix incluent la bonne réponse et des erreurs typiques."""
             except Exception as ai_generation_error:
                 logger.error(f"Erreur lors de la génération IA: {ai_generation_error}")
                 logger.debug(traceback.format_exc())
-                yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+                yield f"data: {json.dumps({'type': 'error', 'message': str(ai_generation_error)})}\n\n"
         
         return StreamingResponse(
             generate(),
@@ -936,7 +880,7 @@ Assure-toi que les choix incluent la bonne réponse et des erreurs typiques."""
         logger.error(f"Erreur dans generate_ai_exercise_stream: {stream_error}")
         logger.debug(traceback.format_exc())
         async def error_generator():
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'message': str(stream_error)})}\n\n"
         
         return StreamingResponse(
             error_generator(),
@@ -987,7 +931,34 @@ async def get_completed_exercises_ids(request: Request):
         logger.error(f"Erreur lors de la récupération des exercices complétés: {completed_retrieval_error}")
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
-            error=e,
+            error=completed_retrieval_error,
             status_code=500,
             user_message="Erreur lors de la récupération des exercices complétés."
-        ) 
+        )
+
+
+async def delete_exercise(request: Request):
+    """
+    Handler pour supprimer un exercice (placeholder).
+    Route: DELETE /api/exercises/{exercise_id}
+    """
+    try:
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        exercise_id = int(request.path_params.get('exercise_id'))
+        user_id = current_user.get('id')
+        logger.info(f"Tentative de suppression de l'exercice {exercise_id} par l'utilisateur {user_id}. Fonctionnalité en développement.")
+
+        return JSONResponse(
+            {"message": f"La suppression de l'exercice {exercise_id} est en cours de développement."},
+            status_code=200
+        )
+    except ValueError:
+        return JSONResponse({"error": "ID d'exercice invalide"}, status_code=400)
+    except Exception as e:
+        logger.error(f"Erreur lors de la suppression de l'exercice: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+ 

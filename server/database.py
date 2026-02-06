@@ -10,7 +10,9 @@ import traceback
 
 import psycopg2
 from dotenv import load_dotenv
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 from app.db.queries import ExerciseQueries, ResultQueries, UserStatsQueries
 

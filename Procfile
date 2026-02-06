@@ -1,1 +1,1 @@
-web: bash scripts/start_render.sh 
+web: python enhanced_server.py

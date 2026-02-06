@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useExercise } from '@/hooks/useExercise';
 import { useSubmitAnswer } from '@/hooks/useSubmitAnswer';
-import { EXERCISE_TYPE_DISPLAY, DIFFICULTY_DISPLAY, DIFFICULTY_COLORS } from '@/lib/constants/exercises';
+import { useExerciseTranslations } from '@/hooks/useChallengeTranslations';
 import { Loader2, CheckCircle2, XCircle, Lightbulb, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -20,11 +20,13 @@ interface ExerciseSolverProps {
 export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   const router = useRouter();
   const t = useTranslations('exercises.solver');
+  const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
   const { exercise, isLoading, error } = useExercise(exerciseId);
   const { submitAnswer, isSubmitting, submitResult } = useSubmitAnswer();
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const startTimeRef = useRef<number>(Date.now());
 
   // Mettre à jour l'état quand le résultat arrive
@@ -109,10 +111,8 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
     return null;
   }
 
-  const difficultyKey = exercise.difficulty.toLowerCase() as keyof typeof DIFFICULTY_COLORS;
-  const difficultyColor = DIFFICULTY_COLORS[difficultyKey] || DIFFICULTY_COLORS.initie;
-  const typeDisplay = EXERCISE_TYPE_DISPLAY[exercise.exercise_type as keyof typeof EXERCISE_TYPE_DISPLAY] || exercise.exercise_type;
-  const difficultyDisplay = DIFFICULTY_DISPLAY[exercise.difficulty.toLowerCase() as keyof typeof DIFFICULTY_DISPLAY] || exercise.difficulty;
+  const typeDisplay = getTypeDisplay(exercise.exercise_type);
+  const ageGroupDisplay = getAgeDisplay(exercise.age_group);
   const isCorrect = submitResult?.is_correct ?? false;
   const choices = exercise.choices && exercise.choices.length > 0 ? exercise.choices : [];
 
@@ -128,8 +128,8 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             </Link>
           </Button>
           <div className="flex gap-2">
-            <Badge variant="outline" className={difficultyColor}>
-              {difficultyDisplay}
+            <Badge variant="outline">
+              {ageGroupDisplay}
             </Badge>
             <Badge variant="outline">
               {typeDisplay}
@@ -276,17 +276,28 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
           )}
 
           {/* Indice (si disponible et pas encore soumis) */}
-          {!hasSubmitted && exercise.hint && (
+          {!hasSubmitted && exercise.hint && !showHint && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowExplanation(true)}
+              onClick={() => setShowHint(true)}
               className="w-full"
               aria-label={t('hint')}
             >
               <Lightbulb className="mr-2 h-4 w-4" />
               {t('hint')}
             </Button>
+          )}
+          {showHint && exercise.hint && (
+            <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+              <div className="flex items-start gap-3">
+                <Lightbulb className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-yellow-400 mb-1">{t('hint')}</h4>
+                  <p className="text-sm text-muted-foreground">{exercise.hint}</p>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Actions après soumission */}

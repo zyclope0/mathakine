@@ -7,7 +7,9 @@ It ties together routes, middleware, exception handlers, and other components.
 import os
 
 import uvicorn
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 from starlette.applications import Starlette
 
 from server.database import init_database
@@ -51,14 +53,8 @@ async def startup():
     logger.info("Starting up Mathakine server")
     init_database()
     
-    # Appliquer automatiquement la migration pour la vérification d'email si nécessaire
-    try:
-        from scripts.apply_email_verification_migration import apply_migration
-        logger.info("Vérification des colonnes de vérification email...")
-        apply_migration()
-    except Exception as migration_error:
-        logger.warning(f"Impossible d'appliquer la migration email automatiquement: {migration_error}")
-        logger.warning("Les colonnes de vérification email peuvent être manquantes. Utilisez le script manuel si nécessaire.")
+    # Note: La migration email est désormais gérée via Alembic (migrations/versions/)
+    # L'ancien script scripts/apply_email_verification_migration.py a été archivé dans _ARCHIVE_2026
     
     logger.info("Mathakine server started successfully")
 

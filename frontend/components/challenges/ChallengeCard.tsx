@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getChallengeTypeDisplay, getAgeGroupDisplay, getAgeGroupColor } from '@/lib/constants/challenges';
+import { formatSuccessRate } from '@/lib/utils/format';
 import type { Challenge } from '@/types/api';
 import { Clock, Users, TrendingUp, Eye, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import Link from 'next/link';
@@ -66,7 +67,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               id={`challenge-title-${challenge.id}`}
               className="text-lg mb-2 flex items-center gap-2"
             >
-              {challenge.tags && challenge.tags.includes('ai') && (
+              {challenge.tags && (Array.isArray(challenge.tags) ? challenge.tags.includes('ai') : challenge.tags === 'ai' || challenge.tags.split(',').map(t => t.trim()).includes('ai')) && (
                 <Sparkles className="h-4 w-4 text-primary-on-dark" aria-hidden="true" />
               )}
               {challenge.title}
@@ -83,7 +84,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
           <Badge 
             variant="outline" 
             className={`badge-sweep ${ageGroupColor}`}
-            aria-label={`Groupe d'âge: ${ageGroupDisplay}`}
+            aria-label={`${t('card.ageGroup', { default: "Groupe d'âge:" })} ${ageGroupDisplay}`}
           >
             {ageGroupDisplay}
           </Badge>
@@ -98,12 +99,12 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
             <Badge 
               variant="outline" 
               className="badge-sweep bg-purple-500/20 text-purple-400 border-purple-500/30"
-              aria-label={`Difficulté: ${challenge.difficulty_rating.toFixed(1)} sur 5`}
+              aria-label={`${t('card.difficulty', { default: 'Difficulté:' })} ${challenge.difficulty_rating.toFixed(1)}/5`}
             >
               ⭐ {challenge.difficulty_rating.toFixed(1)}/5
             </Badge>
           )}
-          {challenge.tags && challenge.tags.includes('ai') && (
+          {challenge.tags && (Array.isArray(challenge.tags) ? challenge.tags.includes('ai') : challenge.tags === 'ai' || challenge.tags.split(',').map(t => t.trim()).includes('ai')) && (
             <Badge 
               variant="outline" 
               className="badge-ai-pulse bg-primary/10 text-primary-on-dark border-primary/30"
@@ -116,9 +117,9 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-          <div className="flex items-center gap-4" role="group" aria-label="Informations sur le défi">
+          <div className="flex items-center gap-4" role="group" aria-label={t('card.challengeInfo', { default: 'Informations sur le défi' })}>
             {challenge.estimated_time_minutes && (
-              <div className="flex items-center gap-1" aria-label={`Temps estimé: ${challenge.estimated_time_minutes} minutes`}>
+              <div className="flex items-center gap-1" aria-label={`${t('card.estimatedTime', { default: 'Temps estimé:' })} ${challenge.estimated_time_minutes} min`}>
                 <Clock className="h-4 w-4" aria-hidden="true" />
                 <span>{challenge.estimated_time_minutes} min</span>
               </div>
@@ -127,10 +128,10 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               <Eye className="h-4 w-4" aria-hidden="true" />
               <span>{challenge.view_count || 0}</span>
             </div>
-            {challenge.success_rate !== undefined && challenge.success_rate !== null && challenge.success_rate > 0 && (
-              <div className="flex items-center gap-1" aria-label={`Taux de réussite: ${Math.round(challenge.success_rate * 100)}%`}>
+            {formatSuccessRate(challenge.success_rate) && (
+              <div className="flex items-center gap-1" aria-label={`${t('card.successRate', { default: 'Taux de réussite:' })} ${formatSuccessRate(challenge.success_rate)}`}>
                 <TrendingUp className="h-4 w-4" aria-hidden="true" />
-                <span>{Math.round(challenge.success_rate * 100)}%</span>
+                <span>{formatSuccessRate(challenge.success_rate)}</span>
               </div>
             )}
           </div>
@@ -139,9 +140,9 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
           <Button asChild className="btn-cta-primary flex-1">
             <Link 
               href={`/challenge/${challenge.id}`}
-              aria-label={`Résoudre le défi: ${challenge.title}`}
+              aria-label={`${t('card.solve', { default: 'Résoudre' })}: ${challenge.title}`}
             >
-              Résoudre
+              {t('card.solve', { default: 'Résoudre' })}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </Link>
           </Button>

@@ -47,12 +47,20 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
   // Initialiser les indices disponibles
   useEffect(() => {
     if (challenge?.hints) {
-      // S'assurer que hints est un tableau
-      const hintsArray = Array.isArray(challenge.hints) 
-        ? challenge.hints 
-        : typeof challenge.hints === 'string' 
-        ? JSON.parse(challenge.hints) 
-        : [];
+      // S'assurer que hints est un tableau avec gestion d'erreur JSON
+      let hintsArray: string[] = [];
+      if (Array.isArray(challenge.hints)) {
+        hintsArray = challenge.hints;
+      } else if (typeof challenge.hints === 'string') {
+        try {
+          const parsed = JSON.parse(challenge.hints);
+          hintsArray = Array.isArray(parsed) ? parsed : [];
+        } catch {
+          // JSON malformé, utiliser un tableau vide
+          console.warn('Impossible de parser les indices JSON:', challenge.hints);
+          hintsArray = [];
+        }
+      }
       setAvailableHints(hintsArray);
       // Réinitialiser les indices du hook quand on change de défi
       setHints([]);
@@ -114,9 +122,9 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
   }, [challenge?.challenge_type]);
 
   const handleAnswerChange = useCallback((answer: string) => {
-    // Pour les séquences et patterns, utiliser la réponse directement
+    // Pour les séquences, patterns et déduction, utiliser la réponse directement
     const challengeType = challenge?.challenge_type?.toLowerCase();
-    if (challengeType === 'sequence' || challengeType === 'pattern') {
+    if (challengeType === 'sequence' || challengeType === 'pattern' || challengeType === 'deduction') {
       setUserAnswer(answer);
     }
   }, [challenge?.challenge_type]);
@@ -124,18 +132,17 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
   const handleRequestHint = async () => {
     if (!challenge || hintsUsed.length >= availableHints.length) return;
     
+    const nextHintNumber = hintsUsed.length + 1;
+    
     try {
-      const newHints = await getHint(challengeId);
-      // Mettre à jour les indices utilisés avec les nouveaux indices reçus
-      if (newHints && newHints.length > hintsUsed.length) {
-        setHintsUsed([...Array(newHints.length).keys()].map(i => i + 1));
-        // Mettre à jour aussi les indices disponibles affichés
-        setAvailableHints(newHints);
-      }
-    } catch (error) {
-      // L'erreur est déjà gérée par le hook useChallenges
-      // Ne pas logger en production pour éviter les fuites d'information
+      // Appel API pour signaler l'utilisation de l'indice (tracking)
+      await getHint(challengeId);
+    } catch {
+      // Même si l'API échoue, on révèle l'indice local
     }
+    
+    // Révéler l'indice suivant depuis les indices déjà chargés
+    setHintsUsed(prev => [...prev, nextHintNumber]);
   };
 
   const handleSubmit = async () => {
@@ -429,6 +436,38 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                   aria-label={t('patternAnswerLabel')}
                 />
               </div>
+            ) : challenge.challenge_type?.toLowerCase() === 'deduction' && challenge.visual_data ? (
+              <div className="space-y-3">
+                {userAnswer ? (
+                  <div className="p-4 bg-success/10 rounded-lg border border-success/30">
+                    <p className="text-sm font-medium text-foreground mb-2">{t('yourAssociations') || 'Vos associations'}</p>
+                    <div className="space-y-1">
+                      {userAnswer.split(',').map((association, index) => {
+                        const parts = association.split(':');
+                        return (
+                          <div key={index} className="flex items-center gap-2 text-sm">
+                            <Badge variant="outline" className="bg-primary/10">
+                              {parts[0]}
+                            </Badge>
+                            <span className="text-muted-foreground">→</span>
+                            {parts.slice(1).map((part, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {part}
+                              </Badge>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-muted/30 rounded-lg border border-primary/20">
+                    <p className="text-sm text-muted-foreground">
+                      {t('completeAssociationsAbove') || 'Complétez vos associations dans la grille ci-dessus'}
+                    </p>
+                  </div>
+                )}
+              </div>
             ) : (
               <Input
                 type="text"
@@ -499,12 +538,18 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {hintsUsed.map((hintIndex) => (
-                <li key={hintIndex} className="flex items-start gap-2">
-                  <span className="text-yellow-400 font-bold">{hintIndex}.</span>
-                  <span className="text-foreground">{availableHints[hintIndex - 1]}</span>
-                </li>
-              ))}
+              {hintsUsed.map((hintIndex) => {
+                const hintText = hintIndex > 0 && hintIndex <= availableHints.length 
+                  ? availableHints[hintIndex - 1] 
+                  : null;
+                if (!hintText) return null;
+                return (
+                  <li key={hintIndex} className="flex items-start gap-2">
+                    <span className="text-yellow-400 font-bold">{hintIndex}.</span>
+                    <span className="text-foreground">{hintText}</span>
+                  </li>
+                );
+              })}
             </ul>
           </CardContent>
         </Card>

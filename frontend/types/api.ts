@@ -44,7 +44,8 @@ export interface Exercise {
   explanation?: string | null;
   hint?: string | null;
   exercise_type: string;
-  difficulty: string;
+  age_group?: string | null;
+  difficulty?: string;  // Interne uniquement, dérivé de age_group
   tags?: string | null;
   image_url?: string | null;
   audio_url?: string | null;
@@ -78,7 +79,7 @@ export type ExercisesPaginatedResponse = PaginatedResponse<Exercise>;
  */
 export interface ExerciseFiltersWithSearch {
   exercise_type?: string;
-  difficulty?: string;
+  age_group?: string;
   search?: string;
   skip?: number;
   limit?: number;
@@ -107,6 +108,7 @@ export interface Challenge {
   tags?: string | null;
   is_active?: boolean;
   is_archived?: boolean;
+  ai_generated?: boolean;
   view_count?: number;
   created_at?: string;
   updated_at?: string;

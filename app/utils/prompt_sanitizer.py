@@ -5,7 +5,9 @@ Protection contre l'injection de prompts malveillants.
 import re
 from typing import Optional
 
-from loguru import logger
+from app.core.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def sanitize_user_prompt(prompt: str, max_length: int = 500) -> str:

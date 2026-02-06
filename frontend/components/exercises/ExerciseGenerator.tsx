@@ -5,7 +5,8 @@ import { useExercises } from '@/hooks/useExercises';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { EXERCISE_TYPES, EXERCISE_TYPE_DISPLAY, DIFFICULTY_LEVELS, DIFFICULTY_DISPLAY } from '@/lib/constants/exercises';
+import { EXERCISE_TYPES, AGE_GROUPS } from '@/lib/constants/exercises';
+import { useExerciseTranslations } from '@/hooks/useChallengeTranslations';
 import { Loader2, Sparkles, Zap } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { validateExerciseParams } from '@/lib/validation/exercise';
@@ -13,15 +14,16 @@ import { toast } from 'sonner';
 
 export function ExerciseGenerator() {
   const [exerciseType, setExerciseType] = useState<string>(EXERCISE_TYPES.ADDITION);
-  const [difficulty, setDifficulty] = useState<string>(DIFFICULTY_LEVELS.INITIE);
+  const [ageGroup, setAgeGroup] = useState<string>(AGE_GROUPS.GROUP_6_8);
   const { generateExercise, isGenerating } = useExercises();
   const t = useTranslations('exercises');
+  const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
 
   const handleGenerate = () => {
     // Valider les paramètres avant de générer
     const validation = validateExerciseParams({
       exercise_type: exerciseType,
-      difficulty: difficulty,
+      age_group: ageGroup,
     });
 
     if (!validation.valid) {
@@ -33,7 +35,7 @@ export function ExerciseGenerator() {
 
     generateExercise({
       exercise_type: exerciseType,
-      difficulty: difficulty,
+      age_group: ageGroup,
       save: true,
     });
   };
@@ -60,9 +62,9 @@ export function ExerciseGenerator() {
                 <SelectValue placeholder={t('generator.selectType')} />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(EXERCISE_TYPE_DISPLAY).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
+                {Object.values(EXERCISE_TYPES).map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {getTypeDisplay(type)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -70,17 +72,17 @@ export function ExerciseGenerator() {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="exercise-difficulty-select" className="text-xs font-medium">
-              {t('generator.difficulty')}
+            <label htmlFor="exercise-age-group-select" className="text-xs font-medium">
+              {t('generator.ageGroup')}
             </label>
-            <Select value={difficulty} onValueChange={setDifficulty}>
-              <SelectTrigger id="exercise-difficulty-select" className="h-8 text-xs">
-                <SelectValue placeholder={t('generator.selectDifficulty')} />
+            <Select value={ageGroup} onValueChange={setAgeGroup}>
+              <SelectTrigger id="exercise-age-group-select" className="h-8 text-xs">
+                <SelectValue placeholder={t('generator.selectAgeGroup')} />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(DIFFICULTY_DISPLAY).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
+                {Object.values(AGE_GROUPS).map((group) => (
+                  <SelectItem key={group} value={group}>
+                    {getAgeDisplay(group)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -109,4 +111,3 @@ export function ExerciseGenerator() {
     </Card>
   );
 }
-

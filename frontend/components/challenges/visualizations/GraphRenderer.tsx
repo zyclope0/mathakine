@@ -78,10 +78,11 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
               {edges.map((edge: any, index: number) => {
                 let fromIndex: number | undefined;
                 let toIndex: number | undefined;
+                let weight: number | string | undefined;
                 
                 // Gérer différents formats d'edges
                 if (typeof edge === 'object' && 'from' in edge && 'to' in edge) {
-                  // Format {from: "A", to: "B"} ou {from: 0, to: 1}
+                  // Format {from: "A", to: "B", weight: 5} ou {from: 0, to: 1}
                   if (typeof edge.from === 'number') {
                     fromIndex = edge.from;
                   } else {
@@ -93,8 +94,11 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                   } else {
                     toIndex = nodeMap.get(String(edge.to).toUpperCase());
                   }
-                } else if (Array.isArray(edge) && edge.length >= 2) {
-                  // Format ["A", "B"] ou [0, 1]
+                  
+                  // Extraire le poids (weight, cost, time, distance, label)
+                  weight = edge.weight ?? edge.cost ?? edge.time ?? edge.distance ?? edge.label ?? edge.value;
+                } else if (Array.isArray(edge)) {
+                  // Format ["A", "B"] ou ["A", "B", 5] ou [0, 1, 5]
                   if (typeof edge[0] === 'number') {
                     fromIndex = edge[0];
                   } else {
@@ -106,10 +110,17 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                   } else {
                     toIndex = nodeMap.get(String(edge[1]).toUpperCase());
                   }
+                  
+                  // Le poids peut être le 3ème élément
+                  if (edge.length >= 3) {
+                    weight = edge[2];
+                  }
                 }
                 
                 if (fromIndex === undefined || toIndex === undefined) {
-                  console.warn(`Edge invalide ignorée:`, edge);
+                  if (process.env.NODE_ENV === 'development') {
+                    console.warn(`Edge invalide ignorée:`, edge);
+                  }
                   return null;
                 }
                 
@@ -118,17 +129,56 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                 
                 if (!from || !to) return null;
                 
+                // Calculer le point milieu pour le label du poids
+                const midX = (from.x + to.x) / 2;
+                const midY = (from.y + to.y) / 2;
+                
+                // Décaler légèrement le label perpendiculairement à la ligne pour éviter le chevauchement
+                const dx = to.x - from.x;
+                const dy = to.y - from.y;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                const offsetX = len > 0 ? (-dy / len) * 12 : 0;
+                const offsetY = len > 0 ? (dx / len) * 12 : 0;
+                
                 return (
-                  <line
-                    key={index}
-                    x1={from.x}
-                    y1={from.y}
-                    x2={to.x}
-                    y2={to.y}
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    className="text-primary/50"
-                  />
+                  <g key={index}>
+                    <line
+                      x1={from.x}
+                      y1={from.y}
+                      x2={to.x}
+                      y2={to.y}
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="text-primary/50"
+                    />
+                    {/* Afficher le poids de l'arête */}
+                    {weight !== undefined && (
+                      <>
+                        {/* Fond jaune/orange pour contraste optimal */}
+                        <rect
+                          x={midX + offsetX - 14}
+                          y={midY + offsetY - 11}
+                          width="28"
+                          height="22"
+                          rx="4"
+                          fill="#fbbf24"
+                          stroke="#f59e0b"
+                          strokeWidth="2"
+                        />
+                        <text
+                          x={midX + offsetX}
+                          y={midY + offsetY}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill="#1e293b"
+                          fontSize="12"
+                          fontWeight="bold"
+                        >
+                          {weight}
+                        </text>
+                      </>
+                    )}
+                  </g>
                 );
               })}
               
@@ -167,6 +217,18 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
 
           <div className="text-xs text-center text-muted-foreground">
             {nodes.length} nœud{nodes.length > 1 ? 's' : ''} • {edges.length} arête{edges.length > 1 ? 's' : ''}
+            {/* Indiquer si c'est un graphe pondéré */}
+            {edges.some((edge: any) => {
+              if (typeof edge === 'object' && !Array.isArray(edge)) {
+                return edge.weight !== undefined || edge.cost !== undefined || edge.time !== undefined || edge.distance !== undefined;
+              }
+              if (Array.isArray(edge) && edge.length >= 3) {
+                return true;
+              }
+              return false;
+            }) && (
+              <span className="ml-2 text-primary">• pondéré</span>
+            )}
           </div>
         </div>
       </CardContent>
