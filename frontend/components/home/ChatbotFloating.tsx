@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MessageCircle, X, Send, Loader2, Minimize2 } from 'lucide-react';
@@ -10,15 +10,20 @@ import { useTranslations } from 'next-intl';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+interface ChatbotFloatingProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
 /**
- * Chatbot Flottant - Version compacte
+ * Chatbot Flottant - Contrôlable depuis le parent
  * 
- * Bouton flottant en bas à droite de l'écran.
- * Au clic, ouvre une fenêtre de chat compacte.
+ * Props:
+ * - isOpen: état contrôlé depuis le parent
+ * - onOpenChange: callback pour changer l'état
  */
-export function ChatbotFloating() {
+export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatingProps) {
   const t = useTranslations('home.chatbot');
-  const [isOpen, setIsOpen] = useState(false);
   
   const { messages, input, setInput, handleSend, sendInputMessage, handleKeyPress, isLoading, suggestions } = useChat({
     initialMessages: [
@@ -37,6 +42,10 @@ export function ChatbotFloating() {
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleOpenChange = (open: boolean) => {
+    onOpenChange?.(open);
+  };
 
   // Auto-scroll vers le bas
   useEffect(() => {
@@ -68,8 +77,8 @@ export function ChatbotFloating() {
                 variant="ghost" 
                 size="icon" 
                 className="h-8 w-8"
-                onClick={() => setIsOpen(false)}
-                aria-label="Fermer le chat"
+                onClick={() => handleOpenChange(false)}
+                aria-label="Réduire le chat"
               >
                 <Minimize2 className="h-4 w-4" />
               </Button>
@@ -161,19 +170,20 @@ export function ChatbotFloating() {
 
       {/* Bouton flottant */}
       <Button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => handleOpenChange(!isOpen)}
         className={cn(
-          "fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg",
-          "bg-primary hover:bg-primary/90 text-primary-foreground",
-          "transition-transform hover:scale-105",
-          isOpen && "bg-muted hover:bg-muted/90 text-muted-foreground"
+          "fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg",
+          "transition-all duration-200 hover:scale-110",
+          isOpen 
+            ? "bg-muted hover:bg-muted/80 text-foreground" 
+            : "bg-primary hover:bg-primary/90 text-primary-foreground"
         )}
-        aria-label={isOpen ? "Fermer l'assistant" : "Ouvrir l'assistant mathématique"}
+        aria-label={isOpen ? "Fermer l'assistant" : "Ouvrir l'assistant"}
       >
         {isOpen ? (
-          <X className="h-6 w-6" />
+          <X className="h-5 w-5" />
         ) : (
-          <MessageCircle className="h-6 w-6" />
+          <MessageCircle className="h-5 w-5" />
         )}
       </Button>
     </>

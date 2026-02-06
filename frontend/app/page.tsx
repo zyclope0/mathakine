@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,6 +11,7 @@ import {
   Trophy, 
   Users, 
   ArrowRight,
+  MessageCircle,
 } from 'lucide-react';
 import { PageLayout } from '@/components/layout';
 import { useTranslations } from 'next-intl';
@@ -37,16 +39,12 @@ interface Feature {
 
 /**
  * Page d'accueil Mathakine - Version optimisée
- * 
- * Structure compacte :
- * - Hero + Stats (above the fold)
- * - Fonctionnalités (grille compacte)
- * - Chatbot flottant (coin bas-droite)
  */
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
   const t = useTranslations('home');
   const { shouldReduceMotion } = useAccessibleAnimation();
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const features: Feature[] = [
     { icon: BookOpen, titleKey: 'features.feature1.title', descriptionKey: 'features.feature1.description' },
@@ -57,7 +55,7 @@ export default function HomePage() {
 
   return (
     <PageLayout>
-      {/* Hero Section - Compact */}
+      {/* Hero Section */}
       <section className="text-center py-8 md:py-12 space-y-4" aria-labelledby="hero-title">
         <h1 
           id="hero-title"
@@ -76,6 +74,8 @@ export default function HomePage() {
         >
           {t('hero.subtitle')}
         </p>
+        
+        {/* Boutons principaux */}
         <div 
           className={cn(
             "flex flex-col sm:flex-row gap-3 justify-center items-center pt-2",
@@ -107,6 +107,17 @@ export default function HomePage() {
               </Button>
             </>
           )}
+          
+          {/* Bouton Assistant - Toujours visible */}
+          <Button 
+            variant="secondary" 
+            size="lg" 
+            className="w-full sm:w-auto gap-2"
+            onClick={() => setIsChatOpen(true)}
+          >
+            <MessageCircle className="h-4 w-4" aria-hidden="true" />
+            Assistant
+          </Button>
         </div>
       </section>
 
@@ -115,7 +126,7 @@ export default function HomePage() {
         <AcademyStatsWidgetLazy />
       </section>
 
-      {/* Fonctionnalités - Grille compacte */}
+      {/* Fonctionnalités */}
       <section className="py-8 md:py-12 space-y-4" aria-labelledby="features-title">
         <div className="text-center space-y-2">
           <h2 id="features-title" className="text-2xl md:text-3xl font-bold">
@@ -149,8 +160,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Chatbot Flottant - Coin bas-droite */}
-      <ChatbotFloatingLazy />
+      {/* Chatbot Flottant */}
+      <ChatbotFloatingLazy 
+        isOpen={isChatOpen} 
+        onOpenChange={setIsChatOpen} 
+      />
     </PageLayout>
   );
 }
