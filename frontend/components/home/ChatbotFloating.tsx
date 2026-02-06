@@ -192,15 +192,14 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
         </Card>
       </div>
 
-      {/* Bouton flottant - Positionné à gauche des boutons d'accessibilité */}
+      {/* Bouton flottant - À gauche du bouton d'accessibilité */}
       <Button
         onClick={() => handleOpenChange(!isOpen)}
         className={cn(
-          "fixed bottom-4 right-20 z-30 h-12 w-12 rounded-full shadow-lg",
-          "transition-all duration-200 hover:scale-110",
-          isOpen 
-            ? "opacity-0 pointer-events-none" 
-            : "bg-primary hover:bg-primary/90 text-primary-foreground"
+          "fixed bottom-4 right-[4.5rem] z-40 h-11 w-11 rounded-full shadow-lg",
+          "bg-primary hover:bg-primary/90 text-primary-foreground",
+          "transition-all duration-200 hover:scale-105",
+          isOpen && "opacity-0 pointer-events-none"
         )}
         aria-label="Ouvrir l'assistant mathématique"
       >
