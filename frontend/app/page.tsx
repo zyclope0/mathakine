@@ -18,6 +18,15 @@ import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
 import { cn } from '@/lib/utils/cn';
 import dynamic from 'next/dynamic';
 
+// Lazy loading du widget stats pour optimiser les performances
+const AcademyStatsWidgetLazy = dynamic(
+  () => import('@/components/home/AcademyStatsWidget').then(mod => ({ default: mod.AcademyStatsWidget })),
+  {
+    loading: () => null, // Pas de skeleton, le widget gère son propre loading
+    ssr: false,
+  }
+);
+
 // Types TypeScript pour meilleure maintenabilité
 interface Feature {
   icon: React.ComponentType<{ className?: string }>;
@@ -159,6 +168,14 @@ export default function HomePage() {
             )}
           </div>
         </div>
+      </section>
+
+      {/* Stats de l'Académie - Widget public */}
+      <section 
+        className="py-4 md:py-6"
+        aria-label="Statistiques de l'Académie"
+      >
+        <AcademyStatsWidgetLazy />
       </section>
 
       {/* Section "Comment ça marche" - Optimisé */}
