@@ -39,7 +39,8 @@ from server.handlers.exercise_handlers import (generate_ai_exercise_stream,
                                                get_completed_exercises_ids,
                                                get_exercise, submit_answer,
                                                delete_exercise,
-                                               get_exercises_list)
+                                               get_exercises_list,
+                                               get_exercises_stats)
 # Imports API handlers - Recommendations
 from server.handlers.recommendation_handlers import (generate_recommendations,
                                                      get_recommendations,
@@ -91,9 +92,10 @@ def get_routes() -> List:
         Route("/api/users/{user_id:int}", endpoint=delete_user, methods=["DELETE"]),
         
         # ========================================
-        # EXERCISES API (8 routes)
+        # EXERCISES API (9 routes)
         # ========================================
         Route("/api/exercises", endpoint=get_exercises_list, methods=["GET"]),
+        Route("/api/exercises/stats", endpoint=get_exercises_stats, methods=["GET"]),  # Statistiques Holocron
         Route("/api/exercises/{exercise_id:int}", endpoint=get_exercise, methods=["GET"]),
         Route("/api/exercises/{exercise_id:int}", endpoint=delete_exercise, methods=["DELETE"]),
         Route("/api/exercises/generate", endpoint=generate_exercise, methods=["GET"]),

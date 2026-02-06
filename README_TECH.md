@@ -123,7 +123,7 @@ Le backend est unifie sur **Starlette** (FastAPI archive le 06/02/2026).
 - **Responses** : `JSONResponse` (Starlette)
 - **Authentification** : `server/auth.py` (Cookie + Bearer token)
 - **Streaming** : SSE pour generation IA (exercices + challenges)
-- **Routes** : 47 routes enregistrees dans `server/routes.py`
+- **Routes** : 48 routes enregistrees dans `server/routes.py`
 
 ### Couche logique metier (`app/`)
 Couche independante du framework HTTP :
@@ -173,7 +173,7 @@ Couche independante du framework HTTP :
 
 ---
 
-## 6. API - Endpoints actifs (47 routes Starlette)
+## 6. API - Endpoints actifs (48 routes Starlette)
 
 | Methode | Route | Handler | Description |
 |---|---|---|---|
@@ -187,6 +187,7 @@ Couche independante du framework HTTP :
 | GET | `/api/users/me/sessions` | user_handlers | ✨ Sessions actives (RGPD) |
 | DELETE | `/api/users/me/sessions/{id}` | user_handlers | ✨ Revoquer session |
 | GET | `/api/exercises` | exercise_handlers | Liste exercices (filtres, pagination) |
+| GET | `/api/exercises/stats` | exercise_handlers | ✨ Statistiques Holocron (theme Star Wars) |
 | GET | `/api/exercises/{id}` | exercise_handlers | Detail exercice |
 | POST | `/api/exercises/{id}/submit` | exercise_handlers | Soumettre reponse |
 | GET | `/api/challenges` | challenge_handlers | Liste defis logiques |

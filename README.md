@@ -33,7 +33,7 @@
 
 | Document | Description | Priorité |
 |----------|-------------|----------|
-| **[README_TECH.md](README_TECH.md)** | Documentation technique complète (47 endpoints, architecture, stack) | 🔴 Élevée |
+| **[README_TECH.md](README_TECH.md)** | Documentation technique complète (48 endpoints, architecture, stack) | 🔴 Élevée |
 | **[docs/INDEX.md](docs/INDEX.md)** | Index navigation documentation | 🔴 Élevée |
 | **[docs/00-REFERENCE/GETTING_STARTED.md](docs/00-REFERENCE/GETTING_STARTED.md)** | Installation pas-à-pas | 🔴 Élevée |
 | **[docs/01-GUIDES/DEVELOPMENT.md](docs/01-GUIDES/DEVELOPMENT.md)** | Workflow développement | 🟡 Moyenne |
@@ -107,7 +107,7 @@ npm run dev
                ↓
 ┌─────────────────────────────────────────┐
 │  Backend Starlette (localhost:10000)    │
-│  • 47 routes API                        │
+│  • 48 routes API                        │
 │  • Handlers + middleware                │
 │  • SSE streaming (IA)                   │
 │  • Auth JWT (cookies + Bearer)          │
@@ -171,7 +171,7 @@ mathakine/
 │
 ├── server/                   # Backend Starlette (couche HTTP)
 │   ├── handlers/            # 7 handlers (auth, user, exercise, challenge, etc.)
-│   ├── routes.py            # 47 routes API
+│   ├── routes.py            # 48 routes API
 │   ├── auth.py              # Authentification centralisée
 │   ├── middleware.py        # CORS, logging, rate limiting
 │   └── app.py               # App Starlette
