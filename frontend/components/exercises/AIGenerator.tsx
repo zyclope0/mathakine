@@ -12,6 +12,7 @@ import type { Exercise } from '@/types/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useAuth } from '@/hooks/useAuth';
 import { validateExerciseParams, validateAIPrompt } from '@/lib/validation/exercise';
 
 interface AIGeneratorProps {
@@ -30,6 +31,7 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
   const router = useRouter();
   const t = useTranslations('exercises');
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
+  const { user } = useAuth();
 
   // Nettoyer l'EventSource lors du démontage
   useEffect(() => {
@@ -42,6 +44,18 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
 
   const handleAIGenerate = async () => {
     if (isGenerating) return;
+
+    // Vérifier l'authentification côté client
+    if (!user) {
+      toast.error(t('aiGenerator.authRequired'), {
+        description: t('aiGenerator.authRequiredDescription'),
+        action: {
+          label: t('aiGenerator.login'),
+          onClick: () => router.push('/login'),
+        },
+      });
+      return;
+    }
 
     // Valider les paramètres avant de générer
     const validation = validateExerciseParams({

@@ -219,7 +219,10 @@
       "connectionError": "Erreur de connexion",
       "connectionErrorDescription": "La génération a été interrompue. Vérifiez votre connexion.",
       "startError": "Erreur",
-      "startErrorDescription": "Impossible de démarrer la génération."
+      "startErrorDescription": "Impossible de démarrer la génération.",
+      "authRequired": "Connexion requise",
+      "authRequiredDescription": "Vous devez être connecté pour générer des exercices avec l'IA",
+      "login": "Se connecter"
     },
     "types": {
       "addition": "Addition",

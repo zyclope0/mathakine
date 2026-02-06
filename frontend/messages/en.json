@@ -219,7 +219,10 @@
       "connectionError": "Connection error",
       "connectionErrorDescription": "Generation was interrupted. Check your connection.",
       "startError": "Error",
-      "startErrorDescription": "Unable to start generation."
+      "startErrorDescription": "Unable to start generation.",
+      "authRequired": "Login required",
+      "authRequiredDescription": "You must be logged in to generate exercises with AI",
+      "login": "Log in"
     },
     "types": {
       "addition": "Addition",

@@ -47,8 +47,29 @@ export async function GET(request: NextRequest) {
 
     const backendUrl = `${getBackendUrl()}/api/exercises/generate-ai-stream?${backendParams.toString()}`;
 
-    // Récupérer les cookies de la requête
-    const cookies = request.headers.get('cookie') || '';
+    // Récupérer les cookies de la requête (tous les cookies disponibles)
+    const allCookies = request.cookies.getAll();
+    const cookies = allCookies
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join('; ');
+
+    const hasAuthCookie = request.cookies.get('access_token');
+    
+    // Si pas de cookie d'authentification, retourner une erreur immédiatement
+    if (!hasAuthCookie) {
+      console.error('[Exercise AI Stream Proxy] Missing auth cookie - returning error');
+      return new Response(
+        `data: ${JSON.stringify({ type: 'error', message: 'Non authentifié - Cookie manquant' })}\n\n`,
+        {
+          status: 200, // 200 pour que EventSource reçoive le message
+          headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        }
+      );
+    }
 
     // Créer un stream vers le backend
     const backendResponse = await fetch(backendUrl, {
