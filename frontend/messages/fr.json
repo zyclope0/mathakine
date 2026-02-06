@@ -777,7 +777,8 @@
       "ctaStart": "Commencer gratuitement",
       "ctaLogin": "Se connecter",
       "ctaDashboard": "Accéder au tableau de bord",
-      "ctaExercises": "Voir les exercices"
+      "ctaExercises": "Voir les exercices",
+      "ctaAssistant": "Assistant"
     },
     "howItWorks": {
       "title": "Comment ça marche ?",
@@ -820,6 +821,7 @@
     },
     "chatbot": {
       "title": "Assistant Mathématique",
+      "subtitle": "Pose-moi tes questions !",
       "description": "Posez vos questions mathématiques ou logiques, je suis là pour vous aider !",
       "initialMessage": "Bonjour ! Je suis l'assistant mathématique de Mathakine. 🧮\n\nVoici une petite question pour démarrer : Si vous avez 3 pommes et que vous en donnez 1, combien vous en reste-t-il ?",
       "inputPlaceholder": "Posez votre question...",

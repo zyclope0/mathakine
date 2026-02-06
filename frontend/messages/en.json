@@ -961,7 +961,8 @@
       "ctaStart": "Start for Free",
       "ctaLogin": "Log In",
       "ctaDashboard": "Go to Dashboard",
-      "ctaExercises": "View Exercises"
+      "ctaExercises": "View Exercises",
+      "ctaAssistant": "Assistant"
     },
     "howItWorks": {
       "title": "How It Works?",
@@ -1004,6 +1005,7 @@
     },
     "chatbot": {
       "title": "Math Assistant",
+      "subtitle": "Ask me your questions!",
       "description": "Ask your math or logic questions, I'm here to help!",
       "initialMessage": "Hello! I'm Mathakine's math assistant. 🧮\n\nHere's a little question to get started: If you have 3 apples and give away 1, how many do you have left?",
       "inputPlaceholder": "Ask your question...",

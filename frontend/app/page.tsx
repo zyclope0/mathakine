@@ -114,9 +114,11 @@ export default function HomePage() {
             size="lg" 
             className="w-full sm:w-auto gap-2"
             onClick={() => setIsChatOpen(true)}
+            aria-expanded={isChatOpen}
+            aria-haspopup="dialog"
           >
             <MessageCircle className="h-4 w-4" aria-hidden="true" />
-            Assistant
+            {t('hero.ctaAssistant')}
           </Button>
         </div>
       </section>

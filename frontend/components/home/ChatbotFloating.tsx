@@ -73,6 +73,9 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
 
       {/* Panel de chat - Drawer depuis la droite */}
       <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="chatbot-title"
         className={cn(
           "fixed top-0 right-0 h-full w-full sm:w-[400px] z-[101]",
           "bg-background border-l shadow-2xl",
@@ -88,11 +91,11 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
           <div className="flex items-center justify-between p-4 border-b bg-primary/5">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <MessageCircle className="h-5 w-5 text-primary" />
+                <MessageCircle className="h-5 w-5 text-primary" aria-hidden="true" />
               </div>
               <div>
-                <h2 className="font-semibold">{t('title')}</h2>
-                <p className="text-xs text-muted-foreground">Pose-moi tes questions !</p>
+                <h2 id="chatbot-title" className="font-semibold">{t('title')}</h2>
+                <p className="text-xs text-muted-foreground">{t('subtitle')}</p>
               </div>
             </div>
             <Button 
@@ -175,7 +178,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyPress}
                 placeholder={t('inputPlaceholder')}
                 disabled={isLoading}
                 className="flex-1 rounded-full border border-input bg-muted/50 px-4 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
