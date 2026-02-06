@@ -202,9 +202,10 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
       <Button
         onClick={() => handleOpenChange(!isOpen)}
         className={cn(
-          "fixed bottom-6 right-24 z-[9998] h-14 w-14 rounded-full shadow-xl",
-          "bg-secondary hover:bg-secondary/90 text-secondary-foreground border-2 border-secondary-foreground/20",
-          "transition-all duration-200 hover:scale-110 hover:shadow-2xl",
+          "fixed bottom-6 right-24 z-[9998] h-14 w-14 rounded-full",
+          "bg-blue-600 text-white border-4 border-white/50",
+          "shadow-[0_0_20px_rgba(59,130,246,0.5)]",
+          "transition-all duration-200 hover:scale-110 hover:shadow-[0_0_30px_rgba(59,130,246,0.7)]",
           isOpen && "opacity-0 pointer-events-none"
         )}
         aria-label="Ouvrir l'assistant mathématique"

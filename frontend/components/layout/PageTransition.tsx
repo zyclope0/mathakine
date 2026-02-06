@@ -68,9 +68,6 @@ export function PageTransition({ children }: PageTransitionProps) {
         exit="exit"
         transition={transition}
         className="relative z-10"
-        style={{ 
-          willChange: 'opacity, transform',
-        }}
         onAnimationComplete={() => {
           // Nettoyer le timeout car l'animation s'est terminée
           if (timeoutRef.current) {

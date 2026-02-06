@@ -51,16 +51,17 @@ export function AccessibilityToolbar() {
           variant="default"
           size="icon"
           className={cn(
-            "fixed bottom-6 right-6 z-[9999] h-14 w-14 rounded-full shadow-xl",
-            "bg-primary text-primary-foreground border-2 border-primary-foreground/20",
-            "transition-all duration-200 hover:scale-110 hover:shadow-2xl",
-            activeCount > 0 && "ring-4 ring-primary/30"
+            "fixed bottom-6 right-6 z-[9999] h-14 w-14 rounded-full",
+            "bg-violet-600 text-white border-4 border-white/50",
+            "shadow-[0_0_20px_rgba(139,92,246,0.5)]",
+            "transition-all duration-200 hover:scale-110 hover:shadow-[0_0_30px_rgba(139,92,246,0.7)]",
+            activeCount > 0 && "ring-4 ring-violet-400/50 animate-pulse"
           )}
           aria-label={`Accessibilité${activeCount > 0 ? ` (${activeCount} actif${activeCount > 1 ? 's' : ''})` : ''}`}
         >
           <Settings2 className="h-7 w-7" />
           {activeCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+            <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white border-2 border-white">
               {activeCount}
             </span>
           )}
