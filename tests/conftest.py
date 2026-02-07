@@ -35,30 +35,57 @@ from app.main import app
 # Configuration de l'environnement pour les tests
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_environment():
-    """Configure l'environnement de test automatiquement au début de la session."""
+    """Configure l'environnement de test automatiquement au début de la session.
+    
+    SECURITE : Cette fixture vérifie que les tests ne tournent JAMAIS sur la base de production.
+    Elle vérifie aussi l'engine SQLAlchemy déjà créé (qui est initialisé à l'import, avant les fixtures).
+    """
+    import re
+    
     # Créer le dossier de résultats s'il n'existe pas
     Path("test_results").mkdir(exist_ok=True)
 
     # Définir les variables d'environnement pour les tests
     os.environ["TESTING"] = "true"
 
-    # SÉCURITÉ CRITIQUE : Ne JAMAIS utiliser DATABASE_URL comme fallback pour les tests
-    # Si TEST_DATABASE_URL n'est pas défini, utiliser une base de test par défaut
+    # SÉCURITÉ 1 : Vérifier que l'engine SQLAlchemy (déjà importé) pointe vers une base de test
+    # L'engine est créé au moment de l'import de app.db.base, AVANT cette fixture
+    from app.db.base import engine as imported_engine
+    engine_url = str(imported_engine.url)
+    
+    # Extraire le nom de la base depuis l'URL de l'engine
+    engine_db_match = re.search(r'/([^/?]+)(?:\?|$)', engine_url)
+    if engine_db_match:
+        engine_db_name = engine_db_match.group(1)
+        if "test" not in engine_db_name.lower():
+            # L'engine pointe vers une base sans "test" dans le nom
+            # Vérifier si c'est une base Render (production)
+            environment = os.environ.get("ENVIRONMENT", "")
+            if environment == "production" or "render" in engine_url.lower():
+                raise RuntimeError(
+                    f"🚨 SÉCURITÉ: L'engine SQLAlchemy pointe vers la base de PRODUCTION ({engine_db_name})!\n"
+                    f"   URL: {engine_url}\n"
+                    f"   Les tests NE DOIVENT JAMAIS tourner sur la base de production.\n"
+                    f"   Solution: Définir TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/test_mathakine"
+                )
+            else:
+                # Base locale sans "test" dans le nom - avertir mais laisser passer
+                # Les DELETE sont maintenant filtrés sur les préfixes test_
+                print(f"\n⚠️  ATTENTION: Les tests tournent sur la base '{engine_db_name}' (pas de base de test séparée)")
+                print(f"   Les opérations destructrices sont filtrées sur les données test_ uniquement.")
+                print(f"   Recommandé: créer une base séparée 'test_mathakine' pour plus de sécurité.\n")
+
+    # SÉCURITÉ 2 : Si TEST_DATABASE_URL n'est pas défini, utiliser une base de test par défaut
     if "TEST_DATABASE_URL" not in os.environ:
-        # Utiliser une base de test par défaut (locale)
         default_test_db = "postgresql://postgres:postgres@localhost/test_mathakine"
         os.environ["TEST_DATABASE_URL"] = default_test_db
-        print(f"⚠️  ATTENTION: TEST_DATABASE_URL non défini, utilisation de la base de test par défaut: {default_test_db}")
-        print("   Pour utiliser une base spécifique, définir TEST_DATABASE_URL dans l'environnement")
+        print(f"⚠️  TEST_DATABASE_URL non défini, utilisation par défaut: {default_test_db}")
     
-    # Vérification de sécurité : empêcher l'utilisation accidentelle de la production
+    # SÉCURITÉ 3 : Vérifier que TEST_DATABASE_URL != DATABASE_URL en production
     test_db_url = os.environ.get("TEST_DATABASE_URL", "")
     prod_db_url = os.environ.get("DATABASE_URL", "")
     
-    # Si TEST_DATABASE_URL pointe vers la même base que DATABASE_URL, c'est dangereux
     if test_db_url and prod_db_url and test_db_url == prod_db_url:
-        # Extraire le nom de la base de données
-        import re
         test_db_match = re.search(r'/([^/?]+)', test_db_url)
         prod_db_match = re.search(r'/([^/?]+)', prod_db_url)
         if test_db_match and prod_db_match:
@@ -68,8 +95,6 @@ def setup_test_environment():
                 raise RuntimeError(
                     f"🚨 SÉCURITÉ: TEST_DATABASE_URL pointe vers la même base que DATABASE_URL ({test_db_name})!\n"
                     f"   Cela pourrait supprimer les données de production!\n"
-                    f"   TEST_DATABASE_URL={test_db_url}\n"
-                    f"   DATABASE_URL={prod_db_url}\n"
                     f"   Solution: Définir TEST_DATABASE_URL vers une base de test séparée."
                 )
 
@@ -660,27 +685,28 @@ def logic_challenge_db(db_session):
     # Générer un ID unique pour ce test
     unique_id = uuid.uuid4().hex[:8]
     
-    # Nettoyer les données existantes pour ce test dans le bon ordre (FK d'abord)
+    # Nettoyer UNIQUEMENT les données de test (préfixe test_) pour ce test
+    # SECURITE : ne jamais faire DELETE sans filtre sur des tables de production
     try:
-        # Utiliser text() pour les requêtes SQL brutes
-        db_session.execute(text("DELETE FROM logic_challenge_attempts"))
+        db_session.execute(text("DELETE FROM logic_challenge_attempts WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'test_%')"))
         db_session.execute(text("DELETE FROM attempts WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'test_%')"))
-        db_session.execute(text("DELETE FROM logic_challenges"))
+        db_session.execute(text("DELETE FROM logic_challenges WHERE title LIKE 'Test %'"))
         db_session.execute(text("DELETE FROM users WHERE username LIKE 'test_%'"))
         db_session.commit()
     except Exception as e:
         db_session.rollback()
-        # Si l'approche SQL directe échoue, utiliser SQLAlchemy avec cascade
-        # D'abord supprimer les tentatives
-        db_session.query(LogicChallengeAttempt).delete()
-        
-        # Ensuite supprimer les challenges
-        db_session.query(LogicChallenge).delete()
-        
-        # Enfin supprimer les utilisateurs de test (leurs tentatives seront supprimées en cascade)
+        # Fallback avec SQLAlchemy - toujours filtrer sur les données de test
         test_users = db_session.query(User).filter(User.username.like("test_%")).all()
+        test_user_ids = [u.id for u in test_users]
+        
+        if test_user_ids:
+            db_session.query(LogicChallengeAttempt).filter(LogicChallengeAttempt.user_id.in_(test_user_ids)).delete(synchronize_session=False)
+            db_session.query(Attempt).filter(Attempt.user_id.in_(test_user_ids)).delete(synchronize_session=False)
+        
+        db_session.query(LogicChallenge).filter(LogicChallenge.title.like("Test %")).delete(synchronize_session=False)
+        
         for user in test_users:
-            db_session.delete(user)  # Utilise la suppression en cascade
+            db_session.delete(user)
         
         db_session.commit()
     
@@ -714,21 +740,21 @@ def logic_challenge_db(db_session):
         yield db_session
         
     finally:
-        # Nettoyer après le test dans le bon ordre
+        # Nettoyer après le test - UNIQUEMENT les données creees par ce test
         try:
-            # Utiliser text() pour les requêtes SQL brutes
-            db_session.execute(text("DELETE FROM logic_challenge_attempts"))
+            db_session.execute(text(f"DELETE FROM logic_challenge_attempts WHERE user_id IN (SELECT id FROM users WHERE username = 'test_jedi_{unique_id}')"))
             db_session.execute(text(f"DELETE FROM logic_challenges WHERE title LIKE 'Test Challenge {unique_id}%'"))
             db_session.execute(text(f"DELETE FROM users WHERE username = 'test_jedi_{unique_id}'"))
             db_session.commit()
         except Exception:
             db_session.rollback()
-            # Fallback avec SQLAlchemy et suppression en cascade
-            db_session.query(LogicChallengeAttempt).delete()
-            db_session.query(LogicChallenge).filter(LogicChallenge.title.like(f"Test Challenge {unique_id}%")).delete()
+            # Fallback avec SQLAlchemy - toujours filtrer
             test_user = db_session.query(User).filter(User.username == f"test_jedi_{unique_id}").first()
             if test_user:
-                db_session.delete(test_user)  # Suppression en cascade des relations
+                db_session.query(LogicChallengeAttempt).filter(LogicChallengeAttempt.user_id == test_user.id).delete(synchronize_session=False)
+            db_session.query(LogicChallenge).filter(LogicChallenge.title.like(f"Test Challenge {unique_id}%")).delete(synchronize_session=False)
+            if test_user:
+                db_session.delete(test_user)
             db_session.commit()
 
 from app.models.user import User, UserRole

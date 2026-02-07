@@ -312,11 +312,19 @@ def create_test_logic_challenges(db: Session):
 def initialize_database():
     """
     Initialise la base de données avec les tables et les données nécessaires.
+    
+    ATTENTION : populate_test_data() n'est appelé qu'en dehors de la production.
+    Les fonctions de peuplement vérifient déjà si des données existent.
     """
+    import os
     try:
         create_tables()
-        populate_test_data()
+        environment = os.getenv("ENVIRONMENT", "development")
+        if environment != "production":
+            populate_test_data()
+        else:
+            logger.info("Mode production : pas de données de test")
         logger.success("Base de données initialisée avec succès")
     except Exception as db_init_error:
         logger.error(f"Erreur lors de l'initialisation de la base de données: {str(db_init_error)}")
-        raise 
+        raise
