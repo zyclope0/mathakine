@@ -1,5 +1,9 @@
 # 🎊 BILAN COMPLET - PHASES 1-6
 
+> **⚠️ DOCUMENT HISTORIQUE** - Ce bilan date de novembre 2025 et reflétait l'état du projet après les phases 1-6 de refactoring. Certaines affirmations (couverture tests 60%+, zero dette technique, production ready) **n'ont pas été vérifiées par des métriques objectives** et ne correspondent plus à l'état actuel du projet.
+> 
+> **Évaluation factuelle actuelle** : [EVALUATION_PROJET_2026-02-07.md](EVALUATION_PROJET_2026-02-07.md)
+
 **Projet** : Mathakine - Refactoring Qualité Code  
 **Période** : 19-20 novembre 2025  
 **Durée** : 2 jours intensifs  

@@ -39,7 +39,8 @@ docs/
 │   └── ROADMAP_FONCTIONNALITES.md # 🆕 Roadmap globale fonctionnalités
 │
 ├── 03-PROJECT/            # 📕 Gestion projet
-│   ├── BILAN_COMPLET.md        # Bilan phases 1-6
+│   ├── EVALUATION_PROJET_2026-02-07.md  # 🆕 Evaluation factuelle (supersede BILAN_COMPLET)
+│   ├── BILAN_COMPLET.md        # ⚠️ Historique phases 1-6 (nov. 2025, certaines metriques obsoletes)
 │   ├── RAPPORT_VERIFICATION_CHALLENGES.md  # Vérification 29/11/2025
 │   ├── PLACEHOLDERS_ET_TODO.md # 13 endpoints à implémenter
 │   ├── RATIONALISATION_DOCS_2026-02-06.md  # 🆕 Rationalisation docs
@@ -146,6 +147,11 @@ docs/
 ---
 
 ## 🔄 Dernières mises à jour
+
+### 07/02/2026
+- ✅ **Settings page complete** : 5 sections activees (suppression, export, notifications, langue, confidentialite)
+- ✅ **Fix SQLAlchemy JSON** : Mutation tracking corrige (dict copy)
+- 📝 **EVALUATION_PROJET_2026-02-07.md** : Audit qualite factuel (supersede BILAN_COMPLET.md)
 
 ### 06/02/2026 (soir)
 - ✅ **Index DB appliqués** : 13 index de performance créés et déployés

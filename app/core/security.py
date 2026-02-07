@@ -88,9 +88,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True si les mots de passe correspondent, False sinon
     """
-    logger.debug(f"Vérification du mot de passe")
-    logger.debug(f"Mot de passe en clair: {plain_password}")
-    logger.debug(f"Hash à comparer: {hashed_password}")
+    logger.debug("Vérification du mot de passe")
     
     try:
         # S'assurer que le mot de passe est une chaîne UTF-8 valide
@@ -134,7 +132,7 @@ def get_password_hash(password: str) -> str:
         salt = bcrypt.gensalt()
         hashed_bytes = bcrypt.hashpw(password.encode('utf-8'), salt)
         hashed = hashed_bytes.decode('utf-8')
-        logger.debug(f"Hash généré: {hashed}")
+        logger.debug("Hash mot de passe généré")
         return hashed
     except Exception as password_hashing_error:
         logger.error(f"Erreur lors de la génération du hash: {str(password_hashing_error)}")

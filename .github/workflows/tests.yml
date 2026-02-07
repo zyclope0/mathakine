@@ -99,7 +99,6 @@ jobs:
     
     - name: Run tests
       id: run_tests
-      continue-on-error: true
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
         TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
@@ -157,11 +156,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 black isort
     
-    - name: Run flake8
+    - name: Run flake8 (critical errors only)
       run: |
         flake8 app/ server/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 app/ server/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      continue-on-error: true
     
     - name: Check formatting with black
       run: |
@@ -172,4 +169,34 @@ jobs:
       run: |
         isort app/ server/ --check-only --diff
       continue-on-error: true
+
+  frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: frontend
+      run: npm ci
+    
+    - name: TypeScript type check
+      working-directory: frontend
+      run: npx tsc --noEmit
+      continue-on-error: true
+    
+    - name: Build Next.js
+      working-directory: frontend
+      env:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
+        NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      run: npm run build
 
