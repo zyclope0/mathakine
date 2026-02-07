@@ -59,7 +59,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@axe-core/react": "^4.11.0",
+    "@axe-core/react": "^4.11.1",
     "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.19",
