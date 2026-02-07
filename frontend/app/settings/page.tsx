@@ -24,26 +24,10 @@ import {
   Settings
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils/cn';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-function ComingSoonOverlay({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative">
-      <div className="opacity-50 pointer-events-none select-none" aria-hidden="true">
-        {children}
-      </div>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <Badge variant="outline" className="bg-background/90 text-base px-4 py-2 border-amber-500/50 text-amber-600 dark:text-amber-400">
-          <AlertTriangle className="h-4 w-4 mr-2" />
-          En développement
-        </Badge>
-      </div>
-    </div>
-  );
-}
 
 function SettingsPageContent() {
   const { user } = useAuth();
@@ -89,12 +73,20 @@ function SettingsPageContent() {
     news: getNotificationPref('news'),
   });
 
+  const getPrivacyPref = (key: string, defaultValue: boolean): boolean => {
+    const prefs = user?.accessibility_settings?.privacy_settings;
+    if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
+      return (prefs as Record<string, boolean>)[key] ?? defaultValue;
+    }
+    return defaultValue;
+  };
+
   const [privacySettings, setPrivacySettings] = useState({
-    is_public_profile: user?.is_public_profile || false,
-    allow_friend_requests: user?.allow_friend_requests ?? true,
-    show_in_leaderboards: user?.show_in_leaderboards ?? true,
-    data_retention_consent: user?.data_retention_consent ?? true,
-    marketing_consent: user?.marketing_consent || false,
+    is_public_profile: getPrivacyPref('is_public_profile', false),
+    allow_friend_requests: getPrivacyPref('allow_friend_requests', true),
+    show_in_leaderboards: getPrivacyPref('show_in_leaderboards', true),
+    data_retention_consent: getPrivacyPref('data_retention_consent', true),
+    marketing_consent: getPrivacyPref('marketing_consent', false),
   });
 
   const [sessions, setSessions] = useState<any[]>([]);
@@ -120,12 +112,19 @@ function SettingsPageContent() {
         language_preference: String(user.accessibility_settings?.language_preference || user.language_preference || 'fr'),
         timezone: String(user.accessibility_settings?.timezone || user.timezone || 'UTC'),
       });
+      const getPriv = (key: string, def: boolean): boolean => {
+        const p = user.accessibility_settings?.privacy_settings;
+        if (p && typeof p === 'object' && !Array.isArray(p)) {
+          return (p as Record<string, boolean>)[key] ?? def;
+        }
+        return def;
+      };
       setPrivacySettings({
-        is_public_profile: user.is_public_profile || false,
-        allow_friend_requests: user.allow_friend_requests ?? true,
-        show_in_leaderboards: user.show_in_leaderboards ?? true,
-        data_retention_consent: user.data_retention_consent ?? true,
-        marketing_consent: user.marketing_consent || false,
+        is_public_profile: getPriv('is_public_profile', false),
+        allow_friend_requests: getPriv('allow_friend_requests', true),
+        show_in_leaderboards: getPriv('show_in_leaderboards', true),
+        data_retention_consent: getPriv('data_retention_consent', true),
+        marketing_consent: getPriv('marketing_consent', false),
       });
       const getPref = (key: string): boolean => {
         const prefs = user.accessibility_settings?.notification_preferences;
@@ -445,7 +444,6 @@ function SettingsPageContent() {
           icon={Shield}
           className="animate-fade-in-up-delay-3"
         >
-          <ComingSoonOverlay>
           <Card>
             <CardHeader>
               <CardTitle>{tPrivacy('title')}</CardTitle>
@@ -561,7 +559,6 @@ function SettingsPageContent() {
               </div>
             </CardContent>
           </Card>
-          </ComingSoonOverlay>
         </PageSection>
 
         {/* Section Sessions */}

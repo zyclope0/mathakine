@@ -805,6 +805,16 @@ async def update_user_me(request: Request):
             'preferred_difficulty', 'preferred_theme', 'accessibility_settings'
         }
         
+        # Gérer les champs de confidentialité : regrouper sous privacy_settings
+        privacy_fields = ['is_public_profile', 'allow_friend_requests', 'show_in_leaderboards', 
+                          'data_retention_consent', 'marketing_consent']
+        privacy_data = {}
+        for field in privacy_fields:
+            if field in data:
+                privacy_data[field] = data.pop(field)
+        if privacy_data:
+            data['privacy_settings'] = privacy_data
+        
         # Gérer les champs stockés dans accessibility_settings (JSON)
         # notification_preferences, language_preference, timezone, privacy_settings
         json_fields = ['notification_preferences', 'language_preference', 'timezone', 'privacy_settings']
