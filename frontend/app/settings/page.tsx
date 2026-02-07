@@ -24,9 +24,26 @@ import {
   Settings
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils/cn';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+
+function ComingSoonOverlay({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      <div className="opacity-50 pointer-events-none select-none" aria-hidden="true">
+        {children}
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <Badge variant="outline" className="bg-background/90 text-base px-4 py-2 border-amber-500/50 text-amber-600 dark:text-amber-400">
+          <AlertTriangle className="h-4 w-4 mr-2" />
+          En développement
+        </Badge>
+      </div>
+    </div>
+  );
+}
 
 function SettingsPageContent() {
   const { user } = useAuth();
@@ -53,8 +70,8 @@ function SettingsPageContent() {
 
   // États pour les formulaires
   const [languageSettings, setLanguageSettings] = useState({
-    language_preference: user?.language_preference || 'fr',
-    timezone: user?.timezone || 'UTC',
+    language_preference: String(user?.accessibility_settings?.language_preference || user?.language_preference || 'fr'),
+    timezone: String(user?.accessibility_settings?.timezone || user?.timezone || 'UTC'),
   });
 
   const getNotificationPref = (key: string): boolean => {
@@ -100,8 +117,8 @@ function SettingsPageContent() {
       }
 
       setLanguageSettings({
-        language_preference: user.language_preference || 'fr',
-        timezone: user.timezone || 'UTC',
+        language_preference: String(user.accessibility_settings?.language_preference || user.language_preference || 'fr'),
+        timezone: String(user.accessibility_settings?.timezone || user.timezone || 'UTC'),
       });
       setPrivacySettings({
         is_public_profile: user.is_public_profile || false,
@@ -193,11 +210,16 @@ function SettingsPageContent() {
   }, [showDeleteConfirm, deleteAccount]);
 
   // Révoquer une session
+  const [sessionToRevoke, setSessionToRevoke] = useState<number | null>(null);
   const handleRevokeSession = useCallback((sessionId: number) => {
-    if (confirm('Êtes-vous sûr de vouloir révoquer cette session ?')) {
-      revokeSession(sessionId);
+    setSessionToRevoke(sessionId);
+  }, []);
+  const confirmRevokeSession = useCallback(() => {
+    if (sessionToRevoke !== null) {
+      revokeSession(sessionToRevoke);
+      setSessionToRevoke(null);
     }
-  }, [revokeSession]);
+  }, [sessionToRevoke, revokeSession]);
 
   // Liste des langues disponibles
   const languages = [
@@ -423,6 +445,7 @@ function SettingsPageContent() {
           icon={Shield}
           className="animate-fade-in-up-delay-3"
         >
+          <ComingSoonOverlay>
           <Card>
             <CardHeader>
               <CardTitle>{tPrivacy('title')}</CardTitle>
@@ -538,6 +561,7 @@ function SettingsPageContent() {
               </div>
             </CardContent>
           </Card>
+          </ComingSoonOverlay>
         </PageSection>
 
         {/* Section Sessions */}
@@ -583,14 +607,38 @@ function SettingsPageContent() {
                         </p>
                       </div>
                       {!session.is_current && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRevokeSession(session.id)}
-                          disabled={isRevokingSession}
-                        >
-                          {tSessions('revoke')}
-                        </Button>
+                        sessionToRevoke === session.id ? (
+                          <div className="flex gap-2">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={confirmRevokeSession}
+                              disabled={isRevokingSession}
+                            >
+                              {isRevokingSession ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                tSessions('revoke')
+                              )}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSessionToRevoke(null)}
+                              disabled={isRevokingSession}
+                            >
+                              {tActions('cancel')}
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRevokeSession(session.id)}
+                          >
+                            {tSessions('revoke')}
+                          </Button>
+                        )
                       )}
                     </div>
                   ))}

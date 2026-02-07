@@ -55,6 +55,8 @@ from server.handlers.user_handlers import (create_user_account, get_all_users,
                                            update_user_me,
                                            update_user_password_me,
                                            delete_user,
+                                           delete_user_me,
+                                           export_user_data,
                                            get_user_sessions,
                                            revoke_user_session)
 
@@ -82,6 +84,8 @@ def get_routes() -> List:
         Route("/api/users/me", endpoint=api_get_current_user, methods=["GET"]),
         Route("/api/users/me", endpoint=update_user_me, methods=["PUT"]),
         Route("/api/users/me/password", endpoint=update_user_password_me, methods=["PUT"]),
+        Route("/api/users/me", endpoint=delete_user_me, methods=["DELETE"]),
+        Route("/api/users/me/export", endpoint=export_user_data, methods=["GET"]),
         Route("/api/users/me/sessions", endpoint=get_user_sessions, methods=["GET"]),
         Route("/api/users/me/sessions/{session_id:int}", endpoint=revoke_user_session, methods=["DELETE"]),
         Route("/api/users/me/progress", endpoint=get_all_user_progress, methods=["GET"]),

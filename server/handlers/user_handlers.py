@@ -336,7 +336,7 @@ async def create_user_account(request: Request):
             )
         
         # Validation email basique
-        email_pattern = r'^[^@\]+@[^@\]+\.[^@\]+$'
+        email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
         if not re.match(email_pattern, email):
             return JSONResponse(
                 {"error": "Format d'email invalide"},
@@ -805,6 +805,22 @@ async def update_user_me(request: Request):
             'preferred_difficulty', 'preferred_theme', 'accessibility_settings'
         }
         
+        # Gérer les champs stockés dans accessibility_settings (JSON)
+        # notification_preferences, language_preference, timezone, privacy_settings
+        json_fields = ['notification_preferences', 'language_preference', 'timezone', 'privacy_settings']
+        json_overrides = {}
+        for field in json_fields:
+            if field in data:
+                json_overrides[field] = data.pop(field)
+        
+        if json_overrides:
+            if 'accessibility_settings' not in data:
+                data['accessibility_settings'] = {}
+            if isinstance(data['accessibility_settings'], dict):
+                data['accessibility_settings'].update(json_overrides)
+            else:
+                data['accessibility_settings'] = json_overrides
+        
         # Filtrer les champs non autorisés
         update_data = {k: v for k, v in data.items() if k in ALLOWED_FIELDS}
         
@@ -893,7 +909,18 @@ async def update_user_me(request: Request):
             
             # Appliquer les modifications
             for field, value in update_data.items():
-                setattr(user, field, value)
+                if field == 'accessibility_settings':
+                    # Merger avec les settings existants pour ne pas écraser
+                    # IMPORTANT: créer un NOUVEAU dict pour que SQLAlchemy détecte le changement
+                    # (les mutations in-place sur JSON ne sont pas trackées)
+                    existing_settings = dict(user.accessibility_settings or {})
+                    if isinstance(value, dict):
+                        existing_settings.update(value)
+                        setattr(user, field, existing_settings)
+                    else:
+                        setattr(user, field, value)
+                else:
+                    setattr(user, field, value)
             
             db.commit()
             db.refresh(user)
@@ -1013,9 +1040,57 @@ async def update_user_password_me(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+async def delete_user_me(request: Request):
+    """
+    Handler pour supprimer le compte de l'utilisateur connecté.
+    Route: DELETE /api/users/me
+    
+    Supprime l'utilisateur et toutes ses données associées (cascade).
+    """
+    try:
+        from server.auth import get_current_user
+        from app.models.user import User
+        
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        user_id = current_user.get('id')
+        username = current_user.get('username')
+        
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return JSONResponse({"error": "Utilisateur introuvable."}, status_code=404)
+            
+            # Suppression (les relations cascade suppriment les données liées)
+            db.delete(user)
+            db.commit()
+            
+            logger.info(f"Compte utilisateur supprimé : {username} (ID: {user_id})")
+            
+            # Créer la réponse avec suppression du cookie
+            response = JSONResponse({
+                "success": True,
+                "message": "Votre compte a été supprimé avec succès."
+            })
+            response.delete_cookie("access_token")
+            response.delete_cookie("refresh_token")
+            return response
+            
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de la suppression du compte: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
 async def delete_user(request: Request):
     """
-    Handler pour supprimer un utilisateur par ID (placeholder).
+    Handler pour supprimer un utilisateur par ID (admin).
     Route: DELETE /api/users/{user_id}
     """
     try:
@@ -1027,21 +1102,166 @@ async def delete_user(request: Request):
         user_to_delete_id = int(request.path_params.get('user_id'))
         current_user_id = current_user.get('id')
         
-        # Simple authorization check: only allow deleting self for now
-        # In a real app, this would check for admin roles etc.
         if user_to_delete_id != current_user_id:
             return JSONResponse({"error": "Non autorisé à supprimer cet utilisateur"}, status_code=403)
             
-        logger.info(f"Tentative de suppression de l'utilisateur {user_to_delete_id} par l'utilisateur {current_user_id}. Fonctionnalité en développement.")
-
+        logger.info(f"Tentative de suppression de l'utilisateur {user_to_delete_id} - Redirigé vers DELETE /api/users/me")
         return JSONResponse(
-            {"message": f"La suppression de l'utilisateur {user_to_delete_id} est en cours de développement."},
-            status_code=200
+            {"message": "Utilisez DELETE /api/users/me pour supprimer votre compte."},
+            status_code=400
         )
     except ValueError:
         return JSONResponse({"error": "ID utilisateur invalide"}, status_code=400)
     except Exception as e:
         logger.error(f"Erreur lors de la suppression de l'utilisateur: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def export_user_data(request: Request):
+    """
+    Exporte toutes les données de l'utilisateur connecté (RGPD).
+    Route: GET /api/users/me/export
+    
+    Retourne un JSON avec : profil, exercices tentés, défis tentés, badges, progression.
+    """
+    try:
+        from server.auth import get_current_user
+        from app.models.user import User
+        from app.models.attempt import Attempt
+        from app.models.exercise import Exercise
+        from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+        from app.models.achievement import UserAchievement
+        from app.models.progress import Progress
+        from app.models.recommendation import Recommendation
+        
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        
+        user_id = current_user.get('id')
+        
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return JSONResponse({"error": "Utilisateur introuvable."}, status_code=404)
+            
+            # Profil utilisateur (tous les champs)
+            profile = {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": user.role.value if user.role else None,
+                "is_active": user.is_active,
+                "grade_level": user.grade_level,
+                "learning_style": user.learning_style,
+                "preferred_difficulty": user.preferred_difficulty,
+                "preferred_theme": user.preferred_theme,
+                "accessibility_settings": user.accessibility_settings,
+                "total_points": user.total_points,
+                "current_level": user.current_level,
+                "experience_points": user.experience_points if hasattr(user, 'experience_points') else 0,
+                "jedi_rank": user.jedi_rank,
+                "avatar_url": user.avatar_url if hasattr(user, 'avatar_url') else None,
+                "created_at": user.created_at.isoformat() if user.created_at else None,
+                "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+            }
+            
+            # Tentatives d'exercices
+            attempts = db.query(Attempt).filter(Attempt.user_id == user_id).all()
+            exercises_data = []
+            for a in attempts:
+                exercises_data.append({
+                    "exercise_id": a.exercise_id,
+                    "answer": a.user_answer if hasattr(a, 'user_answer') else None,
+                    "is_correct": a.is_correct,
+                    "time_spent": a.time_spent if hasattr(a, 'time_spent') else None,
+                    "attempt_number": a.attempt_number if hasattr(a, 'attempt_number') else None,
+                    "hints_used": a.hints_used if hasattr(a, 'hints_used') else 0,
+                    "created_at": a.created_at.isoformat() if a.created_at else None,
+                })
+            
+            # Tentatives de défis logiques
+            challenge_attempts = db.query(LogicChallengeAttempt).filter(
+                LogicChallengeAttempt.user_id == user_id
+            ).all()
+            challenges_data = []
+            for ca in challenge_attempts:
+                challenges_data.append({
+                    "challenge_id": ca.challenge_id,
+                    "user_solution": ca.user_solution,
+                    "is_correct": ca.is_correct,
+                    "time_spent": ca.time_spent,
+                    "hints_used": ca.hints_used,
+                    "created_at": ca.created_at.isoformat() if ca.created_at else None,
+                })
+            
+            # Badges obtenus
+            achievements = db.query(UserAchievement).filter(
+                UserAchievement.user_id == user_id
+            ).all()
+            badges_data = []
+            for ach in achievements:
+                badges_data.append({
+                    "achievement_id": ach.achievement_id if hasattr(ach, 'achievement_id') else ach.id,
+                    "earned_at": ach.earned_at.isoformat() if hasattr(ach, 'earned_at') and ach.earned_at else None,
+                    "progress_data": ach.progress_data if hasattr(ach, 'progress_data') else None,
+                    "is_displayed": ach.is_displayed if hasattr(ach, 'is_displayed') else True,
+                })
+            
+            # Progression par type d'exercice
+            progress_records = db.query(Progress).filter(Progress.user_id == user_id).all()
+            progress_data = []
+            for p in progress_records:
+                progress_data.append({
+                    "exercise_type": p.exercise_type,
+                    "difficulty": p.difficulty,
+                    "total_attempts": p.total_attempts,
+                    "correct_attempts": p.correct_attempts,
+                    "success_rate": p.success_rate if hasattr(p, 'success_rate') else None,
+                    "last_attempt_at": p.last_attempt_at.isoformat() if hasattr(p, 'last_attempt_at') and p.last_attempt_at else None,
+                })
+            
+            # Recommandations personnalisées
+            recommendations = db.query(Recommendation).filter(Recommendation.user_id == user_id).all()
+            recommendations_data = []
+            for r in recommendations:
+                recommendations_data.append({
+                    "exercise_type": r.exercise_type if hasattr(r, 'exercise_type') else None,
+                    "priority": r.priority if hasattr(r, 'priority') else None,
+                    "is_completed": r.is_completed if hasattr(r, 'is_completed') else False,
+                    "reason": r.reason if hasattr(r, 'reason') else None,
+                    "created_at": r.created_at.isoformat() if hasattr(r, 'created_at') and r.created_at else None,
+                })
+            
+            export = {
+                "export_date": datetime.now(timezone.utc).isoformat(),
+                "format_version": "1.1",
+                "profile": profile,
+                "exercise_attempts": exercises_data,
+                "challenge_attempts": challenges_data,
+                "badges_earned": badges_data,
+                "progress": progress_data,
+                "recommendations": recommendations_data,
+                "statistics": {
+                    "total_exercise_attempts": len(exercises_data),
+                    "total_challenge_attempts": len(challenges_data),
+                    "total_badges": len(badges_data),
+                    "total_progress_records": len(progress_data),
+                    "total_recommendations": len(recommendations_data),
+                }
+            }
+            
+            logger.info(f"Export de données pour l'utilisateur {user_id} : {len(exercises_data)} exercices, {len(challenges_data)} défis, {len(badges_data)} badges")
+            return JSONResponse(export)
+            
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.error(f"Erreur lors de l'export des données: {e}")
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500)
 
