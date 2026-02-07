@@ -99,7 +99,7 @@ jobs:
           -v
           
     - name: 📊 Upload Critical Test Results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: critical-tests-report
@@ -169,7 +169,7 @@ jobs:
           -v || echo "⚠️ Certains tests importants ont échoué (non-bloquant)"
 
     - name: 📊 Upload Important Test Results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: important-tests-report
@@ -211,7 +211,7 @@ jobs:
           -v || echo "ℹ️ Certains tests complémentaires ont échoué (informatif)"
 
     - name: 📊 Upload Supplementary Test Results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: supplementary-tests-report
@@ -266,7 +266,7 @@ jobs:
         coverage html -d coverage_html
 
     - name: 📈 Upload Coverage Report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       with:
         name: coverage-report
         path: |
@@ -311,7 +311,7 @@ jobs:
       run: safety check --json --output safety_report.json || true
 
     - name: 📊 Upload Quality Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: quality-reports
@@ -364,7 +364,7 @@ jobs:
         fi
 
     - name: 📤 Upload Final Report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       with:
         name: final-ci-report
         path: final_report.md
