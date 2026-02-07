@@ -71,13 +71,23 @@ async def get_current_user(request):  # noqa: C901
             if user is None:
                 return None
                 
-            # Retourner un dictionnaire sérialisable
+            # Retourner un dictionnaire sérialisable avec tous les champs profil
             return {
                 "id": user.id,
                 "username": user.username,
                 "email": user.email if hasattr(user, 'email') else None,
                 "is_authenticated": True,
-                "role": user.role.value if hasattr(user, 'role') else None
+                "role": user.role.value if hasattr(user, 'role') else None,
+                "full_name": user.full_name if hasattr(user, 'full_name') else None,
+                "grade_level": user.grade_level if hasattr(user, 'grade_level') else None,
+                "learning_style": user.learning_style if hasattr(user, 'learning_style') else None,
+                "preferred_difficulty": user.preferred_difficulty if hasattr(user, 'preferred_difficulty') else None,
+                "preferred_theme": user.preferred_theme if hasattr(user, 'preferred_theme') else None,
+                "accessibility_settings": user.accessibility_settings if hasattr(user, 'accessibility_settings') else None,
+                "created_at": user.created_at.isoformat() if hasattr(user, 'created_at') and user.created_at else None,
+                "total_points": user.total_points if hasattr(user, 'total_points') else 0,
+                "current_level": user.current_level if hasattr(user, 'current_level') else 1,
+                "jedi_rank": user.jedi_rank if hasattr(user, 'jedi_rank') else 'youngling',
             }
         finally:
             EnhancedServerAdapter.close_db_session(db)

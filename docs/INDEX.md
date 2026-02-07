@@ -34,7 +34,9 @@ docs/
 │
 ├── 02-FEATURES/           # 📙 Fonctionnalités
 │   ├── I18N.md                 # Internationalisation (next-intl)
-│   └── ANALYTICS_PROGRESSION.md  # 🆕 Idées graphiques progression
+│   ├── ANALYTICS_PROGRESSION.md  # 🆕 Graphiques progression
+│   ├── BADGES_AMELIORATIONS.md   # 🆕 Roadmap badges
+│   └── ROADMAP_FONCTIONNALITES.md # 🆕 Roadmap globale fonctionnalités
 │
 ├── 03-PROJECT/            # 📕 Gestion projet
 │   ├── BILAN_COMPLET.md        # Bilan phases 1-6

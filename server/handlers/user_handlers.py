@@ -775,23 +775,157 @@ async def get_challenges_progress(request: Request):
 
 async def update_user_me(request: Request):
     """
-    Handler pour mettre à jour les informations de l'utilisateur actuel (placeholder).
+    Handler pour mettre à jour les informations de l'utilisateur actuel.
     Route: PUT /api/users/me
+    
+    Champs modifiables :
+    - email (avec vérification unicité)
+    - full_name
+    - grade_level
+    - learning_style
+    - preferred_difficulty
+    - preferred_theme
+    - accessibility_settings (JSON)
     """
     try:
         from server.auth import get_current_user
+        from app.models.user import User
+        
         current_user = await get_current_user(request)
         if not current_user or not current_user.get("is_authenticated"):
             return JSONResponse({"error": "Non authentifié"}, status_code=401)
         
         user_id = current_user.get('id')
         data = await request.json()
-        logger.info(f"Tentative de mise à jour de l'utilisateur {user_id} avec les données: {data}. Fonctionnalité en développement.")
-
-        return JSONResponse(
-            {"message": f"La mise à jour de l'utilisateur {user_id} est en cours de développement."},
-            status_code=200
-        )
+        logger.info(f"Mise à jour profil utilisateur {user_id}")
+        
+        # Champs autorisés à modifier
+        ALLOWED_FIELDS = {
+            'email', 'full_name', 'grade_level', 'learning_style',
+            'preferred_difficulty', 'preferred_theme', 'accessibility_settings'
+        }
+        
+        # Filtrer les champs non autorisés
+        update_data = {k: v for k, v in data.items() if k in ALLOWED_FIELDS}
+        
+        if not update_data:
+            return JSONResponse(
+                {"error": "Aucun champ valide à mettre à jour."},
+                status_code=400
+            )
+        
+        # Validation email si fourni
+        if 'email' in update_data:
+            email = update_data['email'].strip().lower()
+            if not email or not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+                return JSONResponse(
+                    {"error": "Adresse email invalide."},
+                    status_code=400
+                )
+            update_data['email'] = email
+        
+        # Validation full_name
+        if 'full_name' in update_data:
+            full_name = update_data['full_name'].strip() if update_data['full_name'] else None
+            if full_name and len(full_name) > 100:
+                return JSONResponse(
+                    {"error": "Le nom complet ne peut pas dépasser 100 caractères."},
+                    status_code=400
+                )
+            update_data['full_name'] = full_name
+        
+        # Validation grade_level
+        if 'grade_level' in update_data:
+            grade = update_data['grade_level']
+            if grade is not None:
+                try:
+                    grade = int(grade)
+                    if grade < 1 or grade > 12:
+                        return JSONResponse(
+                            {"error": "Le niveau scolaire doit être entre 1 et 12."},
+                            status_code=400
+                        )
+                    update_data['grade_level'] = grade
+                except (ValueError, TypeError):
+                    return JSONResponse(
+                        {"error": "Le niveau scolaire doit être un nombre."},
+                        status_code=400
+                    )
+        
+        # Validation learning_style
+        VALID_STYLES = {'visuel', 'auditif', 'kinesthésique', 'lecture'}
+        if 'learning_style' in update_data:
+            style = update_data['learning_style']
+            if style and style not in VALID_STYLES:
+                return JSONResponse(
+                    {"error": f"Style d'apprentissage invalide. Valeurs acceptées : {', '.join(VALID_STYLES)}"},
+                    status_code=400
+                )
+        
+        # Validation preferred_theme
+        VALID_THEMES = {'spatial', 'minimalist', 'ocean', 'neutral'}
+        if 'preferred_theme' in update_data:
+            theme = update_data['preferred_theme']
+            if theme and theme not in VALID_THEMES:
+                return JSONResponse(
+                    {"error": f"Thème invalide. Valeurs acceptées : {', '.join(VALID_THEMES)}"},
+                    status_code=400
+                )
+        
+        # Mise à jour en base
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return JSONResponse({"error": "Utilisateur introuvable."}, status_code=404)
+            
+            # Vérifier unicité email si modifié
+            if 'email' in update_data and update_data['email'] != user.email:
+                existing = db.query(User).filter(
+                    User.email == update_data['email'],
+                    User.id != user_id
+                ).first()
+                if existing:
+                    return JSONResponse(
+                        {"error": "Cette adresse email est déjà utilisée."},
+                        status_code=400
+                    )
+            
+            # Appliquer les modifications
+            for field, value in update_data.items():
+                setattr(user, field, value)
+            
+            db.commit()
+            db.refresh(user)
+            
+            # Construire la réponse
+            response_data = {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": user.role.value if user.role else None,
+                "grade_level": user.grade_level,
+                "learning_style": user.learning_style,
+                "preferred_difficulty": user.preferred_difficulty,
+                "preferred_theme": user.preferred_theme,
+                "accessibility_settings": user.accessibility_settings,
+                "is_active": user.is_active,
+                "created_at": user.created_at.isoformat() if user.created_at else None,
+                "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+                "total_points": user.total_points,
+                "current_level": user.current_level,
+                "jedi_rank": user.jedi_rank,
+            }
+            
+            logger.info(f"Profil utilisateur {user_id} mis à jour : {list(update_data.keys())}")
+            return JSONResponse(response_data)
+            
+        finally:
+            db.close()
+            
+    except json.JSONDecodeError:
+        return JSONResponse({"error": "Données JSON invalides."}, status_code=400)
     except Exception as e:
         logger.error(f"Erreur lors de la mise à jour de l'utilisateur: {e}")
         traceback.print_exc()
@@ -800,25 +934,81 @@ async def update_user_me(request: Request):
 
 async def update_user_password_me(request: Request):
     """
-    Handler pour mettre à jour le mot de passe de l'utilisateur actuel (placeholder).
+    Handler pour mettre à jour le mot de passe de l'utilisateur actuel.
     Route: PUT /api/users/me/password
+    
+    Body attendu :
+    - current_password: mot de passe actuel
+    - new_password: nouveau mot de passe (min 8 caractères)
     """
     try:
         from server.auth import get_current_user
+        from app.models.user import User
+        from app.core.security import verify_password, get_password_hash
+        
         current_user = await get_current_user(request)
         if not current_user or not current_user.get("is_authenticated"):
             return JSONResponse({"error": "Non authentifié"}, status_code=401)
         
         user_id = current_user.get('id')
         data = await request.json()
-        logger.info(f"Tentative de mise à jour du mot de passe de l'utilisateur {user_id}. Fonctionnalité en développement.")
-
-        return JSONResponse(
-            {"message": f"La mise à jour du mot de passe de l'utilisateur {user_id} est en cours de développement."},
-            status_code=200
-        )
+        
+        current_password = data.get('current_password', '').strip()
+        new_password = data.get('new_password', '').strip()
+        
+        # Validation
+        if not current_password:
+            return JSONResponse(
+                {"error": "Le mot de passe actuel est requis."},
+                status_code=400
+            )
+        if not new_password:
+            return JSONResponse(
+                {"error": "Le nouveau mot de passe est requis."},
+                status_code=400
+            )
+        if len(new_password) < 8:
+            return JSONResponse(
+                {"error": "Le nouveau mot de passe doit contenir au moins 8 caractères."},
+                status_code=400
+            )
+        if current_password == new_password:
+            return JSONResponse(
+                {"error": "Le nouveau mot de passe doit être différent de l'ancien."},
+                status_code=400
+            )
+        
+        # Vérification et mise à jour en base
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return JSONResponse({"error": "Utilisateur introuvable."}, status_code=404)
+            
+            # Vérifier le mot de passe actuel
+            if not verify_password(current_password, user.hashed_password):
+                return JSONResponse(
+                    {"error": "Le mot de passe actuel est incorrect."},
+                    status_code=401
+                )
+            
+            # Hasher et sauvegarder le nouveau mot de passe
+            user.hashed_password = get_password_hash(new_password)
+            db.commit()
+            
+            logger.info(f"Mot de passe de l'utilisateur {user_id} mis à jour avec succès")
+            return JSONResponse({
+                "success": True,
+                "message": "Mot de passe mis à jour avec succès."
+            })
+            
+        finally:
+            db.close()
+            
+    except json.JSONDecodeError:
+        return JSONResponse({"error": "Données JSON invalides."}, status_code=400)
     except Exception as e:
-        logger.error(f"Erreur lors de la mise à jour du mot de passe de l'utilisateur: {e}")
+        logger.error(f"Erreur lors de la mise à jour du mot de passe: {e}")
         traceback.print_exc()
         return JSONResponse({"error": str(e)}, status_code=500)
 

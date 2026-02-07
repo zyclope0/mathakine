@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Badge as UIBadge } from '@/components/ui/badge';
 import type { UserBadge } from '@/types/api';
@@ -28,7 +29,9 @@ import {
   X,
   Eye,
   EyeOff,
-  Loader2
+  Loader2,
+  BarChart3,
+  Palette
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -188,19 +191,23 @@ function ProfilePageContent() {
     setIsEditingLearningPrefs(false);
   }, [learningPrefs, updateProfile]);
 
-  // Sauvegarder accessibilité
-  const handleSaveAccessibility = useCallback(async () => {
+  // Sauvegarder accessibilité avec les valeurs passées directement (évite stale closure)
+  const handleSaveAccessibility = useCallback(async (overrides?: Partial<typeof accessibilitySettings>) => {
+    const settings = overrides 
+      ? { ...accessibilitySettings, ...overrides }
+      : accessibilitySettings;
+    
     await updateProfile({
-      preferred_theme: accessibilitySettings.preferred_theme,
+      preferred_theme: settings.preferred_theme,
       accessibility_settings: {
-        high_contrast: accessibilitySettings.high_contrast,
-        large_text: accessibilitySettings.large_text,
-        reduce_motion: accessibilitySettings.reduce_motion,
+        high_contrast: settings.high_contrast,
+        large_text: settings.large_text,
+        reduce_motion: settings.reduce_motion,
       },
     });
     // Appliquer le thème immédiatement après sauvegarde
-    if (accessibilitySettings.preferred_theme) {
-      setTheme(accessibilitySettings.preferred_theme as 'spatial' | 'minimalist' | 'ocean' | 'neutral');
+    if (settings.preferred_theme) {
+      setTheme(settings.preferred_theme as 'spatial' | 'minimalist' | 'ocean' | 'neutral');
     }
   }, [accessibilitySettings, updateProfile, setTheme]);
 
@@ -275,11 +282,29 @@ function ProfilePageContent() {
         }
       />
 
-      <div className="space-y-6">
+      <Tabs defaultValue="profile" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3 h-auto" aria-label="Sections du profil">
+          <TabsTrigger value="profile" className="flex items-center gap-2 py-2.5 text-sm">
+            <User className="h-4 w-4" aria-hidden="true" />
+            <span className="hidden sm:inline">{tPersonal('title')}</span>
+            <span className="sm:hidden">Profil</span>
+          </TabsTrigger>
+          <TabsTrigger value="preferences" className="flex items-center gap-2 py-2.5 text-sm">
+            <Palette className="h-4 w-4" aria-hidden="true" />
+            <span className="hidden sm:inline">{tAccessibility('title')}</span>
+            <span className="sm:hidden">Prefs</span>
+          </TabsTrigger>
+          <TabsTrigger value="statistics" className="flex items-center gap-2 py-2.5 text-sm">
+            <BarChart3 className="h-4 w-4" aria-hidden="true" />
+            <span className="hidden sm:inline">{tStatistics('title')}</span>
+            <span className="sm:hidden">Stats</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* ═══════════ ONGLET PROFIL ═══════════ */}
+        <TabsContent value="profile" className="space-y-6">
         {/* Informations personnelles */}
         <PageSection
-          title={tPersonal('title')}
-          description={tPersonal('description')}
           className="animate-fade-in-up"
         >
           <Card className="transition-all duration-300 hover:shadow-lg hover:border-primary/20">
@@ -424,8 +449,6 @@ function ProfilePageContent() {
 
         {/* Préférences d'apprentissage */}
         <PageSection
-          title={tLearning('title')}
-          description={tLearning('description')}
           className="animate-fade-in-up-delay-1"
         >
           <Card className="transition-all duration-300 hover:shadow-lg hover:border-primary/20">
@@ -556,7 +579,7 @@ function ProfilePageContent() {
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">{tLearning('preferredAgeGroup')}</Label>
-                    <p className="text-sm font-medium">{user.preferred_difficulty ? getAgeDisplay(user.preferred_difficulty) : '-'}</p>
+                    <p className="text-sm font-medium">{user.preferred_difficulty ? (Object.values(AGE_GROUPS).includes(user.preferred_difficulty as AgeGroup) ? getAgeDisplay(user.preferred_difficulty) : user.preferred_difficulty) : '-'}</p>
                   </div>
                 </div>
               )}
@@ -566,8 +589,6 @@ function ProfilePageContent() {
 
         {/* Sécurité */}
         <PageSection
-          title={tSecurity('title')}
-          description={tSecurity('description')}
           className="animate-fade-in-up-delay-2"
         >
           <Card className="transition-all duration-300 hover:shadow-lg hover:border-primary/20">
@@ -751,11 +772,13 @@ function ProfilePageContent() {
           </Card>
         </PageSection>
 
+        </TabsContent>
+
+        {/* ═══════════ ONGLET PRÉFÉRENCES ═══════════ */}
+        <TabsContent value="preferences" className="space-y-6">
         {/* Accessibilité */}
         <PageSection
-          title={tAccessibility('title')}
-          description={tAccessibility('description')}
-          className="animate-fade-in-up-delay-3"
+          className="animate-fade-in-up"
         >
           <Card className="transition-all duration-300 hover:shadow-lg hover:border-primary/20">
             <CardHeader>
@@ -775,8 +798,9 @@ function ProfilePageContent() {
                 <Select
                   value={accessibilitySettings.preferred_theme}
                   onValueChange={(value) => {
-                    setAccessibilitySettings(prev => ({ ...prev, preferred_theme: value as 'spatial' | 'minimalist' | 'ocean' | 'neutral' }));
-                    handleSaveAccessibility();
+                    const theme = value as 'spatial' | 'minimalist' | 'ocean' | 'neutral';
+                    setAccessibilitySettings(prev => ({ ...prev, preferred_theme: theme }));
+                    handleSaveAccessibility({ preferred_theme: theme });
                   }}
                 >
                   <SelectTrigger id="theme" className="w-[200px]" aria-label={tAccessibility('theme')}>
@@ -825,7 +849,7 @@ function ProfilePageContent() {
                   checked={accessibilitySettings.high_contrast}
                   onCheckedChange={(checked) => {
                     setAccessibilitySettings(prev => ({ ...prev, high_contrast: checked }));
-                    handleSaveAccessibility();
+                    handleSaveAccessibility({ high_contrast: checked });
                   }}
                   aria-label={tAccessibility('highContrast')}
                 />
@@ -843,7 +867,7 @@ function ProfilePageContent() {
                   checked={accessibilitySettings.large_text}
                   onCheckedChange={(checked) => {
                     setAccessibilitySettings(prev => ({ ...prev, large_text: checked }));
-                    handleSaveAccessibility();
+                    handleSaveAccessibility({ large_text: checked });
                   }}
                   aria-label={tAccessibility('largeText')}
                 />
@@ -861,7 +885,7 @@ function ProfilePageContent() {
                   checked={accessibilitySettings.reduce_motion}
                   onCheckedChange={(checked) => {
                     setAccessibilitySettings(prev => ({ ...prev, reduce_motion: checked }));
-                    handleSaveAccessibility();
+                    handleSaveAccessibility({ reduce_motion: checked });
                   }}
                   aria-label={tAccessibility('reduceMotion')}
                 />
@@ -870,24 +894,20 @@ function ProfilePageContent() {
           </Card>
         </PageSection>
 
+        </TabsContent>
+
+        {/* ═══════════ ONGLET STATISTIQUES ═══════════ */}
+        <TabsContent value="statistics" className="space-y-6">
         {/* Statistiques */}
         {statsError ? (
-          <PageSection
-            title={tStatistics('title')}
-            description={tStatistics('description')}
-            className="animate-fade-in-up-delay-4"
-          >
+          <PageSection className="animate-fade-in-up">
             <EmptyState
               title={t('error.title')}
               description={t('error.description')}
             />
           </PageSection>
         ) : isLoadingStats ? (
-          <PageSection
-            title={tStatistics('title')}
-            description={tStatistics('description')}
-            className="animate-fade-in-up-delay-4"
-          >
+          <PageSection className="animate-fade-in-up">
             <div className="grid gap-4 md:grid-cols-2">
               <Card className="animate-pulse">
                 <CardHeader>
@@ -914,11 +934,7 @@ function ProfilePageContent() {
             </div>
           </PageSection>
         ) : stats ? (
-          <PageSection
-            title={tStatistics('title')}
-            description={tStatistics('description')}
-            className="animate-fade-in-up-delay-4"
-          >
+          <PageSection className="animate-fade-in-up">
             <div className="grid gap-4 md:grid-cols-2">
               {stats.level && (
                 <LevelIndicator level={stats.level} />
@@ -951,11 +967,11 @@ function ProfilePageContent() {
 
         {/* Activité récente */}
         {stats?.recent_activity && stats.recent_activity.length > 0 && (
-          <PageSection
-            title={t('recentActivity.title')}
-            description={t('recentActivity.description')}
-            className="animate-fade-in-up-delay-5"
-          >
+          <PageSection className="animate-fade-in-up-delay-1">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" aria-hidden="true" />
+              {t('recentActivity.title')}
+            </h3>
             <RecentActivity 
               activities={stats.recent_activity} 
             />
@@ -964,11 +980,11 @@ function ProfilePageContent() {
 
         {/* Badges récents */}
         {recentBadges.length > 0 && (
-          <PageSection
-            title={tBadges('title')}
-            description={tBadges('description')}
-            className="animate-fade-in-up-delay-6"
-          >
+          <PageSection className="animate-fade-in-up-delay-2">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary" aria-hidden="true" />
+              {tBadges('title')}
+            </h3>
             <div className="grid gap-4 md:grid-cols-3">
               {recentBadges.map((badge: UserBadge & { earned_at: string }, index: number) => (
                 <Card 
@@ -1010,7 +1026,8 @@ function ProfilePageContent() {
             </div>
           </PageSection>
         )}
-      </div>
+        </TabsContent>
+      </Tabs>
     </PageLayout>
   );
 }

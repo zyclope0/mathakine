@@ -374,7 +374,8 @@
       "probability": "Probability",
       "graph": "Graph",
       "coding": "Coding",
-      "chess": "Chess"
+      "chess": "Chess",
+      "custom": "Custom"
     },
     "ageGroups": {
       "6-8": "6-8 years",
