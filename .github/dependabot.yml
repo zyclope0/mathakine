@@ -21,6 +21,17 @@ updates:
     labels:
       - "dependencies"
       - "frontend"
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      next:
+        patterns:
+          - "next"
+          - "eslint-config-next"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
