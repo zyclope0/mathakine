@@ -494,8 +494,10 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
         import traceback
         traceback.print_exc()
         
+        error_msg = str(chat_stream_error)
+        
         async def error_generator():
-            yield f"data: {json.dumps({'type': 'error', 'message': f'Erreur lors de la génération: {str(chat_stream_error)}'})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'message': f'Erreur lors de la génération: {error_msg}'})}\n\n"
         
         return StreamingResponse(
             error_generator(),
