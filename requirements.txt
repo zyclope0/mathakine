@@ -45,7 +45,7 @@ httpx==0.27.0  # Client HTTP pour les tests
 sphinx==7.2.6
 
 # Optimisations de performance
-psutil==5.9.8  # Monitoring système pour optimisations
+psutil==7.2.2  # Monitoring système pour optimisations
 pillow==12.1.0  # Optimisation d'images
 redis==5.0.1  # Cache en mémoire pour optimisations
 gunicorn==21.2.0  # Serveur WSGI optimisé pour production
