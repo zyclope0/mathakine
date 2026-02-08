@@ -333,7 +333,7 @@ jobs:
       uses: actions/checkout@v6
 
     - name: 📊 Download All Reports
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v7
 
     - name: 📋 Generate Final Report
       run: |
