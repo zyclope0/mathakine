@@ -7,6 +7,7 @@ from app.core.constants import (
     # Constantes challenges
     CHALLENGE_TYPES_DB,
     AGE_GROUPS_DB,
+    AgeGroups,
     normalize_challenge_type,
     normalize_age_group,
     calculate_difficulty_for_age_group,
@@ -29,21 +30,21 @@ def test_challenge_types_db_not_empty():
 
 
 def test_challenge_types_expected_values():
-    """Vérifie que les types de challenges attendus existent"""
-    expected_types = ["SEQUENCE", "PATTERN", "PUZZLE", "VISUAL", "DEDUCTION", "SPATIAL"]
+    """Vérifie que les types de challenges attendus existent (alignés avec CHALLENGE_TYPES_DB)"""
+    expected_types = ["SEQUENCE", "PATTERN", "PUZZLE", "VISUAL", "DEDUCTION", "GRAPH", "RIDDLE", "CHESS", "CODING", "PROBABILITY"]
     
     for expected_type in expected_types:
         assert expected_type in CHALLENGE_TYPES_DB, f"{expected_type} manquant dans CHALLENGE_TYPES_DB"
 
 
 def test_normalize_challenge_type_lowercase():
-    """Test normalisation challenge_type minuscules"""
+    """Test normalisation challenge_type minuscules (spatial → VISUAL via alias)"""
     assert normalize_challenge_type("sequence") == "SEQUENCE"
     assert normalize_challenge_type("pattern") == "PATTERN"
     assert normalize_challenge_type("puzzle") == "PUZZLE"
     assert normalize_challenge_type("visual") == "VISUAL"
     assert normalize_challenge_type("deduction") == "DEDUCTION"
-    assert normalize_challenge_type("spatial") == "SPATIAL"
+    assert normalize_challenge_type("spatial") == "VISUAL"  # alias dans CHALLENGE_TYPE_ALIASES
 
 
 def test_normalize_challenge_type_uppercase():
@@ -79,34 +80,34 @@ def test_age_groups_db_not_empty():
 
 
 def test_age_groups_expected_values():
-    """Vérifie que les groupes d'âge attendus existent"""
-    expected_groups = ["GROUP_6_8", "GROUP_9_12", "GROUP_10_12", "GROUP_13_15", "GROUP_16_18"]
+    """Vérifie que les groupes d'âge attendus existent (alignés avec AgeGroup enum)"""
+    expected_groups = ["GROUP_6_8", "GROUP_10_12", "GROUP_13_15", "GROUP_15_17", "ADULT", "ALL_AGES"]
     
     for expected_group in expected_groups:
         assert expected_group in AGE_GROUPS_DB, f"{expected_group} manquant dans AGE_GROUPS_DB"
 
 
 def test_normalize_age_group_with_age_prefix():
-    """Test normalisation age_group avec préfixe 'age_'"""
-    assert normalize_age_group("age_6_8") == "GROUP_6_8"
-    assert normalize_age_group("age_9_12") == "GROUP_9_12"
-    assert normalize_age_group("age_10_12") == "GROUP_10_12"
-    assert normalize_age_group("age_13_15") == "GROUP_13_15"
-    assert normalize_age_group("age_16_18") == "GROUP_16_18"
+    """Test normalisation age_group avec préfixe 'age_' (retourne format canonique 6-8, 9-11, etc.)"""
+    assert normalize_age_group("age_6_8") == "6-8"
+    assert normalize_age_group("age_9_12") == "9-11"
+    assert normalize_age_group("age_10_12") == "9-11"
+    assert normalize_age_group("age_13_15") == "12-14"
+    assert normalize_age_group("age_16_18") == "15-17"
 
 
 def test_normalize_age_group_with_group_prefix():
-    """Test normalisation age_group avec préfixe 'GROUP_' (idempotent)"""
-    assert normalize_age_group("GROUP_6_8") == "GROUP_6_8"
-    assert normalize_age_group("GROUP_10_12") == "GROUP_10_12"
-    assert normalize_age_group("GROUP_13_15") == "GROUP_13_15"
+    """Test normalisation age_group avec préfixe 'GROUP_' (retourne format canonique)"""
+    assert normalize_age_group("GROUP_6_8") == "6-8"
+    assert normalize_age_group("GROUP_10_12") == "9-11"
+    assert normalize_age_group("GROUP_13_15") == "12-14"
 
 
 def test_normalize_age_group_with_hyphen():
     """Test normalisation age_group avec tiret (ex: '10-12')"""
-    assert normalize_age_group("6-8") == "GROUP_6_8"
-    assert normalize_age_group("10-12") == "GROUP_10_12"
-    assert normalize_age_group("13-15") == "GROUP_13_15"
+    assert normalize_age_group("6-8") == "6-8"
+    assert normalize_age_group("10-12") == "9-11"
+    assert normalize_age_group("13-15") == "12-14"
 
 
 def test_normalize_age_group_invalid():
@@ -117,24 +118,23 @@ def test_normalize_age_group_invalid():
 
 
 def test_normalize_age_group_none():
-    """Test normalisation age_group None"""
-    assert normalize_age_group(None) is None
+    """Test normalisation age_group None (retourne groupe par défaut)"""
+    assert normalize_age_group(None) == AgeGroups.GROUP_9_11
 
 
 # ==== Tests Calculate Difficulty ====
 
 def test_calculate_difficulty_for_age_group_valid():
-    """Test calcul difficulté pour groupes d'âge valides"""
+    """Test calcul difficulté pour groupes d'âge valides (format canonique 6-8, 9-11, etc.)"""
     # Jeunes enfants = plus facile
-    assert calculate_difficulty_for_age_group("GROUP_6_8") == 1.5
+    assert calculate_difficulty_for_age_group("6-8") == 1.5
     
     # Enfants moyens
-    assert calculate_difficulty_for_age_group("GROUP_9_12") == 2.0
-    assert calculate_difficulty_for_age_group("GROUP_10_12") == 2.0
+    assert calculate_difficulty_for_age_group("9-11") == 2.5
     
     # Adolescents = plus difficile
-    assert calculate_difficulty_for_age_group("GROUP_13_15") == 3.5
-    assert calculate_difficulty_for_age_group("GROUP_16_18") == 4.0
+    assert calculate_difficulty_for_age_group("12-14") == 3.5
+    assert calculate_difficulty_for_age_group("15-17") == 4.0
 
 
 def test_calculate_difficulty_for_age_group_default():
@@ -243,8 +243,9 @@ def test_constants_consistency():
     normalized_sequence = normalize_challenge_type("sequence")
     assert normalized_sequence in CHALLENGE_TYPES_DB, "Incohérence SEQUENCE"
     
+    # normalize_age_group retourne le format canonique (6-8, 9-11, etc.) qui est dans AgeGroups.ALL_GROUPS
     normalized_age = normalize_age_group("age_10_12")
-    assert normalized_age in AGE_GROUPS_DB, "Incohérence GROUP_10_12"
+    assert normalized_age in AgeGroups.ALL_GROUPS, "Incohérence age_10_12"
 
 
 def test_all_constants_phase3_present():

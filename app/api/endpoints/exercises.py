@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import (get_current_active_user,
                           get_current_gardien_or_archiviste, get_current_user,
                           get_db_session)
-from app.core.constants import DifficultyLevels, ExerciseTypes, Messages, Tags
+from app.core.constants import DifficultyLevels, DISPLAY_NAMES, ExerciseTypes, Messages, Tags
 from app.core.logging_config import get_logger
 from app.core.messages import ExerciseMessages, InterfaceTexts, SystemMessages
 from app.models.attempt import Attempt
@@ -698,7 +698,7 @@ def generate_exercise(
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors de la création de l'exercice: {str(e)}"
+            detail=f"Erreur lors de la création de l'exercice: {str(exercise_creation_fallback_error)}"
         )
 
     # Retourner une redirection vers la page des exercices
@@ -1123,11 +1123,11 @@ def delete_exercise(
     except Exception as db_general_error:
         db.rollback()
         stack_trace = traceback.format_exc()
-        logger.error(f"Erreur lors de l'archivage de l'exercice {exercise_id}: {str(e)}")
+        logger.error(f"Erreur lors de l'archivage de l'exercice {exercise_id}: {str(db_general_error)}")
         logger.error(f"Stack trace: {stack_trace}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors de l'archivage de l'exercice: {str(e)}"
+            detail=f"Erreur lors de l'archivage de l'exercice: {str(db_general_error)}"
         )
 
 

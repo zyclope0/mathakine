@@ -15,7 +15,7 @@ from app.models.recommendation import Recommendation
 from app.models.logic_challenge import LogicChallenge, LogicChallengeType, AgeGroup, LogicChallengeAttempt
 from app.utils.db_helpers import get_enum_value
 
-def test_complete_user_deletion_cascade(db_session):
+async def test_complete_user_deletion_cascade(db_session):
     """
     Teste la suppression complète d'un utilisateur avec toutes ses relations connectées.
     
@@ -191,7 +191,7 @@ def test_complete_user_deletion_cascade(db_session):
     assert db_session.query(LogicChallengeAttempt).filter(LogicChallengeAttempt.id == challenge_attempt_id).count() == 0
 
 
-def test_exercise_deletion_cascade(db_session):
+async def test_exercise_deletion_cascade(db_session):
     """
     Teste la suppression d'un exercice avec toutes ses relations connectées.
     
@@ -283,7 +283,7 @@ def test_exercise_deletion_cascade(db_session):
     assert db_session.query(User).filter(User.id == user_id).count() == 1
 
 
-def test_multi_level_cascade(db_session):
+async def test_multi_level_cascade(db_session):
     """
     Teste la suppression en cascade sur plusieurs niveaux.
     

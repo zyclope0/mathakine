@@ -90,7 +90,7 @@ async def get_recommendations(request):
     except Exception as recommendations_retrieval_error:
         logger.error(f"Erreur lors de la récupération des recommandations: {recommendations_retrieval_error}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": str(recommendations_retrieval_error)}, status_code=500)
 
 
 async def generate_recommendations(request):
@@ -122,7 +122,7 @@ async def generate_recommendations(request):
     except Exception as recommendations_generation_error:
         logger.error(f"Erreur lors de la génération des recommandations: {recommendations_generation_error}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": str(recommendations_generation_error)}, status_code=500)
 
 
 async def handle_recommendation_complete(request):

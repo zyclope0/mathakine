@@ -1,90 +1,114 @@
 """
-Configuration centralisée pour pytest.
-Ce fichier importe toutes les fixtures pour les rendre disponibles globalement.
-"""
-import pytest
-import os
-from pathlib import Path
-import uuid
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-from jose import jwt
-from datetime import datetime, timedelta, timezone
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from app.db.base import Base
-from app.models.logic_challenge import LogicChallengeType, AgeGroup
-from app.models.user import UserRole
-from app.utils.db_helpers import get_enum_value, get_all_enum_values
-from tests.utils.test_helpers import unique_username, unique_email
-import json
-from typing import Dict, Any
+Configuration centralisee pour pytest.
+Migre de FastAPI TestClient vers httpx.AsyncClient (Starlette).
 
-# Ajouter le répertoire racine au path pour faciliter les imports
+Architecture:
+- Section 1: Securite (protection base de prod)
+- Section 2: Database engine & session
+- Section 3: HTTP client fixtures (httpx + Starlette)
+- Section 4: Mock fixtures (donnees en memoire)
+- Section 5: Enum & model fixtures
+- Section 6: Logic challenge DB fixture
+- Section 7: Auto cleanup
+"""
+
+# === IMPORTANT: Definir TESTING=true AVANT tout import applicatif ===
+import os
+os.environ["TESTING"] = "true"
+
+import json
 import sys
+import uuid
+from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Dict
+from unittest.mock import AsyncMock, MagicMock
+
+import httpx
+import pytest
+from jose import jwt
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session, sessionmaker
+
+# Ajouter le repertoire racine au path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Importer les modèles et la base de données
-from app.db.base import Base, engine
+# App imports (apres TESTING=true)
 from app.core.config import settings
-from app.models.user import UserRole
+from app.core.security import create_access_token, get_password_hash
+from app.db.base import Base, engine
+from app.models.attempt import Attempt
+from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+from app.models.logic_challenge import (
+    AgeGroup,
+    LogicChallenge,
+    LogicChallengeAttempt,
+    LogicChallengeType,
+)
+from app.models.progress import Progress
+from app.models.recommendation import Recommendation
+from app.models.user import User, UserRole
+from app.utils.db_helpers import (
+    adapt_enum_for_db,
+    get_all_enum_values,
+    get_enum_value,
+)
 
-# Importer l'application FastAPI
-from app.main import app
+# Test utilities
+from tests.utils.test_data_cleanup import TestDataManager
+from tests.utils.test_helpers import unique_email, unique_username
 
-# Configuration de l'environnement pour les tests
+# Application Starlette
+from enhanced_server import app as starlette_app
+
+
+# ================================================================
+# SECTION 1: SECURITE - Protection de la base de production
+# ================================================================
+
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_environment():
-    """Configure l'environnement de test automatiquement au début de la session.
-    
-    SECURITE : Cette fixture vérifie que les tests ne tournent JAMAIS sur la base de production.
-    Elle vérifie aussi l'engine SQLAlchemy déjà créé (qui est initialisé à l'import, avant les fixtures).
+    """Configure l'environnement de test automatiquement.
+
+    SECURITE : Verifie que les tests ne tournent JAMAIS sur la base de production.
+    Verifie aussi l'engine SQLAlchemy deja cree (initialise a l'import).
     """
     import re
-    
-    # Créer le dossier de résultats s'il n'existe pas
-    Path("test_results").mkdir(exist_ok=True)
 
-    # Définir les variables d'environnement pour les tests
+    Path("test_results").mkdir(exist_ok=True)
     os.environ["TESTING"] = "true"
 
-    # SÉCURITÉ 1 : Vérifier que l'engine SQLAlchemy (déjà importé) pointe vers une base de test
-    # L'engine est créé au moment de l'import de app.db.base, AVANT cette fixture
+    # SECURITE 1 : Verifier l'engine SQLAlchemy importe
     from app.db.base import engine as imported_engine
     engine_url = str(imported_engine.url)
-    
-    # Extraire le nom de la base depuis l'URL de l'engine
+
     engine_db_match = re.search(r'/([^/?]+)(?:\?|$)', engine_url)
     if engine_db_match:
         engine_db_name = engine_db_match.group(1)
         if "test" not in engine_db_name.lower():
-            # L'engine pointe vers une base sans "test" dans le nom
-            # Vérifier si c'est une base Render (production)
             environment = os.environ.get("ENVIRONMENT", "")
             if environment == "production" or "render" in engine_url.lower():
                 raise RuntimeError(
-                    f"🚨 SÉCURITÉ: L'engine SQLAlchemy pointe vers la base de PRODUCTION ({engine_db_name})!\n"
+                    f"SECURITE: L'engine SQLAlchemy pointe vers la base de PRODUCTION ({engine_db_name})!\n"
                     f"   URL: {engine_url}\n"
                     f"   Les tests NE DOIVENT JAMAIS tourner sur la base de production.\n"
-                    f"   Solution: Définir TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/test_mathakine"
+                    f"   Solution: Definir TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/test_mathakine"
                 )
             else:
-                # Base locale sans "test" dans le nom - avertir mais laisser passer
-                # Les DELETE sont maintenant filtrés sur les préfixes test_
-                print(f"\n⚠️  ATTENTION: Les tests tournent sur la base '{engine_db_name}' (pas de base de test séparée)")
-                print(f"   Les opérations destructrices sont filtrées sur les données test_ uniquement.")
-                print(f"   Recommandé: créer une base séparée 'test_mathakine' pour plus de sécurité.\n")
+                print(f"\n  ATTENTION: Les tests tournent sur la base '{engine_db_name}' (pas de base de test separee)")
+                print("   Les operations destructrices sont filtrees sur les donnees test_ uniquement.\n")
 
-    # SÉCURITÉ 2 : Si TEST_DATABASE_URL n'est pas défini, utiliser une base de test par défaut
+    # SECURITE 2 : Definir TEST_DATABASE_URL par defaut
     if "TEST_DATABASE_URL" not in os.environ:
         default_test_db = "postgresql://postgres:postgres@localhost/test_mathakine"
         os.environ["TEST_DATABASE_URL"] = default_test_db
-        print(f"⚠️  TEST_DATABASE_URL non défini, utilisation par défaut: {default_test_db}")
-    
-    # SÉCURITÉ 3 : Vérifier que TEST_DATABASE_URL != DATABASE_URL en production
+        print(f"  TEST_DATABASE_URL non defini, utilisation par defaut: {default_test_db}")
+
+    # SECURITE 3 : Verifier TEST_DATABASE_URL != DATABASE_URL en production
     test_db_url = os.environ.get("TEST_DATABASE_URL", "")
     prod_db_url = os.environ.get("DATABASE_URL", "")
-    
+
     if test_db_url and prod_db_url and test_db_url == prod_db_url:
         test_db_match = re.search(r'/([^/?]+)', test_db_url)
         prod_db_match = re.search(r'/([^/?]+)', prod_db_url)
@@ -93,769 +117,630 @@ def setup_test_environment():
             prod_db_name = prod_db_match.group(1)
             if test_db_name == prod_db_name and "test" not in test_db_name.lower():
                 raise RuntimeError(
-                    f"🚨 SÉCURITÉ: TEST_DATABASE_URL pointe vers la même base que DATABASE_URL ({test_db_name})!\n"
-                    f"   Cela pourrait supprimer les données de production!\n"
-                    f"   Solution: Définir TEST_DATABASE_URL vers une base de test séparée."
+                    f"SECURITE: TEST_DATABASE_URL pointe vers la meme base que DATABASE_URL ({test_db_name})!\n"
+                    f"   Cela pourrait supprimer les donnees de production!\n"
+                    f"   Solution: Definir TEST_DATABASE_URL vers une base de test separee."
                 )
 
-    yield  # Exécuter les tests
+    yield
 
-# Configuration des fixtures
-@pytest.fixture(scope="session")
-def test_app():
-    """Fixture pour configurer l'application de test"""
-    from app.main import app
 
-    # Configurer l'environnement de test
-    os.environ["TESTING"] = "true"
-    
-    # Retourner l'application
-    return app
+# ================================================================
+# SECTION 2: DATABASE ENGINE & SESSION
+# ================================================================
 
-@pytest.fixture(scope="session")
-def test_client():
-    """Fixture pour créer un client de test"""
-    from fastapi.testclient import TestClient
-    from app.main import app
-
-    # Configurer l'environnement de test
-    os.environ["TESTING"] = "true"
-
-    # Créer un client de test
-    client = TestClient(app)
-    return client
-
-# Fixture pour le client API
-@pytest.fixture
-def client():
-    return TestClient(app)
-
-# Fixture pour créer un utilisateur de test et obtenir un token d'authentification
-@pytest.fixture
-def auth_client():
-    """Crée un utilisateur de test et retourne un client API authentifié"""
-    client = TestClient(app)
-    
-    # Créer un utilisateur de test avec un nom unique
-    unique_id = uuid.uuid4().hex[:8]
-    user_data = {
-        "username": f"test_jedi_{unique_id}",
-        "email": f"jedi_{unique_id}@test.com",
-        "password": "Force123Jedi",
-        "role": "padawan"
-    }
-    try:
-        # Enregistrer l'utilisateur
-        response = client.post("/api/users/", json=user_data)
-        if response.status_code != 201:
-            pytest.skip(f"Impossible de créer l'utilisateur de test: {response.text}")
-        
-        # Authentification
-        login_data = {
-            "username": user_data["username"],
-            "password": user_data["password"]
-        }
-        response = client.post("/api/auth/login", json=login_data)
-        if response.status_code != 200:
-            pytest.skip(f"Impossible d'authentifier l'utilisateur de test: {response.text}")
-        
-        token = response.json()["access_token"]
-        
-        # Retourner un client configuré avec les headers d'authentification
-        client.headers.update({"Authorization": f"Bearer {token}"})
-        
-        return {
-            "client": client,
-            "user_data": user_data,
-            "token": token,
-            "user_id": response.json().get("user_id")
-        }
-    except Exception as e:
-        pytest.skip(f"Erreur pendant la configuration de l'authentification: {str(e)}")
-
-# Engine partagé pour tous les tests (scope session)
 _test_engine = None
 
+
 def get_test_engine():
-    """Obtient ou crée l'engine de test partagé."""
+    """Obtient ou cree l'engine de test partage."""
     global _test_engine
     if _test_engine is None:
-        # SÉCURITÉ CRITIQUE : Utiliser SQLALCHEMY_DATABASE_URL qui utilise TEST_DATABASE_URL si TESTING=True
-        # Ne JAMAIS utiliser settings.DATABASE_URL directement dans les tests
         test_db_url = settings.SQLALCHEMY_DATABASE_URL
-        
-        # Vérification supplémentaire de sécurité
+
         if not test_db_url or test_db_url == settings.DATABASE_URL:
-            # Si SQLALCHEMY_DATABASE_URL n'est pas différent de DATABASE_URL, c'est suspect
             if "test" not in test_db_url.lower() and "localhost" not in test_db_url:
                 raise RuntimeError(
-                    f"🚨 SÉCURITÉ: Tentative d'utiliser la base de production dans les tests!\n"
+                    f"SECURITE: Tentative d'utiliser la base de production dans les tests!\n"
                     f"   SQLALCHEMY_DATABASE_URL={test_db_url}\n"
                     f"   DATABASE_URL={settings.DATABASE_URL}\n"
-                    f"   Assurez-vous que TEST_DATABASE_URL est défini et pointe vers une base de test."
+                    f"   Assurez-vous que TEST_DATABASE_URL est defini."
                 )
-        
+
         _test_engine = create_engine(
             test_db_url,
-            pool_pre_ping=True,  # Vérifie les connexions avant utilisation
-            pool_size=5,  # Nombre de connexions dans le pool
-            max_overflow=10,  # Nombre max de connexions supplémentaires
-            pool_recycle=3600,  # Recycle les connexions après 1h
-            echo=False
+            pool_pre_ping=True,
+            pool_size=5,
+            max_overflow=10,
+            pool_recycle=3600,
+            echo=False,
         )
     return _test_engine
 
-# Fixture pour créer une session de base de données pour les tests
+
 @pytest.fixture
 def db_session():
-    """
-    Crée une session de base de données avec nettoyage automatique et isolation complète.
-    
-    Cette fixture garantit :
-    1. Une nouvelle session pour chaque test (isolation)
+    """Session DB avec rollback automatique et isolation complete.
+
+    Garantit :
+    1. Nouvelle session par test (isolation)
     2. Rollback automatique en cas d'erreur
     3. Fermeture propre de la session
-    4. Gestion robuste des erreurs de transaction
     """
-    engine = get_test_engine()
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    test_engine = get_test_engine()
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
     session = SessionLocal()
-    
+
     try:
         yield session
     except Exception:
-        # En cas d'erreur dans le test, rollback immédiatement
         try:
             session.rollback()
         except Exception:
-            # Si rollback échoue, la session est probablement déjà en erreur
             pass
-        raise  # Re-raise l'erreur pour que pytest la gère
+        raise
     finally:
-        # Toujours nettoyer la session à la fin du test
         try:
-            # Rollback toute transaction non commitée
-            # Note: En tests, on ne commit jamais, on rollback toujours
             if session.is_active:
                 session.rollback()
         except Exception:
-            # Si rollback échoue (session déjà fermée ou en erreur), ignorer
             pass
         finally:
             try:
                 session.close()
             except Exception:
-                # Ignorer les erreurs de fermeture
                 pass
 
-# Fixture pour créer un token expiré
-@pytest.fixture
-def expired_token_client():
-    """Crée un utilisateur de test et retourne un client API avec un token expiré"""
-    client = TestClient(app)
-    
-    # Créer un utilisateur de test avec un nom unique
-    unique_id = uuid.uuid4().hex[:8]
-    user_data = {
-        "username": f"test_jedi_expired_{unique_id}",
-        "email": f"jedi_expired_{unique_id}@test.com",
-        "password": "Force123Jedi",
-        "role": "padawan"
-    }
-    try:
-        # Enregistrer l'utilisateur
-        response = client.post("/api/users/", json=user_data)
-        if response.status_code != 201:
-            pytest.skip(f"Impossible de créer l'utilisateur de test: {response.text}")
-        
-        # Créer manuellement un token expiré
-        user_id = response.json()["id"]
-        
-        # Créer un token expiré (avec une date d'expiration dans le passé)
-        payload = {
-            "sub": user_data["username"],
-            "role": user_data["role"],
-            "type": "access",
-            "exp": datetime.now(timezone.utc) - timedelta(minutes=30)  # Expiré depuis 30 minutes
-        }
-        
-        # Encoder le token avec la clé secrète
-        expired_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
-        
-        # Configurer le client avec le token expiré
-        client.headers.update({"Authorization": f"Bearer {expired_token}"})
-        
-        return {
-            "client": client,
-            "user_data": user_data,
-            "token": expired_token,
-            "user_id": user_id
-        }
-    except Exception as e:
-        pytest.skip(f"Erreur pendant la création du token expiré: {str(e)}")
 
-# Fixture pour créer un refresh token valide
-@pytest.fixture
-def refresh_token_client():
-    """Crée un utilisateur de test et retourne un client API avec un refresh token valide"""
-    client = TestClient(app)
-    
-    # Créer un utilisateur de test avec un nom unique
-    unique_id = uuid.uuid4().hex[:8]
-    user_data = {
-        "username": f"test_jedi_refresh_{unique_id}",
-        "email": f"jedi_refresh_{unique_id}@test.com",
-        "password": "Force123Jedi",
-        "role": "padawan"
-    }
-    try:
-        # Enregistrer l'utilisateur
-        response = client.post("/api/users/", json=user_data)
-        if response.status_code != 201:
-            pytest.skip(f"Impossible de créer l'utilisateur de test: {response.text}")
-        
-        # Authentification pour obtenir les tokens
-        login_data = {
-            "username": user_data["username"],
-            "password": user_data["password"]
-        }
-        response = client.post("/api/auth/login", json=login_data)
-        if response.status_code != 200:
-            pytest.skip(f"Impossible d'authentifier l'utilisateur de test: {response.text}")
-        
-        # Extraire le refresh token
-        tokens = response.json()
-        if "refresh_token" not in tokens:
-            pytest.skip("Le refresh token n'est pas présent dans la réponse")
-            
-        refresh_token = tokens["refresh_token"]
-        
-        return {
-            "client": client,
-            "user_data": user_data,
-            "access_token": tokens["access_token"],
-            "refresh_token": refresh_token,
-            "user_id": tokens.get("user_id")
-        }
-    except Exception as e:
-        pytest.skip(f"Erreur pendant la configuration du refresh token: {str(e)}")
+# ================================================================
+# SECTION 3: HTTP CLIENT FIXTURES (httpx.AsyncClient + Starlette)
+# ================================================================
 
-# Fixture générique pour créer un client authentifié avec un rôle spécifique
-@pytest.fixture
-def role_client(db_session, request):
+@asynccontextmanager
+async def _create_authenticated_client(role="padawan", db_session_for_role=None):
+    """Helper interne: cree un client httpx authentifie avec un role donne.
+
+    - Cree un utilisateur via l'API
+    - Met a jour le role en DB si necessaire
+    - Login pour obtenir le cookie access_token
+    - Yield le client configure + metadata
     """
-    Fixture générique pour créer un client authentifié avec un rôle spécifique.
-    
-    Usage:
-        @pytest.mark.parametrize('role', ['padawan', 'maitre', 'gardien', 'archiviste'])
-        def test_function(role_client):
-            client = role_client(role)
-            # Utiliser le client...
-    
-    Ou pour une fixture spécifique:
-        @pytest.fixture
-        def padawan_client(role_client):
-            return role_client('padawan')
-    """
-    def _make_client(role):
-        # Créer un utilisateur avec le rôle spécifié
+    transport = httpx.ASGITransport(app=starlette_app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
         unique_id = uuid.uuid4().hex[:8]
         user_data = {
-            "username": f"{role}_{unique_id}",
-            "email": f"{role}_{unique_id}@jedi.com",
+            "username": f"test_{role}_{unique_id}",
+            "email": f"{role}_{unique_id}@test.com",
             "password": "Force123Jedi",
-            "role": role
         }
-        
-        # Créer un client
-        test_client = TestClient(app)
-        
+
+        # Creer l'utilisateur via l'API (role PADAWAN par defaut)
+        response = await ac.post("/api/users/", json=user_data)
+        if response.status_code not in (200, 201):
+            pytest.skip(f"Cannot create {role} user: {response.text}")
+
+        # Mettre a jour le role en DB si different de padawan
+        if role != "padawan" and db_session_for_role is not None:
+            user = db_session_for_role.query(User).filter(
+                User.username == user_data["username"]
+            ).first()
+            if user:
+                adapted_role = adapt_enum_for_db("UserRole", role, db_session_for_role)
+                user.role = adapted_role
+                db_session_for_role.commit()
+
+        # Login pour obtenir le cookie
+        login_data = {
+            "username": user_data["username"],
+            "password": user_data["password"],
+        }
+        response = await ac.post("/api/auth/login", json=login_data)
+        if response.status_code != 200:
+            pytest.skip(f"Cannot authenticate {role}: {response.text}")
+
+        tokens = response.json()
+        access_token = tokens["access_token"]
+
+        # Forcer le cookie (en complement du Set-Cookie automatique)
+        ac.cookies.set("access_token", access_token)
+
+        yield {
+            "client": ac,
+            "user_data": user_data,
+            "token": access_token,
+            "user_id": tokens.get("user", {}).get("id"),
+            "role": role,
+        }
+
+
+@pytest.fixture
+def test_app():
+    """L'application Starlette pour les tests."""
+    return starlette_app
+
+
+@pytest.fixture
+async def client():
+    """Client HTTP non authentifie pour tester l'API Starlette."""
+    transport = httpx.ASGITransport(app=starlette_app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+
+@pytest.fixture
+async def auth_client():
+    """Client HTTP authentifie (role PADAWAN). Cookie access_token configure."""
+    async with _create_authenticated_client(role="padawan") as result:
+        yield result
+
+
+@pytest.fixture
+async def expired_token_client():
+    """Client avec un token expire (pour tester le rejet d'auth)."""
+    transport = httpx.ASGITransport(app=starlette_app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
+        unique_id = uuid.uuid4().hex[:8]
+        user_data = {
+            "username": f"test_jedi_expired_{unique_id}",
+            "email": f"jedi_expired_{unique_id}@test.com",
+            "password": "Force123Jedi",
+        }
+
         try:
-            # Enregistrer l'utilisateur
-            print(f"Tentative d'enregistrement de l'utilisateur avec rôle: {role}")
-            response = test_client.post("/api/users/", json=user_data)
-            print(f"Statut de la réponse d'enregistrement: {response.status_code}")
-            if response.status_code != 201:
-                print(f"Réponse d'erreur d'enregistrement: {response.text}")
-                pytest.skip(f"Impossible de créer l'utilisateur de test: {response.text}")
-            
-            # Authentification
-            login_data = {
-                "username": user_data["username"],
-                "password": user_data["password"]
+            # Creer l'utilisateur
+            response = await ac.post("/api/users/", json=user_data)
+            if response.status_code not in (200, 201):
+                pytest.skip(f"Cannot create test user: {response.text}")
+
+            # Creer un token expire manuellement
+            payload = {
+                "sub": user_data["username"],
+                "role": "padawan",
+                "type": "access",
+                "exp": datetime.now(timezone.utc) - timedelta(minutes=30),
             }
-            print(f"Tentative d'authentification de l'utilisateur: {login_data['username']}")
-            response = test_client.post("/api/auth/login", json=login_data)
-            print(f"Statut de la réponse d'authentification: {response.status_code}")
-            if response.status_code != 200:
-                print(f"Réponse d'erreur d'authentification: {response.text}")
-                print(f"Headers de réponse: {response.headers}")
-                pytest.skip(f"Impossible d'authentifier l'utilisateur de test: {response.text}")
-            
-            # Extraire le token
-            print("Extraction du token...")
-            tokens = response.json()
-            print(f"Contenu de la réponse: {tokens}")
-            access_token = tokens["access_token"]
-            
-            # Configurer le client avec le token
-            test_client.headers.update({"Authorization": f"Bearer {access_token}"})
-            print("Client authentifié configuré avec succès")
-            
-            return {
-                "client": test_client,
+            expired_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+
+            # Configurer le cookie avec le token expire
+            ac.cookies.set("access_token", expired_token)
+
+            yield {
+                "client": ac,
                 "user_data": user_data,
-                "token": access_token,
-                "user_id": tokens.get("user_id"),
-                "role": role
+                "token": expired_token,
+                "user_id": response.json().get("id"),
             }
         except Exception as e:
-            import traceback
-            print(f"Erreur complète: {str(e)}")
-            print(f"Traceback: {traceback.format_exc()}")
-            pytest.skip(f"Erreur pendant la configuration du client {role}: {str(e)}")
-    
-    # Si un rôle spécifique est demandé via paramètre de requête
-    if hasattr(request, 'param'):
-        return _make_client(request.param)
-    
-    # Sinon, retourner la fonction
+            pytest.skip(f"Error during expired token setup: {str(e)}")
+
+
+@pytest.fixture
+async def refresh_token_client():
+    """Client avec un refresh token valide."""
+    transport = httpx.ASGITransport(app=starlette_app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
+        unique_id = uuid.uuid4().hex[:8]
+        user_data = {
+            "username": f"test_jedi_refresh_{unique_id}",
+            "email": f"jedi_refresh_{unique_id}@test.com",
+            "password": "Force123Jedi",
+        }
+
+        try:
+            response = await ac.post("/api/users/", json=user_data)
+            if response.status_code not in (200, 201):
+                pytest.skip(f"Cannot create test user: {response.text}")
+
+            login_data = {
+                "username": user_data["username"],
+                "password": user_data["password"],
+            }
+            response = await ac.post("/api/auth/login", json=login_data)
+            if response.status_code != 200:
+                pytest.skip(f"Cannot authenticate: {response.text}")
+
+            tokens = response.json()
+            if "refresh_token" not in tokens:
+                pytest.skip("Refresh token not in login response")
+
+            ac.cookies.set("access_token", tokens["access_token"])
+
+            yield {
+                "client": ac,
+                "user_data": user_data,
+                "access_token": tokens["access_token"],
+                "refresh_token": tokens["refresh_token"],
+                "user_id": tokens.get("user", {}).get("id"),
+            }
+        except Exception as e:
+            pytest.skip(f"Error during refresh token setup: {str(e)}")
+
+
+@pytest.fixture
+def role_client(db_session):
+    """Factory fixture pour creer un client authentifie avec un role specifique.
+
+    Usage (dans un test async):
+        async def test_admin(role_client):
+            async with role_client('maitre') as result:
+                client = result["client"]
+                response = await client.get("/api/users/me")
+                assert response.status_code == 200
+    """
+    def _make_client(role):
+        return _create_authenticated_client(role=role, db_session_for_role=db_session)
+
     return _make_client
 
-# Fixtures spécifiques pour chaque rôle, utilisant la fixture générique
+
+# Raccourcis par role
 @pytest.fixture
-def padawan_client(role_client):
-    """Crée un client authentifié avec un rôle PADAWAN."""
-    return role_client('padawan')
+async def padawan_client():
+    """Client authentifie avec role PADAWAN."""
+    async with _create_authenticated_client(role="padawan") as result:
+        yield result
+
 
 @pytest.fixture
-def maitre_client(role_client):
-    """Crée un client authentifié avec un rôle MAITRE."""
-    return role_client('maitre')
+async def maitre_client(db_session):
+    """Client authentifie avec role MAITRE."""
+    async with _create_authenticated_client(role="maitre", db_session_for_role=db_session) as result:
+        yield result
+
 
 @pytest.fixture
-def gardien_client(role_client):
-    """Crée un client authentifié avec un rôle GARDIEN."""
-    return role_client('gardien')
+async def gardien_client(db_session):
+    """Client authentifie avec role GARDIEN."""
+    async with _create_authenticated_client(role="gardien", db_session_for_role=db_session) as result:
+        yield result
+
 
 @pytest.fixture
-def archiviste_client(role_client):
-    """Crée un client authentifié avec un rôle ARCHIVISTE."""
-    return role_client('archiviste')
+async def archiviste_client(db_session):
+    """Client authentifie avec role ARCHIVISTE."""
+    async with _create_authenticated_client(role="archiviste", db_session_for_role=db_session) as result:
+        yield result
+
+
+# ================================================================
+# SECTION 4: MOCK FIXTURES (donnees de test en memoire)
+# ================================================================
 
 @pytest.fixture
 def mock_exercise():
-    """
-    Fixture pour générer un exercice de test personnalisable.
-    
+    """Factory pour generer des exercices de test (dict).
+
     Usage:
-        def test_function(mock_exercise):
-            # Exercice par défaut
-            exercise = mock_exercise()
-            
-            # Exercice personnalisé
-            custom_exercise = mock_exercise(
-                title="Titre personnalisé",
-                exercise_type="multiplication",
-                difficulty="maitre",
-                question="Combien font 7x8?",
-                correct_answer="56",
-                choices=["48", "56", "63", "64"]
-            )
+        exercise = mock_exercise()
+        custom = mock_exercise(title="Custom", difficulty="maitre")
     """
     def _create_exercise(**kwargs):
-        # Valeurs par défaut
         default_values = {
             "title": "Exercice de test",
-            "exercise_type": "ADDITION",  # Normalisé en majuscules pour PostgreSQL
-            "difficulty": "INITIE",  # Normalisé en majuscules pour PostgreSQL
+            "exercise_type": "ADDITION",
+            "difficulty": "INITIE",
             "question": "Combien font 2+2?",
             "correct_answer": "4",
             "choices": ["3", "4", "5", "6"],
             "ai_generated": False,
             "is_active": True,
-            "is_archived": False
+            "is_archived": False,
         }
-        
-        # Combiner les valeurs par défaut avec les valeurs personnalisées
         exercise_data = {**default_values, **kwargs}
-        
-        # Normaliser exercise_type et difficulty en majuscules si ce sont des strings
-        if "exercise_type" in exercise_data and isinstance(exercise_data["exercise_type"], str):
+
+        if isinstance(exercise_data.get("exercise_type"), str):
             exercise_data["exercise_type"] = exercise_data["exercise_type"].upper()
-        if "difficulty" in exercise_data and isinstance(exercise_data["difficulty"], str):
+        if isinstance(exercise_data.get("difficulty"), str):
             exercise_data["difficulty"] = exercise_data["difficulty"].upper()
-        
+
         return exercise_data
-    
+
     return _create_exercise
+
 
 @pytest.fixture
 def mock_user():
-    """
-    Fixture pour créer des données d'utilisateur de test.
-    
-    Returns:
-        Fonction pour créer des données d'utilisateur avec des paramètres personnalisables.
+    """Factory pour creer des donnees d'utilisateur de test (dict).
+
+    Usage:
+        user_data = mock_user()
+        admin = mock_user(role='maitre', username='admin_test')
     """
     def _create_user(**kwargs):
-        """Crée un dictionnaire avec des données d'utilisateur de test."""
-        from app.utils.db_helpers import adapt_enum_for_db
-        
-        # Valeurs par défaut
-        username = kwargs.get('username', unique_username())
-        email = kwargs.get('email', unique_email())
-        password = kwargs.get('password', 'TestPass123!')
-        
-        # Créer le dictionnaire de données utilisateur
-        user_data = {
-            'username': username,
-            'email': email,
-            'password': password,
-            'full_name': kwargs.get('full_name', 'Utilisateur de Test'),
-            'role': kwargs.get('role', 'padawan'),  # La valeur brute sera adaptée par adapted_dict_to_user
-            'is_active': kwargs.get('is_active', True),
-            'grade_level': kwargs.get('grade_level', 3),
-            'learning_style': kwargs.get('learning_style', 'visuel'),
-            'preferred_difficulty': kwargs.get('preferred_difficulty', 'initie'),
-            'preferred_theme': kwargs.get('preferred_theme'),
-            'accessibility_settings': kwargs.get('accessibility_settings')
+        username = kwargs.get("username", unique_username())
+        email = kwargs.get("email", unique_email())
+        password = kwargs.get("password", "TestPass123!")
+
+        return {
+            "username": username,
+            "email": email,
+            "password": password,
+            "full_name": kwargs.get("full_name", "Utilisateur de Test"),
+            "role": kwargs.get("role", "padawan"),
+            "is_active": kwargs.get("is_active", True),
+            "grade_level": kwargs.get("grade_level", 3),
+            "learning_style": kwargs.get("learning_style", "visuel"),
+            "preferred_difficulty": kwargs.get("preferred_difficulty", "initie"),
+            "preferred_theme": kwargs.get("preferred_theme"),
+            "accessibility_settings": kwargs.get("accessibility_settings"),
         }
-        
-        return user_data
-    
+
     return _create_user
+
 
 @pytest.fixture
 def mock_request():
-    """
-    Fixture pour créer une requête mock standardisée.
-    
+    """Factory pour creer des requetes mock compatibles Starlette.
+
     Usage:
-        def test_function(mock_request):
-            # Requête par défaut
-            request = mock_request()
-            
-            # Requête personnalisée avec utilisateur authentifié
-            request_auth = mock_request(authenticated=True, role="maitre")
-            
-            # Requête avec données JSON spécifiques
-            request_data = mock_request(json_data={"key": "value"})
-            
-            # Requête avec paramètres de chemin
-            request_path = mock_request(path_params={"exercise_id": 42})
+        request = mock_request()
+        auth_request = mock_request(authenticated=True, role="maitre")
+        data_request = mock_request(json_data={"key": "value"})
     """
-    def _create_request(authenticated=False, role="padawan", json_data=None, path_params=None, query_params=None):
-        from unittest.mock import MagicMock
-        
-        # Créer un mock de requête
+    def _create_request(
+        authenticated=False,
+        role="padawan",
+        json_data=None,
+        path_params=None,
+        query_params=None,
+    ):
         mock_req = MagicMock()
-        
-        # Configurer l'authentification
+
+        # Authentification
         if authenticated:
-            unique_id = uuid.uuid4().hex[:8]
+            uid = uuid.uuid4().hex[:8]
             mock_req.user = {
                 "id": 1,
-                "username": f"test_user_{unique_id}",
+                "username": f"test_user_{uid}",
                 "role": role,
-                "is_authenticated": True
+                "is_authenticated": True,
             }
         else:
             mock_req.user = {"is_authenticated": False}
-        
-        # Configurer les données JSON
-        if json_data:
-            mock_req.json.return_value = json_data
-            # Ajouter model_dump_json() pour retourner les données JSON
-            mock_req.model_dump_json.return_value = json_data
-        
-        # Configurer les paramètres de chemin
+
+        # JSON body (async pour Starlette)
+        mock_req.json = AsyncMock(return_value=json_data or {})
+
+        # Cookies
+        mock_req.cookies = {}
+        if authenticated:
+            mock_req.cookies["access_token"] = "mock_test_token"
+
+        # Path params, query params, headers
         mock_req.path_params = path_params or {}
-        
-        # Configurer les paramètres de requête
         mock_req.query_params = query_params or {}
-        
+        mock_req.headers = {}
+
         return mock_req
-    
+
     return _create_request
+
 
 @pytest.fixture
 def mock_api_response():
-    """
-    Fixture pour simuler une réponse d'API.
-    
+    """Factory pour simuler une reponse HTTP.
+
     Usage:
-        def test_function(mock_api_response):
-            # Réponse réussie par défaut (200)
-            response = mock_api_response()
-            
-            # Réponse avec statut et données personnalisés
-            error_response = mock_api_response(
-                status_code=404,
-                data={"detail": "Ressource non trouvée"},
-                headers={"X-Error-Code": "NOT_FOUND"}
-            )
+        response = mock_api_response()
+        error = mock_api_response(status_code=404, data={"detail": "Not found"})
     """
     def _create_response(status_code=200, data=None, headers=None):
-        from unittest.mock import MagicMock
-        
-        # Créer un mock de réponse
         mock_resp = MagicMock()
-        
-        # Configurer le statut, les données et les en-têtes
         mock_resp.status_code = status_code
         mock_resp.headers = headers or {}
-        
-        # Configurer les données JSON
         mock_resp.json.return_value = data or {}
-        
-        # Ajouter model_dump_json() pour retourner les données JSON
-        mock_resp.model_dump_json.return_value = data or {}
-        
-        # Pour les réponses texte
+
         if isinstance(data, str):
             mock_resp.text = data
         else:
-            import json
             mock_resp.text = json.dumps(data or {})
-        
+
         return mock_resp
-    
+
     return _create_response
 
-# Fixtures pour gérer les valeurs d'enum PostgreSQL
+
+# ================================================================
+# SECTION 5: ENUM & MODEL FIXTURES
+# ================================================================
 
 @pytest.fixture
 def db_enum_values(db_session):
-    """
-    Fournit les valeurs d'enum pour PostgreSQL.
-    Cette fixture permet d'utiliser les valeurs correctes pour les tests.
-    """
-    from app.utils.db_helpers import get_all_enum_values
+    """Fournit les valeurs d'enum PostgreSQL."""
     return get_all_enum_values()
+
 
 @pytest.fixture
 def logic_challenge_data(db_session):
-    """Données de test pour les défis logiques avec valeurs d'enum adaptées."""
-    from app.models.logic_challenge import LogicChallengeType, AgeGroup
-    from app.utils.db_helpers import get_enum_value
-    
+    """Donnees de test pour les defis logiques avec valeurs d'enum adaptees."""
     return {
         "title": "Test Logic Challenge",
-        "description": "Un défi logique pour les tests",
-        "challenge_type": get_enum_value(LogicChallengeType, LogicChallengeType.SEQUENCE.value, db_session),
+        "description": "Un defi logique pour les tests",
+        "challenge_type": get_enum_value(
+            LogicChallengeType, LogicChallengeType.SEQUENCE.value, db_session
+        ),
         "age_group": get_enum_value(AgeGroup, AgeGroup.GROUP_10_12.value, db_session),
         "correct_answer": "42",
-        "solution_explanation": "La réponse est toujours 42",
-        "hints": ["indice1", "indice2", "indice3"]  # Format JSON liste
+        "solution_explanation": "La reponse est toujours 42",
+        "hints": ["indice1", "indice2", "indice3"],
     }
+
 
 @pytest.fixture
 def user_data(db_session):
-    """
-    Fournit des données pour créer un utilisateur avec les valeurs PostgreSQL correctes.
-    """
-    from app.models.user import UserRole
-    from app.utils.db_helpers import get_enum_value
-    import uuid
-    
-    # Générer un ID unique pour éviter les conflits
-    unique_id = uuid.uuid4().hex[:8]
-    
+    """Donnees pour creer un utilisateur avec les valeurs PostgreSQL correctes."""
+    uid = uuid.uuid4().hex[:8]
     return {
-        "username": f"testuser_{unique_id}",
-        "email": f"test_{unique_id}@example.com",
+        "username": f"testuser_{uid}",
+        "email": f"test_{uid}@example.com",
         "hashed_password": "hashed_password",
-        "role": get_enum_value(UserRole, UserRole.MAITRE.value, db_session)
+        "role": get_enum_value(UserRole, UserRole.MAITRE.value, db_session),
     }
+
+
+# ================================================================
+# SECTION 6: LOGIC CHALLENGE DB FIXTURE
+# ================================================================
 
 @pytest.fixture(scope="function")
 def logic_challenge_db(db_session):
+    """Session PostgreSQL avec donnees de defi logique pre-creees.
+
+    Cree un utilisateur de test + un defi logique, puis nettoie apres le test.
+    SECURITE: Seules les donnees prefixees test_ sont touchees.
     """
-    Utilise la session PostgreSQL existante pour les tests de défis logiques.
-    Cette fixture réutilise la base PostgreSQL au lieu de créer une base SQLite.
-    """
-    from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt, LogicChallengeType, AgeGroup
-    from app.models.user import User, UserRole
-    from app.core.security import get_password_hash
-    from app.utils.db_helpers import get_enum_value
-    from sqlalchemy import text
-    import uuid
-    
-    # Générer un ID unique pour ce test
     unique_id = uuid.uuid4().hex[:8]
-    
-    # Nettoyer UNIQUEMENT les données de test (préfixe test_) pour ce test
-    # SECURITE : ne jamais faire DELETE sans filtre sur des tables de production
+
+    # Nettoyage pre-test des donnees de test existantes
     try:
-        db_session.execute(text("DELETE FROM logic_challenge_attempts WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'test_%')"))
-        db_session.execute(text("DELETE FROM attempts WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'test_%')"))
+        db_session.execute(
+            text("DELETE FROM logic_challenge_attempts WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'test_%')")
+        )
+        db_session.execute(
+            text("DELETE FROM attempts WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'test_%')")
+        )
         db_session.execute(text("DELETE FROM logic_challenges WHERE title LIKE 'Test %'"))
         db_session.execute(text("DELETE FROM users WHERE username LIKE 'test_%'"))
         db_session.commit()
-    except Exception as e:
+    except Exception:
         db_session.rollback()
-        # Fallback avec SQLAlchemy - toujours filtrer sur les données de test
+        # Fallback ORM - toujours filtrer sur les donnees de test
         test_users = db_session.query(User).filter(User.username.like("test_%")).all()
         test_user_ids = [u.id for u in test_users]
-        
+
         if test_user_ids:
-            db_session.query(LogicChallengeAttempt).filter(LogicChallengeAttempt.user_id.in_(test_user_ids)).delete(synchronize_session=False)
-            db_session.query(Attempt).filter(Attempt.user_id.in_(test_user_ids)).delete(synchronize_session=False)
-        
-        db_session.query(LogicChallenge).filter(LogicChallenge.title.like("Test %")).delete(synchronize_session=False)
-        
+            db_session.query(LogicChallengeAttempt).filter(
+                LogicChallengeAttempt.user_id.in_(test_user_ids)
+            ).delete(synchronize_session=False)
+            db_session.query(Attempt).filter(
+                Attempt.user_id.in_(test_user_ids)
+            ).delete(synchronize_session=False)
+
+        db_session.query(LogicChallenge).filter(
+            LogicChallenge.title.like("Test %")
+        ).delete(synchronize_session=False)
+
         for user in test_users:
             db_session.delete(user)
-        
+
         db_session.commit()
-    
+
     try:
-        # Créer un utilisateur de test unique
+        # Creer un utilisateur de test
         test_user = User(
             username=f"test_jedi_{unique_id}",
             email=f"test_{unique_id}@jedi.com",
             hashed_password=get_password_hash("testpassword"),
-            role=get_enum_value(UserRole, UserRole.GARDIEN)
+            role=get_enum_value(UserRole, UserRole.GARDIEN),
         )
         db_session.add(test_user)
         db_session.commit()
-        
-        # Créer un défi logique de test
+
+        # Creer un defi logique de test
         test_challenge = LogicChallenge(
             title=f"Test Challenge {unique_id}",
-            description="Description du défi de test",
+            description="Description du defi de test",
             challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.SEQUENCE),
             age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12),
             correct_answer="42",
-            solution_explanation="La réponse est 42",
-            hints='["Indice 1: C\'est un nombre", "Indice 2: C\'est un nombre entre 40 et 50", "Indice 3: C\'est la réponse à la question ultime"]',
+            solution_explanation="La reponse est 42",
+            hints='["Indice 1", "Indice 2", "Indice 3"]',
             creator_id=test_user.id,
             difficulty_rating=3.0,
-            estimated_time_minutes=15
+            estimated_time_minutes=15,
         )
         db_session.add(test_challenge)
         db_session.commit()
-        
+
         yield db_session
-        
+
     finally:
-        # Nettoyer après le test - UNIQUEMENT les données creees par ce test
+        # Nettoyage post-test
         try:
-            db_session.execute(text(f"DELETE FROM logic_challenge_attempts WHERE user_id IN (SELECT id FROM users WHERE username = 'test_jedi_{unique_id}')"))
-            db_session.execute(text(f"DELETE FROM logic_challenges WHERE title LIKE 'Test Challenge {unique_id}%'"))
-            db_session.execute(text(f"DELETE FROM users WHERE username = 'test_jedi_{unique_id}'"))
+            db_session.execute(
+                text(
+                    f"DELETE FROM logic_challenge_attempts WHERE user_id IN "
+                    f"(SELECT id FROM users WHERE username = 'test_jedi_{unique_id}')"
+                )
+            )
+            db_session.execute(
+                text(f"DELETE FROM logic_challenges WHERE title LIKE 'Test Challenge {unique_id}%'")
+            )
+            db_session.execute(
+                text(f"DELETE FROM users WHERE username = 'test_jedi_{unique_id}'")
+            )
             db_session.commit()
         except Exception:
             db_session.rollback()
-            # Fallback avec SQLAlchemy - toujours filtrer
-            test_user = db_session.query(User).filter(User.username == f"test_jedi_{unique_id}").first()
+            test_user = db_session.query(User).filter(
+                User.username == f"test_jedi_{unique_id}"
+            ).first()
             if test_user:
-                db_session.query(LogicChallengeAttempt).filter(LogicChallengeAttempt.user_id == test_user.id).delete(synchronize_session=False)
-            db_session.query(LogicChallenge).filter(LogicChallenge.title.like(f"Test Challenge {unique_id}%")).delete(synchronize_session=False)
+                db_session.query(LogicChallengeAttempt).filter(
+                    LogicChallengeAttempt.user_id == test_user.id
+                ).delete(synchronize_session=False)
+            db_session.query(LogicChallenge).filter(
+                LogicChallenge.title.like(f"Test Challenge {unique_id}%")
+            ).delete(synchronize_session=False)
             if test_user:
                 db_session.delete(test_user)
             db_session.commit()
 
-from app.models.user import User, UserRole
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
-from app.models.attempt import Attempt
-from app.models.logic_challenge import LogicChallenge, LogicChallengeType, AgeGroup
-from app.models.progress import Progress
-from app.models.recommendation import Recommendation
-from app.core.config import settings
-from app.core.security import create_access_token, get_password_hash
-from app.utils.db_helpers import (
-    get_enum_value, 
-    adapt_enum_for_db
-)
 
-# Ajouter l'import du nouveau module de nettoyage
-from tests.utils.test_data_cleanup import TestDataManager
+# ================================================================
+# SECTION 7: AUTO CLEANUP
+# ================================================================
 
 @pytest.fixture(autouse=True, scope="function")
 def auto_cleanup_test_data(db_session):
+    """Nettoyage automatique des donnees de test apres chaque test.
+
+    - S'execute automatiquement (autouse=True)
+    - Identifie les donnees de test via TestDataManager
+    - Preserve les utilisateurs permanents
+    - Gere les sessions en etat d'erreur (InFailedSqlTransaction)
     """
-    Fixture de nettoyage automatique des données de test.
-    S'exécute automatiquement après chaque test pour garantir l'isolation.
-    
-    Cette fixture :
-    1. S'exécute après chaque test (autouse=True)
-    2. Identifie automatiquement les données de test
-    3. Les supprime de manière sécurisée
-    4. Préserve les utilisateurs permanents (ObiWan, maitre_yoda, etc.)
-    5. Respecte les contraintes de clés étrangères
-    6. Gère les sessions en état d'erreur (InFailedSqlTransaction)
-    """
-    # Le test s'exécute ici
     yield
-    
-    # Nettoyage automatique après le test
+
     try:
-        # Vérifier l'état de la session avant nettoyage
-        # Si la session est en état d'erreur, créer une nouvelle session pour le nettoyage
         from sqlalchemy.exc import InvalidRequestError, StatementError
-        
+
         try:
-            # Tester si la session est utilisable
-            from sqlalchemy import text
-            from sqlalchemy.exc import InvalidRequestError, StatementError
             db_session.execute(text("SELECT 1"))
         except (InvalidRequestError, StatementError, Exception):
-            # La session est en état d'erreur, créer une nouvelle session pour le nettoyage
-            from sqlalchemy.orm import Session
-            engine = get_test_engine()
-            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+            # Session en erreur : creer une nouvelle session pour le nettoyage
+            test_engine = get_test_engine()
+            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
             cleanup_session = SessionLocal()
             try:
                 manager = TestDataManager(cleanup_session)
                 result = manager.cleanup_test_data(dry_run=False)
-                
-                if result.get('success', False):
-                    total_deleted = result.get('total_deleted', 0)
-                    if total_deleted > 0:
-                        print(f"\n🧹 Nettoyage automatique : {total_deleted} éléments de test supprimés")
-                elif not result.get('dry_run', False):
-                    error = result.get('error', 'Erreur inconnue')
-                    print(f"\n⚠️ Erreur lors du nettoyage automatique : {error}")
+                if result.get("success") and result.get("total_deleted", 0) > 0:
+                    print(f"\n  Nettoyage: {result['total_deleted']} elements supprimes")
             finally:
                 cleanup_session.close()
             return
-        
-        # Si la session est utilisable, utiliser la session existante
+
         manager = TestDataManager(db_session)
         result = manager.cleanup_test_data(dry_run=False)
-        
-        if result.get('success', False):
-            total_deleted = result.get('total_deleted', 0)
-            if total_deleted > 0:
-                print(f"\n🧹 Nettoyage automatique : {total_deleted} éléments de test supprimés")
-        elif not result.get('dry_run', False):
-            # Erreur lors du nettoyage
-            error = result.get('error', 'Erreur inconnue')
-            print(f"\n⚠️ Erreur lors du nettoyage automatique : {error}")
-            
+        if result.get("success") and result.get("total_deleted", 0) > 0:
+            print(f"\n  Nettoyage: {result['total_deleted']} elements supprimes")
+
     except Exception as cleanup_error:
-        # En cas d'erreur critique, on log mais on ne fait pas échouer le test
-        # Le rollback dans db_session s'occupera du nettoyage
-        print(f"\n❌ Erreur critique lors du nettoyage automatique : {str(cleanup_error)}")
+        print(f"\n  Erreur nettoyage: {str(cleanup_error)}")
+
 
 @pytest.fixture
 def test_data_manager(db_session):
-    """
-    Fixture pour obtenir une instance de TestDataManager.
-    Utile pour les tests qui ont besoin de contrôler manuellement le nettoyage.
-    """
+    """Instance de TestDataManager pour controle manuel du nettoyage."""
     return TestDataManager(db_session)
+
 
 @pytest.fixture
 def isolated_test_user(db_session):
-    """
-    Fixture pour créer un utilisateur de test avec nettoyage automatique garanti.
-    Utilise le nouveau système de gestion des données de test.
-    """
+    """Utilisateur de test avec nettoyage automatique garanti."""
     manager = TestDataManager(db_session)
     return manager.create_test_user(
         username_prefix="isolated_test",
-        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
     )

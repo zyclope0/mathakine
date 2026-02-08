@@ -5,7 +5,7 @@ import pytest
 import json
 from unittest.mock import patch, MagicMock
 import asyncio
-from fastapi.responses import JSONResponse
+from starlette.responses import JSONResponse
 
 from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
 from app.services.exercise_service import ExerciseService

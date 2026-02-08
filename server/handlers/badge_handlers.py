@@ -46,7 +46,7 @@ async def get_user_badges(request):
     except Exception as user_badges_error:
         logger.error(f"Erreur lors de la récupération des badges utilisateur: {user_badges_error}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": str(user_badges_error)}, status_code=500)
 
 async def get_available_badges(request: Request):
     """Récupérer tous les badges disponibles avec traductions"""
@@ -106,7 +106,7 @@ async def check_user_badges(request):
     except Exception as badge_verification_error:
         logger.error(f"Erreur lors de la vérification forcée des badges: {badge_verification_error}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": str(badge_verification_error)}, status_code=500)
 
 async def get_user_gamification_stats(request):
     """Récupérer les statistiques de gamification d'un utilisateur"""
@@ -175,7 +175,7 @@ async def get_user_gamification_stats(request):
     except Exception as gamification_stats_error:
         logger.error(f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": str(gamification_stats_error)}, status_code=500)
 
 
 async def get_user_badges_progress(request: Request):

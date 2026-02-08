@@ -670,11 +670,11 @@ def delete_user(
     except Exception as user_db_error:
         db.rollback()
         stack_trace = traceback.format_exc()
-        logger.error(f"Erreur lors de la suppression de l'utilisateur {user_id}: {str(e)}")
+        logger.error(f"Erreur lors de la suppression de l'utilisateur {user_id}: {str(user_db_error)}")
         logger.error(f"Stack trace: {stack_trace}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors de la suppression de l'utilisateur: {str(e)}"
+            detail=f"Erreur lors de la suppression de l'utilisateur: {str(user_db_error)}"
         )
 
 

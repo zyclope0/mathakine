@@ -4,6 +4,7 @@ Ce fichier contient toutes les constantes utilisées dans l'application.
 """
 from app.core.logging_config import get_logger
 from app.models.exercise import DifficultyLevel, ExerciseType
+from app.models.logic_challenge import AgeGroup
 
 logger = get_logger(__name__)
 
@@ -73,12 +74,12 @@ class AgeGroups:
     ALL_GROUPS = [GROUP_6_8, GROUP_9_11, GROUP_12_14, GROUP_15_17, ADULT, ALL_AGES]
     
     # Mapping pour la normalisation des groupes d'âge
-    # Inclut tous les formats possibles du frontend et de l'API
+    # Inclut tous les formats possibles du frontend et de l'API (age_*, GROUP_* pour challenges)
     AGE_ALIASES = {
-        GROUP_6_8: ["6-8", "6-8 ans", "6 to 8 ans", "6_8", "group_6_8", "6-8ans"],
-        GROUP_9_11: ["9-11", "9-11 ans", "9 to 11 ans", "9_11", "group_9_11", "9-11ans", "10-12"],
-        GROUP_12_14: ["12-14", "12-14 ans", "12 to 14 ans", "12_14", "group_12_14", "12-14ans", "13-15"],
-        GROUP_15_17: ["15-17", "15-17 ans", "15 to 17 ans", "15_17", "group_15_17", "15-17ans"],
+        GROUP_6_8: ["6-8", "6-8 ans", "6 to 8 ans", "6_8", "group_6_8", "GROUP_6_8", "age_6_8", "6-8ans"],
+        GROUP_9_11: ["9-11", "9-11 ans", "9 to 11 ans", "9_11", "group_9_11", "GROUP_9_12", "GROUP_10_12", "age_9_12", "age_10_12", "9-11ans", "10-12"],
+        GROUP_12_14: ["12-14", "12-14 ans", "12 to 14 ans", "12_14", "group_12_14", "GROUP_13_15", "age_13_15", "12-14ans", "13-15"],
+        GROUP_15_17: ["15-17", "15-17 ans", "15 to 17 ans", "15_17", "group_15_17", "GROUP_16_18", "GROUP_15_17", "age_16_18", "15-17ans"],
         ADULT: ["adulte", "adultes", "adult", "adults", "18+", "majeur"],
         ALL_AGES: ["tous-ages", "tous ages", "all ages", "all", "tous", "all_ages", "tousages"],
     }
@@ -365,8 +366,8 @@ def normalize_challenge_type(challenge_type):
     logger.warning(f"Type de challenge non reconnu: '{challenge_type}'")
     return None
 
-# Groupes d'âge challenges (These are effectively replicated now in AgeGroups class above)
-# AGE_GROUPS_DB = ['GROUP_6_8', 'GROUP_9_11', 'GROUP_9_12', 'GROUP_10_12', 'GROUP_13_15', 'GROUP_16_18', 'ALL_AGES']
+# Groupes d'âge pour les challenges (valeurs ENUM PostgreSQL, alignées avec app.models.logic_challenge.AgeGroup)
+AGE_GROUPS_DB = [e.value for e in AgeGroup]
 
 # AGE_GROUP_MAPPING (These are effectively replicated now in AgeGroups.AGE_ALIASES)
 # AGE_GROUP_MAPPING = {

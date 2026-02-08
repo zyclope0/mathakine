@@ -4,7 +4,7 @@ Ces tests vérifient le bon fonctionnement des fonctions liées à l'authentific
 """
 import pytest
 from datetime import datetime, timedelta, timezone
-from fastapi import HTTPException
+from starlette.exceptions import HTTPException
 from unittest.mock import patch, MagicMock
 from jose import jwt
 from sqlalchemy.orm import Session

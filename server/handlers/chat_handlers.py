@@ -289,7 +289,7 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
         import traceback
         traceback.print_exc()
         return JSONResponse(
-            {"error": f"Erreur lors de la génération de la réponse: {str(e)}"},
+            {"error": f"Erreur lors de la génération de la réponse: {str(chat_api_error)}"},
             status_code=500
         )
 
@@ -495,7 +495,7 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
         traceback.print_exc()
         
         async def error_generator():
-            yield f"data: {json.dumps({'type': 'error', 'message': f'Erreur lors de la génération: {str(e)}'})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'message': f'Erreur lors de la génération: {str(chat_stream_error)}'})}\n\n"
         
         return StreamingResponse(
             error_generator(),

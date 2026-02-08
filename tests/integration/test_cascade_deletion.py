@@ -66,7 +66,7 @@ def setup_exercise_with_attempts(db_session):
     }
 
 
-def test_exercise_cascade_deletion(db_session, setup_exercise_with_attempts):
+async def test_exercise_cascade_deletion(db_session, setup_exercise_with_attempts):
     """Teste que la suppression d'un exercice supprime également ses tentatives"""
     data = setup_exercise_with_attempts
     exercise_id = data["exercise_id"]
@@ -141,7 +141,7 @@ def setup_logic_challenge_with_attempts(db_session):
     }
 
 
-def test_logic_challenge_cascade_deletion(db_session, setup_logic_challenge_with_attempts):
+async def test_logic_challenge_cascade_deletion(db_session, setup_logic_challenge_with_attempts):
     """Teste que la suppression d'un défi logique supprime également ses tentatives"""
     data = setup_logic_challenge_with_attempts
     challenge_id = data["challenge_id"]
@@ -167,7 +167,7 @@ def test_logic_challenge_cascade_deletion(db_session, setup_logic_challenge_with
         assert attempt is None
 
 
-def test_user_cascade_deletion(db_session):
+async def test_user_cascade_deletion(db_session):
     """Teste que la suppression d'un utilisateur supprime également ses tentatives"""
     # Créer un utilisateur spécifique pour ce test
     user = User(
@@ -354,7 +354,7 @@ def setup_user_with_recommendations(db_session):
     }
 
 
-def test_user_recommendations_cascade_deletion(db_session, setup_user_with_recommendations):
+async def test_user_recommendations_cascade_deletion(db_session, setup_user_with_recommendations):
     """Teste que la suppression d'un utilisateur supprime également ses recommandations"""
     data = setup_user_with_recommendations
     user_id = data["user_id"]
@@ -380,7 +380,7 @@ def test_user_recommendations_cascade_deletion(db_session, setup_user_with_recom
         assert recommendation is None
 
 
-def test_exercise_recommendations_no_cascade(db_session, setup_user_with_recommendations):
+async def test_exercise_recommendations_no_cascade(db_session, setup_user_with_recommendations):
     """Teste que la suppression d'un exercice ne supprime pas les recommandations associées,
     mais plutôt met à NULL la référence à l'exercice (SET NULL)"""
     data = setup_user_with_recommendations

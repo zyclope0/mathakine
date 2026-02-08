@@ -29,8 +29,8 @@ from app.models.logic_challenge import LogicChallengeAttempt
 logger = logging.getLogger(__name__)
 
 # Cette classe n'est pas un test, c'est un utilitaire
-# pytest: disable=collection
 class TestDataManager:
+    __test__ = False  # Indique a pytest de ne pas collecter cette classe
     """
     Gestionnaire centralisé pour les données de test.
     Implémente une approche académique avec traçabilité complète.

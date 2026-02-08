@@ -877,10 +877,11 @@ Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respe
         )
         
     except Exception as stream_error:
+        err_msg = str(stream_error)
         logger.error(f"Erreur dans generate_ai_exercise_stream: {stream_error}")
         logger.debug(traceback.format_exc())
         async def error_generator():
-            yield f"data: {json.dumps({'type': 'error', 'message': str(stream_error)})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'message': err_msg})}\n\n"
         
         return StreamingResponse(
             error_generator(),

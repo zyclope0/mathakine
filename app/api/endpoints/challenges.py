@@ -434,7 +434,7 @@ def attempt_logic_challenge(
                 "hints": ["Indice non disponible"]
             }
             # Log l'erreur pour debug
-            logger.error(f"Erreur lors de la conversion to_dict() pour le défi {challenge_id}: {e}")
+            logger.error(f"Erreur lors de la conversion to_dict() pour le défi {challenge_id}: {dict_conversion_error}")
         
         is_correct = attempt.answer == challenge_dict["correct_answer"]
 
@@ -538,7 +538,7 @@ def get_challenge_hint(
                 "hints": ["Observez attentivement", "Cherchez un pattern", "Utilisez la logique"]
             }
             # Log l'erreur pour debug
-            logger.error(f"Erreur lors de la conversion to_dict() pour le défi {challenge_id}: {e}")
+            logger.error(f"Erreur lors de la conversion to_dict() pour le défi {challenge_id}: {hint_dict_error}")
         
         hints = challenge_dict.get("hints", [])
         if level < 1 or level > len(hints):
@@ -679,11 +679,11 @@ def delete_logic_challenge(
     except Exception as db_error:
         db.rollback()
         stack_trace = traceback.format_exc()
-        logger.error(f"Erreur lors de la suppression du défi logique {challenge_id}: {str(e)}")
+        logger.error(f"Erreur lors de la suppression du défi logique {challenge_id}: {str(db_error)}")
         logger.error(f"Stack trace: {stack_trace}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors de la suppression du défi logique: {str(e)}"
+            detail=f"Erreur lors de la suppression du défi logique: {str(db_error)}"
         )
 
 @router.get("/api/challenges/start/{challenge_id}")

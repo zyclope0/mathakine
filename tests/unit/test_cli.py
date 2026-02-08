@@ -8,14 +8,20 @@ import threading
 import time
 from app.utils.db_helpers import get_enum_value
 
-# Chemin vers le script CLI
-CLI_SCRIPT_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    , "mathakine_cli.py")
+# Chemin vers le script CLI (peut être archivé après migration Starlette)
+CLI_SCRIPT_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+    "mathakine_cli.py"
+)
 
-# Charger le module CLI sans l'exécuter
-spec = importlib.util.spec_from_file_location("mathakine_cli", CLI_SCRIPT_PATH)
-mathakine_cli = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(mathakine_cli)
+# Charger le module CLI sans l'exécuter (skip si le fichier a été archivé)
+if not os.path.isfile(CLI_SCRIPT_PATH):
+    mathakine_cli = None
+    pytestmark = pytest.mark.skip(reason="mathakine_cli.py non trouvé (archivé)")
+else:
+    spec = importlib.util.spec_from_file_location("mathakine_cli", CLI_SCRIPT_PATH)
+    mathakine_cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mathakine_cli)
 
 
 

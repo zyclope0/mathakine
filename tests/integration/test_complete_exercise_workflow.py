@@ -17,7 +17,7 @@ from app.services.recommendation_service import RecommendationService
 from app.utils.db_helpers import get_enum_value
 
 
-def test_complete_exercise_workflow(db_session):
+async def test_complete_exercise_workflow(db_session):
     """
     Teste le workflow complet d'un exercice, de la création aux statistiques.
     
@@ -199,7 +199,7 @@ def test_complete_exercise_workflow(db_session):
     print("✅ Test du service de recommandations réussi !")
 
 
-def test_exercise_statistics_and_trends(db_session):
+async def test_exercise_statistics_and_trends(db_session):
     """
     Teste la génération et l'analyse des statistiques d'exercices.
     

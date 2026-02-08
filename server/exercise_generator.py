@@ -1030,7 +1030,7 @@ def generate_simple_exercise(exercise_type, age_group):
             
         elif problem_type == "devinette_nombre":
             # Devinette sur un nombre
-            if normalized_difficulty == DifficultyLevels.INITIE:
+            if derived_difficulty == DifficultyLevels.INITIE:
                 # Devinette simple
                 nombre = random.randint(1, 10)
                 indices = []
