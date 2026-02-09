@@ -1,8 +1,8 @@
 # 💻 DEVELOPMENT GUIDE - MATHAKINE
 
-**Version** : 2.0.0  
-**Date** : 20 novembre 2025  
-**Audience** : Développeurs
+**Version** : 3.0.0  
+**Date** : 09 fevrier 2026 (mise a jour)  
+**Audience** : Developpeurs
 
 ---
 
@@ -171,23 +171,29 @@ def get_my_model(db: Session, id: int) -> MyModel | None:
     return db.query(MyModel).filter(MyModel.id == id).first()
 ```
 
-**Créer un handler** (`server/handlers/`)
+**Creer un handler** (`server/handlers/`)
+
+> **Depuis le 09/02/2026** : Utiliser les decorateurs d'authentification de `server/auth.py` au lieu de verifier manuellement le token.
+
 ```python
 # server/handlers/my_model_handlers.py
 from starlette.responses import JSONResponse
+from server.auth import require_auth, optional_auth
 from app.services import my_model_service
 from app.schemas.my_model import MyModelCreate
 
+@require_auth  # Authentification obligatoire - injecte request.state.user
 async def create_my_model_handler(request):
     """POST /api/my-models"""
     try:
+        current_user = request.state.user  # Injecte par @require_auth
         data = await request.json()
         db = request.state.db
         
         # Validation
         model_data = MyModelCreate(**data)
         
-        # Création
+        # Creation
         result = my_model_service.create_my_model(db, model_data)
         
         return JSONResponse({
@@ -200,7 +206,20 @@ async def create_my_model_handler(request):
         return JSONResponse({
             "error": str(creation_error)
         }, status_code=500)
+
+@optional_auth  # Auth optionnelle - request.state.user = None si non connecte
+async def list_my_models_handler(request):
+    """GET /api/my-models"""
+    current_user = request.state.user  # Peut etre None
+    # ...
 ```
+
+**Decorateurs disponibles** (`server/auth.py`) :
+| Decorateur | Usage | Comportement si non authentifie |
+|------------|-------|-------------------------------|
+| `@require_auth` | Endpoints proteges | Retourne 401 JSON |
+| `@optional_auth` | Endpoints mixtes | `request.state.user = None` |
+| `@require_auth_sse` | Streams SSE proteges | Retourne erreur SSE |
 
 **Ajouter route** (`server/routes.py`)
 ```python

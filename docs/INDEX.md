@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique - Mise à jour au 06/02/2026
+> Point d'entree unique - Mise a jour au 09/02/2026
 
 ---
 
@@ -148,6 +148,19 @@ docs/
 
 ## 🔄 Dernières mises à jour
 
+### 09/02/2026
+- ✅ **Vulnerabilites npm corrigees** (3→0) : jspdf mis a jour v4.1.0, xlsx (vulnerable) remplace par exceljs + file-saver
+- ✅ **Decorateurs auth** : `@require_auth`, `@optional_auth`, `@require_auth_sse` dans `server/auth.py` - eliminent 40+ blocs d'authentification dupliques dans 6 fichiers handlers
+- ✅ **exportExcel.ts** refactorise pour utiliser exceljs au lieu de xlsx
+- 📝 **EVALUATION_PROJET** mis a jour avec les actions completees
+
+### 08/02/2026
+- ✅ **Dependabot configure** : `.github/dependabot.yml` (GitHub Actions hebdo + npm hebdo, groupement React/Next.js)
+- ✅ **GitHub Actions mises a jour** : checkout v6, upload/download-artifact v6/v7, codecov v5, setup-python v6
+- ✅ **CI fiabilise** : `continue-on-error: true` retire, Flake8 F821 corrige, test data fixtures corrigees (`age_group` NOT NULL)
+- ✅ **Tests backend migres** vers httpx.AsyncClient (Starlette natif, 396 tests collectes)
+- ✅ **Dependabot groupement** : React/React-DOM/types groupes pour eviter conflits peer dependencies
+
 ### 07/02/2026
 - ✅ **Settings page complete** : 5 sections activees (suppression, export, notifications, langue, confidentialite)
 - ✅ **Fix SQLAlchemy JSON** : Mutation tracking corrige (dict copy)
@@ -186,10 +199,10 @@ docs/
 
 ## 🎯 Statistiques
 
-- **Documents actifs** : ~15 docs (vs 200+ avant)
-- **Réduction** : -92% de documentation
-- **Cohérence** : 100% validée vs code réel
-- **Dernière vérification** : 06/02/2026
+- **Documents actifs** : ~50 docs (backend, frontend, widgets, projet)
+- **Réduction initiale** : -92% de documentation (200+ → ~15 actifs en nov. 2025)
+- **Cohérence** : Validee vs code reel
+- **Dernière vérification** : 09/02/2026
 
 ---
 

@@ -37,7 +37,8 @@
 
 **Points faibles :**
 - **Handlers trop longs** : `generate_ai_challenge_stream()` = 774 lignes, `get_user_stats()` = 271 lignes
-- **Duplication massive** : pattern DB session repete ~50 fois, auth check copie dans chaque handler, `safe_parse_json()` duplique dans 3 fichiers
+- ~~**Duplication massive** : auth check copie dans chaque handler~~ → **CORRIGE** (08/02/2026) : decorateurs `@require_auth`, `@optional_auth`, `@require_auth_sse` eliminent 40+ blocs dupliques
+- **Duplication restante** : pattern DB session repete ~50 fois, `safe_parse_json()` duplique dans 3 fichiers
 - **Typage insuffisant** : ~40-50% couverture, aucun handler n'a de type retour, pas de mypy
 - **Error handling inconsistant** : mix de `ErrorHandler.create_error_response()` et `JSONResponse()` direct
 - **Estimé ~15,000-20,000 LOC backend**
@@ -72,14 +73,16 @@
 | Couverture estimee | <20% | <5% |
 
 ### Problemes critiques
-- **`continue-on-error: true`** dans le workflow CI = les tests peuvent echouer sans bloquer
+- ~~**`continue-on-error: true`** dans le workflow CI~~ → **CORRIGE** (08/02/2026) : retire, les tests bloquent maintenant le CI
 - **Pas de rapport de couverture** genere ni suivi
 - Le workflow CI avance (multi-stage, bandit, safety) est **desactive** (`workflow_dispatch` only)
 - Frontend : aucun test sur les hooks metier, les pages, ou les stores
 
-### Correction du bilan precedent
+### Corrections apportees (08/02/2026)
+- ✅ Suite de tests migree de FastAPI TestClient vers httpx.AsyncClient (Starlette natif)
+- ✅ 396 tests collectes, 0 erreurs de collection, CI passe (test + lint + frontend build)
+- ✅ Fixtures async avec safeguards production DB (filtrage deletions, warnings)
 - `BILAN_COMPLET.md` affirmait "Tests coverage 40% -> 60%+" : **non verifie, aucune metrique disponible**
-- Les 47 fichiers test backend existent mais leur execution et passage ne sont pas valides
 
 ### Benchmark
 - Standard industrie minimum : 60% couverture
@@ -95,7 +98,7 @@
 - **`optimizePackageImports`** configure pour lucide-react, radix, recharts (+)
 - **PWA** avec service worker et cache runtime (+)
 - **framer-motion** charge partout (~100KB) sans lazy loading (-)
-- **jspdf + xlsx** (~350KB) non lazy-loaded, utilises uniquement pour export (-)
+- ~~**jspdf + xlsx** (~350KB) non lazy-loaded, utilises uniquement pour export~~ → **CORRIGE** (09/02/2026) : jspdf mis a jour v4.1.0, xlsx (vulnerable, abandonne) remplace par exceljs
 
 ### Backend
 - **Index DB** ajoutes (11 index) (+)
@@ -127,9 +130,10 @@
 1. **Password logge en mode debug** (`app/core/security.py` lignes 92-93) - CRITIQUE
 2. **f-string SQL** dans `server/database.py` ligne 93 (risque faible, valeur constante)
 3. **CORS origins hardcodees** au lieu de variable d'environnement
-4. **Pas de Dependabot/Renovate** : openai 1.12.0 (jan 2024) potentiellement vulnerable
+4. ~~**Pas de Dependabot/Renovate**~~ → **CORRIGE** (08/02/2026) : Dependabot configure (GitHub Actions hebdo + npm hebdo avec groupement React/Next.js)
 5. **Rate limiting** mentionne dans challenge_handlers mais implementation non verifiee
-6. **Pas de scan de dependances** automatique actif (bandit/safety dans workflow desactive)
+6. ~~**Pas de scan de dependances** automatique actif~~ → **PARTIELLEMENT CORRIGE** : Dependabot actif pour les dependances, bandit/safety reste dans workflow desactive
+7. ~~**Vulnerabilites npm** (3 : webpack low, jspdf critical 5 CVE, xlsx high)~~ → **CORRIGE** (09/02/2026) : 0 vulnerabilite npm (`npm audit` clean)
 
 ---
 
@@ -143,12 +147,18 @@
 - Migrations auto au demarrage (`start_render.sh`)
 - Loguru bien configure (rotation, compression, retention 30-60j)
 
-### Ce qui manque
+### Ameliorations apportees (08-09/02/2026)
+- ✅ **Dependabot** configure (GitHub Actions + npm, groupement React/Next.js)
+- ✅ **CI fiabilise** : `continue-on-error` retire, Flake8 F821 corrige, tests data fixtures corriges
+- ✅ **GitHub Actions mis a jour** : checkout v6, upload/download-artifact v6/v7, codecov v5, setup-python v6
+- ✅ **npm 0 vulnerabilite** : jspdf v4.1.0, xlsx remplace par exceljs
+
+### Ce qui manque encore
 - **Deploiement automatise** : pas de CD depuis CI vers Render
 - **Environnement staging** : uniquement production
 - **Rollback automatique** : aucun
 - **Pre-commit hooks** : non configures
-- **Frontend en CI** : pas de build validation
+- ~~**Frontend en CI** : pas de build validation~~ → **CORRIGE** : frontend build inclus dans CI
 - **Prettier** : non configure pour le frontend
 - **mypy** : non configure pour le backend
 - **`pyproject.toml`** : pas de config unifiee des outils Python
@@ -215,9 +225,9 @@ Monolithe simple, adapte au volume actuel.
 | "Zero Technical Debt" | Faux. Duplication, handlers geants, types manquants, monitoring inexistant |
 | "Tests coverage 60%+" | Non mesure. Estimation : <20% backend, <5% frontend |
 | "Production Ready" | Trompeur. Pas de monitoring, pas d'error tracking, tests insuffisants |
-| "DRY Principle" | Partiellement. Constantes centralisees mais patterns auth/DB repetes 50+ fois |
+| "DRY Principle" | Ameliore. Auth centralise via decorateurs (08/02), pattern DB session reste repete ~50 fois |
 | "SOLID Principles" | Partiellement. SRP viole (handlers de 774 lignes) |
-| "CI/CD operationnel" | Partiellement. CI existe mais `continue-on-error: true` la rend inefficace |
+| "CI/CD operationnel" | Ameliore. CI fiabilise (continue-on-error retire, Dependabot actif, Actions mises a jour) |
 | "95% lisibilite" | Subjectif et non mesure. Ameliore mais loin de 95% |
 | "Backend 100% API (37 routes)" | Mis a jour : 49 routes API actuellement |
 | References vers ARCHITECTURE.md, API.md | Ces fichiers ont ete archives dans `_ARCHIVE_2026/` |
@@ -228,14 +238,25 @@ Monolithe simple, adapte au volume actuel.
 
 ### Niveau 1 - Quick wins a fort impact (1-2 jours)
 
-| # | Action | Impact | Effort |
-|---|--------|--------|--------|
-| 1 | **Activer Sentry** : ajouter `sentry_sdk.init()` dans `server/app.py` | Monitoring prod | 30 min |
-| 2 | **Retirer `continue-on-error: true`** du workflow CI | Tests fiables | 5 min |
-| 3 | **Supprimer le log de password** dans `security.py` | Securite | 5 min |
-| 4 | **Creer decorateur auth** pour eliminer le copier-coller | DRY, maintenabilite | 1h |
-| 5 | **Creer context manager DB session** | DRY, maintenabilite | 1h |
-| 6 | **Ajouter Dependabot/Renovate** | Securite dependances | 15 min |
+| # | Action | Impact | Effort | Statut |
+|---|--------|--------|--------|--------|
+| 1 | **Activer Sentry** : ajouter `sentry_sdk.init()` dans `server/app.py` | Monitoring prod | 30 min | ⏳ A faire |
+| 2 | **Retirer `continue-on-error: true`** du workflow CI | Tests fiables | 5 min | ✅ Fait (08/02) |
+| 3 | **Supprimer le log de password** dans `security.py` | Securite | 5 min | ⏳ A faire |
+| 4 | **Creer decorateur auth** pour eliminer le copier-coller | DRY, maintenabilite | 1h | ✅ Fait (09/02) - `@require_auth`, `@optional_auth`, `@require_auth_sse` dans `server/auth.py` |
+| 5 | **Creer context manager DB session** | DRY, maintenabilite | 1h | ⏳ A faire |
+| 6 | **Ajouter Dependabot/Renovate** | Securite dependances | 15 min | ✅ Fait (08/02) - `.github/dependabot.yml` configure (Actions + npm) |
+
+### Niveau 1 bis - Quick wins supplementaires realises
+
+| # | Action | Impact | Date |
+|---|--------|--------|------|
+| A | **Corriger vulnerabilites npm** (3→0) : jspdf v4.1.0, xlsx→exceljs | Securite | 09/02/2026 |
+| B | **Migrer tests backend** vers httpx.AsyncClient (Starlette natif) | Fiabilite CI | 08/02/2026 |
+| C | **Fixer Flake8 F821** (`chat_stream_error` scope) | CI verte | 08/02/2026 |
+| D | **Fixer test data** : `age_group` NOT NULL dans fixtures CI | CI verte | 08/02/2026 |
+| E | **Mettre a jour GitHub Actions** : checkout v6, artifacts v6/v7, codecov v5 | Securite CI | 08/02/2026 |
+| F | **Configurer groupement Dependabot** : React/React-DOM ensemble | Stabilite deps | 08/02/2026 |
 
 ### Niveau 2 - Fondations solides (1 semaine)
 
@@ -278,4 +299,5 @@ Monolithe simple, adapte au volume actuel.
 ---
 
 *Document genere le 07/02/2026*  
-*Prochaine evaluation recommandee : apres implementation du Niveau 1*
+*Derniere mise a jour : 09/02/2026 (actions Niveau 1 partiellement completees)*  
+*Prochaine evaluation recommandee : apres implementation complete du Niveau 1 (Sentry, password log, DB session manager)*

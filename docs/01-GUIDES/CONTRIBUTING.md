@@ -1,7 +1,7 @@
 # 🤝 CONTRIBUTING GUIDE - MATHAKINE
 
-**Version** : 2.0.0  
-**Date** : 20 novembre 2025  
+**Version** : 3.0.0  
+**Date** : 09 fevrier 2026 (mise a jour)  
 **Audience** : Contributeurs
 
 ---
@@ -198,13 +198,14 @@ def getChallenges(db, type):
     return db.query(Challenge).filter(Challenge.challenge_type == type).all()
 ```
 
-**Règles** :
+**Regles** :
 - `snake_case` pour functions/variables
 - `PascalCase` pour classes
 - `UPPER_SNAKE_CASE` pour constants
 - Type hints obligatoires
 - Docstrings pour fonctions publiques
-- Max 100 caractères par ligne
+- Max 100 caracteres par ligne
+- **Authentification** : utiliser les decorateurs `@require_auth`, `@optional_auth`, `@require_auth_sse` (voir `server/auth.py`) au lieu de verifier manuellement le token dans chaque handler
 
 #### Frontend (TypeScript)
 ```typescript

@@ -5,6 +5,11 @@
 > - ✅ Widgets dashboard (testes et deployes)
 > - ✅ Deploiement Render (valide)
 > - ✅ Page settings complete (5 sections)
+> - ✅ **08-09/02/2026** : Decorateurs auth (`@require_auth`, `@optional_auth`, `@require_auth_sse`)
+> - ✅ **08-09/02/2026** : Vulnerabilites npm corrigees (0 vuln : jspdf v4.1.0, xlsx→exceljs)
+> - ✅ **08/02/2026** : Dependabot configure (GitHub Actions + npm)
+> - ✅ **08/02/2026** : CI fiabilise (continue-on-error retire, tests migres async)
+> - ✅ **08/02/2026** : GitHub Actions mises a jour (checkout v6, artifacts v6/v7, codecov v5)
 > 
 > **Document de reference actuel** : [EVALUATION_PROJET_2026-02-07.md](EVALUATION_PROJET_2026-02-07.md)
 
@@ -331,6 +336,8 @@ test('Dashboard widgets load correctly', async ({ page }) => {
 | **6. Monitoring** | 🟢 BASSE | 4h | Observabilité | Élevée |
 | **7. Tests E2E** | 🟢 BASSE | 2h | Qualité | Moyenne |
 | **8. Docs continue** | 🟢 BASSE | 1h | Maintenance | Faible |
+
+> **Mise a jour 09/02/2026** : Le monitoring (point 6) reste a faire (Sentry SDK installe mais `sentry_sdk.init()` non appele). Les imports lazy (point 5) restent a optimiser. Les points 1-3 sont valides.
 
 ---
 

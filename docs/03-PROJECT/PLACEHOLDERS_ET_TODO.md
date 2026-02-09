@@ -1,6 +1,7 @@
 # Placeholders et TODOs restants - Mathakine
 
-> Etat au 06/02/2026 après unification Starlette
+> Etat au 06/02/2026 apres unification Starlette  
+> Derniere mise a jour : 09/02/2026 (auth decorateurs, pattern auth simplifie)
 
 ## 📋 Récapitulatif
 
@@ -44,8 +45,9 @@ Ce document liste tous les endpoints/handlers **placeholders** (non implémenté
 
 **Solution recommandée** :
 ```python
+@require_auth  # Utiliser le decorateur centralise (server/auth.py)
 async def update_user_me(request: Request):
-    current_user = await get_current_user(request)
+    current_user = request.state.user  # Injecte par @require_auth
     data = await request.json()
     
     # Valider les champs (username, email, full_name, etc.)
@@ -53,6 +55,8 @@ async def update_user_me(request: Request):
     # Mettre à jour via UserService ou directement en DB
     # Retourner l'utilisateur mis à jour
 ```
+
+> **Note (09/02/2026)** : Depuis le refactoring auth, tous les handlers authentifies doivent utiliser `@require_auth` (ou `@optional_auth` / `@require_auth_sse`) au lieu de `get_current_user()` directement.
 
 **Champs modifiables suggérés** :
 - `username` (vérifier unicité)
@@ -70,8 +74,9 @@ async def update_user_me(request: Request):
 
 **Solution recommandée** :
 ```python
+@require_auth  # Utiliser le decorateur centralise (server/auth.py)
 async def update_user_password_me(request: Request):
-    current_user = await get_current_user(request)
+    current_user = request.state.user  # Injecte par @require_auth
     data = await request.json()
     
     # 1. Vérifier l'ancien mot de passe (current_password)
@@ -266,6 +271,18 @@ for session in sessions:
 ---
 
 ## 📝 Recommandations finales
+
+### Pattern d'authentification (mise a jour 09/02/2026)
+
+Tous les nouveaux handlers authentifies doivent utiliser les decorateurs definis dans `server/auth.py` :
+
+```python
+from server.auth import require_auth, optional_auth, require_auth_sse
+
+@require_auth          # 401 si non authentifie, injecte request.state.user
+@optional_auth         # request.state.user = None si non authentifie
+@require_auth_sse      # Erreur SSE si non authentifie (pour les streams)
+```
 
 ### Priorités d'implémentation suggérées (ordre)
 

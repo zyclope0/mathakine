@@ -1,8 +1,8 @@
 # 🧪 TESTING GUIDE - MATHAKINE
 
-**Version** : 2.0.0  
-**Date** : 20 novembre 2025  
-**Audience** : Développeurs, QA
+**Version** : 3.0.0  
+**Date** : 09 fevrier 2026 (mise a jour)  
+**Audience** : Developpeurs, QA
 
 ---
 
@@ -29,13 +29,15 @@
 │          ▲  Playwright                   │
 │         ││                               │
 │       Integration (25%)                  │
-│      ▲  pytest + TestClient              │
+│      ▲  pytest + httpx.AsyncClient       │
 │     ││                                   │
 │   Unit Tests (70%)                       │
-│  ▲  pytest + Jest                        │
+│  ▲  pytest + Vitest                      │
 │ ││                                       │
 └─────────────────────────────────────────┘
 ```
+
+> **Migration 08/02/2026** : Les tests backend ont ete migres de `starlette.testclient.TestClient` (sync) vers `httpx.AsyncClient` (async natif Starlette). Tous les tests d'integration utilisent desormais `pytest-asyncio`.
 
 ### Objectifs coverage
 - **Unit tests** : 80%+
@@ -43,12 +45,14 @@
 - **E2E tests** : Scénarios critiques
 - **Global coverage** : 70%+
 
-### Tests actuels (Post-Phase 5)
-- ✅ **42 fichiers de tests**
-- ✅ **60%+ coverage**
-- ✅ **CI/CD automatisé**
+### Tests actuels (09/02/2026)
+- ✅ **47 fichiers de tests** backend + 4 unit + 2 E2E frontend
+- ✅ **396 tests collectes** (CI verte)
+- ⚠️ **Couverture non mesuree** (pas de rapport genere en CI)
+- ✅ **CI/CD automatise** : GitHub Actions (lint + test + frontend build), `continue-on-error` retire
 - ✅ **Tests critiques** : auth, challenges, exercises
-- ✅ **Base de test séparée** : `TEST_DATABASE_URL` obligatoire (protection production)
+- ✅ **Base de test separee** : `TEST_DATABASE_URL` obligatoire (protection production)
+- ✅ **Tests async** : httpx.AsyncClient + pytest-asyncio (Starlette natif)
 
 ---
 
@@ -89,29 +93,27 @@ markers =
 
 #### conftest.py
 
-**⚠️ IMPORTANT** : Les tests utilisent maintenant `TEST_DATABASE_URL` (PostgreSQL) au lieu de SQLite. Voir [CREATE_TEST_DATABASE.md](CREATE_TEST_DATABASE.md) pour la configuration.
+**⚠️ IMPORTANT** : Les tests utilisent `TEST_DATABASE_URL` (PostgreSQL) et `httpx.AsyncClient`. Voir [CREATE_TEST_DATABASE.md](CREATE_TEST_DATABASE.md) pour la configuration.
 
 ```python
-# tests/conftest.py
+# tests/conftest.py (simplifie - voir le fichier reel pour la version complete)
 import pytest
 import os
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from starlette.testclient import TestClient
 
 from app.db.base import Base
 from server.app import create_app
 
-# Database de test - DOIT être définie dans l'environnement
-# Voir docs/01-GUIDES/CREATE_TEST_DATABASE.md
+# Database de test - DOIT etre definie dans l'environnement
 TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
 if not TEST_DATABASE_URL:
-    raise Exception("TEST_DATABASE_URL doit être définie pour exécuter les tests")
+    raise Exception("TEST_DATABASE_URL doit etre definie pour executer les tests")
 
 @pytest.fixture(scope="session")
 def engine():
     """Engine SQLAlchemy pour tests"""
-    # Utilise TEST_DATABASE_URL (PostgreSQL) - protection production
     engine = create_engine(TEST_DATABASE_URL, pool_pre_ping=True)
     Base.metadata.create_all(bind=engine)
     yield engine
@@ -127,11 +129,12 @@ def db(engine):
     session.close()
 
 @pytest.fixture(scope="module")
-def client():
-    """Client de test Starlette"""
+async def client():
+    """Client de test async (httpx.AsyncClient)"""
     app = create_app()
-    with TestClient(app) as test_client:
-        yield test_client
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
 
 @pytest.fixture
 def sample_user(db):
@@ -148,6 +151,8 @@ def sample_user(db):
     db.refresh(user)
     return user
 ```
+
+> **Note** : Le `conftest.py` reel inclut egalement des safeguards pour empecher toute operation destructive sur la base de production (filtrage des DELETE/TRUNCATE, warnings si `TEST_DATABASE_URL` n'est pas defini).
 
 ### Frontend (Jest + React Testing Library)
 
@@ -586,15 +591,16 @@ npm run test:e2e:ui
 
 ### GitHub Actions Workflow
 
-``yaml
-# .github/workflows/tests.yml
+```yaml
+# .github/workflows/tests.yml (simplifie - voir le fichier reel pour la version complete)
+# Mis a jour 08/02/2026 : GitHub Actions v6, Dependabot actif
 name: Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [main, master, develop]
 
 jobs:
   backend-tests:
@@ -616,10 +622,10 @@ jobs:
           --health-retries 5
     
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6       # Mis a jour via Dependabot
       
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6   # Mis a jour via Dependabot
         with:
           python-version: '3.11'
       
@@ -627,48 +633,37 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-cov
+          pip install pytest pytest-cov pytest-asyncio httpx
       
       - name: Run tests
         env:
-          TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          TEST_DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_mathakine
           TESTING: "true"
         run: |
           pytest tests/ -v --cov=app --cov=server --cov-report=xml
       
       - name: Upload coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5  # Mis a jour via Dependabot
         with:
           files: ./coverage.xml
           flags: backend
   
-  frontend-tests:
+  frontend-build:
     runs-on: ubuntu-latest
-    
     steps:
-      - uses: actions/checkout@v3
-      
+      - uses: actions/checkout@v6
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
-      - name: Install dependencies
+      - name: Install & Build
         run: |
           cd frontend
           npm ci
-      
-      - name: Run tests
-        run: |
-          cd frontend
-          npm run test:coverage
-      
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./frontend/coverage/lcov.info
-          flags: frontend
+          npm run build
 ```
+
+> **Note** : Le workflow CI actuel n'utilise plus `continue-on-error: true` (retire le 08/02/2026). Un echec de test bloque le merge.
 
 ---
 

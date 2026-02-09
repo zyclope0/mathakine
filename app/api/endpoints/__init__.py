@@ -1,3 +1,0 @@
-"""
-Endpoints API Mathakine
-"""
