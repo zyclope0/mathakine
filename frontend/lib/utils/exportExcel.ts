@@ -1,7 +1,8 @@
 /**
  * Utilitaires d'export Excel pour les statistiques utilisateur
  */
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import type { UserStats } from '@/lib/validations/dashboard';
 
 export interface ExportLabels {
@@ -33,30 +34,43 @@ const defaultLabels: ExportLabels = {
 /**
  * Exporte les statistiques utilisateur en Excel
  */
-export function exportStatsToExcel(stats: UserStats, username: string, labels?: Partial<ExportLabels>): void {
+export async function exportStatsToExcel(stats: UserStats, username: string, labels?: Partial<ExportLabels>): Promise<void> {
   const l = { ...defaultLabels, ...labels };
   
   // Créer un workbook
-  const workbook = XLSX.utils.book_new();
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(l.sheetName);
   
-  // Créer les données
-  const data = [
-    [l.metric, l.value],
-    [l.exercisesCompleted, stats.total_exercises],
-    [l.challengesCompleted, stats.total_challenges || 0],
-    [l.correctAnswers, stats.correct_answers],
-    [l.incorrectAnswers, stats.incorrect_answers || 0],
-    [l.averageScore, stats.average_score ? `${stats.average_score.toFixed(1)}%` : '0%'],
-    ...(stats.level && typeof stats.level === 'object' ? [[l.level, stats.level.current]] : []),
-    ...(stats.xp ? [[l.xp, stats.xp]] : []),
-  ];
+  // En-tête
+  worksheet.addRow([l.metric, l.value]);
   
-  // Créer une feuille de calcul
-  const worksheet = XLSX.utils.aoa_to_sheet(data);
+  // Style de l'en-tête
+  const headerRow = worksheet.getRow(1);
+  headerRow.font = { bold: true };
+  headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6366F1' } };
+  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
   
-  // Ajouter la feuille au workbook
-  XLSX.utils.book_append_sheet(workbook, worksheet, l.sheetName);
+  // Données
+  worksheet.addRow([l.exercisesCompleted, stats.total_exercises]);
+  worksheet.addRow([l.challengesCompleted, stats.total_challenges || 0]);
+  worksheet.addRow([l.correctAnswers, stats.correct_answers]);
+  worksheet.addRow([l.incorrectAnswers, stats.incorrect_answers || 0]);
+  worksheet.addRow([l.averageScore, stats.average_score ? `${stats.average_score.toFixed(1)}%` : '0%']);
   
-  // Sauvegarder le fichier
-  XLSX.writeFile(workbook, `mathakine-stats-${username}-${Date.now()}.xlsx`);
+  if (stats.level && typeof stats.level === 'object') {
+    worksheet.addRow([l.level, stats.level.current]);
+  }
+  if (stats.xp) {
+    worksheet.addRow([l.xp, stats.xp]);
+  }
+  
+  // Ajuster la largeur des colonnes
+  worksheet.columns.forEach(column => {
+    column.width = 25;
+  });
+  
+  // Générer et télécharger le fichier
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  saveAs(blob, `mathakine-stats-${username}-${Date.now()}.xlsx`);
 }

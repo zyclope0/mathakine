@@ -76,7 +76,7 @@ export function ExportButton({ timeRange = '30' }: ExportButtonProps) {
     }
     
     try {
-      exportStatsToExcel(stats, user.username, {
+      await exportStatsToExcel(stats, user.username, {
         metric: t('labels.metric', { default: 'Métrique' }),
         value: t('labels.value', { default: 'Valeur' }),
         exercisesCompleted: t('labels.exercisesCompleted', { default: 'Exercices complétés' }),
