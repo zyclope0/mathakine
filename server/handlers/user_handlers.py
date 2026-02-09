@@ -17,8 +17,10 @@ from app.core.messages import SystemMessages
 from app.schemas.user import UserCreate
 from app.services.auth_service import create_user, get_user_by_email
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from server.auth import require_auth
 
 
+@require_auth
 async def get_user_stats(request):
     """
     Endpoint pour obtenir les statistiques utilisateur pour le tableau de bord.
@@ -27,20 +29,7 @@ async def get_user_stats(request):
         - timeRange: "7" (7 jours), "30" (30 jours), "90" (3 mois), "all" (tout)
     """
     try:
-        # Récupérer l'utilisateur connecté au lieu d'utiliser un ID fixe
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        
-        if not current_user or not current_user.get("is_authenticated", False):
-            # Logger en debug plutôt qu'en print pour éviter le bruit
-            logger.debug("Utilisateur non authentifié pour récupération des statistiques")
-            # Vérifier si un token était présent mais invalide
-            access_token = request.cookies.get("access_token")
-            if access_token:
-                logger.debug("Token présent mais invalide ou expiré")
-            else:
-                logger.debug("Aucun token présent dans les cookies")
-            return JSONResponse({"error": "Authentification requise"}, status_code=401)
+        current_user = request.state.user
         
         user_id = current_user.get("id")
         username = current_user.get("username")
@@ -471,16 +460,14 @@ async def create_user_account(request: Request):
         )
 
 
+@require_auth
 async def get_all_users(request: Request):
     """
     Handler pour récupérer tous les utilisateurs (placeholder).
     Route: GET /api/users/
     """
     try:
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         logger.info(f"Accès à la liste de tous les utilisateurs par {current_user.get('username')}. Fonctionnalité en développement.")
 
@@ -494,16 +481,14 @@ async def get_all_users(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def get_users_leaderboard(request: Request):
     """
     Handler pour récupérer le classement des utilisateurs (placeholder).
     Route: GET /api/users/leaderboard
     """
     try:
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         logger.info(f"Accès au classement des utilisateurs par {current_user.get('username')}. Fonctionnalité en développement.")
 
@@ -517,16 +502,14 @@ async def get_users_leaderboard(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def get_all_user_progress(request: Request):
     """
     Handler pour récupérer la progression globale de l'utilisateur avec vraies données.
     Route: GET /api/users/me/progress
     """
     try:
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         user_id = current_user.get('id')
         logger.info(f"Récupération de la progression globale pour l'utilisateur {user_id}")
@@ -634,16 +617,14 @@ async def get_all_user_progress(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def get_user_progress_by_exercise_type(request: Request):
     """
     Handler pour récupérer la progression de l'utilisateur par type d'exercice (placeholder).
     Route: GET /api/users/me/progress/{exercise_type}
     """
     try:
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         user_id = current_user.get('id')
         exercise_type = request.path_params.get('exercise_type')
@@ -659,16 +640,14 @@ async def get_user_progress_by_exercise_type(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def get_challenges_progress(request: Request):
     """
     Handler pour récupérer la progression des défis logiques de l'utilisateur.
     Route: GET /api/users/me/challenges/progress
     """
     try:
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         user_id = current_user.get('id')
         logger.info(f"Récupération de la progression des défis pour l'utilisateur {user_id}")
@@ -773,6 +752,7 @@ async def get_challenges_progress(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def update_user_me(request: Request):
     """
     Handler pour mettre à jour les informations de l'utilisateur actuel.
@@ -788,12 +768,9 @@ async def update_user_me(request: Request):
     - accessibility_settings (JSON)
     """
     try:
-        from server.auth import get_current_user
         from app.models.user import User
         
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         user_id = current_user.get('id')
         data = await request.json()
@@ -969,6 +946,7 @@ async def update_user_me(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def update_user_password_me(request: Request):
     """
     Handler pour mettre à jour le mot de passe de l'utilisateur actuel.
@@ -979,13 +957,10 @@ async def update_user_password_me(request: Request):
     - new_password: nouveau mot de passe (min 8 caractères)
     """
     try:
-        from server.auth import get_current_user
         from app.models.user import User
         from app.core.security import verify_password, get_password_hash
         
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         user_id = current_user.get('id')
         data = await request.json()
@@ -1050,6 +1025,7 @@ async def update_user_password_me(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def delete_user_me(request: Request):
     """
     Handler pour supprimer le compte de l'utilisateur connecté.
@@ -1058,12 +1034,9 @@ async def delete_user_me(request: Request):
     Supprime l'utilisateur et toutes ses données associées (cascade).
     """
     try:
-        from server.auth import get_current_user
         from app.models.user import User
         
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         user_id = current_user.get('id')
         username = current_user.get('username')
@@ -1098,16 +1071,14 @@ async def delete_user_me(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def delete_user(request: Request):
     """
     Handler pour supprimer un utilisateur par ID (admin).
     Route: DELETE /api/users/{user_id}
     """
     try:
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         user_to_delete_id = int(request.path_params.get('user_id'))
         current_user_id = current_user.get('id')
@@ -1128,6 +1099,7 @@ async def delete_user(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def export_user_data(request: Request):
     """
     Exporte toutes les données de l'utilisateur connecté (RGPD).
@@ -1136,7 +1108,6 @@ async def export_user_data(request: Request):
     Retourne un JSON avec : profil, exercices tentés, défis tentés, badges, progression.
     """
     try:
-        from server.auth import get_current_user
         from app.models.user import User
         from app.models.attempt import Attempt
         from app.models.exercise import Exercise
@@ -1145,9 +1116,7 @@ async def export_user_data(request: Request):
         from app.models.progress import Progress
         from app.models.recommendation import Recommendation
         
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         user_id = current_user.get('id')
         
@@ -1276,18 +1245,14 @@ async def export_user_data(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def get_user_sessions(request: Request):
     """
     Handler pour récupérer les sessions actives de l'utilisateur.
     Route: GET /api/users/me/sessions
     """
     try:
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        
-        if not current_user or not current_user.get("is_authenticated", False):
-            logger.debug("Utilisateur non authentifié pour récupération des sessions")
-            return JSONResponse({"error": "Authentification requise"}, status_code=401)
+        current_user = request.state.user
         
         user_id = current_user.get("id")
         
@@ -1335,18 +1300,14 @@ async def get_user_sessions(request: Request):
         return JSONResponse({"error": "Erreur lors de la récupération des sessions"}, status_code=500)
 
 
+@require_auth
 async def revoke_user_session(request: Request):
     """
     Handler pour révoquer une session utilisateur spécifique.
     Route: DELETE /api/users/me/sessions/{session_id}
     """
     try:
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        
-        if not current_user or not current_user.get("is_authenticated", False):
-            logger.debug("Utilisateur non authentifié pour révocation de session")
-            return JSONResponse({"error": "Authentification requise"}, status_code=401)
+        current_user = request.state.user
         
         user_id = current_user.get("id")
         session_id = int(request.path_params.get('session_id'))

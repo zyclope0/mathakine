@@ -11,19 +11,17 @@ from app.core.messages import SystemMessages
 logger = get_logger(__name__)
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.recommendation_service import RecommendationService
-from server.auth import get_current_user
+from server.auth import require_auth
 
 
+@require_auth
 async def get_recommendations(request):
     """
     Récupère les recommandations personnalisées pour l'utilisateur connecté.
     Route: GET /api/recommendations
     """
     try:
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Authentification requise"}, status_code=401)
-
+        current_user = request.state.user
         user_id = current_user.get("id")
         if not user_id:
             return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
@@ -93,16 +91,14 @@ async def get_recommendations(request):
         return JSONResponse({"error": str(recommendations_retrieval_error)}, status_code=500)
 
 
+@require_auth
 async def generate_recommendations(request):
     """
     Génère de nouvelles recommandations pour l'utilisateur connecté.
     Route: POST /api/recommendations/generate
     """
     try:
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Authentification requise"}, status_code=401)
-
+        current_user = request.state.user
         user_id = current_user.get("id")
         if not user_id:
             return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
@@ -125,16 +121,14 @@ async def generate_recommendations(request):
         return JSONResponse({"error": str(recommendations_generation_error)}, status_code=500)
 
 
+@require_auth
 async def handle_recommendation_complete(request):
     """
     Handler pour marquer une recommandation comme complétée (placeholder).
     Route: POST /api/recommendations/complete
     """
     try:
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Authentification requise"}, status_code=401)
-
+        current_user = request.state.user
         user_id = current_user.get("id")
         if not user_id:
             return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)

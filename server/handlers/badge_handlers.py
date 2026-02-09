@@ -13,19 +13,13 @@ logger = get_logger(__name__)
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 # NOTE: badge_service_translations archivé - utiliser BadgeService ORM uniquement
 from app.utils.translation import parse_accept_language
-from server.auth import get_current_user
+from server.auth import require_auth
 
+@require_auth
 async def get_user_badges(request):
     """Récupérer tous les badges d'un utilisateur"""
     try:
-        # Vérifier l'authentification
-        current_user = await get_current_user(request)
-        if not current_user:
-            return JSONResponse(
-                {"error": "Vous devez être authentifié pour voir vos badges."},
-                status_code=401
-            )
-        
+        current_user = request.state.user
         user_id = current_user.get('id')
         
         # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
@@ -73,17 +67,11 @@ async def get_available_badges(request: Request):
         logger.debug(traceback.format_exc())
         return JSONResponse({"error": str(available_badges_error)}, status_code=500)
 
+@require_auth
 async def check_user_badges(request):
     """Forcer la vérification des badges pour un utilisateur (utile pour les tests)"""
     try:
-        # Vérifier l'authentification
-        current_user = await get_current_user(request)
-        if not current_user:
-            return JSONResponse(
-                {"error": "Vous devez être authentifié pour vérifier vos badges."},
-                status_code=401
-            )
-        
+        current_user = request.state.user
         user_id = current_user.get('id')
         
         # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
@@ -108,17 +96,11 @@ async def check_user_badges(request):
         traceback.print_exc()
         return JSONResponse({"error": str(badge_verification_error)}, status_code=500)
 
+@require_auth
 async def get_user_gamification_stats(request):
     """Récupérer les statistiques de gamification d'un utilisateur"""
     try:
-        # Vérifier l'authentification
-        current_user = await get_current_user(request)
-        if not current_user:
-            return JSONResponse(
-                {"error": "Vous devez être authentifié pour voir vos statistiques."},
-                status_code=401
-            )
-        
+        current_user = request.state.user
         user_id = current_user.get('id')
         
         # Utiliser l'adaptateur pour obtenir une session SQLAlchemy
@@ -178,20 +160,14 @@ async def get_user_gamification_stats(request):
         return JSONResponse({"error": str(gamification_stats_error)}, status_code=500)
 
 
+@require_auth
 async def get_user_badges_progress(request: Request):
     """
     Handler pour récupérer la progression des badges d'un utilisateur (placeholder).
     Route: GET /api/challenges/badges/progress
     """
     try:
-        # Vérifier l'authentification
-        current_user = await get_current_user(request)
-        if not current_user:
-            return JSONResponse(
-                {"error": "Vous devez être authentifié pour voir la progression de vos badges."},
-                status_code=401
-            )
-        
+        current_user = request.state.user
         user_id = current_user.get('id')
         logger.info(f"Accès à la progression des badges pour l'utilisateur {user_id}. Fonctionnalité en développement.")
 

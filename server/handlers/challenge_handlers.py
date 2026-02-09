@@ -11,6 +11,7 @@ logger = get_logger(__name__)
 from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse
 
+from server.auth import require_auth, optional_auth, require_auth_sse
 from app.core.config import settings
 # Importer les constantes et fonctions centralisées
 from app.core.constants import (CHALLENGE_TYPES_API, CHALLENGE_TYPES_DB, normalize_age_group, calculate_difficulty_for_age_group)
@@ -24,17 +25,14 @@ from app.utils.error_handler import ErrorHandler
 from app.utils.translation import parse_accept_language
 
 
+@require_auth
 async def get_challenges_list(request: Request):
     """
     Liste des défis logiques avec filtres optionnels.
     Route: GET /api/challenges
     """
     try:
-        # Vérifier l'authentification
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         # Récupérer les paramètres de requête
         challenge_type_raw = request.query_params.get('challenge_type')
@@ -139,17 +137,14 @@ async def get_challenges_list(request: Request):
         )
 
 
+@require_auth
 async def get_challenge(request: Request):
     """
     Récupère un défi logique par son ID.
     Route: GET /api/challenges/{challenge_id}
     """
     try:
-        # Vérifier l'authentification
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         challenge_id = int(request.path_params.get('challenge_id'))
         
@@ -231,17 +226,14 @@ async def get_challenge(request: Request):
         )
 
 
+@require_auth
 async def submit_challenge_answer(request: Request):
     """
     Soumet une réponse à un défi logique.
     Route: POST /api/challenges/{challenge_id}/attempt
     """
     try:
-        # Récupérer l'utilisateur actuel
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         user_id = current_user.get("id")
         if not user_id:
@@ -460,16 +452,15 @@ async def get_challenge_hint(request: Request):
         return JSONResponse({"error": f"Erreur: {str(hint_retrieval_error)}"}, status_code=500)
 
 
+@optional_auth
 async def get_completed_challenges_ids(request: Request):
     """
     Récupère la liste des IDs de challenges complétés par l'utilisateur actuel.
     Route: GET /api/challenges/completed-ids
     """
     try:
-        # Vérifier l'authentification
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
+        current_user = request.state.user
+        if not current_user:
             return JSONResponse({"completed_ids": []}, status_code=200)
         
         user_id = current_user.get("id")
@@ -519,16 +510,14 @@ async def get_completed_challenges_ids(request: Request):
         )
 
 
+@require_auth
 async def start_challenge(request: Request):
     """
     Handler pour démarrer un défi (placeholder).
     Route: POST /api/challenges/start/{challenge_id}
     """
     try:
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         challenge_id = int(request.path_params.get('challenge_id'))
         user_id = current_user.get('id')
@@ -546,16 +535,14 @@ async def start_challenge(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def get_challenge_progress(request: Request):
     """
     Handler pour récupérer la progression d'un défi pour l'utilisateur actuel (placeholder).
     Route: GET /api/challenges/progress/{challenge_id}
     """
     try:
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         challenge_id = int(request.path_params.get('challenge_id'))
         user_id = current_user.get('id')
@@ -573,16 +560,14 @@ async def get_challenge_progress(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth
 async def get_challenge_rewards(request: Request):
     """
     Handler pour récupérer les récompenses d'un défi (placeholder).
     Route: GET /api/challenges/rewards/{challenge_id}
     """
     try:
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         challenge_id = int(request.path_params.get('challenge_id'))
         logger.info(f"Accès aux récompenses du défi {challenge_id} par l'utilisateur {current_user.get('id')}. Fonctionnalité en développement.")
@@ -599,6 +584,7 @@ async def get_challenge_rewards(request: Request):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@require_auth_sse
 async def generate_ai_challenge_stream(request: Request):
     """
     Génère un challenge avec OpenAI en streaming SSE.
@@ -606,20 +592,7 @@ async def generate_ai_challenge_stream(request: Request):
     Crée des challenges de type mathélogique avec visual_data selon le type.
     """
     try:
-        # Vérifier l'authentification
-        from server.auth import get_current_user
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            async def error_generator():
-                yield f"data: {json.dumps({'type': 'error', 'message': 'Non authentifié'})}\n\n"
-            return StreamingResponse(
-                error_generator(),
-                media_type="text/event-stream",
-                headers={
-                    "Cache-Control": "no-cache",
-                    "Connection": "keep-alive",
-                }
-            )
+        current_user = request.state.user
         
         # Récupérer les paramètres de la requête
         challenge_type_raw = request.query_params.get('challenge_type', 'sequence')

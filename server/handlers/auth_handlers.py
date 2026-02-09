@@ -13,6 +13,7 @@ from starlette.responses import JSONResponse, RedirectResponse
 
 from app.services.auth_service import (authenticate_user, create_user_token,
                                        get_user_by_email, refresh_access_token)
+from server.auth import require_auth
 from app.services.email_service import EmailService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.utils.email_verification import (generate_verification_token,
@@ -444,6 +445,7 @@ async def api_refresh_token(request: Request):
         )
 
 
+@require_auth
 async def api_get_current_user(request: Request):
     """
     Récupère les informations de l'utilisateur actuellement connecté.
@@ -451,17 +453,8 @@ async def api_get_current_user(request: Request):
     Returns: User info
     """
     try:
-        from server.auth import get_current_user
-        
-        user = await get_current_user(request)
-        
-        if not user:
-            return JSONResponse(
-                {"error": "Non authentifié"},
-                status_code=401
-            )
-        
-        return JSONResponse(user, status_code=200)
+        current_user = request.state.user
+        return JSONResponse(current_user, status_code=200)
         
     except Exception as user_retrieval_error:
         logger.error(f"Erreur lors de la récupération de l'utilisateur: {user_retrieval_error}")

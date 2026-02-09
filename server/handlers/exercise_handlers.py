@@ -18,7 +18,7 @@ from app.models.exercise import ExerciseType
 from app.services.badge_service import BadgeService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.utils.error_handler import ErrorHandler
-from server.auth import get_current_user
+from server.auth import require_auth, optional_auth, require_auth_sse
 from server.exercise_generator import (ensure_explanation,
                                        generate_ai_exercise,
                                        generate_simple_exercise)
@@ -178,16 +178,12 @@ async def get_exercise(request):
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(exercise_retrieval_error, status_code=500, user_message="Erreur lors de la récupération de l'exercice")
 
+@require_auth
 async def submit_answer(request):
     """Traite la soumission d'une réponse à un exercice"""
     try:
-        # Vérifier l'authentification de l'utilisateur
-        current_user = await get_current_user(request)
-        if not current_user:
-            return JSONResponse(
-                {"error": "Vous devez être authentifié pour soumettre une réponse."},
-                status_code=401
-            )
+        # Utilisateur authentifié via le décorateur @require_auth
+        current_user = request.state.user
         
         # Récupérer les données de la requête
         data = await request.json()
@@ -646,25 +642,15 @@ async def generate_exercise_api(request):
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(api_generation_error, status_code=500, user_message="Erreur lors de la génération de l'exercice")
 
+@require_auth_sse
 async def generate_ai_exercise_stream(request):
     """
     Génère un exercice avec OpenAI en streaming SSE.
     Permet un affichage progressif de la génération pour une meilleure UX.
     """
     try:
-        # Vérifier l'authentification
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            async def auth_error_generator():
-                yield f"data: {json.dumps({'type': 'error', 'message': 'Non authentifié'})}\n\n"
-            return StreamingResponse(
-                auth_error_generator(),
-                media_type="text/event-stream",
-                headers={
-                    "Cache-Control": "no-cache",
-                    "Connection": "keep-alive",
-                }
-            )
+        # Utilisateur authentifié via le décorateur @require_auth_sse
+        current_user = request.state.user
 
         # Récupérer les paramètres de la requête
         exercise_type_raw = request.query_params.get('exercise_type', 'addition')
@@ -893,15 +879,16 @@ Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respe
         )
 
 
+@optional_auth
 async def get_completed_exercises_ids(request: Request):
     """
     Récupère la liste des IDs d'exercices complétés par l'utilisateur actuel.
     Route: GET /api/exercises/completed-ids
     """
     try:
-        # Vérifier l'authentification
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
+        # Utilisateur optionnellement authentifié via le décorateur @optional_auth
+        current_user = request.state.user
+        if not current_user:
             return JSONResponse({"completed_ids": []}, status_code=200)
         
         user_id = current_user.get("id")
@@ -938,15 +925,14 @@ async def get_completed_exercises_ids(request: Request):
         )
 
 
+@require_auth
 async def delete_exercise(request: Request):
     """
     Handler pour supprimer un exercice (placeholder).
     Route: DELETE /api/exercises/{exercise_id}
     """
     try:
-        current_user = await get_current_user(request)
-        if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        current_user = request.state.user
         
         exercise_id = int(request.path_params.get('exercise_id'))
         user_id = current_user.get('id')

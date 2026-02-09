@@ -1,8 +1,14 @@
 """
 Module d'authentification pour le backend Starlette.
 
-Fournit les fonctions d'authentification utilisées par les handlers API.
+Fournit les fonctions d'authentification utilisées par les handlers API,
+ainsi que des décorateurs pour éliminer la duplication de code auth dans les handlers.
 """
+import json
+from functools import wraps
+
+from starlette.responses import JSONResponse, StreamingResponse
+
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -95,4 +101,79 @@ async def get_current_user(request):  # noqa: C901
     except Exception as user_fetch_error:
         logger.error(f"Erreur lors de la récupération de l'utilisateur: {user_fetch_error}")
         return None
+
+
+# ─── Décorateurs d'authentification ───────────────────────────────────────────
+# Éliminent la duplication du code d'authentification dans les handlers.
+#
+# Usage:
+#   @require_auth
+#   async def my_handler(request):
+#       current_user = request.state.user  # Garanti non-None
+#
+#   @optional_auth
+#   async def my_handler(request):
+#       current_user = request.state.user  # Peut être None
+#
+#   @require_auth_sse
+#   async def my_stream_handler(request):
+#       current_user = request.state.user  # Garanti non-None
+
+
+def require_auth(handler):
+    """Décorateur qui exige une authentification valide.
+    
+    Place l'utilisateur authentifié dans request.state.user.
+    Retourne 401 JSON si non authentifié.
+    """
+    @wraps(handler)
+    async def wrapper(request, *args, **kwargs):
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            return JSONResponse(
+                {"error": "Authentification requise"},
+                status_code=401
+            )
+        request.state.user = current_user
+        return await handler(request, *args, **kwargs)
+    return wrapper
+
+
+def optional_auth(handler):
+    """Décorateur qui tente l'authentification sans l'exiger.
+    
+    Place l'utilisateur dans request.state.user (None si non authentifié).
+    Ne retourne jamais 401 - le handler décide quoi faire.
+    """
+    @wraps(handler)
+    async def wrapper(request, *args, **kwargs):
+        current_user = await get_current_user(request)
+        if current_user and current_user.get("is_authenticated"):
+            request.state.user = current_user
+        else:
+            request.state.user = None
+        return await handler(request, *args, **kwargs)
+    return wrapper
+
+
+def require_auth_sse(handler):
+    """Décorateur qui exige une authentification pour les endpoints SSE/streaming.
+    
+    Place l'utilisateur authentifié dans request.state.user.
+    Retourne un flux SSE d'erreur si non authentifié (au lieu d'un JSON 401).
+    """
+    @wraps(handler)
+    async def wrapper(request, *args, **kwargs):
+        current_user = await get_current_user(request)
+        if not current_user or not current_user.get("is_authenticated"):
+            async def auth_error_generator():
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Authentification requise'})}\n\n"
+            return StreamingResponse(
+                auth_error_generator(),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache", "Connection": "keep-alive"}
+            )
+        request.state.user = current_user
+        return await handler(request, *args, **kwargs)
+    return wrapper
 
