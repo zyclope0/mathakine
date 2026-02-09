@@ -24,8 +24,8 @@ colorama==0.4.6  # Colorisation des messages en console
 typer==0.9.0  # CLI améliorée
 pathlib==1.0.1  # Manipulation de chemins de fichiers
 
-# Intégration IA - version récente pour support max_completion_tokens (GPT-5.x)
-openai>=1.40.0
+# Intégration IA - version figee pour stabilite (support max_completion_tokens GPT-5.x)
+openai==2.16.0
 tenacity==8.2.3  # Retry logic avec backoff exponentiel
 
 # Journalisation et débogage
@@ -35,11 +35,12 @@ loguru==0.7.2
 python-jose[cryptography]==3.5.0  # JWT
 bcrypt==4.0.1  # Hachage des mots de passe (utilisé directement, sans passlib pour éviter les warnings de compatibilité)
 
-# Tests automatisés
+# Tests automatises
 pytest==7.4.3
+pytest-asyncio==1.3.0  # Support async pour pytest (requis par les tests Starlette/httpx)
 beautifulsoup4==4.12.2
 pytest-cov==4.1.0
-httpx==0.28.1  # Client HTTP pour les tests
+httpx==0.28.1  # Client HTTP async pour les tests (remplace TestClient)
 
 # Documentation (pour les développeurs)
 sphinx==7.2.6

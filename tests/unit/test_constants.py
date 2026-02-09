@@ -111,10 +111,15 @@ def test_normalize_age_group_with_hyphen():
 
 
 def test_normalize_age_group_invalid():
-    """Test normalisation age_group invalide"""
-    assert normalize_age_group("invalid_group") is None
-    assert normalize_age_group("age_99_100") is None
-    assert normalize_age_group("") is None
+    """Test normalisation age_group invalide retourne le defaut (9-11).
+
+    La fonction ne retourne jamais None : elle log un warning
+    et retourne AgeGroups.GROUP_9_11 comme valeur par defaut.
+    Seul '' est traite comme falsy et retourne aussi le defaut.
+    """
+    assert normalize_age_group("invalid_group") == AgeGroups.GROUP_9_11
+    assert normalize_age_group("age_99_100") == AgeGroups.GROUP_9_11
+    assert normalize_age_group("") == AgeGroups.GROUP_9_11
 
 
 def test_normalize_age_group_none():
