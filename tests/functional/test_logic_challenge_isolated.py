@@ -42,7 +42,7 @@ def ensure_challenge_exists_in_db(logic_challenge_db):
         age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12, logic_challenge_db),
         correct_answer="42",
         solution_explanation="La réponse à la question ultime",
-        hints='["Indice 1: C\'est un nombre", "Indice 2: C\'est un nombre entre 40 et 50", "Indice 3: C\'est la réponse à la question ultime"]',
+        hints=["Indice 1: C'est un nombre", "Indice 2: C'est un nombre entre 40 et 50", "Indice 3: C'est la réponse à la question ultime"],
         difficulty_rating=3.0,
         estimated_time_minutes=15,
         creator_id=user.id,

@@ -61,8 +61,11 @@ async def test_refresh_without_cookie_fails(client, test_user_data):
     Vérifie que le refresh échoue si aucun cookie n'est présent.
     """
     await client.post("/api/users/", json=test_user_data)
-    await client.post("/api/auth/login", json={"username": test_user_data["username"], "password": test_user_data["password"]})
+    login_resp = await client.post("/api/auth/login", json={"username": test_user_data["username"], "password": test_user_data["password"]})
+    assert login_resp.status_code == 200
 
+    # Vider les cookies du client pour simuler une requête sans cookie (sinon httpx renvoie ceux du login)
+    client.cookies.clear()
     response = await client.post("/api/auth/refresh")
     # The handler expects a body if no cookie, causing a 422. A 401 would be better, but we test the current state.
     # 400 = Bad Request (body manquant), 401 = Unauthorized, 422 = Validation FastAPI

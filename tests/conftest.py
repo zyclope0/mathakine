@@ -666,7 +666,7 @@ def logic_challenge_db(db_session):
             age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12),
             correct_answer="42",
             solution_explanation="La reponse est 42",
-            hints='["Indice 1", "Indice 2", "Indice 3"]',
+            hints=["Indice 1", "Indice 2", "Indice 3"],
             creator_id=test_user.id,
             difficulty_rating=3.0,
             estimated_time_minutes=15,

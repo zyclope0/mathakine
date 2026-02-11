@@ -90,7 +90,7 @@ def test_generate_recommendations_for_improvement(db_session):
     db_session.add(user)
     db_session.commit()
     
-    # Créer un exercice dans le domaine à améliorer
+    # Créer deux exercices de multiplication (le service ne recommande que les exercices non tentés)
     exercise = Exercise(
         title="Test Exercice de multiplication",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
@@ -100,7 +100,16 @@ def test_generate_recommendations_for_improvement(db_session):
         correct_answer="42",
         is_active=True
     )
-    db_session.add(exercise)
+    exercise2 = Exercise(
+        title="Test Exercice multiplication 2",
+        exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
+        difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
+        question="8x9=?",
+        correct_answer="72",
+        is_active=True
+    )
+    db_session.add_all([exercise, exercise2])
     
     # Créer un progrès faible dans ce domaine (50% de réussite seulement)
     progress = Progress(
@@ -114,7 +123,7 @@ def test_generate_recommendations_for_improvement(db_session):
     db_session.add(progress)
     db_session.flush()
     
-    # Créer des tentatives récentes pour alimenter get_user_stats (by_exercise_type vient des attempts)
+    # Créer des tentatives récentes sur exercise SEULEMENT (exercise2 reste non tenté → recommandable)
     # Le service requiert >= 3 tentatives et < 70% de réussite pour les recommandations d'amélioration
     db_session.add_all([Attempt(
         user_id=user.id,
