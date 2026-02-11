@@ -41,6 +41,7 @@ async def test_complete_user_deletion_cascade(db_session):
         creator_id=user.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE),
+        age_group="6-8",
         question="1+1=?",
         correct_answer="2"
     )
@@ -50,6 +51,7 @@ async def test_complete_user_deletion_cascade(db_session):
         creator_id=user.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN),
+        age_group="9-11",
         question="5×5=?",
         correct_answer="25"
     )
@@ -217,6 +219,7 @@ async def test_exercise_deletion_cascade(db_session):
         creator_id=user.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.DIVISION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.CHEVALIER.value, db_session),
+        age_group="12-14",
         question="10÷2=?",
         correct_answer="5"
     )
@@ -327,6 +330,7 @@ async def test_multi_level_cascade(db_session):
         creator_id=user1.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.MAITRE.value, db_session),
+        age_group="15-17",
         question="99+1=?",
         correct_answer="100"
     )
@@ -336,6 +340,7 @@ async def test_multi_level_cascade(db_session):
         creator_id=user2.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.SOUSTRACTION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),
+        age_group="9-11",
         question="10-5=?",
         correct_answer="5"
     )

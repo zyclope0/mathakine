@@ -41,6 +41,7 @@ def test_generate_recommendations_basic(db_session):
         title="Test Exercice pour recommandation 1",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="1+1=?",
         correct_answer="2",
         is_active=True
@@ -50,6 +51,7 @@ def test_generate_recommendations_basic(db_session):
         title="Test Exercice pour recommandation 2",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),
+        age_group="9-11",
         question="3×4=?",
         correct_answer="12",
         is_active=True
@@ -93,6 +95,7 @@ def test_generate_recommendations_for_improvement(db_session):
         title="Test Exercice de multiplication",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="7x6=?",
         correct_answer="42",
         is_active=True

@@ -128,6 +128,7 @@ async def test_delete_exercise_cascade(gardien_client, db_session):
         title=f"Test Cascade Delete {unique_id}",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="2 + 2 = ?",
         correct_answer="4",
         choices=["3", "4", "5", "6"],

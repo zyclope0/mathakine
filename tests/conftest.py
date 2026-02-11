@@ -440,6 +440,7 @@ def mock_exercise():
             "title": "Exercice de test",
             "exercise_type": "ADDITION",
             "difficulty": "INITIE",
+            "age_group": "6-8",
             "question": "Combien font 2+2?",
             "correct_answer": "4",
             "choices": ["3", "4", "5", "6"],

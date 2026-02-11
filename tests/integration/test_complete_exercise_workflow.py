@@ -62,6 +62,7 @@ async def test_complete_exercise_workflow(db_session):
         creator_id=teacher.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="5+3=?",
         correct_answer="8",
         is_active=True
@@ -74,6 +75,7 @@ async def test_complete_exercise_workflow(db_session):
         creator_id=teacher.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),
+        age_group="9-11",
         question="6×7=?",
         correct_answer="42",
         is_active=True
@@ -86,6 +88,7 @@ async def test_complete_exercise_workflow(db_session):
         creator_id=teacher.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.DIVISION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.CHEVALIER.value, db_session),
+        age_group="12-14",
         question="56÷8=?",
         correct_answer="7",
         is_active=True
@@ -242,6 +245,7 @@ async def test_exercise_statistics_and_trends(db_session):
                 creator_id=user.id,  # L'utilisateur crée ses propres exercices pour ce test
                 exercise_type=ex_type,
                 difficulty=difficulty,
+                age_group="6-8",
                 question=f"Question {ex_type.value} {difficulty.value}",
                 correct_answer="42",
                 is_active=True

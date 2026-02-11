@@ -2,6 +2,7 @@
 Module de génération d'exercices pour enhanced_server.py
 """
 import json
+import os
 import random
 from typing import Any, Dict, List, Optional
 
@@ -11,6 +12,15 @@ from app.core.constants import (DIFFICULTY_LIMITS, DifficultyLevels, ExerciseTyp
 logger = get_logger(__name__)
 from app.core.messages import ExerciseMessages, StarWarsNarratives
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
+
+
+def _apply_test_title(exercise_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Prefix titles in test mode so cleanup can detect them."""
+    if os.environ.get("TESTING", "").lower() in ("1", "true", "yes"):
+        title = exercise_data.get("title")
+        if title and "test" not in str(title).lower():
+            exercise_data["title"] = f"Test {title}"
+    return exercise_data
 
 
 # Fonctions de normalisation
@@ -178,7 +188,7 @@ def generate_ai_exercise(exercise_type, age_group):
             "num2": num2,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
-        return exercise_data        
+        return _apply_test_title(exercise_data)        
     elif normalized_type == ExerciseTypes.SUBTRACTION:
         # Paramètres pour la soustraction avec des limites adaptatives
         min1 = type_limits.get("min1", 5)
@@ -224,7 +234,7 @@ def generate_ai_exercise(exercise_type, age_group):
             "num2": num2,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
-        return exercise_data        
+        return _apply_test_title(exercise_data)        
     elif normalized_type == ExerciseTypes.MULTIPLICATION:
         # Utiliser des limites adaptées pour la multiplication
         min_val = type_limits.get("min", 2)
@@ -268,7 +278,7 @@ def generate_ai_exercise(exercise_type, age_group):
             "num2": num2,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
-        return exercise_data        
+        return _apply_test_title(exercise_data)        
     elif normalized_type == ExerciseTypes.DIVISION:
         # Générer une division avec reste nul
         min_divisor = type_limits.get("min_divisor", 2)
@@ -315,7 +325,7 @@ def generate_ai_exercise(exercise_type, age_group):
             "num2": num2,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
     elif normalized_type == ExerciseTypes.FRACTIONS:
         # Génération IA d'un exercice sur les fractions avec thème Star Wars
         from fractions import Fraction
@@ -390,7 +400,7 @@ def generate_ai_exercise(exercise_type, age_group):
             "choices": choices,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} Pour {op_word} les fractions {num1}/{denom1} et {num2}/{denom2}, le résultat est {formatted_result}. {explanation_suffix}"
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
     elif normalized_type == ExerciseTypes.GEOMETRIE:
         # Génération IA d'un exercice de géométrie avec thème Star Wars
         import math
@@ -489,7 +499,7 @@ def generate_ai_exercise(exercise_type, age_group):
             "choices": choices,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} Pour calculer le {property} d'un {shape}, on utilise: {formula} = {result}. {explanation_suffix}"
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
     elif normalized_type == ExerciseTypes.DIVERS:
         # Génération IA d'exercices divers avec thème Star Wars
         
@@ -606,7 +616,7 @@ def generate_ai_exercise(exercise_type, age_group):
             "choices": choices,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
     elif normalized_type == ExerciseTypes.MIXTE:
         # Génération IA d'un exercice mixte avec PLUSIEURS opérations et thème Star Wars
         min_val = type_limits.get("min", 1)
@@ -690,7 +700,7 @@ def generate_ai_exercise(exercise_type, age_group):
             "formula": formula,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}"
         })
-        return exercise_data        
+        return _apply_test_title(exercise_data)        
     elif normalized_type == ExerciseTypes.TEXTE:
         # Génération IA d'exercices textuels avec thème Star Wars
         
@@ -804,7 +814,7 @@ def generate_ai_exercise(exercise_type, age_group):
             "choices": choices,
             "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} Pour résoudre ce problème, il faut analyser les données et appliquer les bonnes opérations mathématiques. {explanation_suffix}"
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
     # Si aucun type correspondant, retourner un exercice d'addition par défaut
     min_val = type_limits.get("min", 1)
     max_val = type_limits.get("max", 10)
@@ -822,7 +832,7 @@ def generate_ai_exercise(exercise_type, age_group):
         "explanation": f"Pour additionner {num1} et {num2}, il faut calculer leur somme, donc {num1} + {num2} = {result}."
     })
     
-    return exercise_data 
+    return _apply_test_title(exercise_data) 
 
 def ensure_explanation(exercise_dict):
     """S'assure qu'un exercice a une explication valide"""
@@ -891,7 +901,7 @@ def generate_simple_exercise(exercise_type, age_group):
             "num2": num2,
             "explanation": f"Pour additionner {num1} et {num2}, il faut calculer leur somme, donc {num1} + {num2} = {result}."
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
 
     elif normalized_type == ExerciseTypes.SUBTRACTION:
         # Génération d'une soustraction
@@ -924,7 +934,7 @@ def generate_simple_exercise(exercise_type, age_group):
             "num2": num2,
             "explanation": f"Pour soustraire {num2} de {num1}, il faut calculer leur différence, donc {num1} - {num2} = {result}."
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
 
     elif normalized_type == ExerciseTypes.MULTIPLICATION:
         # Génération d'une multiplication
@@ -954,7 +964,7 @@ def generate_simple_exercise(exercise_type, age_group):
             "num2": num2,
             "explanation": f"Pour multiplier {num1} par {num2}, il faut calculer leur produit, donc {num1} × {num2} = {result}."
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
 
     elif normalized_type == ExerciseTypes.DIVISION:
         # Génération d'une division
@@ -991,7 +1001,7 @@ def generate_simple_exercise(exercise_type, age_group):
             "num2": num2,
             "explanation": f"Pour diviser {num1} par {num2}, il faut calculer leur quotient, donc {num1} ÷ {num2} = {result}."
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
     
     elif normalized_type == ExerciseTypes.TEXTE:
         # Génération d'un exercice textuel (problèmes logiques, énigmes, etc.)
@@ -1152,7 +1162,7 @@ def generate_simple_exercise(exercise_type, age_group):
             "answer_type": answer_type  # Métadonnée pour l'interface
         })
         
-        return exercise_data
+        return _apply_test_title(exercise_data)
 
     elif normalized_type == ExerciseTypes.FRACTIONS:
         # Génération d'un exercice sur les fractions
@@ -1190,7 +1200,7 @@ def generate_simple_exercise(exercise_type, age_group):
             "tags": Tags.ALGORITHMIC + "," + Tags.FRACTIONS,
             "explanation": f"Une fraction représente une partie d'un tout. {numerator} part{'s' if numerator > 1 else ''} sur {denominator} s'écrit {correct_answer}."
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
 
     elif normalized_type == ExerciseTypes.GEOMETRIE:
         # Génération d'un exercice de géométrie
@@ -1285,7 +1295,7 @@ def generate_simple_exercise(exercise_type, age_group):
             "tags": Tags.ALGORITHMIC + "," + Tags.GEOMETRY,
             "explanation": explanation
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
     elif normalized_type == ExerciseTypes.MIXTE:
         # Génération d'un exercice mixte avec PLUSIEURS opérations combinées
         min_val = type_limits.get("min", 1)
@@ -1370,7 +1380,7 @@ def generate_simple_exercise(exercise_type, age_group):
             "tags": Tags.ALGORITHMIC + "," + Tags.ADVANCED,
             "explanation": explanation
         })
-        return exercise_data
+        return _apply_test_title(exercise_data)
 
     elif normalized_type == ExerciseTypes.DIVERS:
         # Génération d'un exercice divers (logique, conversions, probabilités, etc.)
@@ -1481,7 +1491,7 @@ def generate_simple_exercise(exercise_type, age_group):
         "explanation": f"Pour additionner {num1} et {num2}, il faut calculer leur somme, donc {num1} + {num2} = {result}."
     })
     
-    return exercise_data 
+    return _apply_test_title(exercise_data)
 
 def generate_contextual_question(operation_type, num1, num2, result, age_group):
     """Génère une question contextualisée selon le type d'opération et le groupe d'âge"""

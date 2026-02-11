@@ -149,7 +149,7 @@ async def get_exercise(request):
             ).filter(Exercise.id == exercise_id).first()
             
             if not exercise_row:
-                return ErrorHandler.create_not_found_error(f"Exercice {exercise_id} non trouvé")
+                return ErrorHandler.create_not_found_error(resource_type="Exercice", resource_id=exercise_id)
             
             exercise = {
                 "id": exercise_row.id,

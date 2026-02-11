@@ -18,6 +18,7 @@ def test_exercise_with_attempts(db_session):
         title="Test API Cascade Exercise",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="Combien font 2+2?",
         correct_answer="4",
         choices=["2", "3", "4", "5"]

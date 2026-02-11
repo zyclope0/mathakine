@@ -717,6 +717,7 @@ def test_cascade_delete_user_with_relationships(db_session):
         creator_id=user.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE, db_session),
+        age_group="6-8",
         question="1+1=?",
         correct_answer="2"
     )
@@ -1043,6 +1044,7 @@ def test_get_user_stats_with_malformed_data(db_session):
         title="Test exercice malformé",  # titre non vide pour satisfaire la contrainte
         exercise_type="ADDITION",  # type standard au lieu de UNKNOWN_TYPE
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE, db_session),  # difficulté standard
+        age_group="6-8",
         question="Question?",
         correct_answer="42",
         creator_id=user.id

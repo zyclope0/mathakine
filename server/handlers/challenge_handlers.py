@@ -204,8 +204,8 @@ async def get_challenge(request: Request):
         
         if not challenge_dict:
             return ErrorHandler.create_not_found_error(
-                resource_name="Défi logique",
-                user_message="Ce défi logique n'existe pas ou a été supprimé."
+                resource_type="Défi logique",
+                resource_id=challenge_id
             )
         
         logger.info(f"Récupération réussie du défi logique {challenge_id} (locale: {locale})")

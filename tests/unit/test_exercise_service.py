@@ -24,6 +24,7 @@ def test_get_exercise(db_session):
         title="Test Get Exercise",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="1+1=?",
         correct_answer="2"
     )
@@ -69,6 +70,7 @@ def test_list_exercises(db_session):
             title=f"Test Addition Initié {unique_id}",
             exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
             difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+            age_group="6-8",
             question="1+1=?",
             correct_answer="2",
             is_archived=False
@@ -77,6 +79,7 @@ def test_list_exercises(db_session):
             title=f"Test Soustraction Padawan {unique_id}",
             exercise_type=get_enum_value(ExerciseType, ExerciseType.SOUSTRACTION.value, db_session),
             difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),
+            age_group="9-11",
             question="5-2=?",
             correct_answer="3",
             is_archived=False
@@ -85,6 +88,7 @@ def test_list_exercises(db_session):
             title=f"Test Multiplication Chevalier {unique_id}",
             exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
             difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.CHEVALIER.value, db_session),
+            age_group="12-14",
             question="5*5=?",
             correct_answer="25",
             is_archived=False
@@ -93,6 +97,7 @@ def test_list_exercises(db_session):
             title=f"Test Addition Archivée {unique_id}",
             exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
             difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+            age_group="6-8",
             question="2+2=?",
             correct_answer="4",
             is_archived=True
@@ -146,6 +151,7 @@ def test_create_exercise(db_session):
         "title": "Test Create Exercise",
         "exercise_type": get_enum_value(ExerciseType, ExerciseType.DIVISION.value, db_session),
         "difficulty": get_enum_value(DifficultyLevel, DifficultyLevel.MAITRE.value, db_session),
+        "age_group": "15-17",
         "question": "10/2=?",
         "correct_answer": "5",
         "is_active": True
@@ -173,6 +179,7 @@ def test_update_exercise(db_session):
         title="Test Original Title",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="Original question",
         correct_answer="Original answer"
     )
@@ -225,6 +232,7 @@ def test_archive_exercise(db_session):
         title="Test Exercise to Archive",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.CHEVALIER.value, db_session),
+        age_group="12-14",
         question="Question to archive",
         correct_answer="Answer to archive",
         is_archived=False
@@ -266,6 +274,7 @@ def test_delete_exercise(db_session):
         title="Test Exercise to Delete",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.DIVISION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),
+        age_group="9-11",
         question="10 ÷ 2 = ?",
         correct_answer="5"
     )
@@ -312,6 +321,7 @@ def test_delete_exercise_cascade(db_session):
         title="Test Exercise with Attempts",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="5 + 5 = ?",
         correct_answer="10"
     )
@@ -379,6 +389,7 @@ def test_get_exercise_attempts(db_session):
         title="Test Attempts Exercise",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.DIVISION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),
+        age_group="9-11",
         question="10/2=?",
         correct_answer="5"
     )
@@ -441,6 +452,7 @@ def test_record_attempt(db_session):
         title="Test Record Exercise",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="2+2=?",
         correct_answer="4"
     )

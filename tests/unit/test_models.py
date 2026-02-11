@@ -33,6 +33,7 @@ def test_exercise_model():
         title="Test Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
+        age_group="6-8",
         question="2 + 2 = ?",
         correct_answer="4",
         created_at=datetime.now()
@@ -54,6 +55,7 @@ def test_attempt_model():
         title="Test Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
+        age_group="6-8",
         question="2 + 2 = ?",
         correct_answer="4"
     )
@@ -81,6 +83,7 @@ def test_user_attempt_relationship():
         title="Test Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
+        age_group="6-8",
         question="2 + 2 = ?",
         correct_answer="4"
     )
@@ -104,6 +107,7 @@ def test_exercise_attempt_relationship():
         title="Test Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
+        age_group="6-8",
         question="2 + 2 = ?",
         correct_answer="4"
     )
@@ -126,6 +130,7 @@ def test_recommendation_model():
         title="Test Recommended Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
+        age_group="6-8",
         question="3 + 3 = ?",
         correct_answer="6"
     )
@@ -162,6 +167,7 @@ def test_user_recommendation_relationship():
         title="Test Rec Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
+        age_group="6-8",
         question="5 + 5 = ?",
         correct_answer="10"
     )

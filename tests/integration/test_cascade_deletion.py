@@ -25,6 +25,7 @@ def setup_exercise_with_attempts(db_session):
         title="Test Cascade Exercise",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="Combien font 2+2?",
         correct_answer="4",
         choices=["2", "3", "4", "5"]
@@ -184,6 +185,7 @@ async def test_user_cascade_deletion(db_session):
         title="Test User Cascade Exercise",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="Combien font 5+5?",
         correct_answer="10",
         choices=["8", "9", "10", "11"]
@@ -320,6 +322,7 @@ def setup_user_with_recommendations(db_session):
         title="Test Recommendation Cascade Exercise",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
         question="Combien font 7+7?",
         correct_answer="14",
         choices=["12", "13", "14", "15"]
