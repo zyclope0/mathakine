@@ -219,7 +219,7 @@ export function RiddleRenderer({ visualData, className = '' }: RiddleRendererPro
             <h4 className="font-semibold text-foreground">Plaque</h4>
           </div>
           <ul className="space-y-1.5 text-foreground font-mono text-sm">
-            {plaqueLines.map((line: string, index: number) => (
+            {plaqueLines.map((line: unknown, index: number) => (
               <li key={index} className="flex items-center gap-2">
                 <span className="text-primary">—</span>
                 {typeof line === 'string' ? line : String(line)}

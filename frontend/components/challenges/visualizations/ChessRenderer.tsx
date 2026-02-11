@@ -89,7 +89,7 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
     return !!p && p !== ' ' && p !== '.' && !p.match(/^[a-h][1-8]$/i);
   };
   if (hasBoard && normalizedHighlights.length > 0) {
-    normalizedHighlights = normalizedHighlights.filter(([r, c]) => squareHasPiece(r, c));
+    normalizedHighlights = normalizedHighlights.filter((pos: [number, number]) => squareHasPiece(pos[0], pos[1]));
   }
 
   // Symboles des pièces d'échecs
