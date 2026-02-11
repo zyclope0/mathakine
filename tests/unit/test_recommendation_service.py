@@ -90,26 +90,21 @@ def test_generate_recommendations_for_improvement(db_session):
     db_session.add(user)
     db_session.commit()
     
-    # Créer deux exercices de multiplication (le service ne recommande que les exercices non tentés)
-    exercise = Exercise(
-        title="Test Exercice de multiplication",
-        exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
-        difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
-        age_group="6-8",
-        question="7x6=?",
-        correct_answer="42",
-        is_active=True
-    )
-    exercise2 = Exercise(
-        title="Test Exercice multiplication 2",
-        exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
-        difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
-        age_group="6-8",
-        question="8x9=?",
-        correct_answer="72",
-        is_active=True
-    )
-    db_session.add_all([exercise, exercise2])
+    # Créer plusieurs exercices de multiplication (le service ne recommande que les non tentés)
+    mult_type = get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session)
+    initie_diff = get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session)
+    exercises = [
+        Exercise(title="Test Mult 1", exercise_type=mult_type, difficulty=initie_diff, age_group="6-8",
+                 question="7x6=?", correct_answer="42", is_active=True, is_archived=False),
+        Exercise(title="Test Mult 2", exercise_type=mult_type, difficulty=initie_diff, age_group="6-8",
+                 question="8x9=?", correct_answer="72", is_active=True, is_archived=False),
+        Exercise(title="Test Mult 3", exercise_type=mult_type, difficulty=initie_diff, age_group="6-8",
+                 question="6x7=?", correct_answer="42", is_active=True, is_archived=False),
+    ]
+    for ex in exercises:
+        db_session.add(ex)
+    db_session.flush()
+    exercise = exercises[0]
     
     # Créer un progrès faible dans ce domaine (50% de réussite seulement)
     progress = Progress(

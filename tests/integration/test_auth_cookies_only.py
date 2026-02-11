@@ -1,5 +1,8 @@
 import pytest
 import uuid
+import httpx
+
+from enhanced_server import app as starlette_app
 
 
 @pytest.fixture
@@ -64,9 +67,10 @@ async def test_refresh_without_cookie_fails(client, test_user_data):
     login_resp = await client.post("/api/auth/login", json={"username": test_user_data["username"], "password": test_user_data["password"]})
     assert login_resp.status_code == 200
 
-    # Vider les cookies du client pour simuler une requête sans cookie (sinon httpx renvoie ceux du login)
-    client.cookies.clear()
-    response = await client.post("/api/auth/refresh")
+    # Utiliser un client vierge (jamais reçu de Set-Cookie) pour garantir aucune cookie
+    transport = httpx.ASGITransport(app=starlette_app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as fresh_client:
+        response = await fresh_client.post("/api/auth/refresh")
     # The handler expects a body if no cookie, causing a 422. A 401 would be better, but we test the current state.
     # 400 = Bad Request (body manquant), 401 = Unauthorized, 422 = Validation FastAPI
     assert response.status_code in [400, 401, 422], f"Le refresh sans cookie devrait retourner 400, 401 ou 422, reçu {response.status_code}."

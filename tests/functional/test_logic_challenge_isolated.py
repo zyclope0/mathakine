@@ -158,11 +158,24 @@ async def test_logic_challenge_hints(client, logic_challenge_db, padawan_client_
     challenge = logic_challenge_db.query(LogicChallenge).first()
     assert challenge is not None
 
+    # S'assurer que le défi a des indices (le handler retourne 400 si level > len(hints))
+    hints_list = challenge.hints
+    if isinstance(hints_list, str):
+        import json
+        try:
+            hints_list = json.loads(hints_list) if hints_list else []
+        except (json.JSONDecodeError, ValueError):
+            hints_list = []
+    if not hints_list or len(hints_list) < 1:
+        challenge.hints = ["Indice 1", "Indice 2", "Indice 3"]
+        logic_challenge_db.merge(challenge)
+        logic_challenge_db.commit()
+
     headers = {"Authorization": f"Bearer {padawan_client_after_db['token']}"}
     response = await client.get(f"/api/challenges/{challenge.id}/hint?level=1", headers=headers)
 
     # Vérifier le résultat
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Attendu 200, reçu {response.status_code}. Réponse: {response.text}"
     hint_data = response.json()
     assert "hint" in hint_data
 
