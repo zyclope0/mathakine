@@ -29,7 +29,7 @@ openai==2.16.0
 tenacity==8.2.3  # Retry logic avec backoff exponentiel
 
 # Journalisation et débogage
-loguru==0.7.2
+loguru==0.7.3
 
 # Authentification et sécurité
 python-jose[cryptography]==3.5.0  # JWT
