@@ -414,40 +414,42 @@ class ExerciseService:
             )
             session.add(new_progress)
         
-        # 2. Mettre à jour ou créer UserStats (table legacy, optionnelle si absente)
-        # Vérifier l'existence de la table AVANT de requêter pour éviter InFailedSqlTransaction
+        # 2. Mettre à jour ou créer UserStats dans une session SÉPARÉE pour éviter
+        #    de contaminer la transaction principale (table legacy, peut être absente)
         try:
-            result = session.execute(text(
-                "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='user_stats'"
-            ))
-            if not result.scalar():
-                logger.debug("Table user_stats absente, mise à jour ignorée")
-            else:
-                exercise_type_value = exercise_type.value if hasattr(exercise_type, 'value') else str(exercise_type)
-                difficulty_value = difficulty.value if hasattr(difficulty, 'value') else str(difficulty) if difficulty else "initie"
-
-                user_stat = session.query(UserStats).filter(
-                    UserStats.exercise_type == exercise_type_value,
-                    UserStats.difficulty == difficulty_value
-                ).first()
-
-                if user_stat:
-                    user_stat.total_attempts += 1
-                    if is_correct:
-                        user_stat.correct_attempts += 1
-                    user_stat.last_updated = datetime.now()
+            from sqlalchemy.orm import sessionmaker
+            aux_factory = sessionmaker(autocommit=False, autoflush=False)
+            aux_session = aux_factory(bind=session.get_bind())
+            try:
+                result = aux_session.execute(text(
+                    "SELECT 1 FROM information_schema.tables "
+                    "WHERE table_schema='public' AND table_name='user_stats'"
+                ))
+                if not result.scalar():
+                    logger.debug("Table user_stats absente, ignorée")
                 else:
-                    new_user_stat = UserStats(
-                        exercise_type=exercise_type_value,
-                        difficulty=difficulty_value,
-                        total_attempts=1,
-                        correct_attempts=1 if is_correct else 0
-                    )
-                    session.add(new_user_stat)
+                    ex_type_val = exercise_type.value if hasattr(exercise_type, 'value') else str(exercise_type)
+                    diff_val = difficulty.value if hasattr(difficulty, 'value') else str(difficulty) or "initie"
+                    user_stat = aux_session.query(UserStats).filter(
+                        UserStats.exercise_type == ex_type_val,
+                        UserStats.difficulty == diff_val
+                    ).first()
+                    if user_stat:
+                        user_stat.total_attempts += 1
+                        if is_correct:
+                            user_stat.correct_attempts += 1
+                        user_stat.last_updated = datetime.now()
+                    else:
+                        aux_session.add(UserStats(
+                            exercise_type=ex_type_val,
+                            difficulty=diff_val,
+                            total_attempts=1,
+                            correct_attempts=1 if is_correct else 0
+                        ))
+                    aux_session.commit()
+            finally:
+                aux_session.close()
         except Exception as user_stats_err:
-            logger.debug(
-                "UserStats ignoré (table absente ou erreur): %s",
-                user_stats_err,
-            )
+            logger.debug("UserStats ignoré: %s", user_stats_err)
 
         session.flush() 
