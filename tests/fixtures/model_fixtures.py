@@ -63,7 +63,7 @@ def test_exercises():
     """Crée une liste d'exercices de test variés."""
     return [
         Exercise(
-            title="Addition simple",
+            title="Test Addition simple",
             exercise_type=ExerciseType.ADDITION.value,
             difficulty=DifficultyLevel.INITIE.value,
             question="2 + 2 = ?",
@@ -73,7 +73,7 @@ def test_exercises():
             created_at=datetime.now() - timedelta(days=3)
         ),
         Exercise(
-            title="Multiplication",
+            title="Test Multiplication",
             exercise_type=ExerciseType.MULTIPLICATION.value,
             difficulty=DifficultyLevel.PADAWAN.value,
             question="5 × 6 = ?",
@@ -83,7 +83,7 @@ def test_exercises():
             created_at=datetime.now() - timedelta(days=2)
         ),
         Exercise(
-            title="Soustraction",
+            title="Test Soustraction",
             exercise_type=ExerciseType.SOUSTRACTION.value,
             difficulty=DifficultyLevel.INITIE.value,
             question="10 - 7 = ?",
@@ -93,7 +93,7 @@ def test_exercises():
             created_at=datetime.now() - timedelta(days=1)
         ),
         Exercise(
-            title="Division",
+            title="Test Division",
             exercise_type=ExerciseType.DIVISION.value,
             difficulty=DifficultyLevel.CHEVALIER.value,
             question="20 ÷ 4 = ?",
@@ -197,7 +197,7 @@ def test_logic_challenges():
     """Crée une liste de défis logiques de test variés."""
     return [
         LogicChallenge(
-            title="Suite logique",
+            title="Test Suite logique",
             challenge_type=LogicChallengeType.SEQUENCE.value,
             description="Trouvez le prochain nombre dans la séquence: 2, 4, 8, 16, ...",
             correct_answer="32",
@@ -209,7 +209,7 @@ def test_logic_challenges():
             created_at=datetime.now() - timedelta(days=3)
         ),
         LogicChallenge(
-            title="Énigme mathématique",
+            title="Test Énigme mathématique",
             challenge_type=LogicChallengeType.PATTERN.value,
             description="Si un crayon coûte 1 crédit et un cahier coûte 5 crédits, combien coûtent 2 crayons et 3 cahiers?",
             correct_answer="17",
@@ -221,7 +221,7 @@ def test_logic_challenges():
             created_at=datetime.now() - timedelta(days=2)
         ),
         LogicChallenge(
-            title="Problème de logique",
+            title="Test Problème de logique",
             challenge_type=LogicChallengeType.PUZZLE.value,
             description="Si tous les Jedi sont sages, et que Yoda est un Jedi, alors quelle affirmation est vraie?",
             correct_answer="Yoda est sage",

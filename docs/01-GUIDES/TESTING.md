@@ -1,7 +1,7 @@
 # 🧪 TESTING GUIDE - MATHAKINE
 
-**Version** : 3.0.0  
-**Date** : 09 fevrier 2026 (mise a jour)  
+**Version** : 3.1.0  
+**Date** : 11 fevrier 2026 (mise a jour)  
 **Audience** : Developpeurs, QA
 
 ---
@@ -14,6 +14,7 @@
 4. [Tests frontend](#tests-frontend)
 5. [CI/CD](#cicd)
 6. [Best practices](#best-practices)
+7. [Modifications recentes](#modifications-recentes)
 
 ---
 
@@ -40,17 +41,18 @@
 > **Migration 08/02/2026** : Les tests backend ont ete migres de `starlette.testclient.TestClient` (sync) vers `httpx.AsyncClient` (async natif Starlette). Tous les tests d'integration utilisent desormais `pytest-asyncio`.
 
 ### Objectifs coverage
-- **Unit tests** : 80%+
+- **Unit tests** : 80%+ (objectif long terme)
 - **Integration tests** : 60%+
-- **E2E tests** : Scénarios critiques
+- **E2E tests** : Scenarios critiques
 - **Global coverage** : 70%+
 
-### Tests actuels (09/02/2026)
-- ✅ **47 fichiers de tests** backend + 4 unit + 2 E2E frontend
-- ✅ **396 tests collectes** (CI verte)
-- ⚠️ **Couverture non mesuree** (pas de rapport genere en CI)
-- ✅ **CI/CD automatise** : GitHub Actions (lint + test + frontend build), `continue-on-error` retire
-- ✅ **Tests critiques** : auth, challenges, exercises
+> **Strategie actuelle** : Augmenter progressivement plutot qu'en bloc. Pour chaque nouvelle feature importante, ajouter 1-2 tests. Passer a une phase de montée en couverture quand les features sont stabilisees.
+
+### Tests actuels (11/02/2026)
+- ✅ **Backend** : 368 tests passent, 18 skippes, ~48% couverture (app + server)
+- ✅ **Frontend** : 20 tests (Vitest), ~71% couverture sur fichiers testes
+- ✅ **CI** : Tests + couverture backend et frontend, upload Codecov (flags backend/frontend)
+- ✅ **Tests critiques** : auth, challenges, exercises, user_exercise_flow
 - ✅ **Base de test separee** : `TEST_DATABASE_URL` obligatoire (protection production)
 - ✅ **Tests async** : httpx.AsyncClient + pytest-asyncio (Starlette natif)
 
@@ -154,44 +156,30 @@ def sample_user(db):
 
 > **Note** : Le `conftest.py` reel inclut egalement des safeguards pour empecher toute operation destructive sur la base de production (filtrage des DELETE/TRUNCATE, warnings si `TEST_DATABASE_URL` n'est pas defini).
 
-### Frontend (Jest + React Testing Library)
+### Frontend (Vitest + React Testing Library)
 
 #### Installation
 ```bash
 cd frontend
-npm install --save-dev jest @testing-library/react @testing-library/jest-dom @testing-library/user-event
+npm ci  # inclut vitest, @testing-library/react, @testing-library/user-event, @vitest/coverage-v8
 ```
 
-#### jest.config.js
-```javascript
-// frontend/jest.config.js
-const nextJest = require('next/jest')
-
-const createJestConfig = nextJest({
-  dir: './',
-})
-
-const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  testEnvironment: 'jest-environment-jsdom',
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
+#### vitest.config.ts
+```typescript
+// frontend/vitest.config.ts
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./vitest.setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      exclude: ['**/__tests__/**', '**/*.config.*', '**/types/**'],
+    },
   },
-  testMatch: [
-    '**/__tests__/**/*.{js,jsx,ts,tsx}',
-    '**/*.{spec,test}.{js,jsx,ts,tsx}'
-  ],
-  collectCoverageFrom: [
-    'app/**/*.{js,jsx,ts,tsx}',
-    'components/**/*.{js,jsx,ts,tsx}',
-    'hooks/**/*.{js,jsx,ts,tsx}',
-    'lib/**/*.{js,jsx,ts,tsx}',
-    '!**/*.d.ts',
-    '!**/node_modules/**',
-  ],
-}
-
-module.exports = createJestConfig(customJestConfig)
+  resolve: { alias: { '@': path.resolve(__dirname, './') } },
+});
 ```
 
 ---
@@ -450,43 +438,61 @@ pytest tests/ -v -n auto
 
 ## ⚛️ TESTS FRONTEND {#tests-frontend}
 
-### Tests composants
+### Composants avec contexte (NextIntl, React Query)
+
+Pour les composants utilisant `useTranslations` ou `useCompletedExercises`, fournir les providers :
 
 ```typescript
-// frontend/__tests__/components/ChallengeCard.test.tsx
+// frontend/__tests__/unit/components/ExerciseCard.test.tsx
+import { NextIntlClientProvider } from 'next-intl';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import fr from '@/messages/fr.json';
+
+vi.mock('@/hooks/useCompletedItems', () => ({
+  useCompletedExercises: () => ({ isCompleted: () => false }),
+}));
+
+function TestWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <NextIntlClientProvider locale="fr" messages={fr}>
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        {children}
+      </QueryClientProvider>
+    </NextIntlClientProvider>
+  );
+}
+
+it('affiche le titre', () => {
+  render(<ExerciseCard exercise={mockExercise} />, { wrapper: TestWrapper });
+  expect(screen.getByText('Test Exercise')).toBeInTheDocument();
+});
+```
+
+### Composants avec menu déroulant (userEvent)
+
+Pour les composants dont le contenu est dans un popover/menu fermé par défaut (ex. AccessibilityToolbar) :
+
+```typescript
+import userEvent from '@testing-library/user-event';
+
+it('affiche les options après ouverture du menu', async () => {
+  render(<AccessibilityToolbar />);
+  await userEvent.click(screen.getByRole('button', { name: /options d'accessibilité/i }));
+  expect(screen.getByRole('switch', { name: /contraste élevé/i })).toBeInTheDocument();
+});
+```
+
+### Tests composants (exemple simple)
+
+```typescript
+// frontend/__tests__/unit/components/BadgeCard.test.tsx
 import { render, screen } from '@testing-library/react';
-import { ChallengeCard } from '@/components/challenges/ChallengeCard';
+import { BadgeCard } from '@/components/badges/BadgeCard';
 
-const mockChallenge = {
-  id: 1,
-  title: 'Test Challenge',
-  description: 'Test description',
-  challenge_type: 'SEQUENCE',
-  difficulty_rating: 2.5,
-};
-
-describe('ChallengeCard', () => {
-  it('renders challenge information', () => {
-    render(<ChallengeCard challenge={mockChallenge} />);
-    
-    expect(screen.getByText('Test Challenge')).toBeInTheDocument();
-    expect(screen.getByText('Test description')).toBeInTheDocument();
-  });
-  
-  it('displays difficulty rating', () => {
-    render(<ChallengeCard challenge={mockChallenge} />);
-    
-    expect(screen.getByText(/2.5/)).toBeInTheDocument();
-  });
-  
-  it('calls onSelect when clicked', () => {
-    const onSelect = jest.fn();
-    render(<ChallengeCard challenge={mockChallenge} onSelect={onSelect} />);
-    
-    const card = screen.getByRole('button');
-    card.click();
-    
-    expect(onSelect).toHaveBeenCalledWith(mockChallenge);
+describe('BadgeCard', () => {
+  it('affiche le nom du badge', () => {
+    render(<BadgeCard badge={mockBadge} isEarned={false} />);
+    expect(screen.getByText('Premiers Pas')).toBeInTheDocument();
   });
 });
 ```
@@ -494,35 +500,15 @@ describe('ChallengeCard', () => {
 ### Tests hooks
 
 ```typescript
-// frontend/__tests__/hooks/useChallenges.test.tsx
-import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useChallenges } from '@/hooks/useChallenges';
+// frontend/__tests__/unit/hooks/useAccessibleAnimation.test.ts
+import { renderHook } from '@testing-library/react';
+import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-    },
-  });
-  
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
-};
-
-describe('useChallenges', () => {
-  it('fetches challenges successfully', async () => {
-    const { result } = renderHook(() => useChallenges(), {
-      wrapper: createWrapper(),
-    });
-    
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    
-    expect(result.current.data).toBeDefined();
-    expect(Array.isArray(result.current.data)).toBe(true);
+describe('useAccessibleAnimation', () => {
+  it('retourne des variants et transition', () => {
+    const { result } = renderHook(() => useAccessibleAnimation());
+    expect(result.current.createVariants).toBeDefined();
+    expect(result.current.shouldReduceMotion).toBe(false);
   });
 });
 ```
@@ -530,36 +516,16 @@ describe('useChallenges', () => {
 ### Tests E2E (Playwright)
 
 ```typescript
-// frontend/e2e/auth.spec.ts
+// frontend/__tests__/e2e/auth.spec.ts
 import { test, expect } from '@playwright/test';
 
 test.describe('Authentication', () => {
   test('user can login successfully', async ({ page }) => {
     await page.goto('http://localhost:3000/login');
-    
-    // Remplir formulaire
     await page.fill('[name="username"]', 'testuser');
     await page.fill('[name="password"]', 'testpassword');
-    
-    // Soumettre
     await page.click('[type="submit"]');
-    
-    // Vérifier redirection vers dashboard
-    await expect(page).toHaveURL('http://localhost:3000/dashboard');
-    
-    // Vérifier contenu
-    await expect(page.locator('h1')).toContainText('Dashboard');
-  });
-  
-  test('shows error with invalid credentials', async ({ page }) => {
-    await page.goto('http://localhost:3000/login');
-    
-    await page.fill('[name="username"]', 'invalid');
-    await page.fill('[name="password"]', 'wrong');
-    await page.click('[type="submit"]');
-    
-    // Vérifier message d'erreur
-    await expect(page.locator('.error-message')).toContainText('Invalid credentials');
+    await expect(page).toHaveURL(/dashboard/);
   });
 });
 ```
@@ -569,19 +535,20 @@ test.describe('Authentication', () => {
 ```bash
 cd frontend
 
-# Tests unitaires
+# Tests unitaires (Vitest)
 npm run test
 
 # Tests avec coverage
 npm run test:coverage
 
 # Tests en mode watch
-npm run test:watch
+npm run test -- --watch
 
-# Tests E2E
+# Interface UI interactive
+npm run test:ui
+
+# Tests E2E (Playwright)
 npm run test:e2e
-
-# Tests E2E en mode UI
 npm run test:e2e:ui
 ```
 
@@ -589,81 +556,15 @@ npm run test:e2e:ui
 
 ## 🔄 CI/CD {#cicd}
 
-### GitHub Actions Workflow
+### GitHub Actions Workflow (.github/workflows/tests.yml)
 
-```yaml
-# .github/workflows/tests.yml (simplifie - voir le fichier reel pour la version complete)
-# Mis a jour 08/02/2026 : GitHub Actions v6, Dependabot actif
-name: Tests
+| Job | Actions |
+|-----|---------|
+| **test** | PostgreSQL 15, pytest avec --cov, coverage.xml, upload Codecov (flag backend) |
+| **lint** | flake8, black, isort |
+| **frontend** | npm ci, tsc --noEmit, **npm run test:coverage**, upload Codecov (flag frontend), npm run build |
 
-on:
-  push:
-    branches: [main, master, develop]
-  pull_request:
-    branches: [main, master, develop]
-
-jobs:
-  backend-tests:
-    runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: test_mathakine
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    
-    steps:
-      - uses: actions/checkout@v6       # Mis a jour via Dependabot
-      
-      - name: Set up Python
-        uses: actions/setup-python@v6   # Mis a jour via Dependabot
-        with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio httpx
-      
-      - name: Run tests
-        env:
-          TEST_DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_mathakine
-          TESTING: "true"
-        run: |
-          pytest tests/ -v --cov=app --cov=server --cov-report=xml
-      
-      - name: Upload coverage
-        uses: codecov/codecov-action@v5  # Mis a jour via Dependabot
-        with:
-          files: ./coverage.xml
-          flags: backend
-  
-  frontend-build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Install & Build
-        run: |
-          cd frontend
-          npm ci
-          npm run build
-```
-
-> **Note** : Le workflow CI actuel n'utilise plus `continue-on-error: true` (retire le 08/02/2026). Un echec de test bloque le merge.
+Un echec de test bloque le merge. Les rapports de couverture sont envoyes a Codecov (backend + frontend separes).
 
 ---
 
@@ -761,9 +662,107 @@ def test_ai_generation(mock_openai, db):
 
 ---
 
+## 🧹 GESTION DES DONNEES DE TEST {#test-data}
+
+### Utilisateurs permanents (JAMAIS supprimes)
+
+Les utilisateurs suivants sont des comptes de demonstration ou de seed. Ils ne doivent **JAMAIS** etre supprimes, modifies ou impactes par les tests :
+
+| Username | Role | Description |
+|----------|------|-------------|
+| `ObiWan` | Demonstration | Utilisateur de demo visible sur le dashboard |
+| `maitre_yoda` | Maitre | Utilisateur seed pour la creation d'exercices |
+| `padawan1` | Padawan | Utilisateur seed eleve |
+| `gardien1` | Gardien | Utilisateur seed administrateur |
+
+> **REGLE ABSOLUE** : Aucun test ne doit creer de donnees (attempts, progress, recommendations) au nom de ces utilisateurs. Aucun `delete()` sans `.filter()` n'est autorise sur les tables partagees (attempts, progress, exercises, users).
+
+### Conventions de nommage des donnees de test
+
+Tous les tests doivent utiliser des noms qui correspondent aux patterns de nettoyage automatique :
+
+**Usernames** (prefixes acceptes) :
+```
+test_%, new_test_%, duplicate_%, cascade_%, creator_%, service_%,
+auth_test_%, isolated_%, flow_%, jedi_%, login_test_%, cascade_test_%
+```
+
+**Emails** (domaines de test) :
+```
+*@test.com, *@jedi.com, *@test.example.com, *@example.com
+```
+
+**Titres d'exercices** :
+```
+%test%, %Test%, %TEST%, Cascade %, Dashboard %
+```
+
+**Titres de defis** :
+```
+%test%, %Test%, %TEST%, Défi Auto-%, Nouveau défi%
+```
+
+### Nettoyage automatique (TestDataManager)
+
+Le nettoyage s'execute automatiquement apres chaque test via la fixture `auto_cleanup_test_data` dans `tests/conftest.py`. Il utilise `TestDataManager` (`tests/utils/test_data_cleanup.py`) qui :
+
+1. Identifie les donnees de test par patterns de noms
+2. Exclut les utilisateurs permanents de toute suppression
+3. Protege les attempts/progress des utilisateurs permanents meme sur des exercices de test
+4. Supprime dans l'ordre FK : challenge_attempts → attempts → recommendations → progress → challenges → exercises → users
+
+### Nettoyage one-shot (production)
+
+Si des donnees de test ont persiste en production, utiliser le script de nettoyage :
+
+```bash
+# Mode dry-run (affiche sans supprimer)
+python scripts/cleanup_test_data_production.py
+
+# Mode execution (supprime reellement, demande confirmation)
+python scripts/cleanup_test_data_production.py --execute
+```
+
+Ce script protege les memes utilisateurs permanents et respecte le meme ordre FK.
+
+### Regles de securite pour les tests
+
+1. **JAMAIS** de `db_session.query(Model).delete()` sans `.filter()` - utiliser toujours un filtre sur les patterns de test
+2. **JAMAIS** d'operations sur la table `progress` ou `attempts` sans filtrer par `user_id` de test
+3. **TOUJOURS** utiliser `unique_username()` / `unique_email()` pour generer des noms uniques
+4. **TOUJOURS** commiter via la session de test si possible, pour que le rollback de fixture fonctionne
+5. Si le test doit `commit()`, s'assurer que le `TestDataManager` pourra identifier les donnees creees
+
+---
+
+## 📝 MODIFICATIONS RECENTES {#modifications-recentes}
+
+### Fevrier 2026 – Session couverture et stabilisation
+
+| Domaine | Modification |
+|---------|--------------|
+| **Backend** | `test_user_exercise_flow.py` : utilise `POST /api/exercises/generate` (pas de POST /api/exercises/), parametre `answer` pour les tentatives, `GET /api/users/stats` pour les stats |
+| **Frontend** | `ExerciseCard.test.tsx` : wrapper NextIntlClientProvider + QueryClientProvider, mock useCompletedItems |
+| **Frontend** | `AccessibilityToolbar` : tests adaptes (ouverture menu via userEvent, role="switch"), aria-label sur les options |
+| **Frontend** | `BadgeCard.test.tsx` : mocks alignes sur types Badge/UserBadge (plus de requirements, achievement_id) |
+| **Next.js 16** | Migration middleware.ts → proxy.ts (convention depreciee) |
+| **CI** | Tests frontend avec coverage avant build, upload Codecov backend + frontend |
+| **Dependances** | @testing-library/user-event, @vitest/coverage-v8 ajoutes |
+
+### API exercices utiles
+
+| Endpoint | Methode | Note |
+|----------|---------|------|
+| `/api/exercises/generate` | POST | Creer un exercice (exercise_type, age_group requis) |
+| `/api/exercises/{id}/attempt` | POST | Soumettre une tentative (parametre `answer` ou `selected_answer`) |
+| `/api/users/stats` | GET | Stats du user connecte (pas /api/users/{id}/stats) |
+
+---
+
 ## 📚 RESSOURCES
 
 - [pytest Documentation](https://docs.pytest.org/)
+- [Vitest](https://vitest.dev/)
 - [Testing Library](https://testing-library.com/)
 - [Playwright](https://playwright.dev/)
 - [Coverage.py](https://coverage.readthedocs.io/)

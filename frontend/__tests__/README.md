@@ -86,18 +86,26 @@ test('parcours utilisateur complet', async ({ page }) => {
 1. **Tests unitaires** : Tester la logique isolée des composants
 2. **Tests E2E** : Tester les parcours utilisateur complets
 3. **Tests accessibilité** : Vérifier ARIA, navigation clavier, contraste
-4. **Couverture** : Viser au moins 70% de couverture de code
-5. **Nommage** : Utiliser des noms descriptifs (`it('should...')`)
+4. **Couverture** : ~71 % actuellement sur les fichiers testés
+5. **Nommage** : Utiliser des noms descriptifs (`it('affiche...')`, `it('should...')`)
 
 ## 🔧 Configuration
 
 - **Vitest** : `vitest.config.ts`
 - **Playwright** : `playwright.config.ts`
-- **Setup** : `vitest.setup.ts` (mocks globaux)
+- **Setup** : `vitest.setup.ts` (mocks globaux : next/navigation, next/image, matchMedia)
 
 ## 📊 Couverture de Code
 
-La couverture est générée dans `coverage/` après `npm run test:coverage`.
+`npm run test:coverage` génère les rapports dans `coverage/` (text, json, html, lcov). Le lcov est envoyé à Codecov en CI.
+
+## 🔌 Providers pour composants avec contexte
+
+Composants utilisant `useTranslations`, `useCompletedExercises`, etc. : fournir un wrapper avec `NextIntlClientProvider` + `QueryClientProvider`. Voir `ExerciseCard.test.tsx` en exemple. Mocker les hooks API avec `vi.mock('@/hooks/useCompletedItems')` pour éviter les appels réseau.
+
+## 📂 Menu / Popover fermé par défaut
+
+Pour tester le contenu d’un menu (ex. AccessibilityToolbar) : ouvrir le menu avec `userEvent.click()` avant les assertions. Les options sont en `role="switch"` avec `aria-label`.
 
 ## 🐛 Debugging
 

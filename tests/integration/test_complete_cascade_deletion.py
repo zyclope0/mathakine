@@ -37,7 +37,7 @@ async def test_complete_user_deletion_cascade(db_session):
     
     # 2. Créer des exercices créés par cet utilisateur
     exercise1 = Exercise(
-        title=f"Exercise by user {unique_id} - 1",
+        title=f"Test Exercise by user {unique_id} - 1",
         creator_id=user.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE),
@@ -46,7 +46,7 @@ async def test_complete_user_deletion_cascade(db_session):
     )
     
     exercise2 = Exercise(
-        title=f"Exercise by user {unique_id} - 2",
+        title=f"Test Exercise by user {unique_id} - 2",
         creator_id=user.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN),
@@ -120,7 +120,7 @@ async def test_complete_user_deletion_cascade(db_session):
     
     # 6. Créer un défi logique créé par cet utilisateur
     challenge = LogicChallenge(
-        title=f"Challenge by user {unique_id}",
+        title=f"Test Challenge by user {unique_id}",
         creator_id=user.id,
         challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.PATTERN),
         age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_13_15),
@@ -203,8 +203,8 @@ async def test_exercise_deletion_cascade(db_session):
     
     # 1. Créer un utilisateur de test (qui ne doit PAS être supprimé)
     user = User(
-        username=f"exercise_cascade_{unique_id}",
-        email=f"ex_cascade_{unique_id}@example.com",
+        username=f"test_exercise_cascade_{unique_id}",
+        email=f"test_ex_cascade_{unique_id}@example.com",
         hashed_password="test_password",
         role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
     )
@@ -305,15 +305,15 @@ async def test_multi_level_cascade(db_session):
     
     # 1. Créer les utilisateurs
     user1 = User(
-        username=f"parent_user_{unique_id}",
-        email=f"parent_{unique_id}@example.com",
+        username=f"test_parent_user_{unique_id}",
+        email=f"test_parent_{unique_id}@example.com",
         hashed_password="test_password",
         role=get_enum_value(UserRole, UserRole.MAITRE.value, db_session)
     )
     
     user2 = User(
-        username=f"child_user_{unique_id}",
-        email=f"child_{unique_id}@example.com",
+        username=f"test_child_user_{unique_id}",
+        email=f"test_child_{unique_id}@example.com",
         hashed_password="test_password",
         role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
     )
@@ -323,7 +323,7 @@ async def test_multi_level_cascade(db_session):
     
     # 2. Créer les exercices
     exercise1 = Exercise(
-        title=f"Parent exercise {unique_id}",
+        title=f"Test Parent exercise {unique_id}",
         creator_id=user1.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.MAITRE.value, db_session),
@@ -332,7 +332,7 @@ async def test_multi_level_cascade(db_session):
     )
     
     exercise2 = Exercise(
-        title=f"Child exercise {unique_id}",
+        title=f"Test Child exercise {unique_id}",
         creator_id=user2.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.SOUSTRACTION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),

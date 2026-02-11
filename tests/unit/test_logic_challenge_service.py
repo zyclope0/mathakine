@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import text
 from unittest.mock import MagicMock, patch
 import time
 
@@ -60,41 +61,49 @@ def test_get_nonexistent_challenge(db_session):
 
 def test_list_challenges(db_session):
     """Teste la liste des défis logiques."""
+    # Nettoyer les défis legacy avec SPATIAL (fusionné dans VISUAL) pour éviter les erreurs de chargement
+    try:
+        db_session.execute(text(
+            "UPDATE logic_challenges SET challenge_type = 'VISUAL' WHERE challenge_type::text = 'SPATIAL'"
+        ))
+        db_session.commit()
+    except Exception:
+        db_session.rollback()
     # Créer des défis de test avec des titres uniques
     timestamp = str(int(time.time() * 1000))
     
     challenges = [
         LogicChallenge(
-            title=f"Séquence 9-12 {timestamp}",
-            challenge_type="SEQUENCE",  # Utiliser le nom de l'enum pour PostgreSQL
-            age_group="GROUP_10_12",  # Valeur correcte de l'enum pour PostgreSQL
+            title=f"Test Séquence 9-12 {timestamp}",
+            challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.SEQUENCE.value, db_session),
+            age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12.value, db_session),
             description="Une séquence",
             correct_answer="Séquence",
             is_archived=False,
             solution_explanation="Explication de la solution"  # Ajout du champ obligatoire
         ),
         LogicChallenge(
-            title=f"Pattern 12-13 {timestamp}",
-            challenge_type="PATTERN",  # Utiliser le nom de l'enum pour PostgreSQL
-            age_group="GROUP_13_15",  # Valeur correcte de l'enum pour PostgreSQL
+            title=f"Test Pattern 12-13 {timestamp}",
+            challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.PATTERN.value, db_session),
+            age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_13_15.value, db_session),
             description="Un pattern",
             correct_answer="Pattern",
             is_archived=False,
             solution_explanation="Explication de la solution"  # Ajout du champ obligatoire
         ),
         LogicChallenge(
-            title=f"Puzzle 13+ {timestamp}",
-            challenge_type="PUZZLE",  # Utiliser le nom de l'enum pour PostgreSQL
-            age_group="GROUP_13_15",  # Valeur correcte de l'enum pour PostgreSQL
+            title=f"Test Puzzle 13+ {timestamp}",
+            challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.PUZZLE.value, db_session),
+            age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_13_15.value, db_session),
             description="Résous ce puzzle",
             correct_answer="Fibonacci",
             is_archived=False,
             solution_explanation="Explication de la solution"  # Ajout du champ obligatoire
         ),
         LogicChallenge(
-            title=f"Séquence Archivée {timestamp}",
-            challenge_type="SEQUENCE",  # Utiliser le nom de l'enum pour PostgreSQL
-            age_group="GROUP_10_12",  # Valeur correcte de l'enum pour PostgreSQL
+            title=f"Test Séquence Archivée {timestamp}",
+            challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.SEQUENCE.value, db_session),
+            age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12.value, db_session),
             description="Une séquence archivée",
             correct_answer="Archivé",
             is_archived=True,
@@ -114,7 +123,7 @@ def test_list_challenges(db_session):
     assert len(test_challenges) == 3  # Le défi archivé ne devrait pas être inclus
 
     # Vérifier que les défis attendus sont présents
-    non_archived_titles = [f"Séquence 9-12 {timestamp}", f"Pattern 12-13 {timestamp}", f"Puzzle 13+ {timestamp}"]
+    non_archived_titles = [f"Test Séquence 9-12 {timestamp}", f"Test Pattern 12-13 {timestamp}", f"Test Puzzle 13+ {timestamp}"]
     actual_titles = [ch.title for ch in test_challenges]
     for title in non_archived_titles:
         assert title in actual_titles
@@ -123,7 +132,7 @@ def test_list_challenges(db_session):
     sequence_challenges = LogicChallengeService.list_challenges(db_session, challenge_type="SEQUENCE")
     test_sequence_challenges = [ch for ch in sequence_challenges if timestamp in ch.title]
     assert len(test_sequence_challenges) == 1
-    assert test_sequence_challenges[0].title == f"Séquence 9-12 {timestamp}"
+    assert test_sequence_challenges[0].title == f"Test Séquence 9-12 {timestamp}"
 
     # Tester avec filtre par groupe d'âge - filtrer uniquement nos défis de test
     age_13_15_challenges = LogicChallengeService.list_challenges(db_session, age_group="GROUP_13_15")
@@ -132,8 +141,8 @@ def test_list_challenges(db_session):
     
     # Vérifier que les deux défis pour ce groupe d'âge sont présents
     age_13_15_titles = [challenge.title for challenge in test_age_challenges]
-    assert f"Pattern 12-13 {timestamp}" in age_13_15_titles
-    assert f"Puzzle 13+ {timestamp}" in age_13_15_titles
+    assert f"Test Pattern 12-13 {timestamp}" in age_13_15_titles
+    assert f"Test Puzzle 13+ {timestamp}" in age_13_15_titles
 
     # Tester avec deux filtres (type et groupe d'âge)
     filtered_challenges = LogicChallengeService.list_challenges(
@@ -143,7 +152,7 @@ def test_list_challenges(db_session):
     )
     test_filtered_challenges = [ch for ch in filtered_challenges if timestamp in ch.title]
     assert len(test_filtered_challenges) == 1
-    assert test_filtered_challenges[0].title == f"Puzzle 13+ {timestamp}"
+    assert test_filtered_challenges[0].title == f"Test Puzzle 13+ {timestamp}"
 
     # Tester avec pagination - on ne peut pas vérifier le nombre exact car d'autres tests peuvent avoir créé des défis
     paginated_challenges = LogicChallengeService.list_challenges(db_session, limit=2)
@@ -289,7 +298,7 @@ def test_update_challenge(db_session):
     """Teste la mise à jour d'un défi."""
     # Créer un défi initial
     challenge = LogicChallenge(
-        title="Original Title",
+        title="Test Original Title",
         description="Original description",
         challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.SEQUENCE.value, db_session),
         age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12.value, db_session),
@@ -303,7 +312,7 @@ def test_update_challenge(db_session):
 
     # Données de mise à jour
     update_data = {
-        "title": "Updated Title",
+        "title": "Test Updated Title",
         "description": "Updated description",
         "correct_answer": "Updated answer",
         "difficulty_rating": 4.5
@@ -319,7 +328,7 @@ def test_update_challenge(db_session):
     updated_challenge = LogicChallengeService.get_challenge(db_session, challenge.id)
     assert updated_challenge is not None
     assert updated_challenge.id == challenge.id
-    assert updated_challenge.title == "Updated Title"
+    assert updated_challenge.title == "Test Updated Title"
     assert updated_challenge.description == "Updated description"
     assert updated_challenge.correct_answer == "Updated answer"
     assert updated_challenge.difficulty_rating == 4.5
@@ -345,7 +354,7 @@ def test_update_challenge_with_error_handling(db_session):
     """Teste la mise à jour d'un défi avec gestion des erreurs."""
     # Créer un défi initial
     challenge = LogicChallenge(
-        title="Initial Challenge",
+        title="Test Initial Challenge",
         challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.PUZZLE.value, db_session),
         age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12.value, db_session),
         description="Riddle description",
@@ -361,7 +370,7 @@ def test_update_challenge_with_error_handling(db_session):
         mock_update.return_value = False
         
         # Tentative de mise à jour
-        update_data = {"title": "Updated Challenge"}
+        update_data = {"title": "Test Updated Challenge"}
         result = LogicChallengeService.update_challenge(db_session, challenge.id, update_data)
         
         # Vérifier que le service retourne False en cas d'échec
@@ -381,7 +390,7 @@ def test_archive_challenge(db_session):
     """Teste l'archivage d'un défi."""
     # Créer un défi à archiver
     challenge = LogicChallenge(
-        title="Challenge to Archive",
+        title="Test Challenge to Archive",
         description="Description à archiver",
         challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.PATTERN.value, db_session),
         age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_13_15.value, db_session),
@@ -426,7 +435,7 @@ def test_archive_challenge_with_error_handling(db_session):
     """Teste l'archivage d'un défi avec gestion des erreurs."""
     # Créer un défi initial
     challenge = LogicChallenge(
-        title="Challenge to Archive",
+        title="Test Challenge to Archive",
         challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.SEQUENCE.value, db_session),
         age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_13_15.value, db_session),
         description="Sequence description",
@@ -457,9 +466,9 @@ def test_delete_challenge(db_session):
     """Teste la suppression d'un défi."""
     # Créer un défi à supprimer
     challenge = LogicChallenge(
-        title="Challenge to Delete",
+        title="Test Challenge to Delete",
         description="Description à supprimer",
-        challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.SPATIAL.value, db_session),
+        challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.VISUAL.value, db_session),
         age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_13_15.value, db_session),
         correct_answer="À supprimer",
         solution_explanation="Explication pour suppression",  # Ajout obligatoire
@@ -513,7 +522,7 @@ def test_delete_challenge_cascade(db_session):
     
     # Créer un défi de test
     challenge = LogicChallenge(
-        title="Cascade Challenge",
+        title="Test Cascade Challenge",
         description="Description pour test de cascade",
         challenge_type="SEQUENCE",  # Nom de l'enum pour PostgreSQL
         age_group="GROUP_10_12",  # Nom de l'enum pour PostgreSQL
@@ -582,7 +591,7 @@ def test_get_challenge_attempts(db_session):
 
     # Créer un défi de test
     challenge = LogicChallenge(
-        title="Attempts Challenge",
+        title="Test Attempts Challenge",
         description="Description pour test de tentatives",
         challenge_type="PATTERN",  # Nom de l'enum pour PostgreSQL
         age_group="GROUP_10_12",  # Valeur correcte de l'enum pour PostgreSQL
@@ -656,7 +665,7 @@ def test_record_attempt(db_session):
     
     # Créer un défi de test
     challenge = LogicChallenge(
-        title="Record Challenge",
+        title="Test Record Challenge",
         description="Description pour test d'enregistrement",
         challenge_type="PUZZLE",  # Valeur valide dans PostgreSQL
         age_group="GROUP_13_15",  # Nom de l'enum pour PostgreSQL
@@ -785,7 +794,7 @@ def test_record_attempt_with_complete_user_journey(db_session):
     
     # Créer un défi de logique (sans hint_levelX qui sont des attributs invalides)
     challenge = LogicChallenge(
-        title="Défi parcours complet",
+        title="Test Défi parcours complet",
         challenge_type="SEQUENCE",
         age_group="GROUP_10_12",
         description="Description du défi pour test de parcours",
@@ -870,7 +879,7 @@ def test_update_challenge_with_complex_data(db_session):
     """Teste la mise à jour d'un défi avec des données complexes, notamment JSON."""
     # Créer un défi initial
     challenge = LogicChallenge(
-        title="Défi à mettre à jour",
+        title="Test Défi à mettre à jour",
         challenge_type="PUZZLE",  # Utiliser la valeur exacte de l'enum PostgreSQL (en majuscules)
         age_group="GROUP_10_12",  # Utiliser la valeur exacte de l'enum PostgreSQL
         description="Description initiale",
@@ -1047,7 +1056,7 @@ def test_create_challenge_with_mock(mock_db_adapter):
     # Configurer le mock pour DatabaseAdapter.create
     mock_created_challenge = MagicMock(
         id=1,
-        title="Défi Mock",
+        title="Test Défi Mock",
         challenge_type="SEQUENCE",
         age_group="GROUP_10_12",
         description="Description du défi mock",
@@ -1058,7 +1067,7 @@ def test_create_challenge_with_mock(mock_db_adapter):
     
     # Données pour le défi
     challenge_data = {
-        "title": "Défi Mock",
+        "title": "Test Défi Mock",
         "challenge_type": "sequence",
         "age_group": "9-12",
         "description": "Description du défi mock",
@@ -1083,7 +1092,7 @@ def test_create_challenge_with_mock(mock_db_adapter):
     
     # Troisième argument: données du défi adaptées
     challenge_data_arg = mock_db_adapter.create.call_args[0][2]
-    assert challenge_data_arg["title"] == "Défi Mock"
+    assert challenge_data_arg["title"] == "Test Défi Mock"
     # Les types devraient être adaptés
     assert "challenge_type" in challenge_data_arg
     assert "age_group" in challenge_data_arg
@@ -1091,7 +1100,7 @@ def test_create_challenge_with_mock(mock_db_adapter):
     # Vérifier le résultat
     assert result == mock_created_challenge
     assert result.id == 1
-    assert result.title == "Défi Mock"
+    assert result.title == "Test Défi Mock"
     assert result.challenge_type == "SEQUENCE"
     assert result.age_group == "GROUP_10_12"
 

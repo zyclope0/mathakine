@@ -1,5 +1,10 @@
 # PLAN DE CORRECTION MATHAKINE - TESTS (MISE À JOUR MAI 2025)
-## Résultats actuels : 51 échecs, 296 réussites, 2 ignorés, 73% couverture
+
+> **⚠️ DOCUMENT OBSOLÈTE** (11/02/2026)  
+> Ce document décrit un état antérieur (51 échecs, 296 réussites). **État actuel : 368 tests passent, 18 skippés.**  
+> Voir [PLAN_TESTS_AMELIORATION.md](PLAN_TESTS_AMELIORATION.md) et [docs/01-GUIDES/TESTING.md](../docs/01-GUIDES/TESTING.md) pour la documentation à jour.
+
+## Résultats historiques (Mai 2025) : 51 échecs, 296 réussites, 2 ignorés
 
 ## 🎉 **PROGRÈS ACCOMPLIS**
 

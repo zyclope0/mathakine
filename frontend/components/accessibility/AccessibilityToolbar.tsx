@@ -246,6 +246,7 @@ export function AccessibilityToolbar() {
                 key={option.id}
                 type="button"
                 role="switch"
+                aria-label={option.label}
                 aria-checked={option.isActive ? 'true' : 'false'}
                 onClick={() => {
                   option.toggle();

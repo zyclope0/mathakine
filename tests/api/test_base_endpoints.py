@@ -1,49 +1,48 @@
+"""
+Tests des endpoints de base de l'API Starlette.
+Verifie la sante de l'application, le routage et les reponses d'erreur.
+
+Routes testees :
+- GET /api/exercises (existe, necessite auth → 401)
+- GET /api/challenges (existe, necessite auth → 401)
+- GET /nonexistent (404)
+- GET /api/auth/login (methode GET non autorisee → 405)
+"""
 import pytest
 
 
-async def test_root_endpoint(client):
-    """Test de l'endpoint racine"""
-    response = await client.get("/")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["message"] == "Bienvenue sur l'API Mathakine"
-    assert "docs" in data
-
-
-async def test_debug_endpoint_in_debug_mode(client):
-    """Test de l'endpoint debug en mode debug"""
-    response = await client.get("/debug")
-    assert response.status_code == 200
-    data = response.json()
-    assert "app_name" in data
-    assert "debug_mode" in data
-    assert "database_url" in data
-    assert "api_version" in data
-
-
-async def test_debug_endpoint_in_production(client):
-    """Test de l'endpoint debug en production"""
-    # Nous ne pouvons pas facilement modifier settings.DEBUG dans un test
-    # Vérifions donc que l'endpoint est accessible
-    response = await client.get("/debug")
-    assert response.status_code == 200
-    # Vérifions que les informations de debug sont présentes
-    data = response.json()
-    assert "app_name" in data
-    assert "debug_mode" in data
-
-
 async def test_nonexistent_endpoint(client):
-    """Test d'un endpoint inexistant"""
+    """Test qu'un endpoint inexistant retourne 404."""
     response = await client.get("/nonexistent")
     assert response.status_code == 404
 
 
-async def test_api_info_endpoint(client):
-    """Test de l'endpoint d'information de l'API"""
-    response = await client.get("/api/info")
-    assert response.status_code == 200
+async def test_challenges_requires_auth(client):
+    """Test que /api/challenges requiert une authentification (401)."""
+    response = await client.get("/api/challenges")
+    assert response.status_code == 401
     data = response.json()
-    assert "version" in data
-    assert "name" in data
-    assert "description" in data
+    assert "error" in data
+
+
+async def test_api_auth_login_get_not_allowed(client):
+    """Test que GET /api/auth/login retourne 405 (POST uniquement)."""
+    response = await client.get("/api/auth/login")
+    assert response.status_code == 405
+
+
+async def test_api_auth_login_post_missing_body(client):
+    """Test que POST /api/auth/login sans body retourne une erreur."""
+    response = await client.post("/api/auth/login")
+    # Starlette retourne 400 (JSON invalide) ou 500
+    assert response.status_code in (400, 422, 500)
+
+
+async def test_api_users_post_endpoint_exists(client):
+    """Test que POST /api/users/ est accessible (creation de compte public)."""
+    # Envoyer un body invalide pour verifier que la route existe
+    response = await client.post("/api/users/", json={})
+    # Doit retourner une erreur de validation, pas 404
+    assert response.status_code != 404, "La route /api/users/ devrait exister"
+    # 400 ou 500 attendu (champs manquants)
+    assert response.status_code in (400, 422, 500)

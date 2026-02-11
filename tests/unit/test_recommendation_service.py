@@ -12,6 +12,7 @@ from app.models.user import User, UserRole
 from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
 from app.models.recommendation import Recommendation
 from app.models.progress import Progress
+from app.models.attempt import Attempt
 from app.services.recommendation_service import RecommendationService
 from app.utils.db_helpers import get_enum_value
 from app.core.security import get_password_hash
@@ -37,7 +38,7 @@ def test_generate_recommendations_basic(db_session):
     
     # Créer quelques exercices disponibles
     exercise1 = Exercise(
-        title="Exercice pour recommandation 1",
+        title="Test Exercice pour recommandation 1",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
         question="1+1=?",
@@ -46,7 +47,7 @@ def test_generate_recommendations_basic(db_session):
     )
     
     exercise2 = Exercise(
-        title="Exercice pour recommandation 2",
+        title="Test Exercice pour recommandation 2",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),
         question="3×4=?",
@@ -89,7 +90,7 @@ def test_generate_recommendations_for_improvement(db_session):
     
     # Créer un exercice dans le domaine à améliorer
     exercise = Exercise(
-        title="Exercice de multiplication",
+        title="Test Exercice de multiplication",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
         question="7x6=?",
@@ -102,12 +103,23 @@ def test_generate_recommendations_for_improvement(db_session):
     progress = Progress(
         user_id=user.id,  # Utiliser l'ID du nouvel utilisateur
         exercise_type="multiplication",
-        difficulty="initie",
+        difficulty="INITIE",  # Doit correspondre à Exercise.difficulty pour le filtre du service
         total_attempts=10,
         correct_attempts=5,  # 50% de réussite
         mastery_level=1
     )
     db_session.add(progress)
+    db_session.flush()
+    
+    # Créer des tentatives récentes pour alimenter get_user_stats (by_exercise_type vient des attempts)
+    # Le service requiert >= 3 tentatives et < 70% de réussite pour les recommandations d'amélioration
+    db_session.add_all([Attempt(
+        user_id=user.id,
+        exercise_id=exercise.id,
+        user_answer="42" if i < 5 else "0",
+        is_correct=(i < 5),
+        time_spent=2.0
+    ) for i in range(10)])
     db_session.commit()
     
     # Action: Générer des recommandations
@@ -117,7 +129,7 @@ def test_generate_recommendations_for_improvement(db_session):
     assert len(recommendations) > 0, "Des recommandations devraient être générées"
     
     # Au moins une recommandation devrait être pour la multiplication
-    multiplication_recs = [r for r in recommendations if r.exercise_type == "multiplication"]
+    multiplication_recs = [r for r in recommendations if str(r.exercise_type).lower() == "multiplication"]
     assert len(multiplication_recs) > 0, "Au moins une recommandation pour multiplication devrait être générée"
     
     # Vérifier la raison de la recommandation
@@ -131,10 +143,10 @@ def test_get_next_difficulty():
     """
     Teste la fonction _get_next_difficulty pour vérifier qu'elle retourne le bon niveau suivant.
     """
-    # Tests des niveaux de difficulté
-    assert RecommendationService._get_next_difficulty("initie") == "padawan", "Le niveau suivant d'initié devrait être padawan"
-    assert RecommendationService._get_next_difficulty("padawan") == "chevalier", "Le niveau suivant de padawan devrait être chevalier"
-    assert RecommendationService._get_next_difficulty("chevalier") == "maitre", "Le niveau suivant de chevalier devrait être maître"
+    # Tests des niveaux de difficulté (la fonction retourne en majuscules)
+    assert RecommendationService._get_next_difficulty("initie") == "PADAWAN", "Le niveau suivant d'initié devrait être padawan"
+    assert RecommendationService._get_next_difficulty("padawan") == "CHEVALIER", "Le niveau suivant de padawan devrait être chevalier"
+    assert RecommendationService._get_next_difficulty("chevalier") == "MAITRE", "Le niveau suivant de chevalier devrait être maître"
     assert RecommendationService._get_next_difficulty("maitre") is None, "Le niveau maître ne devrait pas avoir de niveau suivant"
     
     # Cas d'erreur

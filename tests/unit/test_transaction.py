@@ -149,6 +149,9 @@ def test_safe_delete_success():
     mock_obj.__class__.__name__ = "Exercise"
     mock_obj.__tablename__ = "exercises"
     
+    # L'objet doit être considéré comme attaché à la session (sinon safe_delete requête la DB)
+    mock_session.__contains__ = MagicMock(return_value=True)
+    
     # Appeler la méthode
     result = TransactionManager.safe_delete(mock_session, mock_obj)
     
@@ -170,6 +173,9 @@ def test_safe_delete_with_commit_error():
     mock_obj.id = 1
     mock_obj.__class__.__name__ = "Exercise"
     mock_obj.__tablename__ = "exercises"
+    
+    # L'objet doit être considéré comme attaché à la session (sinon safe_delete requête la DB)
+    mock_session.__contains__ = MagicMock(return_value=True)
     
     # Patcher la méthode execute pour simuler une suppression directe
     with patch.object(mock_session, 'execute') as mock_execute:
@@ -218,6 +224,9 @@ def test_safe_delete_without_auto_commit():
     mock_obj.id = 1
     mock_obj.__class__.__name__ = "Exercise"
     
+    # L'objet doit être considéré comme attaché à la session (sinon safe_delete requête la DB)
+    mock_session.__contains__ = MagicMock(return_value=True)
+    
     # Appeler la méthode sans auto_commit
     result = TransactionManager.safe_delete(mock_session, mock_obj, auto_commit=False)
     
@@ -236,6 +245,9 @@ def test_safe_archive_success():
     mock_obj.id = 1
     mock_obj.__class__.__name__ = "Exercise"
     mock_obj.is_archived = False
+    
+    # L'objet doit être considéré comme attaché à la session (sinon safe_archive requête la DB)
+    mock_session.__contains__ = MagicMock(return_value=True)
     
     # Appeler la méthode
     result = TransactionManager.safe_archive(mock_session, mock_obj)
@@ -258,6 +270,9 @@ def test_safe_archive_with_error():
     mock_obj.id = 1
     mock_obj.__class__.__name__ = "Exercise"
     mock_obj.is_archived = False
+    
+    # L'objet doit être considéré comme attaché à la session (sinon safe_archive requête la DB)
+    mock_session.__contains__ = MagicMock(return_value=True)
     
     # Appeler la méthode
     result = TransactionManager.safe_archive(mock_session, mock_obj)
@@ -299,6 +314,9 @@ def test_safe_archive_without_auto_commit():
     mock_obj.id = 1
     mock_obj.__class__.__name__ = "Exercise"
     mock_obj.is_archived = False
+    
+    # L'objet doit être considéré comme attaché à la session (sinon safe_archive requête la DB)
+    mock_session.__contains__ = MagicMock(return_value=True)
     
     # Appeler la méthode sans auto_commit
     result = TransactionManager.safe_archive(mock_session, mock_obj, auto_commit=False)

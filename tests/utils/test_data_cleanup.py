@@ -44,16 +44,26 @@ class TestDataManager:
             'nonexistent_%', 'record_%', 'starlette_%',
             'cascade_%', 'creator_%', 'malformed_%', 'disable_%',
             'flow_%', 'invalid_%', 'jedi_%', 'dashboard_test_%',
-            'login_test_%', 'cascade_test_%'
+            'login_test_%', 'cascade_test_%',
+            # Patterns supplementaires identifies dans les tests API
+            'auth_test_%', 'unique_username_%', 'different_%',
+            'service_%', 'isolated_%',
         ],
         'emails': [
-            'test@%', '%test%@%', 'cascade_%@%', 'dashboard_%@%'
+            'test@%', '%test%@%', 'cascade_%@%', 'dashboard_%@%',
+            # Patterns supplementaires pour les tests API
+            'service_%@%', 'isolated_%@%',
+            '%@test.com', '%@jedi.com',
         ],
         'exercise_titles': [
             '%test%', '%Test%', '%TEST%', 'Cascade %', 'Dashboard %'
         ],
         'challenge_titles': [
-            '%test%', '%Test%', '%TEST%', 'Défi Auto-%', 'Nouveau défi%'
+            '%test%', '%Test%', '%TEST%', 'Défi Auto-%', 'Nouveau défi%',
+            # Patterns de tests non préfixés (historique)
+            'Sequence Challenge %', 'Puzzle Challenge %',
+            'Séquence 9-12 %', 'Pattern 12-13 %', 'Puzzle 13+ %', 'Séquence Archivée %',
+            'Challenge to Archive', 'Défi parcours complet', 'Défi mis à jour',
         ]
     }
     
@@ -130,6 +140,10 @@ class TestDataManager:
         challenge_conditions = []
         for pattern in self.TEST_PATTERNS['challenge_titles']:
             challenge_conditions.append(f"title LIKE '{pattern}'")
+        # Défis avec titre vide et description "Riddle description" (tests update)
+        challenge_conditions.append(
+            "(COALESCE(title, '') = '' AND description LIKE '%Riddle description%')"
+        )
         
         if challenge_conditions:
             challenge_query = f"""
@@ -159,22 +173,39 @@ class TestDataManager:
             result = self.db.execute(text(f"SELECT id FROM logic_challenge_attempts WHERE user_id IN ({user_ids_str})"))
             test_data['challenge_attempts'] = [row[0] for row in result.fetchall()]
         
+        # Recuperer les IDs des utilisateurs permanents pour les exclure des suppressions
+        permanent_exclusion = "', '".join(self.PERMANENT_USERS)
+        perm_result = self.db.execute(text(
+            f"SELECT id FROM users WHERE username IN ('{permanent_exclusion}')"
+        ))
+        permanent_user_ids = [row[0] for row in perm_result.fetchall()]
+        perm_user_filter = ""
+        if permanent_user_ids:
+            perm_ids_str = ','.join(map(str, permanent_user_ids))
+            perm_user_filter = f" AND user_id NOT IN ({perm_ids_str})"
+        
         # 5. Identifier les données liées aux exercices de test
+        # SECURITE: Exclure les attempts des utilisateurs permanents (ex: ObiWan)
         if test_data['exercises']:
             exercise_ids_str = ','.join(map(str, test_data['exercises']))
             
-            # Tentatives liées aux exercices de test
-            result = self.db.execute(text(f"SELECT id FROM attempts WHERE exercise_id IN ({exercise_ids_str})"))
+            # Tentatives liées aux exercices de test (SAUF utilisateurs permanents)
+            result = self.db.execute(text(
+                f"SELECT id FROM attempts WHERE exercise_id IN ({exercise_ids_str}){perm_user_filter}"
+            ))
             additional_attempts = [row[0] for row in result.fetchall()]
             test_data['attempts'].extend(additional_attempts)
             test_data['attempts'] = list(set(test_data['attempts']))  # Dédoublonner
         
         # 6. Identifier les données liées aux défis de test
+        # SECURITE: Exclure les challenge_attempts des utilisateurs permanents (ex: ObiWan)
         if test_data['challenges']:
             challenge_ids_str = ','.join(map(str, test_data['challenges']))
             
-            # Tentatives de défis liées aux défis de test
-            result = self.db.execute(text(f"SELECT id FROM logic_challenge_attempts WHERE challenge_id IN ({challenge_ids_str})"))
+            # Tentatives de défis liées aux défis de test (SAUF utilisateurs permanents)
+            result = self.db.execute(text(
+                f"SELECT id FROM logic_challenge_attempts WHERE challenge_id IN ({challenge_ids_str}){perm_user_filter}"
+            ))
             additional_challenge_attempts = [row[0] for row in result.fetchall()]
             test_data['challenge_attempts'].extend(additional_challenge_attempts)
             test_data['challenge_attempts'] = list(set(test_data['challenge_attempts']))  # Dédoublonner
@@ -259,21 +290,58 @@ class TestDataManager:
                 deleted_counts['progress'] = result.rowcount
                 logger.info(f"  ✅ Supprimé {result.rowcount} entrées de progression")
             
-            # 5. Supprimer les défis logiques de test
+            # 5. Supprimer les défis logiques de test (par titre)
             if test_data['challenges']:
                 ids_str = ','.join(map(str, test_data['challenges']))
                 result = self.db.execute(text(f"DELETE FROM logic_challenges WHERE id IN ({ids_str})"))
                 deleted_counts['challenges'] = result.rowcount
                 logger.info(f"  ✅ Supprimé {result.rowcount} défis logiques")
             
-            # 6. Supprimer les exercices de test
+            # 6. Supprimer les exercices de test (par titre)
             if test_data['exercises']:
                 ids_str = ','.join(map(str, test_data['exercises']))
                 result = self.db.execute(text(f"DELETE FROM exercises WHERE id IN ({ids_str})"))
                 deleted_counts['exercises'] = result.rowcount
                 logger.info(f"  ✅ Supprimé {result.rowcount} exercices")
             
-            # 7. Supprimer les utilisateurs de test (en dernier)
+            # 7. Nettoyer toutes les FK restantes des test users
+            #    (challenges/exercices crees par des test users mais sans titre "test")
+            if test_data['users']:
+                ids_str = ','.join(map(str, test_data['users']))
+                
+                # 7a. Challenge attempts sur challenges crees par test users
+                self.db.execute(text(
+                    f"DELETE FROM logic_challenge_attempts WHERE challenge_id IN "
+                    f"(SELECT id FROM logic_challenges WHERE creator_id IN ({ids_str}))"
+                ))
+                # 7b. Challenges crees par test users
+                result = self.db.execute(text(
+                    f"DELETE FROM logic_challenges WHERE creator_id IN ({ids_str})"
+                ))
+                if result.rowcount:
+                    deleted_counts['challenges_by_creator'] = result.rowcount
+                # 7c. Attempts sur exercices crees par test users
+                self.db.execute(text(
+                    f"DELETE FROM attempts WHERE exercise_id IN "
+                    f"(SELECT id FROM exercises WHERE creator_id IN ({ids_str}))"
+                ))
+                # 7d. Recommendations sur exercices crees par test users
+                self.db.execute(text(
+                    f"DELETE FROM recommendations WHERE exercise_id IN "
+                    f"(SELECT id FROM exercises WHERE creator_id IN ({ids_str}))"
+                ))
+                # 7e. Exercices crees par test users
+                result = self.db.execute(text(
+                    f"DELETE FROM exercises WHERE creator_id IN ({ids_str})"
+                ))
+                if result.rowcount:
+                    deleted_counts['exercises_by_creator'] = result.rowcount
+                # 7f. User achievements, sessions, notifications
+                self.db.execute(text(f"DELETE FROM user_achievements WHERE user_id IN ({ids_str})"))
+                self.db.execute(text(f"DELETE FROM user_sessions WHERE user_id IN ({ids_str})"))
+                self.db.execute(text(f"DELETE FROM notifications WHERE user_id IN ({ids_str})"))
+            
+            # 8. Supprimer les utilisateurs de test (en dernier)
             if test_data['users']:
                 ids_str = ','.join(map(str, test_data['users']))
                 result = self.db.execute(text(f"DELETE FROM users WHERE id IN ({ids_str})"))

@@ -98,6 +98,7 @@ async def test_list_challenges_with_multiple_filters(client, padawan_client):
 
 def test_challenge_service_integration(db_session):
     """Test nouveau challenge_service.py (Phase 4)"""
+    import uuid
     from app.services.challenge_service import (
         create_challenge,
         list_challenges,
@@ -106,8 +107,9 @@ def test_challenge_service_integration(db_session):
     )
     from app.models.user import User
 
-    # Créer un utilisateur pour être le créateur
-    test_user = User(username="service_test_user", email="service@test.com", hashed_password="password")
+    # Créer un utilisateur pour être le créateur (UUID pour éviter les doublons)
+    unique_id = uuid.uuid4().hex[:8]
+    test_user = User(username=f"service_test_{unique_id}", email=f"service_{unique_id}@test.com", hashed_password="password")
     db_session.add(test_user)
     db_session.commit()
     db_session.refresh(test_user)
@@ -149,19 +151,26 @@ def test_challenge_service_integration(db_session):
 
 
 def test_constants_normalization():
-    """Test normalisation constantes (Phase 3)"""
+    """Test normalisation constantes (Phase 3).
+    
+    normalize_challenge_type retourne le format DB MAJUSCULE (ex: "SEQUENCE").
+    normalize_age_group retourne le format standard (ex: "6-8", "9-11").
+    NOTE: normalize_age_group ne retourne jamais None - retourne "9-11" par defaut.
+    """
     # Test challenge_type
     assert normalize_challenge_type("sequence") == "SEQUENCE"
     assert normalize_challenge_type("SEQUENCE") == "SEQUENCE"
     assert normalize_challenge_type("pattern") == "PATTERN"
     assert normalize_challenge_type("invalid_type") is None
 
-    # Test age_group
-    assert normalize_age_group("age_6_8") == "GROUP_6_8"
-    assert normalize_age_group("GROUP_6_8") == "GROUP_6_8"
-    assert normalize_age_group("age_10_12") == "GROUP_10_12"
-    assert normalize_age_group("10-12") == "GROUP_10_12"
-    assert normalize_age_group("invalid_group") is None
+    # Test age_group - retourne le format "X-Y" (pas "GROUP_X_Y")
+    assert normalize_age_group("age_6_8") == "6-8"
+    assert normalize_age_group("GROUP_6_8") == "6-8"
+    # "age_10_12" et "10-12" sont des alias de GROUP_9_11 → "9-11"
+    assert normalize_age_group("age_10_12") == "9-11"
+    assert normalize_age_group("10-12") == "9-11"
+    # Les groupes invalides retournent le defaut "9-11" (jamais None)
+    assert normalize_age_group("invalid_group") == "9-11"
 
 
 def test_constants_values():

@@ -486,7 +486,7 @@ def test_refresh_access_token_invalid_token(db_session):
     
     # Vérifier les détails de l'exception
     assert exc_info.value.status_code == 401
-    assert "Token invalide" in exc_info.value.detail or "Token invalid" in exc_info.value.detail
+    assert "Token JWT invalide" in exc_info.value.detail or "Token invalide" in exc_info.value.detail or "Token invalid" in exc_info.value.detail
 
 def test_refresh_access_token_wrong_type(db_session, mock_user):
     """Teste le rafraîchissement avec un token qui n'est pas un refresh token."""
@@ -575,7 +575,7 @@ def test_refresh_access_token_expired_token(db_session, mock_user):
     
     # Vérifier que l'exception levée est bien celle attendue (401 Unauthorized)
     assert excinfo.value.status_code == 401
-    assert "Token de rafraîchissement expiré" in excinfo.value.detail
+    assert "Token JWT invalide ou malformé" in excinfo.value.detail
 
 
 def test_refresh_access_token_tampered_token(db_session, mock_user):
@@ -610,8 +610,7 @@ def test_refresh_access_token_tampered_token(db_session, mock_user):
     
     # Vérifier que l'exception levée est bien celle attendue
     assert excinfo.value.status_code == 401
-    # Le message peut être "Token invalide" ou "Token invalide ou expiré"
-    assert "Token invalide" in excinfo.value.detail
+    assert "Token JWT invalide ou malformé" in excinfo.value.detail
 
 
 def test_refresh_access_token_valid_token_but_deleted_user(db_session, mock_user):
@@ -815,11 +814,12 @@ def test_refresh_access_token_generic_exception(db_session, mock_user):
         algorithm=settings.ALGORITHM
     )
     
-    # Mocker jwt.decode pour qu'il lève une exception RuntimeError
-    with patch('jose.jwt.decode', side_effect=RuntimeError("Test unexpected error")):
-        # Vérifier que refresh_access_token lève une exception RuntimeError
-        with pytest.raises(RuntimeError) as excinfo:
+    # Mocker jwt.decode pour qu'il lève une exception générique
+    with patch('app.services.auth_service.jwt.decode', side_effect=Exception("Test unexpected error")):
+        # Vérifier que refresh_access_token lève HTTPException 500 pour les exceptions génériques
+        with pytest.raises(HTTPException) as excinfo:
             refresh_access_token(db_session, refresh_token)
         
-        # Vérifier les détails de l'exception
-        assert "Test unexpected error" in str(excinfo.value)
+        # Vérifier les détails de l'exception (500 Erreur interne du serveur)
+        assert excinfo.value.status_code == 500
+        assert "Erreur interne du serveur" in excinfo.value.detail

@@ -66,7 +66,7 @@ def test_list_exercises(db_session):
     # Créer des exercices de test avec des titres uniques
     exercises = [
         Exercise(
-            title=f"Addition Initié {unique_id}",
+            title=f"Test Addition Initié {unique_id}",
             exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
             difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
             question="1+1=?",
@@ -74,7 +74,7 @@ def test_list_exercises(db_session):
             is_archived=False
         ),
         Exercise(
-            title=f"Soustraction Padawan {unique_id}",
+            title=f"Test Soustraction Padawan {unique_id}",
             exercise_type=get_enum_value(ExerciseType, ExerciseType.SOUSTRACTION.value, db_session),
             difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),
             question="5-2=?",
@@ -82,7 +82,7 @@ def test_list_exercises(db_session):
             is_archived=False
         ),
         Exercise(
-            title=f"Multiplication Chevalier {unique_id}",
+            title=f"Test Multiplication Chevalier {unique_id}",
             exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
             difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.CHEVALIER.value, db_session),
             question="5*5=?",
@@ -90,7 +90,7 @@ def test_list_exercises(db_session):
             is_archived=False
         ),
         Exercise(
-            title=f"Addition Archivée {unique_id}",
+            title=f"Test Addition Archivée {unique_id}",
             exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
             difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
             question="2+2=?",
@@ -113,7 +113,7 @@ def test_list_exercises(db_session):
     assert len(our_exercises) == 3  # L'exercice archivé ne devrait pas être inclus
     
     # Vérifier que les exercices attendus sont présents
-    expected_titles = [f"Addition Initié {unique_id}", f"Soustraction Padawan {unique_id}", f"Multiplication Chevalier {unique_id}"]
+    expected_titles = [f"Test Addition Initié {unique_id}", f"Test Soustraction Padawan {unique_id}", f"Test Multiplication Chevalier {unique_id}"]
     actual_titles = [ex.title for ex in our_exercises]
     for title in expected_titles:
         assert title in actual_titles
@@ -122,13 +122,13 @@ def test_list_exercises(db_session):
     addition_exercises = ExerciseService.list_exercises(db_session, exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session))
     our_addition_exercises = [ex for ex in addition_exercises if unique_id in ex.title]
     assert len(our_addition_exercises) == 1
-    assert our_addition_exercises[0].title == f"Addition Initié {unique_id}"
+    assert our_addition_exercises[0].title == f"Test Addition Initié {unique_id}"
     
     # Tester avec filtre par difficulté
     padawan_exercises = ExerciseService.list_exercises(db_session, difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session))
     our_padawan_exercises = [ex for ex in padawan_exercises if unique_id in ex.title]
     assert len(our_padawan_exercises) == 1
-    assert our_padawan_exercises[0].title == f"Soustraction Padawan {unique_id}"
+    assert our_padawan_exercises[0].title == f"Test Soustraction Padawan {unique_id}"
     
     # Tester avec limite et offset
     limited_exercises = ExerciseService.list_exercises(db_session, limit=1)
@@ -170,7 +170,7 @@ def test_update_exercise(db_session):
     """Teste la mise à jour d'un exercice."""
     # Créer un exercice initial
     exercise = Exercise(
-        title="Original Title",
+        title="Test Original Title",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
         question="Original question",
@@ -181,7 +181,7 @@ def test_update_exercise(db_session):
     
     # Données de mise à jour
     update_data = {
-        "title": "Updated Title",
+        "title": "Test Updated Title",
         "question": "Updated question",
         "correct_answer": "Updated answer",
         "explanation": "Added explanation"
@@ -197,7 +197,7 @@ def test_update_exercise(db_session):
     updated_exercise = ExerciseService.get_exercise(db_session, exercise.id)
     
     # Vérifier les changements
-    assert updated_exercise.title == "Updated Title"
+    assert updated_exercise.title == "Test Updated Title"
     assert updated_exercise.question == "Updated question"
     assert updated_exercise.correct_answer == "Updated answer"
     assert updated_exercise.explanation == "Added explanation"
@@ -222,7 +222,7 @@ def test_archive_exercise(db_session):
     """Teste l'archivage d'un exercice."""
     # Créer un exercice initial
     exercise = Exercise(
-        title="Exercise to Archive",
+        title="Test Exercise to Archive",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.CHEVALIER.value, db_session),
         question="Question to archive",
@@ -263,7 +263,7 @@ def test_delete_exercise(db_session):
     """Teste la suppression physique d'un exercice."""
     # Créer un exercice initial
     exercise = Exercise(
-        title="Exercise to Delete",
+        title="Test Exercise to Delete",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.DIVISION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),
         question="10 ÷ 2 = ?",
@@ -309,7 +309,7 @@ def test_delete_exercise_cascade(db_session):
     db_session.commit()
     
     exercise = Exercise(
-        title="Exercise with Attempts",
+        title="Test Exercise with Attempts",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
         question="5 + 5 = ?",
@@ -376,7 +376,7 @@ def test_get_exercise_attempts(db_session):
     
     # Créer un exercice
     exercise = Exercise(
-        title="Attempts Exercise",
+        title="Test Attempts Exercise",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.DIVISION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),
         question="10/2=?",
@@ -438,7 +438,7 @@ def test_record_attempt(db_session):
     
     # Créer un exercice
     exercise = Exercise(
-        title="Record Exercise",
+        title="Test Record Exercise",
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
         question="2+2=?",

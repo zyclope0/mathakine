@@ -14,7 +14,27 @@ Architecture:
 
 # === IMPORTANT: Definir TESTING=true AVANT tout import applicatif ===
 import os
+import re as _re
 os.environ["TESTING"] = "true"
+
+# Charger .env AVANT tout import applicatif pour deriver TEST_DATABASE_URL
+from dotenv import load_dotenv as _load_dotenv
+_load_dotenv(override=True)
+
+# Si TEST_DATABASE_URL n'est pas defini explicitement (CI le definit),
+# tenter de le deriver de DATABASE_URL si la base est une base de test.
+if not os.environ.get("TEST_DATABASE_URL"):
+    _db_url = os.environ.get("DATABASE_URL", "")
+    if _db_url:
+        _db_name_match = _re.search(r'/([^/?]+)(?:\?|$)', _db_url)
+        if _db_name_match:
+            _db_name = _db_name_match.group(1)
+            if "test" in _db_name.lower():
+                os.environ["TEST_DATABASE_URL"] = _db_url
+                print(f"  TEST_DATABASE_URL derive de DATABASE_URL (base: {_db_name})")
+            else:
+                print(f"  ATTENTION: DATABASE_URL pointe vers '{_db_name}' (pas une base test)")
+                print("  Les tests utiliseront postgresql://postgres:postgres@localhost/test_mathakine par defaut")
 
 import json
 import sys
@@ -110,8 +130,9 @@ def setup_test_environment():
     prod_db_url = os.environ.get("DATABASE_URL", "")
 
     if test_db_url and prod_db_url and test_db_url == prod_db_url:
-        test_db_match = re.search(r'/([^/?]+)', test_db_url)
-        prod_db_match = re.search(r'/([^/?]+)', prod_db_url)
+        # Extraire le nom de la base (derniere partie du path, apres le dernier /)
+        test_db_match = re.search(r'/([^/?]+)(?:\?|$)', test_db_url)
+        prod_db_match = re.search(r'/([^/?]+)(?:\?|$)', prod_db_url)
         if test_db_match and prod_db_match:
             test_db_name = test_db_match.group(1)
             prod_db_name = prod_db_match.group(1)
@@ -697,9 +718,14 @@ def auto_cleanup_test_data(db_session):
 
     - S'execute automatiquement (autouse=True)
     - Identifie les donnees de test via TestDataManager
-    - Preserve les utilisateurs permanents
+    - Preserve les utilisateurs permanents (ObiWan, maitre_yoda, etc.)
     - Gere les sessions en etat d'erreur (InFailedSqlTransaction)
+    - Logging avec traceback complet en cas d'erreur
     """
+    import logging
+    import traceback
+    _cleanup_logger = logging.getLogger("tests.cleanup")
+
     yield
 
     try:
@@ -709,14 +735,19 @@ def auto_cleanup_test_data(db_session):
             db_session.execute(text("SELECT 1"))
         except (InvalidRequestError, StatementError, Exception):
             # Session en erreur : creer une nouvelle session pour le nettoyage
+            _cleanup_logger.debug("Session principale en erreur, creation d'une session de nettoyage")
             test_engine = get_test_engine()
-            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
-            cleanup_session = SessionLocal()
+            CleanupSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+            cleanup_session = CleanupSessionLocal()
             try:
                 manager = TestDataManager(cleanup_session)
                 result = manager.cleanup_test_data(dry_run=False)
                 if result.get("success") and result.get("total_deleted", 0) > 0:
-                    print(f"\n  Nettoyage: {result['total_deleted']} elements supprimes")
+                    _cleanup_logger.info(f"Nettoyage (session secours): {result['total_deleted']} elements supprimes")
+                elif not result.get("success"):
+                    _cleanup_logger.warning(f"Nettoyage echoue (session secours): {result.get('error', 'inconnue')}")
+            except Exception as fallback_error:
+                _cleanup_logger.error(f"Erreur nettoyage (session secours): {fallback_error}\n{traceback.format_exc()}")
             finally:
                 cleanup_session.close()
             return
@@ -724,10 +755,12 @@ def auto_cleanup_test_data(db_session):
         manager = TestDataManager(db_session)
         result = manager.cleanup_test_data(dry_run=False)
         if result.get("success") and result.get("total_deleted", 0) > 0:
-            print(f"\n  Nettoyage: {result['total_deleted']} elements supprimes")
+            _cleanup_logger.info(f"Nettoyage: {result['total_deleted']} elements supprimes")
+        elif not result.get("success"):
+            _cleanup_logger.warning(f"Nettoyage echoue: {result.get('error', 'inconnue')}")
 
     except Exception as cleanup_error:
-        print(f"\n  Erreur nettoyage: {str(cleanup_error)}")
+        _cleanup_logger.error(f"Erreur critique nettoyage: {cleanup_error}\n{traceback.format_exc()}")
 
 
 @pytest.fixture

@@ -58,12 +58,12 @@ def test_complex_query_with_enum_filters(db_session: Session, logic_challenge_da
     
     # Créer plusieurs défis logiques avec des titres uniques
     challenge1_data = logic_challenge_data.copy()
-    challenge1_data["title"] = f"Sequence Challenge {unique_id}"
+    challenge1_data["title"] = f"Test Sequence Challenge {unique_id}"
     challenge1 = LogicChallenge(**challenge1_data)
     
     # Créer un second défi avec un type différent
     challenge2_data = logic_challenge_data.copy()
-    challenge2_data["title"] = f"Puzzle Challenge {unique_id}"
+    challenge2_data["title"] = f"Test Puzzle Challenge {unique_id}"
     challenge2_data["challenge_type"] = get_enum_value(LogicChallengeType, LogicChallengeType.PUZZLE.value, db_session)
     challenge2 = LogicChallenge(**challenge2_data)
     
@@ -89,10 +89,10 @@ def test_complex_query_with_enum_filters(db_session: Session, logic_challenge_da
     
     # Vérifier le filtrage
     assert len(sequence_challenges) == 1
-    assert sequence_challenges[0].title == f"Sequence Challenge {unique_id}"
+    assert sequence_challenges[0].title == f"Test Sequence Challenge {unique_id}"
     
     assert len(puzzle_challenges) == 1
-    assert puzzle_challenges[0].title == f"Puzzle Challenge {unique_id}"
+    assert puzzle_challenges[0].title == f"Test Puzzle Challenge {unique_id}"
 
 def test_conditional_test_based_on_db_engine(db_session: Session, db_enum_values):
     """

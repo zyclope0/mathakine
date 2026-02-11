@@ -265,6 +265,9 @@ def test_update_exception():
     # Configurer le mock pour lever une exception lors du flush
     mock_session.flush.side_effect = SQLAlchemyError("Test exception")
     
+    # S'assurer que l'objet est reconnu comme etant dans la session
+    mock_session.__contains__ = MagicMock(return_value=True)
+    
     # Configurer le mock pour hasattr
     with patch('app.db.adapter.hasattr', return_value=True):
         # Configurer le mock pour TransactionManager.transaction

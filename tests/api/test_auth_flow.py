@@ -61,7 +61,7 @@ async def test_login_invalid_credentials(client):
     # Doit retourner 401 Unauthorized
     assert response.status_code == 401, f"Code incorrect: {response.status_code}"
     data = response.json()
-    assert "detail" in data
+    assert "error" in data, f"Reponse inattendue: {data}"
 
 
 async def test_login_missing_username(client):
@@ -71,8 +71,10 @@ async def test_login_missing_username(client):
     }
     response = await client.post("/api/auth/login", json=login_data)
 
-    # Doit retourner 422 Unprocessable Entity
-    assert response.status_code == 422
+    # Starlette retourne 400 Bad Request (pas 422 comme FastAPI)
+    assert response.status_code == 400, f"Code incorrect: {response.status_code}"
+    data = response.json()
+    assert "error" in data
 
 
 async def test_login_missing_password(client):
@@ -82,8 +84,10 @@ async def test_login_missing_password(client):
     }
     response = await client.post("/api/auth/login", json=login_data)
 
-    # Doit retourner 422 Unprocessable Entity
-    assert response.status_code == 422
+    # Starlette retourne 400 Bad Request (pas 422 comme FastAPI)
+    assert response.status_code == 400, f"Code incorrect: {response.status_code}"
+    data = response.json()
+    assert "error" in data
 
 
 async def test_get_current_user_authenticated(client, test_user_data):
@@ -124,7 +128,8 @@ async def test_get_current_user_unauthenticated(client):
     # Doit retourner 401 Unauthorized
     assert response.status_code == 401
     data = response.json()
-    assert "detail" in data
+    # Starlette @require_auth retourne {"error": "..."} pas {"detail": "..."}
+    assert "error" in data, f"Reponse inattendue: {data}"
 
 
 async def test_get_current_user_invalid_token(client):

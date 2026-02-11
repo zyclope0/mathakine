@@ -123,7 +123,7 @@ def test_recommendation_model():
     user = User(username=unique_username(), email=unique_email(), hashed_password="test_password"
         , role=UserRole.PADAWAN)
     exercise = Exercise(
-        title="Recommended Exercise",
+        title="Test Recommended Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
         question="3 + 3 = ?",
@@ -159,7 +159,7 @@ def test_user_recommendation_relationship():
     """Test de la relation entre User et Recommendation."""
     user = User(username=unique_username(), email=unique_email(), hashed_password="test_password")
     exercise = Exercise(
-        title="Rec Exercise",
+        title="Test Rec Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
         question="5 + 5 = ?",

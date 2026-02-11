@@ -35,8 +35,8 @@ async def test_complete_exercise_workflow(db_session):
     
     # 1. Créer un utilisateur enseignant
     teacher = User(
-        username=f"teacher_{unique_id}",
-        email=f"teacher_{unique_id}@example.com",
+        username=f"test_teacher_{unique_id}",
+        email=f"test_teacher_{unique_id}@example.com",
         hashed_password="teacher_password",
         role=get_enum_value(UserRole, UserRole.MAITRE.value, db_session)
     )
@@ -45,8 +45,8 @@ async def test_complete_exercise_workflow(db_session):
     
     # 2. Créer un utilisateur élève
     student = User(
-        username=f"student_{unique_id}",
-        email=f"student_{unique_id}@example.com",
+        username=f"test_student_{unique_id}",
+        email=f"test_student_{unique_id}@example.com",
         hashed_password="student_password",
         role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
     )
@@ -58,7 +58,7 @@ async def test_complete_exercise_workflow(db_session):
     
     # 3.1 Exercice d'addition niveau Initié
     addition_exercise = Exercise(
-        title="Addition simple",
+        title="Test Addition simple",
         creator_id=teacher.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
@@ -70,7 +70,7 @@ async def test_complete_exercise_workflow(db_session):
     
     # 3.2 Exercice de multiplication niveau Padawan
     multiplication_exercise = Exercise(
-        title="Multiplication simple",
+        title="Test Multiplication simple",
         creator_id=teacher.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.MULTIPLICATION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session),
@@ -82,7 +82,7 @@ async def test_complete_exercise_workflow(db_session):
     
     # 3.3 Exercice de division niveau Chevalier
     division_exercise = Exercise(
-        title="Division simple",
+        title="Test Division simple",
         creator_id=teacher.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.DIVISION.value, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.CHEVALIER.value, db_session),
@@ -120,9 +120,12 @@ async def test_complete_exercise_workflow(db_session):
     # Vérifier que des recommandations ont été générées
     assert len(initial_recommendations) > 0, "Des recommandations initiales devraient être générées"
     
-    # Vérifier que les recommandations initiales sont principalement de niveau Initié
-    initie_recs = [r for r in initial_recommendations if r.difficulty == "initie"]
-    assert len(initie_recs) > 0, "Il devrait y avoir des recommandations de niveau Initié au début"
+    # Vérifier que les recommandations incluent du niveau débutant (INITIE ou PADAWAN)
+    # Le format difficulty peut être "initie", "INITIE" selon l'enum
+    beginner_recs = [r for r in initial_recommendations if str(r.difficulty).upper() in ("INITIE", "PADAWAN")]
+    assert len(beginner_recs) > 0, (
+        f"Il devrait y avoir des recommandations de niveau débutant. Reçues: {[r.difficulty for r in initial_recommendations]}"
+    )
     
     # 5. Simuler des tentatives de réponse
     
@@ -219,8 +222,8 @@ async def test_exercise_statistics_and_trends(db_session):
     
     # 1. Créer un utilisateur
     user = User(
-        username=f"stats_user_{unique_id}",
-        email=f"stats_{unique_id}@example.com",
+        username=f"test_stats_user_{unique_id}",
+        email=f"test_stats_{unique_id}@example.com",
         hashed_password="stats_password",
         role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
     )
@@ -235,7 +238,7 @@ async def test_exercise_statistics_and_trends(db_session):
         exercises[ex_type.value] = {}
         for difficulty in [get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session), get_enum_value(DifficultyLevel, DifficultyLevel.PADAWAN.value, db_session), get_enum_value(DifficultyLevel, DifficultyLevel.CHEVALIER.value, db_session)]:
             exercise = Exercise(
-                title=f"{ex_type.value} {difficulty.value}",
+                title=f"Test {ex_type.value} {difficulty.value}",
                 creator_id=user.id,  # L'utilisateur crée ses propres exercices pour ce test
                 exercise_type=ex_type,
                 difficulty=difficulty,

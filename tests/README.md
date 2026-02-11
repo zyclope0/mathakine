@@ -1,76 +1,54 @@
-# Guide des tests pour Mathakine (Mai 2025)
+# Tests Mathakine
 
-## 🎯 **État actuel**
-- **296 tests passent**, 51 échecs, 2 ignorés
-- **Couverture : 73%** (+26% depuis corrections)
-- **Tests fonctionnels : 6/6 passent** ✅
-- **Statut : Stable pour fonctionnalités critiques**
+**Dernière mise à jour** : 11 février 2026
 
-## 🚀 **Exécution rapide**
+## État actuel
 
-### **Commandes essentielles :**
+- **368 tests passent**, 18 skippés
+- **~48 % couverture** (app + server)
+- **CI** : pytest + coverage, upload Codecov
+
+## Commandes
+
 ```bash
-# Tous les tests avec rapport complet
-python tests/unified_test_runner.py --all --verbose
+# Tous les tests
+python -m pytest tests/ -v
 
-# Tests fonctionnels défis logiques (validation état stable)
-python -m pytest tests/functional/test_logic_challenge_isolated.py -v
+# Avec couverture
+python -m pytest tests/ --cov=app --cov=server --cov-report=term-missing --cov-report=html
 
-# Tests spécifiques par catégorie
-python tests/unified_test_runner.py --unit    # Tests unitaires
-python tests/unified_test_runner.py --api     # Tests API
+# Tests unitaires uniquement
+python -m pytest tests/unit/ -v
+
+# Tests API
+python -m pytest tests/api/ -v
+
+# Exclure les tests lents
+python -m pytest tests/ -v -m "not slow"
 ```
 
-### **Options principales :**
-| Option | Description |
-|--------|-------------|
-| `--all` | Exécuter tous les tests |
-| `--unit`, `--api`, `--integration`, `--functional` | Tests par catégorie |
-| `--fix-enums` | Corriger problèmes énumérations automatiquement |
-| `--verbose` | Affichage détaillé pour debug |
-| `--specific PATH` | Test d'un fichier spécifique |
-
-## 📁 **Structure des tests**
+## Structure
 
 ```
 tests/
-├── unit/                 # Tests unitaires (95% des tests critiques passent)
-├── api/                  # Tests API REST  
-├── integration/          # Tests d'intégration entre composants
-├── functional/           # Tests fonctionnels (6/6 passent ✅)
-├── archives/             # Fichiers obsolètes (ne pas utiliser)
-├── unified_test_runner.py # Script principal d'exécution
-└── DOCUMENTATION_TESTS_CONSOLIDEE.md # Documentation complète
+├── api/           # Tests des endpoints REST
+├── unit/          # Tests unitaires (services, modèles, utils)
+├── integration/   # Tests d'intégration (auth cookies, exercise workflow, etc.)
+├── functional/   # Tests fonctionnels (challenges isolés avec DB)
+├── fixtures/     # Fixtures partagées
+├── utils/        # Utilitaires (nettoyage données, helpers)
+└── conftest.py   # Configuration pytest, fixtures globales
 ```
 
-## 📚 **Documentation complète**
+## Documentation
 
-Pour une documentation détaillée, consultez :
+- **[docs/01-GUIDES/TESTING.md](../docs/01-GUIDES/TESTING.md)** – Guide complet des tests
+- **[PLAN_TESTS_AMELIORATION.md](PLAN_TESTS_AMELIORATION.md)** – Plan et corrections appliquées
+- **[CREATE_TEST_DATABASE.md](../docs/01-GUIDES/CREATE_TEST_DATABASE.md)** – Configuration base de test
 
-### **📖 Documents principaux :**
-- **[DOCUMENTATION_TESTS_CONSOLIDEE.md](DOCUMENTATION_TESTS_CONSOLIDEE.md)** - Documentation complète mise à jour
-- **[CORRECTION_PLAN.md](CORRECTION_PLAN.md)** - Plan de correction avec progrès détaillés
+## Points importants
 
-### **🔍 Ce que vous y trouverez :**
-- Analyse détaillée des 51 échecs restants par catégorie
-- Plan de correction Phase D avec priorités
-- Métriques de qualité et évolution de la couverture
-- Commandes de debug spécifiques par problème
-- Bonnes pratiques et erreurs à éviter
-
-## 🎉 **Progrès accomplis**
-
-### **Corrections majeures (Mai 2025) :**
-- ✅ **Mapping énumérations PostgreSQL** : Ordre paramètres corrigé
-- ✅ **Format JSON PostgreSQL** : Conversion automatique listes
-- ✅ **Tests fonctionnels** : 6/6 défis logiques passent
-- ✅ **Couverture** : 47% → 73% (+26%)
-- ✅ **Tests corrigés** : 83 échecs → 51 échecs (-32)
-
-### **État stable atteint :**
-Le projet est maintenant **production-ready** pour les fonctionnalités critiques avec une base de tests solide et un processus de debug systématique documenté.
-
----
-
-> **Note :** Les anciens scripts et documentation ont été archivés dans `archives/`. 
-> Utilisez uniquement `unified_test_runner.py` et la documentation consolidée. 
+1. **TEST_DATABASE_URL** obligatoire (voir CREATE_TEST_DATABASE.md)
+2. **Données de test** : utiliser `unique_username()` / `unique_email()` pour éviter les conflits
+3. **Nettoyage** : `TestDataManager` nettoie automatiquement les données de test après chaque run
+4. **Tests async** : tous les tests API/integration utilisent `httpx.AsyncClient` + `pytest-asyncio`

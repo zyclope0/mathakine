@@ -148,6 +148,13 @@ docs/
 
 ## 🔄 Dernières mises à jour
 
+### 11/02/2026
+- ✅ **Documentation tests mise à jour** : TESTING.md (Vitest, couverture, CI), tests/README.md, PLAN_TESTS_AMELIORATION.md
+- ✅ **Corrections test_user_exercise_flow** : POST /api/exercises/generate, paramètre answer, GET /api/users/stats
+- ✅ **Tests frontend** : ExerciseCard (NextIntl + QueryClient wrappers), AccessibilityToolbar (userEvent, aria-label)
+- ✅ **CI** : test:coverage frontend avant build, Codecov backend + frontend
+- ⚠️ **CORRECTION_PLAN.md** : Marqué obsolète (état Mai 2025)
+
 ### 09/02/2026
 - ✅ **Vulnerabilites npm corrigees** (3→0) : jspdf mis a jour v4.1.0, xlsx (vulnerable) remplace par exceljs + file-saver
 - ✅ **Decorateurs auth** : `@require_auth`, `@optional_auth`, `@require_auth_sse` dans `server/auth.py` - eliminent 40+ blocs d'authentification dupliques dans 6 fichiers handlers

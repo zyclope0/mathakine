@@ -12,7 +12,6 @@ describe('BadgeCard', () => {
     category: 'progression',
     difficulty: 'bronze',
     points_reward: 10,
-    requirements: {},
     star_wars_title: 'Éveil de la Force',
     is_active: true,
     created_at: '2025-01-01T00:00:00Z',
@@ -37,12 +36,8 @@ describe('BadgeCard', () => {
 
   it('affiche l\'icône de succès si le badge est obtenu', () => {
     const userBadge: UserBadge = {
-      id: 1,
-      achievement_id: 1,
-      user_id: 1,
+      ...mockBadge,
       earned_at: '2025-01-01T00:00:00Z',
-      progress_data: {},
-      is_displayed: true,
     };
     render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />);
     // L'icône CheckCircle devrait être présente
@@ -58,12 +53,8 @@ describe('BadgeCard', () => {
 
   it('affiche la date d\'obtention si le badge est obtenu', () => {
     const userBadge: UserBadge = {
-      id: 1,
-      achievement_id: 1,
-      user_id: 1,
+      ...mockBadge,
       earned_at: '2025-01-15T00:00:00Z',
-      progress_data: {},
-      is_displayed: true,
     };
     render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />);
     expect(screen.getByText(/obtenu le/i)).toBeInTheDocument();

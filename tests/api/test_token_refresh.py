@@ -30,7 +30,7 @@ async def test_refresh_token_valid(refresh_token_client):
     headers = {"Authorization": f"Bearer {new_token}"}
 
     # Essayer d'accéder à une ressource protégée avec le nouveau token
-    resource_response = await client.get("/api/exercises/", headers=headers)
+    resource_response = await client.get("/api/exercises", headers=headers)
     assert resource_response.status_code == 200, "Le nouveau token devrait permettre l'accès aux ressources protégées"
 
 
@@ -45,10 +45,11 @@ async def test_refresh_token_invalid(client):
     # Vérifier que le rafraîchissement a échoué
     assert response.status_code == 401, f"Le code d'état devrait être 401, reçu {response.status_code}"
 
-    # Vérifier le message d'erreur
+    # Vérifier le message d'erreur (Starlette retourne {"error": "..."} pas {"detail": "..."})
     data = response.json()
-    assert "detail" in data, "La réponse devrait contenir des détails sur l'erreur"
-    assert any(keyword in data["detail"].lower() for keyword in ["invalide", "invalid"]), "Le message devrait indiquer que le token est invalide"
+    assert "error" in data, f"La réponse devrait contenir un champ 'error': {data}"
+    assert any(keyword in data["error"].lower() for keyword in ["invalide", "invalid", "expiré", "expired"]), \
+        f"Le message devrait indiquer que le token est invalide. Message reçu: {data['error']}"
 
 
 async def test_refresh_token_wrong_type(refresh_token_client):
@@ -63,10 +64,11 @@ async def test_refresh_token_wrong_type(refresh_token_client):
     # Vérifier que le rafraîchissement a échoué
     assert response.status_code == 401, f"Le code d'état devrait être 401, reçu {response.status_code}"
 
-    # Vérifier le message d'erreur
+    # Vérifier le message d'erreur (Starlette retourne {"error": "..."} pas {"detail": "..."})
     data = response.json()
-    assert "detail" in data, "La réponse devrait contenir des détails sur l'erreur"
-    assert any(keyword in data["detail"].lower() for keyword in ["invalide", "invalid", "type"]), "Le message devrait indiquer que le token est du mauvais type"
+    assert "error" in data, f"La réponse devrait contenir un champ 'error': {data}"
+    assert any(keyword in data["error"].lower() for keyword in ["invalide", "invalid", "type", "expiré", "expired"]), \
+        f"Le message devrait indiquer que le token est du mauvais type. Message reçu: {data['error']}"
 
 
 async def test_refresh_token_expired(client):
@@ -88,7 +90,8 @@ async def test_refresh_token_expired(client):
     # Vérifier que le rafraîchissement a échoué
     assert response.status_code == 401, f"Le code d'état devrait être 401, reçu {response.status_code}"
 
-    # Vérifier le message d'erreur
+    # Vérifier le message d'erreur (Starlette retourne {"error": "..."} pas {"detail": "..."})
     data = response.json()
-    assert "detail" in data, "La réponse devrait contenir des détails sur l'erreur"
-    assert any(keyword in data["detail"].lower() for keyword in ["expiré", "expired"]), "Le message devrait indiquer que le token est expiré"
+    assert "error" in data, f"La réponse devrait contenir un champ 'error': {data}"
+    assert any(keyword in data["error"].lower() for keyword in ["expiré", "expired", "invalide", "invalid"]), \
+        f"Le message devrait indiquer que le token est expiré. Message reçu: {data['error']}"

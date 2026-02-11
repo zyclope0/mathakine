@@ -713,7 +713,7 @@ def test_cascade_delete_user_with_relationships(db_session):
     
     # Créer un exercice
     exercise = Exercise(
-        title="Cascade Exercise",
+        title="Test Cascade Exercise",
         creator_id=user.id,
         exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION, db_session),
         difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE, db_session),
@@ -747,7 +747,7 @@ def test_cascade_delete_user_with_relationships(db_session):
     
     # Créer un défi logique et une tentative
     challenge = LogicChallenge(
-        title="Cascade Challenge",
+        title="Test Cascade Challenge",
         creator_id=user.id,
         challenge_type="SEQUENCE",  # Utiliser la valeur en majuscules pour PostgreSQL
         age_group="GROUP_10_12",  # Utiliser la valeur correcte pour PostgreSQL
@@ -1095,8 +1095,8 @@ def test_get_user_stats_with_malformed_data(db_session):
     assert "correct_attempts" in stats
     assert "success_rate" in stats
     
-    # Les types non standards devraient être inclus dans les statistiques
-    assert ExerciseType.ADDITION in stats["by_exercise_type"]
+    # Les types non standards devraient être inclus dans les statistiques (clés en minuscules)
+    assert "addition" in stats["by_exercise_type"]
     
     # Même avec des données malformées, la structure devrait être cohérente
     assert "progress" in stats
