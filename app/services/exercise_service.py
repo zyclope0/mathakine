@@ -415,32 +415,39 @@ class ExerciseService:
             session.add(new_progress)
         
         # 2. Mettre à jour ou créer UserStats (table legacy, optionnelle si absente)
+        # Vérifier l'existence de la table AVANT de requêter pour éviter InFailedSqlTransaction
         try:
-            exercise_type_value = exercise_type.value if hasattr(exercise_type, 'value') else str(exercise_type)
-            difficulty_value = difficulty.value if hasattr(difficulty, 'value') else str(difficulty) if difficulty else "initie"
-            
-            user_stat = session.query(UserStats).filter(
-                UserStats.exercise_type == exercise_type_value,
-                UserStats.difficulty == difficulty_value
-            ).first()
-            
-            if user_stat:
-                user_stat.total_attempts += 1
-                if is_correct:
-                    user_stat.correct_attempts += 1
-                user_stat.last_updated = datetime.now()
+            result = session.execute(text(
+                "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='user_stats'"
+            ))
+            if not result.scalar():
+                logger.debug("Table user_stats absente, mise à jour ignorée")
             else:
-                new_user_stat = UserStats(
-                    exercise_type=exercise_type_value,
-                    difficulty=difficulty_value,
-                    total_attempts=1,
-                    correct_attempts=1 if is_correct else 0
-                )
-                session.add(new_user_stat)
+                exercise_type_value = exercise_type.value if hasattr(exercise_type, 'value') else str(exercise_type)
+                difficulty_value = difficulty.value if hasattr(difficulty, 'value') else str(difficulty) if difficulty else "initie"
+
+                user_stat = session.query(UserStats).filter(
+                    UserStats.exercise_type == exercise_type_value,
+                    UserStats.difficulty == difficulty_value
+                ).first()
+
+                if user_stat:
+                    user_stat.total_attempts += 1
+                    if is_correct:
+                        user_stat.correct_attempts += 1
+                    user_stat.last_updated = datetime.now()
+                else:
+                    new_user_stat = UserStats(
+                        exercise_type=exercise_type_value,
+                        difficulty=difficulty_value,
+                        total_attempts=1,
+                        correct_attempts=1 if is_correct else 0
+                    )
+                    session.add(new_user_stat)
         except Exception as user_stats_err:
             logger.debug(
-                "Table user_stats absente ou erreur (ignoré, Progress déjà mis à jour): %s",
+                "UserStats ignoré (table absente ou erreur): %s",
                 user_stats_err,
             )
-        
+
         session.flush() 
