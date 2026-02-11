@@ -427,6 +427,8 @@
       "completeAssociationsAbove": "Complétez vos associations dans la grille ci-dessus",
       "deductionAnswerLabel": "Réponse de déduction (générée depuis la grille)",
       "enterAnswer": "Entrez votre réponse...",
+      "chessAnswerPlaceholder": "Ex. Dd7+, Rf8, Df7#",
+      "chessAnswerFormat": "Format : coups en notation algébrique, séparés par des virgules (ex. Dd7+, Rf8, Df7#)",
       "answerFieldLabel": "Champ de réponse pour le défi logique",
       "validating": "Validation en cours...",
       "validateAnswer": "Valider la réponse au défi",

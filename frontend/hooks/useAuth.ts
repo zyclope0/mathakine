@@ -67,7 +67,7 @@ export function useAuth() {
       const response = await api.post<TokenResponse>('/api/auth/login', credentials);
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Stocker le refresh_token si présent dans la réponse (pour cross-domain)
       if (data.refresh_token && typeof window !== 'undefined') {
         try {
@@ -75,6 +75,13 @@ export function useAuth() {
         } catch {
           // Ignorer les erreurs de localStorage (mode privé, etc.)
         }
+      }
+
+      // Sync access_token sur le domaine frontend (cross-domain prod : backend cookie pas envoyé aux routes Next.js)
+      // IMPORTANT : attendre la sync avant de naviguer, sinon le cookie peut manquer pour les flux SSE
+      if (data.access_token && typeof window !== 'undefined') {
+        const { syncAccessTokenToFrontend } = await import('@/lib/api/client');
+        await syncAccessTokenToFrontend(data.access_token);
       }
       
       // Mettre à jour le cache directement avec les données utilisateur reçues
@@ -141,6 +148,15 @@ export function useAuth() {
     mutationFn: async () => {
       try {
         await api.post('/api/auth/logout');
+        // Effacer le cookie access_token du domaine frontend (cross-domain)
+        if (typeof window !== 'undefined') {
+          fetch('/api/auth/sync-cookie', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clear: true }),
+            credentials: 'include',
+          }).catch(() => {});
+        }
       } catch (error) {
         // Même en cas d'erreur, on déconnecte côté client
         // Ne pas logger en production pour éviter les fuites d'information

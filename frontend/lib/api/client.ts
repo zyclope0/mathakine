@@ -41,6 +41,38 @@ let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
 
 /**
+ * Sync access_token sur le domaine frontend (pour prod cross-domain).
+ * Exporté pour usage au chargement de l'app (utilisateurs revenant avec session).
+ */
+export async function syncAccessTokenToFrontend(accessToken: string): Promise<void> {
+  if (typeof window === 'undefined') return;
+  try {
+    await fetch('/api/auth/sync-cookie', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ access_token: accessToken }),
+      credentials: 'include',
+    });
+  } catch {
+    // Non bloquant
+  }
+}
+
+/**
+ * S'assure que le cookie access_token est présent sur le domaine frontend.
+ * En prod cross-domain : fait un refresh + sync si refresh_token dispo (pour EventSource/flux).
+ * À appeler avant toute requête qui transite par les routes API Next.js (proxy).
+ */
+export async function ensureFrontendAuthCookie(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  if (process.env.NODE_ENV !== 'production') return; // En dev, même domaine
+  const refreshToken = getRefreshToken();
+  if (refreshToken) {
+    await refreshAccessToken();
+  }
+}
+
+/**
  * Récupère le refresh_token depuis localStorage
  */
 function getRefreshToken(): string | null {
@@ -100,11 +132,14 @@ async function refreshAccessToken(): Promise<boolean> {
       });
 
       if (response.ok) {
-        // Le backend peut renvoyer un nouveau refresh_token dans la réponse
         try {
           const data = await response.json();
           if (data.refresh_token) {
             setRefreshToken(data.refresh_token);
+          }
+          // Sync access_token sur le domaine frontend (prod cross-domain)
+          if (data.access_token) {
+            await syncAccessTokenToFrontend(data.access_token);
           }
         } catch {
           // Si la réponse n'est pas du JSON, ce n'est pas grave

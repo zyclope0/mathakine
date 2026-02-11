@@ -810,15 +810,14 @@ Tu DOIS créer un objet visual_data adapté au type de défi :
   CODING = DÉCODER UN MESSAGE SECRET EN LETTRES/SYMBOLES, PAS naviguer dans des nombres !
 
 - CHESS (échecs) :
-  * Pour mat en X coups : {{"board": [["r", "n", "b", "q", "k", "b", "n", "r"], ["p", "p", "p", "p", "p", "p", "p", "p"], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["", "", "", "", "", "", "", ""], ["P", "P", "P", "P", "P", "P", "P", "P"], ["R", "N", "B", "Q", "K", "B", "N", "R"]], "turn": "white", "objective": "mat_en_3", "question": "Les blancs jouent et font mat en 3 coups"}}
-  * Notation des pièces : K/k=Roi, Q/q=Dame, R/r=Tour, B/b=Fou, N/n=Cavalier, P/p=Pion
-  * MAJUSCULE = pièce BLANCHE, minuscule = pièce noire
-  * Cases vides = "" (chaîne vide)
-  * board[0] = rangée 8 (haut), board[7] = rangée 1 (bas)
-  * board[row][0] = colonne a, board[row][7] = colonne h
-  * correct_answer = notation algébrique des coups : "Qh7+, Kf8, Qf7#" ou "Dd7+, Rf8, Df7#"
-  * IMPORTANT : Le board doit représenter une position RÉALISTE avec une solution VÉRIFIABLE
-  * Inclure "highlight_positions" pour montrer les pièces clés : [["row", "col"], ...]
+  * INTERDIT : Ne JAMAIS utiliser la position de départ complète pour un mat en X coups (c'est impossible).
+  * Pour mat en X coups : utiliser une position TACTIQUE (peu de pièces au centre, roi noir menacé).
+  * Exemple réaliste mat en 2 : board avec roi noir en e8, dame blanche proche, peu de pions.
+  * Notation : K/k=Roi, Q/q=Dame, R/r=Tour, B/b=Fou, N/n=Cavalier, P/p=Pion. MAJUSCULE = blanc, minuscule = noir. "" = case vide.
+  * board[0] = rangée 8 (haut), board[7] = rangée 1 (bas). board[row][0] = colonne a, board[row][7] = colonne h.
+  * "turn" : "white" ou "black". "objective" : "mat_en_1", "mat_en_2", "mat_en_3", "meilleur_coup".
+  * correct_answer : notation algébrique "Dd7+, Rf8, Df7#" ou "Qh7+, Kf8, Qf7#"
+  * highlight_positions : UNIQUEMENT des cases contenant une pièce (pas de cases vides). Notation ["d5", "h8"] ou indices [[3,3], [0,7]]
   
 IMPORTANT pour VISUAL :
 - Si le défi utilise des associations forme-couleur, tu DOIS montrer AU MOINS UN EXEMPLE VISIBLE de chaque association AVANT la question.
@@ -885,17 +884,13 @@ Avant de retourner le JSON, tu DOIS vérifier la cohérence logique :
    - correct_answer est TOUJOURS du texte en clair (lettres/mots décodés, directions, ou un nombre pour algorithm)
 
 7. Pour CHESS (échecs) :
-   - Tu DOIS fournir "board" : tableau 2D de 8x8 représentant l'échiquier
-   - Notation : K=Roi blanc, k=roi noir, Q/q=Dame, R/r=Tour, B/b=Fou, N/n=Cavalier, P/p=Pion
-   - MAJUSCULE = BLANC, minuscule = noir, "" = case vide
-   - board[0] = rangée 8 (côté noir), board[7] = rangée 1 (côté blanc)
-   - "turn" : "white" ou "black" pour indiquer qui joue
-   - "objective" : "mat_en_1", "mat_en_2", "mat_en_3", "meilleur_coup", etc.
-   - correct_answer : notation algébrique française (Dd4+, Txe5, Cf3, O-O, e4, etc.) ou standard (Qd4+, Rxe5, Nf3, O-O, e4)
-   - Pour mat en X coups : donner la séquence complète séparée par virgules
-   - Exemple : correct_answer = "Dd7+, Rf8, Df7#" (Dame d7 échec, Roi f8, Dame f7 mat)
-   - IMPORTANT : La position doit être LÉGALE et la solution VÉRIFIABLE
-   - Éviter les positions impossibles (ex: 10 fous, roi en échec au mauvais tour)
+   - Tu DOIS fournir "board" : tableau 2D de 8x8. Notation : K/k, Q/q, R/r, B/b, N/n, P/p. "" = vide.
+   - board[0] = rangée 8 (haut), board[7] = rangée 1 (bas). "turn" : "white" ou "black".
+   - "objective" : "mat_en_1", "mat_en_2", "mat_en_3", "meilleur_coup".
+   - correct_answer : notation algébrique "Dd7+, Rf8, Df7#" (pour mat en 2/3 : séquence complète).
+   - ERREUR : Ne JAMAIS utiliser la position de départ pour mat en X coups (impossible tactiquement).
+   - La position doit être TACTIQUE : roi noir menacé, peu de pièces au centre, mat réalisable en X coups.
+   - highlight_positions : UNIQUEMENT les cases avec une pièce (dame, roi, Tours clés...). Jamais de cases vides. Notation ["d5", "h8"].
 
 8. Vérification finale :
    - La solution_explanation DOIT expliquer pourquoi correct_answer est correct

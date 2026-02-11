@@ -469,21 +469,32 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                 )}
               </div>
             ) : (
-              <Input
-                type="text"
-                value={userAnswer}
-                onChange={(e) => setUserAnswer(e.target.value)}
-                placeholder={t('enterAnswer')}
-                className="text-lg"
-                disabled={hasSubmitted}
-                aria-label={t('answerFieldLabel')}
-                aria-required="true"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && userAnswer.trim() && !isSubmitting) {
-                    handleSubmit();
+              <div className="space-y-1.5">
+                <Input
+                  type="text"
+                  value={userAnswer}
+                  onChange={(e) => setUserAnswer(e.target.value)}
+                  placeholder={
+                    challenge.challenge_type?.toLowerCase() === 'chess'
+                      ? t('chessAnswerPlaceholder')
+                      : t('enterAnswer')
                   }
-                }}
-              />
+                  className="text-lg"
+                  disabled={hasSubmitted}
+                  aria-label={t('answerFieldLabel')}
+                  aria-required="true"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && userAnswer.trim() && !isSubmitting) {
+                      handleSubmit();
+                    }
+                  }}
+                />
+                {challenge.challenge_type?.toLowerCase() === 'chess' && (
+                  <p className="text-xs text-muted-foreground">
+                    {t('chessAnswerFormat')}
+                  </p>
+                )}
+              </div>
             )}
 
             <div className="flex gap-2">

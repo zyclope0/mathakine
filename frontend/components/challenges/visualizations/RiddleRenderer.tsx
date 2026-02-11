@@ -28,11 +28,25 @@ export function RiddleRenderer({ visualData, className = '' }: RiddleRendererPro
   const clues = visualData.clues || visualData.indices || [];
   const hints = visualData.hints || [];
   const keyElements = visualData.key_elements || visualData.elements || [];
-  const context = visualData.context || visualData.scenario || '';
+  const context = visualData.context || visualData.scenario || visualData.scene || '';
   const riddle = visualData.riddle || visualData.question || '';
   const description = visualData.description || '';
   const size = visualData.size;
-  
+
+  // Énigme type "riddle" avec pots et plaque (ex: coffre du jardinier)
+  const parseIfNeeded = (val: unknown): unknown => {
+    if (typeof val === 'string') {
+      try { return JSON.parse(val) as unknown; } catch { return val; }
+    }
+    return val;
+  };
+  const rawPots = parseIfNeeded(visualData.pots);
+  const pots = Array.isArray(rawPots) ? rawPots : [];
+  const rawPlaque = parseIfNeeded(visualData.plaque);
+  const plaque = rawPlaque && typeof rawPlaque === 'object' && rawPlaque !== null ? rawPlaque as { text_lines?: unknown[] } : null;
+  const plaqueLines = plaque?.text_lines && Array.isArray(plaque.text_lines) ? plaque.text_lines : [];
+  const asciiArt = typeof visualData.ascii_art === 'string' ? visualData.ascii_art.trim() : '';
+
   // Détecter les grilles (mathématiques, patterns, etc.)
   const grid = visualData.grid || visualData.pattern || visualData.matrix || visualData.rows || null;
   const hasGrid = grid && Array.isArray(grid) && grid.length > 0;
@@ -47,7 +61,7 @@ export function RiddleRenderer({ visualData, className = '' }: RiddleRendererPro
   ) : [];
 
   // Vérifier si on a des données significatives à afficher
-  const hasContent = context || riddle || description || clues.length > 0 || keyElements.length > 0 || hasGrid;
+  const hasContent = context || riddle || description || clues.length > 0 || keyElements.length > 0 || hasGrid || pots.length > 0 || plaqueLines.length > 0 || !!asciiArt;
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -166,6 +180,64 @@ export function RiddleRenderer({ visualData, className = '' }: RiddleRendererPro
         </div>
       )}
 
+      {/* Pots (énigme type coffre/jardinier) */}
+      {pots.length > 0 && (
+        <div className="bg-card/50 border border-border rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Key className="h-5 w-5 text-primary" />
+            <h4 className="font-semibold text-foreground">Pots</h4>
+          </div>
+          <div className="space-y-2">
+            {pots.map((pot: any, index: number) => {
+              const label = pot.label ?? `Pot ${index + 1}`;
+              const cluesList = Array.isArray(pot.visible_clues) ? pot.visible_clues : [];
+              return (
+                <div
+                  key={index}
+                  className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
+                >
+                  <p className="font-medium text-primary mb-1">Pot {label}</p>
+                  {cluesList.length > 0 ? (
+                    <ul className="list-disc list-inside space-y-1 text-foreground text-sm">
+                      {cluesList.map((c: string, i: number) => (
+                        <li key={i}>{typeof c === 'string' ? c : String(c)}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Plaque (équations, contraintes) */}
+      {plaqueLines.length > 0 && (
+        <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Info className="h-5 w-5 text-primary" />
+            <h4 className="font-semibold text-foreground">Plaque</h4>
+          </div>
+          <ul className="space-y-1.5 text-foreground font-mono text-sm">
+            {plaqueLines.map((line: string, index: number) => (
+              <li key={index} className="flex items-center gap-2">
+                <span className="text-primary">—</span>
+                {typeof line === 'string' ? line : String(line)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Schéma ASCII (représentation visuelle) - masqué si pots + plaque déjà affichés pour éviter la redondance */}
+      {asciiArt && pots.length === 0 && plaqueLines.length === 0 && (
+        <div className="bg-muted/30 border border-border rounded-lg p-4 overflow-x-auto">
+          <pre className="text-xs text-muted-foreground font-mono whitespace-pre leading-relaxed">
+            {asciiArt}
+          </pre>
+        </div>
+      )}
+
       {/* Hints (indices supplémentaires) */}
       {hints.length > 0 && (
         <div className="bg-card/50 border border-border rounded-lg p-4">
@@ -224,8 +296,9 @@ export function RiddleRenderer({ visualData, className = '' }: RiddleRendererPro
             {Object.entries(visualData).map(([key, value]) => {
               // Skip les clés déjà traitées
               if (['grid', 'pattern', 'matrix', 'rows', 'clues', 'indices', 'hints', 
-                   'key_elements', 'elements', 'context', 'scenario', 'riddle', 
-                   'question', 'description', 'size'].includes(key)) {
+                   'key_elements', 'elements', 'context', 'scenario', 'scene', 
+                   'riddle', 'question', 'description', 'size', 'pots', 'plaque', 
+                   'type', 'ascii_art'].includes(key)) {
                 return null;
               }
               

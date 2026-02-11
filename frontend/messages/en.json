@@ -427,6 +427,8 @@
       "completeAssociationsAbove": "Complete your associations in the grid above",
       "deductionAnswerLabel": "Deduction answer (generated from grid)",
       "enterAnswer": "Enter your answer...",
+      "chessAnswerPlaceholder": "E.g. Qd7+, Kf8, Qf7#",
+      "chessAnswerFormat": "Format: moves in algebraic notation, separated by commas (e.g. Qd7+, Kf8, Qf7#)",
       "answerFieldLabel": "Answer field for the logic challenge",
       "validating": "Validating...",
       "validateAnswer": "Validate challenge answer",

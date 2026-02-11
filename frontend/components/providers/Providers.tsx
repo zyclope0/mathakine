@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { useThemeStore } from '@/lib/stores/themeStore';
 import { useAccessibilityStore } from '@/lib/stores/accessibilityStore';
 import { NextIntlProvider } from './NextIntlProvider';
+import { AuthSyncProvider } from './AuthSyncProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -105,7 +106,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <NextIntlProvider>
       <QueryClientProvider client={queryClient}>
-        {children}
+        <AuthSyncProvider>
+          {children}
+        </AuthSyncProvider>
         <Toaster />
         {/* ReactQueryDevtools uniquement en développement */}
         {process.env.NODE_ENV === 'development' && (

@@ -54,12 +54,16 @@ export async function GET(request: NextRequest) {
       .join('; ');
 
     const hasAuthCookie = request.cookies.get('access_token');
-    
+    const cookieNames = request.cookies.getAll().map((c) => c.name);
+
     // Si pas de cookie d'authentification, retourner une erreur immédiatement
     if (!hasAuthCookie) {
-      console.error('[Exercise AI Stream Proxy] Missing auth cookie - returning error');
+      console.error('[Exercise AI Stream Proxy] Missing auth cookie - returning error. Cookies reçus:', cookieNames.join(', ') || '(aucun)');
       return new Response(
-        `data: ${JSON.stringify({ type: 'error', message: 'Non authentifié - Cookie manquant' })}\n\n`,
+        `data: ${JSON.stringify({
+          type: 'error',
+          message: 'Non authentifié - Cookie manquant. Déconnectez-vous puis reconnectez-vous.',
+        })}\n\n`,
         {
           status: 200, // 200 pour que EventSource reçoive le message
           headers: {

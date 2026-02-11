@@ -39,8 +39,9 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
   let knightPosition = visualData.knight_position || visualData.position || null;
   let reachablePositions = visualData.reachable_positions || visualData.targets || [];
   const currentPiece = visualData.piece || visualData.current_piece || 'knight';
-  const highlightPositions = visualData.highlight_positions || [];
   const question = visualData.question || '';
+  const turn = visualData.turn || '';
+  const objective = visualData.objective || '';
 
   // Convertir knight_position si c'est une string (ex: "E4" → [3, 4])
   if (typeof knightPosition === 'string') {
@@ -54,11 +55,42 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
       .filter((coords): coords is [number, number] => coords !== null);
   }
 
+  // Convertir highlight_positions si c'est un tableau de strings (ex: ["b7", "d2"])
+  let normalizedHighlights = Array.isArray(visualData.highlight_positions) ? visualData.highlight_positions : [];
+  if (normalizedHighlights.length > 0) {
+    const first = normalizedHighlights[0];
+    if (typeof first === 'string') {
+      normalizedHighlights = normalizedHighlights
+        .map((n: unknown) => (typeof n === 'string' ? chessNotationToCoords(n) : null))
+        .filter((c): c is [number, number] => c !== null);
+    } else if (Array.isArray(first) && first.length >= 2) {
+      // Déjà [row, col] - s'assurer que ce sont des nombres
+      normalizedHighlights = normalizedHighlights
+        .filter((p: unknown) => Array.isArray(p) && p.length >= 2)
+        .map((p: unknown[]) => [Number(p[0]), Number(p[1])]);
+    }
+  }
+
   // Dimensions de l'échiquier (standard 8x8 ou custom)
   const boardSize = board.length > 0 ? board.length : 8;
 
   // Si on a un échiquier 2D
   const hasBoard = board.length > 0;
+
+  // Filtrer les highlights : n'afficher que sur les cases qui contiennent une pièce (cohérence visuelle)
+  const squareHasPiece = (r: number, c: number): boolean => {
+    if (!hasBoard || !board[r]?.[c]) return false;
+    const raw = board[r][c];
+    if (typeof raw === 'object' && raw !== null && 'piece' in raw) {
+      const p = String((raw as { piece?: string }).piece ?? '');
+      return !!p && !p.match(/^[a-h][1-8]$/i);
+    }
+    const p = String(raw ?? '');
+    return !!p && p !== ' ' && p !== '.' && !p.match(/^[a-h][1-8]$/i);
+  };
+  if (hasBoard && normalizedHighlights.length > 0) {
+    normalizedHighlights = normalizedHighlights.filter(([r, c]) => squareHasPiece(r, c));
+  }
 
   // Symboles des pièces d'échecs
   // Pièces blanches (outline) - majuscules en notation FEN
@@ -134,7 +166,7 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
 
   // Vérifier si une position est mise en évidence
   const isHighlightPosition = (row: number, col: number): boolean => {
-    return highlightPositions.some((pos: number[]) => pos[0] === row && pos[1] === col);
+    return normalizedHighlights.some((pos: number[]) => pos[0] === row && pos[1] === col);
   };
 
   // Obtenir la couleur de fond d'une case
@@ -150,16 +182,15 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
   // Obtenir le contenu d'une case avec info couleur
   const getSquareContentInfo = (row: number, col: number): { symbol: string; isWhite: boolean } | null => {
     // Si on a un board 2D avec des vraies pièces (pas des labels comme "A1", "B2")
-    if (hasBoard && board[row] && board[row][col]) {
-      const piece = board[row][col];
-      // Vérifier si c'est une vraie pièce (symbole court) et pas un label de case
-      if (typeof piece === 'string' && 
-          piece !== '' && 
-          piece !== ' ' && 
-          piece !== '.' && 
-          piece.length <= 2 &&  // Les labels font 2-3 chars (A1, B10), les pièces 1-2 (k, N, etc.)
-          !piece.match(/^[A-H][1-8]$/i)) {  // Exclure les labels de cases (A1-H8)
-        return getPieceInfo(piece);
+    if (hasBoard && board[row] && board[row][col] !== undefined) {
+      const raw = board[row][col];
+      const piece = typeof raw === 'object' && raw !== null && 'piece' in raw
+        ? String((raw as { piece?: string }).piece)
+        : String(raw ?? '');
+      // Exclure les labels de cases (a1-h8) et les chaînes vides
+      if (piece && piece !== ' ' && piece !== '.' && !piece.match(/^[a-h][1-8]$/i)) {
+        const info = getPieceInfo(piece);
+        if (info) return info;
       }
     }
 
@@ -180,8 +211,35 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
     return `${files[col]}${boardSize - row}`;
   };
 
+  // Labels d'objectif lisibles
+  const objectiveLabels: Record<string, string> = {
+    mat_en_1: 'Mat en 1 coup',
+    mat_en_2: 'Mat en 2 coups',
+    mat_en_3: 'Mat en 3 coups',
+    meilleur_coup: 'Meilleur coup',
+    gain_materiel: 'Gain de matériel',
+  };
+  const objectiveLabel = objective ? (objectiveLabels[objective] || objective) : '';
+  const turnLabel = turn === 'white' ? 'Les blancs jouent' : turn === 'black' ? 'Les noirs jouent' : '';
+
   return (
     <div className={`space-y-4 ${className}`}>
+      {/* Tour + objectif (puzzles mat) */}
+      {(turnLabel || objectiveLabel) && (
+        <div className="flex flex-wrap gap-3 items-center text-sm">
+          {turnLabel && (
+            <span className="bg-primary/20 text-primary px-3 py-1.5 rounded-lg font-medium">
+              {turnLabel}
+            </span>
+          )}
+          {objectiveLabel && (
+            <span className="bg-amber-500/20 text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-lg font-medium">
+              {objectiveLabel}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Question ou contexte */}
       {question && (
         <div className="bg-card/50 border border-border rounded-lg p-3">
@@ -203,10 +261,12 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
             <span className="text-muted-foreground">Positions atteignables</span>
           </div>
         )}
-        {highlightPositions.length > 0 && (
+        {normalizedHighlights.length > 0 && (
           <div className="flex items-center gap-1">
             <div className={`w-4 h-4 ${highlightSquare} rounded border border-border`} />
-            <span className="text-muted-foreground">Positions spéciales</span>
+            <span className="text-muted-foreground">
+              {hasBoard ? 'Pièces clés / cases importantes' : 'Positions spéciales'}
+            </span>
           </div>
         )}
       </div>
@@ -282,9 +342,9 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
                             <Target className="h-4 w-4 text-white/80" />
                           ) : null}
 
-                          {/* Tooltip au hover */}
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 pointer-events-none">
-                            <span className="text-[10px] font-mono text-white font-bold">
+                          {/* Coordonnées au hover (coin bas-droit, discret) */}
+                          <div className="absolute bottom-0.5 right-0.5 opacity-0 group-hover:opacity-90 transition-opacity pointer-events-none">
+                            <span className="text-[9px] font-mono text-muted-foreground/80 bg-background/60 px-1 rounded">
                               {posLabel}
                             </span>
                           </div>

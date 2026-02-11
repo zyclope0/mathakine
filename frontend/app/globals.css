@@ -463,7 +463,8 @@ select:focus {
   --muted: #0f0f14;
   --border: rgba(124, 58, 237, 0.4);
   --input: rgba(124, 58, 237, 0.2);
-  --primary: #a78bfa; /* Plus clair en dark mode */
+  /* Primary : #7c3aed (violet-600) pour contraste 4.6:1 avec blanc (WCAG AA) - #a78bfa donnait 2.72:1 */
+  --primary: #7c3aed;
   --secondary: #818cf8;
   --accent: #f472b6;
 }

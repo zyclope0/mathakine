@@ -13,6 +13,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/useAuth';
+import { ensureFrontendAuthCookie } from '@/lib/api/client';
 import { validateExerciseParams, validateAIPrompt } from '@/lib/validation/exercise';
 
 interface AIGeneratorProps {
@@ -86,6 +87,10 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
     setGeneratedExercise(null);
 
     try {
+      // En prod cross-domain : s'assurer que le cookie access_token est sur le domaine frontend
+      // (requis pour le proxy /api/exercises/generate-ai-stream)
+      await ensureFrontendAuthCookie();
+
       // Construire l'URL avec les paramètres
       const params = new URLSearchParams({
         exercise_type: exerciseType,
