@@ -17,7 +17,7 @@ pydantic==2.12.4  # Version compatible Python 3.13
 pydantic-settings==2.11.0  # Support pour les paramètres Pydantic
 
 # Utilitaires
-python-dotenv==1.0.0
+python-dotenv==1.2.1
 requests==2.32.5
 email-validator==2.3.0  # Validation d'emails pour Pydantic
 colorama==0.4.6  # Colorisation des messages en console
