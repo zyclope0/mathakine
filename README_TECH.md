@@ -1,6 +1,6 @@
 # README_TECH.md - Mathakine
 
-> Documentation technique de reference - Mise a jour le 06/02/2026 (soir)
+> Documentation technique de reference - Mise a jour le 12/02/2026
 
 ---
 
@@ -201,7 +201,7 @@ Couche independante du framework HTTP :
 | POST | `/api/chat` | chat_handlers | Chatbot IA |
 | POST | `/api/chat/stream` | chat_handlers | Chatbot streaming |
 
-**Note** : Les routes de generation IA (SSE) sont dans `frontend/app/api/` (proxy Next.js vers backend).
+**Note** : Les routes de generation IA (SSE) sont dans `frontend/app/api/` (proxy Next.js vers backend). Routes auth frontend : `POST /api/auth/sync-cookie`, `GET /api/auth/check-cookie` (diagnostic).
 
 **Legende** :
 - ✨ = Nouveaux endpoints ajoutes le 06/02/2026
@@ -218,6 +218,8 @@ Toutes les requetes passent par `frontend/lib/api/client.ts` qui gere :
 - Gestion d'erreurs centralisee
 
 **Exception** : Les endpoints SSE (streaming IA, chat) utilisent `fetch()` direct ou `EventSource` car le client ne supporte pas le streaming.
+
+**Prod cross-domain** : Frontend et backend sur domaines differents (ex. Render) → le cookie backend n'est pas envoye aux routes Next.js. Le flux `sync-cookie` copie le token sur le domaine frontend (login, refresh, `ensureFrontendAuthCookie()` avant generation IA). Voir `docs/01-GUIDES/TROUBLESHOOTING.md` si erreur « Cookie manquant ».
 
 ### Hooks (16 hooks custom)
 Chaque domaine a son hook dedie base sur React Query :
@@ -273,7 +275,7 @@ Le systeme utilise l'API OpenAI pour generer des exercices et defis :
 |---|---|---|
 | ~~FIX-1~~ | ~~Dark mode ne bascule pas~~ | Selecteurs CSS corriges (`.dark[data-theme]` vs `.dark [data-theme]`) |
 | ~~FIX-2~~ | ~~Bouton accessibilite invisible~~ | React Portal dedie + z-index 99999 |
-| ~~FIX-3~~ | ~~Generation IA "non authentifie"~~ | Cookies via `request.cookies.getAll()` |
+| ~~FIX-3~~ | ~~Generation IA "non authentifie"~~ | Cookies via `request.cookies.getAll()` + sync-cookie cross-domain (prod) |
 | ~~FIX-4~~ | ~~Erreur `max_completion_tokens`~~ | Dependance `openai>=1.40.0` |
 | ~~FIX-5~~ | ~~Index DB manquants~~ | 4 migrations Alembic (13 index) |
 

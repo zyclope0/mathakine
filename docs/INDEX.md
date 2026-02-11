@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entree unique - Mise a jour au 09/02/2026
+> Point d'entrée unique - Mise à jour au 12/02/2026
 
 ---
 
@@ -147,6 +147,12 @@ docs/
 ---
 
 ## 🔄 Dernières mises à jour
+
+### 12/02/2026
+- ✅ **Énigmes (RiddleRenderer)** : Rendu correct des champs `pots` et `plaque` (plus de JSON brut), masquage de l’ascii_art redondant
+- ✅ **Échecs (ChessRenderer)** : Highlights uniquement sur les pièces, affichage tour/objectif (mat en X coups), format de réponse attendu, prompt IA pour positions tactiques réalistes
+- ✅ **Auth production (cross-domain)** : await sync au login, `ensureFrontendAuthCookie()` avant génération IA, routes `/api/auth/sync-cookie` et `/api/auth/check-cookie` pour diagnostic
+- 📝 **TROUBLESHOOTING.md** : Section « Cookie manquant » en production enrichie
 
 ### 11/02/2026
 - ✅ **Documentation tests mise à jour** : TESTING.md (Vitest, couverture, CI), tests/README.md, PLAN_TESTS_AMELIORATION.md

@@ -2,8 +2,8 @@
 
 **Plateforme d'apprentissage mathématique adaptative avec IA générative**
 
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/yourusername/mathakine)
-[![Statut](https://img.shields.io/badge/statut-production-brightgreen.svg)](https://github.com/yourusername/mathakine)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/zyclope0/mathakine)
+[![Statut](https://img.shields.io/badge/statut-production-brightgreen.svg)](https://github.com/zyclope0/mathakine)
 [![Licence](https://img.shields.io/badge/licence-MIT-green.svg)](LICENSE)
 
 ---
@@ -55,7 +55,7 @@
 
 ```bash
 # 1. Cloner le projet
-git clone https://github.com/yourusername/mathakine.git
+git clone https://github.com/zyclope0/mathakine.git
 cd mathakine
 
 # 2. Configuration backend
@@ -65,8 +65,8 @@ source venv/bin/activate     # macOS/Linux
 pip install -r requirements.txt
 
 # 3. Variables d'environnement
-cp sample.env .env
-# Éditer .env avec vos clés API
+cp .env.example .env
+# Éditer .env avec vos clés API (DATABASE_URL, SECRET_KEY, OPENAI_API_KEY)
 
 # 4. Base de données
 alembic upgrade head
@@ -78,7 +78,7 @@ python enhanced_server.py
 cd frontend
 npm install
 cp .env.example .env.local
-# Éditer .env.local
+# Éditer .env.local (NEXT_PUBLIC_API_BASE_URL=http://localhost:10000)
 
 # 7. Lancer frontend (port 3000)
 npm run dev
@@ -244,16 +244,16 @@ npm run build
 - ✅ **Lisibilité** : 95%+ (nommage clair, code commenté)
 - ✅ **Sécurité** : RGPD, OWASP, rate limiting, JWT
 
-### Dernières mises à jour (06/02/2026)
+### Dernières mises à jour (12/02/2026)
 
-- ✅ **Unification backend** : FastAPI → Starlette pur
-- ✅ **3 nouveaux widgets dashboard** : Série, Défis, Précision par catégorie
-- ✅ **2 nouveaux endpoints** : `/api/users/me/progress`, `/api/users/me/challenges/progress`
-- ✅ **2 nouveaux hooks** : `useProgressStats`, `useChallengesProgress`
-- ✅ **Documentation** : Rationalisée (~15 docs actifs vs 200+ avant)
-- ✅ **Design system** : Multi-thème cohérent (CSS variables)
+- ✅ **Énigmes** : Rendu pots/plaque (formatage correct), masquage ascii_art redondant
+- ✅ **Échecs** : Highlights sur pièces uniquement, tour/objectif, format réponse, prompt IA positions tactiques
+- ✅ **Auth production** : Sync cookie cross-domain (login, refresh, avant génération IA), routes diagnostic
+- ✅ **Unification backend** : Starlette pur (FastAPI archivé)
+- ✅ **Widgets dashboard** : Série, Défis, Précision par catégorie
+- ✅ **Documentation** : Rationalisée (~15 docs actifs)
 
-**Historique complet** : [docs/03-PROJECT/BILAN_COMPLET.md](docs/03-PROJECT/BILAN_COMPLET.md)
+**Historique complet** : [docs/INDEX.md](docs/INDEX.md) (section « Dernières mises à jour »)
 
 ---
 
@@ -262,7 +262,7 @@ npm run build
 ### Environnements
 
 - **Local** : http://localhost:3000 (frontend) + http://localhost:10000 (backend)
-- **Production** : https://mathakine.onrender.com/ (exemple)
+- **Production** : https://mathakine-frontend.onrender.com (frontend) + backend sur Render
 
 ### Variables d'environnement
 
@@ -271,13 +271,13 @@ npm run build
 DATABASE_URL=postgresql://user:password@localhost/mathakine
 SECRET_KEY=your-secret-key-here
 OPENAI_API_KEY=sk-proj-xxx
-OPENAI_MODEL=gpt-5-mini
+PORT=10000
 ```
 
-**Frontend (`.env.local`)**
+**Frontend (`frontend/.env.local`)**
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:10000
-NEXT_PUBLIC_DEFAULT_LOCALE=fr
+NEXT_PUBLIC_API_BASE_URL=http://localhost:10000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 **Guide détaillé** : [docs/01-GUIDES/DEVELOPMENT.md](docs/01-GUIDES/DEVELOPMENT.md)
@@ -311,9 +311,8 @@ Ce projet est sous licence **MIT** - voir le fichier [LICENSE](LICENSE) pour plu
 
 ## 📧 Contact
 
-**Projet** : [https://github.com/yourusername/mathakine](https://github.com/yourusername/mathakine)  
-**Issues** : [https://github.com/yourusername/mathakine/issues](https://github.com/yourusername/mathakine/issues)  
-**Discussions** : [https://github.com/yourusername/mathakine/discussions](https://github.com/yourusername/mathakine/discussions)
+**Projet** : [https://github.com/zyclope0/mathakine](https://github.com/zyclope0/mathakine)  
+**Issues** : [https://github.com/zyclope0/mathakine/issues](https://github.com/zyclope0/mathakine/issues)
 
 ---
 
@@ -329,4 +328,4 @@ Ce projet est sous licence **MIT** - voir le fichier [LICENSE](LICENSE) pour plu
 
 **Prêt à commencer ?** 🚀 Suivez le [guide d'installation](docs/00-REFERENCE/GETTING_STARTED.md) !
 
-**Version** : 2.1.0 | **Dernière mise à jour** : 06/02/2026
+**Version** : 2.1.0 | **Dernière mise à jour** : 12/02/2026

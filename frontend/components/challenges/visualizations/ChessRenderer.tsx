@@ -62,7 +62,7 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
     if (typeof first === 'string') {
       normalizedHighlights = normalizedHighlights
         .map((n: unknown) => (typeof n === 'string' ? chessNotationToCoords(n) : null))
-        .filter((c): c is [number, number] => c !== null);
+        .filter((c: [number, number] | null): c is [number, number] => c !== null);
     } else if (Array.isArray(first) && first.length >= 2) {
       // Déjà [row, col] - s'assurer que ce sont des nombres
       normalizedHighlights = normalizedHighlights

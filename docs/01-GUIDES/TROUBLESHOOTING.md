@@ -660,25 +660,31 @@ return createPortal(<MyButton />, container);
 
 ---
 
-### ❌ Génération IA "non authentifié" en production
+### ❌ Génération IA "Non authentifié - Cookie manquant" en production
 
-**Symptôme** : Génération IA fonctionne en dev mais pas en prod
+**Symptôme** : Génération IA fonctionne en dev mais pas en prod. Message : "Non authentifié - Cookie manquant" ou log `[Exercise AI Stream Proxy] Missing auth cookie`.
 
-**Causes** :
+**Cause** : En production, frontend et backend sont sur des domaines différents (ex. `mathakine-frontend.onrender.com` vs `mathakine-backend.onrender.com`). Le cookie `access_token` posé par le backend ne s’envoie pas aux routes API Next.js (`/api/exercises/generate-ai-stream`) car elles sont sur le domaine frontend.
 
-1. **Cookies non transmis** - Utiliser `request.cookies.getAll()` au lieu de `request.headers.get('cookie')`
-2. **Vérification auth manquante** côté client
-3. **Version openai trop ancienne** - Utiliser `openai>=1.40.0`
+**Solution** : Le système de sync-cookie copie le token sur le domaine frontend après login :
 
-**Solution frontend (route proxy)** :
-```typescript
-// ✅ CORRECT
-const allCookies = request.cookies.getAll();
-const cookies = allCookies.map(c => `${c.name}=${c.value}`).join('; ');
+1. **`/api/auth/sync-cookie`** : POST avec `{ access_token }` pose le cookie sur le domaine frontend
+2. **`login`** : attend la sync avant de rediriger (`await syncAccessTokenToFrontend`)
+3. **`ensureFrontendAuthCookie()`** : appelé avant génération IA (refresh + sync si besoin)
+4. **`AuthSyncProvider`** : au chargement, si `refresh_token` présent, fait un refresh + sync
 
-// ❌ INCORRECT (peut échouer en production)
-const cookies = request.headers.get('cookie');
-```
+**Diagnostic** :
+
+- Ouvrir `https://[ton-frontend]/api/auth/check-cookie` dans le navigateur après connexion
+  - `has_access_token_cookie: true` → cookie OK
+  - `false` → se déconnecter puis se reconnecter
+- Logs Render : chercher `[Exercise AI Stream Proxy] Cookies reçus:` pour voir ce qui arrive au proxy
+
+**Autres vérifications** :
+
+- Utiliser `request.cookies.getAll()` au lieu de `request.headers.get('cookie')` côté proxy
+- Vérifier `NEXT_PUBLIC_API_BASE_URL` défini sur Render (frontend)
+- Version openai : `openai>=1.40.0`
 
 ---
 
