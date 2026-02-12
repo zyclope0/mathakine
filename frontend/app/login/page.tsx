@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Rocket, Sparkles } from 'lucide-react';
+import { Loader2, Rocket, Sparkles, Mail } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
+import { api } from '@/lib/api/client';
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -19,14 +21,41 @@ function LoginForm() {
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showResendBanner, setShowResendBanner] = useState(false);
+  const [resendEmail, setResendEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   
   const registered = searchParams.get('registered') === 'true';
   const verify = searchParams.get('verify') === 'true';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await loginAsync({ username, password });
-    // La redirection et les toasts sont gérés dans useAuth
+    try {
+      await loginAsync({ username, password });
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 403) {
+        setShowResendBanner(true);
+      }
+    }
+  };
+
+  const handleResendVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resendEmail.trim()) return;
+    setResendLoading(true);
+    setResendSuccess(false);
+    try {
+      const res = await api.post<{ message?: string; error?: string }>('/api/auth/resend-verification', { email: resendEmail.trim() });
+      setResendSuccess(true);
+      toast.success(t('resendSuccess'));
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message;
+      toast.error(msg || 'Erreur lors du renvoi');
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   const fillDemoCredentials = () => {
@@ -57,9 +86,48 @@ function LoginForm() {
                 <>
                   📧 Un email de vérification a été envoyé à votre adresse. 
                   Veuillez vérifier votre boîte de réception et cliquer sur le lien pour activer votre compte.
+                  <button
+                    type="button"
+                    onClick={() => setShowResendBanner(true)}
+                    className="block mt-2 text-primary hover:underline font-medium"
+                  >
+                    {t('didntReceiveEmail')}
+                  </button>
                 </>
               ) : (
                 <>✅ {tRegister('successMessage')}</>
+              )}
+            </div>
+          )}
+
+          {/* Bannière "email non vérifié" - après 403 ou lien "Pas reçu l'email ?" */}
+          {showResendBanner && (
+            <div className="mb-4 p-4 rounded-lg border bg-amber-500/10 border-amber-500/20">
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-300 mb-2">
+                {t('emailNotVerifiedBanner')}
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 mb-3">
+                {t('resendEmailDesc')}
+              </p>
+              {resendSuccess ? (
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  {t('resendSuccess')}
+                </p>
+              ) : (
+                <form onSubmit={handleResendVerification} className="flex gap-2">
+                  <Input
+                    type="email"
+                    value={resendEmail}
+                    onChange={(e) => setResendEmail(e.target.value)}
+                    placeholder={t('resendEmailPlaceholder')}
+                    required
+                    disabled={resendLoading}
+                    className="flex-1"
+                  />
+                  <Button type="submit" size="sm" disabled={resendLoading}>
+                    {resendLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                  </Button>
+                </form>
               )}
             </div>
           )}
@@ -141,12 +209,21 @@ function LoginForm() {
           </form>
 
           <div className="mt-6 text-center space-y-2">
-            <Link
-              href="/forgot-password"
-              className="text-sm text-muted-foreground hover:text-primary-on-dark underline"
-            >
-              {t('forgotPassword')}
-            </Link>
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm">
+              <Link
+                href="/forgot-password"
+                className="text-muted-foreground hover:text-primary-on-dark underline"
+              >
+                {t('forgotPassword')}
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowResendBanner(true)}
+                className="text-muted-foreground hover:text-primary-on-dark underline"
+              >
+                {t('didntReceiveEmail')}
+              </button>
+            </div>
             <div className="text-sm text-muted-foreground">
               {t('noAccount')}{' '}
               <Link href="/register" className="text-primary-on-dark hover:underline font-medium">

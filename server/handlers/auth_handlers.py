@@ -140,6 +140,14 @@ async def resend_verification_email(request: Request):
                     "message": "Votre adresse email est déjà vérifiée"
                 }, status_code=200)
             
+            # Rate limit : ne pas renvoyer avant 2 minutes
+            if user.email_verification_sent_at:
+                cooldown = user.email_verification_sent_at + timedelta(minutes=2)
+                if datetime.now(timezone.utc) < cooldown:
+                    return JSONResponse({
+                        "message": "Veuillez patienter quelques minutes avant de demander un nouvel email."
+                    }, status_code=200)  # 200 pour ne pas révéler l'existence du compte
+            
             # Générer un nouveau token
             verification_token = generate_verification_token()
             user.email_verification_token = verification_token
@@ -159,6 +167,9 @@ async def resend_verification_email(request: Request):
             
             if email_sent:
                 logger.info(f"Email de vérification renvoyé à {user.email}")
+                if "localhost" in frontend_url:
+                    verify_link = f"{frontend_url}/verify-email?token={verification_token}"
+                    logger.info(f"[DEV] Si l'email n'arrive pas, copie ce lien : {verify_link}")
                 return JSONResponse({
                     "message": "Un nouvel email de vérification a été envoyé à votre adresse."
                 }, status_code=200)
@@ -638,14 +649,34 @@ async def api_logout(request: Request):
     """
     Déconnexion de l'utilisateur en effaçant les cookies d'authentification.
     Route: POST /api/auth/logout
+
+    IMPORTANT: En prod cross-domain, les cookies sont définis avec SameSite=None, Secure.
+    delete_cookie DOIT utiliser les mêmes paramètres sinon le navigateur ignore la suppression.
     """
     try:
         response = JSONResponse({"message": "Déconnexion réussie"}, status_code=200)
-        
-        # Effacer les cookies d'authentification
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
-        
+
+        is_production = (
+            os.getenv("NODE_ENV") == "production"
+            or os.getenv("ENVIRONMENT") == "production"
+            or os.getenv("MATH_TRAINER_PROFILE") == "prod"
+        )
+        cookie_samesite = "none" if is_production else "lax"
+        cookie_secure = is_production
+
+        response.delete_cookie(
+            "access_token",
+            path="/",
+            samesite=cookie_samesite,
+            secure=cookie_secure,
+        )
+        response.delete_cookie(
+            "refresh_token",
+            path="/",
+            samesite=cookie_samesite,
+            secure=cookie_secure,
+        )
+
         logger.info("Utilisateur déconnecté : cookies d'authentification effacés.")
         return response
     except Exception as logout_error:

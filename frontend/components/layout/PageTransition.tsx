@@ -13,7 +13,6 @@ export function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname();
   const { shouldReduceMotion, createVariants, createTransition } = useAccessibleAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Variantes d'animation pour les transitions de page
   const variants = createVariants({
@@ -24,31 +23,29 @@ export function PageTransition({ children }: PageTransitionProps) {
 
   const transition = createTransition({ duration: 0.2 });
 
-  // Timeout de sécurité : forcer l'opacité à 1 après 500ms si l'animation ne se déclenche pas
+  // Timeout de sécurité : forcer l'opacité à 1 si les animations ne se déclenchent pas (bug aléatoire)
+  // Exécuter à 400ms, 800ms et 1200ms pour couvrir le chargement asynchrone (Suspense) et les délais d'animation
   useEffect(() => {
     if (shouldReduceMotion) return;
 
-    // Nettoyer le timeout précédent
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    // Forcer la visibilité après 500ms maximum
-    timeoutRef.current = setTimeout(() => {
+    const forceVisibility = () => {
       if (containerRef.current) {
         containerRef.current.style.opacity = '1';
       }
-      // Forcer aussi toutes les animations CSS à se déclencher
       const animatedElements = document.querySelectorAll('.animate-fade-in-up, .animate-fade-in-up-delay-1, .animate-fade-in-up-delay-2, .animate-fade-in-up-delay-3');
       animatedElements.forEach((el) => {
         (el as HTMLElement).style.opacity = '1';
       });
-    }, 500);
+    };
+
+    const t1 = setTimeout(forceVisibility, 400);
+    const t2 = setTimeout(forceVisibility, 800);
+    const t3 = setTimeout(forceVisibility, 1200);
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, [pathname, shouldReduceMotion]);
 
@@ -69,12 +66,6 @@ export function PageTransition({ children }: PageTransitionProps) {
         transition={transition}
         className="relative z-10"
         onAnimationComplete={() => {
-          // Nettoyer le timeout car l'animation s'est terminée
-          if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-            timeoutRef.current = null;
-          }
-          // S'assurer que le contenu est toujours visible après l'animation
           if (containerRef.current) {
             containerRef.current.style.opacity = '1';
           }

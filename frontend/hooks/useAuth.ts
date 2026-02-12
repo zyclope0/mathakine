@@ -148,9 +148,9 @@ export function useAuth() {
     mutationFn: async () => {
       try {
         await api.post('/api/auth/logout');
-        // Effacer le cookie access_token du domaine frontend (cross-domain)
+        // Effacer le cookie access_token du domaine frontend (cross-domain prod)
         if (typeof window !== 'undefined') {
-          fetch('/api/auth/sync-cookie', {
+          await fetch('/api/auth/sync-cookie', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ clear: true }),

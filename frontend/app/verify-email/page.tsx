@@ -14,20 +14,19 @@ export default function VerifyEmailPage() {
   const router = useRouter();
   const t = useTranslations('auth.verifyEmail');
   
-  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'expired'>('loading');
+  const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'expired' | 'resend'>('loading');
   const [message, setMessage] = useState<string>('');
   const [email, setEmail] = useState<string>('');
+  const [resendLoading, setResendLoading] = useState(false);
 
   useEffect(() => {
     const token = searchParams.get('token');
     
     if (!token) {
-      setStatus('error');
-      setMessage(t('noToken'));
+      setStatus('resend');
       return;
     }
 
-    // Vérifier le token
     verifyToken(token);
   }, [searchParams]);
 
@@ -70,26 +69,28 @@ export default function VerifyEmailPage() {
     }
   };
 
-  const handleResend = async () => {
-    if (!email) {
-      // Demander l'email à l'utilisateur
-      const userEmail = prompt(t('enterEmail'));
-      if (!userEmail) return;
-      setEmail(userEmail);
-    }
+  const handleResend = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const emailToUse = email.trim();
+    if (!emailToUse) return;
 
+    setResendLoading(true);
+    setMessage('');
     try {
       interface ResendVerificationResponse {
         message?: string;
         error?: string;
       }
       
-      await api.post<ResendVerificationResponse>('/api/auth/resend-verification', { email });
+      await api.post<ResendVerificationResponse>('/api/auth/resend-verification', { email: emailToUse });
       setMessage(t('resendSuccess'));
       setStatus('success');
-    } catch (error: any) {
-      setMessage(error?.message || t('resendError'));
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      setMessage(err?.message || t('resendError'));
       setStatus('error');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -102,6 +103,14 @@ export default function VerifyEmailPage() {
               <Loader2 className="h-12 w-12 text-primary mx-auto animate-spin" />
               <CardTitle className="text-3xl font-bold">{t('verifying')}</CardTitle>
               <CardDescription>{t('verifyingDescription')}</CardDescription>
+            </>
+          )}
+          
+          {status === 'resend' && (
+            <>
+              <Mail className="h-12 w-12 text-primary mx-auto" />
+              <CardTitle className="text-3xl font-bold">{t('resendTitle')}</CardTitle>
+              <CardDescription>{t('resendDescription')}</CardDescription>
             </>
           )}
           
@@ -137,6 +146,38 @@ export default function VerifyEmailPage() {
             </div>
           )}
           
+          {status === 'resend' && (
+            <div className="space-y-4">
+              <form onSubmit={handleResend} className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="resend-email" className="text-sm font-medium">
+                    {t('emailLabel')}
+                  </label>
+                  <input
+                    id="resend-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t('enterEmailPlaceholder')}
+                    required
+                    disabled={resendLoading}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={resendLoading}>
+                  {resendLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+                  {t('resendEmail')}
+                </Button>
+              </form>
+              
+              <div className="text-center">
+                <Link href="/login" className="text-sm text-primary hover:underline">
+                  {t('backToLogin')}
+                </Link>
+              </div>
+            </div>
+          )}
+          
           {(status === 'error' || status === 'expired') && (
             <div className="space-y-4">
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
@@ -150,14 +191,21 @@ export default function VerifyEmailPage() {
                 </div>
               </div>
               
-              <Button
-                onClick={handleResend}
-                variant="outline"
-                className="w-full"
-              >
-                <Mail className="mr-2 h-4 w-4" />
-                {t('resendEmail')}
-              </Button>
+              <form onSubmit={handleResend} className="space-y-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t('enterEmailPlaceholder')}
+                  required
+                  disabled={resendLoading}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mb-2"
+                />
+                <Button type="submit" variant="outline" className="w-full" disabled={resendLoading}>
+                  {resendLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+                  {t('resendEmail')}
+                </Button>
+              </form>
               
               <div className="text-center">
                 <Link href="/login" className="text-sm text-primary hover:underline">
