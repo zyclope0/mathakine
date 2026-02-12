@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface AccessibilityState {
   highContrast: boolean;
@@ -28,6 +28,6 @@ export const useAccessibilityStore = create<AccessibilityState>()(
       toggleDyslexiaMode: () => set((state) => ({ dyslexiaMode: !state.dyslexiaMode })),
       toggleFocusMode: () => set((state) => ({ focusMode: !state.focusMode })),
     }),
-    { name: 'accessibility-preferences' }
+    { name: "accessibility-preferences" }
   )
 );

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Skeleton pour les StatsCards (KPIs)
@@ -150,4 +150,3 @@ export function RecommendationsSkeleton() {
     </Card>
   );
 }
-

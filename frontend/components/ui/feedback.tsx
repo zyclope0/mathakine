@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils/cn';
-import { CheckCircle2, XCircle, AlertCircle, Info } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
+import { cn } from "@/lib/utils/cn";
+import { CheckCircle2, XCircle, AlertCircle, Info } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
-export type FeedbackType = 'success' | 'error' | 'warning' | 'info';
+export type FeedbackType = "success" | "error" | "warning" | "info";
 
 interface FeedbackProps {
   type: FeedbackType;
@@ -24,15 +24,18 @@ const icons = {
 };
 
 const styles = {
-  success: 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200',
-  error: 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200',
-  warning: 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200',
-  info: 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200',
+  success:
+    "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200",
+  error:
+    "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200",
+  warning:
+    "bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200",
+  info: "bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200",
 };
 
 /**
  * Feedback - Composant pour afficher des messages de feedback visuel
- * 
+ *
  * Types : success, error, warning, info
  * Supporte auto-hide et animations accessibles
  */
@@ -64,19 +67,16 @@ export function Feedback({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-lg border p-4',
+        "flex items-start gap-3 rounded-lg border p-4",
         styles[type],
-        shouldReduceMotion ? '' : 'animate-in slide-in-from-top-2',
+        shouldReduceMotion ? "" : "animate-in slide-in-from-top-2",
         className
       )}
       role="alert"
       aria-live="polite"
     >
-      <Icon 
-        className={cn(
-          'h-5 w-5 shrink-0 mt-0.5',
-          shouldReduceMotion ? '' : 'animate-in zoom-in-50'
-        )}
+      <Icon
+        className={cn("h-5 w-5 shrink-0 mt-0.5", shouldReduceMotion ? "" : "animate-in zoom-in-50")}
         aria-hidden="true"
       />
       <p className="flex-1 text-sm font-medium">{message}</p>
@@ -99,40 +99,27 @@ export function Feedback({
 /**
  * SuccessFeedback - Raccourci pour feedback de succès
  */
-export function SuccessFeedback({
-  message,
-  ...props
-}: Omit<FeedbackProps, 'type'>) {
+export function SuccessFeedback({ message, ...props }: Omit<FeedbackProps, "type">) {
   return <Feedback type="success" message={message} {...props} />;
 }
 
 /**
  * ErrorFeedback - Raccourci pour feedback d'erreur
  */
-export function ErrorFeedback({
-  message,
-  ...props
-}: Omit<FeedbackProps, 'type'>) {
+export function ErrorFeedback({ message, ...props }: Omit<FeedbackProps, "type">) {
   return <Feedback type="error" message={message} {...props} />;
 }
 
 /**
  * WarningFeedback - Raccourci pour feedback d'avertissement
  */
-export function WarningFeedback({
-  message,
-  ...props
-}: Omit<FeedbackProps, 'type'>) {
+export function WarningFeedback({ message, ...props }: Omit<FeedbackProps, "type">) {
   return <Feedback type="warning" message={message} {...props} />;
 }
 
 /**
  * InfoFeedback - Raccourci pour feedback d'information
  */
-export function InfoFeedback({
-  message,
-  ...props
-}: Omit<FeedbackProps, 'type'>) {
+export function InfoFeedback({ message, ...props }: Omit<FeedbackProps, "type">) {
   return <Feedback type="info" message={message} {...props} />;
 }
-

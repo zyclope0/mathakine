@@ -1,28 +1,28 @@
-'use client';
+"use client";
 
-import { useCallback, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useUserStats, type TimeRange } from '@/hooks/useUserStats';
-import { useProgressStats } from '@/hooks/useProgressStats';
-import { useChallengesProgress } from '@/hooks/useChallengesProgress';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, CheckCircle, Zap, Trophy } from 'lucide-react';
-import { StatsCard } from '@/components/dashboard/StatsCard';
-import { ProgressChartLazy } from '@/components/dashboard/ProgressChartLazy';
-import { DailyExercisesChartLazy } from '@/components/dashboard/DailyExercisesChartLazy';
-import { PerformanceByType } from '@/components/dashboard/PerformanceByType';
-import { LevelIndicator } from '@/components/dashboard/LevelIndicator';
-import { Recommendations } from '@/components/dashboard/Recommendations';
-import { RecentActivity } from '@/components/dashboard/RecentActivity';
-import { StreakWidget } from '@/components/dashboard/StreakWidget';
-import { ChallengesProgressWidget } from '@/components/dashboard/ChallengesProgressWidget';
-import { CategoryAccuracyChart } from '@/components/dashboard/CategoryAccuracyChart';
-import { ExportButton } from '@/components/dashboard/ExportButton';
-import { TimeRangeSelector } from '@/components/dashboard/TimeRangeSelector';
-import { toast } from 'sonner';
-import { useTranslations } from 'next-intl';
-import { PageLayout, PageHeader, PageSection, EmptyState } from '@/components/layout';
+import { useCallback, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserStats, type TimeRange } from "@/hooks/useUserStats";
+import { useProgressStats } from "@/hooks/useProgressStats";
+import { useChallengesProgress } from "@/hooks/useChallengesProgress";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { Button } from "@/components/ui/button";
+import { RefreshCw, CheckCircle, Zap, Trophy } from "lucide-react";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { ProgressChartLazy } from "@/components/dashboard/ProgressChartLazy";
+import { DailyExercisesChartLazy } from "@/components/dashboard/DailyExercisesChartLazy";
+import { PerformanceByType } from "@/components/dashboard/PerformanceByType";
+import { LevelIndicator } from "@/components/dashboard/LevelIndicator";
+import { Recommendations } from "@/components/dashboard/Recommendations";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { StreakWidget } from "@/components/dashboard/StreakWidget";
+import { ChallengesProgressWidget } from "@/components/dashboard/ChallengesProgressWidget";
+import { CategoryAccuracyChart } from "@/components/dashboard/CategoryAccuracyChart";
+import { ExportButton } from "@/components/dashboard/ExportButton";
+import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
+import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+import { PageLayout, PageHeader, PageSection, EmptyState } from "@/components/layout";
 import {
   StatsCardSkeleton,
   ChartSkeleton,
@@ -30,19 +30,19 @@ import {
   RecentActivitySkeleton,
   LevelIndicatorSkeleton,
   RecommendationsSkeleton,
-} from '@/components/dashboard/DashboardSkeletons';
+} from "@/components/dashboard/DashboardSkeletons";
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [timeRange, setTimeRange] = useState<TimeRange>('30');
+  const [timeRange, setTimeRange] = useState<TimeRange>("30");
   const { stats, isLoading, error, refetch } = useUserStats(timeRange);
   const { data: progressStats, isLoading: isLoadingProgress } = useProgressStats();
   const { data: challengesProgress, isLoading: isLoadingChallenges } = useChallengesProgress();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const t = useTranslations('dashboard');
-  const tToasts = useTranslations('toasts.dashboard');
-  
+  const t = useTranslations("dashboard");
+  const tToasts = useTranslations("toasts.dashboard");
+
   // Debounce du refresh pour éviter les clics multiples rapides
   const handleRefresh = useCallback(async () => {
     // Empêcher les clics multiples
@@ -51,14 +51,14 @@ export default function DashboardPage() {
     }
 
     setIsRefreshing(true);
-    
+
     try {
       await refetch();
-      toast.success(tToasts('statsUpdated'));
+      toast.success(tToasts("statsUpdated"));
     } catch (error) {
       // En production, les erreurs sont gérées par le toast
       // Ne pas logger en console pour éviter les fuites d'information
-      toast.error(t('error.title', { default: 'Erreur lors du rafraîchissement' }));
+      toast.error(t("error.title", { default: "Erreur lors du rafraîchissement" }));
     } finally {
       // Délai minimum pour éviter les clics trop rapides
       setTimeout(() => {
@@ -72,8 +72,8 @@ export default function DashboardPage() {
       <ProtectedRoute>
         <PageLayout>
           <PageHeader
-            title={user?.username ? `${t('welcome')}, ${user.username} !` : t('title')}
-            description={t('description')}
+            title={user?.username ? `${t("welcome")}, ${user.username} !` : t("title")}
+            description={t("description")}
           />
           {/* Skeleton loaders pour meilleure perception de performance */}
           <PageSection className="space-y-3">
@@ -102,10 +102,8 @@ export default function DashboardPage() {
       <ProtectedRoute>
         <PageLayout>
           <EmptyState
-            title={t('error.title')}
-            action={
-              <Button onClick={() => refetch()}>{t('error.retry')}</Button>
-            }
+            title={t("error.title")}
+            action={<Button onClick={() => refetch()}>{t("error.retry")}</Button>}
           />
         </PageLayout>
       </ProtectedRoute>
@@ -117,8 +115,8 @@ export default function DashboardPage() {
       <PageLayout>
         {/* En-tête */}
         <PageHeader
-          title={user?.username ? `${t('welcome')}, ${user.username} !` : t('title')}
-          description={t('description')}
+          title={user?.username ? `${t("welcome")}, ${user.username} !` : t("title")}
+          description={t("description")}
           actions={
             <>
               <TimeRangeSelector value={timeRange} onValueChange={setTimeRange} />
@@ -128,13 +126,13 @@ export default function DashboardPage() {
                 onClick={handleRefresh}
                 disabled={isRefreshing || isLoading}
                 className="btn-cta-primary flex items-center gap-2"
-                aria-label={t('refresh')}
+                aria-label={t("refresh")}
               >
-                <RefreshCw 
-                  className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} 
-                  aria-hidden="true" 
+                <RefreshCw
+                  className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                  aria-hidden="true"
                 />
-                {t('refresh')}
+                {t("refresh")}
               </Button>
             </>
           }
@@ -148,27 +146,30 @@ export default function DashboardPage() {
                 <StatsCard
                   icon={CheckCircle}
                   value={stats.total_exercises || 0}
-                  label={t('stats.exercisesSolved')}
+                  label={t("stats.exercisesSolved")}
                 />
                 <StatsCard
                   icon={Zap}
                   value={`${Math.round(stats.success_rate || 0)}%`}
-                  label={t('stats.successRate')}
+                  label={t("stats.successRate")}
                 />
                 <StatsCard
                   icon={Trophy}
                   value={stats.total_challenges || 0}
-                  label={t('stats.challengesCompleted')}
+                  label={t("stats.challengesCompleted")}
                 />
               </div>
-            {/* Métadonnées temporelles */}
-            {stats.recent_activity && stats.recent_activity.length > 0 && stats.recent_activity[0] && stats.recent_activity[0].time && (
-              <div className="text-xs text-muted-foreground text-center mt-2">
-                {t('lastUpdate', { 
-                  time: stats.recent_activity[0].time
-                })}
-              </div>
-            )}
+              {/* Métadonnées temporelles */}
+              {stats.recent_activity &&
+                stats.recent_activity.length > 0 &&
+                stats.recent_activity[0] &&
+                stats.recent_activity[0].time && (
+                  <div className="text-xs text-muted-foreground text-center mt-2">
+                    {t("lastUpdate", {
+                      time: stats.recent_activity[0].time,
+                    })}
+                  </div>
+                )}
             </PageSection>
 
             {/* Nouveaux widgets de progression */}
@@ -204,7 +205,7 @@ export default function DashboardPage() {
                 </div>
               </PageSection>
             )}
-            
+
             {/* Performance par type */}
             {stats.performance_by_type && Object.keys(stats.performance_by_type).length > 0 && (
               <PageSection className="space-y-3 animate-fade-in-up-delay-3">
@@ -227,22 +228,15 @@ export default function DashboardPage() {
             {/* Activité récente */}
             {stats.recent_activity && stats.recent_activity.length > 0 && (
               <PageSection className="space-y-3 animate-fade-in-up-delay-3">
-                <RecentActivity 
-                  activities={stats.recent_activity} 
-                />
+                <RecentActivity activities={stats.recent_activity} />
               </PageSection>
             )}
           </>
         )}
 
         {/* État vide */}
-        {!stats && (
-          <EmptyState
-            title={t('empty.message')}
-          />
-        )}
+        {!stats && <EmptyState title={t("empty.message")} />}
       </PageLayout>
     </ProtectedRoute>
   );
 }
-

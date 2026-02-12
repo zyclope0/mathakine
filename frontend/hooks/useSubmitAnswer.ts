@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, ApiClientError } from '@/lib/api/client';
-import { toast } from 'sonner';
-import { useTranslations } from 'next-intl';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api, ApiClientError } from "@/lib/api/client";
+import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export interface SubmitAnswerPayload {
   exercise_id: number;
@@ -27,7 +27,7 @@ export interface SubmitAnswerResponse {
 
 export function useSubmitAnswer() {
   const queryClient = useQueryClient();
-  const t = useTranslations('toasts');
+  const t = useTranslations("toasts");
 
   const submitMutation = useMutation<SubmitAnswerResponse, ApiClientError, SubmitAnswerPayload>({
     mutationFn: async (payload) => {
@@ -38,30 +38,30 @@ export function useSubmitAnswer() {
     },
     onSuccess: (data, variables) => {
       // Invalider le cache de l'exercice pour recharger les stats
-      queryClient.invalidateQueries({ queryKey: ['exercise', variables.exercise_id] });
-      queryClient.invalidateQueries({ queryKey: ['exercises'] });
-      queryClient.invalidateQueries({ queryKey: ['user', 'stats'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["exercise", variables.exercise_id] });
+      queryClient.invalidateQueries({ queryKey: ["exercises"] });
+      queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
+
       // Si la réponse est correcte, invalider et refetch immédiatement la query de progression
       if (data.is_correct) {
-        queryClient.invalidateQueries({ queryKey: ['completed-exercises'] });
+        queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
         // Refetch immédiatement pour mettre à jour les badges rapidement
-        queryClient.refetchQueries({ queryKey: ['completed-exercises'] });
+        queryClient.refetchQueries({ queryKey: ["completed-exercises"] });
       }
-      
+
       // Afficher les badges gagnés si présents
       if (data.new_badges && data.new_badges.length > 0) {
         data.new_badges.forEach((badge) => {
-          toast.success(t('badges.badgeUnlocked'), {
-            description: `${badge.name}${badge.star_wars_title ? ` - ${badge.star_wars_title}` : ''}`,
+          toast.success(t("badges.badgeUnlocked"), {
+            description: `${badge.name}${badge.star_wars_title ? ` - ${badge.star_wars_title}` : ""}`,
             duration: 5000,
           });
         });
       }
     },
     onError: (error: ApiClientError) => {
-      toast.error(t('generic.submitError'), {
-        description: error.message || t('generic.submitErrorDescription'),
+      toast.error(t("generic.submitError"), {
+        description: error.message || t("generic.submitErrorDescription"),
       });
     },
   });
@@ -72,4 +72,3 @@ export function useSubmitAnswer() {
     submitResult: submitMutation.data,
   };
 }
-

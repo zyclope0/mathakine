@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
   // Routes publiques qui ne nécessitent pas d'authentification
-  const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/about'];
+  const publicRoutes = ["/", "/login", "/register", "/forgot-password", "/about"];
   const { pathname } = request.nextUrl;
 
   // Si c'est une route publique, laisser passer
-  if (publicRoutes.includes(pathname) || pathname.startsWith('/api/auth')) {
+  if (publicRoutes.includes(pathname) || pathname.startsWith("/api/auth")) {
     return NextResponse.next();
   }
 
@@ -25,6 +25,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

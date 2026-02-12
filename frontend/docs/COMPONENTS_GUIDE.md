@@ -28,6 +28,7 @@ Tous les composants UI sont basés sur **Radix UI** et **shadcn/ui**, garantissa
 **Fichier** : `components/ui/button.tsx`
 
 **Variants disponibles** :
+
 - `default` : Bouton principal (bg-primary)
 - `outline` : Bouton avec bordure
 - `ghost` : Bouton transparent
@@ -50,6 +51,7 @@ import { Button } from '@/components/ui/button';
 ```
 
 **Props** :
+
 - `variant` : Variant du bouton
 - `size` : `default` | `sm` | `lg` | `icon` | `icon-sm` | `icon-lg`
 - `asChild` : Utiliser Slot pour composition
@@ -62,6 +64,7 @@ import { Button } from '@/components/ui/button';
 **Fichier** : `components/ui/card.tsx`
 
 **Composants** :
+
 - `Card` : Conteneur principal
 - `CardHeader` : En-tête
 - `CardTitle` : Titre
@@ -91,6 +94,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 **Fichier** : `components/ui/dialog.tsx`
 
 **Composants** :
+
 - `Dialog` : Conteneur principal
 - `DialogTrigger` : Élément déclencheur
 - `DialogContent` : Contenu de la modale
@@ -126,14 +130,15 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
 ```typescript
 import { Input } from '@/components/ui/input';
 
-<Input 
-  type="text" 
+<Input
+  type="text"
   placeholder="Saisir..."
   aria-label="Champ de saisie"
 />
 ```
 
 **Accessibilité** :
+
 - Support ARIA natif
 - Focus visible
 - Validation avec `aria-invalid`
@@ -145,6 +150,7 @@ import { Input } from '@/components/ui/input';
 **Fichier** : `components/ui/select.tsx`
 
 **Composants** :
+
 - `Select` : Conteneur principal
 - `SelectTrigger` : Élément déclencheur
 - `SelectValue` : Valeur sélectionnée
@@ -186,6 +192,7 @@ interface ExerciseCardProps {
 ```
 
 **Fonctionnalités** :
+
 - Affichage titre, type, difficulté
 - Animation Framer Motion (avec garde-fous)
 - Lien vers page de résolution
@@ -216,6 +223,7 @@ interface ExerciseSolverProps {
 ```
 
 **Fonctionnalités** :
+
 - Affichage question et choix multiples
 - Validation réponse
 - Feedback immédiat
@@ -250,6 +258,7 @@ interface ExerciseModalProps {
 ```
 
 **Fonctionnalités** :
+
 - Modale avec Dialog
 - Résolution rapide sans navigation
 - Callback après complétion
@@ -259,7 +268,7 @@ interface ExerciseModalProps {
 ```typescript
 import { ExerciseModal } from '@/components/exercises/ExerciseModal';
 
-<ExerciseModal 
+<ExerciseModal
   exerciseId={123}
   open={isOpen}
   onOpenChange={setIsOpen}
@@ -276,6 +285,7 @@ import { ExerciseModal } from '@/components/exercises/ExerciseModal';
 **Description** : Générateur d'exercices standard (sans IA).
 
 **Fonctionnalités** :
+
 - Sélection type et difficulté
 - Génération via API
 - Feedback succès/erreur
@@ -289,6 +299,7 @@ import { ExerciseModal } from '@/components/exercises/ExerciseModal';
 **Description** : Générateur d'exercices avec IA (streaming SSE).
 
 **Fonctionnalités** :
+
 - Prompt utilisateur
 - Streaming en temps réel
 - Affichage progressif
@@ -313,6 +324,7 @@ interface ChallengeCardProps {
 ```
 
 **Fonctionnalités** :
+
 - Affichage titre, description, type, âge
 - Badges visuels (groupe d'âge, type)
 - Statistiques (temps estimé, taux de réussite)
@@ -336,6 +348,7 @@ interface ChallengeSolverProps {
 ```
 
 **Fonctionnalités** :
+
 - Affichage question et données visuelles
 - Choix multiples ou saisie libre
 - Système d'indices progressifs
@@ -351,6 +364,7 @@ interface ChallengeSolverProps {
 **Description** : Grille interactive avec drag & drop pour défis logiques.
 
 **Fonctionnalités** :
+
 - Drag & drop avec @dnd-kit
 - Navigation clavier alternative
 - Accessibilité complète
@@ -376,6 +390,7 @@ interface PatternSolverProps {
 ```
 
 **Fonctionnalités** :
+
 - Affichage séquence
 - Sélection valeur manquante
 - Validation pattern
@@ -403,6 +418,7 @@ interface BadgeCardProps {
 ```
 
 **Fonctionnalités** :
+
 - Affichage nom, description, titre Star Wars
 - Badge difficulté (bronze, silver, gold)
 - Animation shimmer si obtenu
@@ -418,6 +434,7 @@ interface BadgeCardProps {
 **Description** : Grille de badges avec tri et filtres.
 
 **Fonctionnalités** :
+
 - Affichage grille responsive
 - Tri par catégorie, difficulté
 - Filtres badges obtenus/disponibles
@@ -441,7 +458,7 @@ interface StatsCardProps {
   value: string | number;
   icon: React.ReactNode;
   description?: string;
-  trend?: 'up' | 'down' | 'neutral';
+  trend?: "up" | "down" | "neutral";
 }
 ```
 
@@ -454,6 +471,7 @@ interface StatsCardProps {
 **Description** : Graphique de progression avec Recharts.
 
 **Fonctionnalités** :
+
 - Graphique ligne avec Recharts
 - Lazy loading pour performance
 - Responsive
@@ -468,6 +486,7 @@ interface StatsCardProps {
 **Description** : Liste de recommandations personnalisées.
 
 **Fonctionnalités** :
+
 - Recommandations basées sur performance
 - Liens vers exercices/défis
 - Animation d'apparition
@@ -483,6 +502,7 @@ interface StatsCardProps {
 **Description** : En-tête avec navigation et sélecteurs.
 
 **Fonctionnalités** :
+
 - Navigation principale
 - Menu mobile responsive
 - Sélecteur langue
@@ -498,6 +518,7 @@ interface StatsCardProps {
 **Description** : Pied de page avec informations.
 
 **Fonctionnalités** :
+
 - Copyright
 - Liens utiles
 - Informations légales
@@ -513,12 +534,14 @@ interface StatsCardProps {
 **Description** : Barre d'outils flottante pour options d'accessibilité.
 
 **Fonctionnalités** :
+
 - 5 boutons pour modes accessibilité
 - Position fixe (bottom-right)
 - Icônes Lucide React
 - ARIA labels complets
 
 **Modes** :
+
 - Contraste élevé (Alt+C)
 - Texte agrandi (Alt+T)
 - Réduction animations (Alt+M)
@@ -534,6 +557,7 @@ interface StatsCardProps {
 **Description** : Audit automatique WCAG avec @axe-core/react.
 
 **Fonctionnalités** :
+
 - Audit au chargement
 - Rapport d'erreurs
 - Affichage console
@@ -549,6 +573,7 @@ interface StatsCardProps {
 **Description** : Sélecteur de thème complet.
 
 **Fonctionnalités** :
+
 - 4 thèmes disponibles
 - Prévisualisation
 - Persistance localStorage
@@ -562,6 +587,7 @@ interface StatsCardProps {
 **Description** : Sélecteur de thème compact pour Header.
 
 **Fonctionnalités** :
+
 - Dropdown menu
 - Icônes par thème
 - Intégration Header
@@ -577,6 +603,7 @@ interface StatsCardProps {
 **Description** : Sélecteur de langue.
 
 **Fonctionnalités** :
+
 - Dropdown avec drapeaux
 - Changement immédiat
 - Persistance localStorage
@@ -591,6 +618,7 @@ interface StatsCardProps {
 **Description** : Initialiseur de locale au chargement.
 
 **Fonctionnalités** :
+
 - Récupération locale depuis localStorage
 - Application au document
 - Synchronisation avec store
@@ -613,10 +641,10 @@ interface MyComponentProps {
 2. **Utiliser les hooks appropriés** :
 
 ```typescript
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
+import { useTranslations } from "next-intl";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 ```
 
 3. **Respecter l'accessibilité** :
@@ -650,4 +678,3 @@ const { createVariants, shouldReduceMotion } = useAccessibleAnimation();
 ---
 
 **Dernière mise à jour** : 9 Novembre 2025
-

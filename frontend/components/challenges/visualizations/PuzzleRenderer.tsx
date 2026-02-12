@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Puzzle, GripVertical } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { Card, CardContent } from "@/components/ui/card";
+import { Puzzle, GripVertical } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import {
   DndContext,
   closestCenter,
@@ -12,15 +12,15 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface PuzzleRendererProps {
   visualData: any;
@@ -41,14 +41,9 @@ interface PuzzleItem {
 }
 
 function SortableItem({ id, value, index }: SortableItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -80,25 +75,26 @@ function SortableItem({ id, value, index }: SortableItemProps) {
 export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleRendererProps) {
   // Parser les données de puzzle
   const pieces = visualData?.pieces || visualData?.items || visualData?.parts || [];
-  
+
   // Parser les indices pour aider à résoudre le puzzle
-  const hints = visualData?.hints || visualData?.rules || visualData?.clues || visualData?.indices || [];
-  const description = visualData?.description || '';
-  
+  const hints =
+    visualData?.hints || visualData?.rules || visualData?.clues || visualData?.indices || [];
+  const description = visualData?.description || "";
+
   // Initialiser les items avec un ordre mélangé pour rendre le puzzle intéressant
   const initialItems: PuzzleItem[] = pieces.map((p: any, i: number) => ({
     id: `item-${i}`,
-    value: typeof p === 'object' ? p.value || p.label || JSON.stringify(p) : String(p),
+    value: typeof p === "object" ? p.value || p.label || JSON.stringify(p) : String(p),
     original: p,
   }));
-  
+
   const [items, setItems] = useState<PuzzleItem[]>(initialItems);
-  
+
   // Réinitialiser l'ordre quand visualData change
   useEffect(() => {
     const newItems: PuzzleItem[] = pieces.map((p: any, i: number) => ({
       id: `item-${i}`,
-      value: typeof p === 'object' ? p.value || p.label || JSON.stringify(p) : String(p),
+      value: typeof p === "object" ? p.value || p.label || JSON.stringify(p) : String(p),
       original: p,
     }));
     setItems(newItems);
@@ -124,13 +120,13 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
         const newItems = arrayMove(items, oldIndex, newIndex);
-        
+
         // Notifier le parent du nouvel ordre via la ref pour éviter les re-renders infinis
         if (onOrderChangeRef.current) {
-          const order = newItems.map(item => item.value);
+          const order = newItems.map((item) => item.value);
           onOrderChangeRef.current(order);
         }
-        
+
         return newItems;
       });
     }
@@ -139,7 +135,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
   // Notifier le parent de l'ordre initial uniquement au montage
   useEffect(() => {
     if (onOrderChange) {
-      const initialOrder = items.map(item => item.value);
+      const initialOrder = items.map((item) => item.value);
       onOrderChange(initialOrder);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -153,7 +149,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
 
   if (!pieces || pieces.length === 0) {
     return (
-      <Card className={`bg-card border-primary/20 ${className || ''}`}>
+      <Card className={`bg-card border-primary/20 ${className || ""}`}>
         <CardContent className="p-4 text-center text-muted-foreground">
           Aucun puzzle disponible
         </CardContent>
@@ -162,7 +158,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
   }
 
   return (
-    <Card className={`bg-card border-primary/20 ${className || ''}`}>
+    <Card className={`bg-card border-primary/20 ${className || ""}`}>
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -172,14 +168,12 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
               Glissez-déposez pour réorganiser
             </span>
           </div>
-          
+
           {/* Afficher la description si disponible */}
           {description && (
-            <div className="bg-muted/30 rounded-lg p-3 text-sm text-foreground">
-              {description}
-            </div>
+            <div className="bg-muted/30 rounded-lg p-3 text-sm text-foreground">{description}</div>
           )}
-          
+
           {/* Afficher les indices pour aider à résoudre */}
           {hints && hints.length > 0 && (
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-2">
@@ -190,27 +184,25 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
                 {hints.map((hint: string, idx: number) => (
                   <li key={idx} className="text-sm text-foreground flex items-start gap-2">
                     <span className="text-primary font-bold">{idx + 1}.</span>
-                    <span>{typeof hint === 'string' ? hint : JSON.stringify(hint)}</span>
+                    <span>{typeof hint === "string" ? hint : JSON.stringify(hint)}</span>
                   </li>
                 ))}
               </ul>
             </div>
           )}
-          
+
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}>
+            <SortableContext
+              items={items.map((item) => item.id)}
+              strategy={verticalListSortingStrategy}
+            >
               <div className="space-y-2">
                 {items.map((item, index) => (
-                  <SortableItem
-                    key={item.id}
-                    id={item.id}
-                    value={item.value}
-                    index={index}
-                  />
+                  <SortableItem key={item.id} id={item.id} value={item.value} index={index} />
                 ))}
               </div>
             </SortableContext>
@@ -224,4 +216,3 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
     </Card>
   );
 }
-

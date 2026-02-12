@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Download, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Download, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
 export function InstallPrompt() {
@@ -17,7 +17,7 @@ export function InstallPrompt() {
 
   useEffect(() => {
     // Vérifier si l'app est déjà installée
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (window.matchMedia("(display-mode: standalone)").matches) {
       setIsInstalled(true);
       return;
     }
@@ -39,12 +39,12 @@ export function InstallPrompt() {
       setDeferredPrompt(null);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
@@ -57,7 +57,7 @@ export function InstallPrompt() {
     // Attendre le choix de l'utilisateur
     const { outcome } = await deferredPrompt.userChoice;
 
-    if (outcome === 'accepted') {
+    if (outcome === "accepted") {
       setShowPrompt(false);
       setDeferredPrompt(null);
     }
@@ -66,11 +66,16 @@ export function InstallPrompt() {
   const handleDismiss = () => {
     setShowPrompt(false);
     // Ne pas réafficher pendant cette session
-    sessionStorage.setItem('pwa-install-dismissed', 'true');
+    sessionStorage.setItem("pwa-install-dismissed", "true");
   };
 
   // Ne pas afficher si déjà installé ou si dismissé dans cette session
-  if (isInstalled || !showPrompt || !deferredPrompt || sessionStorage.getItem('pwa-install-dismissed')) {
+  if (
+    isInstalled ||
+    !showPrompt ||
+    !deferredPrompt ||
+    sessionStorage.getItem("pwa-install-dismissed")
+  ) {
     return null;
   }
 
@@ -92,11 +97,7 @@ export function InstallPrompt() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={handleInstallClick}
-                className="flex items-center gap-2"
-              >
+              <Button size="sm" onClick={handleInstallClick} className="flex items-center gap-2">
                 <Download className="h-4 w-4" />
                 Installer
               </Button>
@@ -116,4 +117,3 @@ export function InstallPrompt() {
     </AnimatePresence>
   );
 }
-

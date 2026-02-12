@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useThemeStore } from '@/lib/stores/themeStore';
-import { Button } from '@/components/ui/button';
+import { useThemeStore } from "@/lib/stores/themeStore";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Palette } from 'lucide-react';
+} from "@/components/ui/dropdown-menu";
+import { Palette } from "lucide-react";
 
 const themes = [
-  { id: 'spatial' as const, name: 'Spatial', icon: '🚀' },
-  { id: 'minimalist' as const, name: 'Minimaliste', icon: '⚪' },
-  { id: 'ocean' as const, name: 'Océan', icon: '🌊' },
-  { id: 'neutral' as const, name: 'Neutre', icon: '⚫' },
+  { id: "spatial" as const, name: "Spatial", icon: "🚀" },
+  { id: "minimalist" as const, name: "Minimaliste", icon: "⚪" },
+  { id: "ocean" as const, name: "Océan", icon: "🌊" },
+  { id: "neutral" as const, name: "Neutre", icon: "⚫" },
 ] as const;
 
 export function ThemeSelectorCompact() {
@@ -34,7 +34,7 @@ export function ThemeSelectorCompact() {
           <DropdownMenuItem
             key={t.id}
             onClick={() => setTheme(t.id)}
-            className={theme === t.id ? 'bg-primary/10' : ''}
+            className={theme === t.id ? "bg-primary/10" : ""}
           >
             <span className="mr-2">{t.icon}</span>
             <span>{t.name}</span>
@@ -45,4 +45,3 @@ export function ThemeSelectorCompact() {
     </DropdownMenu>
   );
 }
-

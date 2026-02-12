@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Github, Mail, Heart } from 'lucide-react';
+import Link from "next/link";
+import { Github, Mail, Heart } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = [
-    { name: 'À propos', href: '/about' },
-    { name: 'Contact', href: '/contact' },
-    { name: 'Documentation', href: '/docs' },
-    { name: 'Politique de confidentialité', href: '/privacy' },
+    { name: "À propos", href: "/about" },
+    { name: "Contact", href: "/contact" },
+    { name: "Documentation", href: "/docs" },
+    { name: "Politique de confidentialité", href: "/privacy" },
   ];
 
   return (
@@ -26,8 +26,8 @@ export function Footer() {
               Mathakine
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Plateforme éducative mathématique adaptative.
-              Apprendre les mathématiques de manière ludique et immersive.
+              Plateforme éducative mathématique adaptative. Apprendre les mathématiques de manière
+              ludique et immersive.
             </p>
             <div className="flex items-center gap-4">
               <a
@@ -112,4 +112,3 @@ export function Footer() {
     </footer>
   );
 }
-

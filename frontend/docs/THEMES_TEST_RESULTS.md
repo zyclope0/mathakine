@@ -8,6 +8,7 @@
 ## 🎯 **Objectif**
 
 Valider que tous les thèmes fonctionnent correctement avec :
+
 - ✅ Mode clair/sombre (dark mode toggle)
 - ✅ Tous les composants UI
 - ✅ Contrastes WCAG 2.1 AAA
@@ -20,12 +21,14 @@ Valider que tous les thèmes fonctionnent correctement avec :
 ### **1. Spatial** 🚀
 
 **Mode Normal** :
+
 - ✅ Fond : `#0a0a0f` (noir profond)
 - ✅ Texte : `#ffffff` (blanc)
 - ✅ Primary : `#7c3aed` (violet)
 - ✅ Contraste muted-foreground : 7.1:1 ✅ WCAG AAA
 
 **Mode Dark** :
+
 - ✅ Fond : `#000000` (noir pur)
 - ✅ Primary : `#a78bfa` (violet clair)
 - ✅ Bordures plus visibles (opacité 0.4)
@@ -38,12 +41,14 @@ Valider que tous les thèmes fonctionnent correctement avec :
 ### **2. Minimaliste** ⚪
 
 **Mode Normal** :
+
 - ✅ Fond : `#ffffff` (blanc)
 - ✅ Texte : `#000000` (noir)
 - ✅ Primary : `#000000` (noir)
 - ✅ Contraste muted-foreground : 7.2:1 ✅ WCAG AAA
 
 **Mode Dark** :
+
 - ✅ Inversion complète noir/blanc
 - ✅ Fond : `#000000` (noir)
 - ✅ Texte : `#ffffff` (blanc)
@@ -57,12 +62,14 @@ Valider que tous les thèmes fonctionnent correctement avec :
 ### **3. Océan** 🌊
 
 **Mode Normal** :
+
 - ✅ Fond : `#0c1220` (bleu très sombre)
 - ✅ Texte : `#f1f5f9` (gris clair)
 - ✅ Primary : `#0369a1` (bleu profond)
 - ✅ Contraste muted-foreground : 7.3:1 ✅ WCAG AAA
 
 **Mode Dark** :
+
 - ✅ Fond : `#050810` (bleu encore plus sombre)
 - ✅ Primary : `#0ea5e9` (bleu clair sky-500)
 - ✅ Couleurs plus vives (cyan, teal)
@@ -75,12 +82,14 @@ Valider que tous les thèmes fonctionnent correctement avec :
 ### **4. Neutre** ⚫
 
 **Mode Normal** :
+
 - ✅ Fond : `#ffffff` (blanc)
 - ✅ Texte : `#111827` (gris foncé)
 - ✅ Primary : `#6b7280` (gris)
 - ✅ Contraste muted-foreground : 7.5:1 ✅ WCAG AAA
 
 **Mode Dark** :
+
 - ✅ Fond : `#111827` (gris foncé)
 - ✅ Texte : `#f9fafb` (gris très clair)
 - ✅ Primary : `#9ca3af` (gris clair)
@@ -93,11 +102,13 @@ Valider que tous les thèmes fonctionnent correctement avec :
 ## 🧪 **Tests des Composants**
 
 ### **Cards**
+
 - ✅ Tous les thèmes : Cards lisibles
 - ✅ Border primary : Visible sur tous les thèmes
 - ✅ Accent background : Fonctionne correctement
 
 ### **Boutons**
+
 - ✅ Primary : Contraste suffisant sur tous les thèmes
 - ✅ Secondary : Visible et lisible
 - ✅ Outline : Bordures visibles
@@ -105,24 +116,28 @@ Valider que tous les thèmes fonctionnent correctement avec :
 - ✅ Destructive : Rouge visible
 
 ### **Badges**
+
 - ✅ Default : Contraste primary/foreground OK
 - ✅ Secondary : Contraste OK
 - ✅ Outline : Bordures visibles
 - ✅ Destructive : Rouge visible
 
 ### **Inputs**
+
 - ✅ Standard : Bordures visibles
 - ✅ Disabled : État désactivé clair
 - ✅ Focus : Ring visible sur tous les thèmes
 - ✅ Placeholder : Contraste suffisant
 
 ### **États (Success, Error, Warning, Info)**
+
 - ✅ Success : Vert visible
 - ✅ Error : Rouge visible
 - ✅ Warning : Jaune visible
 - ✅ Info : Bleu visible
 
 ### **Typographie**
+
 - ✅ H1-H3 : Tailles et contrastes OK
 - ✅ Paragraphe : Lisibilité parfaite
 - ✅ Muted : Contraste >= 7:1 sur tous les thèmes
@@ -133,17 +148,20 @@ Valider que tous les thèmes fonctionnent correctement avec :
 ## 🔄 **Synchronisation Dark Mode ↔ Thèmes**
 
 ### **Test 1 : Changement de thème avec dark mode actif**
+
 - ✅ Dark mode reste actif lors du changement de thème
 - ✅ Les variantes dark s'appliquent correctement
 - ✅ Pas de flash de contenu non stylé (FOUC)
 
 ### **Test 2 : Activation dark mode avec différents thèmes**
+
 - ✅ Spatial : Variante dark appliquée ✅
 - ✅ Minimaliste : Inversion complète ✅
 - ✅ Océan : Profondeur plus sombre ✅
 - ✅ Neutre : Gris foncé élégant ✅
 
 ### **Test 3 : Persistance**
+
 - ✅ Dark mode persisté dans `localStorage` (`dark-mode`)
 - ✅ Thème persisté dans `localStorage` (`theme-preferences`)
 - ✅ Les deux préférences sont indépendantes ✅
@@ -165,15 +183,15 @@ Valider que tous les thèmes fonctionnent correctement avec :
 
 ## 📊 **Résultats Globaux**
 
-| Critère | Résultat | Détails |
-|---------|----------|---------|
-| **Thèmes fonctionnels** | ✅ 4/4 | Tous les thèmes opérationnels |
-| **Dark mode** | ✅ 4/4 | Variantes dark pour tous les thèmes |
-| **Contraste WCAG AAA** | ✅ 4/4 | `--muted-foreground` >= 7:1 |
-| **Contraste WCAG AA** | ✅ 4/4 | `--primary` >= 4.5:1 |
-| **Composants UI** | ✅ 100% | Tous les composants testés |
-| **Synchronisation** | ✅ | Dark mode ↔ thèmes indépendants |
-| **Persistance** | ✅ | localStorage fonctionne |
+| Critère                 | Résultat | Détails                             |
+| ----------------------- | -------- | ----------------------------------- |
+| **Thèmes fonctionnels** | ✅ 4/4   | Tous les thèmes opérationnels       |
+| **Dark mode**           | ✅ 4/4   | Variantes dark pour tous les thèmes |
+| **Contraste WCAG AAA**  | ✅ 4/4   | `--muted-foreground` >= 7:1         |
+| **Contraste WCAG AA**   | ✅ 4/4   | `--primary` >= 4.5:1                |
+| **Composants UI**       | ✅ 100%  | Tous les composants testés          |
+| **Synchronisation**     | ✅       | Dark mode ↔ thèmes indépendants     |
+| **Persistance**         | ✅       | localStorage fonctionne             |
 
 ---
 
@@ -200,4 +218,3 @@ Valider que tous les thèmes fonctionnent correctement avec :
 
 **Dernière mise à jour** : Janvier 2025  
 **Testé par** : Équipe Frontend Mathakine
-

@@ -18,6 +18,7 @@ Système d'animations spatiales modérées pour créer une immersion visuelle co
 **Description** : Système d'étoiles multi-couches avec effet de profondeur.
 
 **Fonctionnalités** :
+
 - ✅ 3 couches d'étoiles avec vitesses différentes :
   - Couche lointaine : 100 étoiles, vitesse 0.5, taille 1px, opacité 0.8
   - Couche moyenne : 150 étoiles, vitesse 1, taille 1.5px, opacité 0.6
@@ -40,6 +41,7 @@ Système d'animations spatiales modérées pour créer une immersion visuelle co
 **Description** : Planète rotative avec cratères 3D et symboles mathématiques orbitants.
 
 **Fonctionnalités** :
+
 - ✅ Planète rotative (0.5° par frame)
 - ✅ 3 cratères 3D avec effets d'ombre
 - ✅ Anneau pulsant autour de la planète (animation `pulse-ring`)
@@ -62,6 +64,7 @@ Système d'animations spatiales modérées pour créer une immersion visuelle co
 **Description** : Système de particules subtiles en arrière-plan.
 
 **Fonctionnalités** :
+
 - ✅ 50 particules flottantes
 - ✅ Mouvement aléatoire (rebond sur les bords)
 - ✅ Couleurs adaptées aux 4 thèmes :
@@ -82,6 +85,7 @@ Système d'animations spatiales modérées pour créer une immersion visuelle co
 **Description** : Conteneur combinant tous les composants spatiaux.
 
 **Fonctionnalités** :
+
 - ✅ Combine `Starfield`, `Planet`, et `Particles`
 - ✅ Intégré dans `app/layout.tsx` pour toutes les pages
 - ✅ S'adapte automatiquement au thème et aux préférences d'accessibilité
@@ -91,21 +95,25 @@ Système d'animations spatiales modérées pour créer une immersion visuelle co
 ## 🎯 **Adaptation aux Thèmes**
 
 ### **Thème Spatial** 🚀
+
 - Étoiles : Blanc brillant
 - Planète : Violet spatial avec brillance violette
 - Particules : Violet subtil
 
 ### **Thème Minimaliste** ⚪
+
 - Étoiles : Noir (visible sur fond clair)
 - Planète : Noir avec brillance noire
 - Particules : Noir subtil
 
 ### **Thème Océan** 🌊
+
 - Étoiles : Blanc brillant
 - Planète : Bleu ciel avec brillance bleue
 - Particules : Bleu ciel subtil
 
 ### **Thème Neutre** ⚫
+
 - Étoiles : Gris
 - Planète : Gris avec brillance grise
 - Particules : Gris subtil
@@ -138,17 +146,36 @@ Système d'animations spatiales modérées pour créer une immersion visuelle co
 ```css
 /* Anneau pulsant de la planète */
 @keyframes pulse-ring {
-  0%, 100% { transform: scale(1); opacity: 0.3; }
-  50% { transform: scale(1.2); opacity: 0.1; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.1;
+  }
 }
 
 /* Orbites des symboles mathématiques */
-@keyframes orbit-0 { /* ∑ */ }
-@keyframes orbit-1 { /* ∫ */ }
-@keyframes orbit-2 { /* π */ }
-@keyframes orbit-3 { /* ∞ */ }
-@keyframes orbit-4 { /* √ */ }
-@keyframes orbit-5 { /* Δ */ }
+@keyframes orbit-0 {
+  /* ∑ */
+}
+@keyframes orbit-1 {
+  /* ∫ */
+}
+@keyframes orbit-2 {
+  /* π */
+}
+@keyframes orbit-3 {
+  /* ∞ */
+}
+@keyframes orbit-4 {
+  /* √ */
+}
+@keyframes orbit-5 {
+  /* Δ */
+}
 ```
 
 **Durée** : 20 secondes par rotation complète  
@@ -223,29 +250,32 @@ const particleCount = 50; // Modifier cette valeur
 ### **Ajouter un Nouveau Thème**
 
 1. Ajouter les couleurs dans `Starfield.tsx` :
+
 ```typescript
 const starColors: Record<string, string> = {
   // ... thèmes existants
-  nouveauTheme: 'rgba(..., ..., ..., ',
+  nouveauTheme: "rgba(..., ..., ..., ",
 };
 ```
 
 2. Ajouter les couleurs dans `Planet.tsx` :
+
 ```typescript
 const planetColors: Record<string, { bg: string; glow: string }> = {
   // ... thèmes existants
   nouveauTheme: {
-    bg: 'radial-gradient(...)',
-    glow: 'rgba(...)',
+    bg: "radial-gradient(...)",
+    glow: "rgba(...)",
   },
 };
 ```
 
 3. Ajouter les couleurs dans `Particles.tsx` :
+
 ```typescript
 const themeColors: Record<string, string> = {
   // ... thèmes existants
-  nouveauTheme: 'rgba(..., ..., ..., 0.3)',
+  nouveauTheme: "rgba(..., ..., ..., 0.3)",
 };
 ```
 
@@ -262,4 +292,3 @@ const themeColors: Record<string, string> = {
 
 **Dernière mise à jour** : Janvier 2025  
 **Maintenu par** : Équipe Frontend Mathakine
-

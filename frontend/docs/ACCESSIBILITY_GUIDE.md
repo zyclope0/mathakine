@@ -40,6 +40,7 @@
 **Activation** : Bouton dans `AccessibilityToolbar` ou `Alt+C`
 
 **Effets** :
+
 - Contraste minimum 7:1 (au lieu de 4.5:1)
 - Bordures renforcées
 - Couleurs plus distinctes
@@ -53,6 +54,7 @@
 **Activation** : Bouton dans `AccessibilityToolbar` ou `Alt+T`
 
 **Effets** :
+
 - Taille de texte augmentée de 20%
 - Espacement augmenté
 - Meilleure lisibilité
@@ -66,6 +68,7 @@
 **Activation** : Bouton dans `AccessibilityToolbar` ou `Alt+M`
 
 **Effets** :
+
 - Animations désactivées ou réduites
 - Transitions simplifiées
 - Respect `prefers-reduced-motion`
@@ -81,6 +84,7 @@
 **Activation** : Bouton dans `AccessibilityToolbar` ou `Alt+D`
 
 **Effets** :
+
 - Police adaptée (OpenDyslexic si disponible)
 - Espacement lettres augmenté
 - Meilleure distinction des caractères
@@ -94,6 +98,7 @@
 **Activation** : Bouton dans `AccessibilityToolbar`
 
 **Effets** :
+
 - Masquage distractions (sidebar, footer, recommandations)
 - Zone de focus agrandie
 - Animations désactivées
@@ -174,11 +179,13 @@
 **Objectif WCAG AAA** : 7:1 pour texte normal, 4.5:1 pour texte large
 
 **Vérification** :
+
 - Utiliser [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)
 - Tester avec outils de développement
 - Utiliser `@axe-core/react` pour audit automatique
 
 **Exemple** :
+
 ```css
 /* ✅ Bon contraste */
 .text-primary {
@@ -206,6 +213,7 @@
 ```
 
 **Mode Focus TSA/TDAH** :
+
 ```css
 .focus-mode *:focus-visible {
   outline: 4px solid var(--focus-ring);
@@ -225,12 +233,12 @@ import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
 
 function MyComponent() {
   const { createVariants, shouldReduceMotion } = useAccessibleAnimation();
-  
+
   const variants = createVariants({
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
   });
-  
+
   return (
     <motion.div
       variants={variants}
@@ -243,6 +251,7 @@ function MyComponent() {
 ```
 
 **Règles** :
+
 - Durées courtes (150-250ms)
 - Easing doux
 - Pas de boucles infinies
@@ -256,8 +265,8 @@ function MyComponent() {
 
 ```typescript
 // ✅ Bon
-<Image 
-  src="/image.jpg" 
+<Image
+  src="/image.jpg"
   alt="Description de l'image"
   aria-label="Description détaillée si nécessaire"
 />
@@ -267,6 +276,7 @@ function MyComponent() {
 ```
 
 **Images décoratives** :
+
 ```typescript
 <img src="/decoration.jpg" alt="" aria-hidden="true" />
 ```
@@ -285,15 +295,16 @@ function MyComponent() {
 </div>
 
 // ✅ Alternative avec aria-label
-<Input 
+<Input
   aria-label="Nom d'utilisateur"
   aria-required="true"
 />
 ```
 
 **Messages d'erreur** :
+
 ```typescript
-<Input 
+<Input
   aria-invalid={hasError}
   aria-describedby={hasError ? "error-message" : undefined}
 />
@@ -323,6 +334,7 @@ function MyComponent() {
 ```
 
 **Fermeture** :
+
 - Toujours prévoir `Escape` pour fermer
 - Bouton de fermeture visible
 - Focus retour au déclencheur après fermeture
@@ -343,6 +355,7 @@ import { WCAGAudit } from '@/components/accessibility/WCAGAudit';
 ```
 
 **Outils** :
+
 - `@axe-core/react` : Audit automatique
 - Chrome DevTools : Lighthouse accessibility
 - WAVE : Extension navigateur
@@ -352,6 +365,7 @@ import { WCAGAudit } from '@/components/accessibility/WCAGAudit';
 ### **2. Tests Manuels**
 
 **Checklist** :
+
 - [ ] Navigation clavier complète
 - [ ] Focus visible partout
 - [ ] Contraste suffisant (outil de vérification)
@@ -381,11 +395,11 @@ test('should have no accessibility violations', async () => {
 **Tests Playwright** :
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test('should be keyboard accessible', async ({ page }) => {
-  await page.goto('/');
-  await page.keyboard.press('Tab');
+test("should be keyboard accessible", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Tab");
   // Vérifier que le focus est visible
 });
 ```
@@ -396,11 +410,11 @@ test('should be keyboard accessible', async ({ page }) => {
 
 ### **Contraste Minimum**
 
-| Élément | WCAG AA | WCAG AAA (Objectif) |
-|---------|---------|---------------------|
-| Texte normal | 4.5:1 | 7:1 |
-| Texte large (18pt+) | 3:1 | 4.5:1 |
-| Composants UI | 3:1 | 4.5:1 |
+| Élément             | WCAG AA | WCAG AAA (Objectif) |
+| ------------------- | ------- | ------------------- |
+| Texte normal        | 4.5:1   | 7:1                 |
+| Texte large (18pt+) | 3:1     | 4.5:1               |
+| Composants UI       | 3:1     | 4.5:1               |
 
 ### **Taille de Focus**
 
@@ -515,8 +529,8 @@ test('should be keyboard accessible', async ({ page }) => {
 ### **Radiogroup Accessible**
 
 ```typescript
-<div 
-  role="radiogroup" 
+<div
+  role="radiogroup"
   aria-label="Choix de réponses"
   onKeyDown={(e) => {
     // Navigation flèches
@@ -548,6 +562,7 @@ test('should be keyboard accessible', async ({ page }) => {
 ### **Mode Focus TSA/TDAH**
 
 Ce mode est spécifiquement conçu pour les utilisateurs avec TSA/TDAH :
+
 - Réduction maximale des distractions
 - Focus sur la tâche principale uniquement
 - Animations désactivées
@@ -567,4 +582,3 @@ Ce mode est spécifiquement conçu pour les utilisateurs avec TSA/TDAH :
 ---
 
 **Dernière mise à jour** : 9 Novembre 2025
-

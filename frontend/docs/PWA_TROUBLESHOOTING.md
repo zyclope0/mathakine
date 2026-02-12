@@ -9,6 +9,7 @@
 ### **1. Erreur Turbopack/Webpack**
 
 **Erreur** :
+
 ```
 ERROR: This build is using Turbopack, with a `webpack` config and no `turbopack` config.
 ```
@@ -31,13 +32,15 @@ const nextConfig: NextConfig = {
 ### **2. Warning Middleware Déprécié**
 
 **Warning** :
+
 ```
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
 ```
 
 **Cause** : Next.js recommande d'utiliser "proxy" pour certaines fonctionnalités de routage.
 
-**Solution** : 
+**Solution** :
+
 - Le middleware fonctionne toujours et est toujours supporté
 - Le warning peut être ignoré pour l'instant
 - Le middleware est utilisé pour la protection des routes, pas pour le proxy
@@ -54,11 +57,13 @@ const nextConfig: NextConfig = {
 **Solutions** :
 
 1. **Vérifier que PWA n'est pas désactivée** :
+
    ```typescript
-   disable: process.env.NODE_ENV === "development" // OK en dev
+   disable: process.env.NODE_ENV === "development"; // OK en dev
    ```
 
 2. **Build en production** :
+
    ```bash
    npm run build
    ```
@@ -83,6 +88,7 @@ const nextConfig: NextConfig = {
    - Accessible via `http://localhost:3000/manifest.json`
 
 2. **Vérifier les métadonnées** :
+
    ```typescript
    // Dans app/layout.tsx
    manifest: "/manifest.json",
@@ -182,4 +188,3 @@ npm start
 ---
 
 **Dernière mise à jour** : 9 Novembre 2025
-

@@ -1,43 +1,43 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { BadgeCard } from '@/components/badges/BadgeCard';
-import type { Badge, UserBadge } from '@/types/api';
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { BadgeCard } from "@/components/badges/BadgeCard";
+import type { Badge, UserBadge } from "@/types/api";
 
-describe('BadgeCard', () => {
+describe("BadgeCard", () => {
   const mockBadge: Badge = {
     id: 1,
-    code: 'first_steps',
-    name: 'Premiers Pas',
-    description: 'Compléter votre premier exercice',
-    category: 'progression',
-    difficulty: 'bronze',
+    code: "first_steps",
+    name: "Premiers Pas",
+    description: "Compléter votre premier exercice",
+    category: "progression",
+    difficulty: "bronze",
     points_reward: 10,
-    star_wars_title: 'Éveil de la Force',
+    star_wars_title: "Éveil de la Force",
     is_active: true,
-    created_at: '2025-01-01T00:00:00Z',
+    created_at: "2025-01-01T00:00:00Z",
   };
 
-  it('affiche le nom du badge', () => {
+  it("affiche le nom du badge", () => {
     render(<BadgeCard badge={mockBadge} isEarned={false} />);
-    expect(screen.getByText('Premiers Pas')).toBeInTheDocument();
+    expect(screen.getByText("Premiers Pas")).toBeInTheDocument();
   });
 
-  it('affiche le titre Star Wars si disponible', () => {
+  it("affiche le titre Star Wars si disponible", () => {
     render(<BadgeCard badge={mockBadge} isEarned={false} />);
-    expect(screen.getByText('Éveil de la Force')).toBeInTheDocument();
+    expect(screen.getByText("Éveil de la Force")).toBeInTheDocument();
   });
 
-  it('affiche l\'icône de verrouillage si le badge n\'est pas obtenu', () => {
+  it("affiche l'icône de verrouillage si le badge n'est pas obtenu", () => {
     render(<BadgeCard badge={mockBadge} isEarned={false} />);
     // L'icône Lock devrait être présente (vérification via aria-hidden car c'est décoratif)
     const lockIcon = document.querySelector('[aria-hidden="true"]');
     expect(lockIcon).toBeInTheDocument();
   });
 
-  it('affiche l\'icône de succès si le badge est obtenu', () => {
+  it("affiche l'icône de succès si le badge est obtenu", () => {
     const userBadge: UserBadge = {
       ...mockBadge,
-      earned_at: '2025-01-01T00:00:00Z',
+      earned_at: "2025-01-01T00:00:00Z",
     };
     render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />);
     // L'icône CheckCircle devrait être présente
@@ -45,19 +45,18 @@ describe('BadgeCard', () => {
     expect(checkIcon).toBeInTheDocument();
   });
 
-  it('affiche les points de récompense', () => {
+  it("affiche les points de récompense", () => {
     render(<BadgeCard badge={mockBadge} isEarned={false} />);
-    expect(screen.getByText('10')).toBeInTheDocument();
-    expect(screen.getByText('pts')).toBeInTheDocument();
+    expect(screen.getByText("10")).toBeInTheDocument();
+    expect(screen.getByText("pts")).toBeInTheDocument();
   });
 
-  it('affiche la date d\'obtention si le badge est obtenu', () => {
+  it("affiche la date d'obtention si le badge est obtenu", () => {
     const userBadge: UserBadge = {
       ...mockBadge,
-      earned_at: '2025-01-15T00:00:00Z',
+      earned_at: "2025-01-15T00:00:00Z",
     };
     render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />);
     expect(screen.getByText(/obtenu le/i)).toBeInTheDocument();
   });
 });
-

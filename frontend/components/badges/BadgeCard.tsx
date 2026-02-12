@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge as BadgeComponent } from '@/components/ui/badge';
-import { Trophy, Lock, CheckCircle } from 'lucide-react';
-import type { Badge, UserBadge } from '@/types/api';
-import { cn } from '@/lib/utils/cn';
-import { motion } from 'framer-motion';
-import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge as BadgeComponent } from "@/components/ui/badge";
+import { Trophy, Lock, CheckCircle } from "lucide-react";
+import type { Badge, UserBadge } from "@/types/api";
+import { cn } from "@/lib/utils/cn";
+import { motion } from "framer-motion";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 interface BadgeCardProps {
   badge: Badge;
@@ -16,35 +16,37 @@ interface BadgeCardProps {
 }
 
 const defaultDifficultyColor = {
-  bg: 'bg-amber-500/20',
-  text: 'text-amber-400',
-  border: 'border-amber-500/30',
+  bg: "bg-amber-500/20",
+  text: "text-amber-400",
+  border: "border-amber-500/30",
 };
 
 const difficultyColors: Record<string, { bg: string; text: string; border: string }> = {
   bronze: defaultDifficultyColor,
   silver: {
-    bg: 'bg-gray-400/20',
-    text: 'text-gray-300',
-    border: 'border-gray-400/30',
+    bg: "bg-gray-400/20",
+    text: "text-gray-300",
+    border: "border-gray-400/30",
   },
   gold: {
-    bg: 'bg-yellow-500/20',
-    text: 'text-yellow-400',
-    border: 'border-yellow-500/30',
+    bg: "bg-yellow-500/20",
+    text: "text-yellow-400",
+    border: "border-yellow-500/30",
   },
 };
 
 const categoryIcons: Record<string, string> = {
-  progression: '📈',
-  mastery: '⭐',
-  special: '✨',
+  progression: "📈",
+  mastery: "⭐",
+  special: "✨",
 };
 
 export function BadgeCard({ badge, userBadge, isEarned, index = 0 }: BadgeCardProps) {
   const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
-  
-  const getDifficultyColor = (difficulty: string | null | undefined): { bg: string; text: string; border: string } => {
+
+  const getDifficultyColor = (
+    difficulty: string | null | undefined
+  ): { bg: string; text: string; border: string } => {
     if (!difficulty) return defaultDifficultyColor;
     const color = difficultyColors[difficulty];
     if (color) {
@@ -52,13 +54,13 @@ export function BadgeCard({ badge, userBadge, isEarned, index = 0 }: BadgeCardPr
     }
     return defaultDifficultyColor;
   };
-  
+
   const getCategoryIcon = (category: string | null | undefined): string => {
-    if (!category) return '🏆';
+    if (!category) return "🏆";
     const icon = categoryIcons[category];
-    return icon ?? '🏆';
+    return icon ?? "🏆";
   };
-  
+
   const difficultyColor = getDifficultyColor(badge.difficulty);
   const categoryIcon = getCategoryIcon(badge.category);
 
@@ -84,13 +86,13 @@ export function BadgeCard({ badge, userBadge, isEarned, index = 0 }: BadgeCardPr
     >
       <Card
         className={cn(
-          'card-spatial-depth relative overflow-hidden transition-all duration-300',
-          isEarned 
-            ? 'border-primary/50 shadow-lg shadow-primary/20 hover:scale-105' 
-            : 'opacity-75 border-muted hover:opacity-90'
+          "card-spatial-depth relative overflow-hidden transition-all duration-300",
+          isEarned
+            ? "border-primary/50 shadow-lg shadow-primary/20 hover:scale-105"
+            : "opacity-75 border-muted hover:opacity-90"
         )}
         role="article"
-        aria-label={`Badge ${badge.name}${isEarned ? ' obtenu' : ' verrouillé'}`}
+        aria-label={`Badge ${badge.name}${isEarned ? " obtenu" : " verrouillé"}`}
       >
         {/* Indicateur obtenu */}
         {isEarned && (
@@ -110,8 +112,10 @@ export function BadgeCard({ badge, userBadge, isEarned, index = 0 }: BadgeCardPr
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <CardTitle className="text-lg md:text-xl flex items-center gap-2 font-bold">
-                <span className="text-3xl shrink-0" aria-hidden="true">{categoryIcon}</span>
-                <span className="break-words">{badge.name || badge.code || 'Badge sans nom'}</span>
+                <span className="text-3xl shrink-0" aria-hidden="true">
+                  {categoryIcon}
+                </span>
+                <span className="break-words">{badge.name || badge.code || "Badge sans nom"}</span>
               </CardTitle>
               {badge.star_wars_title && (
                 <CardDescription className="mt-2 text-primary-on-dark italic text-sm">
@@ -122,16 +126,16 @@ export function BadgeCard({ badge, userBadge, isEarned, index = 0 }: BadgeCardPr
             <BadgeComponent
               variant="outline"
               className={cn(
-                'badge-sweep shrink-0 text-lg',
+                "badge-sweep shrink-0 text-lg",
                 difficultyColor.bg,
                 difficultyColor.text,
                 difficultyColor.border
               )}
               aria-label={`Difficulté: ${badge.difficulty}`}
             >
-              {badge.difficulty === 'bronze' && '🥉'}
-              {badge.difficulty === 'silver' && '🥈'}
-              {badge.difficulty === 'gold' && '🥇'}
+              {badge.difficulty === "bronze" && "🥉"}
+              {badge.difficulty === "silver" && "🥈"}
+              {badge.difficulty === "gold" && "🥇"}
             </BadgeComponent>
           </div>
         </CardHeader>
@@ -156,7 +160,7 @@ export function BadgeCard({ badge, userBadge, isEarned, index = 0 }: BadgeCardPr
 
             {isEarned && userBadge?.earned_at && (
               <div className="text-xs text-muted-foreground bg-green-500/10 px-2 py-1 rounded">
-                Obtenu le {new Date(userBadge.earned_at as string).toLocaleDateString('fr-FR')}
+                Obtenu le {new Date(userBadge.earned_at as string).toLocaleDateString("fr-FR")}
               </div>
             )}
           </div>
@@ -170,4 +174,3 @@ export function BadgeCard({ badge, userBadge, isEarned, index = 0 }: BadgeCardPr
     </motion.div>
   );
 }
-

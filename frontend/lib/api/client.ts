@@ -6,18 +6,21 @@
 // URL du backend API
 // En développement: peut utiliser localhost par défaut
 // En production: DOIT être définie via NEXT_PUBLIC_API_BASE_URL
-const API_BASE_URL = 
-  process.env.NEXT_PUBLIC_API_BASE_URL || 
-  process.env.NEXT_PUBLIC_API_URL || 
-  (process.env.NODE_ENV === 'development' ? 'http://localhost:10000' : '');
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === "development" ? "http://localhost:10000" : "");
 
 function getApiBaseUrl(): string {
-  if (process.env.NODE_ENV === 'production' && (!API_BASE_URL || API_BASE_URL.includes('localhost'))) {
+  if (
+    process.env.NODE_ENV === "production" &&
+    (!API_BASE_URL || API_BASE_URL.includes("localhost"))
+  ) {
     throw new Error(
-      'NEXT_PUBLIC_API_BASE_URL doit être défini en production et ne peut pas être localhost'
+      "NEXT_PUBLIC_API_BASE_URL doit être défini en production et ne peut pas être localhost"
     );
   }
-  return API_BASE_URL || 'http://localhost:10000';
+  return API_BASE_URL || "http://localhost:10000";
 }
 
 export interface ApiError {
@@ -32,7 +35,7 @@ export class ApiClientError extends Error {
 
   constructor(message: string, status: number, details?: unknown) {
     super(message);
-    this.name = 'ApiClientError';
+    this.name = "ApiClientError";
     this.status = status;
     this.details = details;
   }
@@ -47,13 +50,13 @@ let refreshPromise: Promise<boolean> | null = null;
  * Exporté pour usage au chargement de l'app (utilisateurs revenant avec session).
  */
 export async function syncAccessTokenToFrontend(accessToken: string): Promise<void> {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   try {
-    await fetch('/api/auth/sync-cookie', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("/api/auth/sync-cookie", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ access_token: accessToken }),
-      credentials: 'include',
+      credentials: "include",
     });
   } catch {
     // Non bloquant
@@ -66,8 +69,8 @@ export async function syncAccessTokenToFrontend(accessToken: string): Promise<vo
  * À appeler avant toute requête qui transite par les routes API Next.js (proxy).
  */
 export async function ensureFrontendAuthCookie(): Promise<void> {
-  if (typeof window === 'undefined') return;
-  if (process.env.NODE_ENV !== 'production') return; // En dev, même domaine
+  if (typeof window === "undefined") return;
+  if (process.env.NODE_ENV !== "production") return; // En dev, même domaine
   const refreshToken = getRefreshToken();
   if (refreshToken) {
     await refreshAccessToken();
@@ -78,9 +81,9 @@ export async function ensureFrontendAuthCookie(): Promise<void> {
  * Récupère le refresh_token depuis localStorage
  */
 function getRefreshToken(): string | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
   try {
-    return localStorage.getItem('refresh_token');
+    return localStorage.getItem("refresh_token");
   } catch {
     return null;
   }
@@ -90,12 +93,12 @@ function getRefreshToken(): string | null {
  * Stocke le refresh_token dans localStorage
  */
 function setRefreshToken(token: string | null): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   try {
     if (token) {
-      localStorage.setItem('refresh_token', token);
+      localStorage.setItem("refresh_token", token);
     } else {
-      localStorage.removeItem('refresh_token');
+      localStorage.removeItem("refresh_token");
     }
   } catch {
     // Ignorer les erreurs de localStorage (mode privé, etc.)
@@ -117,19 +120,19 @@ async function refreshAccessToken(): Promise<boolean> {
     try {
       // Récupérer le refresh_token depuis localStorage
       const refreshToken = getRefreshToken();
-      
+
       if (!refreshToken) {
-        console.warn('[API Client] Aucun refresh_token trouvé pour rafraîchir le token');
+        console.warn("[API Client] Aucun refresh_token trouvé pour rafraîchir le token");
         return false;
       }
 
       // Envoyer le refresh_token dans le body de la requête
       const response = await fetch(`${getApiBaseUrl()}/api/auth/refresh`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include', // Important pour les cookies HTTP-only (fallback)
+        credentials: "include", // Important pour les cookies HTTP-only (fallback)
         body: JSON.stringify({ refresh_token: refreshToken }),
       });
 
@@ -153,7 +156,7 @@ async function refreshAccessToken(): Promise<boolean> {
         return false;
       }
     } catch (error) {
-      console.error('[API Client] Erreur lors du refresh du token:', error);
+      console.error("[API Client] Erreur lors du refresh du token:", error);
       return false;
     } finally {
       isRefreshing = false;
@@ -186,8 +189,8 @@ async function handleResponse<T>(response: Response): Promise<T> {
   }
 
   // Gérer les réponses vides
-  const contentType = response.headers.get('content-type');
-  if (!contentType || !contentType.includes('application/json')) {
+  const contentType = response.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
     return {} as T;
   }
 
@@ -203,11 +206,11 @@ export async function apiRequest<T>(
   const url = `${baseUrl}${endpoint}`;
 
   // Récupérer la locale depuis le store (si disponible côté client)
-  let locale = 'fr';
-  if (typeof window !== 'undefined') {
+  let locale = "fr";
+  if (typeof window !== "undefined") {
     try {
       // Lire depuis localStorage directement pour éviter les problèmes de SSR
-      const stored = localStorage.getItem('locale-preferences');
+      const stored = localStorage.getItem("locale-preferences");
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.state?.locale) {
@@ -222,62 +225,63 @@ export async function apiRequest<T>(
   const config: RequestInit = {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
-      'Accept-Language': locale, // Envoyer la locale au backend
+      "Content-Type": "application/json",
+      "Accept-Language": locale, // Envoyer la locale au backend
       ...options?.headers,
     },
-    credentials: 'include', // Important pour les cookies HTTP-only
+    credentials: "include", // Important pour les cookies HTTP-only
   };
 
   try {
     const response = await fetch(url, config);
-    
+
     // Si 401 et qu'on peut retry, tenter un refresh automatique
-    if (response.status === 401 && retryOn401 && endpoint !== '/api/auth/refresh' && endpoint !== '/api/auth/login') {
+    if (
+      response.status === 401 &&
+      retryOn401 &&
+      endpoint !== "/api/auth/refresh" &&
+      endpoint !== "/api/auth/login"
+    ) {
       // Attendre que le refresh soit terminé
       const refreshSuccess = await refreshAccessToken();
-      
+
       if (refreshSuccess) {
         // Réessayer la requête originale avec le nouveau token
         return apiRequest<T>(endpoint, options, false); // Ne pas retry à nouveau pour éviter les boucles
       } else {
         // Refresh échoué, l'utilisateur doit se reconnecter
         // Ne pas déclencher de déconnexion automatique ici, laisser le composant gérer
-        throw new ApiClientError('Session expirée. Veuillez vous reconnecter.', 401);
+        throw new ApiClientError("Session expirée. Veuillez vous reconnecter.", 401);
       }
     }
-    
+
     return handleResponse<T>(response);
   } catch (error) {
     if (error instanceof ApiClientError) {
       throw error;
     }
-    
+
     // Améliorer le message d'erreur pour les erreurs réseau
-    let errorMessage = 'Erreur réseau';
-    if (error instanceof TypeError && error.message.includes('fetch')) {
+    let errorMessage = "Erreur réseau";
+    if (error instanceof TypeError && error.message.includes("fetch")) {
       errorMessage = `Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur ${baseUrl}`;
     } else if (error instanceof Error) {
       errorMessage = error.message;
     }
-    
-    throw new ApiClientError(
-      errorMessage,
-      0,
-      { originalError: error, url }
-    );
+
+    throw new ApiClientError(errorMessage, 0, { originalError: error, url });
   }
 }
 
 // Méthodes helper
 export const api = {
   get: <T>(endpoint: string, options?: RequestInit) =>
-    apiRequest<T>(endpoint, { ...options, method: 'GET' }),
+    apiRequest<T>(endpoint, { ...options, method: "GET" }),
 
   post: <T>(endpoint: string, data?: unknown, options?: RequestInit) => {
     const requestInit: RequestInit = {
       ...options,
-      method: 'POST',
+      method: "POST",
     };
     if (data !== undefined) {
       requestInit.body = JSON.stringify(data);
@@ -288,7 +292,7 @@ export const api = {
   put: <T>(endpoint: string, data?: unknown, options?: RequestInit) => {
     const requestInit: RequestInit = {
       ...options,
-      method: 'PUT',
+      method: "PUT",
     };
     if (data !== undefined) {
       requestInit.body = JSON.stringify(data);
@@ -299,7 +303,7 @@ export const api = {
   patch: <T>(endpoint: string, data?: unknown, options?: RequestInit) => {
     const requestInit: RequestInit = {
       ...options,
-      method: 'PATCH',
+      method: "PATCH",
     };
     if (data !== undefined) {
       requestInit.body = JSON.stringify(data);
@@ -308,6 +312,5 @@ export const api = {
   },
 
   delete: <T>(endpoint: string, options?: RequestInit) =>
-    apiRequest<T>(endpoint, { ...options, method: 'DELETE' }),
+    apiRequest<T>(endpoint, { ...options, method: "DELETE" }),
 };
-

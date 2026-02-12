@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { BadgeCard } from './BadgeCard';
-import type { Badge, UserBadge } from '@/types/api';
-import { Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
+import { BadgeCard } from "./BadgeCard";
+import type { Badge, UserBadge } from "@/types/api";
+import { Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 interface BadgeGridProps {
   badges: Badge[];
@@ -14,7 +14,7 @@ interface BadgeGridProps {
 
 export function BadgeGrid({ badges, earnedBadges, isLoading }: BadgeGridProps) {
   const { shouldReduceMotion, createTransition } = useAccessibleAnimation();
-  
+
   // Créer un map des badges obtenus pour accès rapide (par ID)
   const earnedBadgeMap = new Map<number, UserBadge>();
   earnedBadges.forEach((userBadge) => {
@@ -30,16 +30,14 @@ export function BadgeGrid({ badges, earnedBadges, isLoading }: BadgeGridProps) {
   }
 
   // Filtrer les badges invalides (sans nom ou code)
-  const validBadges = badges.filter(badge => {
+  const validBadges = badges.filter((badge) => {
     return badge.name || badge.code;
   });
 
   if (validBadges.length === 0) {
     return (
       <div className="text-center py-12" role="status" aria-live="polite">
-        <p className="text-muted-foreground text-base">
-          Aucun badge disponible pour le moment.
-        </p>
+        <p className="text-muted-foreground text-base">Aucun badge disponible pour le moment.</p>
       </div>
     );
   }
@@ -55,15 +53,15 @@ export function BadgeGrid({ badges, earnedBadges, isLoading }: BadgeGridProps) {
 
     // Puis par catégorie
     const categoryOrder: Record<string, number> = { progression: 0, mastery: 1, special: 2 };
-    const aCategory = a.category || '';
-    const bCategory = b.category || '';
+    const aCategory = a.category || "";
+    const bCategory = b.category || "";
     const categoryDiff = (categoryOrder[aCategory] ?? 999) - (categoryOrder[bCategory] ?? 999);
     if (categoryDiff !== 0) return categoryDiff;
 
     // Puis par difficulté
     const difficultyOrder: Record<string, number> = { bronze: 0, silver: 1, gold: 2 };
-    const aDifficulty = a.difficulty || '';
-    const bDifficulty = b.difficulty || '';
+    const aDifficulty = a.difficulty || "";
+    const bDifficulty = b.difficulty || "";
     return (difficultyOrder[aDifficulty] ?? 999) - (difficultyOrder[bDifficulty] ?? 999);
   });
 
@@ -103,4 +101,3 @@ export function BadgeGrid({ badges, earnedBadges, isLoading }: BadgeGridProps) {
     </motion.div>
   );
 }
-

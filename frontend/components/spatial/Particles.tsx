@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { useAccessibilityStore } from '@/lib/stores/accessibilityStore';
-import { useThemeStore } from '@/lib/stores/themeStore';
+import { useEffect, useRef } from "react";
+import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
+import { useThemeStore } from "@/lib/stores/themeStore";
 
 /**
  * Composant Particles - Système de particules subtiles en arrière-plan
- * 
+ *
  * Particules adaptées au thème actuel
  * Respecte prefers-reduced-motion et se désactive en mode Focus
  */
@@ -17,14 +17,14 @@ export function Particles() {
 
   useEffect(() => {
     // Ne pas afficher en mode Focus ou si reduced motion
-    if (focusMode || reducedMotion || typeof window === 'undefined') {
+    if (focusMode || reducedMotion || typeof window === "undefined") {
       return;
     }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     // Ajuster la taille du canvas
@@ -33,17 +33,17 @@ export function Particles() {
       canvas.height = window.innerHeight;
     };
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener("resize", resizeCanvas);
 
     // Couleurs selon le thème
     const themeColors: Record<string, string> = {
-      spatial: 'rgba(139, 92, 246, 0.3)', // Violet
-      minimalist: 'rgba(0, 0, 0, 0.2)', // Noir subtil
-      ocean: 'rgba(14, 165, 233, 0.3)', // Bleu ciel
-      neutral: 'rgba(107, 114, 128, 0.2)', // Gris
+      spatial: "rgba(139, 92, 246, 0.3)", // Violet
+      minimalist: "rgba(0, 0, 0, 0.2)", // Noir subtil
+      ocean: "rgba(14, 165, 233, 0.3)", // Bleu ciel
+      neutral: "rgba(107, 114, 128, 0.2)", // Gris
     };
 
-    const particleColor = themeColors[theme] || themeColors.spatial || 'rgba(139, 92, 246, 0.3)';
+    const particleColor = themeColors[theme] || themeColors.spatial || "rgba(139, 92, 246, 0.3)";
 
     // Créer les particules
     const particleCount = 50;
@@ -77,7 +77,7 @@ export function Particles() {
         // Dessiner la particule
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = particleColor.replace('0.3', particle.opacity.toString());
+        ctx.fillStyle = particleColor.replace("0.3", particle.opacity.toString());
         ctx.fill();
       });
 
@@ -87,7 +87,7 @@ export function Particles() {
     animate();
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener("resize", resizeCanvas);
       cancelAnimationFrame(animationId);
     };
   }, [focusMode, reducedMotion, theme]);
@@ -105,4 +105,3 @@ export function Particles() {
     />
   );
 }
-

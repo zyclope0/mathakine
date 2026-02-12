@@ -45,7 +45,7 @@ export interface Exercise {
   hint?: string | null;
   exercise_type: string;
   age_group?: string | null;
-  difficulty?: string;  // Interne uniquement, dérivé de age_group
+  difficulty?: string; // Interne uniquement, dérivé de age_group
   tags?: string | null;
   image_url?: string | null;
   audio_url?: string | null;

@@ -1,13 +1,13 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Trophy, Target, Clock } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { cn } from '@/lib/utils/cn';
-import { motion } from 'framer-motion';
-import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Trophy, Target, Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils/cn";
+import { motion } from "framer-motion";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 interface ChallengesProgressWidgetProps {
   completedChallenges: number;
@@ -22,9 +22,9 @@ export function ChallengesProgressWidget({
   totalChallenges,
   successRate,
   averageTime,
-  isLoading
+  isLoading,
 }: ChallengesProgressWidgetProps) {
-  const t = useTranslations('dashboard.challengesProgress');
+  const t = useTranslations("dashboard.challengesProgress");
   const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
 
   if (isLoading) {
@@ -43,9 +43,8 @@ export function ChallengesProgressWidget({
     );
   }
 
-  const completionPercentage = totalChallenges > 0 
-    ? Math.round((completedChallenges / totalChallenges) * 100) 
-    : 0;
+  const completionPercentage =
+    totalChallenges > 0 ? Math.round((completedChallenges / totalChallenges) * 100) : 0;
 
   const variants = createVariants({
     initial: { opacity: 0, y: 10 },
@@ -72,7 +71,7 @@ export function ChallengesProgressWidget({
             >
               <Trophy className="w-5 h-5 text-yellow-400" />
             </motion.div>
-            {t('title')}
+            {t("title")}
           </CardTitle>
         </CardHeader>
 
@@ -81,11 +80,9 @@ export function ChallengesProgressWidget({
           <div className="mb-4">
             <div className="flex justify-between text-sm mb-2">
               <span className="text-muted-foreground">
-                {completedChallenges} / {totalChallenges} {t('completed')}
+                {completedChallenges} / {totalChallenges} {t("completed")}
               </span>
-              <span className="font-semibold text-foreground">
-                {completionPercentage}%
-              </span>
+              <span className="font-semibold text-foreground">{completionPercentage}%</span>
             </div>
             <Progress value={completionPercentage} className="h-3" />
           </div>
@@ -95,9 +92,7 @@ export function ChallengesProgressWidget({
             <div className="rounded-lg p-3 bg-green-500/10 border border-green-500/20">
               <div className="flex items-center gap-2 mb-1">
                 <Target className="w-4 h-4 text-green-400" />
-                <div className="text-xs text-muted-foreground">
-                  {t('successRate')}
-                </div>
+                <div className="text-xs text-muted-foreground">{t("successRate")}</div>
               </div>
               <div className="text-lg font-bold text-green-400">
                 {Math.round(successRate * 100)}%
@@ -107,19 +102,17 @@ export function ChallengesProgressWidget({
             <div className="rounded-lg p-3 bg-blue-500/10 border border-blue-500/20">
               <div className="flex items-center gap-2 mb-1">
                 <Clock className="w-4 h-4 text-blue-400" />
-                <div className="text-xs text-muted-foreground">
-                  {t('avgTime')}
-                </div>
+                <div className="text-xs text-muted-foreground">{t("avgTime")}</div>
               </div>
               <div className="text-lg font-bold text-blue-400">
-                {averageTime > 0 ? `${Math.round(averageTime)}s` : '-'}
+                {averageTime > 0 ? `${Math.round(averageTime)}s` : "-"}
               </div>
             </div>
           </div>
 
           {completedChallenges === 0 && (
             <div className="mt-4 pt-4 border-t border-border text-sm text-muted-foreground">
-              {t('noChallengesYet')}
+              {t("noChallengesYet")}
             </div>
           )}
         </CardContent>

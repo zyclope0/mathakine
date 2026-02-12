@@ -69,7 +69,7 @@
 
 /* Mode Dyslexie */
 .dyslexia-mode {
-  font-family: 'Comic Sans MS', 'OpenDyslexic', 'Dyslexie', sans-serif;
+  font-family: "Comic Sans MS", "OpenDyslexic", "Dyslexie", sans-serif;
   letter-spacing: 0.1em;
   word-spacing: 0.2em;
   line-height: 1.8;
@@ -89,7 +89,7 @@
   --surface-elevated: #1a1a1a;
   --text-primary: #ffffff;
   --text-secondary: #cccccc;
-  
+
   /* Masquer éléments non essentiels */
 }
 
@@ -228,4 +228,3 @@
     --border-width: 2px;
   }
 }
-

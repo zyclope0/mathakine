@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
-import { LoadingState } from '@/components/layout';
-import { useTranslations } from 'next-intl';
+import { LoadingState } from "@/components/layout";
+import { useTranslations } from "next-intl";
 
 export default function ExercisesLoading() {
-  const t = useTranslations('exercises');
-  return <LoadingState message={t('list.loading')} />;
+  const t = useTranslations("exercises");
+  return <LoadingState message={t("list.loading")} />;
 }
-

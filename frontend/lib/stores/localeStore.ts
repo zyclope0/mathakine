@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export type Locale = 'fr' | 'en';
+export type Locale = "fr" | "en";
 
 interface LocaleState {
   locale: Locale;
@@ -11,16 +11,15 @@ interface LocaleState {
 export const useLocaleStore = create<LocaleState>()(
   persist(
     (set) => ({
-      locale: 'fr',
+      locale: "fr",
       setLocale: (locale) => {
         set({ locale });
         // Mettre à jour l'attribut lang sur le document
-        if (typeof document !== 'undefined') {
+        if (typeof document !== "undefined") {
           document.documentElement.lang = locale;
         }
       },
     }),
-    { name: 'locale-preferences' }
+    { name: "locale-preferences" }
   )
 );
-

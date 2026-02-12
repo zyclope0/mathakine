@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { Card, CardContent } from '@/components/ui/card';
-import { LucideIcon, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
-import { motion } from 'framer-motion';
-import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from "@/components/ui/card";
+import { LucideIcon, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
+import { motion } from "framer-motion";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
+import { Badge } from "@/components/ui/badge";
 
 interface StatsCardProps {
   icon: LucideIcon;
@@ -13,18 +13,18 @@ interface StatsCardProps {
   label: string;
   className?: string;
   trend?: number; // Variation en pourcentage (ex: +5 pour +5%)
-  trendDirection?: 'up' | 'down' | 'neutral';
+  trendDirection?: "up" | "down" | "neutral";
   lastUpdate?: string; // Date de dernière mise à jour (ISO string)
 }
 
-export function StatsCard({ 
-  icon: Icon, 
-  value, 
-  label, 
+export function StatsCard({
+  icon: Icon,
+  value,
+  label,
   className,
   trend,
   trendDirection,
-  lastUpdate
+  lastUpdate,
 }: StatsCardProps) {
   const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
 
@@ -38,13 +38,13 @@ export function StatsCard({
 
   // Déterminer l'icône et la couleur de tendance
   const getTrendIcon = () => {
-    if (!trend || trendDirection === 'neutral') return null;
-    return trendDirection === 'up' ? TrendingUp : TrendingDown;
+    if (!trend || trendDirection === "neutral") return null;
+    return trendDirection === "up" ? TrendingUp : TrendingDown;
   };
 
   const getTrendColor = () => {
-    if (!trend || trendDirection === 'neutral') return 'text-muted-foreground';
-    return trendDirection === 'up' ? 'text-success' : 'text-destructive';
+    if (!trend || trendDirection === "neutral") return "text-muted-foreground";
+    return trendDirection === "up" ? "text-success" : "text-destructive";
   };
 
   const TrendIcon = getTrendIcon();
@@ -59,7 +59,7 @@ export function StatsCard({
       className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
       tabIndex={0}
     >
-      <Card className={cn('card-spatial-depth', className)}>
+      <Card className={cn("card-spatial-depth", className)}>
         <CardContent className="pt-6">
           <div className="text-center space-y-2">
             <motion.div
@@ -72,21 +72,22 @@ export function StatsCard({
             <div className="flex items-center justify-center gap-2">
               <div className="text-3xl font-bold text-foreground">{value}</div>
               {trend !== undefined && trend !== null && TrendIcon && (
-                <Badge 
-                  variant="outline" 
-                  className={cn('text-xs flex items-center gap-1', getTrendColor())}
+                <Badge
+                  variant="outline"
+                  className={cn("text-xs flex items-center gap-1", getTrendColor())}
                 >
                   <TrendIcon className="h-3 w-3" />
-                  {trend > 0 ? '+' : ''}{trend}%
+                  {trend > 0 ? "+" : ""}
+                  {trend}%
                 </Badge>
               )}
             </div>
             <div className="text-sm text-muted-foreground">{label}</div>
             {lastUpdate && (
               <div className="text-xs text-muted-foreground/70">
-                {new Date(lastUpdate).toLocaleTimeString('fr-FR', { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
+                {new Date(lastUpdate).toLocaleTimeString("fr-FR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </div>
             )}
@@ -96,4 +97,3 @@ export function StatsCard({
     </motion.div>
   );
 }
-

@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Sparkles, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
-import { useRecommendations } from '@/hooks/useRecommendations';
-import { cn } from '@/lib/utils/cn';
-import { useExerciseTranslations } from '@/hooks/useChallengeTranslations';
-import { useTranslations } from 'next-intl';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Sparkles, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { useRecommendations } from "@/hooks/useRecommendations";
+import { cn } from "@/lib/utils/cn";
+import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
+import { useTranslations } from "next-intl";
 
 export function Recommendations() {
   const { recommendations, isLoading, generate, isGenerating } = useRecommendations();
-  const t = useTranslations('dashboard.recommendations');
+  const t = useTranslations("dashboard.recommendations");
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
 
   const handleRefresh = async () => {
@@ -25,7 +25,7 @@ export function Recommendations() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl text-foreground flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary-on-dark" />
-            {t('title', { default: 'Conseils du Maître Jedi' })}
+            {t("title", { default: "Conseils du Maître Jedi" })}
           </CardTitle>
           <Button
             variant="ghost"
@@ -33,8 +33,10 @@ export function Recommendations() {
             onClick={handleRefresh}
             disabled={isGenerating || isLoading}
           >
-            <RefreshCw className={cn('h-4 w-4 mr-2', (isGenerating || isLoading) && 'animate-spin')} />
-            {t('refresh', { default: 'Actualiser' })}
+            <RefreshCw
+              className={cn("h-4 w-4 mr-2", (isGenerating || isLoading) && "animate-spin")}
+            />
+            {t("refresh", { default: "Actualiser" })}
           </Button>
         </div>
       </CardHeader>
@@ -58,21 +60,21 @@ export function Recommendations() {
             {recommendations.map((recommendation, index) => {
               // Traduire le type d'exercice
               const exerciseTypeDisplay = getTypeDisplay(recommendation.exercise_type);
-              
+
               // Traduire le groupe d'âge
               const ageGroupDisplay = getAgeDisplay(recommendation.age_group);
-              
+
               // Déterminer la couleur de priorité selon la priorité (si disponible)
               const priority = (recommendation as any).priority || 5;
               const isHighPriority = priority >= 8;
-              
+
               return (
                 <div
                   key={recommendation.id || index}
                   className={cn(
                     "p-4 rounded-lg bg-muted border transition-all hover:shadow-lg",
-                    isHighPriority 
-                      ? "border-primary/30 hover:border-primary/50 shadow-md shadow-primary/10" 
+                    isHighPriority
+                      ? "border-primary/30 hover:border-primary/50 shadow-md shadow-primary/10"
                       : "border-primary/10 hover:border-primary/30"
                   )}
                   role="article"
@@ -80,8 +82,8 @@ export function Recommendations() {
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex gap-2 flex-wrap">
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className={cn(
                           "bg-primary/10 text-primary-on-dark border-primary/30",
                           isHighPriority && "bg-primary/20 border-primary/50"
@@ -89,12 +91,15 @@ export function Recommendations() {
                       >
                         {exerciseTypeDisplay}
                       </Badge>
-                      <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/30">
+                      <Badge
+                        variant="outline"
+                        className="bg-secondary/10 text-secondary border-secondary/30"
+                      >
                         {ageGroupDisplay}
                       </Badge>
                       {isHighPriority && (
                         <Badge className="bg-primary/20 text-primary-on-dark text-xs">
-                          {t('priority', { default: 'Prioritaire' })}
+                          {t("priority", { default: "Prioritaire" })}
                         </Badge>
                       )}
                     </div>
@@ -104,7 +109,9 @@ export function Recommendations() {
                       {recommendation.exercise_title}
                     </h4>
                   )}
-                  <p className="text-sm text-muted-foreground italic mb-2">{recommendation.reason}</p>
+                  <p className="text-sm text-muted-foreground italic mb-2">
+                    {recommendation.reason}
+                  </p>
                   {recommendation.exercise_question && (
                     <p className="text-xs text-muted-foreground bg-card p-2 rounded mb-3 line-clamp-2">
                       {recommendation.exercise_question.length > 100
@@ -113,14 +120,14 @@ export function Recommendations() {
                     </p>
                   )}
                   {recommendation.exercise_id && (
-                    <Button 
-                      asChild 
-                      size="sm" 
+                    <Button
+                      asChild
+                      size="sm"
                       className="w-full"
                       aria-label={`Commencer l'exercice ${recommendation.exercise_title || exerciseTypeDisplay}`}
                     >
                       <Link href={`/exercises/${recommendation.exercise_id}`}>
-                        {t('trainNow', { default: "S'entraîner maintenant" })}
+                        {t("trainNow", { default: "S'entraîner maintenant" })}
                       </Link>
                     </Button>
                   )}
@@ -130,12 +137,13 @@ export function Recommendations() {
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
-            <p>{t('empty', { default: 'Aucune recommandation pour le moment.' })}</p>
-            <p className="text-sm mt-2">{t('emptyHint', { default: 'Continuez votre entraînement !' })}</p>
+            <p>{t("empty", { default: "Aucune recommandation pour le moment." })}</p>
+            <p className="text-sm mt-2">
+              {t("emptyHint", { default: "Continuez votre entraînement !" })}
+            </p>
           </div>
         )}
       </CardContent>
     </Card>
   );
 }
-

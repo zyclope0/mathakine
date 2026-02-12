@@ -1,12 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Flame, TrendingUp } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { cn } from '@/lib/utils/cn';
-import { motion } from 'framer-motion';
-import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Flame, TrendingUp } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils/cn";
+import { motion } from "framer-motion";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 interface StreakWidgetProps {
   currentStreak: number;
@@ -15,7 +15,7 @@ interface StreakWidgetProps {
 }
 
 export function StreakWidget({ currentStreak, highestStreak, isLoading }: StreakWidgetProps) {
-  const t = useTranslations('dashboard.streak');
+  const t = useTranslations("dashboard.streak");
   const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
 
   const isNewRecord = currentStreak === highestStreak && currentStreak > 0;
@@ -50,31 +50,39 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
       whileHover={!shouldReduceMotion ? { scale: 1.02 } : {}}
       className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
     >
-      <Card className={cn(
-        'bg-card border-2 h-full flex flex-col',
-        currentStreak > 0 ? 'border-orange-500/40 bg-orange-500/5' : 'border-primary/20'
-      )}>
+      <Card
+        className={cn(
+          "bg-card border-2 h-full flex flex-col",
+          currentStreak > 0 ? "border-orange-500/40 bg-orange-500/5" : "border-primary/20"
+        )}
+      >
         <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
               <motion.div
-                animate={!shouldReduceMotion && currentStreak > 0 ? { 
-                  rotate: [0, -10, 10, -10, 0],
-                  scale: [1, 1.1, 1]
-                } : {}}
+                animate={
+                  !shouldReduceMotion && currentStreak > 0
+                    ? {
+                        rotate: [0, -10, 10, -10, 0],
+                        scale: [1, 1.1, 1],
+                      }
+                    : {}
+                }
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <Flame className={cn(
-                  'w-5 h-5',
-                  currentStreak > 0 ? 'text-orange-400' : 'text-muted-foreground'
-                )} />
+                <Flame
+                  className={cn(
+                    "w-5 h-5",
+                    currentStreak > 0 ? "text-orange-400" : "text-muted-foreground"
+                  )}
+                />
               </motion.div>
-              {t('title')}
+              {t("title")}
             </CardTitle>
             {isNewRecord && (
               <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" />
-                {t('record')}
+                {t("record")}
               </Badge>
             )}
           </div>
@@ -82,25 +90,29 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
 
         <CardContent className="flex-grow">
           <div className="flex items-baseline gap-3 mb-3">
-            <div className={cn(
-              'text-5xl font-bold',
-              currentStreak > 0 ? 'text-orange-400' : 'text-muted-foreground'
-            )}>
+            <div
+              className={cn(
+                "text-5xl font-bold",
+                currentStreak > 0 ? "text-orange-400" : "text-muted-foreground"
+              )}
+            >
               {currentStreak}
             </div>
             <div className="text-sm text-muted-foreground">
-              {t('days', { count: currentStreak })}
+              {t("days", { count: currentStreak })}
             </div>
           </div>
 
           <div className="text-sm text-muted-foreground flex items-center gap-2">
-            <span>{t('best')}:</span>
-            <span className="font-semibold text-foreground">{highestStreak} {t('days', { count: highestStreak })}</span>
+            <span>{t("best")}:</span>
+            <span className="font-semibold text-foreground">
+              {highestStreak} {t("days", { count: highestStreak })}
+            </span>
           </div>
 
           {currentStreak > 0 && (
             <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground">
-              {t('keepGoing')}
+              {t("keepGoing")}
             </div>
           )}
         </CardContent>

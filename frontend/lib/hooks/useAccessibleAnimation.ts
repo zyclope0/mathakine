@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useAccessibilityStore } from '@/lib/stores/accessibilityStore';
-import { useReducedMotion } from 'framer-motion';
+import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
+import { useReducedMotion } from "framer-motion";
 
 /**
  * Hook pour créer des animations accessibles qui respectent les préférences utilisateur
@@ -19,11 +19,7 @@ export function useAccessibleAnimation() {
   /**
    * Crée une variante d'animation avec garde-fous
    */
-  const createVariants = (variants: {
-    initial?: any;
-    animate?: any;
-    exit?: any;
-  }) => {
+  const createVariants = (variants: { initial?: any; animate?: any; exit?: any }) => {
     if (shouldReduceMotion) {
       // En mode réduit : animations minimales ou désactivées
       return {
@@ -38,16 +34,18 @@ export function useAccessibleAnimation() {
   /**
    * Crée une transition avec durée réduite si nécessaire
    */
-  const createTransition = (baseTransition: {
-    duration?: number;
-    delay?: number;
-    ease?: any;
-  } = {}) => {
+  const createTransition = (
+    baseTransition: {
+      duration?: number;
+      delay?: number;
+      ease?: any;
+    } = {}
+  ) => {
     if (shouldReduceMotion) {
       return {
         duration: 0.1, // Durée minimale
         delay: 0,
-        ease: 'easeOut',
+        ease: "easeOut",
       };
     }
     return {
@@ -61,20 +59,22 @@ export function useAccessibleAnimation() {
    * Props d'animation pour motion.div avec garde-fous
    */
   const getMotionProps = (customVariants?: any, customTransition?: any) => {
-    const variants = customVariants || createVariants({
-      initial: { opacity: 0, y: 20 },
-      animate: { opacity: 1, y: 0 },
-      exit: { opacity: 0, y: -20 },
-    });
+    const variants =
+      customVariants ||
+      createVariants({
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -20 },
+      });
 
     const transition = customTransition || createTransition();
 
     return {
       variants,
       transition,
-      initial: 'initial',
-      animate: 'animate',
-      exit: 'exit',
+      initial: "initial",
+      animate: "animate",
+      exit: "exit",
     };
   };
 
@@ -85,4 +85,3 @@ export function useAccessibleAnimation() {
     getMotionProps,
   };
 }
-

@@ -1,20 +1,20 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook } from '@testing-library/react';
-import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
-import * as accessibilityStore from '@/lib/stores/accessibilityStore';
-import * as framerMotion from 'framer-motion';
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { renderHook } from "@testing-library/react";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
+import * as accessibilityStore from "@/lib/stores/accessibilityStore";
+import * as framerMotion from "framer-motion";
 
 // Mock framer-motion
-vi.mock('framer-motion', () => ({
+vi.mock("framer-motion", () => ({
   useReducedMotion: vi.fn(() => false),
 }));
 
 // Mock store
-vi.mock('@/lib/stores/accessibilityStore', () => ({
+vi.mock("@/lib/stores/accessibilityStore", () => ({
   useAccessibilityStore: vi.fn(),
 }));
 
-describe('useAccessibleAnimation', () => {
+describe("useAccessibleAnimation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -33,17 +33,15 @@ describe('useAccessibleAnimation', () => {
     ...overrides,
   });
 
-  it('retourne shouldReduceMotion false par défaut', () => {
-    vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(
-      getMockStoreValue() as any
-    );
+  it("retourne shouldReduceMotion false par défaut", () => {
+    vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(getMockStoreValue() as any);
     vi.mocked(framerMotion.useReducedMotion).mockReturnValue(false);
 
     const { result } = renderHook(() => useAccessibleAnimation());
     expect(result.current.shouldReduceMotion).toBe(false);
   });
 
-  it('retourne shouldReduceMotion true si reducedMotion activé', () => {
+  it("retourne shouldReduceMotion true si reducedMotion activé", () => {
     vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(
       getMockStoreValue({ reducedMotion: true }) as any
     );
@@ -53,7 +51,7 @@ describe('useAccessibleAnimation', () => {
     expect(result.current.shouldReduceMotion).toBe(true);
   });
 
-  it('retourne shouldReduceMotion true si focusMode activé', () => {
+  it("retourne shouldReduceMotion true si focusMode activé", () => {
     vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(
       getMockStoreValue({ focusMode: true }) as any
     );
@@ -63,17 +61,15 @@ describe('useAccessibleAnimation', () => {
     expect(result.current.shouldReduceMotion).toBe(true);
   });
 
-  it('retourne shouldReduceMotion true si prefers-reduced-motion activé', () => {
-    vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(
-      getMockStoreValue() as any
-    );
+  it("retourne shouldReduceMotion true si prefers-reduced-motion activé", () => {
+    vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(getMockStoreValue() as any);
     vi.mocked(framerMotion.useReducedMotion).mockReturnValue(true);
 
     const { result } = renderHook(() => useAccessibleAnimation());
     expect(result.current.shouldReduceMotion).toBe(true);
   });
 
-  it('crée des variantes simplifiées si shouldReduceMotion est true', () => {
+  it("crée des variantes simplifiées si shouldReduceMotion est true", () => {
     vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(
       getMockStoreValue({ reducedMotion: true }) as any
     );
@@ -91,7 +87,7 @@ describe('useAccessibleAnimation', () => {
     expect(variants.exit).toEqual({ opacity: 0 });
   });
 
-  it('crée des transitions avec durée réduite si shouldReduceMotion est true', () => {
+  it("crée des transitions avec durée réduite si shouldReduceMotion est true", () => {
     vi.mocked(accessibilityStore.useAccessibilityStore).mockReturnValue(
       getMockStoreValue({ reducedMotion: true }) as any
     );

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { NextIntlClientProvider } from 'next-intl';
-import { useLocaleStore } from '@/lib/stores/localeStore';
-import { useEffect, useState } from 'react';
+import { NextIntlClientProvider } from "next-intl";
+import { useLocaleStore } from "@/lib/stores/localeStore";
+import { useEffect, useState } from "react";
 
 interface NextIntlProviderProps {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ export function NextIntlProvider({ children }: NextIntlProviderProps) {
   // Charger les messages selon la locale
   useEffect(() => {
     setIsLoading(true);
-    
+
     // Utiliser import dynamique pour forcer le rechargement
     import(`@/messages/${locale}.json`)
       .then((mod) => {
@@ -26,13 +26,13 @@ export function NextIntlProvider({ children }: NextIntlProviderProps) {
       .catch((err) => {
         console.error(`Failed to load messages for locale ${locale}:`, err);
         // Fallback vers français en cas d'erreur
-        import('@/messages/fr.json')
+        import("@/messages/fr.json")
           .then((mod) => {
             setMessages(mod.default);
             setIsLoading(false);
           })
           .catch((fallbackErr) => {
-            console.error('Failed to load fallback messages:', fallbackErr);
+            console.error("Failed to load fallback messages:", fallbackErr);
             setIsLoading(false);
           });
       });
@@ -40,7 +40,7 @@ export function NextIntlProvider({ children }: NextIntlProviderProps) {
 
   // Mettre à jour l'attribut lang du document
   useEffect(() => {
-    if (typeof document !== 'undefined') {
+    if (typeof document !== "undefined") {
       document.documentElement.lang = locale;
     }
   }, [locale]);
@@ -60,4 +60,3 @@ export function NextIntlProvider({ children }: NextIntlProviderProps) {
     </NextIntlClientProvider>
   );
 }
-

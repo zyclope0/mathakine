@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export type Theme = 'spatial' | 'minimalist' | 'ocean' | 'neutral';
+export type Theme = "spatial" | "minimalist" | "ocean" | "neutral";
 
 interface ThemeState {
   theme: Theme;
@@ -11,24 +11,23 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({
-      theme: 'spatial',
+      theme: "spatial",
       setTheme: (theme) => {
         set({ theme });
         // Appliquer le thème au document
-        if (typeof document !== 'undefined') {
-          document.documentElement.setAttribute('data-theme', theme);
+        if (typeof document !== "undefined") {
+          document.documentElement.setAttribute("data-theme", theme);
         }
       },
     }),
-    { 
-      name: 'theme-preferences',
+    {
+      name: "theme-preferences",
       onRehydrateStorage: () => (state) => {
         // Appliquer le thème au chargement
-        if (state && typeof document !== 'undefined') {
-          document.documentElement.setAttribute('data-theme', state.theme);
+        if (state && typeof document !== "undefined") {
+          document.documentElement.setAttribute("data-theme", state.theme);
         }
       },
     }
   )
 );
-

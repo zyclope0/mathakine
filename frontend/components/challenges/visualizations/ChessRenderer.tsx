@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Crown, Target } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Crown, Target } from "lucide-react";
 
 interface ChessRendererProps {
   visualData: any;
@@ -12,7 +12,7 @@ interface ChessRendererProps {
  * Renderer pour les défis d'échecs.
  * Affiche un échiquier visuel avec les pièces et les positions atteignables.
  */
-export function ChessRenderer({ visualData, className = '' }: ChessRendererProps) {
+export function ChessRenderer({ visualData, className = "" }: ChessRendererProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -25,11 +25,11 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
 
   // Fonction pour convertir notation échecs (ex: "E4") en coordonnées [row, col]
   const chessNotationToCoords = (notation: string): [number, number] | null => {
-    if (!notation || typeof notation !== 'string' || notation.length < 2) return null;
+    if (!notation || typeof notation !== "string" || notation.length < 2) return null;
     const file = notation.charAt(0).toLowerCase();
     const rank = notation.charAt(1);
-    const col = file.charCodeAt(0) - 'a'.charCodeAt(0);  // a=0, b=1, ..., h=7
-    const row = 8 - parseInt(rank);  // 8=0, 7=1, ..., 1=7
+    const col = file.charCodeAt(0) - "a".charCodeAt(0); // a=0, b=1, ..., h=7
+    const row = 8 - parseInt(rank); // 8=0, 7=1, ..., 1=7
     if (col < 0 || col > 7 || row < 0 || row > 7 || isNaN(row)) return null;
     return [row, col];
   };
@@ -38,30 +38,36 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
   const board = visualData.board || [];
   let knightPosition = visualData.knight_position || visualData.position || null;
   let reachablePositions = visualData.reachable_positions || visualData.targets || [];
-  const currentPiece = visualData.piece || visualData.current_piece || 'knight';
-  const question = visualData.question || '';
-  const turn = visualData.turn || '';
-  const objective = visualData.objective || '';
+  const currentPiece = visualData.piece || visualData.current_piece || "knight";
+  const question = visualData.question || "";
+  const turn = visualData.turn || "";
+  const objective = visualData.objective || "";
 
   // Convertir knight_position si c'est une string (ex: "E4" → [3, 4])
-  if (typeof knightPosition === 'string') {
+  if (typeof knightPosition === "string") {
     knightPosition = chessNotationToCoords(knightPosition);
   }
 
   // Convertir reachable_positions si c'est un tableau de strings
-  if (Array.isArray(reachablePositions) && reachablePositions.length > 0 && typeof reachablePositions[0] === 'string') {
+  if (
+    Array.isArray(reachablePositions) &&
+    reachablePositions.length > 0 &&
+    typeof reachablePositions[0] === "string"
+  ) {
     reachablePositions = reachablePositions
       .map((notation: string) => chessNotationToCoords(notation))
       .filter((coords): coords is [number, number] => coords !== null);
   }
 
   // Convertir highlight_positions si c'est un tableau de strings (ex: ["b7", "d2"])
-  let normalizedHighlights = Array.isArray(visualData.highlight_positions) ? visualData.highlight_positions : [];
+  let normalizedHighlights = Array.isArray(visualData.highlight_positions)
+    ? visualData.highlight_positions
+    : [];
   if (normalizedHighlights.length > 0) {
     const first = normalizedHighlights[0];
-    if (typeof first === 'string') {
+    if (typeof first === "string") {
       normalizedHighlights = normalizedHighlights
-        .map((n: unknown) => (typeof n === 'string' ? chessNotationToCoords(n) : null))
+        .map((n: unknown) => (typeof n === "string" ? chessNotationToCoords(n) : null))
         .filter((c: [number, number] | null): c is [number, number] => c !== null);
     } else if (Array.isArray(first) && first.length >= 2) {
       // Déjà [row, col] - s'assurer que ce sont des nombres
@@ -81,42 +87,44 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
   const squareHasPiece = (r: number, c: number): boolean => {
     if (!hasBoard || !board[r]?.[c]) return false;
     const raw = board[r][c];
-    if (typeof raw === 'object' && raw !== null && 'piece' in raw) {
-      const p = String((raw as { piece?: string }).piece ?? '');
+    if (typeof raw === "object" && raw !== null && "piece" in raw) {
+      const p = String((raw as { piece?: string }).piece ?? "");
       return !!p && !p.match(/^[a-h][1-8]$/i);
     }
-    const p = String(raw ?? '');
-    return !!p && p !== ' ' && p !== '.' && !p.match(/^[a-h][1-8]$/i);
+    const p = String(raw ?? "");
+    return !!p && p !== " " && p !== "." && !p.match(/^[a-h][1-8]$/i);
   };
   if (hasBoard && normalizedHighlights.length > 0) {
-    normalizedHighlights = normalizedHighlights.filter((pos: [number, number]) => squareHasPiece(pos[0], pos[1]));
+    normalizedHighlights = normalizedHighlights.filter((pos: [number, number]) =>
+      squareHasPiece(pos[0], pos[1])
+    );
   }
 
   // Symboles des pièces d'échecs
   // Pièces blanches (outline) - majuscules en notation FEN
   const whitePieceSymbols: Record<string, string> = {
-    'K': '♔',
-    'Q': '♕',
-    'R': '♖',
-    'B': '♗',
-    'N': '♘',
-    'P': '♙',
-    'king': '♔',
-    'queen': '♕',
-    'rook': '♖',
-    'bishop': '♗',
-    'knight': '♘',
-    'pawn': '♙',
+    K: "♔",
+    Q: "♕",
+    R: "♖",
+    B: "♗",
+    N: "♘",
+    P: "♙",
+    king: "♔",
+    queen: "♕",
+    rook: "♖",
+    bishop: "♗",
+    knight: "♘",
+    pawn: "♙",
   };
 
   // Pièces noires (pleines) - minuscules en notation FEN
   const blackPieceSymbols: Record<string, string> = {
-    'k': '♚',
-    'q': '♛',
-    'r': '♜',
-    'b': '♝',
-    'n': '♞',
-    'p': '♟',
+    k: "♚",
+    q: "♛",
+    r: "♜",
+    b: "♝",
+    n: "♞",
+    p: "♟",
   };
 
   // Détecter si une pièce est blanche (majuscule ou mot-clé)
@@ -125,19 +133,25 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
     // Majuscule = blanc en notation FEN
     if (piece.length === 1) return piece === piece.toUpperCase();
     // Mot-clé avec préfixe white
-    return piece.toLowerCase().startsWith('white') || 
-           ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'].includes(piece.toLowerCase());
+    return (
+      piece.toLowerCase().startsWith("white") ||
+      ["king", "queen", "rook", "bishop", "knight", "pawn"].includes(piece.toLowerCase())
+    );
   };
 
   // Obtenir le symbole et la couleur d'une pièce
   const getPieceInfo = (piece: string): { symbol: string; isWhite: boolean } | null => {
-    if (!piece || piece === '' || piece === ' ' || piece === '.') return null;
-    
+    if (!piece || piece === "" || piece === " " || piece === ".") return null;
+
     const isWhite = isWhitePiece(piece);
-    const key = piece.length === 1 ? piece : piece.toLowerCase().replace('white', '').replace('black', '').trim();
-    
+    const key =
+      piece.length === 1
+        ? piece
+        : piece.toLowerCase().replace("white", "").replace("black", "").trim();
+
     if (isWhite) {
-      const symbol = whitePieceSymbols[piece] || whitePieceSymbols[key.toUpperCase()] || whitePieceSymbols[key];
+      const symbol =
+        whitePieceSymbols[piece] || whitePieceSymbols[key.toUpperCase()] || whitePieceSymbols[key];
       if (symbol) return { symbol, isWhite: true };
     } else {
       const symbol = blackPieceSymbols[piece] || blackPieceSymbols[key.toLowerCase()];
@@ -147,11 +161,11 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
   };
 
   // Couleurs pour l'échiquier
-  const lightSquare = 'bg-amber-100 dark:bg-amber-200';
-  const darkSquare = 'bg-amber-800 dark:bg-amber-900';
-  const highlightSquare = 'bg-blue-400 dark:bg-blue-600';
-  const reachableSquare = 'bg-green-400 dark:bg-green-600';
-  const currentSquare = 'bg-red-400 dark:bg-red-600';
+  const lightSquare = "bg-amber-100 dark:bg-amber-200";
+  const darkSquare = "bg-amber-800 dark:bg-amber-900";
+  const highlightSquare = "bg-blue-400 dark:bg-blue-600";
+  const reachableSquare = "bg-green-400 dark:bg-green-600";
+  const currentSquare = "bg-red-400 dark:bg-red-600";
 
   // Vérifier si une position est la position actuelle
   const isCurrentPosition = (row: number, col: number): boolean => {
@@ -174,21 +188,25 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
     if (isCurrentPosition(row, col)) return currentSquare;
     if (isReachablePosition(row, col)) return reachableSquare;
     if (isHighlightPosition(row, col)) return highlightSquare;
-    
+
     // Alternance standard échiquier
     return (row + col) % 2 === 0 ? lightSquare : darkSquare;
   };
 
   // Obtenir le contenu d'une case avec info couleur
-  const getSquareContentInfo = (row: number, col: number): { symbol: string; isWhite: boolean } | null => {
+  const getSquareContentInfo = (
+    row: number,
+    col: number
+  ): { symbol: string; isWhite: boolean } | null => {
     // Si on a un board 2D avec des vraies pièces (pas des labels comme "A1", "B2")
     if (hasBoard && board[row] && board[row][col] !== undefined) {
       const raw = board[row][col];
-      const piece = typeof raw === 'object' && raw !== null && 'piece' in raw
-        ? String((raw as { piece?: string }).piece)
-        : String(raw ?? '');
+      const piece =
+        typeof raw === "object" && raw !== null && "piece" in raw
+          ? String((raw as { piece?: string }).piece)
+          : String(raw ?? "");
       // Exclure les labels de cases (a1-h8) et les chaînes vides
-      if (piece && piece !== ' ' && piece !== '.' && !piece.match(/^[a-h][1-8]$/i)) {
+      if (piece && piece !== " " && piece !== "." && !piece.match(/^[a-h][1-8]$/i)) {
         const info = getPieceInfo(piece);
         if (info) return info;
       }
@@ -199,7 +217,7 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
       const info = getPieceInfo(currentPiece);
       if (info) return info;
       // Fallback pour le cavalier par défaut (blanc)
-      return { symbol: '♘', isWhite: true };
+      return { symbol: "♘", isWhite: true };
     }
 
     return null;
@@ -207,20 +225,21 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
 
   // Obtenir le label d'une position (notation échecs : a1, b2, etc.)
   const getPositionLabel = (row: number, col: number): string => {
-    const files = 'abcdefgh';
+    const files = "abcdefgh";
     return `${files[col]}${boardSize - row}`;
   };
 
   // Labels d'objectif lisibles
   const objectiveLabels: Record<string, string> = {
-    mat_en_1: 'Mat en 1 coup',
-    mat_en_2: 'Mat en 2 coups',
-    mat_en_3: 'Mat en 3 coups',
-    meilleur_coup: 'Meilleur coup',
-    gain_materiel: 'Gain de matériel',
+    mat_en_1: "Mat en 1 coup",
+    mat_en_2: "Mat en 2 coups",
+    mat_en_3: "Mat en 3 coups",
+    meilleur_coup: "Meilleur coup",
+    gain_materiel: "Gain de matériel",
   };
-  const objectiveLabel = objective ? (objectiveLabels[objective] || objective) : '';
-  const turnLabel = turn === 'white' ? 'Les blancs jouent' : turn === 'black' ? 'Les noirs jouent' : '';
+  const objectiveLabel = objective ? objectiveLabels[objective] || objective : "";
+  const turnLabel =
+    turn === "white" ? "Les blancs jouent" : turn === "black" ? "Les noirs jouent" : "";
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -265,7 +284,7 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
           <div className="flex items-center gap-1">
             <div className={`w-4 h-4 ${highlightSquare} rounded border border-border`} />
             <span className="text-muted-foreground">
-              {hasBoard ? 'Pièces clés / cases importantes' : 'Positions spéciales'}
+              {hasBoard ? "Pièces clés / cases importantes" : "Positions spéciales"}
             </span>
           </div>
         )}
@@ -324,16 +343,16 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
                         >
                           {/* Contenu de la case (pièce ou marqueur) */}
                           {pieceInfo ? (
-                            <span 
+                            <span
                               className="text-2xl select-none"
                               style={{
                                 // Pièces blanches : texte clair avec contour sombre
                                 // Pièces noires : texte sombre avec contour clair
-                                color: pieceInfo.isWhite ? '#FFFFFF' : '#1a1a1a',
-                                textShadow: pieceInfo.isWhite 
-                                  ? '0 0 3px #000, 0 0 3px #000, 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000'
-                                  : '0 0 3px #fff, 0 0 3px #fff, 1px 1px 1px #fff, -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff',
-                                WebkitTextStroke: pieceInfo.isWhite ? '0.5px #333' : '0.5px #ccc',
+                                color: pieceInfo.isWhite ? "#FFFFFF" : "#1a1a1a",
+                                textShadow: pieceInfo.isWhite
+                                  ? "0 0 3px #000, 0 0 3px #000, 1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000"
+                                  : "0 0 3px #fff, 0 0 3px #fff, 1px 1px 1px #fff, -1px -1px 1px #fff, 1px -1px 1px #fff, -1px 1px 1px #fff",
+                                WebkitTextStroke: pieceInfo.isWhite ? "0.5px #333" : "0.5px #ccc",
                               }}
                             >
                               {pieceInfo.symbol}
@@ -367,7 +386,8 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-primary">Position actuelle :</span>
                 <code className="bg-muted px-2 py-1 rounded text-foreground">
-                  {getPositionLabel(knightPosition[0], knightPosition[1])} ({knightPosition[0]}, {knightPosition[1]})
+                  {getPositionLabel(knightPosition[0], knightPosition[1])} ({knightPosition[0]},{" "}
+                  {knightPosition[1]})
                 </code>
               </div>
             )}
@@ -378,7 +398,12 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
                 <div className="flex flex-wrap gap-2 mt-2">
                   {reachablePositions.map((pos: any, index: number) => {
                     // Vérifier que pos est un tableau valide avec 2 éléments
-                    if (!Array.isArray(pos) || pos.length < 2 || typeof pos[0] !== 'number' || typeof pos[1] !== 'number') {
+                    if (
+                      !Array.isArray(pos) ||
+                      pos.length < 2 ||
+                      typeof pos[0] !== "number" ||
+                      typeof pos[1] !== "number"
+                    ) {
                       return null;
                     }
                     return (
@@ -392,7 +417,8 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
                   })}
                 </div>
                 <div className="mt-2 text-muted-foreground">
-                  Total : <span className="font-semibold">{reachablePositions.length}</span> positions
+                  Total : <span className="font-semibold">{reachablePositions.length}</span>{" "}
+                  positions
                 </div>
               </div>
             )}
@@ -402,4 +428,3 @@ export function ChessRenderer({ visualData, className = '' }: ChessRendererProps
     </div>
   );
 }
-

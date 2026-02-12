@@ -1,23 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import {
-  Settings2,
-  Contrast,
-  Type,
-  Move,
-  BookOpen,
-  Focus,
-  X,
-  Check,
-} from 'lucide-react';
-import { useAccessibilityStore } from '@/lib/stores/accessibilityStore';
-import { cn } from '@/lib/utils/cn';
+import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
+import { Settings2, Contrast, Type, Move, BookOpen, Focus, X, Check } from "lucide-react";
+import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
+import { cn } from "@/lib/utils/cn";
 
 /**
  * Toolbar d'accessibilité - Version robuste avec Portal dédié
- * 
+ *
  * Best practices implementées :
  * - Position bottom-left (convention UserWay/accessiBe)
  * - Conteneur Portal dédié pour éviter les conflits
@@ -27,7 +18,7 @@ import { cn } from '@/lib/utils/cn';
  */
 
 // ID unique pour le conteneur Portal
-const PORTAL_CONTAINER_ID = 'accessibility-toolbar-portal';
+const PORTAL_CONTAINER_ID = "accessibility-toolbar-portal";
 
 interface AccessibilityOption {
   id: string;
@@ -43,7 +34,7 @@ export function AccessibilityToolbar() {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  
+
   const {
     highContrast,
     largeText,
@@ -60,55 +51,55 @@ export function AccessibilityToolbar() {
   // Options d'accessibilité
   const options: AccessibilityOption[] = [
     {
-      id: 'contrast',
-      label: 'Contraste élevé',
-      shortcut: 'Alt+C',
+      id: "contrast",
+      label: "Contraste élevé",
+      shortcut: "Alt+C",
       icon: <Contrast className="h-4 w-4" />,
       isActive: highContrast,
       toggle: toggleHighContrast,
     },
     {
-      id: 'text',
-      label: 'Texte agrandi',
-      shortcut: 'Alt+T',
+      id: "text",
+      label: "Texte agrandi",
+      shortcut: "Alt+T",
       icon: <Type className="h-4 w-4" />,
       isActive: largeText,
       toggle: toggleLargeText,
     },
     {
-      id: 'motion',
-      label: 'Réduire animations',
-      shortcut: 'Alt+M',
+      id: "motion",
+      label: "Réduire animations",
+      shortcut: "Alt+M",
       icon: <Move className="h-4 w-4" />,
       isActive: reducedMotion,
       toggle: toggleReducedMotion,
     },
     {
-      id: 'dyslexia',
-      label: 'Mode dyslexie',
-      shortcut: 'Alt+D',
+      id: "dyslexia",
+      label: "Mode dyslexie",
+      shortcut: "Alt+D",
       icon: <BookOpen className="h-4 w-4" />,
       isActive: dyslexiaMode,
       toggle: toggleDyslexiaMode,
     },
     {
-      id: 'focus',
-      label: 'Mode focus',
-      shortcut: 'Alt+F',
+      id: "focus",
+      label: "Mode focus",
+      shortcut: "Alt+F",
       icon: <Focus className="h-4 w-4" />,
       isActive: focusMode,
       toggle: toggleFocusMode,
     },
   ];
 
-  const activeCount = options.filter(o => o.isActive).length;
+  const activeCount = options.filter((o) => o.isActive).length;
 
   // Créer/obtenir le conteneur Portal au montage
   useEffect(() => {
     let container = document.getElementById(PORTAL_CONTAINER_ID);
-    
+
     if (!container) {
-      container = document.createElement('div');
+      container = document.createElement("div");
       container.id = PORTAL_CONTAINER_ID;
       // Styles inline pour garantir le positionnement
       container.style.cssText = `
@@ -120,9 +111,9 @@ export function AccessibilityToolbar() {
       `;
       document.body.appendChild(container);
     }
-    
+
     setMounted(true);
-    
+
     return () => {
       // Ne pas supprimer le conteneur au démontage (évite les flickering)
     };
@@ -134,7 +125,7 @@ export function AccessibilityToolbar() {
 
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        menuRef.current && 
+        menuRef.current &&
         !menuRef.current.contains(event.target as Node) &&
         buttonRef.current &&
         !buttonRef.current.contains(event.target as Node)
@@ -144,18 +135,18 @@ export function AccessibilityToolbar() {
     };
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         setIsOpen(false);
         buttonRef.current?.focus();
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpen]);
 
@@ -176,9 +167,9 @@ export function AccessibilityToolbar() {
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen ? 'true' : 'false'}
+        aria-expanded={isOpen ? "true" : "false"}
         aria-haspopup="true"
-        aria-label={`Options d'accessibilité${activeCount > 0 ? ` (${activeCount} actif${activeCount > 1 ? 's' : ''})` : ''}`}
+        aria-label={`Options d'accessibilité${activeCount > 0 ? ` (${activeCount} actif${activeCount > 1 ? "s" : ""})` : ""}`}
         className={cn(
           // Taille WCAG AAA (44x44 minimum)
           "relative flex items-center justify-center h-12 w-12 rounded-full",
@@ -198,10 +189,10 @@ export function AccessibilityToolbar() {
         )}
       >
         <Settings2 className="h-6 w-6" aria-hidden="true" />
-        
+
         {/* Badge compteur */}
         {activeCount > 0 && (
-          <span 
+          <span
             className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white"
             aria-hidden="true"
           >
@@ -247,7 +238,7 @@ export function AccessibilityToolbar() {
                 type="button"
                 role="switch"
                 aria-label={option.label}
-                aria-checked={option.isActive ? 'true' : 'false'}
+                aria-checked={option.isActive ? "true" : "false"}
                 onClick={() => {
                   option.toggle();
                 }}
@@ -260,29 +251,40 @@ export function AccessibilityToolbar() {
                 )}
               >
                 {/* Icône */}
-                <span className={cn(
-                  "flex-shrink-0",
-                  option.isActive ? "text-violet-600 dark:text-violet-400" : "text-gray-500 dark:text-gray-400"
-                )}>
+                <span
+                  className={cn(
+                    "flex-shrink-0",
+                    option.isActive
+                      ? "text-violet-600 dark:text-violet-400"
+                      : "text-gray-500 dark:text-gray-400"
+                  )}
+                >
                   {option.icon}
                 </span>
-                
+
                 {/* Label */}
-                <span className={cn(
-                  "flex-1 text-sm",
-                  option.isActive ? "text-violet-700 dark:text-violet-300 font-medium" : "text-gray-700 dark:text-gray-300"
-                )}>
+                <span
+                  className={cn(
+                    "flex-1 text-sm",
+                    option.isActive
+                      ? "text-violet-700 dark:text-violet-300 font-medium"
+                      : "text-gray-700 dark:text-gray-300"
+                  )}
+                >
                   {option.label}
                 </span>
-                
+
                 {/* Raccourci */}
                 <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:inline">
                   {option.shortcut}
                 </span>
-                
+
                 {/* Indicateur actif */}
                 {option.isActive && (
-                  <Check className="h-4 w-4 text-violet-600 dark:text-violet-400 flex-shrink-0" aria-hidden="true" />
+                  <Check
+                    className="h-4 w-4 text-violet-600 dark:text-violet-400 flex-shrink-0"
+                    aria-hidden="true"
+                  />
                 )}
               </button>
             ))}

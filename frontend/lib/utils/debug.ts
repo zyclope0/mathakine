@@ -8,7 +8,7 @@
  * Ne log que si NODE_ENV === 'development'
  */
 export function debugLog(message: string, ...args: unknown[]): void {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     console.log(`[DEBUG] ${message}`, ...args);
   }
 }
@@ -17,7 +17,7 @@ export function debugLog(message: string, ...args: unknown[]): void {
  * Log d'erreur de débogage conditionnel
  */
 export function debugError(message: string, error?: unknown): void {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     console.error(`[DEBUG ERROR] ${message}`, error);
   }
 }
@@ -26,7 +26,7 @@ export function debugError(message: string, error?: unknown): void {
  * Log d'avertissement de débogage conditionnel
  */
 export function debugWarn(message: string, ...args: unknown[]): void {
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     console.warn(`[DEBUG WARN] ${message}`, ...args);
   }
 }

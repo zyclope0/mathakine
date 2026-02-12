@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { Sun, Moon } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useThemeStore } from '@/lib/stores/themeStore';
+import { Button } from "@/components/ui/button";
+import { Sun, Moon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useThemeStore } from "@/lib/stores/themeStore";
 
 /**
  * Toggle pour basculer entre mode clair et sombre
@@ -18,28 +18,28 @@ export function DarkModeToggle() {
   useEffect(() => {
     setMounted(true);
     // Vérifier la préférence stockée ou système
-    const stored = localStorage.getItem('dark-mode');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = stored !== null ? stored === 'true' : prefersDark;
-    
+    const stored = localStorage.getItem("dark-mode");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const shouldBeDark = stored !== null ? stored === "true" : prefersDark;
+
     setIsDark(shouldBeDark);
     if (shouldBeDark) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }, []);
 
   // Réappliquer le dark mode quand le thème change
   useEffect(() => {
     if (mounted) {
-      const stored = localStorage.getItem('dark-mode');
-      const isDarkMode = stored === 'true';
-      
+      const stored = localStorage.getItem("dark-mode");
+      const isDarkMode = stored === "true";
+
       if (isDarkMode) {
-        document.documentElement.classList.add('dark');
+        document.documentElement.classList.add("dark");
       } else {
-        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove("dark");
       }
     }
   }, [theme, mounted]);
@@ -47,12 +47,12 @@ export function DarkModeToggle() {
   const toggleDarkMode = () => {
     const newIsDark = !isDark;
     setIsDark(newIsDark);
-    localStorage.setItem('dark-mode', String(newIsDark));
-    
+    localStorage.setItem("dark-mode", String(newIsDark));
+
     if (newIsDark) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   };
 
@@ -76,8 +76,8 @@ export function DarkModeToggle() {
       variant="ghost"
       size="sm"
       onClick={toggleDarkMode}
-      aria-label={isDark ? 'Passer en mode clair' : 'Passer en mode sombre'}
-      title={isDark ? 'Mode sombre actif' : 'Mode clair actif'}
+      aria-label={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
+      title={isDark ? "Mode sombre actif" : "Mode clair actif"}
       className="h-9 w-9 p-0"
     >
       {isDark ? (
@@ -88,4 +88,3 @@ export function DarkModeToggle() {
     </Button>
   );
 }
-

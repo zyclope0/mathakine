@@ -21,17 +21,18 @@ const exo2 = Exo_2({
 // Déterminer l'URL de base selon l'environnement
 const getMetadataBase = (): string => {
   // En production, utiliser l'URL de production
-  if (process.env.NODE_ENV === 'production') {
-    return process.env.NEXT_PUBLIC_SITE_URL || 'https://mathakine-frontend.onrender.com';
+  if (process.env.NODE_ENV === "production") {
+    return process.env.NEXT_PUBLIC_SITE_URL || "https://mathakine-frontend.onrender.com";
   }
   // En développement, utiliser localhost ou l'URL spécifiée
-  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(getMetadataBase()),
   title: "Mathakine - Apprentissage Mathématique Adaptatif",
-  description: "Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans. Exercices personnalisés, défis logiques et gamification pour progresser en mathématiques.",
+  description:
+    "Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans. Exercices personnalisés, défis logiques et gamification pour progresser en mathématiques.",
   keywords: [
     "mathématiques",
     "apprentissage adaptatif",
@@ -62,16 +63,15 @@ export const metadata: Metadata = {
       { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [
-      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
-    ],
+    apple: [{ url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" }],
   },
   openGraph: {
     type: "website",
     locale: "fr_FR",
     url: "https://mathakine.onrender.com",
     title: "Mathakine - Apprentissage Mathématique Adaptatif",
-    description: "Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans. Exercices personnalisés, défis logiques et gamification.",
+    description:
+      "Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans. Exercices personnalisés, défis logiques et gamification.",
     siteName: "Mathakine",
     images: [
       {
@@ -133,7 +133,12 @@ export default function RootLayout({
           <div className="flex min-h-screen flex-col">
             <Header />
             <AlphaBanner />
-            <main id="main-content" className="flex-1 relative z-10" role="main" aria-label="Contenu principal">
+            <main
+              id="main-content"
+              className="flex-1 relative z-10"
+              role="main"
+              aria-label="Contenu principal"
+            >
               <PageTransition>{children}</PageTransition>
             </main>
             <Footer />

@@ -73,11 +73,11 @@ describe('MyComponent', () => {
 ### Test E2E
 
 ```typescript
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test('parcours utilisateur complet', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.getByRole('heading')).toBeVisible();
+test("parcours utilisateur complet", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading")).toBeVisible();
 });
 ```
 
@@ -110,14 +110,15 @@ Pour tester le contenu d’un menu (ex. AccessibilityToolbar) : ouvrir le menu a
 ## 🐛 Debugging
 
 ### Vitest
+
 ```bash
 # Mode debug avec breakpoints
 npm run test -- --inspect-brk
 ```
 
 ### Playwright
+
 ```bash
 # Mode debug interactif
 npm run test:e2e:ui
 ```
-

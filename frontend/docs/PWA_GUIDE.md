@@ -26,6 +26,7 @@ npm install @ducanh2912/next-pwa
 ```
 
 **Pourquoi `@ducanh2912/next-pwa` ?**
+
 - Compatible avec Next.js 16 App Router
 - Support TypeScript
 - Configuration Workbox intégrée
@@ -52,6 +53,7 @@ const pwaConfig = withPWA({
 ```
 
 **Options importantes** :
+
 - `disable: process.env.NODE_ENV === "development"` : PWA désactivée en développement
 - `cacheOnFrontEndNav` : Cache automatique lors de la navigation
 - `reloadOnOnline` : Rechargement automatique quand la connexion revient
@@ -74,6 +76,7 @@ Le manifest définit les métadonnées de l'application PWA :
 ### **Icônes Requises**
 
 Les icônes doivent être placées dans `public/icons/` :
+
 - 72x72, 96x96, 128x128, 144x144, 152x152, 192x192, 384x384, 512x512
 
 **Note** : Les icônes 192x192 et 512x512 doivent être maskable (safe zone de 80%).
@@ -81,6 +84,7 @@ Les icônes doivent être placées dans `public/icons/` :
 ### **Shortcuts**
 
 3 raccourcis définis :
+
 - **Exercices** : `/exercises`
 - **Défis** : `/challenges`
 - **Dashboard** : `/dashboard`
@@ -96,22 +100,26 @@ Le Service Worker est généré automatiquement lors du build production dans `p
 ### **Stratégies de Cache**
 
 #### **1. Fonts Google (CacheFirst)**
+
 - Cache : 1 an
 - Max entries : 10
 - URLs : `fonts.googleapis.com`, `fonts.gstatic.com`
 
 #### **2. Images (CacheFirst)**
+
 - Cache : 30 jours
 - Max entries : 100
 - Formats : PNG, JPG, JPEG, SVG, GIF, WebP, AVIF
 
 #### **3. API (NetworkFirst)**
+
 - Cache : 5 minutes
 - Max entries : 50
 - Timeout : 10 secondes
 - URLs : `/api/*`
 
 **Pourquoi NetworkFirst pour l'API ?**
+
 - Données dynamiques (exercices, statistiques)
 - Besoin de données à jour
 - Fallback vers cache si offline
@@ -123,6 +131,7 @@ Le Service Worker est généré automatiquement lors du build production dans `p
 ### **Composant InstallPrompt**
 
 Le composant `InstallPrompt` (`components/pwa/InstallPrompt.tsx`) :
+
 - Détecte si l'app peut être installée
 - Affiche un prompt après 30 secondes d'utilisation
 - Permet l'installation en un clic
@@ -144,6 +153,7 @@ Le composant est intégré dans `app/layout.tsx` et s'affiche automatiquement.
 ### **Page Offline**
 
 Une page dédiée `/offline` (`app/offline/page.tsx`) :
+
 - S'affiche automatiquement si offline
 - Bouton de réessai
 - Message informatif
@@ -151,11 +161,13 @@ Une page dédiée `/offline` (`app/offline/page.tsx`) :
 ### **Fonctionnalités Offline**
 
 **Disponibles** :
+
 - Navigation entre pages visitées (cache)
 - Affichage des exercices/défis en cache
 - Affichage des statistiques en cache
 
 **Non disponibles** :
+
 - Génération d'exercices (nécessite API)
 - Soumission de réponses (nécessite API)
 - Synchronisation des données
@@ -170,16 +182,19 @@ Une page dédiée `/offline` (`app/offline/page.tsx`) :
 ## 🗄️ **Cache Strategies**
 
 ### **CacheFirst**
+
 - **Utilisé pour** : Assets statiques (fonts, images)
 - **Avantage** : Performance maximale
 - **Inconvénient** : Peut servir du contenu obsolète
 
 ### **NetworkFirst**
+
 - **Utilisé pour** : Données dynamiques (API)
 - **Avantage** : Données toujours à jour
 - **Inconvénient** : Nécessite connexion
 
 ### **StaleWhileRevalidate** (futur)
+
 - **Utilisé pour** : Contenu qui peut être légèrement obsolète
 - **Avantage** : Performance + fraîcheur
 
@@ -223,6 +238,7 @@ npm start
 ```
 
 **Critères PWA** :
+
 - ✅ Manifest valide
 - ✅ Service Worker enregistré
 - ✅ HTTPS (production)
@@ -237,8 +253,9 @@ npm start
 ### **Développement**
 
 La PWA est **désactivée en développement** pour éviter les problèmes de cache :
+
 ```typescript
-disable: process.env.NODE_ENV === "development"
+disable: process.env.NODE_ENV === "development";
 ```
 
 ### **Production**
@@ -279,4 +296,3 @@ La PWA nécessite HTTPS en production. Render.com fournit HTTPS automatiquement.
 ---
 
 **Dernière mise à jour** : 9 Novembre 2025
-

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { WifiOff, RefreshCw } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button";
+import { WifiOff, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function OfflinePage() {
   const router = useRouter();
@@ -12,9 +12,13 @@ export default function OfflinePage() {
       router.refresh();
     } else {
       // Attendre que la connexion revienne
-      window.addEventListener('online', () => {
-        router.refresh();
-      }, { once: true });
+      window.addEventListener(
+        "online",
+        () => {
+          router.refresh();
+        },
+        { once: true }
+      );
     }
   };
 
@@ -26,7 +30,7 @@ export default function OfflinePage() {
             <WifiOff className="h-16 w-16 text-muted-foreground" />
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Hors ligne</h1>
           <p className="text-muted-foreground">
@@ -34,10 +38,7 @@ export default function OfflinePage() {
           </p>
         </div>
 
-        <Button
-          onClick={handleRetry}
-          className="flex items-center gap-2"
-        >
+        <Button onClick={handleRetry} className="flex items-center gap-2">
           <RefreshCw className="h-4 w-4" />
           Réessayer
         </Button>
@@ -49,4 +50,3 @@ export default function OfflinePage() {
     </div>
   );
 }
-

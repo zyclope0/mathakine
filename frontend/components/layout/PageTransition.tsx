@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { usePathname } from 'next/navigation';
-import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
-import { ReactNode, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
+import { ReactNode, useEffect, useRef } from "react";
 
 interface PageTransitionProps {
   children: ReactNode;
@@ -30,11 +30,13 @@ export function PageTransition({ children }: PageTransitionProps) {
 
     const forceVisibility = () => {
       if (containerRef.current) {
-        containerRef.current.style.opacity = '1';
+        containerRef.current.style.opacity = "1";
       }
-      const animatedElements = document.querySelectorAll('.animate-fade-in-up, .animate-fade-in-up-delay-1, .animate-fade-in-up-delay-2, .animate-fade-in-up-delay-3');
+      const animatedElements = document.querySelectorAll(
+        ".animate-fade-in-up, .animate-fade-in-up-delay-1, .animate-fade-in-up-delay-2, .animate-fade-in-up-delay-3"
+      );
       animatedElements.forEach((el) => {
-        (el as HTMLElement).style.opacity = '1';
+        (el as HTMLElement).style.opacity = "1";
       });
     };
 
@@ -51,7 +53,11 @@ export function PageTransition({ children }: PageTransitionProps) {
 
   // Si reduced motion, pas d'animation - afficher directement avec opacité 1
   if (shouldReduceMotion) {
-    return <div className="relative z-10" style={{ opacity: 1 }}>{children}</div>;
+    return (
+      <div className="relative z-10" style={{ opacity: 1 }}>
+        {children}
+      </div>
+    );
   }
 
   return (
@@ -67,7 +73,7 @@ export function PageTransition({ children }: PageTransitionProps) {
         className="relative z-10"
         onAnimationComplete={() => {
           if (containerRef.current) {
-            containerRef.current.style.opacity = '1';
+            containerRef.current.style.opacity = "1";
           }
         }}
       >
@@ -76,4 +82,3 @@ export function PageTransition({ children }: PageTransitionProps) {
     </AnimatePresence>
   );
 }
-

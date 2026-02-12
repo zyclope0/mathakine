@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { use } from 'react';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { ChallengeSolver } from '@/components/challenges/ChallengeSolver';
-import { useRouter } from 'next/navigation';
-import { PageLayout, EmptyState } from '@/components/layout';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { use } from "react";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ChallengeSolver } from "@/components/challenges/ChallengeSolver";
+import { useRouter } from "next/navigation";
+import { PageLayout, EmptyState } from "@/components/layout";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ChallengePageProps {
   params: Promise<{ id: string }>;
@@ -16,8 +16,8 @@ interface ChallengePageProps {
 
 export default function ChallengePage({ params }: ChallengePageProps) {
   const router = useRouter();
-  const tError = useTranslations('challenges.error');
-  const tSolver = useTranslations('challenges.solver');
+  const tError = useTranslations("challenges.error");
+  const tSolver = useTranslations("challenges.solver");
   const { id } = use(params);
   const challengeId = parseInt(id, 10);
 
@@ -26,13 +26,13 @@ export default function ChallengePage({ params }: ChallengePageProps) {
       <ProtectedRoute>
         <PageLayout>
           <EmptyState
-            title={tError('invalidId')}
-            description={tError('invalidIdMessage', { id })}
+            title={tError("invalidId")}
+            description={tError("invalidIdMessage", { id })}
             action={
               <Button asChild variant="outline">
                 <Link href="/challenges">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  {tSolver('back')}
+                  {tSolver("back")}
                 </Link>
               </Button>
             }
@@ -52,4 +52,3 @@ export default function ChallengePage({ params }: ChallengePageProps) {
     </ProtectedRoute>
   );
 }
-

@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { use } from 'react';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { ExerciseSolver } from '@/components/exercises/ExerciseSolver';
-import { useTranslations } from 'next-intl';
-import { PageLayout, EmptyState } from '@/components/layout';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { use } from "react";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ExerciseSolver } from "@/components/exercises/ExerciseSolver";
+import { useTranslations } from "next-intl";
+import { PageLayout, EmptyState } from "@/components/layout";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 interface ExercisePageProps {
   params: Promise<{ id: string }>;
 }
 
 export default function ExercisePage({ params }: ExercisePageProps) {
-  const t = useTranslations('exercises.error');
+  const t = useTranslations("exercises.error");
   // Utiliser use() pour unwrap la Promise dans Next.js 15+
   const { id } = use(params);
   const exerciseId = parseInt(id, 10);
@@ -24,8 +24,8 @@ export default function ExercisePage({ params }: ExercisePageProps) {
       <ProtectedRoute>
         <PageLayout>
           <EmptyState
-            title={t('invalidId')}
-            description={t('invalidIdMessage', { id })}
+            title={t("invalidId")}
+            description={t("invalidIdMessage", { id })}
             action={
               <Button asChild variant="outline">
                 <Link href="/exercises">
@@ -50,4 +50,3 @@ export default function ExercisePage({ params }: ExercisePageProps) {
     </ProtectedRoute>
   );
 }
-

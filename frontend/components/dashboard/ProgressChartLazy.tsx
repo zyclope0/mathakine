@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { ChartSkeleton } from '@/components/dashboard/DashboardSkeletons';
+import dynamic from "next/dynamic";
+import { ChartSkeleton } from "@/components/dashboard/DashboardSkeletons";
 
 // Composant de chargement avec skeleton
 function ProgressChartLoading() {
@@ -9,10 +9,13 @@ function ProgressChartLoading() {
 }
 
 // Lazy load Recharts pour réduire le bundle initial
-const ProgressChart = dynamic(() => import('./ProgressChart').then(mod => ({ default: mod.ProgressChart })), {
-  loading: () => <ProgressChartLoading />,
-  ssr: false, // Désactiver SSR pour les graphiques (non critiques pour SEO)
-});
+const ProgressChart = dynamic(
+  () => import("./ProgressChart").then((mod) => ({ default: mod.ProgressChart })),
+  {
+    loading: () => <ProgressChartLoading />,
+    ssr: false, // Désactiver SSR pour les graphiques (non critiques pour SEO)
+  }
+);
 
 interface ProgressChartLazyProps {
   data: {
@@ -27,4 +30,3 @@ interface ProgressChartLazyProps {
 export function ProgressChartLazy(props: ProgressChartLazyProps) {
   return <ProgressChart {...props} />;
 }
-

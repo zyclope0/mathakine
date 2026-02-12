@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
-import { useChat } from '@/hooks/useChat';
-import { useTranslations } from 'next-intl';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
+import { useChat } from "@/hooks/useChat";
+import { useTranslations } from "next-intl";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ChatbotFloatingProps {
   isOpen?: boolean;
@@ -17,26 +17,31 @@ interface ChatbotFloatingProps {
 
 /**
  * Chatbot Flottant - Version améliorée
- * 
+ *
  * - Bouton flottant positionné à gauche des boutons d'accessibilité
  * - Chat en drawer slide-in depuis la droite (plus grand et mieux positionné)
  */
 export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatingProps) {
-  const t = useTranslations('home.chatbot');
-  
-  const { messages, input, setInput, handleSend, sendInputMessage, handleKeyPress, isLoading, suggestions } = useChat({
+  const t = useTranslations("home.chatbot");
+
+  const {
+    messages,
+    input,
+    setInput,
+    handleSend,
+    sendInputMessage,
+    handleKeyPress,
+    isLoading,
+    suggestions,
+  } = useChat({
     initialMessages: [
       {
-        id: '1',
-        role: 'assistant',
-        content: t('initialMessage'),
+        id: "1",
+        role: "assistant",
+        content: t("initialMessage"),
       },
     ],
-    initialSuggestions: [
-      "Qu'est-ce que Mathakine ?",
-      "Comment progresser ?",
-      "Créer un exercice"
-    ]
+    initialSuggestions: ["Qu'est-ce que Mathakine ?", "Comment progresser ?", "Créer un exercice"],
   });
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -64,7 +69,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
     <>
       {/* Overlay sombre quand ouvert - z-[100] pour être au-dessus du header (z-40) */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/30 z-[100] animate-in fade-in duration-200"
           onClick={() => handleOpenChange(false)}
           aria-hidden="true"
@@ -72,7 +77,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
       )}
 
       {/* Panel de chat - Drawer depuis la droite */}
-      <div 
+      <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="chatbot-title"
@@ -80,9 +85,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
           "fixed top-0 right-0 h-full w-full sm:w-[400px] z-[101]",
           "bg-background border-l shadow-2xl",
           "transition-all duration-300 ease-out",
-          isOpen 
-            ? "translate-x-0 visible opacity-100" 
-            : "translate-x-full invisible opacity-0"
+          isOpen ? "translate-x-0 visible opacity-100" : "translate-x-full invisible opacity-0"
         )}
         aria-hidden={!isOpen}
       >
@@ -94,13 +97,15 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
                 <MessageCircle className="h-5 w-5 text-primary" aria-hidden="true" />
               </div>
               <div>
-                <h2 id="chatbot-title" className="font-semibold">{t('title')}</h2>
-                <p className="text-xs text-muted-foreground">{t('subtitle')}</p>
+                <h2 id="chatbot-title" className="font-semibold">
+                  {t("title")}
+                </h2>
+                <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
               </div>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="h-10 w-10"
               onClick={() => handleOpenChange(false)}
               aria-label="Fermer l'assistant"
@@ -112,33 +117,31 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
           {/* Messages */}
           <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((message) => (
-              <div 
-                key={message.id} 
+              <div
+                key={message.id}
                 className={cn(
-                  'flex gap-3',
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
+                  "flex gap-3",
+                  message.role === "user" ? "justify-end" : "justify-start"
                 )}
               >
-                {message.role === 'assistant' && (
+                {message.role === "assistant" && (
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
                     <MessageCircle className="h-4 w-4 text-primary" />
                   </div>
                 )}
-                <div 
+                <div
                   className={cn(
-                    'prose prose-sm max-w-[85%] rounded-2xl px-4 py-3',
-                    message.role === 'user' 
-                      ? 'bg-primary text-primary-foreground rounded-br-md' 
-                      : 'bg-muted rounded-bl-md'
+                    "prose prose-sm max-w-[85%] rounded-2xl px-4 py-3",
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground rounded-br-md"
+                      : "bg-muted rounded-bl-md"
                   )}
                 >
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {message.content}
-                  </ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
                 </div>
               </div>
             ))}
-            {isLoading && messages[messages.length - 1]?.role === 'user' && (
+            {isLoading && messages[messages.length - 1]?.role === "user" && (
               <div className="flex justify-start gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
                   <MessageCircle className="h-4 w-4 text-primary" />
@@ -156,11 +159,11 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
               <p className="text-xs text-muted-foreground mb-2">Suggestions :</p>
               <div className="flex flex-wrap gap-2">
                 {suggestions.map((s, i) => (
-                  <Button 
-                    key={i} 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleSend(s)} 
+                  <Button
+                    key={i}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSend(s)}
                     className="text-xs h-8 rounded-full"
                   >
                     {s}
@@ -179,19 +182,23 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyPress}
-                placeholder={t('inputPlaceholder')}
+                placeholder={t("inputPlaceholder")}
                 disabled={isLoading}
                 className="flex-1 rounded-full border border-input bg-muted/50 px-4 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
                 aria-label="Message"
               />
-              <Button 
-                onClick={sendInputMessage} 
-                disabled={!input.trim() || isLoading} 
+              <Button
+                onClick={sendInputMessage}
+                disabled={!input.trim() || isLoading}
                 size="icon"
                 className="h-11 w-11 rounded-full"
                 aria-label="Envoyer"
               >
-                {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
               </Button>
             </div>
           </div>

@@ -1,8 +1,20 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Code, Terminal, FileCode, CheckCircle2, XCircle, Lock, Key, Binary, Hash, ArrowRight, Lightbulb } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from "react";
+import {
+  Code,
+  Terminal,
+  FileCode,
+  CheckCircle2,
+  XCircle,
+  Lock,
+  Key,
+  Binary,
+  Hash,
+  ArrowRight,
+  Lightbulb,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 interface CodingRendererProps {
   visualData: any;
@@ -13,7 +25,7 @@ interface CodingRendererProps {
  * Renderer pour les défis de codage/cryptographie.
  * Gère : code César, substitution, binaire, symboles, algorithmes.
  */
-export function CodingRenderer({ visualData, className = '' }: CodingRendererProps) {
+export function CodingRenderer({ visualData, className = "" }: CodingRendererProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -25,9 +37,11 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
   }
 
   // Détecter le type de défi de codage
-  const codingType = visualData.type?.toLowerCase() || '';
-  const isCryptography = ['caesar', 'substitution', 'binary', 'symbols', 'algorithm'].includes(codingType);
-  
+  const codingType = visualData.type?.toLowerCase() || "";
+  const isCryptography = ["caesar", "substitution", "binary", "symbols", "algorithm"].includes(
+    codingType
+  );
+
   // Détecter le format "maze" (labyrinthe avec robot)
   const maze = visualData.maze || visualData.grid || visualData.labyrinth || null;
   const start = visualData.start || visualData.start_position || null;
@@ -35,25 +49,25 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
   const isMaze = maze && Array.isArray(maze) && maze.length > 0;
 
   // Données de cryptographie
-  const encodedMessage = visualData.encoded_message || visualData.message || '';
+  const encodedMessage = visualData.encoded_message || visualData.message || "";
   const shift = visualData.shift;
-  const alphabet = visualData.alphabet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const alphabet = visualData.alphabet || "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const cryptoKey = visualData.key || visualData.partial_key || {};
   const steps = visualData.steps || [];
   const cryptoInput = visualData.input;
-  const description = visualData.description || '';
-  const hint = visualData.hint || '';
+  const description = visualData.description || "";
+  const hint = visualData.hint || "";
 
   // Extraire les données structurées (legacy/programmation)
-  const code = visualData.code || visualData.snippet || '';
-  const language = visualData.language || visualData.lang || 'python';
+  const code = visualData.code || visualData.snippet || "";
+  const language = visualData.language || visualData.lang || "python";
   const examples = visualData.examples || visualData.test_cases || [];
-  const input = visualData.input || '';
-  const output = visualData.output || '';
-  const expectedOutput = visualData.expected_output || visualData.expected || '';
+  const input = visualData.input || "";
+  const output = visualData.output || "";
+  const expectedOutput = visualData.expected_output || visualData.expected || "";
   const constraints = visualData.constraints || [];
   const hints = visualData.hints || [];
-  const question = visualData.question || '';
+  const question = visualData.question || "";
 
   // ==================== RENDU CRYPTOGRAPHIE ====================
   if (isCryptography) {
@@ -90,7 +104,7 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
         )}
 
         {/* Code César - Afficher le décalage */}
-        {codingType === 'caesar' && shift !== undefined && (
+        {codingType === "caesar" && shift !== undefined && (
           <div className="bg-card/50 border border-border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
               <Key className="h-5 w-5 text-primary" />
@@ -102,14 +116,15 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
                 <span className="ml-2 text-2xl font-bold text-primary">{shift}</span>
               </div>
               <div className="text-muted-foreground text-sm">
-                A → {alphabet[(shift) % 26]}, B → {alphabet[(1 + shift) % 26]}, C → {alphabet[(2 + shift) % 26]}...
+                A → {alphabet[shift % 26]}, B → {alphabet[(1 + shift) % 26]}, C →{" "}
+                {alphabet[(2 + shift) % 26]}...
               </div>
             </div>
           </div>
         )}
 
         {/* Substitution - Table de correspondance */}
-        {codingType === 'substitution' && Object.keys(cryptoKey).length > 0 && (
+        {codingType === "substitution" && Object.keys(cryptoKey).length > 0 && (
           <div className="bg-card/50 border border-border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
               <Key className="h-5 w-5 text-primary" />
@@ -134,14 +149,14 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
         )}
 
         {/* Binaire - Affichage stylisé */}
-        {codingType === 'binary' && (
+        {codingType === "binary" && (
           <div className="bg-card/50 border border-border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
               <Binary className="h-5 w-5 text-primary" />
               <span className="font-semibold text-foreground">Code binaire</span>
             </div>
             <div className="flex flex-wrap justify-center gap-3">
-              {encodedMessage.split(' ').map((byte: string, index: number) => (
+              {encodedMessage.split(" ").map((byte: string, index: number) => (
                 <motion.div
                   key={index}
                   className="bg-slate-900 border border-green-500/50 rounded px-3 py-2 font-mono"
@@ -160,7 +175,7 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
         )}
 
         {/* Symboles - Légende */}
-        {codingType === 'symbols' && Object.keys(cryptoKey).length > 0 && (
+        {codingType === "symbols" && Object.keys(cryptoKey).length > 0 && (
           <div className="bg-card/50 border border-border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
               <Key className="h-5 w-5 text-primary" />
@@ -185,7 +200,7 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
         )}
 
         {/* Algorithme - Étapes */}
-        {codingType === 'algorithm' && steps.length > 0 && (
+        {codingType === "algorithm" && steps.length > 0 && (
           <div className="bg-card/50 border border-border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
               <Terminal className="h-5 w-5 text-primary" />
@@ -230,10 +245,10 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
 
   // ==================== RENDU LABYRINTHE (maze/robot) ====================
   if (isMaze) {
-    const startRow = Array.isArray(start) ? start[0] : start?.row ?? 1;
-    const startCol = Array.isArray(start) ? start[1] : start?.col ?? 1;
-    const endRow = Array.isArray(end) ? end[0] : end?.row ?? 0;
-    const endCol = Array.isArray(end) ? end[1] : end?.col ?? 0;
+    const startRow = Array.isArray(start) ? start[0] : (start?.row ?? 1);
+    const startCol = Array.isArray(start) ? start[1] : (start?.col ?? 1);
+    const endRow = Array.isArray(end) ? end[0] : (end?.row ?? 0);
+    const endCol = Array.isArray(end) ? end[1] : (end?.col ?? 0);
 
     return (
       <div className={`space-y-4 ${className}`}>
@@ -255,47 +270,51 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
             <span className="font-semibold text-foreground">Labyrinthe</span>
             <div className="ml-auto flex items-center gap-3 text-xs">
               <span className="flex items-center gap-1">
-                <span className="w-4 h-4 bg-green-500 rounded-sm flex items-center justify-center text-white text-[10px] font-bold">S</span>
+                <span className="w-4 h-4 bg-green-500 rounded-sm flex items-center justify-center text-white text-[10px] font-bold">
+                  S
+                </span>
                 <span className="text-muted-foreground">Départ</span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="w-4 h-4 bg-red-500 rounded-sm flex items-center justify-center text-white text-[10px] font-bold">F</span>
+                <span className="w-4 h-4 bg-red-500 rounded-sm flex items-center justify-center text-white text-[10px] font-bold">
+                  F
+                </span>
                 <span className="text-muted-foreground">Arrivée</span>
               </span>
             </div>
           </div>
-          
+
           <div className="flex justify-center">
             <div className="inline-block bg-slate-900 p-3 rounded-lg border border-primary/30">
               {maze.map((row: string | string[], rowIndex: number) => {
                 // Gérer les formats: string[] ou string
-                const cells = Array.isArray(row) ? row : row.split('');
-                
+                const cells = Array.isArray(row) ? row : row.split("");
+
                 return (
                   <div key={rowIndex} className="flex">
                     {cells.map((cell: string, colIndex: number) => {
                       const isStart = rowIndex === startRow && colIndex === startCol;
                       const isEnd = rowIndex === endRow && colIndex === endCol;
-                      const isWall = cell === '#' || cell === '█' || cell === '1';
-                      const isPath = cell === ' ' || cell === '.' || cell === '0';
-                      
+                      const isWall = cell === "#" || cell === "█" || cell === "1";
+                      const isPath = cell === " " || cell === "." || cell === "0";
+
                       return (
                         <motion.div
                           key={`${rowIndex}-${colIndex}`}
                           className={`
                             w-7 h-7 flex items-center justify-center text-xs font-bold
-                            ${isStart ? 'bg-green-500 text-white' : ''}
-                            ${isEnd ? 'bg-red-500 text-white' : ''}
-                            ${!isStart && !isEnd && isWall ? 'bg-slate-700' : ''}
-                            ${!isStart && !isEnd && isPath ? 'bg-slate-800/50' : ''}
+                            ${isStart ? "bg-green-500 text-white" : ""}
+                            ${isEnd ? "bg-red-500 text-white" : ""}
+                            ${!isStart && !isEnd && isWall ? "bg-slate-700" : ""}
+                            ${!isStart && !isEnd && isPath ? "bg-slate-800/50" : ""}
                           `}
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: (rowIndex * cells.length + colIndex) * 0.01 }}
                         >
-                          {isStart && 'S'}
-                          {isEnd && 'F'}
-                          {!isStart && !isEnd && isWall && ''}
+                          {isStart && "S"}
+                          {isEnd && "F"}
+                          {!isStart && !isEnd && isWall && ""}
                         </motion.div>
                       );
                     })}
@@ -307,8 +326,12 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
 
           {/* Coordonnées */}
           <div className="mt-3 flex justify-center gap-6 text-xs text-muted-foreground">
-            <span>Départ : ({startRow}, {startCol})</span>
-            <span>Arrivée : ({endRow}, {endCol})</span>
+            <span>
+              Départ : ({startRow}, {startCol})
+            </span>
+            <span>
+              Arrivée : ({endRow}, {endCol})
+            </span>
           </div>
         </div>
 
@@ -319,7 +342,7 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
             <span className="font-semibold text-foreground">Instructions disponibles</span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {['↑ HAUT', '↓ BAS', '← GAUCHE', '→ DROITE'].map((instruction, index) => (
+            {["↑ HAUT", "↓ BAS", "← GAUCHE", "→ DROITE"].map((instruction, index) => (
               <motion.span
                 key={instruction}
                 className="bg-slate-800 border border-primary/30 rounded px-3 py-1.5 text-sm font-mono text-primary"
@@ -391,8 +414,8 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
                     <div>
                       <span className="text-xs font-semibold text-muted-foreground">Entrée :</span>
                       <pre className="mt-1 p-2 bg-muted rounded text-xs font-mono text-foreground overflow-x-auto">
-                        {typeof example.input === 'object' 
-                          ? JSON.stringify(example.input, null, 2) 
+                        {typeof example.input === "object"
+                          ? JSON.stringify(example.input, null, 2)
                           : String(example.input)}
                       </pre>
                     </div>
@@ -401,8 +424,8 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
                     <div>
                       <span className="text-xs font-semibold text-muted-foreground">Sortie :</span>
                       <pre className="mt-1 p-2 bg-muted rounded text-xs font-mono text-foreground overflow-x-auto">
-                        {typeof example.output === 'object' 
-                          ? JSON.stringify(example.output, null, 2) 
+                        {typeof example.output === "object"
+                          ? JSON.stringify(example.output, null, 2)
                           : String(example.output)}
                       </pre>
                     </div>
@@ -429,7 +452,7 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
                 <h5 className="text-sm font-semibold text-foreground">Entrée</h5>
               </div>
               <pre className="p-2 bg-muted rounded text-xs font-mono text-foreground overflow-x-auto">
-                {typeof input === 'object' ? JSON.stringify(input, null, 2) : String(input)}
+                {typeof input === "object" ? JSON.stringify(input, null, 2) : String(input)}
               </pre>
             </div>
           )}
@@ -440,8 +463,8 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
                 <h5 className="text-sm font-semibold text-foreground">Sortie attendue</h5>
               </div>
               <pre className="p-2 bg-muted rounded text-xs font-mono text-foreground overflow-x-auto">
-                {typeof (output || expectedOutput) === 'object' 
-                  ? JSON.stringify(output || expectedOutput, null, 2) 
+                {typeof (output || expectedOutput) === "object"
+                  ? JSON.stringify(output || expectedOutput, null, 2)
                   : String(output || expectedOutput)}
               </pre>
             </div>
@@ -488,45 +511,49 @@ export function CodingRenderer({ visualData, className = '' }: CodingRendererPro
       )}
 
       {/* Fallback : afficher toutes les données structurées */}
-      {!code && !question && examples.length === 0 && !input && !output && constraints.length === 0 && (
-        <div className="bg-card/50 border border-border rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Code className="h-5 w-5 text-primary" />
-            <h4 className="font-semibold text-foreground">Données du défi</h4>
-          </div>
-          <div className="space-y-2">
-            {Object.entries(visualData).map(([key, value]) => {
-              if (Array.isArray(value) && value.length > 0) {
-                return (
-                  <div key={key} className="space-y-1">
-                    <p className="text-sm font-semibold text-primary capitalize">
-                      {key.replace(/_/g, ' ')} :
-                    </p>
-                    <div className="pl-3 space-y-1">
-                      {value.map((item: any, i: number) => (
-                        <p key={i} className="text-sm text-foreground">
-                          • {typeof item === 'object' ? JSON.stringify(item) : String(item)}
-                        </p>
-                      ))}
+      {!code &&
+        !question &&
+        examples.length === 0 &&
+        !input &&
+        !output &&
+        constraints.length === 0 && (
+          <div className="bg-card/50 border border-border rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Code className="h-5 w-5 text-primary" />
+              <h4 className="font-semibold text-foreground">Données du défi</h4>
+            </div>
+            <div className="space-y-2">
+              {Object.entries(visualData).map(([key, value]) => {
+                if (Array.isArray(value) && value.length > 0) {
+                  return (
+                    <div key={key} className="space-y-1">
+                      <p className="text-sm font-semibold text-primary capitalize">
+                        {key.replace(/_/g, " ")} :
+                      </p>
+                      <div className="pl-3 space-y-1">
+                        {value.map((item: any, i: number) => (
+                          <p key={i} className="text-sm text-foreground">
+                            • {typeof item === "object" ? JSON.stringify(item) : String(item)}
+                          </p>
+                        ))}
+                      </div>
                     </div>
+                  );
+                }
+                return (
+                  <div key={key} className="flex gap-2">
+                    <span className="text-sm font-semibold text-primary capitalize">
+                      {key.replace(/_/g, " ")} :
+                    </span>
+                    <span className="text-sm text-foreground">
+                      {typeof value === "object" ? JSON.stringify(value) : String(value)}
+                    </span>
                   </div>
                 );
-              }
-              return (
-                <div key={key} className="flex gap-2">
-                  <span className="text-sm font-semibold text-primary capitalize">
-                    {key.replace(/_/g, ' ')} :
-                  </span>
-                  <span className="text-sm text-foreground">
-                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                  </span>
-                </div>
-              );
-            })}
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
-

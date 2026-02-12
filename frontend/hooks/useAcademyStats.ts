@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { api, ApiClientError } from '@/lib/api/client';
+import { useQuery } from "@tanstack/react-query";
+import { api, ApiClientError } from "@/lib/api/client";
 
 /**
  * Types pour les statistiques globales de l'Académie
@@ -69,23 +69,23 @@ export interface AcademyStats {
 
 /**
  * Hook pour récupérer les statistiques globales de l'Académie
- * 
+ *
  * Endpoint: GET /api/exercises/stats
- * 
+ *
  * Ces stats sont publiques et ne nécessitent pas d'authentification.
  * Elles représentent les statistiques globales de tous les exercices,
  * pas les stats personnelles d'un utilisateur.
  */
 export function useAcademyStats() {
   const { data, isLoading, error, refetch } = useQuery<AcademyStats | null, ApiClientError>({
-    queryKey: ['academy', 'stats'],
+    queryKey: ["academy", "stats"],
     queryFn: async () => {
       try {
-        const response = await api.get<AcademyStats>('/api/exercises/stats');
+        const response = await api.get<AcademyStats>("/api/exercises/stats");
         return response;
       } catch (err) {
         // En cas d'erreur, retourner null plutôt que de bloquer l'UI
-        console.error('Erreur lors de la récupération des stats de l\'Académie:', err);
+        console.error("Erreur lors de la récupération des stats de l'Académie:", err);
         return null;
       }
     },

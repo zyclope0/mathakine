@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api/client';
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api/client";
 
 export interface ProgressByCategory {
   completed: number;
@@ -22,9 +22,9 @@ export interface ProgressStats {
  */
 export function useProgressStats() {
   return useQuery<ProgressStats>({
-    queryKey: ['user', 'progress'],
+    queryKey: ["user", "progress"],
     queryFn: async () => {
-      return await api.get<ProgressStats>('/api/users/me/progress');
+      return await api.get<ProgressStats>("/api/users/me/progress");
     },
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnWindowFocus: true,

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { api, ApiClientError } from '@/lib/api/client';
-import { useTranslations } from 'next-intl';
-import type { User } from '@/types/api';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { api, ApiClientError } from "@/lib/api/client";
+import { useTranslations } from "next-intl";
+import type { User } from "@/types/api";
 
 export interface ProfileUpdateData {
   email?: string;
@@ -23,27 +23,28 @@ export interface PasswordUpdateData {
 
 export function useProfile() {
   const queryClient = useQueryClient();
-  const t = useTranslations('toasts.profile');
+  const t = useTranslations("toasts.profile");
 
   // Mise à jour du profil
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileUpdateData) => {
-      return await api.put<User>('/api/users/me', data);
+      return await api.put<User>("/api/users/me", data);
     },
     onSuccess: (updatedUser) => {
       // Mettre à jour le cache de l'utilisateur
-      queryClient.setQueryData(['auth', 'me'], updatedUser);
-      toast.success(t('updateSuccess'), {
-        description: t('updateSuccessDescription'),
+      queryClient.setQueryData(["auth", "me"], updatedUser);
+      toast.success(t("updateSuccess"), {
+        description: t("updateSuccessDescription"),
       });
     },
     onError: (error: ApiClientError) => {
-      const message = error.status === 400
-        ? error.message || t('updateError')
-        : error.status === 401
-        ? t('unauthorized')
-        : t('updateError');
-      toast.error(t('updateError'), {
+      const message =
+        error.status === 400
+          ? error.message || t("updateError")
+          : error.status === 401
+            ? t("unauthorized")
+            : t("updateError");
+      toast.error(t("updateError"), {
         description: message,
       });
     },
@@ -52,20 +53,21 @@ export function useProfile() {
   // Changement de mot de passe
   const changePasswordMutation = useMutation({
     mutationFn: async (data: PasswordUpdateData) => {
-      return await api.put<{ message: string; success: boolean }>('/api/users/me/password', data);
+      return await api.put<{ message: string; success: boolean }>("/api/users/me/password", data);
     },
     onSuccess: () => {
-      toast.success(t('passwordChangeSuccess'), {
-        description: t('passwordChangeSuccessDescription'),
+      toast.success(t("passwordChangeSuccess"), {
+        description: t("passwordChangeSuccessDescription"),
       });
     },
     onError: (error: ApiClientError) => {
-      const message = error.status === 401
-        ? t('passwordIncorrect')
-        : error.status === 400
-        ? error.message || t('passwordChangeError')
-        : t('passwordChangeError');
-      toast.error(t('passwordChangeError'), {
+      const message =
+        error.status === 401
+          ? t("passwordIncorrect")
+          : error.status === 400
+            ? error.message || t("passwordChangeError")
+            : t("passwordChangeError");
+      toast.error(t("passwordChangeError"), {
         description: message,
       });
     },
@@ -80,4 +82,3 @@ export function useProfile() {
     isChangingPassword: changePasswordMutation.isPending,
   };
 }
-

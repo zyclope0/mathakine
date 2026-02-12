@@ -1,33 +1,38 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useSettings } from '@/hooks/useSettings';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { PageLayout, PageHeader, PageSection } from '@/components/layout';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Globe, 
-  Bell, 
-  Shield, 
-  Monitor, 
-  Download, 
+import { useState, useCallback, useEffect, useRef } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useSettings } from "@/hooks/useSettings";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { PageLayout, PageHeader, PageSection } from "@/components/layout";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
+import {
+  Globe,
+  Bell,
+  Shield,
+  Monitor,
+  Download,
   Trash2,
   Save,
   Loader2,
   AlertTriangle,
-  Settings
-} from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { cn } from '@/lib/utils/cn';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-
+  Settings,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils/cn";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 function SettingsPageContent() {
   const { user } = useAuth();
@@ -43,56 +48,58 @@ function SettingsPageContent() {
     revokeSession,
     isRevokingSession,
   } = useSettings();
-  
-  const t = useTranslations('settings');
-  const tLanguage = useTranslations('settings.language');
-  const tNotifications = useTranslations('settings.notifications');
-  const tPrivacy = useTranslations('settings.privacy');
-  const tSessions = useTranslations('settings.sessions');
-  const tData = useTranslations('settings.data');
-  const tActions = useTranslations('settings.actions');
+
+  const t = useTranslations("settings");
+  const tLanguage = useTranslations("settings.language");
+  const tNotifications = useTranslations("settings.notifications");
+  const tPrivacy = useTranslations("settings.privacy");
+  const tSessions = useTranslations("settings.sessions");
+  const tData = useTranslations("settings.data");
+  const tActions = useTranslations("settings.actions");
 
   // États pour les formulaires
   const [languageSettings, setLanguageSettings] = useState({
-    language_preference: String(user?.accessibility_settings?.language_preference || user?.language_preference || 'fr'),
-    timezone: String(user?.accessibility_settings?.timezone || user?.timezone || 'UTC'),
+    language_preference: String(
+      user?.accessibility_settings?.language_preference || user?.language_preference || "fr"
+    ),
+    timezone: String(user?.accessibility_settings?.timezone || user?.timezone || "UTC"),
   });
 
   const getNotificationPref = (key: string): boolean => {
     const prefs = user?.accessibility_settings?.notification_preferences;
-    if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
-      return (prefs as Record<string, boolean>)[key] ?? (key === 'news' ? false : true);
+    if (prefs && typeof prefs === "object" && !Array.isArray(prefs)) {
+      return (prefs as Record<string, boolean>)[key] ?? (key === "news" ? false : true);
     }
-    return key === 'news' ? false : true;
+    return key === "news" ? false : true;
   };
 
   const [notificationSettings, setNotificationSettings] = useState({
-    achievements: getNotificationPref('achievements'),
-    progress: getNotificationPref('progress'),
-    recommendations: getNotificationPref('recommendations'),
-    news: getNotificationPref('news'),
+    achievements: getNotificationPref("achievements"),
+    progress: getNotificationPref("progress"),
+    recommendations: getNotificationPref("recommendations"),
+    news: getNotificationPref("news"),
   });
 
   const getPrivacyPref = (key: string, defaultValue: boolean): boolean => {
     const prefs = user?.accessibility_settings?.privacy_settings;
-    if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
+    if (prefs && typeof prefs === "object" && !Array.isArray(prefs)) {
       return (prefs as Record<string, boolean>)[key] ?? defaultValue;
     }
     return defaultValue;
   };
 
   const [privacySettings, setPrivacySettings] = useState({
-    is_public_profile: getPrivacyPref('is_public_profile', false),
-    allow_friend_requests: getPrivacyPref('allow_friend_requests', true),
-    show_in_leaderboards: getPrivacyPref('show_in_leaderboards', true),
-    data_retention_consent: getPrivacyPref('data_retention_consent', true),
-    marketing_consent: getPrivacyPref('marketing_consent', false),
+    is_public_profile: getPrivacyPref("is_public_profile", false),
+    allow_friend_requests: getPrivacyPref("allow_friend_requests", true),
+    show_in_leaderboards: getPrivacyPref("show_in_leaderboards", true),
+    data_retention_consent: getPrivacyPref("data_retention_consent", true),
+    marketing_consent: getPrivacyPref("marketing_consent", false),
   });
 
   const [sessions, setSessions] = useState<any[]>([]);
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
+
   // Refs pour éviter les boucles infinies
   const isUpdatingFromServer = useRef(false);
   const lastSyncedUserId = useRef<number | null>(null);
@@ -109,35 +116,37 @@ function SettingsPageContent() {
       }
 
       setLanguageSettings({
-        language_preference: String(user.accessibility_settings?.language_preference || user.language_preference || 'fr'),
-        timezone: String(user.accessibility_settings?.timezone || user.timezone || 'UTC'),
+        language_preference: String(
+          user.accessibility_settings?.language_preference || user.language_preference || "fr"
+        ),
+        timezone: String(user.accessibility_settings?.timezone || user.timezone || "UTC"),
       });
       const getPriv = (key: string, def: boolean): boolean => {
         const p = user.accessibility_settings?.privacy_settings;
-        if (p && typeof p === 'object' && !Array.isArray(p)) {
+        if (p && typeof p === "object" && !Array.isArray(p)) {
           return (p as Record<string, boolean>)[key] ?? def;
         }
         return def;
       };
       setPrivacySettings({
-        is_public_profile: getPriv('is_public_profile', false),
-        allow_friend_requests: getPriv('allow_friend_requests', true),
-        show_in_leaderboards: getPriv('show_in_leaderboards', true),
-        data_retention_consent: getPriv('data_retention_consent', true),
-        marketing_consent: getPriv('marketing_consent', false),
+        is_public_profile: getPriv("is_public_profile", false),
+        allow_friend_requests: getPriv("allow_friend_requests", true),
+        show_in_leaderboards: getPriv("show_in_leaderboards", true),
+        data_retention_consent: getPriv("data_retention_consent", true),
+        marketing_consent: getPriv("marketing_consent", false),
       });
       const getPref = (key: string): boolean => {
         const prefs = user.accessibility_settings?.notification_preferences;
-        if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
-          return (prefs as Record<string, boolean>)[key] ?? (key === 'news' ? false : true);
+        if (prefs && typeof prefs === "object" && !Array.isArray(prefs)) {
+          return (prefs as Record<string, boolean>)[key] ?? (key === "news" ? false : true);
         }
-        return key === 'news' ? false : true;
+        return key === "news" ? false : true;
       };
       setNotificationSettings({
-        achievements: getPref('achievements'),
-        progress: getPref('progress'),
-        recommendations: getPref('recommendations'),
-        news: getPref('news'),
+        achievements: getPref("achievements"),
+        progress: getPref("progress"),
+        recommendations: getPref("recommendations"),
+        news: getPref("news"),
       });
 
       lastSyncedUserId.current = user.id;
@@ -160,7 +169,7 @@ function SettingsPageContent() {
         const userSessions = await getSessions();
         setSessions(userSessions);
       } catch (error) {
-        console.error('Erreur lors du chargement des sessions:', error);
+        console.error("Erreur lors du chargement des sessions:", error);
       } finally {
         setIsLoadingSessions(false);
       }
@@ -222,51 +231,45 @@ function SettingsPageContent() {
 
   // Liste des langues disponibles
   const languages = [
-    { value: 'fr', label: 'Français' },
-    { value: 'en', label: 'English' },
+    { value: "fr", label: "Français" },
+    { value: "en", label: "English" },
   ];
 
   // Liste des fuseaux horaires courants
   const timezones = [
-    { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
-    { value: 'Europe/Paris', label: 'Europe/Paris (CET/CEST)' },
-    { value: 'America/New_York', label: 'America/New_York (EST/EDT)' },
-    { value: 'America/Los_Angeles', label: 'America/Los_Angeles (PST/PDT)' },
-    { value: 'Asia/Tokyo', label: 'Asia/Tokyo (JST)' },
-    { value: 'Australia/Sydney', label: 'Australia/Sydney (AEDT/AEST)' },
+    { value: "UTC", label: "UTC (Coordinated Universal Time)" },
+    { value: "Europe/Paris", label: "Europe/Paris (CET/CEST)" },
+    { value: "America/New_York", label: "America/New_York (EST/EDT)" },
+    { value: "America/Los_Angeles", label: "America/Los_Angeles (PST/PDT)" },
+    { value: "Asia/Tokyo", label: "Asia/Tokyo (JST)" },
+    { value: "Australia/Sydney", label: "Australia/Sydney (AEDT/AEST)" },
   ];
 
   return (
     <PageLayout>
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-        icon={Settings}
-      />
+      <PageHeader title={t("title")} description={t("description")} icon={Settings} />
 
       <div className="space-y-6">
         {/* Section Langue et Région */}
         <PageSection
-          title={tLanguage('title')}
-          description={tLanguage('description')}
+          title={tLanguage("title")}
+          description={tLanguage("description")}
           icon={Globe}
           className="animate-fade-in-up-delay-1"
         >
           <Card>
             <CardHeader>
-              <CardTitle>{tLanguage('title')}</CardTitle>
-              <CardDescription>{tLanguage('description')}</CardDescription>
+              <CardTitle>{tLanguage("title")}</CardTitle>
+              <CardDescription>{tLanguage("description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="language">{tLanguage('language')}</Label>
-                <p className="text-xs text-muted-foreground">
-                  {tLanguage('languageDescription')}
-                </p>
+                <Label htmlFor="language">{tLanguage("language")}</Label>
+                <p className="text-xs text-muted-foreground">{tLanguage("languageDescription")}</p>
                 <Select
                   value={languageSettings.language_preference}
                   onValueChange={(value) => {
-                    setLanguageSettings(prev => ({ ...prev, language_preference: value }));
+                    setLanguageSettings((prev) => ({ ...prev, language_preference: value }));
                   }}
                 >
                   <SelectTrigger id="language" className="w-full">
@@ -285,14 +288,12 @@ function SettingsPageContent() {
               <Separator />
 
               <div className="space-y-2">
-                <Label htmlFor="timezone">{tLanguage('timezone')}</Label>
-                <p className="text-xs text-muted-foreground">
-                  {tLanguage('timezoneDescription')}
-                </p>
+                <Label htmlFor="timezone">{tLanguage("timezone")}</Label>
+                <p className="text-xs text-muted-foreground">{tLanguage("timezoneDescription")}</p>
                 <Select
                   value={languageSettings.timezone}
                   onValueChange={(value) => {
-                    setLanguageSettings(prev => ({ ...prev, timezone: value }));
+                    setLanguageSettings((prev) => ({ ...prev, timezone: value }));
                   }}
                 >
                   <SelectTrigger id="timezone" className="w-full">
@@ -309,20 +310,16 @@ function SettingsPageContent() {
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button
-                  onClick={handleSaveLanguage}
-                  disabled={isUpdatingSettings}
-                  size="sm"
-                >
+                <Button onClick={handleSaveLanguage} disabled={isUpdatingSettings} size="sm">
                   {isUpdatingSettings ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {tActions('saving')}
+                      {tActions("saving")}
                     </>
                   ) : (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      {tActions('save')}
+                      {tActions("save")}
                     </>
                   )}
                 </Button>
@@ -333,29 +330,31 @@ function SettingsPageContent() {
 
         {/* Section Notifications */}
         <PageSection
-          title={tNotifications('title')}
-          description={tNotifications('description')}
+          title={tNotifications("title")}
+          description={tNotifications("description")}
           icon={Bell}
           className="animate-fade-in-up-delay-2"
         >
           <Card>
             <CardHeader>
-              <CardTitle>{tNotifications('title')}</CardTitle>
-              <CardDescription>{tNotifications('description')}</CardDescription>
+              <CardTitle>{tNotifications("title")}</CardTitle>
+              <CardDescription>{tNotifications("description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="notifications-achievements">{tNotifications('achievements')}</Label>
+                  <Label htmlFor="notifications-achievements">
+                    {tNotifications("achievements")}
+                  </Label>
                   <p className="text-xs text-muted-foreground">
-                    {tNotifications('achievementsDescription')}
+                    {tNotifications("achievementsDescription")}
                   </p>
                 </div>
                 <Switch
                   id="notifications-achievements"
                   checked={notificationSettings.achievements}
                   onCheckedChange={(checked) => {
-                    setNotificationSettings(prev => ({ ...prev, achievements: checked }));
+                    setNotificationSettings((prev) => ({ ...prev, achievements: checked }));
                   }}
                 />
               </div>
@@ -364,16 +363,16 @@ function SettingsPageContent() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="notifications-progress">{tNotifications('progress')}</Label>
+                  <Label htmlFor="notifications-progress">{tNotifications("progress")}</Label>
                   <p className="text-xs text-muted-foreground">
-                    {tNotifications('progressDescription')}
+                    {tNotifications("progressDescription")}
                   </p>
                 </div>
                 <Switch
                   id="notifications-progress"
                   checked={notificationSettings.progress}
                   onCheckedChange={(checked) => {
-                    setNotificationSettings(prev => ({ ...prev, progress: checked }));
+                    setNotificationSettings((prev) => ({ ...prev, progress: checked }));
                   }}
                 />
               </div>
@@ -382,16 +381,18 @@ function SettingsPageContent() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="notifications-recommendations">{tNotifications('recommendations')}</Label>
+                  <Label htmlFor="notifications-recommendations">
+                    {tNotifications("recommendations")}
+                  </Label>
                   <p className="text-xs text-muted-foreground">
-                    {tNotifications('recommendationsDescription')}
+                    {tNotifications("recommendationsDescription")}
                   </p>
                 </div>
                 <Switch
                   id="notifications-recommendations"
                   checked={notificationSettings.recommendations}
                   onCheckedChange={(checked) => {
-                    setNotificationSettings(prev => ({ ...prev, recommendations: checked }));
+                    setNotificationSettings((prev) => ({ ...prev, recommendations: checked }));
                   }}
                 />
               </div>
@@ -400,35 +401,31 @@ function SettingsPageContent() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="notifications-news">{tNotifications('news')}</Label>
+                  <Label htmlFor="notifications-news">{tNotifications("news")}</Label>
                   <p className="text-xs text-muted-foreground">
-                    {tNotifications('newsDescription')}
+                    {tNotifications("newsDescription")}
                   </p>
                 </div>
                 <Switch
                   id="notifications-news"
                   checked={notificationSettings.news}
                   onCheckedChange={(checked) => {
-                    setNotificationSettings(prev => ({ ...prev, news: checked }));
+                    setNotificationSettings((prev) => ({ ...prev, news: checked }));
                   }}
                 />
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button
-                  onClick={handleSaveNotifications}
-                  disabled={isUpdatingSettings}
-                  size="sm"
-                >
+                <Button onClick={handleSaveNotifications} disabled={isUpdatingSettings} size="sm">
                   {isUpdatingSettings ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {tActions('saving')}
+                      {tActions("saving")}
                     </>
                   ) : (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      {tActions('save')}
+                      {tActions("save")}
                     </>
                   )}
                 </Button>
@@ -439,29 +436,29 @@ function SettingsPageContent() {
 
         {/* Section Confidentialité */}
         <PageSection
-          title={tPrivacy('title')}
-          description={tPrivacy('description')}
+          title={tPrivacy("title")}
+          description={tPrivacy("description")}
           icon={Shield}
           className="animate-fade-in-up-delay-3"
         >
           <Card>
             <CardHeader>
-              <CardTitle>{tPrivacy('title')}</CardTitle>
-              <CardDescription>{tPrivacy('description')}</CardDescription>
+              <CardTitle>{tPrivacy("title")}</CardTitle>
+              <CardDescription>{tPrivacy("description")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="privacy-public-profile">{tPrivacy('publicProfile')}</Label>
+                  <Label htmlFor="privacy-public-profile">{tPrivacy("publicProfile")}</Label>
                   <p className="text-xs text-muted-foreground">
-                    {tPrivacy('publicProfileDescription')}
+                    {tPrivacy("publicProfileDescription")}
                   </p>
                 </div>
                 <Switch
                   id="privacy-public-profile"
                   checked={privacySettings.is_public_profile}
                   onCheckedChange={(checked) => {
-                    setPrivacySettings(prev => ({ ...prev, is_public_profile: checked }));
+                    setPrivacySettings((prev) => ({ ...prev, is_public_profile: checked }));
                   }}
                 />
               </div>
@@ -470,16 +467,16 @@ function SettingsPageContent() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="privacy-friend-requests">{tPrivacy('friendRequests')}</Label>
+                  <Label htmlFor="privacy-friend-requests">{tPrivacy("friendRequests")}</Label>
                   <p className="text-xs text-muted-foreground">
-                    {tPrivacy('friendRequestsDescription')}
+                    {tPrivacy("friendRequestsDescription")}
                   </p>
                 </div>
                 <Switch
                   id="privacy-friend-requests"
                   checked={privacySettings.allow_friend_requests}
                   onCheckedChange={(checked) => {
-                    setPrivacySettings(prev => ({ ...prev, allow_friend_requests: checked }));
+                    setPrivacySettings((prev) => ({ ...prev, allow_friend_requests: checked }));
                   }}
                 />
               </div>
@@ -488,16 +485,16 @@ function SettingsPageContent() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="privacy-leaderboards">{tPrivacy('leaderboards')}</Label>
+                  <Label htmlFor="privacy-leaderboards">{tPrivacy("leaderboards")}</Label>
                   <p className="text-xs text-muted-foreground">
-                    {tPrivacy('leaderboardsDescription')}
+                    {tPrivacy("leaderboardsDescription")}
                   </p>
                 </div>
                 <Switch
                   id="privacy-leaderboards"
                   checked={privacySettings.show_in_leaderboards}
                   onCheckedChange={(checked) => {
-                    setPrivacySettings(prev => ({ ...prev, show_in_leaderboards: checked }));
+                    setPrivacySettings((prev) => ({ ...prev, show_in_leaderboards: checked }));
                   }}
                 />
               </div>
@@ -506,16 +503,16 @@ function SettingsPageContent() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="privacy-data-retention">{tPrivacy('dataRetention')}</Label>
+                  <Label htmlFor="privacy-data-retention">{tPrivacy("dataRetention")}</Label>
                   <p className="text-xs text-muted-foreground">
-                    {tPrivacy('dataRetentionDescription')}
+                    {tPrivacy("dataRetentionDescription")}
                   </p>
                 </div>
                 <Switch
                   id="privacy-data-retention"
                   checked={privacySettings.data_retention_consent}
                   onCheckedChange={(checked) => {
-                    setPrivacySettings(prev => ({ ...prev, data_retention_consent: checked }));
+                    setPrivacySettings((prev) => ({ ...prev, data_retention_consent: checked }));
                   }}
                 />
               </div>
@@ -524,35 +521,31 @@ function SettingsPageContent() {
 
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label htmlFor="privacy-marketing">{tPrivacy('marketing')}</Label>
+                  <Label htmlFor="privacy-marketing">{tPrivacy("marketing")}</Label>
                   <p className="text-xs text-muted-foreground">
-                    {tPrivacy('marketingDescription')}
+                    {tPrivacy("marketingDescription")}
                   </p>
                 </div>
                 <Switch
                   id="privacy-marketing"
                   checked={privacySettings.marketing_consent}
                   onCheckedChange={(checked) => {
-                    setPrivacySettings(prev => ({ ...prev, marketing_consent: checked }));
+                    setPrivacySettings((prev) => ({ ...prev, marketing_consent: checked }));
                   }}
                 />
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button
-                  onClick={handleSavePrivacy}
-                  disabled={isUpdatingSettings}
-                  size="sm"
-                >
+                <Button onClick={handleSavePrivacy} disabled={isUpdatingSettings} size="sm">
                   {isUpdatingSettings ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {tActions('saving')}
+                      {tActions("saving")}
                     </>
                   ) : (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      {tActions('save')}
+                      {tActions("save")}
                     </>
                   )}
                 </Button>
@@ -563,15 +556,15 @@ function SettingsPageContent() {
 
         {/* Section Sessions */}
         <PageSection
-          title={tSessions('title')}
-          description={tSessions('description')}
+          title={tSessions("title")}
+          description={tSessions("description")}
           icon={Monitor}
           className="animate-fade-in-up-delay-4"
         >
           <Card>
             <CardHeader>
-              <CardTitle>{tSessions('title')}</CardTitle>
-              <CardDescription>{tSessions('description')}</CardDescription>
+              <CardTitle>{tSessions("title")}</CardTitle>
+              <CardDescription>{tSessions("description")}</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingSessions ? (
@@ -580,7 +573,7 @@ function SettingsPageContent() {
                 </div>
               ) : sessions.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <p>{tSessions('noSessions')}</p>
+                  <p>{tSessions("noSessions")}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -591,20 +584,20 @@ function SettingsPageContent() {
                     >
                       <div className="space-y-1">
                         <p className="font-medium">
-                          {session.device_info?.device || tSessions('device')}
+                          {session.device_info?.device || tSessions("device")}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {session.location_data?.city && session.location_data?.country
                             ? `${session.location_data.city}, ${session.location_data.country}`
-                            : session.ip_address || tSessions('location')}
+                            : session.ip_address || tSessions("location")}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {tSessions('lastActivity')}:{' '}
-                          {format(new Date(session.last_activity), 'PPpp', { locale: fr })}
+                          {tSessions("lastActivity")}:{" "}
+                          {format(new Date(session.last_activity), "PPpp", { locale: fr })}
                         </p>
                       </div>
-                      {!session.is_current && (
-                        sessionToRevoke === session.id ? (
+                      {!session.is_current &&
+                        (sessionToRevoke === session.id ? (
                           <div className="flex gap-2">
                             <Button
                               variant="destructive"
@@ -615,7 +608,7 @@ function SettingsPageContent() {
                               {isRevokingSession ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
                               ) : (
-                                tSessions('revoke')
+                                tSessions("revoke")
                               )}
                             </Button>
                             <Button
@@ -624,7 +617,7 @@ function SettingsPageContent() {
                               onClick={() => setSessionToRevoke(null)}
                               disabled={isRevokingSession}
                             >
-                              {tActions('cancel')}
+                              {tActions("cancel")}
                             </Button>
                           </div>
                         ) : (
@@ -633,10 +626,9 @@ function SettingsPageContent() {
                             size="sm"
                             onClick={() => handleRevokeSession(session.id)}
                           >
-                            {tSessions('revoke')}
+                            {tSessions("revoke")}
                           </Button>
-                        )
-                      )}
+                        ))}
                     </div>
                   ))}
                 </div>
@@ -647,16 +639,16 @@ function SettingsPageContent() {
 
         {/* Section Données et Compte */}
         <PageSection
-          title={tData('title')}
-          description={tData('description')}
+          title={tData("title")}
+          description={tData("description")}
           icon={Download}
           className="animate-fade-in-up-delay-5"
         >
           <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>{tData('export')}</CardTitle>
-                <CardDescription>{tData('exportDescription')}</CardDescription>
+                <CardTitle>{tData("export")}</CardTitle>
+                <CardDescription>{tData("exportDescription")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Button
@@ -668,12 +660,12 @@ function SettingsPageContent() {
                   {isExportingData ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {tData('exporting')}
+                      {tData("exporting")}
                     </>
                   ) : (
                     <>
                       <Download className="mr-2 h-4 w-4" />
-                      {tData('export')}
+                      {tData("export")}
                     </>
                   )}
                 </Button>
@@ -684,16 +676,16 @@ function SettingsPageContent() {
               <CardHeader>
                 <CardTitle className="text-destructive flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5" />
-                  {tData('delete')}
+                  {tData("delete")}
                 </CardTitle>
-                <CardDescription>{tData('deleteDescription')}</CardDescription>
+                <CardDescription>{tData("deleteDescription")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {showDeleteConfirm ? (
                   <div className="space-y-4">
                     <div className="p-4 bg-destructive/10 border border-destructive rounded-lg">
                       <p className="text-sm text-destructive font-medium">
-                        {tData('deleteWarning')}
+                        {tData("deleteWarning")}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -706,12 +698,12 @@ function SettingsPageContent() {
                         {isDeletingAccount ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {tData('deleting')}
+                            {tData("deleting")}
                           </>
                         ) : (
                           <>
                             <Trash2 className="mr-2 h-4 w-4" />
-                            {tData('deleteConfirm')}
+                            {tData("deleteConfirm")}
                           </>
                         )}
                       </Button>
@@ -720,7 +712,7 @@ function SettingsPageContent() {
                         variant="outline"
                         disabled={isDeletingAccount}
                       >
-                        {tActions('cancel')}
+                        {tActions("cancel")}
                       </Button>
                     </div>
                   </div>
@@ -731,7 +723,7 @@ function SettingsPageContent() {
                     className="w-full sm:w-auto"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    {tData('delete')}
+                    {tData("delete")}
                   </Button>
                 )}
               </CardContent>
@@ -750,4 +742,3 @@ export default function SettingsPage() {
     </ProtectedRoute>
   );
 }
-

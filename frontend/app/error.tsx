@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, Home, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -13,12 +13,12 @@ interface ErrorProps {
 }
 
 export default function Error({ error, reset }: ErrorProps) {
-  const t = useTranslations('errors.500');
+  const t = useTranslations("errors.500");
 
   useEffect(() => {
     // Logger l'erreur uniquement en développement
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Application error:', error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Application error:", error);
     }
     // En production, on pourrait envoyer à un service de monitoring ici
     // Ex: Sentry.captureException(error);
@@ -30,12 +30,12 @@ export default function Error({ error, reset }: ErrorProps) {
         <CardHeader>
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-6 w-6 text-destructive" aria-hidden="true" />
-            <CardTitle className="text-destructive">{t('title')}</CardTitle>
+            <CardTitle className="text-destructive">{t("title")}</CardTitle>
           </div>
-          <CardDescription>{t('message')}</CardDescription>
+          <CardDescription>{t("message")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {process.env.NODE_ENV === 'development' && error.message && (
+          {process.env.NODE_ENV === "development" && error.message && (
             <div className="rounded-md bg-destructive/10 p-3 text-sm">
               <p className="font-semibold text-destructive">Détails (dev uniquement):</p>
               <p className="mt-1 text-muted-foreground">{error.message}</p>
@@ -44,16 +44,16 @@ export default function Error({ error, reset }: ErrorProps) {
               )}
             </div>
           )}
-          
+
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button onClick={reset} variant="default" className="flex-1">
               <RefreshCw className="mr-2 h-4 w-4" />
-              {t('retry')}
+              {t("retry")}
             </Button>
             <Button asChild variant="outline" className="flex-1">
               <Link href="/">
                 <Home className="mr-2 h-4 w-4" />
-                {t('backHome')}
+                {t("backHome")}
               </Link>
             </Button>
           </div>
@@ -62,4 +62,3 @@ export default function Error({ error, reset }: ErrorProps) {
     </div>
   );
 }
-

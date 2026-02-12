@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useRef } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { api, ApiClientError } from '@/lib/api/client';
-import { useTranslations } from 'next-intl';
-import type { User } from '@/types/api';
+import { useRef } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { api, ApiClientError } from "@/lib/api/client";
+import { useTranslations } from "next-intl";
+import type { User } from "@/types/api";
 
 export interface SettingsUpdateData {
   notification_preferences?: Record<string, boolean>;
@@ -40,7 +40,7 @@ export interface UserSession {
 
 export function useSettings() {
   const queryClient = useQueryClient();
-  const t = useTranslations('settings.toasts');
+  const t = useTranslations("settings.toasts");
 
   // Callback pour réinitialiser le flag de mise à jour (utilisé par le composant)
   const onUpdateSuccessCallbackRef = useRef<(() => void) | null>(null);
@@ -48,18 +48,18 @@ export function useSettings() {
   // Mise à jour des paramètres
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: SettingsUpdateData) => {
-      return await api.put<User>('/api/users/me', data);
+      return await api.put<User>("/api/users/me", data);
     },
     onSuccess: (updatedUser) => {
       // Mettre à jour le cache de l'utilisateur de manière optimiste
       // Utiliser une fonction pour éviter les références d'objets qui changent
-      queryClient.setQueryData(['auth', 'me'], (old: User | undefined) => {
+      queryClient.setQueryData(["auth", "me"], (old: User | undefined) => {
         if (!old) return updatedUser;
         // Fusionner les nouvelles données avec les anciennes pour éviter les pertes
         return { ...old, ...updatedUser };
       });
-      toast.success(t('updateSuccess'), {
-        description: t('updateSuccessDescription'),
+      toast.success(t("updateSuccess"), {
+        description: t("updateSuccessDescription"),
       });
       // Réinitialiser le flag dans le composant après un court délai
       if (onUpdateSuccessCallbackRef.current) {
@@ -69,12 +69,13 @@ export function useSettings() {
       }
     },
     onError: (error: ApiClientError) => {
-      const message = error.status === 400
-        ? error.message || t('updateError')
-        : error.status === 401
-        ? 'Non autorisé'
-        : t('updateError');
-      toast.error(t('updateError'), {
+      const message =
+        error.status === 400
+          ? error.message || t("updateError")
+          : error.status === 401
+            ? "Non autorisé"
+            : t("updateError");
+      toast.error(t("updateError"), {
         description: message,
       });
     },
@@ -83,29 +84,29 @@ export function useSettings() {
   // Export de données
   const exportDataMutation = useMutation({
     mutationFn: async () => {
-      const response = await api.get('/api/users/me/export');
+      const response = await api.get("/api/users/me/export");
       return response;
     },
     onSuccess: (data) => {
       // Créer un fichier JSON téléchargeable
       const jsonStr = JSON.stringify(data, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const blob = new Blob([jsonStr], { type: "application/json" });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `mathakine-data-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `mathakine-data-${new Date().toISOString().split("T")[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      
-      toast.success(t('exportSuccess'), {
-        description: t('exportSuccessDescription'),
+
+      toast.success(t("exportSuccess"), {
+        description: t("exportSuccessDescription"),
       });
     },
     onError: () => {
-      toast.error(t('exportError'), {
-        description: 'Une erreur est survenue lors de l\'export de vos données.',
+      toast.error(t("exportError"), {
+        description: "Une erreur est survenue lors de l'export de vos données.",
       });
     },
   });
@@ -113,20 +114,20 @@ export function useSettings() {
   // Suppression de compte
   const deleteAccountMutation = useMutation({
     mutationFn: async () => {
-      return await api.delete<{ message: string }>('/api/users/me');
+      return await api.delete<{ message: string }>("/api/users/me");
     },
     onSuccess: () => {
-      toast.success(t('deleteSuccess'), {
-        description: t('deleteSuccessDescription'),
+      toast.success(t("deleteSuccess"), {
+        description: t("deleteSuccessDescription"),
       });
       // Rediriger vers la page d'accueil après suppression
       setTimeout(() => {
-        window.location.href = '/';
+        window.location.href = "/";
       }, 2000);
     },
     onError: () => {
-      toast.error(t('deleteError'), {
-        description: 'Une erreur est survenue lors de la suppression de votre compte.',
+      toast.error(t("deleteError"), {
+        description: "Une erreur est survenue lors de la suppression de votre compte.",
       });
     },
   });
@@ -134,10 +135,10 @@ export function useSettings() {
   // Récupération des sessions actives
   const getSessions = async (): Promise<UserSession[]> => {
     try {
-      const response = await api.get<UserSession[]>('/api/users/me/sessions');
+      const response = await api.get<UserSession[]>("/api/users/me/sessions");
       return response;
     } catch (error) {
-      console.error('Error fetching sessions:', error);
+      console.error("Error fetching sessions:", error);
       return [];
     }
   };
@@ -148,15 +149,15 @@ export function useSettings() {
       return await api.delete(`/api/users/me/sessions/${sessionId}`);
     },
     onSuccess: () => {
-      toast.success(t('sessionRevoked'), {
-        description: t('sessionRevokedDescription'),
+      toast.success(t("sessionRevoked"), {
+        description: t("sessionRevokedDescription"),
       });
       // Rafraîchir les sessions
-      queryClient.invalidateQueries({ queryKey: ['settings', 'sessions'] });
+      queryClient.invalidateQueries({ queryKey: ["settings", "sessions"] });
     },
     onError: () => {
-      toast.error('Erreur', {
-        description: 'Impossible de révoquer la session.',
+      toast.error("Erreur", {
+        description: "Impossible de révoquer la session.",
       });
     },
   });
@@ -179,4 +180,3 @@ export function useSettings() {
     isRevokingSession: revokeSessionMutation.isPending,
   };
 }
-

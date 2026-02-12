@@ -1,25 +1,25 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Rocket } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, Rocket } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function RegisterPage() {
   const { registerAsync, isRegistering } = useAuth();
-  const t = useTranslations('auth.register');
-  
+  const t = useTranslations("auth.register");
+
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    full_name: '',
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    full_name: "",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -27,24 +27,24 @@ export default function RegisterPage() {
     const errors: Record<string, string> = {};
 
     if (formData.username.length < 3) {
-      errors.username = t('validation.usernameMinLength');
+      errors.username = t("validation.usernameMinLength");
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = t('validation.emailInvalid');
+      errors.email = t("validation.emailInvalid");
     }
 
     // Validation mot de passe selon les règles backend (8 caractères, chiffre, majuscule)
     if (formData.password.length < 8) {
-      errors.password = t('validation.passwordMinLength');
+      errors.password = t("validation.passwordMinLength");
     } else if (!/\d/.test(formData.password)) {
-      errors.password = t('validation.passwordRequiresDigit');
+      errors.password = t("validation.passwordRequiresDigit");
     } else if (!/[A-Z]/.test(formData.password)) {
-      errors.password = t('validation.passwordRequiresUppercase');
+      errors.password = t("validation.passwordRequiresUppercase");
     }
 
     if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = t('validation.passwordsMismatch');
+      errors.confirmPassword = t("validation.passwordsMismatch");
     }
 
     setValidationErrors(errors);
@@ -64,11 +64,11 @@ export default function RegisterPage() {
       email: formData.email,
       password: formData.password,
     };
-    
+
     if (formData.full_name.trim()) {
       registerPayload.full_name = formData.full_name;
     }
-    
+
     try {
       await registerAsync(registerPayload);
     } catch {
@@ -95,106 +95,126 @@ export default function RegisterPage() {
           <div className="flex justify-center mb-4">
             <Rocket className="h-12 w-12 text-primary" />
           </div>
-          <CardTitle className="text-3xl font-bold">{t('title')}</CardTitle>
-          <CardDescription>
-            {t('description')}
-          </CardDescription>
+          <CardTitle className="text-3xl font-bold">{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">{t('username')} *</Label>
+              <Label htmlFor="username">{t("username")} *</Label>
               <Input
                 id="username"
                 type="text"
                 value={formData.username}
-                onChange={(e) => handleChange('username', e.target.value)}
+                onChange={(e) => handleChange("username", e.target.value)}
                 required
                 autoComplete="username"
                 disabled={isRegistering}
-                placeholder={t('usernamePlaceholder')}
+                placeholder={t("usernamePlaceholder")}
                 aria-invalid={!!validationErrors.username}
-                aria-describedby={validationErrors.username ? 'username-error' : undefined}
+                aria-describedby={validationErrors.username ? "username-error" : undefined}
               />
               {validationErrors.username && (
-                <p id="username-error" className="text-sm text-destructive" role="alert" aria-live="polite">
+                <p
+                  id="username-error"
+                  className="text-sm text-destructive"
+                  role="alert"
+                  aria-live="polite"
+                >
                   {validationErrors.username}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">{t('email')} *</Label>
+              <Label htmlFor="email">{t("email")} *</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleChange('email', e.target.value)}
+                onChange={(e) => handleChange("email", e.target.value)}
                 required
                 autoComplete="email"
                 disabled={isRegistering}
-                placeholder={t('emailPlaceholder')}
+                placeholder={t("emailPlaceholder")}
                 aria-invalid={!!validationErrors.email}
-                aria-describedby={validationErrors.email ? 'email-error' : undefined}
+                aria-describedby={validationErrors.email ? "email-error" : undefined}
               />
               {validationErrors.email && (
-                <p id="email-error" className="text-sm text-destructive" role="alert" aria-live="polite">
+                <p
+                  id="email-error"
+                  className="text-sm text-destructive"
+                  role="alert"
+                  aria-live="polite"
+                >
                   {validationErrors.email}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="full_name">{t('fullName')}</Label>
+              <Label htmlFor="full_name">{t("fullName")}</Label>
               <Input
                 id="full_name"
                 type="text"
                 value={formData.full_name}
-                onChange={(e) => handleChange('full_name', e.target.value)}
+                onChange={(e) => handleChange("full_name", e.target.value)}
                 autoComplete="name"
                 disabled={isRegistering}
-                placeholder={t('fullNamePlaceholder')}
+                placeholder={t("fullNamePlaceholder")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">{t('password')} *</Label>
+              <Label htmlFor="password">{t("password")} *</Label>
               <Input
                 id="password"
                 type="password"
                 value={formData.password}
-                onChange={(e) => handleChange('password', e.target.value)}
+                onChange={(e) => handleChange("password", e.target.value)}
                 required
                 autoComplete="new-password"
                 disabled={isRegistering}
-                placeholder={t('passwordPlaceholder')}
+                placeholder={t("passwordPlaceholder")}
                 minLength={8}
                 aria-invalid={!!validationErrors.password}
-                aria-describedby={validationErrors.password ? 'password-error' : undefined}
+                aria-describedby={validationErrors.password ? "password-error" : undefined}
               />
               {validationErrors.password && (
-                <p id="password-error" className="text-sm text-destructive" role="alert" aria-live="polite">
+                <p
+                  id="password-error"
+                  className="text-sm text-destructive"
+                  role="alert"
+                  aria-live="polite"
+                >
                   {validationErrors.password}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">{t('confirmPassword')} *</Label>
+              <Label htmlFor="confirmPassword">{t("confirmPassword")} *</Label>
               <Input
                 id="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
-                onChange={(e) => handleChange('confirmPassword', e.target.value)}
+                onChange={(e) => handleChange("confirmPassword", e.target.value)}
                 required
                 autoComplete="new-password"
                 disabled={isRegistering}
-                placeholder={t('confirmPasswordPlaceholder')}
+                placeholder={t("confirmPasswordPlaceholder")}
                 aria-invalid={!!validationErrors.confirmPassword}
-                aria-describedby={validationErrors.confirmPassword ? 'confirmPassword-error' : undefined}
+                aria-describedby={
+                  validationErrors.confirmPassword ? "confirmPassword-error" : undefined
+                }
               />
               {validationErrors.confirmPassword && (
-                <p id="confirmPassword-error" className="text-sm text-destructive" role="alert" aria-live="polite">
+                <p
+                  id="confirmPassword-error"
+                  className="text-sm text-destructive"
+                  role="alert"
+                  aria-live="polite"
+                >
                   {validationErrors.confirmPassword}
                 </p>
               )}
@@ -204,25 +224,25 @@ export default function RegisterPage() {
               type="submit"
               className="w-full"
               disabled={isRegistering}
-              aria-label={isRegistering ? t('registering') : t('submit')}
+              aria-label={isRegistering ? t("registering") : t("submit")}
               aria-busy={isRegistering}
             >
               {isRegistering ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t('registering')}
+                  {t("registering")}
                 </>
               ) : (
-                t('submit')
+                t("submit")
               )}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              {t('hasAccount')}{' '}
+              {t("hasAccount")}{" "}
               <Link href="/login" className="text-primary-on-dark hover:underline font-medium">
-                {t('login')}
+                {t("login")}
               </Link>
             </p>
           </div>
@@ -231,4 +251,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-

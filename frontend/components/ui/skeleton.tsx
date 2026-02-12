@@ -9,7 +9,7 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
 
 /**
  * Skeleton - Composant pour afficher un placeholder de chargement
- * 
+ *
  * Variantes :
  * - default : Rectangle arrondi
  * - text : Ligne de texte
@@ -25,7 +25,7 @@ export function Skeleton({
   ...props
 }: SkeletonProps) {
   const baseClasses = "animate-pulse bg-muted relative overflow-hidden";
-  
+
   const variantClasses = {
     default: "rounded-md",
     text: "rounded-md h-4",
@@ -61,22 +61,14 @@ interface SkeletonTextProps {
   lastLineWidth?: string;
 }
 
-export function SkeletonText({
-  lines = 3,
-  className,
-  lastLineWidth = "60%",
-}: SkeletonTextProps) {
+export function SkeletonText({ lines = 3, className, lastLineWidth = "60%" }: SkeletonTextProps) {
   return (
     <div className={cn("space-y-2", className)} aria-hidden="true">
       {Array.from({ length: lines }).map((_, index) => (
         <Skeleton
           key={index}
           variant="text"
-          style={
-            index === lines - 1
-              ? { width: lastLineWidth }
-              : undefined
-          }
+          style={index === lines - 1 ? { width: lastLineWidth } : undefined}
         />
       ))}
     </div>
@@ -92,23 +84,11 @@ interface SkeletonCardProps {
   lines?: number;
 }
 
-export function SkeletonCard({
-  className,
-  showAvatar = false,
-  lines = 3,
-}: SkeletonCardProps) {
+export function SkeletonCard({ className, showAvatar = false, lines = 3 }: SkeletonCardProps) {
   return (
-    <div
-      className={cn(
-        "rounded-xl border bg-card p-6 shadow-sm",
-        className
-      )}
-      aria-hidden="true"
-    >
+    <div className={cn("rounded-xl border bg-card p-6 shadow-sm", className)} aria-hidden="true">
       <div className="flex items-start gap-4">
-        {showAvatar && (
-          <Skeleton variant="circular" width={48} height={48} />
-        )}
+        {showAvatar && <Skeleton variant="circular" width={48} height={48} />}
         <div className="flex-1 space-y-3">
           <Skeleton variant="text" height={20} width="80%" />
           <SkeletonText lines={lines} lastLineWidth="60%" />
@@ -117,4 +97,3 @@ export function SkeletonCard({
     </div>
   );
 }
-

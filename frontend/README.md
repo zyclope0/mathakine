@@ -245,6 +245,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ### **TypeScript**
 
 Configuration stricte dans `tsconfig.json` :
+
 - `strict: true`
 - `noUncheckedIndexedAccess: true`
 - `noImplicitOverride: true`
@@ -253,6 +254,7 @@ Configuration stricte dans `tsconfig.json` :
 ### **Next.js**
 
 Configuration dans `next.config.ts` :
+
 - Headers sécurité (X-Content-Type-Options, X-Frame-Options)
 - Images optimisées (AVIF, WebP)
 - Code splitting automatique
@@ -261,6 +263,7 @@ Configuration dans `next.config.ts` :
 ### **Tailwind CSS**
 
 Configuration via CSS dans `app/globals.css` :
+
 - 4 thèmes (Spatial, Minimaliste, Océan, Neutre)
 - Variables CSS pour couleurs
 - Support dark mode
@@ -296,6 +299,7 @@ Configuration via CSS dans `app/globals.css` :
 ### **Composants UI (shadcn/ui)**
 
 Tous les composants sont dans `components/ui/` :
+
 - `Button` : Boutons avec variants (default, outline, ghost, link)
 - `Card` : Cartes avec header, content, footer
 - `Dialog` : Modales
@@ -370,6 +374,7 @@ function MyComponent() {
 ### **Traduction des Données**
 
 Les données (exercices, défis, badges) sont traduites via PostgreSQL JSONB :
+
 - Colonnes `*_translations` dans les tables
 - Extraction automatique selon `Accept-Language` header
 - Fallback vers français si traduction manquante
@@ -476,6 +481,7 @@ NEXT_PUBLIC_API_URL=https://mathakine.onrender.com
 ### **Render.com**
 
 Le projet est configuré pour Render.com :
+
 - Build command : `cd frontend && npm install && npm run build`
 - Start command : `cd frontend && npm start`
 
@@ -521,14 +527,17 @@ npx shadcn@latest add [component-name]
 ### **Erreurs Courantes**
 
 **Erreur : `MISSING_MESSAGE`**
+
 - Vérifier que la clé existe dans `messages/fr.json` et `messages/en.json`
 - Exécuter `npm run i18n:check`
 
 **Erreur : `Cannot find module`**
+
 - Vérifier les paths alias dans `tsconfig.json`
 - Redémarrer le serveur de développement
 
 **Erreur : API non accessible**
+
 - Vérifier `NEXT_PUBLIC_API_URL` dans `.env.local`
 - Vérifier que le backend est démarré
 
@@ -537,6 +546,7 @@ npx shadcn@latest add [component-name]
 ## 📝 **Changelog**
 
 ### **v0.1.0** (Novembre 2025)
+
 - ✅ Setup complet Next.js 16
 - ✅ Authentification complète
 - ✅ Pages principales (exercices, défis, dashboard, badges)

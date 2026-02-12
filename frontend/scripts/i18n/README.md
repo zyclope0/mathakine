@@ -11,17 +11,20 @@ Scripts pour industrialiser la gestion des traductions dans Mathakine.
 Vérifie la cohérence entre les fichiers de traduction FR et EN.
 
 **Utilisation** :
+
 ```bash
 npm run i18n:check
 ```
 
 **Vérifications** :
+
 - ✅ Toutes les clés FR existent en EN
 - ✅ Toutes les clés EN existent en FR
 - ✅ Structure identique entre les deux fichiers
 - ✅ Détection des clés orphelines
 
 **Exemple de sortie** :
+
 ```
 🔍 Vérification des traductions...
 
@@ -41,17 +44,20 @@ npm run i18n:check
 Détecte les textes français hardcodés dans le code.
 
 **Utilisation** :
+
 ```bash
 npm run i18n:extract
 ```
 
 **Fonctionnalités** :
+
 - 🔍 Scan des fichiers `.tsx`, `.ts`, `.jsx`, `.js`
 - 📝 Détection des textes français (accents, mots courants)
 - 💡 Suggestion de namespace approprié
 - 📄 Génération d'un rapport JSON
 
 **Exemple de sortie** :
+
 ```
 🔍 Extraction des textes hardcodés...
 
@@ -79,11 +85,13 @@ npm run i18n:extract
 Valide la structure et la syntaxe des fichiers de traduction.
 
 **Utilisation** :
+
 ```bash
 npm run i18n:validate
 ```
 
 **Vérifications** :
+
 - ✅ Syntaxe JSON valide
 - ✅ Profondeur maximale
 - ✅ Nombre de clés
@@ -91,6 +99,7 @@ npm run i18n:validate
 - ✅ Comparaison FR/EN
 
 **Exemple de sortie** :
+
 ```
 🔍 Validation de la structure des traductions...
 
@@ -122,6 +131,7 @@ npm run i18n:all
 ```
 
 Cette commande exécute dans l'ordre :
+
 1. `validate-structure.js` - Valide la structure
 2. `check-translations.js` - Vérifie la cohérence
 3. `extract-hardcoded.js` - Détecte les textes hardcodés
@@ -133,6 +143,7 @@ Cette commande exécute dans l'ordre :
 ### **Avant d'ajouter des traductions** :
 
 1. Valider la structure actuelle :
+
    ```bash
    npm run i18n:validate
    ```
@@ -145,11 +156,13 @@ Cette commande exécute dans l'ordre :
 ### **Après avoir ajouté des traductions** :
 
 1. Valider la nouvelle structure :
+
    ```bash
    npm run i18n:validate
    ```
 
 2. Vérifier la cohérence :
+
    ```bash
    npm run i18n:check
    ```
@@ -193,6 +206,7 @@ Ces scripts peuvent être intégrés dans votre pipeline CI/CD :
 ### **Erreur : "Cannot find module"**
 
 Assurez-vous d'exécuter les scripts depuis le dossier `frontend/` :
+
 ```bash
 cd frontend
 npm run i18n:check
@@ -201,6 +215,7 @@ npm run i18n:check
 ### **Erreur : "SyntaxError: Unexpected token"**
 
 Vérifiez que les fichiers JSON sont valides :
+
 ```bash
 npm run i18n:validate
 ```
@@ -208,4 +223,3 @@ npm run i18n:validate
 ---
 
 **Dernière mise à jour** : Janvier 2025
-

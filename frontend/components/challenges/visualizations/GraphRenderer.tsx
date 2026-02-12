@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Network } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Network } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 
 interface GraphRendererProps {
   visualData: any;
@@ -30,7 +30,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
 
   if (!nodes || nodes.length === 0) {
     return (
-      <Card className={`bg-card border-primary/20 ${className || ''}`}>
+      <Card className={`bg-card border-primary/20 ${className || ""}`}>
         <CardContent className="p-4 text-center text-muted-foreground">
           Aucun graphe disponible
         </CardContent>
@@ -41,7 +41,10 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   // Créer un mapping des noms de nœuds vers leurs indices
   const nodeMap = new Map<string, number>();
   nodes.forEach((node: any, index: number) => {
-    const nodeKey = typeof node === 'object' ? (node.label || node.value || node.id || String(index)) : String(node);
+    const nodeKey =
+      typeof node === "object"
+        ? node.label || node.value || node.id || String(index)
+        : String(node);
     nodeMap.set(nodeKey.toUpperCase(), index);
   });
 
@@ -49,7 +52,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   const centerX = dimensions.width / 2;
   const centerY = dimensions.height / 2;
   const radius = Math.min(dimensions.width, dimensions.height) / 3;
-  
+
   const nodePositions = nodes.map((_: any, index: number) => {
     const angle = (2 * Math.PI * index) / nodes.length;
     return {
@@ -59,14 +62,14 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   });
 
   return (
-    <Card className={`bg-card border-primary/20 ${className || ''}`}>
+    <Card className={`bg-card border-primary/20 ${className || ""}`}>
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Network className="h-5 w-5 text-primary" />
             <h4 className="text-sm font-semibold text-foreground">Graphe</h4>
           </div>
-          
+
           <div className="flex justify-center bg-muted/30 rounded-lg p-4 overflow-auto">
             <svg
               ref={svgRef}
@@ -79,67 +82,73 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                 let fromIndex: number | undefined;
                 let toIndex: number | undefined;
                 let weight: number | string | undefined;
-                
+
                 // Gérer différents formats d'edges
-                if (typeof edge === 'object' && 'from' in edge && 'to' in edge) {
+                if (typeof edge === "object" && "from" in edge && "to" in edge) {
                   // Format {from: "A", to: "B", weight: 5} ou {from: 0, to: 1}
-                  if (typeof edge.from === 'number') {
+                  if (typeof edge.from === "number") {
                     fromIndex = edge.from;
                   } else {
                     fromIndex = nodeMap.get(String(edge.from).toUpperCase());
                   }
-                  
-                  if (typeof edge.to === 'number') {
+
+                  if (typeof edge.to === "number") {
                     toIndex = edge.to;
                   } else {
                     toIndex = nodeMap.get(String(edge.to).toUpperCase());
                   }
-                  
+
                   // Extraire le poids (weight, cost, time, distance, label)
-                  weight = edge.weight ?? edge.cost ?? edge.time ?? edge.distance ?? edge.label ?? edge.value;
+                  weight =
+                    edge.weight ??
+                    edge.cost ??
+                    edge.time ??
+                    edge.distance ??
+                    edge.label ??
+                    edge.value;
                 } else if (Array.isArray(edge)) {
                   // Format ["A", "B"] ou ["A", "B", 5] ou [0, 1, 5]
-                  if (typeof edge[0] === 'number') {
+                  if (typeof edge[0] === "number") {
                     fromIndex = edge[0];
                   } else {
                     fromIndex = nodeMap.get(String(edge[0]).toUpperCase());
                   }
-                  
-                  if (typeof edge[1] === 'number') {
+
+                  if (typeof edge[1] === "number") {
                     toIndex = edge[1];
                   } else {
                     toIndex = nodeMap.get(String(edge[1]).toUpperCase());
                   }
-                  
+
                   // Le poids peut être le 3ème élément
                   if (edge.length >= 3) {
                     weight = edge[2];
                   }
                 }
-                
+
                 if (fromIndex === undefined || toIndex === undefined) {
-                  if (process.env.NODE_ENV === 'development') {
+                  if (process.env.NODE_ENV === "development") {
                     console.warn(`Edge invalide ignorée:`, edge);
                   }
                   return null;
                 }
-                
+
                 const from = nodePositions[fromIndex];
                 const to = nodePositions[toIndex];
-                
+
                 if (!from || !to) return null;
-                
+
                 // Calculer le point milieu pour le label du poids
                 const midX = (from.x + to.x) / 2;
                 const midY = (from.y + to.y) / 2;
-                
+
                 // Décaler légèrement le label perpendiculairement à la ligne pour éviter le chevauchement
                 const dx = to.x - from.x;
                 const dy = to.y - from.y;
                 const len = Math.sqrt(dx * dx + dy * dy);
                 const offsetX = len > 0 ? (-dy / len) * 12 : 0;
                 const offsetY = len > 0 ? (dx / len) * 12 : 0;
-                
+
                 return (
                   <g key={index}>
                     <line
@@ -181,14 +190,17 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                   </g>
                 );
               })}
-              
+
               {/* Dessiner les nœuds */}
               {nodes.map((node: any, index: number) => {
                 const pos = nodePositions[index];
                 if (!pos) return null;
-                
-                const label = typeof node === 'object' ? node.label || node.value || node.id || index : String(node);
-                
+
+                const label =
+                  typeof node === "object"
+                    ? node.label || node.value || node.id || index
+                    : String(node);
+
                 return (
                   <g key={index}>
                     <circle
@@ -216,23 +228,26 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
           </div>
 
           <div className="text-xs text-center text-muted-foreground">
-            {nodes.length} nœud{nodes.length > 1 ? 's' : ''} • {edges.length} arête{edges.length > 1 ? 's' : ''}
+            {nodes.length} nœud{nodes.length > 1 ? "s" : ""} • {edges.length} arête
+            {edges.length > 1 ? "s" : ""}
             {/* Indiquer si c'est un graphe pondéré */}
             {edges.some((edge: any) => {
-              if (typeof edge === 'object' && !Array.isArray(edge)) {
-                return edge.weight !== undefined || edge.cost !== undefined || edge.time !== undefined || edge.distance !== undefined;
+              if (typeof edge === "object" && !Array.isArray(edge)) {
+                return (
+                  edge.weight !== undefined ||
+                  edge.cost !== undefined ||
+                  edge.time !== undefined ||
+                  edge.distance !== undefined
+                );
               }
               if (Array.isArray(edge) && edge.length >= 3) {
                 return true;
               }
               return false;
-            }) && (
-              <span className="ml-2 text-primary">• pondéré</span>
-            )}
+            }) && <span className="ml-2 text-primary">• pondéré</span>}
           </div>
         </div>
       </CardContent>
     </Card>
   );
 }
-

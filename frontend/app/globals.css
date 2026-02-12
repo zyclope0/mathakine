@@ -4,11 +4,12 @@
 
 /* Empêcher le scroll horizontal causé par les drawers/modals */
 @layer base {
-  html, body {
+  html,
+  body {
     overflow-x: hidden;
     max-width: 100vw;
   }
-  
+
   /* Le bouton React Query DevTools est en bottom-left, donc pas de conflit */
   /* Mais on s'assure que l'AccessibilityToolbar est toujours au-dessus */
   [data-react-query-devtools] {
@@ -81,7 +82,8 @@
 
 /* Micro-interactions améliorées */
 @keyframes pulse-subtle {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -123,7 +125,8 @@
 
 /* Animation pour feedback succès */
 @keyframes success-pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -135,13 +138,21 @@
 
 /* Animation pour feedback erreur */
 @keyframes error-shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
-  10%, 30%, 50%, 70%, 90% {
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
     transform: translateX(-4px);
   }
-  20%, 40%, 60%, 80% {
+  20%,
+  40%,
+  60%,
+  80% {
     transform: translateX(4px);
   }
 }
@@ -150,14 +161,15 @@
 button:not(:disabled) {
   position: relative;
   overflow: hidden;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Effet de brillance amélioré sur les boutons */
 button:not(:disabled)::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -180,31 +192,35 @@ button:not(:disabled):hover::after {
 
 button:not(:disabled):hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3),
-              0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 4px 12px rgba(124, 58, 237, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 button:not(:disabled):active {
   transform: translateY(0) scale(0.97);
   box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
-  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Améliorations cards - hover effect avec effet de brillance amélioré */
 [data-slot="card"] {
   position: relative;
   overflow: hidden;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
-              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Effet de brillance (sweep effect) amélioré sur les cards */
 [data-slot="card"]::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -229,8 +245,9 @@ button:not(:disabled):active {
 
 [data-slot="card"]:hover {
   transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25),
-              0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 8px 24px rgba(124, 58, 237, 0.25),
+    0 4px 8px rgba(0, 0, 0, 0.1);
   border-color: rgba(139, 92, 246, 0.4);
 }
 
@@ -241,9 +258,10 @@ button:not(:disabled):active {
 
 /* Améliorations liens - feedback visuel amélioré */
 a:not([role="button"]):not(button) {
-  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              text-decoration-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    text-decoration-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 a:not([role="button"]):not(button):hover {
@@ -260,9 +278,10 @@ a:not([role="button"]):not(button):active {
 input:not([type="checkbox"]):not([type="radio"]),
 textarea,
 select {
-  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 input:not([type="checkbox"]):not([type="radio"]):hover,
@@ -289,19 +308,20 @@ select:focus {
     transform: none;
     transition: none;
   }
-  
+
   button:not(:disabled)::after,
   [data-slot="card"]::before {
     display: none;
   }
-  
+
   /* Les animations sont désactivées via les composants React qui vérifient reducedMotion */
   /* Pas besoin de redéfinir les @keyframes ici */
 }
 
 /* Animations spatiales - Planète */
 @keyframes pulse-ring {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 0.3;
   }
@@ -404,22 +424,22 @@ select:focus {
   .space-y-4 > * + * {
     margin-top: 0.75rem;
   }
-  
+
   .space-y-6 > * + * {
     margin-top: 1rem;
   }
-  
+
   /* Textes plus lisibles sur mobile */
   h1 {
     font-size: 1.75rem;
     line-height: 1.2;
   }
-  
+
   h2 {
     font-size: 1.5rem;
     line-height: 1.3;
   }
-  
+
   h3 {
     font-size: 1.25rem;
     line-height: 1.4;
@@ -428,7 +448,7 @@ select:focus {
 
 /* Thème Spatial (Priorité 1) - Par défaut */
 :root,
-[data-theme='spatial'] {
+[data-theme="spatial"] {
   --radius: 0.625rem;
   --background: #0a0a0f;
   --foreground: #ffffff;
@@ -457,7 +477,7 @@ select:focus {
 }
 
 /* Thème Spatial - Mode Dark (plus sombre, plus contrasté) */
-.dark[data-theme='spatial'] {
+.dark[data-theme="spatial"] {
   --background: #000000;
   --card: #0a0a0f;
   --muted: #0f0f14;
@@ -470,7 +490,7 @@ select:focus {
 }
 
 /* Thème Minimaliste (Priorité 2) */
-[data-theme='minimalist'] {
+[data-theme="minimalist"] {
   --background: #ffffff;
   --foreground: #000000;
   --card: #f5f5f5;
@@ -494,7 +514,7 @@ select:focus {
 }
 
 /* Thème Minimaliste - Mode Dark (inversion complète noir/blanc) */
-.dark[data-theme='minimalist'] {
+.dark[data-theme="minimalist"] {
   --background: #000000;
   --foreground: #ffffff;
   --card: #1a1a1a;
@@ -515,7 +535,7 @@ select:focus {
 }
 
 /* Thème Océan (Priorité 3) */
-[data-theme='ocean'] {
+[data-theme="ocean"] {
   --background: #0c1220;
   --foreground: #f1f5f9;
   --card: #1e293b;
@@ -541,7 +561,7 @@ select:focus {
 }
 
 /* Thème Océan - Mode Dark (profondeur océanique plus sombre) */
-.dark[data-theme='ocean'] {
+.dark[data-theme="ocean"] {
   --background: #050810;
   --card: #0f172a;
   --muted: #0f172a;
@@ -554,7 +574,7 @@ select:focus {
 }
 
 /* Thème Neutre (Priorité 4) */
-[data-theme='neutral'] {
+[data-theme="neutral"] {
   --background: #ffffff;
   --foreground: #111827;
   --card: #f9fafb;
@@ -577,7 +597,7 @@ select:focus {
 }
 
 /* Thème Neutre - Mode Dark (gris foncé élégant) */
-.dark[data-theme='neutral'] {
+.dark[data-theme="neutral"] {
   --background: #111827;
   --foreground: #f9fafb;
   --card: #1f2937;
@@ -603,16 +623,20 @@ select:focus {
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Exo 2', system-ui, -apple-system, sans-serif;
+    font-family:
+      "Exo 2",
+      system-ui,
+      -apple-system,
+      sans-serif;
   }
-  
+
   /* Focus visible global amélioré pour WCAG 2.1 AAA */
   *:focus-visible {
     outline: 3px solid var(--ring);
     outline-offset: 2px;
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--ring) 20%, transparent);
   }
-  
+
   /* Focus visible renforcé pour éléments interactifs */
   button:focus-visible,
   a:focus-visible,
@@ -648,13 +672,13 @@ select:focus {
   body .text-sm.text-primary:not(.text-primary-foreground) {
     color: var(--primary-text-on-dark);
   }
-  
+
   /* Améliorer le contraste pour les liens sur fonds sombres */
   a.text-primary:not(.text-primary-foreground),
   a.hover\:text-primary:hover:not(.text-primary-foreground) {
     color: var(--primary-text-on-dark);
   }
-  
+
   /* Variant link du Button sur fonds sombres */
   button[data-slot="button"].text-primary:not(.text-primary-foreground),
   a[data-slot="button"].text-primary:not(.text-primary-foreground) {
@@ -669,18 +693,18 @@ select:focus {
   /* Mode light / thèmes à fond clair */
   :root:not(.dark) .text-primary,
   html:not(.dark) .text-primary,
-  [data-theme='minimalist']:not(.dark *) .text-primary,
-  [data-theme='neutral']:not(.dark *) .text-primary {
+  [data-theme="minimalist"]:not(.dark *) .text-primary,
+  [data-theme="neutral"]:not(.dark *) .text-primary {
     color: #6d28d9; /* violet-700 - contraste 7.1:1 sur blanc */
   }
-  
+
   /* S'assurer que les icônes et textes primary sur bg-muted en light mode sont lisibles */
   :root:not(.dark) [class*="bg-muted"] .text-primary,
   :root:not(.dark) [class*="bg-card"] .text-primary,
   :root:not(.dark) [class*="bg-primary/"] .text-primary {
     color: #6d28d9;
   }
-  
+
   /* Texte muted-foreground sur fonds clairs - assurer contraste minimal 4.5:1 */
   :root:not(.dark) .text-muted-foreground {
     color: #525252; /* neutral-600 - contraste 7.0:1 sur blanc */
@@ -948,7 +972,7 @@ select:focus {
 
 /* Accessibilité - Mode dyslexie */
 .dyslexia-mode {
-  font-family: 'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif;
+  font-family: "OpenDyslexic", "Comic Sans MS", cursive, sans-serif;
   letter-spacing: 0.1em;
   word-spacing: 0.2em;
   line-height: 1.8;
@@ -962,9 +986,13 @@ select:focus {
 /* Classes utilitaires pour effets spatiaux adaptatifs */
 .card-spatial-depth {
   position: relative;
-  background: linear-gradient(135deg, var(--card), color-mix(in srgb, var(--card) 90%, var(--muted)));
+  background: linear-gradient(
+    135deg,
+    var(--card),
+    color-mix(in srgb, var(--card) 90%, var(--muted))
+  );
   border: 1px solid var(--border);
-  box-shadow: 
+  box-shadow:
     0 4px 6px rgba(0, 0, 0, 0.3),
     0 0 20px color-mix(in srgb, var(--primary) 10%, transparent);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -972,7 +1000,7 @@ select:focus {
 }
 
 .card-spatial-depth::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -994,7 +1022,7 @@ select:focus {
 .card-spatial-depth:hover {
   transform: translateY(-4px);
   border-color: color-mix(in srgb, var(--primary) 50%, transparent);
-  box-shadow: 
+  box-shadow:
     0 8px 12px rgba(0, 0, 0, 0.4),
     0 0 30px color-mix(in srgb, var(--primary) 30%, transparent);
 }
@@ -1010,7 +1038,7 @@ select:focus {
 }
 
 .badge-sweep::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -1034,14 +1062,14 @@ select:focus {
   position: relative;
   background: var(--primary);
   color: var(--primary-foreground);
-  box-shadow: 
+  box-shadow:
     0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent),
     0 0 0 0 color-mix(in srgb, var(--primary) 40%, transparent);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-cta-primary::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -1052,7 +1080,9 @@ select:focus {
     color-mix(in srgb, var(--accent) 40%, transparent),
     color-mix(in srgb, var(--primary) 60%, transparent)
   );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
@@ -1061,7 +1091,7 @@ select:focus {
 
 .btn-cta-primary:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 
+  box-shadow:
     0 4px 16px color-mix(in srgb, var(--primary) 40%, transparent),
     0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
 }
@@ -1072,7 +1102,7 @@ select:focus {
 
 .btn-cta-primary:active {
   transform: translateY(0) scale(0.98);
-  box-shadow: 
+  box-shadow:
     0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent),
     0 0 0 2px color-mix(in srgb, var(--primary) 15%, transparent);
 }
@@ -1132,7 +1162,8 @@ select:focus {
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 40%, transparent);
   }
   50% {
@@ -1158,11 +1189,11 @@ select:focus {
     opacity: 1 !important;
     transform: none !important;
   }
-  
+
   .card-spatial-depth:hover {
     transform: none;
   }
-  
+
   .btn-cta-primary:hover {
     transform: none;
   }
@@ -1170,25 +1201,25 @@ select:focus {
 
 /* Adaptations spécifiques par thème */
 [data-theme="minimalist"] .card-spatial-depth {
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.1),
     0 0 0 1px var(--border);
 }
 
 [data-theme="minimalist"] .card-spatial-depth:hover {
-  box-shadow: 
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.15),
     0 0 0 2px var(--primary);
 }
 
 [data-theme="ocean"] .card-spatial-depth {
-  box-shadow: 
+  box-shadow:
     0 4px 6px rgba(0, 0, 0, 0.3),
     0 0 20px color-mix(in srgb, var(--primary) 12%, transparent);
 }
 
 [data-theme="neutral"] .card-spatial-depth {
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.1),
     0 0 15px color-mix(in srgb, var(--primary) 8%, transparent);
 }

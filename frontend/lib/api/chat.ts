@@ -1,18 +1,18 @@
-import { apiRequest } from './client';
-import type { Message } from '@/hooks/useChat';
+import { apiRequest } from "./client";
+import type { Message } from "@/hooks/useChat";
 
 interface ChatStreamPayload {
   message: string;
-  conversation_history: Array<{ role: 'user' | 'assistant'; content: string }>;
+  conversation_history: Array<{ role: "user" | "assistant"; content: string }>;
   stream: true;
 }
 
 export type ChatStreamChunk =
-  | { type: 'chunk'; content: string }
-  | { type: 'status'; message: string }
-  | { type: 'image'; url: string }
-  | { type: 'done' }
-  | { type: 'error'; message: string };
+  | { type: "chunk"; content: string }
+  | { type: "status"; message: string }
+  | { type: "image"; url: string }
+  | { type: "done" }
+  | { type: "error"; message: string };
 
 /**
  * Initiates a streaming chat request to the backend.
@@ -25,24 +25,30 @@ export type ChatStreamChunk =
  * @param onFinish A callback function that will be called when the stream is finished.
  * @param onError A callback function that will be called if an error occurs.
  */
-export async function streamChat(payload: ChatStreamPayload, {
-  onChunk,
-  onFinish,
-  onError,
-}: { onChunk: (chunk: ChatStreamChunk) => void;
-  onFinish: () => void;
-  onError: (error: Error) => void;
-}) {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:10000' : '');
+export async function streamChat(
+  payload: ChatStreamPayload,
+  {
+    onChunk,
+    onFinish,
+    onError,
+  }: {
+    onChunk: (chunk: ChatStreamChunk) => void;
+    onFinish: () => void;
+    onError: (error: Error) => void;
+  }
+) {
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    (process.env.NODE_ENV === "development" ? "http://localhost:10000" : "");
 
   try {
     const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'text/event-stream',
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
       },
-      credentials: 'include',
+      credentials: "include",
       body: JSON.stringify(payload),
     });
 
@@ -53,11 +59,11 @@ export async function streamChat(payload: ChatStreamPayload, {
 
     const reader = response.body?.getReader();
     if (!reader) {
-      throw new Error('Could not read stream from response.');
+      throw new Error("Could not read stream from response.");
     }
 
     const decoder = new TextDecoder();
-    let buffer = '';
+    let buffer = "";
 
     while (true) {
       const { done, value } = await reader.read();
@@ -66,30 +72,29 @@ export async function streamChat(payload: ChatStreamPayload, {
       }
 
       buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
+        if (line.startsWith("data: ")) {
           try {
             const data = JSON.parse(line.slice(6)) as ChatStreamChunk;
             onChunk(data);
-            if (data.type === 'done') {
+            if (data.type === "done") {
               onFinish();
               return; // End the stream processing
             }
-            if (data.type === 'error') {
+            if (data.type === "error") {
               throw new Error(data.message);
             }
           } catch (e) {
-            console.error('Failed to parse SSE chunk:', e);
+            console.error("Failed to parse SSE chunk:", e);
           }
         }
       }
     }
-    
-    onFinish();
 
+    onFinish();
   } catch (err) {
     onError(err as Error);
   }

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Eye, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { Card, CardContent } from "@/components/ui/card";
+import { Eye, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface VisualRendererProps {
   visualData: any;
@@ -13,35 +13,39 @@ interface VisualRendererProps {
 /**
  * Fonction helper pour parser une forme avec sa couleur
  */
-function parseShapeWithColor(shapeText: string): { shape: string; color: string | null; isQuestion: boolean } {
+function parseShapeWithColor(shapeText: string): {
+  shape: string;
+  color: string | null;
+  isQuestion: boolean;
+} {
   const text = shapeText.toLowerCase().trim();
-  
+
   // Détecter si c'est une question
-  const isQuestion = text.includes('?');
-  
+  const isQuestion = text.includes("?");
+
   // Map des couleurs français/anglais vers CSS
   const colorMap: Record<string, string> = {
-    'rouge': '#ef4444',
-    'red': '#ef4444',
-    'bleu': '#3b82f6',
-    'blue': '#3b82f6',
-    'vert': '#22c55e',
-    'green': '#22c55e',
-    'jaune': '#eab308',
-    'yellow': '#eab308',
-    'orange': '#f97316',
-    'violet': '#a855f7',
-    'purple': '#a855f7',
-    'rose': '#ec4899',
-    'pink': '#ec4899',
-    'noir': '#1f2937',
-    'black': '#1f2937',
-    'blanc': '#f9fafb',
-    'white': '#f9fafb',
-    'gris': '#6b7280',
-    'gray': '#6b7280',
+    rouge: "#ef4444",
+    red: "#ef4444",
+    bleu: "#3b82f6",
+    blue: "#3b82f6",
+    vert: "#22c55e",
+    green: "#22c55e",
+    jaune: "#eab308",
+    yellow: "#eab308",
+    orange: "#f97316",
+    violet: "#a855f7",
+    purple: "#a855f7",
+    rose: "#ec4899",
+    pink: "#ec4899",
+    noir: "#1f2937",
+    black: "#1f2937",
+    blanc: "#f9fafb",
+    white: "#f9fafb",
+    gris: "#6b7280",
+    gray: "#6b7280",
   };
-  
+
   // Trouver la couleur dans le texte
   let detectedColor: string | null = null;
   for (const [colorName, colorValue] of Object.entries(colorMap)) {
@@ -50,36 +54,36 @@ function parseShapeWithColor(shapeText: string): { shape: string; color: string 
       break;
     }
   }
-  
+
   // Map des formes
   const shapeMap: Record<string, string> = {
-    'triangle': 'triangle',
-    'rectangle': 'rectangle',
-    'cercle': 'cercle',
-    'circle': 'cercle',
-    'carré': 'carré',
-    'carre': 'carré',
-    'square': 'carré',
-    'losange': 'losange',
-    'diamond': 'losange',
-    'étoile': 'étoile',
-    'etoile': 'étoile',
-    'star': 'étoile',
-    'hexagone': 'hexagone',
-    'hexagon': 'hexagone',
-    'pentagone': 'pentagone',
-    'pentagon': 'pentagone',
+    triangle: "triangle",
+    rectangle: "rectangle",
+    cercle: "cercle",
+    circle: "cercle",
+    carré: "carré",
+    carre: "carré",
+    square: "carré",
+    losange: "losange",
+    diamond: "losange",
+    étoile: "étoile",
+    etoile: "étoile",
+    star: "étoile",
+    hexagone: "hexagone",
+    hexagon: "hexagone",
+    pentagone: "pentagone",
+    pentagon: "pentagone",
   };
-  
+
   // Trouver la forme dans le texte
-  let detectedShape = 'unknown';
+  let detectedShape = "unknown";
   for (const [shapeName, shapeValue] of Object.entries(shapeMap)) {
     if (text.includes(shapeName)) {
       detectedShape = shapeValue;
       break;
     }
   }
-  
+
   return { shape: detectedShape, color: detectedColor, isQuestion };
 }
 
@@ -88,20 +92,20 @@ function parseShapeWithColor(shapeText: string): { shape: string; color: string 
  */
 function getShapeIcon(shape: string): string {
   const shapeIconMap: Record<string, string> = {
-    'triangle': '▲',
-    'rectangle': '■',
-    'cercle': '●',
-    'circle': '●',
-    'carré': '■',
-    'square': '■',
-    'losange': '◆',
-    'diamond': '◆',
-    'étoile': '★',
-    'star': '★',
-    'hexagone': '⬡',
-    'pentagone': '⬠',
+    triangle: "▲",
+    rectangle: "■",
+    cercle: "●",
+    circle: "●",
+    carré: "■",
+    square: "■",
+    losange: "◆",
+    diamond: "◆",
+    étoile: "★",
+    star: "★",
+    hexagone: "⬡",
+    pentagone: "⬠",
   };
-  
+
   // Parser la forme pour extraire le nom de base
   const { shape: baseShape } = parseShapeWithColor(shape);
   return shapeIconMap[baseShape] || shape.charAt(0).toUpperCase();
@@ -118,38 +122,73 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
 
   // Parser les données visuelles avec gestion robuste
   const parseVisualData = (data: any) => {
-    if (!data) return { shapes: [], asciiArt: null, layout: [], symmetryType: null, symmetryLine: null, description: null, grid: null, gridSize: 3, rawData: null };
-    
+    if (!data)
+      return {
+        shapes: [],
+        asciiArt: null,
+        layout: [],
+        symmetryType: null,
+        symmetryLine: null,
+        description: null,
+        grid: null,
+        gridSize: 3,
+        rawData: null,
+      };
+
     // Si c'est une string, essayer de la parser comme JSON
     let parsed = data;
-    if (typeof data === 'string') {
+    if (typeof data === "string") {
       try {
         parsed = JSON.parse(data);
       } catch {
         // C'est peut-être de l'ASCII art directement
-        return { shapes: [], asciiArt: data, layout: [], symmetryType: null, symmetryLine: null, description: null, grid: null, gridSize: 3, rawData: null };
+        return {
+          shapes: [],
+          asciiArt: data,
+          layout: [],
+          symmetryType: null,
+          symmetryLine: null,
+          description: null,
+          grid: null,
+          gridSize: 3,
+          rawData: null,
+        };
       }
     }
-    
+
     // Détecter si c'est une grille
     const grid = parsed?.grid || parsed?.matrix || parsed?.pattern;
     const gridSize = parsed?.size || (Array.isArray(grid) && grid[0] ? grid[0].length : 3);
-    
+
     return {
       shapes: parsed?.shapes || parsed?.items || parsed?.elements || parsed?.figures || [],
-      asciiArt: parsed?.ascii || parsed?.art || parsed?.content || parsed?.diagram || parsed?.visual,
+      asciiArt:
+        parsed?.ascii || parsed?.art || parsed?.content || parsed?.diagram || parsed?.visual,
       layout: parsed?.layout || [],
-      symmetryType: parsed?.type || (parsed?.symmetry_line ? 'symmetry' : null),
+      symmetryType: parsed?.type || (parsed?.symmetry_line ? "symmetry" : null),
       symmetryLine: parsed?.symmetry_line || parsed?.symmetryLine || parsed?.axis,
       description: parsed?.description || parsed?.text || parsed?.explanation,
       grid: grid,
       gridSize: gridSize,
       // Garder les données brutes seulement si aucun format reconnu
-      rawData: (!parsed?.shapes && !parsed?.ascii && !parsed?.layout && !parsed?.items && !grid) ? parsed : null,
+      rawData:
+        !parsed?.shapes && !parsed?.ascii && !parsed?.layout && !parsed?.items && !grid
+          ? parsed
+          : null,
     };
   };
 
-  const { shapes, asciiArt, layout, symmetryType, symmetryLine, description, grid, gridSize, rawData } = parseVisualData(visualData);
+  const {
+    shapes,
+    asciiArt,
+    layout,
+    symmetryType,
+    symmetryLine,
+    description,
+    grid,
+    gridSize,
+    rawData,
+  } = parseVisualData(visualData);
 
   const handleRotate = () => {
     setRotation((prev) => (prev + 90) % 360);
@@ -168,7 +207,7 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
   };
 
   return (
-    <Card className={`bg-card border-primary/20 ${className || ''}`}>
+    <Card className={`bg-card border-primary/20 ${className || ""}`}>
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -213,13 +252,13 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
           </div>
 
           <div className="flex justify-center items-center min-h-[200px] bg-muted/30 rounded-lg p-6">
-            {symmetryType === 'symmetry' && layout.length > 0 ? (
+            {symmetryType === "symmetry" && layout.length > 0 ? (
               // Rendu spécialisé pour la symétrie
               <motion.div
                 className="w-full"
                 style={{
-                  transform: `rotate(${rotation}deg) scale(${scale}) ${flipped ? 'scaleX(-1)' : ''}`,
-                  transformOrigin: 'center',
+                  transform: `rotate(${rotation}deg) scale(${scale}) ${flipped ? "scaleX(-1)" : ""}`,
+                  transformOrigin: "center",
                 }}
                 animate={{ rotate: rotation }}
                 transition={{ duration: 0.3 }}
@@ -228,7 +267,7 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                   {/* Côté gauche */}
                   <div className="flex gap-3 items-center">
                     {layout
-                      .filter((item: any) => item.side === 'left')
+                      .filter((item: any) => item.side === "left")
                       .sort((a: any, b: any) => a.position - b.position)
                       .map((item: any, idx: number) => (
                         <motion.div
@@ -242,22 +281,24 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                         </motion.div>
                       ))}
                   </div>
-                  
+
                   {/* Ligne de symétrie */}
-                  <div className={`w-1 h-32 bg-primary/50 ${symmetryLine === 'vertical' ? '' : 'rotate-90'}`} />
-                  
+                  <div
+                    className={`w-1 h-32 bg-primary/50 ${symmetryLine === "vertical" ? "" : "rotate-90"}`}
+                  />
+
                   {/* Côté droit */}
                   <div className="flex gap-3 items-center">
                     {layout
-                      .filter((item: any) => item.side === 'right')
+                      .filter((item: any) => item.side === "right")
                       .sort((a: any, b: any) => a.position - b.position)
                       .map((item: any, idx: number) => (
                         <motion.div
                           key={`right-${item.position}`}
                           className={`w-20 h-20 border-2 rounded-lg flex items-center justify-center font-semibold ${
-                            item.question 
-                              ? 'border-dashed border-primary/70 bg-primary/5 animate-pulse' 
-                              : 'border-primary bg-primary/10'
+                            item.question
+                              ? "border-dashed border-primary/70 bg-primary/5 animate-pulse"
+                              : "border-primary bg-primary/10"
                           }`}
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
@@ -283,28 +324,30 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
               <motion.div
                 className="w-full flex flex-col items-center"
                 style={{
-                  transform: `rotate(${rotation}deg) scale(${scale}) ${flipped ? 'scaleX(-1)' : ''}`,
-                  transformOrigin: 'center',
+                  transform: `rotate(${rotation}deg) scale(${scale}) ${flipped ? "scaleX(-1)" : ""}`,
+                  transformOrigin: "center",
                 }}
                 animate={{ rotate: rotation }}
                 transition={{ duration: 0.3 }}
               >
-                <div 
+                <div
                   className="grid gap-2 p-4 bg-muted/20 rounded-lg"
                   style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
                 >
                   {grid.flat().map((cell: any, index: number) => {
-                    const cellValue = typeof cell === 'object' ? cell.value || cell.label || '?' : String(cell);
-                    const isQuestion = cellValue === '?' || cellValue.includes('?');
-                    
+                    const cellValue =
+                      typeof cell === "object" ? cell.value || cell.label || "?" : String(cell);
+                    const isQuestion = cellValue === "?" || cellValue.includes("?");
+
                     return (
                       <motion.div
                         key={index}
                         className={`
                           w-16 h-16 border-2 rounded-lg flex items-center justify-center font-semibold text-lg
-                          ${isQuestion 
-                            ? 'border-dashed border-primary bg-primary/10 animate-pulse' 
-                            : 'border-primary/40 bg-card'
+                          ${
+                            isQuestion
+                              ? "border-dashed border-primary bg-primary/10 animate-pulse"
+                              : "border-primary/40 bg-card"
                           }
                         `}
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -323,20 +366,22 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                 </div>
                 {/* Légende des formes */}
                 <div className="flex gap-3 mt-4 text-xs text-muted-foreground">
-                  {Array.from(new Set(grid.flat().filter((c: any) => c !== '?'))).slice(0, 5).map((shape: any, idx: number) => (
-                    <div key={idx} className="flex items-center gap-1">
-                      <span className="text-base">{getShapeIcon(String(shape))}</span>
-                      <span>= {String(shape)}</span>
-                    </div>
-                  ))}
+                  {Array.from(new Set(grid.flat().filter((c: any) => c !== "?")))
+                    .slice(0, 5)
+                    .map((shape: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-1">
+                        <span className="text-base">{getShapeIcon(String(shape))}</span>
+                        <span>= {String(shape)}</span>
+                      </div>
+                    ))}
                 </div>
               </motion.div>
             ) : asciiArt ? (
               <motion.pre
                 className="text-foreground font-mono text-sm whitespace-pre"
                 style={{
-                  transform: `rotate(${rotation}deg) scale(${scale}) ${flipped ? 'scaleX(-1)' : ''}`,
-                  transformOrigin: 'center',
+                  transform: `rotate(${rotation}deg) scale(${scale}) ${flipped ? "scaleX(-1)" : ""}`,
+                  transformOrigin: "center",
                 }}
                 animate={{ rotate: rotation }}
                 transition={{ duration: 0.3 }}
@@ -347,24 +392,27 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
               <motion.div
                 className="flex flex-wrap gap-4 justify-center"
                 style={{
-                  transform: `rotate(${rotation}deg) scale(${scale}) ${flipped ? 'scaleX(-1)' : ''}`,
-                  transformOrigin: 'center',
+                  transform: `rotate(${rotation}deg) scale(${scale}) ${flipped ? "scaleX(-1)" : ""}`,
+                  transformOrigin: "center",
                 }}
                 animate={{ rotate: rotation }}
                 transition={{ duration: 0.3 }}
               >
                 {shapes.map((shapeData: any, index: number) => {
-                  const shapeText = typeof shapeData === 'string' ? shapeData : (shapeData.label || shapeData.value || String(index + 1));
+                  const shapeText =
+                    typeof shapeData === "string"
+                      ? shapeData
+                      : shapeData.label || shapeData.value || String(index + 1);
                   const { shape, color, isQuestion } = parseShapeWithColor(shapeText);
                   const icon = getShapeIcon(shapeText);
-                  
+
                   return (
                     <motion.div
                       key={index}
                       className={`w-20 h-20 border-2 rounded-lg flex flex-col items-center justify-center font-semibold ${
-                        isQuestion 
-                          ? 'border-dashed border-primary animate-pulse bg-primary/10' 
-                          : 'border-primary/40 bg-card'
+                        isQuestion
+                          ? "border-dashed border-primary animate-pulse bg-primary/10"
+                          : "border-primary/40 bg-card"
                       }`}
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -375,15 +423,12 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                         <span className="text-3xl font-bold text-primary">?</span>
                       ) : (
                         <>
-                          <span 
-                            className="text-4xl"
-                            style={{ color: color || 'currentColor' }}
-                          >
+                          <span className="text-4xl" style={{ color: color || "currentColor" }}>
                             {icon}
                           </span>
                           {color && (
                             <span className="text-[10px] text-muted-foreground mt-1 capitalize">
-                              {shapeText.split(' ').pop()}
+                              {shapeText.split(" ").pop()}
                             </span>
                           )}
                         </>
@@ -395,13 +440,13 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
             ) : rawData ? (
               // Afficher les données brutes de manière structurée
               <div className="w-full max-w-md">
-                {typeof rawData === 'object' ? (
+                {typeof rawData === "object" ? (
                   <div className="space-y-2 text-left">
                     {Object.entries(rawData).map(([key, value]) => (
                       <div key={key} className="border-l-2 border-primary/30 pl-3 py-1">
                         <span className="text-xs font-semibold text-primary">{key}:</span>
                         <span className="text-sm text-foreground ml-2">
-                          {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                          {typeof value === "object" ? JSON.stringify(value) : String(value)}
                         </span>
                       </div>
                     ))}
@@ -419,7 +464,7 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
               <div className="text-muted-foreground text-center">
                 <Eye className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">Aucune donnée visuelle disponible</p>
-                {process.env.NODE_ENV === 'development' && visualData && (
+                {process.env.NODE_ENV === "development" && visualData && (
                   <pre className="text-xs mt-2 text-left bg-muted/30 p-2 rounded max-w-md overflow-auto">
                     {JSON.stringify(visualData, null, 2)}
                   </pre>
@@ -436,4 +481,3 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
     </Card>
   );
 }
-

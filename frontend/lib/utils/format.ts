@@ -5,7 +5,7 @@
 /**
  * Formate un taux de réussite pour l'affichage.
  * Gère les deux formats possibles : ratio (0-1) ou pourcentage (0-100).
- * 
+ *
  * @param rate - Le taux de réussite (peut être un ratio 0-1 ou un pourcentage 0-100)
  * @returns Le pourcentage formaté ou null si invalide
  */

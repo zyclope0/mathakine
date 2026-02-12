@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Grid3x3, MousePointerClick } from 'lucide-react';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { Card, CardContent } from "@/components/ui/card";
+import { Grid3x3, MousePointerClick } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface PatternRendererProps {
   visualData: any;
@@ -20,7 +20,7 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
   const grid = visualData?.grid || visualData?.pattern || visualData?.matrix || [];
   const gridSize = visualData?.size || Math.sqrt(grid.length) || 3;
   const [selectedCells, setSelectedCells] = useState<Set<number>>(new Set());
-  const [patternAnswer, setPatternAnswer] = useState<string>('');
+  const [patternAnswer, setPatternAnswer] = useState<string>("");
 
   const toggleCell = (index: number) => {
     const newSelected = new Set(selectedCells);
@@ -33,15 +33,13 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
   };
 
   // Si grid est un tableau 1D, le convertir en 2D
-  const grid2D = Array.isArray(grid[0]) 
-    ? grid 
-    : Array.from({ length: gridSize }, (_, i) => 
-        grid.slice(i * gridSize, (i + 1) * gridSize)
-      );
+  const grid2D = Array.isArray(grid[0])
+    ? grid
+    : Array.from({ length: gridSize }, (_, i) => grid.slice(i * gridSize, (i + 1) * gridSize));
 
   if (!grid || grid.length === 0) {
     return (
-      <Card className={`bg-card border-primary/20 ${className || ''}`}>
+      <Card className={`bg-card border-primary/20 ${className || ""}`}>
         <CardContent className="p-4 text-center text-muted-foreground">
           Aucun pattern disponible
         </CardContent>
@@ -50,7 +48,7 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
   }
 
   return (
-    <Card className={`bg-card border-primary/20 ${className || ''}`}>
+    <Card className={`bg-card border-primary/20 ${className || ""}`}>
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -60,27 +58,31 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
               Cliquez sur les cellules pour les sélectionner
             </span>
           </div>
-          
+
           <div className="flex justify-center">
-            <div 
+            <div
               className="grid gap-1 p-2 bg-muted/30 rounded-lg"
-              style={{ gridTemplateColumns: `repeat(${grid2D[0]?.length || gridSize}, minmax(0, 1fr))` }}
+              style={{
+                gridTemplateColumns: `repeat(${grid2D[0]?.length || gridSize}, minmax(0, 1fr))`,
+              }}
             >
               {grid2D.flat().map((cell: any, index: number) => {
                 const isSelected = selectedCells.has(index);
-                const cellValue = typeof cell === 'object' ? cell.value || cell.label || '?' : String(cell);
-                
+                const cellValue =
+                  typeof cell === "object" ? cell.value || cell.label || "?" : String(cell);
+
                 return (
                   <motion.button
                     key={index}
                     className={`
                       w-12 h-12 rounded border-2 font-semibold text-sm
                       transition-all flex items-center justify-center
-                      ${cellValue === '?' 
-                        ? 'bg-primary/20 text-primary border-primary border-dashed animate-pulse' 
-                        : isSelected 
-                          ? 'bg-primary text-primary-foreground border-primary shadow-lg' 
-                          : 'bg-card text-foreground border-primary/30 hover:border-primary/50 hover:bg-primary/10'
+                      ${
+                        cellValue === "?"
+                          ? "bg-primary/20 text-primary border-primary border-dashed animate-pulse"
+                          : isSelected
+                            ? "bg-primary text-primary-foreground border-primary shadow-lg"
+                            : "bg-card text-foreground border-primary/30 hover:border-primary/50 hover:bg-primary/10"
                       }
                     `}
                     whileHover={{ scale: 1.1 }}
@@ -90,7 +92,7 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.02 }}
                   >
-                    {cellValue === '?' ? <span className="text-lg font-bold">?</span> : cellValue}
+                    {cellValue === "?" ? <span className="text-lg font-bold">?</span> : cellValue}
                   </motion.button>
                 );
               })}
@@ -99,7 +101,8 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
 
           {selectedCells.size > 0 && (
             <div className="text-xs text-center text-muted-foreground">
-              {selectedCells.size} cellule{selectedCells.size > 1 ? 's' : ''} sélectionnée{selectedCells.size > 1 ? 's' : ''}
+              {selectedCells.size} cellule{selectedCells.size > 1 ? "s" : ""} sélectionnée
+              {selectedCells.size > 1 ? "s" : ""}
             </div>
           )}
 
@@ -129,4 +132,3 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
     </Card>
   );
 }
-

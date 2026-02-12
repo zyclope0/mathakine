@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,7 +14,7 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({
   children,
   requireAuth = true,
-  redirectTo = '/login',
+  redirectTo = "/login",
 }: ProtectedRouteProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -27,13 +27,13 @@ export function ProtectedRoute({
     if (isLoading && user === null && !hasCheckedAuth) {
       const timer = setTimeout(() => {
         // Log uniquement en développement
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[ProtectedRoute] Timeout sécurité - affichage du contenu');
+        if (process.env.NODE_ENV === "development") {
+          console.log("[ProtectedRoute] Timeout sécurité - affichage du contenu");
         }
         setShowContent(true);
         setHasCheckedAuth(true);
       }, 1500);
-      
+
       return () => clearTimeout(timer);
     } else if (user !== null || !isLoading) {
       // Si on a des données utilisateur ou que le chargement est terminé, afficher immédiatement
@@ -49,8 +49,8 @@ export function ProtectedRoute({
     // Si on a déjà vérifié l'auth et qu'on doit rediriger
     if (hasCheckedAuth && requireAuth && !isAuthenticated && user === null) {
       // Log uniquement en développement
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[ProtectedRoute] Redirection vers', redirectTo);
+      if (process.env.NODE_ENV === "development") {
+        console.log("[ProtectedRoute] Redirection vers", redirectTo);
       }
       setShouldRedirect(true);
       router.push(redirectTo);
@@ -62,8 +62,8 @@ export function ProtectedRoute({
   // MAIS seulement lors du premier chargement (pas navigation côté client)
   if (isLoading && user === null && !hasCheckedAuth && !showContent) {
     // Log uniquement en développement
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[ProtectedRoute] Affichage du loader');
+    if (process.env.NODE_ENV === "development") {
+      console.log("[ProtectedRoute] Affichage du loader");
     }
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -85,4 +85,3 @@ export function ProtectedRoute({
   // Cela permet la navigation côté client fluide sans attendre le rechargement
   return <>{children}</>;
 }
-

@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api/client';
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api/client";
 
 export interface ChallengeProgressDetail {
   id: number;
@@ -22,9 +22,9 @@ export interface ChallengesProgress {
  */
 export function useChallengesProgress() {
   return useQuery<ChallengesProgress>({
-    queryKey: ['user', 'challenges', 'progress'],
+    queryKey: ["user", "challenges", "progress"],
     queryFn: async () => {
-      return await api.get<ChallengesProgress>('/api/users/me/challenges/progress');
+      return await api.get<ChallengesProgress>("/api/users/me/challenges/progress");
     },
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnWindowFocus: true,

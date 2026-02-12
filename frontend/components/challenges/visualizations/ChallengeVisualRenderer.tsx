@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { CHALLENGE_TYPES } from '@/lib/constants/challenges';
-import { SequenceRenderer } from './SequenceRenderer';
-import { PatternRenderer } from './PatternRenderer';
-import { VisualRenderer } from './VisualRenderer';
-import { PuzzleRenderer } from './PuzzleRenderer';
-import { GraphRenderer } from './GraphRenderer';
-import { DeductionRenderer } from './DeductionRenderer';
-import { RiddleRenderer } from './RiddleRenderer';
-import { ChessRenderer } from './ChessRenderer';
-import { ProbabilityRenderer } from './ProbabilityRenderer';
-import { CodingRenderer } from './CodingRenderer';
-import { DefaultRenderer } from './DefaultRenderer';
-import type { Challenge } from '@/types/api';
+import { CHALLENGE_TYPES } from "@/lib/constants/challenges";
+import { SequenceRenderer } from "./SequenceRenderer";
+import { PatternRenderer } from "./PatternRenderer";
+import { VisualRenderer } from "./VisualRenderer";
+import { PuzzleRenderer } from "./PuzzleRenderer";
+import { GraphRenderer } from "./GraphRenderer";
+import { DeductionRenderer } from "./DeductionRenderer";
+import { RiddleRenderer } from "./RiddleRenderer";
+import { ChessRenderer } from "./ChessRenderer";
+import { ProbabilityRenderer } from "./ProbabilityRenderer";
+import { CodingRenderer } from "./CodingRenderer";
+import { DefaultRenderer } from "./DefaultRenderer";
+import type { Challenge } from "@/types/api";
 
 interface ChallengeVisualRendererProps {
   challenge: Challenge;
@@ -25,7 +25,12 @@ interface ChallengeVisualRendererProps {
  * Composant principal qui route vers le bon renderer selon le type de challenge.
  * Gère le rendu interactif des visual_data selon le challenge_type.
  */
-export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderChange, onAnswerChange }: ChallengeVisualRendererProps) {
+export function ChallengeVisualRenderer({
+  challenge,
+  className,
+  onPuzzleOrderChange,
+  onAnswerChange,
+}: ChallengeVisualRendererProps) {
   if (!challenge.visual_data) {
     return null;
   }
@@ -42,7 +47,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
           {...(onAnswerChange !== undefined && { onAnswerChange })}
         />
       );
-    
+
     case CHALLENGE_TYPES.PATTERN:
       return (
         <PatternRenderer
@@ -51,7 +56,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
           {...(onAnswerChange !== undefined && { onAnswerChange })}
         />
       );
-    
+
     case CHALLENGE_TYPES.VISUAL:
       // VISUAL inclut les défis spatiaux (rotation, symétrie, etc.)
       return (
@@ -60,7 +65,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
           {...(className !== undefined && { className })}
         />
       );
-    
+
     case CHALLENGE_TYPES.PUZZLE:
       return (
         <PuzzleRenderer
@@ -69,7 +74,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
           {...(onPuzzleOrderChange !== undefined && { onOrderChange: onPuzzleOrderChange })}
         />
       );
-    
+
     case CHALLENGE_TYPES.GRAPH:
       return (
         <GraphRenderer
@@ -77,7 +82,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
           {...(className !== undefined && { className })}
         />
       );
-    
+
     case CHALLENGE_TYPES.DEDUCTION:
       return (
         <DeductionRenderer
@@ -86,7 +91,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
           {...(onAnswerChange !== undefined && { onAnswerChange })}
         />
       );
-    
+
     case CHALLENGE_TYPES.RIDDLE:
       return (
         <RiddleRenderer
@@ -94,7 +99,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
           {...(className !== undefined && { className })}
         />
       );
-    
+
     case CHALLENGE_TYPES.CHESS:
       return (
         <ChessRenderer
@@ -102,7 +107,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
           {...(className !== undefined && { className })}
         />
       );
-    
+
     case CHALLENGE_TYPES.PROBABILITY:
       return (
         <ProbabilityRenderer
@@ -110,7 +115,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
           {...(className !== undefined && { className })}
         />
       );
-    
+
     case CHALLENGE_TYPES.CODING:
       return (
         <CodingRenderer
@@ -118,7 +123,7 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
           {...(className !== undefined && { className })}
         />
       );
-    
+
     default:
       // Fallback pour les types non supportés ou personnalisés
       return (
@@ -129,4 +134,3 @@ export function ChallengeVisualRenderer({ challenge, className, onPuzzleOrderCha
       );
   }
 }
-

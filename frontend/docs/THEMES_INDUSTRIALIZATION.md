@@ -42,46 +42,46 @@ Chaque thème doit définir **toutes** les variables CSS suivantes :
 
 ```css
 /* Thème [Nom] - Mode Normal */
-[data-theme='theme-id'] {
+[data-theme="theme-id"] {
   /* Couleurs de base */
-  --background: #ffffff;           /* Fond principal */
-  --foreground: #000000;           /* Texte principal */
-  --card: #f5f5f5;                 /* Fond des cartes */
-  --card-foreground: #000000;      /* Texte sur cartes */
-  --popover: #ffffff;              /* Fond des popovers */
-  --popover-foreground: #000000;   /* Texte sur popovers */
-  
+  --background: #ffffff; /* Fond principal */
+  --foreground: #000000; /* Texte principal */
+  --card: #f5f5f5; /* Fond des cartes */
+  --card-foreground: #000000; /* Texte sur cartes */
+  --popover: #ffffff; /* Fond des popovers */
+  --popover-foreground: #000000; /* Texte sur popovers */
+
   /* Couleurs primaires */
-  --primary: #000000;              /* Couleur principale */
-  --primary-foreground: #ffffff;   /* Texte sur primary */
-  --primary-light: #333333;        /* Variante claire (optionnel) */
+  --primary: #000000; /* Couleur principale */
+  --primary-foreground: #ffffff; /* Texte sur primary */
+  --primary-light: #333333; /* Variante claire (optionnel) */
   --primary-text-on-dark: #cccccc; /* Primary sur fond sombre */
-  
+
   /* Couleurs secondaires */
   --secondary: #666666;
   --secondary-foreground: #ffffff;
-  
+
   /* Couleurs d'accentuation */
   --accent: #000000;
   --accent-foreground: #ffffff;
-  
+
   /* Couleurs muettes */
   --muted: #f5f5f5;
-  --muted-foreground: #4a4a4a;     /* WCAG AAA : >= 7:1 */
-  
+  --muted-foreground: #4a4a4a; /* WCAG AAA : >= 7:1 */
+
   /* Couleurs d'état */
   --destructive: #ef4444;
-  --success: #22c55e;              /* Optionnel */
-  --warning: #f59e0b;              /* Optionnel */
-  --info: #3b82f6;                 /* Optionnel */
-  
+  --success: #22c55e; /* Optionnel */
+  --warning: #f59e0b; /* Optionnel */
+  --info: #3b82f6; /* Optionnel */
+
   /* Bordures et inputs */
   --border: #000000;
   --input: #f5f5f5;
-  --ring: #000000;                 /* Couleur du focus ring */
-  
+  --ring: #000000; /* Couleur du focus ring */
+
   /* Rayon de bordure */
-  --radius: 0.625rem;              /* 10px par défaut */
+  --radius: 0.625rem; /* 10px par défaut */
 }
 ```
 
@@ -91,15 +91,15 @@ Chaque thème **doit** avoir une variante dark mode :
 
 ```css
 /* Thème [Nom] - Mode Dark */
-.dark [data-theme='theme-id'] {
+.dark [data-theme="theme-id"] {
   /* Modifier les variables nécessaires */
   --background: #000000;
   --foreground: #ffffff;
   --card: #1a1a1a;
   /* ... autres modifications */
-  
+
   /* Toujours améliorer le contraste en dark mode */
-  --muted-foreground: #cccccc;     /* Plus clair pour meilleur contraste */
+  --muted-foreground: #cccccc; /* Plus clair pour meilleur contraste */
   --border: rgba(255, 255, 255, 0.3); /* Plus visible */
 }
 ```
@@ -123,14 +123,14 @@ Avant de considérer un thème comme complet, vérifier :
 
 ```css
 /* Thème NouveauThème */
-[data-theme='nouveau-theme'] {
+[data-theme="nouveau-theme"] {
   /* Copier la structure d'un thème existant et modifier les couleurs */
   --background: #...;
   /* ... */
 }
 
 /* Thème NouveauThème - Mode Dark */
-.dark [data-theme='nouveau-theme'] {
+.dark [data-theme="nouveau-theme"] {
   /* Définir les variantes dark */
   /* ... */
 }
@@ -140,7 +140,7 @@ Avant de considérer un thème comme complet, vérifier :
 
 ```typescript
 // lib/stores/themeStore.ts
-export type Theme = 'spatial' | 'minimalist' | 'ocean' | 'neutral' | 'nouveau-theme';
+export type Theme = "spatial" | "minimalist" | "ocean" | "neutral" | "nouveau-theme";
 ```
 
 ### **Étape 3 : Ajouter aux sélecteurs**
@@ -149,7 +149,7 @@ export type Theme = 'spatial' | 'minimalist' | 'ocean' | 'neutral' | 'nouveau-th
 // components/theme/ThemeSelectorCompact.tsx
 const themes = [
   // ... thèmes existants
-  { id: 'nouveau-theme' as const, name: 'Nouveau Thème', icon: '🎨' },
+  { id: "nouveau-theme" as const, name: "Nouveau Thème", icon: "🎨" },
 ] as const;
 ```
 
@@ -164,6 +164,7 @@ const themes = [
 ### **Étape 5 : Documenter**
 
 Ajouter une entrée dans ce document avec :
+
 - Description du thème
 - Couleurs principales
 - Cas d'usage recommandé
@@ -184,12 +185,12 @@ Ajouter une entrée dans ce document avec :
 
 ### **Variables à vérifier**
 
-| Variable | Contraste requis | Contre |
-|----------|------------------|--------|
-| `--foreground` | >= 7:1 (AAA) | `--background` |
-| `--muted-foreground` | >= 7:1 (AAA) | `--background` |
-| `--primary` | >= 4.5:1 (AA) | `--primary-foreground` |
-| `--card-foreground` | >= 7:1 (AAA) | `--card` |
+| Variable             | Contraste requis | Contre                 |
+| -------------------- | ---------------- | ---------------------- |
+| `--foreground`       | >= 7:1 (AAA)     | `--background`         |
+| `--muted-foreground` | >= 7:1 (AAA)     | `--background`         |
+| `--primary`          | >= 4.5:1 (AA)    | `--primary-foreground` |
+| `--card-foreground`  | >= 7:1 (AAA)     | `--card`               |
 
 ### **Outils de vérification**
 
@@ -204,18 +205,18 @@ Ajouter une entrée dans ce document avec :
 ### **Thème Sombre (comme Spatial/Océan)**
 
 ```css
---background: #0a0a0f à #0c1220;    /* Fond très sombre */
---foreground: #ffffff à #f1f5f9;    /* Texte clair */
---card: #12121a à #1e293b;          /* Cartes légèrement plus claires */
+--background: #0a0a0f à #0c1220; /* Fond très sombre */
+--foreground: #ffffff à #f1f5f9; /* Texte clair */
+--card: #12121a à #1e293b; /* Cartes légèrement plus claires */
 --muted-foreground: #c0c0c0 à #cbd5e1; /* Texte secondaire clair */
 ```
 
 ### **Thème Clair (comme Minimaliste/Neutre)**
 
 ```css
---background: #ffffff;               /* Fond blanc */
---foreground: #000000 à #111827;    /* Texte sombre */
---card: #f5f5f5 à #f9fafb;          /* Cartes gris très clair */
+--background: #ffffff; /* Fond blanc */
+--foreground: #000000 à #111827; /* Texte sombre */
+--card: #f5f5f5 à #f9fafb; /* Cartes gris très clair */
 --muted-foreground: #4a4a4a à #4b5563; /* Texte secondaire sombre */
 ```
 
@@ -256,6 +257,7 @@ Ajouter une entrée dans ce document avec :
 ### **Page de Test**
 
 Une page dédiée `/themes-test` permet de :
+
 - Voir tous les thèmes côte à côte
 - Tester chaque composant avec chaque thème
 - Basculer entre dark/light mode
@@ -265,8 +267,8 @@ Une page dédiée `/themes-test` permet de :
 
 ```typescript
 // __tests__/themes/theme-contrast.test.ts
-describe('Theme Contrast', () => {
-  it('should have WCAG AAA contrast for muted-foreground', () => {
+describe("Theme Contrast", () => {
+  it("should have WCAG AAA contrast for muted-foreground", () => {
     // Vérifier que chaque thème respecte les ratios
   });
 });
@@ -293,6 +295,7 @@ Pour chaque nouveau thème :
 **Description** : Thème sombre spatial avec couleurs violettes, inspiré de l'espace.
 
 **Couleurs principales** :
+
 - Primary : `#7c3aed` (violet)
 - Background : `#0a0a0f` (noir profond)
 - Dark mode : Plus sombre avec couleurs plus claires
@@ -304,6 +307,7 @@ Pour chaque nouveau thème :
 **Description** : Thème épuré noir et blanc avec inversion complète en dark mode.
 
 **Couleurs principales** :
+
 - Primary : `#000000` (noir)
 - Background : `#ffffff` (blanc)
 - Dark mode : Inversion complète
@@ -315,6 +319,7 @@ Pour chaque nouveau thème :
 **Description** : Thème sombre avec couleurs bleues/cyan apaisantes.
 
 **Couleurs principales** :
+
 - Primary : `#0369a1` (bleu profond)
 - Background : `#0c1220` (bleu très sombre)
 - Dark mode : Profondeur océanique plus sombre
@@ -326,6 +331,7 @@ Pour chaque nouveau thème :
 **Description** : Thème clair/sombre avec gris élégants.
 
 **Couleurs principales** :
+
 - Primary : `#6b7280` (gris)
 - Background : `#ffffff` (blanc) / `#111827` (dark)
 - Dark mode : Gris foncé élégant
@@ -368,7 +374,7 @@ Pour chaque nouveau thème :
 
 ```css
 /* Thème [Nom] - Description courte */
-[data-theme='theme-id'] {
+[data-theme="theme-id"] {
   --radius: 0.625rem;
   --background: #ffffff;
   --foreground: #000000;
@@ -393,7 +399,7 @@ Pour chaque nouveau thème :
 }
 
 /* Thème [Nom] - Mode Dark */
-.dark [data-theme='theme-id'] {
+.dark [data-theme="theme-id"] {
   --background: #000000;
   --foreground: #ffffff;
   --card: #1a1a1a;
@@ -435,4 +441,3 @@ Avant de considérer un thème comme **production-ready** :
 
 **Dernière mise à jour** : Janvier 2025  
 **Maintenu par** : Équipe Frontend Mathakine
-

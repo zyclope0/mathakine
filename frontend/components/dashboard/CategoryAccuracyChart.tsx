@@ -1,13 +1,13 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { BarChart3 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { cn } from '@/lib/utils/cn';
-import { motion } from 'framer-motion';
-import { useAccessibleAnimation } from '@/lib/hooks/useAccessibleAnimation';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { BarChart3 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils/cn";
+import { motion } from "framer-motion";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 interface CategoryData {
   completed: number;
@@ -20,8 +20,8 @@ interface CategoryAccuracyChartProps {
 }
 
 export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccuracyChartProps) {
-  const t = useTranslations('dashboard.categoryAccuracy');
-  const tExercises = useTranslations('exercises');
+  const t = useTranslations("dashboard.categoryAccuracy");
+  const tExercises = useTranslations("exercises");
   const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
 
   if (isLoading) {
@@ -52,13 +52,11 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
         <CardHeader className="flex-shrink-0">
           <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
             <BarChart3 className="w-5 h-5 text-primary-on-dark" />
-            {t('title')}
+            {t("title")}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-grow flex items-center justify-center">
-          <div className="text-sm text-muted-foreground text-center">
-            {t('noData')}
-          </div>
+          <div className="text-sm text-muted-foreground text-center">{t("noData")}</div>
         </CardContent>
       </Card>
     );
@@ -69,25 +67,28 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
 
   // Fonction pour obtenir la couleur selon l'accuracy
   const getAccuracyColor = (accuracy: number): { bg: string; text: string; border: string } => {
-    if (accuracy >= 0.9) return {
-      bg: 'bg-green-500/20',
-      text: 'text-green-400',
-      border: 'border-green-500/30',
-    };
-    if (accuracy >= 0.7) return {
-      bg: 'bg-blue-500/20',
-      text: 'text-blue-400',
-      border: 'border-blue-500/30',
-    };
-    if (accuracy >= 0.5) return {
-      bg: 'bg-yellow-500/20',
-      text: 'text-yellow-400',
-      border: 'border-yellow-500/30',
-    };
+    if (accuracy >= 0.9)
+      return {
+        bg: "bg-green-500/20",
+        text: "text-green-400",
+        border: "border-green-500/30",
+      };
+    if (accuracy >= 0.7)
+      return {
+        bg: "bg-blue-500/20",
+        text: "text-blue-400",
+        border: "border-blue-500/30",
+      };
+    if (accuracy >= 0.5)
+      return {
+        bg: "bg-yellow-500/20",
+        text: "text-yellow-400",
+        border: "border-yellow-500/30",
+      };
     return {
-      bg: 'bg-red-500/20',
-      text: 'text-red-400',
-      border: 'border-red-500/30',
+      bg: "bg-red-500/20",
+      text: "text-red-400",
+      border: "border-red-500/30",
     };
   };
 
@@ -111,7 +112,7 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
         <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
             <BarChart3 className="w-5 h-5 text-primary-on-dark" />
-            {t('title')}
+            {t("title")}
           </CardTitle>
         </CardHeader>
 
@@ -121,10 +122,10 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
               const accuracyPercentage = Math.round(data.accuracy * 100);
               const colors = getAccuracyColor(data.accuracy);
               const isExcellent = data.accuracy >= 0.9;
-              
+
               // Normaliser la catégorie en minuscules pour la traduction
-              const categoryKey = category.toLowerCase().replace('exercises.types.', '');
-              
+              const categoryKey = category.toLowerCase().replace("exercises.types.", "");
+
               return (
                 <div key={category}>
                   <div className="flex justify-between items-center mb-2">
@@ -134,20 +135,20 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
                       </Badge>
                       {isExcellent && (
                         <Badge className="bg-green-500/20 text-green-400 text-xs">
-                          {t('excellent')}
+                          {t("excellent")}
                         </Badge>
                       )}
                     </div>
                     <div className="flex items-baseline gap-2">
-                      <span className={cn('text-lg font-bold', colors.text)}>
+                      <span className={cn("text-lg font-bold", colors.text)}>
                         {accuracyPercentage}%
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        ({data.completed} {t('exercises')})
+                        ({data.completed} {t("exercises")})
                       </span>
                     </div>
                   </div>
-                  
+
                   <Progress value={accuracyPercentage} className="h-3" />
                 </div>
               );
@@ -158,15 +159,15 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                <span>{t('excellent')} (90%+)</span>
+                <span>{t("excellent")} (90%+)</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-blue-400"></div>
-                <span>{t('good')} (70-89%)</span>
+                <span>{t("good")} (70-89%)</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                <span>{t('fair')} (50-69%)</span>
+                <span>{t("fair")} (50-69%)</span>
               </div>
             </div>
           </div>

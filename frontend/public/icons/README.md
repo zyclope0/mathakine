@@ -25,6 +25,7 @@ Les icônes suivantes doivent être générées et placées dans ce dossier :
 ## 🛠️ **Génération**
 
 Vous pouvez utiliser des outils en ligne pour générer les icônes :
+
 - [PWA Asset Generator](https://github.com/onderceylan/pwa-asset-generator)
 - [RealFaviconGenerator](https://realfavicongenerator.net/)
 - [Favicon.io](https://favicon.io/)
@@ -36,4 +37,3 @@ Pour l'instant, des placeholders peuvent être utilisés. Les icônes finales do
 ---
 
 **Dernière mise à jour** : 9 Novembre 2025
-

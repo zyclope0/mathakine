@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { api, ApiClientError } from '@/lib/api/client';
-import { useTranslations } from 'next-intl';
-import type { User } from '@/types/api';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { api, ApiClientError } from "@/lib/api/client";
+import { useTranslations } from "next-intl";
+import type { User } from "@/types/api";
 
 interface LoginCredentials {
   username: string;
@@ -34,21 +34,26 @@ interface ForgotPasswordData {
 export function useAuth() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const t = useTranslations('toasts.auth');
+  const t = useTranslations("toasts.auth");
 
   // Récupérer l'utilisateur actuel
-  const { data: user, isLoading, error, isFetching } = useQuery({
-    queryKey: ['auth', 'me'],
+  const {
+    data: user,
+    isLoading,
+    error,
+    isFetching,
+  } = useQuery({
+    queryKey: ["auth", "me"],
     queryFn: async () => {
       try {
-        return await api.get<User>('/api/users/me');
+        return await api.get<User>("/api/users/me");
       } catch (err) {
         // Si 401 après refresh automatique, l'utilisateur n'est pas authentifié (normal)
         if (err instanceof ApiClientError && err.status === 401) {
           // Le refresh automatique a déjà été tenté par le client API
           // Si on arrive ici, c'est que le refresh a échoué ou qu'il n'y a pas de refresh token
           // Nettoyer le cache pour éviter d'utiliser des données obsolètes
-          queryClient.setQueryData(['auth', 'me'], null);
+          queryClient.setQueryData(["auth", "me"], null);
           return null;
         }
         throw err;
@@ -64,14 +69,14 @@ export function useAuth() {
   // Connexion
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      const response = await api.post<TokenResponse>('/api/auth/login', credentials);
+      const response = await api.post<TokenResponse>("/api/auth/login", credentials);
       return response;
     },
     onSuccess: async (data) => {
       // Stocker le refresh_token si présent dans la réponse (pour cross-domain)
-      if (data.refresh_token && typeof window !== 'undefined') {
+      if (data.refresh_token && typeof window !== "undefined") {
         try {
-          localStorage.setItem('refresh_token', data.refresh_token);
+          localStorage.setItem("refresh_token", data.refresh_token);
         } catch {
           // Ignorer les erreurs de localStorage (mode privé, etc.)
         }
@@ -79,35 +84,35 @@ export function useAuth() {
 
       // Sync access_token sur le domaine frontend (cross-domain prod : backend cookie pas envoyé aux routes Next.js)
       // IMPORTANT : attendre la sync avant de naviguer, sinon le cookie peut manquer pour les flux SSE
-      if (data.access_token && typeof window !== 'undefined') {
-        const { syncAccessTokenToFrontend } = await import('@/lib/api/client');
+      if (data.access_token && typeof window !== "undefined") {
+        const { syncAccessTokenToFrontend } = await import("@/lib/api/client");
         await syncAccessTokenToFrontend(data.access_token);
       }
-      
+
       // Mettre à jour le cache directement avec les données utilisateur reçues
       // Cela évite que ProtectedRoute redirige vers /login pendant le rechargement
-      queryClient.setQueryData(['auth', 'me'], data.user);
-      toast.success(t('loginSuccess'), {
+      queryClient.setQueryData(["auth", "me"], data.user);
+      toast.success(t("loginSuccess"), {
         description: `Bienvenue ${data.user.username} !`,
       });
       // Rediriger vers la page d'exercices (fonctionnalité principale)
       // Utiliser replace pour éviter d'ajouter /login dans l'historique
-      router.replace('/exercises');
+      router.replace("/exercises");
     },
     onError: (error: ApiClientError) => {
       let message: string;
       if (error.status === 403) {
-        message = error.message || 'Veuillez vérifier votre adresse email avant de vous connecter.';
+        message = error.message || "Veuillez vérifier votre adresse email avant de vous connecter.";
       } else if (error.status === 401) {
-        message = 'Nom d\'utilisateur ou mot de passe incorrect';
+        message = "Nom d'utilisateur ou mot de passe incorrect";
       } else if (error.status === 400) {
-        message = error.message || 'Format de requête invalide';
+        message = error.message || "Format de requête invalide";
       } else if (error.status === 500) {
-        message = error.message || 'Erreur serveur. Veuillez réessayer plus tard.';
+        message = error.message || "Erreur serveur. Veuillez réessayer plus tard.";
       } else {
-        message = error.message || t('loginError');
+        message = error.message || t("loginError");
       }
-      toast.error(error.status === 403 ? 'Email non vérifié' : t('loginError'), {
+      toast.error(error.status === 403 ? "Email non vérifié" : t("loginError"), {
         description: message,
       });
     },
@@ -116,28 +121,29 @@ export function useAuth() {
   // Inscription
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterData) => {
-      const response = await api.post<User>('/api/users/', data);
+      const response = await api.post<User>("/api/users/", data);
       return response;
     },
     onSuccess: (data) => {
       // Vérifier si l'email est vérifié
       const isVerified = data?.is_email_verified || false;
-      
+
       if (isVerified) {
-        toast.success(t('registerSuccess'), {
-          description: 'Vous pouvez maintenant vous connecter.',
+        toast.success(t("registerSuccess"), {
+          description: "Vous pouvez maintenant vous connecter.",
         });
-        router.push('/login?registered=true');
+        router.push("/login?registered=true");
       } else {
-        toast.success(t('registerSuccess'), {
-          description: 'Un email de vérification a été envoyé. Veuillez vérifier votre boîte de réception.',
+        toast.success(t("registerSuccess"), {
+          description:
+            "Un email de vérification a été envoyé. Veuillez vérifier votre boîte de réception.",
         });
-        router.push('/login?registered=true&verify=true');
+        router.push("/login?registered=true&verify=true");
       }
     },
     onError: (error: ApiClientError) => {
-      const message = error.message || t('registerError');
-      toast.error(t('registerError'), {
+      const message = error.message || t("registerError");
+      toast.error(t("registerError"), {
         description: message,
       });
     },
@@ -147,14 +153,14 @@ export function useAuth() {
   const logoutMutation = useMutation({
     mutationFn: async () => {
       try {
-        await api.post('/api/auth/logout');
+        await api.post("/api/auth/logout");
         // Effacer le cookie access_token du domaine frontend (cross-domain prod)
-        if (typeof window !== 'undefined') {
-          await fetch('/api/auth/sync-cookie', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        if (typeof window !== "undefined") {
+          await fetch("/api/auth/sync-cookie", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ clear: true }),
-            credentials: 'include',
+            credentials: "include",
           }).catch(() => {});
         }
       } catch (error) {
@@ -164,34 +170,35 @@ export function useAuth() {
     },
     onSuccess: () => {
       // Nettoyer le refresh_token du localStorage
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         try {
-          localStorage.removeItem('refresh_token');
+          localStorage.removeItem("refresh_token");
         } catch {
           // Ignorer les erreurs de localStorage
         }
       }
-      toast.success(t('logoutSuccess'));
+      toast.success(t("logoutSuccess"));
       // Nettoyer le cache
       queryClient.clear();
       // Rediriger vers la page d'accueil
-      router.push('/');
+      router.push("/");
     },
   });
 
   // Mot de passe oublié
   const forgotPasswordMutation = useMutation({
     mutationFn: async (data: ForgotPasswordData) => {
-      await api.post('/api/auth/forgot-password', data);
+      await api.post("/api/auth/forgot-password", data);
     },
     onSuccess: () => {
-      toast.success(t('forgotPasswordSuccess'), {
-        description: 'Si un compte existe avec cette adresse, vous recevrez un lien de réinitialisation.',
+      toast.success(t("forgotPasswordSuccess"), {
+        description:
+          "Si un compte existe avec cette adresse, vous recevrez un lien de réinitialisation.",
       });
     },
     onError: (error: ApiClientError) => {
-      toast.error(t('forgotPasswordError'), {
-        description: error.message || 'Impossible d\'envoyer l\'email',
+      toast.error(t("forgotPasswordError"), {
+        description: error.message || "Impossible d'envoyer l'email",
       });
     },
   });
@@ -214,4 +221,3 @@ export function useAuth() {
     isForgotPasswordPending: forgotPasswordMutation.isPending,
   };
 }
-

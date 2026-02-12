@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Eye } from 'lucide-react';
-import { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Eye } from "lucide-react";
+import { useState } from "react";
 
 interface DefaultRendererProps {
   visualData: any;
@@ -17,9 +17,9 @@ export function DefaultRenderer({ visualData, className }: DefaultRendererProps)
   const [showRaw, setShowRaw] = useState(false);
 
   // Si c'est une string simple, l'afficher directement
-  if (typeof visualData === 'string') {
+  if (typeof visualData === "string") {
     return (
-      <Card className={`bg-card border-primary/20 ${className || ''}`}>
+      <Card className={`bg-card border-primary/20 ${className || ""}`}>
         <CardContent className="p-4">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -31,7 +31,7 @@ export function DefaultRenderer({ visualData, className }: DefaultRendererProps)
                 onClick={() => setShowRaw(!showRaw)}
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                {showRaw ? 'Vue formatée' : 'Vue brute'}
+                {showRaw ? "Vue formatée" : "Vue brute"}
               </button>
             </div>
             {showRaw ? (
@@ -39,9 +39,7 @@ export function DefaultRenderer({ visualData, className }: DefaultRendererProps)
                 {visualData}
               </pre>
             ) : (
-              <div className="text-foreground whitespace-pre-wrap break-words">
-                {visualData}
-              </div>
+              <div className="text-foreground whitespace-pre-wrap break-words">{visualData}</div>
             )}
           </div>
         </CardContent>
@@ -51,7 +49,7 @@ export function DefaultRenderer({ visualData, className }: DefaultRendererProps)
 
   // Si c'est un objet JSON, l'afficher de manière structurée
   return (
-    <Card className={`bg-card border-primary/20 ${className || ''}`}>
+    <Card className={`bg-card border-primary/20 ${className || ""}`}>
       <CardContent className="p-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -63,7 +61,7 @@ export function DefaultRenderer({ visualData, className }: DefaultRendererProps)
               onClick={() => setShowRaw(!showRaw)}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              {showRaw ? 'Vue structurée' : 'Vue JSON'}
+              {showRaw ? "Vue structurée" : "Vue JSON"}
             </button>
           </div>
           {showRaw ? (
@@ -74,9 +72,9 @@ export function DefaultRenderer({ visualData, className }: DefaultRendererProps)
             <div className="space-y-2">
               {Object.entries(visualData).map(([key, value]) => (
                 <div key={key} className="border-l-2 border-primary/30 pl-3">
-                  <span className="text-xs font-semibold text-primary">{key}:</span>{' '}
+                  <span className="text-xs font-semibold text-primary">{key}:</span>{" "}
                   <span className="text-sm text-foreground">
-                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                    {typeof value === "object" ? JSON.stringify(value) : String(value)}
                   </span>
                 </div>
               ))}
@@ -87,4 +85,3 @@ export function DefaultRenderer({ visualData, className }: DefaultRendererProps)
     </Card>
   );
 }
-

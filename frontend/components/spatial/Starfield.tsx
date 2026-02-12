@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { useAccessibilityStore } from '@/lib/stores/accessibilityStore';
-import { useThemeStore } from '@/lib/stores/themeStore';
-import { cn } from '@/lib/utils/cn';
+import { useEffect, useRef } from "react";
+import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
+import { useThemeStore } from "@/lib/stores/themeStore";
+import { cn } from "@/lib/utils/cn";
 
 /**
  * Composant Starfield - Système d'étoiles multi-couches
- * 
+ *
  * 3 couches d'étoiles avec vitesses différentes pour effet de profondeur
  * Respecte prefers-reduced-motion et se désactive en mode Focus
  */
@@ -18,14 +18,14 @@ export function Starfield() {
 
   useEffect(() => {
     // Ne pas afficher en mode Focus ou si reduced motion
-    if (focusMode || reducedMotion || typeof window === 'undefined') {
+    if (focusMode || reducedMotion || typeof window === "undefined") {
       return;
     }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     // Ajuster la taille du canvas
@@ -34,14 +34,14 @@ export function Starfield() {
       canvas.height = window.innerHeight;
     };
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener("resize", resizeCanvas);
 
     // Couleur des étoiles selon le thème
     const starColors: Record<string, string> = {
-      spatial: 'rgba(255, 255, 255, ', // Blanc pour thème spatial
-      minimalist: 'rgba(0, 0, 0, ', // Noir pour thème minimaliste
-      ocean: 'rgba(255, 255, 255, ', // Blanc pour thème océan
-      neutral: 'rgba(107, 114, 128, ', // Gris pour thème neutre
+      spatial: "rgba(255, 255, 255, ", // Blanc pour thème spatial
+      minimalist: "rgba(0, 0, 0, ", // Noir pour thème minimaliste
+      ocean: "rgba(255, 255, 255, ", // Blanc pour thème océan
+      neutral: "rgba(107, 114, 128, ", // Gris pour thème neutre
     };
 
     const starColorBase = starColors[theme] || starColors.spatial;
@@ -50,7 +50,7 @@ export function Starfield() {
     const layers = [
       { count: 100, speed: 0.08, size: 1, opacity: 0.8 }, // Couche lointaine (très lente)
       { count: 150, speed: 0.15, size: 1.5, opacity: 0.6 }, // Couche moyenne
-      { count: 200, speed: 0.25, size: 2, opacity: 0.4 },  // Couche proche (lente)
+      { count: 200, speed: 0.25, size: 2, opacity: 0.4 }, // Couche proche (lente)
     ];
 
     // Générer les étoiles pour chaque couche avec mouvement diagonal varié
@@ -105,7 +105,7 @@ export function Starfield() {
     animate();
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener("resize", resizeCanvas);
       cancelAnimationFrame(animationId);
     };
   }, [focusMode, reducedMotion, theme]);
@@ -123,4 +123,3 @@ export function Starfield() {
     />
   );
 }
-
