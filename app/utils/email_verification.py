@@ -37,6 +37,21 @@ def is_verification_token_expired(sent_at: Optional[datetime]) -> bool:
     return datetime.now(timezone.utc) > expiration_time
 
 
+def is_password_reset_token_expired(expires_at: Optional[datetime]) -> bool:
+    """
+    Vérifie si un token de réinitialisation de mot de passe a expiré.
+    
+    Args:
+        expires_at: Date d'expiration du token
+    
+    Returns:
+        True si le token a expiré (1h par défaut), False sinon
+    """
+    if not expires_at:
+        return True
+    return datetime.now(timezone.utc) > expires_at
+
+
 def create_verification_link(token: str, frontend_url: Optional[str] = None) -> str:
     """
     Crée un lien de vérification d'email.

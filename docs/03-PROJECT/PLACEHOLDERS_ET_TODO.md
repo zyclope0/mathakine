@@ -1,7 +1,7 @@
 # Placeholders et TODOs restants - Mathakine
 
 > Etat au 06/02/2026 apres unification Starlette  
-> Derniere mise a jour : 09/02/2026 (auth decorateurs, pattern auth simplifie)
+> Derniere mise a jour : 12/02/2026 (auth emails, verification obligatoire)
 
 ## 📋 Récapitulatif
 
@@ -17,21 +17,10 @@ Ce document liste tous les endpoints/handlers **placeholders** (non implémenté
 
 ## 🔴 Priorité HAUTE (Impact sécurité/UX)
 
-### 1. ❌ `api_forgot_password` - Réinitialisation mot de passe
-**Fichier** : `server/handlers/auth_handlers.py:475`  
-**Route** : `POST /api/auth/forgot-password`  
-**Impact** : **Haute priorité** - Fonctionnalité attendue par les utilisateurs  
-**Description** : Endpoint placeholder qui retourne un message "en développement"
-
-**Solution recommandée** :
-1. Générer un token de réinitialisation sécurisé (UUID + expiration 1h)
-2. Envoyer un email via `EmailService` avec lien de réinitialisation
-3. Créer endpoint `POST /api/auth/reset-password` avec validation du token
-4. Stocker les tokens dans une table `password_reset_tokens`
-
-**Code existant utilisable** :
-- `app/services/email_service.py` : Service email déjà implémenté
-- `app/core/security.py` : Fonctions de hachage de mot de passe
+### 1. ✅ `api_forgot_password` / `api_reset_password` - Réinitialisation mot de passe (implémenté 12/02/2026)
+**Fichier** : `server/handlers/auth_handlers.py`  
+**Routes** : `POST /api/auth/forgot-password`, `POST /api/auth/reset-password`  
+**Implémentation** : Token stocké sur modèle User (`password_reset_token`, `password_reset_expires_at`), email via SendGrid/SMTP, templates thème Jedi (`app/utils/email_templates.py`).
 
 ---
 

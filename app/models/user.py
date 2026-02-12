@@ -63,6 +63,10 @@ class User(Base):
     email_verification_token = Column(String(255), nullable=True, index=True)
     email_verification_sent_at = Column(DateTime(timezone=True), nullable=True)
 
+    # Réinitialisation mot de passe
+    password_reset_token = Column(String(255), nullable=True, index=True)
+    password_reset_expires_at = Column(DateTime(timezone=True), nullable=True)
+
     # Informations pédagogiques
     grade_level = Column(Integer)
     learning_style = Column(String(50))

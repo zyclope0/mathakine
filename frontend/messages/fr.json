@@ -115,6 +115,28 @@
       "goToLogin": "Aller à la page de connexion",
       "backToLogin": "Retour à la connexion"
     },
+    "resetPassword": {
+      "title": "Nouveau mot de passe",
+      "description": "Choisissez un nouveau mot de passe pour votre compte",
+      "password": "Nouveau mot de passe",
+      "passwordPlaceholder": "Min. 6 caractères",
+      "passwordConfirm": "Confirmer le mot de passe",
+      "passwordConfirmPlaceholder": "Répétez le mot de passe",
+      "submit": "Réinitialiser le mot de passe",
+      "submitting": "Réinitialisation...",
+      "successTitle": "Mot de passe réinitialisé !",
+      "success": "Votre mot de passe a été modifié avec succès.",
+      "redirecting": "Redirection vers la connexion...",
+      "errorTitle": "Erreur",
+      "error": "Le lien a expiré ou est invalide.",
+      "noToken": "Lien invalide ou manquant.",
+      "requestNewLink": "Demander un nouveau lien",
+      "backToLogin": "Retour à la connexion",
+      "validation": {
+        "passwordMinLength": "Le mot de passe doit contenir au moins 6 caractères",
+        "passwordsMismatch": "Les mots de passe ne correspondent pas"
+      }
+    },
     "logout": "Déconnexion"
   },
   "navigation": {
@@ -784,6 +806,7 @@
       "ctaLogin": "Se connecter",
       "ctaDashboard": "Accéder au tableau de bord",
       "ctaExercises": "Voir les exercices",
+      "ctaChallenges": "Défis logiques",
       "ctaAssistant": "Assistant"
     },
     "howItWorks": {

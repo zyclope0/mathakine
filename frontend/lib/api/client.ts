@@ -11,11 +11,13 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 
   (process.env.NODE_ENV === 'development' ? 'http://localhost:10000' : '');
 
-// Validation en production
-if (process.env.NODE_ENV === 'production' && (!API_BASE_URL || API_BASE_URL.includes('localhost'))) {
-  throw new Error(
-    'NEXT_PUBLIC_API_BASE_URL doit être défini en production et ne peut pas être localhost'
-  );
+function getApiBaseUrl(): string {
+  if (process.env.NODE_ENV === 'production' && (!API_BASE_URL || API_BASE_URL.includes('localhost'))) {
+    throw new Error(
+      'NEXT_PUBLIC_API_BASE_URL doit être défini en production et ne peut pas être localhost'
+    );
+  }
+  return API_BASE_URL || 'http://localhost:10000';
 }
 
 export interface ApiError {
@@ -122,7 +124,7 @@ async function refreshAccessToken(): Promise<boolean> {
       }
 
       // Envoyer le refresh_token dans le body de la requête
-      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +171,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
     try {
       const errorData = await response.json();
-      errorMessage = errorData.message || errorData.detail || errorMessage;
+      errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
       errorDetails = errorData;
     } catch {
       // Si la réponse n'est pas du JSON, utiliser le texte
@@ -197,7 +199,8 @@ export async function apiRequest<T>(
   options?: RequestInit,
   retryOn401: boolean = true
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const baseUrl = getApiBaseUrl();
+  const url = `${baseUrl}${endpoint}`;
 
   // Récupérer la locale depuis le store (si disponible côté client)
   let locale = 'fr';
@@ -253,7 +256,7 @@ export async function apiRequest<T>(
     // Améliorer le message d'erreur pour les erreurs réseau
     let errorMessage = 'Erreur réseau';
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      errorMessage = `Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur ${API_BASE_URL}`;
+      errorMessage = `Impossible de se connecter au serveur. Vérifiez que le backend est démarré sur ${baseUrl}`;
     } else if (error instanceof Error) {
       errorMessage = error.message;
     }

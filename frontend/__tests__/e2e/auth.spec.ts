@@ -46,5 +46,19 @@ test.describe('Authentification', () => {
       await expect(page).toHaveURL('/register');
     }
   });
+
+  test('page mot de passe oublié s\'affiche et lien reset présent', async ({ page }) => {
+    await page.goto('/login');
+    const forgotLink = page.getByRole('link', { name: /mot de passe oublié|forgot/i });
+    if (await forgotLink.isVisible()) {
+      await forgotLink.click();
+      await expect(page).toHaveURL('/forgot-password');
+    } else {
+      await page.goto('/forgot-password');
+    }
+    await expect(page.getByRole('heading', { name: /mot de passe oublié|réinitialiser|forgot/i })).toBeVisible();
+    await expect(page.getByLabel(/email|adresse/i).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /envoyer|réinitialiser|envoy/i })).toBeVisible();
+  });
 });
 

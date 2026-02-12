@@ -115,6 +115,28 @@
       "goToLogin": "Go to login page",
       "backToLogin": "Back to login"
     },
+    "resetPassword": {
+      "title": "New password",
+      "description": "Choose a new password for your account",
+      "password": "New password",
+      "passwordPlaceholder": "Min. 6 characters",
+      "passwordConfirm": "Confirm password",
+      "passwordConfirmPlaceholder": "Repeat password",
+      "submit": "Reset password",
+      "submitting": "Resetting...",
+      "successTitle": "Password reset!",
+      "success": "Your password has been changed successfully.",
+      "redirecting": "Redirecting to login...",
+      "errorTitle": "Error",
+      "error": "The link has expired or is invalid.",
+      "noToken": "Invalid or missing link.",
+      "requestNewLink": "Request a new link",
+      "backToLogin": "Back to login",
+      "validation": {
+        "passwordMinLength": "Password must be at least 6 characters",
+        "passwordsMismatch": "Passwords do not match"
+      }
+    },
     "logout": "Logout"
   },
   "navigation": {
@@ -968,6 +990,7 @@
       "ctaLogin": "Log In",
       "ctaDashboard": "Go to Dashboard",
       "ctaExercises": "View Exercises",
+      "ctaChallenges": "Logic Challenges",
       "ctaAssistant": "Assistant"
     },
     "howItWorks": {

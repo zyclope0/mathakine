@@ -22,7 +22,7 @@ const exo2 = Exo_2({
 const getMetadataBase = (): string => {
   // En production, utiliser l'URL de production
   if (process.env.NODE_ENV === 'production') {
-    return process.env.NEXT_PUBLIC_SITE_URL || 'https://mathakine.onrender.com';
+    return process.env.NEXT_PUBLIC_SITE_URL || 'https://mathakine-frontend.onrender.com';
   }
   // En développement, utiliser localhost ou l'URL spécifiée
   return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';

@@ -96,7 +96,9 @@ export function useAuth() {
     },
     onError: (error: ApiClientError) => {
       let message: string;
-      if (error.status === 401) {
+      if (error.status === 403) {
+        message = error.message || 'Veuillez vérifier votre adresse email avant de vous connecter.';
+      } else if (error.status === 401) {
         message = 'Nom d\'utilisateur ou mot de passe incorrect';
       } else if (error.status === 400) {
         message = error.message || 'Format de requête invalide';
@@ -105,7 +107,7 @@ export function useAuth() {
       } else {
         message = error.message || t('loginError');
       }
-      toast.error(t('loginError'), {
+      toast.error(error.status === 403 ? 'Email non vérifié' : t('loginError'), {
         description: message,
       });
     },
@@ -134,9 +136,7 @@ export function useAuth() {
       }
     },
     onError: (error: ApiClientError) => {
-      const message = error.status === 409
-        ? 'Ce nom d\'utilisateur ou email est déjà utilisé'
-        : error.message || t('registerError');
+      const message = error.message || t('registerError');
       toast.error(t('registerError'), {
         description: message,
       });

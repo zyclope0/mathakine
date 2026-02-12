@@ -6,7 +6,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.core.config import settings
 
-logger.info(f"Initialisation de la base de données: {settings.DATABASE_URL}")
+logger.info(f"Initialisation de la base de données: {settings.SQLALCHEMY_DATABASE_URL}")
 
 try:
     # Configuration pour PostgreSQL avec pool de connexions optimisé

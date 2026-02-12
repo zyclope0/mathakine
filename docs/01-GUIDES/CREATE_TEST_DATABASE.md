@@ -169,8 +169,72 @@ TEST_DATABASE_URL=postgresql://.../mathakine_test
 DATABASE_URL=postgresql://postgres:postgres@localhost/mathakine
 
 # Base de test
-TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/mathakine_test
+TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/test_mathakine
 ```
+
+---
+
+## 🐳 **Option 3 : Docker (PostgreSQL localhost:5432)**
+
+Si PostgreSQL tourne dans un conteneur Docker exposé sur `localhost:5432` :
+
+### **Étape 1 : Créer la base de test**
+
+```bash
+# Se connecter au conteneur PostgreSQL (remplacer postgres par votre image si besoin)
+docker exec -it <nom_conteneur_postgres> psql -U postgres -c "CREATE DATABASE test_mathakine;"
+
+# Ou via psql depuis l'hôte si le port 5432 est mappé :
+psql -h localhost -p 5432 -U postgres -c "CREATE DATABASE test_mathakine;"
+```
+
+### **Étape 2 : Appliquer le schéma**
+
+**Option A – via create_tables (recommandé pour Docker)**  
+Le `.env` peut écraser `DATABASE_URL`. Utiliser `TESTING` + `TEST_DATABASE_URL` :
+
+```powershell
+# PowerShell
+$env:TESTING="true"
+$env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_mathakine"
+python -c "from app.services.db_init_service import create_tables; create_tables()"
+```
+
+**Option B – via Alembic**  
+Alembic lit `DATABASE_URL`. Lancez en pointant vers la base de test :
+
+```powershell
+$env:DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_mathakine"
+alembic upgrade head
+```
+
+### **Étape 3 : Variables dans .env**
+
+```bash
+TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_mathakine
+```
+
+*Note : Le port 5432 est optionnel si c’est le défaut PostgreSQL.*
+
+### **Étape 4 : Lancer les tests**
+
+Avec `TEST_DATABASE_URL` dans le `.env`, pytest utilise automatiquement la base de test (conftest définit `TESTING=true`). Aucune variable à passer manuellement :
+
+```bash
+python -m pytest tests/api/test_auth_flow.py -v
+```
+
+Les logs doivent afficher :  
+`Mode test détecté, utilisation de l'URL de base de données: .../test_mathakine`
+
+---
+
+## 🔄 **Comportement automatique (pytest)**
+
+1. **conftest.py** définit `TESTING=true` avant tout import.
+2. **load_dotenv** charge le `.env` → `TEST_DATABASE_URL` est lu.
+3. **config** utilise `TEST_DATABASE_URL` quand `TESTING` est true.
+4. **Important** : ne pas définir `TESTING=false` dans le `.env`, sinon les tests utiliseraient `DATABASE_URL` (base dev/prod).
 
 ---
 
@@ -179,6 +243,10 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/mathakine_test
 ### **Erreur : "Database does not exist"**
 
 La base de test n'existe pas encore. Créez-la avec le script ou manuellement.
+
+### **Erreur : "relation \"users\" does not exist"**
+
+Le schéma (tables) n’a pas été appliqué. Réexécutez l’étape 2 (Option Docker) : `create_tables` ou `alembic upgrade head`.
 
 ### **Erreur : "Permission denied"**
 

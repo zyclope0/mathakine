@@ -11,7 +11,7 @@ from starlette.routing import Route
 # Imports API handlers - Auth
 from server.handlers.auth_handlers import (api_get_current_user, api_login,
                                            api_refresh_token, api_logout,
-                                           api_forgot_password,
+                                           api_forgot_password, api_reset_password,
                                            resend_verification_email,
                                            verify_email)
 # Imports API handlers - Badges
@@ -73,6 +73,7 @@ def get_routes() -> List:
         Route("/api/auth/refresh", endpoint=api_refresh_token, methods=["POST"]),
         Route("/api/auth/logout", endpoint=api_logout, methods=["POST"]),
         Route("/api/auth/forgot-password", endpoint=api_forgot_password, methods=["POST"]),
+        Route("/api/auth/reset-password", endpoint=api_reset_password, methods=["POST"]),
         Route("/api/auth/verify-email", endpoint=verify_email, methods=["GET"]),
         Route("/api/auth/resend-verification", endpoint=resend_verification_email, methods=["POST"]),
         

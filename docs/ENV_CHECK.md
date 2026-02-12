@@ -26,7 +26,9 @@ Ces variables ont des valeurs par défaut, pas besoin de les mettre dans le `.en
 
 ---
 
-## 📧 Emails (si tu veux activer les envois réels)
+## 📧 Emails (mot de passe oublié, vérification email)
+
+Guide détaillé : **[docs/01-GUIDES/CONFIGURER_EMAIL.md](01-GUIDES/CONFIGURER_EMAIL.md)** — Sans config : simulés en dev, erreur en prod.
 
 Par défaut, les emails sont simulés si SMTP n’est pas configuré. Pour envoyer de vrais emails (ex. vérification d’email) :
 

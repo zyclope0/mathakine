@@ -69,8 +69,11 @@ export default function RegisterPage() {
       registerPayload.full_name = formData.full_name;
     }
     
-    await registerAsync(registerPayload);
-    // La redirection et les toasts sont gérés dans useAuth
+    try {
+      await registerAsync(registerPayload);
+    } catch {
+      // Erreur déjà affichée via toast dans useAuth (409, 500, etc.)
+    }
   };
 
   const handleChange = (field: string, value: string) => {

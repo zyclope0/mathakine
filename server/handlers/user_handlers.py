@@ -405,6 +405,9 @@ async def create_user_account(request: Request):
                 
                 if email_sent:
                     logger.info(f"✅ Email de vérification envoyé avec succès à {user.email}")
+                    if "localhost" in frontend_url:
+                        verify_link = f"{frontend_url}/verify-email?token={verification_token}"
+                        logger.info(f"[DEV] Si l'email n'arrive pas, copie ce lien : {verify_link}")
                 else:
                     logger.warning(f"⚠️ Échec de l'envoi de l'email de vérification à {user.email}")
                     logger.warning(f"Vérifiez la configuration SMTP dans les variables d'environnement")

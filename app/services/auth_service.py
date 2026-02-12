@@ -77,6 +77,10 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
     if not user:
         logger.warning(f"Utilisateur non trouvé: {username}")
         return None
+
+    if not user.is_active:
+        logger.warning(f"Compte désactivé: {username}")
+        return None
         
     logger.debug(f"Utilisateur trouvé: {username}")
     logger.debug(f"Hash stocké: {user.hashed_password}")

@@ -13,6 +13,12 @@ from app.core.logging_config import get_logger
 logger = get_logger(__name__)
 
 from app.core.config import settings
+from app.utils.email_templates import (
+    password_reset_email_html,
+    password_reset_email_text,
+    verification_email_html,
+    verification_email_text,
+)
 
 # Optionnel : Support SendGrid si API key disponible
 try:
@@ -49,8 +55,10 @@ class EmailService:
         # Vérifier si SendGrid est configuré
         sendgrid_api_key = os.getenv("SENDGRID_API_KEY")
         if sendgrid_api_key and SENDGRID_AVAILABLE:
+            logger.info(f"[Email] Envoi via SendGrid vers {to_email}")
             return EmailService._send_via_sendgrid(to_email, subject, html_content, text_content)
         else:
+            logger.info(f"[Email] Envoi via SMTP vers {to_email} (SendGrid: key={'✓' if sendgrid_api_key else '✗'}, pkg={SENDGRID_AVAILABLE})")
             return EmailService._send_via_smtp(to_email, subject, html_content, text_content)
     
     @staticmethod
@@ -182,104 +190,33 @@ class EmailService:
         frontend_url: Optional[str] = None
     ) -> bool:
         """
-        Envoie un email de vérification d'adresse email.
-        
-        Args:
-            to_email: Adresse email à vérifier
-            username: Nom d'utilisateur
-            verification_token: Token de vérification
-            frontend_url: URL du frontend (pour le lien de vérification)
-        
-        Returns:
-            True si l'email a été envoyé avec succès
+        Envoie un email de vérification à l'inscription.
+        Template thème Jedi, ergonomique et accessible.
         """
         if not frontend_url:
             frontend_url = os.getenv("FRONTEND_URL", "https://mathakine-frontend.onrender.com")
-        
         verification_link = f"{frontend_url}/verify-email?token={verification_token}"
-        
-        subject = "Vérifiez votre adresse email - Mathakine"
-        
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    line-height: 1.6;
-                    color: #333;
-                    max-width: 600px;
-                    margin: 0 auto;
-                    padding: 20px;
-                }}
-                .header {{
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 30px;
-                    text-align: center;
-                    border-radius: 10px 10px 0 0;
-                }}
-                .content {{
-                    background: #f9f9f9;
-                    padding: 30px;
-                    border-radius: 0 0 10px 10px;
-                }}
-                .button {{
-                    display: inline-block;
-                    padding: 12px 30px;
-                    background: #667eea;
-                    color: white;
-                    text-decoration: none;
-                    border-radius: 5px;
-                    margin: 20px 0;
-                }}
-                .footer {{
-                    margin-top: 20px;
-                    font-size: 12px;
-                    color: #666;
-                    text-align: center;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>🚀 Mathakine</h1>
-                <p>Vérification de votre adresse email</p>
-            </div>
-            <div class="content">
-                <p>Bonjour <strong>{username}</strong>,</p>
-                <p>Merci de vous être inscrit sur Mathakine ! Pour activer votre compte, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous :</p>
-                <p style="text-align: center;">
-                    <a href="{verification_link}" class="button">Vérifier mon email</a>
-                </p>
-                <p>Ou copiez ce lien dans votre navigateur :</p>
-                <p style="word-break: break-all; color: #667eea;">{verification_link}</p>
-                <p><strong>Ce lien expire dans 24 heures.</strong></p>
-                <p>Si vous n'avez pas créé de compte sur Mathakine, vous pouvez ignorer cet email.</p>
-            </div>
-            <div class="footer">
-                <p>© 2025 Mathakine - L'Ordre Jedi des Mathématiques</p>
-            </div>
-        </body>
-        </html>
+        subject = "Bienvenue ! Active ton compte Mathakine"
+        html_content = verification_email_html(username, verification_link)
+        text_content = verification_email_text(username, verification_link)
+        return EmailService.send_email(to_email, subject, html_content, text_content)
+
+    @staticmethod
+    def send_password_reset_email(
+        to_email: str,
+        username: str,
+        reset_token: str,
+        frontend_url: Optional[str] = None
+    ) -> bool:
         """
-        
-        text_content = f"""
-        Bonjour {username},
-        
-        Merci de vous être inscrit sur Mathakine !
-        
-        Pour activer votre compte, veuillez vérifier votre adresse email en cliquant sur ce lien :
-        {verification_link}
-        
-        Ce lien expire dans 24 heures.
-        
-        Si vous n'avez pas créé de compte sur Mathakine, vous pouvez ignorer cet email.
-        
-        © 2025 Mathakine
+        Envoie un email de réinitialisation de mot de passe.
+        Template thème Jedi, ergonomique et accessible.
         """
-        
+        if not frontend_url:
+            frontend_url = os.getenv("FRONTEND_URL", "https://mathakine-frontend.onrender.com")
+        reset_link = f"{frontend_url}/reset-password?token={reset_token}"
+        subject = "Réinitialisation de ton mot de passe — Mathakine"
+        html_content = password_reset_email_html(username, reset_link)
+        text_content = password_reset_email_text(username, reset_link)
         return EmailService.send_email(to_email, subject, html_content, text_content)
 

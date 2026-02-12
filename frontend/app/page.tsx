@@ -43,6 +43,7 @@ interface Feature {
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
   const t = useTranslations('home');
+  const tNav = useTranslations('navigation');
   const { shouldReduceMotion } = useAccessibleAnimation();
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -92,6 +93,9 @@ export default function HomePage() {
               </Button>
               <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
                 <Link href="/exercises">{t('hero.ctaExercises')}</Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+                <Link href="/challenges">{tNav('challenges')}</Link>
               </Button>
             </>
           ) : (

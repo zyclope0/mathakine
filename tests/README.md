@@ -48,7 +48,8 @@ tests/
 
 ## Points importants
 
-1. **TEST_DATABASE_URL** obligatoire (voir CREATE_TEST_DATABASE.md)
+1. **TEST_DATABASE_URL** : à définir dans le `.env` (voir [CREATE_TEST_DATABASE.md](../docs/01-GUIDES/CREATE_TEST_DATABASE.md)).  
+   Pytest utilise automatiquement cette base : conftest définit `TESTING=true`, la config pointe vers `TEST_DATABASE_URL`. Aucune variable à passer en ligne de commande.
 2. **Données de test** : utiliser `unique_username()` / `unique_email()` pour éviter les conflits
 3. **Nettoyage** : `TestDataManager` nettoie automatiquement les données de test après chaque run
 4. **Tests async** : tous les tests API/integration utilisent `httpx.AsyncClient` + `pytest-asyncio`

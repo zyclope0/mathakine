@@ -28,6 +28,7 @@ docs/
 │   ├── MAINTENANCE.md          # Maintenance
 │   ├── CONTRIBUTING.md         # Comment contribuer
 │   ├── CREATE_TEST_DATABASE.md # Créer base de test
+│   ├── CONFIGURER_EMAIL.md     # Configurer envoi emails (forgot-password, verify-email)
 │   ├── LANCER_SERVEUR_TEST.md  # Lancer serveur local
 │   ├── TESTER_MODIFICATIONS_SECURITE.md  # Tests sécurité
 │   └── QU_EST_CE_QUE_VENV.md  # Guide Python venv

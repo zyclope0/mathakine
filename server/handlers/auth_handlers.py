@@ -3,7 +3,7 @@ Handlers pour l'authentification et la vérification d'email
 """
 import os
 import traceback
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from app.core.logging_config import get_logger
 
@@ -16,8 +16,12 @@ from app.services.auth_service import (authenticate_user, create_user_token,
 from server.auth import require_auth
 from app.services.email_service import EmailService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.utils.email_verification import (generate_verification_token,
-                                          is_verification_token_expired)
+from app.core.security import get_password_hash
+from app.utils.email_verification import (
+    generate_verification_token,
+    is_password_reset_token_expired,
+    is_verification_token_expired,
+)
 
 
 async def verify_email(request: Request):
@@ -56,16 +60,22 @@ async def verify_email(request: Request):
                     status_code=400
                 )
             
-            # Vérifier si l'email est déjà vérifié
+            # Vérifier si l'email est déjà vérifié (idempotent : double-clic, refresh)
             if user.is_email_verified:
-                return JSONResponse(
-                    {"message": "Votre adresse email est déjà vérifiée"},
-                    status_code=200
-                )
+                return JSONResponse({
+                    "message": "Votre adresse email est déjà vérifiée",
+                    "success": True,
+                    "user": {
+                        "id": user.id,
+                        "username": user.username,
+                        "email": user.email,
+                        "is_email_verified": True
+                    }
+                }, status_code=200)
             
             # Marquer l'email comme vérifié
             user.is_email_verified = True
-            user.email_verification_token = None  # Supprimer le token utilisé
+            # Ne pas supprimer le token : permet requêtes idempotentes (double-clic, refresh)
             user.updated_at = datetime.now(timezone.utc)
             
             db.commit()
@@ -201,6 +211,12 @@ async def api_login(request: Request):
                 return JSONResponse(
                     {"error": "Nom d'utilisateur ou mot de passe incorrect"},
                     status_code=401
+                )
+
+            if not getattr(user, 'is_email_verified', True):
+                return JSONResponse(
+                    {"error": "Veuillez vérifier votre adresse email avant de vous connecter. Consultez votre boîte de réception."},
+                    status_code=403
                 )
             
             # Créer les tokens d'accès
@@ -467,14 +483,155 @@ async def api_get_current_user(request: Request):
 
 async def api_forgot_password(request: Request):
     """
-    Handler pour la fonctionnalité de mot de passe oublié (placeholder).
+    Demande de réinitialisation de mot de passe.
+    Génère un token, le stocke en DB, et envoie un email avec le lien.
     Route: POST /api/auth/forgot-password
+    Body: {"email": "user@example.com"}
     """
-    logger.info("Tentative d'accès à la fonctionnalité 'mot de passe oublié'.")
-    return JSONResponse(
-        {"message": "La fonctionnalité de réinitialisation de mot de passe est en cours de développement."},
-        status_code=501  # Not Implemented
-    )
+    try:
+        data = await request.json()
+        email = data.get('email', '').strip().lower()
+
+        if not email:
+            return JSONResponse(
+                {"error": "Adresse email requise"},
+                status_code=400
+            )
+
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            user = get_user_by_email(db, email)
+
+            # Pour la sécurité, toujours retourner le même message (évite l'énumération d'emails)
+            success_message = (
+                "Si cette adresse email est associée à un compte, "
+                "vous recevrez un email avec les instructions de réinitialisation."
+            )
+
+            if not user:
+                logger.warning(f"Demande reset password pour email inexistant: {email}")
+                return JSONResponse({"message": success_message}, status_code=200)
+
+            if not user.is_active:
+                logger.warning(f"Demande reset password pour compte inactif: {email}")
+                return JSONResponse({"message": success_message}, status_code=200)
+
+            # Générer token (1h d'expiration)
+            reset_token = generate_verification_token()
+            expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+
+            user.password_reset_token = reset_token
+            user.password_reset_expires_at = expires_at
+            user.updated_at = datetime.now(timezone.utc)
+
+            db.commit()
+            db.refresh(user)
+
+            frontend_url = os.getenv("FRONTEND_URL", "https://mathakine-frontend.onrender.com")
+            email_sent = EmailService.send_password_reset_email(
+                to_email=user.email,
+                username=user.username,
+                reset_token=reset_token,
+                frontend_url=frontend_url
+            )
+
+            if not email_sent:
+                logger.warning(f"Échec envoi email reset à {user.email}")
+                return JSONResponse(
+                    {"error": "Impossible d'envoyer l'email. Veuillez réessayer plus tard."},
+                    status_code=500
+                )
+
+            logger.info(f"Email de réinitialisation envoyé à {user.email}")
+            # En dev avec localhost : Gmail filtre souvent ces emails. Afficher le lien en console pour tester.
+            if "localhost" in frontend_url:
+                reset_link = f"{frontend_url}/reset-password?token={reset_token}"
+                logger.info(f"[DEV] Si l'email n'arrive pas (filtre Gmail), copie ce lien : {reset_link}")
+            return JSONResponse({"message": success_message}, status_code=200)
+
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+
+    except Exception as forgot_err:
+        logger.error(f"Erreur forgot-password: {forgot_err}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse(
+            {"error": "Erreur lors du traitement de la demande"},
+            status_code=500
+        )
+
+
+async def api_reset_password(request: Request):
+    """
+    Réinitialise le mot de passe avec un token valide.
+    Route: POST /api/auth/reset-password
+    Body: {"token": "...", "password": "...", "password_confirm": "..."}
+    """
+    try:
+        data = await request.json()
+        token = (data.get('token') or '').strip()
+        password = data.get('password', '')
+        password_confirm = data.get('password_confirm', '')
+
+        if not token:
+            return JSONResponse(
+                {"error": "Token de réinitialisation manquant"},
+                status_code=400
+            )
+
+        if not password or len(password) < 6:
+            return JSONResponse(
+                {"error": "Le mot de passe doit contenir au moins 6 caractères"},
+                status_code=400
+            )
+
+        if password != password_confirm:
+            return JSONResponse(
+                {"error": "Les mots de passe ne correspondent pas"},
+                status_code=400
+            )
+
+        db = EnhancedServerAdapter.get_db_session()
+        try:
+            from app.models.user import User
+            user = db.query(User).filter(User.password_reset_token == token).first()
+
+            if not user:
+                return JSONResponse(
+                    {"error": "Token invalide ou déjà utilisé"},
+                    status_code=400
+                )
+
+            if is_password_reset_token_expired(user.password_reset_expires_at):
+                return JSONResponse(
+                    {"error": "Le lien a expiré. Veuillez demander un nouveau lien."},
+                    status_code=400
+                )
+
+            user.hashed_password = get_password_hash(password)
+            user.password_reset_token = None
+            user.password_reset_expires_at = None
+            user.updated_at = datetime.now(timezone.utc)
+
+            db.commit()
+            db.refresh(user)
+
+            logger.info(f"Mot de passe réinitialisé pour {user.username}")
+            return JSONResponse({
+                "message": "Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.",
+                "success": True
+            }, status_code=200)
+
+        finally:
+            EnhancedServerAdapter.close_db_session(db)
+
+    except Exception as reset_err:
+        logger.error(f"Erreur reset-password: {reset_err}")
+        logger.debug(traceback.format_exc())
+        return JSONResponse(
+            {"error": "Erreur lors de la réinitialisation du mot de passe"},
+            status_code=500
+        )
 
 
 async def api_logout(request: Request):
