@@ -15,6 +15,8 @@ from datetime import datetime, timedelta, timezone
 
 from app.core.config import settings
 
+from tests.utils.test_helpers import verify_user_email_for_tests
+
 
 @pytest.fixture
 async def test_user_with_tokens(client):
@@ -30,6 +32,7 @@ async def test_user_with_tokens(client):
     # Créer l'utilisateur
     response = await client.post("/api/users/", json=user_data)
     assert response.status_code == 201, f"Échec création utilisateur: {response.text}"
+    verify_user_email_for_tests(user_data["username"])
 
     # Se connecter pour obtenir les tokens
     login_data = {

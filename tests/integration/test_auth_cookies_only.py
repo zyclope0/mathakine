@@ -3,6 +3,7 @@ import uuid
 import httpx
 
 from enhanced_server import app as starlette_app
+from tests.utils.test_helpers import verify_user_email_for_tests
 
 
 @pytest.fixture
@@ -33,6 +34,7 @@ async def test_login_sets_refresh_token_cookie(client, test_user_data):
     Vérifie que le login définit un cookie refresh_token avec les attributs sécurisés.
     """
     await client.post("/api/users/", json=test_user_data)
+    verify_user_email_for_tests(test_user_data["username"])
     login_response = await client.post("/api/auth/login", json={"username": test_user_data["username"], "password": test_user_data["password"]})
     assert login_response.status_code == 200
 
@@ -46,6 +48,7 @@ async def test_refresh_uses_cookie_only(client, test_user_data):
     Vérifie que le refresh fonctionne avec uniquement le cookie HTTP-only.
     """
     await client.post("/api/users/", json=test_user_data)
+    verify_user_email_for_tests(test_user_data["username"])
     login_response = await client.post("/api/auth/login", json={"username": test_user_data["username"], "password": test_user_data["password"]})
     assert login_response.status_code == 200
 
@@ -64,6 +67,7 @@ async def test_refresh_without_cookie_fails(client, test_user_data):
     Vérifie que le refresh échoue si aucun cookie n'est présent.
     """
     await client.post("/api/users/", json=test_user_data)
+    verify_user_email_for_tests(test_user_data["username"])
     login_resp = await client.post("/api/auth/login", json={"username": test_user_data["username"], "password": test_user_data["password"]})
     assert login_resp.status_code == 200
 
@@ -91,6 +95,7 @@ async def test_logout_clears_cookie(client, test_user_data):
     Vérifie que le logout supprime le cookie refresh_token.
     """
     await client.post("/api/users/", json=test_user_data)
+    verify_user_email_for_tests(test_user_data["username"])
     login_response = await client.post("/api/auth/login", json={"username": test_user_data["username"], "password": test_user_data["password"]})
     assert login_response.status_code == 200
     assert _get_cookie_from_headers(login_response.headers, "refresh_token") is not None
@@ -116,6 +121,7 @@ async def test_refresh_token_cookie_httponly(client, test_user_data):
     Vérifie que le cookie refresh_token est marqué HttpOnly pour la sécurité XSS.
     """
     await client.post("/api/users/", json=test_user_data)
+    verify_user_email_for_tests(test_user_data["username"])
     login_response = await client.post("/api/auth/login", json={"username": test_user_data["username"], "password": test_user_data["password"]})
     assert login_response.status_code == 200
 

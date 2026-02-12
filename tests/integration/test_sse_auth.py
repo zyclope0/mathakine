@@ -10,6 +10,8 @@ Ces tests garantissent que :
 import pytest
 import uuid
 
+from tests.utils.test_helpers import verify_user_email_for_tests
+
 
 @pytest.fixture
 async def authenticated_user(client):
@@ -25,6 +27,7 @@ async def authenticated_user(client):
     # Créer l'utilisateur
     response = await client.post("/api/users/", json=user_data)
     assert response.status_code == 201, f"Échec création utilisateur: {response.text}"
+    verify_user_email_for_tests(user_data["username"])
 
     # Se connecter
     login_data = {

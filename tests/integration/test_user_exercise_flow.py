@@ -7,6 +7,8 @@ import uuid
 from datetime import datetime, timezone
 import logging
 
+from tests.utils.test_helpers import verify_user_email_for_tests
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,6 +28,7 @@ async def test_user_exercise_flow(client):
     try:
         response = await client.post("/api/users/", json=user_data)
         assert response.status_code == 201, f"Erreur lors de la création de l'utilisateur: {response.text}"
+        verify_user_email_for_tests(user_data["username"])
         user_response = response.json()
         assert "id" in user_response, "L'ID de l'utilisateur est manquant dans la réponse"
         user_id = user_response["id"]
@@ -96,6 +99,7 @@ async def test_invalid_exercise_attempt(client):
         }
         response = await client.post("/api/users/", json=user_data)
         assert response.status_code == 201, f"Erreur lors de la création de l'utilisateur: {response.text}"
+        verify_user_email_for_tests(user_data["username"])
         user_response = response.json()
         user_id = user_response["id"]
 

@@ -54,6 +54,23 @@ def unique_email(domain: str = "example.com") -> str:
     local_part = unique_id("test")
     return f"{local_part}@{domain}"
 
+
+def verify_user_email_for_tests(username: str) -> None:
+    """
+    Marque un utilisateur comme email vérifié (pour les tests qui nécessitent un login).
+    À appeler après création via API, avant tenter un login.
+    """
+    from app.services.enhanced_server_adapter import EnhancedServerAdapter
+    from app.models.user import User
+    db = EnhancedServerAdapter.get_db_session()
+    try:
+        user = db.query(User).filter(User.username == username).first()
+        if user:
+            user.is_email_verified = True
+            db.commit()
+    finally:
+        EnhancedServerAdapter.close_db_session(db)
+
 def dict_to_user(user_data: Dict[str, Any]) -> User:
     """
     Convertit un dictionnaire en instance de User.

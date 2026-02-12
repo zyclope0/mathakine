@@ -77,7 +77,7 @@ from app.utils.db_helpers import (
 
 # Test utilities
 from tests.utils.test_data_cleanup import TestDataManager
-from tests.utils.test_helpers import unique_email, unique_username
+from tests.utils.test_helpers import unique_email, unique_username, verify_user_email_for_tests
 
 # Application Starlette
 from enhanced_server import app as starlette_app
@@ -239,6 +239,9 @@ async def _create_authenticated_client(role="padawan", db_session_for_role=None)
         response = await ac.post("/api/users/", json=user_data)
         if response.status_code not in (200, 201):
             pytest.skip(f"Cannot create {role} user: {response.text}")
+
+        # Marquer email verifie pour permettre le login (obligatoire en production)
+        verify_user_email_for_tests(user_data["username"])
 
         # Mettre a jour le role en DB si different de padawan
         if role != "padawan" and db_session_for_role is not None:

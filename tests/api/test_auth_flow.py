@@ -8,6 +8,8 @@ Teste les routes créées dans server/auth.py :
 import pytest
 import uuid
 
+from tests.utils.test_helpers import verify_user_email_for_tests
+
 
 @pytest.fixture
 def test_user_data():
@@ -26,6 +28,7 @@ async def test_login_success(client, test_user_data):
     # Créer d'abord l'utilisateur
     response = await client.post("/api/users/", json=test_user_data)
     assert response.status_code == 201, f"Échec création utilisateur: {response.text}"
+    verify_user_email_for_tests(test_user_data["username"])
 
     # Tester le login
     login_data = {
@@ -94,6 +97,7 @@ async def test_get_current_user_authenticated(client, test_user_data):
     """Test récupération utilisateur connecté (Phase 2)"""
     # Créer l'utilisateur et se connecter
     await client.post("/api/users/", json=test_user_data)
+    verify_user_email_for_tests(test_user_data["username"])
 
     login_data = {
         "username": test_user_data["username"],
@@ -173,6 +177,7 @@ async def test_forgot_password_missing_email(client):
 async def test_reset_password_full_flow(client, test_user_data):
     """Test flow complet : forgot -> récupérer token en DB -> reset -> login"""
     await client.post("/api/users/", json=test_user_data)
+    verify_user_email_for_tests(test_user_data["username"])
 
     # Demander reset
     resp_forgot = await client.post("/api/auth/forgot-password", json={"email": test_user_data["email"]})
