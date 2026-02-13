@@ -85,28 +85,12 @@ export function getChallengeTypeDisplay(value: string | null | undefined): strin
   return CHALLENGE_TYPE_DISPLAY[normalized] || value;
 }
 
-// Importer et ré-exporter les constantes de groupe d'âge unifiées
+// Importer et ré-exporter les constantes de groupe d'âge unifiées (DRY)
 export {
   AGE_GROUPS,
   AGE_GROUP_DISPLAY,
   AGE_GROUP_COLORS,
   getAgeGroupColor,
+  getAgeGroupDisplay,
   type AgeGroup,
 } from "./exercises";
-
-// Créer une fonction getAgeGroupDisplay qui est compatible avec l'ancienne
-// Elle prend une string et retourne le display name
-export function getAgeGroupDisplay(ageGroup: string | null | undefined): string {
-  if (!ageGroup) return "Tous âges";
-
-  const displayMap: Record<string, string> = {
-    "6-8": "6-8 ans",
-    "9-11": "9-11 ans",
-    "12-14": "12-14 ans",
-    "15-17": "15-17 ans",
-    adulte: "Adulte",
-    "tous-ages": "Tous âges",
-  };
-
-  return displayMap[ageGroup] || "Tous âges";
-}

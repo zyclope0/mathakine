@@ -100,6 +100,12 @@ export function getAgeGroupColor(ageGroup: string | null | undefined): string {
   return AGE_GROUP_COLORS[ageGroup] ?? AGE_GROUP_COLORS["default"] ?? defaultColor;
 }
 
+/** Libellé d'affichage pour un groupe d'âge (source unique DRY). */
+export function getAgeGroupDisplay(ageGroup: string | null | undefined): string {
+  if (!ageGroup) return AGE_GROUP_DISPLAY[AGE_GROUPS.ALL_AGES];
+  return AGE_GROUP_DISPLAY[ageGroup as AgeGroup] ?? AGE_GROUP_DISPLAY[AGE_GROUPS.ALL_AGES];
+}
+
 /**
  * Constantes pour les types de défis logiques
  */

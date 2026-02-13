@@ -1,0 +1,171 @@
+# Analyse de duplication (DRY) — Mathakine
+
+**Date :** Février 2026  
+**Objectif :** Identifier le code dupliqué frontend/backend pour préparer la consolidation (DRY)
+
+---
+
+## Résumé exécutif
+
+| Périmètre | Zones de duplication | Effort estimé |
+|-----------|----------------------|---------------|
+| **Backend** | 4–5 patterns majeurs | 4–6 h |
+| **Frontend** | 3–4 zones (cards, modals, hooks) | 6–8 h |
+| **Tests** | Fixtures, patterns | 2 h |
+
+---
+
+## 1. Backend — Duplications identifiées
+
+### 1.1 Pattern `await request.json()` + validation (répété ~15×)
+
+**Fichiers :** Tous les handlers (auth, user, chat, exercise, challenge, recommendation)
+
+**Pattern actuel (copié ~15 fois) :**
+```python
+try:
+    data = await request.json()
+    field = data.get('field', '').strip()
+    if not field:
+        return JSONResponse({"error": "Champ requis"}, status_code=400)
+    # ...
+except Exception as e:
+    return ErrorHandler.create_error_response(e, 400)
+```
+
+**Proposition :** Créer `app/utils/request_utils.py` avec :
+- `parse_json_body(request, required_fields: list, optional_fields: dict) -> dict | JSONResponse`
+- Gère le try/except, les `.strip()`, les messages 400 standardisés
+
+---
+
+### 1.2 Pattern `get_db_session()` + try/finally (répété ~50×)
+
+**Fichiers :** `auth_handlers`, `user_handlers`, `exercise_handlers`, `challenge_handlers`, `badge_handlers`, `recommendation_handlers`, `auth.py`
+
+**Pattern actuel :**
+```python
+db = EnhancedServerAdapter.get_db_session()
+try:
+    # ... logique ...
+    db.commit()
+except Exception as e:
+    db.rollback()
+    return ErrorHandler.create_error_response(e)
+finally:
+    db.close()
+```
+
+**Proposition :** Décorateur `@with_db_session` ou context manager `with get_db_session() as db:` qui gère commit/rollback/close automatiquement.
+
+---
+
+### 1.3 `safe_parse_json` dupliqué (évaluation 2026-02)
+
+**Mentionné dans :** `EVALUATION_PROJET_2026-02-07.md` — « `safe_parse_json()` dupliqué dans 3 fichiers »
+
+**Proposition :** Centraliser dans `app/utils/json_utils.py` (qui existe déjà avec `parse_choices_json`, `make_json_serializable`) — ajouter `safe_parse_json(request)` si ce n'est pas déjà présent.
+
+---
+
+### 1.4 Error handling mixte
+
+**Constat :** Mix de `ErrorHandler.create_error_response()` et `JSONResponse({"error": ...}, status_code=400)` direct.
+
+**Proposition :** Uniformiser via `ErrorHandler.create_error_response()` ou `ErrorHandler.create_validation_error()` pour toutes les erreurs 4xx/5xx.
+
+---
+
+## 2. Frontend — Duplications identifiées
+
+### 2.1 ExerciseCard vs ChallengeCard (quasi-identique)
+
+**Fichiers :**
+- `frontend/components/exercises/ExerciseCard.tsx`
+- `frontend/components/challenges/ChallengeCard.tsx`
+
+**Structure commune :**
+- `motion.div` avec mêmes variants (opacity, scale, whileHover)
+- `Card` avec `card-spatial-depth`, `role="article"`
+- Badge "Résolu" vert identique
+- `CardHeader`, `CardTitle`, badges type/âge
+- Bouton "Voir" / "Découvrir" en bas
+- `useAccessibleAnimation`, `createVariants`, `createTransition`
+
+**Différences :** Types (Exercise vs Challenge), hooks (useCompletedExercises vs useCompletedChallenges), constantes (exercises vs challenges).
+
+**Proposition :** Créer `ContentCard<T>` générique avec `renderHeader`, `renderFooter`, `onClick` en props. Ou `useContentCard()` hook partagé pour la logique (variants, completed badge, etc.).
+
+---
+
+### 2.2 ExerciseModal vs ChallengeModal (structure similaire)
+
+**Fichiers :**
+- `frontend/components/exercises/ExerciseModal.tsx`
+- `frontend/components/challenges/ChallengeModal.tsx`
+
+**Structure commune :**
+- `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`
+- Pattern `useExercise(id)` / `useChallenge(id)` → `{ data, isLoading, error }`
+- Badge type + âge
+- Boutons / actions différentes (exercice = choix, challenge = formulaire)
+
+**Proposition :** Base `ContentModal` avec slots pour header, body, footer. Ou extraire `useContentModal(id, fetchHook)` pour isLoading/error/handleClose.
+
+---
+
+### 2.3 useExercises vs useChallenges (pattern quasi-identique)
+
+**Fichiers :**
+- `frontend/hooks/useExercises.ts`
+- `frontend/hooks/useChallenges.ts`
+
+**Structure commune :**
+- `useQuery` avec `queryKey` [entity, skip, limit, type, age_group, search, locale]
+- `URLSearchParams` pour construire la query string
+- `api.get<PaginatedResponse<T>>(endpoint)`
+- `useEffect` pour invalider sur changement de locale
+- `debugLog`, `staleTime`, `gcTime`, `retry`
+
+**Proposition :** Hook générique `usePaginatedContent<T>(config: { endpoint, queryKey, paramKeys })` qui factorise la logique.
+
+---
+
+### 2.4 Constantes âge (exercises vs challenges)
+
+**Fichiers :**
+- `frontend/lib/constants/exercises.ts` — `AGE_GROUP_DISPLAY`, `AGE_GROUP_COLORS`, `getAgeGroupColor`
+- `frontend/lib/constants/challenges.ts` — Ré-exporte `getAgeGroupColor` depuis exercises ✅, mais définit `getAgeGroupDisplay` avec un `displayMap` en dur qui duplique `AGE_GROUP_DISPLAY`
+
+**Proposition :** `challenges.ts` doit utiliser `AGE_GROUP_DISPLAY` de `exercises.ts` au lieu de son propre `displayMap`.
+
+---
+
+## 3. Tests — Duplications
+
+**Mentionné dans :** `tests/PLAN_TESTS_AMELIORATION.md`
+
+- `test_challenge_endpoints.py` et `test_logic_challenge_isolated.py` couvrent les mêmes endpoints
+- Helpers d'auth (cookie, headers) dupliqués — proposer `tests/fixtures/auth_fixtures.py`
+
+---
+
+## 4. Priorités suggérées pour refactoring
+
+| Priorité | Action | Effort | Impact |
+|----------|--------|--------|--------|
+| P1 | Backend : `parse_json_body()` utilitaire | 1h | Réduit ~15 blocs |
+| P2 | Backend : décorateur/CM `@with_db_session` | 2h | Réduit ~50 blocs try/finally |
+| P3 | Frontend : `ContentCard` ou `useContentCard` | 2h | Réduit duplication cards |
+| P4 | Frontend : `usePaginatedContent` hook | 1h | Réduit duplication hooks |
+| P5 | Frontend : `getAgeGroupDisplay` unifié | 30 min | Supprime doublon |
+| P6 | Tests : fixtures auth centralisées | 1h | Maintenabilité |
+
+---
+
+## 5. Réalisations (15/02/2026)
+
+| Priorité | Statut | Détails |
+|----------|--------|---------|
+| **P5** | ✅ Fait | `getAgeGroupDisplay` dans `exercises.ts`, ré-exporté par `challenges.ts` |
+| **P1** | ✅ Fait | `app/utils/request_utils.py` — `parse_json_body()` avec required/optional/no_strip_fields. Utilisé dans : `auth_handlers` (resend, login, validate-token), `chat_handlers` (message) |

@@ -148,16 +148,15 @@ async def resend_verification_email(request: Request):
     Rate limit: 2 req/min par IP (protection abus).
     """
     try:
-        # Récupérer l'email depuis le body
-        data = await request.json()
-        email = data.get('email', '').strip()
-        
-        if not email:
-            return JSONResponse(
-                {"error": "Adresse email requise"},
-                status_code=400
-            )
-        
+        from app.utils.request_utils import parse_json_body
+
+        data_or_err = await parse_json_body(
+            request, required={"email": "Adresse email requise"}
+        )
+        if isinstance(data_or_err, JSONResponse):
+            return data_or_err
+        email = data_or_err["email"]
+
         db = EnhancedServerAdapter.get_db_session()
         try:
             # Chercher l'utilisateur
@@ -235,17 +234,20 @@ async def api_login(request: Request):
     Returns: Token + user info
     """
     try:
-        # Récupérer les données du body
-        data = await request.json()
-        username = data.get('username', '').strip()
-        password = data.get('password', '')
-        
-        if not username or not password:
-            return JSONResponse(
-                {"error": "Nom d'utilisateur et mot de passe requis"},
-                status_code=400
-            )
-        
+        from app.utils.request_utils import parse_json_body
+
+        data_or_err = await parse_json_body(
+            request,
+            required={
+                "username": "Nom d'utilisateur requis",
+                "password": "Mot de passe requis",
+            },
+            no_strip_fields={"password"},
+        )
+        if isinstance(data_or_err, JSONResponse):
+            return data_or_err
+        username = data_or_err["username"]
+        password = data_or_err["password"]
         logger.debug(f"Tentative de connexion pour l'utilisateur: {username}")
         
         db = EnhancedServerAdapter.get_db_session()
@@ -353,10 +355,19 @@ async def api_validate_token(request: Request):
     Rate limit: 5 req/min par IP (protection brute-force).
     """
     try:
-        data = await request.json()
-        token = data.get("token")
-        if not token or not isinstance(token, str):
-            return JSONResponse({"valid": False, "error": "Token manquant"}, status_code=400)
+        from app.utils.request_utils import parse_json_body
+
+        data_or_err = await parse_json_body(
+            request, required={"token": "Token manquant"}, no_strip_fields={"token"}
+        )
+        if isinstance(data_or_err, JSONResponse):
+            return JSONResponse(
+                {"valid": False, "error": "Token manquant"},
+                status_code=400,
+            )
+        token = data_or_err["token"]
+        if not isinstance(token, str):
+            return JSONResponse({"valid": False, "error": "Token invalide"}, status_code=400)
         payload = decode_token(token)
         # Vérifier que c'est un access token (type=access)
         if payload.get("type") != "access":

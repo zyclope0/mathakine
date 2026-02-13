@@ -152,16 +152,18 @@ async def chat_api(request):
                 status_code=503
             )
         
-        # Récupérer les données de la requête
-        data = await request.json()
-        message_raw = data.get('message', '')
-        conversation_history = data.get('conversation_history', [])[:20]  # Limiter l'historique
-        
-        if not message_raw:
-            return JSONResponse(
-                {"error": "Message requis"},
-                status_code=400
-            )
+        # Récupérer les données de la requête (DRY parse_json_body)
+        from app.utils.request_utils import parse_json_body
+
+        data_or_err = await parse_json_body(
+            request,
+            required={"message": "Message requis"},
+            optional={"conversation_history": []},
+        )
+        if isinstance(data_or_err, JSONResponse):
+            return data_or_err
+        message_raw = data_or_err["message"]
+        conversation_history = data_or_err.get("conversation_history", [])[:20]
 
         # Sanitization du message pour éviter l'injection de prompt
         from app.utils.prompt_sanitizer import sanitize_user_prompt, validate_prompt_safety
