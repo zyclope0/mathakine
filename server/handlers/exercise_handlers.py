@@ -17,7 +17,7 @@ from app.models.exercise import ExerciseType
 # Import du service de badges
 from app.services.badge_service import BadgeService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.utils.error_handler import ErrorHandler
+from app.utils.error_handler import ErrorHandler, get_safe_error_message
 from server.auth import require_auth, optional_auth, require_auth_sse
 from server.exercise_generator import (ensure_explanation,
                                        generate_ai_exercise,
@@ -947,7 +947,7 @@ async def delete_exercise(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la suppression de l'exercice: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 async def get_exercises_stats(request: Request):

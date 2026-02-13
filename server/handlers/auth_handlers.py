@@ -590,9 +590,19 @@ async def api_reset_password(request: Request):
                 status_code=400
             )
 
-        if not password or len(password) < 6:
+        if not password or len(password) < 8:
             return JSONResponse(
-                {"error": "Le mot de passe doit contenir au moins 6 caractères"},
+                {"error": "Le mot de passe doit contenir au moins 8 caractères"},
+                status_code=400
+            )
+        if not any(char.isdigit() for char in password):
+            return JSONResponse(
+                {"error": "Le mot de passe doit contenir au moins un chiffre"},
+                status_code=400
+            )
+        if not any(char.isupper() for char in password):
+            return JSONResponse(
+                {"error": "Le mot de passe doit contenir au moins une majuscule"},
                 status_code=400
             )
 

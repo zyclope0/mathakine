@@ -138,6 +138,13 @@ def validate_production_settings():
             # Ne pas lever d'exception ici pour permettre le démarrage avec génération auto
             # mais logger l'erreur pour alerter l'administrateur
 
+        # Vérifier DEFAULT_ADMIN_PASSWORD en production
+        if not settings.DEFAULT_ADMIN_PASSWORD or settings.DEFAULT_ADMIN_PASSWORD == "admin":
+            logger.warning(
+                "DEFAULT_ADMIN_PASSWORD non définie ou égale à 'admin' en production - "
+                "définir une valeur forte dans les variables d'environnement"
+            )
+
 # Valider les paramètres au chargement du module
 validate_production_settings()
 

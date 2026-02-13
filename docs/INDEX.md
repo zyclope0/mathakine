@@ -49,6 +49,7 @@ docs/
 │   ├── PLACEHOLDERS_ET_TODO.md # 13 endpoints à implémenter
 │   ├── RATIONALISATION_DOCS_2026-02-06.md  # 🆕 Rationalisation docs
 │   ├── INDEX_DB_MANQUANTS_2026-02-06.md    # 🆕 Analyse index DB (✅ Complété)
+│   ├── AUDIT_SECURITE_APPLICATIVE_2026-02.md  # 🆕 Audit sécurité OWASP
 │   ├── MIGRATION_INDEX_ROLLBACK_PLAN.md    # 🆕 Plan rollback migrations
 │   ├── AUDIT_FINAL_DOCS_GITIGNORE_2026-02-06.md  # 🆕 Audit gitignore
 │   ├── RECAP_FINAL_2026-02-06.md           # 🆕 Récapitulatif complet
@@ -95,6 +96,7 @@ docs/
 ### Je veux tester mes modifications
 1. [TESTING.md](01-GUIDES/TESTING.md) - Guide tests complet
 2. [TESTER_MODIFICATIONS_SECURITE.md](01-GUIDES/TESTER_MODIFICATIONS_SECURITE.md) - Tests sécurité
+3. [AUDIT_SECURITE_APPLICATIVE_2026-02.md](03-PROJECT/AUDIT_SECURITE_APPLICATIVE_2026-02.md) - Audit OWASP (failles, remédiations)
 
 ### J'ai un problème
 1. [TROUBLESHOOTING.md](01-GUIDES/TROUBLESHOOTING.md) - Solutions problèmes courants

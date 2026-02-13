@@ -16,6 +16,7 @@ from starlette.responses import JSONResponse
 from app.core.messages import SystemMessages
 from app.schemas.user import UserCreate
 from app.services.auth_service import create_user, get_user_by_email
+from app.utils.error_handler import get_safe_error_message
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from server.auth import require_auth
 
@@ -481,7 +482,7 @@ async def get_all_users(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de tous les utilisateurs: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -502,7 +503,7 @@ async def get_users_leaderboard(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération du classement des utilisateurs: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -617,7 +618,7 @@ async def get_all_user_progress(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de la progression globale de l'utilisateur: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -640,7 +641,7 @@ async def get_user_progress_by_exercise_type(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de la progression par type d'exercice: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -752,7 +753,7 @@ async def get_challenges_progress(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de la progression des défis: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -946,7 +947,7 @@ async def update_user_me(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la mise à jour de l'utilisateur: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -1025,7 +1026,7 @@ async def update_user_password_me(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la mise à jour du mot de passe: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -1071,7 +1072,7 @@ async def delete_user_me(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la suppression du compte: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -1099,7 +1100,7 @@ async def delete_user(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la suppression de l'utilisateur: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -1245,7 +1246,7 @@ async def export_user_data(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de l'export des données: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth

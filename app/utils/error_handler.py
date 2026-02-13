@@ -1,6 +1,7 @@
 """
 Helper pour la gestion standardisée des erreurs dans les handlers.
 """
+import os
 import traceback
 from typing import Any, Dict, Optional
 
@@ -11,6 +12,22 @@ from starlette.responses import JSONResponse
 
 from app.core.config import settings
 from app.utils.json_utils import make_json_serializable
+
+# Message générique pour ne pas exposer les détails techniques en production
+GENERIC_ERROR_MESSAGE = "Une erreur est survenue. Veuillez réessayer."
+
+
+def get_safe_error_message(exc: Exception, default: str = None) -> str:
+    """
+    Retourne un message d'erreur sûr pour l'utilisateur.
+    En production ou hors DEBUG : message générique.
+    En DEBUG (développement) : message de l'exception.
+    """
+    if os.getenv("ENVIRONMENT") == "production":
+        return default or GENERIC_ERROR_MESSAGE
+    if settings.LOG_LEVEL.upper() != "DEBUG":
+        return default or GENERIC_ERROR_MESSAGE
+    return str(exc)
 
 
 class ErrorHandler:
@@ -40,18 +57,23 @@ class ErrorHandler:
         error_type = type(error).__name__
         error_message = str(error)
         
-        # Déterminer si on inclut les détails techniques
-        # Utiliser LOG_LEVEL pour déterminer si on est en mode debug
+        # Ne jamais exposer traceback/détails en production
         if include_details is None:
-            include_details = settings.LOG_LEVEL.upper() == "DEBUG"
-        
+            include_details = (
+                settings.LOG_LEVEL.upper() == "DEBUG"
+                and os.getenv("ENVIRONMENT") != "production"
+            )
+
+        # Message utilisateur : générique en prod pour éviter fuite d'info
+        display_error = user_message or (error_message if include_details else GENERIC_ERROR_MESSAGE)
+
         # Construire la réponse
         response_data: Dict[str, Any] = {
-            "error": user_message or error_message,
+            "error": display_error,
             "error_type": error_type,
         }
-        
-        # Ajouter les détails techniques si en mode DEBUG
+
+        # Ajouter les détails techniques uniquement en dev
         if include_details:
             response_data["error_message"] = error_message
             response_data["details"] = traceback.format_exc()

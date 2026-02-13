@@ -21,7 +21,7 @@ from app.core.messages import SystemMessages
 from app.services import challenge_service
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.logic_challenge_service import LogicChallengeService
-from app.utils.error_handler import ErrorHandler
+from app.utils.error_handler import ErrorHandler, get_safe_error_message
 from app.utils.translation import parse_accept_language
 
 
@@ -403,7 +403,7 @@ async def submit_challenge_answer(request: Request):
         logger.error(f"Erreur lors de la soumission de la réponse: {submission_error}")
         import traceback
         logger.debug(traceback.format_exc())
-        return JSONResponse({"error": f"Erreur: {str(submission_error)}"}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(submission_error)}, status_code=500)
 
 
 async def get_challenge_hint(request: Request):
@@ -449,7 +449,7 @@ async def get_challenge_hint(request: Request):
     except Exception as hint_retrieval_error:
         logger.error(f"Erreur lors de la récupération de l'indice: {hint_retrieval_error}")
         traceback.print_exc()
-        return JSONResponse({"error": f"Erreur: {str(hint_retrieval_error)}"}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(hint_retrieval_error)}, status_code=500)
 
 
 @optional_auth
@@ -532,7 +532,7 @@ async def start_challenge(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors du démarrage du défi: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -557,7 +557,7 @@ async def get_challenge_progress(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de la progression du défi: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -581,7 +581,7 @@ async def get_challenge_rewards(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération des récompenses du défi: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth_sse

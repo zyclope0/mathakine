@@ -7,6 +7,7 @@ from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
 from app.core.messages import SystemMessages
+from app.utils.error_handler import get_safe_error_message
 
 logger = get_logger(__name__)
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
@@ -88,7 +89,7 @@ async def get_recommendations(request):
     except Exception as recommendations_retrieval_error:
         logger.error(f"Erreur lors de la récupération des recommandations: {recommendations_retrieval_error}")
         traceback.print_exc()
-        return JSONResponse({"error": str(recommendations_retrieval_error)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(recommendations_retrieval_error)}, status_code=500)
 
 
 @require_auth
@@ -118,7 +119,7 @@ async def generate_recommendations(request):
     except Exception as recommendations_generation_error:
         logger.error(f"Erreur lors de la génération des recommandations: {recommendations_generation_error}")
         traceback.print_exc()
-        return JSONResponse({"error": str(recommendations_generation_error)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(recommendations_generation_error)}, status_code=500)
 
 
 @require_auth
@@ -147,5 +148,5 @@ async def handle_recommendation_complete(request):
     except Exception as e:
         logger.error(f"Erreur lors de la gestion de la recommandation complétée: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 

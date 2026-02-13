@@ -83,7 +83,6 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
         return None
         
     logger.debug(f"Utilisateur trouvé: {username}")
-    logger.debug(f"Hash stocké: {user.hashed_password}")
     
     try:
         is_valid = verify_password(password, user.hashed_password)

@@ -9,6 +9,7 @@ from starlette.responses import JSONResponse, StreamingResponse
 
 from app.core.config import settings
 from app.core.logging_config import get_logger
+from app.utils.error_handler import get_safe_error_message
 
 logger = get_logger(__name__)
 
@@ -153,15 +154,25 @@ async def chat_api(request):
         
         # Récupérer les données de la requête
         data = await request.json()
-        message = data.get('message', '')
-        conversation_history = data.get('conversation_history', [])
+        message_raw = data.get('message', '')
+        conversation_history = data.get('conversation_history', [])[:20]  # Limiter l'historique
         
-        if not message:
+        if not message_raw:
             return JSONResponse(
                 {"error": "Message requis"},
                 status_code=400
             )
-        
+
+        # Sanitization du message pour éviter l'injection de prompt
+        from app.utils.prompt_sanitizer import sanitize_user_prompt, validate_prompt_safety
+        is_safe, safety_reason = validate_prompt_safety(message_raw)
+        if not is_safe:
+            return JSONResponse(
+                {"error": f"Message invalide: {safety_reason}"},
+                status_code=400
+            )
+        message = sanitize_user_prompt(message_raw, max_length=2000)
+
         # Créer le client OpenAI
         client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
         
@@ -289,7 +300,7 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
         import traceback
         traceback.print_exc()
         return JSONResponse(
-            {"error": f"Erreur lors de la génération de la réponse: {str(chat_api_error)}"},
+            {"error": get_safe_error_message(chat_api_error)},
             status_code=500
         )
 
@@ -334,11 +345,11 @@ async def chat_api_stream(request):
         
         # Récupérer les données de la requête
         data = await request.json()
-        message = data.get('message', '')
-        conversation_history = data.get('conversation_history', [])
+        message_raw = data.get('message', '')
+        conversation_history = data.get('conversation_history', [])[:20]  # Limiter l'historique
         use_streaming = data.get('stream', True)  # Streaming par défaut
         
-        if not message:
+        if not message_raw:
             async def error_generator():
                 yield f"data: {json.dumps({'type': 'error', 'message': 'Message requis'})}\n\n"
             
@@ -350,7 +361,20 @@ async def chat_api_stream(request):
                     "Connection": "keep-alive",
                 }
             )
-        
+
+        # Sanitization du message pour éviter l'injection de prompt
+        from app.utils.prompt_sanitizer import sanitize_user_prompt, validate_prompt_safety
+        is_safe, safety_reason = validate_prompt_safety(message_raw)
+        if not is_safe:
+            async def error_generator():
+                yield f"data: {json.dumps({'type': 'error', 'message': f'Message invalide: {safety_reason}'})}\n\n"
+            return StreamingResponse(
+                error_generator(),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+            )
+        message = sanitize_user_prompt(message_raw, max_length=2000)
+
         # Créer le client OpenAI
         client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
         
@@ -477,7 +501,7 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
                 
             except Exception as stream_generation_error:
                 logger.error(f"Erreur dans generate_stream: {str(stream_generation_error)}")
-                yield f"data: {json.dumps({'type': 'error', 'message': f'Erreur lors de la génération: {str(stream_generation_error)}'})}\n\n"
+                yield f"data: {json.dumps({'type': 'error', 'message': get_safe_error_message(stream_generation_error)})}\n\n"
         
         return StreamingResponse(
             generate_stream(),
@@ -493,11 +517,9 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
         logger.error(f"Erreur dans chat_api_stream: {str(chat_stream_error)}")
         import traceback
         traceback.print_exc()
-        
-        error_msg = str(chat_stream_error)
-        
+
         async def error_generator():
-            yield f"data: {json.dumps({'type': 'error', 'message': f'Erreur lors de la génération: {error_msg}'})}\n\n"
+            yield f"data: {json.dumps({'type': 'error', 'message': get_safe_error_message(chat_stream_error)})}\n\n"
         
         return StreamingResponse(
             error_generator(),

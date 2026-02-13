@@ -8,6 +8,7 @@ from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
 from app.services.badge_service import BadgeService
+from app.utils.error_handler import get_safe_error_message
 
 logger = get_logger(__name__)
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
@@ -40,7 +41,7 @@ async def get_user_badges(request):
     except Exception as user_badges_error:
         logger.error(f"Erreur lors de la récupération des badges utilisateur: {user_badges_error}")
         traceback.print_exc()
-        return JSONResponse({"error": str(user_badges_error)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(user_badges_error)}, status_code=500)
 
 async def get_available_badges(request: Request):
     """Récupérer tous les badges disponibles avec traductions"""
@@ -65,7 +66,7 @@ async def get_available_badges(request: Request):
     except Exception as available_badges_error:
         logger.error(f"Erreur lors de la récupération des badges disponibles: {available_badges_error}")
         logger.debug(traceback.format_exc())
-        return JSONResponse({"error": str(available_badges_error)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(available_badges_error)}, status_code=500)
 
 @require_auth
 async def check_user_badges(request):
@@ -94,7 +95,7 @@ async def check_user_badges(request):
     except Exception as badge_verification_error:
         logger.error(f"Erreur lors de la vérification forcée des badges: {badge_verification_error}")
         traceback.print_exc()
-        return JSONResponse({"error": str(badge_verification_error)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(badge_verification_error)}, status_code=500)
 
 @require_auth
 async def get_user_gamification_stats(request):
@@ -157,7 +158,7 @@ async def get_user_gamification_stats(request):
     except Exception as gamification_stats_error:
         logger.error(f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}")
         traceback.print_exc()
-        return JSONResponse({"error": str(gamification_stats_error)}, status_code=500)
+        return JSONResponse({"error": get_safe_error_message(gamification_stats_error)}, status_code=500)
 
 
 @require_auth
@@ -178,4 +179,4 @@ async def get_user_badges_progress(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de la progression des badges: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": str(e)}, status_code=500) 
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500) 
