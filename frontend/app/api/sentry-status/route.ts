@@ -10,6 +10,7 @@ export async function GET() {
   const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
   if (dsn && process.env.NODE_ENV === "production") {
     Sentry.metrics.count("test_metric", 1);
+    await Sentry.flush(2000);
   }
   return NextResponse.json({
     dsnPresent: !!dsn,
