@@ -129,11 +129,13 @@ async def test_invalid_exercise_attempt(client):
         }
         response = await client.post("/api/exercises/generate", json=generate_data, headers=headers)
         assert response.status_code in [200, 201], f"Erreur lors de la génération de l'exercice: {response.text}"
-        exercise_id = response.json()["id"]
+        gen_data = response.json()
+        exercise_id = gen_data["id"]
 
-        # Maintenant soumettre une réponse incorrecte (answer requis)
+        # Soumettre une réponse incorrecte (garantie fausse : chaîne qui ne matche jamais un nombre)
+        wrong_answer = "incorrect_answer_test"  # Ne matche jamais un nombre
         bad_attempt_data = {
-            "answer": "5",  # Réponse incorrecte (correct_answer est 4)
+            "answer": wrong_answer,
             "time_spent": 10
         }
         response = await client.post(f"/api/exercises/{exercise_id}/attempt", json=bad_attempt_data, headers=headers)
