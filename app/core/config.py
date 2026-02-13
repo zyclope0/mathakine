@@ -142,11 +142,19 @@ def validate_production_settings():
             settings.LOG_LEVEL = "INFO"
         
         # SECRET_KEY : blocage au démarrage si vide (voir init Settings)
-        # Vérifier DEFAULT_ADMIN_PASSWORD en production
-        if not settings.DEFAULT_ADMIN_PASSWORD or settings.DEFAULT_ADMIN_PASSWORD == "admin":
-            logger.warning(
-                "DEFAULT_ADMIN_PASSWORD non définie ou égale à 'admin' en production - "
-                "définir une valeur forte dans les variables d'environnement"
+        # 3.3 DEFAULT_ADMIN_PASSWORD : bloquer si faible en prod (évite compte admin exploitable)
+        # Uniquement si ENVIRONMENT=production (Render), pas MATH_TRAINER_PROFILE (peut être prod en local)
+        if (
+            os.getenv("ENVIRONMENT") == "production"
+            and os.getenv("TESTING", "false").lower() != "true"
+            and (
+                not settings.DEFAULT_ADMIN_PASSWORD
+                or settings.DEFAULT_ADMIN_PASSWORD == "admin"
+            )
+        ):
+            raise ValueError(
+                "DEFAULT_ADMIN_PASSWORD doit être définie et différente de 'admin' en production. "
+                "Définir une valeur forte dans les variables d'environnement Render."
             )
 
 # Valider les paramètres au chargement du module

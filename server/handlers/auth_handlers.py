@@ -15,6 +15,7 @@ from app.core.security import decode_token
 from app.services.auth_service import (authenticate_user, create_user_token,
                                        get_user_by_email, refresh_access_token)
 from app.utils.rate_limit import rate_limit_auth
+from app.utils.csrf import validate_csrf_token
 from server.auth import require_auth
 from app.services.email_service import EmailService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
@@ -24,6 +25,36 @@ from app.utils.email_verification import (
     is_password_reset_token_expired,
     is_verification_token_expired,
 )
+
+
+async def api_get_csrf_token(request: Request):
+    """
+    Récupère un token CSRF (pattern double-submit).
+    Route: GET /api/auth/csrf
+    Retourne le token et le pose en cookie. Le client doit l'envoyer dans X-CSRF-Token.
+    """
+    import secrets
+    token = secrets.token_urlsafe(32)
+    response = JSONResponse({"csrf_token": token})
+    is_production = (
+        os.getenv("ENVIRONMENT") == "production"
+        or os.getenv("NODE_ENV") == "production"
+    )
+    cookie_opts = (
+        "Path=/; SameSite=None; Secure"
+        if is_production
+        else "Path=/; SameSite=Lax"
+    )
+    response.set_cookie(
+        "csrf_token",
+        token,
+        path="/",
+        samesite="none" if is_production else "lax",
+        secure=is_production,
+        httponly=False,  # Le client doit pouvoir lire pour l'envoyer dans le header (double-submit)
+        max_age=3600,  # 1 heure
+    )
+    return response
 
 
 async def verify_email(request: Request):
@@ -603,7 +634,11 @@ async def api_reset_password(request: Request):
     Réinitialise le mot de passe avec un token valide.
     Route: POST /api/auth/reset-password
     Body: {"token": "...", "password": "...", "password_confirm": "..."}
+    Protégé CSRF (audit 3.2).
     """
+    csrf_err = validate_csrf_token(request)
+    if csrf_err:
+        return csrf_err
     try:
         data = await request.json()
         token = (data.get('token') or '').strip()

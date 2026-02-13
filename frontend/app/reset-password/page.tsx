@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle2, XCircle, Shield } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { api } from "@/lib/api/client";
+import { api, getCsrfToken } from "@/lib/api/client";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -55,9 +55,11 @@ export default function ResetPasswordPage() {
     setMessage("");
 
     try {
+      const csrfToken = await getCsrfToken();
       const response = await api.post<{ message?: string; success?: boolean }>(
         "/api/auth/reset-password",
-        { token, password, password_confirm: passwordConfirm }
+        { token, password, password_confirm: passwordConfirm },
+        { headers: { "X-CSRF-Token": csrfToken } }
       );
 
       if (response?.success) {

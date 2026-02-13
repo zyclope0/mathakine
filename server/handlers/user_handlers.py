@@ -18,6 +18,7 @@ from app.schemas.user import UserCreate
 from app.services.auth_service import create_user, get_user_by_email
 from app.utils.error_handler import get_safe_error_message
 from app.utils.rate_limit import rate_limit_register
+from app.utils.csrf import validate_csrf_token
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from server.auth import require_auth
 
@@ -957,11 +958,15 @@ async def update_user_password_me(request: Request):
     """
     Handler pour mettre à jour le mot de passe de l'utilisateur actuel.
     Route: PUT /api/users/me/password
+    Protégé CSRF (audit 3.2).
     
     Body attendu :
     - current_password: mot de passe actuel
     - new_password: nouveau mot de passe (min 8 caractères)
     """
+    csrf_err = validate_csrf_token(request)
+    if csrf_err:
+        return csrf_err
     try:
         from app.models.user import User
         from app.core.security import verify_password, get_password_hash
@@ -1036,9 +1041,13 @@ async def delete_user_me(request: Request):
     """
     Handler pour supprimer le compte de l'utilisateur connecté.
     Route: DELETE /api/users/me
+    Protégé CSRF (audit 3.2).
     
     Supprime l'utilisateur et toutes ses données associées (cascade).
     """
+    csrf_err = validate_csrf_token(request)
+    if csrf_err:
+        return csrf_err
     try:
         from app.models.user import User
         

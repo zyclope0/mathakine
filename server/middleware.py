@@ -44,6 +44,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             "/api/auth/login", 
             "/api/auth/logout",  # Permet la déconnexion même sans token valide
             "/api/auth/validate-token",  # Validation token pour sync-cookie (sans session)
+            "/api/auth/csrf",  # Token CSRF (sans auth)
             "/api/auth/forgot-password",
             "/api/auth/verify-email",
             "/api/auth/resend-verification",
@@ -136,6 +137,7 @@ def get_middleware() -> List[Middleware]:
                 "Authorization",
                 "Accept",
                 "Accept-Language",
+                "X-CSRF-Token",  # Protection CSRF (audit 3.2)
             ],
             allow_credentials=True,  # Important pour les cookies HTTP-only
         ),

@@ -59,6 +59,10 @@ class EmailService:
         Returns:
             True si l'email a été envoyé avec succès, False sinon
         """
+        if os.getenv("TESTING", "false").lower() == "true":
+            logger.debug(f"[Email] Mode test : envoi simulé vers {to_email}")
+            return True
+
         # Vérifier si SendGrid est configuré
         sendgrid_api_key = os.getenv("SENDGRID_API_KEY")
         if sendgrid_api_key and SENDGRID_AVAILABLE:

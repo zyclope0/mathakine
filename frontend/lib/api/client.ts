@@ -46,6 +46,26 @@ let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
 
 /**
+ * Récupère un token CSRF pour les actions sensibles (reset password, changement mot de passe, suppression compte).
+ * Protège contre les attaques CSRF (audit 3.2).
+ */
+export async function getCsrfToken(): Promise<string> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/api/auth/csrf`, {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new ApiClientError("Impossible de récupérer le token de sécurité", res.status);
+  }
+  const data = (await res.json()) as { csrf_token: string };
+  if (!data?.csrf_token) {
+    throw new ApiClientError("Token CSRF invalide", 0);
+  }
+  return data.csrf_token;
+}
+
+/**
  * Sync access_token sur le domaine frontend (pour prod cross-domain).
  * Exporté pour usage au chargement de l'app (utilisateurs revenant avec session).
  */
