@@ -51,6 +51,7 @@ def init_monitoring() -> bool:
     Returns:
         True si au moins une partie du monitoring est active.
     """
+    global HTTP_REQUESTS_TOTAL, HTTP_REQUEST_DURATION
     initialized = False
 
     # 1. Sentry — erreurs et APM
@@ -82,22 +83,27 @@ def init_monitoring() -> bool:
     else:
         logger.debug("Sentry non configuré (SENTRY_DSN manquant)")
 
-    # 2. Prometheus — métriques
-    if _prometheus_available:
-        global HTTP_REQUESTS_TOTAL, HTTP_REQUEST_DURATION
-        HTTP_REQUESTS_TOTAL = Counter(
-            "http_requests_total",
-            "Total des requêtes HTTP",
-            ["method", "path", "status"],
-        )
-        HTTP_REQUEST_DURATION = Histogram(
-            "http_request_duration_seconds",
-            "Durée des requêtes HTTP",
-            ["method", "path"],
-            buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
-        )
-        logger.info("Métriques Prometheus enregistrées")
-        initialized = True
+    # 2. Prometheus — métriques (préfixe mathakine_ évite conflits avec uvicorn --reload)
+    if _prometheus_available and HTTP_REQUESTS_TOTAL is None:
+        try:
+            HTTP_REQUESTS_TOTAL = Counter(
+                "mathakine_http_requests_total",
+                "Total des requêtes HTTP",
+                ["method", "path", "status"],
+            )
+            HTTP_REQUEST_DURATION = Histogram(
+                "mathakine_http_request_duration_seconds",
+                "Durée des requêtes HTTP",
+                ["method", "path"],
+                buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
+            )
+            logger.info("Métriques Prometheus enregistrées")
+            initialized = True
+        except ValueError as e:
+            if "Duplicated timeseries" in str(e):
+                logger.debug("Métriques Prometheus déjà enregistrées (reload)")
+            else:
+                raise
 
     return initialized
 
