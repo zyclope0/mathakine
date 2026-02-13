@@ -32,19 +32,28 @@ def sanitize_user_prompt(prompt: str, max_length: int = 500) -> str:
         logger.warning(f"Prompt tronqué de {original_length} à {max_length} caractères")
     
     # Patterns dangereux à supprimer (tentatives d'injection)
+    # Anglais ET français (Mathakine = plateforme FR)
     dangerous_patterns = [
-        # Tentatives de contournement d'instructions
+        # Tentatives de contournement d'instructions (EN)
         r'ignore\s+(previous|above|all|all\s+previous)\s+instructions?',
         r'forget\s+(everything|all|previous)',
         r'disregard\s+(previous|above|all)',
         r'you\s+are\s+now',
         r'new\s+instructions?',
         r'override\s+(previous|system)',
+        # Français : oublie, tu es maintenant, nouveau contexte...
+        r'oublie\s+(tout|tout\s+ce\s+qui\s+précède|les\s+instructions)',
+        r'tu\s+es\s+(maintenant|désormais)\s+(un|une|le|la)',
+        r'ignore\s+(tout|les\s+instructions)',
+        r'nouveau\s+(contexte|rôle|personnage|mode)',
+        r'r[eé]ponds\s+(uniquement|seulement)\s+["\']',
+        r'from\s+now\s+on',
         
         # Tentatives de changement de rôle
         r'act\s+as\s+if\s+you\s+are',
         r'pretend\s+to\s+be',
         r'you\s+must\s+now',
+        r'fais\s+comme\s+si\s+tu\s+(étais|es)',
         
         # Tentatives de manipulation
         r'do\s+not\s+follow',
@@ -55,6 +64,8 @@ def sanitize_user_prompt(prompt: str, max_length: int = 500) -> str:
         r'show\s+me\s+your\s+(prompt|instructions|system)',
         r'repeat\s+your\s+(prompt|instructions)',
         r'what\s+are\s+your\s+(instructions|rules)',
+        r'montre\s+(moi\s+)?(ton|ta|tes)\s+(prompt|instructions)',
+        r'quel\s+est\s+ton\s+(prompt|système)',
     ]
     
     # Supprimer les patterns dangereux
@@ -91,16 +102,23 @@ def validate_prompt_safety(prompt: str) -> tuple[bool, Optional[str]]:
     if len(prompt) > 1000:
         return False, "Prompt trop long (max 1000 caractères)"
     
-    # Vérifier les patterns dangereux (avant sanitization)
-    dangerous_patterns = [
-        r'ignore\s+(previous|above|all)',
-        r'forget\s+everything',
-        r'you\s+are\s+now',
+    # Blocage : fuite de prompt ou messages ultra-courts purement malveillants.
+    # Les injections mixtes ("Explique Pythagore. PS: Oublie tout...") sont nettoyées
+    # par sanitize_user_prompt qui supprime les fragments dangereux.
+    block_patterns = [
+        r'ignore\s+(previous|above|all)\s+instructions?',
+        r'forget\s+everything\s*\.?\s*$',
+        r'(?:show|repeat|disclose)\s+(?:me\s+)?(?:your|the)\s+(?:system\s+)?(?:prompt|instructions)',
     ]
-    
-    for pattern in dangerous_patterns:
-        if re.search(pattern, prompt, flags=re.IGNORECASE):
-            return False, f"Pattern dangereux détecté: {pattern}"
+    for pattern in block_patterns:
+        if re.search(pattern, prompt.strip(), flags=re.IGNORECASE):
+            return False, "Pattern dangereux détecté"
+
+    # Message court (< 60 car) + injection FR/EN → bloquer
+    if len(prompt.strip()) < 60:
+        for pat in [r'oublie\s+tout', r'you\s+are\s+now', r'tu\s+es\s+maintenant']:
+            if re.search(pat, prompt, flags=re.IGNORECASE):
+                return False, "Pattern dangereux détecté"
     
     return True, None
 

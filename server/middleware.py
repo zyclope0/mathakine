@@ -43,6 +43,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             "/register", 
             "/api/auth/login", 
             "/api/auth/logout",  # Permet la déconnexion même sans token valide
+            "/api/auth/validate-token",  # Validation token pour sync-cookie (sans session)
             "/api/auth/forgot-password",
             "/api/auth/verify-email",
             "/api/auth/resend-verification",

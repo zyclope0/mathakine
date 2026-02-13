@@ -391,16 +391,16 @@ async def api_login(request): ...
 | Faille | Statut | Détails |
 |--------|--------|---------|
 | **1.1** Exposition des erreurs au client | ✅ Corrigé | `get_safe_error_message()` ajouté dans `error_handler.py`. Tous les handlers (user, challenge, exercise, chat, badge, recommendation) utilisent désormais ce helper. `ErrorHandler.create_error_response` n'expose plus traceback ni message technique en production (`ENVIRONMENT=production` ou hors `LOG_LEVEL=DEBUG`). |
-| **2.1** Injection de prompt (chat) | ✅ Corrigé | `chat_api` et `chat_api_stream` : `validate_prompt_safety()` + `sanitize_user_prompt()` appliqués au message utilisateur avant envoi à OpenAI. Historique de conversation limité à 20 messages. |
+| **2.1** Injection de prompt (chat) | ✅ Corrigé | `chat_api` et `chat_api_stream` : `validate_prompt_safety()` + `sanitize_user_prompt()` appliqués au message utilisateur avant envoi à OpenAI. Patterns FR ajoutés dans `prompt_sanitizer.py` (oublie tout, tu es maintenant, réponds uniquement…). Historique limité à 20 messages. |
 | **2.2** Mot de passe reset faible (6 car.) | ✅ Corrigé | `api_reset_password` : critères alignés sur la création de compte (8 caractères min, 1 chiffre, 1 majuscule). |
 | **3.3** DEFAULT_ADMIN_PASSWORD | ✅ Corrigé | Warning ajouté dans `validate_production_settings()` si non définie ou égale à "admin" en production. |
 | **4.1** Logging de données sensibles | ✅ Corrigé | Suppression du log `user.hashed_password` dans `auth_service.authenticate_user`. |
+| **1.2** Route sync-cookie sans validation | ✅ Corrigé | Endpoint backend `POST /api/auth/validate-token` ajouté. La route sync-cookie appelle désormais ce endpoint pour valider la signature et l'expiration du token avant de le poser en cookie. Protection contre session hijacking. |
 
 ### Corrections en attente (complexité / risque plus élevé)
 
 | Faille | Statut | Raison |
 |--------|--------|--------|
-| **1.2** Route sync-cookie sans validation | ⏳ En attente | Nécessite nouvel endpoint backend `/api/auth/validate-token` et modification du flux frontend. |
 | **2.3** SECRET_KEY auto-générée | ⏳ En attente | `raise ValueError` en prod pourrait bloquer des déploiements existants. Préférer alerte forte sans blocage. |
 | **3.1** DatabaseAdapter.execute_query | ⏳ En attente | Changement de signature (Tuple → dict) pourrait casser des appelants. Vérifier usages avant migration. |
 | **3.2** Protection CSRF | ⏳ En attente | Implémentation middleware + endpoint dédié. |
@@ -409,6 +409,10 @@ async def api_login(request): ...
 
 ### Fichiers modifiés
 
+- `server/handlers/auth_handlers.py` — `api_validate_token` (POST /api/auth/validate-token)
+- `server/routes.py` — Route validate-token
+- `server/middleware.py` — validate-token en route publique
+- `frontend/app/api/auth/sync-cookie/route.ts` — Appel validate-token avant Set-Cookie
 - `app/core/config.py` — Warning DEFAULT_ADMIN_PASSWORD
 - `app/utils/error_handler.py` — `get_safe_error_message()`, durcissement `create_error_response`
 - `app/services/auth_service.py` — Suppression log hashed_password
@@ -419,6 +423,58 @@ async def api_login(request): ...
 - `server/handlers/exercise_handlers.py` — Messages d'erreur sécurisés
 - `server/handlers/badge_handlers.py` — Messages d'erreur sécurisés
 - `server/handlers/recommendation_handlers.py` — Messages d'erreur sécurisés
+
+---
+
+## 8. Proposition de suite — Bénéfice / Risque / Priorité (Février 2026)
+
+Proposition basée sur le rapport coût/bénéfice et le risque de régression. Ordre de priorité recommandé.
+
+### P1 — Haute priorité (impact sécurité majeur, risque limité)
+
+| # | Faille | Bénéfice | Risque | Priorité |
+|---|--------|----------|--------|----------|
+| 1 | **1.2 sync-cookie** | ~~Empêche le session hijacking~~ ✅ **FAIT** | — | ~~P1~~ |
+| 2 | **2.3 SECRET_KEY** | Garantit une SECRET_KEY stable en prod. Évite invalidations de tokens après redémarrage et incohérence multi-instance. | Moyen — si SECRET_KEY n'est pas définie, le serveur ne démarre pas. **Mitigation** : warning fort d'abord, puis `raise` après une release. | **P1** |
+| 3 | **3.4 Rate limiting** | Protège contre bruteforce (login, forgot-password), énumération d'utilisateurs et abus de ressources. | Faible — mise en place d'un middleware ou décorateur. Possibles faux positifs sur IP partagées (NAT, bureaux). | **P1** |
+
+### P2 — Priorité moyenne (renforce la défense en profondeur)
+
+| # | Faille | Bénéfice | Risque | Priorité |
+|---|--------|----------|--------|----------|
+| 4 | **3.2 CSRF** | Protège les actions sensibles (reset password, suppression compte) contre les requêtes cross-site si SameSite ou domaine changent. | Moyen — implémentation middleware + endpoint CSRF + adaptation frontend. Avec SameSite=Lax, exposition actuelle limitée. | **P2** |
+| 5 | **4.2 CORS allow_headers** | Réduit la surface d'attaque en n'autorisant que les headers nécessaires. | Faible — audit des headers utilisés (Content-Type, Authorization, Accept, X-Requested-With ?) requis pour éviter de casser des appels. | **P2** |
+
+### P3 — Priorité basse (durcissement, impact limité à court terme)
+
+| # | Faille | Bénéfice | Risque | Priorité |
+|---|--------|----------|--------|----------|
+| 6 | **3.1 execute_query** | Force l’usage de paramètres nommés, réduit le risque d’injection SQL par mauvaise utilisation. | Moyen — changement de signature (Tuple → dict) peut casser des appelants. Audit des usages nécessaire avant modification. | **P3** |
+| 7 | **3.3 DEFAULT_ADMIN_PASSWORD** | Évite un compte admin par défaut exploitable si mal configuré. | Très faible — warning déjà en place. Renforcer vers un refus de création du compte admin si mot de passe = "admin" en prod. | **P3** |
+
+### Ordre d’implémentation recommandé
+
+1. ~~**1.2 sync-cookie**~~ — ✅ **FAIT** (13/02/2026)
+2. **3.4 Rate limiting** — Prochaine étape recommandée (~1 h)
+3. **4.2 CORS allow_headers** — Effort très faible (~30 min) après audit des headers
+4. **2.3 SECRET_KEY** — À traiter après vérification que Render/prod définit bien SECRET_KEY
+5. **3.2 CSRF** — Si évolution vers SameSite=None ou domaine cross-origin
+6. **3.1 execute_query** — Après inventaire des usages de `execute_query`
+7. **3.3 DEFAULT_ADMIN_PASSWORD** — Durcissement optionnel
+
+---
+
+## 9. Prochaines étapes (post sync-cookie)
+
+| # | Action | Effort | Criticité |
+|---|--------|--------|-----------|
+| 1 | **3.4 Rate limiting** — Middleware ou décorateur sur login, forgot-password | ~1 h | Moyen |
+| 2 | **4.2 CORS allow_headers** — Restreindre à Content-Type, Authorization, Accept | ~30 min | Faible |
+| 3 | **2.3 SECRET_KEY** — Vérifier que Render définit SECRET_KEY, puis `raise` si vide en prod | ~30 min | Élevé |
+| 4 | **3.2 CSRF** — Si besoin (SameSite=None ou évolution cross-origin) | ~3 h | Moyen |
+| 5 | **3.1 execute_query** — Audit des usages avant migration Tuple → dict | ~2 h | Moyen |
+
+**Validation sync-cookie (1.2) :** ✅ Testé en dev et prod (login → validate-token → sync-cookie).
 
 ---
 

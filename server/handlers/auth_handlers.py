@@ -11,6 +11,7 @@ logger = get_logger(__name__)
 from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse
 
+from app.core.security import decode_token
 from app.services.auth_service import (authenticate_user, create_user_token,
                                        get_user_by_email, refresh_access_token)
 from server.auth import require_auth
@@ -304,6 +305,28 @@ async def api_login(request: Request):
             {"error": "Erreur lors de la connexion"},
             status_code=500
         )
+
+
+async def api_validate_token(request: Request):
+    """
+    Valide un token JWT sans l'utiliser pour une action.
+    Utilisé par la route sync-cookie du frontend pour s'assurer qu'un token
+    est signé par notre backend et non expiré avant de le poser en cookie.
+    Route: POST /api/auth/validate-token
+    Body: {"token": "..."}
+    """
+    try:
+        data = await request.json()
+        token = data.get("token")
+        if not token or not isinstance(token, str):
+            return JSONResponse({"valid": False, "error": "Token manquant"}, status_code=400)
+        payload = decode_token(token)
+        # Vérifier que c'est un access token (type=access)
+        if payload.get("type") != "access":
+            return JSONResponse({"valid": False}, status_code=401)
+        return JSONResponse({"valid": True, "user_id": payload.get("sub")})
+    except Exception:
+        return JSONResponse({"valid": False}, status_code=401)
 
 
 async def api_refresh_token(request: Request):
