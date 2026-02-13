@@ -368,7 +368,6 @@ async def api_login(request): ...
 | **1.2** Route sync-cookie sans validation | ✅ Corrigé | Endpoint backend `POST /api/auth/validate-token` ajouté. La route sync-cookie appelle désormais ce endpoint pour valider la signature et l'expiration du token avant de le poser en cookie. Protection contre session hijacking. |
 | **2.3** SECRET_KEY auto-générée | ✅ Corrigé | `raise ValueError` au démarrage si SECRET_KEY vide et ENVIRONMENT=production (sauf TESTING=true). Dev/tests : génération auto + warning. |
 | **3.2** Protection CSRF | ✅ Corrigé | Endpoint GET /api/auth/csrf (pattern double-submit). Protection reset-password, change-password, delete-account. Désactivé en TESTING. |
-| **3.3** DEFAULT_ADMIN_PASSWORD | ✅ Corrigé | `raise ValueError` au démarrage si vide ou "admin" en prod. Obligatoire sur Render. |
 
 ### Corrections en attente (complexité / risque plus élevé)
 
