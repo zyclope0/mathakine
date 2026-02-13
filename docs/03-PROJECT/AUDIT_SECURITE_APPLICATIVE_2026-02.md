@@ -201,25 +201,7 @@ if not any(char.isupper() for char in password):
 
 **Vecteur d'attaque :** Si `SECRET_KEY` n'est pas définie en production, une clé est générée à chaque redémarrage. Les tokens JWT émis avant un redémarrage deviennent invalides, et pire : en multi-instance, chaque instance a une clé différente, rendant les sessions incohérentes. En cas de fuite de configuration, une clé prédictible ou réutilisable augmente le risque.
 
-**Remédiation :**
-
-```python
-# Avant
-SECRET_KEY: str = os.getenv("SECRET_KEY", "")
-if not SECRET_KEY:
-    SECRET_KEY = secrets.token_urlsafe(32)
-
-# Après
-SECRET_KEY: str = os.getenv("SECRET_KEY", "")
-if not SECRET_KEY:
-    if os.getenv("ENVIRONMENT") == "production":
-        raise ValueError(
-            "SECRET_KEY doit être définie en production. "
-            "Générer avec: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
-        )
-    SECRET_KEY = secrets.token_urlsafe(32)
-    logger.warning("SECRET_KEY non définie, génération automatique (DEV uniquement)")
-```
+**Remédiation :** ✅ **Implémenté** (13/02/2026) — `raise ValueError` si vide en prod ; génération auto en dev/tests.
 
 ---
 
@@ -396,12 +378,12 @@ async def api_login(request): ...
 | **3.3** DEFAULT_ADMIN_PASSWORD | ✅ Corrigé | Warning ajouté dans `validate_production_settings()` si non définie ou égale à "admin" en production. |
 | **4.1** Logging de données sensibles | ✅ Corrigé | Suppression du log `user.hashed_password` dans `auth_service.authenticate_user`. |
 | **1.2** Route sync-cookie sans validation | ✅ Corrigé | Endpoint backend `POST /api/auth/validate-token` ajouté. La route sync-cookie appelle désormais ce endpoint pour valider la signature et l'expiration du token avant de le poser en cookie. Protection contre session hijacking. |
+| **2.3** SECRET_KEY auto-générée | ✅ Corrigé | `raise ValueError` au démarrage si SECRET_KEY vide et ENVIRONMENT=production (sauf TESTING=true). Dev/tests : génération auto + warning. |
 
 ### Corrections en attente (complexité / risque plus élevé)
 
 | Faille | Statut | Raison |
 |--------|--------|--------|
-| **2.3** SECRET_KEY auto-générée | ⏳ En attente | `raise ValueError` en prod pourrait bloquer des déploiements existants. Préférer alerte forte sans blocage. |
 | **3.1** DatabaseAdapter.execute_query | ⏳ En attente | Changement de signature (Tuple → dict) pourrait casser des appelants. Vérifier usages avant migration. |
 | **3.2** Protection CSRF | ⏳ En attente | Implémentation middleware + endpoint dédié. |
 | **3.4** Rate limiting | ✅ Corrigé | Décorateurs `rate_limit_auth` (5 req/min) sur login, forgot-password et `rate_limit_register` (3 req/min) sur POST /api/users/. Désactivé en mode TESTING. |
@@ -425,6 +407,7 @@ async def api_login(request): ...
 - `server/handlers/badge_handlers.py` — Messages d'erreur sécurisés
 - `server/handlers/recommendation_handlers.py` — Messages d'erreur sécurisés
 - `server/middleware.py` — `allow_headers` restreint (4.2)
+- `app/core/config.py` — Blocage démarrage si SECRET_KEY vide en prod (2.3)
 
 ---
 
@@ -437,7 +420,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 | # | Faille | Bénéfice | Risque | Priorité |
 |---|--------|----------|--------|----------|
 | 1 | **1.2 sync-cookie** | ~~Empêche le session hijacking~~ ✅ **FAIT** | — | ~~P1~~ |
-| 2 | **2.3 SECRET_KEY** | Garantit une SECRET_KEY stable en prod. Évite invalidations de tokens après redémarrage et incohérence multi-instance. | Moyen — si SECRET_KEY n'est pas définie, le serveur ne démarre pas. **Mitigation** : warning fort d'abord, puis `raise` après une release. | **P1** |
+| 2 | **2.3 SECRET_KEY** | ~~Garantit une SECRET_KEY stable en prod~~ ✅ **FAIT** (13/02/2026) | — | ~~P1~~ |
 | 3 | **3.4 Rate limiting** | ~~Protège contre bruteforce~~ ✅ **FAIT** | — | ~~P1~~ |
 
 ### P2 — Priorité moyenne (renforce la défense en profondeur)
@@ -459,7 +442,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 1. ~~**1.2 sync-cookie**~~ — ✅ **FAIT** (13/02/2026)
 2. ~~**3.4 Rate limiting**~~ — ✅ **FAIT** (13/02/2026)
 3. ~~**4.2 CORS allow_headers**~~ — ✅ **FAIT** (13/02/2026)
-4. **2.3 SECRET_KEY** — À traiter après vérification que Render/prod définit bien SECRET_KEY
+4. ~~**2.3 SECRET_KEY**~~ — ✅ **FAIT** (13/02/2026)
 5. **3.2 CSRF** — Si évolution vers SameSite=None ou domaine cross-origin
 6. **3.1 execute_query** — Après inventaire des usages de `execute_query`
 7. **3.3 DEFAULT_ADMIN_PASSWORD** — Durcissement optionnel
@@ -472,7 +455,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 |---|--------|--------|-----------|
 | 1 | ~~**3.4 Rate limiting**~~ — ✅ FAIT | — | — |
 | 2 | ~~**4.2 CORS allow_headers**~~ — ✅ FAIT (13/02/2026) | — | — |
-| 3 | **2.3 SECRET_KEY** — Vérifier que Render définit SECRET_KEY, puis `raise` si vide en prod | ~30 min | Élevé |
+| 3 | ~~**2.3 SECRET_KEY**~~ — ✅ FAIT (13/02/2026) | — | — |
 | 4 | **3.2 CSRF** — Si besoin (SameSite=None ou évolution cross-origin) | ~3 h | Moyen |
 | 5 | **3.1 execute_query** — Audit des usages avant migration Tuple → dict | ~2 h | Moyen |
 
@@ -481,6 +464,8 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 **Validation rate limiting (3.4) :** ✅ 31 tests passés (auth_flow, user_endpoints, auth_cookies_only). Pas d'effet de bord sur les flux normaux.
 
 **Validation CORS (4.2) :** ✅ 23 tests passés après modification. Navigation manuelle : challenges, exercises, flux SSE AI — aucune erreur CORS en console. Headers autorisés : Content-Type, Authorization, Accept, Accept-Language.
+
+**Validation SECRET_KEY (2.3) :** ✅ En prod sans SECRET_KEY → `ValueError` au démarrage. En dev/tests (TESTING=true ou ENVIRONMENT≠production) → génération auto OK. S'assurer que Render définit `SECRET_KEY` avant déploiement.
 
 ---
 

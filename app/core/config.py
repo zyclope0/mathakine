@@ -35,7 +35,16 @@ class Settings:
     API_V1_STR: str = "/api"
     SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     if not SECRET_KEY:
+        if (
+            os.getenv("ENVIRONMENT") == "production"
+            and os.getenv("TESTING", "false").lower() != "true"
+        ):
+            raise ValueError(
+                "SECRET_KEY doit être définie en production. "
+                "Générer avec: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+            )
         SECRET_KEY = secrets.token_urlsafe(32)
+        logger.warning("SECRET_KEY non définie, génération automatique (DEV uniquement)")
     
     # 60 minutes * 24 heures * 7 jours = 7 jours
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
@@ -132,12 +141,7 @@ def validate_production_settings():
             logger.warning("LOG_LEVEL=DEBUG détecté en production - Forcé à INFO pour sécurité")
             settings.LOG_LEVEL = "INFO"
         
-        # Vérifier que SECRET_KEY n'est pas vide
-        if not settings.SECRET_KEY or settings.SECRET_KEY == "":
-            logger.error("SECRET_KEY non défini en production - CRITIQUE")
-            # Ne pas lever d'exception ici pour permettre le démarrage avec génération auto
-            # mais logger l'erreur pour alerter l'administrateur
-
+        # SECRET_KEY : blocage au démarrage si vide (voir init Settings)
         # Vérifier DEFAULT_ADMIN_PASSWORD en production
         if not settings.DEFAULT_ADMIN_PASSWORD or settings.DEFAULT_ADMIN_PASSWORD == "admin":
             logger.warning(

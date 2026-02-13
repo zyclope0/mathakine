@@ -58,7 +58,7 @@ Dans le **Dashboard Render** → ton service backend → **Environment** :
 | Variable | Source |
 |----------|--------|
 | DATABASE_URL | Injectée par Render si la base est liée au service |
-| SECRET_KEY | Peut être générée par Render (`generateValue: true`) |
+| SECRET_KEY | **Obligatoire** en prod. Peut être générée par Render (`generateValue: true`). Sans elle, l'app ne démarre pas (sécurité 2.3). |
 
 ### À définir à la main dans Render
 
@@ -90,7 +90,7 @@ Dans le **Dashboard Render** → ton service backend → **Environment** :
 **Render (production)**  
 - Vérifier que `DATABASE_URL` est bien liée à la base PostgreSQL  
 - Définir `OPENAI_API_KEY`  
-- Optionnel : `SECRET_KEY` si non générée par Render  
+- **Obligatoire** : `SECRET_KEY` (sans elle, le backend ne démarre pas en prod)  
 
 Ton `.env` actuel est cohérent pour le dev local.  
 La seule chose à confirmer sur Render est la présence de `OPENAI_API_KEY`.
