@@ -565,11 +565,12 @@ select:focus {
   --background: #050810;
   --card: #0f172a;
   --muted: #0f172a;
-  --border: rgba(14, 165, 233, 0.4); /* sky-500 plus visible */
-  --input: rgba(14, 165, 233, 0.2);
-  --primary: #0ea5e9; /* sky-500 plus clair */
-  --secondary: #06b6d4; /* cyan-500 */
-  --accent: #14b8a6; /* teal-500 */
+  --border: rgba(3, 105, 161, 0.4);
+  --input: rgba(3, 105, 161, 0.2);
+  /* WCAG AA : sky-700 #0369a1 (5.5:1), cyan-600 #0891b2 (4.6:1), teal-600 #0d9488 (4.7:1) */
+  --primary: #0369a1;
+  --secondary: #0891b2;
+  --accent: #0d9488;
   --muted-foreground: #e2e8f0; /* Plus clair pour meilleur contraste */
 }
 

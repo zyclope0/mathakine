@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import withPWA from "@ducanh2912/next-pwa";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin();
 
@@ -135,4 +136,11 @@ const pwaConfig = withPWA({
   },
 });
 
-export default withNextIntl(pwaConfig(nextConfig));
+const configWithPlugins = withNextIntl(pwaConfig(nextConfig));
+
+export default withSentryConfig(configWithPlugins, {
+  org: process.env.SENTRY_ORG || "mathakine",
+  project: process.env.SENTRY_PROJECT || "mathakine-frontend",
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+});

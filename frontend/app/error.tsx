@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,12 +17,10 @@ export default function Error({ error, reset }: ErrorProps) {
   const t = useTranslations("errors.500");
 
   useEffect(() => {
-    // Logger l'erreur uniquement en développement
     if (process.env.NODE_ENV === "development") {
       console.error("Application error:", error);
     }
-    // En production, on pourrait envoyer à un service de monitoring ici
-    // Ex: Sentry.captureException(error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (
