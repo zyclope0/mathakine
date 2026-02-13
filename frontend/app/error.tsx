@@ -20,6 +20,9 @@ export default function Error({ error, reset }: ErrorProps) {
     if (process.env.NODE_ENV === "development") {
       console.error("Application error:", error);
     }
+    if (process.env.NEXT_PUBLIC_SENTRY_DEBUG === "1") {
+      console.log("[Sentry] captureException appelé:", error.message);
+    }
     Sentry.captureException(error);
   }, [error]);
 

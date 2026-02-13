@@ -1,9 +1,24 @@
 import * as Sentry from "@sentry/nextjs";
 
+const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+const isEnabled =
+  process.env.NODE_ENV === "production" && !!dsn;
+const debugMode = process.env.NEXT_PUBLIC_SENTRY_DEBUG === "1";
+
+if (typeof window !== "undefined" && debugMode) {
+  console.log("[Sentry] init:", {
+    enabled: isEnabled,
+    dsnPresent: !!dsn,
+    env: process.env.NODE_ENV,
+    tunnel: "/monitoring",
+  });
+}
+
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn,
   environment: process.env.NODE_ENV,
-  enabled: process.env.NODE_ENV === "production" && !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+  enabled: isEnabled,
+  debug: debugMode,
   sendDefaultPii: false,
   tunnel: "/monitoring",
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,

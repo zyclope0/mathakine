@@ -98,19 +98,30 @@ Pour avoir des stack traces lisibles en production (fichiers `.tsx` au lieu de `
 
 ## Dépannage : Sentry ne remonte pas en prod
 
-1. **Vérifier `NEXT_PUBLIC_SENTRY_DSN` sur Render**
+1. **Vérifier le bon service Render**
+   - Les variables Sentry doivent être sur le service **frontend** (mathakine-frontend)
+   - Pas sur le backend (qui a DATABASE_URL, FRONTEND_URL, etc.)
+
+2. **Vérifier `NEXT_PUBLIC_SENTRY_DSN` sur Render**
    - Render → Service frontend → Environment
    - La variable doit exister et contenir le DSN complet (ex. `https://xxx@xxx.ingest.sentry.io/xxx`)
    - **Important** : les variables `NEXT_PUBLIC_*` sont lues au **build**. Si tu l’as ajoutée après le dernier build, faire un **Manual Deploy** pour rebuilder.
 
-2. **Ad blockers**
+3. **Ad blockers**
    - Un tunnel est configuré (`/monitoring`) pour contourner les bloqueurs
    - Tester sans ad blocker pour confirmer (ex. mode navigation privée ou autre navigateur)
 
-3. **Tester rapidement**
-   - Ouvrir la console du navigateur sur le site en prod
-   - Taper : `throw new Error("Test Sentry")`
-   - Vérifier dans Sentry → Issues que l’erreur apparaît
+4. **Debug avec logs**
+   - Ajouter sur Render : `NEXT_PUBLIC_SENTRY_DEBUG` = `1`
+   - Rebuild + déployer, ouvrir la console du navigateur sur le site
+   - Tu verras : `[Sentry] init: { enabled, dsnPresent, env, tunnel }`
+   - Si `enabled: false` ou `dsnPresent: false` → le DSN n’est pas pris au build
+
+5. **Test client** : dans la console : `throw new Error("Test Sentry")`
+
+6. **Test serveur** : appeler `GET /api/sentry-test`
+   - En dev : pas de clé
+   - En prod : définir `SENTRY_TEST_KEY` sur Render, puis `GET /api/sentry-test?key=TA_CLE`
 
 ## Tester
 
