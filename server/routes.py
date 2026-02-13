@@ -72,12 +72,19 @@ async def robots_txt(request):
     )
 
 
+async def metrics_handler(request):
+    """GET /metrics - métriques Prometheus (p50/p95/p99, taux d'erreur)."""
+    from app.core.monitoring import metrics_endpoint
+    return await metrics_endpoint(request)
+
+
 def get_routes() -> List:
     """
     Retourne la liste des routes API JSON pour le backend Starlette.
     """
     return [
         Route("/robots.txt", endpoint=robots_txt, methods=["GET"]),
+        Route("/metrics", endpoint=metrics_handler, methods=["GET"]),
         # ========================================
         # AUTH API (7 routes)
         # ========================================

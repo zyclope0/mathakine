@@ -2,7 +2,17 @@
 
 ## Vue d'ensemble
 
-Sentry est configuré sur le frontend Next.js pour capturer les erreurs en production et fournir un monitoring de base (traces, session replay).
+Sentry est configuré sur **deux périmètres** :
+
+1. **Frontend Next.js** : Erreurs client, traces, session replay
+2. **Backend Python** : Erreurs serveur, APM (si `SENTRY_DSN` défini)
+
+### Backend (Starlette/Python)
+
+- **Fichier** : `app/core/monitoring.py` — `init_monitoring()` appelé au startup de `server/app.py`
+- **Variable** : `SENTRY_DSN` (même DSN ou projet Sentry séparé)
+- **Désactivé** : en mode `TESTING=true`
+- **Prometheus** : Endpoint `GET /metrics` pour taux d'erreur, p50/p95/p99 (`http_requests_total`, `http_request_duration_seconds`)
 
 ## Configuration
 

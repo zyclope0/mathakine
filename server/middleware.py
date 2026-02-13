@@ -38,7 +38,8 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         """
         # List of routes that don't require authentication
         public_routes = [
-            "/", 
+            "/",
+            "/metrics",
             "/login", 
             "/register", 
             "/api/auth/login", 
@@ -125,8 +126,17 @@ def get_middleware() -> List[Middleware]:
     
     # Filtrer les chaînes vides et doublons
     allowed_origins = list(dict.fromkeys(o for o in allowed_origins if o))
-    
-    return [
+
+    middleware_list = []
+
+    # Prometheus métriques (audit HIGH #1) — en premier pour capturer toutes les requêtes
+    try:
+        from app.core.monitoring import PrometheusMetricsMiddleware
+        middleware_list.append(Middleware(PrometheusMetricsMiddleware))
+    except ImportError:
+        pass
+
+    middleware_list.extend([
         Middleware(
             CORSMiddleware,
             allow_origins=allowed_origins,
@@ -142,4 +152,6 @@ def get_middleware() -> List[Middleware]:
             allow_credentials=True,  # Important pour les cookies HTTP-only
         ),
         Middleware(AuthenticationMiddleware)
-    ]
+    ])
+
+    return middleware_list

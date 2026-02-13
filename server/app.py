@@ -8,6 +8,7 @@ import os
 
 import uvicorn
 from app.core.logging_config import get_logger
+from app.core.monitoring import init_monitoring
 
 logger = get_logger(__name__)
 from starlette.applications import Starlette
@@ -29,6 +30,9 @@ def create_app(debug: bool = False) -> Starlette:
     Returns:
         Configured Starlette application
     """
+    # Monitoring : Sentry + Prometheus (audit HIGH #1)
+    init_monitoring()
+
     # Create the application
     app = Starlette(
         debug=debug,

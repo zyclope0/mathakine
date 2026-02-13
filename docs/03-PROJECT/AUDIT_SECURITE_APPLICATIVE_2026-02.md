@@ -362,6 +362,7 @@ async def api_login(request): ...
 | **Rate limit resend-verification** | ✅ Corrigé | 2 req/min par IP (rate_limit_resend_verification). 15/02/2026 |
 | **dangerouslySetInnerHTML** | ✅ Vérifié | Aucune occurrence dans le frontend. |
 | **execute_raw_query** | ✅ Vérifié | Non utilisé (legacy). Délègue à execute_query avec params dict. |
+| **Monitoring (HIGH #1)** | ✅ Corrigé | `app/core/monitoring.py` : `sentry_sdk.init()` au startup si SENTRY_DSN défini ; endpoint GET `/metrics` pour Prometheus ; middleware `http_requests_total`, `http_request_duration_seconds` (p50/p95/p99). Désactivé en TESTING. 15/02/2026 |
 
 ### Corrections en attente
 
