@@ -8,12 +8,16 @@
 
 ## Résumé exécutif
 
+**État initial (Février 2026) :**
+
 | Niveau      | Nombre |
 |-------------|--------|
 | Critique    | 2      |
 | Élevé       | 3      |
 | Moyen       | 4      |
 | Faible      | 2      |
+
+**État actuel (post-corrections) :** toutes les vulnérabilités identifiées ont été corrigées. ✅
 
 ---
 
