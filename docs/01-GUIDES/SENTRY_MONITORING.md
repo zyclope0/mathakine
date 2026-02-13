@@ -111,21 +111,9 @@ Pour avoir des stack traces lisibles en production (fichiers `.tsx` au lieu de `
    - Un tunnel est configuré (`/monitoring`) pour contourner les bloqueurs
    - Tester sans ad blocker pour confirmer (ex. mode navigation privée ou autre navigateur)
 
-4. **Debug avec logs**
-   - Ajouter sur Render : `NEXT_PUBLIC_SENTRY_DEBUG` = `1`
-   - Rebuild + déployer, ouvrir la console du navigateur sur le site
-   - Tu verras : `[Sentry] init: { enabled, dsnPresent, env, tunnel }`
-   - Si `enabled: false` ou `dsnPresent: false` → le DSN n’est pas pris au build
-
-5. **Test client** : dans la console : `throw new Error("Test Sentry")`
-
-6. **Test serveur** : appeler `GET /api/sentry-test`
-   - En dev : pas de clé
-   - En prod : définir `SENTRY_TEST_KEY` sur Render, puis `GET /api/sentry-test?key=TA_CLE`
-
-7. **Vérifier le DSN au build** : `GET https://mathakine.fun/api/sentry-status`
+4. **Vérifier le DSN au build** : `GET https://mathakine.fun/api/sentry-status`
    - Retourne `{ dsnPresent, nodeEnv, tunnelRoute }`
-   - Si `dsnPresent: false` → le DSN n’a pas été pris au build (vars sur le mauvais service ou rebuild nécessaire)
+   - Si `dsnPresent: false` → le DSN n'a pas été pris au build (vars sur le mauvais service ou rebuild nécessaire)
 
 ## Tester
 
