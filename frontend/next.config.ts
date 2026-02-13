@@ -46,6 +46,21 @@ const nextConfig: NextConfig = {
 
   // Headers sécurité
   async headers() {
+    // En dev : autoriser localhost:10000 pour le backend
+    const backendDev =
+      process.env.NODE_ENV === "development"
+        ? " http://localhost:10000 http://127.0.0.1:10000"
+        : "";
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Next.js / React
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data: https://fonts.gstatic.com",
+      `connect-src 'self'${backendDev} https://*.sentry.io https://*.ingest.sentry.io https://*.render.com https://*.onrender.com https://*.mathakine.fun`,
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+    ].join("; ");
     return [
       {
         source: "/:path*",
@@ -65,6 +80,10 @@ const nextConfig: NextConfig = {
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: csp,
           },
         ],
       },

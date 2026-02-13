@@ -9,28 +9,24 @@ const API_BASE_URL =
   (process.env.NODE_ENV === "development" ? "http://localhost:10000" : "");
 
 /**
- * Au chargement, si l'utilisateur a une session (refresh_token) mais que le
- * access_token n'est pas sync sur le domaine frontend (prod cross-domain),
- * on fait un refresh proactif pour synchroniser le cookie.
+ * Au chargement en prod cross-domain : tente un refresh via cookie HttpOnly.
+ * Si session valide, sync access_token sur le domaine frontend pour les routes Next.js.
+ * refresh_token jamais lu par JS — cookie envoyé automatiquement avec credentials.
  */
 export function AuthSyncProvider({ children }: { children: React.ReactNode }) {
   const hasRun = useRef(false);
 
   useEffect(() => {
     if (hasRun.current || typeof window === "undefined") return;
-    // Uniquement en prod (cross-domain : backend et frontend sur domains différents)
     if (process.env.NODE_ENV !== "production" || !API_BASE_URL) return;
-
-    const refreshToken = localStorage.getItem("refresh_token");
-    if (!refreshToken) return;
 
     hasRun.current = true;
 
     fetch(`${API_BASE_URL}/api/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-      credentials: "include",
+      body: JSON.stringify({}),
+      credentials: "include", // Cookie refresh_token (HttpOnly) envoyé automatiquement
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {

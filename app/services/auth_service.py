@@ -112,20 +112,20 @@ def create_user(db: Session, user_in: UserCreate) -> User:
     Raises:
         HTTPException: Si un utilisateur avec le même nom ou email existe déjà
     """
-    # Vérifier si un utilisateur avec le même nom existe déjà
+    # Vérifier si un utilisateur avec le même nom ou email existe déjà
+    # Message uniforme (anti-énumération) : ne pas révéler si c'est le username ou l'email qui existe
     if get_user_by_username(db, user_in.username):
-        logger.warning(f"Tentative de création d'un utilisateur avec un nom déjà utilisé: {user_in.username}")
+        logger.warning(f"Tentative de création avec nom déjà utilisé: {user_in.username}")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Ce nom d'utilisateur est déjà utilisé"
+            detail="Un compte avec ces informations existe déjà"
         )
     
-    # Vérifier si un utilisateur avec le même email existe déjà
     if get_user_by_email(db, user_in.email):
-        logger.warning(f"Tentative de création d'un utilisateur avec un email déjà utilisé: {user_in.email}")
+        logger.warning(f"Tentative de création avec email déjà utilisé: {user_in.email}")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Cet email est déjà utilisé"
+            detail="Un compte avec ces informations existe déjà"
         )
     
     # Par défaut, les nouveaux utilisateurs sont des Padawans sauf spécification contraire
@@ -296,16 +296,15 @@ def refresh_access_token(db: Session, refresh_token: str) -> dict:
                 detail="Compte utilisateur désactivé"
             )
         
-        # Générer un nouveau token d'accès
+        # Générer un nouveau token d'accès ET un nouveau refresh token (rotation)
+        # Best-practice: chaque refresh invalide l'ancien en émettant un nouveau
         # Gérer le cas où role est string ou enum
         role_value = user.role if isinstance(user.role, str) else user.role.value
-        access_token = create_access_token(
-            data={"sub": user.username, "role": role_value}
-        )
-        
+        new_token_data = create_user_token(user)
         return {
-            "access_token": access_token,
-            "token_type": "bearer"
+            "access_token": new_token_data.get("access_token"),
+            "refresh_token": new_token_data.get("refresh_token"),  # Rotation: nouveau à chaque refresh
+            "token_type": "bearer",
         }
         
         

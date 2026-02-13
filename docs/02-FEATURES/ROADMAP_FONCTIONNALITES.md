@@ -18,6 +18,12 @@
 
 ---
 
+## ⚠️ Avant la feature Admin
+
+**Lire impérativement** [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md) — Exigences RBAC (`require_role("admin")`) pour tout endpoint admin.
+
+---
+
 ## 1. État actuel du projet
 
 ### Pages existantes

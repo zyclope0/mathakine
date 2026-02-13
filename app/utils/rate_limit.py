@@ -16,8 +16,9 @@ logger = get_logger(__name__)
 _rate_limit_store: dict[str, list[float]] = defaultdict(list)
 
 RATE_LIMIT_WINDOW_SEC = 60
-RATE_LIMIT_AUTH_MAX = 5  # login, forgot-password
+RATE_LIMIT_AUTH_MAX = 5  # login, forgot-password, validate-token
 RATE_LIMIT_REGISTER_MAX = 3  # création de compte
+RATE_LIMIT_RESEND_VERIFICATION_MAX = 2  # resend-verification (abus email)
 
 
 def _get_client_ip(request) -> str:
@@ -79,6 +80,25 @@ def rate_limit_register(func: Callable):
         key = f"rate_limit:register:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_REGISTER_MAX):
             logger.warning(f"Rate limit dépassé pour register depuis {ip}")
+            from starlette.responses import JSONResponse
+            return JSONResponse(
+                {"error": "Trop de tentatives. Veuillez réessayer dans une minute."},
+                status_code=429,
+            )
+        return await func(request, *args, **kwargs)
+
+    return wrapped
+
+
+def rate_limit_resend_verification(func: Callable):
+    """Décorateur rate limit pour resend-verification (2 req/min par IP)."""
+
+    @wraps(func)
+    async def wrapped(request, *args, **kwargs):
+        ip = _get_client_ip(request)
+        key = f"rate_limit:resend_verification:{ip}"
+        if not _check_rate_limit(key, RATE_LIMIT_RESEND_VERIFICATION_MAX):
+            logger.warning(f"Rate limit dépassé pour resend-verification depuis {ip}")
             from starlette.responses import JSONResponse
             return JSONResponse(
                 {"error": "Trop de tentatives. Veuillez réessayer dans une minute."},

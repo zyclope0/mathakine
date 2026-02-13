@@ -364,16 +364,16 @@ async def refresh_token_client():
                 pytest.skip(f"Cannot authenticate: {response.text}")
 
             tokens = response.json()
-            if "refresh_token" not in tokens:
-                pytest.skip("Refresh token not in login response")
-
-            ac.cookies.set("access_token", tokens["access_token"])
+            # refresh_token uniquement en cookie HttpOnly (plus dans le body)
+            refresh_token = response.cookies.get("refresh_token") if response.cookies else None
+            if not refresh_token:
+                pytest.skip("Refresh token not in cookie (login response)")
 
             yield {
                 "client": ac,
                 "user_data": user_data,
                 "access_token": tokens["access_token"],
-                "refresh_token": tokens["refresh_token"],
+                "refresh_token": refresh_token,
                 "user_id": tokens.get("user", {}).get("id"),
             }
         except Exception as e:
@@ -680,14 +680,24 @@ def logic_challenge_db(db_session):
         yield db_session
 
     finally:
-        # Nettoyage post-test
+        # Nettoyage post-test: supprimer d'abord les attempts liés aux challenges (FK)
         try:
+            # 1. Supprimer les attempts par user_id (test_jedi)
             db_session.execute(
                 text(
                     f"DELETE FROM logic_challenge_attempts WHERE user_id IN "
                     f"(SELECT id FROM users WHERE username = 'test_jedi_{unique_id}')"
                 )
             )
+            # 2. Supprimer les attempts qui référencent nos challenges (padawan peut avoir tenté)
+            db_session.execute(
+                text(
+                    "DELETE FROM logic_challenge_attempts WHERE challenge_id IN "
+                    "(SELECT id FROM logic_challenges WHERE title LIKE :pat)"
+                ),
+                {"pat": f"Test Challenge {unique_id}%"}
+            )
+            # 3. Puis supprimer les challenges
             db_session.execute(
                 text(f"DELETE FROM logic_challenges WHERE title LIKE 'Test Challenge {unique_id}%'")
             )
@@ -700,9 +710,19 @@ def logic_challenge_db(db_session):
             test_user = db_session.query(User).filter(
                 User.username == f"test_jedi_{unique_id}"
             ).first()
+            # Définir les challenges à supprimer
+            challenges_to_delete = db_session.query(LogicChallenge).filter(
+                LogicChallenge.title.like(f"Test Challenge {unique_id}%")
+            ).all()
+            challenge_ids = [c.id for c in challenges_to_delete]
+            # Supprimer d'abord les attempts (FK) par user_id puis par challenge_id
             if test_user:
                 db_session.query(LogicChallengeAttempt).filter(
                     LogicChallengeAttempt.user_id == test_user.id
+                ).delete(synchronize_session=False)
+            if challenge_ids:
+                db_session.query(LogicChallengeAttempt).filter(
+                    LogicChallengeAttempt.challenge_id.in_(challenge_ids)
                 ).delete(synchronize_session=False)
             db_session.query(LogicChallenge).filter(
                 LogicChallenge.title.like(f"Test Challenge {unique_id}%")

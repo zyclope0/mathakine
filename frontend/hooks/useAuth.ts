@@ -73,15 +73,7 @@ export function useAuth() {
       return response;
     },
     onSuccess: async (data) => {
-      // Stocker le refresh_token si présent dans la réponse (pour cross-domain)
-      if (data.refresh_token && typeof window !== "undefined") {
-        try {
-          localStorage.setItem("refresh_token", data.refresh_token);
-        } catch {
-          // Ignorer les erreurs de localStorage (mode privé, etc.)
-        }
-      }
-
+      // refresh_token uniquement en cookie HttpOnly (back) — jamais en localStorage (sécurité XSS)
       // Sync access_token sur le domaine frontend (cross-domain prod : backend cookie pas envoyé aux routes Next.js)
       // IMPORTANT : attendre la sync avant de naviguer, sinon le cookie peut manquer pour les flux SSE
       if (data.access_token && typeof window !== "undefined") {
@@ -169,12 +161,12 @@ export function useAuth() {
       }
     },
     onSuccess: () => {
-      // Nettoyer le refresh_token du localStorage
+      // Nettoyer l'ancien refresh_token du localStorage (rétro-compat sessions pré-migration)
       if (typeof window !== "undefined") {
         try {
           localStorage.removeItem("refresh_token");
         } catch {
-          // Ignorer les erreurs de localStorage
+          /* ignore */
         }
       }
       toast.success(t("logoutSuccess"));

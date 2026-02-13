@@ -14,7 +14,7 @@ from starlette.responses import JSONResponse, RedirectResponse
 from app.core.security import decode_token
 from app.services.auth_service import (authenticate_user, create_user_token,
                                        get_user_by_email, refresh_access_token)
-from app.utils.rate_limit import rate_limit_auth
+from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
 from app.utils.csrf import validate_csrf_token
 from server.auth import require_auth
 from app.services.email_service import EmailService
@@ -139,11 +139,13 @@ async def verify_email(request: Request):
         )
 
 
+@rate_limit_resend_verification
 async def resend_verification_email(request: Request):
     """
     Renvoie l'email de vérification.
     Route: POST /api/auth/resend-verification
     Body: {"email": "user@example.com"}
+    Rate limit: 2 req/min par IP (protection abus).
     """
     try:
         # Récupérer l'email depuis le body
@@ -271,11 +273,11 @@ async def api_login(request: Request):
             # Ajouter les informations utilisateur à la réponse
             from app.core.config import settings
             access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+            # refresh_token uniquement en cookie (HttpOnly) — pas dans le body (sécurité XSS)
             response_data = {
                 "access_token": token_data.get("access_token"),
                 "token_type": token_data.get("token_type", "bearer"),
                 "expires_in": access_token_max_age,
-                "refresh_token": token_data.get("refresh_token"),  # Inclure pour cross-domain support
                 "user": {
                     "id": user.id,
                     "username": user.username,
@@ -340,6 +342,7 @@ async def api_login(request: Request):
         )
 
 
+@rate_limit_auth("validate-token")
 async def api_validate_token(request: Request):
     """
     Valide un token JWT sans l'utiliser pour une action.
@@ -347,6 +350,7 @@ async def api_validate_token(request: Request):
     est signé par notre backend et non expiré avant de le poser en cookie.
     Route: POST /api/auth/validate-token
     Body: {"token": "..."}
+    Rate limit: 5 req/min par IP (protection brute-force).
     """
     try:
         data = await request.json()
@@ -490,8 +494,7 @@ async def api_refresh_token(request: Request):
                 )
                 logger.info(f"Cookie refresh_token créé via fallback et ajouté à la réponse (SameSite={cookie_samesite}, Secure={cookie_secure})")
             
-            # Toujours mettre à jour le refresh_token dans les cookies après un refresh réussi
-            # pour s'assurer qu'il reste valide
+            # Rotation: nouveau refresh_token à chaque refresh — cookie HttpOnly uniquement
             if "refresh_token" in new_token_data:
                 response.set_cookie(
                     key="refresh_token",
@@ -501,16 +504,13 @@ async def api_refresh_token(request: Request):
                     samesite=cookie_samesite,
                     secure=cookie_secure
                 )
-                logger.debug(f"Cookie refresh_token mis à jour après refresh réussi (SameSite={cookie_samesite}, Secure={cookie_secure})")
+                logger.debug(f"Cookie refresh_token roté (SameSite={cookie_samesite}, Secure={cookie_secure})")
             
-            # Ajouter le refresh_token dans la réponse JSON pour le cross-domain support
-            # Le frontend peut le stocker dans localStorage
-            response_data = new_token_data.copy()
-            if refresh_token and "refresh_token" not in response_data:
-                # Si le refresh_token utilisé est toujours valide, le renvoyer
-                response_data["refresh_token"] = refresh_token
-            
-            # Mettre à jour la réponse avec le refresh_token
+            # refresh_token UNIQUEMENT en cookie (HttpOnly) — jamais dans le body (sécurité XSS)
+            response_data = {
+                "access_token": new_token_data.get("access_token"),
+                "token_type": new_token_data.get("token_type", "bearer"),
+            }
             import json
             response.body = json.dumps(response_data).encode('utf-8')
             

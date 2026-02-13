@@ -40,6 +40,7 @@ docs/
 │   ├── I18N.md                 # Internationalisation (next-intl)
 │   ├── ANALYTICS_PROGRESSION.md  # 🆕 Graphiques progression
 │   ├── BADGES_AMELIORATIONS.md   # 🆕 Roadmap badges
+│   ├── ADMIN_FEATURE_SECURITE.md # 🆕 RBAC pour future feature admin (require_role)
 │   └── ROADMAP_FONCTIONNALITES.md # 🆕 Roadmap globale fonctionnalités
 │
 ├── 03-PROJECT/            # 📕 Gestion projet

@@ -351,7 +351,7 @@ def test_create_user_duplicate_username(db_session, mock_user):
     
     # Vérifier l'erreur
     assert excinfo.value.status_code == 409  # ✅ 409 CONFLICT au lieu de 400
-    assert "Ce nom d'utilisateur est déjà utilisé" in str(excinfo.value.detail)
+    assert "Un compte avec ces informations existe déjà" in str(excinfo.value.detail)
 
 def test_create_user_duplicate_email(db_session, mock_user):
     """Teste la création d'un utilisateur avec un email déjà utilisé."""
@@ -379,7 +379,7 @@ def test_create_user_duplicate_email(db_session, mock_user):
     
     # Vérifier l'erreur
     assert excinfo.value.status_code == 409  # ✅ 409 CONFLICT au lieu de 400
-    assert "Cet email est déjà utilisé" in str(excinfo.value.detail)
+    assert "Un compte avec ces informations existe déjà" in str(excinfo.value.detail)
 
 # Tests pour create_user_token
 def test_create_user_token(mock_user):

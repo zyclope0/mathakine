@@ -46,10 +46,11 @@ class Settings:
         SECRET_KEY = secrets.token_urlsafe(32)
         logger.warning("SECRET_KEY non définie, génération automatique (DEV uniquement)")
     
-    # 60 minutes * 24 heures * 7 jours = 7 jours
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
-    # Nombre de jours pour l'expiration du refresh token
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+    # 15 minutes (best-practice: court pour limiter la fenêtre si volé)
+    # Le refresh automatique prolonge la session sans re-login
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    # 7 jours (best-practice: refresh token plus long mais rotation à chaque utilisation)
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     # Algorithme de chiffrement pour JWT
     ALGORITHM: str = "HS256"
     

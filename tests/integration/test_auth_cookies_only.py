@@ -83,10 +83,22 @@ async def test_refresh_without_cookie_fails(client, test_user_data):
 async def test_no_localStorage_refresh_token_in_response(client, test_user_data):
     """
     Test SEC-1.3 : Aucun refresh_token dans la réponse JSON
-    Vérifie que le refresh_token n'est jamais retourné dans le body JSON.
-    Note: L'API actuelle retourne encore refresh_token dans le body - à corriger pour Cookie-only.
+    Vérifie que le refresh_token n'est jamais retourné dans le body (cookie HttpOnly uniquement).
     """
-    pytest.skip("L'API retourne encore refresh_token dans le body JSON (cookie-only non implémenté)")
+    await client.post("/api/users/", json=test_user_data)
+    verify_user_email_for_tests(test_user_data["username"])
+    login_response = await client.post("/api/auth/login", json={"username": test_user_data["username"], "password": test_user_data["password"]})
+    assert login_response.status_code == 200
+    data = login_response.json()
+    assert "refresh_token" not in data, "Le refresh_token ne doit pas apparaître dans le body JSON (sécurité XSS)"
+
+    # Idem pour la réponse refresh
+    refresh_cookie = _get_cookie_from_headers(login_response.headers, "refresh_token")
+    assert refresh_cookie is not None, "Le refresh_token doit être dans le cookie"
+    refresh_response = await client.post("/api/auth/refresh", cookies={"refresh_token": refresh_cookie})
+    assert refresh_response.status_code == 200
+    refresh_data = refresh_response.json()
+    assert "refresh_token" not in refresh_data, "Le refresh_token ne doit pas apparaître dans la réponse refresh"
 
 
 async def test_logout_clears_cookie(client, test_user_data):

@@ -9,7 +9,7 @@
  */
 import { NextRequest } from "next/server";
 
-const ACCESS_TOKEN_MAX_AGE = 60 * 60 * 24 * 7; // 7 jours (aligné avec le backend)
+const ACCESS_TOKEN_MAX_AGE = 15 * 60; // 15 min (aligné backend, best-practice)
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||

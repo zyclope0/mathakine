@@ -85,52 +85,21 @@ export async function syncAccessTokenToFrontend(accessToken: string): Promise<vo
 
 /**
  * S'assure que le cookie access_token est présent sur le domaine frontend.
- * En prod cross-domain : fait un refresh + sync si refresh_token dispo (pour EventSource/flux).
+ * En prod cross-domain : tente un refresh (cookie HttpOnly envoyé auto) puis sync.
  * À appeler avant toute requête qui transite par les routes API Next.js (proxy).
  */
 export async function ensureFrontendAuthCookie(): Promise<void> {
   if (typeof window === "undefined") return;
   if (process.env.NODE_ENV !== "production") return; // En dev, même domaine
-  const refreshToken = getRefreshToken();
-  if (refreshToken) {
-    await refreshAccessToken();
-  }
+  await refreshAccessToken();
 }
 
 /**
- * Récupère le refresh_token depuis localStorage
- */
-function getRefreshToken(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem("refresh_token");
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Stocke le refresh_token dans localStorage
- */
-function setRefreshToken(token: string | null): void {
-  if (typeof window === "undefined") return;
-  try {
-    if (token) {
-      localStorage.setItem("refresh_token", token);
-    } else {
-      localStorage.removeItem("refresh_token");
-    }
-  } catch {
-    // Ignorer les erreurs de localStorage (mode privé, etc.)
-  }
-}
-
-/**
- * Tente de rafraîchir le token d'accès en utilisant le refresh token
- * Le refresh token est envoyé dans le body de la requête pour supporter le cross-domain
+ * Rafraîchit le token via le cookie refresh_token (HttpOnly).
+ * Pas de body : le cookie est envoyé automatiquement avec credentials: 'include'.
+ * Sécurité : refresh_token jamais exposé à JavaScript (pas de localStorage).
  */
 async function refreshAccessToken(): Promise<boolean> {
-  // Si un refresh est déjà en cours, attendre sa fin
   if (isRefreshing && refreshPromise) {
     return refreshPromise;
   }
@@ -138,43 +107,25 @@ async function refreshAccessToken(): Promise<boolean> {
   isRefreshing = true;
   refreshPromise = (async () => {
     try {
-      // Récupérer le refresh_token depuis localStorage
-      const refreshToken = getRefreshToken();
-
-      if (!refreshToken) {
-        console.warn("[API Client] Aucun refresh_token trouvé pour rafraîchir le token");
-        return false;
-      }
-
-      // Envoyer le refresh_token dans le body de la requête
       const response = await fetch(`${getApiBaseUrl()}/api/auth/refresh`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // Important pour les cookies HTTP-only (fallback)
-        body: JSON.stringify({ refresh_token: refreshToken }),
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // Cookie refresh_token (HttpOnly) envoyé automatiquement
+        body: JSON.stringify({}), // Body vide ; le cookie suffit
       });
 
       if (response.ok) {
         try {
           const data = await response.json();
-          if (data.refresh_token) {
-            setRefreshToken(data.refresh_token);
-          }
-          // Sync access_token sur le domaine frontend (prod cross-domain)
           if (data.access_token) {
             await syncAccessTokenToFrontend(data.access_token);
           }
         } catch {
-          // Si la réponse n'est pas du JSON, ce n'est pas grave
+          // Réponse non-JSON non critique
         }
         return true;
-      } else {
-        // Refresh token invalide ou expiré, nettoyer le localStorage
-        setRefreshToken(null);
-        return false;
       }
+      return false;
     } catch (error) {
       console.error("[API Client] Erreur lors du refresh du token:", error);
       return false;

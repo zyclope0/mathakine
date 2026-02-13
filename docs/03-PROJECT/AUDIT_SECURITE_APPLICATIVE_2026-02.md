@@ -358,6 +358,10 @@ async def api_login(request): ...
 | **2.3** SECRET_KEY auto-générée | ✅ Corrigé | `raise ValueError` au démarrage si SECRET_KEY vide et ENVIRONMENT=production (sauf TESTING=true). Dev/tests : génération auto + warning. |
 | **3.2** Protection CSRF | ✅ Corrigé | Endpoint GET /api/auth/csrf (pattern double-submit). Protection reset-password, change-password, delete-account. Désactivé en TESTING. |
 | **3.1** DatabaseAdapter.execute_query | ✅ Corrigé | params exigé en dict pour paramètres nommés. TypeError si tuple. Documenté (audit 3.1). |
+| **CSP** (audit tier 3.2) | ✅ Corrigé | Content-Security-Policy ajoutée dans next.config.ts (default-src, script-src, style-src, img-src, font-src, connect-src, frame-ancestors, base-uri). 15/02/2026 |
+| **Rate limit resend-verification** | ✅ Corrigé | 2 req/min par IP (rate_limit_resend_verification). 15/02/2026 |
+| **dangerouslySetInnerHTML** | ✅ Vérifié | Aucune occurrence dans le frontend. |
+| **execute_raw_query** | ✅ Vérifié | Non utilisé (legacy). Délègue à execute_query avec params dict. |
 
 ### Corrections en attente
 
@@ -393,6 +397,8 @@ async def api_login(request): ...
 - `app/services/email_service.py` — Envoi simulé en TESTING (tests auth)
 - `app/db/adapter.py` — execute_query: params dict obligatoire, validation (3.1)
 - `app/services/enhanced_server_adapter.py` — execute_raw_query: params dict
+- `frontend/next.config.ts` — Content-Security-Policy (CSP)
+- `app/utils/rate_limit.py` — rate_limit_resend_verification
 
 ---
 
