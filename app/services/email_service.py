@@ -23,7 +23,14 @@ from app.utils.email_templates import (
 # Optionnel : Support SendGrid si API key disponible
 try:
     import sendgrid
-    from sendgrid.helpers.mail import Content, Email, Mail, To
+    from sendgrid.helpers.mail import (
+        Content,
+        Email,
+        Mail,
+        To,
+        TrackingSettings,
+        ClickTracking,
+    )
     SENDGRID_AVAILABLE = True
 except ImportError:
     SENDGRID_AVAILABLE = False
@@ -93,7 +100,10 @@ class EmailService:
                 subject=subject,
                 html_content=html_content
             )
-            
+            # Désactiver le click tracking : les liens restent directs (verify-email, reset-password)
+            message.tracking_settings = TrackingSettings()
+            message.tracking_settings.click_tracking = ClickTracking(enable=False)
+
             if text_content:
                 message.add_content(Content("text/plain", text_content))
             
