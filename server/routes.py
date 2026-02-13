@@ -6,6 +6,7 @@ Toutes les routes HTML/templates ont été supprimées (frontend géré par Next
 """
 from typing import List
 
+from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 
 # Imports API handlers - Auth
@@ -61,11 +62,20 @@ from server.handlers.user_handlers import (create_user_account, get_all_users,
                                            revoke_user_session)
 
 
+async def robots_txt(request):
+    """robots.txt - évite les 404 des crawlers sur le backend."""
+    return PlainTextResponse(
+        "User-agent: *\nDisallow: /\n",
+        media_type="text/plain"
+    )
+
+
 def get_routes() -> List:
     """
     Retourne la liste des routes API JSON pour le backend Starlette.
     """
     return [
+        Route("/robots.txt", endpoint=robots_txt, methods=["GET"]),
         # ========================================
         # AUTH API (7 routes)
         # ========================================

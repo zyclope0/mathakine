@@ -267,6 +267,30 @@ const response = await fetch(url, {
 
 ---
 
+#### ❌ OPTIONS 400 Bad Request (preflight CORS)
+
+**Erreur** (logs backend) :
+```
+OPTIONS /api/users/me HTTP/1.1 400 Bad Request
+OPTIONS /api/exercises/completed-ids HTTP/1.1 400 Bad Request
+```
+
+**Cause** : L'origine du frontend (Origin header) n'est pas dans la liste CORS du backend, ou FRONTEND_URL est mal configurée.
+
+**Solutions** :
+
+1. **Vérifier FRONTEND_URL sur le backend** (Render, .env prod) :
+   ```
+   FRONTEND_URL=https://mathakine.fun
+   ```
+   ou `https://www.mathakine.fun` selon le domaine utilisé.
+
+2. **Origine exacte** : L'Origin envoyée par le navigateur doit correspondre exactement (schéma + domaine + port). Le backend ajoute désormais les variantes www/non-www automatiquement.
+
+3. **Vérifier les env frontend** : `NEXT_PUBLIC_API_BASE_URL` doit pointer vers l'URL du backend (ex. `https://mathakine-backend.onrender.com`).
+
+---
+
 #### ❌ 401 Unauthorized
 
 **Erreur** :

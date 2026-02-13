@@ -96,7 +96,6 @@ def get_middleware() -> List[Middleware]:
     """
     # Liste des origines autorisées pour CORS
     # IMPORTANT: Ne pas utiliser "*" quand credentials='include' est utilisé côté client
-    # Le navigateur bloque les requêtes avec credentials si Access-Control-Allow-Origin est "*"
     allowed_origins = [
         "http://localhost:3000",
         "http://localhost:5173",
@@ -104,13 +103,26 @@ def get_middleware() -> List[Middleware]:
         "http://127.0.0.1:5173",
     ]
     
-    # Ajouter FRONTEND_URL si définie
-    frontend_url = os.getenv("FRONTEND_URL", "")
+    # Ajouter FRONTEND_URL + variantes www/non-www pour éviter OPTIONS 400
+    frontend_url = os.getenv("FRONTEND_URL", "").strip()
     if frontend_url:
         allowed_origins.append(frontend_url)
+        # Si https://mathakine.fun, ajouter https://www.mathakine.fun et inversement
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(frontend_url)
+            if parsed.netloc and "." in parsed.netloc and not parsed.netloc.startswith("www."):
+                allowed_origins.append(f"{parsed.scheme}://www.{parsed.netloc}")
+            elif parsed.netloc.startswith("www."):
+                allowed_origins.append(f"{parsed.scheme}://{parsed.netloc[4:]}")
+        except Exception:
+            pass
+        # Fallback Render frontend si déployé sur Render
+        if "mathakine" in frontend_url.lower() and "render.com" not in frontend_url:
+            allowed_origins.append("https://mathakine-frontend.onrender.com")
     
-    # Filtrer les chaînes vides
-    allowed_origins = [origin for origin in allowed_origins if origin]
+    # Filtrer les chaînes vides et doublons
+    allowed_origins = list(dict.fromkeys(o for o in allowed_origins if o))
     
     return [
         Middleware(

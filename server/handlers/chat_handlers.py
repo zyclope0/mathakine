@@ -517,9 +517,10 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
         logger.error(f"Erreur dans chat_api_stream: {str(chat_stream_error)}")
         import traceback
         traceback.print_exc()
+        err = chat_stream_error  # capture for closure (Flake8 F821)
 
-        async def error_generator():
-            yield f"data: {json.dumps({'type': 'error', 'message': get_safe_error_message(chat_stream_error)})}\n\n"
+        async def error_generator(exc=err):
+            yield f"data: {json.dumps({'type': 'error', 'message': get_safe_error_message(exc)})}\n\n"
         
         return StreamingResponse(
             error_generator(),
