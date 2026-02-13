@@ -20,7 +20,7 @@ Dernier tour d'inspection pour identifier docs obsolètes et valider le `.gitign
 
 | Fichier/Dossier | Statut | Action | Résultat |
 |-----------------|--------|--------|----------|
-| `frontend/README.md` | ✅ À jour | Conservé | Next.js 16.0.1, complet (557 lignes) |
+| `frontend/README.md` | ✅ À jour | Conservé | Next.js 16.1.6, complet (557 lignes) |
 | `frontend/TROUBLESHOOTING.md` | ✅ Utile | Conservé | Guide dépannage "Failed to fetch" |
 | `frontend/docs/00-REFERENCE/` | ❌ Dupliqué | **SUPPRIMÉ** | Structure dupliquée de docs/ racine |
 | `frontend/docs/01-GUIDES/` | ❌ Dupliqué | **SUPPRIMÉ** | Structure dupliquée de docs/ racine |

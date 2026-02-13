@@ -2,7 +2,7 @@
 
 **Version** : 0.1.0  
 **Status** : ✅ **Production Ready** (~95% complété)  
-**Framework** : Next.js 16.0.1 avec App Router  
+**Framework** : Next.js 16.1.6 avec App Router  
 **Language** : TypeScript (strict mode)
 
 ---
@@ -274,7 +274,7 @@ Configuration via CSS dans `app/globals.css` :
 
 ### **Stack Technique**
 
-- **Framework** : Next.js 16.0.1 (App Router)
+- **Framework** : Next.js 16.1.6 (App Router)
 - **Language** : TypeScript (strict mode)
 - **Styling** : Tailwind CSS v4 + shadcn/ui
 - **State Management** :

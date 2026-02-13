@@ -130,7 +130,7 @@ npm run dev
 ### Stack technique
 
 **Frontend**
-- **Framework** : Next.js 16.0.1 (App Router)
+- **Framework** : Next.js 16.1.6 (App Router)
 - **UI** : React 19.2.0, TypeScript 5.x
 - **Styling** : Tailwind CSS 4.x, shadcn/ui
 - **State** : TanStack Query 5.90.7, Zustand 5.0.8

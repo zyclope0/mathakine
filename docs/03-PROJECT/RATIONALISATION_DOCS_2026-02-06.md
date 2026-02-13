@@ -188,7 +188,7 @@ docs/
 ### Frontend
 
 - ✅ **16 hooks** : `ls frontend/hooks/*.ts | wc -l` → 16
-- ✅ **Next.js** : 16.0.1 dans `package.json`
+- ✅ **Next.js** : 16.1.6 dans `package.json`
 - ✅ **React** : 19.2.0 dans `package.json`
 - ✅ **TanStack Query** : 5.90.7 dans `package.json`
 - ✅ **3 widgets dashboard** : `StreakWidget`, `ChallengesProgressWidget`, `CategoryAccuracyChart` dans `components/dashboard/`

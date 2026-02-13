@@ -151,7 +151,7 @@ $ alembic current
 ### Environnement
 
 ```
-Framework: Next.js 16.0.1 (Turbopack)
+Framework: Next.js 16.1.6 (Turbopack)
 Node: >=18.17.0
 Environnements: .env.local, .env
 Mode: Production

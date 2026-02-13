@@ -44,23 +44,23 @@ Aucune vulnérabilité détectée dans les dépendances npm.
 
 ## 3. pip-audit (backend Python)
 
-**Vulnérabilités supplémentaires détectées :**
+**État au 12/02/2026 — corrections appliquées le 15/02/2026 :**
 
-| Package      | Version actuelle | CVE           | Correction |
-|--------------|------------------|---------------|------------|
-| cryptography | 46.0.3           | CVE-2026-26007 | 46.0.5+    |
-| ecdsa        | 0.19.1           | CVE-2024-23342 | —          |
-| pillow       | 12.1.0           | CVE-2026-25990 | 12.1.1+    |
-| pip          | 25.2             | CVE-2025-8869, CVE-2026-1703 | 25.3+ ou 26.0 |
-| pyasn1       | 0.6.1            | CVE-2026-23490 | 0.6.2+     |
+| Package      | Version actuelle | CVE           | Correction | Statut     |
+|--------------|------------------|---------------|------------|------------|
+| cryptography | 46.0.3           | CVE-2026-26007 | 46.0.5+    | À vérifier |
+| ecdsa        | 0.19.1           | CVE-2024-23342 | —          | Transitive |
+| pillow       | 12.1.1           | CVE-2026-25990 | 12.1.1+    | ✅ Corrigé |
+| pip          | (env)            | CVE-2025-8869, CVE-2026-1703 | 25.3+ | CI : `pip install --upgrade pip` |
+| pyasn1       | 0.6.1            | CVE-2026-23490 | 0.6.2+     | Transitive |
 
-*Note : `cryptography`, `ecdsa` et `pyasn1` sont des dépendances transitives (ex. via `python-jose`).*
+*Note : `cryptography`, `ecdsa` et `pyasn1` sont des dépendances transitives (ex. via `python-jose`). pip n'est pas dans requirements.txt ; la CI exécute `pip install --upgrade pip` avant chaque build.*
 
 ---
 
 ## Actions recommandées
 
-1. Next.js, Requests, Jinja2 : aucune action requise.
-2. Mettre à jour `pillow` dans `requirements.txt` : `pillow>=12.1.1`.
-3. Mettre à jour `pip` : `pip install --upgrade pip`.
+1. Next.js, Requests, Jinja2 : aucune action requise. ✅
+2. ~~Pillow~~ : `pillow==12.1.1` déjà dans `requirements.txt`. ✅
+3. pip : version variable selon l'environnement (Render, CI). S'assurer que les images de build utilisent `pip install --upgrade pip` (déjà en place en CI).
 4. Pour les dépendances transitives : vérifier les mises à jour de `python-jose` / `cryptography`.

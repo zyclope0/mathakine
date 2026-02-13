@@ -11,7 +11,7 @@ Elle propose des exercices, des defis logiques, des badges, un chatbot IA et un 
 
 | Composant | Technologie | Version |
 |---|---|---|
-| Frontend | Next.js (App Router) + React + TypeScript | 16.0.1 / React 19 |
+| Frontend | Next.js (App Router) + React + TypeScript | 16.1.6 / React 19 |
 | Backend | **Starlette** (FastAPI archive) | Starlette 0.x |
 | ORM | SQLAlchemy 2.0 | 2.x |
 | Base de donnees | PostgreSQL | 15+ |
