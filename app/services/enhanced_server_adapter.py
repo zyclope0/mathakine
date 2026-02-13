@@ -305,21 +305,22 @@ class EnhancedServerAdapter:
         return UserService.get_user_stats(db, user_id, time_range=time_range)
     
     @staticmethod
-    def execute_raw_query(db: Session, query: str, params: tuple = None) -> List[Dict[str, Any]]:
+    def execute_raw_query(db: Session, query: str, params: dict = None) -> List[Dict[str, Any]]:
         """
-        Exécute une requête SQL brute.
+        Exécute une requête SQL brute (paramètres nommés uniquement).
         À utiliser uniquement pour la compatibilité avec le code existant.
+        Privilégier les méthodes du service (audit 3.1).
         
         Args:
             db: Session de base de données
-            query: Requête SQL
-            params: Paramètres de la requête
+            query: Requête SQL avec paramètres nommés (:param_name)
+            params: Dictionnaire de paramètres nommés
             
         Returns:
             Liste de dictionnaires contenant les résultats
         """
         logger.warning("Utilisation de execute_raw_query - À remplacer par les méthodes du service")
-        return DatabaseAdapter.execute_query(db, query, params or ())
+        return DatabaseAdapter.execute_query(db, query, params or {})
     
     # === MÉTHODES POUR LOGIC CHALLENGES (NOUVEAU !) ===
     

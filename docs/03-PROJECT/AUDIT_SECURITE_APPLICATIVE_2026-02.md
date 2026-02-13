@@ -215,22 +215,7 @@ if not any(char.isupper() for char in password):
 
 **Vecteur d'attaque :** La méthode accepte `params` sous forme de `Tuple` ou `dict`. SQLAlchemy `text()` attend des paramètres nommés (`:param`) ou positionnels (`:1`, `:2`). Si un appelant passe une chaîne concaténée dans `query` ou utilise un mauvais format de paramètres, une injection SQL est possible. L'usage actuel via `execute_raw_query` est limité, mais l'API est risquée.
 
-**Remédiation :**
-
-```python
-@staticmethod
-def execute_query(db: Session, query: str, params: dict = None) -> List[Dict[str, Any]]:
-    if params is None:
-        params = {}
-    if not isinstance(params, dict):
-        raise TypeError("execute_query exige params de type dict pour des paramètres nommés")
-    try:
-        stmt = text(query)
-        result = db.execute(stmt, params)
-        # ...
-```
-
-Et documenter : « Ne jamais concaténer de données utilisateur dans `query`. Utiliser exclusivement des paramètres nommés. »
+**Remédiation :** ✅ **Implémenté** (13/02/2026) — params dict obligatoire, `TypeError` si tuple, doc ajoutée.
 
 ---
 
@@ -368,12 +353,13 @@ async def api_login(request): ...
 | **1.2** Route sync-cookie sans validation | ✅ Corrigé | Endpoint backend `POST /api/auth/validate-token` ajouté. La route sync-cookie appelle désormais ce endpoint pour valider la signature et l'expiration du token avant de le poser en cookie. Protection contre session hijacking. |
 | **2.3** SECRET_KEY auto-générée | ✅ Corrigé | `raise ValueError` au démarrage si SECRET_KEY vide et ENVIRONMENT=production (sauf TESTING=true). Dev/tests : génération auto + warning. |
 | **3.2** Protection CSRF | ✅ Corrigé | Endpoint GET /api/auth/csrf (pattern double-submit). Protection reset-password, change-password, delete-account. Désactivé en TESTING. |
+| **3.1** DatabaseAdapter.execute_query | ✅ Corrigé | params exigé en dict pour paramètres nommés. TypeError si tuple. Documenté (audit 3.1). |
 
-### Corrections en attente (complexité / risque plus élevé)
+### Corrections en attente
 
 | Faille | Statut | Raison |
 |--------|--------|--------|
-| **3.1** DatabaseAdapter.execute_query | ⏳ En attente | Changement de signature (Tuple → dict) pourrait casser des appelants. Vérifier usages avant migration. |
+| — | — | Toutes les corrections identifiées ont été traitées. |
 
 ### Fichiers modifiés
 
@@ -401,6 +387,8 @@ async def api_login(request): ...
 - `frontend/hooks/useSettings.ts` — X-CSRF-Token sur suppression compte
 - `frontend/app/reset-password/page.tsx` — CSRF sur reset-password
 - `app/services/email_service.py` — Envoi simulé en TESTING (tests auth)
+- `app/db/adapter.py` — execute_query: params dict obligatoire, validation (3.1)
+- `app/services/enhanced_server_adapter.py` — execute_raw_query: params dict
 
 ---
 
@@ -427,7 +415,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 
 | # | Faille | Bénéfice | Risque | Priorité |
 |---|--------|----------|--------|----------|
-| 6 | **3.1 execute_query** | Force l’usage de paramètres nommés, réduit le risque d’injection SQL par mauvaise utilisation. | Moyen — changement de signature (Tuple → dict) peut casser des appelants. Audit des usages nécessaire avant modification. | **P3** |
+| 6 | **3.1 execute_query** | Force l’usage de paramètres nommés, réduit le risque d’injection SQL par mauvaise utilisation~~ ✅ **FAIT** (13/02/2026) | — | ~~P3~~ |
 | 7 | **3.3 DEFAULT_ADMIN_PASSWORD** | ~~Évite un compte admin exploitable~~ ✅ **FAIT** (13/02/2026) | — | ~~P3~~ |
 
 ### Ordre d’implémentation recommandé
@@ -437,7 +425,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 3. ~~**4.2 CORS allow_headers**~~ — ✅ **FAIT** (13/02/2026)
 4. ~~**2.3 SECRET_KEY**~~ — ✅ **FAIT** (13/02/2026)
 5. ~~**3.2 CSRF**~~ — ✅ **FAIT** (13/02/2026)
-6. **3.1 execute_query** — Après inventaire des usages de `execute_query`
+6. ~~**3.1 execute_query**~~ — ✅ **FAIT** (13/02/2026)
 7. ~~**3.3 DEFAULT_ADMIN_PASSWORD**~~ — ✅ **FAIT** (13/02/2026)
 
 ---
@@ -450,7 +438,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 | 2 | ~~**4.2 CORS allow_headers**~~ — ✅ FAIT (13/02/2026) | — | — |
 | 3 | ~~**2.3 SECRET_KEY**~~ — ✅ FAIT (13/02/2026) | — | — |
 | 4 | ~~**3.2 CSRF**~~ — ✅ FAIT (13/02/2026) | — | — |
-| 5 | **3.1 execute_query** — Audit des usages avant migration Tuple → dict | ~2 h | Moyen |
+| 5 | ~~**3.1 execute_query**~~ — ✅ FAIT (13/02/2026) | — | — |
 
 **Validation sync-cookie (1.2) :** ✅ Testé en dev et prod (login → validate-token → sync-cookie).
 
@@ -463,6 +451,8 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 **Validation CSRF (3.2) :** ✅ Endpoint GET /api/auth/csrf. Protection reset-password, change-password, delete-account. Désactivé en TESTING. 18 tests auth passés. Déploiement prod OK.
 
 **Validation DEFAULT_ADMIN_PASSWORD (3.3) :** ✅ En prod sans `DEFAULT_ADMIN_PASSWORD` ou égale à "admin" → `ValueError` au démarrage. Variable obligatoire sur Render.
+
+**Validation execute_query (3.1) :** ✅ params dict obligatoire. `TypeError` si tuple. Tests unitaires ajoutés. execute_raw_query non appelé (legacy).
 
 ---
 

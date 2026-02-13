@@ -2,7 +2,7 @@
 Adaptateur de base de données pour Mathakine.
 Fournit une interface unifiée entre les modèles SQLAlchemy et les requêtes SQL directes.
 """
-from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 from app.core.logging_config import get_logger
 
@@ -183,20 +183,30 @@ class DatabaseAdapter:
         return TransactionManager.safe_delete(db, obj)
     
     @staticmethod
-    def execute_query(db: Session, query: str, params: Tuple = None) -> List[Dict[str, Any]]:
+    def execute_query(db: Session, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
         Exécute une requête SQL personnalisée.
+
+        SÉCURITÉ (audit 3.1) : params doit être un dict pour des paramètres nommés.
+        Ne jamais concaténer de données utilisateur dans query. Utiliser exclusivement
+        des paramètres nommés (ex: SELECT * FROM t WHERE id = :id avec params={"id": 1}).
         
         Args:
             db: Session de base de données
-            query: Requête SQL à exécuter
-            params: Paramètres à passer à la requête
+            query: Requête SQL avec paramètres nommés (:param_name)
+            params: Dictionnaire de paramètres nommés (ou None)
             
         Returns:
             Liste de dictionnaires contenant les résultats
         """
+        if params is not None and not isinstance(params, dict):
+            raise TypeError(
+                "execute_query exige params de type dict pour des paramètres nommés. "
+                "Utiliser :param_name dans la requête et params={\"param_name\": value}."
+            )
+        safe_params = params if params is not None else {}
         try:
-            result = db.execute(text(query), params or {})
+            result = db.execute(text(query), safe_params)
             if result.returns_rows:
                 column_names = result.keys()
                 return [dict(zip(column_names, row)) for row in result.fetchall()]

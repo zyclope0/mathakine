@@ -318,27 +318,21 @@ def test_delete():
 
 
 def test_execute_query_success():
-    """Teste la méthode execute_query avec succès"""
-    # Créer un mock pour la session
+    """Teste la méthode execute_query avec succès (params dict, paramètres nommés)"""
     mock_session = MagicMock(spec=Session)
     
-    # Créer un mock pour le résultat de l'exécution
     mock_result = MagicMock()
     mock_result.returns_rows = True
     mock_result.keys.return_value = ["col1", "col2"]
     mock_result.fetchall.return_value = [("value1", "value2"), ("value3", "value4")]
     
-    # Configurer le mock pour l'exécution
     mock_session.execute.return_value = mock_result
     
-    # Configurer le mock pour sqlalchemy.text
     with patch('app.db.adapter.text', return_value="SQL Text") as mock_text:
-        # Appeler la méthode
-        query = "SELECT * FROM table"
-        params = (1, 2)
+        query = "SELECT * FROM table WHERE id = :id"
+        params = {"id": 1}
         result = DatabaseAdapter.execute_query(mock_session, query, params)
         
-        # Vérifier les appels et le résultat
         mock_text.assert_called_once_with(query)
         mock_session.execute.assert_called_once_with("SQL Text", params)
         mock_result.keys.assert_called_once()
@@ -370,6 +364,15 @@ def test_execute_query_no_rows():
         mock_result.keys.assert_not_called()
         mock_result.fetchall.assert_not_called()
         assert result == []
+
+
+def test_execute_query_params_must_be_dict():
+    """Teste que execute_query rejette params de type tuple (audit 3.1)"""
+    mock_session = MagicMock(spec=Session)
+    query = "SELECT * FROM table WHERE id = :1"
+    with pytest.raises(TypeError) as exc_info:
+        DatabaseAdapter.execute_query(mock_session, query, (1,))
+    assert "params de type dict" in str(exc_info.value)
 
 
 def test_execute_query_exception():
