@@ -14,6 +14,7 @@ from starlette.responses import JSONResponse, RedirectResponse
 from app.core.security import decode_token
 from app.services.auth_service import (authenticate_user, create_user_token,
                                        get_user_by_email, refresh_access_token)
+from app.utils.rate_limit import rate_limit_auth
 from server.auth import require_auth
 from app.services.email_service import EmailService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
@@ -192,6 +193,7 @@ async def resend_verification_email(request: Request):
         )
 
 
+@rate_limit_auth("login")
 async def api_login(request: Request):
     """
     Connexion avec nom d'utilisateur et mot de passe.
@@ -515,6 +517,7 @@ async def api_get_current_user(request: Request):
         )
 
 
+@rate_limit_auth("forgot-password")
 async def api_forgot_password(request: Request):
     """
     Demande de réinitialisation de mot de passe.

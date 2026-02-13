@@ -17,6 +17,7 @@ from app.core.messages import SystemMessages
 from app.schemas.user import UserCreate
 from app.services.auth_service import create_user, get_user_by_email
 from app.utils.error_handler import get_safe_error_message
+from app.utils.rate_limit import rate_limit_register
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from server.auth import require_auth
 
@@ -283,6 +284,7 @@ async def get_user_stats(request):
         return JSONResponse({"error": "Erreur lors de la récupération des statistiques"}, status_code=500)
 
 
+@rate_limit_register
 async def create_user_account(request: Request):
     """
     Endpoint pour créer un nouveau compte utilisateur.

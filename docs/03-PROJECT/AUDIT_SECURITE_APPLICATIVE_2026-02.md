@@ -404,7 +404,7 @@ async def api_login(request): ...
 | **2.3** SECRET_KEY auto-générée | ⏳ En attente | `raise ValueError` en prod pourrait bloquer des déploiements existants. Préférer alerte forte sans blocage. |
 | **3.1** DatabaseAdapter.execute_query | ⏳ En attente | Changement de signature (Tuple → dict) pourrait casser des appelants. Vérifier usages avant migration. |
 | **3.2** Protection CSRF | ⏳ En attente | Implémentation middleware + endpoint dédié. |
-| **3.4** Rate limiting | ⏳ En attente | Nécessite middleware ou décorateur global. |
+| **3.4** Rate limiting | ✅ Corrigé | Décorateurs `rate_limit_auth` (5 req/min) sur login, forgot-password et `rate_limit_register` (3 req/min) sur POST /api/users/. Désactivé en mode TESTING. |
 | **4.2** CORS allow_headers | ⏳ En attente | Restreindre pourrait casser des requêtes. Auditer les headers utilisés par le frontend. |
 
 ### Fichiers modifiés
@@ -413,6 +413,7 @@ async def api_login(request): ...
 - `server/routes.py` — Route validate-token
 - `server/middleware.py` — validate-token en route publique
 - `frontend/app/api/auth/sync-cookie/route.ts` — Appel validate-token avant Set-Cookie
+- `app/utils/rate_limit.py` — Décorateurs rate_limit_auth, rate_limit_register
 - `app/core/config.py` — Warning DEFAULT_ADMIN_PASSWORD
 - `app/utils/error_handler.py` — `get_safe_error_message()`, durcissement `create_error_response`
 - `app/services/auth_service.py` — Suppression log hashed_password
@@ -436,7 +437,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 |---|--------|----------|--------|----------|
 | 1 | **1.2 sync-cookie** | ~~Empêche le session hijacking~~ ✅ **FAIT** | — | ~~P1~~ |
 | 2 | **2.3 SECRET_KEY** | Garantit une SECRET_KEY stable en prod. Évite invalidations de tokens après redémarrage et incohérence multi-instance. | Moyen — si SECRET_KEY n'est pas définie, le serveur ne démarre pas. **Mitigation** : warning fort d'abord, puis `raise` après une release. | **P1** |
-| 3 | **3.4 Rate limiting** | Protège contre bruteforce (login, forgot-password), énumération d'utilisateurs et abus de ressources. | Faible — mise en place d'un middleware ou décorateur. Possibles faux positifs sur IP partagées (NAT, bureaux). | **P1** |
+| 3 | **3.4 Rate limiting** | ~~Protège contre bruteforce~~ ✅ **FAIT** | — | ~~P1~~ |
 
 ### P2 — Priorité moyenne (renforce la défense en profondeur)
 
@@ -455,7 +456,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 ### Ordre d’implémentation recommandé
 
 1. ~~**1.2 sync-cookie**~~ — ✅ **FAIT** (13/02/2026)
-2. **3.4 Rate limiting** — Prochaine étape recommandée (~1 h)
+2. ~~**3.4 Rate limiting**~~ — ✅ **FAIT** (13/02/2026)
 3. **4.2 CORS allow_headers** — Effort très faible (~30 min) après audit des headers
 4. **2.3 SECRET_KEY** — À traiter après vérification que Render/prod définit bien SECRET_KEY
 5. **3.2 CSRF** — Si évolution vers SameSite=None ou domaine cross-origin
@@ -468,7 +469,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 
 | # | Action | Effort | Criticité |
 |---|--------|--------|-----------|
-| 1 | **3.4 Rate limiting** — Middleware ou décorateur sur login, forgot-password | ~1 h | Moyen |
+| 1 | ~~**3.4 Rate limiting**~~ — ✅ FAIT | — | — |
 | 2 | **4.2 CORS allow_headers** — Restreindre à Content-Type, Authorization, Accept | ~30 min | Faible |
 | 3 | **2.3 SECRET_KEY** — Vérifier que Render définit SECRET_KEY, puis `raise` si vide en prod | ~30 min | Élevé |
 | 4 | **3.2 CSRF** — Si besoin (SameSite=None ou évolution cross-origin) | ~3 h | Moyen |
