@@ -477,6 +477,8 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 
 **Validation sync-cookie (1.2) :** ✅ Testé en dev et prod (login → validate-token → sync-cookie).
 
+**Validation rate limiting (3.4) :** ✅ 31 tests passés (auth_flow, user_endpoints, auth_cookies_only). Pas d'effet de bord sur les flux normaux.
+
 ---
 
 ## Références
