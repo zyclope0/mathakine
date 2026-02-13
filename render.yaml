@@ -49,6 +49,8 @@ services:
         value: https://mathakine-frontend.onrender.com
       - key: NODE_ENV
         value: production
+      - key: NEXT_PUBLIC_SENTRY_DSN
+        sync: false
     healthCheckPath: /
     autoDeploy: true
 

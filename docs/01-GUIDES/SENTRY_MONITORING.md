@@ -96,6 +96,22 @@ Pour avoir des stack traces lisibles en production (fichiers `.tsx` au lieu de `
 > **Note** : Le DSN (`NEXT_PUBLIC_SENTRY_DSN`) doit déjà être configuré pour recevoir les erreurs.  
 > L’Auth Token sert uniquement à l’upload des source maps pendant le build.
 
+## Dépannage : Sentry ne remonte pas en prod
+
+1. **Vérifier `NEXT_PUBLIC_SENTRY_DSN` sur Render**
+   - Render → Service frontend → Environment
+   - La variable doit exister et contenir le DSN complet (ex. `https://xxx@xxx.ingest.sentry.io/xxx`)
+   - **Important** : les variables `NEXT_PUBLIC_*` sont lues au **build**. Si tu l’as ajoutée après le dernier build, faire un **Manual Deploy** pour rebuilder.
+
+2. **Ad blockers**
+   - Un tunnel est configuré (`/monitoring`) pour contourner les bloqueurs
+   - Tester sans ad blocker pour confirmer (ex. mode navigation privée ou autre navigateur)
+
+3. **Tester rapidement**
+   - Ouvrir la console du navigateur sur le site en prod
+   - Taper : `throw new Error("Test Sentry")`
+   - Vérifier dans Sentry → Issues que l’erreur apparaît
+
 ## Tester
 
 En production, déclencher une erreur de test :

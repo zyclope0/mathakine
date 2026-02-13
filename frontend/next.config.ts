@@ -143,4 +143,6 @@ export default withSentryConfig(configWithPlugins, {
   project: process.env.SENTRY_PROJECT || "mathakine-frontend",
   silent: !process.env.CI,
   widenClientFileUpload: true,
+  // Tunnel : contourne les ad blockers qui bloquent les requêtes vers sentry.io
+  tunnelRoute: "/monitoring",
 });
