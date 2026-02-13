@@ -31,7 +31,10 @@ docs/
 │   ├── CONFIGURER_EMAIL.md     # Configurer envoi emails (forgot-password, verify-email)
 │   ├── LANCER_SERVEUR_TEST.md  # Lancer serveur local
 │   ├── TESTER_MODIFICATIONS_SECURITE.md  # Tests sécurité
-│   └── QU_EST_CE_QUE_VENV.md  # Guide Python venv
+│   ├── QU_EST_CE_QUE_VENV.md  # Guide Python venv
+│   ├── GUIDE_UTILISATEUR_MVP.md  # 🆕 Guide utilisateur (cible, rétention, parcours)
+│   ├── ESLINT_PRETTIER_FRONTEND.md  # ESLint + Prettier
+│   └── SENTRY_MONITORING.md  # Monitoring Sentry
 │
 ├── 02-FEATURES/           # 📙 Fonctionnalités
 │   ├── I18N.md                 # Internationalisation (next-intl)
@@ -100,6 +103,10 @@ docs/
 ### Je veux contribuer
 1. [CONTRIBUTING.md](01-GUIDES/CONTRIBUTING.md) - Workflow contribution
 2. [DEVELOPMENT.md](01-GUIDES/DEVELOPMENT.md) - Standards et conventions
+
+### Je suis parent ou utilisateur final
+1. **[/docs](https://mathakine.fun/docs)** (sur le site) — Guide d'utilisation intégré (parcours, FAQ, accessibilité)
+2. **[GUIDE_UTILISATEUR_MVP.md](01-GUIDES/GUIDE_UTILISATEUR_MVP.md)** — Source détaillée (personas, analyse psychologique, rétention)
 
 ---
 

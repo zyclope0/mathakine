@@ -1082,6 +1082,80 @@
       "sessionRevokedDescription": "La session a été révoquée avec succès."
     }
   },
+  "docs": {
+    "title": "Guide d'utilisation",
+    "subtitle": "Tout ce qu'il faut savoir pour bien démarrer",
+    "why": {
+      "title": "Pourquoi Mathakine ?",
+      "intro": "Mathakine est conçu pour que chacun progresse à son rythme, sans pression ni note.",
+      "safe": "Un espace bienveillant",
+      "safeDesc": "Pas de note, pas de jugement. Chaque erreur est une étape vers la compréhension.",
+      "pace": "À ton rythme",
+      "paceDesc": "Choisis tes exercices, ton niveau, et combien de temps tu veux t'entraîner.",
+      "progress": "Vois ta progression",
+      "progressDesc": "Badges, graphiques et statistiques pour célébrer chaque progrès."
+    },
+    "getStarted": {
+      "title": "Démarrer",
+      "step1": "Créer un compte",
+      "step1Desc": "Inscris-toi avec un nom d'utilisateur, ton email et un mot de passe. Pense à vérifier ton email.",
+      "step2": "Se connecter",
+      "step2Desc": "Une fois ton email vérifié, connecte-toi et explore !",
+      "step3": "Premier exercice",
+      "step3Desc": "Va dans Exercices ou Défis, choisis ce qui te plaît et lance-toi."
+    },
+    "using": {
+      "title": "Utiliser Mathakine",
+      "exercises": "Exercices",
+      "exercisesDesc": "Addition, soustraction, multiplication, division. Choisis une catégorie et un niveau (Padawan, Jedi, Maître), lance l'exercice, réponds et valide pour un feedback immédiat.",
+      "challenges": "Défis logiques",
+      "challengesDesc": "Patterns, énigmes, graphes… Choisis un type de défi, résous et valide pour voir le feedback. Générés par l'IA.",
+      "dashboard": "Tableau de bord",
+      "dashboardDesc": "Vois ta précision, ton activité et tes statistiques. Exporte en PDF ou Excel pour garder une trace de ta progression.",
+      "badges": "Badges",
+      "badgesDesc": "Débloque des badges en progressant. Chaque petit pas compte !"
+    },
+    "accessibility": {
+      "title": "Accessibilité",
+      "intro": "Mathakine propose des options pour s'adapter à tes besoins (contraste, texte, animations, mode Focus TSA/TDAH).",
+      "where": "Où les trouver ?",
+      "whereDesc": "Paramètres ou barre d'accessibilité : Alt+C (contraste), Alt+T (texte agrandi), Alt+M (animations réduites), Alt+D (dyslexie), Alt+F (Focus TSA/TDAH)."
+    },
+    "retention": {
+      "title": "Conseils pour garder la motivation",
+      "short": "Des sessions courtes",
+      "shortDesc": "5 à 15 minutes par jour, c'est déjà très bien. La régularité compte plus que la quantité.",
+      "celebrate": "Célèbre tes progrès",
+      "celebrateDesc": "Chaque badge, chaque exercice réussi est une victoire. Prends le temps de les savourer.",
+      "choose": "Choisis ce qui te plaît",
+      "chooseDesc": "Tu décides quoi faire. Les mathématiques deviennent plus faciles quand on s'amuse."
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "q1": "Comment créer un compte ?",
+      "a1": "Clique sur S'inscrire, remplis le formulaire, vérifie ton email puis connecte-toi.",
+      "q2": "Pas reçu l'email de vérification ?",
+      "a2": "Vérifie tes spams. Sinon, sur la page de vérification, clique sur « Pas reçu ? » pour en renvoyer un.",
+      "q3": "J'ai oublié mon mot de passe.",
+      "a3": "Sur la page Connexion, clique sur « Mot de passe oublié ? », indique ton email et tu recevras un lien de réinitialisation.",
+      "q4": "Où voir ma progression ?",
+      "a4": "Dans le Tableau de bord : graphiques, précision par catégorie et activité récente.",
+      "q5": "Comment choisir la difficulté ?",
+      "a5": "Lors du choix d'un exercice : Padawan (facile), Jedi (moyen), Maître (difficile).",
+      "q6": "Les défis sont-ils notés ?",
+      "a6": "Non. L'objectif est de s'entraîner et de progresser, pas d'être noté.",
+      "q7": "L'interface est trop chargée.",
+      "a7": "Paramètres ou Alt+F : active le Mode Focus (TSA/TDAH) ou réduis les animations (Alt+M).",
+      "q8": "Je préfère un thème sombre.",
+      "a8": "Paramètres → Thème : Clair / Sombre / Système.",
+      "q9": "L'app fonctionne hors ligne ?",
+      "a9": "Oui, en partie : installe Mathakine comme application (PWA) depuis ton navigateur pour l'utiliser hors ligne."
+    },
+    "cta": "Prêt à commencer ?",
+    "ctaExercises": "Voir les exercices",
+    "ctaChallenges": "Voir les défis",
+    "ctaRegister": "Créer un compte"
+  },
   "api": {
     "errors": {
       "sessionExpired": "Session expirée. Veuillez vous reconnecter.",

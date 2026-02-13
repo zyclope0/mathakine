@@ -1084,6 +1084,80 @@
       }
     }
   },
+  "docs": {
+    "title": "User Guide",
+    "subtitle": "Everything you need to get started",
+    "why": {
+      "title": "Why Mathakine?",
+      "intro": "Mathakine is designed so everyone can progress at their own pace, without pressure or grades.",
+      "safe": "A safe space",
+      "safeDesc": "No grades, no judgment. Every mistake is a step toward understanding.",
+      "pace": "At your own pace",
+      "paceDesc": "Choose your exercises, level, and how long you want to practice.",
+      "progress": "See your progress",
+      "progressDesc": "Badges, charts and stats to celebrate every improvement."
+    },
+    "getStarted": {
+      "title": "Get Started",
+      "step1": "Create an account",
+      "step1Desc": "Sign up with a username, email and password. Remember to verify your email.",
+      "step2": "Log in",
+      "step2Desc": "Once your email is verified, log in and explore!",
+      "step3": "First exercise",
+      "step3Desc": "Go to Exercises or Challenges, choose what appeals to you and start."
+    },
+    "using": {
+      "title": "Using Mathakine",
+      "exercises": "Exercises",
+      "exercisesDesc": "Addition, subtraction, multiplication, division. Pick a category and level (Padawan, Jedi, Master), start the exercise, answer and submit for instant feedback.",
+      "challenges": "Logic challenges",
+      "challengesDesc": "Patterns, puzzles, graphs… Pick a challenge type, solve it and submit to see the feedback. AI-generated.",
+      "dashboard": "Dashboard",
+      "dashboardDesc": "View your accuracy, activity and stats. Export to PDF or Excel to keep a record of your progress.",
+      "badges": "Badges",
+      "badgesDesc": "Unlock badges as you progress. Every little step counts!"
+    },
+    "accessibility": {
+      "title": "Accessibility",
+      "intro": "Mathakine offers options to suit your needs (contrast, text, animations, Focus TSA/ADHD mode).",
+      "where": "Where to find them?",
+      "whereDesc": "Settings or accessibility bar: Alt+C (contrast), Alt+T (larger text), Alt+M (reduced motion), Alt+D (dyslexia), Alt+F (Focus TSA/ADHD)."
+    },
+    "retention": {
+      "title": "Tips to stay motivated",
+      "short": "Short sessions",
+      "shortDesc": "5 to 15 minutes a day is already great. Consistency matters more than quantity.",
+      "celebrate": "Celebrate your progress",
+      "celebrateDesc": "Every badge, every completed exercise is a win. Take time to enjoy them.",
+      "choose": "Choose what you like",
+      "chooseDesc": "You decide what to do. Math becomes easier when you have fun."
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "q1": "How do I create an account?",
+      "a1": "Click Sign up, fill in the form, verify your email, then log in.",
+      "q2": "Didn't receive the verification email?",
+      "a2": "Check your spam. Otherwise, on the verification page, click “Not received?” to resend one.",
+      "q3": "I forgot my password.",
+      "a3": "On the Login page, click \"Forgot password?\", enter your email and you'll receive a reset link.",
+      "q4": "Where do I see my progress?",
+      "a4": "On the Dashboard: charts, accuracy by category and recent activity.",
+      "q5": "How do I choose the difficulty?",
+      "a5": "When choosing an exercise: Padawan (easy), Jedi (medium), Master (hard).",
+      "q6": "Are challenges graded?",
+      "a6": "No. The goal is to practice and progress, not to be graded.",
+      "q7": "The interface feels too cluttered.",
+      "a7": "Settings or Alt+F: enable Focus mode (TSA/ADHD) or reduce motion (Alt+M).",
+      "q8": "I prefer a dark theme.",
+      "a8": "Settings → Theme: Light / Dark / System.",
+      "q9": "Does the app work offline?",
+      "a9": "Yes, partially: install Mathakine as an app (PWA) from your browser to use it offline."
+    },
+    "cta": "Ready to start?",
+    "ctaExercises": "View exercises",
+    "ctaChallenges": "View challenges",
+    "ctaRegister": "Create an account"
+  },
   "api": {
     "errors": {
       "sessionExpired": "Session expired. Please log in again.",
