@@ -8,6 +8,7 @@ import { useThemeStore } from "@/lib/stores/themeStore";
 import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
 import { NextIntlProvider } from "./NextIntlProvider";
 import { AuthSyncProvider } from "./AuthSyncProvider";
+import { SentryInit } from "./SentryInit";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,6 +101,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <NextIntlProvider>
+      <SentryInit />
       <QueryClientProvider client={queryClient}>
         <AuthSyncProvider>{children}</AuthSyncProvider>
         <Toaster />

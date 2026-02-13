@@ -123,6 +123,10 @@ Pour avoir des stack traces lisibles en production (fichiers `.tsx` au lieu de `
    - En dev : pas de clé
    - En prod : définir `SENTRY_TEST_KEY` sur Render, puis `GET /api/sentry-test?key=TA_CLE`
 
+7. **Vérifier le DSN au build** : `GET https://mathakine.fun/api/sentry-status`
+   - Retourne `{ dsnPresent, nodeEnv, tunnelRoute }`
+   - Si `dsnPresent: false` → le DSN n’a pas été pris au build (vars sur le mauvais service ou rebuild nécessaire)
+
 ## Tester
 
 En production, déclencher une erreur de test :
