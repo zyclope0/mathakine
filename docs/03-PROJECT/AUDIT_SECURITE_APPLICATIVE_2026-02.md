@@ -242,12 +242,7 @@ Et documenter : « Ne jamais concaténer de données utilisateur dans `query`. U
 
 **Vecteur d'attaque :** Avec `SameSite=Lax`, les requêtes POST cross-site ne contiennent pas les cookies. Mais si `SameSite=None` est utilisé (cross-domain avec frontend séparé), ou en cas de sous-domaine partagé, un site tiers peut provoquer des actions au nom de l'utilisateur (ex. changement de mot de passe, suppression de compte).
 
-**Remédiation :**
-
-- Conserver `SameSite=Lax` ou `Strict` pour les cookies de session dès que possible.
-- Pour les API sensibles (changement de mot de passe, suppression de compte), implémenter un token CSRF :
-  - Le frontend récupère un token via `GET /api/auth/csrf`
-  - L'envoie dans le header `X-CSRF-Token` pour les requêtes modificatrices.
+**Remédiation :** ✅ **Implémenté** (13/02/2026) — Endpoint `GET /api/auth/csrf`, pattern double-submit. Protection reset-password, change-password, delete-account.
 
 ---
 
@@ -259,14 +254,7 @@ Et documenter : « Ne jamais concaténer de données utilisateur dans `query`. U
 
 **Vecteur d'attaque :** `DEFAULT_ADMIN_PASSWORD = "admin"` en fallback. Si un déploiement oublie de définir `DEFAULT_ADMIN_EMAIL` et `DEFAULT_ADMIN_PASSWORD`, un compte admin par défaut avec mot de passe trivial peut être exploité.
 
-**Remédiation :**
-
-```python
-DEFAULT_ADMIN_PASSWORD: str = os.getenv("DEFAULT_ADMIN_PASSWORD", "")
-# En production, exiger une valeur explicite
-if not DEFAULT_ADMIN_PASSWORD and os.getenv("ENVIRONMENT") == "production":
-    logger.warning("DEFAULT_ADMIN_PASSWORD non définie en production")
-```
+**Remédiation :** ✅ **Implémenté** (13/02/2026) — `raise ValueError` au démarrage si vide ou "admin" en prod (ENVIRONMENT=production).
 
 ---
 
@@ -375,19 +363,18 @@ async def api_login(request): ...
 | **1.1** Exposition des erreurs au client | ✅ Corrigé | `get_safe_error_message()` ajouté dans `error_handler.py`. Tous les handlers (user, challenge, exercise, chat, badge, recommendation) utilisent désormais ce helper. `ErrorHandler.create_error_response` n'expose plus traceback ni message technique en production (`ENVIRONMENT=production` ou hors `LOG_LEVEL=DEBUG`). |
 | **2.1** Injection de prompt (chat) | ✅ Corrigé | `chat_api` et `chat_api_stream` : `validate_prompt_safety()` + `sanitize_user_prompt()` appliqués au message utilisateur avant envoi à OpenAI. Patterns FR ajoutés dans `prompt_sanitizer.py` (oublie tout, tu es maintenant, réponds uniquement…). Historique limité à 20 messages. |
 | **2.2** Mot de passe reset faible (6 car.) | ✅ Corrigé | `api_reset_password` : critères alignés sur la création de compte (8 caractères min, 1 chiffre, 1 majuscule). |
-| **3.3** DEFAULT_ADMIN_PASSWORD | ✅ Corrigé | Warning ajouté dans `validate_production_settings()` si non définie ou égale à "admin" en production. |
+| **3.3** DEFAULT_ADMIN_PASSWORD | ✅ Corrigé | `raise ValueError` au démarrage si vide ou "admin" en prod (ENVIRONMENT=production). Obligatoire sur Render. |
 | **4.1** Logging de données sensibles | ✅ Corrigé | Suppression du log `user.hashed_password` dans `auth_service.authenticate_user`. |
 | **1.2** Route sync-cookie sans validation | ✅ Corrigé | Endpoint backend `POST /api/auth/validate-token` ajouté. La route sync-cookie appelle désormais ce endpoint pour valider la signature et l'expiration du token avant de le poser en cookie. Protection contre session hijacking. |
 | **2.3** SECRET_KEY auto-générée | ✅ Corrigé | `raise ValueError` au démarrage si SECRET_KEY vide et ENVIRONMENT=production (sauf TESTING=true). Dev/tests : génération auto + warning. |
+| **3.2** Protection CSRF | ✅ Corrigé | Endpoint GET /api/auth/csrf (pattern double-submit). Protection reset-password, change-password, delete-account. Désactivé en TESTING. |
+| **3.3** DEFAULT_ADMIN_PASSWORD | ✅ Corrigé | `raise ValueError` au démarrage si vide ou "admin" en prod. Obligatoire sur Render. |
 
 ### Corrections en attente (complexité / risque plus élevé)
 
 | Faille | Statut | Raison |
 |--------|--------|--------|
 | **3.1** DatabaseAdapter.execute_query | ⏳ En attente | Changement de signature (Tuple → dict) pourrait casser des appelants. Vérifier usages avant migration. |
-| **3.2** Protection CSRF | ⏳ En attente | Implémentation middleware + endpoint dédié. |
-| **3.4** Rate limiting | ✅ Corrigé | Décorateurs `rate_limit_auth` (5 req/min) sur login, forgot-password et `rate_limit_register` (3 req/min) sur POST /api/users/. Désactivé en mode TESTING. |
-| **4.2** CORS allow_headers | ✅ Corrigé | `allow_headers` restreint à `Content-Type`, `Authorization`, `Accept`, `Accept-Language` (audit frontend : client.ts, chat.ts). Testé : challenges, exercises, flux SSE OK. |
 
 ### Fichiers modifiés
 
@@ -396,7 +383,7 @@ async def api_login(request): ...
 - `server/middleware.py` — validate-token en route publique
 - `frontend/app/api/auth/sync-cookie/route.ts` — Appel validate-token avant Set-Cookie
 - `app/utils/rate_limit.py` — Décorateurs rate_limit_auth, rate_limit_register
-- `app/core/config.py` — Warning DEFAULT_ADMIN_PASSWORD
+- `app/core/config.py` — Blocage SECRET_KEY (2.3), DEFAULT_ADMIN_PASSWORD (3.3)
 - `app/utils/error_handler.py` — `get_safe_error_message()`, durcissement `create_error_response`
 - `app/services/auth_service.py` — Suppression log hashed_password
 - `server/handlers/auth_handlers.py` — Critères mot de passe reset
@@ -406,8 +393,15 @@ async def api_login(request): ...
 - `server/handlers/exercise_handlers.py` — Messages d'erreur sécurisés
 - `server/handlers/badge_handlers.py` — Messages d'erreur sécurisés
 - `server/handlers/recommendation_handlers.py` — Messages d'erreur sécurisés
-- `server/middleware.py` — `allow_headers` restreint (4.2)
-- `app/core/config.py` — Blocage démarrage si SECRET_KEY vide en prod (2.3)
+- `server/middleware.py` — `allow_headers` restreint (4.2), X-CSRF-Token, route csrf publique
+- `app/utils/csrf.py` — Validation token double-submit (3.2)
+- `server/handlers/auth_handlers.py` — api_get_csrf_token, CSRF sur reset-password
+- `server/handlers/user_handlers.py` — CSRF sur change-password, delete-account
+- `frontend/lib/api/client.ts` — getCsrfToken()
+- `frontend/hooks/useProfile.ts` — X-CSRF-Token sur changement mot de passe
+- `frontend/hooks/useSettings.ts` — X-CSRF-Token sur suppression compte
+- `frontend/app/reset-password/page.tsx` — CSRF sur reset-password
+- `app/services/email_service.py` — Envoi simulé en TESTING (tests auth)
 
 ---
 
@@ -427,7 +421,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 
 | # | Faille | Bénéfice | Risque | Priorité |
 |---|--------|----------|--------|----------|
-| 4 | **3.2 CSRF** | Protège les actions sensibles (reset password, suppression compte) contre les requêtes cross-site si SameSite ou domaine changent. | Moyen — implémentation middleware + endpoint CSRF + adaptation frontend. Avec SameSite=Lax, exposition actuelle limitée. | **P2** |
+| 4 | **3.2 CSRF** | ~~Protège les actions sensibles~~ ✅ **FAIT** (13/02/2026) | — | ~~P2~~ |
 | 5 | **4.2 CORS allow_headers** | ~~Réduit la surface d'attaque~~ ✅ **FAIT** (13/02/2026) | — | ~~P2~~ |
 
 ### P3 — Priorité basse (durcissement, impact limité à court terme)
@@ -435,7 +429,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 | # | Faille | Bénéfice | Risque | Priorité |
 |---|--------|----------|--------|----------|
 | 6 | **3.1 execute_query** | Force l’usage de paramètres nommés, réduit le risque d’injection SQL par mauvaise utilisation. | Moyen — changement de signature (Tuple → dict) peut casser des appelants. Audit des usages nécessaire avant modification. | **P3** |
-| 7 | **3.3 DEFAULT_ADMIN_PASSWORD** | Évite un compte admin par défaut exploitable si mal configuré. | Très faible — warning déjà en place. Renforcer vers un refus de création du compte admin si mot de passe = "admin" en prod. | **P3** |
+| 7 | **3.3 DEFAULT_ADMIN_PASSWORD** | ~~Évite un compte admin exploitable~~ ✅ **FAIT** (13/02/2026) | — | ~~P3~~ |
 
 ### Ordre d’implémentation recommandé
 
@@ -443,9 +437,9 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 2. ~~**3.4 Rate limiting**~~ — ✅ **FAIT** (13/02/2026)
 3. ~~**4.2 CORS allow_headers**~~ — ✅ **FAIT** (13/02/2026)
 4. ~~**2.3 SECRET_KEY**~~ — ✅ **FAIT** (13/02/2026)
-5. **3.2 CSRF** — Si évolution vers SameSite=None ou domaine cross-origin
+5. ~~**3.2 CSRF**~~ — ✅ **FAIT** (13/02/2026)
 6. **3.1 execute_query** — Après inventaire des usages de `execute_query`
-7. **3.3 DEFAULT_ADMIN_PASSWORD** — Durcissement optionnel
+7. ~~**3.3 DEFAULT_ADMIN_PASSWORD**~~ — ✅ **FAIT** (13/02/2026)
 
 ---
 
@@ -456,7 +450,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 | 1 | ~~**3.4 Rate limiting**~~ — ✅ FAIT | — | — |
 | 2 | ~~**4.2 CORS allow_headers**~~ — ✅ FAIT (13/02/2026) | — | — |
 | 3 | ~~**2.3 SECRET_KEY**~~ — ✅ FAIT (13/02/2026) | — | — |
-| 4 | **3.2 CSRF** — Si besoin (SameSite=None ou évolution cross-origin) | ~3 h | Moyen |
+| 4 | ~~**3.2 CSRF**~~ — ✅ FAIT (13/02/2026) | — | — |
 | 5 | **3.1 execute_query** — Audit des usages avant migration Tuple → dict | ~2 h | Moyen |
 
 **Validation sync-cookie (1.2) :** ✅ Testé en dev et prod (login → validate-token → sync-cookie).
@@ -466,6 +460,10 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 **Validation CORS (4.2) :** ✅ 23 tests passés après modification. Navigation manuelle : challenges, exercises, flux SSE AI — aucune erreur CORS en console. Headers autorisés : Content-Type, Authorization, Accept, Accept-Language.
 
 **Validation SECRET_KEY (2.3) :** ✅ En prod sans SECRET_KEY → `ValueError` au démarrage. En dev/tests (TESTING=true ou ENVIRONMENT≠production) → génération auto OK. S'assurer que Render définit `SECRET_KEY` avant déploiement.
+
+**Validation CSRF (3.2) :** ✅ Endpoint GET /api/auth/csrf. Protection reset-password, change-password, delete-account. Désactivé en TESTING. 18 tests auth passés. Déploiement prod OK.
+
+**Validation DEFAULT_ADMIN_PASSWORD (3.3) :** ✅ En prod sans `DEFAULT_ADMIN_PASSWORD` ou égale à "admin" → `ValueError` au démarrage. Variable obligatoire sur Render.
 
 ---
 
