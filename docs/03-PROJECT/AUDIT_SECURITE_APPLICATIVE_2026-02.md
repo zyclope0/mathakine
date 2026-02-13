@@ -352,7 +352,7 @@ async def api_login(request): ...
 
 **Vecteur d'attaque :** `allow_headers=["*"]` autorise tout header. En soi moins critique avec des origines restreintes, mais élargit la surface d'attaque pour des headers personnalisés.
 
-**Remédiation :** Limiter aux headers nécessaires : `allow_headers=["Content-Type", "Authorization", "Accept"]`.
+**Remédiation :** Limiter aux headers nécessaires. ✅ **Implémenté** : `allow_headers=["Content-Type", "Authorization", "Accept", "Accept-Language"]` (13/02/2026).
 
 ---
 
@@ -405,7 +405,7 @@ async def api_login(request): ...
 | **3.1** DatabaseAdapter.execute_query | ⏳ En attente | Changement de signature (Tuple → dict) pourrait casser des appelants. Vérifier usages avant migration. |
 | **3.2** Protection CSRF | ⏳ En attente | Implémentation middleware + endpoint dédié. |
 | **3.4** Rate limiting | ✅ Corrigé | Décorateurs `rate_limit_auth` (5 req/min) sur login, forgot-password et `rate_limit_register` (3 req/min) sur POST /api/users/. Désactivé en mode TESTING. |
-| **4.2** CORS allow_headers | ⏳ En attente | Restreindre pourrait casser des requêtes. Auditer les headers utilisés par le frontend. |
+| **4.2** CORS allow_headers | ✅ Corrigé | `allow_headers` restreint à `Content-Type`, `Authorization`, `Accept`, `Accept-Language` (audit frontend : client.ts, chat.ts). Testé : challenges, exercises, flux SSE OK. |
 
 ### Fichiers modifiés
 
@@ -424,6 +424,7 @@ async def api_login(request): ...
 - `server/handlers/exercise_handlers.py` — Messages d'erreur sécurisés
 - `server/handlers/badge_handlers.py` — Messages d'erreur sécurisés
 - `server/handlers/recommendation_handlers.py` — Messages d'erreur sécurisés
+- `server/middleware.py` — `allow_headers` restreint (4.2)
 
 ---
 
@@ -444,7 +445,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 | # | Faille | Bénéfice | Risque | Priorité |
 |---|--------|----------|--------|----------|
 | 4 | **3.2 CSRF** | Protège les actions sensibles (reset password, suppression compte) contre les requêtes cross-site si SameSite ou domaine changent. | Moyen — implémentation middleware + endpoint CSRF + adaptation frontend. Avec SameSite=Lax, exposition actuelle limitée. | **P2** |
-| 5 | **4.2 CORS allow_headers** | Réduit la surface d'attaque en n'autorisant que les headers nécessaires. | Faible — audit des headers utilisés (Content-Type, Authorization, Accept, X-Requested-With ?) requis pour éviter de casser des appels. | **P2** |
+| 5 | **4.2 CORS allow_headers** | ~~Réduit la surface d'attaque~~ ✅ **FAIT** (13/02/2026) | — | ~~P2~~ |
 
 ### P3 — Priorité basse (durcissement, impact limité à court terme)
 
@@ -457,7 +458,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 
 1. ~~**1.2 sync-cookie**~~ — ✅ **FAIT** (13/02/2026)
 2. ~~**3.4 Rate limiting**~~ — ✅ **FAIT** (13/02/2026)
-3. **4.2 CORS allow_headers** — Effort très faible (~30 min) après audit des headers
+3. ~~**4.2 CORS allow_headers**~~ — ✅ **FAIT** (13/02/2026)
 4. **2.3 SECRET_KEY** — À traiter après vérification que Render/prod définit bien SECRET_KEY
 5. **3.2 CSRF** — Si évolution vers SameSite=None ou domaine cross-origin
 6. **3.1 execute_query** — Après inventaire des usages de `execute_query`
@@ -470,7 +471,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 | # | Action | Effort | Criticité |
 |---|--------|--------|-----------|
 | 1 | ~~**3.4 Rate limiting**~~ — ✅ FAIT | — | — |
-| 2 | **4.2 CORS allow_headers** — Restreindre à Content-Type, Authorization, Accept | ~30 min | Faible |
+| 2 | ~~**4.2 CORS allow_headers**~~ — ✅ FAIT (13/02/2026) | — | — |
 | 3 | **2.3 SECRET_KEY** — Vérifier que Render définit SECRET_KEY, puis `raise` si vide en prod | ~30 min | Élevé |
 | 4 | **3.2 CSRF** — Si besoin (SameSite=None ou évolution cross-origin) | ~3 h | Moyen |
 | 5 | **3.1 execute_query** — Audit des usages avant migration Tuple → dict | ~2 h | Moyen |
@@ -478,6 +479,8 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 **Validation sync-cookie (1.2) :** ✅ Testé en dev et prod (login → validate-token → sync-cookie).
 
 **Validation rate limiting (3.4) :** ✅ 31 tests passés (auth_flow, user_endpoints, auth_cookies_only). Pas d'effet de bord sur les flux normaux.
+
+**Validation CORS (4.2) :** ✅ 23 tests passés après modification. Navigation manuelle : challenges, exercises, flux SSE AI — aucune erreur CORS en console. Headers autorisés : Content-Type, Authorization, Accept, Accept-Language.
 
 ---
 

@@ -130,7 +130,13 @@ def get_middleware() -> List[Middleware]:
             CORSMiddleware,
             allow_origins=allowed_origins,
             allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-            allow_headers=["*"],
+            # Audit 4.2: restreindre aux headers utilisés par le frontend
+            allow_headers=[
+                "Content-Type",
+                "Authorization",
+                "Accept",
+                "Accept-Language",
+            ],
             allow_credentials=True,  # Important pour les cookies HTTP-only
         ),
         Middleware(AuthenticationMiddleware)
