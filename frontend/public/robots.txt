@@ -1,0 +1,3 @@
+# Mathakine - Version Alpha
+User-agent: *
+Disallow: /

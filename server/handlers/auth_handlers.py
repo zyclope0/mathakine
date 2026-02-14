@@ -446,8 +446,12 @@ async def api_refresh_token(request: Request):
             
             logger.info("Token rafraîchi avec succès")
             
-            # Créer la réponse avec le nouveau token
-            response = JSONResponse(new_token_data, status_code=200)
+            # refresh_token UNIQUEMENT en cookie (HttpOnly) — jamais dans le body (sécurité XSS)
+            response_data = {
+                "access_token": new_token_data.get("access_token"),
+                "token_type": new_token_data.get("token_type", "bearer"),
+            }
+            response = JSONResponse(response_data, status_code=200)
             
             # Déterminer la configuration des cookies selon l'environnement
             # En production (cross-domain), utiliser SameSite=None et Secure=True
@@ -499,14 +503,6 @@ async def api_refresh_token(request: Request):
                     secure=cookie_secure
                 )
                 logger.debug(f"Cookie refresh_token roté (SameSite={cookie_samesite}, Secure={cookie_secure})")
-            
-            # refresh_token UNIQUEMENT en cookie (HttpOnly) — jamais dans le body (sécurité XSS)
-            response_data = {
-                "access_token": new_token_data.get("access_token"),
-                "token_type": new_token_data.get("token_type", "bearer"),
-            }
-            import json
-            response.body = json.dumps(response_data).encode('utf-8')
             
             return response
             

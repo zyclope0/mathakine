@@ -64,6 +64,11 @@ from server.handlers.user_handlers import (create_user_account, get_all_users,
                                            revoke_user_session)
 
 
+async def health_handler(request):
+    """GET /health - Health check pour Render et load balancers."""
+    return PlainTextResponse("ok", status_code=200)
+
+
 async def robots_txt(request):
     """robots.txt - évite les 404 des crawlers sur le backend."""
     return PlainTextResponse(
@@ -83,6 +88,7 @@ def get_routes() -> List:
     Retourne la liste des routes API JSON pour le backend Starlette.
     """
     return [
+        Route("/health", endpoint=health_handler, methods=["GET"]),
         Route("/robots.txt", endpoint=robots_txt, methods=["GET"]),
         Route("/metrics", endpoint=metrics_handler, methods=["GET"]),
         # ========================================

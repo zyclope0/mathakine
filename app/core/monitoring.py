@@ -54,8 +54,8 @@ def init_monitoring() -> bool:
     global HTTP_REQUESTS_TOTAL, HTTP_REQUEST_DURATION
     initialized = False
 
-    # 1. Sentry — erreurs et APM
-    sentry_dsn = os.getenv("SENTRY_DSN", "").strip()
+    # 1. Sentry — erreurs et APM (SENTRY_DSN ou fallback NEXT_PUBLIC_SENTRY_DSN)
+    sentry_dsn = (os.getenv("SENTRY_DSN") or os.getenv("NEXT_PUBLIC_SENTRY_DSN") or "").strip()
     testing = os.getenv("TESTING", "false").lower() == "true"
 
     if sentry_dsn and not testing:

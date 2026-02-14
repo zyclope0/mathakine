@@ -10,6 +10,7 @@ from starlette.responses import JSONResponse, StreamingResponse
 from app.core.config import settings
 from app.core.logging_config import get_logger
 from app.utils.error_handler import get_safe_error_message
+from app.utils.rate_limit import rate_limit_chat
 
 logger = get_logger(__name__)
 
@@ -131,6 +132,7 @@ Ton rôle est d'être un guide bienveillant. Tu dois engager les utilisateurs av
 """
 
 
+@rate_limit_chat
 async def chat_api(request):
     """
     Endpoint API pour le chatbot
@@ -307,6 +309,7 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
         )
 
 
+@rate_limit_chat
 async def chat_api_stream(request):
     """
     Endpoint API pour le chatbot avec streaming SSE.

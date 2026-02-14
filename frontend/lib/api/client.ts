@@ -240,6 +240,20 @@ export async function apiRequest<T>(
       errorMessage = error.message;
     }
 
+    // Toast API injoignable (débrayé pour éviter spam)
+    if (typeof window !== "undefined") {
+      const now = Date.now();
+      const last = (globalThis as { __lastApiUnreachableToast?: number }).__lastApiUnreachableToast ?? 0;
+      if (now - last > 15000) {
+        (globalThis as { __lastApiUnreachableToast?: number }).__lastApiUnreachableToast = now;
+        import("sonner").then(({ toast }) => {
+          toast.error("Service temporairement indisponible. Réessayez dans quelques instants.", {
+            duration: 5000,
+          });
+        });
+      }
+    }
+
     throw new ApiClientError(errorMessage, 0, { originalError: error, url });
   }
 }

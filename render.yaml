@@ -29,6 +29,8 @@ services:
         value: https://mathakine-frontend.onrender.com
       - key: OPENAI_API_KEY
         sync: false  # À définir manuellement dans le dashboard Render
+      - key: NEXT_PUBLIC_SENTRY_DSN
+        sync: false  # Même DSN que frontend — erreurs backend vers Sentry
     healthCheckPath: /health
     autoDeploy: true
 

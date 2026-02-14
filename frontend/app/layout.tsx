@@ -20,13 +20,13 @@ const exo2 = Exo_2({
 
 // Déterminer l'URL de base selon l'environnement
 const getMetadataBase = (): string => {
-  // En production, utiliser l'URL de production
   if (process.env.NODE_ENV === "production") {
     return process.env.NEXT_PUBLIC_SITE_URL || "https://mathakine-frontend.onrender.com";
   }
-  // En développement, utiliser localhost ou l'URL spécifiée
   return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 };
+
+const SITE_URL = getMetadataBase();
 
 export const metadata: Metadata = {
   metadataBase: new URL(getMetadataBase()),
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    url: "https://mathakine.onrender.com",
+    url: SITE_URL,
     title: "Mathakine - Apprentissage Mathématique Adaptatif",
     description:
       "Plateforme éducative mathématique adaptative pour enfants de 5 à 20 ans. Exercices personnalisés, défis logiques et gamification.",
@@ -100,7 +100,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://mathakine.onrender.com",
+    canonical: SITE_URL,
   },
 };
 
