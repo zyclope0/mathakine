@@ -16,6 +16,7 @@ from app.core.messages import SystemMessages
 from app.models.exercise import ExerciseType
 # Import du service de badges
 from app.services.badge_service import BadgeService
+from app.utils.db_utils import db_session
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.utils.error_handler import ErrorHandler, get_safe_error_message
 from server.auth import require_auth, optional_auth, require_auth_sse
@@ -23,11 +24,6 @@ from server.exercise_generator import (ensure_explanation,
                                        generate_ai_exercise,
                                        generate_simple_exercise)
 
-
-# Fonction pour obtenir une session de base de données
-def get_session():
-    """Récupère une session de base de données via l'adaptateur"""
-    return EnhancedServerAdapter.get_db_session()
 
 async def generate_exercise(request):
     """Génère un nouvel exercice en utilisant le groupe d'âge."""
@@ -57,8 +53,7 @@ async def generate_exercise(request):
         accept_language = request.headers.get("Accept-Language")
         locale = parse_accept_language(accept_language) or "fr"
         
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             # Sauvegarder l'exercice avec age_group et la difficulté dérivée
             created_exercise = EnhancedServerAdapter.create_generated_exercise(
                 db=db,
@@ -87,8 +82,6 @@ async def generate_exercise(request):
                     "error": "Erreur de génération",
                     "message": "Impossible de créer l'exercice dans la base de données."
                 }, status_code=500)
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
         return RedirectResponse(url="/exercises?generated=true", status_code=303)
     except Exception as exercise_generation_error:
         logger.error(f"Erreur lors de la génération d'exercice: {exercise_generation_error}")
@@ -111,8 +104,7 @@ async def get_exercise(request):
         locale = parse_accept_language(accept_language) or "fr"
         
         # Utiliser le service ORM ExerciseService
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             import json as json_module
 
             from app.models.exercise import Exercise
@@ -165,8 +157,6 @@ async def get_exercise(request):
                 "tags": safe_parse_json(exercise_row.tags, []),
                 "ai_generated": exercise_row.ai_generated or False
             }
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
         
         if not exercise:
             return JSONResponse({"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404)
@@ -208,16 +198,15 @@ async def submit_answer(request):
         accept_language = request.headers.get("Accept-Language")
         locale = parse_accept_language(accept_language) or "fr"
         
-        # Utiliser le service ORM ExerciseService
-        db_exercise = EnhancedServerAdapter.get_db_session()
-        try:
+        # Utiliser le service ORM ExerciseService (une seule session pour lecture + tentative + badges)
+        async with db_session() as db:
             from sqlalchemy import String, cast
 
             from app.models.exercise import (DifficultyLevel, Exercise,
                                              ExerciseType)
 
             # IMPORTANT: Charger les enums en tant que strings pour éviter les erreurs de conversion
-            exercise_row = db_exercise.query(
+            exercise_row = db.query(
                 Exercise.id,
                 Exercise.question,
                 Exercise.correct_answer,
@@ -243,148 +232,137 @@ async def submit_answer(request):
                 "question": exercise_row.question,
                 "explanation": exercise_row.explanation
             }
-        finally:
-            EnhancedServerAdapter.close_db_session(db_exercise)
 
-        # Déterminer si la réponse est correcte
-        is_correct = False
-        
-        # Vérifier que correct_answer existe
-        correct_answer = exercise.get('correct_answer')
-        if not correct_answer:
-            logger.error(f"ERREUR: L'exercice {exercise_id} n'a pas de correct_answer")
-            return ErrorHandler.create_error_response(
-                ValueError("L'exercice n'a pas de réponse correcte définie"),
-                status_code=500,
-                user_message="L'exercice n'a pas de réponse correcte définie."
-            )
-        
-        # Types d'exercices qui devraient avoir une comparaison insensible à la casse
-        text_based_types = [ExerciseType.TEXTE.value, ExerciseType.MIXTE.value]
-        exercise_type = exercise.get('exercise_type', '')
-        
-        # Pour les types de questions textuelles, la comparaison est insensible à la casse
-        if exercise_type in text_based_types:
-            is_correct = str(selected_answer).lower().strip() == str(correct_answer).lower().strip()
-        else:
-            # Pour les questions numériques et autres, comparaison stricte
-            is_correct = str(selected_answer).strip() == str(correct_answer).strip()
+            # Déterminer si la réponse est correcte
+            is_correct = False
             
-        logger.debug(f"Réponse correcte? {is_correct} (selected: '{selected_answer}', correct: '{correct_answer}')")
-
-        # Enregistrer la tentative avec PostgreSQL direct
-        db_attempt = EnhancedServerAdapter.get_db_session()
-        try:
-            # Préparer les données de la tentative
-            attempt_data = {
-                "user_id": user_id,
-                "exercise_id": exercise_id,
-                "user_answer": selected_answer,
-                "is_correct": is_correct,
-                "time_spent": time_spent
-            }
+            # Vérifier que correct_answer existe
+            correct_answer = exercise.get('correct_answer')
+            if not correct_answer:
+                logger.error(f"ERREUR: L'exercice {exercise_id} n'a pas de correct_answer")
+                return ErrorHandler.create_error_response(
+                    ValueError("L'exercice n'a pas de réponse correcte définie"),
+                    status_code=500,
+                    user_message="L'exercice n'a pas de réponse correcte définie."
+                )
             
-            logger.debug(f"Tentative d'enregistrement avec attempt_data: {attempt_data}")
-            # Utiliser le service ORM ExerciseService.record_attempt
-            from app.services.exercise_service import ExerciseService
-            attempt_obj = ExerciseService.record_attempt(db_attempt, attempt_data)
-            logger.debug(f"Résultat de record_attempt: {attempt_obj}")
+            # Types d'exercices qui devraient avoir une comparaison insensible à la casse
+            text_based_types = [ExerciseType.TEXTE.value, ExerciseType.MIXTE.value]
+            exercise_type_str = exercise.get('exercise_type', '')
             
-            # Convertir l'objet Attempt en dictionnaire pour la réponse
-            if attempt_obj:
-                attempt = {
-                    "id": attempt_obj.id,
-                    "user_id": attempt_obj.user_id,
-                    "exercise_id": attempt_obj.exercise_id,
-                    "user_answer": attempt_obj.user_answer,
-                    "is_correct": attempt_obj.is_correct,
-                    "time_spent": attempt_obj.time_spent,
-                    "created_at": attempt_obj.created_at.isoformat() if attempt_obj.created_at else None
-                }
+            # Pour les types de questions textuelles, la comparaison est insensible à la casse
+            if exercise_type_str in text_based_types:
+                is_correct = str(selected_answer).lower().strip() == str(correct_answer).lower().strip()
             else:
-                attempt = None
+                # Pour les questions numériques et autres, comparaison stricte
+                is_correct = str(selected_answer).strip() == str(correct_answer).strip()
+                
+            logger.debug(f"Réponse correcte? {is_correct} (selected: '{selected_answer}', correct: '{correct_answer}')")
+
+            # Enregistrer la tentative avec PostgreSQL direct
+            try:
+                # Préparer les données de la tentative
+                attempt_data = {
+                    "user_id": user_id,
+                    "exercise_id": exercise_id,
+                    "user_answer": selected_answer,
+                    "is_correct": is_correct,
+                    "time_spent": time_spent
+                }
+                
+                logger.debug(f"Tentative d'enregistrement avec attempt_data: {attempt_data}")
+                # Utiliser le service ORM ExerciseService.record_attempt
+                from app.services.exercise_service import ExerciseService
+                attempt_obj = ExerciseService.record_attempt(db, attempt_data)
+                logger.debug(f"Résultat de record_attempt: {attempt_obj}")
+                
+                # Convertir l'objet Attempt en dictionnaire pour la réponse
+                if attempt_obj:
+                    attempt = {
+                        "id": attempt_obj.id,
+                        "user_id": attempt_obj.user_id,
+                        "exercise_id": attempt_obj.exercise_id,
+                        "user_answer": attempt_obj.user_answer,
+                        "is_correct": attempt_obj.is_correct,
+                        "time_spent": attempt_obj.time_spent,
+                        "created_at": attempt_obj.created_at.isoformat() if attempt_obj.created_at else None
+                    }
+                else:
+                    attempt = None
+                
+                if not attempt:
+                    logger.error("ERREUR: La tentative n'a pas été enregistrée correctement")
+                    return JSONResponse({
+                        "is_correct": is_correct,
+                        "correct_answer": correct_answer,
+                        "explanation": exercise.get('explanation', ""),
+                        "error": "Erreur lors de l'enregistrement de la tentative"
+                    }, status_code=500)
+                
+                logger.info("Tentative enregistrée avec succès")
+
+                # 🎖️ NOUVEAU: Vérifier et attribuer les badges (même session)
+                new_badges = []
+                try:
+                    badge_service = BadgeService(db)
+                
+                    # Préparer les données de la tentative pour l'évaluation des badges
+                    attempt_for_badges = {
+                        "exercise_type": exercise.get('exercise_type'),
+                        "is_correct": is_correct,
+                        "time_spent": time_spent,
+                        "exercise_id": exercise_id
+                    }
+                    
+                    # Vérifier et attribuer les nouveaux badges
+                    new_badges = badge_service.check_and_award_badges(user_id, attempt_for_badges)
+                
+                    if new_badges:
+                        logger.info(f"🎖️ {len(new_badges)} nouveaux badges attribués à l'utilisateur {user_id}")
+                        for badge in new_badges:
+                            logger.debug(f"   - {badge['name']} ({badge['star_wars_title']})")
+                    
+                except Exception as badge_error:
+                    logger.warning(f"⚠️ Erreur lors de la vérification des badges: {badge_error}")
+                    logger.debug(traceback.format_exc())
+                    # Ne pas faire échouer la soumission si les badges échouent
+
+                # Retourner le résultat avec l'ID de tentative et les nouveaux badges
+                from app.utils.json_utils import make_json_serializable
+                
+                response_data = {
+                    "is_correct": is_correct,
+                    "correct_answer": correct_answer,
+                    "explanation": exercise.get('explanation', ""),
+                    "attempt_id": attempt.get('id') if attempt else None
+                }
+                
+                # Ajouter les nouveaux badges à la réponse (nettoyer pour sérialisation JSON)
+                if new_badges:
+                    response_data["new_badges"] = make_json_serializable(new_badges)
+                    response_data["badges_earned"] = len(new_badges)
+                
+                # Nettoyer toutes les données avant sérialisation JSON (gère les MagicMock dans les tests)
+                response_data = make_json_serializable(response_data)
+                
+                return JSONResponse(response_data)
             
-            if not attempt:
-                logger.error("ERREUR: La tentative n'a pas été enregistrée correctement")
+            except Exception as db_error:
+                # Gérer les erreurs spécifiques à la base de données
+                error_msg = str(db_error)
+                error_type = type(db_error).__name__
+                logger.error(f"❌ ERREUR DB lors de l'enregistrement: {error_type}: {error_msg}")
+                logger.debug(traceback.format_exc())
+                
+                # Retourner quand même le résultat de validation même si l'enregistrement échoue
                 return JSONResponse({
                     "is_correct": is_correct,
                     "correct_answer": correct_answer,
                     "explanation": exercise.get('explanation', ""),
-                    "error": "Erreur lors de l'enregistrement de la tentative"
+                    "error": "Erreur lors de l'enregistrement de la tentative",
+                    "error_type": error_type,
+                    "error_message": error_msg
                 }, status_code=500)
-                
-            logger.info("Tentative enregistrée avec succès")
-
-            # 🎖️ NOUVEAU: Vérifier et attribuer les badges
-            new_badges = []
-            db_badges = None
-            try:
-                # Obtenir une session SQLAlchemy uniquement pour BadgeService (si nécessaire)
-                db_badges = EnhancedServerAdapter.get_db_session()
-                badge_service = BadgeService(db_badges)
-                
-                # Préparer les données de la tentative pour l'évaluation des badges
-                attempt_for_badges = {
-                    "exercise_type": exercise.get('exercise_type'),
-                    "is_correct": is_correct,
-                    "time_spent": time_spent,
-                    "exercise_id": exercise_id
-                }
-                
-                # Vérifier et attribuer les nouveaux badges
-                new_badges = badge_service.check_and_award_badges(user_id, attempt_for_badges)
-                
-                if new_badges:
-                    logger.info(f"🎖️ {len(new_badges)} nouveaux badges attribués à l'utilisateur {user_id}")
-                    for badge in new_badges:
-                        logger.debug(f"   - {badge['name']} ({badge['star_wars_title']})")
-                
-            except Exception as badge_error:
-                logger.warning(f"⚠️ Erreur lors de la vérification des badges: {badge_error}")
-                logger.debug(traceback.format_exc())
-                # Ne pas faire échouer la soumission si les badges échouent
-            finally:
-                if db_badges:
-                    EnhancedServerAdapter.close_db_session(db_badges)
-
-            # Retourner le résultat avec l'ID de tentative et les nouveaux badges
-            from app.utils.json_utils import make_json_serializable
-            
-            response_data = {
-                "is_correct": is_correct,
-                "correct_answer": correct_answer,
-                "explanation": exercise.get('explanation', ""),
-                "attempt_id": attempt.get('id') if attempt else None
-            }
-            
-            # Ajouter les nouveaux badges à la réponse (nettoyer pour sérialisation JSON)
-            if new_badges:
-                response_data["new_badges"] = make_json_serializable(new_badges)
-                response_data["badges_earned"] = len(new_badges)
-            
-            # Nettoyer toutes les données avant sérialisation JSON (gère les MagicMock dans les tests)
-            response_data = make_json_serializable(response_data)
-            
-            return JSONResponse(response_data)
-            
-        except Exception as db_error:
-            # Gérer les erreurs spécifiques à la base de données
-            error_msg = str(db_error)
-            error_type = type(db_error).__name__
-            logger.error(f"❌ ERREUR DB lors de l'enregistrement: {error_type}: {error_msg}")
-            logger.debug(traceback.format_exc())
-            
-            # Retourner quand même le résultat de validation même si l'enregistrement échoue
-            return JSONResponse({
-                "is_correct": is_correct,
-                "correct_answer": correct_answer,
-                "explanation": exercise.get('explanation', ""),
-                "error": "Erreur lors de l'enregistrement de la tentative",
-                "error_type": error_type,
-                "error_message": error_msg
-            }, status_code=500)
-        finally:
-            EnhancedServerAdapter.close_db_session(db_attempt)
 
     except Exception as response_processing_error:
         logger.error(f"❌ ERREUR lors du traitement de la réponse: {type(response_processing_error).__name__}: {str(response_processing_error)}")
@@ -436,9 +414,8 @@ async def get_exercises_list(request):
         logger.debug(f"[STEP 4] API - Paramètres finaux: limit={limit}, skip={skip}, page={page}, exercise_type={exercise_type}, age_group={age_group}, search={search}, locale={locale}")
         
         # Utiliser le service ORM ExerciseService (100% ORM comme recommandé par l'audit)
-        db = EnhancedServerAdapter.get_db_session()
-        logger.debug("[STEP 5] Session DB obtenue")
-        try:
+        async with db_session() as db:
+            logger.debug("[STEP 5] Session DB obtenue")
             logger.debug("[STEP 6] Début du bloc try DB")
             from sqlalchemy import String, cast, or_, text
 
@@ -545,8 +522,6 @@ async def get_exercises_list(request):
                     logger.error(f"[STEP 12.{idx}] ERROR processing row: {row_error}")
                     raise
             logger.debug(f"[STEP 13] Liste d'exercices construite: {len(exercises)} éléments")
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
 
         has_more = (skip + len(exercises)) < total
         
@@ -607,8 +582,7 @@ async def generate_exercise_api(request):
                 accept_language = request.headers.get("Accept-Language")
                 locale = parse_accept_language(accept_language) or "fr"
                 
-                db = EnhancedServerAdapter.get_db_session()
-                try:
+                async with db_session() as db:
                     # Sauvegarder l'exercice avec age_group et la difficulté dérivée
                     created_exercise = EnhancedServerAdapter.create_generated_exercise(
                         db=db,
@@ -628,8 +602,6 @@ async def generate_exercise_api(request):
                     if created_exercise:
                         exercise_dict['id'] = created_exercise['id']
                         logger.info(f"Exercice sauvegardé avec ID={created_exercise['id']}")
-                finally:
-                    EnhancedServerAdapter.close_db_session(db)
             except Exception as save_error:
                 logger.warning(f"Erreur lors de la sauvegarde: {save_error}")
                 # Continuer même si la sauvegarde échoue
@@ -816,8 +788,7 @@ Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respe
                         accept_language = request.headers.get("Accept-Language")
                         locale = parse_accept_language(accept_language) or "fr"
                         
-                        db = EnhancedServerAdapter.get_db_session()
-                        try:
+                        async with db_session() as db:
                             created_exercise = EnhancedServerAdapter.create_generated_exercise(
                                 db=db,
                                 exercise_type=normalized_exercise['exercise_type'],
@@ -835,8 +806,6 @@ Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respe
                             )
                             if created_exercise:
                                 normalized_exercise['id'] = created_exercise['id']
-                        finally:
-                            EnhancedServerAdapter.close_db_session(db)
                     except Exception as save_error:
                         logger.warning(f"Erreur lors de la sauvegarde: {save_error}")
                         # Continuer même si la sauvegarde échoue
@@ -977,9 +946,7 @@ async def get_exercises_stats(request: Request):
         from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
         logger.debug("Imports OK")
         
-        db = EnhancedServerAdapter.get_db_session()
-        
-        try:
+        async with db_session() as db:
             # ════════════════════════════════════════════════════════════════
             # 1. STATISTIQUES GÉNÉRALES - Chroniques de l'Académie (Exercices)
             # ════════════════════════════════════════════════════════════════
@@ -1190,9 +1157,6 @@ async def get_exercises_stats(request: Request):
             
             logger.info(f"Statistiques des épreuves récupérées: {total_exercises} épreuves actives")
             return JSONResponse(response_data)
-            
-        finally:
-            db.close()
             
     except Exception as e:
         logger.error(f"Erreur lors de la récupération des statistiques d'exercices: {e}")

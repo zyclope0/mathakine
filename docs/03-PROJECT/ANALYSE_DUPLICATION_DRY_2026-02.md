@@ -169,3 +169,7 @@ finally:
 |----------|--------|---------|
 | **P5** | ✅ Fait | `getAgeGroupDisplay` dans `exercises.ts`, ré-exporté par `challenges.ts` |
 | **P1** | ✅ Fait | `app/utils/request_utils.py` — `parse_json_body()` avec required/optional/no_strip_fields. Utilisé dans : `auth_handlers` (resend, login, validate-token), `chat_handlers` (message) |
+| **P2** | ✅ Fait | `app/utils/db_utils.py` — `db_session()` context manager async. Migration complète vers `async with db_session() as db` dans : `auth.py`, `auth_handlers`, `user_handlers`, `exercise_handlers`, `challenge_handlers`, `badge_handlers`, `recommendation_handlers` |
+| **P3** | ✅ Fait | `ContentCardBase.tsx` déjà existant, utilisé par `ExerciseCard` et `ChallengeCard` |
+| **P4** | ✅ Fait | `frontend/hooks/usePaginatedContent.ts` — hook générique pour pagination. Refactor de `useExercises` et `useChallenges` qui l'utilisent. |
+| **P6** | ⏳ En attente | Fixtures auth centralisées — à faire si besoin |

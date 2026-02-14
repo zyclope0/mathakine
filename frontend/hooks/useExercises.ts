@@ -1,13 +1,11 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
-import type { Exercise, PaginatedResponse } from "@/types/api";
+import type { Exercise } from "@/types/api";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { useLocaleStore } from "@/lib/stores/localeStore";
-import { useEffect } from "react";
-import { debugLog } from "@/lib/utils/debug";
+import { usePaginatedContent } from "./usePaginatedContent";
 
 export interface ExerciseFilters {
   exercise_type?: string;
@@ -25,64 +23,21 @@ interface GenerateExerciseParams {
 
 export function useExercises(filters?: ExerciseFilters) {
   const queryClient = useQueryClient();
-  const { locale } = useLocaleStore();
   const t = useTranslations("toasts");
 
-  // Invalider les queries quand la locale change (mais ne pas refetch automatiquement)
-  useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ["exercises"] });
-  }, [locale, queryClient]);
-
-  // Liste des exercices avec pagination
-  // Utiliser une queryKey explicite pour garantir que les changements de pagination déclenchent un refetch
   const {
-    data: paginatedResponse,
+    items: exercises,
+    total,
+    hasMore,
     isLoading,
-    error,
     isFetching,
-  } = useQuery<PaginatedResponse<Exercise>>({
-    queryKey: [
-      "exercises",
-      filters?.skip ?? 0,
-      filters?.limit ?? 15,
-      filters?.exercise_type ?? null,
-      filters?.age_group ?? null,
-      filters?.search ?? null,
-      locale,
-    ],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters?.exercise_type) params.append("exercise_type", filters.exercise_type);
-      if (filters?.age_group) params.append("age_group", filters.age_group);
-      if (filters?.search) params.append("search", filters.search);
-      // Toujours envoyer skip et limit pour la pagination
-      params.append("skip", (filters?.skip ?? 0).toString());
-      params.append("limit", (filters?.limit ?? 15).toString());
-
-      const queryString = params.toString();
-      const endpoint = `/api/exercises?${queryString}`;
-
-      debugLog("[useExercises] Fetching exercises from:", endpoint);
-      const result = await api.get<PaginatedResponse<Exercise>>(endpoint);
-      debugLog(
-        "[useExercises] Received exercises:",
-        result?.items?.length || 0,
-        "total:",
-        result?.total || 0
-      );
-      return result;
-    },
-    staleTime: 10 * 1000, // 10 secondes (réduit pour pagination plus réactive)
-    gcTime: 5 * 60 * 1000, // Garder en cache 5 minutes
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    retry: 2,
+    error,
+  } = usePaginatedContent<Exercise>(filters as Record<string, string | number | null | undefined> | undefined, {
+    endpoint: "/api/exercises",
+    queryKey: "exercises",
+    paramKeys: { exercise_type: "exercise_type", age_group: "age_group" },
+    staleTime: 10 * 1000,
   });
-
-  // Extraire les exercices et métadonnées de pagination
-  const exercises = paginatedResponse?.items || [];
-  const total = paginatedResponse?.total || 0;
-  const hasMore = paginatedResponse?.hasMore || false;
 
   // Note: Pour récupérer un exercice spécifique, utiliser le hook useExercise(id) séparé
 

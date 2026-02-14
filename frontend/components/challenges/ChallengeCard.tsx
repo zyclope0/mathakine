@@ -1,8 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ContentCardBase } from "@/components/shared/ContentCardBase";
 import {
   getChallengeTypeDisplay,
   getAgeGroupDisplay,
@@ -10,10 +11,8 @@ import {
 } from "@/lib/constants/challenges";
 import { formatSuccessRate } from "@/lib/utils/format";
 import type { Challenge } from "@/types/api";
-import { Clock, Users, TrendingUp, Eye, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { Clock, Eye, TrendingUp, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { useCompletedChallenges } from "@/hooks/useCompletedItems";
 import { useTranslations } from "next-intl";
 
@@ -22,7 +21,6 @@ interface ChallengeCardProps {
 }
 
 export function ChallengeCard({ challenge }: ChallengeCardProps) {
-  const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
   const t = useTranslations("challenges");
   const { isCompleted } = useCompletedChallenges();
   const typeDisplay = getChallengeTypeDisplay(challenge.challenge_type);
@@ -30,41 +28,15 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const ageGroupColor = getAgeGroupColor(challenge.age_group);
   const completed = isCompleted(challenge.id);
 
-  // Variantes d'animation avec garde-fous
-  const variants = createVariants({
-    initial: { opacity: 0, scale: 0.95 },
-    animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.95 },
-  });
-
-  const transition = createTransition({ duration: 0.2 });
-
   return (
-    <motion.div
-      variants={variants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      transition={transition}
-      whileHover={!shouldReduceMotion ? { y: -4 } : {}}
+    <ContentCardBase
+      completed={completed}
+      titleId={`challenge-title-${challenge.id}`}
+      descriptionId={`challenge-description-${challenge.id}`}
+      completedLabel={t("card.completed", { default: "Résolu" })}
+      completedAriaLabel={t("card.completed", { default: "Défi résolu" })}
     >
-      <Card
-        className="card-spatial-depth relative"
-        role="article"
-        aria-labelledby={`challenge-title-${challenge.id}`}
-        aria-describedby={`challenge-description-${challenge.id}`}
-      >
-        {completed && (
-          <Badge
-            variant="default"
-            className="absolute top-2 right-2 z-10 bg-green-500/90 text-white border-green-600 shadow-lg"
-            aria-label={t("card.completed", { default: "Défi résolu" })}
-          >
-            <CheckCircle2 className="h-3 w-3 mr-1" aria-hidden="true" />
-            {t("card.completed", { default: "Résolu" })}
-          </Badge>
-        )}
-        <CardHeader>
+      <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle
@@ -177,7 +149,6 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
             </Button>
           </div>
         </CardContent>
-      </Card>
-    </motion.div>
+    </ContentCardBase>
   );
 }

@@ -1,16 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ContentCardBase } from "@/components/shared/ContentCardBase";
 import { getAgeGroupColor, EXERCISE_TYPE_STYLES } from "@/lib/constants/exercises";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import type { Exercise } from "@/types/api";
-import { Sparkles, Eye, Calendar, CheckCircle2 } from "lucide-react";
+import { Sparkles, Eye, Calendar } from "lucide-react";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
-import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { useTranslations } from "next-intl";
 import { useCompletedExercises } from "@/hooks/useCompletedItems";
 
@@ -28,7 +27,6 @@ interface ExerciseCardProps {
 
 export function ExerciseCard({ exercise }: ExerciseCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { createVariants, createTransition, shouldReduceMotion } = useAccessibleAnimation();
   const t = useTranslations("exercises");
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
   const { isCompleted } = useCompletedExercises();
@@ -46,42 +44,16 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
 
   const completed = isCompleted(exercise.id);
 
-  // Variantes d'animation avec garde-fous
-  const variants = createVariants({
-    initial: { opacity: 0, scale: 0.95 },
-    animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.95 },
-  });
-
-  const transition = createTransition({ duration: 0.2 });
-
   return (
     <>
-      <motion.div
-        variants={variants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        transition={transition}
-        whileHover={!shouldReduceMotion ? { y: -4 } : {}}
+      <ContentCardBase
+        completed={completed}
+        titleId={`exercise-title-${exercise.id}`}
+        descriptionId={`exercise-description-${exercise.id}`}
+        completedLabel={t("card.completed", { default: "Résolu" })}
+        completedAriaLabel={t("card.completed", { default: "Exercice résolu" })}
       >
-        <Card
-          className="card-spatial-depth relative"
-          role="article"
-          aria-labelledby={`exercise-title-${exercise.id}`}
-          aria-describedby={`exercise-description-${exercise.id}`}
-        >
-          {completed && (
-            <Badge
-              variant="default"
-              className="absolute top-2 right-2 z-10 bg-green-500/90 text-white border-green-600 shadow-lg"
-              aria-label={t("card.completed", { default: "Exercice résolu" })}
-            >
-              <CheckCircle2 className="h-3 w-3 mr-1" aria-hidden="true" />
-              {t("card.completed", { default: "Résolu" })}
-            </Badge>
-          )}
-          <CardHeader>
+        <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <CardTitle
@@ -180,8 +152,7 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
               // Le hook useCompletedExercises se mettra à jour automatiquement
             }}
           />
-        </Card>
-      </motion.div>
+      </ContentCardBase>
     </>
   );
 }

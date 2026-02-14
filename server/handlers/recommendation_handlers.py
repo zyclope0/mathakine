@@ -6,11 +6,10 @@ import traceback
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
-from app.core.messages import SystemMessages
+from app.utils.db_utils import db_session
 from app.utils.error_handler import get_safe_error_message
 
 logger = get_logger(__name__)
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.recommendation_service import RecommendationService
 from server.auth import require_auth
 
@@ -27,9 +26,7 @@ async def get_recommendations(request):
         if not user_id:
             return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
 
-        db = EnhancedServerAdapter.get_db_session()
-        try:
-            # Récupérer les recommandations existantes
+        async with db_session() as db:
             recommendations = RecommendationService.get_user_recommendations(db, user_id, limit=5)
 
             # Si aucune recommandation n'existe, générer de nouvelles
@@ -84,8 +81,6 @@ async def get_recommendations(request):
                 recommendations_data.append(rec_data)
 
             return JSONResponse(recommendations_data)
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
     except Exception as recommendations_retrieval_error:
         logger.error(f"Erreur lors de la récupération des recommandations: {recommendations_retrieval_error}")
         traceback.print_exc()
@@ -104,18 +99,13 @@ async def generate_recommendations(request):
         if not user_id:
             return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
 
-        db = EnhancedServerAdapter.get_db_session()
-        try:
-            # Générer de nouvelles recommandations
+        async with db_session() as db:
             recommendations = RecommendationService.generate_recommendations(db, user_id)
             db.commit()
-
             return JSONResponse({
                 "message": "Recommandations générées avec succès",
-                "count": len(recommendations) if recommendations else 0
+                "count": len(recommendations) if recommendations else 0,
             })
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
     except Exception as recommendations_generation_error:
         logger.error(f"Erreur lors de la génération des recommandations: {recommendations_generation_error}")
         traceback.print_exc()

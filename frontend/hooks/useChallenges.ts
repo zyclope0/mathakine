@@ -1,19 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
 import type {
   Challenge,
   ChallengeAttemptResponse,
-  ChallengesPaginatedResponse,
-  ChallengeFiltersWithSearch,
 } from "@/types/api";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { ChallengeType, AgeGroup } from "@/lib/constants/challenges";
-import { useLocaleStore } from "@/lib/stores/localeStore";
-import { debugLog } from "@/lib/utils/debug";
+import { usePaginatedContent } from "./usePaginatedContent";
 
 export interface ChallengeFilters {
   challenge_type?: ChallengeType;
@@ -32,66 +29,23 @@ export interface SubmitChallengeAnswerPayload {
 
 export function useChallenges(filters?: ChallengeFilters) {
   const queryClient = useQueryClient();
-  const { locale } = useLocaleStore();
   const t = useTranslations("toasts");
   const [hints, setHints] = useState<string[]>([]);
 
-  // Invalider les queries quand la locale change
-  useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ["challenges"] });
-  }, [locale, queryClient]);
-
-  // Liste des défis logiques avec pagination
-  // Utiliser des valeurs primitives explicites dans queryKey pour une meilleure détection des changements
   const {
-    data: paginatedData,
+    items: challenges,
+    total,
+    hasMore,
     isLoading,
     isFetching,
     error,
-  } = useQuery<ChallengesPaginatedResponse, ApiClientError>({
-    queryKey: [
-      "challenges",
-      filters?.skip ?? 0,
-      filters?.limit ?? 15,
-      filters?.challenge_type ?? null,
-      filters?.age_group ?? null,
-      filters?.search ?? null,
-      locale,
-    ],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (filters?.challenge_type) params.append("challenge_type", filters.challenge_type);
-      if (filters?.age_group) params.append("age_group", filters.age_group);
-      if (filters?.search) params.append("search", filters.search);
-      // Toujours envoyer skip et limit pour garantir la pagination
-      params.append("skip", (filters?.skip ?? 0).toString());
-      params.append("limit", (filters?.limit ?? 15).toString());
-      params.append("active_only", "true");
-
-      const queryString = params.toString();
-      const endpoint = `/api/challenges${queryString ? `?${queryString}` : ""}`;
-
-      debugLog("[useChallenges] Fetching challenges from:", endpoint);
-      const result = await api.get<ChallengesPaginatedResponse>(endpoint);
-      debugLog(
-        "[useChallenges] Received challenges:",
-        result?.items?.length || 0,
-        "total:",
-        result?.total || 0
-      );
-      return result;
-    },
-    staleTime: 30 * 1000, // 30 secondes (cohérent avec useChallenge)
-    gcTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    retry: 2,
+  } = usePaginatedContent<Challenge>(filters as Record<string, string | number | null | undefined> | undefined, {
+    endpoint: "/api/challenges",
+    queryKey: "challenges",
+    paramKeys: { challenge_type: "challenge_type", age_group: "age_group" },
+    fixedParams: { active_only: "true" },
+    staleTime: 30 * 1000,
   });
-
-  // Extraire les données paginées
-  const challenges = paginatedData?.items || [];
-  const total = paginatedData?.total || 0;
-  const hasMore = paginatedData?.hasMore || false;
 
   // Note: Pour récupérer un défi spécifique, utiliser le hook useChallenge(id) séparé
 

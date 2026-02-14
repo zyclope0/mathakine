@@ -4,5 +4,5 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [require("@tailwindcss/typography")],
+  // Typography chargé via @plugin dans globals.css (Tailwind v4)
 };

@@ -1,14 +1,21 @@
-import { notFound } from "next/navigation";
 import { getRequestConfig } from "next-intl/server";
 
 // Can be imported from a shared config
 export const locales = ["en", "fr"] as const;
 export type Locale = (typeof locales)[number];
 
-export default getRequestConfig(async ({ locale }) => {
-  // Validate that the incoming `locale` parameter is valid
-  const validLocale = locale || "fr";
-  if (!locales.includes(validLocale as Locale)) notFound();
+/** Normalise une locale (ex: "en-US" -> "en", "fr-FR" -> "fr") */
+function normalizeLocale(locale: string | undefined): Locale {
+  const base = (locale || "fr").split("-")[0]?.toLowerCase() || "fr";
+  return locales.includes(base as Locale) ? (base as Locale) : "fr";
+}
+
+export default getRequestConfig(async ({ requestLocale }) => {
+  // Sans routing par locale, requestLocale peut être undefined ou une variante (en-US, fr-FR)
+  const rawLocale = typeof requestLocale === "object" && requestLocale && "then" in requestLocale
+    ? await requestLocale
+    : requestLocale;
+  const validLocale = normalizeLocale(rawLocale);
 
   return {
     locale: validLocale,

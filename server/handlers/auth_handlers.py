@@ -18,6 +18,7 @@ from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
 from app.utils.csrf import validate_csrf_token
 from server.auth import require_auth
 from app.services.email_service import EmailService
+from app.utils.db_utils import db_session
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.core.security import get_password_hash
 from app.utils.email_verification import (
@@ -71,29 +72,27 @@ async def verify_email(request: Request):
                 {"error": "Token de vérification manquant"},
                 status_code=400
             )
-        
-        db = EnhancedServerAdapter.get_db_session()
-        try:
-            # Chercher l'utilisateur avec ce token
+
+        from app.utils.db_utils import db_session
+
+        async with db_session() as db:
             from app.models.user import User
             user = db.query(User).filter(
                 User.email_verification_token == token
             ).first()
-            
+
             if not user:
                 return JSONResponse(
                     {"error": "Token de vérification invalide"},
                     status_code=400
                 )
-            
-            # Vérifier si le token a expiré
+
             if is_verification_token_expired(user.email_verification_sent_at):
                 return JSONResponse(
                     {"error": "Le token de vérification a expiré. Veuillez demander un nouveau lien."},
                     status_code=400
                 )
-            
-            # Vérifier si l'email est déjà vérifié (idempotent : double-clic, refresh)
+
             if user.is_email_verified:
                 return JSONResponse({
                     "message": "Votre adresse email est déjà vérifiée",
@@ -105,17 +104,14 @@ async def verify_email(request: Request):
                         "is_email_verified": True
                     }
                 }, status_code=200)
-            
-            # Marquer l'email comme vérifié
+
             user.is_email_verified = True
-            # Ne pas supprimer le token : permet requêtes idempotentes (double-clic, refresh)
             user.updated_at = datetime.now(timezone.utc)
-            
             db.commit()
             db.refresh(user)
-            
+
             logger.info(f"Email vérifié pour l'utilisateur {user.username} ({user.email})")
-            
+
             return JSONResponse({
                 "message": "Votre adresse email a été vérifiée avec succès !",
                 "success": True,
@@ -126,9 +122,6 @@ async def verify_email(request: Request):
                     "is_email_verified": user.is_email_verified
                 }
             }, status_code=200)
-            
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
             
     except Exception as email_verification_error:
         logger.error(f"Erreur lors de la vérification de l'email: {email_verification_error}")
@@ -157,9 +150,9 @@ async def resend_verification_email(request: Request):
             return data_or_err
         email = data_or_err["email"]
 
-        db = EnhancedServerAdapter.get_db_session()
-        try:
-            # Chercher l'utilisateur
+        from app.utils.db_utils import db_session
+
+        async with db_session() as db:
             user = get_user_by_email(db, email)
             
             if not user:
@@ -212,10 +205,7 @@ async def resend_verification_email(request: Request):
                 return JSONResponse({
                     "error": "Impossible d'envoyer l'email de vérification. Veuillez réessayer plus tard."
                 }, status_code=500)
-                
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
-            
+
     except Exception as resend_verification_error:
         logger.error(f"Erreur lors du renvoi de l'email de vérification: {resend_verification_error}")
         logger.debug(traceback.format_exc())
@@ -249,10 +239,10 @@ async def api_login(request: Request):
         username = data_or_err["username"]
         password = data_or_err["password"]
         logger.debug(f"Tentative de connexion pour l'utilisateur: {username}")
-        
-        db = EnhancedServerAdapter.get_db_session()
-        try:
-            # Authentifier l'utilisateur
+
+        from app.utils.db_utils import db_session
+
+        async with db_session() as db:
             user = authenticate_user(db, username, password)
             
             if not user:
@@ -331,10 +321,7 @@ async def api_login(request: Request):
                 logger.error(f"ERREUR: refresh_token non créé pour l'utilisateur: {user.username}")
             
             return response
-            
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
-            
+
     except Exception as login_error:
         logger.error(f"Erreur lors de la connexion: {login_error}")
         logger.debug(traceback.format_exc())
@@ -434,8 +421,7 @@ async def api_refresh_token(request: Request):
                     username = payload.get("sub")
                     if username:
                         logger.info(f"Fallback: Création d'un nouveau refresh_token pour l'utilisateur existant: {username}")
-                        db_fallback = EnhancedServerAdapter.get_db_session()
-                        try:
+                        async with db_session() as db_fallback:
                             from app.services.auth_service import get_user_by_username, create_user_token
                             user_fallback = get_user_by_username(db_fallback, username)
                             if user_fallback:
@@ -445,8 +431,6 @@ async def api_refresh_token(request: Request):
                                 logger.info(f"Fallback: Nouveau refresh_token créé pour {username}")
                             else:
                                 logger.warning(f"Fallback: Utilisateur {username} non trouvé")
-                        finally:
-                            EnhancedServerAdapter.close_db_session(db_fallback)
                 except Exception as fallback_error:
                     logger.debug(f"Fallback échoué: {fallback_error}")
         
@@ -456,8 +440,7 @@ async def api_refresh_token(request: Request):
                 status_code=400
             )
         
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             # Rafraîchir le token
             new_token_data = refresh_access_token(db, refresh_token)
             
@@ -527,9 +510,6 @@ async def api_refresh_token(request: Request):
             
             return response
             
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
-            
     except Exception as token_refresh_error:
         logger.error(f"Erreur lors du rafraîchissement du token: {token_refresh_error}")
         logger.debug(traceback.format_exc())
@@ -577,8 +557,7 @@ async def api_forgot_password(request: Request):
                 status_code=400
             )
 
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             user = get_user_by_email(db, email)
 
             # Pour la sécurité, toujours retourner le même message (évite l'énumération d'emails)
@@ -627,9 +606,6 @@ async def api_forgot_password(request: Request):
                 reset_link = f"{frontend_url}/reset-password?token={reset_token}"
                 logger.info(f"[DEV] Si l'email n'arrive pas (filtre Gmail), copie ce lien : {reset_link}")
             return JSONResponse({"message": success_message}, status_code=200)
-
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
 
     except Exception as forgot_err:
         logger.error(f"Erreur forgot-password: {forgot_err}")
@@ -684,8 +660,7 @@ async def api_reset_password(request: Request):
                 status_code=400
             )
 
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             from app.models.user import User
             user = db.query(User).filter(User.password_reset_token == token).first()
 
@@ -714,9 +689,6 @@ async def api_reset_password(request: Request):
                 "message": "Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.",
                 "success": True
             }, status_code=200)
-
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
 
     except Exception as reset_err:
         logger.error(f"Erreur reset-password: {reset_err}")

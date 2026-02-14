@@ -19,6 +19,7 @@ from app.services.auth_service import create_user, get_user_by_email
 from app.utils.error_handler import get_safe_error_message
 from app.utils.rate_limit import rate_limit_register
 from app.utils.csrf import validate_csrf_token
+from app.utils.db_utils import db_session
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from server.auth import require_auth
 
@@ -54,8 +55,7 @@ async def get_user_stats(request):
         
         logger.debug(f"Récupération des statistiques pour l'utilisateur {username} (ID: {user_id}), période: {time_range}")
         
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             stats = EnhancedServerAdapter.get_user_stats(db, user_id, time_range=time_range)
             if not stats:
                 logger.debug(f"Aucune statistique trouvée pour l'utilisateur {username}, utilisation de valeurs par défaut")
@@ -276,9 +276,6 @@ async def get_user_stats(request):
             
             return JSONResponse(response_data)
             
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
-            
     except Exception as stats_retrieval_error:
         logger.error(f"Erreur lors de la récupération des statistiques: {stats_retrieval_error}")
         logger.debug(traceback.format_exc())
@@ -362,80 +359,79 @@ async def create_user_account(request: Request):
             )
         
         # Créer l'utilisateur via le service
-        db = EnhancedServerAdapter.get_db_session()
         try:
-            # Créer le schéma UserCreate
-            user_create = UserCreate(
-                username=username,
-                email=email,
-                password=password,
-                full_name=full_name
-            )
-            
-            # Créer l'utilisateur
-            user = create_user(db, user_create)
-            
-            # Générer un token de vérification email
-            from datetime import datetime, timezone
-
-            from app.utils.email_verification import \
-                generate_verification_token
-            
-            verification_token = generate_verification_token()
-            user.email_verification_token = verification_token
-            user.email_verification_sent_at = datetime.now(timezone.utc)
-            user.is_email_verified = False  # Par défaut non vérifié
-            
-            # Sauvegarder les modifications
-            db.commit()
-            db.refresh(user)
-            
-            # Envoyer l'email de vérification
-            try:
-                logger.info(f"Préparation envoi email de vérification à {user.email}")
-                import os
-
-                from app.services.email_service import EmailService
-                frontend_url = os.getenv("FRONTEND_URL", "https://mathakine-frontend.onrender.com")
-                
-                logger.debug(f"Frontend URL: {frontend_url}, Token: {verification_token[:10]}...")
-                
-                email_sent = EmailService.send_verification_email(
-                    to_email=user.email,
-                    username=user.username,
-                    verification_token=verification_token,
-                    frontend_url=frontend_url
+            async with db_session() as db:
+                # Créer le schéma UserCreate
+                user_create = UserCreate(
+                    username=username,
+                    email=email,
+                    password=password,
+                    full_name=full_name
                 )
                 
-                if email_sent:
-                    logger.info(f"✅ Email de vérification envoyé avec succès à {user.email}")
-                    if "localhost" in frontend_url:
-                        verify_link = f"{frontend_url}/verify-email?token={verification_token}"
-                        logger.info(f"[DEV] Si l'email n'arrive pas, copie ce lien : {verify_link}")
-                else:
-                    logger.warning(f"⚠️ Échec de l'envoi de l'email de vérification à {user.email}")
-                    logger.warning(f"Vérifiez la configuration SMTP dans les variables d'environnement")
-            except Exception as email_error:
-                # Ne pas faire échouer l'inscription si l'email échoue
-                logger.error(f"❌ Erreur lors de l'envoi de l'email de vérification: {email_error}")
-                logger.debug(traceback.format_exc())
-            
-            # Retourner les données de l'utilisateur créé (sans le mot de passe)
-            user_data = {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "full_name": user.full_name,
-                "role": user.role.value if hasattr(user.role, 'value') else str(user.role),
-                "is_active": user.is_active,
-                "is_email_verified": user.is_email_verified,
-                "created_at": user.created_at.isoformat() if user.created_at else None,
-            }
-            
-            logger.info(f"Nouvel utilisateur créé: {username} ({email})")
-            
-            return JSONResponse(user_data, status_code=201)
-            
+                # Créer l'utilisateur
+                user = create_user(db, user_create)
+                
+                # Générer un token de vérification email
+                from datetime import datetime, timezone
+
+                from app.utils.email_verification import \
+                    generate_verification_token
+                
+                verification_token = generate_verification_token()
+                user.email_verification_token = verification_token
+                user.email_verification_sent_at = datetime.now(timezone.utc)
+                user.is_email_verified = False  # Par défaut non vérifié
+                
+                # Sauvegarder les modifications
+                db.commit()
+                db.refresh(user)
+                
+                # Envoyer l'email de vérification
+                try:
+                    logger.info(f"Préparation envoi email de vérification à {user.email}")
+                    import os
+
+                    from app.services.email_service import EmailService
+                    frontend_url = os.getenv("FRONTEND_URL", "https://mathakine-frontend.onrender.com")
+                    
+                    logger.debug(f"Frontend URL: {frontend_url}, Token: {verification_token[:10]}...")
+                    
+                    email_sent = EmailService.send_verification_email(
+                        to_email=user.email,
+                        username=user.username,
+                        verification_token=verification_token,
+                        frontend_url=frontend_url
+                    )
+                    
+                    if email_sent:
+                        logger.info(f"✅ Email de vérification envoyé avec succès à {user.email}")
+                        if "localhost" in frontend_url:
+                            verify_link = f"{frontend_url}/verify-email?token={verification_token}"
+                            logger.info(f"[DEV] Si l'email n'arrive pas, copie ce lien : {verify_link}")
+                    else:
+                        logger.warning(f"⚠️ Échec de l'envoi de l'email de vérification à {user.email}")
+                        logger.warning(f"Vérifiez la configuration SMTP dans les variables d'environnement")
+                except Exception as email_error:
+                    # Ne pas faire échouer l'inscription si l'email échoue
+                    logger.error(f"❌ Erreur lors de l'envoi de l'email de vérification: {email_error}")
+                    logger.debug(traceback.format_exc())
+                
+                # Retourner les données de l'utilisateur créé (sans le mot de passe)
+                user_data = {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "full_name": user.full_name,
+                    "role": user.role.value if hasattr(user.role, 'value') else str(user.role),
+                    "is_active": user.is_active,
+                    "is_email_verified": user.is_email_verified,
+                    "created_at": user.created_at.isoformat() if user.created_at else None,
+                }
+                
+                logger.info(f"Nouvel utilisateur créé: {username} ({email})")
+                
+                return JSONResponse(user_data, status_code=201)
         except HTTPException as http_error:
             # Gérer les erreurs HTTP (ex: utilisateur déjà existant)
             logger.warning(f"Erreur HTTP lors de la création de l'utilisateur: {http_error.detail}")
@@ -450,8 +446,6 @@ async def create_user_account(request: Request):
                 {"error": "Erreur lors de la création du compte"},
                 status_code=500
             )
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
             
     except json.JSONDecodeError:
         return JSONResponse(
@@ -521,8 +515,7 @@ async def get_all_user_progress(request: Request):
         user_id = current_user.get('id')
         logger.info(f"Récupération de la progression globale pour l'utilisateur {user_id}")
         
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             from app.models.attempt import Attempt
             from app.models.exercise import Exercise
             
@@ -614,9 +607,6 @@ async def get_all_user_progress(request: Request):
                 "current_streak": current_streak_value,
                 "by_category": by_category
             }, status_code=200)
-        
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
             
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de la progression globale de l'utilisateur: {e}")
@@ -659,8 +649,7 @@ async def get_challenges_progress(request: Request):
         user_id = current_user.get('id')
         logger.info(f"Récupération de la progression des défis pour l'utilisateur {user_id}")
         
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
             
             # Nombre total de défis actifs dans le système
@@ -749,9 +738,6 @@ async def get_challenges_progress(request: Request):
                 "average_time": round(average_time, 1),
                 "challenges": challenges_list
             }, status_code=200)
-        
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
             
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de la progression des défis: {e}")
@@ -883,8 +869,7 @@ async def update_user_me(request: Request):
                 )
         
         # Mise à jour en base
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             user = db.query(User).filter(User.id == user_id).first()
             if not user:
                 return JSONResponse({"error": "Utilisateur introuvable."}, status_code=404)
@@ -941,9 +926,6 @@ async def update_user_me(request: Request):
             
             logger.info(f"Profil utilisateur {user_id} mis à jour : {list(update_data.keys())}")
             return JSONResponse(response_data)
-            
-        finally:
-            db.close()
             
     except json.JSONDecodeError:
         return JSONResponse({"error": "Données JSON invalides."}, status_code=400)
@@ -1002,8 +984,7 @@ async def update_user_password_me(request: Request):
             )
         
         # Vérification et mise à jour en base
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             user = db.query(User).filter(User.id == user_id).first()
             if not user:
                 return JSONResponse({"error": "Utilisateur introuvable."}, status_code=404)
@@ -1024,9 +1005,6 @@ async def update_user_password_me(request: Request):
                 "success": True,
                 "message": "Mot de passe mis à jour avec succès."
             })
-            
-        finally:
-            db.close()
             
     except json.JSONDecodeError:
         return JSONResponse({"error": "Données JSON invalides."}, status_code=400)
@@ -1056,8 +1034,7 @@ async def delete_user_me(request: Request):
         user_id = current_user.get('id')
         username = current_user.get('username')
         
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             user = db.query(User).filter(User.id == user_id).first()
             if not user:
                 return JSONResponse({"error": "Utilisateur introuvable."}, status_code=404)
@@ -1076,9 +1053,6 @@ async def delete_user_me(request: Request):
             response.delete_cookie("access_token")
             response.delete_cookie("refresh_token")
             return response
-            
-        finally:
-            db.close()
             
     except Exception as e:
         logger.error(f"Erreur lors de la suppression du compte: {e}")
@@ -1135,8 +1109,7 @@ async def export_user_data(request: Request):
         
         user_id = current_user.get('id')
         
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             user = db.query(User).filter(User.id == user_id).first()
             if not user:
                 return JSONResponse({"error": "Utilisateur introuvable."}, status_code=404)
@@ -1251,9 +1224,6 @@ async def export_user_data(request: Request):
             logger.info(f"Export de données pour l'utilisateur {user_id} : {len(exercises_data)} exercices, {len(challenges_data)} défis, {len(badges_data)} badges")
             return JSONResponse(export)
             
-        finally:
-            db.close()
-            
     except Exception as e:
         logger.error(f"Erreur lors de l'export des données: {e}")
         traceback.print_exc()
@@ -1272,8 +1242,7 @@ async def get_user_sessions(request: Request):
         user_id = current_user.get("id")
         
         # Récupérer la session DB
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             from app.models.user_session import UserSession
             from sqlalchemy import and_
             
@@ -1306,8 +1275,6 @@ async def get_user_sessions(request: Request):
                 session_list.append(session_dict)
             
             return JSONResponse(session_list, status_code=200)
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
     
     except Exception as e:
         logger.error(f"Erreur lors de la récupération des sessions: {e}")
@@ -1328,8 +1295,7 @@ async def revoke_user_session(request: Request):
         session_id = int(request.path_params.get('session_id'))
         
         # Récupérer la session DB
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             from app.models.user_session import UserSession
             
             # Récupérer la session
@@ -1355,12 +1321,6 @@ async def revoke_user_session(request: Request):
                 "success": True,
                 "message": "Session révoquée avec succès"
             }, status_code=200)
-        
-        except Exception as e:
-            db.rollback()
-            raise
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
     
     except ValueError:
         return JSONResponse({"error": "ID de session invalide"}, status_code=400)

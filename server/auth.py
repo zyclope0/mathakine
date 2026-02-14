@@ -13,7 +13,7 @@ from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from app.utils.db_utils import db_session
 
 
 async def get_current_user(request):  # noqa: C901
@@ -70,8 +70,7 @@ async def get_current_user(request):  # noqa: C901
             return None
             
         # Récupérer l'utilisateur depuis la base de données
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             user = get_user_by_username(db, username)
             
             if user is None:
@@ -95,8 +94,6 @@ async def get_current_user(request):  # noqa: C901
                 "current_level": user.current_level if hasattr(user, 'current_level') else 1,
                 "jedi_rank": user.jedi_rank if hasattr(user, 'jedi_rank') else 'youngling',
             }
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
             
     except Exception as user_fetch_error:
         logger.error(f"Erreur lors de la récupération de l'utilisateur: {user_fetch_error}")

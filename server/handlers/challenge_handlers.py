@@ -19,6 +19,7 @@ import app.core.constants as constants
 from app.core.messages import SystemMessages
 # NOTE: challenge_service_translations_adapter archivé - utiliser fonctions de challenge_service.py
 from app.services import challenge_service
+from app.utils.db_utils import db_session
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.logic_challenge_service import LogicChallengeService
 from app.utils.error_handler import ErrorHandler, get_safe_error_message
@@ -60,8 +61,7 @@ async def get_challenges_list(request: Request):
         logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, challenge_type_raw={challenge_type_raw}, challenge_type_normalized={challenge_type}, age_group_raw={age_group_raw}, age_group_db={age_group_db}, search={search}, locale={locale}")
 
         # Utiliser le service ORM challenge_service
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             # Récupérer les challenges via la fonction list_challenges
             challenges = challenge_service.list_challenges(
                 db=db,
@@ -96,8 +96,6 @@ async def get_challenges_list(request: Request):
                 challenge_type=challenge_type,
                 age_group=age_group_db  # Utiliser la valeur ENUM DB
             )
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
         
         # Filtrer les défis archivés si nécessaire (déjà fait dans la query, mais double vérification)
         if active_only:
@@ -153,8 +151,7 @@ async def get_challenge(request: Request):
         locale = parse_accept_language(accept_language)
         
         # Utiliser le service ORM challenge_service
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             # Récupérer le challenge via get_challenge_by_id
             from app.models.logic_challenge import LogicChallenge
             challenge = db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
@@ -199,8 +196,6 @@ async def get_challenge(request: Request):
                 }
             else:
                 challenge_dict = None
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
         
         if not challenge_dict:
             return ErrorHandler.create_not_found_error(
@@ -258,8 +253,7 @@ async def submit_challenge_answer(request: Request):
         if not user_solution:
             return JSONResponse({"error": "Réponse requise"}, status_code=400)
         
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             # Récupérer le défi
             challenge = LogicChallengeService.get_challenge(db, challenge_id)
             if not challenge:
@@ -395,8 +389,6 @@ async def submit_challenge_answer(request: Request):
                 response_data['hints_remaining'] = len(hints_list) - hints_used_count
             
             return JSONResponse(response_data)
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
     except ValueError:
         return JSONResponse({"error": "ID de défi invalide"}, status_code=400)
     except Exception as submission_error:
@@ -415,8 +407,7 @@ async def get_challenge_hint(request: Request):
         challenge_id = int(request.path_params.get('challenge_id'))
         level = int(request.query_params.get('level', 1))
         
-        db = EnhancedServerAdapter.get_db_session()
-        try:
+        async with db_session() as db:
             challenge = LogicChallengeService.get_challenge(db, challenge_id)
             if not challenge:
                 return JSONResponse({"error": "Défi logique non trouvé"}, status_code=404)
@@ -442,8 +433,6 @@ async def get_challenge_hint(request: Request):
             # Retourner l'indice spécifique au niveau demandé (index 0-based)
             hint_text = hints[level - 1] if level <= len(hints) else None
             return JSONResponse({"hint": hint_text})  # Retourner l'indice spécifique au niveau
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
     except ValueError:
         return JSONResponse({"error": "ID de défi ou niveau invalide"}, status_code=400)
     except Exception as hint_retrieval_error:
@@ -1192,8 +1181,7 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                         accept_language = request.headers.get("Accept-Language")
                         locale = parse_accept_language(accept_language) or "fr"
                         
-                        db = EnhancedServerAdapter.get_db_session()
-                        try:
+                        async with db_session() as db:
                             # NOTE: challenge_service_translations archivé - utiliser challenge_service.create_challenge
                             # La fonction create_challenge() n'accepte pas le paramètre locale
                             created_challenge = challenge_service.create_challenge(
@@ -1265,25 +1253,12 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                                 logger.error(f"Challenge créé mais invalide: {created_challenge}")
                                 # Envoyer quand même le challenge normalisé (sans sauvegarde)
                                 yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardé en base'})}\n\n"
-                            
-                        except Exception as db_error:
-                            logger.error(f"Erreur lors de la sauvegarde du challenge: {db_error}")
-                            logger.debug(traceback.format_exc())
-                            # Vérifier que normalized_challenge a un title avant d'envoyer
-                            if normalized_challenge.get('title'):
-                                # Envoyer quand même le challenge généré (sans sauvegarde)
-                                yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardé en base'})}\n\n"
-                            else:
-                                yield f"data: {json.dumps({'type': 'error', 'message': 'Erreur lors de la sauvegarde et challenge invalide'})}\n\n"
-                        finally:
-                            db.close()
-                            
-                    except Exception as save_error:
-                        logger.error(f"Erreur lors de la sauvegarde: {save_error}")
+                    except Exception as db_error:
+                        logger.error(f"Erreur lors de la sauvegarde du challenge: {db_error}")
                         logger.debug(traceback.format_exc())
                         # Vérifier que normalized_challenge a un title avant d'envoyer
                         if normalized_challenge.get('title'):
-                            # Envoyer quand même le challenge généré
+                            # Envoyer quand même le challenge généré (sans sauvegarde)
                             yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardé en base'})}\n\n"
                         else:
                             yield f"data: {json.dumps({'type': 'error', 'message': 'Erreur lors de la sauvegarde et challenge invalide'})}\n\n"
