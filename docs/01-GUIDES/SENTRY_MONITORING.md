@@ -10,7 +10,8 @@ Sentry est configuré sur **deux périmètres** :
 ### Backend (Starlette/Python)
 
 - **Fichier** : `app/core/monitoring.py` — `init_monitoring()` appelé au startup de `server/app.py`
-- **Variable** : `SENTRY_DSN` (même DSN ou projet Sentry séparé)
+- **Variables** : `SENTRY_DSN` ou `NEXT_PUBLIC_SENTRY_DSN` (fallback) — même DSN que frontend OK
+- **Environment** : `ENVIRONMENT=production` (pour taguer correctement les events dans Sentry)
 - **Désactivé** : en mode `TESTING=true`
 - **Prometheus** : Endpoint `GET /metrics` pour taux d'erreur, p50/p95/p99 (`http_requests_total`, `http_request_duration_seconds`)
 
@@ -20,10 +21,12 @@ Sentry est configuré sur **deux périmètres** :
 
 | Variable | Rôle | Où |
 |----------|------|-----|
-| `NEXT_PUBLIC_SENTRY_DSN` | DSN public Sentry (obligatoire en prod) | `.env.local` / plateforme de déploiement |
-| `SENTRY_ORG` | Slug de l'organisation Sentry (optionnel) | CI / déploiement |
-| `SENTRY_PROJECT` | Slug du projet (optionnel) | CI / déploiement |
-| `SENTRY_AUTH_TOKEN` | Token pour upload des source maps (optionnel) | CI uniquement |
+| `NEXT_PUBLIC_SENTRY_DSN` | DSN public Sentry (obligatoire en prod) | Frontend + Backend (même DSN OK) |
+| `SENTRY_DSN` | DSN (alternative au NEXT_PUBLIC_ sur le backend) | Backend uniquement |
+| `SENTRY_ORG` | Slug de l’organisation Sentry | CI / déploiement (source maps) |
+| `SENTRY_PROJECT` | Slug du projet Sentry (ex. `mathakin_prod`) | CI / déploiement (source maps) |
+| `SENTRY_AUTH_TOKEN` | Token pour upload des source maps | CI uniquement |
+| `ENVIRONMENT` | `production` (backend) pour taguer les events | Backend Render |
 
 ### Comportement
 
