@@ -298,4 +298,28 @@ export const api = {
 
   delete: <T>(endpoint: string, options?: RequestInit) =>
     apiRequest<T>(endpoint, { ...options, method: "DELETE" }),
+
+  /**
+   * Télécharge un fichier CSV (export admin). Ne passe pas par handleResponse.
+   */
+  downloadCsv: async (endpoint: string, filename: string): Promise<void> => {
+    const url = `${getApiBaseUrl()}${endpoint}`;
+    const res = await fetch(url, { credentials: "include" });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new ApiClientError(
+        text || `HTTP ${res.status}`,
+        res.status
+      );
+    }
+    const blob = await res.blob();
+    const cd = res.headers.get("Content-Disposition");
+    const match = cd?.match(/filename="?([^";\n]+)"?/);
+    const name = match?.[1] ?? filename;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  },
 };
