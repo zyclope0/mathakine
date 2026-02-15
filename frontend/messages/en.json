@@ -154,6 +154,7 @@
     "exercises": "Exercises",
     "challenges": "Logic Challenges",
     "badges": "Badges",
+    "leaderboard": "Leaderboard",
     "profile": "Profile",
     "settings": "Settings",
     "about": "About"
@@ -603,6 +604,12 @@
       "record": "New record!",
       "keepGoing": "Keep it up! Come back tomorrow to maintain your streak."
     },
+    "leaderboardWidget": {
+      "title": "Leaderboard",
+      "viewAll": "View all",
+      "empty": "No leaderboard yet.",
+      "you": "You"
+    },
     "challengesProgress": {
       "title": "Challenges Progress",
       "completed": "completed",
@@ -722,6 +729,16 @@
       "gold": "Gold",
       "legendary": "Legendary"
     }
+  },
+  "leaderboard": {
+    "error": "Unable to load leaderboard.",
+    "title": "Leaderboard",
+    "description": "See where you rank among apprentices",
+    "loading": "Loading leaderboard...",
+    "empty": "No users in the leaderboard yet.",
+    "ranking": "Ranking by points",
+    "level": "Level",
+    "you": "You"
   },
   "accessibility": {
     "toolbar": {

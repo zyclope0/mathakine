@@ -154,6 +154,7 @@
     "exercises": "Exercices",
     "challenges": "Défis logiques",
     "badges": "Badges",
+    "leaderboard": "Classement",
     "profile": "Profil",
     "settings": "Paramètres",
     "about": "À propos"
@@ -589,6 +590,12 @@
       "record": "Nouveau record !",
       "keepGoing": "Continue comme ça ! Reviens demain pour maintenir ta série."
     },
+    "leaderboardWidget": {
+      "title": "Classement",
+      "viewAll": "Voir tout",
+      "empty": "Aucun classement pour le moment.",
+      "you": "Vous"
+    },
     "challengesProgress": {
       "title": "Progression des défis",
       "completed": "complétés",
@@ -719,6 +726,16 @@
       "gold": "Or",
       "legendary": "Légendaire"
     }
+  },
+  "leaderboard": {
+    "title": "Classement",
+    "description": "Voyez où vous vous situez parmi les apprentis",
+    "loading": "Chargement du classement...",
+    "empty": "Aucun utilisateur dans le classement pour le moment.",
+    "error": "Impossible de charger le classement.",
+    "ranking": "Classement par points",
+    "level": "Niveau",
+    "you": "Vous"
   },
   "accessibility": {
     "toolbar": {

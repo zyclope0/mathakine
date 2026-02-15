@@ -38,6 +38,7 @@ export function Header() {
           { name: t("exercises"), href: "/exercises" },
           { name: t("challenges"), href: "/challenges" },
           { name: t("badges"), href: "/badges" },
+          { name: t("leaderboard"), href: "/leaderboard" },
         ]
       : []),
   ];

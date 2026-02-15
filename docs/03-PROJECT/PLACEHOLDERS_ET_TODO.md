@@ -26,54 +26,19 @@ Ce document liste tous les endpoints/handlers **placeholders** (non implémenté
 
 ## 🟠 Priorité MOYENNE (Fonctionnalités attendues)
 
-### 2. ❌ `update_user_me` - Mise à jour profil utilisateur
-**Fichier** : `server/handlers/user_handlers.py:776`  
+### 2. ✅ `update_user_me` - Mise à jour profil utilisateur (implémenté)
+**Fichier** : `server/handlers/user_handlers.py`  
 **Route** : `PUT /api/users/me`  
-**Impact** : **Moyenne** - Les utilisateurs attendent de pouvoir modifier leur profil  
-**Description** : Endpoint placeholder
+**Implémentation** : Validation (email, full_name, grade_level, learning_style, preferred_theme, accessibility_settings), unicité email, réponse utilisateur mis à jour.
 
-**Solution recommandée** :
-```python
-@require_auth  # Utiliser le decorateur centralise (server/auth.py)
-async def update_user_me(request: Request):
-    current_user = request.state.user  # Injecte par @require_auth
-    data = await request.json()
-    
-    # Valider les champs (username, email, full_name, etc.)
-    # Vérifier unicité email/username si modifiés
-    # Mettre à jour via UserService ou directement en DB
-    # Retourner l'utilisateur mis à jour
-```
-
-> **Note (09/02/2026)** : Depuis le refactoring auth, tous les handlers authentifies doivent utiliser `@require_auth` (ou `@optional_auth` / `@require_auth_sse`) au lieu de `get_current_user()` directement.
-
-**Champs modifiables suggérés** :
-- `username` (vérifier unicité)
-- `email` (vérifier unicité + envoyer email de confirmation)
-- `full_name`
-- `preferred_language` (pour i18n)
+**Champs modifiables** : email (unicité), full_name, grade_level, learning_style, preferred_difficulty, preferred_theme, accessibility_settings (language_preference, timezone, notification_preferences, privacy_settings)
 
 ---
 
-### 3. ❌ `update_user_password_me` - Changement mot de passe
-**Fichier** : `server/handlers/user_handlers.py:801`  
+### 3. ✅ `update_user_password_me` - Changement mot de passe (implémenté)
+**Fichier** : `server/handlers/user_handlers.py`  
 **Route** : `PUT /api/users/me/password`  
-**Impact** : **Moyenne** - Sécurité utilisateur  
-**Description** : Endpoint placeholder
-
-**Solution recommandée** :
-```python
-@require_auth  # Utiliser le decorateur centralise (server/auth.py)
-async def update_user_password_me(request: Request):
-    current_user = request.state.user  # Injecte par @require_auth
-    data = await request.json()
-    
-    # 1. Vérifier l'ancien mot de passe (current_password)
-    # 2. Valider le nouveau mot de passe (longueur, complexité)
-    # 3. Hasher et sauvegarder le nouveau mot de passe
-    # 4. Optionnel : invalider toutes les sessions actives sauf la courante
-    # 5. Envoyer email de notification de changement
-```
+**Implémentation** : Protégé CSRF, validation current_password/new_password (min 8 car.), hash et sauvegarde.
 
 **Validation** :
 - Ancien mot de passe correct
@@ -82,22 +47,10 @@ async def update_user_password_me(request: Request):
 
 ---
 
-### 4. ❌ `get_users_leaderboard` - Classement des utilisateurs
-**Fichier** : `server/handlers/user_handlers.py:497`  
+### 4. ✅ `get_users_leaderboard` - Classement des utilisateurs (implémenté)
+**Fichier** : `server/handlers/user_handlers.py`  
 **Route** : `GET /api/users/leaderboard`  
-**Impact** : **Moyenne** - Gamification  
-**Description** : Endpoint placeholder
-
-**Solution recommandée** :
-```python
-async def get_users_leaderboard(request: Request):
-    # Paramètres : limit (défaut 50), timeRange (7j/30j/all), orderBy (xp/accuracy/streak)
-    # Query : SELECT user.username, user.xp, stats FROM users ORDER BY xp DESC LIMIT X
-    # Calculer le rang de chaque utilisateur
-    # Retourner : [{rank: 1, username: "Alice", xp: 5000, accuracy: 0.92}, ...]
-```
-
-**Note** : Ajouter cache (Redis ou simple dict avec TTL 5min) pour éviter les queries lourdes à chaque requête.
+**Implémentation** : Top utilisateurs par total_points, respecte show_in_leaderboards (privacy). Paramètres: limit (défaut 50).
 
 ---
 
@@ -275,8 +228,8 @@ from server.auth import require_auth, optional_auth, require_auth_sse
 
 ### Priorités d'implémentation suggérées (ordre)
 
-1. **P1 - Critique** : `api_forgot_password` (sécurité + UX attendue)
-2. **P2 - Important** : `update_user_me`, `update_user_password_me` (gestion compte)
+1. **P1 - Critique** : ✅ `api_forgot_password` (implémenté)
+2. **P2 - Important** : ✅ `update_user_me`, ✅ `update_user_password_me` (implémentés)
 3. **P3 - Gamification** : `get_users_leaderboard`, `get_user_badges_progress`
 4. **P4 - Admin** : `get_all_users`, `delete_user`
 5. **P5 - Optionnel** : Autres endpoints (peuvent être supprimés)

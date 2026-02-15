@@ -39,10 +39,13 @@ docs/
 │
 ├── 02-FEATURES/           # 📙 Fonctionnalités
 │   ├── I18N.md                 # Internationalisation (next-intl)
-│   ├── ANALYTICS_PROGRESSION.md  # 🆕 Graphiques progression
-│   ├── BADGES_AMELIORATIONS.md   # 🆕 Roadmap badges
-│   ├── ADMIN_FEATURE_SECURITE.md # 🆕 RBAC pour future feature admin (require_role)
-│   └── ROADMAP_FONCTIONNALITES.md # 🆕 Roadmap globale fonctionnalités
+│   ├── API_QUICK_REFERENCE.md   # Cheat sheet endpoints API
+│   ├── AUTH_FLOW.md            # Flux inscription → login → reset password
+│   ├── THEMES.md               # 7 thèmes visuels, themeStore, ajout thème
+│   ├── ANALYTICS_PROGRESSION.md  # Graphiques progression
+│   ├── BADGES_AMELIORATIONS.md   # Roadmap badges
+│   ├── ADMIN_FEATURE_SECURITE.md # RBAC pour future feature admin (require_role)
+│   └── ROADMAP_FONCTIONNALITES.md # Roadmap globale fonctionnalités
 │
 ├── 03-PROJECT/            # 📕 Gestion projet
 │   ├── README.md          # ⭐ Index maître audits/rapports
@@ -183,6 +186,7 @@ docs/
 ## 🔄 Dernières mises à jour
 
 ### 15/02/2026
+- 📙 **02-FEATURES** : API_QUICK_REFERENCE (cheat sheet endpoints), AUTH_FLOW (flux inscription/login/reset), THEMES (7 thèmes, themeStore, ajout)
 - 📁 **Réorganisation docs** : Audits implémentés regroupés dans `03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/` — ajout de CONTRAST_FIXES, THEMES_TEST_RESULTS, REFACTORING_SUMMARY, REMAINING_TASKS (ex-frontend/docs)
 - 📝 **AUDITS_IMPLEMENTES/INDEX.md** : Index des 7 documents d'audits complétés
 

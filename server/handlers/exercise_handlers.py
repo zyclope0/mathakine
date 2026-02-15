@@ -713,8 +713,10 @@ async def generate_ai_exercise_stream(request):
 ## RÈGLES QUALITÉ
 1. La question doit être claire et sans ambiguïté
 2. Les 4 choix doivent inclure : la bonne réponse + 3 erreurs plausibles (erreurs de calcul typiques)
-3. L'explication doit détailler le raisonnement étape par étape
+3. L'explication doit détailler le raisonnement étape par étape, avec des calculs COHÉRENTS avec la réponse
 4. L'indice doit GUIDER sans donner la réponse (ex: "Quelle opération pour trouver le total ?")
+5. CRITIQUE: Vérifie que correct_answer correspond EXACTEMENT aux calculs dans l'explication. Pas de contradiction.
+6. FRACTIONS (moitié/tiers/etc.) : formule A = total×frac1, B = total×frac2, puis (total - A - B). L'explication doit suivre EXACTEMENT ces calculs et conclure par correct_answer. INTERDIT : inventer une "erreur", une "correction" ou un recalcul contradictoire. Exemple : 120 cristaux, 1/2 rouges (60) + 1/3 bleus (40) = 100 → ni rouges ni bleus = 20. Jamais 30.
 
 ## FORMAT JSON STRICT
 {{

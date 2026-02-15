@@ -485,20 +485,44 @@ async def get_all_users(request: Request):
 @require_auth
 async def get_users_leaderboard(request: Request):
     """
-    Handler pour récupérer le classement des utilisateurs (placeholder).
+    Handler pour récupérer le classement des utilisateurs par points.
     Route: GET /api/users/leaderboard
+    Paramètres: limit (défaut 50), orderBy (total_points|experience_points, défaut total_points)
     """
     try:
-        current_user = request.state.user
-        
-        logger.info(f"Accès au classement des utilisateurs par {current_user.get('username')}. Fonctionnalité en développement.")
+        from app.models.user import User
 
-        return JSONResponse(
-            {"message": "Le classement des utilisateurs est en cours de développement."},
-            status_code=200
-        )
+        current_user = request.state.user
+        user_id = current_user.get("id")
+        query_params = dict(request.query_params)
+        limit = min(int(query_params.get("limit", 50)), 100)
+        order_by = query_params.get("orderBy", "total_points")
+
+        async with db_session() as db:
+            q = db.query(User).filter(User.is_active == True)
+            users = q.order_by(User.total_points.desc()).limit(limit).all()
+
+            leaderboard = []
+            for user in users:
+                settings = user.accessibility_settings or {}
+                privacy = (settings.get("privacy_settings") or {}) if isinstance(settings.get("privacy_settings"), dict) else {}
+                if privacy.get("show_in_leaderboards") is False:
+                    continue
+                leaderboard.append({
+                    "username": user.username,
+                    "total_points": user.total_points or 0,
+                    "current_level": user.current_level or 1,
+                    "jedi_rank": user.jedi_rank or "youngling",
+                    "is_current_user": user.id == user_id,
+                })
+            for i, entry in enumerate(leaderboard, start=1):
+                entry["rank"] = i
+
+            logger.info(f"Classement récupéré par {current_user.get('username')}: {len(leaderboard)} utilisateurs")
+            return JSONResponse({"leaderboard": leaderboard}, status_code=200)
+
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération du classement des utilisateurs: {e}")
+        logger.error(f"Erreur lors de la récupération du classement: {e}")
         traceback.print_exc()
         return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 

@@ -1,8 +1,11 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
+import { enUS, fr } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocaleStore } from "@/lib/stores/localeStore";
 import { useUserStats, type TimeRange } from "@/hooks/useUserStats";
 import { useProgressStats } from "@/hooks/useProgressStats";
 import { useChallengesProgress } from "@/hooks/useChallengesProgress";
@@ -19,6 +22,7 @@ import { Recommendations } from "@/components/dashboard/Recommendations";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { StreakWidget } from "@/components/dashboard/StreakWidget";
 import { ChallengesProgressWidget } from "@/components/dashboard/ChallengesProgressWidget";
+import { LeaderboardWidget } from "@/components/dashboard/LeaderboardWidget";
 import { CategoryAccuracyChart } from "@/components/dashboard/CategoryAccuracyChart";
 import { ExportButton } from "@/components/dashboard/ExportButton";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
@@ -31,9 +35,37 @@ import {
   PerformanceByTypeSkeleton,
 } from "@/components/dashboard/DashboardSkeletons";
 
+function DashboardLastUpdate({
+  time,
+  t,
+  locale,
+}: {
+  time: string;
+  t: (key: string, opts?: { default?: string }) => string;
+  locale?: string;
+}) {
+  try {
+    const date = new Date(time);
+    const dateLocale = locale === "en" ? enUS : fr;
+    const relative = formatDistanceToNow(date, { addSuffix: true, locale: dateLocale });
+    return (
+      <p className="text-xs text-muted-foreground text-center">
+        {t("lastUpdate", { time: relative })}
+      </p>
+    );
+  } catch {
+    return (
+      <p className="text-xs text-muted-foreground text-center">
+        {t("lastUpdate", { time: time })}
+      </p>
+    );
+  }
+}
+
 export default function DashboardPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { locale } = useLocaleStore();
   const [timeRange, setTimeRange] = useState<TimeRange>("30");
   const { stats, isLoading, error, refetch } = useUserStats(timeRange);
   const { data: progressStats, isLoading: isLoadingProgress } = useProgressStats();
@@ -54,6 +86,7 @@ export default function DashboardPage() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["user", "progress"] }),
         queryClient.invalidateQueries({ queryKey: ["user", "challenges", "progress"] }),
+        queryClient.invalidateQueries({ queryKey: ["leaderboard"] }),
       ]);
       toast.success(tToasts("statsUpdated"));
     } catch (err) {
@@ -163,7 +196,7 @@ export default function DashboardPage() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Onglet Vue d'ensemble — stats clés + recommandations + activité */}
+            {/* Onglet Vue d'ensemble — KPIs + streak + classement (léger) */}
             <TabsContent value="overview" className="space-y-6">
               <PageSection className="space-y-3">
                 <div className="grid gap-4 md:grid-cols-3">
@@ -184,40 +217,20 @@ export default function DashboardPage() {
                   />
                 </div>
                 {stats.recent_activity?.[0]?.time && (
-                  <p className="text-xs text-muted-foreground text-center">
-                    {t("lastUpdate", { time: stats.recent_activity[0].time })}
-                  </p>
+                  <DashboardLastUpdate time={stats.recent_activity[0].time} t={t} locale={locale} />
                 )}
               </PageSection>
 
               <PageSection className="space-y-3">
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-stretch">
+                <div className="grid gap-6 md:grid-cols-2 items-stretch">
                   <StreakWidget
                     currentStreak={progressStats?.current_streak || 0}
                     highestStreak={progressStats?.highest_streak || 0}
                     isLoading={isLoadingProgress}
                   />
-                  <ChallengesProgressWidget
-                    completedChallenges={challengesProgress?.completed_challenges || 0}
-                    totalChallenges={challengesProgress?.total_challenges || 0}
-                    successRate={challengesProgress?.success_rate || 0}
-                    averageTime={challengesProgress?.average_time || 0}
-                    isLoading={isLoadingChallenges}
-                  />
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <CategoryAccuracyChart
-                      categoryData={progressStats?.by_category || {}}
-                      isLoading={isLoadingProgress}
-                    />
-                  </div>
+                  <LeaderboardWidget />
                 </div>
               </PageSection>
-
-              {stats.recent_activity && stats.recent_activity.length > 0 && (
-                <PageSection>
-                  <RecentActivity activities={stats.recent_activity} />
-                </PageSection>
-              )}
             </TabsContent>
 
             {/* Onglet Recommandations — conseils du Maître Jedi */}
@@ -227,8 +240,23 @@ export default function DashboardPage() {
               </PageSection>
             </TabsContent>
 
-            {/* Onglet Progression — graphiques */}
+            {/* Onglet Progression — graphiques + défis + précision par catégorie */}
             <TabsContent value="progress" className="space-y-6">
+              <PageSection>
+                <div className="grid gap-6 md:grid-cols-2 items-stretch">
+                  <ChallengesProgressWidget
+                    completedChallenges={challengesProgress?.completed_challenges || 0}
+                    totalChallenges={challengesProgress?.total_challenges || 0}
+                    successRate={challengesProgress?.success_rate || 0}
+                    averageTime={challengesProgress?.average_time || 0}
+                    isLoading={isLoadingChallenges}
+                  />
+                  <CategoryAccuracyChart
+                    categoryData={progressStats?.by_category || {}}
+                    isLoading={isLoadingProgress}
+                  />
+                </div>
+              </PageSection>
               {stats.progress_over_time && stats.exercises_by_day ? (
                 <>
                   <PageSection>
@@ -252,7 +280,7 @@ export default function DashboardPage() {
               )}
             </TabsContent>
 
-            {/* Onglet Détails — performance par type */}
+            {/* Onglet Détails — performance par type + activité récente */}
             <TabsContent value="details" className="space-y-6">
               {stats.performance_by_type && Object.keys(stats.performance_by_type).length > 0 ? (
                 <PageSection>
@@ -263,6 +291,11 @@ export default function DashboardPage() {
                   <p className="text-muted-foreground text-center py-8">
                     {t("empty.performance", { default: "Aucune donnée de performance pour le moment." })}
                   </p>
+                </PageSection>
+              )}
+              {stats.recent_activity && stats.recent_activity.length > 0 && (
+                <PageSection>
+                  <RecentActivity activities={stats.recent_activity} />
                 </PageSection>
               )}
             </TabsContent>
