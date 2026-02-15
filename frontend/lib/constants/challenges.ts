@@ -10,6 +10,7 @@ import {
   Code,
   Crown,
 } from "lucide-react";
+import { AGE_GROUP_DISPLAY } from "./exercises";
 
 /**
  * Constantes pour les types de défis logiques
@@ -83,6 +84,22 @@ export function getChallengeTypeDisplay(value: string | null | undefined): strin
   const normalized = value.toLowerCase() as ChallengeType;
 
   return CHALLENGE_TYPE_DISPLAY[normalized] || value;
+}
+
+/** Mapping pour affichage admin (ex. GROUP_10_12 → "9-11 ans", ADULT → "Adulte") */
+export const ADMIN_AGE_GROUP_LABELS: Record<string, string> = {
+  ...AGE_GROUP_DISPLAY,
+  GROUP_6_8: "6-8 ans",
+  GROUP_10_12: "9-11 ans",
+  GROUP_13_15: "12-14 ans",
+  GROUP_15_17: "15-17 ans",
+  ADULT: "Adulte",
+  ALL_AGES: "Tous âges",
+};
+
+export function getAdminAgeDisplay(val: string | null | undefined): string {
+  if (!val) return "—";
+  return ADMIN_AGE_GROUP_LABELS[val] ?? val;
 }
 
 // Importer et ré-exporter les constantes de groupe d'âge unifiées (DRY)

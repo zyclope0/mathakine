@@ -176,6 +176,81 @@ GET  /api/admin/export?type=users|exercises|attempts|overview&period=7d|30d
 
 ---
 
+## 6.1 État d'avancement (implémenté)
+
+| Itération | Contenu | Statut |
+|-----------|---------|--------|
+| **1** | `require_role`, `require_admin`, RBAC dans `server/auth.py` | ✅ |
+| **2** | Route `GET /api/admin/health` | ✅ |
+| **3** | `GET /api/admin/overview` + KPIs (users, exercises, challenges, attempts) | ✅ |
+| **4** | Page `/admin`, layout sidebar, lien Admin dans menu utilisateur | ✅ |
+| **5** | `GET /api/admin/users`, `PATCH /api/admin/users/{id}`, page `/admin/users` | ✅ |
+| **6** | `GET/PATCH /api/admin/exercises`, `GET/PATCH /api/admin/challenges`, page `/admin/content` | ✅ |
+| **7** | Export CSV — `GET /api/admin/export`, bloc téléchargement sur `/admin` | ✅ |
+| **8** | Rapports par période — `GET /api/admin/reports?period=7d|30d`, bloc Rapports sur `/admin` | ✅ |
+| **9** | Utilisateurs avancés — modification rôle, envoi emails forcés (reset MDP, vérification), etc. | ✅ |
+| **10** | Édition contenu — clic exercice/défi → édition ergonomique in-place ou modal | ✅ |
+| **11** | Création contenu — formulaire ergonomique pour créer exercice ou défi | ✅ |
+| **12** | Modération IA — liste exercices/défis générés IA | ✅ |
+| **13** | Audit trail — log des actions admin (qui a fait quoi, quand) | ✅ |
+
+### Détail itération 5 — Page Utilisateurs
+
+- **Tableau** : pseudo, email, nom, rôle, statut (actif/inactif), date inscription
+- **Filtres** : recherche (pseudo, email, nom), rôle (Padawan, Maître, Gardien, Archiviste), statut (Tous, Actifs, Inactifs)
+- **Pagination** : 20 par page, navigation précédent/suivant
+- **Actions** : Désactiver / Activer (un admin ne peut pas se désactiver lui-même)
+- **Carte Utilisateurs** sur `/admin` cliquable → redirige vers `/admin/users`
+
+### Détail itération 6 — Page Contenu
+
+- **Onglets** : Exercices | Défis logiques
+- **Tableau exercices** : titre, type, difficulté, âge, tentatives, taux succès, statut (actif/archivé), action Archiver/Réactiver
+- **Tableau défis** : titre, type, âge, tentatives, taux succès, statut, action Archiver/Réactiver
+- **Filtres** : type, statut (Tous, Actifs, Archivés)
+- **Pagination** : 20 par page
+- **Cartes Exercices et Défis** sur `/admin` cliquables → `/admin/content`
+
+### Détail itération 7 — Export CSV
+
+- **Endpoint** : `GET /api/admin/export?type=&period=`
+- **Types** : users, exercises, attempts, overview
+- **Périodes** : all, 30d, 7d
+- **Limite** : 10 000 lignes par export
+- **UI** : Bloc Export CSV sur la page `/admin` (sélecteurs + bouton Télécharger)
+
+### Détail itération 8 — Rapports par période
+
+- **Endpoint** : `GET /api/admin/reports?period=7d|30d`
+- **Données** : inscriptions (nouveaux users), utilisateurs actifs, tentatives (exercices + défis), taux de succès
+- **UI** : Bloc Rapports par période sur `/admin` (sélecteur 7j/30j, cartes Inscriptions, Actifs, Tentatives, Taux succès)
+
+### Détail itération 9 — Utilisateurs avancés
+
+- **Modification du rôle** : `PATCH /api/admin/users/{id}` étendu avec `{ role: "padawan"|"maitre"|"gardien"|"archiviste" }` — l’admin peut promouvoir ou rétrograder un utilisateur (sauf se rétrograder lui-même)
+- **Forcer envoi email changement de mot de passe** : bouton « Envoyer lien reset MDP » déclenchant `POST /api/auth/forgot-password` pour l’email du user (ou nouvel endpoint admin dédié)
+- **Forcer envoi email vérification inscription** : bouton « Renvoyer email vérification » via endpoint existant ou admin
+- **Autres** : réinitialiser mot de passe (admin définit un mot de passe temporaire + email), afficher date dernière connexion, débloquer compte si lockout futur
+- **UI** : sur chaque ligne user, menu actions (⋮) avec : Modifier rôle, Envoyer reset MDP, Renvoyer vérification, etc.
+
+### Détail itération 10 — Édition contenu
+
+- **Clic sur exercice ou défi** : ouverture d’une vue/modal d’édition ergonomique
+- **Champs éditables** : titre, type, difficulté, groupe d’âge, énoncé (question/consigne), réponses, corrigé, etc.
+- **Endpoint** : `PUT /api/admin/exercises/{id}`, `PUT /api/admin/challenges/{id}` (ou extension de PATCH)
+- **UI** : tableau avec ligne cliquable → panneau latéral ou modal plein écran ; preview en direct ; sauvegarde avec feedback
+- **Ergonomie** : champs groupés, validation inline, annulation possible, pas de perte de données
+
+### Détail itération 11 — Création contenu
+
+- **Formulaire création exercice** : champs alignés sur le modèle (titre, type, difficulté, âge, énoncé, réponse attendue, etc.) — formulaire structuré et user-friendly
+- **Formulaire création défi** : idem pour défis logiques (type, âge, consigne, grille/solution, etc.)
+- **Endpoints** : `POST /api/admin/exercises`, `POST /api/admin/challenges`
+- **UI** : bouton « Créer un exercice » / « Créer un défi » sur `/admin/content` ; formulaire en modal ou page dédiée `/admin/content/exercises/new`, `/admin/content/challenges/new`
+- **Validation** : vérification des champs obligatoires, feedback immédiat, aide contextuelle
+
+---
+
 ## 7. Références
 
 - [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md) — Exigences RBAC

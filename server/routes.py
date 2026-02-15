@@ -7,10 +7,33 @@ Toutes les routes HTML/templates ont été supprimées (frontend géré par Next
 from typing import List
 
 from starlette.responses import PlainTextResponse
-from starlette.routing import Route
+from starlette.routing import Mount, Route
 
 # Imports API handlers - Admin
-from server.handlers.admin_handlers import admin_health, admin_overview
+from server.handlers.admin_handlers import (
+    admin_challenge_get,
+    admin_challenges,
+    admin_challenges_duplicate,
+    admin_challenges_patch,
+    admin_challenges_post,
+    admin_challenges_put,
+    admin_exercise_get,
+    admin_exercises,
+    admin_exercises_duplicate,
+    admin_exercises_patch,
+    admin_exercises_post,
+    admin_exercises_put,
+    admin_audit_log,
+    admin_export,
+    admin_health,
+    admin_moderation,
+    admin_overview,
+    admin_reports,
+    admin_users,
+    admin_users_patch,
+    admin_users_resend_verification,
+    admin_users_send_reset_password,
+)
 # Imports API handlers - Auth
 from server.handlers.auth_handlers import (api_get_current_user, api_login,
                                            api_refresh_token, api_validate_token,
@@ -148,10 +171,35 @@ def get_routes() -> List:
         Route("/api/challenges/badges/progress", endpoint=get_user_badges_progress, methods=["GET"]),
         
         # ========================================
-        # ADMIN API (rôle archiviste)
+        # ADMIN API (rôle archiviste) — Mount pour éviter conflits de routage
         # ========================================
-        Route("/api/admin/health", endpoint=admin_health, methods=["GET"]),
-        Route("/api/admin/overview", endpoint=admin_overview, methods=["GET"]),
+        Mount(
+            "/api/admin",
+            routes=[
+                Route("/health", endpoint=admin_health, methods=["GET"]),
+                Route("/overview", endpoint=admin_overview, methods=["GET"]),
+                Route("/users", endpoint=admin_users, methods=["GET"]),
+                Route("/users/{user_id:int}", endpoint=admin_users_patch, methods=["PATCH"]),
+                Route("/users/{user_id:int}/send-reset-password", endpoint=admin_users_send_reset_password, methods=["POST"]),
+                Route("/users/{user_id:int}/resend-verification", endpoint=admin_users_resend_verification, methods=["POST"]),
+                Route("/exercises", endpoint=admin_exercises, methods=["GET"]),
+                Route("/exercises", endpoint=admin_exercises_post, methods=["POST"]),
+                Route("/exercises/{exercise_id:int}/duplicate", endpoint=admin_exercises_duplicate, methods=["POST"]),
+                Route("/exercises/{exercise_id:int}", endpoint=admin_exercise_get, methods=["GET"]),
+                Route("/exercises/{exercise_id:int}", endpoint=admin_exercises_put, methods=["PUT"]),
+                Route("/exercises/{exercise_id:int}", endpoint=admin_exercises_patch, methods=["PATCH"]),
+                Route("/challenges", endpoint=admin_challenges, methods=["GET"]),
+                Route("/challenges", endpoint=admin_challenges_post, methods=["POST"]),
+                Route("/challenges/{challenge_id:int}/duplicate", endpoint=admin_challenges_duplicate, methods=["POST"]),
+                Route("/challenges/{challenge_id:int}", endpoint=admin_challenge_get, methods=["GET"]),
+                Route("/challenges/{challenge_id:int}", endpoint=admin_challenges_put, methods=["PUT"]),
+                Route("/challenges/{challenge_id:int}", endpoint=admin_challenges_patch, methods=["PATCH"]),
+                Route("/reports", endpoint=admin_reports, methods=["GET"]),
+                Route("/audit-log", endpoint=admin_audit_log, methods=["GET"]),
+                Route("/moderation", endpoint=admin_moderation, methods=["GET"]),
+                Route("/export", endpoint=admin_export, methods=["GET"]),
+            ],
+        ),
         
         # ========================================
         # RECOMMENDATIONS API (3 routes)
