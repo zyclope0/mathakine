@@ -102,8 +102,15 @@ class AIConfig:
     RETRY_MAX_WAIT: float = 10.0
     
     @classmethod
+    def is_o1_model(cls, model: str) -> bool:
+        """Vérifie si le modèle est o1/o1-mini (raisonnement natif, pas de response_format JSON)."""
+        return model and model.lower().startswith("o1")
+
+    @classmethod
     def get_model(cls, challenge_type: str) -> str:
         """Retourne le modèle à utiliser pour un type de challenge."""
+        if settings.OPENAI_MODEL_REASONING:
+            return settings.OPENAI_MODEL_REASONING
         return cls.MODEL_MAP.get(challenge_type.lower(), settings.OPENAI_MODEL)
     
     @classmethod
@@ -144,23 +151,24 @@ class AIConfig:
         """Retourne les paramètres OpenAI complets pour un type de challenge."""
         model = cls.get_model(challenge_type)
         reasoning_effort = cls.get_reasoning_effort(challenge_type)
-        
+
         params = {
             "model": model,
             "max_tokens": cls.get_max_tokens(challenge_type),
             "timeout": cls.get_timeout(challenge_type),
         }
-        
-        # GPT-5.2 utilise reasoning et verbosity au lieu de temperature
-        if cls.is_gpt5_model(model):
+
+        # o1/o1-mini : raisonnement natif, pas de reasoning_effort/verbosity
+        if cls.is_o1_model(model):
+            # o1 n'accepte pas response_format json_object -> géré dans le handler
+            pass
+        elif cls.is_gpt5_model(model):
             params["reasoning_effort"] = reasoning_effort
             params["verbosity"] = cls.get_verbosity(challenge_type)
-            # Temperature seulement si reasoning = none
-            if reasoning_effort == 'none':
+            if reasoning_effort == "none":
                 params["temperature"] = cls.get_temperature(challenge_type)
         else:
-            # Modèles legacy (GPT-4.x)
             params["temperature"] = cls.get_temperature(challenge_type)
-        
+
         return params
 
