@@ -9,6 +9,8 @@ from typing import List
 from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 
+# Imports API handlers - Admin
+from server.handlers.admin_handlers import admin_health, admin_overview
 # Imports API handlers - Auth
 from server.handlers.auth_handlers import (api_get_current_user, api_login,
                                            api_refresh_token, api_validate_token,
@@ -144,6 +146,12 @@ def get_routes() -> List:
         Route("/api/badges/check", endpoint=check_user_badges, methods=["POST"]),
         Route("/api/badges/stats", endpoint=get_user_gamification_stats, methods=["GET"]),
         Route("/api/challenges/badges/progress", endpoint=get_user_badges_progress, methods=["GET"]),
+        
+        # ========================================
+        # ADMIN API (rôle archiviste)
+        # ========================================
+        Route("/api/admin/health", endpoint=admin_health, methods=["GET"]),
+        Route("/api/admin/overview", endpoint=admin_overview, methods=["GET"]),
         
         # ========================================
         # RECOMMENDATIONS API (3 routes)

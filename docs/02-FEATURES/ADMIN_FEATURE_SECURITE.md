@@ -60,13 +60,14 @@ async def admin_promote_user(request):
 |---------------------------|-----------------------------------|
 | `require_auth`            | ✅ Existe (auth basique)          |
 | `require_role`            | ❌ **À implémenter** avec la feature admin |
-| Modèle `User.role`        | ✅ Existe (padawan, maitre, admin)|
+| Modèle `User.role`        | ✅ Existe (padawan, maitre, gardien, archiviste) |
 | Vérification rôle admin   | ❌ Non utilisée actuellement      |
 
 ---
 
 ## 4. Référence
 
+- **Proposition détaillée** : [ADMIN_ESPACE_PROPOSITION.md](ADMIN_ESPACE_PROPOSITION.md) — Benchmark, périmètre, plan d'implémentation
 - Audit sécurité : Validation & Input Sanitization (2.2 RBAC)
-- Modèle : `app/models/user.py` → `UserRole`
+- Modèle : `app/models/user.py` → `UserRole` (archiviste = accès admin complet)
 - Auth : `server/auth.py`

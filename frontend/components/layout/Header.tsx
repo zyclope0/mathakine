@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Home, LogOut, User, Menu, X, Settings, ChevronDown } from "lucide-react";
+import { Home, LogOut, User, Menu, X, Settings, ChevronDown, Shield } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { useTranslations } from "next-intl";
@@ -29,6 +29,8 @@ export function Header() {
   const t = useTranslations("navigation");
   const tAuth = useTranslations("auth");
   const { shouldReduceMotion, createTransition } = useAccessibleAnimation();
+
+  const isAdmin = user?.role === "archiviste";
 
   const navigation = [
     { name: t("home"), href: "/", icon: Home },
@@ -159,6 +161,14 @@ export function Header() {
                           <span>{t("settings")}</span>
                         </Link>
                       </DropdownMenuItem>
+                      {isAdmin && (
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin" className="flex items-center cursor-pointer">
+                            <Shield className="mr-2 h-4 w-4" />
+                            <span>{t("admin")}</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => logout()} variant="destructive">
                         <LogOut className="mr-2 h-4 w-4" />
