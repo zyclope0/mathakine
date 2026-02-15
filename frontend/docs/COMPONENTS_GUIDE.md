@@ -574,7 +574,7 @@ interface StatsCardProps {
 
 **Fonctionnalités** :
 
-- 4 thèmes disponibles
+- 7 thèmes disponibles
 - Prévisualisation
 - Persistance localStorage
 

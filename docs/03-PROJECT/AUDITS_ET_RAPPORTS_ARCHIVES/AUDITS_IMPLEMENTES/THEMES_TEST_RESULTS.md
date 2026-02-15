@@ -1,7 +1,8 @@
-# ✅ Résultats des Tests des Thèmes
+# Résultats tests validation thèmes
 
-**Date** : Janvier 2025  
-**Page de test** : `/themes-test`
+**Date :** Janvier 2025 (addendum Fév. 2026)  
+**Type :** Rapport (implémenté)  
+**Statut :** ✅ 7 thèmes validés
 
 ---
 
@@ -79,23 +80,22 @@ Valider que tous les thèmes fonctionnent correctement avec :
 
 ---
 
-### **4. Neutre** ⚫
+### **4. Neutre** ⚫ _(remplacé par Dune, Forêt, Lumière — Fév. 2026)_
 
-**Mode Normal** :
+**Mode Normal** : Fond blanc, primary gris — migration → Dune (sable).
 
-- ✅ Fond : `#ffffff` (blanc)
-- ✅ Texte : `#111827` (gris foncé)
-- ✅ Primary : `#6b7280` (gris)
-- ✅ Contraste muted-foreground : 7.5:1 ✅ WCAG AAA
+**Résultat** : ⚠️ **Archivé** — Remplacé par Dune
 
-**Mode Dark** :
+---
 
-- ✅ Fond : `#111827` (gris foncé)
-- ✅ Texte : `#f9fafb` (gris très clair)
-- ✅ Primary : `#9ca3af` (gris clair)
-- ✅ Contraste élégant
+### **5–7. Dune, Forêt, Lumière, Dinosaures** _(ajoutés Fév. 2026)_
 
-**Résultat** : ✅ **VALIDE**
+| Thème | Light | Dark | Statut |
+|-------|-------|------|--------|
+| **Dune** 🏜️ | Sable/ambre #fef7ed | Gris foncé #1c1917 | ✅ Valide |
+| **Forêt** 🌲 | Vert menthe #f0fdf4 | Vert profond #052e16 | ✅ Valide |
+| **Lumière** 🍑 | Pêche #fff7ed | Gris chaud #1c1917 | ✅ Valide |
+| **Dinosaures** 🦖 | Lime/sable #fef9c3 | Vert jungle #1a2e05 | ✅ Valide |
 
 ---
 
@@ -158,7 +158,7 @@ Valider que tous les thèmes fonctionnent correctement avec :
 - ✅ Spatial : Variante dark appliquée ✅
 - ✅ Minimaliste : Inversion complète ✅
 - ✅ Océan : Profondeur plus sombre ✅
-- ✅ Neutre : Gris foncé élégant ✅
+- ✅ Dune, Forêt, Lumière, Dinosaures : Variantes dark appliquées ✅
 
 ### **Test 3 : Persistance**
 
@@ -170,10 +170,10 @@ Valider que tous les thèmes fonctionnent correctement avec :
 
 ## ✅ **Checklist de Validation**
 
-- [x] **Tous les thèmes fonctionnent** (4/4)
-- [x] **Variantes dark mode créées** (4/4)
-- [x] **Contraste WCAG AAA** pour `--muted-foreground` (4/4)
-- [x] **Contraste WCAG AA** pour `--primary` (4/4)
+- [x] **Tous les thèmes fonctionnent** (7/7)
+- [x] **Variantes dark mode créées** (7/7)
+- [x] **Contraste WCAG AAA** pour `--muted-foreground` (7/7)
+- [x] **Contraste WCAG AA** pour `--primary` (7/7)
 - [x] **Tous les composants testés** (Cards, Buttons, Badges, Inputs)
 - [x] **Synchronisation dark mode ↔ thèmes** fonctionne
 - [x] **Persistance** localStorage fonctionne
@@ -185,10 +185,10 @@ Valider que tous les thèmes fonctionnent correctement avec :
 
 | Critère                 | Résultat | Détails                             |
 | ----------------------- | -------- | ----------------------------------- |
-| **Thèmes fonctionnels** | ✅ 4/4   | Tous les thèmes opérationnels       |
-| **Dark mode**           | ✅ 4/4   | Variantes dark pour tous les thèmes |
-| **Contraste WCAG AAA**  | ✅ 4/4   | `--muted-foreground` >= 7:1         |
-| **Contraste WCAG AA**   | ✅ 4/4   | `--primary` >= 4.5:1                |
+| **Thèmes fonctionnels** | ✅ 7/7   | Tous les thèmes opérationnels       |
+| **Dark mode**           | ✅ 7/7   | Variantes dark pour tous les thèmes |
+| **Contraste WCAG AAA**  | ✅ 7/7   | `--muted-foreground` >= 7:1         |
+| **Contraste WCAG AA**   | ✅ 7/7   | `--primary` >= 4.5:1                |
 | **Composants UI**       | ✅ 100%  | Tous les composants testés          |
 | **Synchronisation**     | ✅       | Dark mode ↔ thèmes indépendants     |
 | **Persistance**         | ✅       | localStorage fonctionne             |
@@ -216,5 +216,5 @@ Valider que tous les thèmes fonctionnent correctement avec :
 
 ---
 
-**Dernière mise à jour** : Janvier 2025  
+**Dernière mise à jour** : Février 2026 (addendum 7 thèmes)  
 **Testé par** : Équipe Frontend Mathakine

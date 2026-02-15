@@ -1,6 +1,12 @@
-# 🎉 MISSION COMPLÈTE - Rationalisation Documentation + Index DB - 06/02/2026
+# Rapport mission — Rationalisation docs + index DB
 
-## ✅ MISSION ACCOMPLIE
+**Date :** 06/02/2026  
+**Type :** Rapport situationnel  
+**Statut :** Archivé
+
+---
+
+## Mission accomplie
 
 **Durée totale** : ~3h  
 **Fichiers analysés** : 78 fichiers Markdown  

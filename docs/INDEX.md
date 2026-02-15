@@ -1,6 +1,7 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique - Mise à jour au 12/02/2026
+> Point d'entrée unique — Mise à jour au 15/02/2026  
+> **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md)
 
 ---
 
@@ -44,17 +45,35 @@ docs/
 │   └── ROADMAP_FONCTIONNALITES.md # 🆕 Roadmap globale fonctionnalités
 │
 ├── 03-PROJECT/            # 📕 Gestion projet
-│   ├── EVALUATION_PROJET_2026-02-07.md  # 🆕 Evaluation factuelle (supersede BILAN_COMPLET)
-│   ├── BILAN_COMPLET.md        # ⚠️ Historique phases 1-6 (nov. 2025, certaines metriques obsoletes)
+│   ├── README.md          # ⭐ Index maître audits/rapports
+│   ├── EVALUATION_PROJET_2026-02-07.md  # Référence actuelle (évaluation factuelle)
+│   ├── BILAN_COMPLET.md        # ⚠️ Historique phases 1-6 (nov. 2025)
+│   ├── AUDIT_DASHBOARD_2026-02.md  # Audit dashboard (recos partielles)
+│   ├── AUDIT_SENTRY_2026-02.md  # Configuration Sentry (référence)
+│   ├── AUDIT_SECURITE_APPLICATIVE_2026-02.md  # Audit OWASP (référence)
+│   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~70-80% traité)
+│   ├── DEPLOIEMENT_2026-02-06.md  # Guide déploiement
+│   ├── ENDPOINTS_NON_INTEGRES.md  # Endpoints à intégrer
+│   ├── PLACEHOLDERS_ET_TODO.md  # Endpoints à implémenter
 │   ├── RAPPORT_VERIFICATION_CHALLENGES.md  # Vérification 29/11/2025
-│   ├── PLACEHOLDERS_ET_TODO.md # 13 endpoints à implémenter
-│   ├── RATIONALISATION_DOCS_2026-02-06.md  # 🆕 Rationalisation docs
-│   ├── INDEX_DB_MANQUANTS_2026-02-06.md    # 🆕 Analyse index DB (✅ Complété)
-│   ├── AUDIT_SECURITE_APPLICATIVE_2026-02.md  # 🆕 Audit sécurité OWASP
-│   ├── MIGRATION_INDEX_ROLLBACK_PLAN.md    # 🆕 Plan rollback migrations
-│   ├── AUDIT_FINAL_DOCS_GITIGNORE_2026-02-06.md  # 🆕 Audit gitignore
-│   ├── RECAP_FINAL_2026-02-06.md           # 🆕 Récapitulatif complet
-│   ├── MISSION_COMPLETE_2026-02-06.md      # 🆕 Rapport final mission
+│   ├── AUDITS_ET_RAPPORTS_ARCHIVES/  # 📦 Audits implémentés + rapports temporaires
+│   │   ├── README.md  # Index du dossier
+│   │   ├── AUDITS_IMPLEMENTES/  # Recos toutes appliquées
+│   │   │   ├── INDEX.md  # Index des 7 audits
+│   │   │   ├── ANALYSE_THEMES_UX_2026-02.md
+│   │   │   ├── CONTRAST_FIXES.md
+│   │   │   ├── THEMES_TEST_RESULTS.md
+│   │   │   ├── REFACTORING_SUMMARY.md
+│   │   │   ├── REMAINING_TASKS.md
+│   │   │   ├── INDEX_DB_MANQUANTS_2026-02-06.md
+│   │   │   └── AUDIT_FINAL_DOCS_GITIGNORE_2026-02-06.md
+│   │   └── RAPPORTS_TEMPORAIRES/  # Rapports situationnels
+│   │       ├── INDEX.md
+│   │       ├── MISSION_COMPLETE_2026-02-06.md
+│   │       ├── RECAP_FINAL_2026-02-06.md
+│   │       ├── RATIONALISATION_DOCS_2026-02-06.md
+│   │       ├── PLAN_ACTION_2026-02-06.md
+│   │       └── MIGRATION_INDEX_ROLLBACK_PLAN.md
 │   └── PHASES/                 # Documentation phases historiques
 │       ├── RECAP_PHASES.md
 │       ├── PHASE6_PLAN.md
@@ -93,6 +112,10 @@ docs/
 ### Je veux créer un nouveau widget dashboard
 1. [DESIGN_SYSTEM_WIDGETS.md](06-WIDGETS/DESIGN_SYSTEM_WIDGETS.md) - Template et patterns
 2. [INTEGRATION_PROGRESSION_WIDGETS.md](06-WIDGETS/INTEGRATION_PROGRESSION_WIDGETS.md) - Exemple complet
+
+### Je veux consulter des audits/rapports
+1. [03-PROJECT — Index maître](03-PROJECT/README.md) - Taxonomie audits, recommandations, rapports
+2. [AUDITS_ET_RAPPORTS_ARCHIVES](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/README.md) - Audits implémentés + rapports situationnels
 
 ### Je veux tester mes modifications
 1. [TESTING.md](01-GUIDES/TESTING.md) - Guide tests complet
@@ -158,6 +181,15 @@ docs/
 ---
 
 ## 🔄 Dernières mises à jour
+
+### 15/02/2026
+- 📁 **Réorganisation docs** : Audits implémentés regroupés dans `03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/` — ajout de CONTRAST_FIXES, THEMES_TEST_RESULTS, REFACTORING_SUMMARY, REMAINING_TASKS (ex-frontend/docs)
+- 📝 **AUDITS_IMPLEMENTES/INDEX.md** : Index des 7 documents d'audits complétés
+
+### 15/02/2026 (soir)
+- 🎨 **Thèmes** : 7 thèmes (Dune, Forêt, Lumière, Dinosaures) — ANALYSE_THEMES_UX et THEMES_TEST_RESULTS mis à jour
+- 📐 **Standardisation docs** : En-têtes harmonisés (Date, Type, Statut), CONVENTION enrichie, taxonomie clarifiée
+- 📁 **Documentation projet** : 03-PROJECT/README.md (index maître), CONVENTION_DOCUMENTATION.md, standardisation audits/rapports
 
 ### 12/02/2026
 - ✅ **Énigmes (RiddleRenderer)** : Rendu correct des champs `pots` et `plaque` (plus de JSON brut), masquage de l’ascii_art redondant

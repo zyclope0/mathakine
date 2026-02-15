@@ -1,6 +1,10 @@
-# 📋 Plan d'Action - Prochaines Étapes - 06/02/2026
+# Plan d'action — Prochaines étapes
 
-> **⚠️ PARTIELLEMENT OBSOLETE** - Ce plan date du 06/02/2026. Plusieurs actions ont ete completees depuis :
+**Date :** 06/02/2026  
+**Type :** Rapport situationnel  
+**Statut :** ⚠️ Obsolète → [EVALUATION_PROJET_2026-02-07](../../EVALUATION_PROJET_2026-02-07.md)
+
+> **⚠️ Obsolète** - Ce plan date du 06/02/2026. Plusieurs actions ont ete completees depuis :
 > - ✅ 4.2 Mise a jour profil (implemente)
 > - ✅ Widgets dashboard (testes et deployes)
 > - ✅ Deploiement Render (valide)
@@ -11,7 +15,7 @@
 > - ✅ **08/02/2026** : CI fiabilise (continue-on-error retire, tests migres async)
 > - ✅ **08/02/2026** : GitHub Actions mises a jour (checkout v6, artifacts v6/v7, codecov v5)
 > 
-> **Document de reference actuel** : [EVALUATION_PROJET_2026-02-07.md](EVALUATION_PROJET_2026-02-07.md)
+> **Document de reference actuel** : [EVALUATION_PROJET_2026-02-07.md](../../EVALUATION_PROJET_2026-02-07.md)
 
 ## ✅ Contexte
 

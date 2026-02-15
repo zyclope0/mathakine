@@ -1,7 +1,8 @@
-# 📋 Points Restants à Effectuer - Mathakine Frontend
+# Checklist frontend — Points restants
 
-**Date** : 9 Novembre 2025  
-**État actuel** : ✅ **~99% Complété**
+**Date :** Novembre 2025  
+**Type :** Audit (implémenté)  
+**Statut :** ~99 % complété
 
 ---
 

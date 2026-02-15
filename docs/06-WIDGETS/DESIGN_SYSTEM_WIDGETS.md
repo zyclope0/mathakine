@@ -6,7 +6,7 @@
 
 ### Architecture CSS
 Le projet utilise **CSS Variables** pour le theming automatique :
-- ✅ **Multi-thème** : Dark mode / Light mode / Thèmes personnalisés (Spatial, Minimaliste, Océan, Neutre)
+- ✅ **Multi-thème** : Dark mode / Light mode / Thèmes personnalisés (Spatial, Minimaliste, Océan, Dune, Forêt, Lumière, Dinosaures)
 - ✅ **Variables CSS** : `bg-card`, `text-foreground`, `border-primary`, etc.
 - ✅ **Classes Tailwind** : Utilisation systématique des classes avec variables CSS
 
@@ -313,7 +313,7 @@ Le projet supporte plusieurs thèmes :
 - **Spatial** (défaut) : Fond spatial avec étoiles
 - **Minimaliste** : Fond uni clair
 - **Océan** : Couleurs bleues/cyan
-- **Neutre** : Gris neutres
+- **Dune** : Ambre/Sable — **Forêt** : Verts nature — **Lumière** : Pêche — **Dinosaures** : Lime/Jungle
 
 Les variables CSS s'adaptent automatiquement à chaque thème.
 

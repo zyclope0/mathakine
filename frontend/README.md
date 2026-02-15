@@ -264,7 +264,7 @@ Configuration dans `next.config.ts` :
 
 Configuration via CSS dans `app/globals.css` :
 
-- 4 thèmes (Spatial, Minimaliste, Océan, Neutre)
+- 7 thèmes (Spatial, Minimaliste, Océan, Dune, Forêt, Lumière, Dinosaures)
 - Variables CSS pour couleurs
 - Support dark mode
 
@@ -416,7 +416,10 @@ Voir [Guide Accessibilité](./docs/ACCESSIBILITY_GUIDE.md) pour la documentation
 1. **Spatial** (par défaut) : Thème spatial avec couleurs violettes
 2. **Minimaliste** : Design épuré noir et blanc
 3. **Océan** : Tons bleus apaisants
-4. **Neutre** : Gris et blancs neutres
+4. **Dune** : Sable/ambre, réduction fatigue visuelle
+5. **Forêt** : Verts doux, calme et focus
+6. **Lumière** : Tons pêche/orangé, énergie douce
+7. **Dinosaures** : Jungle préhistorique, verts lime
 
 ### **Utilisation**
 
@@ -552,7 +555,7 @@ npx shadcn@latest add [component-name]
 - ✅ Pages principales (exercices, défis, dashboard, badges)
 - ✅ i18n complet (interface + données)
 - ✅ Accessibilité WCAG AAA
-- ✅ 4 thèmes disponibles
+- ✅ 7 thèmes disponibles
 - ✅ Tests unitaires et E2E
 
 ---

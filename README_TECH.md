@@ -1,6 +1,6 @@
 # README_TECH.md - Mathakine
 
-> Documentation technique de reference - Mise a jour le 12/02/2026
+> Documentation technique de référence — Mise à jour le 15/02/2026
 
 ---
 
@@ -57,7 +57,7 @@ Mathakine/
 │   │   ├── dashboard/      #     Tableau de bord : StatsCard, ProgressChart, Recommendations
 │   │   ├── layout/         #     Layout : Header, Footer, PageLayout, PageTransition
 │   │   ├── ui/             #     Composants UI generiques (shadcn/ui)
-│   │   └── spatial/        #     Fond anime Star Wars (Starfield, Planet, Particles)
+│   │   └── spatial/        #     Fond anime (Starfield, Planet, Particles, DinoFloating)
 │   ├── hooks/              #   Hooks custom (useAuth, useExercises, useChallenges, etc.)
 │   ├── lib/                #   API client, constantes, stores Zustand, utils
 │   ├── messages/           #   Fichiers de traduction (fr.json, en.json)

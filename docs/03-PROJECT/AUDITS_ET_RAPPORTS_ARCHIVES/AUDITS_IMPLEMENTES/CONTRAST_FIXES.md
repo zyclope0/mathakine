@@ -1,6 +1,8 @@
-# 🔧 Corrections de Contraste - Mathakine
+# Corrections de contraste — Thème Océan
 
-**Date** : 9 Novembre 2025
+**Date :** Novembre 2025  
+**Type :** Audit (implémenté)  
+**Statut :** ✅ WCAG AA appliqué
 
 ---
 

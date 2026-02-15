@@ -1,6 +1,8 @@
-# 📊 Analyse Index Base de Données - 06/02/2026
+# Index PostgreSQL manquants — Analyse et implémentation
 
-> **Statut : ✅ COMPLÉTÉ** - Tous les index ont été appliqués le 06/02/2026
+**Date :** 06/02/2026  
+**Type :** Audit (implémenté)  
+**Statut :** ✅ 13 index appliqués
 
 ## 🎯 Objectif
 
@@ -17,7 +19,7 @@ Analyser les index PostgreSQL manquants pour optimiser les performances des requ
 | `20260206_1540_add_user_achievements_composite_idx.py` | 1 index unique (user_achievements) | ✅ Appliqué |
 | `20260206_1600_add_exercises_missing_indexes.py` | 2 index (is_archived, archived_age) | ✅ Appliqué |
 
-**Plan de rollback** : Voir [MIGRATION_INDEX_ROLLBACK_PLAN.md](MIGRATION_INDEX_ROLLBACK_PLAN.md)
+**Plan de rollback** : Voir [MIGRATION_INDEX_ROLLBACK_PLAN.md](../RAPPORTS_TEMPORAIRES/MIGRATION_INDEX_ROLLBACK_PLAN.md)
 
 ---
 

@@ -7,7 +7,7 @@
 
 ## 📋 **Vue d'Ensemble**
 
-Système d'animations spatiales modérées pour créer une immersion visuelle cohérente avec le thème Mathakine. Les animations s'adaptent automatiquement aux 4 thèmes disponibles et respectent les préférences d'accessibilité.
+Système d'animations spatiales modérées pour créer une immersion visuelle cohérente avec le thème Mathakine. Les animations s'adaptent automatiquement aux 7 thèmes disponibles et respectent les préférences d'accessibilité.
 
 ---
 
@@ -23,11 +23,7 @@ Système d'animations spatiales modérées pour créer une immersion visuelle co
   - Couche lointaine : 100 étoiles, vitesse 0.5, taille 1px, opacité 0.8
   - Couche moyenne : 150 étoiles, vitesse 1, taille 1.5px, opacité 0.6
   - Couche proche : 200 étoiles, vitesse 2, taille 2px, opacité 0.4
-- ✅ Couleurs adaptées aux 4 thèmes :
-  - **Spatial** : Blanc (`rgba(255, 255, 255)`)
-  - **Minimaliste** : Noir (`rgba(0, 0, 0)`)
-  - **Océan** : Blanc (`rgba(255, 255, 255)`)
-  - **Neutre** : Gris (`rgba(107, 114, 128)`)
+- ✅ Couleurs adaptées aux 7 thèmes : Spatial, Minimaliste, Océan, Dune, Forêt, Lumière, Dinosaures
 - ✅ Animation fluide avec `requestAnimationFrame`
 - ✅ Responsive (s'adapte à la taille de l'écran)
 - ✅ Désactivation automatique en mode Focus ou reduced motion
@@ -47,11 +43,7 @@ Système d'animations spatiales modérées pour créer une immersion visuelle co
 - ✅ Anneau pulsant autour de la planète (animation `pulse-ring`)
 - ✅ 6 symboles mathématiques orbitants : **∑∫π∞√Δ**
 - ✅ Animations orbitales individuelles (20s par rotation)
-- ✅ Couleurs adaptées aux 4 thèmes :
-  - **Spatial** : Violet (`rgba(139, 92, 246)`)
-  - **Minimaliste** : Noir (`rgba(0, 0, 0)`)
-  - **Océan** : Bleu ciel (`rgba(14, 165, 233)`)
-  - **Neutre** : Gris (`rgba(107, 114, 128)`)
+- ✅ Couleurs adaptées aux 7 thèmes : Spatial (violet), Minimaliste (noir), Océan (bleu), Dune (ambre), Forêt (menthe), Lumière (pêche), Dinosaures (lime)
 - ✅ Désactivation automatique en mode Focus ou reduced motion
 
 **Position** : `fixed bottom-8 right-8`  
@@ -67,11 +59,7 @@ Système d'animations spatiales modérées pour créer une immersion visuelle co
 
 - ✅ 50 particules flottantes
 - ✅ Mouvement aléatoire (rebond sur les bords)
-- ✅ Couleurs adaptées aux 4 thèmes :
-  - **Spatial** : Violet (`rgba(139, 92, 246, 0.3)`)
-  - **Minimaliste** : Noir subtil (`rgba(0, 0, 0, 0.2)`)
-  - **Océan** : Bleu ciel (`rgba(14, 165, 233, 0.3)`)
-  - **Neutre** : Gris (`rgba(107, 114, 128, 0.2)`)
+- ✅ Couleurs adaptées aux 7 thèmes : Spatial, Minimaliste, Océan, Dune, Forêt, Lumière, Dinosaures
 - ✅ Opacité variable par particule (0.2-0.7)
 - ✅ Taille variable (1-3px)
 - ✅ Désactivation automatique en mode Focus ou reduced motion
@@ -80,13 +68,28 @@ Système d'animations spatiales modérées pour créer une immersion visuelle co
 
 ---
 
-### **4. SpatialBackground** (`components/spatial/SpatialBackground.tsx`)
+### **4. DinoFloating** (`components/spatial/DinoFloating.tsx`)
+
+**Description** : Petit dinosaure flottant décoratif — visible uniquement avec le thème Dinosaures.
+
+**Fonctionnalités** :
+
+- ✅ Emoji 🦕 en haut à gauche (`top-20 left-8`)
+- ✅ Visible uniquement si thème = Dino
+- ✅ Animation `dino-bob` (balancement doux)
+- ✅ Désactivation en mode Focus ou reduced motion
+
+**Z-index** : `-5` (même niveau que la planète)
+
+---
+
+### **5. SpatialBackground** (`components/spatial/SpatialBackground.tsx`)
 
 **Description** : Conteneur combinant tous les composants spatiaux.
 
 **Fonctionnalités** :
 
-- ✅ Combine `Starfield`, `Planet`, et `Particles`
+- ✅ Combine `Starfield`, `Planet`, `Particles`, et `DinoFloating` (thème Dinosaures uniquement)
 - ✅ Intégré dans `app/layout.tsx` pour toutes les pages
 - ✅ S'adapte automatiquement au thème et aux préférences d'accessibilité
 
@@ -112,11 +115,12 @@ Système d'animations spatiales modérées pour créer une immersion visuelle co
 - Planète : Bleu ciel avec brillance bleue
 - Particules : Bleu ciel subtil
 
-### **Thème Neutre** ⚫
+### **Thèmes Dune, Forêt, Lumière, Dinosaures**
 
-- Étoiles : Gris
-- Planète : Gris avec brillance grise
-- Particules : Gris subtil
+- **Dune** : Ambre/Sable (étoiles, planète, particules)
+- **Forêt** : Vert menthe
+- **Lumière** : Pêche/Orange
+- **Dinosaures** : Vert lime, emoji T-Rex à la place de la planète
 
 ---
 
@@ -202,7 +206,7 @@ import { SpatialBackground } from "@/components/spatial/SpatialBackground";
 ```
 -10 : Starfield (arrière-plan)
 -8  : Particles (milieu)
--5  : Planet (avant-plan)
+-5  : Planet, DinoFloating (avant-plan)
 0+  : Contenu principal
 ```
 
@@ -211,9 +215,10 @@ import { SpatialBackground } from "@/components/spatial/SpatialBackground";
 ## ✅ **Checklist de Validation**
 
 - [x] **Starfield** : 3 couches fonctionnelles
-- [x] **Planet** : Rotation + cratères + symboles orbitants
+- [x] **Planet** : Rotation + cratères + symboles orbitants (emoji T-Rex pour thème Dino)
 - [x] **Particles** : Système de particules subtiles
-- [x] **Adaptation thèmes** : 4 thèmes supportés
+- [x] **DinoFloating** : Dino flottant (thème Dinosaures uniquement)
+- [x] **Adaptation thèmes** : 7 thèmes supportés
 - [x] **Accessibilité** : Mode Focus et reduced motion respectés
 - [x] **Performance** : Animations fluides avec requestAnimationFrame
 - [x] **Responsive** : S'adapte à toutes les tailles d'écran

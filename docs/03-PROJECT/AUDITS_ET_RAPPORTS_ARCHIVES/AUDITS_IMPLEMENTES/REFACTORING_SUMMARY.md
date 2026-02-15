@@ -1,7 +1,8 @@
-# 🔄 Résumé du Refactoring - Pages Standardisées
+# Refactoring pages — Résumé
 
-**Date** : 9 Novembre 2025  
-**Status** : ✅ **Complété**
+**Date :** Novembre 2025  
+**Type :** Audit (implémenté)  
+**Statut :** ✅ Complété
 
 ---
 

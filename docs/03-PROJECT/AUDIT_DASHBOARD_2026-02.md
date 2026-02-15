@@ -1,7 +1,8 @@
 # Audit Dashboard — Incohérences et duplications
 
 **Date :** Février 2026  
-**Contexte :** Plusieurs plantages pendant l'implémentation des onglets
+**Type :** Audit actif  
+**Statut :** Recos partielles
 
 ---
 
