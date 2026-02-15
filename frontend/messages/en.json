@@ -538,7 +538,20 @@
       "retry": "Retry"
     },
     "empty": {
-      "message": "No statistics available. Start solving exercises!"
+      "message": "No statistics available. Start solving exercises!",
+      "charts": "Keep training to see your progress charts.",
+      "performance": "No performance data at the moment."
+    },
+    "tabs": {
+      "tabsLabel": "Dashboard sections",
+      "overview": "Overview",
+      "overviewShort": "Overview",
+      "recommendations": "Recommendations",
+      "recommendationsShort": "Recs",
+      "progress": "Progress",
+      "progressShort": "Stats",
+      "details": "Details",
+      "detailsShort": "Details"
     },
     "lastUpdate": "Last update: {time}",
     "stats": {
@@ -573,7 +586,9 @@
       "emptyHint": "Keep training!",
       "trainNow": "Train now",
       "refresh": "Refresh",
-      "priority": "Priority"
+      "priority": "Priority",
+      "challenge": "Logic challenge",
+      "startChallenge": "Take the challenge"
     },
     "recentActivity": {
       "title": "Recent activity",

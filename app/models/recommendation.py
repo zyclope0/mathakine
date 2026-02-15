@@ -25,6 +25,13 @@ class Recommendation(Base):
     # Exercice recommandé (optionnel - peut être une recommandation par type)
     exercise_id = Column(Integer, ForeignKey("exercises.id", ondelete="SET NULL"), nullable=True, index=True)
     exercise = relationship("Exercise", backref="recommendations")
+
+    # Défi logique recommandé (optionnel - recommandations de type "challenge")
+    challenge_id = Column(Integer, ForeignKey("logic_challenges.id", ondelete="SET NULL"), nullable=True, index=True)
+    challenge = relationship("LogicChallenge", backref="recommendations")
+
+    # Type de recommandation : "exercise" | "challenge"
+    recommendation_type = Column(String(20), default="exercise", nullable=False, index=True)
     
     # Catégorisation (toujours présent même si exercise_id est NULL)
     exercise_type = Column(String, nullable=False, index=True)

@@ -8,6 +8,7 @@ from sqlalchemy.sql import func
 
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.user import User
@@ -286,6 +287,44 @@ class RecommendationService:
                             reason=f"Découvrez un nouveau type d'exercice: {ex.exercise_type}"
                         ))
             
+            # 5. Recommandations de défis logiques (challenges) — au moins 2, jusqu'à 4
+            completed_challenge_ids = {
+                a.challenge_id
+                for a in db.query(LogicChallengeAttempt)
+                .filter(
+                    LogicChallengeAttempt.user_id == user_id,
+                    LogicChallengeAttempt.is_correct == True
+                )
+                .all()
+            }
+            challenge_query = db.query(LogicChallenge).filter(LogicChallenge.is_archived == False)
+            if completed_challenge_ids:
+                challenge_query = challenge_query.filter(
+                    ~LogicChallenge.id.in_(list(completed_challenge_ids))
+                )
+            suggested_challenges = challenge_query.order_by(func.random()).limit(4).all()
+            # Priorité plus élevée si l'utilisateur n'a pas encore fait de défis (incitation à découvrir)
+            num_completed = len(completed_challenge_ids)
+            challenge_priority = 8 if num_completed == 0 else 7 if num_completed < 3 else 6
+            for ch in suggested_challenges:
+                challenge_type_str = str(ch.challenge_type).lower() if ch.challenge_type else "logique"
+                if num_completed == 0:
+                    reason = "Découvrez les défis logiques pour aiguiser votre raisonnement !"
+                elif num_completed < 3:
+                    reason = f"Variez votre entraînement avec un défi {challenge_type_str} !"
+                else:
+                    reason = f"Testez vos compétences logiques avec un défi {challenge_type_str} !"
+                recommendations.append(Recommendation(
+                    user_id=user_id,
+                    exercise_id=None,
+                    challenge_id=ch.id,
+                    recommendation_type="challenge",
+                    exercise_type="challenge",
+                    difficulty=ch.difficulty or "PADAWAN",
+                    priority=challenge_priority,
+                    reason=reason
+                ))
+            
             # Si aucune recommandation n'a été générée, proposer quelques exercices aléatoires
             if not recommendations:
                 # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
@@ -375,12 +414,20 @@ class RecommendationService:
             db.rollback()
     
     @staticmethod
-    def get_user_recommendations(db, user_id, limit=5):
-        """Récupère les recommandations actives pour un utilisateur"""
-        return db.query(Recommendation).filter(
+    def get_user_recommendations(db, user_id, limit=7):
+        """Récupère les recommandations actives (mix exercices + défis)"""
+        all_recs = db.query(Recommendation).filter(
             Recommendation.user_id == user_id,
             Recommendation.is_completed == False
-        ).order_by(Recommendation.priority.desc()).limit(limit).all()
+        ).order_by(Recommendation.priority.desc()).limit(limit + 10).all()
+        result = list(all_recs[:limit])
+        challenges = [r for r in all_recs if getattr(r, "challenge_id", None)]
+        # Si aucun défi dans le top limit mais qu'il en existe, en insérer un
+        if challenges and not any(getattr(r, "challenge_id", None) for r in result):
+            exercises_only = [r for r in result if not getattr(r, "challenge_id", None)]
+            if len(exercises_only) >= limit - 1:
+                result = exercises_only[: limit - 1] + [challenges[0]]
+        return result[:limit]
     
     @staticmethod
     def _get_next_difficulty(current_difficulty):

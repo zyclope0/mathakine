@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserStats, type TimeRange } from "@/hooks/useUserStats";
 import { useProgressStats } from "@/hooks/useProgressStats";
 import { useChallengesProgress } from "@/hooks/useChallengesProgress";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, CheckCircle, Zap, Trophy } from "lucide-react";
+import { RefreshCw, CheckCircle, Zap, Trophy, LayoutDashboard, TrendingUp, BarChart3 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ProgressChartLazy } from "@/components/dashboard/ProgressChartLazy";
 import { DailyExercisesChartLazy } from "@/components/dashboard/DailyExercisesChartLazy";
@@ -27,12 +29,10 @@ import {
   StatsCardSkeleton,
   ChartSkeleton,
   PerformanceByTypeSkeleton,
-  RecentActivitySkeleton,
-  LevelIndicatorSkeleton,
-  RecommendationsSkeleton,
 } from "@/components/dashboard/DashboardSkeletons";
 
 export default function DashboardPage() {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState<TimeRange>("30");
   const { stats, isLoading, error, refetch } = useUserStats(timeRange);
@@ -45,27 +45,23 @@ export default function DashboardPage() {
 
   // Debounce du refresh pour éviter les clics multiples rapides
   const handleRefresh = useCallback(async () => {
-    // Empêcher les clics multiples
-    if (isRefreshing) {
-      return;
-    }
+    if (isRefreshing) return;
 
     setIsRefreshing(true);
-
     try {
       await refetch();
+      // Invalider progress et challenges pour un rafraîchissement complet
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["user", "progress"] }),
+        queryClient.invalidateQueries({ queryKey: ["user", "challenges", "progress"] }),
+      ]);
       toast.success(tToasts("statsUpdated"));
-    } catch (error) {
-      // En production, les erreurs sont gérées par le toast
-      // Ne pas logger en console pour éviter les fuites d'information
+    } catch (err) {
       toast.error(t("error.title", { default: "Erreur lors du rafraîchissement" }));
     } finally {
-      // Délai minimum pour éviter les clics trop rapides
-      setTimeout(() => {
-        setIsRefreshing(false);
-      }, 500);
+      setTimeout(() => setIsRefreshing(false), 500);
     }
-  }, [refetch, isRefreshing, tToasts, t]);
+  }, [refetch, isRefreshing, queryClient, tToasts, t]);
 
   if (isLoading) {
     return (
@@ -138,100 +134,139 @@ export default function DashboardPage() {
           }
         />
 
-        {/* Statistiques générales */}
+        {/* Contenu organisé par onglets pour réduire la densité */}
         {stats && (
-          <>
-            <PageSection className="space-y-3 animate-fade-in-up-delay-1">
-              <div className="grid gap-4 md:grid-cols-3">
-                <StatsCard
-                  icon={CheckCircle}
-                  value={stats.total_exercises || 0}
-                  label={t("stats.exercisesSolved")}
-                />
-                <StatsCard
-                  icon={Zap}
-                  value={`${Math.round(stats.success_rate || 0)}%`}
-                  label={t("stats.successRate")}
-                />
-                <StatsCard
-                  icon={Trophy}
-                  value={stats.total_challenges || 0}
-                  label={t("stats.challengesCompleted")}
-                />
-              </div>
-              {/* Métadonnées temporelles */}
-              {stats.recent_activity &&
-                stats.recent_activity.length > 0 &&
-                stats.recent_activity[0] &&
-                stats.recent_activity[0].time && (
-                  <div className="text-xs text-muted-foreground text-center mt-2">
-                    {t("lastUpdate", {
-                      time: stats.recent_activity[0].time,
-                    })}
-                  </div>
-                )}
-            </PageSection>
+          <Tabs defaultValue="overview" className="space-y-4 animate-fade-in-up-delay-1">
+            <TabsList
+              className="grid w-full max-w-3xl grid-cols-2 sm:grid-cols-4"
+              aria-label={t("tabs.tabsLabel", { default: "Sections du tableau de bord" })}
+            >
+              <TabsTrigger value="overview" className="flex items-center gap-2 py-2.5 text-sm">
+                <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{t("tabs.overview", { default: "Vue d'ensemble" })}</span>
+                <span className="sm:hidden">{t("tabs.overviewShort", { default: "Vue" })}</span>
+              </TabsTrigger>
+              <TabsTrigger value="recommendations" className="flex items-center gap-2 py-2.5 text-sm">
+                <Zap className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{t("tabs.recommendations", { default: "Recommandations" })}</span>
+                <span className="sm:hidden">{t("tabs.recommendationsShort", { default: "Recommandés" })}</span>
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="flex items-center gap-2 py-2.5 text-sm">
+                <TrendingUp className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{t("tabs.progress", { default: "Progression" })}</span>
+                <span className="sm:hidden">{t("tabs.progressShort", { default: "Stats" })}</span>
+              </TabsTrigger>
+              <TabsTrigger value="details" className="flex items-center gap-2 py-2.5 text-sm">
+                <BarChart3 className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{t("tabs.details", { default: "Détails" })}</span>
+                <span className="sm:hidden">{t("tabs.detailsShort", { default: "Détails" })}</span>
+              </TabsTrigger>
+            </TabsList>
 
-            {/* Nouveaux widgets de progression */}
-            <PageSection className="space-y-3 animate-fade-in-up-delay-2">
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-stretch">
-                <StreakWidget
-                  currentStreak={progressStats?.current_streak || 0}
-                  highestStreak={progressStats?.highest_streak || 0}
-                  isLoading={isLoadingProgress}
-                />
-                <ChallengesProgressWidget
-                  completedChallenges={challengesProgress?.completed_challenges || 0}
-                  totalChallenges={challengesProgress?.total_challenges || 0}
-                  successRate={challengesProgress?.success_rate || 0}
-                  averageTime={challengesProgress?.average_time || 0}
-                  isLoading={isLoadingChallenges}
-                />
-                <div className="md:col-span-2 lg:col-span-1">
-                  <CategoryAccuracyChart
-                    categoryData={progressStats?.by_category || {}}
-                    isLoading={isLoadingProgress}
+            {/* Onglet Vue d'ensemble — stats clés + recommandations + activité */}
+            <TabsContent value="overview" className="space-y-6">
+              <PageSection className="space-y-3">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <StatsCard
+                    icon={CheckCircle}
+                    value={stats.total_exercises || 0}
+                    label={t("stats.exercisesSolved")}
+                  />
+                  <StatsCard
+                    icon={Zap}
+                    value={`${Math.round(stats.success_rate || 0)}%`}
+                    label={t("stats.successRate")}
+                  />
+                  <StatsCard
+                    icon={Trophy}
+                    value={stats.total_challenges || 0}
+                    label={t("stats.challengesCompleted")}
                   />
                 </div>
-              </div>
-            </PageSection>
+                {stats.recent_activity?.[0]?.time && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    {t("lastUpdate", { time: stats.recent_activity[0].time })}
+                  </p>
+                )}
+              </PageSection>
 
-            {/* Graphiques */}
-            {stats.progress_over_time && stats.exercises_by_day && (
-              <PageSection className="space-y-3 animate-fade-in-up-delay-2">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <ProgressChartLazy data={stats.progress_over_time} />
-                  <DailyExercisesChartLazy data={stats.exercises_by_day} />
+              <PageSection className="space-y-3">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-stretch">
+                  <StreakWidget
+                    currentStreak={progressStats?.current_streak || 0}
+                    highestStreak={progressStats?.highest_streak || 0}
+                    isLoading={isLoadingProgress}
+                  />
+                  <ChallengesProgressWidget
+                    completedChallenges={challengesProgress?.completed_challenges || 0}
+                    totalChallenges={challengesProgress?.total_challenges || 0}
+                    successRate={challengesProgress?.success_rate || 0}
+                    averageTime={challengesProgress?.average_time || 0}
+                    isLoading={isLoadingChallenges}
+                  />
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <CategoryAccuracyChart
+                      categoryData={progressStats?.by_category || {}}
+                      isLoading={isLoadingProgress}
+                    />
+                  </div>
                 </div>
               </PageSection>
-            )}
 
-            {/* Performance par type */}
-            {stats.performance_by_type && Object.keys(stats.performance_by_type).length > 0 && (
-              <PageSection className="space-y-3 animate-fade-in-up-delay-3">
-                <PerformanceByType performance={stats.performance_by_type} />
+              {stats.recent_activity && stats.recent_activity.length > 0 && (
+                <PageSection>
+                  <RecentActivity activities={stats.recent_activity} />
+                </PageSection>
+              )}
+            </TabsContent>
+
+            {/* Onglet Recommandations — conseils du Maître Jedi */}
+            <TabsContent value="recommendations" className="space-y-6">
+              <PageSection>
+                <Recommendations />
               </PageSection>
-            )}
+            </TabsContent>
 
-            {/* Niveau actuel */}
-            {stats.level && (
-              <PageSection className="space-y-3 animate-fade-in-up-delay-3">
-                <LevelIndicator level={stats.level} />
-              </PageSection>
-            )}
+            {/* Onglet Progression — graphiques */}
+            <TabsContent value="progress" className="space-y-6">
+              {stats.progress_over_time && stats.exercises_by_day ? (
+                <>
+                  <PageSection>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <ProgressChartLazy data={stats.progress_over_time} />
+                      <DailyExercisesChartLazy data={stats.exercises_by_day} />
+                    </div>
+                  </PageSection>
+                  {stats.level && (
+                    <PageSection>
+                      <LevelIndicator level={stats.level} />
+                    </PageSection>
+                  )}
+                </>
+              ) : (
+                <PageSection>
+                  <p className="text-muted-foreground text-center py-8">
+                    {t("empty.charts", { default: "Continuez à vous entraîner pour voir vos graphiques de progression." })}
+                  </p>
+                </PageSection>
+              )}
+            </TabsContent>
 
-            {/* Recommandations */}
-            <PageSection className="space-y-3 animate-fade-in-up-delay-3">
-              <Recommendations />
-            </PageSection>
-
-            {/* Activité récente */}
-            {stats.recent_activity && stats.recent_activity.length > 0 && (
-              <PageSection className="space-y-3 animate-fade-in-up-delay-3">
-                <RecentActivity activities={stats.recent_activity} />
-              </PageSection>
-            )}
-          </>
+            {/* Onglet Détails — performance par type */}
+            <TabsContent value="details" className="space-y-6">
+              {stats.performance_by_type && Object.keys(stats.performance_by_type).length > 0 ? (
+                <PageSection>
+                  <PerformanceByType performance={stats.performance_by_type} />
+                </PageSection>
+              ) : (
+                <PageSection>
+                  <p className="text-muted-foreground text-center py-8">
+                    {t("empty.performance", { default: "Aucune donnée de performance pour le moment." })}
+                  </p>
+                </PageSection>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
 
         {/* État vide */}

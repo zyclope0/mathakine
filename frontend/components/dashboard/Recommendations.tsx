@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, RefreshCw } from "lucide-react";
+import { Sparkles, RefreshCw, Swords } from "lucide-react";
 import Link from "next/link";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { cn } from "@/lib/utils/cn";
@@ -58,15 +58,14 @@ export function Recommendations() {
         ) : recommendations && recommendations.length > 0 ? (
           <div className="space-y-3">
             {recommendations.map((recommendation, index) => {
-              // Traduire le type d'exercice
-              const exerciseTypeDisplay = getTypeDisplay(recommendation.exercise_type);
-
-              // Traduire le groupe d'âge
+              const isChallenge = recommendation.recommendation_type === "challenge" || !!recommendation.challenge_id;
+              const exerciseTypeDisplay = isChallenge
+                ? t("challenge", { default: "Défi logique" })
+                : getTypeDisplay(recommendation.exercise_type);
               const ageGroupDisplay = getAgeDisplay(recommendation.age_group);
-
-              // Déterminer la couleur de priorité selon la priorité (si disponible)
               const priority = (recommendation as any).priority || 5;
               const isHighPriority = priority >= 8;
+              const title = recommendation.challenge_title || recommendation.exercise_title;
 
               return (
                 <div
@@ -86,9 +85,11 @@ export function Recommendations() {
                         variant="outline"
                         className={cn(
                           "bg-primary/10 text-primary-on-dark border-primary/30",
-                          isHighPriority && "bg-primary/20 border-primary/50"
+                          isHighPriority && "bg-primary/20 border-primary/50",
+                          isChallenge && "flex items-center gap-1"
                         )}
                       >
+                        {isChallenge && <Swords className="h-3 w-3" />}
                         {exerciseTypeDisplay}
                       </Badge>
                       <Badge
@@ -104,27 +105,38 @@ export function Recommendations() {
                       )}
                     </div>
                   </div>
-                  {recommendation.exercise_title && (
-                    <h4 className="font-semibold text-foreground mb-2">
-                      {recommendation.exercise_title}
-                    </h4>
+                  {title && (
+                    <h4 className="font-semibold text-foreground mb-2">{title}</h4>
                   )}
                   <p className="text-sm text-muted-foreground italic mb-2">
                     {recommendation.reason}
                   </p>
-                  {recommendation.exercise_question && (
+                  {!isChallenge && recommendation.exercise_question && (
                     <p className="text-xs text-muted-foreground bg-card p-2 rounded mb-3 line-clamp-2">
                       {recommendation.exercise_question.length > 100
                         ? `${recommendation.exercise_question.substring(0, 100)}...`
                         : recommendation.exercise_question}
                     </p>
                   )}
-                  {recommendation.exercise_id && (
+                  {recommendation.challenge_id && (
+                    <Button
+                      asChild
+                      size="sm"
+                      variant={isChallenge ? "default" : "default"}
+                      className="w-full"
+                      aria-label={t("startChallenge", { default: "Relever le défi" })}
+                    >
+                      <Link href={`/challenge/${recommendation.challenge_id}`}>
+                        {t("startChallenge", { default: "Relever le défi" })}
+                      </Link>
+                    </Button>
+                  )}
+                  {!recommendation.challenge_id && recommendation.exercise_id && (
                     <Button
                       asChild
                       size="sm"
                       className="w-full"
-                      aria-label={`Commencer l'exercice ${recommendation.exercise_title || exerciseTypeDisplay}`}
+                      aria-label={`Commencer l'exercice ${title || exerciseTypeDisplay}`}
                     >
                       <Link href={`/exercises/${recommendation.exercise_id}`}>
                         {t("trainNow", { default: "S'entraîner maintenant" })}

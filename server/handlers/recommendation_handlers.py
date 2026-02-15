@@ -27,14 +27,14 @@ async def get_recommendations(request):
             return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
 
         async with db_session() as db:
-            recommendations = RecommendationService.get_user_recommendations(db, user_id, limit=5)
+            recommendations = RecommendationService.get_user_recommendations(db, user_id, limit=7)
 
             # Si aucune recommandation n'existe, générer de nouvelles
             if not recommendations:
                 try:
                     RecommendationService.generate_recommendations(db, user_id)
                     db.commit()
-                    recommendations = RecommendationService.get_user_recommendations(db, user_id, limit=5)
+                    recommendations = RecommendationService.get_user_recommendations(db, user_id, limit=7)
                 except Exception as gen_error:
                     logger.error(f"Erreur lors de la génération des recommandations: {str(gen_error)}")
                     traceback.print_exc()
@@ -57,11 +57,12 @@ async def get_recommendations(request):
                 
                 rec_data = {
                     "id": rec.id,
-                    "exercise_type": str(rec.exercise_type),  # Déjà une string dans le modèle
-                    "difficulty": difficulty_str,  # Difficulté normalisée
-                    "age_group": age_group,  # Groupe d'âge dérivé pour le frontend
+                    "exercise_type": str(rec.exercise_type),
+                    "difficulty": difficulty_str,
+                    "age_group": age_group,
                     "reason": rec.reason or "",
-                    "priority": rec.priority,  # Inclure la priorité pour le frontend
+                    "priority": rec.priority,
+                    "recommendation_type": getattr(rec, "recommendation_type", None) or "exercise",
                 }
 
                 # Ajouter les informations de l'exercice si disponible
@@ -69,14 +70,25 @@ async def get_recommendations(request):
                     rec_data["exercise_id"] = rec.exercise_id
                     # Optionnel: récupérer le titre et la question de l'exercice
                     try:
-                        from app.services.exercise_service import \
-                            ExerciseService
+                        from app.services.exercise_service import ExerciseService
                         exercise = ExerciseService.get_exercise(db, rec.exercise_id)
                         if exercise:
                             rec_data["exercise_title"] = exercise.title
                             rec_data["exercise_question"] = exercise.question
                     except Exception:
                         pass  # Ignorer si l'exercice n'existe plus
+
+                # Ajouter les informations du défi si disponible (recommandation challenge)
+                if getattr(rec, "challenge_id", None):
+                    rec_data["challenge_id"] = rec.challenge_id
+                    try:
+                        from app.services.logic_challenge_service import LogicChallengeService
+                        challenge = LogicChallengeService.get_challenge(db, rec.challenge_id)
+                        if challenge:
+                            rec_data["challenge_title"] = getattr(challenge, "title", None)
+                            rec_data["exercise_title"] = rec_data.get("exercise_title") or challenge.title
+                    except Exception:
+                        pass
 
                 recommendations_data.append(rec_data)
 

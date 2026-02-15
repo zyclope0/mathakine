@@ -538,7 +538,9 @@
       "retry": "Réessayer"
     },
     "empty": {
-      "message": "Aucune statistique disponible. Commencez à résoudre des exercices !"
+      "message": "Aucune statistique disponible. Commencez à résoudre des exercices !",
+      "charts": "Continuez à vous entraîner pour voir vos graphiques de progression.",
+      "performance": "Aucune donnée de performance pour le moment."
     },
     "lastUpdate": "Dernière mise à jour : {time}",
     "stats": {
@@ -571,7 +573,9 @@
       "emptyHint": "Continuez votre entraînement !",
       "trainNow": "S'entraîner maintenant",
       "refresh": "Actualiser",
-      "priority": "Prioritaire"
+      "priority": "Prioritaire",
+      "challenge": "Défi logique",
+      "startChallenge": "Relever le défi"
     },
     "recentActivity": {
       "title": "Activité récente",
@@ -606,6 +610,17 @@
       "xp": "XP",
       "nextLevel": "Niveau suivant",
       "xpForNextLevel": "XP pour le niveau {level}"
+    },
+    "tabs": {
+      "tabsLabel": "Sections du tableau de bord",
+      "overview": "Vue d'ensemble",
+      "overviewShort": "Vue",
+      "recommendations": "Recommandations",
+      "recommendationsShort": "Recommandés",
+      "progress": "Progression",
+      "progressShort": "Stats",
+      "details": "Détails",
+      "detailsShort": "Détails"
     },
     "export": {
       "pdf": "Exporter PDF",
