@@ -153,6 +153,45 @@ def optional_auth(handler):
     return wrapper
 
 
+def require_role(role: str):
+    """Décorateur qui exige un rôle spécifique (ex: archiviste pour admin).
+    
+    À combiner avec @require_auth. Place request.state.user.
+    Retourne 403 si le rôle ne correspond pas.
+    
+    Usage:
+        @require_auth
+        @require_role("archiviste")
+        async def admin_handler(request):
+            ...
+    """
+    def decorator(handler):
+        @wraps(handler)
+        async def wrapper(request, *args, **kwargs):
+            # S'assurer qu'on a l'utilisateur (require_auth ou get_current_user)
+            current_user = getattr(request.state, "user", None)
+            if not current_user:
+                current_user = await get_current_user(request)
+            if not current_user or not current_user.get("is_authenticated"):
+                return JSONResponse(
+                    {"error": "Authentification requise"},
+                    status_code=401
+                )
+            if current_user.get("role") != role:
+                return JSONResponse(
+                    {"error": "Droits insuffisants"},
+                    status_code=403
+                )
+            request.state.user = current_user
+            return await handler(request, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
+# Alias pratique pour les routes admin
+require_admin = require_role("archiviste")
+
+
 def require_auth_sse(handler):
     """Décorateur qui exige une authentification pour les endpoints SSE/streaming.
     
