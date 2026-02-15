@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, RefreshCw, Swords } from "lucide-react";
 import Link from "next/link";
-import { useRecommendations } from "@/hooks/useRecommendations";
+import { useRecommendations, type Recommendation } from "@/hooks/useRecommendations";
 import { cn } from "@/lib/utils/cn";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useTranslations } from "next-intl";
@@ -57,13 +57,13 @@ export function Recommendations() {
           </div>
         ) : recommendations && recommendations.length > 0 ? (
           <div className="space-y-3">
-            {recommendations.map((recommendation, index) => {
+            {recommendations.map((recommendation: Recommendation, index) => {
               const isChallenge = recommendation.recommendation_type === "challenge" || !!recommendation.challenge_id;
               const exerciseTypeDisplay = isChallenge
                 ? t("challenge", { default: "Défi logique" })
                 : getTypeDisplay(recommendation.exercise_type);
               const ageGroupDisplay = getAgeDisplay(recommendation.age_group);
-              const priority = (recommendation as any).priority || 5;
+              const priority = recommendation.priority ?? 5;
               const isHighPriority = priority >= 8;
               const title = recommendation.challenge_title || recommendation.exercise_title;
 

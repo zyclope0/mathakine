@@ -11,9 +11,13 @@ export interface Recommendation {
   difficulty: string;
   age_group?: string;
   reason: string;
+  priority?: number;
   exercise_title?: string;
   exercise_question?: string;
   exercise_id?: number;
+  challenge_id?: number;
+  challenge_title?: string;
+  recommendation_type?: "exercise" | "challenge";
 }
 
 export function useRecommendations() {
