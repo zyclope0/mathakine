@@ -828,12 +828,12 @@ Avant de retourner le JSON, tu DOIS vérifier la cohérence logique :
      → correct_answer DOIT être "X", pas "O"
 
 2. Pour SEQUENCE :
-   - Analyse la séquence pour déterminer le prochain élément
-   - Vérifie que correct_answer correspond à cette analyse
-   - Exemple : Si sequence = [2, 4, 6, 8]
-     → Pattern : +2 à chaque étape
-     → Prochain élément = 10
-     → correct_answer DOIT être "10"
+   - Calcule les DIFFÉRENCES entre termes consécutifs
+   - Si les différences sont constantes (ex: +2, +2, +2) → prochain = dernier + cette différence
+   - Si les différences AUGMENTENT de 1 (ex: +2, +3, +4, +5) → prochaine diff = dernière + 1, prochain = dernier + cette diff
+   - Exemple [2, 4, 6, 8] : diffs 2,2,2 → prochain = 8+2 = 10 → correct_answer = "10"
+   - Exemple [2, 4, 7, 11, 16] : diffs 2,3,4,5 → prochaine diff 6 → prochain = 16+6 = 22 → correct_answer = "22" (PAS 18 !)
+   - AVANT de finaliser : recalcule mentalement. correct_answer ET solution_explanation DOIVENT être identiques.
 
 3. Pour PUZZLE :
    - Tu DOIS fournir des indices (hints) qui permettent de DÉDUIRE l'ordre
@@ -938,6 +938,10 @@ DEMANDE PERSONNALISÉE DE L'UTILISATEUR (à respecter en priorité) :
 
 Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" et le groupe d'âge {age_group}."""
                 
+                # Renforcer instruction JSON pour o1 (n'accepte pas response_format)
+                if AIConfig.is_o1_model(ai_params["model"]):
+                    system_prompt += "\n\nCRITIQUE : Retourne UNIQUEMENT un objet JSON valide, sans texte ou markdown avant/après. Aucune explication hors du JSON."
+                
                 # Envoyer un message de démarrage
                 yield f"data: {json.dumps({'type': 'status', 'message': 'Génération en cours...'})}\n\n"
                 
@@ -957,7 +961,7 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                     reraise=True
                 )
                 async def create_stream_with_retry():
-                    # Construire les paramètres selon le modèle
+                    use_o1 = AIConfig.is_o1_model(ai_params["model"])
                     api_kwargs = {
                         "model": ai_params["model"],
                         "messages": [
@@ -965,23 +969,24 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                             {"role": "user", "content": user_prompt}
                         ],
                         "stream": True,
-                        "response_format": {"type": "json_object"}
                     }
-                    
-                    # GPT-5.x utilise max_completion_tokens, reasoning_effort et verbosity
-                    if AIConfig.is_gpt5_model(ai_params["model"]):
+                    # o1/o1-mini n'accepte pas response_format json_object
+                    if not use_o1:
+                        api_kwargs["response_format"] = {"type": "json_object"}
+
+                    if use_o1:
+                        api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
+                    elif AIConfig.is_gpt5_model(ai_params["model"]):
                         api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
                         api_kwargs["reasoning_effort"] = ai_params.get("reasoning_effort", "medium")
                         api_kwargs["verbosity"] = ai_params.get("verbosity", "low")
-                        # Temperature seulement si reasoning = none
                         if ai_params.get("reasoning_effort") == "none" and "temperature" in ai_params:
                             api_kwargs["temperature"] = ai_params["temperature"]
                     else:
-                        # Modèles legacy (GPT-4.x) utilisent max_tokens et temperature
                         api_kwargs["max_tokens"] = ai_params["max_tokens"]
                         api_kwargs["temperature"] = ai_params.get("temperature", 0.5)
-                    
-                    logger.info(f"Appel API avec params: model={ai_params['model']}, reasoning={ai_params.get('reasoning_effort', 'N/A')}")
+
+                    logger.info(f"Appel API avec params: model={ai_params['model']}, o1={use_o1}, reasoning={ai_params.get('reasoning_effort', 'N/A')}")
                     return await client.chat.completions.create(**api_kwargs)
                 
                 try:

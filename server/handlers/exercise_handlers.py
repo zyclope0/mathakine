@@ -12,6 +12,7 @@ from starlette.responses import (JSONResponse, RedirectResponse,
                                  StreamingResponse)
 
 from app.core.config import settings
+from app.core.ai_config import AIConfig
 from app.core.messages import SystemMessages
 from app.models.exercise import ExerciseType
 # Import du service de badges
@@ -728,6 +729,14 @@ async def generate_ai_exercise_stream(request):
   "hint": "Piste sans révéler la solution"
 }}"""
                 
+                # Modèle : o1 pour fractions/texte/mixte/divers quand OPENAI_MODEL_REASONING est défini
+                _reasoning_types = ("fractions", "texte", "mixte", "divers")
+                model = (settings.OPENAI_MODEL_REASONING if settings.OPENAI_MODEL_REASONING
+                         and exercise_type in _reasoning_types else settings.OPENAI_MODEL)
+                use_o1 = AIConfig.is_o1_model(model)
+                if use_o1:
+                    system_prompt += "\n\nCRITIQUE : Retourne UNIQUEMENT un objet JSON valide, sans texte ou markdown avant/après."
+                
                 # Construire le prompt utilisateur - PRIORITÉ à la description personnalisée
                 if prompt and prompt.strip():
                     # Si l'utilisateur a une description, elle est PRIORITAIRE
@@ -742,17 +751,21 @@ Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respe
                 # Envoyer un message de démarrage (sans afficher le JSON brut)
                 yield f"data: {json.dumps({'type': 'status', 'message': 'Génération en cours...'})}\n\n"
                 
-                # Créer le stream OpenAI
-                stream = await client.chat.completions.create(
-                    model=settings.OPENAI_MODEL,
-                    messages=[
+                api_kwargs = {
+                    "model": model,
+                    "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
                     ],
-                    stream=True,
-                    temperature=0.7,
-                    response_format={"type": "json_object"}  # Forcer JSON
-                )
+                    "stream": True,
+                }
+                if not use_o1:
+                    api_kwargs["temperature"] = 0.7
+                    api_kwargs["response_format"] = {"type": "json_object"}
+                if use_o1:
+                    api_kwargs["max_completion_tokens"] = 4000
+                
+                stream = await client.chat.completions.create(**api_kwargs)
                 
                 full_response = ""
                 # Ne pas envoyer les chunks JSON au client (pas utile pour l'utilisateur)
@@ -763,9 +776,18 @@ Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respe
                         full_response += content
                         # Ne plus envoyer les chunks JSON au client (masqué pour meilleure UX)
                 
-                # Parser la réponse JSON complète
+                # Parser la réponse JSON complète (o1 peut renvoyer du texte autour du JSON)
+                def _extract_json(text: str):
+                    try:
+                        return json.loads(text)
+                    except json.JSONDecodeError:
+                        start, end = text.find("{"), text.rfind("}")
+                        if start != -1 and end != -1 and end > start:
+                            return json.loads(text[start : end + 1])
+                        raise
+                
                 try:
-                    exercise_data = json.loads(full_response)
+                    exercise_data = _extract_json(full_response)
                     
                     # Normaliser les données pour correspondre au format attendu
                     # Utiliser les valeurs normalisées (déjà normalisées plus haut)

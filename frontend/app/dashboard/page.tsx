@@ -37,13 +37,12 @@ import {
 
 function DashboardLastUpdate({
   time,
-  t,
   locale,
 }: {
   time: string;
-  t: (key: string, opts?: { default?: string }) => string;
   locale?: string;
 }) {
+  const t = useTranslations("dashboard");
   try {
     const date = new Date(time);
     const dateLocale = locale === "en" ? enUS : fr;
@@ -56,7 +55,7 @@ function DashboardLastUpdate({
   } catch {
     return (
       <p className="text-xs text-muted-foreground text-center">
-        {t("lastUpdate", { time: time })}
+        {t("lastUpdate", { time })}
       </p>
     );
   }
@@ -217,7 +216,7 @@ export default function DashboardPage() {
                   />
                 </div>
                 {stats.recent_activity?.[0]?.time && (
-                  <DashboardLastUpdate time={stats.recent_activity[0].time} t={t} locale={locale} />
+                  <DashboardLastUpdate time={stats.recent_activity[0].time} locale={locale} />
                 )}
               </PageSection>
 
