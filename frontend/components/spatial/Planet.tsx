@@ -9,7 +9,8 @@ import { cn } from "@/lib/utils/cn";
  * Composant Planet - Planète rotative avec cratères 3D et symboles orbitants
  *
  * Symboles mathématiques orbitants : ∑∫π∞√Δ
- * S'adapte aux 4 thèmes (Spatial, Minimaliste, Océan, Neutre)
+ * S'adapte aux 7 thèmes (Spatial, Minimaliste, Océan, Dune, Forêt, Lumière, Dinosaures)
+ * Thème Dino : silhouette T-Rex à la place de la planète
  * Respecte prefers-reduced-motion et se désactive en mode Focus
  */
 export function Planet() {
@@ -88,6 +89,54 @@ export function Planet() {
   // Ne pas rendre si mode Focus ou reduced motion
   if (focusMode || reducedMotion) {
     return null;
+  }
+
+  // Thème Dino : silhouette de dinosaure à la place de la planète
+  if (theme === "dino") {
+    return (
+      <div
+        ref={containerRef}
+        className="fixed bottom-8 right-8 z-[-5] pointer-events-none"
+        aria-hidden="true"
+      >
+        <div
+          className="relative w-32 h-32 flex items-center justify-center"
+          style={{
+            filter: `drop-shadow(0 0 30px ${colors.glow})`,
+            animation: "dino-bob 4s ease-in-out infinite",
+          }}
+        >
+          {/* Emoji T-Rex — immédiatement reconnaissable */}
+          <span className="text-7xl" role="img" aria-hidden="true">
+            🦖
+          </span>
+        </div>
+        {/* Symboles mathématiques orbitants */}
+        {symbols.map((symbol, index) => {
+          const angle = (360 / symbols.length) * index;
+          return (
+            <div
+              key={index}
+              className="absolute text-xl font-bold"
+              style={{
+                color: "rgba(132, 204, 22, 0.9)",
+                top: "50%",
+                left: "50%",
+                transform: `
+                  translate(-50%, -50%)
+                  rotate(${angle}deg)
+                  translateY(-80px)
+                  rotate(-${angle}deg)
+                `,
+                animation: `orbit-${index} 20s linear infinite`,
+              }}
+            >
+              {symbol}
+            </div>
+          );
+        })}
+      </div>
+    );
   }
 
   return (

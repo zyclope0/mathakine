@@ -41,7 +41,7 @@ class UserBase(BaseModel):
     @field_validator('preferred_theme')
     @classmethod
     def theme_valid(cls, v):
-        # Accepter les thèmes UI (light/dark) et les thèmes visuels (spatial, minimalist, ocean, neutral)
+        # Accepter les thèmes UI (light/dark) et les thèmes visuels (spatial, minimalist, ocean, dune, forest, peach, dino; neutral pour rétrocompat)
         valid_themes = ['light', 'dark', 'spatial', 'minimalist', 'ocean', 'dune', 'forest', 'peach', 'dino', 'neutral']
         if v is not None and v not in valid_themes:
             raise ValueError(f"Le thème doit être l'un des suivants: {', '.join(valid_themes)}")
@@ -77,7 +77,7 @@ class UserUpdate(BaseModel):
     grade_level: Optional[int] = None
     learning_style: Optional[str] = None
     preferred_difficulty: Optional[str] = None
-    preferred_theme: Optional[str] = Field(None, description="Thème préféré (spatial, minimalist, ocean, dune, forest, peach)")
+    preferred_theme: Optional[str] = Field(None, description="Thème préféré (spatial, minimalist, ocean, dune, forest, peach, dino)")
     accessibility_settings: Optional[Dict[str, bool]] = Field(None, description="Paramètres d'accessibilité")
     # Paramètres Settings
     notification_preferences: Optional[Dict[str, bool]] = Field(None, description="Préférences de notifications (achievements, progress, recommendations, news)")
@@ -92,7 +92,7 @@ class UserUpdate(BaseModel):
     @field_validator("preferred_theme")
     @classmethod
     def validate_theme(cls, v):
-        # Accepter les thèmes UI (light/dark) et les thèmes visuels (spatial, minimalist, ocean, neutral)
+        # Accepter les thèmes UI (light/dark) et les thèmes visuels (spatial, minimalist, ocean, dune, forest, peach, dino; neutral pour rétrocompat)
         valid_themes = ['light', 'dark', 'spatial', 'minimalist', 'ocean', 'dune', 'forest', 'peach', 'dino', 'neutral']
         if v is not None and v not in valid_themes:
             raise ValueError(f"Le thème doit être l'un des suivants: {', '.join(valid_themes)}")

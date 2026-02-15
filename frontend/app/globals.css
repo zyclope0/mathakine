@@ -322,6 +322,17 @@ select:focus {
   }
 }
 
+/* Thème Dino : léger balancement */
+@keyframes dino-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
 /* Animations orbitales pour symboles mathématiques */
 @keyframes orbit-0 {
   from {
@@ -556,6 +567,7 @@ select:focus {
   --background: #050810;
   --card: #0f172a;
   --muted: #0f172a;
+  --primary-text-on-dark: #7dd3fc;
   --border: rgba(3, 105, 161, 0.4);
   --input: rgba(3, 105, 161, 0.2);
   /* WCAG AA : sky-700 #0369a1 (5.5:1), cyan-600 #0891b2 (4.6:1), teal-600 #0d9488 (4.7:1) */
@@ -804,7 +816,7 @@ select:focus {
 }
 
 /* WCAG Fix: Améliorer le contraste text-primary sur fonds clairs */
-/* Thèmes à fond clair : Minimaliste, Dune, Forêt, Lumière (Spatial/Océan ont fond sombre) */
+/* Thèmes à fond clair : Minimaliste, Dune, Forêt, Lumière, Dinosaures (Spatial/Océan ont fond sombre) */
 @layer base {
   /* Mode light — thèmes à fond clair utilisent leur primary natif (var) */
   html:not(.dark)[data-theme="minimalist"] .text-primary,
