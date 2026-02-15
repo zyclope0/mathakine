@@ -120,7 +120,10 @@ class Settings:
     
     # Configuration OpenAI pour génération IA
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")  # Modèle par défaut
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")  # Modèle par défaut (exercices)
+    # Modèle o1/o1-mini pour raisonnement mathématique - MÊME CLÉ API
+    # Si défini : défis logiques (séquences, patterns) + exercices fractions. o1-mini = moins cher, o1 = plus capable.
+    OPENAI_MODEL_REASONING: str = os.getenv("OPENAI_MODEL_REASONING", "")  # ex: "o1-mini" ou "o1"
     
     class Config:
         case_sensitive = True
