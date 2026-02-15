@@ -120,17 +120,22 @@ function ProfilePageContent() {
         learning_style: user.learning_style || "",
         preferred_difficulty: user.preferred_difficulty || "",
       });
-      const userTheme = user.preferred_theme || "spatial";
+      // Migration: neutral → dune
+      const userThemeRaw = user.preferred_theme || "spatial";
+      const userTheme = userThemeRaw === "neutral" ? "dune" : userThemeRaw;
+      const validThemes = ["spatial", "minimalist", "ocean", "dune", "forest", "peach", "dino"] as const;
       setAccessibilitySettings({
         preferred_theme: userTheme,
         high_contrast: user.accessibility_settings?.high_contrast || false,
         large_text: user.accessibility_settings?.large_text || false,
         reduce_motion: user.accessibility_settings?.reduce_motion || false,
       });
-      // Synchroniser le thème du profil avec le store de thème
-      if (userTheme && ["spatial", "minimalist", "ocean", "neutral"].includes(userTheme)) {
-        setTheme(userTheme as "spatial" | "minimalist" | "ocean" | "neutral");
-      }
+      const safeTheme = validThemes.includes(
+        userTheme as (typeof validThemes)[number]
+      )
+        ? (userTheme as (typeof validThemes)[number])
+        : "spatial";
+      setTheme(safeTheme);
     }
   }, [user, setTheme]);
 
@@ -217,9 +222,8 @@ function ProfilePageContent() {
           reduce_motion: settings.reduce_motion,
         },
       });
-      // Appliquer le thème immédiatement après sauvegarde
       if (settings.preferred_theme) {
-        setTheme(settings.preferred_theme as "spatial" | "minimalist" | "ocean" | "neutral");
+        setTheme(settings.preferred_theme as "spatial" | "minimalist" | "ocean" | "dune" | "forest" | "peach" | "dino");
       }
     },
     [accessibilitySettings, updateProfile, setTheme]
@@ -888,7 +892,7 @@ function ProfilePageContent() {
                   <Select
                     value={accessibilitySettings.preferred_theme}
                     onValueChange={(value) => {
-                      const theme = value as "spatial" | "minimalist" | "ocean" | "neutral";
+                      const theme = value as "spatial" | "minimalist" | "ocean" | "dune" | "forest" | "peach" | "dino";
                       setAccessibilitySettings((prev) => ({ ...prev, preferred_theme: theme }));
                       handleSaveAccessibility({ preferred_theme: theme });
                     }}
@@ -919,10 +923,28 @@ function ProfilePageContent() {
                           <span>{tTheme("ocean")}</span>
                         </span>
                       </SelectItem>
-                      <SelectItem value="neutral">
+                      <SelectItem value="dune">
                         <span className="flex items-center gap-2">
-                          <span>⚫</span>
-                          <span>{tTheme("neutral")}</span>
+                          <span>🏜️</span>
+                          <span>{tTheme("dune")}</span>
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="forest">
+                        <span className="flex items-center gap-2">
+                          <span>🌲</span>
+                          <span>{tTheme("forest")}</span>
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="peach">
+                        <span className="flex items-center gap-2">
+                          <span>🍑</span>
+                          <span>{tTheme("peach")}</span>
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="dino">
+                        <span className="flex items-center gap-2">
+                          <span>🦖</span>
+                          <span>{tTheme("dino")}</span>
                         </span>
                       </SelectItem>
                     </SelectContent>

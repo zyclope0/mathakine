@@ -16,6 +16,7 @@ import {
   getAgeGroupDisplay,
   getAgeGroupColor,
 } from "@/lib/constants/challenges";
+import { useThemeStore } from "@/lib/stores/themeStore";
 import { formatSuccessRate } from "@/lib/utils/format";
 import { Loader2, XCircle, ArrowRight, Clock, Eye, TrendingUp, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,7 @@ export function ChallengeModal({
   onChallengeCompleted,
 }: ChallengeModalProps) {
   const { challenge, isLoading, error } = useChallenge(challengeId || 0);
+  const { theme } = useThemeStore();
   const t = useTranslations("challenges.modal");
   const tc = useTranslations("common");
 
@@ -50,7 +52,7 @@ export function ChallengeModal({
 
   const typeDisplay = challenge ? getChallengeTypeDisplay(challenge.challenge_type) : "";
   const ageGroupDisplay = challenge ? getAgeGroupDisplay(challenge.age_group) : "";
-  const ageGroupColor = challenge ? getAgeGroupColor(challenge.age_group) : "";
+  const ageGroupColor = challenge ? getAgeGroupColor(challenge.age_group, theme) : "";
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

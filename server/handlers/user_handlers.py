@@ -859,7 +859,7 @@ async def update_user_me(request: Request):
                 )
         
         # Validation preferred_theme
-        VALID_THEMES = {'spatial', 'minimalist', 'ocean', 'neutral'}
+        VALID_THEMES = {'spatial', 'minimalist', 'ocean', 'dune', 'forest', 'peach', 'dino', 'neutral'}
         if 'preferred_theme' in update_data:
             theme = update_data['preferred_theme']
             if theme and theme not in VALID_THEMES:

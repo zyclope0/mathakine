@@ -82,7 +82,20 @@ export const AGE_GROUP_DISPLAY: Record<AgeGroup, string> = {
   [AGE_GROUPS.ALL_AGES]: "Tous âges",
 };
 
+/* Contrastes WCAG : texte foncé (xxx-800) en light mode, texte clair (xxx-300) en dark */
 export const AGE_GROUP_COLORS: Record<string, string> = {
+  "6-8": "bg-green-500/20 text-green-800 border-green-500/30 dark:text-green-300",
+  "9-11": "bg-blue-500/20 text-blue-800 border-blue-500/30 dark:text-blue-300",
+  "12-14": "bg-yellow-500/20 text-yellow-800 border-yellow-500/30 dark:text-yellow-300",
+  "15-17": "bg-orange-500/20 text-orange-800 border-orange-500/30 dark:text-orange-300",
+  adulte: "bg-red-500/20 text-red-800 border-red-500/30 dark:text-red-300",
+  "tous-ages": "bg-purple-500/20 text-purple-800 border-purple-500/30 dark:text-purple-300",
+  default: "bg-gray-500/20 text-gray-700 border-gray-500/30 dark:text-gray-300",
+};
+
+/* Thèmes à fond sombre (Spatial, Océan) : toujours texte clair pour contraste WCAG */
+const DARK_BG_THEMES = ["spatial", "ocean"] as const;
+const AGE_GROUP_COLORS_DARK_BG: Record<string, string> = {
   "6-8": "bg-green-500/20 text-green-300 border-green-500/30",
   "9-11": "bg-blue-500/20 text-blue-300 border-blue-500/30",
   "12-14": "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
@@ -92,12 +105,18 @@ export const AGE_GROUP_COLORS: Record<string, string> = {
   default: "bg-gray-500/20 text-gray-300 border-gray-500/30",
 };
 
-export function getAgeGroupColor(ageGroup: string | null | undefined): string {
-  const defaultColor = "bg-gray-500/20 text-gray-300 border-gray-500/30";
-  if (!ageGroup) {
-    return AGE_GROUP_COLORS["default"] ?? defaultColor;
-  }
-  return AGE_GROUP_COLORS[ageGroup] ?? AGE_GROUP_COLORS["default"] ?? defaultColor;
+export type Theme = "spatial" | "minimalist" | "ocean" | "dune" | "forest" | "peach" | "dino";
+
+export function getAgeGroupColor(
+  ageGroup: string | null | undefined,
+  theme?: Theme
+): string {
+  const key = ageGroup && AGE_GROUP_COLORS[ageGroup] ? ageGroup : "default";
+  const colors =
+    theme && (DARK_BG_THEMES as readonly Theme[]).includes(theme)
+      ? AGE_GROUP_COLORS_DARK_BG
+      : AGE_GROUP_COLORS;
+  return colors[key] ?? colors["default"] ?? "bg-gray-500/20 text-gray-300 border-gray-500/30";
 }
 
 /** Libellé d'affichage pour un groupe d'âge (source unique DRY). */

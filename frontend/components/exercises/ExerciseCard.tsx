@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ContentCardBase } from "@/components/shared/ContentCardBase";
 import { getAgeGroupColor, EXERCISE_TYPE_STYLES } from "@/lib/constants/exercises";
+import { useThemeStore } from "@/lib/stores/themeStore";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import type { Exercise } from "@/types/api";
 import { Sparkles, Eye, Calendar } from "lucide-react";
@@ -38,9 +39,9 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
   const { icon: IconComponent, className: typeClassName } =
     EXERCISE_TYPE_STYLES[exerciseTypeKey] || EXERCISE_TYPE_STYLES.divers;
 
-  // Logique pour le groupe d'âge
+  const { theme } = useThemeStore();
   const ageGroupDisplay = getAgeDisplay(exercise.age_group);
-  const ageGroupBadgeClasses = getAgeGroupColor(exercise.age_group);
+  const ageGroupBadgeClasses = getAgeGroupColor(exercise.age_group, theme);
 
   const completed = isCompleted(exercise.id);
 

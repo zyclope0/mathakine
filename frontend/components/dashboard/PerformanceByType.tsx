@@ -22,66 +22,66 @@ interface PerformanceByTypeProps {
 const getTypeColor = (type: string): { bg: string; text: string; border: string } => {
   const typeLower = type.toLowerCase();
 
-  // Mapping des couleurs par type
+  /* Contrastes WCAG : texte foncé en light mode, texte clair en dark */
   const colorMap: Record<string, { bg: string; text: string; border: string }> = {
     addition: {
       bg: "bg-green-500/20",
-      text: "text-green-300",
+      text: "text-green-800 dark:text-green-300",
       border: "border-green-500/30",
     },
     soustraction: {
       bg: "bg-red-500/20",
-      text: "text-red-300",
+      text: "text-red-800 dark:text-red-300",
       border: "border-red-500/30",
     },
     subtraction: {
       bg: "bg-red-500/20",
-      text: "text-red-300",
+      text: "text-red-800 dark:text-red-300",
       border: "border-red-500/30",
     },
     multiplication: {
       bg: "bg-yellow-500/20",
-      text: "text-yellow-300",
+      text: "text-yellow-800 dark:text-yellow-300",
       border: "border-yellow-500/30",
     },
     division: {
       bg: "bg-blue-500/20",
-      text: "text-blue-300",
+      text: "text-blue-800 dark:text-blue-300",
       border: "border-blue-500/30",
     },
     mixte: {
       bg: "bg-purple-500/20",
-      text: "text-purple-300",
+      text: "text-purple-800 dark:text-purple-300",
       border: "border-purple-500/30",
     },
     fractions: {
       bg: "bg-pink-500/20",
-      text: "text-pink-300",
+      text: "text-pink-800 dark:text-pink-300",
       border: "border-pink-500/30",
     },
     geometrie: {
       bg: "bg-cyan-500/20",
-      text: "text-cyan-300",
+      text: "text-cyan-800 dark:text-cyan-300",
       border: "border-cyan-500/30",
     },
     geometry: {
       bg: "bg-cyan-500/20",
-      text: "text-cyan-300",
+      text: "text-cyan-800 dark:text-cyan-300",
       border: "border-cyan-500/30",
     },
     texte: {
       bg: "bg-indigo-500/20",
-      text: "text-indigo-300",
+      text: "text-indigo-800 dark:text-indigo-300",
       border: "border-indigo-500/30",
     },
     text: {
       bg: "bg-indigo-500/20",
-      text: "text-indigo-300",
+      text: "text-indigo-800 dark:text-indigo-300",
       border: "border-indigo-500/30",
     },
     divers: {
       bg: "bg-orange-500/20",
-      text: "text-orange-300",
+      text: "text-orange-800 dark:text-orange-300",
       border: "border-orange-500/30",
     },
   };
@@ -89,7 +89,7 @@ const getTypeColor = (type: string): { bg: string; text: string; border: string 
   return (
     colorMap[typeLower] || {
       bg: "bg-gray-500/20",
-      text: "text-gray-300",
+      text: "text-gray-800 dark:text-gray-300",
       border: "border-gray-500/30",
     }
   );
@@ -129,6 +129,7 @@ export function PerformanceByType({ performance }: PerformanceByTypeProps) {
 
               // Badge pour performance exceptionnelle (>90%)
               const isExcellent = stats.success_rate >= 90;
+              const displayRate = Math.round(stats.success_rate);
 
               return (
                 <div
@@ -142,7 +143,7 @@ export function PerformanceByType({ performance }: PerformanceByTypeProps) {
                   )}
                   tabIndex={0}
                   role="article"
-                  aria-label={`Performance ${label}: ${stats.success_rate}%`}
+                  aria-label={`Performance ${label}: ${displayRate}%`}
                 >
                   <div className="flex items-center justify-center gap-2 mb-3">
                     <Badge variant="outline" className={cn(colors.text, colors.border)}>
@@ -155,9 +156,9 @@ export function PerformanceByType({ performance }: PerformanceByTypeProps) {
                     )}
                   </div>
                   <div className={cn("text-2xl font-bold mb-2", colors.text)}>
-                    {stats.success_rate}%
+                    {displayRate}%
                   </div>
-                  <Progress value={stats.success_rate} className="h-2 mb-2" />
+                  <Progress value={displayRate} className="h-2 mb-2" />
                   <div className="text-xs text-muted-foreground">
                     {stats.correct}/{stats.completed}{" "}
                     {t("performanceByType.completed", { default: "réussis" })}

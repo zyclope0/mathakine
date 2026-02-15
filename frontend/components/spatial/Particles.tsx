@@ -37,10 +37,13 @@ export function Particles() {
 
     // Couleurs selon le thème
     const themeColors: Record<string, string> = {
-      spatial: "rgba(139, 92, 246, 0.3)", // Violet
-      minimalist: "rgba(0, 0, 0, 0.2)", // Noir subtil
-      ocean: "rgba(14, 165, 233, 0.3)", // Bleu ciel
-      neutral: "rgba(107, 114, 128, 0.2)", // Gris
+      spatial: "rgba(139, 92, 246, 0.3)",
+      minimalist: "rgba(0, 0, 0, 0.2)",
+      ocean: "rgba(14, 165, 233, 0.3)",
+      dune: "rgba(251, 191, 36, 0.25)",
+      forest: "rgba(52, 211, 153, 0.25)",
+      peach: "rgba(251, 146, 60, 0.25)",
+      dino: "rgba(132, 204, 22, 0.25)",
     };
 
     const particleColor = themeColors[theme] || themeColors.spatial || "rgba(139, 92, 246, 0.3)";

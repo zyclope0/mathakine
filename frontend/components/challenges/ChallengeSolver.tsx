@@ -22,6 +22,7 @@ import {
   getAgeGroupDisplay,
   getAgeGroupColor,
 } from "@/lib/constants/challenges";
+import { useThemeStore } from "@/lib/stores/themeStore";
 import { useChallenges } from "@/hooks/useChallenges";
 import { useChallenge } from "@/hooks/useChallenge";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ interface ChallengeSolverProps {
 export function ChallengeSolver({ challengeId, onChallengeCompleted }: ChallengeSolverProps) {
   const router = useRouter();
   const t = useTranslations("challenges.solver");
+  const { theme } = useThemeStore();
   const { submitAnswer, isSubmitting, submitResult, getHint, hints, setHints } = useChallenges();
   const { challenge, isLoading, error } = useChallenge(challengeId);
 
@@ -263,7 +265,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
     );
   }
 
-  const ageGroupColor = getAgeGroupColor(challenge.age_group);
+  const ageGroupColor = getAgeGroupColor(challenge.age_group, theme);
   const typeDisplay = getChallengeTypeDisplay(challenge.challenge_type);
   const ageGroupDisplay = getAgeGroupDisplay(challenge.age_group);
   const isCorrect = submitResult?.is_correct ?? false;

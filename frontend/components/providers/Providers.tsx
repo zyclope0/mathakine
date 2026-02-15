@@ -19,10 +19,22 @@ const queryClient = new QueryClient({
   },
 });
 
+const THEME_STORAGE_KEY = "theme-preferences";
+
 export function Providers({ children }: { children: React.ReactNode }) {
-  const { theme } = useThemeStore();
+  const { theme, setTheme } = useThemeStore();
   const { highContrast, largeText, reducedMotion, dyslexiaMode, focusMode } =
     useAccessibilityStore();
+
+  // Premier chargement : appliquer prefers-color-scheme si l'utilisateur n'a jamais choisi de thème
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (!stored) {
+      const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+      setTheme(prefersLight ? "minimalist" : "spatial");
+    }
+  }, [setTheme]);
 
   // Appliquer le thème au chargement
   useEffect(() => {

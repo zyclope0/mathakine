@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useThemeStore } from "@/lib/stores/themeStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,16 +11,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Palette } from "lucide-react";
 
-const themes = [
-  { id: "spatial" as const, name: "Spatial", icon: "🚀" },
-  { id: "minimalist" as const, name: "Minimaliste", icon: "⚪" },
-  { id: "ocean" as const, name: "Océan", icon: "🌊" },
-  { id: "neutral" as const, name: "Neutre", icon: "⚫" },
+const themeIds = [
+  { id: "spatial" as const, icon: "🚀" },
+  { id: "minimalist" as const, icon: "⚪" },
+  { id: "ocean" as const, icon: "🌊" },
+  { id: "dune" as const, icon: "🏜️" },
+  { id: "forest" as const, icon: "🌲" },
+  { id: "peach" as const, icon: "🍑" },
+  { id: "dino" as const, icon: "🦖" },
 ] as const;
 
 export function ThemeSelectorCompact() {
+  const t = useTranslations("theme");
   const { theme, setTheme } = useThemeStore();
-  const currentTheme = themes.find((t) => t.id === theme) || themes[0];
+  const currentTheme = themeIds.find((th) => th.id === theme) || themeIds[0];
 
   return (
     <DropdownMenu>
@@ -30,15 +35,15 @@ export function ThemeSelectorCompact() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {themes.map((t) => (
+        {themeIds.map((th) => (
           <DropdownMenuItem
-            key={t.id}
-            onClick={() => setTheme(t.id)}
-            className={theme === t.id ? "bg-primary/10" : ""}
+            key={th.id}
+            onClick={() => setTheme(th.id)}
+            className={theme === th.id ? "bg-primary/10" : ""}
           >
-            <span className="mr-2">{t.icon}</span>
-            <span>{t.name}</span>
-            {theme === t.id && <span className="ml-auto">✓</span>}
+            <span className="mr-2">{th.icon}</span>
+            <span>{t(th.id)}</span>
+            {theme === th.id && <span className="ml-auto">✓</span>}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

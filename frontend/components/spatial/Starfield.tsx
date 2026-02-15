@@ -38,10 +38,13 @@ export function Starfield() {
 
     // Couleur des étoiles selon le thème
     const starColors: Record<string, string> = {
-      spatial: "rgba(255, 255, 255, ", // Blanc pour thème spatial
-      minimalist: "rgba(0, 0, 0, ", // Noir pour thème minimaliste
-      ocean: "rgba(255, 255, 255, ", // Blanc pour thème océan
-      neutral: "rgba(107, 114, 128, ", // Gris pour thème neutre
+      spatial: "rgba(255, 255, 255, ",
+      minimalist: "rgba(0, 0, 0, ",
+      ocean: "rgba(255, 255, 255, ",
+      dune: "rgba(251, 191, 36, ", // Ambre
+      forest: "rgba(52, 211, 153, ", // Vert menthe
+      peach: "rgba(251, 146, 60, ", // Pêche
+      dino: "rgba(132, 204, 22, ", // Lime jungle
     };
 
     const starColorBase = starColors[theme] || starColors.spatial;

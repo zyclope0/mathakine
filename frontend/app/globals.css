@@ -114,16 +114,6 @@
   }
 }
 
-/* Animation skeleton shimmer */
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
 /* Animation pour feedback succès */
 @keyframes success-pulse {
   0%,
@@ -194,7 +184,7 @@ button:not(:disabled):hover::after {
 button:not(:disabled):hover {
   transform: translateY(-2px);
   box-shadow:
-    0 4px 12px rgba(124, 58, 237, 0.3),
+    0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent),
     0 2px 4px rgba(0, 0, 0, 0.1);
   transition:
     transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
@@ -203,7 +193,7 @@ button:not(:disabled):hover {
 
 button:not(:disabled):active {
   transform: translateY(0) scale(0.97);
-  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--primary) 20%, transparent);
   transition:
     transform 0.1s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1);
@@ -231,7 +221,7 @@ button:not(:disabled):active {
     90deg,
     transparent,
     rgba(255, 255, 255, 0.15),
-    rgba(139, 92, 246, 0.1),
+    color-mix(in srgb, var(--primary) 10%, transparent),
     rgba(255, 255, 255, 0.15),
     transparent
   );
@@ -247,9 +237,9 @@ button:not(:disabled):active {
 [data-slot="card"]:hover {
   transform: translateY(-4px) scale(1.01);
   box-shadow:
-    0 8px 24px rgba(124, 58, 237, 0.25),
+    0 8px 24px color-mix(in srgb, var(--primary) 25%, transparent),
     0 4px 8px rgba(0, 0, 0, 0.1);
-  border-color: rgba(139, 92, 246, 0.4);
+  border-color: color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
 [data-slot="card"]:active {
@@ -288,7 +278,7 @@ select {
 input:not([type="checkbox"]):not([type="radio"]):hover,
 textarea:hover,
 select:hover {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: color-mix(in srgb, var(--primary) 50%, transparent);
 }
 
 input:not([type="checkbox"]):not([type="radio"]):focus,
@@ -416,7 +406,7 @@ select:focus {
 /* Améliorations contrastes - meilleure lisibilité */
 .text-muted-foreground {
   color: var(--muted-foreground);
-  opacity: 0.9; /* Amélioration contraste */
+  /* Pas d'opacity : les couleurs --muted-foreground sont déjà choisies pour le contraste WCAG */
 }
 
 /* Responsive - améliorations mobile */
@@ -575,48 +565,173 @@ select:focus {
   --muted-foreground: #e2e8f0; /* Plus clair pour meilleur contraste */
 }
 
-/* Thème Neutre (Priorité 4) */
-[data-theme="neutral"] {
-  --background: #ffffff;
-  --foreground: #111827;
-  --card: #f9fafb;
-  --card-foreground: #111827;
-  --popover: #ffffff;
-  --popover-foreground: #111827;
-  --primary: #6b7280;
+/* Thème Dune (Sable) — clair + chaud, réduction fatigue visuelle */
+[data-theme="dune"] {
+  --background: #fef7ed;
+  --foreground: #431407;
+  --card: #fffbeb;
+  --card-foreground: #431407;
+  --popover: #fffbeb;
+  --popover-foreground: #431407;
+  --primary: #b45309;
   --primary-foreground: #ffffff;
-  --secondary: #9ca3af;
+  --secondary: #d97706;
   --secondary-foreground: #ffffff;
-  --muted: #f9fafb;
-  /* Muted-foreground amélioré pour WCAG 2.1 AAA : #4b5563 (contraste 7.5:1 avec #ffffff) */
-  --muted-foreground: #4b5563;
-  --accent: #6b7280;
+  --muted: #fef3c7;
+  --muted-foreground: #78350f;
+  --accent: #d97706;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
-  --border: #e5e7eb;
-  --input: #f3f4f6;
-  --ring: #6b7280;
+  --border: #fcd34d;
+  --input: #fef3c7;
+  --ring: #b45309;
 }
 
-/* Thème Neutre - Mode Dark (gris foncé élégant) */
-.dark[data-theme="neutral"] {
-  --background: #111827;
-  --foreground: #f9fafb;
-  --card: #1f2937;
-  --card-foreground: #f9fafb;
-  --popover: #111827;
-  --popover-foreground: #f9fafb;
-  --primary: #9ca3af; /* Plus clair en dark mode */
-  --primary-foreground: #111827;
-  --secondary: #6b7280;
-  --secondary-foreground: #f9fafb;
-  --muted: #1f2937;
-  --muted-foreground: #d1d5db; /* Plus clair pour meilleur contraste */
-  --accent: #9ca3af;
-  --accent-foreground: #111827;
-  --border: #374151;
-  --input: #1f2937;
-  --ring: #9ca3af;
+.dark[data-theme="dune"] {
+  --background: #1c1917;
+  --foreground: #fef3c7;
+  --card: #292524;
+  --card-foreground: #fef3c7;
+  --popover: #292524;
+  --popover-foreground: #fef3c7;
+  --primary: #fbbf24;
+  --primary-foreground: #1c1917;
+  --secondary: #f59e0b;
+  --secondary-foreground: #1c1917;
+  --muted: #44403c;
+  --muted-foreground: #fcd34d;
+  --accent: #fbbf24;
+  --accent-foreground: #1c1917;
+  --border: #57534e;
+  --input: #44403c;
+  --ring: #fbbf24;
+}
+
+/* Thème Forêt (Nature) — verts doux, calme et focus */
+[data-theme="forest"] {
+  --background: #f0fdf4;
+  --foreground: #14532d;
+  --card: #ecfdf5;
+  --card-foreground: #14532d;
+  --popover: #ecfdf5;
+  --popover-foreground: #14532d;
+  --primary: #047857;
+  --primary-foreground: #ffffff;
+  --secondary: #059669;
+  --secondary-foreground: #ffffff;
+  --muted: #d1fae5;
+  --muted-foreground: #065f46;
+  --accent: #10b981;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #6ee7b7;
+  --input: #d1fae5;
+  --ring: #047857;
+}
+
+.dark[data-theme="forest"] {
+  --background: #052e16;
+  --foreground: #d1fae5;
+  --card: #14532d;
+  --card-foreground: #d1fae5;
+  --popover: #14532d;
+  --popover-foreground: #d1fae5;
+  --primary: #34d399;
+  --primary-foreground: #052e16;
+  --secondary: #10b981;
+  --secondary-foreground: #052e16;
+  --muted: #166534;
+  --muted-foreground: #6ee7b7;
+  --accent: #34d399;
+  --accent-foreground: #052e16;
+  --border: #166534;
+  --input: #14532d;
+  --ring: #34d399;
+}
+
+/* Thème Lumière (Pêche) — tons chauds, énergie douce */
+[data-theme="peach"] {
+  --background: #fff7ed;
+  --foreground: #431407;
+  --card: #ffedd5;
+  --card-foreground: #431407;
+  --popover: #ffedd5;
+  --popover-foreground: #431407;
+  --primary: #ea580c;
+  --primary-foreground: #ffffff;
+  --secondary: #f97316;
+  --secondary-foreground: #ffffff;
+  --muted: #fed7aa;
+  --muted-foreground: #9a3412;
+  --accent: #fb923c;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #fdba74;
+  --input: #fed7aa;
+  --ring: #ea580c;
+}
+
+.dark[data-theme="peach"] {
+  --background: #1c1917;
+  --foreground: #ffedd5;
+  --card: #292524;
+  --card-foreground: #ffedd5;
+  --popover: #292524;
+  --popover-foreground: #ffedd5;
+  --primary: #fb923c;
+  --primary-foreground: #1c1917;
+  --secondary: #f97316;
+  --secondary-foreground: #1c1917;
+  --muted: #44403c;
+  --muted-foreground: #fdba74;
+  --accent: #fb923c;
+  --accent-foreground: #1c1917;
+  --border: #57534e;
+  --input: #44403c;
+  --ring: #fb923c;
+}
+
+/* Thème Dinosaures 🦖 — jungle préhistorique, verts lime + ambre fossil */
+[data-theme="dino"] {
+  --background: #fef9c3;
+  --foreground: #422006;
+  --card: #fef08a;
+  --card-foreground: #422006;
+  --popover: #fef08a;
+  --popover-foreground: #422006;
+  --primary: #65a30d;
+  --primary-foreground: #ffffff;
+  --secondary: #84cc16;
+  --secondary-foreground: #ffffff;
+  --muted: #fef08a;
+  --muted-foreground: #713f12;
+  --accent: #ca8a04;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #a16207;
+  --input: #fef08a;
+  --ring: #65a30d;
+}
+
+.dark[data-theme="dino"] {
+  --background: #1a2e05;
+  --foreground: #ecfccb;
+  --card: #365314;
+  --card-foreground: #ecfccb;
+  --popover: #365314;
+  --popover-foreground: #ecfccb;
+  --primary: #84cc16;
+  --primary-text-on-dark: #a3e635;
+  --primary-foreground: #1a2e05;
+  --secondary: #a3e635;
+  --secondary-foreground: #1a2e05;
+  --muted: #3f6212;
+  --muted-foreground: #bef264;
+  --accent: #eab308;
+  --accent-foreground: #1a2e05;
+  --border: #4d7c0f;
+  --input: #365314;
+  --ring: #84cc16;
 }
 
 @layer base {
@@ -689,26 +804,18 @@ select:focus {
 }
 
 /* WCAG Fix: Améliorer le contraste text-primary sur fonds clairs */
-/* Le violet #a78bfa sur fond clair (#f0f1f2 ou similaire) n'a que 2.4:1 de contraste */
-/* Il faut utiliser #6d28d9 (violet-700) qui a 7.1:1 sur fond blanc */
+/* Thèmes à fond clair : Minimaliste, Dune, Forêt, Lumière (Spatial/Océan ont fond sombre) */
 @layer base {
-  /* Mode light / thèmes à fond clair */
-  :root:not(.dark) .text-primary,
-  html:not(.dark) .text-primary,
-  [data-theme="minimalist"]:not(.dark *) .text-primary,
-  [data-theme="neutral"]:not(.dark *) .text-primary {
-    color: #6d28d9; /* violet-700 - contraste 7.1:1 sur blanc */
+  /* Mode light — thèmes à fond clair utilisent leur primary natif (var) */
+  html:not(.dark)[data-theme="minimalist"] .text-primary,
+  html:not(.dark)[data-theme="minimalist"] [class*="bg-muted"] .text-primary,
+  html:not(.dark)[data-theme="minimalist"] [class*="bg-card"] .text-primary,
+  html:not(.dark)[data-theme="minimalist"] [class*="bg-primary/"] .text-primary {
+    color: #6d28d9; /* violet-700, contraste 7.1:1 */
   }
 
-  /* S'assurer que les icônes et textes primary sur bg-muted en light mode sont lisibles */
-  :root:not(.dark) [class*="bg-muted"] .text-primary,
-  :root:not(.dark) [class*="bg-card"] .text-primary,
-  :root:not(.dark) [class*="bg-primary/"] .text-primary {
-    color: #6d28d9;
-  }
-
-  /* Texte muted-foreground sur fonds clairs - assurer contraste minimal 4.5:1 */
-  :root:not(.dark) .text-muted-foreground {
+  /* Texte muted-foreground — Minimaliste (Dune/Forêt/Peach ont --muted-foreground dans leur thème) */
+  html:not(.dark)[data-theme="minimalist"] .text-muted-foreground {
     color: #525252; /* neutral-600 - contraste 7.0:1 sur blanc */
   }
 }
@@ -982,7 +1089,7 @@ select:focus {
 
 /* ============================================
    SYSTÈME D'AMÉLIORATIONS UI/UX STANDARDISÉ
-   Compatible avec tous les thèmes (spatial, minimalist, ocean, neutral)
+   Compatible avec tous les thèmes (spatial, minimalist, ocean, dune, forest, peach, dino)
    ============================================ */
 
 /* Classes utilitaires pour effets spatiaux adaptatifs */
@@ -1220,8 +1327,20 @@ select:focus {
     0 0 20px color-mix(in srgb, var(--primary) 12%, transparent);
 }
 
-[data-theme="neutral"] .card-spatial-depth {
+[data-theme="dune"] .card-spatial-depth,
+[data-theme="forest"] .card-spatial-depth,
+[data-theme="peach"] .card-spatial-depth,
+[data-theme="dino"] .card-spatial-depth {
   box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.1),
-    0 0 15px color-mix(in srgb, var(--primary) 8%, transparent);
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+[data-theme="dune"] .card-spatial-depth:hover,
+[data-theme="forest"] .card-spatial-depth:hover,
+[data-theme="peach"] .card-spatial-depth:hover,
+[data-theme="dino"] .card-spatial-depth:hover {
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.12),
+    0 0 16px color-mix(in srgb, var(--primary) 15%, transparent);
 }

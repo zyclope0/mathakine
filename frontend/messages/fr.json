@@ -733,7 +733,10 @@
     "spatial": "Spatial",
     "minimalist": "Minimaliste",
     "ocean": "Océan",
-    "neutral": "Neutre",
+    "dune": "Dune",
+    "forest": "Forêt",
+    "peach": "Lumière",
+    "dino": "Dinosaures",
     "selectTheme": "Choisir un thème"
   },
   "errors": {

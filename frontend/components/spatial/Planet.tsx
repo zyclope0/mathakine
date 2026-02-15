@@ -61,9 +61,21 @@ export function Planet() {
       bg: "radial-gradient(circle at 30% 30%, rgba(14, 165, 233, 0.8), rgba(3, 105, 161, 0.6), rgba(2, 132, 199, 0.4))",
       glow: "rgba(14, 165, 233, 0.3)",
     },
-    neutral: {
-      bg: "radial-gradient(circle at 30% 30%, rgba(107, 114, 128, 0.8), rgba(75, 85, 99, 0.6), rgba(55, 65, 81, 0.4))",
-      glow: "rgba(107, 114, 128, 0.3)",
+    dune: {
+      bg: "radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.8), rgba(217, 119, 6, 0.6), rgba(180, 83, 9, 0.4))",
+      glow: "rgba(251, 191, 36, 0.3)",
+    },
+    forest: {
+      bg: "radial-gradient(circle at 30% 30%, rgba(52, 211, 153, 0.8), rgba(16, 185, 129, 0.6), rgba(5, 150, 105, 0.4))",
+      glow: "rgba(52, 211, 153, 0.3)",
+    },
+    peach: {
+      bg: "radial-gradient(circle at 30% 30%, rgba(251, 146, 60, 0.8), rgba(249, 115, 22, 0.6), rgba(234, 88, 12, 0.4))",
+      glow: "rgba(251, 146, 60, 0.3)",
+    },
+    dino: {
+      bg: "radial-gradient(circle at 30% 30%, rgba(132, 204, 22, 0.8), rgba(101, 163, 13, 0.6), rgba(77, 124, 15, 0.4))",
+      glow: "rgba(132, 204, 22, 0.3)",
     },
   };
 

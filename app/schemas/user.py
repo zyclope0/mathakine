@@ -27,7 +27,7 @@ class UserBase(BaseModel):
     preferred_difficulty: Optional[str] = Field(None,
                                            description="Difficulté préférée")
     preferred_theme: Optional[str] = Field("spatial",
-                                      description="Thème préféré: 'spatial', 'minimalist', 'ocean' ou 'neutral'")
+                                      description="Thème préféré: spatial, minimalist, ocean, dune, forest, peach")
     accessibility_settings: Optional[Dict[str, Any]] = Field(None,
                                                         description="Paramètres d'accessibilité personnalisés")
 
@@ -42,7 +42,7 @@ class UserBase(BaseModel):
     @classmethod
     def theme_valid(cls, v):
         # Accepter les thèmes UI (light/dark) et les thèmes visuels (spatial, minimalist, ocean, neutral)
-        valid_themes = ['light', 'dark', 'spatial', 'minimalist', 'ocean', 'neutral']
+        valid_themes = ['light', 'dark', 'spatial', 'minimalist', 'ocean', 'dune', 'forest', 'peach', 'dino', 'neutral']
         if v is not None and v not in valid_themes:
             raise ValueError(f"Le thème doit être l'un des suivants: {', '.join(valid_themes)}")
         return v
@@ -77,7 +77,7 @@ class UserUpdate(BaseModel):
     grade_level: Optional[int] = None
     learning_style: Optional[str] = None
     preferred_difficulty: Optional[str] = None
-    preferred_theme: Optional[str] = Field(None, description="Thème préféré (spatial, minimalist, ocean, neutral)")
+    preferred_theme: Optional[str] = Field(None, description="Thème préféré (spatial, minimalist, ocean, dune, forest, peach)")
     accessibility_settings: Optional[Dict[str, bool]] = Field(None, description="Paramètres d'accessibilité")
     # Paramètres Settings
     notification_preferences: Optional[Dict[str, bool]] = Field(None, description="Préférences de notifications (achievements, progress, recommendations, news)")
@@ -93,7 +93,7 @@ class UserUpdate(BaseModel):
     @classmethod
     def validate_theme(cls, v):
         # Accepter les thèmes UI (light/dark) et les thèmes visuels (spatial, minimalist, ocean, neutral)
-        valid_themes = ['light', 'dark', 'spatial', 'minimalist', 'ocean', 'neutral']
+        valid_themes = ['light', 'dark', 'spatial', 'minimalist', 'ocean', 'dune', 'forest', 'peach', 'dino', 'neutral']
         if v is not None and v not in valid_themes:
             raise ValueError(f"Le thème doit être l'un des suivants: {', '.join(valid_themes)}")
         return v
