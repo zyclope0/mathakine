@@ -47,7 +47,6 @@ docs/
 ├── 03-PROJECT/            # 📕 Gestion projet
 │   ├── README.md          # ⭐ Index maître audits/rapports
 │   ├── EVALUATION_PROJET_2026-02-07.md  # Référence actuelle (évaluation factuelle)
-│   ├── BILAN_COMPLET.md        # ⚠️ Historique phases 1-6 (nov. 2025)
 │   ├── AUDIT_DASHBOARD_2026-02.md  # Audit dashboard (recos partielles)
 │   ├── AUDIT_SENTRY_2026-02.md  # Configuration Sentry (référence)
 │   ├── AUDIT_SECURITE_APPLICATIVE_2026-02.md  # Audit OWASP (référence)
@@ -55,29 +54,30 @@ docs/
 │   ├── DEPLOIEMENT_2026-02-06.md  # Guide déploiement
 │   ├── ENDPOINTS_NON_INTEGRES.md  # Endpoints à intégrer
 │   ├── PLACEHOLDERS_ET_TODO.md  # Endpoints à implémenter
-│   ├── RAPPORT_VERIFICATION_CHALLENGES.md  # Vérification 29/11/2025
-│   ├── AUDITS_ET_RAPPORTS_ARCHIVES/  # 📦 Audits implémentés + rapports temporaires
-│   │   ├── README.md  # Index du dossier
-│   │   ├── AUDITS_IMPLEMENTES/  # Recos toutes appliquées
-│   │   │   ├── INDEX.md  # Index des 7 audits
-│   │   │   ├── ANALYSE_THEMES_UX_2026-02.md
-│   │   │   ├── CONTRAST_FIXES.md
-│   │   │   ├── THEMES_TEST_RESULTS.md
-│   │   │   ├── REFACTORING_SUMMARY.md
-│   │   │   ├── REMAINING_TASKS.md
-│   │   │   ├── INDEX_DB_MANQUANTS_2026-02-06.md
-│   │   │   └── AUDIT_FINAL_DOCS_GITIGNORE_2026-02-06.md
-│   │   └── RAPPORTS_TEMPORAIRES/  # Rapports situationnels
-│   │       ├── INDEX.md
-│   │       ├── MISSION_COMPLETE_2026-02-06.md
-│   │       ├── RECAP_FINAL_2026-02-06.md
-│   │       ├── RATIONALISATION_DOCS_2026-02-06.md
-│   │       ├── PLAN_ACTION_2026-02-06.md
-│   │       └── MIGRATION_INDEX_ROLLBACK_PLAN.md
-│   └── PHASES/                 # Documentation phases historiques
-│       ├── RECAP_PHASES.md
-│       ├── PHASE6_PLAN.md
-│       └── PHASE6_RESULTAT.md
+│   └── AUDITS_ET_RAPPORTS_ARCHIVES/  # 📦 Audits implémentés + rapports temporaires
+│       ├── README.md  # Index du dossier
+│       ├── AUDITS_IMPLEMENTES/  # Recos toutes appliquées
+│       │   ├── INDEX.md  # Index des 7 audits
+│       │   ├── ANALYSE_THEMES_UX_2026-02.md
+│       │   ├── CONTRAST_FIXES.md
+│       │   ├── THEMES_TEST_RESULTS.md
+│       │   ├── REFACTORING_SUMMARY.md
+│       │   ├── REMAINING_TASKS.md
+│       │   ├── INDEX_DB_MANQUANTS_2026-02-06.md
+│       │   └── AUDIT_FINAL_DOCS_GITIGNORE_2026-02-06.md
+│       └── RAPPORTS_TEMPORAIRES/  # Rapports situationnels + historique
+│           ├── INDEX.md
+│           ├── BILAN_COMPLET.md  # ⚠️ Historique phases 1-6 (nov. 2025)
+│           ├── RAPPORT_VERIFICATION_CHALLENGES.md  # Vérification 29/11/2025
+│           ├── PHASES/  # Documentation phases historiques
+│           │   ├── RECAP_PHASES.md
+│           │   ├── PHASE6_PLAN.md
+│           │   └── PHASE6_RESULTAT.md
+│           ├── MISSION_COMPLETE_2026-02-06.md
+│           ├── RECAP_FINAL_2026-02-06.md
+│           ├── RATIONALISATION_DOCS_2026-02-06.md
+│           ├── PLAN_ACTION_2026-02-06.md
+│           └── MIGRATION_INDEX_ROLLBACK_PLAN.md
 │
 └── 06-WIDGETS/            # 🎨 Widgets Dashboard (Nouveau 06/02/2026)
     ├── INTEGRATION_PROGRESSION_WIDGETS.md  # Guide d'intégration

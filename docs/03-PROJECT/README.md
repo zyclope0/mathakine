@@ -14,7 +14,7 @@
 | **À faire** | Endpoints, placeholders, TODO | Racine `03-PROJECT/` |
 | **Audits implémentés** | Toutes les recommandations appliquées | `AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/` |
 | **Rapports situationnels** | Récaps mission, plans, rapports historiques | `AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/` |
-| **Historique** | Bilan phases, vérifications anciennes | `03-PROJECT/`, `PHASES/` |
+| **Historique** | Bilan phases, vérifications anciennes | `RAPPORTS_TEMPORAIRES/` |
 
 ---
 
@@ -53,9 +53,9 @@
 
 | Document | Rôle |
 |----------|------|
-| [BILAN_COMPLET.md](./BILAN_COMPLET.md) | Phases 1–6 (nov. 2025) — remplacé par EVALUATION_PROJET |
-| [RAPPORT_VERIFICATION_CHALLENGES.md](./RAPPORT_VERIFICATION_CHALLENGES.md) | Vérification défis 29/11/2025 |
-| [PHASES/](./PHASES/) | Documentation phases historiques (RECAP, PHASE6) |
+| [BILAN_COMPLET.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/BILAN_COMPLET.md) | Phases 1–6 (nov. 2025) — remplacé par EVALUATION_PROJET |
+| [RAPPORT_VERIFICATION_CHALLENGES.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/RAPPORT_VERIFICATION_CHALLENGES.md) | Vérification défis 29/11/2025 |
+| [PHASES/](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/PHASES/) | Documentation phases historiques (RECAP, PHASE6) |
 
 ---
 

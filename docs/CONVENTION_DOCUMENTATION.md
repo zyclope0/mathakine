@@ -37,7 +37,7 @@ docs/
 | Racine `03-PROJECT/` | Documents actifs : référence, audits partiels, à faire, historique |
 | `AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/` | Audits dont **toutes** les recommandations sont appliquées |
 | `AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/` | Rapports situationnels (récaps mission, plans contextuels) |
-| `PHASES/` | Documentation phases historiques |
+| `RAPPORTS_TEMPORAIRES/PHASES/` | Documentation phases historiques |
 
 ---
 
