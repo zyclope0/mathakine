@@ -1,7 +1,7 @@
 # Placeholders et TODOs restants - Mathakine
 
-> Etat au 06/02/2026 apres unification Starlette  
-> Derniere mise a jour : 12/02/2026 (auth emails, verification obligatoire)
+> État au 06/02/2026 après unification Starlette  
+> Dernière mise à jour : 16/02/2026 (admin users/exercises/challenges intégrés)
 
 ## 📋 Récapitulatif
 
@@ -79,16 +79,9 @@ async def get_user_badges_progress(request: Request):
 
 ## 🟡 Priorité BASSE (Fonctionnalités avancées)
 
-### 6. ❌ `get_all_users` - Liste tous les utilisateurs
-**Fichier** : `server/handlers/user_handlers.py:474`  
-**Route** : `GET /api/users/`  
-**Impact** : **Basse** - Admin uniquement  
-**Description** : Endpoint placeholder (admin)
-
-**Solution recommandée** :
-- Vérifier que l'utilisateur est admin (`is_admin` field)
-- Pagination obligatoire (limit/skip)
-- Filtres : search (username/email), is_active, created_after/before
+### 6. ✅ `admin_users` - Liste utilisateurs (implémenté via admin)
+**Route** : `GET /api/admin/users` (et non `GET /api/users/`)  
+**Implémentation** : Liste paginée avec recherche, filtre rôle, filtre is_active. Page `/admin/users`.
 
 ---
 
@@ -127,16 +120,9 @@ async def handle_recommendation_complete(request: Request):
 
 ---
 
-### 9. ❌ `delete_exercise` - Supprimer exercice
-**Fichier** : `server/handlers/exercise_handlers.py:940`  
-**Route** : `DELETE /api/exercises/{exercise_id}`  
-**Impact** : **Basse** - Fonctionnalité admin/créateur  
-**Description** : Endpoint placeholder
-
-**Solution recommandée** :
-- Vérifier que l'utilisateur est soit admin, soit créateur de l'exercice
-- Soft delete (is_deleted=true) plutôt que DELETE physique
-- Optionnel : archiver les tentatives associées
+### 9. ✅ Archivage exercices (via admin, pas DELETE)
+**Route** : `PATCH /api/admin/exercises/{id}` avec `{is_archived: true}`  
+**Implémentation** : L'admin peut archiver (soft delete) via `/admin/content`. Pas de DELETE physique.
 
 ---
 

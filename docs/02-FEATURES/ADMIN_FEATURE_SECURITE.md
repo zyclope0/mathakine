@@ -11,13 +11,14 @@ La feature **Admin** est prévue dans la roadmap. Les endpoints admin exposent d
 
 ---
 
-## 2. Obligation : décorateur `require_role("admin")`
+## 2. Obligation : décorateur `require_role` / `require_admin`
 
 **Pour tout endpoint admin ajouté à l'avenir**, il faudra impérativement :
 
-1. **Implémenter** un décorateur `require_role(role)` dans `server/auth.py`
-2. **Appliquer** `@require_role("admin")` sur chaque handler admin
-3. **Ne jamais** se fier uniquement à `@require_auth` pour les routes admin
+1. **Appliquer** `@require_admin` (ou `@require_role("archiviste")`) sur chaque handler admin
+2. **Ne jamais** se fier uniquement à `@require_auth` pour les routes admin
+
+> **Note** : À Mathakine, le rôle admin = `archiviste`. Le décorateur `require_admin` vérifie ce rôle.
 
 ### Exemple à suivre
 
@@ -45,9 +46,8 @@ def require_role(role: str):
     return decorator
 
 # Usage
-@app.post("/api/admin/users/{user_id}/promote")
 @require_auth
-@require_role("admin")
+@require_admin
 async def admin_promote_user(request):
     ...
 ```
@@ -59,9 +59,10 @@ async def admin_promote_user(request):
 | Élément                    | Statut                            |
 |---------------------------|-----------------------------------|
 | `require_auth`            | ✅ Existe (auth basique)          |
-| `require_role`            | ❌ **À implémenter** avec la feature admin |
+| `require_role`            | ✅ Implémenté dans `server/auth.py` |
+| `require_admin`           | ✅ Alias `require_role("archiviste")` |
 | Modèle `User.role`        | ✅ Existe (padawan, maitre, gardien, archiviste) |
-| Vérification rôle admin   | ❌ Non utilisée actuellement      |
+| Vérification rôle admin   | ✅ Appliquée sur tous les endpoints `/api/admin/*` |
 
 ---
 

@@ -1,6 +1,6 @@
 # Endpoints et leur intégration Frontend
 
-> État au 06/02/2026
+> État au 06/02/2026 — **MAJ 15/02/2026**
 
 ## Vue d'ensemble
 
@@ -90,15 +90,70 @@ export default function AdminStatsPage() {
 
 ---
 
-## Résumé
+## 2. `/api/users/leaderboard` - Classement des utilisateurs
 
-| Endpoint | Backend | Frontend Public | Admin |
-|----------|---------|-----------------|-------|
-| `/api/exercises/stats` | ✅ | ✅ Widget accueil | 🔄 Prévu |
-| `/api/users/stats` | ✅ | ✅ Dashboard | - |
+### Statut
+- **Backend** : ✅ Implémenté (15/02/2026)
+- **Frontend** : ✅ Page `/leaderboard` + widget dashboard (Vue d'ensemble)
+
+### Description
+Retourne le top 50 des utilisateurs par `total_points`. Respecte `show_in_leaderboards` (paramètres confidentialité).
+
+### Paramètres
+- `limit` (défaut 50, max 100)
+
+### Réponse
+```json
+{
+  "leaderboard": [
+    { "rank": 1, "username": "...", "total_points": 585, "current_level": 1, "jedi_rank": "padawan", "is_current_user": true }
+  ]
+}
+```
+
+### Intégrations
+- `frontend/hooks/useLeaderboard.ts` - Hook React Query
+- `frontend/app/leaderboard/page.tsx` - Page classement complète
+- `frontend/components/dashboard/LeaderboardWidget.tsx` - Top 5 sur dashboard
 
 ---
 
-**Auteur** : Assistant IA  
-**Date** : 06/02/2026  
-**Dernière mise à jour** : 06/02/2026 - Intégration widget page d'accueil
+## 3. `PUT /api/users/me` et `PUT /api/users/me/password`
+
+### Statut
+- **Backend** : ✅ Implémentés
+- **Frontend** : ✅ Page profil (`/profile`) + paramètres (`/settings`)
+
+---
+
+## Résumé
+
+| Endpoint | Backend | Frontend | Notes |
+|----------|---------|----------|-------|
+| `/api/exercises/stats` | ✅ | ✅ Widget accueil | - |
+| `/api/users/stats` | ✅ | ✅ Dashboard | - |
+| `GET /api/users/leaderboard` | ✅ | ✅ Page + widget | 15/02/2026 |
+| `PUT /api/users/me` | ✅ | ✅ Profil | - |
+| `PUT /api/users/me/password` | ✅ | ✅ Paramètres | Protégé CSRF |
+
+---
+
+## 4. Admin — Endpoints intégrés (16/02/2026)
+
+L'espace admin est pleinement opérationnel. Tous les endpoints suivants sont implémentés et intégrés :
+
+| Endpoint | Page | Notes |
+|----------|------|-------|
+| `GET /api/admin/overview` | `/admin` | KPIs |
+| `GET/PATCH /api/admin/users` | `/admin/users` | Liste, filtre, rôle, désactivation |
+| `GET/POST/PUT/PATCH /api/admin/exercises` | `/admin/content` | CRUD, archivage, duplication |
+| `GET/POST/PUT/PATCH /api/admin/challenges` | `/admin/content` | CRUD, archivage, duplication |
+| `GET /api/admin/moderation` | `/admin/moderation` | Contenu IA |
+| `GET /api/admin/audit-log` | `/admin/audit-log` | Log actions |
+| `GET/PUT /api/admin/config` | `/admin/config` | Paramètres globaux |
+| `GET /api/admin/export` | `/admin` | Export CSV |
+| `GET /api/admin/reports` | `/admin` | Rapports période |
+
+---
+
+**Dernière mise à jour** : 16/02/2026 - Admin complet (config, modération, audit), corrections API_QUICK_REFERENCE

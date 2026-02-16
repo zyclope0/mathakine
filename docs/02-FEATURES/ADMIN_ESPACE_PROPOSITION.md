@@ -72,12 +72,12 @@
 | **Rapports** | Rapports par période (inscriptions, activité, taux succès) | `GET /api/admin/reports?period=7d\|30d` |
 | **Modération IA** | Liste exercices/défis générés IA, signalement, validation | `GET /api/admin/moderation` |
 | **Audit trail** | Log des actions admin (qui a fait quoi, quand) | `GET /api/admin/audit-log` |
+| **Configuration** | Paramètres globaux (limites, feature flags) | `GET /api/admin/config`, `PUT /api/admin/config` |
 
 #### Phase 3 — Avancé (P2)
 
 | Module | Description |
 |--------|-------------|
-| **Configuration** | Paramètres globaux (limites, features flags) |
 | **Badges** | Création/modification des définitions de badges |
 | **Promotion rôle** | Interface pour promouvoir padawan → maitre, etc. |
 
@@ -102,9 +102,11 @@
 /admin                        → Redirection /admin/overview
 /admin/overview               → KPIs (users, exercises, challenges, attempts)
 /admin/users                  → Liste users, recherche, filtre rôle, désactivation
-/admin/content                → Onglets Exercices | Défis (stats, archivage)
-/admin/export                 → Sélecteur type + période → téléchargement CSV
-/admin/audit-log              → (Phase 2) Log des actions
+/admin/content                → Onglets Exercices | Défis (CRUD, archivage, duplication)
+/admin/moderation             → Exercices/défis générés IA (validation)
+/admin/audit-log              → Log des actions admin (qui, quoi, quand)
+/admin/config                 → Paramètres globaux (maintenance, features, limites)
+/admin                        → Export CSV intégré (bloc vue d'ensemble)
 ```
 
 ### 3.3 Endpoints API proposés (Phase 1)
@@ -193,6 +195,7 @@ GET  /api/admin/export?type=users|exercises|attempts|overview&period=7d|30d
 | **11** | Création contenu — formulaire ergonomique pour créer exercice ou défi | ✅ |
 | **12** | Modération IA — liste exercices/défis générés IA | ✅ |
 | **13** | Audit trail — log des actions admin (qui a fait quoi, quand) | ✅ |
+| **14** | Configuration — paramètres globaux (maintenance, inscriptions, features, limites) | ✅ |
 
 ### Détail itération 5 — Page Utilisateurs
 
@@ -249,11 +252,32 @@ GET  /api/admin/export?type=users|exercises|attempts|overview&period=7d|30d
 - **UI** : bouton « Créer un exercice » / « Créer un défi » sur `/admin/content` ; formulaire en modal ou page dédiée `/admin/content/exercises/new`, `/admin/content/challenges/new`
 - **Validation** : vérification des champs obligatoires, feedback immédiat, aide contextuelle
 
+### Détail itération 14 — Configuration (paramètres globaux)
+
+- **Endpoints** : `GET /api/admin/config`, `PUT /api/admin/config`
+- **Paramètres** : maintenance_mode, registration_enabled, feature_ai_challenges_enabled, feature_chat_enabled, max_generations_per_user_per_hour, max_export_rows
+- **Stockage** : table `settings` (modèle Setting)
+- **UI** : page `/admin/config`, Switch pour booléens, Input pour entiers, regroupement par catégorie (système, features, limites)
+- **Note** : maintenance_mode et registration_enabled sont cosmétiques (non appliqués côté routes) — implémentation future
+
 ---
 
-## 7. Références
+## 7. Vision et évolutions
 
-- [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md) — Exigences RBAC
+### 7.1 Contenu vs Modération IA
+
+| Module | Orientation | Évolutions prévues |
+|--------|-------------|--------------------|
+| **Contenu** | Admin globale | Onglets/sections additionnels (collections, imports, stats détaillées…). Gestion complète des exercices et défis. |
+| **Modération IA** | Modération ciblée | Flux dédié validation/rejet. À terme : **apprentissage du prompt** — feedback loop (décisions de modération → amélioration des prompts), logs génération vs. modération, métriques de qualité. |
+
+**Note** : Garder les deux entrées distinctes dans le nav, notamment pour anticiper le rôle **Gardien** (modérateur) qui aura accès à Modération mais pas forcément à Contenu complet.
+
+---
+
+## 8. Références
+
+- [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md) — Exigences RBAC  
 - [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md) — Contexte roadmap
 - Modèle : `app/models/user.py` → `UserRole` (PADAWAN, MAITRE, GARDIEN, ARCHIVISTE)
 - Auth : `server/auth.py`

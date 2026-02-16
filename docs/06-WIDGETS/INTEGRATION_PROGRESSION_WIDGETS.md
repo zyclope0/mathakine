@@ -1,15 +1,16 @@
 # Intégration des widgets de progression dans le dashboard
 
-> Complété le 06/02/2026
+> Complété le 06/02/2026 — **MAJ 15/02/2026**
 
 ## 📋 Résumé
 
-Les endpoints de progression (`/api/users/me/progress` et `/api/users/me/challenges/progress`) ont été intégrés avec succès dans le dashboard frontend.
+Les endpoints de progression (`/api/users/me/progress`, `/api/users/me/challenges/progress`, `GET /api/users/leaderboard`) ont été intégrés dans le dashboard frontend.
 
-**3 nouveaux widgets** ont été créés :
+**4 widgets** dans la Vue d'ensemble :
 1. **StreakWidget** - Affiche la série de jours consécutifs
-2. **ChallengesProgressWidget** - Affiche la progression des défis logiques
-3. **CategoryAccuracyChart** - Affiche la précision par catégorie d'exercices
+2. **ChallengesProgressWidget** - Affiche la progression des défis logiques (onglet Progression)
+3. **CategoryAccuracyChart** - Affiche la précision par catégorie (onglet Progression)
+4. **LeaderboardWidget** - Top 5 du classement avec lien vers `/leaderboard` (15/02/2026)
 
 ---
 
@@ -138,6 +139,21 @@ interface CategoryAccuracyChartProps {
 - Tri par nombre d'exercices complétés (décroissant)
 - Affichage du nombre d'exercices par catégorie
 - Légende des couleurs
+
+---
+
+#### `frontend/components/dashboard/LeaderboardWidget.tsx` (15/02/2026)
+Widget affichant le top 5 du classement par points.
+
+**Données :** `useLeaderboard(5)` → `GET /api/users/leaderboard?limit=5`
+
+**Fonctionnalités :**
+- Top 5 avec rang (🥇🥈🥉), username, total_points
+- Surlignage de l'utilisateur connecté ("Vous")
+- Lien "Voir tout" vers page `/leaderboard`
+- États loading et vide
+
+**Emplacement :** Onglet Vue d'ensemble du dashboard (grille 2 colonnes avec StreakWidget)
 
 ---
 

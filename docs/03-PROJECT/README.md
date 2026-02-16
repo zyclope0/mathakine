@@ -1,7 +1,7 @@
 # 📕 Gestion projet Mathakine
 
 > Index maître — Audits, recommandations, rapports situationnels  
-> **Dernière mise à jour :** 15/02/2026
+> **Dernière mise à jour :** 16/02/2026
 
 ---
 
@@ -46,8 +46,8 @@
 
 | Document | Sujet |
 |----------|-------|
-| [ENDPOINTS_NON_INTEGRES.md](./ENDPOINTS_NON_INTEGRES.md) | Endpoints API à intégrer côté frontend |
-| [PLACEHOLDERS_ET_TODO.md](./PLACEHOLDERS_ET_TODO.md) | Endpoints à implémenter, placeholders |
+| [ENDPOINTS_NON_INTEGRES.md](./ENDPOINTS_NON_INTEGRES.md) | Endpoints API — section Admin intégrée (16/02) |
+| [PLACEHOLDERS_ET_TODO.md](./PLACEHOLDERS_ET_TODO.md) | Placeholders restants (badges progress, recommandations complete, etc.) |
 
 ### Historique (archivé, consultable)
 

@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique — Mise à jour au 15/02/2026  
+> Point d'entrée unique — Mise à jour au 16/02/2026  
 > **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md)
 
 ---
@@ -44,7 +44,8 @@ docs/
 │   ├── THEMES.md               # 7 thèmes visuels, themeStore, ajout thème
 │   ├── ANALYTICS_PROGRESSION.md  # Graphiques progression
 │   ├── BADGES_AMELIORATIONS.md   # Roadmap badges
-│   ├── ADMIN_FEATURE_SECURITE.md # RBAC pour future feature admin (require_role)
+│   ├── ADMIN_FEATURE_SECURITE.md  # RBAC admin (require_admin)
+│   ├── ADMIN_ESPACE_PROPOSITION.md # Proposition espace admin (benchmark, périmètre, plan)
 │   └── ROADMAP_FONCTIONNALITES.md # Roadmap globale fonctionnalités
 │
 ├── 03-PROJECT/            # 📕 Gestion projet
@@ -116,6 +117,11 @@ docs/
 1. [DESIGN_SYSTEM_WIDGETS.md](06-WIDGETS/DESIGN_SYSTEM_WIDGETS.md) - Template et patterns
 2. [INTEGRATION_PROGRESSION_WIDGETS.md](06-WIDGETS/INTEGRATION_PROGRESSION_WIDGETS.md) - Exemple complet
 
+### Je veux accéder à l'espace admin
+1. [ADMIN_ESPACE_PROPOSITION.md](02-FEATURES/ADMIN_ESPACE_PROPOSITION.md) — Périmètre, itérations, vision
+2. [ADMIN_FEATURE_SECURITE.md](02-FEATURES/ADMIN_FEATURE_SECURITE.md) — RBAC, décorateurs
+3. [API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md) — Section Admin (25 endpoints)
+
 ### Je veux consulter des audits/rapports
 1. [03-PROJECT — Index maître](03-PROJECT/README.md) - Taxonomie audits, recommandations, rapports
 2. [AUDITS_ET_RAPPORTS_ARCHIVES](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/README.md) - Audits implémentés + rapports situationnels
@@ -184,6 +190,19 @@ docs/
 ---
 
 ## 🔄 Dernières mises à jour
+
+### 16/02/2026
+- ✅ **Admin — Paramètres globaux** : page `/admin/config`, `GET/PUT /api/admin/config`, paramètres maintenance, inscriptions, feature flags, limites (table `settings`)
+- ✅ **Admin — Fix** : normalisation booléens (is_archived, is_active) dans PUT exercices/challenges
+- 📝 **Docs** : ADMIN_ESPACE_PROPOSITION (itération 14), API_QUICK_REFERENCE (25 routes admin), ENDPOINTS_NON_INTEGRES (section Admin)
+
+### 15/02/2026 (features)
+- ✅ **Leaderboard** : `GET /api/users/leaderboard`, page `/leaderboard`, widget top 5 sur dashboard Vue d'ensemble
+- ✅ **Dashboard réorganisé** : Vue d'ensemble allégée (KPIs + streak + classement), Progression (défis + précision + graphiques), Détails (performance + activité), timestamp relatif formaté
+- ✅ **Prompt IA fractions** : Règles renforcées (moitié/tiers cohérents, pas d'erreur fictive)
+- 📝 **ROADMAP_FONCTIONNALITES** : Leaderboard et Streak marqués implémentés
+- 📝 **ENDPOINTS_NON_INTEGRES** : Leaderboard, PUT /api/users/me et /password documentés
+- 📝 **06-WIDGETS** : LeaderboardWidget ajouté à INTEGRATION_PROGRESSION_WIDGETS
 
 ### 15/02/2026
 - 📙 **02-FEATURES** : API_QUICK_REFERENCE (cheat sheet endpoints), AUTH_FLOW (flux inscription/login/reset), THEMES (7 thèmes, themeStore, ajout)
@@ -262,7 +281,7 @@ docs/
 - **Documents actifs** : ~50 docs (backend, frontend, widgets, projet)
 - **Réduction initiale** : -92% de documentation (200+ → ~15 actifs en nov. 2025)
 - **Cohérence** : Validee vs code reel
-- **Dernière vérification** : 09/02/2026
+- **Dernière vérification** : 16/02/2026
 
 ---
 

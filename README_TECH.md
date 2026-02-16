@@ -1,6 +1,6 @@
 # README_TECH.md - Mathakine
 
-> Documentation technique de référence — Mise à jour le 15/02/2026
+> Documentation technique de référence — Mise à jour le 16/02/2026
 
 ---
 
@@ -166,14 +166,15 @@ Couche independante du framework HTTP :
 | `Notification` | `notifications` | Notifications utilisateur |
 | `UserSession` | `user_sessions` | Sessions actives |
 | `Recommendation` | `recommendations` | Recommandations IA |
-| `Setting` | `settings` | Preferences utilisateur |
+| `Setting` | `settings` | Paramètres globaux (admin config) |
+| `AdminAuditLog` | `admin_audit_logs` | Log des actions admin |
 
 **Tables legacy** (dans `legacy_tables.py`, conservees en DB) :
 - `results`, `statistics`, `user_stats`, `schema_version`
 
 ---
 
-## 6. API - Endpoints actifs (48 routes Starlette)
+## 6. API - Endpoints actifs (~70 routes Starlette)
 
 | Methode | Route | Handler | Description |
 |---|---|---|---|
@@ -181,6 +182,9 @@ Couche independante du framework HTTP :
 | POST | `/api/auth/register` | auth_handlers | Inscription |
 | POST | `/api/auth/logout` | auth_handlers | Deconnexion |
 | GET | `/api/users/me` | user_handlers | Profil utilisateur actuel |
+| PUT | `/api/users/me` | user_handlers | Modifier profil (email, full_name, preferences) |
+| PUT | `/api/users/me/password` | user_handlers | Changer mot de passe (CSRF) |
+| GET | `/api/users/leaderboard` | user_handlers | Classement par total_points (15/02/2026) |
 | GET | `/api/users/stats` | user_handlers | Statistiques utilisateur |
 | GET | `/api/users/me/progress` | user_handlers | ✨ Progression exercices (streaks, accuracy) |
 | GET | `/api/users/me/challenges/progress` | user_handlers | ✨ Progression defis |
@@ -201,10 +205,27 @@ Couche independante du framework HTTP :
 | POST | `/api/chat` | chat_handlers | Chatbot IA |
 | POST | `/api/chat/stream` | chat_handlers | Chatbot streaming |
 
+### Admin (rôle archiviste) — 25 routes
+
+| Domaine | Routes |
+|---------|--------|
+| Overview | `GET /api/admin/overview`, `health` |
+| Users | `GET/PATCH /api/admin/users`, `send-reset-password`, `resend-verification` |
+| Exercises | `GET/POST/PUT/PATCH /api/admin/exercises`, `duplicate` |
+| Challenges | `GET/POST/PUT/PATCH /api/admin/challenges`, `duplicate` |
+| Modération | `GET /api/admin/moderation` |
+| Audit | `GET /api/admin/audit-log` |
+| Config | `GET/PUT /api/admin/config` |
+| Export | `GET /api/admin/export` |
+| Reports | `GET /api/admin/reports` |
+
+→ Voir `docs/02-FEATURES/API_QUICK_REFERENCE.md` pour la liste complète.
+
 **Note** : Les routes de generation IA (SSE) sont dans `frontend/app/api/` (proxy Next.js vers backend). Routes auth frontend : `POST /api/auth/sync-cookie`, `GET /api/auth/check-cookie` (diagnostic).
 
 **Legende** :
 - ✨ = Nouveaux endpoints ajoutes le 06/02/2026
+- 15/02 = Leaderboard, modification profil/mot de passe
 
 ---
 

@@ -15,6 +15,7 @@ from starlette.responses import JSONResponse, StreamingResponse
 
 from app.models.admin_audit_log import AdminAuditLog
 from app.models.attempt import Attempt
+from app.models.setting import Setting
 from app.models.exercise import Exercise
 from app.models.logic_challenge import (
     AgeGroup,
@@ -59,6 +60,130 @@ async def admin_health(request: Request):
     Vérification que les routes admin répondent (test RBAC).
     """
     return JSONResponse({"status": "ok", "admin": True})
+
+
+# Schéma des paramètres globaux (connus et modifiables par l'admin)
+CONFIG_SCHEMA = {
+    "maintenance_mode": {"type": "bool", "default": False, "category": "système", "label": "Mode maintenance"},
+    "registration_enabled": {"type": "bool", "default": True, "category": "système", "label": "Inscriptions ouvertes"},
+    "feature_ai_challenges_enabled": {"type": "bool", "default": True, "category": "features", "label": "Défis IA activés"},
+    "feature_chat_enabled": {"type": "bool", "default": True, "category": "features", "label": "Chat IA activé"},
+    "max_generations_per_user_per_hour": {"type": "int", "default": 20, "min": 1, "max": 100, "category": "limites", "label": "Générations max/user/heure"},
+    "max_export_rows": {"type": "int", "default": 10000, "min": 100, "max": 100000, "category": "limites", "label": "Lignes max export CSV"},
+}
+
+
+def _parse_setting_value(value: str | None, schema: dict) -> bool | int | str:
+    if value is None:
+        return schema.get("default", "")
+    stype = schema.get("type", "str")
+    if stype == "bool":
+        return value.lower() in ("true", "1", "yes", "on")
+    if stype == "int":
+        try:
+            v = int(value)
+            if "min" in schema and v < schema["min"]:
+                return schema.get("default", 0)
+            if "max" in schema and v > schema["max"]:
+                return schema["max"]
+            return v
+        except ValueError:
+            return schema.get("default", 0)
+    return value
+
+
+def _serialize_value(v) -> str:
+    if isinstance(v, bool):
+        return "true" if v else "false"
+    return str(v)
+
+
+@require_auth
+@require_admin
+async def admin_config_get(request: Request):
+    """
+    GET /api/admin/config
+    Liste les paramètres globaux (paramètres du Temple).
+    """
+    async with db_session() as db:
+        rows = db.query(Setting).filter(Setting.key.in_(CONFIG_SCHEMA)).all()
+        by_key = {r.key: r for r in rows}
+
+    result = []
+    for key, schema in CONFIG_SCHEMA.items():
+        row = by_key.get(key)
+        raw = row.value if row else None
+        value = _parse_setting_value(raw, schema)
+        result.append({
+            "key": key,
+            "value": value,
+            "type": schema["type"],
+            "category": schema.get("category", ""),
+            "label": schema.get("label", key),
+            "min": schema.get("min"),
+            "max": schema.get("max"),
+        })
+    return JSONResponse({"settings": result})
+
+
+@require_auth
+@require_admin
+async def admin_config_put(request: Request):
+    """
+    PUT /api/admin/config
+    Met à jour les paramètres globaux.
+    Body: { "settings": { "key": value, ... } }
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        return JSONResponse({"detail": "Body JSON invalide"}, status_code=400)
+    settings_in = body.get("settings") or {}
+    if not isinstance(settings_in, dict):
+        return JSONResponse({"detail": "'settings' doit être un objet"}, status_code=400)
+
+    async with db_session() as db:
+        admin_user_id = getattr(request.state, "user", {}).get("id")
+        for key, value in settings_in.items():
+            if key not in CONFIG_SCHEMA:
+                continue
+            schema = CONFIG_SCHEMA[key]
+            str_val = _serialize_value(value)
+            # Validation
+            if schema["type"] == "int":
+                try:
+                    v = int(value) if not isinstance(value, (bool, type(None))) else schema["default"]
+                    if "min" in schema and v < schema["min"]:
+                        v = schema["min"]
+                    if "max" in schema and v > schema["max"]:
+                        v = schema["max"]
+                    str_val = str(v)
+                except (ValueError, TypeError):
+                    str_val = str(schema.get("default", 0))
+            elif schema["type"] == "bool":
+                str_val = "true" if value in (True, "true", "1", 1) else "false"
+
+            row = db.query(Setting).filter(Setting.key == key).first()
+            if row:
+                row.value = str_val
+                row.updated_at = datetime.now(timezone.utc)
+            else:
+                db.add(Setting(
+                    key=key,
+                    value=str_val,
+                    category=schema.get("category"),
+                    description=schema.get("label"),
+                    is_system=True,
+                    is_public=False,
+                ))
+
+        _log_admin_action(
+            db, admin_user_id, "config_update", "settings", None,
+            {"updated_keys": list(settings_in.keys())},
+        )
+        db.commit()
+
+    return JSONResponse({"status": "ok"})
 
 
 @require_auth
@@ -458,13 +583,23 @@ async def admin_exercises_put(request: Request):
     except Exception:
         return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
 
-    allowed = {
+    allowed_str = {
         "title", "exercise_type", "difficulty", "age_group", "tags",
         "context_theme", "complexity", "question", "correct_answer",
-        "choices", "explanation", "hint", "image_url", "audio_url",
-        "is_active", "is_archived",
+        "explanation", "hint", "image_url", "audio_url",
     }
-    update_data = {k: v for k, v in data.items() if k in allowed}
+    allowed_bool = {"is_active", "is_archived"}
+    allowed_json = {"choices"}
+
+    update_data = {}
+    for k, v in data.items():
+        if k in allowed_str and v is not None:
+            update_data[k] = str(v) if not isinstance(v, str) else v
+        elif k in allowed_bool:
+            if v is not None:
+                update_data[k] = v in (True, "true", "1", 1)
+        elif k in allowed_json:
+            update_data[k] = v
 
     async with db_session() as db:
         ex = db.query(Exercise).filter(Exercise.id == exercise_id).first()
@@ -652,8 +787,9 @@ async def admin_challenges_put(request: Request):
     allowed_str = {
         "title", "description", "difficulty", "content", "question",
         "solution", "correct_answer", "solution_explanation",
-        "image_url", "tags", "is_active", "is_archived",
+        "image_url", "tags",
     }
+    allowed_bool = {"is_active", "is_archived"}
     allowed_int = {"difficulty_rating", "estimated_time_minutes"}
     allowed_json = {"choices", "visual_data", "hints"}
 
@@ -661,6 +797,9 @@ async def admin_challenges_put(request: Request):
     for k, v in data.items():
         if k in allowed_str and v is not None:
             update_data[k] = str(v) if not isinstance(v, str) else v
+        elif k in allowed_bool:
+            if v is not None:
+                update_data[k] = v in (True, "true", "1", 1)
         elif k in allowed_int and v is not None:
             update_data[k] = int(v) if isinstance(v, (int, float)) else v
         elif k in allowed_json:
@@ -916,7 +1055,9 @@ async def admin_moderation(request: Request):
                 })
 
         if mod_type in ("challenges", "all"):
-            q_ch = db.query(LogicChallenge).filter(LogicChallenge.generation_parameters.isnot(None))
+            # Tous les défis sont générés par IA pour le moment ; generation_parameters
+            # est renseigné pour les créations futures via le flux IA
+            q_ch = db.query(LogicChallenge)
             result["total_challenges"] = q_ch.count()
             rows_ch = q_ch.order_by(LogicChallenge.created_at.desc()).offset(skip).limit(limit).all()
             for c in rows_ch:

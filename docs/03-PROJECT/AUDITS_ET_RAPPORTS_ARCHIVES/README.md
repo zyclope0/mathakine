@@ -47,5 +47,6 @@ Rapports situationnels : récaps mission, plans contextuels (pas de suivi actif)
 - **AUDIT_SECURITE_APPLICATIVE_2026-02.md** — Audit OWASP (référence)
 - **ANALYSE_DUPLICATION_DRY_2026-02.md** — DRY (~70–80 % traité)
 - **DEPLOIEMENT_2026-02-06.md** — Guide déploiement
-- **ENDPOINTS_NON_INTEGRES.md**, **PLACEHOLDERS_ET_TODO.md** — À faire
+- **ENDPOINTS_NON_INTEGRES.md** — Admin intégré (16/02)
+- **PLACEHOLDERS_ET_TODO.md** — Placeholders restants
 - **BILAN_COMPLET.md**, **RAPPORT_VERIFICATION_CHALLENGES.md** — Historique

@@ -1,6 +1,6 @@
 # Roadmap Fonctionnalités - Analyse Globale
 
-> **Date** : 06/02/2026  
+> **Date** : 06/02/2026 — **Dernière MAJ** : 15/02/2026  
 > **Objectif** : Identifier les pages et fonctionnalités à ajouter pour maximiser l'engagement et la rétention  
 > **Cible** : Enfants 5-20 ans + Parents
 
@@ -18,9 +18,9 @@
 
 ---
 
-## ⚠️ Avant la feature Admin
+## ℹ️ Admin — Implémenté (16/02/2026)
 
-**Lire impérativement** [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md) — Exigences RBAC (`require_role("admin")`) pour tout endpoint admin.
+L'espace admin est opérationnel (rôle `archiviste`). Voir [ADMIN_ESPACE_PROPOSITION.md](ADMIN_ESPACE_PROPOSITION.md) et [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md).
 
 ---
 
@@ -31,20 +31,21 @@
 | Page | Route | État | Évaluation |
 |------|-------|------|------------|
 | Accueil | `/` | ✅ Fonctionnel | Bon |
-| Dashboard | `/dashboard` | ✅ Fonctionnel | À enrichir |
+| Dashboard | `/dashboard` | ✅ Fonctionnel | Réorganisé (4 onglets, widget classement) |
+| Classement | `/leaderboard` | ✅ Fonctionnel | Nouveau 15/02/2026 |
 | Exercices | `/exercises` | ✅ Fonctionnel | Bon |
 | Défis logiques | `/challenges` | ✅ Fonctionnel | Bon |
 | Badges | `/badges` | ✅ Fonctionnel | À améliorer (voir BADGES_AMELIORATIONS.md) |
-| Profil | `/profile` | ✅ Fonctionnel | Basique |
+| Profil | `/profile` | ✅ Fonctionnel | Modification profil + mot de passe OK |
 | Paramètres | `/settings` | ✅ Fonctionnel | Basique |
 | Auth | `/login`, `/register` | ✅ Fonctionnel | OK |
 
-### Endpoints placeholders (non implémentés)
+### Endpoints implémentés (mise à jour 15/02/2026)
 
-- `POST /api/auth/forgot-password` - Réinitialisation mot de passe
-- `PUT /api/users/me` - Modification profil
-- `PUT /api/users/me/password` - Changement mot de passe
-- `GET /api/users/leaderboard` - Classement
+- ✅ `POST /api/auth/forgot-password` - Réinitialisation mot de passe
+- ✅ `PUT /api/users/me` - Modification profil
+- ✅ `PUT /api/users/me/password` - Changement mot de passe
+- ✅ `GET /api/users/leaderboard` - Classement par total_points
 
 ---
 
@@ -56,8 +57,8 @@
 |----------------|----------|--------------|----------|---------------|
 | Dashboard enfant | ✅ | ✅ | ✅ | ✅ |
 | **Dashboard parent** | ✅ | ✅ | ✅ | ❌ |
-| Streak/Série | ✅ | ❌ | ❌ | ❌ |
-| **Leaderboard** | ✅ | ❌ | ❌ | ❌ |
+| Streak/Série | ✅ | ❌ | ❌ | ✅ |
+| **Leaderboard** | ✅ | ❌ | ❌ | ✅ |
 | **Défis quotidiens** | ✅ | ✅ | ✅ | ❌ |
 | **Révisions espacées** | ✅ | ✅ | ✅ | ❌ |
 | **Test diagnostic** | ✅ | ✅ | ✅ | ❌ |
