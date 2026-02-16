@@ -8,6 +8,7 @@ import os
 from typing import Callable, List
 
 from app.core.logging_config import get_logger
+from app.utils.settings_reader import get_setting_bool
 
 logger = get_logger(__name__)
 from starlette.middleware import Middleware
@@ -15,6 +16,34 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse
+
+# Routes exemptées du mode maintenance (admin peut se connecter et désactiver)
+MAINTENANCE_EXEMPT_PREFIXES = (
+    "/health",
+    "/metrics",
+    "/api/admin",
+    "/api/auth/login",
+    "/api/auth/refresh",
+    "/api/auth/validate-token",
+    "/api/auth/csrf",
+)
+
+
+class MaintenanceMiddleware(BaseHTTPMiddleware):
+    """Bloque les requêtes si maintenance_mode est activé (sauf routes exemptées)."""
+
+    async def dispatch(self, request: Request, call_next: Callable):
+        if any(request.url.path.startswith(p) for p in MAINTENANCE_EXEMPT_PREFIXES):
+            return await call_next(request)
+        try:
+            if await get_setting_bool("maintenance_mode", False):
+                return JSONResponse(
+                    {"error": "maintenance", "message": "Le temple est en maintenance. Réessayez plus tard."},
+                    status_code=503,
+                )
+        except Exception as e:
+            logger.debug(f"Maintenance check failed (default: off): {e}")
+        return await call_next(request)
 
 
 class AuthenticationMiddleware(BaseHTTPMiddleware):
@@ -151,6 +180,7 @@ def get_middleware() -> List[Middleware]:
             ],
             allow_credentials=True,  # Important pour les cookies HTTP-only
         ),
+        Middleware(MaintenanceMiddleware),
         Middleware(AuthenticationMiddleware)
     ])
 

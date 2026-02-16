@@ -41,6 +41,13 @@ export class ApiClientError extends Error {
   }
 }
 
+/** Déclenché quand une 503 maintenance est reçue (pour overlay global) */
+export function notifyMaintenance(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("maintenance"));
+  }
+}
+
 // État global pour gérer le refresh en cours
 let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
@@ -147,6 +154,9 @@ async function handleResponse<T>(response: Response): Promise<T> {
       const errorData = await response.json();
       errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
       errorDetails = errorData;
+      if (response.status === 503 && (errorData?.error === "maintenance" || errorMessage?.includes("maintenance"))) {
+        notifyMaintenance();
+      }
     } catch {
       // Si la réponse n'est pas du JSON, utiliser le texte
       try {
@@ -154,6 +164,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
       } catch {
         // Garder le message d'erreur par défaut
       }
+      if (response.status === 503) notifyMaintenance();
     }
 
     throw new ApiClientError(errorMessage, response.status, errorDetails);

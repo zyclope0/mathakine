@@ -555,4 +555,65 @@ class BadgeService:
             
         except Exception as available_badges_error:
             logger.error(f"Erreur récupération badges disponibles: {available_badges_error}")
-            return [] 
+            return []
+
+    def _get_badge_progress(self, user_id: int, badge: Achievement) -> tuple[float, int, int]:
+        """
+        Calcule la progression vers un badge non débloqué.
+        Returns: (progress 0.0-1.0, current_value, target_value)
+        """
+        if not badge.requirements:
+            return (0.0, 0, 0)
+        try:
+            req = json.loads(badge.requirements) if isinstance(badge.requirements, str) else badge.requirements
+        except (json.JSONDecodeError, TypeError):
+            return (0.0, 0, 0)
+
+        target = req.get("attempts_count")
+        if target is not None:
+            attempts = self.db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar() or 0
+            progress = min(1.0, attempts / max(1, target))
+            return (round(progress, 2), attempts, target)
+
+        target = req.get("min_attempts")
+        if target is not None and "success_rate" in req:
+            stats = self.db.execute(text("""
+                SELECT COUNT(*), COUNT(CASE WHEN is_correct THEN 1 END)
+                FROM attempts WHERE user_id = :user_id
+            """), {"user_id": user_id}).fetchone()
+            total = stats[0] if stats else 0
+            correct = stats[1] if stats else 0
+            rate_ok = (correct / total * 100 >= req["success_rate"]) if total else False
+            progress = min(1.0, total / max(1, target)) if total else 0.0
+            if rate_ok and total >= target:
+                progress = 1.0
+            return (round(progress, 2), total, target)
+
+        return (0.0, 0, 0)
+
+    def get_badges_progress(self, user_id: int) -> Dict[str, Any]:
+        """
+        Progression vers les badges (unlocked + in_progress).
+        """
+        earned_ids = {
+            r[0] for r in self.db.query(UserAchievement.achievement_id)
+            .filter(UserAchievement.user_id == user_id)
+            .all()
+        }
+        all_badges = self.db.query(Achievement).filter(Achievement.is_active == True).all()
+        unlocked = []
+        in_progress = []
+        for b in all_badges:
+            if b.id in earned_ids:
+                unlocked.append({"id": b.id, "code": b.code, "name": b.name})
+            else:
+                prog, cur, tgt = self._get_badge_progress(user_id, b)
+                in_progress.append({
+                    "id": b.id,
+                    "code": b.code,
+                    "name": b.name,
+                    "progress": prog,
+                    "current": cur,
+                    "target": tgt,
+                })
+        return {"unlocked": unlocked, "in_progress": in_progress} 

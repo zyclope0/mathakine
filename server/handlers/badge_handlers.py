@@ -130,18 +130,20 @@ async def get_user_gamification_stats(request):
 @require_auth
 async def get_user_badges_progress(request: Request):
     """
-    Handler pour récupérer la progression des badges d'un utilisateur (placeholder).
+    Progression vers les badges (débloqués + en cours).
     Route: GET /api/challenges/badges/progress
     """
     try:
         current_user = request.state.user
-        user_id = current_user.get('id')
-        logger.info(f"Accès à la progression des badges pour l'utilisateur {user_id}. Fonctionnalité en développement.")
+        user_id = current_user.get("id")
+        if not user_id:
+            return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
 
-        return JSONResponse(
-            {"message": f"La fonctionnalité de progression des badges pour l'utilisateur {user_id} est en cours de développement."},
-            status_code=200
-        )
+        async with db_session() as db:
+            badge_service = BadgeService(db)
+            data = badge_service.get_badges_progress(user_id)
+
+        return JSONResponse({"success": True, "data": data})
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de la progression des badges: {e}")
         traceback.print_exc()

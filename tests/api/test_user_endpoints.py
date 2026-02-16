@@ -152,6 +152,18 @@ async def test_update_user_password(padawan_client, db_session):
     assert response.status_code == 200
 
 
+async def test_get_leaderboard(padawan_client):
+    """Test pour recuperer le classement des utilisateurs."""
+    client = padawan_client["client"]
+
+    response = await client.get("/api/users/leaderboard")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert "leaderboard" in data
+    assert isinstance(data["leaderboard"], list)
+
+
 async def test_update_user_password_wrong_current(padawan_client):
     """Test pour mettre a jour le mot de passe avec un mot de passe actuel incorrect."""
     client = padawan_client["client"]

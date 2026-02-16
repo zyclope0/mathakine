@@ -150,6 +150,7 @@ def create_challenge(
     estimated_time_minutes: int = 10,
     tags: Optional[str] = None,
     creator_id: Optional[int] = None,
+    generation_parameters: Optional[Dict] = None,
 ) -> LogicChallenge:
     """
     Créer un nouveau challenge.
@@ -196,6 +197,7 @@ def create_challenge(
         creator_id=creator_id,
         is_active=True,
         created_at=now,  # Définir explicitement la date de création
+        generation_parameters=generation_parameters,
     )
     
     db.add(challenge)

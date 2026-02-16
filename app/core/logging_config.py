@@ -43,6 +43,13 @@ def configure_logging(remove_existing_handlers=True):
     if remove_existing_handlers:
         logger.remove()
 
+    # En mode debug/reload (uvicorn --reload), plusieurs processus écrivent dans les mêmes
+    # fichiers. Sur Windows, la rotation (rename) provoque PermissionError car un autre
+    # processus garde le fichier ouvert. On désactive la rotation en dev.
+    _debug_mode = os.environ.get("MATH_TRAINER_DEBUG", "false").lower() == "true"
+    _rotation = False if _debug_mode else "10 MB"
+    _rotation_all = False if _debug_mode else "20 MB"
+
     # Ajouter la journalisation dans la console
     logger.add(
         sys.stderr,
@@ -57,9 +64,9 @@ def configure_logging(remove_existing_handlers=True):
             log_file,
             format=LOG_FORMAT,
             level=level,
-            rotation="10 MB",
-            compression="zip",
-            retention="30 days",
+            rotation=_rotation,
+            compression="zip" if _rotation else None,
+            retention="30 days" if _rotation else None,
             enqueue=True,  # Thread-safe
         )
 
@@ -68,9 +75,9 @@ def configure_logging(remove_existing_handlers=True):
         str(LOGS_DIR / "all.log"),
         format=LOG_FORMAT,
         level="DEBUG",
-        rotation="20 MB",
-        compression="zip",
-        retention="60 days",
+        rotation=_rotation_all,
+        compression="zip" if _rotation_all else None,
+        retention="60 days" if _rotation_all else None,
         enqueue=True,
     )
 
@@ -79,9 +86,9 @@ def configure_logging(remove_existing_handlers=True):
         str(LOGS_DIR / "uncaught_exceptions.log"),
         format=LOG_FORMAT,
         level="ERROR",
-        rotation="10 MB",
-        compression="zip",
-        retention="60 days",
+        rotation=_rotation,
+        compression="zip" if _rotation else None,
+        retention="60 days" if _rotation else None,
         backtrace=True,
         diagnose=True,
         enqueue=True,

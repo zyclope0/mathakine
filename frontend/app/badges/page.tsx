@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useBadges } from "@/hooks/useBadges";
-import { Trophy, RefreshCw, Zap, Star, Target } from "lucide-react";
+import { useBadgesProgress } from "@/hooks/useBadgesProgress";
+import { Trophy, RefreshCw, Zap, Star, Target, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils/cn";
 import { useTranslations } from "next-intl";
@@ -38,6 +39,7 @@ function getJediRankInfo(rank: string, t: any): { title: string; icon: string; c
 
 export default function BadgesPage() {
   const t = useTranslations("badges");
+  const tCommon = useTranslations("common");
   const {
     earnedBadges,
     availableBadges,
@@ -47,6 +49,7 @@ export default function BadgesPage() {
     checkBadges,
     isChecking,
   } = useBadges();
+  const { inProgress, isLoading: isLoadingProgress } = useBadgesProgress();
 
   const handleCheckBadges = async () => {
     await checkBadges();
@@ -254,6 +257,47 @@ export default function BadgesPage() {
                   )}
               </CardContent>
             </Card>
+          </PageSection>
+        )}
+
+        {/* Badges en cours — progression vers les prochains */}
+        {inProgress.length > 0 && (
+          <PageSection className="space-y-4 animate-fade-in-up-delay-3">
+            <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" aria-hidden="true" />
+              {tCommon("badgesProgressTitle")}
+            </h2>
+            <div className="space-y-3">
+              {inProgress.map((badge) => (
+                <Card key={badge.id} className="card-spatial-depth">
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">{badge.name}</span>
+                      {badge.target != null && (
+                        <span className="text-sm text-muted-foreground">
+                          {badge.current ?? 0} / {badge.target}
+                        </span>
+                      )}
+                    </div>
+                    {badge.progress != null && (
+                      <div
+                        className="w-full bg-muted rounded-full h-2 overflow-hidden"
+                        role="progressbar"
+                        aria-valuenow={Math.round((badge.progress ?? 0) * 100)}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label={`${badge.name}: ${Math.round((badge.progress ?? 0) * 100)}%`}
+                      >
+                        <div
+                          className="bg-primary h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${(badge.progress ?? 0) * 100}%` }}
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </PageSection>
         )}
 

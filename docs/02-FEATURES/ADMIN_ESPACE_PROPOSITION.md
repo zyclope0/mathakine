@@ -258,7 +258,7 @@ GET  /api/admin/export?type=users|exercises|attempts|overview&period=7d|30d
 - **Paramètres** : maintenance_mode, registration_enabled, feature_ai_challenges_enabled, feature_chat_enabled, max_generations_per_user_per_hour, max_export_rows
 - **Stockage** : table `settings` (modèle Setting)
 - **UI** : page `/admin/config`, Switch pour booléens, Input pour entiers, regroupement par catégorie (système, features, limites)
-- **Note** : maintenance_mode et registration_enabled sont cosmétiques (non appliqués côté routes) — implémentation future
+- **Note** : maintenance_mode (middleware 503) et registration_enabled (403 sur POST /api/users/) sont appliqués depuis 16/02/2026
 
 ---
 

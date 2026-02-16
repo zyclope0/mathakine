@@ -22,6 +22,8 @@
     "exportExcel": "Export as Excel",
     "selectLanguage": "Select language",
     "total": "Total",
+    "markAsDone": "Mark as done",
+    "badgesProgressTitle": "Badges in progress",
     "years": "years",
     "allAges": "All ages"
   },
@@ -590,7 +592,8 @@
       "refresh": "Refresh",
       "priority": "Priority",
       "challenge": "Logic challenge",
-      "startChallenge": "Take the challenge"
+      "startChallenge": "Take the challenge",
+      "markDone": "Mark as done"
     },
     "recentActivity": {
       "title": "Recent activity",
@@ -729,6 +732,9 @@
       "silver": "Silver",
       "gold": "Gold",
       "legendary": "Legendary"
+    },
+    "progress": {
+      "title": "Badges in progress"
     }
   },
   "leaderboard": {
@@ -799,7 +805,8 @@
     "recommendations": {
       "updatedSuccess": "Recommendations updated!",
       "updateError": "Error",
-      "updateErrorDescription": "Unable to update recommendations."
+      "updateErrorDescription": "Unable to update recommendations.",
+      "completedSuccess": "Marked as done"
     },
     "badges": {
       "checkError": "Error",

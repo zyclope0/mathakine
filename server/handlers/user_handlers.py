@@ -20,6 +20,7 @@ from app.utils.error_handler import get_safe_error_message
 from app.utils.rate_limit import rate_limit_register
 from app.utils.csrf import validate_csrf_token
 from app.utils.db_utils import db_session
+from app.utils.settings_reader import get_setting_bool
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from server.auth import require_auth
 
@@ -296,6 +297,11 @@ async def create_user_account(request: Request):
         "full_name": "Nom Complet" (optionnel)
     }
     """
+    if not await get_setting_bool("registration_enabled", True):
+        return JSONResponse(
+            {"error": "Les inscriptions sont temporairement fermées."},
+            status_code=403,
+        )
     try:
         # Récupérer les données JSON de la requête
         data = await request.json()
@@ -1281,7 +1287,8 @@ async def get_user_sessions(request: Request):
             
             logger.debug(f"Récupération de {len(sessions)} sessions actives pour user_id={user_id}")
             
-            # Convertir en dict
+            # Session la plus récente = probablement la session actuelle (requête depuis celle-ci)
+            most_recent_id = sessions[0].id if sessions else None
             session_list = []
             for session in sessions:
                 session_dict = {
@@ -1294,7 +1301,7 @@ async def get_user_sessions(request: Request):
                     "last_activity": session.last_activity.isoformat(),
                     "created_at": session.created_at.isoformat(),
                     "expires_at": session.expires_at.isoformat(),
-                    "is_current": False  # TODO: Détecter la session actuelle via le token
+                    "is_current": session.id == most_recent_id,
                 }
                 session_list.append(session_dict)
             

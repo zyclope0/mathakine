@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, RefreshCw, Swords } from "lucide-react";
+import { Sparkles, RefreshCw, Swords, Check } from "lucide-react";
 import Link from "next/link";
 import { useRecommendations, type Recommendation } from "@/hooks/useRecommendations";
 import { cn } from "@/lib/utils/cn";
@@ -11,8 +11,10 @@ import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useTranslations } from "next-intl";
 
 export function Recommendations() {
-  const { recommendations, isLoading, generate, isGenerating } = useRecommendations();
+  const { recommendations, isLoading, generate, isGenerating, complete, isCompleting } =
+    useRecommendations();
   const t = useTranslations("dashboard.recommendations");
+  const tCommon = useTranslations("common");
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
 
   const handleRefresh = async () => {
@@ -80,7 +82,7 @@ export function Recommendations() {
                   aria-label={`Recommandation: ${exerciseTypeDisplay} - ${ageGroupDisplay}`}
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex gap-2 flex-wrap flex-1">
                       <Badge
                         variant="outline"
                         className={cn(
@@ -104,6 +106,16 @@ export function Recommendations() {
                         </Badge>
                       )}
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={() => recommendation.id && complete(recommendation.id)}
+                      disabled={isCompleting || !recommendation.id}
+                      aria-label={tCommon("markAsDone")}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
                   </div>
                   {title && (
                     <h4 className="font-semibold text-foreground mb-2">{title}</h4>

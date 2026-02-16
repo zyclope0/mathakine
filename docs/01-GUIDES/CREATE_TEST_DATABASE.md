@@ -98,13 +98,45 @@ CREATE DATABASE mathakine_test;
 # 3. Quitter psql
 \q
 
-# 4. Initialiser le schéma
-export DATABASE_URL="postgresql://postgres:postgres@localhost/mathakine_test"
-python -c "from app.db.init_db import create_tables_with_test_data; create_tables_with_test_data()"
+# 4. Appliquer les migrations sur la base de test
+# (alembic utilise TEST_DATABASE_URL quand TESTING=true)
+$env:TESTING="true"; $env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost/mathakine_test"; alembic upgrade head
+
+# Linux/Mac :
+# TESTING=true TEST_DATABASE_URL="postgresql://postgres:postgres@localhost/mathakine_test" alembic upgrade head
 
 # 5. Restaurer DATABASE_URL
 export DATABASE_URL="postgresql://postgres:postgres@localhost/mathakine"
 ```
+
+---
+
+## ⚠️ **Avant de lancer les tests**
+
+Après avoir créé ou réinitialisé la base de test, le schéma doit être à jour.
+
+**Option A — Migrations Alembic** (base vide ou cohérente) :
+
+```powershell
+# Windows PowerShell
+$env:TESTING="true"; alembic upgrade head
+```
+
+```bash
+# Linux / Mac
+TESTING=true alembic upgrade head
+```
+
+**Option B — Base partiellement initialisée** (ex. créée par `create_all` ou script d’init) :
+
+Si `alembic upgrade head` échoue (tables déjà existantes), exécutez le script de rattrapage :
+
+```powershell
+# Windows PowerShell
+$env:TESTING="true"; python scripts/fix_recommendations_schema_for_tests.py
+```
+
+Cela ajoute les colonnes manquantes (`challenge_id`, `recommendation_type`) à la table `recommendations`.
 
 ---
 

@@ -2,10 +2,12 @@
 Handlers pour les recommandations personnalisées.
 """
 import traceback
+from datetime import datetime, timezone
 
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
+from app.models.recommendation import Recommendation
 from app.utils.db_utils import db_session
 from app.utils.error_handler import get_safe_error_message
 
@@ -127,8 +129,9 @@ async def generate_recommendations(request):
 @require_auth
 async def handle_recommendation_complete(request):
     """
-    Handler pour marquer une recommandation comme complétée (placeholder).
+    Marquer une recommandation comme complétée.
     Route: POST /api/recommendations/complete
+    Body: { "recommendation_id": int }
     """
     try:
         current_user = request.state.user
@@ -137,15 +140,29 @@ async def handle_recommendation_complete(request):
             return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
 
         data = await request.json()
-        recommendation_id = data.get('recommendation_id')
-        if not recommendation_id:
-            return JSONResponse({"error": "ID de recommandation manquant"}, status_code=400)
+        recommendation_id = data.get("recommendation_id")
+        if recommendation_id is None:
+            return JSONResponse({"error": "recommendation_id manquant"}, status_code=400)
+        try:
+            recommendation_id = int(recommendation_id)
+        except (TypeError, ValueError):
+            return JSONResponse({"error": "recommendation_id invalide"}, status_code=400)
 
-        logger.info(f"Recommandation {recommendation_id} marquée comme complétée par l'utilisateur {user_id}. Fonctionnalité en développement.")
+        async with db_session() as db:
+            rec = db.query(Recommendation).filter(
+                Recommendation.id == recommendation_id,
+                Recommendation.user_id == user_id,
+            ).first()
+            if not rec:
+                return JSONResponse({"error": "Recommandation non trouvée"}, status_code=404)
+            rec.is_completed = True
+            rec.completed_at = datetime.now(timezone.utc)
+            db.commit()
+            db.refresh(rec)
 
         return JSONResponse(
-            {"message": f"La fonctionnalité de marque de recommandation complétée pour {recommendation_id} est en cours de développement."},
-            status_code=200
+            {"message": "Recommandation marquée comme complétée", "id": rec.id},
+            status_code=200,
         )
     except Exception as e:
         logger.error(f"Erreur lors de la gestion de la recommandation complétée: {e}")

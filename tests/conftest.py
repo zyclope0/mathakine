@@ -355,6 +355,8 @@ async def refresh_token_client():
             if response.status_code not in (200, 201):
                 pytest.skip(f"Cannot create test user: {response.text}")
 
+            verify_user_email_for_tests(user_data["username"])
+
             login_data = {
                 "username": user_data["username"],
                 "password": user_data["password"],

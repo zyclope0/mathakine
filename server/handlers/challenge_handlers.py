@@ -1203,7 +1203,13 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                                 difficulty_rating=normalized_challenge.get('difficulty_rating', 3.0),
                                 estimated_time_minutes=normalized_challenge.get('estimated_time_minutes', 10),
                                 tags=normalized_challenge.get('tags', 'ai,generated'),
-                                creator_id=current_user.get('id')
+                                creator_id=current_user.get('id'),
+                                generation_parameters={
+                                    "source": "ai",
+                                    "challenge_type": normalized_challenge['challenge_type'],
+                                    "age_group": normalized_challenge['age_group'],
+                                    "model": ai_params.get("model", "unknown"),
+                                },
                             )
                             
                             # Vérifier que le challenge a été créé avec succès

@@ -192,6 +192,7 @@ docs/
 ## 🔄 Dernières mises à jour
 
 ### 16/02/2026
+- ✅ **Quick wins 1-4** : (1) maintenance_mode + registration_enabled appliqués, (2) handle_recommendation_complete, (3) get_user_badges_progress, (4) is_current dans /api/users/me/sessions
 - ✅ **Admin — Paramètres globaux** : page `/admin/config`, `GET/PUT /api/admin/config`, paramètres maintenance, inscriptions, feature flags, limites (table `settings`)
 - ✅ **Admin — Fix** : normalisation booléens (is_archived, is_active) dans PUT exercices/challenges
 - 📝 **Docs** : ADMIN_ESPACE_PROPOSITION (itération 14), API_QUICK_REFERENCE (25 routes admin), ENDPOINTS_NON_INTEGRES (section Admin)

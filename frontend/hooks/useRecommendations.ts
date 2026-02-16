@@ -51,11 +51,29 @@ export function useRecommendations() {
     },
   });
 
+  const completeMutation = useMutation({
+    mutationFn: async (recommendationId: number) => {
+      return await api.post<{ message: string; id: number }>(
+        "/api/recommendations/complete",
+        { recommendation_id: recommendationId }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+      toast.success(t("completedSuccess", { default: "Marqué comme fait" }));
+    },
+    onError: (error: ApiClientError) => {
+      toast.error(error.message || t("updateErrorDescription"));
+    },
+  });
+
   return {
     recommendations: recommendations || [],
     isLoading,
     error,
     generate: generateMutation.mutateAsync,
     isGenerating: generateMutation.isPending,
+    complete: completeMutation.mutateAsync,
+    isCompleting: completeMutation.isPending,
   };
 }

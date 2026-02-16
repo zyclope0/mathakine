@@ -1,7 +1,18 @@
 # Placeholders et TODOs restants - Mathakine
 
 > État au 06/02/2026 après unification Starlette  
-> Dernière mise à jour : 16/02/2026 (admin users/exercises/challenges intégrés)
+> Dernière mise à jour : 16/02/2026 (Quick wins 1-4 implémentés)
+
+## ✅ Quick wins 16/02/2026
+
+| # | Tâche | Fichiers | Description |
+|---|-------|----------|-------------|
+| 1 | **maintenance_mode & registration_enabled** | `app/utils/settings_reader.py`, `server/middleware.py`, `server/handlers/user_handlers.py` | Maintenance : middleware 503 sauf /health, /metrics, /api/admin/*, /api/auth/login, refresh, validate-token. Inscriptions : 403 sur POST /api/users/ si `registration_enabled=false` |
+| 2 | **handle_recommendation_complete** | `server/handlers/recommendation_handlers.py` | POST /api/recommendations/complete — met à jour `is_completed`, `completed_at` sur la recommandation |
+| 3 | **get_user_badges_progress** | `server/handlers/badge_handlers.py`, `app/services/badge_service.py` | GET /api/challenges/badges/progress — retourne `{unlocked, in_progress}` avec progress 0-1 pour badges non débloqués |
+| 4 | **is_current session** | `server/handlers/user_handlers.py` | GET /api/users/me/sessions — `is_current: true` sur la session la plus récente (proxy : requête depuis celle-ci) |
+
+---
 
 ## 📋 Récapitulatif
 
@@ -54,26 +65,9 @@ Ce document liste tous les endpoints/handlers **placeholders** (non implémenté
 
 ---
 
-### 5. ❌ `get_user_badges_progress` - Progression badges
-**Fichier** : `server/handlers/badge_handlers.py:181`  
+### 5. ✅ `get_user_badges_progress` - Progression badges (implémenté 16/02/2026)
 **Route** : `GET /api/challenges/badges/progress`  
-**Impact** : **Moyenne** - Gamification  
-**Description** : Endpoint placeholder
-
-**Solution recommandée** :
-```python
-async def get_user_badges_progress(request: Request):
-    user_id = current_user['id']
-    
-    # Récupérer les badges débloqués
-    unlocked_badges = db.query(Achievement).filter(Achievement.user_id == user_id).all()
-    
-    # Calculer progression vers les badges non débloqués
-    # Ex : Badge "100 exercices" → user a 75 exercices → 75%
-    all_badges = db.query(BadgeDefinition).all()  # Si table existe
-    
-    # Retourner : {unlocked: [...], in_progress: [{badge_id, name, progress: 0.75}, ...]}
-```
+**Implémentation** : BadgeService.get_badges_progress(user_id) — `{unlocked: [{id, code, name}], in_progress: [{id, code, name, progress, current, target}]}`. Progression calculée pour badges avec `attempts_count` ou `min_attempts`+`success_rate`.
 
 ---
 
@@ -97,26 +91,10 @@ async def get_user_badges_progress(request: Request):
 
 ---
 
-### 8. ❌ `handle_recommendation_complete` - Marquer recommandation complétée
-**Fichier** : `server/handlers/recommendation_handlers.py:128`  
+### 8. ✅ `handle_recommendation_complete` - Marquer recommandation complétée (implémenté 16/02/2026)
 **Route** : `POST /api/recommendations/complete`  
-**Impact** : **Basse** - Suivi des recommandations  
-**Description** : Endpoint placeholder
-
-**Solution recommandée** :
-```python
-async def handle_recommendation_complete(request: Request):
-    user_id = current_user['id']
-    data = await request.json()
-    recommendation_id = data.get('recommendation_id')
-    
-    # Mettre à jour la recommandation : completed_at = now()
-    db.query(Recommendation).filter(
-        Recommendation.id == recommendation_id,
-        Recommendation.user_id == user_id
-    ).update({Recommendation.completed_at: datetime.now()})
-    db.commit()
-```
+**Body** : `{ "recommendation_id": int }`  
+**Implémentation** : Met à jour `is_completed`, `completed_at` sur la recommandation (vérifie user_id).
 
 ---
 
@@ -180,21 +158,9 @@ async def handle_recommendation_complete(request: Request):
 
 ## 🔧 TODOs techniques (non-bloquants)
 
-### 14. 🔵 TODO: Détecter la session actuelle
-**Fichier** : `server/handlers/user_handlers.py:904`  
-**Ligne** : `"is_current": False  # TODO: Détecter la session actuelle via le token`  
-**Impact** : **Basse** - UX (afficher "Session actuelle" dans la liste)
-
-**Solution recommandée** :
-```python
-# Dans get_user_sessions
-current_token = request.cookies.get('access_token') or request.headers.get('Authorization', '').replace('Bearer ', '')
-
-for session in sessions:
-    # Comparer session.jti avec le JTI du token actuel
-    is_current = (session.jti == decode_jwt(current_token).get('jti'))
-    session_dict['is_current'] = is_current
-```
+### 14. ✅ Détecter la session actuelle (implémenté 16/02/2026)
+**Fichier** : `server/handlers/user_handlers.py`  
+**Implémentation** : `is_current: true` sur la session avec le `last_activity` le plus récent (proxy : la requête provient probablement de cette session). Une implémentation future avec `jti` dans le JWT serait plus précise.
 
 ---
 

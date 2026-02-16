@@ -9,6 +9,7 @@ import { Footer } from "@/components/layout/Footer";
 import { AlphaBanner } from "@/components/layout/AlphaBanner";
 import { LocaleInitializer } from "@/components/locale/LocaleInitializer";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
+import { MaintenanceOverlay } from "@/components/layout/MaintenanceOverlay";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { SpatialBackground } from "@/components/spatial/SpatialBackground";
 
@@ -146,6 +147,7 @@ export default function RootLayout({
           <AccessibilityToolbar />
           <WCAGAudit />
           <InstallPrompt />
+          <MaintenanceOverlay />
         </Providers>
       </body>
     </html>

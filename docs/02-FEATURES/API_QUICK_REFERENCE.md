@@ -84,7 +84,7 @@
 | GET | `/api/challenges/{id}/hint` | Oui | — | OK |
 | GET | `/api/challenges/completed-ids` | Oui | — | OK |
 | GET | `/api/challenges/generate-ai-stream` | Non | — | OK (SSE) |
-| GET | `/api/challenges/badges/progress` | Oui | — | Placeholder |
+| GET | `/api/challenges/badges/progress` | Oui | — | OK |
 | POST | `/api/challenges/start/{id}` | Oui | — | Placeholder (optionnel) |
 
 ---
@@ -139,7 +139,7 @@ Pages : `/admin`, `/admin/users`, `/admin/content`, `/admin/moderation`, `/admin
 |---------|----------|------|--------|
 | GET | `/api/recommendations` | Oui | OK |
 | POST | `/api/recommendations/generate` | Oui | OK |
-| POST | `/api/recommendations/complete` | Oui | Placeholder |
+| POST | `/api/recommendations/complete` | Oui | OK |
 | POST | `/api/chat` | Oui | OK |
 | POST | `/api/chat/stream` | Oui | OK (SSE) |
 

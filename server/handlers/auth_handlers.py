@@ -2,6 +2,7 @@
 Handlers pour l'authentification et la vérification d'email
 """
 import os
+import secrets
 import traceback
 from datetime import datetime, timedelta, timezone
 
@@ -261,9 +262,27 @@ async def api_login(request: Request):
             # Créer les tokens d'accès
             token_data = create_user_token(user)
             logger.info(f"Connexion réussie pour l'utilisateur: {user.username}")
-            
-            # Ajouter les informations utilisateur à la réponse
+
+            # Créer une entrée UserSession pour /api/users/me/sessions (sessions actives)
+            from app.models.user_session import UserSession
             from app.core.config import settings
+            ip = request.client.host if request.client else None
+            user_agent = request.headers.get("user-agent") or ""
+            device_info = {"user_agent": user_agent[:500]} if user_agent else None
+            session_token = secrets.token_urlsafe(32)
+            expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+            db_session_row = UserSession(
+                user_id=user.id,
+                session_token=session_token,
+                device_info=device_info,
+                ip_address=ip,
+                user_agent=user_agent[:2000] if user_agent else None,
+                expires_at=expires_at,
+            )
+            db.add(db_session_row)
+            db.commit()
+
+            # Ajouter les informations utilisateur à la réponse
             access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
             # refresh_token uniquement en cookie (HttpOnly) — pas dans le body (sécurité XSS)
             response_data = {

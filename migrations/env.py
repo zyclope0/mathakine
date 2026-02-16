@@ -30,8 +30,10 @@ from app.db.base import Base
 # access to the values within the .ini file in use.
 config = context.config
 
-# Définir l'URL de la base de données depuis la configuration de l'application
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Définir l'URL : TEST_DATABASE_URL si TESTING=true, sinon DATABASE_URL
+# Permet de migrer la base de test avec: TESTING=true alembic upgrade head
+db_url = settings.SQLALCHEMY_DATABASE_URL
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -94,7 +96,7 @@ def run_migrations_online() -> None:
     """
     # Paramètres de connexion spécifiques pour SQLite
     connect_args = {}
-    if settings.DATABASE_URL.startswith('sqlite'):
+    if db_url.startswith('sqlite'):
         connect_args = {"check_same_thread": False}
 
     connectable = engine_from_config(
