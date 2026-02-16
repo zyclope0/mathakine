@@ -91,7 +91,7 @@ export default function AdminConfigPage() {
                 <h2 className="text-lg font-semibold capitalize">{category}</h2>
               </CardHeader>
               <CardContent className="space-y-4">
-                {items.map((item) => (
+                {(items ?? []).map((item) => (
                   <div
                     key={item.key}
                     className="flex flex-wrap items-center justify-between gap-4 rounded-lg border p-4"
