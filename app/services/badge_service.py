@@ -496,6 +496,14 @@ class BadgeService:
                 FROM users
                 WHERE id = :user_id
             """), {"user_id": user_id}).fetchone()
+
+            pinned: List[int] = []
+            try:
+                user = self.db.query(User).filter(User.id == user_id).first()
+                if user and hasattr(user, "pinned_badge_ids") and user.pinned_badge_ids:
+                    pinned = [int(x) for x in user.pinned_badge_ids if isinstance(x, (int, float))]
+            except Exception:
+                pass
             
             return {
                 'earned_badges': [
@@ -517,12 +525,14 @@ class BadgeService:
                     'total_points': user_stats[0] if user_stats else 0,
                     'current_level': user_stats[1] if user_stats else 1,
                     'experience_points': user_stats[2] if user_stats else 0,
-                    'jedi_rank': user_stats[3] if user_stats else 'youngling'
+                    'jedi_rank': user_stats[3] if user_stats else 'youngling',
+                    'pinned_badge_ids': pinned,
                 } if user_stats else {
                     'total_points': 0,
                     'current_level': 1,
                     'experience_points': 0,
-                    'jedi_rank': 'youngling'
+                    'jedi_rank': 'youngling',
+                    'pinned_badge_ids': [],
                 }
             }
             
@@ -530,6 +540,42 @@ class BadgeService:
             logger.error(f"Erreur récupération badges utilisateur {user_id}: {user_badges_error}")
             return {'earned_badges': [], 'user_stats': {}}
     
+    def _format_requirements_to_text(self, badge: Achievement) -> Optional[str]:
+        """Convertit le JSON requirements en texte lisible (critères d'obtention)."""
+        if not badge.requirements:
+            return None
+        try:
+            req = json.loads(badge.requirements) if isinstance(badge.requirements, str) else badge.requirements
+        except (json.JSONDecodeError, TypeError):
+            return None
+        if not isinstance(req, dict):
+            return None
+        # attempts_count
+        target = req.get("attempts_count")
+        if target is not None:
+            return f"Résoudre {target} exercices"
+        # min_attempts + success_rate
+        target = req.get("min_attempts")
+        rate = req.get("success_rate")
+        if target is not None and rate is not None:
+            return f"{target} tentatives avec {rate}% de réussite"
+        # exercise_type + consecutive_correct
+        ex_type = req.get("exercise_type", "").lower()
+        consec = req.get("consecutive_correct")
+        if consec is not None:
+            labels = {"addition": "additions", "soustraction": "soustractions", "multiplication": "multiplications", "division": "divisions"}
+            label = labels.get(ex_type, ex_type)
+            return f"{consec} {label} consécutives correctes"
+        # max_time
+        max_t = req.get("max_time")
+        if max_t is not None:
+            return f"Résoudre un exercice en moins de {max_t} secondes"
+        # consecutive_days
+        days = req.get("consecutive_days")
+        if days is not None:
+            return f"{days} jours consécutifs d'activité"
+        return None
+
     def get_available_badges(self) -> List[Dict[str, Any]]:
         """Récupérer tous les badges disponibles"""
         
@@ -544,6 +590,7 @@ class BadgeService:
                     'code': badge.code,
                     'name': badge.name,
                     'description': badge.description,
+                    'criteria_text': self._format_requirements_to_text(badge),
                     'star_wars_title': badge.star_wars_title,
                     'difficulty': badge.difficulty,
                     'points_reward': badge.points_reward,
@@ -615,5 +662,66 @@ class BadgeService:
                     "progress": prog,
                     "current": cur,
                     "target": tgt,
+                    "criteria_text": self._format_requirements_to_text(b),
                 })
-        return {"unlocked": unlocked, "in_progress": in_progress} 
+        return {"unlocked": unlocked, "in_progress": in_progress}
+
+    def get_badges_rarity_stats(self) -> Dict[str, Any]:
+        """
+        Stats rareté par badge : unlock_count, unlock_percent, rarity_label.
+        A-4 : preuve sociale (« X% ont débloqué »), indicateur rareté.
+        """
+        try:
+            total_users = self.db.query(func.count(User.id)).filter(User.is_active == True).scalar() or 1
+            rows = self.db.execute(text("""
+                SELECT ua.achievement_id, COUNT(DISTINCT ua.user_id) as unlock_count
+                FROM user_achievements ua
+                JOIN achievements a ON a.id = ua.achievement_id
+                WHERE a.is_active = true
+                GROUP BY ua.achievement_id
+            """)).fetchall()
+            by_badge = {}
+            for row in rows:
+                aid = row[0]
+                count = row[1]
+                pct = round((count / total_users) * 100, 1) if total_users else 0
+                if pct < 5:
+                    rarity = "rare"
+                elif pct < 20:
+                    rarity = "uncommon"
+                else:
+                    rarity = "common"
+                by_badge[str(aid)] = {
+                    "unlock_count": count,
+                    "unlock_percent": pct,
+                    "rarity": rarity,
+                }
+            return {"total_users": total_users, "by_badge": by_badge}
+        except Exception as e:
+            logger.error(f"Erreur get_badges_rarity_stats: {e}")
+            return {"total_users": 0, "by_badge": {}}
+
+    def set_pinned_badges(self, user_id: int, badge_ids: List[int]) -> List[int]:
+        """
+        A-4 : Épingler 1-3 badges. Seuls les badges obtenus peuvent être épinglés.
+        Returns: liste finale des IDs épinglés (max 3).
+        """
+        MAX_PINNED = 3
+        earned_ids = {
+            r[0]
+            for r in self.db.query(UserAchievement.achievement_id)
+            .filter(UserAchievement.user_id == user_id)
+            .all()
+        }
+        valid = [bid for bid in badge_ids[:MAX_PINNED] if bid in earned_ids]
+        valid = list(dict.fromkeys(valid))[:MAX_PINNED]
+        try:
+            user = self.db.query(User).filter(User.id == user_id).first()
+            if user:
+                user.pinned_badge_ids = valid
+                self.db.commit()
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Erreur set_pinned_badges: {e}")
+            return []
+        return valid 

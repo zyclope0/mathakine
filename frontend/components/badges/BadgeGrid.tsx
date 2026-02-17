@@ -6,13 +6,41 @@ import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
+interface BadgeProgress {
+  current: number;
+  target: number;
+  progress: number;
+}
+
+export type BadgeSortBy = "progress" | "date" | "points" | "category";
+
+export interface RarityInfo {
+  unlock_count: number;
+  unlock_percent: number;
+  rarity: string;
+}
+
 interface BadgeGridProps {
   badges: Badge[];
   earnedBadges: UserBadge[];
+  progressMap?: Record<number, BadgeProgress>;
   isLoading?: boolean;
+  sortBy?: BadgeSortBy;
+  rarityMap?: Record<string, RarityInfo>;
+  pinnedBadgeIds?: number[];
+  onTogglePin?: (badgeId: number) => void;
 }
 
-export function BadgeGrid({ badges, earnedBadges, isLoading }: BadgeGridProps) {
+export function BadgeGrid({
+  badges,
+  earnedBadges,
+  progressMap,
+  isLoading,
+  sortBy = "category",
+  rarityMap,
+  pinnedBadgeIds,
+  onTogglePin,
+}: BadgeGridProps) {
   const { shouldReduceMotion, createTransition } = useAccessibleAnimation();
 
   // Créer un map des badges obtenus pour accès rapide (par ID)
@@ -42,24 +70,39 @@ export function BadgeGrid({ badges, earnedBadges, isLoading }: BadgeGridProps) {
     );
   }
 
-  // Trier les badges : obtenus en premier, puis par catégorie et difficulté
+  // Trier les badges selon sortBy (A-3)
   const sortedBadges = [...validBadges].sort((a, b) => {
     const aEarned = earnedBadgeMap.has(a.id);
     const bEarned = earnedBadgeMap.has(b.id);
 
-    // Obtenus en premier
+    if (sortBy === "progress") {
+      const aProg = progressMap?.[a.id]?.progress ?? (aEarned ? 1 : 0);
+      const bProg = progressMap?.[b.id]?.progress ?? (bEarned ? 1 : 0);
+      return bProg - aProg;
+    }
+    if (sortBy === "date") {
+      const aDate = earnedBadgeMap.get(a.id)?.earned_at ?? "";
+      const bDate = earnedBadgeMap.get(b.id)?.earned_at ?? "";
+      if (aDate && bDate) return new Date(bDate).getTime() - new Date(aDate).getTime();
+      if (aDate) return -1;
+      if (bDate) return 1;
+      return 0;
+    }
+    if (sortBy === "points") {
+      const aPt = a.points_reward ?? a.points ?? 0;
+      const bPt = b.points_reward ?? b.points ?? 0;
+      return bPt - aPt;
+    }
+
+    // category (défaut) : obtenus en premier, puis catégorie, difficulté
     if (aEarned && !bEarned) return -1;
     if (!aEarned && bEarned) return 1;
-
-    // Puis par catégorie
     const categoryOrder: Record<string, number> = { progression: 0, mastery: 1, special: 2 };
     const aCategory = a.category || "";
     const bCategory = b.category || "";
     const categoryDiff = (categoryOrder[aCategory] ?? 999) - (categoryOrder[bCategory] ?? 999);
     if (categoryDiff !== 0) return categoryDiff;
-
-    // Puis par difficulté
-    const difficultyOrder: Record<string, number> = { bronze: 0, silver: 1, gold: 2 };
+    const difficultyOrder: Record<string, number> = { bronze: 0, silver: 1, gold: 2, legendary: 3 };
     const aDifficulty = a.difficulty || "";
     const bDifficulty = b.difficulty || "";
     return (difficultyOrder[aDifficulty] ?? 999) - (difficultyOrder[bDifficulty] ?? 999);
@@ -79,7 +122,7 @@ export function BadgeGrid({ badges, earnedBadges, isLoading }: BadgeGridProps) {
 
   return (
     <motion.div
-      className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+      className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 items-stretch"
       variants={containerVariants}
       initial="hidden"
       animate="show"
@@ -88,13 +131,19 @@ export function BadgeGrid({ badges, earnedBadges, isLoading }: BadgeGridProps) {
     >
       {sortedBadges.map((badge, index) => {
         const userBadge = earnedBadgeMap.get(badge.id);
+        const badgeProgress = progressMap?.[badge.id];
         return (
           <BadgeCard
             key={badge.id}
             badge={badge}
             userBadge={userBadge ?? null}
             isEarned={!!userBadge}
+            progress={badgeProgress ?? null}
             index={index}
+            rarity={rarityMap?.[String(badge.id)]}
+            isPinned={pinnedBadgeIds?.includes(badge.id)}
+            onTogglePin={onTogglePin}
+            canPin={pinnedBadgeIds != null && (pinnedBadgeIds?.includes(badge.id) || (pinnedBadgeIds?.length ?? 0) < 3)}
           />
         );
       })}

@@ -7,6 +7,8 @@ import { ExerciseEditModal } from "@/components/admin/ExerciseEditModal";
 import { ExerciseCreateModal } from "@/components/admin/ExerciseCreateModal";
 import { ChallengeEditModal } from "@/components/admin/ChallengeEditModal";
 import { ChallengeCreateModal } from "@/components/admin/ChallengeCreateModal";
+import { BadgeEditModal } from "@/components/admin/BadgeEditModal";
+import { BadgeCreateModal } from "@/components/admin/BadgeCreateModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useAdminExercises } from "@/hooks/useAdminExercises";
 import { useAdminChallenges } from "@/hooks/useAdminChallenges";
+import { useAdminBadges } from "@/hooks/useAdminBadges";
 import { getChallengeTypeDisplay, getAdminAgeDisplay } from "@/lib/constants/challenges";
 import { getAgeGroupDisplay, EXERCISE_TYPE_DISPLAY } from "@/lib/constants/exercises";
 import { Archive, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Plus, RotateCcw, Search } from "lucide-react";
@@ -49,6 +52,16 @@ const CHALLENGE_TYPES = [
   { value: "riddle", label: "Énigme" },
   { value: "deduction", label: "Déduction" },
   { value: "graph", label: "Graphe" },
+];
+
+const BADGE_CATEGORIES = [
+  { value: "all", label: "Toutes les catégories" },
+  { value: "progression", label: "Progression" },
+  { value: "mastery", label: "Maîtrise" },
+  { value: "special", label: "Special" },
+  { value: "performance", label: "Performance" },
+  { value: "regularity", label: "Régularité" },
+  { value: "discovery", label: "Découverte" },
 ];
 
 const PAGE_SIZE = 20;
@@ -620,11 +633,135 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
   );
 }
 
+function BadgesTab({ initialEditId }: { initialEditId?: number | null }) {
+  const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [editBadgeId, setEditBadgeId] = useState<number | null>(null);
+  const [createBadgeOpen, setCreateBadgeOpen] = useState(false);
+
+  useEffect(() => {
+    if (initialEditId != null) setEditBadgeId(initialEditId);
+  }, [initialEditId]);
+
+  const { badges, isLoading, error, refetch } = useAdminBadges();
+
+  const filtered = badges.filter((b) => {
+    if (activeFilter === "true" && !b.is_active) return false;
+    if (activeFilter === "false" && b.is_active) return false;
+    if (categoryFilter !== "all" && (b.category || "") !== categoryFilter) return false;
+    return true;
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:flex-wrap">
+        <Select
+          value={categoryFilter}
+          onValueChange={setCategoryFilter}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Catégorie" />
+          </SelectTrigger>
+          <SelectContent>
+            {BADGE_CATEGORIES.map((c) => (
+              <SelectItem key={c.value} value={c.value}>
+                {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={activeFilter}
+          onValueChange={setActiveFilter}
+        >
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Statut" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous</SelectItem>
+            <SelectItem value="true">Actifs</SelectItem>
+            <SelectItem value="false">Inactifs</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button onClick={() => setCreateBadgeOpen(true)}>
+          <Plus className="h-4 w-4 mr-1" />
+          Créer un badge
+        </Button>
+      </div>
+
+      {error ? (
+        <p className="py-8 text-center text-destructive">
+          Erreur de chargement. Vérifiez vos droits.
+        </p>
+      ) : isLoading ? (
+        <LoadingState message="Chargement des badges..." />
+      ) : (
+        <div className="overflow-x-auto rounded-md border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="px-4 py-3 text-left font-medium">Code</th>
+                <th className="px-4 py-3 text-left font-medium">Nom</th>
+                <th className="px-4 py-3 text-left font-medium">Catégorie</th>
+                <th className="px-4 py-3 text-left font-medium">Difficulté</th>
+                <th className="px-4 py-3 text-left font-medium">Points</th>
+                <th className="px-4 py-3 text-left font-medium">Utilisateurs</th>
+                <th className="px-4 py-3 text-left font-medium">Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+                    Aucun badge trouvé
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((b, idx) => (
+                  <tr
+                    key={b.id}
+                    className={`border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors ${idx % 2 === 1 ? "bg-muted/30" : ""}`}
+                    onClick={() => setEditBadgeId(b.id)}
+                  >
+                    <td className="px-4 py-3 font-mono text-xs">{b.code}</td>
+                    <td className="px-4 py-3 font-medium">{b.name}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{b.category || "-"}</td>
+                    <td className="px-4 py-3">{b.difficulty || "bronze"}</td>
+                    <td className="px-4 py-3">{b.points_reward ?? 0}</td>
+                    <td className="px-4 py-3">{b._user_count ?? 0}</td>
+                    <td className="px-4 py-3">
+                      <Badge variant={b.is_active ? "default" : "outline"}>
+                        {b.is_active ? "Actif" : "Inactif"}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <BadgeCreateModal
+        open={createBadgeOpen}
+        onOpenChange={setCreateBadgeOpen}
+        onCreated={refetch}
+      />
+      <BadgeEditModal
+        badgeId={editBadgeId}
+        open={editBadgeId !== null}
+        onOpenChange={(o) => !o && setEditBadgeId(null)}
+        onSaved={refetch}
+      />
+    </div>
+  );
+}
+
 export default function AdminContentPage() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const editParam = searchParams.get("edit");
-  const defaultTab = tabParam === "challenges" ? "challenges" : "exercises";
+  const defaultTab = tabParam === "challenges" ? "challenges" : tabParam === "badges" ? "badges" : "exercises";
   const parsedEdit = editParam ? parseInt(editParam, 10) : null;
   const editId = parsedEdit != null && !Number.isNaN(parsedEdit) ? parsedEdit : null;
 
@@ -632,7 +769,7 @@ export default function AdminContentPage() {
     <>
       <PageHeader
         title="Contenu"
-        description="Exercices et défis logiques — archivage"
+        description="Exercices, défis logiques et badges — archivage"
       />
 
       <PageSection>
@@ -642,12 +779,16 @@ export default function AdminContentPage() {
               <TabsList>
                 <TabsTrigger value="exercises">Exercices</TabsTrigger>
                 <TabsTrigger value="challenges">Défis logiques</TabsTrigger>
+                <TabsTrigger value="badges">Badges</TabsTrigger>
               </TabsList>
               <TabsContent value="exercises" className="mt-6">
                 <ExercisesTab initialEditId={defaultTab === "exercises" ? editId : null} />
               </TabsContent>
               <TabsContent value="challenges" className="mt-6">
                 <ChallengesTab initialEditId={defaultTab === "challenges" ? editId : null} />
+              </TabsContent>
+              <TabsContent value="badges" className="mt-6">
+                <BadgesTab initialEditId={defaultTab === "badges" ? editId : null} />
               </TabsContent>
             </Tabs>
           </CardContent>

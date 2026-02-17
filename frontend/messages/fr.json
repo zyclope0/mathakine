@@ -690,10 +690,19 @@
     "earned": "Obtenu",
     "locked": "Verrouillé",
     "checkBadges": "Vérifier les badges",
+    "checkBadgesTooltip": "Actualiser et vérifier si de nouveaux badges sont débloqués",
     "checking": "Vérification en cours...",
     "collection": {
-      "title": "Collection de Badges",
-      "count": "({earned}/{total})"
+      "title": "Ma collection",
+      "count": "({earned}/{total})",
+      "empty": "Aucun badge encore. Continue tes exercices pour en débloquer !",
+      "noResults": "Aucun badge ne correspond aux filtres.",
+      "toUnlock": "À débloquer"
+    },
+    "statsCompact": "Points · Niveau · Rang · Badges",
+    "statsDetails": {
+      "show": "Voir les statistiques détaillées",
+      "hide": "Masquer les statistiques"
     },
     "performance": {
       "title": "Performance",
@@ -714,7 +723,9 @@
       "totalPoints": "Points Force",
       "currentLevel": "Niveau",
       "jediRank": "Rang Jedi",
-      "badgesEarned": "Badges Obtenus"
+      "badgesEarned": "Badges Obtenus",
+      "levelTooltip": "Niveau actuel",
+      "rankTooltip": "Rang Jedi (youngling, padawan, knight, master, grand master)"
     },
     "categories": {
       "progression": "Progression",
@@ -724,6 +735,15 @@
       "regularity": "Régularité",
       "discovery": "Découverte"
     },
+    "socialProof": "{percent}% ont débloqué ce badge",
+    "earnedOn": "Obtenu le {date}",
+    "pin": "Épingler",
+    "unpin": "Désépingler",
+    "rarity": {
+      "rare": "Rare",
+      "uncommon": "Peu commun",
+      "common": "Commun"
+    },
     "difficulties": {
       "bronze": "Bronze",
       "silver": "Argent",
@@ -732,6 +752,24 @@
     },
     "progress": {
       "title": "Badges en cours"
+    },
+    "filters": {
+      "title": "Filtres",
+      "reset": "Réinitialiser",
+      "status": "Statut",
+      "statusAll": "Tous",
+      "statusEarned": "Obtenus",
+      "statusLocked": "Verrouillés",
+      "statusClose": "Proches (>50%)",
+      "category": "Catégorie",
+      "categoryAll": "Toutes",
+      "difficulty": "Difficulté",
+      "difficultyAll": "Toutes",
+      "sort": "Trier par",
+      "sortProgress": "Progression (proches d'abord)",
+      "sortDate": "Date d'obtention",
+      "sortPoints": "Points",
+      "sortCategory": "Catégorie"
     }
   },
   "leaderboard": {

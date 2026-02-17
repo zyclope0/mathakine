@@ -55,6 +55,21 @@ export function useBadges() {
     staleTime: 30 * 1000, // 30 secondes
   });
 
+  // A-4 : Stats rareté par badge (preuve sociale, « X% ont débloqué »)
+  const { data: rarityData } = useQuery<
+    { success: boolean; data: { total_users: number; by_badge: Record<string, { unlock_count: number; unlock_percent: number; rarity: string }> } },
+    ApiClientError
+  >({
+    queryKey: ["badges", "rarity"],
+    queryFn: async () => {
+      return await api.get<{
+        success: boolean;
+        data: { total_users: number; by_badge: Record<string, { unlock_count: number; unlock_percent: number; rarity: string }> };
+      }>("/api/badges/rarity");
+    },
+    staleTime: 5 * 60 * 1000, // 5 min (cache)
+  });
+
   // Vérification forcée des badges
   const checkBadgesMutation = useMutation({
     mutationFn: async () => {
@@ -75,7 +90,8 @@ export function useBadges() {
         data.new_badges.forEach((badge) => {
           toast.success(t("badges.newBadgeUnlocked"), {
             description: `${badge.name}${badge.star_wars_title ? ` - ${badge.star_wars_title}` : ""}`,
-            duration: 5000,
+            duration: 6000,
+            icon: "🎖️",
           });
         });
       } else {
@@ -131,11 +147,36 @@ export function useBadges() {
     return allBadgesList;
   }, [userBadges?.data?.earned_badges, availableBadges?.data]);
 
+  const rarityMap = useMemo(
+    () => rarityData?.data?.by_badge ?? {},
+    [rarityData]
+  );
+
+  const pinnedBadgeIds = useMemo(
+    () => userBadges?.data?.user_stats?.pinned_badge_ids ?? [],
+    [userBadges?.data?.user_stats]
+  );
+
+  const pinBadgesMutation = useMutation({
+    mutationFn: async (badgeIds: number[]) => {
+      return await api.patch<{ success: boolean; data: { pinned_badge_ids: number[] } }>(
+        "/api/badges/pin",
+        { badge_ids: badgeIds }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["badges"] });
+    },
+  });
+
   return {
     earnedBadges: userBadges?.data?.earned_badges || [],
     availableBadges: allBadges,
     userStats: userBadges?.data?.user_stats,
     gamificationStats: gamificationStats?.data,
+    rarityMap,
+    pinnedBadgeIds,
+    pinBadges: pinBadgesMutation.mutateAsync,
     isLoading,
     error,
     checkBadges: checkBadgesMutation.mutateAsync,

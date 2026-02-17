@@ -11,6 +11,11 @@ from starlette.routing import Mount, Route
 
 # Imports API handlers - Admin
 from server.handlers.admin_handlers import (
+    admin_badge_get,
+    admin_badges,
+    admin_badges_delete,
+    admin_badges_post,
+    admin_badges_put,
     admin_challenge_get,
     admin_challenges,
     admin_challenges_duplicate,
@@ -47,9 +52,11 @@ from server.handlers.auth_handlers import (api_get_current_user, api_login,
 # Imports API handlers - Badges
 from server.handlers.badge_handlers import (check_user_badges,
                                             get_available_badges,
+                                            get_badges_rarity,
                                             get_user_badges,
                                             get_user_gamification_stats,
-                                            get_user_badges_progress)
+                                            get_user_badges_progress,
+                                            patch_pinned_badges)
 # Imports API handlers - Challenges
 from server.handlers.challenge_handlers import (generate_ai_challenge_stream,
                                                 get_challenge,
@@ -170,6 +177,8 @@ def get_routes() -> List:
         Route("/api/badges/available", endpoint=get_available_badges, methods=["GET"]),
         Route("/api/badges/check", endpoint=check_user_badges, methods=["POST"]),
         Route("/api/badges/stats", endpoint=get_user_gamification_stats, methods=["GET"]),
+        Route("/api/badges/rarity", endpoint=get_badges_rarity, methods=["GET"]),
+        Route("/api/badges/pin", endpoint=patch_pinned_badges, methods=["PATCH"]),
         Route("/api/challenges/badges/progress", endpoint=get_user_badges_progress, methods=["GET"]),
         
         # ========================================
@@ -202,6 +211,12 @@ def get_routes() -> List:
                 Route("/config", endpoint=admin_config_get, methods=["GET"]),
                 Route("/config", endpoint=admin_config_put, methods=["PUT"]),
                 Route("/export", endpoint=admin_export, methods=["GET"]),
+                # Lot B-1 : CRUD badges
+                Route("/badges", endpoint=admin_badges, methods=["GET"]),
+                Route("/badges", endpoint=admin_badges_post, methods=["POST"]),
+                Route("/badges/{badge_id:int}", endpoint=admin_badge_get, methods=["GET"]),
+                Route("/badges/{badge_id:int}", endpoint=admin_badges_put, methods=["PUT"]),
+                Route("/badges/{badge_id:int}", endpoint=admin_badges_delete, methods=["DELETE"]),
             ],
         ),
         

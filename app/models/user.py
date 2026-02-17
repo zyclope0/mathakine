@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from enum import Enum as PyEnum
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, Index, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.sql.expression import text
@@ -77,6 +78,7 @@ class User(Base):
     accessibility_settings = Column(JSONEncodedDict)
 
     # Colonnes de gamification (système de badges)
+    pinned_badge_ids = Column(JSONB, nullable=True)  # A-4: max 3 badge IDs épinglés
     total_points = Column(Integer, default=0)
     current_level = Column(Integer, default=1)
     experience_points = Column(Integer, default=0)

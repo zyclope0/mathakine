@@ -1,6 +1,7 @@
 """
 Handlers pour la gestion des badges et achievements (API)
 """
+import json
 import traceback
 
 from starlette.requests import Request
@@ -125,6 +126,47 @@ async def get_user_gamification_stats(request):
         logger.error(f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}")
         traceback.print_exc()
         return JSONResponse({"error": get_safe_error_message(gamification_stats_error)}, status_code=500)
+
+
+@require_auth
+async def patch_pinned_badges(request: Request):
+    """A-4 : Épingler 1-3 badges. Body: { "badge_ids": [1, 2, 3] }"""
+    try:
+        body = await request.json()
+        badge_ids = body.get("badge_ids", [])
+        if not isinstance(badge_ids, list):
+            return JSONResponse({"error": "badge_ids doit être une liste"}, status_code=400)
+        badge_ids = [int(x) for x in badge_ids if isinstance(x, (int, float))]
+        current_user = request.state.user
+        user_id = current_user.get("id")
+        if not user_id:
+            return JSONResponse({"error": "Non authentifié"}, status_code=401)
+        async with db_session() as db:
+            badge_service = BadgeService(db)
+            pinned = badge_service.set_pinned_badges(user_id, badge_ids)
+        return JSONResponse({"success": True, "data": {"pinned_badge_ids": pinned}})
+    except json.JSONDecodeError:
+        return JSONResponse({"error": "JSON invalide"}, status_code=400)
+    except Exception as e:
+        logger.error(f"Erreur patch_pinned_badges: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+
+
+async def get_badges_rarity(request: Request):
+    """
+    Stats rareté par badge (unlock_percent, rarity).
+    GET /api/badges/rarity — public (pas de données sensibles).
+    """
+    try:
+        async with db_session() as db:
+            badge_service = BadgeService(db)
+            data = badge_service.get_badges_rarity_stats()
+        return JSONResponse({"success": True, "data": data})
+    except Exception as e:
+        logger.error(f"Erreur get_badges_rarity: {e}")
+        traceback.print_exc()
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth

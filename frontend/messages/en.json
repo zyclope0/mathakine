@@ -693,10 +693,19 @@
     "earned": "Earned",
     "locked": "Locked",
     "checkBadges": "Check badges",
+    "checkBadgesTooltip": "Refresh and check if new badges are unlocked",
     "checking": "Checking...",
     "collection": {
-      "title": "Badge Collection",
-      "count": "({earned}/{total})"
+      "title": "My collection",
+      "count": "({earned}/{total})",
+      "empty": "No badges yet. Keep doing exercises to unlock some!",
+      "noResults": "No badges match the selected filters.",
+      "toUnlock": "To unlock"
+    },
+    "statsCompact": "Points · Level · Rank · Badges",
+    "statsDetails": {
+      "show": "View detailed statistics",
+      "hide": "Hide statistics"
     },
     "performance": {
       "title": "Performance",
@@ -717,7 +726,9 @@
       "totalPoints": "Force Points",
       "currentLevel": "Level",
       "jediRank": "Jedi Rank",
-      "badgesEarned": "Badges Earned"
+      "badgesEarned": "Badges Earned",
+      "levelTooltip": "Current level",
+      "rankTooltip": "Jedi rank (youngling, padawan, knight, master, grand master)"
     },
     "categories": {
       "progression": "Progression",
@@ -727,6 +738,15 @@
       "regularity": "Regularity",
       "discovery": "Discovery"
     },
+    "socialProof": "{percent}% have unlocked this badge",
+    "earnedOn": "Earned on {date}",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "rarity": {
+      "rare": "Rare",
+      "uncommon": "Uncommon",
+      "common": "Common"
+    },
     "difficulties": {
       "bronze": "Bronze",
       "silver": "Silver",
@@ -735,6 +755,24 @@
     },
     "progress": {
       "title": "Badges in progress"
+    },
+    "filters": {
+      "title": "Filters",
+      "reset": "Reset",
+      "status": "Status",
+      "statusAll": "All",
+      "statusEarned": "Earned",
+      "statusLocked": "Locked",
+      "statusClose": "Close (>50%)",
+      "category": "Category",
+      "categoryAll": "All",
+      "difficulty": "Difficulty",
+      "difficultyAll": "All",
+      "sort": "Sort by",
+      "sortProgress": "Progress (closest first)",
+      "sortDate": "Date earned",
+      "sortPoints": "Points",
+      "sortCategory": "Category"
     }
   },
   "leaderboard": {
