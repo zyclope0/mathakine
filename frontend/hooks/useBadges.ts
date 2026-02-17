@@ -153,7 +153,9 @@ export function useBadges() {
   );
 
   const pinnedBadgeIds = useMemo(
-    () => userBadges?.data?.user_stats?.pinned_badge_ids ?? [],
+    () =>
+      (userBadges?.data?.user_stats as { pinned_badge_ids?: number[] } | undefined)
+        ?.pinned_badge_ids ?? [],
     [userBadges?.data?.user_stats]
   );
 

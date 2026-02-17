@@ -341,11 +341,11 @@ export default function BadgesPage() {
                 type BadgeItem = (typeof filteredEarned)[number];
                 const pinned = pinnedBadgeIds
                   .map((id: number) => filteredEarned.find((b: BadgeItem) => b.id === id))
-                  .filter((b): b is BadgeItem => !!b);
+                  .filter((b: BadgeItem | undefined): b is BadgeItem => !!b);
                 const rest = filteredEarned.filter((b: BadgeItem) => !pinnedBadgeIds.includes(b.id));
                 return [...pinned, ...rest];
               })()}
-              earnedBadges={earnedBadges.filter((ub) => filteredEarned.some((b) => b.id === ub.id))}
+              earnedBadges={earnedBadges.filter((ub) => filteredEarned.some((b: (typeof filteredEarned)[number]) => b.id === ub.id))}
               isLoading={false}
               sortBy={sortBy}
               rarityMap={rarityMap}

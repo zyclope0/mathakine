@@ -5,6 +5,8 @@ import { useTranslations, useLocale } from "next-intl";
 import { Badge as BadgeComponent } from "@/components/ui/badge";
 import { Trophy, Lock, CheckCircle, Pin, PinOff } from "lucide-react";
 import type { Badge, UserBadge } from "@/types/api";
+
+type BadgeWithCriteria = Badge & { criteria_text?: string | null };
 import { cn } from "@/lib/utils/cn";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
@@ -22,7 +24,7 @@ interface RarityInfo {
 }
 
 interface BadgeCardProps {
-  badge: Badge;
+  badge: BadgeWithCriteria;
   userBadge?: UserBadge | null;
   isEarned: boolean;
   progress?: BadgeProgress | null;
