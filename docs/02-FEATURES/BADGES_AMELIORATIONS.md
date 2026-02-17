@@ -1,7 +1,7 @@
 # Améliorations Page Badges - Analyse et Priorisation
 
-> **Date** : 06/02/2026  
-> **Statut** : Analyse complète - À implémenter  
+> **Date** : 06/02/2026 — **MAJ 17/02** : UX onglets + cartes compactes dépliables  
+> **Statut** : Analyse complète — P0 progression ✅, UX Lot A ✅ (onglets, cartes dépliables)  
 > **Cible** : Enfants 5-20 ans (dont TSA/TDAH)
 
 ---
@@ -32,13 +32,15 @@
 | Stats utilisateur | ✅ Fonctionnel | Points, niveau, rang |
 | Bouton "Vérifier badges" | ✅ Fonctionnel | Déclenchement manuel |
 | Date d'obtention | ✅ Fonctionnel | Affichée pour badges obtenus |
+| **Onglets En cours / À débloquer** | ✅ 17/02 | Ma collection en haut ; onglets uniquement pour ces deux sections |
+| **Cartes obtenus compactes** | ✅ 17/02 | Titre + 1-2 infos (difficulté, pts, date) ; déplie au survol (desktop) ou toujours étendu (mobile) |
 
 ### Ce qui manque (critique)
 
-| Élément manquant | Impact rétention | Priorité |
-|------------------|------------------|----------|
-| **Progression vers badges verrouillés** | Très élevé | P0 |
-| **Conditions d'obtention visibles** | Élevé | P0 |
+| Élément manquant | Impact rétention | Priorité | État |
+|------------------|------------------|----------|------|
+| **Progression vers badges verrouillés** | Très élevé | P0 | ✅ Implémenté 16/02 (GET /api/challenges/badges/progress, barres X/Y) |
+| **Conditions d'obtention visibles** | Élevé | P0 | À faire |
 | **Déblocage automatique temps réel** | Élevé | P1 |
 | **Notifications de progression** | Moyen | P1 |
 | **Système de streak** | Très élevé | P1 |
@@ -142,10 +144,12 @@ Les récompenses imprévisibles créent un engagement plus fort que les récompe
 
 ### P0 - Critique (Impact immédiat sur rétention)
 
-#### 4.1 Barres de progression vers badges verrouillés
+#### 4.1 Barres de progression vers badges verrouillés ✅ Implémenté (16/02)
 
 **Problème actuel** : Les badges verrouillés n'indiquent pas la progression
 **Solution** : Afficher une barre de progression + texte "X/Y pour débloquer"
+
+> **Implémenté** : `GET /api/challenges/badges/progress`, hook `useBadgesProgress`, section « Badges en cours » sur `/badges`
 
 ```
 ┌─────────────────────────────────────────┐
@@ -410,5 +414,13 @@ Préférences de gamification :
 - `frontend/app/badges/page.tsx` - Page principale
 - `frontend/components/badges/BadgeCard.tsx` - Composant carte
 - `frontend/hooks/useBadges.ts` - Hook données
+- `frontend/hooks/useBadgesProgress.ts` - Hook progression (nouveau 16/02)
 - `server/handlers/badge_handlers.py` - Endpoints API
 - `app/services/badge_service.py` - Service métier
+- `app/services/badge_requirement_engine.py` - Moteur générique (Lot C-1, 17/02)
+
+---
+
+**Avancements 17/02** : B4 reformulation 17 badges, C-1 moteur générique (badges défis/mixte), terrain B5. **UX** : onglets En cours / À débloquer ; cartes obtenus compactes (dépliable au survol). [B4_REFORMULATION_BADGES](B4_REFORMULATION_BADGES.md), [PLAN_REFONTE_BADGES](PLAN_REFONTE_BADGES.md).
+
+**Voir aussi** : [SITUATION_FEATURES.md](SITUATION_FEATURES.md). **[PLAN_REFONTE_BADGES.md](PLAN_REFONTE_BADGES.md)** — Plan refonte + Admin CRUD + moteur. pour le point de situation global et les priorités d’implémentation.

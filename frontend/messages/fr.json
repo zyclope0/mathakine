@@ -697,7 +697,16 @@
       "count": "({earned}/{total})",
       "empty": "Aucun badge encore. Continue tes exercices pour en débloquer !",
       "noResults": "Aucun badge ne correspond aux filtres.",
-      "toUnlock": "À débloquer"
+      "toUnlock": "À débloquer",
+      "showMore": "Voir {count} autre(s)",
+      "showLess": "Voir moins"
+    },
+    "tabs": {
+      "ariaLabel": "Badges en cours et à débloquer",
+      "inProgressWithCount": "Badges en cours ({count})",
+      "toUnlockWithCount": "À débloquer ({count})",
+      "noInProgress": "Aucun badge en cours de progression.",
+      "noToUnlock": "Aucun badge à débloquer pour le moment."
     },
     "statsCompact": "Points · Niveau · Rang · Badges",
     "statsDetails": {
@@ -736,7 +745,10 @@
       "discovery": "Découverte"
     },
     "socialProof": "{percent}% ont débloqué ce badge",
+    "plusQue": "Plus que {count} !",
+    "tuApproches": "Tu approches, ne lâche pas !",
     "earnedOn": "Obtenu le {date}",
+    "expandHint": "Survoler ou activer pour voir les détails",
     "pin": "Épingler",
     "unpin": "Désépingler",
     "rarity": {

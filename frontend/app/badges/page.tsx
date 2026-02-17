@@ -30,6 +30,13 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { useTranslations } from "next-intl";
 import { PageLayout, PageHeader, PageSection, LoadingState } from "@/components/layout";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function getJediRankInfo(rank: string, t: (k: string) => string): { title: string; icon: string; color: string } {
   const icons: Record<string, string> = {
@@ -70,6 +77,8 @@ export default function BadgesPage() {
   } = useBadges();
   const { inProgress, isLoading: isLoadingProgress } = useBadgesProgress();
   const [statsExpanded, setStatsExpanded] = useState(false);
+  const [toUnlockExpanded, setToUnlockExpanded] = useState(false);
+  const TO_UNLOCK_PREVIEW = 12;
 
   // A-3 : filtres et tri
   const [filterStatus, setFilterStatus] = useState<"all" | "earned" | "locked" | "close">("all");
@@ -84,13 +93,19 @@ export default function BadgesPage() {
   const jediRank = userStats?.jedi_rank || "youngling";
   const rankInfo = getJediRankInfo(jediRank, t);
   const earnedCount = earnedBadges.length;
-  const totalCount = availableBadges.length;
+  const earnedBadgeIds = new Set(earnedBadges.map((ub) => ub.id));
+  const visibleTotal = availableBadges.filter(
+    (b) => !(b.is_secret === true) || earnedBadgeIds.has(b.id)
+  ).length;
+  const totalCount = visibleTotal;
   const progressPercent = totalCount > 0 ? (earnedCount / totalCount) * 100 : 0;
 
-  // Séparation : obtenus vs à débloquer (plan A-1 : Ma collection / À débloquer)
-  const earnedBadgeIds = new Set(earnedBadges.map((ub) => ub.id));
+  // Séparation : obtenus vs à débloquer (plan A-1). Badges secrets cachés jusqu'à obtention.
+
   const earnedBadgesList = availableBadges.filter((b) => earnedBadgeIds.has(b.id));
-  const lockedBadgesList = availableBadges.filter((b) => !earnedBadgeIds.has(b.id));
+  const lockedBadgesList = availableBadges.filter(
+    (b) => !earnedBadgeIds.has(b.id) && !(b.is_secret === true)
+  );
 
   // Map progression pour BadgeCard (A-2)
   const progressMap = inProgress.reduce(
@@ -159,6 +174,19 @@ export default function BadgesPage() {
     setSortBy("category");
   };
 
+  // Badges en cours : target > 0, exclut secrets (pour onglets)
+  const inProgressWithTarget = useMemo(
+    () =>
+      inProgress.filter((b) => {
+        if (b.target == null || b.target <= 0) return false;
+        const fullBadge = availableBadges.find((ab) => ab.id === b.id);
+        if (fullBadge?.is_secret) return false;
+        return true;
+      }),
+    [inProgress, availableBadges]
+  );
+  const defaultTab = inProgressWithTarget.length > 0 ? "inProgress" : "toUnlock";
+
   return (
     <ProtectedRoute>
       <PageLayout maxWidth="2xl">
@@ -225,34 +253,37 @@ export default function BadgesPage() {
           )}
         </div>
 
-        {/* A-3 : barre filtres et tri */}
+        {/* A-3 : barre filtres et tri — Proches séparé des dropdowns pour éviter chevauchement */}
         <PageSection className="space-y-4 animate-fade-in-up">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5 text-primary" aria-hidden="true" />
-              <h2 className="text-lg font-semibold">{t("filters.title")}</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Filter className="h-5 w-5 text-primary" aria-hidden="true" />
+                <h2 className="text-lg font-semibold">{t("filters.title")}</h2>
+              </div>
+              {closeCount > 0 && (
+                <Button
+                  variant={filterStatus === "close" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterStatus("close")}
+                  className={cn(
+                    "shrink-0",
+                    filterStatus === "close" && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                  )}
+                >
+                  <Target className="h-4 w-4 mr-1" aria-hidden="true" />
+                  {t("filters.statusClose")} ({closeCount})
+                </Button>
+              )}
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 shrink-0">
+                  <X className="h-4 w-4" aria-hidden="true" />
+                  {t("filters.reset")}
+                </Button>
+              )}
             </div>
-            {closeCount > 0 && (
-              <Button
-                variant={filterStatus === "close" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterStatus("close")}
-                className={cn(
-                  filterStatus === "close" && "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                )}
-              >
-                <Target className="h-4 w-4 mr-1" aria-hidden="true" />
-                {t("filters.statusClose")} ({closeCount})
-              </Button>
-            )}
-            {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
-                <X className="h-4 w-4" aria-hidden="true" />
-                {t("filters.reset")}
-              </Button>
-            )}
           </div>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4 pt-1 border-t border-border/40">
             <div className="flex items-center gap-2">
               <label htmlFor="filter-status" className="text-sm text-muted-foreground">
                 {t("filters.status")}
@@ -367,18 +398,37 @@ export default function BadgesPage() {
           )}
         </PageSection>
 
-        {/* 2) Badges en cours — progression vers les prochains (A-1), exclut 0/0 (non mesurables) */}
-        {(() => {
-          const inProgressWithTarget = inProgress.filter((b) => b.target != null && b.target > 0);
-          return inProgressWithTarget.length > 0 ? (
-            <PageSection className="space-y-4 animate-fade-in-up-delay-2">
-              <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" aria-hidden="true" />
-                {tCommon("badgesProgressTitle")}
-              </h2>
-              <div className="grid gap-3 grid-cols-1 xl:grid-cols-2">
+        {/* 2) Onglets : Badges en cours | À débloquer */}
+        {(inProgressWithTarget.length > 0 || filteredLocked.length > 0) && (
+          <PageSection className="space-y-4 animate-fade-in-up-delay-2">
+            <Tabs defaultValue={defaultTab} key={defaultTab} className="w-full">
+              <TabsList
+                className="w-full sm:w-auto flex flex-wrap gap-1 h-auto p-1"
+                role="tablist"
+                aria-label={t("tabs.ariaLabel")}
+              >
+                <TabsTrigger value="inProgress" className="flex items-center gap-2 py-2 px-4">
+                  <TrendingUp className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {t("tabs.inProgressWithCount", { count: inProgressWithTarget.length })}
+                </TabsTrigger>
+                <TabsTrigger value="toUnlock" className="flex items-center gap-2 py-2 px-4">
+                  <Target className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {t("tabs.toUnlockWithCount", { count: filteredLocked.length })}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="inProgress" className="mt-4" role="tabpanel">
+                {inProgressWithTarget.length > 0 ? (
+                <div className="grid gap-3 grid-cols-1 xl:grid-cols-2">
                 {inProgressWithTarget.map((badge) => {
                   const fullBadge = availableBadges.find((b) => b.id === badge.id);
+                  const criteriaText = fullBadge?.criteria_text || (badge as { criteria_text?: string }).criteria_text;
+                  const tooltipContent = [
+                    criteriaText && `${criteriaText} — ${badge.current ?? 0}/${badge.target}`,
+                    fullBadge?.description,
+                  ]
+                    .filter(Boolean)
+                    .join("\n");
                   const catIcon =
                     fullBadge?.category === "progression"
                       ? "📈"
@@ -396,11 +446,22 @@ export default function BadgesPage() {
                           ? "💎"
                           : "🥉";
                   return (
-                    <Card key={badge.id} className="card-spatial-depth">
-                      <CardContent className="pt-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-2xl shrink-0" aria-hidden="true">
-                            {catIcon}
+                    <TooltipProvider key={badge.id}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Card className="card-spatial-depth cursor-help transition-shadow hover:shadow-md">
+                            <CardContent className="pt-4">
+                              <div className="flex items-center gap-2 mb-2">
+                          <span className="text-2xl shrink-0 flex items-center justify-center w-8" aria-hidden="true">
+                            {fullBadge?.icon_url?.trim() ? (
+                              fullBadge.icon_url.trim().startsWith("http") ? (
+                                <img src={fullBadge.icon_url} alt="" className="w-7 h-7 object-contain" />
+                              ) : (
+                                fullBadge.icon_url.trim()
+                              )
+                            ) : (
+                              catIcon
+                            )}
                           </span>
                           <span className="text-lg shrink-0 opacity-75" aria-hidden="true">
                             {diffIcon}
@@ -409,8 +470,15 @@ export default function BadgesPage() {
                           <span className="text-sm font-semibold text-foreground tabular-nums shrink-0">
                             {badge.current ?? 0} / {badge.target}
                           </span>
-                        </div>
-                        {badge.progress != null && (
+                              </div>
+                              {(badge.progress ?? 0) >= 0.5 && (badge.target ?? 0) > 0 && (
+                          <p className="text-sm font-semibold text-amber-500/90 mb-1">
+                            {(badge.target ?? 0) - (badge.current ?? 0) > 0
+                              ? t("plusQue", { count: (badge.target ?? 0) - (badge.current ?? 0) })
+                              : t("tuApproches")}
+                              </p>
+                              )}
+                              {badge.progress != null && (
                           <div
                             className="w-full bg-muted rounded-full h-2.5 overflow-hidden ring-1 ring-inset ring-border/50"
                             role="progressbar"
@@ -422,30 +490,75 @@ export default function BadgesPage() {
                             <div
                               className="bg-primary h-2.5 rounded-full transition-all duration-500 min-w-[2px]"
                               style={{ width: `${Math.max((badge.progress ?? 0) * 100, 2)}%` }}
-                            />
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                              />
+                            </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          className="max-w-[280px] whitespace-pre-line py-2.5 px-3 text-sm"
+                        >
+                          {tooltipContent || `${badge.name}: ${badge.current ?? 0}/${badge.target}`}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   );
                 })}
-              </div>
-            </PageSection>
-          ) : null;
-        })()}
+                </div>
+                ) : (
+                  <p className="text-muted-foreground py-6" role="status">
+                    {t("tabs.noInProgress")}
+                  </p>
+                )}
+              </TabsContent>
 
-        {/* 3) À débloquer — badges verrouillés avec conditions (A-1, A-2) */}
-        {filteredLocked.length > 0 && (
-          <PageSection className="space-y-4 animate-fade-in-up-delay-3">
-            <h2 className="text-lg md:text-xl font-semibold">{t("collection.toUnlock")}</h2>
-            <BadgeGrid
-              badges={filteredLocked}
-              earnedBadges={[]}
-              progressMap={progressMap}
-              isLoading={false}
-              sortBy={sortBy}
-              rarityMap={rarityMap}
-            />
+              <TabsContent value="toUnlock" className="mt-4" role="tabpanel">
+                {filteredLocked.length > 0 ? (
+                  <>
+                    <div className="flex items-center justify-end gap-4 flex-wrap mb-2">
+                      {filteredLocked.length > TO_UNLOCK_PREVIEW && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setToUnlockExpanded(!toUnlockExpanded)}
+                          className="shrink-0"
+                        >
+                          {toUnlockExpanded ? (
+                            <>
+                              <ChevronUp className="h-4 w-4 mr-1" />
+                              {t("collection.showLess")}
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="h-4 w-4 mr-1" />
+                              {t("collection.showMore", { count: filteredLocked.length - TO_UNLOCK_PREVIEW })}
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                    <BadgeGrid
+                      badges={
+                        filteredLocked.length > TO_UNLOCK_PREVIEW && !toUnlockExpanded
+                          ? filteredLocked.slice(0, TO_UNLOCK_PREVIEW)
+                          : filteredLocked
+                      }
+                      earnedBadges={[]}
+                      progressMap={progressMap}
+                      isLoading={false}
+                      sortBy={sortBy}
+                      rarityMap={rarityMap}
+                    />
+                  </>
+                ) : (
+                  <p className="text-muted-foreground py-6" role="status">
+                    {t("tabs.noToUnlock")}
+                  </p>
+                )}
+              </TabsContent>
+            </Tabs>
           </PageSection>
         )}
 

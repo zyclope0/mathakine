@@ -81,6 +81,27 @@
   }
 }
 
+/* Badge earned: compact par défaut, se déplie au survol (desktop) / toujours étendu (mobile) */
+@media (hover: hover) {
+  .badge-card-earned-compact .badge-card-expandable {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.25s ease;
+  }
+  .badge-card-earned-compact:hover .badge-card-expandable,
+  .badge-card-earned-compact:focus-within .badge-card-expandable {
+    max-height: 420px;
+    opacity: 1;
+  }
+}
+@media (hover: none) {
+  .badge-card-earned-compact .badge-card-expandable {
+    max-height: none;
+    opacity: 1;
+  }
+}
+
 /* Micro-interactions améliorées */
 @keyframes pulse-subtle {
   0%,

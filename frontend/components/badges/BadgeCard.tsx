@@ -99,7 +99,12 @@ export function BadgeCard({
   };
 
   const difficultyColor = getDifficultyColor(badge.difficulty);
-  const categoryIcon = getCategoryIcon(badge.category);
+  // B5 : icon_url prioritaire (emoji ou URL), fallback catégorie
+  const displayIcon = badge.icon_url?.trim()
+    ? badge.icon_url.trim().startsWith("http")
+      ? badge.icon_url
+      : badge.icon_url.trim()
+    : getCategoryIcon(badge.category);
 
   // Variantes d'animation avec garde-fous
   const variants = createVariants({
@@ -126,8 +131,9 @@ export function BadgeCard({
         className={cn(
           "card-spatial-depth relative overflow-hidden transition-all duration-300 h-full flex flex-col",
           isEarned
-            ? "border-primary/50 shadow-lg shadow-primary/20 hover:scale-105"
+            ? "border-primary/50 shadow-lg shadow-primary/20 hover:scale-[1.02] cursor-pointer"
             : "opacity-75 border-muted hover:opacity-90",
+          isEarned && "badge-card-earned-compact group",
           // P3-12 : hiérarchie visuelle or/légendaire
           badge.difficulty === "gold" && "border-yellow-500/50 shadow-lg shadow-yellow-500/15",
           badge.difficulty === "legendary" &&
@@ -135,20 +141,63 @@ export function BadgeCard({
         )}
         role="article"
         aria-label={`Badge ${badge.name}${isEarned ? " obtenu" : " verrouillé"}`}
+        tabIndex={isEarned ? 0 : undefined}
+        title={isEarned ? t("expandHint") : undefined}
       >
-        <CardHeader className="pb-4">
+        <CardHeader className={cn("pb-4", isEarned && "pb-2")}>
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg md:text-xl flex items-center gap-2 font-bold">
-                <span className="text-3xl shrink-0" aria-hidden="true">
-                  {categoryIcon}
+              <CardTitle
+                className={cn(
+                  "flex items-center gap-2 font-bold",
+                  isEarned ? "text-base md:text-lg" : "text-lg md:text-xl"
+                )}
+              >
+                <span
+                  className={cn(
+                    "shrink-0 flex items-center justify-center",
+                    isEarned ? "text-2xl w-7" : "text-3xl w-9"
+                  )}
+                  aria-hidden="true"
+                >
+                  {displayIcon.startsWith("http") ? (
+                    <img
+                      src={displayIcon}
+                      alt=""
+                      className={cn("object-contain", isEarned ? "w-6 h-6" : "w-8 h-8")}
+                    />
+                  ) : (
+                    displayIcon
+                  )}
                 </span>
                 <span className="break-words">{badge.name || badge.code || "Badge sans nom"}</span>
               </CardTitle>
-              {badge.star_wars_title && (
+              {!isEarned && badge.star_wars_title && (
                 <CardDescription className="mt-2 text-primary-on-dark italic text-sm">
                   {badge.star_wars_title}
                 </CardDescription>
+              )}
+              {/* Compact: 1-2 infos (difficulté, pts, date) toujours visibles */}
+              {isEarned && (
+                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <span className={cn("font-medium", difficultyColor.text)}>
+                    {badge.difficulty === "bronze" && "🥉"}
+                    {badge.difficulty === "silver" && "🥈"}
+                    {badge.difficulty === "gold" && "🥇"}
+                    {badge.difficulty === "legendary" && "💎"}
+                  </span>
+                  <span>
+                    <Trophy className="inline h-3.5 w-3.5 text-yellow-500 mr-0.5" aria-hidden="true" />
+                    {badge.points_reward} pts
+                  </span>
+                  {userBadge?.earned_at && (
+                    <span>
+                      {t("earnedOn", {
+                        date: new Date(userBadge.earned_at as string).toLocaleDateString(locale),
+                      })}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
             {/* Status + rareté + difficulté — alignés sans chevauchement */}
@@ -183,7 +232,7 @@ export function BadgeCard({
               ) : (
                 <Lock className="h-5 w-5 text-muted-foreground/60 shrink-0" aria-label="Badge verrouillé" />
               )}
-              {rarity && rarity.rarity === "rare" && (
+              {!isEarned && rarity && rarity.rarity === "rare" && (
                 <BadgeComponent
                   variant="outline"
                   className="border-amber-500/50 bg-amber-500/20 text-amber-400 text-xs font-medium shrink-0"
@@ -192,44 +241,103 @@ export function BadgeCard({
                   ✨ {t("rarity.rare")}
                 </BadgeComponent>
               )}
-              <BadgeComponent
-                variant="outline"
-                className={cn(
-                  "badge-sweep shrink-0 text-sm",
-                  difficultyColor.bg,
-                  difficultyColor.text,
-                  difficultyColor.border
-                )}
-                aria-label={`Difficulté: ${badge.difficulty}`}
-              >
-                {badge.difficulty === "bronze" && "🥉"}
-                {badge.difficulty === "silver" && "🥈"}
-                {badge.difficulty === "gold" && "🥇"}
-                {badge.difficulty === "legendary" && "💎"}
-              </BadgeComponent>
+              {!isEarned && (
+                <BadgeComponent
+                  variant="outline"
+                  className={cn(
+                    "badge-sweep shrink-0 text-sm",
+                    difficultyColor.bg,
+                    difficultyColor.text,
+                    difficultyColor.border
+                  )}
+                  aria-label={`Difficulté: ${badge.difficulty}`}
+                >
+                  {badge.difficulty === "bronze" && "🥉"}
+                  {badge.difficulty === "silver" && "🥈"}
+                  {badge.difficulty === "gold" && "🥇"}
+                  {badge.difficulty === "legendary" && "💎"}
+                </BadgeComponent>
+              )}
             </div>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4 flex-1 flex flex-col min-h-0">
-          {badge.description ? (
-            <p className="text-sm md:text-base text-muted-foreground leading-relaxed line-clamp-3">
-              {badge.description}
-            </p>
+          {/* Zone dépliable au survol (obtenus) : tout le détail */}
+          {isEarned ? (
+            <div className="badge-card-expandable space-y-4">
+              {badge.star_wars_title && (
+                <CardDescription className="text-primary-on-dark italic text-sm">
+                  {badge.star_wars_title}
+                </CardDescription>
+              )}
+              {rarity && rarity.rarity === "rare" && (
+                <BadgeComponent
+                  variant="outline"
+                  className="border-amber-500/50 bg-amber-500/20 text-amber-400 text-xs font-medium shrink-0 w-fit"
+                  aria-label={t("rarity.rare")}
+                >
+                  ✨ {t("rarity.rare")}
+                </BadgeComponent>
+              )}
+              <div className="rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5">
+                {badge.description ? (
+                  <p className="text-sm text-muted-foreground leading-relaxed">{badge.description}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground/60 italic leading-relaxed">
+                    Description non disponible
+                  </p>
+                )}
+              </div>
+              {rarity && (
+                <div
+                  className="inline-flex w-fit rounded-full border border-border/50 bg-background/50 px-3 py-1 text-xs text-muted-foreground"
+                  role="status"
+                >
+                  {t("socialProof", { percent: rarity.unlock_percent })}
+                </div>
+              )}
+              <div className="flex items-center justify-between rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
+                <div className="flex items-center gap-2 text-base font-semibold">
+                  <Trophy className="h-5 w-5 text-yellow-500" aria-hidden="true" />
+                  <span className="text-foreground">{badge.points_reward}</span>
+                  <span className="text-muted-foreground text-sm">pts</span>
+                </div>
+                {userBadge?.earned_at && (
+                  <div className="text-xs text-muted-foreground bg-green-500/10 px-2 py-1 rounded-md">
+                    {t("earnedOn", {
+                      date: new Date(userBadge.earned_at as string).toLocaleDateString(locale),
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           ) : (
-            <p className="text-sm md:text-base text-muted-foreground/60 italic leading-relaxed line-clamp-3">
-              Description non disponible
-            </p>
+            <>
+              {/* Verrouillés: description + preuve sociale toujours visibles */}
+              <div className="rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5">
+                {badge.description ? (
+                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed line-clamp-3">
+                    {badge.description}
+                  </p>
+                ) : (
+                  <p className="text-sm md:text-base text-muted-foreground/60 italic leading-relaxed line-clamp-3">
+                    Description non disponible
+                  </p>
+                )}
+              </div>
+              {rarity && (
+                <div
+                  className="inline-flex w-fit rounded-full border border-border/50 bg-background/50 px-3 py-1 text-xs text-muted-foreground"
+                  role="status"
+                >
+                  {t("socialProof", { percent: rarity.unlock_percent })}
+                </div>
+              )}
+            </>
           )}
 
-          {/* A-4 : Preuve sociale — « X% ont débloqué » */}
-          {rarity && (
-            <p className="text-xs text-muted-foreground" role="status">
-              {t("socialProof", { percent: rarity.unlock_percent })}
-            </p>
-          )}
-
-          {/* Conditions d'obtention + barre de progression (verrouillé) — A-2 */}
+          {/* Conditions d'obtention + barre de progression (verrouillé) — A-2, B5 goal-gradient & loss aversion */}
           {!isEarned && (badge.criteria_text || progress) && (
             <div className="space-y-2 pt-2 border-t border-border/50">
               {badge.criteria_text && (
@@ -240,6 +348,13 @@ export function BadgeCard({
                       — {progress.current} / {progress.target}
                     </span>
                   )}
+                </p>
+              )}
+              {progress && progress.target > 0 && progress.progress >= 0.5 && (
+                <p className="text-sm font-semibold text-amber-500/90" role="status">
+                  {progress.target - progress.current > 0
+                    ? t("plusQue", { count: progress.target - progress.current })
+                    : t("tuApproches")}
                 </p>
               )}
               {progress && progress.target > 0 && (
@@ -260,21 +375,16 @@ export function BadgeCard({
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-3 border-t border-border/50 mt-auto">
-            <div className="flex items-center gap-2 text-base font-semibold">
-              <Trophy className="h-5 w-5 text-yellow-500" aria-hidden="true" />
-              <span className="text-foreground">{badge.points_reward}</span>
-              <span className="text-muted-foreground text-sm">pts</span>
-            </div>
-
-            {isEarned && userBadge?.earned_at && (
-              <div className="text-xs text-muted-foreground bg-green-500/10 px-2 py-1 rounded">
-                {t("earnedOn", {
-                  date: new Date(userBadge.earned_at as string).toLocaleDateString(locale),
-                })}
+          {/* Footer — verrouillés uniquement (obtenus: footer dans zone dépliable) */}
+          {!isEarned && (
+            <div className="flex items-center justify-between pt-3 mt-auto rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
+              <div className="flex items-center gap-2 text-base font-semibold">
+                <Trophy className="h-5 w-5 text-yellow-500" aria-hidden="true" />
+                <span className="text-foreground">{badge.points_reward}</span>
+                <span className="text-muted-foreground text-sm">pts</span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </CardContent>
 
         {/* Effet de brillance pour les badges obtenus (désactivé si reduced motion) */}

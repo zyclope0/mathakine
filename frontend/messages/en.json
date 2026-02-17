@@ -700,7 +700,16 @@
       "count": "({earned}/{total})",
       "empty": "No badges yet. Keep doing exercises to unlock some!",
       "noResults": "No badges match the selected filters.",
-      "toUnlock": "To unlock"
+      "toUnlock": "To unlock",
+      "showMore": "View {count} more",
+      "showLess": "Show less"
+    },
+    "tabs": {
+      "ariaLabel": "Badges in progress and to unlock",
+      "inProgressWithCount": "In progress ({count})",
+      "toUnlockWithCount": "To unlock ({count})",
+      "noInProgress": "No badges currently in progress.",
+      "noToUnlock": "No badges to unlock at the moment."
     },
     "statsCompact": "Points · Level · Rank · Badges",
     "statsDetails": {
@@ -739,7 +748,10 @@
       "discovery": "Discovery"
     },
     "socialProof": "{percent}% have unlocked this badge",
+    "plusQue": "Only {count} more!",
+    "tuApproches": "You're close, don't give up!",
     "earnedOn": "Earned on {date}",
+    "expandHint": "Hover or focus to see details",
     "pin": "Pin",
     "unpin": "Unpin",
     "rarity": {
