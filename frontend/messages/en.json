@@ -813,7 +813,8 @@
     "500": {
       "title": "Server error",
       "message": "An error occurred",
-      "retry": "Retry"
+      "retry": "Retry",
+      "backHome": "Back to home"
     },
     "network": "Connection error",
     "unauthorized": "Unauthorized",

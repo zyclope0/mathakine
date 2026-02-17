@@ -338,10 +338,11 @@ export default function BadgesPage() {
           ) : filteredEarned.length > 0 ? (
             <BadgeGrid
               badges={(() => {
+                type BadgeItem = (typeof filteredEarned)[number];
                 const pinned = pinnedBadgeIds
-                  .map((id) => filteredEarned.find((b) => b.id === id))
-                  .filter((b): b is (typeof filteredEarned)[0] => !!b);
-                const rest = filteredEarned.filter((b) => !pinnedBadgeIds.includes(b.id));
+                  .map((id: number) => filteredEarned.find((b: BadgeItem) => b.id === id))
+                  .filter((b): b is BadgeItem => !!b);
+                const rest = filteredEarned.filter((b: BadgeItem) => !pinnedBadgeIds.includes(b.id));
                 return [...pinned, ...rest];
               })()}
               earnedBadges={earnedBadges.filter((ub) => filteredEarned.some((b) => b.id === ub.id))}
@@ -352,7 +353,7 @@ export default function BadgesPage() {
               onTogglePin={async (badgeId) => {
                 const isPinned = pinnedBadgeIds.includes(badgeId);
                 const next = isPinned
-                  ? pinnedBadgeIds.filter((id) => id !== badgeId)
+                  ? pinnedBadgeIds.filter((id: number) => id !== badgeId)
                   : [...pinnedBadgeIds, badgeId].slice(0, 3);
                 await pinBadges(next);
               }}

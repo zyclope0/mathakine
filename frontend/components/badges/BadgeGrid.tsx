@@ -89,8 +89,8 @@ export function BadgeGrid({
       return 0;
     }
     if (sortBy === "points") {
-      const aPt = a.points_reward ?? a.points ?? 0;
-      const bPt = b.points_reward ?? b.points ?? 0;
+      const aPt = a.points_reward ?? (a as UserBadge).points ?? 0;
+      const bPt = b.points_reward ?? (b as UserBadge).points ?? 0;
       return bPt - aPt;
     }
 
@@ -140,9 +140,9 @@ export function BadgeGrid({
             isEarned={!!userBadge}
             progress={badgeProgress ?? null}
             index={index}
-            rarity={rarityMap?.[String(badge.id)]}
-            isPinned={pinnedBadgeIds?.includes(badge.id)}
-            onTogglePin={onTogglePin}
+            rarity={rarityMap?.[String(badge.id)] ?? null}
+            isPinned={pinnedBadgeIds?.includes(badge.id) ?? false}
+            {...(onTogglePin != null && { onTogglePin })}
             canPin={pinnedBadgeIds != null && (pinnedBadgeIds?.includes(badge.id) || (pinnedBadgeIds?.length ?? 0) < 3)}
           />
         );
