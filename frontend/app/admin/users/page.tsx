@@ -142,7 +142,7 @@ export default function AdminUsersPage() {
   const hasPrev = page > 0;
 
   return (
-    <>
+    <div className="space-y-8">
       <PageHeader
         title="Utilisateurs"
         description="Liste des utilisateurs de la plateforme"
@@ -401,6 +401,6 @@ export default function AdminUsersPage() {
           </DialogContent>
         </Dialog>
       </PageSection>
-    </>
+    </div>
   );
 }

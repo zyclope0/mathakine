@@ -766,7 +766,7 @@ export default function AdminContentPage() {
   const editId = parsedEdit != null && !Number.isNaN(parsedEdit) ? parsedEdit : null;
 
   return (
-    <>
+    <div className="space-y-8">
       <PageHeader
         title="Contenu"
         description="Exercices, défis logiques et badges — archivage"
@@ -776,10 +776,16 @@ export default function AdminContentPage() {
         <Card>
           <CardContent className="pt-6">
             <Tabs defaultValue={defaultTab} key={defaultTab}>
-              <TabsList>
-                <TabsTrigger value="exercises">Exercices</TabsTrigger>
-                <TabsTrigger value="challenges">Défis logiques</TabsTrigger>
-                <TabsTrigger value="badges">Badges</TabsTrigger>
+              <TabsList className="w-full flex flex-wrap gap-1 sm:gap-2 h-auto p-1">
+                <TabsTrigger value="exercises" className="flex-1 min-w-[100px] sm:flex-initial sm:min-w-0 px-4">
+                  Exercices
+                </TabsTrigger>
+                <TabsTrigger value="challenges" className="flex-1 min-w-[100px] sm:flex-initial sm:min-w-0 px-4">
+                  Défis logiques
+                </TabsTrigger>
+                <TabsTrigger value="badges" className="flex-1 min-w-[80px] sm:flex-initial sm:min-w-0 px-4">
+                  Badges
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="exercises" className="mt-6">
                 <ExercisesTab initialEditId={defaultTab === "exercises" ? editId : null} />
@@ -794,6 +800,6 @@ export default function AdminContentPage() {
           </CardContent>
         </Card>
       </PageSection>
-    </>
+    </div>
   );
 }

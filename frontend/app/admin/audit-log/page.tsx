@@ -57,7 +57,7 @@ export default function AdminAuditLogPage() {
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
 
   return (
-    <>
+    <div className="space-y-8">
       <PageHeader
         title="Journal d'audit"
         description="Historique des actions effectuées par les administrateurs"
@@ -176,6 +176,6 @@ export default function AdminAuditLogPage() {
           </CardContent>
         </Card>
       </PageSection>
-    </>
+    </div>
   );
 }

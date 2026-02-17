@@ -30,7 +30,7 @@ export default function AdminModerationPage() {
   } = useAdminModeration(typeFilter);
 
   return (
-    <>
+    <div className="space-y-8">
       <PageHeader
         title="Modération IA"
         description="Contenu généré par intelligence artificielle — validation et suivi"
@@ -187,6 +187,6 @@ export default function AdminModerationPage() {
           </CardContent>
         </Card>
       </PageSection>
-    </>
+    </div>
   );
 }
