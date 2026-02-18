@@ -1,5 +1,8 @@
 """
 Service de gestion des badges et achievements pour Mathakine
+
+Lot C : moteur générique via badge_requirement_engine.
+Fallback par code pour rétrocompatibilité.
 """
 
 import json
@@ -14,6 +17,7 @@ from app.models.achievement import Achievement, UserAchievement
 from app.models.attempt import Attempt
 from app.models.progress import Progress
 from app.models.user import User
+from app.services.badge_requirement_engine import check_requirements, get_requirement_progress
 
 logger = get_logger(__name__)
 
@@ -73,17 +77,33 @@ class BadgeService:
             return []
     
     def _check_badge_requirements(self, user_id: int, badge: Achievement, attempt_data: Dict[str, Any] = None) -> bool:
-        """Vérifier si un utilisateur remplit les conditions pour un badge"""
-        
+        """Vérifier si un utilisateur remplit les conditions pour un badge.
+        Lot C : moteur générique d'abord, fallback par code pour rétrocompatibilité.
+        """
         if not badge.requirements:
             return False
-        
+
         try:
             requirements = json.loads(badge.requirements) if isinstance(badge.requirements, str) else badge.requirements
         except (json.JSONDecodeError, TypeError):
             logger.error(f"Requirements invalides pour le badge {badge.code}")
             return False
-        
+
+        if not isinstance(requirements, dict):
+            return False
+
+        # Lot C : essayer le moteur générique d'abord
+        result = check_requirements(self.db, user_id, requirements, attempt_data)
+        if result is not None:
+            return result
+
+        # Fallback par code pour rétrocompatibilité (badges sans schéma reconnu)
+        return self._check_badge_requirements_by_code(user_id, badge, requirements, attempt_data)
+
+    def _check_badge_requirements_by_code(
+        self, user_id: int, badge: Achievement, requirements: Dict[str, Any], attempt_data: Dict[str, Any] = None
+    ) -> bool:
+        """Fallback : vérification par code (rétrocompatibilité)."""
         # BADGE: Premiers Pas (1 tentative)
         if badge.code == 'first_steps':
             attempts_count = self.db.query(func.count(Attempt.id)).filter(
@@ -490,9 +510,10 @@ class BadgeService:
                 ORDER BY ua.earned_at DESC
             """), {"user_id": user_id}).fetchall()
             
-            # Statistiques utilisateur
+            # Statistiques utilisateur (inclut streak)
             user_stats = self.db.execute(text("""
-                SELECT total_points, current_level, experience_points, jedi_rank
+                SELECT total_points, current_level, experience_points, jedi_rank,
+                       COALESCE(current_streak, 0), COALESCE(best_streak, 0)
                 FROM users
                 WHERE id = :user_id
             """), {"user_id": user_id}).fetchone()
@@ -527,12 +548,16 @@ class BadgeService:
                     'experience_points': user_stats[2] if user_stats else 0,
                     'jedi_rank': user_stats[3] if user_stats else 'youngling',
                     'pinned_badge_ids': pinned,
+                    'current_streak': user_stats[4] if user_stats and len(user_stats) > 4 else 0,
+                    'best_streak': user_stats[5] if user_stats and len(user_stats) > 5 else 0,
                 } if user_stats else {
                     'total_points': 0,
                     'current_level': 1,
                     'experience_points': 0,
                     'jedi_rank': 'youngling',
                     'pinned_badge_ids': [],
+                    'current_streak': 0,
+                    'best_streak': 0,
                 }
             }
             
@@ -574,6 +599,18 @@ class BadgeService:
         days = req.get("consecutive_days")
         if days is not None:
             return f"{days} jours consécutifs d'activité"
+        # mixte (B5) — avant logic_attempts_count seul
+        logic_target = req.get("logic_attempts_count")
+        ex_target = req.get("attempts_count")
+        if logic_target is not None and ex_target is not None:
+            return f"{ex_target} exercices et {logic_target} défis logiques"
+        # logic_attempts_count seul (B5)
+        if logic_target is not None:
+            return f"Résoudre {logic_target} défis logiques"
+        # comeback_days
+        cb = req.get("comeback_days")
+        if cb is not None:
+            return f"Revenir après {cb} jours sans activité"
         return None
 
     def get_available_badges(self) -> List[Dict[str, Any]]:
@@ -595,7 +632,8 @@ class BadgeService:
                     'difficulty': badge.difficulty,
                     'points_reward': badge.points_reward,
                     'category': badge.category,
-                    'is_secret': badge.is_secret
+                    'is_secret': badge.is_secret,
+                    'icon_url': badge.icon_url,
                 }
                 for badge in badges
             ]
@@ -604,9 +642,13 @@ class BadgeService:
             logger.error(f"Erreur récupération badges disponibles: {available_badges_error}")
             return []
 
-    def _get_badge_progress(self, user_id: int, badge: Achievement) -> tuple[float, int, int]:
+    def _get_badge_progress(
+        self, user_id: int, badge: Achievement, stats_cache: Optional[Dict[str, Any]] = None
+    ) -> tuple[float, int, int]:
         """
         Calcule la progression vers un badge non débloqué.
+        Lot C-2 : utilise badge_requirement_engine.get_requirement_progress pour tous les types.
+        stats_cache: pré-fetch pour éviter N+1.
         Returns: (progress 0.0-1.0, current_value, target_value)
         """
         if not badge.requirements:
@@ -615,32 +657,18 @@ class BadgeService:
             req = json.loads(badge.requirements) if isinstance(badge.requirements, str) else badge.requirements
         except (json.JSONDecodeError, TypeError):
             return (0.0, 0, 0)
+        if not isinstance(req, dict):
+            return (0.0, 0, 0)
 
-        target = req.get("attempts_count")
-        if target is not None:
-            attempts = self.db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar() or 0
-            progress = min(1.0, attempts / max(1, target))
-            return (round(progress, 2), attempts, target)
-
-        target = req.get("min_attempts")
-        if target is not None and "success_rate" in req:
-            stats = self.db.execute(text("""
-                SELECT COUNT(*), COUNT(CASE WHEN is_correct THEN 1 END)
-                FROM attempts WHERE user_id = :user_id
-            """), {"user_id": user_id}).fetchone()
-            total = stats[0] if stats else 0
-            correct = stats[1] if stats else 0
-            rate_ok = (correct / total * 100 >= req["success_rate"]) if total else False
-            progress = min(1.0, total / max(1, target)) if total else 0.0
-            if rate_ok and total >= target:
-                progress = 1.0
-            return (round(progress, 2), total, target)
-
+        result = get_requirement_progress(self.db, user_id, req, stats_cache)
+        if result is not None:
+            return result
         return (0.0, 0, 0)
 
     def get_badges_progress(self, user_id: int) -> Dict[str, Any]:
         """
         Progression vers les badges (unlocked + in_progress).
+        Pré-fetch des stats communes pour éviter N+1.
         """
         earned_ids = {
             r[0] for r in self.db.query(UserAchievement.achievement_id)
@@ -648,13 +676,111 @@ class BadgeService:
             .all()
         }
         all_badges = self.db.query(Achievement).filter(Achievement.is_active == True).all()
+
+        # Pré-fetch stats pour éviter N+1 — une requête par type de donnée
+        stats_cache: Dict[str, Any] = {}
+        try:
+            row = self.db.execute(
+                text(
+                    "SELECT COUNT(*), COUNT(CASE WHEN is_correct THEN 1 END) FROM attempts WHERE user_id = :uid"
+                ),
+                {"uid": user_id},
+            ).fetchone()
+            if row:
+                stats_cache["attempts_count"] = row[0] or 0
+                stats_cache["attempts_total"] = row[0] or 0
+                stats_cache["attempts_correct"] = row[1] or 0
+            lca = self.db.execute(
+                text(
+                    "SELECT COUNT(*) FROM logic_challenge_attempts WHERE user_id = :uid AND is_correct = true"
+                ),
+                {"uid": user_id},
+            ).fetchone()
+            if lca:
+                stats_cache["logic_correct_count"] = lca[0] or 0
+            # all_types / min_per_type : types dispo + counts par type
+            all_types_rows = self.db.execute(
+                text(
+                    "SELECT DISTINCT LOWER(exercise_type::text) FROM exercises "
+                    "WHERE is_active = true AND is_archived = false"
+                )
+            ).fetchall()
+            stats_cache["exercise_types"] = [str(r[0]).lower() for r in all_types_rows]
+            per_type = self.db.execute(
+                text("""
+                    SELECT LOWER(e.exercise_type::text), COUNT(*)
+                    FROM attempts a JOIN exercises e ON a.exercise_id = e.id
+                    WHERE a.user_id = :uid AND a.is_correct = true
+                    GROUP BY LOWER(e.exercise_type::text)
+                """),
+                {"uid": user_id},
+            ).fetchall()
+            stats_cache["per_type_correct"] = {str(r[0]).lower(): r[1] for r in per_type}
+            user_types_rows = self.db.execute(
+                text("""
+                    SELECT DISTINCT LOWER(e.exercise_type::text) FROM attempts a
+                    JOIN exercises e ON a.exercise_id = e.id WHERE a.user_id = :uid
+                """),
+                {"uid": user_id},
+            ).fetchall()
+            stats_cache["user_exercise_types"] = {str(r[0]).lower() for r in user_types_rows}
+            # consecutive_days
+            days_rows = self.db.execute(
+                text("""
+                    SELECT DISTINCT DATE(created_at) as day FROM attempts
+                    WHERE user_id = :uid ORDER BY day DESC LIMIT 35
+                """),
+                {"uid": user_id},
+            ).fetchall()
+            stats_cache["activity_dates"] = [r[0] if hasattr(r, "__getitem__") else r.day for r in days_rows]
+            # max_time : min time_spent parmi les tentatives correctes
+            min_time = self.db.execute(
+                text(
+                    "SELECT MIN(time_spent) FROM attempts WHERE user_id = :uid AND is_correct = true"
+                ),
+                {"uid": user_id},
+            ).fetchone()
+            stats_cache["min_fast_time"] = float(min_time[0]) if min_time and min_time[0] is not None else None
+            # perfect_day : stats du jour
+            today = datetime.now(timezone.utc).date()
+            pd_row = self.db.execute(
+                text("""
+                    SELECT COUNT(*) as total, COUNT(CASE WHEN is_correct THEN 1 END) as correct
+                    FROM attempts WHERE user_id = :uid AND DATE(created_at) = :today
+                """),
+                {"uid": user_id, "today": today},
+            ).fetchone()
+            stats_cache["perfect_day_today"] = (pd_row[0] or 0, pd_row[1] or 0) if pd_row else (0, 0)
+            # consecutive par type : streak actuel (dernières tentatives)
+            for ex_t in stats_cache.get("exercise_types", []):
+                streak_rows = self.db.execute(
+                    text("""
+                        SELECT a.is_correct FROM attempts a
+                        JOIN exercises e ON a.exercise_id = e.id
+                        WHERE a.user_id = :uid AND LOWER(e.exercise_type::text) = LOWER(:ex_type)
+                        ORDER BY a.created_at DESC LIMIT 60
+                    """),
+                    {"uid": user_id, "ex_type": ex_t},
+                ).fetchall()
+                streak = 0
+                for r in streak_rows:
+                    if r[0]:
+                        streak += 1
+                    else:
+                        break
+                if "consecutive_by_type" not in stats_cache:
+                    stats_cache["consecutive_by_type"] = {}
+                stats_cache["consecutive_by_type"][ex_t] = streak
+        except Exception:
+            pass
+
         unlocked = []
         in_progress = []
         for b in all_badges:
             if b.id in earned_ids:
                 unlocked.append({"id": b.id, "code": b.code, "name": b.name})
             else:
-                prog, cur, tgt = self._get_badge_progress(user_id, b)
+                prog, cur, tgt = self._get_badge_progress(user_id, b, stats_cache)
                 in_progress.append({
                     "id": b.id,
                     "code": b.code,
@@ -663,8 +789,33 @@ class BadgeService:
                     "current": cur,
                     "target": tgt,
                     "criteria_text": self._format_requirements_to_text(b),
+                    "is_secret": getattr(b, "is_secret", False),
                 })
         return {"unlocked": unlocked, "in_progress": in_progress}
+
+    def get_closest_progress_notification(self, user_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Retourne le badge le plus proche du déblocage (progress >= 0.5, target > 0)
+        pour afficher « Tu approches ! Plus que X ».
+        Exclut les badges secrets non débloqués.
+        """
+        data = self.get_badges_progress(user_id)
+        earned_ids = {u["id"] for u in data.get("unlocked", [])}
+        candidates = []
+        for p in data.get("in_progress", []):
+            if p.get("target", 0) <= 0:
+                continue
+            prog = p.get("progress", 0) or 0
+            if prog < 0.5:
+                continue
+            if p.get("is_secret") and p["id"] not in earned_ids:
+                continue
+            remaining = max(0, (p.get("target", 0) or 0) - (p.get("current", 0) or 0))
+            candidates.append((prog, {"name": p.get("name", ""), "remaining": remaining}))
+        if not candidates:
+            return None
+        candidates.sort(key=lambda x: -x[0])  # Plus haute progression d'abord
+        return candidates[0][1]
 
     def get_badges_rarity_stats(self) -> Dict[str, Any]:
         """

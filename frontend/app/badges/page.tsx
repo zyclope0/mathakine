@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { BadgeGrid } from "@/components/badges/BadgeGrid";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -186,6 +186,12 @@ export default function BadgesPage() {
     [inProgress, availableBadges]
   );
   const defaultTab = inProgressWithTarget.length > 0 ? "inProgress" : "toUnlock";
+  const [activeTab, setActiveTab] = useState<string>(defaultTab);
+  const isToUnlockTab = activeTab === "toUnlock";
+
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
 
   return (
     <ProtectedRoute>
@@ -261,7 +267,7 @@ export default function BadgesPage() {
                 <Filter className="h-5 w-5 text-primary" aria-hidden="true" />
                 <h2 className="text-lg font-semibold">{t("filters.title")}</h2>
               </div>
-              {closeCount > 0 && (
+              {isToUnlockTab && closeCount > 0 && (
                 <Button
                   variant={filterStatus === "close" ? "default" : "outline"}
                   size="sm"
@@ -288,7 +294,10 @@ export default function BadgesPage() {
               <label htmlFor="filter-status" className="text-sm text-muted-foreground">
                 {t("filters.status")}
               </label>
-              <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as typeof filterStatus)}>
+              <Select
+                value={!isToUnlockTab && filterStatus === "close" ? "locked" : filterStatus}
+                onValueChange={(v) => setFilterStatus(v as typeof filterStatus)}
+              >
                 <SelectTrigger id="filter-status" className="h-10 w-[160px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -296,7 +305,9 @@ export default function BadgesPage() {
                   <SelectItem value="all">{t("filters.statusAll")}</SelectItem>
                   <SelectItem value="earned">{t("filters.statusEarned")}</SelectItem>
                   <SelectItem value="locked">{t("filters.statusLocked")}</SelectItem>
-                  <SelectItem value="close">{t("filters.statusClose")}</SelectItem>
+                  {isToUnlockTab && (
+                    <SelectItem value="close">{t("filters.statusClose")}</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -401,7 +412,15 @@ export default function BadgesPage() {
         {/* 2) Onglets : Badges en cours | À débloquer */}
         {(inProgressWithTarget.length > 0 || filteredLocked.length > 0) && (
           <PageSection className="space-y-4 animate-fade-in-up-delay-2">
-            <Tabs defaultValue={defaultTab} key={defaultTab} className="w-full">
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => {
+                if (v === "inProgress" && filterStatus === "close") setFilterStatus("all");
+                setActiveTab(v);
+              }}
+              key={defaultTab}
+              className="w-full"
+            >
               <TabsList
                 className="w-full sm:w-auto flex flex-wrap gap-1 h-auto p-1"
                 role="tablist"
@@ -480,7 +499,7 @@ export default function BadgesPage() {
                               )}
                               {badge.progress != null && (
                           <div
-                            className="w-full bg-muted rounded-full h-2.5 overflow-hidden ring-1 ring-inset ring-border/50"
+                            className="w-full bg-muted rounded-full h-3 overflow-hidden ring-1 ring-inset ring-border/60"
                             role="progressbar"
                             aria-valuenow={Math.round((badge.progress ?? 0) * 100)}
                             aria-valuemin={0}
@@ -488,7 +507,7 @@ export default function BadgesPage() {
                             aria-label={`${badge.name}: ${Math.round((badge.progress ?? 0) * 100)}%`}
                           >
                             <div
-                              className="bg-primary h-2.5 rounded-full transition-all duration-500 min-w-[2px]"
+                              className="bg-primary h-3 rounded-full transition-all duration-500 min-w-[2px]"
                               style={{ width: `${Math.max((badge.progress ?? 0) * 100, 2)}%` }}
                               />
                             </div>
