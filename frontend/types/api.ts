@@ -145,6 +145,7 @@ export interface ChallengeAttemptResponse {
     star_wars_title?: string;
   }>;
   points_earned?: number;
+  progress_notification?: { name: string; remaining: number };
 }
 
 /**
@@ -155,10 +156,13 @@ export interface Badge {
   code: string;
   name?: string | null;
   description?: string | null;
+  criteria_text?: string | null;
   category?: string | null;
   difficulty?: string | null;
   points_reward?: number | null;
   star_wars_title?: string | null;
+  icon_url?: string | null;
+  is_secret?: boolean;
   is_active?: boolean;
   created_at?: string | null;
 }
@@ -183,6 +187,7 @@ export interface UserBadgesResponse {
       current_level?: number;
       experience_points?: number;
       jedi_rank?: string;
+      pinned_badge_ids?: number[];
     };
   };
 }
