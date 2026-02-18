@@ -20,15 +20,22 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        'recommendations',
-        sa.Column('challenge_id', sa.Integer(), sa.ForeignKey('logic_challenges.id', ondelete='SET NULL'), nullable=True)
-    )
-    op.add_column(
-        'recommendations',
-        sa.Column('recommendation_type', sa.String(20), nullable=False, server_default='exercise')
-    )
-    op.create_index('ix_recommendations_challenge_id', 'recommendations', ['challenge_id'], unique=False)
+    conn = op.get_bind()
+    insp = sa.inspect(conn)
+    cols = {c['name'] for c in insp.get_columns('recommendations')}
+    if 'challenge_id' not in cols:
+        op.add_column(
+            'recommendations',
+            sa.Column('challenge_id', sa.Integer(), sa.ForeignKey('logic_challenges.id', ondelete='SET NULL'), nullable=True)
+        )
+    if 'recommendation_type' not in cols:
+        op.add_column(
+            'recommendations',
+            sa.Column('recommendation_type', sa.String(20), nullable=False, server_default='exercise')
+        )
+    indexes = {idx['name'] for idx in insp.get_indexes('recommendations')}
+    if 'ix_recommendations_challenge_id' not in indexes:
+        op.create_index('ix_recommendations_challenge_id', 'recommendations', ['challenge_id'], unique=False)
 
 
 def downgrade() -> None:

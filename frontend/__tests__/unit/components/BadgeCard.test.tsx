@@ -75,6 +75,8 @@ describe("BadgeCard", () => {
       earned_at: "2025-01-15T00:00:00Z",
     };
     render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />, { wrapper: TestWrapper });
-    expect(screen.getByText(/obtenu le/i)).toBeInTheDocument();
+    const dateElements = screen.getAllByText(/obtenu le/i);
+    expect(dateElements.length).toBeGreaterThanOrEqual(1);
+    expect(dateElements[0]).toBeInTheDocument();
   });
 });

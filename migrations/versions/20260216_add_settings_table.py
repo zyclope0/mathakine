@@ -23,7 +23,10 @@ def upgrade() -> None:
     conn = op.get_bind()
     insp = sa.inspect(conn)
     if "settings" in insp.get_table_names():
-        return  # Table déjà présente (créée manuellement ou par autre moyen)
+        op.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_settings_id ON settings (id)"))
+        op.execute(sa.text("CREATE UNIQUE INDEX IF NOT EXISTS ix_settings_key ON settings (key)"))
+        op.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_settings_category ON settings (category)"))
+        return
     op.create_table(
         "settings",
         sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
@@ -37,9 +40,9 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
-    op.create_index("ix_settings_id", "settings", ["id"])
-    op.create_index("ix_settings_key", "settings", ["key"], unique=True)
-    op.create_index("ix_settings_category", "settings", ["category"])
+    op.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_settings_id ON settings (id)"))
+    op.execute(sa.text("CREATE UNIQUE INDEX IF NOT EXISTS ix_settings_key ON settings (key)"))
+    op.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_settings_category ON settings (category)"))
 
 
 def downgrade() -> None:

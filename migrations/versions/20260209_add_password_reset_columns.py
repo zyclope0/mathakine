@@ -22,9 +22,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column('users', sa.Column('password_reset_token', sa.String(255), nullable=True))
-    op.add_column('users', sa.Column('password_reset_expires_at', sa.DateTime(timezone=True), nullable=True))
-    op.create_index('ix_users_password_reset_token', 'users', ['password_reset_token'], unique=False)
+    conn = op.get_bind()
+    insp = sa.inspect(conn)
+    cols = {c['name'] for c in insp.get_columns('users')}
+    if 'password_reset_token' not in cols:
+        op.add_column('users', sa.Column('password_reset_token', sa.String(255), nullable=True))
+    if 'password_reset_expires_at' not in cols:
+        op.add_column('users', sa.Column('password_reset_expires_at', sa.DateTime(timezone=True), nullable=True))
+    indexes = {idx['name'] for idx in insp.get_indexes('users')}
+    if 'ix_users_password_reset_token' not in indexes:
+        op.create_index('ix_users_password_reset_token', 'users', ['password_reset_token'], unique=False)
 
 
 def downgrade() -> None:
