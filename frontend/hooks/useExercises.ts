@@ -13,6 +13,8 @@ export interface ExerciseFilters {
   search?: string;
   skip?: number;
   limit?: number;
+  order?: "random" | "recent";
+  hide_completed?: boolean;
 }
 
 interface GenerateExerciseParams {
@@ -35,7 +37,12 @@ export function useExercises(filters?: ExerciseFilters) {
   } = usePaginatedContent<Exercise>(filters as Record<string, string | number | null | undefined> | undefined, {
     endpoint: "/api/exercises",
     queryKey: "exercises",
-    paramKeys: { exercise_type: "exercise_type", age_group: "age_group" },
+    paramKeys: {
+      exercise_type: "exercise_type",
+      age_group: "age_group",
+      order: "order",
+      hide_completed: "hide_completed",
+    },
     staleTime: 10 * 1000,
   });
 

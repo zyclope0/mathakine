@@ -20,10 +20,11 @@ import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import { EXERCISE_TYPE_STYLES, EXERCISE_TYPES, AGE_GROUPS } from "@/lib/constants/exercises";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
-import { Filter, X, Search, LayoutGrid, List, Sparkles, CheckCircle2 } from "lucide-react";
+import { Filter, X, Search, LayoutGrid, List, Sparkles, CheckCircle2, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { useCompletedExercises } from "@/hooks/useCompletedItems";
 import dynamic from "next/dynamic";
 
@@ -66,6 +67,7 @@ function ExercisesPageContent() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hideCompleted, setHideCompleted] = useState(false);
   const { isCompleted } = useCompletedExercises();
 
   // Refetch les queries de progression quand on arrive sur la page
@@ -95,8 +97,11 @@ function ExercisesPageContent() {
       f.search = searchQuery.trim();
     }
 
+    f.order = "random"; // Ordre aléatoire par défaut
+    f.hide_completed = hideCompleted;
+
     return f;
-  }, [exerciseTypeFilter, ageGroupFilter, searchQuery, currentPage]);
+  }, [exerciseTypeFilter, ageGroupFilter, searchQuery, currentPage, hideCompleted]);
 
   // Détecter le paramètre generated=true et rafraîchir la liste
   useEffect(() => {
@@ -140,12 +145,13 @@ function ExercisesPageContent() {
   };
 
   const hasActiveFilters =
-    exerciseTypeFilter !== "all" || ageGroupFilter !== "all" || searchQuery.trim() !== "";
+    exerciseTypeFilter !== "all" || ageGroupFilter !== "all" || searchQuery.trim() !== "" || hideCompleted;
 
   const clearFilters = () => {
     setExerciseTypeFilter("all");
     setAgeGroupFilter("all");
     setSearchQuery("");
+    setHideCompleted(false);
     setCurrentPage(1);
   };
 
@@ -172,7 +178,8 @@ function ExercisesPageContent() {
                 <Badge variant="secondary" className="ml-1">
                   {(exerciseTypeFilter !== "all" ? 1 : 0) +
                     (ageGroupFilter !== "all" ? 1 : 0) +
-                    (searchQuery.trim() ? 1 : 0)}
+                    (searchQuery.trim() ? 1 : 0) +
+                    (hideCompleted ? 1 : 0)}
                 </Badge>
               )}
             </div>
@@ -299,6 +306,25 @@ function ExercisesPageContent() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Masquer les réussis */}
+            <div className="flex items-center gap-2">
+              <Switch
+                id="hide-completed"
+                checked={hideCompleted}
+                onCheckedChange={(checked) => {
+                  setHideCompleted(checked);
+                  handleFilterChange();
+                }}
+              />
+              <label
+                htmlFor="hide-completed"
+                className="text-sm font-medium text-muted-foreground cursor-pointer flex items-center gap-1.5"
+              >
+                <EyeOff className="h-4 w-4" />
+                {t("filters.hideCompleted")}
+              </label>
             </div>
           </div>
         </PageSection>

@@ -389,11 +389,13 @@ async def submit_answer(request):
             user_message="Erreur lors du traitement de la réponse"
         )
 
+@optional_auth
 async def get_exercises_list(request):
-    """Retourne la liste des exercices récents avec support des traductions et pagination standardisée"""
+    """Retourne la liste des exercices avec pagination. Ordre aléatoire par défaut pour varier l'entraînement."""
     try:
         logger.debug("[STEP 1] Début de get_exercises_list")
-        
+        current_user = getattr(request.state, 'user', None)
+
         # Récupérer les paramètres de requête
         limit_param = request.query_params.get('limit')
         limit = int(limit_param) if limit_param else 20
@@ -401,6 +403,8 @@ async def get_exercises_list(request):
         exercise_type_raw = request.query_params.get('exercise_type', None)
         age_group_raw = request.query_params.get('age_group', None) # Changed from difficulty
         search = request.query_params.get('search') or request.query_params.get('q')  # Support 'search' et 'q'
+        order = (request.query_params.get('order') or 'random').lower()
+        hide_completed = request.query_params.get('hide_completed', 'false').lower() == 'true'
         
         logger.debug(f"[STEP 2] Params: limit={limit}, skip={skip}, type={exercise_type_raw}, age_group={age_group_raw}")
         
@@ -437,6 +441,17 @@ async def get_exercises_list(request):
                                              ExerciseType)
 
             logger.debug("[STEP 7] Imports effectués")
+            from sqlalchemy import func
+
+            # IDs à exclure si hide_completed et utilisateur connecté
+            completed_ids_to_exclude = []
+            if hide_completed and current_user and current_user.get("id"):
+                from app.models.attempt import Attempt
+                subq = db.query(Attempt.exercise_id).filter(
+                    Attempt.user_id == current_user["id"],
+                    Attempt.is_correct == True
+                ).distinct().all()
+                completed_ids_to_exclude = [r[0] for r in subq if r[0] is not None]
             
             # Construire la requête ORM
             query = db.query(Exercise).filter(Exercise.is_archived == False)
@@ -459,6 +474,10 @@ async def get_exercises_list(request):
                         Exercise.question.ilike(search_pattern)
                     )
                 )
+
+            # Exclure les exercices déjà réussis si demandé
+            if completed_ids_to_exclude:
+                query = query.filter(Exercise.id.notin_(completed_ids_to_exclude))
             
             logger.debug("[STEP 9] Filtres appliqués")
             
@@ -466,7 +485,7 @@ async def get_exercises_list(request):
             total = query.count()
             logger.debug(f"[STEP 10] Total compté: {total}")
             
-            # Récupérer les exercices avec pagination
+            # Récupérer les exercices avec pagination (mêmes filtres que la query principale)
             exercises_objs_raw = db.query(
                 Exercise.id,
                 Exercise.title,
@@ -498,8 +517,14 @@ async def get_exercises_list(request):
                         Exercise.question.ilike(search_pattern)
                     )
                 )
-            
-            exercises_objs_raw = exercises_objs_raw.order_by(Exercise.created_at.desc()).limit(limit).offset(skip).all()
+            if completed_ids_to_exclude:
+                exercises_objs_raw = exercises_objs_raw.filter(Exercise.id.notin_(completed_ids_to_exclude))
+
+            # Ordre : aléatoire par défaut (varier l'entraînement), ou récent
+            if order == "recent":
+                exercises_objs_raw = exercises_objs_raw.order_by(Exercise.created_at.desc()).limit(limit).offset(skip).all()
+            else:
+                exercises_objs_raw = exercises_objs_raw.order_by(func.random()).limit(limit).offset(skip).all()
             logger.debug(f"[STEP 11] Exercices récupérés: {len(exercises_objs_raw)} éléments")
             
             import json as json_module

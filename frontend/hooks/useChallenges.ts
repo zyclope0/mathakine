@@ -18,6 +18,8 @@ export interface ChallengeFilters {
   search?: string;
   skip?: number;
   limit?: number;
+  order?: "random" | "recent";
+  hide_completed?: boolean;
 }
 
 export interface SubmitChallengeAnswerPayload {
@@ -42,7 +44,12 @@ export function useChallenges(filters?: ChallengeFilters) {
   } = usePaginatedContent<Challenge>(filters as Record<string, string | number | null | undefined> | undefined, {
     endpoint: "/api/challenges",
     queryKey: "challenges",
-    paramKeys: { challenge_type: "challenge_type", age_group: "age_group" },
+    paramKeys: {
+      challenge_type: "challenge_type",
+      age_group: "age_group",
+      order: "order",
+      hide_completed: "hide_completed",
+    },
     fixedParams: { active_only: "true" },
     staleTime: 30 * 1000,
   });

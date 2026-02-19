@@ -234,6 +234,8 @@ def list_challenges(
     tags: Optional[str] = None,
     limit: int = 10,
     offset: int = 0,
+    order: str = "random",
+    exclude_ids: Optional[List[int]] = None,
 ) -> List[LogicChallenge]:
     """
     Lister les challenges avec filtres.
@@ -269,13 +271,20 @@ def list_challenges(
     if tags:
         # Recherche partielle dans les tags
         query = query.filter(LogicChallenge.tags.contains(tags))
+
+    # Exclure les défis déjà réussis si demandé
+    if exclude_ids:
+        query = query.filter(LogicChallenge.id.notin_(exclude_ids))
     
-    # Trier par date de création (plus récent d'abord)
-    # Si created_at est NULL, utiliser l'ID comme critère secondaire (plus l'ID est élevé, plus récent)
-    query = query.order_by(
-        LogicChallenge.created_at.desc().nullslast(),
-        LogicChallenge.id.desc()  # Critère secondaire : ID décroissant
-    )
+    # Ordre : aléatoire par défaut (varier l'entraînement), ou récent
+    if order == "recent":
+        query = query.order_by(
+            LogicChallenge.created_at.desc().nullslast(),
+            LogicChallenge.id.desc()
+        )
+    else:
+        from sqlalchemy import func
+        query = query.order_by(func.random())
     
     return query.offset(offset).limit(limit).all()
 
@@ -284,6 +293,7 @@ def count_challenges(
     db: Session,
     challenge_type: Optional[str] = None,
     age_group: Optional[str] = None,
+    exclude_ids: Optional[List[int]] = None,
 ) -> int:
     """
     Compter les challenges avec filtres.
@@ -292,6 +302,7 @@ def count_challenges(
         db: Session SQLAlchemy
         challenge_type: Filtrer par type (optionnel)
         age_group: Filtrer par groupe d'âge (optionnel)
+        exclude_ids: IDs à exclure du comptage (ex: défis déjà réussis)
     
     Returns:
         Nombre de challenges correspondant aux filtres
@@ -303,6 +314,9 @@ def count_challenges(
     
     if age_group:
         query = query.filter(LogicChallenge.age_group == age_group)
+
+    if exclude_ids:
+        query = query.filter(LogicChallenge.id.notin_(exclude_ids))
     
     return query.count()
 

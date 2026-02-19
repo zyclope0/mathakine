@@ -43,6 +43,8 @@ async def get_challenges_list(request: Request):
         limit_param = request.query_params.get('limit')
         limit = int(limit_param) if limit_param else 20
         active_only = request.query_params.get('active_only', 'true').lower() == 'true'
+        order = (request.query_params.get('order') or 'random').lower()
+        hide_completed = request.query_params.get('hide_completed', 'false').lower() == 'true'
         
         # Normaliser les filtres pour correspondre aux valeurs PostgreSQL
         challenge_type = constants.normalize_challenge_type(challenge_type_raw) if challenge_type_raw else None
@@ -58,7 +60,25 @@ async def get_challenges_list(request: Request):
         accept_language = request.headers.get('Accept-Language', 'fr')
         locale = parse_accept_language(accept_language)
 
-        logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, challenge_type_raw={challenge_type_raw}, challenge_type_normalized={challenge_type}, age_group_raw={age_group_raw}, age_group_db={age_group_db}, search={search}, locale={locale}")
+        logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, order={order}, hide_completed={hide_completed}")
+
+        # IDs à exclure si hide_completed
+        exclude_ids = []
+        if hide_completed:
+            user_id = current_user.get("id")
+            if user_id:
+                from server.database import get_db_connection
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                try:
+                    cursor.execute(
+                        "SELECT DISTINCT challenge_id FROM logic_challenge_attempts WHERE user_id = %s AND is_correct = true",
+                        (user_id,)
+                    )
+                    exclude_ids = [row[0] for row in cursor.fetchall() if row[0] is not None]
+                finally:
+                    cursor.close()
+                    conn.close()
 
         # Utiliser le service ORM challenge_service
         async with db_session() as db:
@@ -69,7 +89,9 @@ async def get_challenges_list(request: Request):
                 age_group=age_group_db,  # Utiliser la valeur ENUM DB
                 tags=search,  # Utiliser search comme filtre tags
                 limit=limit,
-                offset=skip
+                offset=skip,
+                order=order,
+                exclude_ids=exclude_ids if exclude_ids else None
             )
             # Convertir les objets en dicts avec normalisation age_group pour frontend
             from app.services.challenge_service import normalize_age_group_for_frontend
@@ -94,7 +116,8 @@ async def get_challenges_list(request: Request):
             total = challenge_service.count_challenges(
                 db=db,
                 challenge_type=challenge_type,
-                age_group=age_group_db  # Utiliser la valeur ENUM DB
+                age_group=age_group_db,
+                exclude_ids=exclude_ids if exclude_ids else None
             )
         
         # Filtrer les défis archivés si nécessaire (déjà fait dans la query, mais double vérification)

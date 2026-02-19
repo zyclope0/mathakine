@@ -180,7 +180,8 @@
       "allLevels": "Tous les niveaux",
       "allAgeGroups": "Tous les âges",
       "aiGenerated": "Générés par IA",
-      "standard": "Standard"
+      "standard": "Standard",
+      "hideCompleted": "Masquer les réussis"
     },
     "search": {
       "placeholder": "Rechercher par titre ou question...",
@@ -344,7 +345,8 @@
       "challengeType": "Type de défi",
       "ageGroup": "Groupe d'âge",
       "allTypes": "Tous les types",
-      "allGroups": "Tous les groupes"
+      "allGroups": "Tous les groupes",
+      "hideCompleted": "Masquer les réussis"
     },
     "search": {
       "label": "Rechercher",

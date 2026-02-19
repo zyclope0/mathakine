@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   CHALLENGE_TYPES,
   CHALLENGE_TYPE_STYLES,
@@ -28,7 +29,7 @@ import {
 } from "@/lib/constants/challenges";
 import { useChallengeTranslations } from "@/hooks/useChallengeTranslations";
 import type { ChallengeFilters } from "@/hooks/useChallenges";
-import { Filter, X, Puzzle, Search, LayoutGrid, List, Sparkles, CheckCircle2 } from "lucide-react";
+import { Filter, X, Puzzle, Search, LayoutGrid, List, Sparkles, CheckCircle2, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import {
@@ -69,6 +70,7 @@ function ChallengesPageContent() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedChallengeId, setSelectedChallengeId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hideCompleted, setHideCompleted] = useState(false);
   const { isCompleted } = useCompletedChallenges();
 
   // Refetch les queries de progression quand on arrive sur la page
@@ -98,8 +100,11 @@ function ChallengesPageContent() {
       f.search = searchQuery.trim();
     }
 
+    f.order = "random"; // Ordre aléatoire par défaut
+    f.hide_completed = hideCompleted;
+
     return f;
-  }, [challengeTypeFilter, ageGroupFilter, searchQuery, currentPage]);
+  }, [challengeTypeFilter, ageGroupFilter, searchQuery, currentPage, hideCompleted]);
 
   const { challenges, total, hasMore, isLoading, error } = useChallenges(filters);
 
@@ -107,7 +112,7 @@ function ChallengesPageContent() {
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE) || 1;
 
   const hasActiveFilters =
-    challengeTypeFilter !== "all" || ageGroupFilter !== "all" || searchQuery.trim() !== "";
+    challengeTypeFilter !== "all" || ageGroupFilter !== "all" || searchQuery.trim() !== "" || hideCompleted;
 
   const handleFilterChange = () => {
     setCurrentPage(1);
@@ -117,6 +122,7 @@ function ChallengesPageContent() {
     setChallengeTypeFilter("all");
     setAgeGroupFilter("all");
     setSearchQuery("");
+    setHideCompleted(false);
     setCurrentPage(1);
   };
 
@@ -270,6 +276,25 @@ function ChallengesPageContent() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Masquer les réussis */}
+            <div className="flex items-center gap-2">
+              <Switch
+                id="hide-completed-challenges"
+                checked={hideCompleted}
+                onCheckedChange={(checked) => {
+                  setHideCompleted(checked);
+                  handleFilterChange();
+                }}
+              />
+              <label
+                htmlFor="hide-completed-challenges"
+                className="text-sm font-medium text-muted-foreground cursor-pointer flex items-center gap-1.5"
+              >
+                <EyeOff className="h-4 w-4" />
+                {t("filters.hideCompleted")}
+              </label>
             </div>
           </div>
         </PageSection>
