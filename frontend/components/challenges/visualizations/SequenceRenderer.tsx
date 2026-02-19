@@ -7,15 +7,20 @@ import { motion } from "framer-motion";
 
 interface SequenceRendererProps {
   visualData: any;
+  difficultyRating?: number | null | undefined;
   className?: string;
   onAnswerChange?: (answer: string) => void;
 }
 
+/** Seuil à partir duquel on masque le pattern suggéré (défis difficiles). */
+const HIDE_PATTERN_ABOVE_DIFFICULTY = 4;
+
 /**
  * Renderer pour les défis de type SEQUENCE.
  * Affiche une séquence de manière interactive avec animation.
+ * Pour difficulté ≥ 4/5, le pattern suggéré est masqué pour garder le défi stimulant.
  */
-export function SequenceRenderer({ visualData, className, onAnswerChange }: SequenceRendererProps) {
+export function SequenceRenderer({ visualData, difficultyRating, className, onAnswerChange }: SequenceRendererProps) {
   // Parser les données de séquence avec gestion robuste des différents formats
   const parseSequence = (data: any): any[] => {
     if (!data) return [];
@@ -99,11 +104,12 @@ export function SequenceRenderer({ visualData, className, onAnswerChange }: Sequ
             })}
           </div>
 
-          {visualData?.pattern && (
-            <div className="text-xs text-muted-foreground italic text-center">
-              Pattern suggéré: {visualData.pattern}
-            </div>
-          )}
+          {visualData?.pattern &&
+            (difficultyRating == null || difficultyRating < HIDE_PATTERN_ABOVE_DIFFICULTY) && (
+              <div className="text-xs text-muted-foreground italic text-center">
+                Pattern suggéré: {visualData.pattern}
+              </div>
+            )}
 
           {/* Zone de réponse pour le prochain élément */}
           {onAnswerChange && (
