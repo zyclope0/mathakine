@@ -98,11 +98,11 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
       original: p,
     }));
     setItems(newItems);
-    // Notifier le parent du nouvel ordre initial
-    if (onOrderChangeRef.current) {
-      const order = newItems.map((item: PuzzleItem) => item.value);
-      onOrderChangeRef.current(order);
-    }
+    // Notifier le parent en différé pour éviter "Cannot update while rendering"
+    const order = newItems.map((item: PuzzleItem) => item.value);
+    queueMicrotask(() => {
+      onOrderChangeRef.current?.(order);
+    });
   }, [pieces.length, visualData]);
 
   const sensors = useSensors(
@@ -120,23 +120,18 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
         const newItems = arrayMove(items, oldIndex, newIndex);
-
-        // Notifier le parent du nouvel ordre via la ref pour éviter les re-renders infinis
-        if (onOrderChangeRef.current) {
-          const order = newItems.map((item) => item.value);
-          onOrderChangeRef.current(order);
-        }
-
+        const order = newItems.map((item) => item.value);
+        queueMicrotask(() => onOrderChangeRef.current?.(order));
         return newItems;
       });
     }
   };
 
-  // Notifier le parent de l'ordre initial uniquement au montage
+  // Notifier le parent de l'ordre initial uniquement au montage (différé)
   useEffect(() => {
     if (onOrderChange) {
       const initialOrder = items.map((item) => item.value);
-      onOrderChange(initialOrder);
+      queueMicrotask(() => onOrderChange(initialOrder));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Seulement au montage, pas à chaque changement de items

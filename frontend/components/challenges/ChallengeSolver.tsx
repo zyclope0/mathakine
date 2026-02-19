@@ -30,6 +30,12 @@ import { toast } from "sonner";
 import { debugLog } from "@/lib/utils/debug";
 import { ChallengeVisualRenderer } from "./visualizations/ChallengeVisualRenderer";
 import { useTranslations } from "next-intl";
+import {
+  extractShapeChoicesFromVisualData,
+  parsePositionsFromCorrectAnswer,
+  parsePositionsFromQuestion,
+  parsePositionsFromLayout,
+} from "@/lib/utils/visualChallengeUtils";
 
 interface ChallengeSolverProps {
   challengeId: number;
@@ -61,6 +67,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
   const [hintsUsed, setHintsUsed] = useState<number[]>([]);
   const [availableHints, setAvailableHints] = useState<string[]>([]);
   const [puzzleOrder, setPuzzleOrder] = useState<string[]>([]);
+  const [visualSelections, setVisualSelections] = useState<Record<number, string>>({});
   const [retryKey, setRetryKey] = useState<number>(0); // Clé pour forcer la réinitialisation des visualisations
   const startTimeRef = useRef<number>(Date.now());
 
@@ -113,9 +120,32 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
       setShowExplanation(false);
       setHintsUsed([]);
       setPuzzleOrder([]);
+      setVisualSelections({});
       startTimeRef.current = Date.now();
     }
   }, [challenge?.id]);
+
+  // Syncer visualSelections multi-position vers userAnswer (doit être avant tout early return)
+  const visualPositionsForSync =
+    challenge &&
+    (parsePositionsFromCorrectAnswer(challenge.correct_answer).length > 0
+      ? parsePositionsFromCorrectAnswer(challenge.correct_answer)
+      : parsePositionsFromQuestion(challenge.question).length > 0
+        ? parsePositionsFromQuestion(challenge.question)
+        : parsePositionsFromLayout(challenge.visual_data));
+  const hasVisualButtonsForSync =
+    challenge?.challenge_type?.toLowerCase() === "visual" &&
+    !(Array.isArray(challenge.choices) && challenge.choices.length > 0) &&
+    extractShapeChoicesFromVisualData(challenge.visual_data).length >= 2 &&
+    !!challenge.visual_data;
+  useEffect(() => {
+    if (!hasVisualButtonsForSync || !visualPositionsForSync || visualPositionsForSync.length < 2)
+      return;
+    const parts = visualPositionsForSync
+      .filter((p) => visualSelections[p])
+      .map((p) => `Position ${p}: ${visualSelections[p]}`);
+    setUserAnswer(parts.join(", "));
+  }, [visualSelections, visualPositionsForSync, hasVisualButtonsForSync]);
 
   // Fonction pour réessayer le défi
   const handleRetry = () => {
@@ -285,6 +315,26 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
       : [];
   const hasChoices = choicesArray.length > 0;
 
+  // Choix dérivés pour VISUAL (toutes les formes du défi, pas d'orientation)
+  const isVisual = challenge.challenge_type?.toLowerCase() === "visual";
+  const visualChoices = isVisual && challenge.visual_data
+    ? extractShapeChoicesFromVisualData(challenge.visual_data)
+    : [];
+  const visualPositions =
+    parsePositionsFromCorrectAnswer(challenge.correct_answer).length > 0
+      ? parsePositionsFromCorrectAnswer(challenge.correct_answer)
+      : parsePositionsFromQuestion(challenge.question).length > 0
+        ? parsePositionsFromQuestion(challenge.question)
+        : parsePositionsFromLayout(challenge.visual_data);
+  const hasVisualButtons =
+    isVisual &&
+    !hasChoices &&
+    visualChoices.length >= 2 &&
+    !!challenge.visual_data;
+  const isVisualMultiComplete =
+    visualPositions.length <= 1 ||
+    visualPositions.every((p) => visualSelections[p]);
+
   return (
     <div className="space-y-6">
       {/* En-tête avec badges */}
@@ -404,6 +454,61 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                   </Button>
                 ))}
               </div>
+            ) : hasVisualButtons ? (
+              <div className="space-y-4">
+                {visualPositions.length > 1 ? (
+                  visualPositions.map((pos) => (
+                    <div key={pos}>
+                      <p className="text-sm font-medium text-foreground mb-2">
+                        {t("positionLabel", { position: pos })}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {visualChoices.map((choice) => {
+                          const isSelected = visualSelections[pos] === choice;
+                          return (
+                            <Button
+                              key={`${pos}-${choice}`}
+                              variant={isSelected ? "default" : "outline"}
+                              size="sm"
+                              onClick={() =>
+                                setVisualSelections((prev) => ({
+                                  ...prev,
+                                  [pos]: prev[pos] === choice ? "" : choice,
+                                }))
+                              }
+                              disabled={hasSubmitted}
+                              aria-pressed={isSelected}
+                            >
+                              {choice}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {visualChoices.map((choice) => {
+                      const isSelected = userAnswer === choice;
+                      return (
+                        <Button
+                          key={choice}
+                          variant={isSelected ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setUserAnswer(isSelected ? "" : choice)}
+                          disabled={hasSubmitted}
+                          aria-pressed={isSelected}
+                        >
+                          {choice}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  {t("visualSelectHint")}
+                </p>
+              </div>
             ) : challenge.challenge_type?.toLowerCase() === "puzzle" && puzzleOrder.length > 0 ? (
               <div className="space-y-3">
                 <div className="p-4 bg-muted/30 rounded-lg border border-primary/20">
@@ -513,7 +618,9 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                   placeholder={
                     challenge.challenge_type?.toLowerCase() === "chess"
                       ? t("chessAnswerPlaceholder")
-                      : t("enterAnswer")
+                      : challenge.challenge_type?.toLowerCase() === "visual"
+                        ? t("visualAnswerPlaceholder")
+                        : t("enterAnswer")
                   }
                   className="text-lg"
                   disabled={hasSubmitted}
@@ -528,13 +635,24 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                 {challenge.challenge_type?.toLowerCase() === "chess" && (
                   <p className="text-xs text-muted-foreground">{t("chessAnswerFormat")}</p>
                 )}
+                {challenge.challenge_type?.toLowerCase() === "visual" && (
+                  <p className="text-xs text-muted-foreground">{t("visualAnswerFormat")}</p>
+                )}
               </div>
             )}
 
             <div className="flex gap-2">
               <Button
                 onClick={handleSubmit}
-                disabled={!userAnswer.trim() || isSubmitting || hasSubmitted}
+                disabled={
+                  isSubmitting ||
+                  hasSubmitted ||
+                  (hasVisualButtons
+                    ? visualPositions.length > 1
+                      ? !isVisualMultiComplete
+                      : !userAnswer.trim()
+                    : !userAnswer.trim())
+                }
                 className="flex-1"
                 aria-label={isSubmitting ? t("validating") : t("validateAnswer")}
                 aria-busy={isSubmitting}

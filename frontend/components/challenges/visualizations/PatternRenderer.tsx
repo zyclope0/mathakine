@@ -37,6 +37,10 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
     ? grid
     : Array.from({ length: gridSize }, (_, i) => grid.slice(i * gridSize, (i + 1) * gridSize));
 
+  const questionCount = grid2D.flat().filter(
+    (c: any) => c === "?" || (typeof c === "string" && c.includes("?"))
+  ).length;
+
   if (!grid || grid.length === 0) {
     return (
       <Card className={`bg-card border-primary/20 ${className || ""}`}>
@@ -110,7 +114,9 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
           {onAnswerChange && (
             <div className="space-y-2 pt-2 border-t border-primary/20">
               <label className="text-sm font-medium text-foreground">
-                Quel est le pattern identifié ?
+                {questionCount > 1
+                  ? `Quels symboles remplacent les ${questionCount} « ? » ? (ordre ligne par ligne)`
+                  : "Quel symbole remplace le « ? » ?"}
               </label>
               <input
                 type="text"
@@ -122,7 +128,7 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
                     onAnswerChange(value);
                   }
                 }}
-                placeholder="Décrivez le pattern..."
+                placeholder={questionCount > 1 ? "Ex : O O X O ou O, O, X, O (espaces ou virgules)" : "Ex : X ou O (le symbole manquant)"}
                 className="w-full px-3 py-2 rounded-lg border-2 border-primary/30 bg-card text-foreground focus:border-primary focus:outline-none"
               />
             </div>

@@ -43,6 +43,7 @@ export function ChallengeVisualRenderer({
       return (
         <SequenceRenderer
           visualData={challenge.visual_data}
+          difficultyRating={challenge.difficulty_rating ?? null}
           {...(className !== undefined && { className })}
           {...(onAnswerChange !== undefined && { onAnswerChange })}
         />

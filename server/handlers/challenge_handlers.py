@@ -260,6 +260,64 @@ async def submit_challenge_answer(request: Request):
                 return JSONResponse({"error": "Défi logique non trouvé"}, status_code=404)
             
             # Vérifier la réponse
+            def _normalize_accents(text: str) -> str:
+                """Retire les accents pour tolérance (carré→carre, élève→eleve)."""
+                import unicodedata
+                return ''.join(
+                    c for c in unicodedata.normalize('NFD', text)
+                    if unicodedata.category(c) != 'Mn'
+                ) if text else ''
+
+            def _normalize_shape_answer(text: str) -> str:
+                """Normalise pour VISUAL : synonymes, accents, ordre forme+couleur."""
+                if not text:
+                    return ''
+                t = text.lower().strip()
+                for old, new in [('rectangle', 'carre'), ('square', 'carre'), ('circle', 'cercle'),
+                                 ('carré', 'carre'), ('étoile', 'etoile'), ('losange', 'losange')]:
+                    if old in t:
+                        t = t.replace(old, new)
+                t = _normalize_accents(t)
+                # Accepter "bleu carre" ou "carre bleu" -> normaliser en "carre bleu"
+                mots = t.split()
+                formes = {'carre', 'cercle', 'triangle', 'rectangle', 'losange', 'etoile', 'hexagone', 'pentagone'}
+                couleurs = {'rouge', 'bleu', 'vert', 'jaune', 'orange', 'violet', 'rose', 'gris', 'noir', 'blanc', 'red', 'blue', 'green', 'yellow'}
+                f, c = None, None
+                for m in mots:
+                    if m in formes:
+                        f = m
+                    elif m in couleurs:
+                        c = m
+                if f and c:
+                    t = f'{f} {c}'
+                return t
+
+            def _parse_multi_visual_answer(text: str) -> list:
+                """Parse multi-cellules VISUAL. Formats acceptés :
+                - 'Position 6: carré bleu, Position 9: triangle vert'
+                - '6:cercle rouge,9:étoile jaune' (format IA)
+                """
+                if not text or not text.strip():
+                    return []
+                parts = []
+                for segment in text.replace(',', ' , ').split(','):
+                    segment = segment.strip()
+                    if not segment:
+                        continue
+                    # Format "Position 6: xxx" ou "6: xxx"
+                    if ':' in segment:
+                        pos_part, ans_part = segment.split(':', 1)
+                        ans_part = ans_part.strip()
+                        pos_digits = ''.join(c for c in pos_part if c.isdigit())
+                        if pos_digits and ans_part and not ans_part.isdigit():
+                            # Segment ressemble à "6:cercle rouge" ou "Position 6: cercle rouge"
+                            parts.append((int(pos_digits), _normalize_shape_answer(ans_part)))
+                            continue
+                    parts.append((0, _normalize_shape_answer(segment)))
+                if parts:
+                    return parts
+                return [(0, _normalize_shape_answer(text))] if text.strip() else []
+
             # Fonction helper pour parser une réponse (gère format liste Python et CSV)
             def parse_answer_to_list(answer: str) -> list:
                 """Parse une réponse en liste, gérant plusieurs formats."""
@@ -284,9 +342,14 @@ async def submit_challenge_answer(request: Request):
                             items.append(item)
                     return items
                 
-                # Format CSV simple : "Rouge,Vert,Jaune,Bleu"
+                # Format CSV simple : "Rouge,Vert,Jaune,Bleu" ou "O, O, X, O"
                 if ',' in answer:
                     return [item.strip().lower() for item in answer.split(',') if item.strip()]
+                
+                # Séparateur espaces : "O O X O" (sans virgules)
+                parts = [p.strip().lower() for p in answer.split() if p.strip()]
+                if len(parts) > 1:
+                    return parts
                 
                 # Valeur simple
                 return [answer.lower()] if answer else []
@@ -343,21 +406,90 @@ async def submit_challenge_answer(request: Request):
             if 'deduction' in challenge_type and ':' in user_solution:
                 is_correct = compare_deduction_answers(user_solution, challenge.correct_answer)
                 logger.debug(f"Comparaison déduction - User: {user_solution[:100]}, Correct: {challenge.correct_answer[:100] if challenge.correct_answer else 'None'}, Result: {is_correct}")
+            elif 'visual' in challenge_type or 'pattern' in challenge_type:
+                # PATTERN avec grille : source de vérité = analyse du pattern, pas correct_answer en base
+                computed_pattern_answer = None
+                if 'pattern' in challenge_type:
+                    vd = challenge.visual_data
+                    if isinstance(vd, dict) and vd.get('grid'):
+                        from app.services.challenge_validator import (
+                            analyze_pattern, compute_pattern_answers_multi)
+                        grid = vd['grid']
+                        # Plusieurs "?" → format "O, O, X, O" (ordre ligne par ligne)
+                        computed_multi = compute_pattern_answers_multi(grid)
+                        if computed_multi:
+                            computed_pattern_answer = computed_multi
+                        else:
+                            for i, row in enumerate(grid):
+                                if not isinstance(row, (list, tuple)):
+                                    continue
+                                for j, cell in enumerate(row):
+                                    if cell == '?' or (isinstance(cell, str) and '?' in str(cell)):
+                                        computed_pattern_answer = analyze_pattern(grid, i, j)
+                                        break
+                                if computed_pattern_answer is not None:
+                                    break
+                effective_correct = (computed_pattern_answer or challenge.correct_answer or '').strip()
+                if computed_pattern_answer:
+                    logger.debug(f"PATTERN: réponse calculée depuis la grille = '{computed_pattern_answer}'")
+                # PATTERN multi-cellules : format "O, O, X, O" (liste de symboles, ordre des "?")
+                is_pattern_multi_csv = (
+                    'pattern' in challenge_type
+                    and effective_correct
+                    and ',' in effective_correct
+                    and 'position' not in effective_correct.lower()
+                )
+                if is_pattern_multi_csv:
+                    user_list = parse_answer_to_list(user_solution)
+                    correct_list = parse_answer_to_list(effective_correct)
+                    user_norm = [_normalize_shape_answer(u) for u in user_list]
+                    correct_norm = [_normalize_shape_answer(c) for c in correct_list]
+                    is_correct = len(user_norm) == len(correct_norm) and all(
+                        u == c for u, c in zip(user_norm, correct_norm)
+                    )
+                else:
+                    # VISUAL/PATTERN : tolérance synonymes, format "Position 6: x, Position 9: y"
+                    user_parts = _parse_multi_visual_answer(user_solution)
+                    correct_parts = _parse_multi_visual_answer(effective_correct or '')
+                    is_multi_position = (
+                        len(correct_parts) > 1 and any(p[0] > 0 for p in correct_parts)
+                    ) or (
+                        len(user_parts) > 1 and any(p[0] > 0 for p in user_parts)
+                    )
+                    if is_multi_position:
+                        if len(correct_parts) == 1 and len(user_parts) == 1:
+                            is_correct = user_parts[0][1] == correct_parts[0][1]
+                        elif len(user_parts) == len(correct_parts):
+                            correct_sorted = sorted(correct_parts, key=lambda x: x[0])
+                            user_sorted = sorted(user_parts, key=lambda x: x[0])
+                            by_position = all(u[1] == c[1] for u, c in zip(user_sorted, correct_sorted))
+                            if not by_position and all(u[0] == 0 for u in user_parts):
+                                user_answers = {p[1] for p in user_parts if p[1]}
+                                correct_answers = {p[1] for p in correct_parts if p[1]}
+                                is_correct = user_answers == correct_answers
+                            else:
+                                is_correct = by_position
+                        else:
+                            user_answers = {p[1] for p in user_parts if p[1]}
+                            correct_answers = {p[1] for p in correct_parts if p[1]}
+                            is_correct = user_answers == correct_answers and len(user_answers) == len(correct_answers)
+                    else:
+                        user_list = parse_answer_to_list(user_solution)
+                        correct_list = parse_answer_to_list(effective_correct)
+                        u = user_list[0] if user_list else ''
+                        c = correct_list[0] if correct_list else ''
+                        is_correct = _normalize_shape_answer(u) == _normalize_shape_answer(c)
+                logger.debug(f"Comparaison VISUAL/PATTERN - Result: {is_correct}")
             else:
-                # Parser les deux réponses pour autres types
                 user_list = parse_answer_to_list(user_solution)
                 correct_list = parse_answer_to_list(challenge.correct_answer)
-                
                 logger.debug(f"Comparaison réponse - User: {user_list}, Correct: {correct_list}")
-                
-                # Comparer les listes (ordre important pour les puzzles)
                 if len(user_list) > 1 or len(correct_list) > 1:
                     is_correct = user_list == correct_list
                 else:
-                    # Comparaison simple pour les réponses à un seul élément
-                    user_normalized = user_list[0] if user_list else ''
-                    correct_normalized = correct_list[0] if correct_list else ''
-                    is_correct = user_normalized == correct_normalized
+                    u = user_list[0] if user_list else ''
+                    c = correct_list[0] if correct_list else ''
+                    is_correct = u == c
             
             # NOTE: attempt_service_translations archivé - utiliser LogicChallengeAttempt ORM
             from app.models.logic_challenge import LogicChallengeAttempt
@@ -377,11 +509,41 @@ async def submit_challenge_answer(request: Request):
             db.commit()
             db.refresh(attempt)
             logger.debug(f"Tentative challenge créée: {attempt.id}")
-            
+
+            # Lot C / B5 : vérifier les badges (défis logiques, mixte) après une tentative correcte
+            new_badges = []
+            if is_correct:
+                try:
+                    from app.services.badge_service import BadgeService
+                    badge_service = BadgeService(db)
+                    new_badges = badge_service.check_and_award_badges(user_id)
+                except Exception as badge_err:
+                    logger.warning(f"Badge check après défi: {badge_err}")
+
+            # Mettre à jour la série d'entraînement (streak) — toute tentative compte
+            try:
+                from app.services.streak_service import update_user_streak
+                update_user_streak(db, user_id)
+            except Exception:
+                pass
+
+            # Notification « Tu approches » si pas de nouveau badge mais un proche
+            progress_notif = None
+            if not new_badges:
+                try:
+                    from app.services.badge_service import BadgeService
+                    svc = BadgeService(db)
+                    progress_notif = svc.get_closest_progress_notification(user_id)
+                except Exception:
+                    pass
+
             response_data = {
                 'is_correct': is_correct,
                 'explanation': challenge.solution_explanation if is_correct else None,
+                'new_badges': new_badges,
             }
+            if progress_notif:
+                response_data['progress_notification'] = progress_notif
             
             if not is_correct:
                 # Ne pas révéler la bonne réponse immédiatement, mais la donner dans l'explication après plusieurs tentatives
@@ -700,7 +862,7 @@ async def generate_ai_challenge_stream(request: Request):
 
 RÈGLE ABSOLUE : Tu DOIS créer un défi de type "{challenge_type}" uniquement. Ne crée JAMAIS un défi d'un autre type.
 
-GROUPE D'ÂGE CIBLE : {age_group} ans
+GROUPE D'ÂGE CIBLE : {params['display']}
 - Complexité : {params["complexity"]}
 - Nombres : max {params["numbers_max"]}
 - Étapes de raisonnement : {params["steps"]}
@@ -739,7 +901,19 @@ Les indices doivent encourager la réflexion sans révéler la solution.
 VISUAL_DATA OBLIGATOIRE :
 Tu DOIS créer un objet visual_data adapté au type de défi :
 - SEQUENCE : {{"sequence": [2, 4, 6, 8], "pattern": "n+2"}}
+  RÈGLE DIFFICULTÉ SEQUENCE : Pour difficulty_rating >= 4 (défis difficiles), NE PAS inclure "pattern" dans visual_data.
+  Le pattern suggéré donne la solution et rend le défi trop facile. L'utilisateur doit découvrir la règle seul.
+  VARIATION OBLIGATOIRE pour défis difficiles (adulte, difficulty >= 4) :
+  - ÉVITER le pattern surutilisé "écarts qui doublent" (ex: +3, +6, +12, +24 → trop prévisible).
+  - Préférer des règles plus variées mais toujours logiques :
+    * Géométrique : 2, 6, 18, 54 (×3) ou 3, 12, 48 (×4)
+    * Carrés : 1, 4, 9, 16, 25 ou 2, 5, 10, 17, 26 (n²+1)
+    * n×2+1 : 1, 3, 7, 15, 31 (chaque terme = précédent×2+1)
+    * Différences en progression arithmétique : 2, 4, 7, 11, 16 (diffs +2,+3,+4,+5 → prochaine +6)
+    * Alternance : +3 puis ×2, puis +3, ×2... (ex: 5, 8, 16, 19, 38, 41...)
+    * Fibonacci-like : 1, 2, 3, 5, 8, 13 (somme des deux précédents)
 - PATTERN : {{"grid": [["X", "O", "X"], ["O", "X", "O"], ["X", "O", "?"]], "size": 3}}
+  Plusieurs "?" : correct_answer DOIT lister TOUS les symboles dans l'ordre (ligne par ligne). Format: "O, O, X, O"
 - PUZZLE : {{"pieces": ["Rouge", "Bleu", "Vert", "Jaune"], "hints": ["L'indice 1 qui aide à trouver l'ordre", "L'indice 2 qui aide à trouver l'ordre", "L'indice 3 qui aide à trouver l'ordre"], "description": "Description du contexte du puzzle"}}
   IMPORTANT PUZZLE : Tu DOIS toujours fournir des indices (hints) suffisants pour que l'utilisateur puisse déduire l'ordre correct ! Sans indices, le puzzle est impossible à résoudre.
 - GRAPH : {{"nodes": ["A", "B", "C", "D"], "edges": [["A", "B"], ["B", "C"], ["C", "D"], ["D", "A"]]}} // IMPORTANT : Tous les noms de nœuds dans edges DOIVENT exister dans nodes
@@ -751,12 +925,19 @@ Tu DOIS créer un objet visual_data adapté au type de défi :
   - Les associations sont séparées par des virgules, les éléments de chaque association par des ":"
   - Les clues doivent permettre de déduire la solution unique
 - VISUAL (inclut spatial) : 
-  * Pour symétrie/rotation : {{"type": "symmetry", "symmetry_line": "vertical", "layout": [{{"position": 0, "shape": "triangle", "side": "left"}}, {{"position": 1, "shape": "rectangle", "side": "left"}}, {{"position": 2, "shape": "?", "side": "right", "question": true}}, {{"position": 3, "shape": "cercle", "side": "right"}}], "shapes": ["triangle", "rectangle", "?", "cercle"], "arrangement": "horizontal", "description": "Ligne de symétrie verticale au centre"}}
+  * Pour symétrie/rotation : {{"type": "symmetry", "symmetry_line": "vertical", "layout": [{{"position": 0, "shape": "carré", "color": "bleu", "side": "left"}}, {{"position": 1, "shape": "triangle", "color": "vert", "side": "left"}}, {{"position": 2, "shape": "?", "color": "?", "side": "right", "question": true}}, {{"position": 3, "shape": "triangle", "color": "vert", "side": "right"}}], "shapes": ["carré bleu", "triangle vert", "?", "triangle vert"], "arrangement": "horizontal", "description": "Ligne de symétrie verticale au centre"}} — Pour une forme 4 côtés égaux (■), utilise "carré" pas "rectangle".
   * Pour formes colorées : {{"shapes": ["cercle rouge", "triangle vert", "carré bleu", "cercle rouge", "triangle vert", "carré ?"], "arrangement": "ligne"}}
   * Pour autres : {{"shapes": ["cercle", "carré", "triangle"], "arrangement": "ligne"}} ou {{"ascii": "ASCII art"}}
 - CODING (cryptographie et décodage) :
   * Pour code César : {{"type": "caesar", "encoded_message": "KHOOR", "shift": 3, "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "hint": "Chaque lettre est décalée de 3 positions", "description": "Décode ce message secret en utilisant le code César"}}
-  * Pour substitution : {{"type": "substitution", "encoded_message": "YFWJ", "key": {{"A": "Y", "B": "Z", "C": "A", "D": "B", "E": "C", "F": "D", "G": "E", "H": "F", "I": "G", "J": "H", "K": "I", "L": "J", "M": "K", "N": "L", "O": "M", "P": "N", "Q": "O", "R": "P", "S": "Q", "T": "R", "U": "S", "V": "T", "W": "U", "X": "V", "Y": "W", "Z": "X"}}, "partial_key": {{"Y": "A", "F": "H", "W": "E", "J": "L"}}, "description": "Utilise la table de correspondance partielle pour décoder le message"}}
+  * Pour substitution avec TABLE DE CORRESPONDANCE : deux options VALIDES uniquement :
+  A) Clé COMPLÈTE (key, 26 lettres) : pour substitution arbitraire sans règle déductible.
+  B) Clé PARTIELLE (partial_key) : UNIQUEMENT si la règle est DÉDUCTIBLE. Ajouter "rule_type": "caesar"|"atbash"|"keyword" dans visual_data.
+  Règles déductibles (3-5 exemples dans partial_key, format lettre codée→lettre claire) :
+  - César : {{"rule_type": "caesar", "partial_key": {{"D": "A", "E": "B", "F": "C"}}, ...}} → décalage constant +3
+  - Atbash : {{"rule_type": "atbash", "partial_key": {{"Z": "A", "Y": "B"}}, ...}} → alphabet inversé
+  - Clé-mot : {{"rule_type": "keyword", "partial_key": {{"M": "A", "A": "B", "T": "C", "H": "D"}}, ...}} → 4-6 exemples pour retrouver le mot
+  ⛔ INTERDIT : substitution arbitraire avec partial_key (B→C, N→R, J→G = décalages incohérents, impossible à déduire).
   * Pour binaire : {{"type": "binary", "encoded_message": "01001000 01001001", "hint": "Chaque groupe de 8 bits représente une lettre ASCII", "description": "Convertis ce code binaire en lettres"}}
   * Pour symboles : {{"type": "symbols", "encoded_message": "★●★ ▲■", "key": {{"★": "A", "●": "B", "▲": "C", "■": "D"}}, "description": "Utilise la clé pour décoder les symboles"}}
   * Pour algorithme simple : {{"type": "algorithm", "steps": ["Prends le nombre de départ", "Multiplie par 2", "Ajoute 5", "Divise par le nombre de départ", "Résultat ?"], "input": 3, "description": "Suis les étapes avec le nombre donné"}}
@@ -798,6 +979,8 @@ Tu DOIS créer un objet visual_data adapté au type de défi :
   
   CODING = DÉCODER UN MESSAGE SECRET EN LETTRES/SYMBOLES, PAS naviguer dans des nombres !
 
+- RIDDLE (énigmes) : {{"clues": ["Indice 1", "Indice 2", "Indice 3"], "context": "Contexte de l'énigme", "riddle": "Question ou énigme à résoudre", "description": "Description du problème", "key_elements": ["élément1", "élément2"]}}
+- PROBABILITY (probabilités) : {{"rouge_bonbons": 10, "bleu_bonbons": 5, "vert_bonbons": 3, "total_bonbons": 18, "question": "Quelle est la probabilité de tirer un bonbon rouge ?", "description": "Dans un sac de bonbons..."}} (ou billes, cartes, dés selon le contexte)
 - CHESS (échecs) :
   * INTERDIT : Ne JAMAIS utiliser la position de départ complète pour un mat en X coups (c'est impossible).
   * Pour mat en X coups : utiliser une position TACTIQUE (peu de pièces au centre, roi noir menacé).
@@ -814,15 +997,25 @@ IMPORTANT pour VISUAL :
   Exemple BON : ["cercle rouge", "carré bleu", "triangle vert", "cercle rouge", "carré ?"] → L'utilisateur voit que carré = bleu
 - L'utilisateur doit pouvoir DÉDUIRE la réponse à partir des éléments visibles, pas deviner au hasard.
 - Si le défi concerne la symétrie, tu DOIS utiliser la structure "symmetry" avec "layout" et "symmetry_line".
+- TERMINOLOGIE : Utilise "carré" (pas "rectangle") pour une forme à 4 côtés égaux (■). "Rectangle" = oblong. Visuellement un ■ est un carré.
 - Ne génère JAMAIS de JSON malformé avec des clés comme "arrangement": "[" ou des valeurs invalides.
+{f'''RÈGLE COMPLEXITÉ ADULTE pour VISUAL (OBLIGATOIRE) :
+Pour le groupe adulte, les défis visuels/spatiaux DOIVENT être plus complexes :
+- Au moins 5-6 formes différentes (cercle, carré, triangle, losange, étoile, hexagone)
+- 8 à 10 positions au lieu de 6 (plus de cellules à déduire)
+- OU plusieurs "?" (2-3 cases vides à remplir) dans une grille 4x4
+- OU combinaison symétrie + règle supplémentaire (ex: couleur suit un pattern)
+- Les grilles de symétrie doivent avoir plus de 6 éléments de chaque côté
+''' if age_group == 'adulte' and challenge_type == 'visual' else ''}
 
 VALIDATION LOGIQUE OBLIGATOIRE :
 Avant de retourner le JSON, tu DOIS vérifier la cohérence logique :
 
-1. Pour PATTERN avec grille :
-   - Analyse le pattern dans la grille (lignes, colonnes, diagonales)
-   - Détermine quelle réponse correspond au pattern observé
-   - Assure-toi que correct_answer correspond EXACTEMENT à cette réponse
+1. Pour PATTERN avec grille (OBLIGATOIRE) :
+   - CALCULE correct_answer à partir de la grille : Latin square, damier (lignes 0=2), symétrie, alternance
+   - correct_answer DOIT être le symbole manquant (X, O, A, B...) déduit logiquement
+   - solution_explanation DOIT expliquer CE symbole et être COHÉRENT avec correct_answer
+   - Incohérence (ex. correct_answer=O alors que l'explication dit X) = ERREUR GRAVE
    - Exemple : Si grid = [["X", "O", "X"], ["O", "X", "O"], ["X", "O", "?"]]
      → Le pattern X-O-X suggère que ? = X
      → correct_answer DOIT être "X", pas "O"
@@ -834,6 +1027,7 @@ Avant de retourner le JSON, tu DOIS vérifier la cohérence logique :
    - Exemple [2, 4, 6, 8] : diffs 2,2,2 → prochain = 8+2 = 10 → correct_answer = "10"
    - Exemple [2, 4, 7, 11, 16] : diffs 2,3,4,5 → prochaine diff 6 → prochain = 16+6 = 22 → correct_answer = "22" (PAS 18 !)
    - AVANT de finaliser : recalcule mentalement. correct_answer ET solution_explanation DOIVENT être identiques.
+   - Pour difficulty >= 4 : VARIER les types de patterns (géométrique, carrés, n×2+1, Fibonacci...). ÉVITER systématiquement "écarts qui doublent".
 
 3. Pour PUZZLE :
    - Tu DOIS fournir des indices (hints) qui permettent de DÉDUIRE l'ordre
@@ -865,7 +1059,7 @@ Avant de retourner le JSON, tu DOIS vérifier la cohérence logique :
    - Ces éléments appartiennent au type "visual", "pattern" ou "sequence", PAS à "coding" !
    - Pour "caesar" : fournis "encoded_message" (lettres encodées), "shift" (1-25), correct_answer = mot décodé
      Exemple : encoded_message="FKDW", shift=3, correct_answer="CHAT"
-   - Pour "substitution" : fournis "encoded_message", "key" ou "partial_key" (table lettre→lettre)
+   - Pour "substitution" : fournis "encoded_message" et soit "key" complète, soit "partial_key" si la règle est déductible (César, Atbash, clé-mot).
    - Pour "binary" : fournis "encoded_message" (groupes de 8 bits : "01001111 01010101 01001001"), correct_answer = "OUI"
    - Pour "symbols" : fournis "encoded_message" avec symboles (★●▲), "key" (table symbole→lettre)
    - Pour "algorithm" : fournis "steps" (instructions), "input" (nombre), correct_answer = résultat
@@ -916,6 +1110,13 @@ RÈGLES DE DIFFICULTÉ (difficulty_rating) :
 - 12-14 ans : 3.0 à 4.0 (moyen)
 - 15-17 ans : 3.5 à 4.5 (moyen-difficile)
 - adulte : 4.0 à 5.0 (difficile)
+
+CALIBRATION STRICTE — Ne PAS surévaluer la difficulté :
+- Si la règle est DANS LE TITRE (ex. "double cycle", "symétrie") → max 3.0. L'utilisateur sait déjà quoi chercher.
+- Si c'est un principe connu (Sudoku, Latin square de base) sans piège → max 3.5.
+- UNE SEULE case vide ("?") dans la grille → max 2.5-3.0 : on déduit par élimination sans chercher le pattern. Pas besoin de comprendre la logique globale.
+- Difficile (4+) = plusieurs "?" à remplir OU pattern non évident à découvrir OU piège. La règle doit être DÉCOUVERTE.
+- Pas de piège, règle explicite, 1 seul manquant → difficulté BASSE.
 
 Assure-toi que le visual_data est complet et permet une visualisation interactive.
 IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."""
@@ -1110,6 +1311,9 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                         auto_correct_challenge, validate_challenge_logic)
                     
                     challenge_data['challenge_type'] = challenge_type
+                    # PATTERN avec grille : toujours forcer cohérence correct_answer ↔ analyse du pattern
+                    if challenge_type.lower() == 'pattern':
+                        challenge_data = auto_correct_challenge(challenge_data)
                     is_valid, validation_errors = validate_challenge_logic(challenge_data)
                     
                     if not is_valid:
@@ -1151,7 +1355,6 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                     expected_difficulty = calculate_difficulty_for_age_group(final_age_group)
                     if ai_difficulty and isinstance(ai_difficulty, (int, float)) and 1.0 <= ai_difficulty <= 5.0:
                         # Vérifier que la difficulté est adaptée au groupe d'âge
-                        # Si la difficulté de l'IA est trop éloignée, utiliser celle calculée
                         if abs(ai_difficulty - expected_difficulty) > 1.5:
                             logger.info(f"Difficulté IA ({ai_difficulty}) ajustée pour groupe d'âge {final_age_group} -> {expected_difficulty}")
                             final_difficulty = expected_difficulty
@@ -1159,9 +1362,25 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                             final_difficulty = float(ai_difficulty)
                     else:
                         final_difficulty = expected_difficulty
+                    # Plancher adulte : défis adultes ne doivent jamais être < 4.0
+                    if final_age_group == "adulte" and final_difficulty < 4.0:
+                        logger.info(f"Difficulté adulte ({final_difficulty}) relevée au minimum 4.0")
+                        final_difficulty = 4.0
+                    # PATTERN : 1 seule case vide → élimination simple, pas de découverte du pattern → plafond 3.0
+                    if challenge_type.lower() == 'pattern':
+                        vd = challenge_data.get('visual_data', {})
+                        grid = vd.get('grid', []) if isinstance(vd, dict) else []
+                        question_count = sum(
+                            1 for row in (grid if isinstance(grid, list) else [])
+                            for c in (row if isinstance(row, (list, tuple)) else [])
+                            if c == '?' or (isinstance(c, str) and '?' in str(c))
+                        )
+                        if question_count <= 1 and final_difficulty > 3.0:
+                            logger.info(f"PATTERN: 1 seule case vide → difficulté plafonnée à 3.0 (était {final_difficulty})")
+                            final_difficulty = min(final_difficulty, 3.0)
                     
                     normalized_challenge = {
-                        "challenge_type": challenge_type.upper(),
+                        "challenge_type": challenge_type,
                         "age_group": final_age_group,  # Utiliser la valeur normalisée depuis le frontend (préservée)
                         "title": challenge_data.get("title", f"Défi {challenge_type}"),
                         "description": challenge_data.get("description", ""),

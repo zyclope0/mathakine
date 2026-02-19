@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
+import { Eye, RotateCw, ZoomIn, ZoomOut, ScanSearch } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
@@ -23,7 +23,7 @@ function parseShapeWithColor(shapeText: string): {
   // Détecter si c'est une question
   const isQuestion = text.includes("?");
 
-  // Map des couleurs français/anglais vers CSS
+  // Map des couleurs français/anglais vers CSS (utilisé aussi pour layout.color)
   const colorMap: Record<string, string> = {
     rouge: "#ef4444",
     red: "#ef4444",
@@ -88,6 +88,21 @@ function parseShapeWithColor(shapeText: string): {
 }
 
 /**
+ * Résout un nom de couleur (ex: "bleu", "rouge") vers une valeur CSS
+ */
+function resolveColor(colorName: string | undefined | null): string | null {
+  if (!colorName || typeof colorName !== "string" || colorName === "?") return null;
+  const colorMap: Record<string, string> = {
+    rouge: "#ef4444", red: "#ef4444", bleu: "#3b82f6", blue: "#3b82f6",
+    vert: "#22c55e", green: "#22c55e", jaune: "#eab308", yellow: "#eab308",
+    orange: "#f97316", violet: "#a855f7", purple: "#a855f7", rose: "#ec4899", pink: "#ec4899",
+    noir: "#1f2937", black: "#1f2937", blanc: "#f9fafb", white: "#f9fafb", gris: "#6b7280", gray: "#6b7280",
+  };
+  const key = colorName.toLowerCase().trim();
+  return colorMap[key] ?? null;
+}
+
+/**
  * Fonction helper pour obtenir l'icône d'une forme
  */
 function getShapeIcon(shape: string): string {
@@ -111,13 +126,22 @@ function getShapeIcon(shape: string): string {
   return shapeIconMap[baseShape] || shape.charAt(0).toUpperCase();
 }
 
+/** Scale par défaut pour symétrie avec 8+ items : vue d'ensemble sans débordement */
+function getDefaultScale(visualData: any): number {
+  if (!visualData) return 1;
+  let p = typeof visualData === "string" ? (() => { try { return JSON.parse(visualData); } catch { return {}; } })() : visualData;
+  const layout = p?.layout || [];
+  const isSym = p?.type === "symmetry" || !!p?.symmetry_line;
+  return isSym && Array.isArray(layout) && layout.length >= 8 ? 0.65 : 1;
+}
+
 /**
  * Renderer pour les défis de type VISUAL/SPATIAL.
  * Affiche des formes, rotations et manipulations spatiales.
  */
 export function VisualRenderer({ visualData, className }: VisualRendererProps) {
   const [rotation, setRotation] = useState(0);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(() => getDefaultScale(visualData));
   const [flipped, setFlipped] = useState(false);
 
   // Parser les données visuelles avec gestion robuste
@@ -199,7 +223,11 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
   };
 
   const handleZoomOut = () => {
-    setScale((prev) => Math.max(prev - 0.1, 0.5));
+    setScale((prev) => Math.max(prev - 0.1, 0.4));
+  };
+
+  const handleFitView = () => {
+    setScale(getDefaultScale(visualData));
   };
 
   const handleFlip = () => {
@@ -241,6 +269,14 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                 <ZoomOut className="h-4 w-4" />
               </button>
               <button
+                onClick={handleFitView}
+                className="p-2 rounded hover:bg-muted transition-colors"
+                title="Vue d'ensemble"
+                aria-label="Vue d'ensemble"
+              >
+                <ScanSearch className="h-4 w-4" />
+              </button>
+              <button
                 onClick={handleFlip}
                 className="p-2 rounded hover:bg-muted transition-colors"
                 title="Retourner"
@@ -251,11 +287,11 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
             </div>
           </div>
 
-          <div className="flex justify-center items-center min-h-[200px] bg-muted/30 rounded-lg p-6">
+          <div className="flex justify-center items-center min-h-[200px] bg-muted/30 rounded-lg p-4 w-full overflow-hidden">
             {symmetryType === "symmetry" && layout.length > 0 ? (
-              // Rendu spécialisé pour la symétrie
+              // Grille 10 colonnes : vue d'ensemble sans débordement
               <motion.div
-                className="w-full"
+                className="w-full max-w-full"
                 style={{
                   transform: `rotate(${rotation}deg) scale(${scale}) ${flipped ? "scaleX(-1)" : ""}`,
                   transformOrigin: "center",
@@ -263,39 +299,41 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                 animate={{ rotate: rotation }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="relative flex items-center justify-center gap-4">
-                  {/* Côté gauche */}
-                  <div className="flex gap-3 items-center">
-                    {layout
-                      .filter((item: any) => item.side === "left")
-                      .sort((a: any, b: any) => a.position - b.position)
-                      .map((item: any, idx: number) => (
+                <div className="grid gap-1 sm:gap-2 w-full" style={{ gridTemplateColumns: "repeat(11, minmax(0, 1fr))" }}>
+                  {/* Gauche : 5 cellules */}
+                  {layout
+                    .filter((item: any) => item.side === "left")
+                    .sort((a: any, b: any) => a.position - b.position)
+                    .map((item: any, idx: number) => {
+                      const color = resolveColor(item.color);
+                      return (
                         <motion.div
                           key={`left-${item.position}`}
-                          className="w-20 h-20 border-2 border-primary rounded-lg flex items-center justify-center font-semibold bg-primary/10"
+                          className="aspect-square min-w-0 border-2 border-primary rounded-lg flex items-center justify-center font-semibold bg-primary/10 text-base sm:text-lg"
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: idx * 0.1 }}
                         >
-                          <span className="text-lg">{getShapeIcon(item.shape)}</span>
+                          <span style={color ? { color } : undefined}>{getShapeIcon(item.shape)}</span>
                         </motion.div>
-                      ))}
-                  </div>
-
-                  {/* Ligne de symétrie */}
+                      );
+                    })}
+                  {/* Séparateur symétrie (colonne 6) */}
                   <div
-                    className={`w-1 h-32 bg-primary/50 ${symmetryLine === "vertical" ? "" : "rotate-90"}`}
-                  />
-
-                  {/* Côté droit */}
-                  <div className="flex gap-3 items-center">
-                    {layout
-                      .filter((item: any) => item.side === "right")
-                      .sort((a: any, b: any) => a.position - b.position)
-                      .map((item: any, idx: number) => (
+                    className={`col-span-1 flex items-center justify-center ${symmetryLine === "vertical" ? "min-h-[3rem]" : ""}`}
+                  >
+                    <div className={`w-0.5 sm:w-1 h-full min-h-[2.5rem] bg-primary/50 ${symmetryLine === "vertical" ? "" : "rotate-90"}`} />
+                  </div>
+                  {/* Droit : 5 cellules */}
+                  {layout
+                    .filter((item: any) => item.side === "right")
+                    .sort((a: any, b: any) => a.position - b.position)
+                    .map((item: any, idx: number) => {
+                      const color = resolveColor(item.color);
+                      return (
                         <motion.div
                           key={`right-${item.position}`}
-                          className={`w-20 h-20 border-2 rounded-lg flex items-center justify-center font-semibold ${
+                          className={`aspect-square min-w-0 border-2 rounded-lg flex items-center justify-center font-semibold text-base sm:text-lg ${
                             item.question
                               ? "border-dashed border-primary/70 bg-primary/5 animate-pulse"
                               : "border-primary bg-primary/10"
@@ -305,13 +343,13 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                           transition={{ delay: idx * 0.1 }}
                         >
                           {item.question ? (
-                            <span className="text-2xl font-bold text-primary">?</span>
+                            <span className="text-xl sm:text-2xl font-bold text-primary">?</span>
                           ) : (
-                            <span className="text-lg">{getShapeIcon(item.shape)}</span>
+                            <span style={color ? { color } : undefined}>{getShapeIcon(item.shape)}</span>
                           )}
                         </motion.div>
-                      ))}
-                  </div>
+                      );
+                    })}
                 </div>
                 {visualData?.description && (
                   <p className="text-xs text-muted-foreground text-center mt-4">
