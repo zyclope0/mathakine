@@ -40,12 +40,16 @@ L'espace admin est opérationnel (rôle `archiviste`). Voir [ADMIN_ESPACE_PROPOS
 | Paramètres | `/settings` | ✅ Fonctionnel | Basique |
 | Auth | `/login`, `/register` | ✅ Fonctionnel | OK |
 
-### Endpoints implémentés (mise à jour 15/02/2026)
+### Endpoints implémentés (mise à jour 16/02/2026)
 
 - ✅ `POST /api/auth/forgot-password` - Réinitialisation mot de passe
 - ✅ `PUT /api/users/me` - Modification profil
 - ✅ `PUT /api/users/me/password` - Changement mot de passe
 - ✅ `GET /api/users/leaderboard` - Classement par total_points
+- ✅ `GET /api/users/me/sessions` - Sessions actives (is_current, révocation)
+- ✅ `GET /api/challenges/badges/progress` - Progression vers badges verrouillés
+- ✅ `POST /api/recommendations/complete` - Marquer recommandation comme faite
+- ✅ Mode maintenance + registration_enabled (admin config)
 
 ---
 

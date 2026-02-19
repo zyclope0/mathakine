@@ -312,7 +312,8 @@ async def submit_answer(request):
                         "exercise_type": exercise.get('exercise_type'),
                         "is_correct": is_correct,
                         "time_spent": time_spent,
-                        "exercise_id": exercise_id
+                        "exercise_id": exercise_id,
+                        "created_at": attempt_obj.created_at.isoformat() if attempt_obj and attempt_obj.created_at else None,
                     }
                     
                     # Vérifier et attribuer les nouveaux badges
@@ -328,6 +329,13 @@ async def submit_answer(request):
                     logger.debug(traceback.format_exc())
                     # Ne pas faire échouer la soumission si les badges échouent
 
+                # Mettre à jour la série d'entraînement (streak)
+                try:
+                    from app.services.streak_service import update_user_streak
+                    update_user_streak(db, user_id)
+                except Exception as streak_err:
+                    logger.debug(f"Streak update skipped: {streak_err}")
+
                 # Retourner le résultat avec l'ID de tentative et les nouveaux badges
                 from app.utils.json_utils import make_json_serializable
                 
@@ -342,6 +350,11 @@ async def submit_answer(request):
                 if new_badges:
                     response_data["new_badges"] = make_json_serializable(new_badges)
                     response_data["badges_earned"] = len(new_badges)
+                else:
+                    # Notification « Tu approches » si un badge est proche (>= 50 %, target > 0)
+                    progress_notif = badge_service.get_closest_progress_notification(user_id)
+                    if progress_notif:
+                        response_data["progress_notification"] = progress_notif
                 
                 # Nettoyer toutes les données avant sérialisation JSON (gère les MagicMock dans les tests)
                 response_data = make_json_serializable(response_data)
@@ -729,11 +742,12 @@ async def generate_ai_exercise_stream(request):
   "hint": "Piste sans révéler la solution"
 }}"""
                 
-                # Modèle : o1 pour fractions/texte/mixte/divers quand OPENAI_MODEL_REASONING est défini
+                # Modèle : o1/o3 pour fractions/texte/mixte/divers quand OPENAI_MODEL_REASONING est défini
                 _reasoning_types = ("fractions", "texte", "mixte", "divers")
                 model = (settings.OPENAI_MODEL_REASONING if settings.OPENAI_MODEL_REASONING
                          and exercise_type in _reasoning_types else settings.OPENAI_MODEL)
                 use_o1 = AIConfig.is_o1_model(model)
+                use_o3 = AIConfig.is_o3_model(model)
                 if use_o1:
                     system_prompt += "\n\nCRITIQUE : Retourne UNIQUEMENT un objet JSON valide, sans texte ou markdown avant/après."
                 
@@ -759,11 +773,15 @@ Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respe
                     ],
                     "stream": True,
                 }
-                if not use_o1:
-                    api_kwargs["temperature"] = 0.7
-                    api_kwargs["response_format"] = {"type": "json_object"}
                 if use_o1:
                     api_kwargs["max_completion_tokens"] = 4000
+                elif use_o3:
+                    api_kwargs["response_format"] = {"type": "json_object"}
+                    api_kwargs["max_completion_tokens"] = 4000
+                    api_kwargs["reasoning_effort"] = "low"  # Exercices plus simples que défis
+                else:
+                    api_kwargs["temperature"] = 0.7
+                    api_kwargs["response_format"] = {"type": "json_object"}
                 
                 stream = await client.chat.completions.create(**api_kwargs)
                 

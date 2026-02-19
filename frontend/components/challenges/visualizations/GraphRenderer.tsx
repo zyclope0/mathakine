@@ -48,12 +48,33 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
     nodeMap.set(nodeKey.toUpperCase(), index);
   });
 
-  // Calculer les positions des nœuds (layout simple en cercle)
+  // Positions : explicites (visual_data.positions) ou layout circulaire par défaut
   const centerX = dimensions.width / 2;
   const centerY = dimensions.height / 2;
   const radius = Math.min(dimensions.width, dimensions.height) / 3;
+  const explicitPositions = visualData?.positions || visualData?.layout;
 
-  const nodePositions = nodes.map((_: any, index: number) => {
+  const nodePositions = nodes.map((node: any, index: number) => {
+    if (explicitPositions && typeof explicitPositions === "object") {
+      const nodeKey =
+        typeof node === "object"
+          ? String(node.label || node.value || node.id || index)
+          : String(node);
+      const pos =
+        explicitPositions[nodeKey.toUpperCase()] ?? explicitPositions[nodeKey];
+      if (Array.isArray(pos) && pos.length >= 2 && typeof pos[0] === "number" && typeof pos[1] === "number") {
+        const padding = 40;
+        const maxCoord = 200;
+        const scale = Math.min(
+          (dimensions.width - 2 * padding) / maxCoord,
+          (dimensions.height - 2 * padding) / maxCoord
+        );
+        return {
+          x: padding + pos[0] * scale,
+          y: padding + pos[1] * scale,
+        };
+      }
+    }
     const angle = (2 * Math.PI * index) / nodes.length;
     return {
       x: centerX + radius * Math.cos(angle),

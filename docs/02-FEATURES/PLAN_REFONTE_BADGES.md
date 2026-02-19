@@ -194,7 +194,7 @@ Les meilleures études en gamification, rétention et psychologie cognitive orie
 | B2 | **Handlers admin** | `admin_handlers.py` ou nouveau `admin_badge_handlers.py` |
 | B3 | **Page admin** | `/admin/content` — nouvel onglet « Badges » ou `/admin/badges` dédié |
 | B4 | **Reformuler badges existants** | Auditer et reformuler les badges actuels (icône, titre, visuel, objectif) dans le contexte du projet. Création, modification, suppression : alignement sur gamification, rétention, psychologie cognitive — **Goal-gradient**, **endowment**, **scarcity**, **social proof**, **loss aversion** |
-| B5 | **Formulaire création/édition** | Champs : code, name, description, category, difficulty, points_reward, is_secret, requirements (JSON éditable ou formulaire structuré). Aide-contexte rappelant les principes psychologiques pour orienter le design |
+| B5 | **Formulaire création/édition** | Champs : code, name, description, category, difficulty, points_reward, is_secret, requirements (JSON éditable ou formulaire structuré). Aide-contexte principes psychologiques. **Enrichissements** : support badges défi/challenge ou mixte (exercices + défis) ; visuel (icône, nom) — esprit progression/maîtrise, sans termes Star Wars directs (droit d'auteur) ; point de contrôle : challenger si nombre de badges suffisant. |
 | B6 | **Suppression** | Soft delete (`is_active=false`) recommandé ; hard delete avec cascade sur `user_achievements` si requis |
 | B7 | **Validation** | Code unique, requirements JSON valide, schéma minimum (`attempts_count` ou `min_attempts`+`success_rate`) |
 
@@ -210,7 +210,70 @@ Lors de l'audit et reformulation des badges (B4), chaque badge doit être repens
 | **Social proof** | « X% ont débloqué » — comparaison avec les pairs renforce le désir |
 | **Loss aversion** | Streaks, « Tu approches, ne lâche pas ! » — peur de perdre motive 2× plus que l'espoir de gagner |
 
-**Livrable B4** : Chaque badge reformulé avec icône, titre, description, objectif alignés sur ces principes et le contexte Mathakine (thème Jedi, gamification éducative).
+**Livrable B4** : Chaque badge reformulé avec icône, titre, description, objectif alignés sur ces principes et le contexte Mathakine (thème Jedi, gamification éducative).  
+→ Voir [B4_REFORMULATION_BADGES](B4_REFORMULATION_BADGES.md) pour le détail complet et `scripts/update_badges_b4.py` pour l'application en base.
+
+### 5.3.1 B4 — Périmètre « challenge » (défis logiques vs exercices)
+
+Mathakine comporte deux piliers d'activité : **exercices mathématiques** (`Attempt`) et **défis logiques** (`LogicChallengeAttempt`). Pour B4 :
+
+| Aspect | Décision B4 | Justification |
+|--------|-------------|---------------|
+| **Badges existants** | Basés uniquement sur `Attempt` (exercices) | Le moteur `BadgeService` interroge uniquement la table `attempts` |
+| **Défis logiques** | Hors périmètre B4 | Pas de badges actuels basés sur `LogicChallengeAttempt` ; B4 = reformulation des badges existants |
+| **Libellés** | Formulations explicites « exercices » | Éviter toute ambiguïté (« résoudre X exercices » et non « missions ») |
+| **Extension future** | Lot C ou B5+ | Possibilité de badges « défi logique » (ex. `logic_explorer`, `sequence_master`) avec requirements étendus |
+
+**Réconciliation** : La demande « pense au challenge » est prise en compte en *documentant* le contexte dual (exercices + défis) et en *clarifiant* que B4 reformule les badges exercices existants. L’ajout de badges défi logique relève d’une évolution ultérieure (nouveaux codes, nouveau checker `LogicChallengeAttempt`).
+
+### 5.3.2 B5 — Enrichissements (défis, visuel, audit nombre)
+
+#### Sources de badges : exercices, défis, mixte
+
+| Type | Source(s) | Exemple requirements | Checker |
+|------|-----------|----------------------|---------|
+| **Exercices** | `Attempt` | `{"attempts_count": 50}` | Existant |
+| **Défis logiques** | `LogicChallengeAttempt` | `{"logic_attempts_count": 10}` ou `{"challenge_type": "sequence", "min_solved": 5}` | À ajouter (Lot C) |
+| **Mixte** | `Attempt` + `LogicChallengeAttempt` | `{"attempts_count": 20, "logic_attempts_count": 5}` | À ajouter (Lot C) |
+
+**C avant B5** : Lot C ajoute les checkers `LogicChallengeAttempt` pour défis et mixte. B5 enrichit ensuite le formulaire (exemples, validation) — les badges créés seront alors attribués dès la création. Exemples de codes : `logic_explorer`, `sequence_master`, `hybrid_warrior`.
+
+#### Visuel : icône, nom — esprit sans droit d'auteur
+
+| Aspect | Règle | Exemple à éviter | Exemple OK |
+|--------|-------|------------------|------------|
+| **Titre / nom** | Progression, maîtrise, initiation — *esprit* fantasy/sci-fi | Termes protégés SW | « Apprenti des Nombres », « Maître des Sommes » |
+| **Titre honorifique** | Même esprit : ordre, grade, épreuve | Références directes SW | « Gardien des Cinquante », « Initiation du Premier Matin » |
+| **Icône** | Emoji ou URL générique, évocateur | Logo SW | ✨ ⚡ 🎯 🌟 (ou icônes custom progression) |
+
+**Principe** : vocabulaire évocateur (Temple, Ordre, Maître, Gardien, Initiation, Épreuve) sans reproduire des œuvres protégées.
+
+#### Challenger le nombre de badges
+
+Une fois les badges défi/mixte et le visuel optimisé livrés, **point de contrôle** : évaluer si le nombre total de badges est suffisant.
+
+| Critère | Seuil indicatif | Action si insuffisant |
+|---------|-----------------|------------------------|
+| Badges exercices | 17 actuels | Couvrent progression, mastery, regularity, discovery, performance |
+| Badges défis | 0 → cible 3–5 | Créer `logic_explorer`, `sequence_master`, etc. |
+| Badges mixtes | 0 → cible 1–2 | Ex. « Polyvalent Total » (exercices + défis) |
+| **Total** | ~20–25 minimum pour variété | Prioriser les gaps (défis peu couverts, catégories vides) |
+
+**Livrable** : court audit « Nombre de badges suffisant ? » après B5 enrichi — tableau par catégorie/difficulté, identification des manques.
+
+#### 5.3.3 B5 — Audit « Nombre de badges suffisant ? » (17/02)
+
+| Catégorie | Exercices | Défis | Mixte | Total | Statut |
+|-----------|-----------|-------|-------|-------|--------|
+| progression | 7 | 0 | 0 | 7 | OK (+ meteore, centurion) |
+| mastery | 7 | 0 | 0 | 7 | OK (+ perfection_100 secret) |
+| performance | 2 | 0 | 0 | 2 | OK (+ flash) |
+| regularity | 5 | 0 | 0 | 5 | OK (+ fortnight, eclipse secret) |
+| discovery | 4 | 2 | 0 | 6 | OK (+ logic_explorer, logic_master) |
+| special | 0 | 1 | 4 | 5 | OK (+ hybrid_warrior, polyvalent_total, logic_legend, grand_hybrid) |
+| **Total** | **21** | **3** | **4** | **29** | Objectif atteint |
+
+**Script `add_badges_psycho.py`** (17/02) : 12 badges ajoutés. 4 secrets. **Script `add_badges_recommandations.py`** (17/02) : guardian_150, marathon, comeback. **Vigilance** : ne pas dépasser 35–40 badges — risque de surcharge cognitive.
 
 ### 5.4 Schéma `requirements` à supporter (minimum)
 
@@ -220,6 +283,8 @@ Lors de l'audit et reformulation des badges (B4), chaque badge doit être repens
 { "exercise_type": "addition", "consecutive_correct": 20 }
 { "max_time": 5 }
 { "consecutive_days": 7 }
+{ "logic_attempts_count": 10 }
+{ "attempts_count": 20, "logic_attempts_count": 5 }
 ```
 
 ### 5.5 Fichiers impactés
@@ -278,7 +343,8 @@ Lors de l'audit et reformulation des badges (B4), chaque badge doit être repens
 ### 6.4 Fichiers impactés
 
 - `app/services/badge_service.py` (refactoring majeur)
-- Nouveau `app/services/badge_requirement_engine.py` (optionnel, extraction)
+- `app/services/badge_requirement_engine.py` (créé C-1)
+- `server/handlers/challenge_handlers.py` (appel check_and_award_badges après défi)
 - `tests/` (badge_service, handlers)
 
 ### 6.5 Complexité : **Élevée**  
@@ -288,7 +354,19 @@ Lors de l'audit et reformulation des badges (B4), chaque badge doit être repens
 |--------|------------|
 | Régression : badges non attribués | Tests de non-régression sur chaque badge existant |
 | Edge cases (perfect_day, consecutive_days) | Logique métier complexe, bien tester |
-| Performances | Requêtes SQL optimisées, cache si besoin |
+| Performances | Requêtes SQL optimisées, stats_cache pré-fetch (voir § 10) |
+
+---
+
+## 10. Post-livraison (18/02) — Paufinage
+
+| Élément | Description |
+|---------|--------------|
+| **N+1 sur /api/challenges/badges/progress** | Pré-fetch `stats_cache` étendu : `exercise_types`, `per_type_correct`, `activity_dates`, `min_fast_time`, `perfect_day_today`, `consecutive_by_type`. Progress getters utilisent le cache → ~12 requêtes fixes au lieu de 30+ par appel. |
+| **Filtre « Proches (>50%) »** | Visible uniquement sur l'onglet « À débloquer » (cohérence UX). Réinitialisation auto si changement d'onglet. |
+| **Script delete_test_badges** | `scripts/delete_test_badges.py` — hard delete badges test/test2. |
+
+**Statut global** : Lot A + B + C **finalisés** (18/02).
 
 ---
 
@@ -305,10 +383,12 @@ Lors de l'audit et reformulation des badges (B4), chaque badge doit être repens
 ```
 A (UX) ──────► Peut être fait en premier
      │
-B (Admin) ───► Indépendant, peut précéder ou suivre A
+B (Admin) ───► Indépendant, peut précéder ou suivre A. B-1 à B-4.
      │
-C (Moteur) ──► Utile après B pour gérer les nouveaux types de requirements créés par admin
-               Mais peut être fait avant B si priorité = qualité du code actuel
+C (Moteur) ──► AVANT B-5. Checkers défis/mixte, _get_badge_progress étendu.
+     │
+     ▼
+B-5 ─────────► Enrichissements après C : formulaire défis/mixte opérationnel, visuel, audit.
 ```
 
 ---
@@ -322,8 +402,8 @@ C (Moteur) ──► Utile après B pour gérer les nouveaux types de requiremen
 ### Séquence globale
 
 1. **Lot A** — Refonte page badges (par itérations A-1 à A-4)
-2. **Lot B** — Admin CRUD (par itérations B-1 à B-3)
-3. **Lot C** — Refactoring moteur (si nécessaire)
+2. **Lot B** — Admin CRUD (par itérations B-1 à B-4) ; B-5 après C
+3. **Lot C** — Refactoring moteur (avant B-5)
 
 ---
 
@@ -381,15 +461,16 @@ C (Moteur) ──► Utile après B pour gérer les nouveaux types de requiremen
 |-----|--------|------|------------------------------|
 | **B-1** | ✅ Fait | 16/02 | Endpoints GET/POST/PUT/DELETE /api/admin/badges + handlers, soft delete |
 | **B-2** | ✅ Fait | 16/02 | Onglet Badges dans /admin/content, BadgeCreateModal, BadgeEditModal, useAdminBadges, filtres actifs/catégorie |
-| **B-3** | ⬜ À faire | — | |
-| **B-4** | ⬜ À faire | — | Reformulation badges existants (icône, titre, visuel, objectif) — psychologie cognitive |
+| **B-3** | ✅ Fait | 17/02 | Validation requirements étendue (consecutive_correct, max_time, consecutive_days), option Réactiver dans BadgeEditModal, tests API (list + validation) |
+| **B-4** | ✅ Fait | 15/02 | Reformulation 17 badges (name, description, star_wars_title, category, difficulty, points_reward). Contexte challenge documenté : périmètre exercices uniquement ; défis logiques = évolution future. Script `update_badges_b4.py --execute` appliqué. |
+| **B-5** | ✅ Fait | 17/02 | Formulaire : champ icon_url, principes psychologiques enrichis, guidance visuel sans SW. Page badges : « Plus que X », « Tu approches », icon_url dans BadgeCard. API : icon_url dans get_available_badges. Audit § 5.3.3. |
 
 ### Lot C — Moteur
 
 | Ité | Statut | Date | Notes |
 |-----|--------|------|-------|
-| **C-1** | ⬜ À faire | — | |
-| **C-2** | ⬜ À faire | — | |
+| **C-1** | ✅ Fait | 15/02 | Registry `badge_requirement_engine.py`, refactor `_check_badge_requirements` (dispatch par type + fallback code). Terrain B5 : checkers `logic_attempts_count`, `mixte` ; validation admin ; `_format_requirements_to_text` ; exemples formulaire ; `submit_challenge_answer` appelle `check_and_award_badges`. |
+| **C-2** | ✅ Fait | 17/02 | `get_requirement_progress` dans engine (10 types), refactor `_get_badge_progress`, tests unitaires |
 
 ### Décisions / Ajustements
 
@@ -404,6 +485,13 @@ C (Moteur) ──► Utile après B pour gérer les nouveaux types de requiremen
 | 16/02 | B-1 livré : GET/POST/PUT/DELETE /api/admin/badges. Handlers dans admin_handlers.py. Soft delete (is_active=false). Validation requirements (attempts_count, min_attempts+success_rate, ou schémas étendus). |
 | 16/02 | B-2 livré : Onglet Badges dans /admin/content, BadgeCreateModal, BadgeEditModal, useAdminBadges, filtres actifs/catégorie. Bloc repliable principes psychologiques dans les modales. GET /api/admin/badges/{id} inclut _user_count. |
 | 16/02 | **Audit refactoring** : BadgeCard « Obtenu le » → i18n (earnedOn), BadgeGrid tri difficulté → legendary ajouté. Vérifié : earned_badges.id = achievement_id, rarityMap clés string, progressMap cohérent, admin CRUD cohérent. |
+| 17/02 | B-3 livré : _validate_requirements étendue (consecutive_correct, max_time, consecutive_days avec messages d'erreur). BadgeEditModal : bouton « Réactiver » pour badges inactifs. Tests API tests/api/test_admin_badges.py (list, validation). |
+| 15/02 | **B4 / Challenge** : Demande « pense au challenge » formalisée. Périmètre B4 = reformulation badges existants (exercices uniquement). Défis logiques documentés comme évolution future (Lot C/B5+). § 5.3.1 ajouté. |
+| 15/02 | **B5 enrichissements** : Support défis/challenge ou mixte ; visuel (icône, nom) — esprit progression sans termes Star Wars directs (droit d'auteur) ; point de contrôle « challenger si nombre de badges suffisant ». § 5.3.2 ajouté, B-5 itération créée. |
+| 15/02 | **Ordre C avant B5** : Lot C en premier (checkers défis/mixte), puis B5 enrichissements (formulaire opérationnel, visuel, audit). |
+| 15/02 | **C-1 livré** : badge_requirement_engine.py (registry 10 types), refactor _check_badge_requirements, checkers logic_attempts_count + mixte, validation admin, format texte, BadgeCreateModal/BadgeEditModal exemples B5, submit_challenge_answer → check_and_award_badges. |
+| 17/02 | **C-2 livré** : get_requirement_progress (10 types), refactor _get_badge_progress, tests unitaires test_badge_requirement_engine.py. |
+| 17/02 | **B-5 livré** : Goal-gradient (« Plus que X »), loss aversion (« Tu approches »), icon_url (admin + BadgeCard), principes psychologiques enrichis, audit nombre badges § 5.3.3. |
 
 **Workflow** : À chaque fin d'itération → mettre à jour le statut (⬜ → 🔄 → ✅), la date, et les notes si problème. Ajouter les décisions dans le tableau ci-dessus.
 

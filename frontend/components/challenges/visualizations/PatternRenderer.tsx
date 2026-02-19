@@ -1,9 +1,23 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Grid3x3, MousePointerClick } from "lucide-react";
+import { Circle, Grid3x3, Square, Triangle } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
+
+const SHAPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  cercle: Circle,
+  circle: Circle,
+  triangle: Triangle,
+  carré: Square,
+  square: Square,
+};
+
+function ShapeIcon({ type }: { type: string }) {
+  const Icon = SHAPE_ICONS[type?.toLowerCase?.()];
+  if (!Icon) return <span>{type}</span>;
+  return <Icon className="h-7 w-7 stroke-2 text-current" />;
+}
 
 interface PatternRendererProps {
   visualData: any;
@@ -40,6 +54,17 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
   const questionCount = grid2D.flat().filter(
     (c: any) => c === "?" || (typeof c === "string" && c.includes("?"))
   ).length;
+
+  const flatGrid = grid2D.flat();
+  const usesShapes = flatGrid.some((c: any) => {
+    const v = typeof c === "object" ? c?.value || c?.label : String(c ?? "");
+    return ["cercle", "circle", "triangle", "carré", "square"].includes(String(v).toLowerCase());
+  });
+  const placeholder = usesShapes
+    ? "Ex : cercle, triangle ou carré"
+    : questionCount > 1
+      ? "Ex : O O X O ou O, O, X, O (espaces ou virgules)"
+      : "Ex : X ou O (le symbole manquant)";
 
   if (!grid || grid.length === 0) {
     return (
@@ -96,7 +121,13 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.02 }}
                   >
-                    {cellValue === "?" ? <span className="text-lg font-bold">?</span> : cellValue}
+                    {cellValue === "?" ? (
+                      <span className="text-lg font-bold">?</span>
+                    ) : SHAPE_ICONS[cellValue?.toLowerCase?.()] ? (
+                      <ShapeIcon type={cellValue} />
+                    ) : (
+                      cellValue
+                    )}
                   </motion.button>
                 );
               })}
@@ -115,8 +146,10 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
             <div className="space-y-2 pt-2 border-t border-primary/20">
               <label className="text-sm font-medium text-foreground">
                 {questionCount > 1
-                  ? `Quels symboles remplacent les ${questionCount} « ? » ? (ordre ligne par ligne)`
-                  : "Quel symbole remplace le « ? » ?"}
+                  ? `Quels ${usesShapes ? "formes" : "symboles"} remplacent les ${questionCount} « ? » ? (ordre ligne par ligne)`
+                  : usesShapes
+                    ? "Quelle forme remplace le « ? » ?"
+                    : "Quel symbole remplace le « ? » ?"}
               </label>
               <input
                 type="text"
@@ -128,7 +161,7 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
                     onAnswerChange(value);
                   }
                 }}
-                placeholder={questionCount > 1 ? "Ex : O O X O ou O, O, X, O (espaces ou virgules)" : "Ex : X ou O (le symbole manquant)"}
+                placeholder={placeholder}
                 className="w-full px-3 py-2 rounded-lg border-2 border-primary/30 bg-card text-foreground focus:border-primary focus:outline-none"
               />
             </div>

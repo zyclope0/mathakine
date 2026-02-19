@@ -7,11 +7,14 @@ import { motion } from "framer-motion";
 import {
   DndContext,
   closestCenter,
+  DragOverlay,
   KeyboardSensor,
   PointerSensor,
+  pointerWithin,
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -40,6 +43,26 @@ interface PuzzleItem {
   original: any;
 }
 
+/** Collision : pointer d'abord (où on relâche = cible), sinon plus proche centre */
+function pointerWithinOrClosestCenter(
+  args: Parameters<typeof pointerWithin>[0]
+): ReturnType<typeof pointerWithin> {
+  const pointerResult = pointerWithin(args);
+  if (pointerResult.length > 0) return pointerResult;
+  return closestCenter(args);
+}
+
+/** Composant présentatif pour le DragOverlay (n'utilise pas useSortable) */
+function PuzzleItemPreview({ value, index }: { value: string; index: number }) {
+  return (
+    <div className="flex items-center gap-3 p-3 bg-card border-2 border-primary rounded-lg shadow-lg cursor-grabbing min-w-[200px]">
+      <GripVertical className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+      <span className="flex-1 text-foreground font-medium">{value}</span>
+      <span className="text-xs text-muted-foreground">#{index + 1}</span>
+    </div>
+  );
+}
+
 function SortableItem({ id, value, index }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
@@ -48,16 +71,20 @@ function SortableItem({ id, value, index }: SortableItemProps) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
   };
 
   return (
     <motion.div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 p-3 bg-card border-2 border-primary/30 rounded-lg hover:border-primary/50 transition-colors cursor-grab active:cursor-grabbing"
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      className={`flex items-center gap-3 p-3 bg-card border-2 rounded-lg transition-colors cursor-grab active:cursor-grabbing ${
+        isDragging
+          ? "border-primary/50 border-dashed bg-primary/5"
+          : "border-primary/30 hover:border-primary/50"
+      }`}
+      whileHover={{ scale: isDragging ? 1 : 1.01 }}
+      whileTap={{ scale: isDragging ? 1 : 0.99 }}
       {...attributes}
       {...listeners}
     >
@@ -89,6 +116,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
   }));
 
   const [items, setItems] = useState<PuzzleItem[]>(initialItems);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   // Réinitialiser l'ordre quand visualData change
   useEffect(() => {
@@ -106,11 +134,17 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
   }, [pieces.length, visualData]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 6 },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(String(event.active.id));
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -125,6 +159,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
         return newItems;
       });
     }
+    setActiveId(null);
   };
 
   // Notifier le parent de l'ordre initial uniquement au montage (différé)
@@ -188,7 +223,8 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
 
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCenter}
+            collisionDetection={pointerWithinOrClosestCenter}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
             <SortableContext
@@ -201,6 +237,22 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
                 ))}
               </div>
             </SortableContext>
+            <DragOverlay
+              dropAnimation={{
+                duration: 150,
+                easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
+              }}
+            >
+              {activeId ? (
+                (() => {
+                  const item = items.find((i) => i.id === activeId);
+                  const idx = items.findIndex((i) => i.id === activeId);
+                  return item ? (
+                    <PuzzleItemPreview value={item.value} index={idx >= 0 ? idx : 0} />
+                  ) : null;
+                })()
+              ) : null}
+            </DragOverlay>
           </DndContext>
 
           <div className="text-xs text-center text-muted-foreground">

@@ -556,6 +556,12 @@ async def get_all_user_progress(request: Request):
                 Attempt.user_id == user_id
             ).order_by(Attempt.created_at).all()
             
+            # Streak depuis la table users (série de jours consécutifs avec activité)
+            from app.models.user import User
+            user_row = db.query(User).filter(User.id == user_id).first()
+            current_streak = getattr(user_row, "current_streak", None) or 0
+            best_streak = getattr(user_row, "best_streak", None) or 0
+
             if not attempts_query:
                 return JSONResponse({
                     "total_attempts": 0,
@@ -563,8 +569,8 @@ async def get_all_user_progress(request: Request):
                     "accuracy": 0.0,
                     "average_time": 0.0,
                     "exercises_completed": 0,
-                    "highest_streak": 0,
-                    "current_streak": 0,
+                    "highest_streak": best_streak,
+                    "current_streak": current_streak,
                     "by_category": {}
                 }, status_code=200)
             
@@ -583,22 +589,6 @@ async def get_all_user_progress(request: Request):
                 if attempt.is_correct:
                     completed_exercise_ids.add(exercise.id)
             exercises_completed = len(completed_exercise_ids)
-            
-            # Calcul des streaks
-            streaks = []
-            current_streak = 0
-            for attempt, _ in attempts_query:
-                if attempt.is_correct:
-                    current_streak += 1
-                else:
-                    if current_streak > 0:
-                        streaks.append(current_streak)
-                    current_streak = 0
-            if current_streak > 0:
-                streaks.append(current_streak)
-            
-            highest_streak = max(streaks) if streaks else 0
-            current_streak_value = streaks[-1] if streaks else 0
             
             # Grouper par catégorie
             by_category = {}
@@ -633,8 +623,8 @@ async def get_all_user_progress(request: Request):
                 "accuracy": round(accuracy, 2),
                 "average_time": round(average_time, 1),
                 "exercises_completed": exercises_completed,
-                "highest_streak": highest_streak,
-                "current_streak": current_streak_value,
+                "highest_streak": best_streak,
+                "current_streak": current_streak,
                 "by_category": by_category
             }, status_code=200)
             

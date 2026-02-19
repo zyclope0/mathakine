@@ -1,7 +1,7 @@
 # Flux d'authentification — Mathakine
 
 > Parcours utilisateur et pages associées  
-> **Date :** 15/02/2026
+> **Date :** 15/02/2026 — **MAJ 16/02** (sessions, maintenance, inscriptions)
 
 ---
 
@@ -37,7 +37,7 @@
 
 **Flux après succès :** Redirection vers `/verify-email?verify=true` (sans token) — l'utilisateur doit cliquer sur le lien reçu par email.
 
-**États d'erreur :** email/username déjà utilisé → message d'erreur affiché.
+**États d'erreur :** email/username déjà utilisé → message d'erreur affiché. Si `registration_enabled=false` (admin config) → 403, inscriptions désactivées.
 
 ---
 
@@ -80,7 +80,7 @@
 **En cas d'échec 403 (email non vérifié) :**  
 Bannière affichée avec formulaire pour renvoyer l'email de vérification via `POST /api/auth/resend-verification`.
 
-**Succès :** Cookie `access_token` + sync vers frontend, puis redirection vers `/dashboard`.
+**Succès :** Cookie `access_token` + sync vers frontend, création d'une `UserSession` en base (IP, User-Agent, expires_at), redirection vers `/dashboard`.
 
 ---
 
@@ -147,3 +147,23 @@ Bannière affichée avec formulaire pour renvoyer l'email de vérification via `
 | 401 après login | Refresh token manquant ou expiré → se reconnecter |
 
 → Voir [CONFIGURER_EMAIL](../01-GUIDES/CONFIGURER_EMAIL.md) pour la configuration des envois d'email.
+
+---
+
+## 6. Sessions actives et paramètres plateforme
+
+### Sessions actives
+- **Page** : `/settings` — section « Sessions actives »
+- **API** : `GET /api/users/me/sessions` (liste avec `is_current: true` sur la session courante)
+- **Révocation** : `DELETE /api/users/me/sessions/{id}` — supprime une session
+- **Création** : Une `UserSession` est créée à chaque login réussi
+
+### Inscriptions désactivées
+- **Paramètre** : `registration_enabled=false` (table `settings`, admin `/admin/config`)
+- **Comportement** : `POST /api/users/` renvoie **403** si inscriptions désactivées
+- **Message** : Erreur affichée sur la page `/register`
+
+### Mode maintenance
+- **Paramètre** : `maintenance_mode=true` (table `settings`)
+- **Backend** : Middleware 503 sur toutes les routes sauf `/health`, `/metrics`, `/api/admin/*`, `/api/auth/login`, refresh, validate-token
+- **Frontend** : Overlay blocant (`MaintenanceOverlay.tsx`) sauf sur `/login` et `/admin` — lien « Accès admin » vers `/login`

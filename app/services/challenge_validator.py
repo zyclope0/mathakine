@@ -69,6 +69,18 @@ def validate_challenge_logic(challenge_data: Dict[str, Any]) -> Tuple[bool, List
         coding_errors = validate_coding_challenge(visual_data, correct_answer, solution_explanation)
         errors.extend(coding_errors)
     
+    elif challenge_type == 'RIDDLE':
+        riddle_errors = validate_riddle_challenge(visual_data, correct_answer, solution_explanation)
+        errors.extend(riddle_errors)
+    
+    elif challenge_type == 'PROBABILITY':
+        prob_errors = validate_probability_challenge(visual_data, correct_answer, solution_explanation)
+        errors.extend(prob_errors)
+
+    elif challenge_type == 'CHESS':
+        chess_errors = validate_chess_challenge(visual_data, correct_answer, solution_explanation)
+        errors.extend(chess_errors)
+
     # Validation générale
     # Convertir en string si c'est une liste
     correct_answer_str = ','.join(correct_answer) if isinstance(correct_answer, list) else str(correct_answer) if correct_answer else ''
@@ -81,6 +93,30 @@ def validate_challenge_logic(challenge_data: Dict[str, Any]) -> Tuple[bool, List
         errors.append("solution_explanation est vide")
     
     return len(errors) == 0, errors
+
+
+def compute_pattern_answers_multi(grid: List[List[Any]]) -> Optional[str]:
+    """
+    Pour une grille PATTERN avec plusieurs "?", retourne la liste des symboles dans l'ordre
+    (ligne par ligne, colonne par colonne). Format: "O, O, X, O"
+    Retourne None si aucune "?" ou si on ne peut pas déduire tous les symboles.
+    """
+    positions = []
+    for i, row in enumerate(grid):
+        if not isinstance(row, (list, tuple)):
+            continue
+        for j, cell in enumerate(row):
+            if cell == '?' or (isinstance(cell, str) and '?' in str(cell)):
+                positions.append((i, j))
+    if not positions:
+        return None
+    symbols = []
+    for i, j in sorted(positions):
+        s = analyze_pattern(grid, i, j)
+        if not s:
+            return None
+        symbols.append(str(s).strip())
+    return ", ".join(symbols)
 
 
 def validate_pattern_challenge(visual_data: Dict[str, Any], correct_answer: str, explanation: str) -> List[str]:
@@ -99,7 +135,19 @@ def validate_pattern_challenge(visual_data: Dict[str, Any], correct_answer: str,
         errors.append("visual_data.grid doit être un tableau")
         return errors
     
-    # Trouver la position du '?'
+    # Plusieurs "?" → format "O, O, X, O"
+    expected_multi = compute_pattern_answers_multi(grid)
+    if expected_multi:
+        correct_parts = [p.strip().upper() for p in str(correct_answer).split(',') if p.strip()]
+        expected_parts = [p.strip().upper() for p in expected_multi.split(',') if p.strip()]
+        if len(correct_parts) != len(expected_parts) or correct_parts != expected_parts:
+            errors.append(
+                f"Pattern multi-cellules incohérent: attendu '{expected_multi}', "
+                f"correct_answer='{correct_answer}'"
+            )
+        return errors
+
+    # Une seule "?"
     question_pos = None
     for i, row in enumerate(grid):
         if not isinstance(row, list):
@@ -110,26 +158,17 @@ def validate_pattern_challenge(visual_data: Dict[str, Any], correct_answer: str,
                 break
         if question_pos:
             break
-    
     if not question_pos:
-        # Pas de '?' à compléter, considérer comme valide
         return errors
-    
     row_idx, col_idx = question_pos
-    
-    # Analyser le pattern pour déterminer la réponse attendue
     expected_answer = analyze_pattern(grid, row_idx, col_idx)
-    
     if expected_answer:
-        # Normaliser les réponses pour comparaison
         correct_normalized = str(correct_answer).strip().upper()
         expected_normalized = str(expected_answer).strip().upper()
-        
         if correct_normalized != expected_normalized:
             errors.append(
                 f"Pattern incohérent: le pattern suggère '{expected_answer}', "
-                f"mais correct_answer est '{correct_answer}'. "
-                f"Vérifiez la grille: {grid}"
+                f"mais correct_answer est '{correct_answer}'"
             )
     
     return errors
@@ -139,6 +178,7 @@ def analyze_pattern(grid: List[List[Any]], row_idx: int, col_idx: int) -> Option
     """
     Analyse un pattern dans une grille pour déterminer la réponse attendue.
     Supporte plusieurs types de patterns :
+    - Symétrie (horizontale, verticale, centrale)
     - Latin square (chaque ligne/colonne contient chaque élément une seule fois)
     - Patterns alternés simples (X-O-X, etc.)
     - Patterns de répétition
@@ -153,14 +193,52 @@ def analyze_pattern(grid: List[List[Any]], row_idx: int, col_idx: int) -> Option
     """
     if not grid or row_idx >= len(grid) or col_idx >= len(grid[0]):
         return None
-    
-    # 1. Essayer d'abord le pattern "Latin Square" (chaque ligne contient tous les éléments)
-    # C'est le pattern le plus courant pour les grilles de formes
+
+    rows, cols = len(grid), len(grid[0])
+
+    # 1. Latin Square d'abord : prioritaire car déterministe (chaque ligne/col contient chaque symbole une fois)
     latin_answer = analyze_latin_square_pattern(grid, row_idx, col_idx)
     if latin_answer:
         return latin_answer
+
+    # 2. Damier (checkerboard) : lignes paires identiques (0=2), impaires (1=3)
+    def _rows_match(r1: int, r2: int) -> bool:
+        if r1 >= len(grid) or r2 >= len(grid):
+            return False
+        for j in range(len(grid[0])):
+            a, b = str(grid[r1][j]).strip(), str(grid[r2][j]).strip()
+            if a not in ('?', '') and b not in ('?', '') and a != b:
+                return False
+        return True
+    if rows >= 3:
+        if row_idx in (0, 2) and _rows_match(0, 2):
+            ref_row = 0 if row_idx == 2 else 2
+            ref_val = grid[ref_row][col_idx]
+            if ref_val and str(ref_val).strip() not in ('?', ''):
+                return str(ref_val).strip()
+        if row_idx in (1, 3) and rows >= 4 and _rows_match(1, 3):
+            ref_row = 1 if row_idx == 3 else 3
+            ref_val = grid[ref_row][col_idx]
+            if ref_val and str(ref_val).strip() not in ('?', ''):
+                return str(ref_val).strip()
+
+    # 3. Symétrie : grille symétrique horizontale/verticale → ? = cellule miroir
+    mirror_row = rows - 1 - row_idx
+    mirror_col = cols - 1 - col_idx
+    if mirror_row != row_idx and 0 <= mirror_row < rows and col_idx < cols:
+        mirror_cell = grid[mirror_row][col_idx]
+        if mirror_cell and str(mirror_cell).strip() != '?' and '?' not in str(mirror_cell):
+            return str(mirror_cell).strip()
+    if mirror_col != col_idx and 0 <= mirror_col < cols:
+        mirror_cell = grid[row_idx][mirror_col]
+        if mirror_cell and str(mirror_cell).strip() != '?' and '?' not in str(mirror_cell):
+            return str(mirror_cell).strip()
+    if 0 <= mirror_row < rows and 0 <= mirror_col < cols:
+        mirror_cell = grid[mirror_row][mirror_col]
+        if mirror_cell and str(mirror_cell).strip() != '?' and '?' not in str(mirror_cell):
+            return str(mirror_cell).strip()
     
-    # 2. Analyser le pattern horizontal (ligne) pour patterns simples
+    # 3. Analyser le pattern horizontal (ligne) pour patterns simples
     row = grid[row_idx]
     if len(row) >= 2:
         # Pattern X-O-X suggère X
@@ -368,22 +446,45 @@ def validate_sequence_challenge(visual_data: Dict[str, Any], correct_answer: str
 def analyze_sequence(sequence: List[Any]) -> Optional[str]:
     """
     Analyse une séquence pour déterminer le prochain élément.
+    Gère : arithmétique, arithmétique second ordre (diffs croissantes), géométrique.
     """
     if not sequence or len(sequence) < 2:
         return None
-    
-    # Séquence arithmétique simple
-    if len(sequence) >= 2:
-        try:
-            # Convertir en nombres si possible
-            nums = [float(s) for s in sequence if isinstance(s, (int, float, str)) and str(s).replace('.', '').isdigit()]
-            if len(nums) >= 2:
-                diff = nums[1] - nums[0]
-                next_num = nums[-1] + diff
-                return str(int(next_num)) if next_num.is_integer() else str(next_num)
-        except (ValueError, TypeError):
-            pass
-    
+
+    try:
+        nums = [
+            float(s) for s in sequence
+            if isinstance(s, (int, float, str)) and str(s).replace(".", "").replace("-", "").isdigit()
+        ]
+    except (ValueError, TypeError):
+        return None
+
+    if len(nums) < 2:
+        return None
+
+    # 1. Séquence arithmétique simple (différence constante)
+    diff = nums[1] - nums[0]
+    if all(nums[i + 1] - nums[i] == diff for i in range(len(nums) - 1)):
+        next_num = nums[-1] + diff
+        return str(int(next_num)) if next_num.is_integer() else str(next_num)
+
+    # 2. Séquence arithmétique second ordre (différences croissantes +1)
+    if len(nums) >= 3:
+        diffs = [nums[i + 1] - nums[i] for i in range(len(nums) - 1)]
+        if all(diffs[i + 1] - diffs[i] == 1 for i in range(len(diffs) - 1)):
+            next_diff = diffs[-1] + 1
+            next_num = nums[-1] + next_diff
+            return str(int(next_num)) if next_num.is_integer() else str(next_num)
+
+    # 3. Séquence géométrique (ratio constant, nombres > 0)
+    if len(nums) >= 2 and all(n != 0 for n in nums):
+        ratio = nums[1] / nums[0]
+        if ratio != 0 and all(
+            abs((nums[i + 1] / nums[i]) - ratio) < 1e-9 for i in range(len(nums) - 1)
+        ):
+            next_num = nums[-1] * ratio
+            return str(int(next_num)) if next_num.is_integer() else str(next_num)
+
     return None
 
 
@@ -597,22 +698,29 @@ def validate_spatial_challenge(visual_data: Dict[str, Any], correct_answer: str,
                     visible_associations[found_shape] = set()
                 visible_associations[found_shape].add(found_color)
         
-        # Si c'est un défi couleur et que la réponse est une couleur
+        # Format multi-cellules (ex: "Position 2: carré bleu, Position 6: triangle vert")
         correct_lower = str(correct_answer).lower() if correct_answer else ''
-        answer_is_color = any(c in correct_lower for c in colors)
-        
-        if question_shape and answer_is_color:
-            # Vérifier que cette association forme-couleur est visible
-            if question_shape not in visible_associations:
-                errors.append(
-                    f"VISUAL incomplet: la forme '{question_shape}' avec '?' n'a aucun exemple visible "
-                    f"montrant sa couleur associée. L'utilisateur ne peut pas deviner '{correct_answer}'."
-                )
-            elif correct_lower not in str(visible_associations.get(question_shape, set())).lower():
-                errors.append(
-                    f"VISUAL incohérent: la réponse '{correct_answer}' n'est pas visible dans les exemples "
-                    f"de '{question_shape}'. Visible: {visible_associations.get(question_shape, set())}"
-                )
+        is_multi_cell = 'position' in correct_lower and (',' in correct_lower or correct_lower.count(':') >= 2)
+        if is_multi_cell:
+            # Ne pas appliquer la validation forme-couleur unique (trop complexe à valider auto)
+            pass
+        else:
+            answer_is_color = any(c in correct_lower for c in colors)
+            if question_shape and answer_is_color:
+                if question_shape not in visible_associations:
+                    errors.append(
+                        f"VISUAL incomplet: la forme '{question_shape}' avec '?' n'a aucun exemple visible "
+                        f"montrant sa couleur associée. L'utilisateur ne peut pas deviner '{correct_answer}'."
+                    )
+                else:
+                    # Vérifier que la couleur/form de la réponse est visible (ex: "carré bleu" -> bleu dans visible)
+                    visible_colors = visible_associations.get(question_shape, set())
+                    answer_color_found = any(c in correct_lower for c in visible_colors)
+                    if not answer_color_found and visible_colors:
+                        errors.append(
+                            f"VISUAL incohérent: la réponse '{correct_answer}' n'est pas visible dans les exemples "
+                            f"de '{question_shape}'. Visible: {visible_colors}"
+                        )
     
     # Vérifier que correct_answer n'est pas vide
     if not correct_answer or not str(correct_answer).strip():
@@ -692,25 +800,34 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
     if challenge_type == 'PATTERN' and visual_data and 'grid' in visual_data:
         grid = visual_data.get('grid', [])
         if grid:
-            # Trouver la position du '?'
-            question_pos = None
-            for i, row in enumerate(grid):
-                if not isinstance(row, list):
-                    continue
-                for j, cell in enumerate(row):
-                    if cell == '?' or (isinstance(cell, str) and '?' in cell):
-                        question_pos = (i, j)
+            # Plusieurs "?" → format "O, O, X, O"
+            expected_multi = compute_pattern_answers_multi(grid)
+            if expected_multi:
+                logger.info(f"Correction automatique PATTERN (multi): correct_answer = '{expected_multi}'")
+                corrected['correct_answer'] = expected_multi
+                explanation = corrected.get('solution_explanation', '')
+                if expected_multi[:20] not in explanation and expected_multi.split(',')[0].strip().upper() not in explanation.upper():
+                    corrected['solution_explanation'] = (
+                        f"Les symboles manquants, dans l'ordre des cases (ligne par ligne), sont : {expected_multi}. "
+                        f"{explanation}"
+                    )
+            else:
+                question_pos = None
+                for i, row in enumerate(grid):
+                    if not isinstance(row, list):
+                        continue
+                    for j, cell in enumerate(row):
+                        if cell == '?' or (isinstance(cell, str) and '?' in cell):
+                            question_pos = (i, j)
+                            break
+                    if question_pos:
                         break
                 if question_pos:
-                    break
-            
-            if question_pos:
-                row_idx, col_idx = question_pos
-                expected_answer = analyze_pattern(grid, row_idx, col_idx)
-                
-                if expected_answer:
-                    logger.info(f"Correction automatique PATTERN: correct_answer changé de '{corrected.get('correct_answer')}' à '{expected_answer}'")
-                    corrected['correct_answer'] = expected_answer
+                    row_idx, col_idx = question_pos
+                    expected_answer = analyze_pattern(grid, row_idx, col_idx)
+                    if expected_answer:
+                        logger.info(f"Correction automatique PATTERN: correct_answer = '{expected_answer}'")
+                        corrected['correct_answer'] = expected_answer
                     
                     # Mettre à jour l'explication si elle est contradictoire
                     explanation = corrected.get('solution_explanation', '')
@@ -827,6 +944,96 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
     return corrected
 
 
+def validate_riddle_challenge(visual_data: Dict[str, Any], correct_answer: str, explanation: str) -> List[str]:
+    """
+    Valide un challenge de type RIDDLE.
+    Vérifie la présence de données permettant de résoudre l'énigme.
+    """
+    errors = []
+    if not visual_data:
+        errors.append("RIDDLE: visual_data manquant")
+        return errors
+    has_clues = bool(visual_data.get('clues') or visual_data.get('indices'))
+    has_context = bool(visual_data.get('context') or visual_data.get('scenario') or visual_data.get('scene'))
+    has_riddle = bool(visual_data.get('riddle') or visual_data.get('question'))
+    has_grid = bool(visual_data.get('grid') or visual_data.get('pattern'))
+    if not (has_clues or has_context or has_riddle or has_grid):
+        errors.append(
+            "RIDDLE: visual_data doit contenir au moins clues, context, riddle ou grid "
+            "pour permettre de résoudre l'énigme"
+        )
+    return errors
+
+
+def validate_probability_challenge(visual_data: Dict[str, Any], correct_answer: str, explanation: str) -> List[str]:
+    """
+    Valide un challenge de type PROBABILITY.
+    Vérifie la présence de données numériques (quantités, totaux).
+    """
+    errors = []
+    if not visual_data:
+        errors.append("PROBABILITY: visual_data manquant")
+        return errors
+    has_counts = False
+    for key, val in visual_data.items():
+        if key.lower() in ('total', 'description', 'question'):
+            continue
+        if isinstance(val, (int, float)) and val > 0:
+            has_counts = True
+            break
+        if isinstance(val, dict):
+            for v in val.values():
+                if isinstance(v, (int, float)) and v > 0:
+                    has_counts = True
+                    break
+    if not has_counts:
+        errors.append(
+            "PROBABILITY: visual_data doit contenir des quantités numériques "
+            "(ex: rouge_bonbons: 10, bleu_bonbons: 5)"
+        )
+    return errors
+
+
+def validate_chess_challenge(visual_data: Dict[str, Any], correct_answer: str, explanation: str) -> List[str]:
+    """Valide un challenge de type CHESS (échecs)."""
+    errors = []
+    if not visual_data:
+        errors.append("CHESS: visual_data est vide")
+        return errors
+
+    board = visual_data.get('board', [])
+    if not board or not isinstance(board, list):
+        errors.append("CHESS: visual_data.board manquant ou invalide")
+        return errors
+
+    if len(board) != 8:
+        errors.append(f"CHESS: board doit avoir 8 rangées, reçu {len(board)}")
+    valid_pieces = {'K', 'k', 'Q', 'q', 'R', 'r', 'B', 'b', 'N', 'n', 'P', 'p', ''}
+    for i, row in enumerate(board):
+        if not isinstance(row, (list, tuple)) or len(row) != 8:
+            errors.append(f"CHESS: board[{i}] doit être une liste de 8 éléments")
+            break
+        for j, cell in enumerate(row):
+            val = str(cell).strip() if cell else ''
+            if val and val not in valid_pieces:
+                errors.append(f"CHESS: pièce invalide '{cell}' en [{i},{j}]")
+                break
+
+    turn = visual_data.get('turn', '').lower()
+    if turn not in ('white', 'black'):
+        errors.append(f"CHESS: turn doit être 'white' ou 'black', reçu '{turn}'")
+
+    objective = visual_data.get('objective', '')
+    valid_obj = ('mat_en_1', 'mat_en_2', 'mat_en_3', 'meilleur_coup')
+    if objective not in valid_obj:
+        errors.append(f"CHESS: objective doit être parmi {valid_obj}")
+
+    if not correct_answer or not str(correct_answer).strip():
+        errors.append("CHESS: correct_answer est vide (notation algébrique attendue)")
+
+    return errors
+
+
 def validate_coding_challenge(visual_data: Dict[str, Any], correct_answer: str, explanation: str) -> List[str]:
     """
     Valide un challenge de type CODING.
@@ -911,7 +1118,27 @@ def validate_coding_challenge(visual_data: Dict[str, Any], correct_answer: str, 
     if is_maze:
         if not validate_maze_path(maze, start, end, correct_answer):
             errors.append(f"MAZE: Le chemin '{correct_answer}' ne mène pas du départ {start} à l'arrivée {end}")
-    
+
+    # Substitution : clé complète OU partial_key avec règle déductible (caesar, atbash, keyword)
+    if coding_type == "substitution" and has_encoded_message:
+        msg = (visual_data.get("encoded_message") or visual_data.get("message") or "").upper()
+        decode_key = visual_data.get("key") or visual_data.get("partial_key") or {}
+        rule_type = (visual_data.get("rule_type") or visual_data.get("deducible_rule") or "").lower()
+        letters_in_msg = set(c for c in msg if c.isalpha())
+        keys_upper = set(k.upper() for k in decode_key.keys())
+        missing = letters_in_msg - keys_upper
+        # Si règle déductible (César, Atbash, clé-mot), partial_key avec 3+ exemples suffit
+        is_deducible = rule_type in ("caesar", "cesar", "atbash", "reverse", "keyword", "cle-mot")
+        if is_deducible:
+            if len(decode_key) < 2:
+                errors.append(
+                    "SUBSTITUTION: Avec rule_type déductible, fournir au moins 2-3 exemples dans partial_key."
+                )
+        elif missing:
+            errors.append(
+                f"SUBSTITUTION INVALIDE: La clé ne couvre pas toutes les lettres du message ({sorted(missing)}). "
+                "Fournir une clé complète OU rule_type (caesar/atbash/keyword) avec partial_key déductible."
+            )
     return errors
 
 

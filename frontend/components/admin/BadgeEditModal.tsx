@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, ChevronUp, Info, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Info, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import type { AdminBadge } from "@/hooks/useAdminBadges";
@@ -32,6 +32,9 @@ const REQUIREMENT_EXAMPLES = [
   { label: "Taux réussite", value: '{"min_attempts": 50, "success_rate": 80}' },
   { label: "Jours consécutifs", value: '{"consecutive_days": 7}' },
   { label: "Temps max", value: '{"max_time": 5}' },
+  { label: "Défis logiques (B5)", value: '{"logic_attempts_count": 10}' },
+  { label: "Mixte exercices+défis (B5)", value: '{"attempts_count": 20, "logic_attempts_count": 5}' },
+  { label: "Comeback (7j)", value: '{"comeback_days": 7}' },
 ];
 
 interface BadgeEditModalProps {
@@ -153,6 +156,23 @@ export function BadgeEditModal({
     }
   };
 
+  const handleReactivate = async () => {
+    if (!data) return;
+    setSaving(true);
+    try {
+      await api.put(`/api/admin/badges/${data.id}`, { is_active: true });
+      toast.success("Badge réactivé");
+      setData((d) => (d ? { ...d, is_active: true } : d));
+      onSaved();
+    } catch (err) {
+      toast.error("Erreur", {
+        description: err instanceof Error ? err.message : "Échec de la réactivation",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const update = (k: keyof AdminBadge, v: unknown) => {
     if (!data) return;
     setData({ ...data, [k]: v });
@@ -194,11 +214,12 @@ export function BadgeEditModal({
           </Button>
           {principlesOpen && (
             <div className="rounded-md border bg-muted/50 p-3 text-sm space-y-1.5 mt-2">
-              <p><strong>Goal-gradient :</strong> Objectif progressif (X/Y), formulation « Plus que X »</p>
-              <p><strong>Endowment :</strong> Visuel valorisant pour badges obtenus, option épingler</p>
-              <p><strong>Scarcity :</strong> Or/légendaire = visuels distincts ; « Rare » (&lt;5%)</p>
-              <p><strong>Social proof :</strong> « X% ont débloqué » — comparaison avec les pairs</p>
-              <p><strong>Loss aversion :</strong> Streaks, « Tu approches, ne lâche pas ! »</p>
+              <p><strong>Goal-gradient :</strong> Objectif progressif (X/Y), barre visible, « Plus que X » — incite à l&apos;effort</p>
+              <p><strong>Endowment :</strong> Visuel valorisant pour les badges obtenus, option épingler — renforce la propriété perçue</p>
+              <p><strong>Scarcity :</strong> Badges or/légendaire = visuels distincts ; « Rare » (&lt;5%) — rareté motive</p>
+              <p><strong>Social proof :</strong> « X% ont débloqué » — comparaison avec les pairs renforce le désir</p>
+              <p><strong>Loss aversion :</strong> Streaks, « Tu approches, ne lâche pas ! » — peur de perdre motive 2× plus</p>
+              <p className="pt-2 mt-2 border-t border-border/50"><strong>Visuel (sans SW) :</strong> Emoji ou URL, nom évocateur — esprit progression/maîtrise</p>
             </div>
           )}
         </div>
@@ -225,6 +246,15 @@ export function BadgeEditModal({
               value={data.description || ""}
               onChange={(e) => update("description", e.target.value)}
               rows={2}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Icône (emoji ou URL)</Label>
+            <Input
+              value={data.icon_url || ""}
+              onChange={(e) => update("icon_url", e.target.value)}
+              placeholder="✨ ou https://..."
             />
           </div>
 
@@ -340,14 +370,25 @@ export function BadgeEditModal({
         </div>
 
         <DialogFooter>
-          <Button
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={saving || deleting}
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            {deleting ? "Désactivation..." : "Désactiver"}
-          </Button>
+          {data.is_active ? (
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={saving || deleting}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              {deleting ? "Désactivation..." : "Désactiver"}
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={handleReactivate}
+              disabled={saving || deleting}
+            >
+              <RotateCcw className="h-4 w-4 mr-1" />
+              {saving ? "Réactivation..." : "Réactiver"}
+            </Button>
+          )}
           <div className="flex-1" />
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler

@@ -464,6 +464,10 @@
       "enterAnswer": "Entrez votre réponse...",
       "chessAnswerPlaceholder": "Ex. Dd7+, Rf8, Df7#",
       "chessAnswerFormat": "Format : coups en notation algébrique, séparés par des virgules (ex. Dd7+, Rf8, Df7#)",
+      "visualAnswerPlaceholder": "Ex. carré bleu ou Position 6: carré bleu, Position 9: triangle vert",
+      "visualAnswerFormat": "Indiquez la forme et la couleur. Plusieurs réponses : « Position N : forme couleur » séparées par des virgules. Accents et ordre des mots acceptés.",
+      "positionLabel": "Position {position}",
+      "visualSelectHint": "Choisissez la forme et la couleur qui complète(nt) le défi. Toutes les options du défi sont affichées.",
       "answerFieldLabel": "Champ de réponse pour le défi logique",
       "validating": "Validation en cours...",
       "validateAnswer": "Valider la réponse au défi",
@@ -862,7 +866,9 @@
       "badgeUnlocked": "Badge débloqué ! 🎖️",
       "newBadgeUnlocked": "Nouveau badge débloqué ! 🎖️",
       "noBadge": "Aucun nouveau badge",
-      "noBadgeDescription": "Continuez vos efforts pour débloquer de nouveaux badges !"
+      "noBadgeDescription": "Continuez vos efforts pour débloquer de nouveaux badges !",
+      "progressNotification": "Tu approches !",
+      "progressNotificationDesc": "Plus que {count} pour « {name} »"
     },
     "challenges": {
       "loadError": "Erreur",

@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timezone
 from enum import Enum as PyEnum
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, Index, Integer, String, Text
+from sqlalchemy import Boolean, Column, Date, DateTime, Enum, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -79,6 +79,9 @@ class User(Base):
 
     # Colonnes de gamification (système de badges)
     pinned_badge_ids = Column(JSONB, nullable=True)  # A-4: max 3 badge IDs épinglés
+    current_streak = Column(Integer, default=0)  # Jours consécutifs avec activité
+    best_streak = Column(Integer, default=0)  # Record de série
+    last_activity_date = Column(Date, nullable=True)  # Dernier jour calendaire avec activité
     total_points = Column(Integer, default=0)
     current_level = Column(Integer, default=1)
     experience_points = Column(Integer, default=0)

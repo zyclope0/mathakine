@@ -1,6 +1,6 @@
 # Intégration des widgets de progression dans le dashboard
 
-> Complété le 06/02/2026 — **MAJ 15/02/2026**
+> Complété le 06/02/2026 — **MAJ 16/02/2026**
 
 ## 📋 Résumé
 
@@ -11,6 +11,9 @@ Les endpoints de progression (`/api/users/me/progress`, `/api/users/me/challenge
 2. **ChallengesProgressWidget** - Affiche la progression des défis logiques (onglet Progression)
 3. **CategoryAccuracyChart** - Affiche la précision par catégorie (onglet Progression)
 4. **LeaderboardWidget** - Top 5 du classement avec lien vers `/leaderboard` (15/02/2026)
+
+**Composants liés (16/02)** :
+- **Recommendations** (onglet Recommandations) — bouton ✓ « Marquer comme fait » via `POST /api/recommendations/complete`, hook `useRecommendations` (mutation `complete`)
 
 ---
 

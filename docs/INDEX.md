@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique — Mise à jour au 16/02/2026  
+> Point d'entrée unique — Mise à jour au 17/02/2026  
 > **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md)
 
 ---
@@ -38,12 +38,15 @@ docs/
 │   └── SENTRY_MONITORING.md  # Monitoring Sentry
 │
 ├── 02-FEATURES/           # 📙 Fonctionnalités
+│   ├── SITUATION_FEATURES.md     # ⭐ Point de situation + priorités implémentation
 │   ├── I18N.md                 # Internationalisation (next-intl)
 │   ├── API_QUICK_REFERENCE.md   # Cheat sheet endpoints API
 │   ├── AUTH_FLOW.md            # Flux inscription → login → reset password
 │   ├── THEMES.md               # 7 thèmes visuels, themeStore, ajout thème
 │   ├── ANALYTICS_PROGRESSION.md  # Graphiques progression
-│   ├── BADGES_AMELIORATIONS.md   # Roadmap badges
+│   ├── BADGES_AMELIORATIONS.md   # Roadmap badges (P0 progression implémentée)
+│   ├── PLAN_REFONTE_BADGES.md   # Plan refonte + Admin CRUD + Lot C (C-1 fait)
+│   ├── B4_REFORMULATION_BADGES.md  # Specs reformulation 17 badges
 │   ├── ADMIN_FEATURE_SECURITE.md  # RBAC admin (require_admin)
 │   ├── ADMIN_ESPACE_PROPOSITION.md # Proposition espace admin (benchmark, périmètre, plan)
 │   └── ROADMAP_FONCTIONNALITES.md # Roadmap globale fonctionnalités
@@ -57,6 +60,7 @@ docs/
 │   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~70-80% traité)
 │   ├── DEPLOIEMENT_2026-02-06.md  # Guide déploiement
 │   ├── ENDPOINTS_NON_INTEGRES.md  # Endpoints à intégrer
+│   ├── ANALYSE_GENERATION_IA_CHALLENGES.md  # Audit génération IA défis (bugs, optimisations)
 │   ├── PLACEHOLDERS_ET_TODO.md  # Endpoints à implémenter
 │   └── AUDITS_ET_RAPPORTS_ARCHIVES/  # 📦 Audits implémentés + rapports temporaires
 │       ├── README.md  # Index du dossier
@@ -111,7 +115,8 @@ docs/
 ### Je veux développer une fonctionnalité
 1. [DEVELOPMENT.md](01-GUIDES/DEVELOPMENT.md) - Conventions et workflow
 2. [README_TECH.md](../README_TECH.md) - API et patterns
-3. [02-FEATURES/](02-FEATURES/) - Docs fonctionnalités existantes
+3. [SITUATION_FEATURES.md](02-FEATURES/SITUATION_FEATURES.md) - Point de situation + priorités
+4. [02-FEATURES/](02-FEATURES/) - Docs fonctionnalités existantes
 
 ### Je veux créer un nouveau widget dashboard
 1. [DESIGN_SYSTEM_WIDGETS.md](06-WIDGETS/DESIGN_SYSTEM_WIDGETS.md) - Template et patterns
@@ -191,11 +196,24 @@ docs/
 
 ## 🔄 Dernières mises à jour
 
+### 18/02/2026
+- 📄 **POINT_SITUATION_2026-02-18.md** — Bilan projet (fonctionnalités, priorités, références). [Lire →](03-PROJECT/POINT_SITUATION_2026-02-18.md)
+- ✅ **Badges — Finalisation** : Fix N+1 sur `/api/challenges/badges/progress` (stats_cache pré-fetch, ~12 requêtes fixes). Filtre « Proches (>50%) » visible uniquement sur onglet À débloquer. Script `scripts/delete_test_badges.py` pour hard delete badges test.
+- 📝 **Docs** : PLAN_REFONTE_BADGES (§ 10 post-livraison), SITUATION_FEATURES (badges finalisés), nettoyage fichiers temporaires.
+
+### 17/02/2026
+- ✅ **Badges B4** : Reformulation 17 badges (name, description, star_wars_title, catégories, points). Script `scripts/update_badges_b4.py`. Contexte challenge documenté dans B4_REFORMULATION_BADGES.
+- ✅ **Badges psycho/rétention** : 12 badges add_badges_psycho + 3 add_badges_recommandations (guardian_150, marathon, comeback). **32 badges**, 4 secrets. Vigilance 35–40 max.
+- ✅ **Badges Lot C-1** : Moteur générique `badge_requirement_engine.py` (registry 10 types), refactor `_check_badge_requirements`. Terrain B5 : checkers `logic_attempts_count`, `mixte` ; validation admin ; BadgeCreateModal/BadgeEditModal exemples défis/mixte ; `submit_challenge_answer` appelle `check_and_award_badges`.
+- ✅ **Badges Lot C-2** : `get_requirement_progress` (10 types) dans engine, refactor `_get_badge_progress`. Tests `test_badge_requirement_engine.py`.
+- ✅ **Badges Lot B-5** : Goal-gradient (« Plus que X »), loss aversion (« Tu approches »), champ icon_url admin (emoji/URL), BadgeCard affiche icon_url, principes psychologiques enrichis, audit nombre badges § 5.3.3.
+
 ### 16/02/2026
 - ✅ **Quick wins 1-4** : (1) maintenance_mode + registration_enabled appliqués, (2) handle_recommendation_complete, (3) get_user_badges_progress, (4) is_current dans /api/users/me/sessions
 - ✅ **Admin — Paramètres globaux** : page `/admin/config`, `GET/PUT /api/admin/config`, paramètres maintenance, inscriptions, feature flags, limites (table `settings`)
 - ✅ **Admin — Fix** : normalisation booléens (is_archived, is_active) dans PUT exercices/challenges
 - 📝 **Docs** : ADMIN_ESPACE_PROPOSITION (itération 14), API_QUICK_REFERENCE (25 routes admin), ENDPOINTS_NON_INTEGRES (section Admin)
+- 📝 **Mise à jour docs suite implémentations** : README_TECH (API, hooks, maintenance, sessions), AUTH_FLOW (sessions, maintenance, registration_enabled), ROADMAP_FONCTIONNALITES (endpoints 16/02), INTEGRATION_PROGRESSION_WIDGETS (Recommendations complete)
 
 ### 15/02/2026 (features)
 - ✅ **Leaderboard** : `GET /api/users/leaderboard`, page `/leaderboard`, widget top 5 sur dashboard Vue d'ensemble
@@ -282,7 +300,7 @@ docs/
 - **Documents actifs** : ~50 docs (backend, frontend, widgets, projet)
 - **Réduction initiale** : -92% de documentation (200+ → ~15 actifs en nov. 2025)
 - **Cohérence** : Validee vs code reel
-- **Dernière vérification** : 16/02/2026
+- **Dernière vérification** : 17/02/2026
 
 ---
 

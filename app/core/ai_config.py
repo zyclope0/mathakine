@@ -20,10 +20,10 @@ class AIConfig:
     """Configuration centralisée pour la génération IA."""
     
     # Modèle plus capable pour défis nécessitant du raisonnement logique/spatial
-    # GPT-5.1 : bon raisonnement logique, 400K contexte, $1.25/M input
-    # GPT-5-mini : bon rapport qualité/prix pour tâches simples, $0.25/M input
+    # GPT-5.1 : bon raisonnement logique, 400K contexte
+    # GPT-5-mini : bon rapport qualité/prix pour tâches simples
     ADVANCED_MODEL: str = "gpt-5.1"      # Modèle avancé pour défis complexes
-    BASIC_MODEL: str = "gpt-5-mini"      # Modèle économique pour tâches simples
+    BASIC_MODEL: str = "gpt-5-mini"       # Modèle économique pour tâches simples
     
     # Modèles par type de challenge
     # Note: SPATIAL a été fusionné dans VISUAL
@@ -36,19 +36,24 @@ class AIConfig:
         'riddle': BASIC_MODEL,                 # Énigmes textuelles OK avec mini
         'deduction': ADVANCED_MODEL,           # Déduction nécessite logique stricte
         'coding': ADVANCED_MODEL,              # Cryptographie nécessite raisonnement pour cohérence
+        'chess': ADVANCED_MODEL,               # Échecs : positions tactiques complexes
+        'probability': BASIC_MODEL,             # Probabilités simples OK avec mini
     }
     
-    # GPT-5.2 Reasoning Effort : contrôle la profondeur de raisonnement
-    # none = rapide, low/medium = équilibré, high/xhigh = raisonnement profond
+    # Reasoning Effort : contrôle la profondeur (o3, GPT-5.2)
+    # low = rapide/économique, medium = équilibré, high = raisonnement profond
+    # Pas de high partout : sequence/puzzle/riddle/graph/coding suffisent avec low/medium
     REASONING_EFFORT_MAP: Dict[str, str] = {
-        'pattern': 'high',       # Raisonnement profond pour patterns logiques
-        'sequence': 'low',       # Léger pour séquences simples
-        'puzzle': 'medium',      # Moyen pour puzzles
-        'graph': 'high',         # Profond pour cohérence des graphes
-        'visual': 'high',        # PROFOND - formes/couleurs/symétrie
-        'riddle': 'medium',      # Moyen pour énigmes
-        'deduction': 'high',     # Profond pour déduction logique
-        'coding': 'high',        # PROFOND - cryptographie nécessite cohérence stricte
+        'pattern': 'high',       # Patterns logiques complexes
+        'sequence': 'low',       # Séquences simples
+        'puzzle': 'low',         # Puzzles OK en low
+        'graph': 'medium',      # Graphes : medium suffit
+        'visual': 'high',       # Visual (formes/couleurs/symétrie) demande profond
+        'riddle': 'low',        # Énigmes textuelles simples
+        'deduction': 'high',    # Déduction logique stricte
+        'coding': 'medium',     # Cryptographie : medium pour cohérence
+        'chess': 'medium',      # Échecs : medium (o3 consomme beaucoup si high)
+        'probability': 'low',   # Probabilités : low suffit
     }
     
     # GPT-5.2 Verbosity : contrôle la longueur de réponse
@@ -62,6 +67,8 @@ class AIConfig:
         'riddle': 'medium',      # Un peu plus de contexte
         'deduction': 'medium',   # Explications détaillées
         'coding': 'low',         # JSON concis pour cryptographie
+        'chess': 'low',          # JSON concis (board 8x8)
+        'probability': 'low',    # JSON concis
     }
     
     # Températures - UNIQUEMENT utilisées si reasoning.effort = none
@@ -75,6 +82,8 @@ class AIConfig:
         'riddle': 0.7,
         'deduction': 0.3,
         'coding': 0.3,           # Température basse pour cohérence cryptographique
+        'chess': 0.3,            # Positions tactiques cohérentes
+        'probability': 0.4,     # Légère variété
     }
     
     # Max tokens adaptatif selon le type
@@ -89,6 +98,8 @@ class AIConfig:
         'riddle': 5000,      # Énigmes avec contexte
         'deduction': 8000,   # Déduction avec règles et explications détaillées
         'coding': 6000,      # Cryptographie avec message encodé et clé
+        'chess': 14000,      # o3 raisonne avant output ; board 8x8 + explication
+        'probability': 4000, # Probabilités simples
     }
     
     # Timeouts - plus longs pour GPT-5 avec reasoning
@@ -103,8 +114,13 @@ class AIConfig:
     
     @classmethod
     def is_o1_model(cls, model: str) -> bool:
-        """Vérifie si le modèle est o1/o1-mini (raisonnement natif, pas de response_format JSON)."""
+        """Vérifie si le modèle est o1/o1-mini (pas de response_format JSON, pas de reasoning_effort)."""
         return model and model.lower().startswith("o1")
+
+    @classmethod
+    def is_o3_model(cls, model: str) -> bool:
+        """Vérifie si le modèle est o3/o3-mini (structured output OK, reasoning_effort supporté)."""
+        return model and model.lower().startswith("o3")
 
     @classmethod
     def get_model(cls, challenge_type: str) -> str:
@@ -137,7 +153,7 @@ class AIConfig:
     def get_timeout(cls, challenge_type: Optional[str] = None) -> float:
         """Retourne le timeout à utiliser."""
         # Timeout plus long pour types complexes avec raisonnement profond
-        if challenge_type in ['visual', 'deduction', 'pattern', 'graph', 'coding']:
+        if challenge_type in ['visual', 'deduction', 'pattern', 'graph', 'coding', 'chess']:
             return cls.MAX_TIMEOUT
         return cls.DEFAULT_TIMEOUT
     
@@ -158,10 +174,14 @@ class AIConfig:
             "timeout": cls.get_timeout(challenge_type),
         }
 
-        # o1/o1-mini : raisonnement natif, pas de reasoning_effort/verbosity
+        # o1/o1-mini : raisonnement natif, pas de reasoning_effort/verbosity, pas de response_format
         if cls.is_o1_model(model):
             # o1 n'accepte pas response_format json_object -> géré dans le handler
             pass
+        # o3/o3-mini : reasoning_effort + structured output supportés
+        elif cls.is_o3_model(model):
+            params["reasoning_effort"] = reasoning_effort
+            # verbosity non supporté par o3 Chat Completions
         elif cls.is_gpt5_model(model):
             params["reasoning_effort"] = reasoning_effort
             params["verbosity"] = cls.get_verbosity(challenge_type)

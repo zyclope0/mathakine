@@ -43,14 +43,13 @@ def configure_logging(remove_existing_handlers=True):
     if remove_existing_handlers:
         logger.remove()
 
-    # En mode debug/reload (uvicorn --reload), plusieurs processus écrivent dans les mêmes
-    # fichiers. Sur Windows, la rotation (rename) provoque PermissionError car un autre
-    # processus garde le fichier ouvert. On désactive la rotation en dev.
+    # Sur Windows avec uvicorn --reload : parent + child ouvrent les mêmes fichiers → PermissionError
+    # lors de rotation ou écriture concurrente. On n'écrit que vers stderr sur Windows.
+    _is_windows = sys.platform == "win32"
     _debug_mode = os.environ.get("MATH_TRAINER_DEBUG", "false").lower() == "true"
-    _rotation = False if _debug_mode else "10 MB"
-    _rotation_all = False if _debug_mode else "20 MB"
+    _use_file_logging = not _is_windows and not _debug_mode
 
-    # Ajouter la journalisation dans la console
+    # Journalisation dans la console (toujours)
     logger.add(
         sys.stderr,
         format=LOG_FORMAT,
@@ -58,42 +57,40 @@ def configure_logging(remove_existing_handlers=True):
         colorize=True,
     )
 
-    # Journalisation des niveaux spécifiques dans des fichiers dédiés
-    for level, log_file in LOG_LEVELS.items():
+    # Fichiers : uniquement hors Windows et hors mode debug
+    if _use_file_logging:
+        _rotation, _rotation_all = "10 MB", "20 MB"
+        for level, log_file in LOG_LEVELS.items():
+            logger.add(
+                log_file,
+                format=LOG_FORMAT,
+                level=level,
+                rotation=_rotation,
+                compression="zip",
+                retention="30 days",
+                enqueue=True,
+            )
         logger.add(
-            log_file,
+            str(LOGS_DIR / "all.log"),
             format=LOG_FORMAT,
-            level=level,
-            rotation=_rotation,
-            compression="zip" if _rotation else None,
-            retention="30 days" if _rotation else None,
-            enqueue=True,  # Thread-safe
+            level="DEBUG",
+            rotation=_rotation_all,
+            compression="zip",
+            retention="60 days",
+            enqueue=True,
         )
-
-    # Log général pour tous les niveaux
-    logger.add(
-        str(LOGS_DIR / "all.log"),
-        format=LOG_FORMAT,
-        level="DEBUG",
-        rotation=_rotation_all,
-        compression="zip" if _rotation_all else None,
-        retention="60 days" if _rotation_all else None,
-        enqueue=True,
-    )
-
-    # Log des erreurs non capturées
-    logger.add(
-        str(LOGS_DIR / "uncaught_exceptions.log"),
-        format=LOG_FORMAT,
-        level="ERROR",
-        rotation=_rotation,
-        compression="zip" if _rotation else None,
-        retention="60 days" if _rotation else None,
-        backtrace=True,
-        diagnose=True,
-        enqueue=True,
-        catch=True,  # Capture les exceptions non gérées
-    )
+        logger.add(
+            str(LOGS_DIR / "uncaught_exceptions.log"),
+            format=LOG_FORMAT,
+            level="ERROR",
+            rotation=_rotation,
+            compression="zip",
+            retention="60 days",
+            backtrace=True,
+            diagnose=True,
+            enqueue=True,
+            catch=True,
+        )
 
     logger.info("Journalisation configurée avec succès")
     logger.debug(f"Dossier des logs: {LOGS_DIR}")

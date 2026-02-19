@@ -31,6 +31,9 @@ const REQUIREMENT_EXAMPLES = [
   { label: "Taux réussite (ex: 50 tentatives, 80%)", value: '{"min_attempts": 50, "success_rate": 80}' },
   { label: "Jours consécutifs (ex: 7)", value: '{"consecutive_days": 7}' },
   { label: "Temps max (ex: 5s)", value: '{"max_time": 5}' },
+  { label: "Défis logiques (ex: 10) — B5", value: '{"logic_attempts_count": 10}' },
+  { label: "Mixte (ex: 20 exercices + 5 défis) — B5", value: '{"attempts_count": 20, "logic_attempts_count": 5}' },
+  { label: "Comeback (7j sans activité)", value: '{"comeback_days": 7}' },
 ];
 
 interface BadgeCreateModalProps {
@@ -145,11 +148,12 @@ export function BadgeCreateModal({
           </Button>
           {principlesOpen && (
             <div className="rounded-md border bg-muted/50 p-3 text-sm space-y-1.5 mt-2">
-              <p><strong>Goal-gradient :</strong> Objectif progressif (X/Y), formulation « Plus que X »</p>
-              <p><strong>Endowment :</strong> Visuel valorisant pour badges obtenus, option épingler</p>
-              <p><strong>Scarcity :</strong> Or/légendaire = visuels distincts ; « Rare » (&lt;5%)</p>
-              <p><strong>Social proof :</strong> « X% ont débloqué » — comparaison avec les pairs</p>
-              <p><strong>Loss aversion :</strong> Streaks, « Tu approches, ne lâche pas ! »</p>
+              <p><strong>Goal-gradient :</strong> Objectif progressif (X/Y), barre visible, « Plus que X » — incite à l&apos;effort</p>
+              <p><strong>Endowment :</strong> Visuel valorisant pour les badges obtenus, option épingler — renforce la propriété perçue</p>
+              <p><strong>Scarcity :</strong> Badges or/légendaire = visuels distincts ; « Rare » (&lt;5%) — rareté motive</p>
+              <p><strong>Social proof :</strong> « X% ont débloqué » — comparaison avec les pairs renforce le désir</p>
+              <p><strong>Loss aversion :</strong> Streaks, « Tu approches, ne lâche pas ! » — peur de perdre motive 2× plus</p>
+              <p className="pt-2 mt-2 border-t border-border/50"><strong>Visuel (sans SW) :</strong> Emoji ou URL (✨ ⚡ 🎯 🌟), nom évocateur (Apprenti des Nombres, Maître des Sommes) — esprit progression/maîtrise</p>
             </div>
           )}
         </div>
@@ -186,6 +190,16 @@ export function BadgeCreateModal({
               rows={2}
               placeholder="Résous ton premier exercice"
             />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Icône (emoji ou URL)</Label>
+            <Input
+              value={data.icon_url}
+              onChange={(e) => update("icon_url", e.target.value)}
+              placeholder="✨ ou https://..."
+            />
+            <p className="text-xs text-muted-foreground">Emoji (ex: ✨ ⚡ 🎯 🌟) ou URL d&apos;image — esprit progression sans droits d&apos;auteur</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

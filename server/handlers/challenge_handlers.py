@@ -359,7 +359,27 @@ async def submit_challenge_answer(request: Request):
                 Compare les réponses pour les défis de déduction.
                 Format attendu: "Emma:Chimie:700,Lucas:Info:600,..." ou format dict-like
                 L'ordre des associations n'a pas d'importance, seul le contenu compte.
+                Normalise les ordinaux français (1er, 2ème, 3ème...) en chiffres (1, 2, 3...).
                 """
+                # Mapping ordinaux français → chiffre (frontend affiche "1er", "2ème" etc.)
+                _ORDINAL_NORM = {
+                    "1er": "1", "1ère": "1", "1e": "1", "1ere": "1",
+                    "2ème": "2", "2eme": "2", "2e": "2",
+                    "3ème": "3", "3eme": "3", "3e": "3",
+                    "4ème": "4", "4eme": "4", "4e": "4",
+                    "5ème": "5", "5eme": "5", "5e": "5",
+                    "6ème": "6", "6eme": "6", "6e": "6",
+                    "7ème": "7", "7eme": "7", "7e": "7",
+                    "8ème": "8", "8eme": "8", "8e": "8",
+                    "9ème": "9", "9eme": "9", "9e": "9",
+                    "10ème": "10", "10eme": "10", "10e": "10",
+                }
+
+                def _norm_ordinal(s: str) -> str:
+                    """Normalise un ordinal français en chiffre."""
+                    t = s.strip().lower()
+                    return _ORDINAL_NORM.get(t, t)
+
                 def parse_associations(answer: str) -> set:
                     """Parse les associations en set de tuples normalisés."""
                     answer = str(answer).strip().lower()
@@ -370,8 +390,9 @@ async def submit_challenge_answer(request: Request):
                         for part in answer.split(','):
                             part = part.strip()
                             if part:
-                                # Normaliser : trier les éléments pour ignorer l'ordre interne
-                                elements = tuple(sorted([e.strip() for e in part.split(':') if e.strip()]))
+                                # Normaliser ordinaux + tri pour ignorer l'ordre
+                                raw = [e.strip() for e in part.split(':') if e.strip()]
+                                elements = tuple(sorted([_norm_ordinal(e) for e in raw]))
                                 if elements:
                                     associations.add(elements)
                     # Format dict-like ou JSON
@@ -401,11 +422,92 @@ async def submit_challenge_answer(request: Request):
             
             # Déterminer le type de challenge pour choisir la méthode de comparaison
             challenge_type = str(challenge.challenge_type).lower() if challenge.challenge_type else ''
-            
+
             # Comparaison spéciale pour les défis de déduction
             if 'deduction' in challenge_type and ':' in user_solution:
                 is_correct = compare_deduction_answers(user_solution, challenge.correct_answer)
                 logger.debug(f"Comparaison déduction - User: {user_solution[:100]}, Correct: {challenge.correct_answer[:100] if challenge.correct_answer else 'None'}, Result: {is_correct}")
+            elif 'probability' in challenge_type:
+                def _parse_probability_value(text: str) -> float | None:
+                    """Parse 6/10, 3/5, 0.6, 60% → valeur décimale."""
+                    if not text or not isinstance(text, str):
+                        return None
+                    t = text.strip()
+                    if '/' in t:
+                        try:
+                            a, b = t.split('/', 1)
+                            num, den = float(a.strip()), float(b.strip())
+                            return num / den if den else None
+                        except (ValueError, ZeroDivisionError):
+                            return None
+                    if '%' in t:
+                        try:
+                            return float(t.replace('%', '').strip()) / 100
+                        except ValueError:
+                            return None
+                    try:
+                        return float(t.replace(',', '.'))
+                    except ValueError:
+                        return None
+
+                u_val = _parse_probability_value(user_solution)
+                c_val = _parse_probability_value(challenge.correct_answer or '')
+                is_correct = (
+                    u_val is not None
+                    and c_val is not None
+                    and abs(u_val - c_val) < 0.001
+                )
+                if not is_correct and user_solution.strip() == (challenge.correct_answer or '').strip():
+                    is_correct = True
+                logger.debug(f"Comparaison PROBABILITY - User: {user_solution}, Correct: {challenge.correct_answer}, Parsed: {u_val}/{c_val}, Result: {is_correct}")
+            elif 'chess' in challenge_type:
+                def _normalize_chess_answer(text: str) -> str:
+                    """Normalise une réponse échecs pour comparaison tolérante."""
+                    if not text or not isinstance(text, str):
+                        return ""
+                    import re
+                    t = text.strip()
+                    # Retirer numéros de coups (1. 2. 3. 1) 2) etc.)
+                    t = re.sub(r'\d+[.)]\s*', '', t)
+                    # Collapser espaces multiples et normaliser
+                    t = re.sub(r'\s+', ' ', t).strip()
+                    # Notation anglaise → française (Q->D, R->T, B->F, N->C, K->R)
+                    _en_to_fr = {'Q': 'D', 'R': 'T', 'B': 'F', 'N': 'C', 'K': 'R', 'P': 'P'}
+                    parts = t.split()
+                    out = []
+                    for p in parts:
+                        if len(p) >= 1 and p[0].upper() in _en_to_fr:
+                            out.append(_en_to_fr[p[0].upper()] + p[1:])
+                        else:
+                            out.append(p)
+                    t = ' '.join(out).upper()
+                    # Comparaison sans espaces (tolérance "Dg8+ Txg8 Cf7#" = "Dg8+Txg8Cf7#")
+                    return t.replace(' ', '')
+
+                u_norm = _normalize_chess_answer(user_solution)
+                correct_raw = challenge.correct_answer or ''
+                # Accepter plusieurs solutions (duals) séparées par " | "
+                correct_variants = [s.strip() for s in correct_raw.split('|') if s.strip()]
+                correct_norms = [_normalize_chess_answer(v) for v in correct_variants]
+                is_correct = u_norm in correct_norms if correct_norms else u_norm == _normalize_chess_answer(correct_raw)
+                logger.debug(f"Comparaison CHESS - User norm: {u_norm}, Correct: {correct_norms}, Result: {is_correct}")
+            elif 'graph' in challenge_type:
+                # Liste de nœuds : accepter tout ordre (comparaison par ensemble)
+                user_list = parse_answer_to_list(user_solution)
+                correct_list = parse_answer_to_list(challenge.correct_answer or '')
+                user_set = {u.strip().upper() for u in user_list if u.strip()}
+                correct_set = {c.strip().upper() for c in correct_list if c.strip()}
+                # Liste de nœuds (set) vs chemin (ordre) : si aucun élément ne contient "-", c'est un set
+                is_node_list = (
+                    len(correct_set) > 1
+                    and not any('-' in str(c) for c in correct_list)
+                )
+                if is_node_list:
+                    is_correct = user_set == correct_set
+                else:
+                    # Chemin ou valeur unique : comparaison ordonnée
+                    is_correct = user_list == correct_list
+                logger.debug(f"Comparaison GRAPH - User: {user_set if is_node_list else user_list}, Correct: {correct_set if is_node_list else correct_list}, Result: {is_correct}")
             elif 'visual' in challenge_type or 'pattern' in challenge_type:
                 # PATTERN avec grille : source de vérité = analyse du pattern, pas correct_answer en base
                 computed_pattern_answer = None
@@ -857,6 +959,13 @@ async def generate_ai_challenge_stream(request: Request):
                 if age_group not in age_group_params:
                     logger.warning(f"Groupe d'âge '{age_group}' non trouvé dans le mapping, utilisation de '9-11' par défaut")
                 params = age_group_params.get(age_group, age_group_params["9-11"])
+                # Formulation correcte pour les prompts (éviter "adulte ans" ou "tous-ages ans")
+                age_display = params["display"]  # "9-11 ans", "adultes", "tous âges"
+                age_target_phrase = (
+                    "pour des adultes" if age_group == "adulte" else
+                    "pour un public de tous âges" if age_group == "tous-ages" else
+                    f"pour des enfants/élèves de {age_display}"
+                )
                 
                 system_prompt = f"""Tu es un assistant pédagogique spécialisé dans la création de défis mathélogiques (logique mathématique).
 
@@ -913,10 +1022,20 @@ Tu DOIS créer un objet visual_data adapté au type de défi :
     * Alternance : +3 puis ×2, puis +3, ×2... (ex: 5, 8, 16, 19, 38, 41...)
     * Fibonacci-like : 1, 2, 3, 5, 8, 13 (somme des deux précédents)
 - PATTERN : {{"grid": [["X", "O", "X"], ["O", "X", "O"], ["X", "O", "?"]], "size": 3}}
+  Pour 9-11 ans : tu peux utiliser des formes (cercle, triangle, carré) au lieu de X/O pour plus d'attrait. Patterns valides : damier, Latin square, glissement cyclique, alternance.
   Plusieurs "?" : correct_answer DOIT lister TOUS les symboles dans l'ordre (ligne par ligne). Format: "O, O, X, O"
 - PUZZLE : {{"pieces": ["Rouge", "Bleu", "Vert", "Jaune"], "hints": ["L'indice 1 qui aide à trouver l'ordre", "L'indice 2 qui aide à trouver l'ordre", "L'indice 3 qui aide à trouver l'ordre"], "description": "Description du contexte du puzzle"}}
+  correct_answer : ordre des pièces de gauche à droite, séparées par des virgules. Ex: "Algèbre, Géométrie, Analyse, Probabilités, Logique, Topologie"
   IMPORTANT PUZZLE : Tu DOIS toujours fournir des indices (hints) suffisants pour que l'utilisateur puisse déduire l'ordre correct ! Sans indices, le puzzle est impossible à résoudre.
-- GRAPH : {{"nodes": ["A", "B", "C", "D"], "edges": [["A", "B"], ["B", "C"], ["C", "D"], ["D", "A"]]}} // IMPORTANT : Tous les noms de nœuds dans edges DOIVENT exister dans nodes
+  RÈGLE DIFFICULTÉ PUZZLE : Si tu attribues difficulty_rating >= 4 (défis difficiles) :
+  - INTERDIT : 4 pièces uniquement (Rouge, Bleu, Vert, Jaune) → trop facile, max 3.0
+  - OBLIGATOIRE : minimum 6-7 pièces (personnages, événements, objets à ranger)
+  - Indices INDIRECTS : "X n'est pas à côté de Y", "A est entre B et C", "Le 3ème n'est pas Z", "Ni X ni Y aux extrémités"
+  - ÉVITER les indices trop directs type "La Verte est immédiatement à gauche de la Rouge"
+  - Combiner contraintes : ordre + position relative + exclusions + paires/impaires
+- GRAPH : {{"nodes": ["A", "B", "C", "D"], "edges": [["A", "B"], ["B", "C"], ["C", "D"], ["D", "A"]]}}
+  IMPORTANT : Tous les noms de nœuds dans edges DOIVENT exister dans nodes.
+  Optionnel : {{"positions": {{"A": [50, 50], "B": [150, 50], "C": [150, 150], "D": [50, 150]}}}} pour un placement explicite (x,y) et améliorer la lisibilité des graphes complexes.
 - DEDUCTION (grille logique) : {{"type": "logic_grid", "entities": {{"personnes": ["Alice", "Bob", "Charlie"], "metiers": ["Médecin", "Avocat", "Ingénieur"], "villes": ["Paris", "Lyon", "Marseille"]}}, "clues": ["Alice n'est pas médecin", "L'avocat vit à Lyon", "Charlie ne vit pas à Paris"], "description": "Grille de déduction logique à trois dimensions"}}
   IMPORTANT DEDUCTION : 
   - Le visual_data DOIT contenir "type": "logic_grid" et "entities" avec les catégories
@@ -1028,6 +1147,7 @@ Avant de retourner le JSON, tu DOIS vérifier la cohérence logique :
    - Exemple [2, 4, 7, 11, 16] : diffs 2,3,4,5 → prochaine diff 6 → prochain = 16+6 = 22 → correct_answer = "22" (PAS 18 !)
    - AVANT de finaliser : recalcule mentalement. correct_answer ET solution_explanation DOIVENT être identiques.
    - Pour difficulty >= 4 : VARIER les types de patterns (géométrique, carrés, n×2+1, Fibonacci...). ÉVITER systématiquement "écarts qui doublent".
+   - TITRE : Ne JAMAIS mettre la règle dans le titre (×3, +1, "double", "alternance", etc.). Si le titre révèle le pattern → difficulty max 3.0. Ex: "Le cycle caché" ✅ ; "Le cycle ×3 puis +1" ❌ (trop facile).
 
 3. Pour PUZZLE :
    - Tu DOIS fournir des indices (hints) qui permettent de DÉDUIRE l'ordre
@@ -1035,12 +1155,14 @@ Avant de retourner le JSON, tu DOIS vérifier la cohérence logique :
    - Vérifie que correct_answer contient tous les éléments de pieces
    - Vérifie que l'ordre donné par correct_answer est DÉDUCTIBLE à partir des indices
    - L'explication doit montrer comment utiliser les indices pour trouver l'ordre
+   - Pour difficulty >= 4 : minimum 6 pièces, indices indirects, combinaison de contraintes. Jamais 4 couleurs basiques.
 
 4. Pour VISUAL avec formes et couleurs :
    - Si la réponse est une couleur (ex: "bleu", "rouge"), tu DOIS montrer cette couleur AVEC une autre forme dans les éléments visibles
    - Exemple : Si correct_answer = "bleu" et c'est pour un carré manquant, il DOIT y avoir un autre "carré bleu" visible dans shapes
    - L'utilisateur ne peut PAS deviner une couleur qu'il n'a jamais vue associée à une forme
    - La description doit expliquer la règle à trouver (ex: "Chaque forme a sa propre couleur")
+   - Pour SYMÉTRIE (type "symmetry") : correct_answer = "forme couleur" (ex: "cercle rouge"). La position "?" DOIT avoir son miroir dans le layout ; correct_answer = l'élément qui occupe la position miroir (même shape + color).
 
 5. Pour DEDUCTION (grille logique) :
    - Tu DOIS fournir des clues (indices) qui permettent de déduire UNE SEULE solution
@@ -1057,8 +1179,9 @@ Avant de retourner le JSON, tu DOIS vérifier la cohérence logique :
    - ERREUR FATALE si visual_data contient : "shapes", "arrangement", "cercle", "carré", "triangle", "couleur"
    - ERREUR FATALE si visual_data contient : "numbers", "target", "movement_options" (ce n'est pas de la crypto !)
    - Ces éléments appartiennent au type "visual", "pattern" ou "sequence", PAS à "coding" !
-   - Pour "caesar" : fournis "encoded_message" (lettres encodées), "shift" (1-25), correct_answer = mot décodé
-     Exemple : encoded_message="FKDW", shift=3, correct_answer="CHAT"
+   - Pour "caesar" : fournis "encoded_message", correct_answer = mot décodé.
+     * Avec shift explicite : shift (1-25). Exemple : encoded_message="FKDW", shift=3, correct_answer="CHAT"
+     * Avec partial_key (défi à déduction) : NE PAS fournir shift ; ajoute "rule_type": "caesar" et partial_key (ex: {{"F": "A", "G": "B", "H": "C"}}) ; vérifie que le décalage déduit donne correct_answer après décodage.
    - Pour "substitution" : fournis "encoded_message" et soit "key" complète, soit "partial_key" si la règle est déductible (César, Atbash, clé-mot).
    - Pour "binary" : fournis "encoded_message" (groupes de 8 bits : "01001111 01010101 01001001"), correct_answer = "OUI"
    - Pour "symbols" : fournis "encoded_message" avec symboles (★●▲), "key" (table symbole→lettre)
@@ -1070,12 +1193,34 @@ Avant de retourner le JSON, tu DOIS vérifier la cohérence logique :
    - Tu DOIS fournir "board" : tableau 2D de 8x8. Notation : K/k, Q/q, R/r, B/b, N/n, P/p. "" = vide.
    - board[0] = rangée 8 (haut), board[7] = rangée 1 (bas). "turn" : "white" ou "black".
    - "objective" : "mat_en_1", "mat_en_2", "mat_en_3", "meilleur_coup".
-   - correct_answer : notation algébrique "Dd7+, Rf8, Df7#" (pour mat en 2/3 : séquence complète).
+   - correct_answer : notation algébrique. Si plusieurs solutions valides (duals), sépare-les par " | " (ex: "Dg8+ Txg8 Cf7# | Bg8+ Txg8 Cf7#").
+   - CRITIQUE : Vérifie que la position n'admet qu'UNE SEULE solution. Si tu découvres des duals, liste TOUTES les variantes dans correct_answer.
    - ERREUR : Ne JAMAIS utiliser la position de départ pour mat en X coups (impossible tactiquement).
    - La position doit être TACTIQUE : roi noir menacé, peu de pièces au centre, mat réalisable en X coups.
    - highlight_positions : UNIQUEMENT les cases avec une pièce (dame, roi, Tours clés...). Jamais de cases vides. Notation ["d5", "h8"].
 
-8. Vérification finale :
+8. Pour RIDDLE (énigmes) :
+   - Les clues (dans visual_data) DOIVENT permettre de DÉDUIRE correct_answer de façon unique.
+   - solution_explanation DOIT montrer le raisonnement étape par étape, cohérent avec correct_answer.
+   - key_elements doit lister les notions clés (somme, double, symétrie, etc.) pour orienter le solveur.
+   - Éviter les énigmes impossibles : chaque indice doit apporter une information exploitable.
+
+9. Pour PROBABILITY (probabilités) :
+   - correct_answer DOIT être cohérent avec visual_data : favorable / total.
+   - Format : fraction "6/10" ou "3/5" (préférer favorable/total pour 6-8 ans). Le système accepte aussi "0.6", "60%".
+   - Vérifie : somme des couleurs (rouge_bonbons + bleu_bonbons + ...) = total_bonbons.
+   - La question dans visual_data doit correspondre à l'événement demandé (ex: "rouge" → rouge_bonbons).
+   - solution_explanation DOIT montrer le calcul : favorable/total, cohérent avec correct_answer.
+
+10. Pour GRAPH (graphes) :
+   - Vérifie : tous les nœuds des edges DOIVENT exister dans nodes.
+   - correct_answer : selon le type de question.
+     * Liste de nœuds (points d'articulation, sommets, etc.) : format "A, B, C" (ordre alphabétique recommandé ; le système accepte tout ordre).
+     * Chemin : format "A-B-C-D" ou "A, B, C, D" (ordre significatif).
+     * Distance/nombre : un seul nombre.
+   - solution_explanation DOIT expliquer la méthode (DFS, BFS, algorithme) et la cohérence avec le graphe.
+
+11. Vérification finale :
    - La solution_explanation DOIT expliquer pourquoi correct_answer est correct
    - L'explication DOIT être cohérente avec le visual_data
    - L'explication NE DOIT PAS être contradictoire avec correct_answer
@@ -1094,11 +1239,11 @@ solution_explanation: "En observant la colonne de droite et la ligne du bas, le 
 
 Retourne uniquement le défi au format JSON valide avec ces champs:
 {{
-  "title": "Titre du défi mathélogique (accrocheur, adapté à {age_group} ans)",
+  "title": "Titre du défi mathélogique (accrocheur, adapté à {age_display})",
   "description": "Description claire du problème avec contexte engageant",
   "question": "Question spécifique et précise à résoudre",
   "correct_answer": "Réponse correcte (VALIDÉE pour correspondre au pattern)",
-  "solution_explanation": "Explication détaillée adaptée à {age_group} ans (COHÉRENTE avec correct_answer)",
+  "solution_explanation": "Explication détaillée adaptée à {age_display} (COHÉRENTE avec correct_answer)",
   "hints": ["Indice 1 (piste pédagogique)", "Indice 2 (piste)", "Indice 3 (piste)"],
   "visual_data": {{...}},
   "difficulty_rating": X.X // Note de 1.0 à 5.0 adaptée au groupe d'âge
@@ -1115,6 +1260,7 @@ CALIBRATION STRICTE — Ne PAS surévaluer la difficulté :
 - Si la règle est DANS LE TITRE (ex. "double cycle", "symétrie") → max 3.0. L'utilisateur sait déjà quoi chercher.
 - Si c'est un principe connu (Sudoku, Latin square de base) sans piège → max 3.5.
 - UNE SEULE case vide ("?") dans la grille → max 2.5-3.0 : on déduit par élimination sans chercher le pattern. Pas besoin de comprendre la logique globale.
+- PUZZLE avec 4 pièces (ex. 4 couleurs) et indices directs ("X à gauche de Y") → max 3.0. Pour 4+ : minimum 6 pièces, indices indirects.
 - Difficile (4+) = plusieurs "?" à remplir OU pattern non évident à découvrir OU piège. La règle doit être DÉCOUVERTE.
 - Pas de piège, règle explicite, 1 seul manquant → difficulté BASSE.
 
@@ -1122,13 +1268,13 @@ Assure-toi que le visual_data est complet et permet une visualisation interactiv
 IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."""
                 
                 # Construire le prompt utilisateur avec le groupe d'âge normalisé
-                user_prompt = f"""Crée un défi mathélogique de type "{challenge_type}" pour des enfants/élèves de {age_group} ans.
+                user_prompt = f"""Crée un défi mathélogique de type "{challenge_type}" {age_target_phrase}.
 
 CONTRAINTES OBLIGATOIRES :
 - Type de défi : {challenge_type} (pas un autre type !)
-- Groupe d'âge : {age_group} ans (adapter la complexité et le vocabulaire)
+- Groupe d'âge : {age_display} (adapter la complexité et le vocabulaire)
 - Le visual_data DOIT correspondre au type {challenge_type}
-- La difficulté doit être adaptée à {age_group} ans"""
+- La difficulté doit être adaptée à {age_display}"""
                 
                 # Si l'utilisateur a fourni un prompt personnalisé, l'intégrer en priorité
                 if prompt:
@@ -1139,7 +1285,7 @@ DEMANDE PERSONNALISÉE DE L'UTILISATEUR (à respecter en priorité) :
 
 Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" et le groupe d'âge {age_group}."""
                 
-                # Renforcer instruction JSON pour o1 (n'accepte pas response_format)
+                # Renforcer instruction JSON pour o1 (n'accepte pas response_format); o3 a structured output
                 if AIConfig.is_o1_model(ai_params["model"]):
                     system_prompt += "\n\nCRITIQUE : Retourne UNIQUEMENT un objet JSON valide, sans texte ou markdown avant/après. Aucune explication hors du JSON."
                 
@@ -1163,6 +1309,7 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                 )
                 async def create_stream_with_retry():
                     use_o1 = AIConfig.is_o1_model(ai_params["model"])
+                    use_o3 = AIConfig.is_o3_model(ai_params["model"])
                     api_kwargs = {
                         "model": ai_params["model"],
                         "messages": [
@@ -1171,12 +1318,15 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                         ],
                         "stream": True,
                     }
-                    # o1/o1-mini n'accepte pas response_format json_object
+                    # o1 n'accepte pas response_format; o3 et GPT-5 si
                     if not use_o1:
                         api_kwargs["response_format"] = {"type": "json_object"}
 
                     if use_o1:
                         api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
+                    elif use_o3:
+                        api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
+                        api_kwargs["reasoning_effort"] = ai_params.get("reasoning_effort", "medium")
                     elif AIConfig.is_gpt5_model(ai_params["model"]):
                         api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
                         api_kwargs["reasoning_effort"] = ai_params.get("reasoning_effort", "medium")
@@ -1187,7 +1337,7 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                         api_kwargs["max_tokens"] = ai_params["max_tokens"]
                         api_kwargs["temperature"] = ai_params.get("temperature", 0.5)
 
-                    logger.info(f"Appel API avec params: model={ai_params['model']}, o1={use_o1}, reasoning={ai_params.get('reasoning_effort', 'N/A')}")
+                    logger.info(f"Appel API: model={ai_params['model']}, o1={use_o1}, o3={use_o3}, reasoning={ai_params.get('reasoning_effort', 'N/A')}")
                     return await client.chat.completions.create(**api_kwargs)
                 
                 try:
@@ -1221,6 +1371,29 @@ Note : Respecte la demande ci-dessus tout en gardant le type "{challenge_type}" 
                         prompt_tokens_estimate = chunk.usage.prompt_tokens or prompt_tokens_estimate
                         completion_tokens_estimate = chunk.usage.completion_tokens or completion_tokens_estimate
                 
+                # Fallback si réponse vide (o3 peut consumer tous les tokens en raisonnement)
+                if not full_response.strip() and AIConfig.is_o3_model(ai_params["model"]):
+                    logger.warning("Réponse vide de o3, fallback vers modèle sans raisonnement...")
+                    fallback_model = AIConfig.ADVANCED_MODEL
+                    try:
+                        from openai import AsyncOpenAI
+                        client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY, timeout=ai_params.get("timeout", 120))
+                        fallback_resp = await client.chat.completions.create(
+                            model=fallback_model,
+                            messages=[
+                                {"role": "system", "content": system_prompt},
+                                {"role": "user", "content": user_prompt}
+                            ],
+                            response_format={"type": "json_object"},
+                            max_tokens=ai_params["max_tokens"],
+                            temperature=0.4,
+                        )
+                        if fallback_resp.choices and fallback_resp.choices[0].message.content:
+                            full_response = fallback_resp.choices[0].message.content
+                            logger.info(f"Fallback {fallback_model}: {len(full_response)} caractères reçus")
+                    except Exception as fb_err:
+                        logger.error(f"Fallback échoué: {fb_err}")
+
                 # Parser la réponse JSON complète
                 # GPT-5.1 avec reasoning peut inclure du texte avant/après le JSON
                 logger.info(f"Réponse reçue: {len(full_response)} caractères, ~{len(full_response)//4} tokens estimés")

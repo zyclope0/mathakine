@@ -464,6 +464,10 @@
       "enterAnswer": "Enter your answer...",
       "chessAnswerPlaceholder": "E.g. Qd7+, Kf8, Qf7#",
       "chessAnswerFormat": "Format: moves in algebraic notation, separated by commas (e.g. Qd7+, Kf8, Qf7#)",
+      "visualAnswerPlaceholder": "E.g. square blue or Position 6: square blue, Position 9: green triangle",
+      "visualAnswerFormat": "Specify shape and color. Multiple answers: \"Position N: shape color\" separated by commas. Accents and word order accepted.",
+      "positionLabel": "Position {position}",
+      "visualSelectHint": "Choose the shape and color that complete the challenge. All options from the challenge are displayed.",
       "answerFieldLabel": "Answer field for the logic challenge",
       "validating": "Validating...",
       "validateAnswer": "Validate challenge answer",
@@ -865,7 +869,9 @@
       "badgeUnlocked": "Badge unlocked! 🎖️",
       "newBadgeUnlocked": "New badge unlocked! 🎖️",
       "noBadge": "No new badge",
-      "noBadgeDescription": "Keep going to unlock new badges!"
+      "noBadgeDescription": "Keep going to unlock new badges!",
+      "progressNotification": "You're close!",
+      "progressNotificationDesc": "Only {count} more for \"{name}\""
     },
     "challenges": {
       "loadError": "Error",

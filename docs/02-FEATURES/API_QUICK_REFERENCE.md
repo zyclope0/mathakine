@@ -80,7 +80,7 @@
 |---------|----------|------|---------------|--------|
 | GET | `/api/challenges` | Non | — | OK |
 | GET | `/api/challenges/{id}` | Non | — | OK |
-| POST | `/api/challenges/{id}/attempt` | Oui | `{answer}` | OK |
+| POST | `/api/challenges/{id}/attempt` | Oui | `{answer}` | OK — Réponse inclut `new_badges` si déblocage (Lot C-1) |
 | GET | `/api/challenges/{id}/hint` | Oui | — | OK |
 | GET | `/api/challenges/completed-ids` | Oui | — | OK |
 | GET | `/api/challenges/generate-ai-stream` | Non | — | OK (SSE) |
@@ -122,6 +122,11 @@
 | PUT | `/api/admin/challenges/{id}` | Archiviste | body complet | OK |
 | PATCH | `/api/admin/challenges/{id}` | Archiviste | `{is_archived: bool}` | OK |
 | POST | `/api/admin/challenges/{id}/duplicate` | Archiviste | — | OK |
+| GET | `/api/admin/badges` | Archiviste | — | OK |
+| POST | `/api/admin/badges` | Archiviste | `{code, name, description, category, difficulty, points_reward, requirements, ...}` | OK |
+| GET | `/api/admin/badges/{id}` | Archiviste | — | OK |
+| PUT | `/api/admin/badges/{id}` | Archiviste | body complet | OK |
+| DELETE | `/api/admin/badges/{id}` | Archiviste | — | Soft delete (is_active=false) |
 | GET | `/api/admin/reports` | Archiviste | `?period=7d|30d` | OK |
 | GET | `/api/admin/moderation` | Archiviste | `?type=exercises|challenges` | OK |
 | GET | `/api/admin/audit-log` | Archiviste | `?skip=&limit=` | OK |

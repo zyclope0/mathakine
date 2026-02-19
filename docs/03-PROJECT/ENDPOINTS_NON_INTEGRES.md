@@ -1,6 +1,6 @@
 # Endpoints et leur intégration Frontend
 
-> État au 06/02/2026 — **MAJ 15/02/2026**
+> État au 06/02/2026 — **MAJ 16/02/2026**
 
 ## Vue d'ensemble
 
@@ -135,6 +135,10 @@ Retourne le top 50 des utilisateurs par `total_points`. Respecte `show_in_leader
 | `GET /api/users/leaderboard` | ✅ | ✅ Page + widget | 15/02/2026 |
 | `PUT /api/users/me` | ✅ | ✅ Profil | - |
 | `PUT /api/users/me/password` | ✅ | ✅ Paramètres | Protégé CSRF |
+| `GET /api/users/me/sessions` | ✅ | ✅ /settings | Sessions actives + is_current (16/02) |
+| `DELETE /api/users/me/sessions/{id}` | ✅ | ✅ /settings | Révocation session |
+| `GET /api/challenges/badges/progress` | ✅ | ✅ /badges | Barres progression badges (16/02) |
+| `POST /api/recommendations/complete` | ✅ | ✅ Dashboard | Bouton « Marquer comme fait » (16/02) |
 
 ---
 
@@ -148,6 +152,7 @@ L'espace admin est pleinement opérationnel. Tous les endpoints suivants sont im
 | `GET/PATCH /api/admin/users` | `/admin/users` | Liste, filtre, rôle, désactivation |
 | `GET/POST/PUT/PATCH /api/admin/exercises` | `/admin/content` | CRUD, archivage, duplication |
 | `GET/POST/PUT/PATCH /api/admin/challenges` | `/admin/content` | CRUD, archivage, duplication |
+| `GET/POST/PUT/DELETE /api/admin/badges` | `/admin/content` (onglet Badges) | CRUD badges (B-1, B-2), soft delete |
 | `GET /api/admin/moderation` | `/admin/moderation` | Contenu IA |
 | `GET /api/admin/audit-log` | `/admin/audit-log` | Log actions |
 | `GET/PUT /api/admin/config` | `/admin/config` | Paramètres globaux |
@@ -156,4 +161,24 @@ L'espace admin est pleinement opérationnel. Tous les endpoints suivants sont im
 
 ---
 
-**Dernière mise à jour** : 16/02/2026 - Admin complet (config, modération, audit), corrections API_QUICK_REFERENCE
+## 5. Implémentations 16/02 — Sessions, badges, recommandations, maintenance
+
+### Sessions actives (`/api/users/me/sessions`)
+- **Backend** : UserSession créée à chaque login (IP, User-Agent, expires_at). `is_current: true` sur la session la plus récente.
+- **Frontend** : Page `/settings`, section « Sessions actives », bouton révoquer par session.
+
+### Badges — Progression (`GET /api/challenges/badges/progress`)
+- **Backend** : `{unlocked, in_progress}` avec current/target pour chaque badge non débloqué.
+- **Frontend** : Page `/badges`, section « Badges en cours » avec barres de progression. Hook `useBadgesProgress`.
+
+### Recommandations — Marquer fait (`POST /api/recommendations/complete`)
+- **Backend** : Met à jour `is_completed`, `completed_at` sur la recommandation.
+- **Frontend** : Bouton ✓ sur chaque carte recommandation du dashboard. Hook `useRecommendations` (mutation `complete`).
+
+### Mode maintenance et paramètres
+- **maintenance_mode** : Middleware 503 sauf `/health`, `/metrics`, `/api/admin/*`, `/api/auth/login`, refresh, validate-token. Overlay frontend (`MaintenanceOverlay.tsx`) sauf `/login`, `/admin`.
+- **registration_enabled** : 403 sur `POST /api/users/` si `false` (table `settings` via admin config).
+
+---
+
+**Dernière mise à jour** : 16/02/2026 - Admin complet, sessions, badges progress, recommendations complete, maintenance

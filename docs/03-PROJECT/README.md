@@ -25,6 +25,7 @@
 | Document | Date | Rôle |
 |----------|------|------|
 | **[EVALUATION_PROJET_2026-02-07.md](./EVALUATION_PROJET_2026-02-07.md)** | 07/02/2026 | ⭐ **Document de référence** — Évaluation factuelle qualité (scores, risques, priorités). Remplace BILAN_COMPLET et PLAN_ACTION. |
+| **[POINT_SITUATION_2026-02-18.md](./POINT_SITUATION_2026-02-18.md)** | 18/02/2026 | **Point de situation** — Bilan fonctionnalités livrées, priorités P1-P2, références rapides. |
 | **[DEPLOIEMENT_2026-02-06.md](./DEPLOIEMENT_2026-02-06.md)** | 06/02/2026 | Guide déploiement Render, variables d'environnement |
 
 ### Audits avec recommandations partielles

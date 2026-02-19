@@ -68,11 +68,12 @@ export function useChallenges(filters?: ChallengeFilters) {
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
       queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
 
-      // Si la réponse est correcte, invalider et refetch immédiatement la query de progression
+      // Si la réponse est correcte, invalider et refetch la progression + badges
       if (data.is_correct) {
         queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });
-        // Refetch immédiatement pour mettre à jour les badges rapidement
         queryClient.refetchQueries({ queryKey: ["completed-challenges"] });
+        queryClient.invalidateQueries({ queryKey: ["badges"] });
+        queryClient.invalidateQueries({ queryKey: ["user", "progress"] });
       }
 
       // Afficher les badges gagnés si présents
@@ -82,6 +83,14 @@ export function useChallenges(filters?: ChallengeFilters) {
             description: `${badge.name}${badge.star_wars_title ? ` - ${badge.star_wars_title}` : ""}`,
             duration: 5000,
           });
+        });
+      } else if (data.progress_notification && data.progress_notification.remaining > 0) {
+        toast.info(t("badges.progressNotification"), {
+          description: t("badges.progressNotificationDesc", {
+            name: data.progress_notification.name,
+            count: data.progress_notification.remaining,
+          }),
+          duration: 4000,
         });
       }
     },

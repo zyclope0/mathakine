@@ -1,6 +1,6 @@
 # Point de situation — Fonctionnalités Mathakine
 
-> **Date** : 16/02/2026  
+> **Date** : 18/02/2026  
 > **Objectif** : État des lieux des fonctionnalités, ce qui est documenté, ce qui manque, et priorisation des implémentations
 
 ---
@@ -27,7 +27,8 @@
 | [I18N.md](I18N.md) | next-intl, messages, bonnes pratiques | Jan 2025 | ✅ Complète |
 | [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md) | Roadmap produit, P0-P4, phases | 15/02 | ✅ Complète |
 | [BADGES_AMELIORATIONS.md](BADGES_AMELIORATIONS.md) | Améliorations page badges, psychologie | 06/02 | 🔄 MAJ 16/02 (progression implémentée) |
-| [PLAN_REFONTE_BADGES.md](PLAN_REFONTE_BADGES.md) | Plan refonte badges + Admin CRUD + moteur | 16/02 | Nouveau |
+| [PLAN_REFONTE_BADGES.md](PLAN_REFONTE_BADGES.md) | Plan refonte badges + Admin CRUD + moteur Lot C | 18/02 | Lot A-B-C ✅ Finalisé |
+| [B4_REFORMULATION_BADGES.md](B4_REFORMULATION_BADGES.md) | Specs reformulation 17 badges, contexte challenge | 15/02 | B4 livré |
 | [ANALYTICS_PROGRESSION.md](ANALYTICS_PROGRESSION.md) | Graphiques progression (à implémenter) | 06/02 | Spécifications |
 
 ---
@@ -69,6 +70,20 @@ Les éléments suivants ont été implémentés et sont désormais documentés i
 | **POST /api/recommendations/complete** | Met à jour `is_completed`, `completed_at` | Dashboard (onglet Recommandations) |
 | **Bouton ✓ Marquer comme fait** | Chaque carte recommandation | Dashboard |
 
+### 2.5 Badges — B4 + C-1 (17/02)
+
+| Élément | Implémentation | Doc |
+|--------|----------------|-----|
+| **B4 Reformulation** | 17 badges (name, desc, star_wars_title, catégories, points). Script `scripts/update_badges_b4.py` | B4_REFORMULATION_BADGES |
+| **Lot C-1 Moteur** | `badge_requirement_engine.py` — registry 10 types, dispatch par requirements | PLAN_REFONTE_BADGES |
+| **Badges défis logiques** | `logic_attempts_count`, `mixte` (exercices + défis). Admin peut créer ces badges | PLAN_REFONTE_BADGES § 5.3.2 |
+| **submit_challenge_answer** | Appelle `check_and_award_badges` après chaque défi correct → `new_badges` dans réponse | — |
+| **Terrain B5** | Exemples formulaire admin (défis, mixte), validation, `_format_requirements_to_text` | — |
+
+**B5 livré 17/02** : Goal-gradient (« Plus que X »), loss aversion (« Tu approches »), icon_url (admin + BadgeCard), principes psychologiques enrichis, audit § 5.3.3.
+**Badges enrichis 17/02** : add_badges_psycho (12) + add_badges_recommandations (guardian_150, marathon, comeback). 32 badges, vigilance 35–40.
+**Paufinage 18/02** : Fix N+1 sur `/api/challenges/badges/progress` (stats_cache étendu). Filtre « Proches » uniquement sur onglet À débloquer.
+
 ---
 
 ## 3. État par domaine
@@ -91,6 +106,8 @@ Les éléments suivants ont été implémentés et sont désormais documentés i
 | Leaderboard | ✅ | ✅ | ROADMAP, ENDPOINTS |
 | Badges (liste, check) | ✅ | ✅ | BADGES_AMELIORATIONS |
 | **Badges — progression** | ✅ | ✅ | SITUATION (ici), BADGES_AMELIORATIONS |
+| **Badges — B4 reformulation** | ✅ | ✅ | B4_REFORMULATION_BADGES |
+| **Badges — moteur Lot C (défis, mixte)** | ✅ | ✅ | PLAN_REFONTE_BADGES |
 | Recommandations | ✅ | ✅ | — |
 | **Recommandations — marquer fait** | ✅ | ✅ | SITUATION (ici) |
 | Streak | ✅ | ✅ | — |
@@ -168,6 +185,7 @@ Les éléments suivants ont été implémentés et sont désormais documentés i
 | Admin (sécurité RBAC) | [ADMIN_FEATURE_SECURITE](ADMIN_FEATURE_SECURITE.md) |
 | Flux auth complet | [AUTH_FLOW](AUTH_FLOW.md) |
 | Badges (améliorations) | [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) |
+| Badges (plan refonte, B4, C-1, B5) | [PLAN_REFONTE_BADGES](PLAN_REFONTE_BADGES.md), [B4_REFORMULATION_BADGES](B4_REFORMULATION_BADGES.md) |
 | Graphiques progression | [ANALYTICS_PROGRESSION](ANALYTICS_PROGRESSION.md) |
 | Thèmes visuels | [THEMES](THEMES.md) |
 | i18n | [I18N](I18N.md) |

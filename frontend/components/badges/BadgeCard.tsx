@@ -341,10 +341,10 @@ export function BadgeCard({
           {!isEarned && (badge.criteria_text || progress) && (
             <div className="space-y-2 pt-2 border-t border-border/50">
               {badge.criteria_text && (
-                <p className="text-sm text-primary font-medium">
-                  {badge.criteria_text}
+                <p className="text-sm font-medium">
+                  <span className="text-foreground">{badge.criteria_text}</span>
                   {progress && progress.target > 0 && (
-                    <span className="text-foreground font-semibold ml-1">
+                    <span className="text-foreground font-semibold ml-1 tabular-nums">
                       — {progress.current} / {progress.target}
                     </span>
                   )}
@@ -359,17 +359,17 @@ export function BadgeCard({
               )}
               {progress && progress.target > 0 && (
                 <div
-                  className="w-full bg-muted rounded-full h-2.5 overflow-hidden ring-1 ring-inset ring-border/50"
+                  className="w-full bg-muted rounded-full h-3 overflow-hidden ring-1 ring-inset ring-border/60"
                   role="progressbar"
                   aria-valuenow={Math.round(progress.progress * 100)}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-label={`${badge.name}: ${Math.round(progress.progress * 100)}%`}
                 >
-                  <div
-                    className="bg-primary h-2.5 rounded-full transition-all duration-500 min-w-[2px]"
-                    style={{ width: `${Math.max(progress.progress * 100, 2)}%` }}
-                  />
+                <div
+                  className="bg-primary h-3 rounded-full transition-all duration-500 min-w-[2px]"
+                  style={{ width: `${Math.max(progress.progress * 100, 2)}%` }}
+                />
                 </div>
               )}
             </div>

@@ -704,16 +704,22 @@ def _achievement_to_detail(a: Achievement) -> dict:
 
 
 def _validate_requirements(req: dict | None) -> tuple[bool, str | None]:
-    """Valide le schéma requirements (minimal). Retourne (ok, erreur)."""
+    """Valide le schéma requirements (B7). Retourne (ok, erreur)."""
     if req is None:
         return False, "requirements est requis"
     if not isinstance(req, dict):
         return False, "requirements doit être un objet JSON"
+    if len(req) == 0:
+        return False, "requirements doit contenir au moins une clé (attempts_count, min_attempts+success_rate, etc.)"
+
+    # attempts_count
     if "attempts_count" in req:
         v = req.get("attempts_count")
         if not isinstance(v, (int, float)) or v < 1:
             return False, "attempts_count doit être un nombre >= 1"
         return True, None
+
+    # min_attempts + success_rate
     if "min_attempts" in req and "success_rate" in req:
         ma, sr = req.get("min_attempts"), req.get("success_rate")
         if not isinstance(ma, (int, float)) or ma < 1:
@@ -721,10 +727,49 @@ def _validate_requirements(req: dict | None) -> tuple[bool, str | None]:
         if not isinstance(sr, (int, float)) or sr < 0 or sr > 100:
             return False, "success_rate doit être entre 0 et 100"
         return True, None
-    # Autres schémas (consecutive, max_time, consecutive_days, etc.) — accepter si objet non vide
-    if len(req) > 0:
+
+    # exercise_type + consecutive_correct
+    if "consecutive_correct" in req:
+        cc = req.get("consecutive_correct")
+        if not isinstance(cc, (int, float)) or cc < 1:
+            return False, "consecutive_correct doit être un nombre >= 1"
         return True, None
-    return False, "requirements doit contenir attempts_count OU (min_attempts et success_rate) ou un schéma connu"
+
+    # max_time
+    if "max_time" in req:
+        mt = req.get("max_time")
+        if not isinstance(mt, (int, float)) or mt < 0:
+            return False, "max_time doit être un nombre >= 0"
+        return True, None
+
+    # consecutive_days
+    if "consecutive_days" in req:
+        cd = req.get("consecutive_days")
+        if not isinstance(cd, (int, float)) or cd < 1:
+            return False, "consecutive_days doit être un nombre >= 1"
+        return True, None
+
+    # logic_attempts_count (B5 — défis logiques)
+    if "logic_attempts_count" in req:
+        lac = req.get("logic_attempts_count")
+        if not isinstance(lac, (int, float)) or lac < 1:
+            return False, "logic_attempts_count doit être un nombre >= 1"
+        # mixte : attempts_count + logic_attempts_count
+        if "attempts_count" in req:
+            ac = req.get("attempts_count")
+            if not isinstance(ac, (int, float)) or ac < 1:
+                return False, "attempts_count doit être un nombre >= 1 (mixte)"
+        return True, None
+
+    # comeback_days (retour après X jours sans activité)
+    if "comeback_days" in req:
+        cd = req.get("comeback_days")
+        if not isinstance(cd, (int, float)) or cd < 1:
+            return False, "comeback_days doit être un nombre >= 1"
+        return True, None
+
+    # Autres schémas — accepter si objet non vide (extensible)
+    return True, None
 
 
 @require_auth

@@ -193,15 +193,17 @@ Couche independante du framework HTTP :
 | GET | `/api/exercises` | exercise_handlers | Liste exercices (filtres, pagination) |
 | GET | `/api/exercises/stats` | exercise_handlers | ✨ Statistiques Académie (thème gamifié) |
 | GET | `/api/exercises/{id}` | exercise_handlers | Detail exercice |
-| POST | `/api/exercises/{id}/submit` | exercise_handlers | Soumettre reponse |
+| POST | `/api/exercises/{id}/attempt` | exercise_handlers | Soumettre reponse |
 | GET | `/api/challenges` | challenge_handlers | Liste defis logiques |
 | GET | `/api/challenges/{id}` | challenge_handlers | Detail defi |
 | POST | `/api/challenges/{id}/attempt` | challenge_handlers | Tenter defi |
 | GET | `/api/challenges/{id}/hint` | challenge_handlers | Demander indice |
 | GET | `/api/challenges/completed-ids` | challenge_handlers | IDs defis completes |
-| GET | `/api/badges` | badge_handlers | Liste badges disponibles |
-| GET | `/api/badges/user/{user_id}` | badge_handlers | Badges utilisateur |
+| GET | `/api/challenges/badges/progress` | badge_handlers | Progression vers badges (16/02) |
+| GET | `/api/badges/user` | badge_handlers | Badges utilisateur |
+| GET | `/api/badges/available` | badge_handlers | Liste badges disponibles |
 | GET | `/api/recommendations` | recommendation_handlers | Recommandations IA |
+| POST | `/api/recommendations/complete` | recommendation_handlers | Marquer recommandation faite (16/02) |
 | POST | `/api/chat` | chat_handlers | Chatbot IA |
 | POST | `/api/chat/stream` | chat_handlers | Chatbot streaming |
 
@@ -248,17 +250,18 @@ Chaque domaine a son hook dedie base sur React Query :
 - `useExercises` / `useExercise` - CRUD exercices + pagination
 - `useChallenges` / `useChallenge` - CRUD defis + pagination
 - `useBadges` - Liste et verification de badges
+- `useBadgesProgress` - Progression vers badges (16/02)
 - `useProfile` / `useUserStats` - Donnees utilisateur
 - `useProgressStats` - ✨ Progression exercices (streaks, accuracy)
 - `useChallengesProgress` - ✨ Progression defis
 - `useSettings` - ✨ Sessions utilisateur (RGPD)
-- `useRecommendations` - Recommandations adaptatives
+- `useRecommendations` - Recommandations adaptatives (avec mutation `complete`)
 - `useSubmitAnswer` - Soumission de reponses
 - `useChat` - Chatbot IA
 - `useChallengeTranslations` - Traductions types challenges
 - `useCompletedItems` - IDs exercices/challenges completes
 
-**Note** : ✨ = Ajoutes le 06/02/2026
+**Note** : ✨ = Ajoutes le 06/02/2026 ; 16/02 = badges progress, recommendations complete, sessions
 
 ### State management
 - **Zustand** : theme, locale, accessibilite (persistence localStorage)
@@ -321,17 +324,22 @@ Le systeme utilise l'API OpenAI pour generer des exercices et defis :
 | Info | INC-F2 | Streaming hors client API (normal pour SSE, documente) | `AIGenerator.tsx`, `chat.ts` |
 | Info | PLACEHOLDERS | 13 endpoints placeholders (non-bloquants, doc disponible) | Voir `docs/PLACEHOLDERS_ET_TODO.md` |
 
-### Endpoints progression integres (06/02/2026)
+### Endpoints progression integres (06/02/2026, MAJ 16/02)
 | Endpoint | Description | Utilisation frontend |
 |---|---|---|
 | `GET /api/users/me/progress` | Stats exercices : streaks, accuracy, par categorie | ✅ `useProgressStats` → StreakWidget, CategoryAccuracyChart |
 | `GET /api/users/me/challenges/progress` | Stats defis : completes, temps, liste detaillee | ✅ `useChallengesProgress` → ChallengesProgressWidget |
+| `GET /api/users/me/sessions` | Sessions actives (is_current sur session courante) | ✅ `useSettings` → page /settings |
+| `GET /api/challenges/badges/progress` | Progression vers badges verrouilles | ✅ `useBadgesProgress` → page /badges |
+| `POST /api/recommendations/complete` | Marquer recommandation comme faite | ✅ `useRecommendations` → dashboard Recommandations |
 
-**Doc complete** : `docs/INTEGRATION_PROGRESSION_WIDGETS.md`
+**Plateforme** : `maintenance_mode` (overlay frontend + 503 sauf /login, /admin, health), `registration_enabled` (403 sur POST /api/users/ si false). UserSession creee a chaque login.
+
+**Doc complete** : `docs/06-WIDGETS/INTEGRATION_PROGRESSION_WIDGETS.md`, `docs/02-FEATURES/SITUATION_FEATURES.md`
 
 ### Plan d'alignement futur
 1. **P1** : Remonter les imports lazy en haut des fichiers `server/handlers/` (amelioration perfs)
-2. **P2** : Implementer endpoints prioritaires (mot de passe oublie, profil) - voir `docs/PLACEHOLDERS_ET_TODO.md`
+2. **P2** : Fixture defis pour tests (8 skips « No challenges »), delete_user admin (RGPD) - voir `docs/PLACEHOLDERS_ET_TODO.md`
 
 ---
 
@@ -377,4 +385,4 @@ pytest tests/                                # Lancer les tests pytest
 
 ---
 
-*Derniere mise a jour : 06/02/2026 - Phase 3 Unification*
+*Derniere mise a jour : 16/02/2026 - Maintenance, sessions, badges progress, recommendations complete*
