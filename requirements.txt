@@ -48,7 +48,7 @@ sphinx==7.2.6
 # Optimisations de performance
 psutil==7.2.2  # Monitoring système pour optimisations
 pillow==12.1.1  # 12.1.1+ pour CVE-2026-25990  # Optimisation d'images
-redis==5.0.1  # Cache en mémoire pour optimisations
+redis==7.2.0  # Cache en mémoire pour optimisations
 gunicorn==25.0.3  # Serveur WSGI optimisé pour production
 uvloop==0.22.1; sys_platform != 'win32'  # Boucle d'événements optimisée (Unix seulement, non supporté sur Windows)
 
