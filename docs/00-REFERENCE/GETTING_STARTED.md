@@ -10,7 +10,7 @@
 
 ### Logiciels requis
 - **Node.js** 18+ (pour frontend)
-- **Python** 3.11+ (pour backend)
+- **Python** 3.12+ (pour backend)
 - **PostgreSQL** 15+ (production) ou SQLite (dev)
 - **Git**
 

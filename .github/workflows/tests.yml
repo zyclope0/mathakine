@@ -32,8 +32,11 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
-        python-version: '3.11'
+        python-version: '3.12'
         cache: 'pip'
+
+    - name: Verify Python 3.12+
+      run: python -c "import sys; assert sys.version_info >= (3, 12), f'Python 3.12+ required, got {sys.version}'"
     
     - name: Install dependencies
       run: |
@@ -141,7 +144,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
-        python-version: '3.11'
+        python-version: '3.12'
     
     - name: Install linting tools
       run: |

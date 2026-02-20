@@ -10,7 +10,7 @@ on:
   #   branches: [ main, develop ]
 
 env:
-  PYTHON_VERSION: '3.13'
+  PYTHON_VERSION: '3.12'
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/mathakine_test
 
 jobs:
@@ -44,6 +44,9 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
+
+    - name: Verify Python 3.12+
+      run: python -c "import sys; assert sys.version_info >= (3, 12), f'Python 3.12+ required, got {sys.version}'"
 
     - name: 📦 Install dependencies
       run: |

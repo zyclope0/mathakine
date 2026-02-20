@@ -46,7 +46,7 @@
 
 ### Prérequis
 
-- **Python** 3.11+ ([télécharger](https://www.python.org/downloads/))
+- **Python** 3.12+ ([télécharger](https://www.python.org/downloads/))
 - **Node.js** 18.17+ ([télécharger](https://nodejs.org/))
 - **PostgreSQL** 15+ ([télécharger](https://www.postgresql.org/download/)) OU SQLite (dev)
 - **Git** ([télécharger](https://git-scm.com/downloads))
@@ -139,7 +139,7 @@ npm run dev
 
 **Backend**
 - **Framework** : Starlette 0.49.3 (API pure, FastAPI archivé 06/02/2026)
-- **Python** : 3.11+
+- **Python** : 3.12+
 - **ORM** : SQLAlchemy 2.0.44
 - **BDD** : PostgreSQL 15+ (prod), SQLite (dev)
 - **Migrations** : Alembic 1.13.1

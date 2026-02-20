@@ -22,7 +22,7 @@
 
 ### Prérequis
 - **Node.js** 18+ (recommandé : 20 LTS)
-- **Python** 3.11+
+- **Python** 3.12+
 - **PostgreSQL** 15+ (ou SQLite pour dev)
 - **Git** 2.40+
 - **VS Code** (recommandé) avec extensions
