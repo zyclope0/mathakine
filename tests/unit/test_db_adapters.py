@@ -94,36 +94,6 @@ def test_complex_query_with_enum_filters(db_session: Session, logic_challenge_da
     assert len(puzzle_challenges) == 1
     assert puzzle_challenges[0].title == f"Test Puzzle Challenge {unique_id}"
 
-def test_conditional_test_based_on_db_engine(db_session: Session, db_enum_values):
-    """
-    Exemple de test conditionnel qui s'adapte au moteur de base de données.
-    """
-    if db_enum_values.get("engine") == "postgresql":
-        # Logique de test spécifique à PostgreSQL
-        pytest.skip("Ce test est désactivé pour PostgreSQL")
-    else:
-        # Logique de test pour SQLite ou autres moteurs
-        # Ici on pourrait tester des comportements spécifiques à SQLite
-        assert db_enum_values["engine"] != "postgresql"
-        
-        # Exemple: SQLite tolère des valeurs qui ne font pas partie de l'enum
-        challenge = LogicChallenge(
-            title="SQLite Flexible Test",
-            description="Test de la flexibilité de SQLite",
-            challenge_type="non_existent_type",  # SQLite acceptera cette valeur
-            age_group="invalid_age_group",       # SQLite acceptera cette valeur
-            correct_answer="42",
-            solution_explanation="Explication de test"
-        )
-        
-        db_session.add(challenge)
-        db_session.commit()
-        
-        # Vérifier que SQLite a accepté les valeurs
-        retrieved = LogicChallengeService.get_challenge(db_session, challenge.id)
-        assert retrieved.challenge_type == "non_existent_type"
-        assert retrieved.age_group == "invalid_age_group"
-
 def get_enum_value(enum_class, value, db_session):
     """
     Fonction d'aide pour obtenir la valeur correcte d'une énumération selon le moteur de base de données.

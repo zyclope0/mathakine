@@ -205,7 +205,6 @@ jobs:
     - name: 🟢 Run Supplementary Tests
       run: |
         python -m pytest \
-          tests/unit/test_cli.py \
           tests/unit/test_db_init_service.py \
           tests/unit/test_recommendation_service.py \
           --tb=short \

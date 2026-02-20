@@ -180,9 +180,3 @@ async def test_logic_challenge_hints(client, logic_challenge_db, padawan_client_
     assert "hint" in hint_data
 
 
-async def test_create_logic_challenge(padawan_client_after_db, logic_challenge_db, db_session):
-    """Test de création d'un nouveau défi logique"""
-    # L'endpoint POST /api/challenges n'existe pas dans le serveur Starlette actuel.
-    # Les défis sont créés via generate-ai-stream ou autre. Ce test est documenté pour
-    # une future implémentation d'un endpoint de création.
-    pytest.skip("POST /api/challenges non implémenté dans le serveur Starlette actuel")

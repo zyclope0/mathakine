@@ -7,6 +7,7 @@ Ces tests garantissent que :
 2. SSE avec token valide → 200 (stream fonctionne)
 3. Plusieurs connexions SSE simultanées fonctionnent
 """
+import asyncio
 import pytest
 import uuid
 
@@ -226,14 +227,36 @@ async def test_sse_exercises_with_valid_token(client, authenticated_user):
     )
 
 
-# Note: Le test de plusieurs connexions SSE simultanées nécessiterait
-# un client HTTP asynchrone ou des threads, ce qui est complexe avec TestClient.
-# Ce test pourrait être fait avec un outil comme k6 ou locust pour les load tests.
-@pytest.mark.skip(reason="Nécessite un client HTTP asynchrone pour tester plusieurs connexions simultanées")
 async def test_sse_multiple_connections(client, authenticated_user):
     """
     Test SEC-4.3 : Plusieurs connexions SSE simultanées
     Vérifie que plusieurs connexions SSE simultanées fonctionnent correctement.
-    Note: Ce test nécessite un client HTTP asynchrone et sera fait dans les load tests.
+    Utilise asyncio.gather pour lancer 3 requêtes SSE en parallèle.
     """
-    pass
+    url = "/api/challenges/generate-ai-stream"
+    params = {"challenge_type": "sequence", "age_group": "GROUP_10_12"}
+    headers = {"Authorization": f"Bearer {authenticated_user['access_token']}"}
+    cookies = authenticated_user.get("cookies") or {}
+
+    async def open_sse_and_verify():
+        async with client.stream(
+            "GET", url, params=params, headers=headers, cookies=cookies
+        ) as resp:
+            chunks = []
+            async for chunk in resp.aiter_bytes():
+                chunks.append(chunk)
+                if len(chunks) >= 1:  # Au moins 1 chunk lu
+                    break
+            return resp.status_code, resp.headers.get("content-type", "")
+
+    results = await asyncio.gather(
+        open_sse_and_verify(),
+        open_sse_and_verify(),
+        open_sse_and_verify(),
+    )
+
+    for status, content_type in results:
+        assert status == 200, f"Attendu 200, reçu {status}"
+        assert "text/event-stream" in (content_type or "") or "event-stream" in (content_type or "").lower(), (
+            f"Content-Type attendu text/event-stream, reçu: {content_type}"
+        )

@@ -70,7 +70,7 @@
 | GET | `/api/exercises/generate` | Non | `?type=,rank=` | OK |
 | POST | `/api/exercises/generate` | Non | `{type, rank, ...}` | OK |
 | GET | `/api/exercises/generate-ai-stream` | Non | — | OK (SSE) |
-| DELETE | `/api/exercises/{id}` | — | — | N/A (archivage via admin) |
+| ~~DELETE~~ | ~~`/api/exercises/{id}`~~ | — | — | Supprimé — archivage prévu dans l’admin |
 
 ---
 

@@ -196,6 +196,12 @@ docs/
 
 ## 🔄 Dernières mises à jour
 
+### 15/02/2026 (qualité frontend)
+- ✅ **Refactor qualité** : Typage TypeScript strict sur tous les renderers de visualisation (ChessRenderer, CodingRenderer, DeductionRenderer, GraphRenderer, etc.), useAccessibleAnimation (Variants/Transition), validation dashboard, vitest.setup. Exclusion `scripts/` du lint.
+- ✅ **Build + tests unitaires** : 31 tests Vitest OK (dont 11 sur safeValidateUserStats). E2E : `npx playwright install` requis.
+- 📝 **TESTING.md** : Section « Priorités de couverture frontend » + tests régression dashboard. [Lire →](01-GUIDES/TESTING.md#priorites-couverture)
+- 📝 **AUDIT_DETTE_QUALITE_FRONTEND** : Section « Corrections appliquées » documentée. [Lire →](03-PROJECT/AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md)
+
 ### 18/02/2026
 - 📄 **POINT_SITUATION_2026-02-18.md** — Bilan projet (fonctionnalités, priorités, références). [Lire →](03-PROJECT/POINT_SITUATION_2026-02-18.md)
 - ✅ **Badges — Finalisation** : Fix N+1 sur `/api/challenges/badges/progress` (stats_cache pré-fetch, ~12 requêtes fixes). Filtre « Proches (>50%) » visible uniquement sur onglet À débloquer. Script `scripts/delete_test_badges.py` pour hard delete badges test.

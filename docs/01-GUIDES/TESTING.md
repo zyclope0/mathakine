@@ -48,9 +48,9 @@
 
 > **Strategie actuelle** : Augmenter progressivement plutot qu'en bloc. Pour chaque nouvelle feature importante, ajouter 1-2 tests. Passer a une phase de montée en couverture quand les features sont stabilisees.
 
-### Tests actuels (11/02/2026)
+### Tests actuels (15/02/2026)
 - ✅ **Backend** : 368 tests passent, 18 skippes, ~48% couverture (app + server)
-- ✅ **Frontend** : 20 tests (Vitest), ~71% couverture sur fichiers testes
+- ✅ **Frontend** : 31 tests (Vitest), utils/lib validations + composants + hooks
 - ✅ **CI** : Tests + couverture backend et frontend, upload Codecov (flags backend/frontend)
 - ✅ **Tests critiques** : auth, challenges, exercises, user_exercise_flow
 - ✅ **Base de test separee** : `TEST_DATABASE_URL` obligatoire (protection production)
@@ -554,6 +554,41 @@ npm run test:e2e:ui
 
 ---
 
+### Priorités de couverture frontend {#priorites-couverture}
+
+> **Contexte** (audit 20/02/2026) : Les tests unitaires passent mais couvrent un sous-ensemble réduit (~4 fichiers vs ~120+ modules). Stratégie pragmatique : prioriser par impact sans complexifier.
+
+#### Priorité 1 — Utils et validations (effort faible)
+
+Fonctions pures, peu de mocks, faciles à maintenir.
+
+| Cible | Fichier | Cas testés |
+|-------|---------|------------|
+| `safeValidateUserStats` | `lib/validations/dashboard.ts` | null/undefined, level (objet/number), progress_over_time, exercises_by_day |
+| `extractShapeChoicesFromVisualData` | `lib/utils/visualChallengeUtils.ts` | shapes, layout, formats mixtes |
+
+#### Priorité 2 — Régression sur bugs corrigés
+
+À chaque correction de bug significative : ajouter un test minimal pour éviter le retour.
+
+#### Priorité 3 — Hooks métier (effort moyen)
+
+Hooks avec logique réutilisable : `usePaginatedContent`, logique de filtre, etc.
+
+#### À éviter pour l'instant
+
+- Couvrir toutes les pages (trop de mocks : API, router, i18n, stores)
+- Tester des composants purement présentationnels sans logique
+- Tests trop couplés à l’implémentation
+
+#### Corrections appliquées (15/02/2026) — tests ajoutés
+
+| Zone modifiée | Test ajouté |
+|---------------|-------------|
+| `safeValidateUserStats` (typage level, progress_over_time, exercises_by_day) | `__tests__/unit/lib/validations/dashboard.test.ts` |
+
+---
+
 ## 🔄 CI/CD {#cicd}
 
 ### GitHub Actions Workflow (.github/workflows/tests.yml)
@@ -740,6 +775,14 @@ Ce script protege les memes utilisateurs permanents et respecte le meme ordre FK
 ---
 
 ## 📝 MODIFICATIONS RECENTES {#modifications-recentes}
+
+### 15/02/2026 – Priorités couverture + tests régression
+
+| Domaine | Modification |
+|---------|--------------|
+| **Priorités couverture** | Nouvelle section § Priorités de couverture frontend : utils/validations (P1), régression bugs (P2), hooks (P3). Éviter : pages entières, composants purement présentationnels. |
+| **safeValidateUserStats** | 11 tests ajoutés (`__tests__/unit/lib/validations/dashboard.test.ts`) : null/undefined, level (objet/number), progress_over_time, exercises_by_day, exercises_by_type. |
+| **Documentation** | Rappel corrections 15/02 : typage visualData (renderers), useAccessibleAnimation, validation dashboard, vitest.setup. |
 
 ### Fevrier 2026 – Session couverture et stabilisation
 

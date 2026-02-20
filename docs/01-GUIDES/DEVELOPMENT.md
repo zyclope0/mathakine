@@ -514,6 +514,25 @@ enum ChallengeType {
 }
 ```
 
+#### Données dynamiques (Record&lt;string, unknown&gt;)
+
+Les renderers de visualisation reçoivent `visualData: Record<string, unknown>`. Pour éviter les erreurs TypeScript au build :
+
+```typescript
+// ✅ Chaînes pour JSX
+const description: string = String(visualData.description ?? "");
+
+// ✅ Tableaux
+const items = Array.isArray(visualData.items) ? visualData.items : [];
+
+// ✅ Condition + JSX (éviter unknown comme ReactNode)
+{Boolean(visualData.flag) && <div>{String(visualData.flag)}</div>}
+
+// ✅ Accès propriétés d'objets
+const obj = value as Record<string, unknown>;
+if (obj?.key) { /* ... */ }
+```
+
 #### Composants React
 ```typescript
 // ✅ CORRECT - Composant fonctionnel avec TypeScript

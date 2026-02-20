@@ -55,7 +55,7 @@ npm run lint
 
 ## Stratégie pour les problèmes ESLint
 
-Le projet peut encore compter des erreurs ou warnings ESLint (environ 187 au dernier état). Stratégies possibles :
+Le projet peut encore compter des erreurs ou warnings ESLint (réduction significative après corrections 15/02/2026 — typage strict, exclusion scripts/). Stratégies possibles :
 
 1. **Progressive** : corriger au fur et à mesure des modifications
 2. **Tolérance** : définir des règles en `warn` plutôt qu’en `error`

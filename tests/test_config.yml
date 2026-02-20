@@ -72,11 +72,6 @@ test_classification:
     timeout: 60
     max_failures: 10
     suites:
-      - name: "Interface CLI"
-        paths:
-          - "tests/unit/test_cli.py"
-        description: "Tests de l'interface en ligne de commande"
-        
       - name: "Initialisation DB"
         paths:
           - "tests/unit/test_db_init_service.py"

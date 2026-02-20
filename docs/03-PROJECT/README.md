@@ -1,7 +1,7 @@
 # 📕 Gestion projet Mathakine
 
 > Index maître — Audits, recommandations, rapports situationnels  
-> **Dernière mise à jour :** 16/02/2026
+> **Dernière mise à jour :** 15/02/2026
 
 ---
 
@@ -32,6 +32,7 @@
 
 | Document | Date | Sujet | État |
 |----------|------|-------|------|
+| [AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md](./AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md) | 20/02/2026 | Lint, tests, typage TypeScript | ✅ Corrections appliquées (15/02) — §4 |
 | [AUDIT_DASHBOARD_2026-02.md](./AUDIT_DASHBOARD_2026-02.md) | Fév. 2026 | Dashboard — imports, i18n, handleRefresh | Recos partielles |
 | [AUDIT_SENTRY_2026-02.md](./AUDIT_SENTRY_2026-02.md) | Fév. 2026 | Configuration Sentry, monitoring | Référence config |
 | [AUDIT_SECURITE_APPLICATIVE_2026-02.md](./AUDIT_SECURITE_APPLICATIVE_2026-02.md) | Fév. 2026 | OWASP Top 10, sécurité applicative | ✅ Post-corrections |

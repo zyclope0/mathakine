@@ -254,28 +254,41 @@ async def test_reset_password_mismatch(client, test_user_data):
     assert "error" in data
 
 
-@pytest.mark.skipif(True, reason="Test de refresh token à implémenter si l'endpoint existe")
 async def test_refresh_token(client, test_user_data):
-    """Test rafraîchissement token (si implémenté)"""
-    # Créer l'utilisateur et se connecter
-    await client.post("/api/users/", json=test_user_data)
+    """Test rafraîchissement du token via POST /api/auth/refresh.
+
+    Le refresh_token est dans un cookie Secure — en environnement de test (HTTP),
+    httpx ne transmet pas les cookies Secure. On extrait le token du Set-Cookie
+    et on l'envoie dans le body (supporté par l'endpoint pour compatibilité).
+    """
+    response = await client.post("/api/users/", json=test_user_data)
+    assert response.status_code in (200, 201), f"Création utilisateur: {response.text}"
+    verify_user_email_for_tests(test_user_data["username"])
 
     login_data = {
         "username": test_user_data["username"],
         "password": test_user_data["password"]
     }
     login_response = await client.post("/api/auth/login", json=login_data)
-    assert login_response.status_code == 200
+    assert login_response.status_code == 200, f"Login: {login_response.text}"
 
-    # Si l'endpoint retourne un refresh_token
-    login_data_response = login_response.json()
-    if "refresh_token" in login_data_response:
-        refresh_token = login_data_response["refresh_token"]
+    # Extraire refresh_token du header Set-Cookie (cookie Secure non transmis en HTTP)
+    refresh_token = None
+    for header, value in login_response.headers.raw:
+        if header.lower() == b"set-cookie":
+            # Format: refresh_token=xxx; Path=/; ...
+            cookie_str = value.decode("utf-8") if isinstance(value, bytes) else value
+            for part in cookie_str.split(";"):
+                part = part.strip()
+                if part.startswith("refresh_token="):
+                    refresh_token = part.split("=", 1)[1].strip()
+                    break
+            if refresh_token:
+                break
 
-        # Tester POST /api/auth/refresh
-        refresh_data = {"refresh_token": refresh_token}
-        response = await client.post("/api/auth/refresh", json=refresh_data)
+    assert refresh_token, "refresh_token absent du Set-Cookie du login"
 
-        assert response.status_code == 200
-        data = response.json()
-        assert "access_token" in data
+    response = await client.post("/api/auth/refresh", json={"refresh_token": refresh_token})
+    assert response.status_code == 200, f"Refresh: {response.text}"
+    data = response.json()
+    assert "access_token" in data, f"access_token absent: {data}"

@@ -16,7 +16,7 @@ def _get_challenges_list(data):
     return data.get("items", [])
 
 
-async def test_get_logic_challenges(padawan_client):
+async def test_get_logic_challenges(logic_challenge_db, padawan_client):
     """Test de l'endpoint pour récupérer tous les défis logiques."""
     client = padawan_client["client"]
     response = await client.get("/api/challenges")
@@ -24,12 +24,9 @@ async def test_get_logic_challenges(padawan_client):
     raw = response.json()
     data = _get_challenges_list(raw)
 
-    # Vérifier que c'est une liste
+    # Vérifier que c'est une liste (logic_challenge_db peuple la base)
     assert isinstance(data, list)
-
-    # Skip si la base de test n'a pas de défis (comportement cohérent avec les autres tests)
-    if not data:
-        pytest.skip("No challenges available in test DB")
+    assert len(data) > 0, "logic_challenge_db doit créer au moins un défi"
 
     # Vérifier les champs requis
     first_challenge = data[0]
@@ -40,15 +37,13 @@ async def test_get_logic_challenges(padawan_client):
     # correct_answer may be omitted in list endpoint for security
 
 
-async def test_get_logic_challenge_by_id(padawan_client):
+async def test_get_logic_challenge_by_id(logic_challenge_db, padawan_client):
     """Test de l'endpoint pour récupérer un défi logique par ID."""
     client = padawan_client["client"]
-    # Obtenir un ID de défi existant via la liste
     list_resp = await client.get("/api/challenges")
     assert list_resp.status_code == 200
     challenges = _get_challenges_list(list_resp.json())
-    if not challenges:
-        pytest.skip("No challenges available in test DB")
+    assert len(challenges) > 0, "logic_challenge_db doit créer au moins un défi"
     challenge_id = challenges[0]["id"]
     response = await client.get(f"/api/challenges/{challenge_id}")
     assert response.status_code == 200
@@ -70,15 +65,13 @@ async def test_get_nonexistent_challenge(padawan_client):
     assert response.status_code == 404
 
 
-async def test_challenge_attempt_correct(padawan_client):
+async def test_challenge_attempt_correct(logic_challenge_db, padawan_client):
     """Test de la soumission d'une tentative correcte pour un défi logique."""
     client = padawan_client["client"]
-    # Obtenir un défi existant
     list_resp = await client.get("/api/challenges")
     assert list_resp.status_code == 200
     challenges = _get_challenges_list(list_resp.json())
-    if not challenges:
-        pytest.skip("No challenges available in test DB")
+    assert len(challenges) > 0
     challenge_id = challenges[0]["id"]
 
     # Récupérer d'abord le défi pour connaître la réponse correcte
@@ -99,15 +92,13 @@ async def test_challenge_attempt_correct(padawan_client):
     assert result.get("hints") is None or result.get("hints_remaining") is None  # Pas d'indice nécessaire
 
 
-async def test_challenge_attempt_incorrect(padawan_client):
+async def test_challenge_attempt_incorrect(logic_challenge_db, padawan_client):
     """Test de la soumission d'une tentative incorrecte pour un défi logique."""
     client = padawan_client["client"]
-    # Obtenir un défi existant
     list_resp = await client.get("/api/challenges")
     assert list_resp.status_code == 200
     challenges = _get_challenges_list(list_resp.json())
-    if not challenges:
-        pytest.skip("No challenges available in test DB")
+    assert len(challenges) > 0
     challenge_id = challenges[0]["id"]
 
     # Récupérer d'abord le défi pour s'assurer de soumettre une mauvaise réponse
@@ -133,21 +124,18 @@ async def test_challenge_attempt_incorrect(padawan_client):
     assert result.get("hints") is not None or "hints_remaining" in result  # Indices disponibles
 
 
-async def test_get_challenge_hint(padawan_client):
+async def test_get_challenge_hint(logic_challenge_db, padawan_client):
     """Test de l'endpoint pour récupérer un indice pour un défi logique."""
     client = padawan_client["client"]
-    # Obtenir un défi existant
     list_resp = await client.get("/api/challenges")
     assert list_resp.status_code == 200
     challenges = _get_challenges_list(list_resp.json())
-    if not challenges:
-        pytest.skip("No challenges available in test DB")
+    assert len(challenges) > 0
     challenge_id = challenges[0]["id"]
 
-    # Récupérer le premier niveau d'indice (certains défis n'ont pas d'indices)
+    # logic_challenge_db crée un défi avec hints=["Indice 1", "Indice 2", "Indice 3"]
     response = await client.get(f"/api/challenges/{challenge_id}/hint", params={"level": 1})
-    if response.status_code == 400:
-        pytest.skip("Challenge has no hints configured")
+    assert response.status_code == 200, f"Le défi de test doit avoir des hints: {response.json()}"
     assert response.status_code == 200
     hint_data = response.json()
 
@@ -161,13 +149,14 @@ async def test_get_challenge_hint(padawan_client):
     assert response.status_code in (400, 404)  # 400 pour niveau invalide
 
 
-async def test_filter_challenges_by_type(padawan_client):
+async def test_filter_challenges_by_type(logic_challenge_db, padawan_client):
     """Test du filtrage des défis par type."""
     client = padawan_client["client"]
-    # Récupérer les défis de type SEQUENCE
+    # Récupérer les défis de type SEQUENCE (logic_challenge_db en crée un)
     response = await client.get("/api/challenges", params={"challenge_type": "sequence"})
     assert response.status_code == 200
     challenges = _get_challenges_list(response.json())
+    assert len(challenges) > 0, "logic_challenge_db crée un défi SEQUENCE"
 
     # Vérifier que tous les défis retournés sont de type SEQUENCE
     for challenge in challenges:
@@ -175,15 +164,13 @@ async def test_filter_challenges_by_type(padawan_client):
         assert challenge_type.lower() == "sequence"
 
 
-async def test_challenge_attempt_missing_data(padawan_client):
+async def test_challenge_attempt_missing_data(logic_challenge_db, padawan_client):
     """Test de la soumission d'une tentative sans données pour un défi logique."""
     client = padawan_client["client"]
-    # Obtenir un défi existant
     list_resp = await client.get("/api/challenges")
     assert list_resp.status_code == 200
     challenges = _get_challenges_list(list_resp.json())
-    if not challenges:
-        pytest.skip("No challenges available in test DB")
+    assert len(challenges) > 0
     challenge_id = challenges[0]["id"]
 
     # Soumettre une tentative sans données
@@ -222,15 +209,13 @@ async def test_challenge_attempt_nonexistent_challenge(padawan_client):
         f"Le message devrait indiquer que le défi n'existe pas. Message reçu: {data['error']}"
 
 
-async def test_challenge_hint_invalid_level(padawan_client):
+async def test_challenge_hint_invalid_level(logic_challenge_db, padawan_client):
     """Test de la récupération d'un indice avec un niveau invalide."""
     client = padawan_client["client"]
-    # Obtenir un défi existant (ou 404 si aucun défi)
     list_resp = await client.get("/api/challenges")
     assert list_resp.status_code == 200
     challenges = _get_challenges_list(list_resp.json())
-    if not challenges:
-        pytest.skip("No challenges available in test DB")
+    assert len(challenges) > 0
     challenge_id = challenges[0]["id"]
 
     # Tester avec un niveau d'indice négatif
@@ -265,16 +250,14 @@ async def test_challenge_attempt_unauthenticated(client):
             "requise" in error_message), f"Le message devrait indiquer un problème d'authentification. Message reçu: {data['error']}"
 
 
-async def test_challenge_with_centralized_fixtures(padawan_client, mock_request, mock_api_response):
+async def test_challenge_with_centralized_fixtures(logic_challenge_db, padawan_client, mock_request, mock_api_response):
     """Test d'un défi logique en utilisant les fixtures centralisées."""
     client = padawan_client["client"]
 
-    # Récupérer un défi existant (liste dynamique)
     list_resp = await client.get("/api/challenges")
-    assert list_resp.status_code == 200, "Impossible de récupérer la liste des défis"
+    assert list_resp.status_code == 200
     challenges = _get_challenges_list(list_resp.json())
-    if not challenges:
-        pytest.skip("No challenges available in test DB")
+    assert len(challenges) > 0
     challenge_id = challenges[0]["id"]
     response = await client.get(f"/api/challenges/{challenge_id}")
     assert response.status_code == 200, "Impossible de récupérer le défi logique"

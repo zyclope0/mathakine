@@ -6,6 +6,7 @@ Teste :
 - Les filtres par challenge_type et age_group
 - La génération IA streaming
 """
+import os
 import pytest
 from app.core.constants import (
     normalize_challenge_type,
@@ -186,7 +187,7 @@ def test_constants_values():
     assert "GROUP_10_12" in AGE_GROUPS_DB
 
 
-@pytest.mark.skipif(True, reason="Test streaming nécessite configuration spécifique")
+@pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="Test streaming nécessite OPENAI_API_KEY")
 async def test_generate_ai_challenge_stream(client, padawan_client):
     """Test génération IA streaming (si implémenté)"""
     token = padawan_client["token"]

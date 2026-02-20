@@ -914,31 +914,6 @@ async def get_completed_exercises_ids(request: Request):
         )
 
 
-@require_auth
-async def delete_exercise(request: Request):
-    """
-    Handler pour supprimer un exercice (placeholder).
-    Route: DELETE /api/exercises/{exercise_id}
-    """
-    try:
-        current_user = request.state.user
-        
-        exercise_id = int(request.path_params.get('exercise_id'))
-        user_id = current_user.get('id')
-        logger.info(f"Tentative de suppression de l'exercice {exercise_id} par l'utilisateur {user_id}. Fonctionnalité en développement.")
-
-        return JSONResponse(
-            {"message": f"La suppression de l'exercice {exercise_id} est en cours de développement."},
-            status_code=200
-        )
-    except ValueError:
-        return JSONResponse({"error": "ID d'exercice invalide"}, status_code=400)
-    except Exception as e:
-        logger.error(f"Erreur lors de la suppression de l'exercice: {e}")
-        traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
-
-
 async def get_exercises_stats(request: Request):
     """
     Statistiques globales des Épreuves de l'Académie (exercices).

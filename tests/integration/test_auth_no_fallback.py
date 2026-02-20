@@ -18,6 +18,18 @@ from app.core.config import settings
 from tests.utils.test_helpers import verify_user_email_for_tests
 
 
+def _extract_refresh_token_from_response(response):
+    """Extrait refresh_token du header Set-Cookie (Secure cookie non transmis en HTTP)."""
+    for header, value in response.headers.raw:
+        if header.lower() == b"set-cookie":
+            cookie_str = value.decode("utf-8") if isinstance(value, bytes) else value
+            for part in cookie_str.split(";"):
+                part = part.strip()
+                if part.startswith("refresh_token="):
+                    return part.split("=", 1)[1].strip()
+    return None
+
+
 @pytest.fixture
 async def test_user_with_tokens(client):
     """Crée un utilisateur de test et retourne ses tokens"""
@@ -44,12 +56,18 @@ async def test_user_with_tokens(client):
 
     login_data_response = login_response.json()
     refresh_from_cookie = login_response.cookies.get("refresh_token") if hasattr(login_response, "cookies") else None
+    refresh_from_set_cookie = _extract_refresh_token_from_response(login_response) if not refresh_from_cookie else None
+    refresh_token = refresh_from_cookie or refresh_from_set_cookie
+
+    cookies = dict(login_response.cookies) if hasattr(login_response, "cookies") else {}
+    if refresh_token and "refresh_token" not in cookies:
+        cookies["refresh_token"] = refresh_token
 
     return {
         "user_data": user_data,
         "access_token": login_data_response.get("access_token"),
-        "refresh_token": login_data_response.get("refresh_token") or refresh_from_cookie,
-        "cookies": dict(login_response.cookies) if hasattr(login_response, "cookies") else {}
+        "refresh_token": refresh_token,
+        "cookies": cookies
     }
 
 
@@ -194,12 +212,15 @@ async def test_refresh_token_from_cookie_only(client, test_user_with_tokens):
     """
     Test SEC-1.3 : Refresh token depuis cookie uniquement
     Vérifie que le refresh fonctionne avec le cookie HTTP-only.
+    En test (HTTP), le token est extrait du Set-Cookie puis passé en cookie.
     """
-    # Récupérer le refresh_token depuis les cookies du login
-    refresh_token_cookie = test_user_with_tokens["cookies"].get("refresh_token")
+    refresh_token_cookie = (
+        test_user_with_tokens["cookies"].get("refresh_token")
+        or test_user_with_tokens.get("refresh_token")
+    )
 
     if not refresh_token_cookie:
-        pytest.skip("Refresh token non présent dans les cookies (peut être dans le body JSON)")
+        pytest.skip("refresh_token non disponible (absent du login)")
 
     # Appeler l'endpoint de refresh avec uniquement le cookie (pas de body)
     response = await client.post(

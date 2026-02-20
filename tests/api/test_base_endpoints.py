@@ -3,12 +3,40 @@ Tests des endpoints de base de l'API Starlette.
 Verifie la sante de l'application, le routage et les reponses d'erreur.
 
 Routes testees :
+- GET /health
+- GET /robots.txt
 - GET /api/exercises (existe, necessite auth → 401)
 - GET /api/challenges (existe, necessite auth → 401)
 - GET /nonexistent (404)
 - GET /api/auth/login (methode GET non autorisee → 405)
 """
 import pytest
+
+
+async def test_health_endpoint(client):
+    """GET /health — health check pour Render et load balancers (stable)."""
+    response = await client.get("/health")
+    assert response.status_code == 200
+    assert response.text.strip() == "ok"
+
+
+async def test_robots_txt(client):
+    """GET /robots.txt — évite les 404 des crawlers (stable)."""
+    response = await client.get("/robots.txt")
+    assert response.status_code == 200
+    content = response.text
+    assert "User-agent" in content or "user-agent" in content.lower()
+    assert "Disallow" in content or "disallow" in content.lower()
+
+
+async def test_csrf_token_endpoint(client):
+    """GET /api/auth/csrf — retourne un token CSRF (stable, pas d'auth)."""
+    response = await client.get("/api/auth/csrf")
+    assert response.status_code == 200
+    data = response.json()
+    assert "csrf_token" in data
+    assert isinstance(data["csrf_token"], str)
+    assert len(data["csrf_token"]) > 0
 
 
 async def test_nonexistent_endpoint(client):

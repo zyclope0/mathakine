@@ -1,11 +1,5 @@
 import json
 import pytest
-from app.models.exercise import ExerciseType, DifficultyLevel
-from app.models.user import User, UserRole
-from app.models.exercise import Exercise
-from app.models.attempt import Attempt
-from app.utils.db_helpers import get_enum_value
-import uuid
 
 
 async def test_get_exercises(padawan_client):
@@ -102,73 +96,6 @@ def test_get_exercise_by_id():
         # Il est possible que ce test échoue en raison du middleware qui capture les erreurs
         pass
 """
-
-
-@pytest.mark.skip(reason="delete_exercise handler is a placeholder - returns 200 without archiving")
-async def test_delete_exercise_cascade(gardien_client, db_session):
-    """Test de la suppression d'un exercice avec suppression en cascade des tentatives."""
-    client = gardien_client["client"]
-    db = db_session
-
-    # Créer un utilisateur GARDIEN (qui a le droit de supprimer) au lieu de PADAWAN
-    unique_user_id = uuid.uuid4().hex[:8]
-    user = User(
-        username=f"cascade_test_user_{unique_user_id}",
-        email=f"cascade_test_user_{unique_user_id}@example.com",
-        hashed_password="hashed_password",
-        role=get_enum_value(UserRole, UserRole.GARDIEN.value, db_session)
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    # Créer un exercice de test avec un titre unique
-    unique_id = uuid.uuid4().hex[:8]
-    test_exercise = Exercise(
-        title=f"Test Cascade Delete {unique_id}",
-        exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
-        difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
-        age_group="6-8",
-        question="2 + 2 = ?",
-        correct_answer="4",
-        choices=["3", "4", "5", "6"],
-        creator_id=user.id,
-        is_archived=False
-    )
-    db.add(test_exercise)
-    db.commit()
-    db.refresh(test_exercise)
-
-    # Créer une tentative associée à cet exercice
-    test_attempt = Attempt(
-        user_id=user.id,
-        exercise_id=test_exercise.id,
-        user_answer="4",
-        is_correct=True,
-        time_spent=10
-    )
-    db.add(test_attempt)
-    db.commit()
-
-    # Vérifier que l'exercice et la tentative existent
-    exercise_id = test_exercise.id
-    attempt_id = test_attempt.id
-
-    # Supprimer l'exercice via l'API (client est déjà authentifié en tant que GARDIEN)
-    response = await client.delete(f"/api/exercises/{exercise_id}")
-    assert response.status_code in [200, 204]
-
-    # Rafraîchir les données de la session
-    db.expire_all()
-
-    # Vérifier que l'exercice a été archivé (is_archived = True) et non supprimé
-    exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
-    assert exercise is not None, "L'exercice a été supprimé physiquement au lieu d'être archivé"
-    assert exercise.is_archived is True, "L'exercice n'a pas été marqué comme archivé"
-
-    # Les tentatives devraient toujours exister puisque l'exercice est archivé et non supprimé
-    attempt = db.query(Attempt).filter(Attempt.id == attempt_id).first()
-    assert attempt is not None, "La tentative a été supprimée alors que l'exercice est archivé"
 
 
 async def test_create_exercise_with_invalid_data(padawan_client):
