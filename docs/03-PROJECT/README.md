@@ -1,7 +1,7 @@
 # 📕 Gestion projet Mathakine
 
 > Index maître — Audits, recommandations, rapports situationnels  
-> **Dernière mise à jour :** 15/02/2026
+> **Dernière mise à jour :** 20/02/2026
 
 ---
 

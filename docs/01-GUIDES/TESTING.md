@@ -48,8 +48,8 @@
 
 > **Strategie actuelle** : Augmenter progressivement plutot qu'en bloc. Pour chaque nouvelle feature importante, ajouter 1-2 tests. Passer a une phase de montée en couverture quand les features sont stabilisees.
 
-### Tests actuels (15/02/2026)
-- ✅ **Backend** : 368 tests passent, 18 skippes, ~48% couverture (app + server)
+### Tests actuels (20/02/2026)
+- ✅ **Backend** : ~375 tests passent, skippes réduits, ~48% couverture (app + server)
 - ✅ **Frontend** : 31 tests (Vitest), utils/lib validations + composants + hooks
 - ✅ **CI** : Tests + couverture backend et frontend, upload Codecov (flags backend/frontend)
 - ✅ **Tests critiques** : auth, challenges, exercises, user_exercise_flow
@@ -775,6 +775,18 @@ Ce script protege les memes utilisateurs permanents et respecte le meme ordre FK
 ---
 
 ## 📝 MODIFICATIONS RECENTES {#modifications-recentes}
+
+### 20/02/2026 – Nettoyage skips, suppression delete_exercise, nouveaux tests
+
+| Domaine | Modification |
+|---------|--------------|
+| **Suppression DELETE /api/exercises/{id}** | Handler et route supprimés (pas de frontend, archivage prévu dans l'admin). Fichiers : `test_deletion_endpoints.py` supprimé, `test_exercise_endpoints`, `test_role_permissions` mis à jour. |
+| **Suppression tests obsolètes** | `test_create_logic_challenge` (POST challenges non implémenté), `test_cli.py` (mathakine_cli archivé), `test_conditional_test_based_on_db_engine` (SQLite non utilisé). |
+| **Réactivation skips** | `test_refresh_token` (auth_flow), `test_refresh_token_from_cookie_only` (auth_no_fallback), `test_sse_multiple_connections` (asyncio.gather). |
+| **test_challenges_flow** | `test_generate_ai_challenge_stream` : `skipif(not OPENAI_API_KEY)` pour exécution quand clé dispo. |
+| **test_db_init_service** | Suppression 2 skips schema (exercises/attempts integration). Nouveau `test_create_test_exercises_and_attempts_with_mocked_session`. |
+| **Nouveaux tests base** | `test_base_endpoints.py` : `test_health_endpoint`, `test_robots_txt`, `test_csrf_token_endpoint`. |
+| **Fixtures auth** | Extraction refresh_token depuis Set-Cookie pour tests HTTP (cookie Secure non transmis). |
 
 ### 15/02/2026 – Priorités couverture + tests régression
 

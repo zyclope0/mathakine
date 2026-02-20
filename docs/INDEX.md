@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique — Mise à jour au 17/02/2026  
+> Point d'entrée unique — Mise à jour au 20/02/2026  
 > **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md)
 
 ---
