@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +12,6 @@ import {
   ArrowLeft,
   CheckCircle,
   Lightbulb,
-  Clock,
   AlertCircle,
   RotateCcw,
 } from "lucide-react";
@@ -26,7 +24,6 @@ import { useThemeStore } from "@/lib/stores/themeStore";
 import { useChallenges } from "@/hooks/useChallenges";
 import { useChallenge } from "@/hooks/useChallenge";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 import { debugLog } from "@/lib/utils/debug";
 import { ChallengeVisualRenderer } from "./visualizations/ChallengeVisualRenderer";
 import { useTranslations } from "next-intl";
@@ -43,10 +40,9 @@ interface ChallengeSolverProps {
 }
 
 export function ChallengeSolver({ challengeId, onChallengeCompleted }: ChallengeSolverProps) {
-  const router = useRouter();
   const t = useTranslations("challenges.solver");
   const { theme } = useThemeStore();
-  const { submitAnswer, isSubmitting, submitResult, getHint, hints, setHints } = useChallenges();
+  const { submitAnswer, isSubmitting, submitResult, getHint, setHints } = useChallenges();
   const { challenge, isLoading, error } = useChallenge(challengeId);
 
   // Debug logs (uniquement en développement)
@@ -63,13 +59,16 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
 
   const [userAnswer, setUserAnswer] = useState<string>("");
   const [hasSubmitted, setHasSubmitted] = useState(false);
-  const [showExplanation, setShowExplanation] = useState(false);
+  const [, setShowExplanation] = useState(false);
   const [hintsUsed, setHintsUsed] = useState<number[]>([]);
   const [availableHints, setAvailableHints] = useState<string[]>([]);
   const [puzzleOrder, setPuzzleOrder] = useState<string[]>([]);
   const [visualSelections, setVisualSelections] = useState<Record<number, string>>({});
   const [retryKey, setRetryKey] = useState<number>(0); // Clé pour forcer la réinitialisation des visualisations
-  const startTimeRef = useRef<number>(Date.now());
+  const startTimeRef = useRef<number>(0);
+  useEffect(() => {
+    startTimeRef.current = Date.now();
+  }, []);
 
   // Initialiser les indices disponibles
   useEffect(() => {

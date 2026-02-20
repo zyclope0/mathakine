@@ -5,7 +5,6 @@ import {
   Divide,
   Ratio,
   Shapes,
-  FileText,
   Combine,
   Calculator,
   BookOpenText,

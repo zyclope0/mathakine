@@ -5,7 +5,7 @@ import { Eye } from "lucide-react";
 import { useState } from "react";
 
 interface DefaultRendererProps {
-  visualData: any;
+  visualData: Record<string, unknown> | null;
   className?: string | undefined;
 }
 
@@ -15,6 +15,8 @@ interface DefaultRendererProps {
  */
 export function DefaultRenderer({ visualData, className }: DefaultRendererProps) {
   const [showRaw, setShowRaw] = useState(false);
+
+  if (!visualData) return null;
 
   // Si c'est une string simple, l'afficher directement
   if (typeof visualData === "string") {

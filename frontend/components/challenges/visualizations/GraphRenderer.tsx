@@ -5,7 +5,7 @@ import { Network } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
 interface GraphRendererProps {
-  visualData: any;
+  visualData: Record<string, unknown> | null;
   className?: string | undefined;
 }
 
@@ -18,8 +18,8 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   const [dimensions, setDimensions] = useState({ width: 400, height: 300 });
 
   // Parser les données de graphe
-  const nodes = visualData?.nodes || visualData?.vertices || [];
-  const edges = visualData?.edges || visualData?.links || [];
+  const nodes = Array.isArray(visualData?.nodes) ? visualData.nodes : Array.isArray(visualData?.vertices) ? visualData.vertices : [];
+  const edges = Array.isArray(visualData?.edges) ? visualData.edges : Array.isArray(visualData?.links) ? visualData.links : [];
 
   useEffect(() => {
     if (svgRef.current) {
@@ -40,11 +40,12 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
 
   // Créer un mapping des noms de nœuds vers leurs indices
   const nodeMap = new Map<string, number>();
-  nodes.forEach((node: any, index: number) => {
-    const nodeKey =
-      typeof node === "object"
-        ? node.label || node.value || node.id || String(index)
-        : String(node);
+  nodes.forEach((node: Record<string, unknown>, index: number) => {
+    const nodeKey = String(
+      typeof node === "object" && node !== null
+        ? node.label ?? node.value ?? node.id ?? index
+        : node
+    );
     nodeMap.set(nodeKey.toUpperCase(), index);
   });
 
@@ -52,16 +53,16 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   const centerX = dimensions.width / 2;
   const centerY = dimensions.height / 2;
   const radius = Math.min(dimensions.width, dimensions.height) / 3;
-  const explicitPositions = visualData?.positions || visualData?.layout;
+  const explicitPositions = (visualData?.positions ?? visualData?.layout) as Record<string, unknown> | null | undefined;
 
-  const nodePositions = nodes.map((node: any, index: number) => {
-    if (explicitPositions && typeof explicitPositions === "object") {
-      const nodeKey =
-        typeof node === "object"
-          ? String(node.label || node.value || node.id || index)
-          : String(node);
-      const pos =
-        explicitPositions[nodeKey.toUpperCase()] ?? explicitPositions[nodeKey];
+  const nodePositions = nodes.map((node: Record<string, unknown>, index: number) => {
+    if (explicitPositions && typeof explicitPositions === "object" && !Array.isArray(explicitPositions)) {
+      const nodeKey = String(
+        typeof node === "object" && node !== null
+          ? node.label ?? node.value ?? node.id ?? index
+          : node
+      );
+      const pos = (explicitPositions as Record<string, unknown>)[nodeKey.toUpperCase()] ?? (explicitPositions as Record<string, unknown>)[nodeKey];
       if (Array.isArray(pos) && pos.length >= 2 && typeof pos[0] === "number" && typeof pos[1] === "number") {
         const padding = 40;
         const maxCoord = 200;
@@ -99,51 +100,48 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
               className="border border-primary/20 rounded"
             >
               {/* Dessiner les arêtes */}
-              {edges.map((edge: any, index: number) => {
+              {edges.map((edge: Record<string, unknown>, index: number) => {
                 let fromIndex: number | undefined;
                 let toIndex: number | undefined;
                 let weight: number | string | undefined;
 
                 // Gérer différents formats d'edges
-                if (typeof edge === "object" && "from" in edge && "to" in edge) {
+                if (typeof edge === "object" && edge !== null && "from" in edge && "to" in edge) {
+                  const e = edge as Record<string, unknown>;
                   // Format {from: "A", to: "B", weight: 5} ou {from: 0, to: 1}
-                  if (typeof edge.from === "number") {
-                    fromIndex = edge.from;
+                  if (typeof e.from === "number") {
+                    fromIndex = e.from;
                   } else {
-                    fromIndex = nodeMap.get(String(edge.from).toUpperCase());
+                    fromIndex = nodeMap.get(String(e.from ?? "").toUpperCase());
                   }
 
-                  if (typeof edge.to === "number") {
-                    toIndex = edge.to;
+                  if (typeof e.to === "number") {
+                    toIndex = e.to;
                   } else {
-                    toIndex = nodeMap.get(String(edge.to).toUpperCase());
+                    toIndex = nodeMap.get(String(e.to ?? "").toUpperCase());
                   }
 
                   // Extraire le poids (weight, cost, time, distance, label)
-                  weight =
-                    edge.weight ??
-                    edge.cost ??
-                    edge.time ??
-                    edge.distance ??
-                    edge.label ??
-                    edge.value;
+                  const w = e.weight ?? e.cost ?? e.time ?? e.distance ?? e.label ?? e.value;
+                  weight = w !== undefined && w !== null ? (typeof w === "number" || typeof w === "string" ? w : String(w)) : undefined;
                 } else if (Array.isArray(edge)) {
                   // Format ["A", "B"] ou ["A", "B", 5] ou [0, 1, 5]
                   if (typeof edge[0] === "number") {
                     fromIndex = edge[0];
                   } else {
-                    fromIndex = nodeMap.get(String(edge[0]).toUpperCase());
+                    fromIndex = nodeMap.get(String(edge[0] ?? "").toUpperCase());
                   }
 
                   if (typeof edge[1] === "number") {
                     toIndex = edge[1];
                   } else {
-                    toIndex = nodeMap.get(String(edge[1]).toUpperCase());
+                    toIndex = nodeMap.get(String(edge[1] ?? "").toUpperCase());
                   }
 
                   // Le poids peut être le 3ème élément
                   if (edge.length >= 3) {
-                    weight = edge[2];
+                    const w2 = edge[2];
+                    weight = w2 !== undefined && w2 !== null ? (typeof w2 === "number" || typeof w2 === "string" ? w2 : String(w2)) : undefined;
                   }
                 }
 
@@ -204,7 +202,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                           fontSize="12"
                           fontWeight="bold"
                         >
-                          {weight}
+                          {String(weight ?? "")}
                         </text>
                       </>
                     )}
@@ -213,14 +211,15 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
               })}
 
               {/* Dessiner les nœuds */}
-              {nodes.map((node: any, index: number) => {
+              {nodes.map((node: Record<string, unknown>, index: number) => {
                 const pos = nodePositions[index];
                 if (!pos) return null;
 
-                const label =
-                  typeof node === "object"
-                    ? node.label || node.value || node.id || index
-                    : String(node);
+                const label = String(
+                  typeof node === "object" && node !== null
+                    ? node.label ?? node.value ?? node.id ?? index
+                    : node
+                );
 
                 return (
                   <g key={index}>
@@ -252,7 +251,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
             {nodes.length} nœud{nodes.length > 1 ? "s" : ""} • {edges.length} arête
             {edges.length > 1 ? "s" : ""}
             {/* Indiquer si c'est un graphe pondéré */}
-            {edges.some((edge: any) => {
+            {edges.some((edge: Record<string, unknown>) => {
               if (typeof edge === "object" && !Array.isArray(edge)) {
                 return (
                   edge.weight !== undefined ||

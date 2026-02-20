@@ -40,7 +40,7 @@ export function ExerciseModal({
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const startTimeRef = useRef<number>(Date.now());
+  const startTimeRef = useRef<number>(0);
 
   // Réinitialiser l'état quand la modal s'ouvre ou l'exercice change
   useEffect(() => {

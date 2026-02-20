@@ -10,20 +10,22 @@ vi.mock("@/lib/stores/accessibilityStore", () => ({
   useAccessibilityStore: vi.fn(),
 }));
 
+const mockStoreValue = {
+  highContrast: false,
+  largeText: false,
+  reducedMotion: false,
+  dyslexiaMode: false,
+  focusMode: false,
+  toggleHighContrast: vi.fn(),
+  toggleLargeText: vi.fn(),
+  toggleReducedMotion: vi.fn(),
+  toggleDyslexiaMode: vi.fn(),
+  toggleFocusMode: vi.fn(),
+};
+
 describe("AccessibilityToolbar", () => {
   it("affiche tous les boutons d'accessibilité", async () => {
-    (useAccessibilityStore as any).mockReturnValue({
-      highContrast: false,
-      largeText: false,
-      reducedMotion: false,
-      dyslexiaMode: false,
-      focusMode: false,
-      toggleHighContrast: vi.fn(),
-      toggleLargeText: vi.fn(),
-      toggleReducedMotion: vi.fn(),
-      toggleDyslexiaMode: vi.fn(),
-      toggleFocusMode: vi.fn(),
-    });
+    vi.mocked(useAccessibilityStore).mockReturnValue(mockStoreValue);
 
     render(<AccessibilityToolbar />);
 
@@ -40,18 +42,7 @@ describe("AccessibilityToolbar", () => {
   });
 
   it("a des labels ARIA corrects", async () => {
-    (useAccessibilityStore as any).mockReturnValue({
-      highContrast: false,
-      largeText: false,
-      reducedMotion: false,
-      dyslexiaMode: false,
-      focusMode: false,
-      toggleHighContrast: vi.fn(),
-      toggleLargeText: vi.fn(),
-      toggleReducedMotion: vi.fn(),
-      toggleDyslexiaMode: vi.fn(),
-      toggleFocusMode: vi.fn(),
-    });
+    vi.mocked(useAccessibilityStore).mockReturnValue(mockStoreValue);
 
     render(<AccessibilityToolbar />);
 

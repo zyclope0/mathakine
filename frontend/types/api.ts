@@ -100,7 +100,7 @@ export interface Challenge {
   correct_answer?: string | null;
   choices?: string[] | null;
   hints?: string[] | null;
-  visual_data?: any | null;
+  visual_data?: Record<string, unknown> | null;
   difficulty_rating?: number | null;
   estimated_time_minutes?: number | null;
   success_rate?: number | null;

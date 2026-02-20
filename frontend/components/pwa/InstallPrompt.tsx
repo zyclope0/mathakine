@@ -93,7 +93,7 @@ export function InstallPrompt() {
             <div className="flex-1">
               <h3 className="font-semibold text-sm mb-1">Installer Mathakine</h3>
               <p className="text-xs text-muted-foreground">
-                Installez l'application pour un accès rapide et une meilleure expérience.
+                Installez l&apos;application pour un accès rapide et une meilleure expérience.
               </p>
             </div>
             <div className="flex gap-2">

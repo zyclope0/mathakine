@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PageHeader, PageSection, LoadingState } from "@/components/layout";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,18 +23,25 @@ function groupByCategory(settings: AdminConfigItem[]) {
   return cats.filter((c) => groups[c]?.length).map((c) => ({ category: c, items: groups[c] }));
 }
 
-export default function AdminConfigPage() {
-  const { settings, isLoading, error, updateSettings, isUpdating } = useAdminConfig();
-  const [local, setLocal] = useState<Record<string, boolean | number | string>>({});
-  const [dirty, setDirty] = useState(false);
+function buildInitFromSettings(settings: AdminConfigItem[]) {
+  const init: Record<string, boolean | number | string> = {};
+  for (const s of settings) {
+    init[s.key] = s.value;
+  }
+  return init;
+}
 
-  useEffect(() => {
-    const init: Record<string, boolean | number | string> = {};
-    for (const s of settings) {
-      init[s.key] = s.value;
-    }
-    setLocal(init);
-  }, [settings]);
+function ConfigEditor({
+  settings,
+  onSave,
+  isUpdating,
+}: {
+  settings: AdminConfigItem[];
+  onSave: (local: Record<string, boolean | number | string>) => Promise<void>;
+  isUpdating: boolean;
+}) {
+  const [local, setLocal] = useState<Record<string, boolean | number | string>>(() => buildInitFromSettings(settings));
+  const [dirty, setDirty] = useState(false);
 
   const handleBoolChange = (key: string, checked: boolean) => {
     setLocal((p) => ({ ...p, [key]: checked }));
@@ -51,21 +58,13 @@ export default function AdminConfigPage() {
 
   const handleSave = async () => {
     try {
-      await updateSettings(local);
+      await onSave(local);
       setDirty(false);
       toast.success("Paramètres enregistrés");
-    } catch (e) {
+    } catch {
       toast.error("Erreur lors de l'enregistrement");
     }
   };
-
-  if (isLoading) return <LoadingState />;
-  if (error)
-    return (
-      <PageSection>
-        <p className="text-destructive">Impossible de charger les paramètres.</p>
-      </PageSection>
-    );
 
   const groups = groupByCategory(settings);
 
@@ -131,5 +130,31 @@ export default function AdminConfigPage() {
         </div>
       </PageSection>
     </div>
+  );
+}
+
+export default function AdminConfigPage() {
+  const { settings, isLoading, error, updateSettings, isUpdating } = useAdminConfig();
+
+  const handleSave = async (local: Record<string, boolean | number | string>) => {
+    await updateSettings(local);
+  };
+
+  if (isLoading) return <LoadingState />;
+  if (error)
+    return (
+      <PageSection>
+        <p className="text-destructive">Impossible de charger les paramètres.</p>
+      </PageSection>
+    );
+
+  const settingsKey = settings.map((s) => `${s.key}:${s.value}`).join("|");
+  return (
+    <ConfigEditor
+      key={settingsKey}
+      settings={settings}
+      onSave={handleSave}
+      isUpdating={isUpdating}
+    />
   );
 }

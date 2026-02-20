@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { LucideIcon, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
@@ -36,18 +36,12 @@ export function StatsCard({
 
   const transition = createTransition({ duration: 0.2 });
 
-  // Déterminer l'icône et la couleur de tendance
-  const getTrendIcon = () => {
-    if (!trend || trendDirection === "neutral") return null;
-    return trendDirection === "up" ? TrendingUp : TrendingDown;
-  };
-
   const getTrendColor = () => {
     if (!trend || trendDirection === "neutral") return "text-muted-foreground";
     return trendDirection === "up" ? "text-success" : "text-destructive";
   };
 
-  const TrendIcon = getTrendIcon();
+  const showTrend = trend !== undefined && trend !== null && trendDirection !== "neutral" && (trendDirection === "up" || trendDirection === "down");
 
   return (
     <motion.div
@@ -71,14 +65,13 @@ export function StatsCard({
             </motion.div>
             <div className="flex items-center justify-center gap-2">
               <div className="text-3xl font-bold text-foreground">{value}</div>
-              {trend !== undefined && trend !== null && TrendIcon && (
+              {showTrend && (
                 <Badge
                   variant="outline"
                   className={cn("text-xs flex items-center gap-1", getTrendColor())}
                 >
-                  <TrendIcon className="h-3 w-3" />
-                  {trend > 0 ? "+" : ""}
-                  {trend}%
+                  {trendDirection === "up" ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                  {trend !== undefined && trend !== null ? (trend > 0 ? "+" : "") + trend + "%" : ""}
                 </Badge>
               )}
             </div>

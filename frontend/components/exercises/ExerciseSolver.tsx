@@ -27,7 +27,10 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const startTimeRef = useRef<number>(Date.now());
+  const startTimeRef = useRef<number>(0);
+  useEffect(() => {
+    startTimeRef.current = Date.now();
+  }, []);
 
   // Mettre à jour l'état quand le résultat arrive
   useEffect(() => {

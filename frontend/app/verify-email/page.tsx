@@ -58,8 +58,9 @@ function VerifyEmailContent() {
         setStatus("error");
         setMessage(response?.error || t("error"));
       }
-    } catch (error: any) {
-      const errorMessage = error?.message || error?.error || t("error");
+    } catch (error: unknown) {
+      const err = error as { message?: string; error?: string };
+      const errorMessage = err?.message ?? err?.error ?? t("error");
 
       if (errorMessage.includes("expiré") || errorMessage.includes("expired")) {
         setStatus("expired");

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +18,6 @@ import {
 import { useThemeStore } from "@/lib/stores/themeStore";
 import { formatSuccessRate } from "@/lib/utils/format";
 import { Loader2, XCircle, ArrowRight, Clock, Eye, TrendingUp, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
@@ -34,7 +32,7 @@ export function ChallengeModal({
   challengeId,
   open,
   onOpenChange,
-  onChallengeCompleted,
+  onChallengeCompleted, // eslint-disable-next-line @typescript-eslint/no-unused-vars -- prop API
 }: ChallengeModalProps) {
   const { challenge, isLoading, error } = useChallenge(challengeId || 0);
   const { theme } = useThemeStore();

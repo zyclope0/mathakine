@@ -6,7 +6,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 
 interface SequenceRendererProps {
-  visualData: any;
+  visualData: Record<string, unknown> | null;
   difficultyRating?: number | null | undefined;
   className?: string;
   onAnswerChange?: (answer: string) => void;
@@ -22,7 +22,7 @@ const HIDE_PATTERN_ABOVE_DIFFICULTY = 4;
  */
 export function SequenceRenderer({ visualData, difficultyRating, className, onAnswerChange }: SequenceRendererProps) {
   // Parser les données de séquence avec gestion robuste des différents formats
-  const parseSequence = (data: any): any[] => {
+  const parseSequence = (data: unknown): unknown[] => {
     if (!data) return [];
     if (Array.isArray(data)) return data;
     if (typeof data === "string") {
@@ -39,8 +39,9 @@ export function SequenceRenderer({ visualData, difficultyRating, className, onAn
           .filter(Boolean);
       }
     }
-    if (data?.sequence) return Array.isArray(data.sequence) ? data.sequence : [];
-    if (data?.items) return Array.isArray(data.items) ? data.items : [];
+    const obj = data as Record<string, unknown>;
+    if (obj?.sequence) return Array.isArray(obj.sequence) ? obj.sequence : [];
+    if (obj?.items) return Array.isArray(obj.items) ? obj.items : [];
     return [];
   };
 
@@ -68,11 +69,11 @@ export function SequenceRenderer({ visualData, difficultyRating, className, onAn
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 p-4 bg-muted/30 rounded-lg">
-            {sequence.map((item: any, index: number) => {
+            {sequence.map((item: unknown, index: number) => {
               const isHighlighted = highlightedIndex === index;
               const itemValue =
-                typeof item === "object"
-                  ? item.value || item.label || JSON.stringify(item)
+                typeof item === "object" && item !== null
+                  ? String((item as Record<string, unknown>).value ?? (item as Record<string, unknown>).label ?? JSON.stringify(item))
                   : String(item);
 
               return (
@@ -104,10 +105,10 @@ export function SequenceRenderer({ visualData, difficultyRating, className, onAn
             })}
           </div>
 
-          {visualData?.pattern &&
+          {Boolean(visualData?.pattern) &&
             (difficultyRating == null || difficultyRating < HIDE_PATTERN_ABOVE_DIFFICULTY) && (
               <div className="text-xs text-muted-foreground italic text-center">
-                Pattern suggéré: {visualData.pattern}
+                Pattern suggéré: {String(visualData?.pattern ?? "")}
               </div>
             )}
 

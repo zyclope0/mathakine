@@ -143,7 +143,7 @@ export function AcademyStatsWidget() {
         {/* Citation de sagesse */}
         {sage_wisdom && (
           <div className="text-center pt-2 border-t border-primary/10">
-            <p className="text-sm italic text-muted-foreground">"{sage_wisdom}"</p>
+            <p className="text-sm italic text-muted-foreground">&quot;{sage_wisdom}&quot;</p>
           </div>
         )}
       </CardContent>

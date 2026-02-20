@@ -7,7 +7,6 @@ import {
   Zap,
   TrendingUp,
   UserPlus,
-  LogIn,
   Dumbbell,
   Puzzle,
   LayoutDashboard,
@@ -18,7 +17,7 @@ import {
   Sparkles,
   ChevronDown,
 } from "lucide-react";
-import { PageLayout, PageHeader, PageSection } from "@/components/layout";
+import { PageLayout, PageSection } from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";

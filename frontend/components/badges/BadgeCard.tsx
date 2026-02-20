@@ -8,7 +8,7 @@ import type { Badge, UserBadge } from "@/types/api";
 
 type BadgeWithCriteria = Badge & { criteria_text?: string | null };
 import { cn } from "@/lib/utils/cn";
-import { motion } from "framer-motion";
+import { motion, type Variants, type Transition } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 interface BadgeProgress {
@@ -120,11 +120,11 @@ export function BadgeCard({
 
   return (
     <motion.div
-      variants={variants}
+      variants={variants as Variants}
       initial="initial"
       animate="animate"
       exit="exit"
-      transition={transition}
+      transition={transition as Transition}
       className="h-full"
     >
       <Card
@@ -161,6 +161,7 @@ export function BadgeCard({
                   aria-hidden="true"
                 >
                   {displayIcon.startsWith("http") ? (
+                    /* eslint-disable-next-line @next/next/no-img-element -- URLs dynamiques badges */
                     <img
                       src={displayIcon}
                       alt=""

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Crown, Target } from "lucide-react";
 
 interface ChessRendererProps {
-  visualData: any;
+  visualData: Record<string, unknown> | null;
   className?: string;
 }
 
@@ -35,29 +35,39 @@ export function ChessRenderer({ visualData, className = "" }: ChessRendererProps
   };
 
   // Extraire les données
-  const board = visualData.board || [];
-  let knightPosition = visualData.knight_position || visualData.position || null;
-  let reachablePositions = visualData.reachable_positions || visualData.targets || [];
-  const currentPiece = visualData.piece || visualData.current_piece || "knight";
-  const question = visualData.question || "";
-  const turn = visualData.turn || "";
-  const objective = visualData.objective || "";
+  const board = Array.isArray(visualData.board) ? visualData.board : [];
+  let knightPosition: [number, number] | null =
+    (visualData.knight_position ?? visualData.position ?? null) as [number, number] | null;
+  const rawReachable: unknown[] = Array.isArray(visualData.reachable_positions)
+    ? visualData.reachable_positions
+    : Array.isArray(visualData.targets)
+      ? visualData.targets
+      : [];
+  const currentPiece: string = String(visualData.piece ?? visualData.current_piece ?? "knight");
+  const question: string = String(visualData.question ?? "");
+  const turn: string = String(visualData.turn ?? "");
+  const objective: string = String(visualData.objective ?? "");
 
   // Convertir knight_position si c'est une string (ex: "E4" → [3, 4])
-  if (typeof knightPosition === "string") {
-    knightPosition = chessNotationToCoords(knightPosition);
+  const rawKnight = visualData.knight_position ?? visualData.position;
+  if (typeof rawKnight === "string") {
+    knightPosition = chessNotationToCoords(rawKnight);
+  } else if (Array.isArray(rawKnight) && rawKnight.length >= 2) {
+    knightPosition = [Number(rawKnight[0]), Number(rawKnight[1])];
   }
 
   // Convertir reachable_positions si c'est un tableau de strings
-  if (
-    Array.isArray(reachablePositions) &&
-    reachablePositions.length > 0 &&
-    typeof reachablePositions[0] === "string"
-  ) {
-    reachablePositions = reachablePositions
-      .map((notation: string) => chessNotationToCoords(notation))
-      .filter((coords): coords is [number, number] => coords !== null);
+  let reachablePositionsTyped: [number, number][] = [];
+  if (rawReachable.length > 0 && typeof rawReachable[0] === "string") {
+    reachablePositionsTyped = rawReachable
+      .map((notation: unknown) => (typeof notation === "string" ? chessNotationToCoords(notation) : null))
+      .filter((c): c is [number, number] => c !== null);
+  } else {
+    reachablePositionsTyped = rawReachable
+      .filter((p): p is unknown[] => Array.isArray(p) && p.length >= 2)
+      .map((p) => [Number(p[0]), Number(p[1])] as [number, number]);
   }
+  const reachablePositions = reachablePositionsTyped;
 
   // Convertir highlight_positions si c'est un tableau de strings (ex: ["b7", "d2"])
   let normalizedHighlights = Array.isArray(visualData.highlight_positions)
@@ -427,7 +437,7 @@ export function ChessRenderer({ visualData, className = "" }: ChessRendererProps
               <div>
                 <span className="font-semibold text-primary">Positions atteignables :</span>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {reachablePositions.map((pos: any, index: number) => {
+                  {reachablePositions.map((pos: unknown, index: number) => {
                     // Vérifier que pos est un tableau valide avec 2 éléments
                     if (
                       !Array.isArray(pos) ||

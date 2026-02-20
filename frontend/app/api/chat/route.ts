@@ -52,11 +52,12 @@ export async function POST(request: NextRequest) {
 
       const data = await response.json();
       return NextResponse.json(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Si le backend n'est pas disponible, retourner une réponse de fallback
-      const errorMessage = error?.message || String(error);
-      const errorCode = (error as any)?.code;
-      const causeCode = (error as any)?.cause?.code;
+      const err = error as Error & { code?: string; cause?: { code?: string } };
+      const errorMessage = err?.message ?? String(error);
+      const errorCode = err?.code;
+      const causeCode = err?.cause?.code;
 
       // Vérifier plusieurs façons dont l'erreur peut être signalée
       if (
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
         errorMessage.includes("ECONNREFUSED") ||
         errorMessage.includes("fetch failed") ||
         errorMessage.includes("NetworkError") ||
-        (error?.cause && String(error.cause).includes("ECONNREFUSED"))
+        (err?.cause && String(err.cause).includes("ECONNREFUSED"))
       ) {
         return NextResponse.json({
           response:
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
 
       // Pour les autres erreurs, logger uniquement en développement
       if (process.env.NODE_ENV === "development") {
-        console.error("Chat API error:", error);
+        console.error("Chat API error:", err);
       }
       return NextResponse.json({
         response:

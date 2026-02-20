@@ -47,7 +47,7 @@ function LoginForm() {
     setResendLoading(true);
     setResendSuccess(false);
     try {
-      const res = await api.post<{ message?: string; error?: string }>(
+      await api.post<{ message?: string; error?: string }>(
         "/api/auth/resend-verification",
         { email: resendEmail.trim() }
       );

@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 
 interface ProbabilityRendererProps {
-  visualData: any;
+  visualData: Record<string, unknown> | null;
   className?: string;
 }
 
@@ -118,13 +118,13 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
   }
 
   // Extraire les données structurées standard
-  const events = visualData.events || [];
-  const probabilities = visualData.probabilities || visualData.probs || [];
-  const outcomes = visualData.outcomes || [];
-  const totalOutcomes = visualData.total_outcomes || visualData.total || 0;
-  const favorableOutcomes = visualData.favorable_outcomes || visualData.favorable || 0;
-  const question = visualData.question || "";
-  const context = visualData.context || "";
+  const events = Array.isArray(visualData.events) ? visualData.events : [];
+  const probabilities = Array.isArray(visualData.probabilities) ? visualData.probabilities : Array.isArray(visualData.probs) ? visualData.probs : [];
+  const outcomes = Array.isArray(visualData.outcomes) ? visualData.outcomes : [];
+  const totalOutcomes: number = Number(visualData.total_outcomes ?? visualData.total ?? 0) || 0;
+  const favorableOutcomes: number = Number(visualData.favorable_outcomes ?? visualData.favorable ?? 0) || 0;
+  const question: string = String(visualData.question ?? "");
+  const context: string = String(visualData.context ?? "");
 
   // Calculer la probabilité si on a les données
   const calculatedProbability =
@@ -154,7 +154,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
             <h4 className="font-semibold text-foreground">{t("possibleEvents")}</h4>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {events.map((event: any, index: number) => (
+            {events.map((event: string | Record<string, unknown>, index: number) => (
               <div
                 key={index}
                 className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
@@ -163,11 +163,11 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
                   <p className="text-foreground font-medium">{event}</p>
                 ) : (
                   <div>
-                    {event.name && <p className="font-medium text-foreground">{event.name}</p>}
-                    {event.probability !== undefined && (
+                    {(event as Record<string, unknown>).name != null && <p className="font-medium text-foreground">{String((event as Record<string, unknown>).name)}</p>}
+                    {(event as Record<string, unknown>).probability !== undefined && (
                       <p className="text-xs text-muted-foreground mt-1">
                         <Percent className="h-3 w-3 inline mr-1" />
-                        {event.probability}%
+                        {String((event as Record<string, unknown>).probability)}%
                       </p>
                     )}
                   </div>
@@ -186,12 +186,12 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
             <h4 className="font-semibold text-foreground">{t("possibleOutcomes")}</h4>
           </div>
           <div className="flex flex-wrap gap-2">
-            {outcomes.map((outcome: any, index: number) => (
+            {outcomes.map((outcome: string | Record<string, unknown> | null, index: number) => (
               <div
                 key={index}
                 className="bg-primary/10 border border-primary/30 rounded-md px-3 py-2 text-sm font-medium text-foreground"
               >
-                {typeof outcome === "object" ? outcome.name || outcome.value : outcome}
+                {outcome == null ? "" : typeof outcome === "object" ? String((outcome as Record<string, unknown>).name ?? (outcome as Record<string, unknown>).value ?? "") : String(outcome)}
               </div>
             ))}
           </div>
@@ -206,35 +206,38 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
             <h4 className="font-semibold text-foreground">{t("probabilities")}</h4>
           </div>
           <div className="space-y-2">
-            {probabilities.map((prob: any, index: number) => (
+            {probabilities.map((prob: string | number | Record<string, unknown>, index: number) => {
+              const p = prob as Record<string, unknown>;
+              return (
               <div key={index} className="bg-background/50 border border-border rounded-md p-3">
                 {typeof prob === "string" || typeof prob === "number" ? (
                   <div className="flex items-center gap-2">
                     <Percent className="h-4 w-4 text-primary" />
-                    <span className="text-foreground font-medium">{prob}%</span>
+                    <span className="text-foreground font-medium">{String(prob)}%</span>
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {prob.event && (
-                      <p className="text-sm font-medium text-foreground">{prob.event}</p>
+                    {p.event != null && (
+                      <p className="text-sm font-medium text-foreground">{String(p.event)}</p>
                     )}
                     <div className="flex items-center gap-3">
-                      {prob.value !== undefined && (
-                        <span className="text-lg font-semibold text-primary">{prob.value}%</span>
+                      {p.value !== undefined && (
+                        <span className="text-lg font-semibold text-primary">{String(p.value)}%</span>
                       )}
-                      {prob.fraction && (
+                      {p.fraction != null && (
                         <code className="text-xs bg-muted px-2 py-1 rounded text-muted-foreground">
-                          {prob.fraction}
+                          {String(p.fraction)}
                         </code>
                       )}
                     </div>
-                    {prob.description && (
-                      <p className="text-xs text-muted-foreground">{prob.description}</p>
+                    {p.description != null && (
+                      <p className="text-xs text-muted-foreground">{String(p.description)}</p>
                     )}
                   </div>
                 )}
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
       )}

@@ -26,7 +26,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 
 interface PuzzleRendererProps {
-  visualData: any;
+  visualData: Record<string, unknown> | null;
   className?: string | undefined;
   onOrderChange?: ((order: string[]) => void) | undefined;
 }
@@ -40,7 +40,7 @@ interface SortableItemProps {
 interface PuzzleItem {
   id: string;
   value: string;
-  original: any;
+  original: Record<string, unknown>;
 }
 
 /** Collision : pointer d'abord (où on relâche = cible), sinon plus proche centre */
@@ -101,17 +101,16 @@ function SortableItem({ id, value, index }: SortableItemProps) {
  */
 export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleRendererProps) {
   // Parser les données de puzzle
-  const pieces = visualData?.pieces || visualData?.items || visualData?.parts || [];
+  const pieces = Array.isArray(visualData?.pieces) ? visualData.pieces : Array.isArray(visualData?.items) ? visualData.items : Array.isArray(visualData?.parts) ? visualData.parts : [];
 
   // Parser les indices pour aider à résoudre le puzzle
-  const hints =
-    visualData?.hints || visualData?.rules || visualData?.clues || visualData?.indices || [];
-  const description = visualData?.description || "";
+  const hints = Array.isArray(visualData?.hints) ? visualData.hints : Array.isArray(visualData?.rules) ? visualData.rules : Array.isArray(visualData?.clues) ? visualData.clues : Array.isArray(visualData?.indices) ? visualData.indices : [];
+  const description: string = String(visualData?.description ?? "");
 
   // Initialiser les items avec un ordre mélangé pour rendre le puzzle intéressant
-  const initialItems: PuzzleItem[] = pieces.map((p: any, i: number) => ({
+  const initialItems: PuzzleItem[] = pieces.map((p: Record<string, unknown>, i: number) => ({
     id: `item-${i}`,
-    value: typeof p === "object" ? p.value || p.label || JSON.stringify(p) : String(p),
+    value: typeof p === "object" && p !== null ? String((p as Record<string, unknown>).value ?? (p as Record<string, unknown>).label ?? JSON.stringify(p)) : String(p),
     original: p,
   }));
 
@@ -120,9 +119,9 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
 
   // Réinitialiser l'ordre quand visualData change
   useEffect(() => {
-    const newItems: PuzzleItem[] = pieces.map((p: any, i: number) => ({
+    const newItems: PuzzleItem[] = pieces.map((p: Record<string, unknown>, i: number) => ({
       id: `item-${i}`,
-      value: typeof p === "object" ? p.value || p.label || JSON.stringify(p) : String(p),
+      value: typeof p === "object" && p !== null ? String((p as Record<string, unknown>).value ?? (p as Record<string, unknown>).label ?? JSON.stringify(p)) : String(p),
       original: p,
     }));
     setItems(newItems);

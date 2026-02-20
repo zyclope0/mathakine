@@ -6,7 +6,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 
 interface VisualRendererProps {
-  visualData: any;
+  visualData: Record<string, unknown> | null;
   className?: string | undefined;
 }
 
@@ -127,9 +127,9 @@ function getShapeIcon(shape: string): string {
 }
 
 /** Scale par défaut pour symétrie avec 8+ items : vue d'ensemble sans débordement */
-function getDefaultScale(visualData: any): number {
+function getDefaultScale(visualData: Record<string, unknown> | null): number {
   if (!visualData) return 1;
-  let p = typeof visualData === "string" ? (() => { try { return JSON.parse(visualData); } catch { return {}; } })() : visualData;
+  const p = typeof visualData === "string" ? (() => { try { return JSON.parse(visualData); } catch { return {}; } })() : visualData;
   const layout = p?.layout || [];
   const isSym = p?.type === "symmetry" || !!p?.symmetry_line;
   return isSym && Array.isArray(layout) && layout.length >= 8 ? 0.65 : 1;
@@ -145,7 +145,7 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
   const [flipped, setFlipped] = useState(false);
 
   // Parser les données visuelles avec gestion robuste
-  const parseVisualData = (data: any) => {
+  const parseVisualData = (data: unknown) => {
     if (!data)
       return {
         shapes: [],
@@ -180,23 +180,24 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
       }
     }
 
+    const p = parsed as Record<string, unknown> | null;
     // Détecter si c'est une grille
-    const grid = parsed?.grid || parsed?.matrix || parsed?.pattern;
-    const gridSize = parsed?.size || (Array.isArray(grid) && grid[0] ? grid[0].length : 3);
+    const grid = p?.grid ?? p?.matrix ?? p?.pattern;
+    const gridArr = Array.isArray(grid) ? grid : null;
+    const gridSizeNum = typeof p?.size === "number" ? p.size : (gridArr && gridArr.length > 0 && Array.isArray(gridArr[0]) ? (gridArr[0] as unknown[]).length : gridArr ? Math.ceil(Math.sqrt(gridArr.length)) || 3 : 3);
 
     return {
-      shapes: parsed?.shapes || parsed?.items || parsed?.elements || parsed?.figures || [],
-      asciiArt:
-        parsed?.ascii || parsed?.art || parsed?.content || parsed?.diagram || parsed?.visual,
-      layout: parsed?.layout || [],
-      symmetryType: parsed?.type || (parsed?.symmetry_line ? "symmetry" : null),
-      symmetryLine: parsed?.symmetry_line || parsed?.symmetryLine || parsed?.axis,
-      description: parsed?.description || parsed?.text || parsed?.explanation,
-      grid: grid,
-      gridSize: gridSize,
+      shapes: Array.isArray(p?.shapes) ? p.shapes : Array.isArray(p?.items) ? p.items : Array.isArray(p?.elements) ? p.elements : Array.isArray(p?.figures) ? p.figures : [],
+      asciiArt: p?.ascii ?? p?.art ?? p?.content ?? p?.diagram ?? p?.visual ?? null,
+      layout: Array.isArray(p?.layout) ? p.layout : [],
+      symmetryType: (p?.type ?? (p?.symmetry_line ? "symmetry" : null)) as string | null,
+      symmetryLine: p?.symmetry_line ?? p?.symmetryLine ?? p?.axis ?? null,
+      description: (p?.description ?? p?.text ?? p?.explanation) as string | null,
+      grid: grid ?? null,
+      gridSize: typeof gridSizeNum === "number" ? gridSizeNum : 3,
       // Garder les données brutes seulement si aucun format reconnu
       rawData:
-        !parsed?.shapes && !parsed?.ascii && !parsed?.layout && !parsed?.items && !grid
+        !p?.shapes && !p?.ascii && !p?.layout && !p?.items && !grid
           ? parsed
           : null,
     };
@@ -302,10 +303,10 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                 <div className="grid gap-1 sm:gap-2 w-full" style={{ gridTemplateColumns: "repeat(11, minmax(0, 1fr))" }}>
                   {/* Gauche : 5 cellules */}
                   {layout
-                    .filter((item: any) => item.side === "left")
-                    .sort((a: any, b: any) => a.position - b.position)
-                    .map((item: any, idx: number) => {
-                      const color = resolveColor(item.color);
+                    .filter((item: Record<string, unknown>) => item.side === "left")
+                    .sort((a, b) => ((a as Record<string, unknown>).position as number) - ((b as Record<string, unknown>).position as number))
+                    .map((item: Record<string, unknown>, idx: number) => {
+                      const color = resolveColor(typeof item.color === "string" ? item.color : undefined);
                       return (
                         <motion.div
                           key={`left-${item.position}`}
@@ -314,7 +315,7 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: idx * 0.1 }}
                         >
-                          <span style={color ? { color } : undefined}>{getShapeIcon(item.shape)}</span>
+                          <span style={color ? { color } : undefined}>{getShapeIcon(String(item.shape ?? ""))}</span>
                         </motion.div>
                       );
                     })}
@@ -326,10 +327,10 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                   </div>
                   {/* Droit : 5 cellules */}
                   {layout
-                    .filter((item: any) => item.side === "right")
-                    .sort((a: any, b: any) => a.position - b.position)
-                    .map((item: any, idx: number) => {
-                      const color = resolveColor(item.color);
+                    .filter((item: Record<string, unknown>) => item.side === "right")
+                    .sort((a, b) => ((a as Record<string, unknown>).position as number) - ((b as Record<string, unknown>).position as number))
+                    .map((item: Record<string, unknown>, idx: number) => {
+                      const color = resolveColor(typeof item.color === "string" ? item.color : undefined);
                       return (
                         <motion.div
                           key={`right-${item.position}`}
@@ -345,15 +346,15 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                           {item.question ? (
                             <span className="text-xl sm:text-2xl font-bold text-primary">?</span>
                           ) : (
-                            <span style={color ? { color } : undefined}>{getShapeIcon(item.shape)}</span>
+                            <span style={color ? { color } : undefined}>{getShapeIcon(String(item.shape ?? ""))}</span>
                           )}
                         </motion.div>
                       );
                     })}
                 </div>
-                {visualData?.description && (
+                {Boolean(visualData?.description) && (
                   <p className="text-xs text-muted-foreground text-center mt-4">
-                    {visualData.description}
+                    {String(visualData?.description ?? "")}
                   </p>
                 )}
               </motion.div>
@@ -372,9 +373,9 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                   className="grid gap-2 p-4 bg-muted/20 rounded-lg"
                   style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
                 >
-                  {grid.flat().map((cell: any, index: number) => {
+                  {grid.flat().map((cell: unknown, index: number) => {
                     const cellValue =
-                      typeof cell === "object" ? cell.value || cell.label || "?" : String(cell);
+                      typeof cell === "object" && cell !== null ? String((cell as Record<string, unknown>).value ?? (cell as Record<string, unknown>).label ?? "?") : String(cell);
                     const isQuestion = cellValue === "?" || cellValue.includes("?");
 
                     return (
@@ -404,9 +405,9 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                 </div>
                 {/* Légende des formes */}
                 <div className="flex gap-3 mt-4 text-xs text-muted-foreground">
-                  {Array.from(new Set(grid.flat().filter((c: any) => c !== "?")))
+                  {Array.from(new Set(grid.flat().filter((c: unknown) => c !== "?")))
                     .slice(0, 5)
-                    .map((shape: any, idx: number) => (
+                    .map((shape: unknown, idx: number) => (
                       <div key={idx} className="flex items-center gap-1">
                         <span className="text-base">{getShapeIcon(String(shape))}</span>
                         <span>= {String(shape)}</span>
@@ -424,7 +425,7 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                 animate={{ rotate: rotation }}
                 transition={{ duration: 0.3 }}
               >
-                {asciiArt}
+                {String(asciiArt ?? "")}
               </motion.pre>
             ) : shapes.length > 0 ? (
               <motion.div
@@ -436,11 +437,11 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                 animate={{ rotate: rotation }}
                 transition={{ duration: 0.3 }}
               >
-                {shapes.map((shapeData: any, index: number) => {
+                {shapes.map((shapeData: string | Record<string, unknown>, index: number) => {
                   const shapeText =
                     typeof shapeData === "string"
                       ? shapeData
-                      : shapeData.label || shapeData.value || String(index + 1);
+                      : String((shapeData as Record<string, unknown>).label ?? (shapeData as Record<string, unknown>).value ?? (index + 1));
                   const { shape, color, isQuestion } = parseShapeWithColor(shapeText);
                   const icon = getShapeIcon(shapeText);
 

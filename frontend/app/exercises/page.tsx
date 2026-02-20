@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
-import { EXERCISE_TYPE_STYLES, EXERCISE_TYPES, AGE_GROUPS } from "@/lib/constants/exercises";
+import { EXERCISE_TYPE_STYLES, AGE_GROUPS } from "@/lib/constants/exercises";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { Filter, X, Search, LayoutGrid, List, Sparkles, CheckCircle2, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -46,7 +46,6 @@ import {
   EmptyState,
   LoadingState,
 } from "@/components/layout";
-import { useLocaleStore } from "@/lib/stores/localeStore";
 import { ApiClientError } from "@/lib/api/client";
 import { debugLog } from "@/lib/utils/debug";
 
@@ -59,7 +58,6 @@ function ExercisesPageContent() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const pathname = usePathname();
-  const { locale } = useLocaleStore();
   const [exerciseTypeFilter, setExerciseTypeFilter] = useState<string>("all");
   const [ageGroupFilter, setAgeGroupFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");

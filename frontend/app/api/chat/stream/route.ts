@@ -49,8 +49,9 @@ export async function POST(request: NextRequest) {
           "X-Accel-Buffering": "no",
         },
       });
-    } catch (error: any) {
-      const errorMessage = error?.message || String(error);
+    } catch (error: unknown) {
+      const err = error as Error;
+      const errorMessage = err?.message ?? String(error);
 
       // Gérer les erreurs de connexion
       if (

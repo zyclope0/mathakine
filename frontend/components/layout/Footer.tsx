@@ -105,7 +105,7 @@ export function Footer() {
           </p>
           <p className="text-sm text-muted-foreground flex items-center gap-1">
             Fait avec <Heart className="h-4 w-4 text-primary-on-dark" aria-hidden="true" /> pour
-            l'éducation
+            l&apos;éducation
           </p>
         </div>
       </div>

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 
 interface DeductionRendererProps {
-  visualData: any;
+  visualData: Record<string, unknown> | null;
   className?: string;
   onAnswerChange?: (answer: string) => void;
 }
@@ -35,15 +35,15 @@ export function DeductionRenderer({
   }, []);
 
   // Extraire les données structurées
-  const friends = visualData?.friends || [];
-  const ages = visualData?.ages || [];
-  const relationships = visualData?.relationships || [];
-  const entities = visualData?.entities || {};
-  const attributes = visualData?.attributes || {};
-  const rules = visualData?.rules || relationships || [];
-  const clues = visualData?.clues || [];
-  const description = visualData?.description || "";
-  const type = visualData?.type || "";
+  const friends = Array.isArray(visualData?.friends) ? visualData.friends : [];
+  const ages = Array.isArray(visualData?.ages) ? visualData.ages : [];
+  const relationships = Array.isArray(visualData?.relationships) ? visualData.relationships : [];
+  const entities = (visualData?.entities != null && typeof visualData.entities === "object" && !Array.isArray(visualData.entities) ? visualData.entities : {}) as Record<string, unknown>;
+  const attributes = (visualData?.attributes != null && typeof visualData.attributes === "object" && !Array.isArray(visualData.attributes) ? visualData.attributes : {}) as Record<string, unknown>;
+  const rules = Array.isArray(visualData?.rules) ? visualData.rules : relationships;
+  const clues = Array.isArray(visualData?.clues) ? visualData.clues : [];
+  const description: string = String(visualData?.description ?? "");
+  const type: string = String(visualData?.type ?? "");
 
   // Détecter le format "logic_grid" avec entities comme objet
   const isLogicGrid =
@@ -307,14 +307,14 @@ export function DeductionRenderer({
               <h4 className="font-semibold text-foreground">{t("relationships")}</h4>
             </div>
             <div className="space-y-2">
-              {relationships.map((rel: any, index: number) => (
+              {relationships.map((rel: Record<string, unknown>, index: number) => (
                 <div
                   key={index}
                   className="bg-background/50 border border-border rounded-md p-3 flex items-center gap-2 hover:border-primary/50 transition-colors"
                 >
-                  <span className="font-medium text-primary">{rel.name || rel.subject}</span>
-                  <span className="text-muted-foreground text-sm">{rel.relation || "est"}</span>
-                  <span className="font-medium text-foreground">{rel.target || rel.object}</span>
+                  <span className="font-medium text-primary">{String(rel.name ?? rel.subject ?? "")}</span>
+                  <span className="text-muted-foreground text-sm">{String(rel.relation ?? "est")}</span>
+                  <span className="font-medium text-foreground">{String(rel.target ?? rel.object ?? "")}</span>
                 </div>
               ))}
             </div>
@@ -340,15 +340,15 @@ export function DeductionRenderer({
                 className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
               >
                 <div className="font-medium text-foreground">{entity}</div>
-                {attributes[entity] && (
+                {Boolean(attributes[entity]) && (
                   <div className="text-sm text-muted-foreground mt-1">
-                    {typeof attributes[entity] === "object"
-                      ? Object.entries(attributes[entity]).map(([key, value]) => (
+                    {typeof attributes[entity] === "object" && attributes[entity] !== null
+                      ? Object.entries(attributes[entity] as Record<string, unknown>).map(([key, value]) => (
                           <div key={key}>
                             {key}: {String(value)}
                           </div>
                         ))
-                      : attributes[entity]}
+                      : String(attributes[entity])}
                   </div>
                 )}
               </div>
@@ -364,7 +364,7 @@ export function DeductionRenderer({
               <h4 className="font-semibold text-foreground">{t("rules")}</h4>
             </div>
             <div className="space-y-2">
-              {rules.map((rule: any, index: number) => (
+              {rules.map((rule: string | Record<string, unknown>, index: number) => (
                 <div
                   key={index}
                   className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
@@ -373,12 +373,12 @@ export function DeductionRenderer({
                     <span className="text-foreground">{rule}</span>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-primary">{rule.name || rule.subject}</span>
+                      <span className="font-medium text-primary">{String(rule.name ?? rule.subject ?? "")}</span>
                       <span className="text-muted-foreground text-sm">
-                        {rule.relation || "est"}
+                        {String(rule.relation ?? "est")}
                       </span>
                       <span className="font-medium text-foreground">
-                        {rule.target || rule.object}
+                        {String(rule.target ?? rule.object ?? "")}
                       </span>
                     </div>
                   )}
@@ -410,13 +410,13 @@ export function DeductionRenderer({
                     {key.replace(/_/g, " ")}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {value.map((item: any, i: number) => (
+                    {value.map((item: unknown, i: number) => (
                       <span
                         key={i}
                         className="bg-primary/10 border border-primary/30 px-2 py-1 rounded text-sm text-foreground"
                       >
-                        {typeof item === "object"
-                          ? item.name || item.value || JSON.stringify(item)
+                        {typeof item === "object" && item !== null
+                          ? String((item as Record<string, unknown>).name ?? (item as Record<string, unknown>).value ?? JSON.stringify(item))
                           : String(item)}
                       </span>
                     ))}

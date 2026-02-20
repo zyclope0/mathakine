@@ -25,7 +25,6 @@ import { Badge as UIBadge } from "@/components/ui/badge";
 import type { UserBadge } from "@/types/api";
 import {
   User,
-  Mail,
   Lock,
   Settings,
   Award,
@@ -54,7 +53,7 @@ function ProfilePageContent() {
   const { user } = useAuth();
   const { updateProfile, isUpdatingProfile, changePassword, isChangingPassword } = useProfile();
   const { stats, isLoading: isLoadingStats, error: statsError } = useUserStats("30");
-  const { earnedBadges, isLoading: isLoadingBadges, error: badgesError } = useBadges();
+  const { earnedBadges } = useBadges();
   const { setTheme } = useThemeStore();
   const getAgeDisplay = useAgeGroupDisplay();
   const router = useRouter();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PageHeader, PageSection, LoadingState } from "@/components/layout";
 import { ExerciseEditModal } from "@/components/admin/ExerciseEditModal";
@@ -66,6 +66,11 @@ const BADGE_CATEGORIES = [
 
 const PAGE_SIZE = 20;
 
+function SortIcon({ col, sort, order }: { col: string; sort: string; order: "asc" | "desc" }) {
+  if (sort !== col) return <ChevronDown className="ml-1 h-4 w-4 opacity-50" />;
+  return order === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />;
+}
+
 function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
   const [archivedFilter, setArchivedFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -73,12 +78,8 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
   const [sort, setSort] = useState("created_at");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
-  const [editExerciseId, setEditExerciseId] = useState<number | null>(null);
+  const [editExerciseId, setEditExerciseId] = useState<number | null>(initialEditId ?? null);
   const [createExerciseOpen, setCreateExerciseOpen] = useState(false);
-
-  useEffect(() => {
-    if (initialEditId != null) setEditExerciseId(initialEditId);
-  }, [initialEditId]);
 
   const archived =
     archivedFilter === "all"
@@ -109,10 +110,6 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
       setOrder("asc");
     }
     setPage(0);
-  };
-  const SortIcon = ({ col }: { col: string }) => {
-    if (sort !== col) return <ChevronDown className="ml-1 h-4 w-4 opacity-50" />;
-    return order === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />;
   };
 
   const handleToggleArchived = async (ex: {
@@ -210,22 +207,22 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
                 <tr className="border-b bg-muted/50">
                   <th className="px-4 py-3 text-left font-medium">
                     <button type="button" onClick={() => toggleSort("title")} className="flex items-center hover:underline">
-                      Titre <SortIcon col="title" />
+                      Titre <SortIcon col="title" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">
                     <button type="button" onClick={() => toggleSort("exercise_type")} className="flex items-center hover:underline">
-                      Type <SortIcon col="exercise_type" />
+                      Type <SortIcon col="exercise_type" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">
                     <button type="button" onClick={() => toggleSort("difficulty")} className="flex items-center hover:underline">
-                      Difficulté <SortIcon col="difficulty" />
+                      Difficulté <SortIcon col="difficulty" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">
                     <button type="button" onClick={() => toggleSort("age_group")} className="flex items-center hover:underline">
-                      Âge <SortIcon col="age_group" />
+                      Âge <SortIcon col="age_group" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">Tentatives</th>
@@ -233,7 +230,7 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
                   <th className="px-4 py-3 text-left font-medium">Statut</th>
                   <th className="px-4 py-3 text-left font-medium">
                     <button type="button" onClick={() => toggleSort("created_at")} className="flex items-center hover:underline">
-                      Date <SortIcon col="created_at" />
+                      Date <SortIcon col="created_at" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">Actions</th>
@@ -360,12 +357,8 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
   const [sort, setSort] = useState("created_at");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(0);
-  const [editChallengeId, setEditChallengeId] = useState<number | null>(null);
+  const [editChallengeId, setEditChallengeId] = useState<number | null>(initialEditId ?? null);
   const [createChallengeOpen, setCreateChallengeOpen] = useState(false);
-
-  useEffect(() => {
-    if (initialEditId != null) setEditChallengeId(initialEditId);
-  }, [initialEditId]);
 
   const archived =
     archivedFilter === "all"
@@ -393,10 +386,6 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
     if (sort === col) setOrder((o) => (o === "asc" ? "desc" : "asc"));
     else { setSort(col); setOrder("asc"); }
     setPage(0);
-  };
-  const SortIconCh = ({ col }: { col: string }) => {
-    if (sort !== col) return <ChevronDown className="ml-1 h-4 w-4 opacity-50" />;
-    return order === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />;
   };
 
   const handleToggleArchived = async (ch: {
@@ -498,17 +487,17 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
                 <tr className="border-b bg-muted/50">
                   <th className="px-4 py-3 text-left font-medium">
                     <button type="button" onClick={() => toggleSortCh("title")} className="flex items-center hover:underline">
-                      Titre <SortIconCh col="title" />
+                      Titre <SortIcon col="title" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">
                     <button type="button" onClick={() => toggleSortCh("challenge_type")} className="flex items-center hover:underline">
-                      Type <SortIconCh col="challenge_type" />
+                      Type <SortIcon col="challenge_type" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">
                     <button type="button" onClick={() => toggleSortCh("age_group")} className="flex items-center hover:underline">
-                      Âge <SortIconCh col="age_group" />
+                      Âge <SortIcon col="age_group" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">Tentatives</th>
@@ -516,7 +505,7 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
                   <th className="px-4 py-3 text-left font-medium">Statut</th>
                   <th className="px-4 py-3 text-left font-medium">
                     <button type="button" onClick={() => toggleSortCh("created_at")} className="flex items-center hover:underline">
-                      Date <SortIconCh col="created_at" />
+                      Date <SortIcon col="created_at" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">Actions</th>
@@ -636,12 +625,8 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
 function BadgesTab({ initialEditId }: { initialEditId?: number | null }) {
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [editBadgeId, setEditBadgeId] = useState<number | null>(null);
+  const [editBadgeId, setEditBadgeId] = useState<number | null>(initialEditId ?? null);
   const [createBadgeOpen, setCreateBadgeOpen] = useState(false);
-
-  useEffect(() => {
-    if (initialEditId != null) setEditBadgeId(initialEditId);
-  }, [initialEditId]);
 
   const { badges, isLoading, error, refetch } = useAdminBadges();
 
@@ -788,13 +773,13 @@ export default function AdminContentPage() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="exercises" className="mt-6">
-                <ExercisesTab initialEditId={defaultTab === "exercises" ? editId : null} />
+                <ExercisesTab key={`exercises-${editId ?? ""}`} initialEditId={defaultTab === "exercises" ? editId : null} />
               </TabsContent>
               <TabsContent value="challenges" className="mt-6">
-                <ChallengesTab initialEditId={defaultTab === "challenges" ? editId : null} />
+                <ChallengesTab key={`challenges-${editId ?? ""}`} initialEditId={defaultTab === "challenges" ? editId : null} />
               </TabsContent>
               <TabsContent value="badges" className="mt-6">
-                <BadgesTab initialEditId={defaultTab === "badges" ? editId : null} />
+                <BadgesTab key={`badges-${editId ?? ""}`} initialEditId={defaultTab === "badges" ? editId : null} />
               </TabsContent>
             </Tabs>
           </CardContent>

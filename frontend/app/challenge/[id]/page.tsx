@@ -3,7 +3,6 @@
 import { use } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ChallengeSolver } from "@/components/challenges/ChallengeSolver";
-import { useRouter } from "next/navigation";
 import { PageLayout, EmptyState } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -15,7 +14,6 @@ interface ChallengePageProps {
 }
 
 export default function ChallengePage({ params }: ChallengePageProps) {
-  const router = useRouter();
   const tError = useTranslations("challenges.error");
   const tSolver = useTranslations("challenges.solver");
   const { id } = use(params);

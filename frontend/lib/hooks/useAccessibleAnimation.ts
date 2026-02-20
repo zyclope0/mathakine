@@ -1,7 +1,7 @@
 "use client";
 
 import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotion, type Variants, type Transition } from "framer-motion";
 
 /**
  * Hook pour créer des animations accessibles qui respectent les préférences utilisateur
@@ -19,7 +19,7 @@ export function useAccessibleAnimation() {
   /**
    * Crée une variante d'animation avec garde-fous
    */
-  const createVariants = (variants: { initial?: any; animate?: any; exit?: any }) => {
+  const createVariants = (variants: Variants): Variants => {
     if (shouldReduceMotion) {
       // En mode réduit : animations minimales ou désactivées
       return {
@@ -35,30 +35,26 @@ export function useAccessibleAnimation() {
    * Crée une transition avec durée réduite si nécessaire
    */
   const createTransition = (
-    baseTransition: {
-      duration?: number;
-      delay?: number;
-      ease?: any;
-    } = {}
-  ) => {
+    baseTransition: Partial<Transition> = {}
+  ): Transition => {
     if (shouldReduceMotion) {
       return {
-        duration: 0.1, // Durée minimale
+        duration: 0.1,
         delay: 0,
         ease: "easeOut",
-      };
+      } as Transition;
     }
     return {
       duration: baseTransition.duration ?? 0.3,
       delay: baseTransition.delay ?? 0,
-      ease: baseTransition.ease ?? [0.4, 0, 0.2, 1], // cubic-bezier doux
-    };
+      ease: baseTransition.ease ?? [0.4, 0, 0.2, 1],
+    } as Transition;
   };
 
   /**
    * Props d'animation pour motion.div avec garde-fous
    */
-  const getMotionProps = (customVariants?: any, customTransition?: any) => {
+  const getMotionProps = (customVariants?: Variants, customTransition?: Partial<Transition>) => {
     const variants =
       customVariants ||
       createVariants({

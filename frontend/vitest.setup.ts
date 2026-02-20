@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
+import * as React from "react";
 import { afterEach, vi } from "vitest";
 
 // Nettoyer après chaque test
@@ -24,11 +25,7 @@ vi.mock("next/navigation", () => ({
 
 // Mock Next.js Image
 vi.mock("next/image", () => ({
-  default: (props: any) => {
-    // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
-    const React = require("react");
-    return React.createElement("img", props);
-  },
+  default: (props: React.ComponentProps<"img">) => React.createElement("img", props),
 }));
 
 // Mock window.matchMedia pour les media queries
@@ -53,4 +50,4 @@ const localStorageMock = {
   removeItem: vi.fn(),
   clear: vi.fn(),
 };
-global.localStorage = localStorageMock as any;
+global.localStorage = localStorageMock as unknown as Storage;

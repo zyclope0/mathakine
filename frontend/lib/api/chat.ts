@@ -1,5 +1,3 @@
-import { apiRequest } from "./client";
-import type { Message } from "@/hooks/useChat";
 
 interface ChatStreamPayload {
   message: string;

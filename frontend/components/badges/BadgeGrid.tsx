@@ -41,7 +41,7 @@ export function BadgeGrid({
   pinnedBadgeIds,
   onTogglePin,
 }: BadgeGridProps) {
-  const { shouldReduceMotion, createTransition } = useAccessibleAnimation();
+  const { shouldReduceMotion } = useAccessibleAnimation();
 
   // Créer un map des badges obtenus pour accès rapide (par ID)
   const earnedBadgeMap = new Map<number, UserBadge>();

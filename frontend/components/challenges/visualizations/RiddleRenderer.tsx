@@ -5,7 +5,7 @@ import { Lightbulb, Key, HelpCircle, Grid3x3, Info } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface RiddleRendererProps {
-  visualData: any;
+  visualData: Record<string, unknown> | null;
   className?: string;
 }
 
@@ -25,13 +25,13 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
   }
 
   // Extraire les données structurées
-  const clues = visualData.clues || visualData.indices || [];
-  const hints = visualData.hints || [];
-  const keyElements = visualData.key_elements || visualData.elements || [];
-  const context = visualData.context || visualData.scenario || visualData.scene || "";
-  const riddle = visualData.riddle || visualData.question || "";
-  const description = visualData.description || "";
-  const size = visualData.size;
+  const clues = Array.isArray(visualData.clues) ? visualData.clues : Array.isArray(visualData.indices) ? visualData.indices : [];
+  const hints = Array.isArray(visualData.hints) ? visualData.hints : [];
+  const keyElements = Array.isArray(visualData.key_elements) ? visualData.key_elements : Array.isArray(visualData.elements) ? visualData.elements : [];
+  const context: string = String(visualData.context ?? visualData.scenario ?? visualData.scene ?? "");
+  const riddle: string = String(visualData.riddle ?? visualData.question ?? "");
+  const description: string = String(visualData.description ?? "");
+  const size = visualData.size as number | undefined;
 
   // Énigme type "riddle" avec pots et plaque (ex: coffre du jardinier)
   const parseIfNeeded = (val: unknown): unknown => {
@@ -61,14 +61,13 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
   const hasGrid = grid && Array.isArray(grid) && grid.length > 0;
 
   // Convertir la grille en 2D si nécessaire
-  const grid2D = hasGrid
+  const gridLen = Array.isArray(grid) ? grid.length : 0;
+  const gridSizeNum = typeof size === "number" ? size : Math.ceil(Math.sqrt(gridLen)) || 1;
+  const grid2D: unknown[][] = hasGrid && Array.isArray(grid)
     ? Array.isArray(grid[0])
-      ? grid
-      : Array.from({ length: size || Math.ceil(Math.sqrt(grid.length)) }, (_, i) =>
-          grid.slice(
-            i * (size || Math.ceil(Math.sqrt(grid.length))),
-            (i + 1) * (size || Math.ceil(Math.sqrt(grid.length)))
-          )
+      ? (grid as unknown[][])
+      : Array.from({ length: gridSizeNum }, (_, i) =>
+          (grid as unknown[]).slice(i * gridSizeNum, (i + 1) * gridSizeNum)
         )
     : [];
 
@@ -133,9 +132,9 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
               className="grid gap-1 p-3 bg-muted/30 rounded-lg"
               style={{ gridTemplateColumns: `repeat(${grid2D[0]?.length || 3}, minmax(0, 1fr))` }}
             >
-              {grid2D.flat().map((cell: any, index: number) => {
+              {grid2D.flat().map((cell: unknown, index: number) => {
                 const cellValue =
-                  typeof cell === "object" ? cell.value || cell.label || "?" : String(cell);
+                  typeof cell === "object" && cell !== null ? String((cell as Record<string, unknown>).value ?? (cell as Record<string, unknown>).label ?? "?") : String(cell);
                 const isUnknown =
                   cellValue === "?" || cellValue === "??" || cellValue.includes("?");
 
@@ -172,7 +171,7 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
             <h4 className="font-semibold text-foreground">Indices</h4>
           </div>
           <div className="space-y-2">
-            {clues.map((clue: any, index: number) => (
+            {clues.map((clue: string | Record<string, unknown>, index: number) => (
               <div
                 key={index}
                 className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
@@ -181,11 +180,11 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
                   <p className="text-foreground">{clue}</p>
                 ) : (
                   <div>
-                    {clue.title && <p className="font-medium text-primary mb-1">{clue.title}</p>}
-                    {clue.description && (
-                      <p className="text-muted-foreground text-sm">{clue.description}</p>
+                    {(clue as Record<string, unknown>).title != null && <p className="font-medium text-primary mb-1">{String((clue as Record<string, unknown>).title)}</p>}
+                    {(clue as Record<string, unknown>).description != null && (
+                      <p className="text-muted-foreground text-sm">{String((clue as Record<string, unknown>).description)}</p>
                     )}
-                    {clue.value && <p className="text-foreground mt-1">{clue.value}</p>}
+                    {(clue as Record<string, unknown>).value != null && <p className="text-foreground mt-1">{String((clue as Record<string, unknown>).value)}</p>}
                   </div>
                 )}
               </div>
@@ -260,13 +259,13 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
             <h4 className="font-semibold text-foreground">Astuces</h4>
           </div>
           <div className="space-y-2">
-            {hints.map((hint: any, index: number) => (
+            {hints.map((hint: string | Record<string, unknown>, index: number) => (
               <div
                 key={index}
                 className="bg-background/50 border border-border rounded-md p-3 text-sm text-muted-foreground"
               >
                 <span className="font-semibold text-amber-500">#{index + 1}</span>{" "}
-                {typeof hint === "string" ? hint : hint.text || JSON.stringify(hint)}
+                {typeof hint === "string" ? hint : String((hint as Record<string, unknown>).text ?? JSON.stringify(hint))}
               </div>
             ))}
           </div>
@@ -281,7 +280,7 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
             <h4 className="font-semibold text-foreground">Éléments importants</h4>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {keyElements.map((element: any, index: number) => (
+            {keyElements.map((element: string | Record<string, unknown>, index: number) => (
               <div
                 key={index}
                 className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
@@ -290,9 +289,9 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
                   <p className="text-foreground font-medium">{element}</p>
                 ) : (
                   <div>
-                    {element.name && <p className="font-medium text-foreground">{element.name}</p>}
-                    {element.value !== undefined && (
-                      <p className="text-muted-foreground text-sm mt-1">{element.value}</p>
+                    {(element as Record<string, unknown>).name != null && <p className="font-medium text-foreground">{String((element as Record<string, unknown>).name)}</p>}
+                    {(element as Record<string, unknown>).value !== undefined && (
+                      <p className="text-muted-foreground text-sm mt-1">{String((element as Record<string, unknown>).value)}</p>
                     )}
                   </div>
                 )}
@@ -342,7 +341,7 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
                       {key.replace(/_/g, " ")}:
                     </p>
                     <div className="pl-3 space-y-1">
-                      {value.map((item: any, i: number) => (
+                      {value.map((item: unknown, i: number) => (
                         <p key={i} className="text-sm text-foreground">
                           • {typeof item === "object" ? JSON.stringify(item) : String(item)}
                         </p>

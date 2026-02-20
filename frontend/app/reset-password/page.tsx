@@ -70,9 +70,10 @@ function ResetPasswordContent() {
         setStatus("error");
         setMessage(t("error"));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message?: string; details?: { error?: string } };
       setStatus("error");
-      setMessage(error?.message || error?.details?.error || t("error"));
+      setMessage(err?.message ?? err?.details?.error ?? t("error"));
     }
   };
 

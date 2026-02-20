@@ -35,6 +35,7 @@ export function useSubmitAnswer() {
       const exerciseId = payload.exercise_id;
       // Remove exercise_id from payload as it's now in the URL path
       const { exercise_id, ...dataToSend } = payload;
+      void exercise_id; // exclu de dataToSend, utilisé via payload.exercise_id
       return api.post<SubmitAnswerResponse>(`/api/exercises/${exerciseId}/attempt`, dataToSend);
     },
     onSuccess: (data, variables) => {

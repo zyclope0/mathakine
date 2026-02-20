@@ -34,7 +34,7 @@ export default function OfflinePage() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">Hors ligne</h1>
           <p className="text-muted-foreground">
-            Vous n'êtes pas connecté à Internet. Vérifiez votre connexion et réessayez.
+            Vous n&apos;êtes pas connecté à Internet. Vérifiez votre connexion et réessayez.
           </p>
         </div>
 

@@ -165,12 +165,12 @@ export default function HomePage() {
                     <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
                   </div>
                   <CardTitle className="text-sm md:text-base">
-                    {t(feature.titleKey as any)}
+                    {t(feature.titleKey)}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0 px-3">
                   <CardDescription className="text-xs md:text-sm">
-                    {t(feature.descriptionKey as any)}
+                    {t(feature.descriptionKey)}
                   </CardDescription>
                 </CardContent>
               </Card>

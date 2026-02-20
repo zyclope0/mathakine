@@ -41,7 +41,6 @@ export function useAuth() {
     data: user,
     isLoading,
     error,
-    isFetching,
   } = useQuery({
     queryKey: ["auth", "me"],
     queryFn: async () => {
@@ -155,7 +154,7 @@ export function useAuth() {
             credentials: "include",
           }).catch(() => {});
         }
-      } catch (error) {
+      } catch {
         // Même en cas d'erreur, on déconnecte côté client
         // Ne pas logger en production pour éviter les fuites d'information
       }

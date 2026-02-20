@@ -21,7 +21,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
-  CHALLENGE_TYPES,
   CHALLENGE_TYPE_STYLES,
   AGE_GROUPS,
   type ChallengeType,
@@ -106,7 +105,7 @@ function ChallengesPageContent() {
     return f;
   }, [challengeTypeFilter, ageGroupFilter, searchQuery, currentPage, hideCompleted]);
 
-  const { challenges, total, hasMore, isLoading, error } = useChallenges(filters);
+  const { challenges, total, isLoading, error } = useChallenges(filters);
 
   // Calculer le nombre total de pages à partir du total réel
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE) || 1;
@@ -302,7 +301,7 @@ function ChallengesPageContent() {
         {/* Générateur IA */}
         <PageSection className="section-generator animate-fade-in-up-delay-1">
           <AIGenerator
-            onChallengeGenerated={(challenge: Challenge) => {
+            onChallengeGenerated={() => {
               // Invalider le cache pour recharger la liste
               queryClient.invalidateQueries({ queryKey: ["challenges"] });
               queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });

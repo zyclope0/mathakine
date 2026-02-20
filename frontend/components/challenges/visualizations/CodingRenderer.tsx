@@ -17,7 +17,7 @@ import {
 import { motion } from "framer-motion";
 
 interface CodingRendererProps {
-  visualData: any;
+  visualData: Record<string, unknown> | null;
   className?: string;
 }
 
@@ -37,7 +37,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
   }
 
   // Détecter le type de défi de codage
-  const codingType = visualData.type?.toLowerCase() || "";
+  const codingType = String(visualData.type ?? "").toLowerCase();
   const isCryptography = ["caesar", "substitution", "binary", "symbols", "algorithm"].includes(
     codingType
   );
@@ -49,25 +49,30 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
   const isMaze = maze && Array.isArray(maze) && maze.length > 0;
 
   // Données de cryptographie
-  const encodedMessage = visualData.encoded_message || visualData.message || "";
-  const shift = visualData.shift;
-  const alphabet = visualData.alphabet || "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const cryptoKey = visualData.key || visualData.partial_key || {};
-  const steps = visualData.steps || [];
+  const encodedMessage: string = String(visualData.encoded_message ?? visualData.message ?? "");
+  const shift: number | undefined =
+    typeof visualData.shift === "number"
+      ? visualData.shift
+      : visualData.shift != null
+        ? Number(visualData.shift)
+        : undefined;
+  const alphabet: string = String(visualData.alphabet ?? "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+  const cryptoKey = (visualData.key ?? visualData.partial_key ?? {}) as Record<string, unknown>;
+  const steps = Array.isArray(visualData.steps) ? visualData.steps : [];
   const cryptoInput = visualData.input;
-  const description = visualData.description || "";
-  const hint = visualData.hint || "";
+  const description: string = String(visualData.description ?? "");
+  const hint: string = String(visualData.hint ?? "");
 
   // Extraire les données structurées (legacy/programmation)
-  const code = visualData.code || visualData.snippet || "";
-  const language = visualData.language || visualData.lang || "python";
-  const examples = visualData.examples || visualData.test_cases || [];
-  const input = visualData.input || "";
-  const output = visualData.output || "";
-  const expectedOutput = visualData.expected_output || visualData.expected || "";
-  const constraints = visualData.constraints || [];
-  const hints = visualData.hints || [];
-  const question = visualData.question || "";
+  const code: string = String(visualData.code ?? visualData.snippet ?? "");
+  const language: string = String(visualData.language ?? visualData.lang ?? "python");
+  const examples = Array.isArray(visualData.examples) ? visualData.examples : (Array.isArray(visualData.test_cases) ? visualData.test_cases : []);
+  const input: string = String(visualData.input ?? "");
+  const output: string = String(visualData.output ?? "");
+  const expectedOutput: string = String(visualData.expected_output ?? visualData.expected ?? "");
+  const constraints = Array.isArray(visualData.constraints) ? visualData.constraints : [];
+  const hints = Array.isArray(visualData.hints) ? visualData.hints : [];
+  const question: string = String(visualData.question ?? "");
 
   // ==================== RENDU CRYPTOGRAPHIE ====================
   if (isCryptography) {
@@ -160,7 +165,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
               <Key className="h-5 w-5 text-primary" />
               <span className="font-semibold text-foreground">Table de correspondance</span>
             </div>
-            {(visualData.rule_type || visualData.deducible_rule) && (
+            {Boolean(visualData.rule_type || visualData.deducible_rule) && (
               <p className="text-xs text-muted-foreground italic mb-3">
                 Ces exemples te permettent de déduire la règle de codage.
               </p>
@@ -242,7 +247,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
               <span className="font-semibold text-foreground">Algorithme à suivre</span>
               {cryptoInput !== undefined && (
                 <span className="ml-auto bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-bold">
-                  Départ : {cryptoInput}
+                  Départ : {String(cryptoInput ?? "")}
                 </span>
               )}
             </div>
@@ -280,10 +285,12 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
 
   // ==================== RENDU LABYRINTHE (maze/robot) ====================
   if (isMaze) {
-    const startRow = Array.isArray(start) ? start[0] : (start?.row ?? 1);
-    const startCol = Array.isArray(start) ? start[1] : (start?.col ?? 1);
-    const endRow = Array.isArray(end) ? end[0] : (end?.row ?? 0);
-    const endCol = Array.isArray(end) ? end[1] : (end?.col ?? 0);
+    const startObj = start != null && typeof start === "object" && !Array.isArray(start) ? (start as { row?: number; col?: number }) : null;
+    const endObj = end != null && typeof end === "object" && !Array.isArray(end) ? (end as { row?: number; col?: number }) : null;
+    const startRow = Array.isArray(start) ? Number(start[0]) : (startObj?.row ?? 1);
+    const startCol = Array.isArray(start) ? Number(start[1]) : (startObj?.col ?? 1);
+    const endRow = Array.isArray(end) ? Number(end[0]) : (endObj?.row ?? 0);
+    const endCol = Array.isArray(end) ? Number(end[1]) : (endObj?.col ?? 0);
 
     return (
       <div className={`space-y-4 ${className}`}>
@@ -434,7 +441,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
             <h4 className="font-semibold text-foreground">Exemples</h4>
           </div>
           <div className="space-y-3">
-            {examples.map((example: any, index: number) => (
+            {examples.map((example: Record<string, unknown>, index: number) => (
               <div
                 key={index}
                 className="bg-background/50 border border-border rounded-md overflow-hidden"
@@ -465,9 +472,9 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
                       </pre>
                     </div>
                   )}
-                  {example.explanation && (
+                  {example.explanation != null && example.explanation !== "" && (
                     <div className="text-xs text-muted-foreground italic pt-1 border-t border-border">
-                      {example.explanation}
+                      {String(example.explanation)}
                     </div>
                   )}
                 </div>
@@ -566,7 +573,7 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
                         {key.replace(/_/g, " ")} :
                       </p>
                       <div className="pl-3 space-y-1">
-                        {value.map((item: any, i: number) => (
+                        {value.map((item: unknown, i: number) => (
                           <p key={i} className="text-sm text-foreground">
                             • {typeof item === "object" ? JSON.stringify(item) : String(item)}
                           </p>

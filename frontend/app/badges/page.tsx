@@ -62,7 +62,6 @@ function getJediRankInfo(rank: string, t: (k: string) => string): { title: strin
 
 export default function BadgesPage() {
   const t = useTranslations("badges");
-  const tCommon = useTranslations("common");
   const {
     earnedBadges,
     availableBadges,
@@ -75,7 +74,7 @@ export default function BadgesPage() {
     checkBadges,
     isChecking,
   } = useBadges();
-  const { inProgress, isLoading: isLoadingProgress } = useBadgesProgress();
+  const { inProgress } = useBadgesProgress();
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [toUnlockExpanded, setToUnlockExpanded] = useState(false);
   const TO_UNLOCK_PREVIEW = 12;
@@ -474,6 +473,7 @@ export default function BadgesPage() {
                           <span className="text-2xl shrink-0 flex items-center justify-center w-8" aria-hidden="true">
                             {fullBadge?.icon_url?.trim() ? (
                               fullBadge.icon_url.trim().startsWith("http") ? (
+                                // eslint-disable-next-line @next/next/no-img-element -- URLs dynamiques (CDN/API)
                                 <img src={fullBadge.icon_url} alt="" className="w-7 h-7 object-contain" />
                               ) : (
                                 fullBadge.icon_url.trim()

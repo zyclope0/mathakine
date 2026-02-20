@@ -43,22 +43,19 @@ function DashboardLastUpdate({
   locale?: string;
 }) {
   const t = useTranslations("dashboard");
+  let displayTime: string;
   try {
     const date = new Date(time);
     const dateLocale = locale === "en" ? enUS : fr;
-    const relative = formatDistanceToNow(date, { addSuffix: true, locale: dateLocale });
-    return (
-      <p className="text-xs text-muted-foreground text-center">
-        {t("lastUpdate", { time: relative })}
-      </p>
-    );
+    displayTime = formatDistanceToNow(date, { addSuffix: true, locale: dateLocale });
   } catch {
-    return (
-      <p className="text-xs text-muted-foreground text-center">
-        {t("lastUpdate", { time })}
-      </p>
-    );
+    displayTime = time;
   }
+  return (
+    <p className="text-xs text-muted-foreground text-center">
+      {t("lastUpdate", { time: displayTime })}
+    </p>
+  );
 }
 
 export default function DashboardPage() {
@@ -88,7 +85,7 @@ export default function DashboardPage() {
         queryClient.invalidateQueries({ queryKey: ["leaderboard"] }),
       ]);
       toast.success(tToasts("statsUpdated"));
-    } catch (err) {
+    } catch {
       toast.error(t("error.title", { default: "Erreur lors du rafraîchissement" }));
     } finally {
       setTimeout(() => setIsRefreshing(false), 500);

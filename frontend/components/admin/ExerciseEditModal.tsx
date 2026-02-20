@@ -45,8 +45,6 @@ const EXERCISE_TYPES = [
 
 const DIFFICULTIES = ["INITIE", "PADAWAN", "CHEVALIER", "MAITRE", "GRAND_MAITRE"];
 
-const AGE_GROUPS = ["6-8", "8-10", "9-11", "10-12", "11-13", "12-14", "13-15", "14-16", "15-17", "adulte", "tous-ages"];
-
 interface ExerciseEditModalProps {
   exerciseId: number | null;
   open: boolean;

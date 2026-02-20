@@ -121,20 +121,21 @@ export function parsePositionsFromLayout(visualData: unknown): number[] {
 
   // Symmetry layout : left/right avec question: true
   const layout = v.layout;
-  if (Array.isArray(layout) && layout.some((i: any) => i?.question)) {
+  if (Array.isArray(layout) && layout.some((i: unknown) => (i as Record<string, unknown>)?.question)) {
     const positions: number[] = [];
+    const itemPos = (i: unknown) => (i as Record<string, unknown>)?.position as number | undefined;
     const leftItems = layout
       .filter((i: unknown) => i && typeof i === "object" && (i as Record<string, unknown>).side === "left")
-      .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
+      .sort((a, b) => (itemPos(a) ?? 0) - (itemPos(b) ?? 0));
     const rightItems = layout
       .filter((i: unknown) => i && typeof i === "object" && (i as Record<string, unknown>).side === "right")
-      .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
+      .sort((a, b) => (itemPos(a) ?? 0) - (itemPos(b) ?? 0));
 
-    leftItems.forEach((item: any, idx: number) => {
-      if (item?.question) positions.push(idx + 1);
+    leftItems.forEach((item: unknown, idx: number) => {
+      if ((item as Record<string, unknown>)?.question) positions.push(idx + 1);
     });
-    rightItems.forEach((item: any, idx: number) => {
-      if (item?.question) positions.push(leftItems.length + idx + 1);
+    rightItems.forEach((item: unknown, idx: number) => {
+      if ((item as Record<string, unknown>)?.question) positions.push(leftItems.length + idx + 1);
     });
     return positions.sort((a, b) => a - b);
   }
@@ -143,8 +144,9 @@ export function parsePositionsFromLayout(visualData: unknown): number[] {
   const shapes = v.shapes ?? v.items ?? v.elements;
   if (Array.isArray(shapes)) {
     const positions: number[] = [];
-    shapes.forEach((s: any, idx: number) => {
-      const val = typeof s === "string" ? s : s?.label ?? s?.value ?? "";
+    shapes.forEach((s: unknown, idx: number) => {
+      const obj = s as Record<string, unknown>;
+      const val = typeof s === "string" ? s : obj?.label ?? obj?.value ?? "";
       if (String(val).includes("?") || val === "?") positions.push(idx + 1);
     });
     return positions;

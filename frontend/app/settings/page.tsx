@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings, type UserSession } from "@/hooks/useSettings";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { PageLayout, PageHeader, PageSection } from "@/components/layout";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,6 @@ import {
   Settings,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils/cn";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -96,7 +95,7 @@ function SettingsPageContent() {
     marketing_consent: getPrivacyPref("marketing_consent", false),
   });
 
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<UserSession[]>([]);
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
