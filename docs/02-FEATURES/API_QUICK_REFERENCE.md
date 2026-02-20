@@ -1,7 +1,7 @@
 # API Quick Reference — Mathakine
 
 > Référence condensée des endpoints — Frontend/Backend  
-> **Date :** 16/02/2026  
+> **Date :** 19/02/2026  
 > **Détails :** [ENDPOINTS_NON_INTEGRES](../03-PROJECT/ENDPOINTS_NON_INTEGRES.md), [PLACEHOLDERS_ET_TODO](../03-PROJECT/PLACEHOLDERS_ET_TODO.md)
 
 ---
@@ -62,7 +62,7 @@
 
 | Méthode | Endpoint | Auth | Body / Params | Statut |
 |---------|----------|------|---------------|--------|
-| GET | `/api/exercises` | Non | — | OK |
+| GET | `/api/exercises` | Optionnel | `?skip=&limit=&exercise_type=&age_group=&search=&order=random\|recent&hide_completed=true\|false` | OK — Ordre aléatoire par défaut, `hide_completed` exclut les réussis (auth optionnelle) |
 | GET | `/api/exercises/stats` | Non | — | OK (widget accueil) |
 | GET | `/api/exercises/{id}` | Non | — | OK |
 | POST | `/api/exercises/{id}/attempt` | Oui | `{answer}` | OK |
@@ -78,7 +78,7 @@
 
 | Méthode | Endpoint | Auth | Body / Params | Statut |
 |---------|----------|------|---------------|--------|
-| GET | `/api/challenges` | Non | — | OK |
+| GET | `/api/challenges` | Oui | `?skip=&limit=&challenge_type=&age_group=&search=&order=random\|recent&hide_completed=true\|false` | OK — Ordre aléatoire par défaut, `hide_completed` exclut les défis déjà réussis |
 | GET | `/api/challenges/{id}` | Non | — | OK |
 | POST | `/api/challenges/{id}/attempt` | Oui | `{answer}` | OK — Réponse inclut `new_badges` si déblocage (Lot C-1) |
 | GET | `/api/challenges/{id}/hint` | Oui | — | OK |

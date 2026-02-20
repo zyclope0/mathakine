@@ -40,7 +40,8 @@ export function useSubmitAnswer() {
     onSuccess: (data, variables) => {
       // Invalider le cache de l'exercice pour recharger les stats
       queryClient.invalidateQueries({ queryKey: ["exercise", variables.exercise_id] });
-      queryClient.invalidateQueries({ queryKey: ["exercises"] });
+      // Ne PAS invalider ["exercises"] : évite le reshuffle aléatoire au rafraîchissement.
+      // Le badge "Résolu" vient de completed-exercises, pas de la liste.
       queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
 
       // Si la réponse est correcte, invalider et refetch la progression + badges

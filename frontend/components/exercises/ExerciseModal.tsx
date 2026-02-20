@@ -59,11 +59,10 @@ export function ExerciseModal({
       setHasSubmitted(true);
       setShowExplanation(true);
 
-      // Si l'exercice est complété avec succès, invalider et refetch immédiatement la query de progression
+      // Si l'exercice est complété avec succès, invalider la progression (badge "Résolu").
+      // Ne PAS invalider ["exercises"] pour éviter le reshuffle de l'ordre aléatoire.
       if (submitResult.is_correct) {
         queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
-        queryClient.invalidateQueries({ queryKey: ["exercises"] });
-        // Refetch immédiatement pour mettre à jour les badges rapidement
         queryClient.refetchQueries({ queryKey: ["completed-exercises"] });
       }
     }

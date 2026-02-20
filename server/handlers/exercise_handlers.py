@@ -106,21 +106,8 @@ async def get_exercise(request):
         
         # Utiliser le service ORM ExerciseService
         async with db_session() as db:
-            import json as json_module
-
             from app.models.exercise import Exercise
-            
-            def safe_parse_json(value, default=None):
-                """Parse JSON en gérant les cas None, string vide, ou JSON invalide"""
-                if not value:
-                    return default if default is not None else []
-                if isinstance(value, str):
-                    try:
-                        return json_module.loads(value)
-                    except (json_module.JSONDecodeError, ValueError):
-                        return default if default is not None else []
-                return value
-            
+            from app.utils.json_utils import safe_parse_json
             from sqlalchemy import String, cast
 
             # IMPORTANT: Charger les enums en tant que strings pour éviter les erreurs de conversion
@@ -675,16 +662,8 @@ async def generate_ai_exercise_stream(request):
         is_safe, safety_reason = validate_prompt_safety(prompt_raw)
         if not is_safe:
             logger.warning(f"Prompt utilisateur rejeté pour sécurité: {safety_reason}")
-            async def safety_error_generator():
-                yield f"data: {json.dumps({'type': 'error', 'message': f'Prompt invalide: {safety_reason}'})}\n\n"
-            return StreamingResponse(
-                safety_error_generator(),
-                media_type="text/event-stream",
-                headers={
-                    "Cache-Control": "no-cache",
-                    "Connection": "keep-alive",
-                }
-            )
+            from app.utils.sse_utils import sse_error_response
+            return sse_error_response(f"Prompt invalide: {safety_reason}")
         prompt = sanitize_user_prompt(prompt_raw)
         
         # Normaliser et valider les paramètres de manière centralisée
@@ -695,17 +674,8 @@ async def generate_ai_exercise_stream(request):
         
         # Vérifier que la clé OpenAI est configurée
         if not settings.OPENAI_API_KEY:
-            async def error_generator():
-                yield f"data: {json.dumps({'type': 'error', 'message': 'OpenAI API key non configurée'})}\n\n"
-            
-            return StreamingResponse(
-                error_generator(),
-                media_type="text/event-stream",
-                headers={
-                    "Cache-Control": "no-cache",
-                    "Connection": "keep-alive",
-                }
-            )
+            from app.utils.sse_utils import sse_error_response
+            return sse_error_response("OpenAI API key non configurée")
         
         async def generate():
             try:
@@ -820,17 +790,10 @@ Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respe
                         # Ne plus envoyer les chunks JSON au client (masqué pour meilleure UX)
                 
                 # Parser la réponse JSON complète (o1 peut renvoyer du texte autour du JSON)
-                def _extract_json(text: str):
-                    try:
-                        return json.loads(text)
-                    except json.JSONDecodeError:
-                        start, end = text.find("{"), text.rfind("}")
-                        if start != -1 and end != -1 and end > start:
-                            return json.loads(text[start : end + 1])
-                        raise
-                
+                from app.utils.json_utils import extract_json_from_text
+
                 try:
-                    exercise_data = _extract_json(full_response)
+                    exercise_data = extract_json_from_text(full_response)
                     
                     # Normaliser les données pour correspondre au format attendu
                     # Utiliser les valeurs normalisées (déjà normalisées plus haut)
@@ -899,20 +862,10 @@ Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respe
         )
         
     except Exception as stream_error:
-        err_msg = str(stream_error)
         logger.error(f"Erreur dans generate_ai_exercise_stream: {stream_error}")
         logger.debug(traceback.format_exc())
-        async def error_generator():
-            yield f"data: {json.dumps({'type': 'error', 'message': err_msg})}\n\n"
-        
-        return StreamingResponse(
-            error_generator(),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-            }
-        )
+        from app.utils.sse_utils import sse_error_response
+        return sse_error_response(str(stream_error))
 
 
 @optional_auth

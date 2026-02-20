@@ -2,7 +2,71 @@
 Utilitaires pour le parsing JSON.
 """
 import json
+import re
 from typing import Any, List, Optional, Union
+
+
+def safe_parse_json(value: Optional[Union[str, dict, list]], default: Any = None) -> Any:
+    """
+    Parse JSON en gérant les cas None, string vide, ou JSON invalide.
+    Utilisé pour les champs DB (choices, visual_data, etc.).
+
+    Args:
+        value: Valeur à parser (string JSON, dict, list, ou None)
+        default: Valeur par défaut si parsing impossible (ex: [])
+
+    Returns:
+        Objet parsé ou default
+    """
+    if not value:
+        return default if default is not None else []
+    if isinstance(value, (dict, list)):
+        return value
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except (json.JSONDecodeError, ValueError, TypeError):
+            return default if default is not None else []
+    return default
+
+
+def extract_json_from_text(text: str) -> dict:
+    """
+    Extrait un objet JSON d'une réponse LLM pouvant contenir du texte avant/après.
+    Gère les réponses tronquées, les commentaires // ou /* */, les strings non fermées.
+
+    Raises:
+        json.JSONDecodeError: Si aucun JSON valide n'est trouvé
+    """
+    if not text or not text.strip():
+        raise json.JSONDecodeError("Réponse vide", text, 0)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    start = text.find("{")
+    if start == -1:
+        raise json.JSONDecodeError("Pas de JSON trouvé (pas de '{')", text, 0)
+    end = text.rfind("}")
+    json_str = text[start : end + 1] if end != -1 and end > start else text[start:]
+    try:
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        json_cleaned = re.sub(r"//.*?\n", "\n", json_str)
+        json_cleaned = re.sub(r"/\*.*?\*/", "", json_cleaned, flags=re.DOTALL)
+        try:
+            return json.loads(json_cleaned)
+        except json.JSONDecodeError:
+            open_braces = json_cleaned.count("{") - json_cleaned.count("}")
+            open_brackets = json_cleaned.count("[") - json_cleaned.count("]")
+            if json_cleaned.count('"') % 2 == 1:
+                json_cleaned += '..."'
+            last_colon = json_cleaned.rfind(":")
+            last_close = max(json_cleaned.rfind("}"), json_cleaned.rfind("]"), json_cleaned.rfind('"'))
+            if last_colon > last_close:
+                json_cleaned += '""'
+            json_cleaned += "]" * open_brackets + "}" * open_braces
+            return json.loads(json_cleaned)
 
 
 def make_json_serializable(obj: Any) -> Any:

@@ -135,6 +135,8 @@ Bannière affichée avec formulaire pour renvoyer l'email de vérification via `
 | Pages | `frontend/app/{login,register,verify-email,forgot-password,reset-password}/page.tsx` |
 | Backend handlers | `server/handlers/auth_handlers.py` |
 
+**Note Next.js (15/02)** : Les pages `reset-password` et `verify-email` utilisent `useSearchParams()` pour lire le token dans l'URL. Elles sont enveloppées dans un boundary `<Suspense>` afin de respecter les exigences de l'App Router (prerender).
+
 ---
 
 ## Erreurs courantes et debugging

@@ -37,8 +37,8 @@ Mathakine/
 │   ├── db/                 #   Base SQLAlchemy, adapter, queries
 │   ├── models/             #   Modeles SQLAlchemy (User, Exercise, Attempt, LogicChallenge, etc.)
 │   ├── schemas/            #   Schemas Pydantic (validation API)
-│   ├── services/           #   Logique metier (exercise_service, challenge_service, etc.)
-│   └── utils/              #   Utilitaires (rate_limiter, prompt_sanitizer, error_handler)
+│   ├── services/           #   Logique metier (exercise_service, challenge_service, challenge_ai_service, etc.)
+│   └── utils/              #   Utilitaires (sse_utils, json_utils, rate_limiter, prompt_sanitizer, error_handler)
 │
 ├── server/                 # Backend - Couche HTTP Starlette (ACTIF)
 │   ├── handlers/           #   Handlers HTTP (exercise, challenge, user, auth, chat, badge)
@@ -190,11 +190,11 @@ Couche independante du framework HTTP :
 | GET | `/api/users/me/challenges/progress` | user_handlers | ✨ Progression defis |
 | GET | `/api/users/me/sessions` | user_handlers | ✨ Sessions actives (RGPD) |
 | DELETE | `/api/users/me/sessions/{id}` | user_handlers | ✨ Revoquer session |
-| GET | `/api/exercises` | exercise_handlers | Liste exercices (filtres, pagination) |
+| GET | `/api/exercises` | exercise_handlers | Liste exercices (filtres, pagination, `order=random`, `hide_completed`) |
 | GET | `/api/exercises/stats` | exercise_handlers | ✨ Statistiques Académie (thème gamifié) |
 | GET | `/api/exercises/{id}` | exercise_handlers | Detail exercice |
 | POST | `/api/exercises/{id}/attempt` | exercise_handlers | Soumettre reponse |
-| GET | `/api/challenges` | challenge_handlers | Liste defis logiques |
+| GET | `/api/challenges` | challenge_handlers | Liste défis (filtres, `order=random`, `hide_completed`) |
 | GET | `/api/challenges/{id}` | challenge_handlers | Detail defi |
 | POST | `/api/challenges/{id}/attempt` | challenge_handlers | Tenter defi |
 | GET | `/api/challenges/{id}/hint` | challenge_handlers | Demander indice |

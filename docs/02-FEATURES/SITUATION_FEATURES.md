@@ -1,6 +1,6 @@
 # Point de situation — Fonctionnalités Mathakine
 
-> **Date** : 18/02/2026  
+> **Date** : 19/02/2026  
 > **Objectif** : État des lieux des fonctionnalités, ce qui est documenté, ce qui manque, et priorisation des implémentations
 
 ---
@@ -84,6 +84,17 @@ Les éléments suivants ont été implémentés et sont désormais documentés i
 **Badges enrichis 17/02** : add_badges_psycho (12) + add_badges_recommandations (guardian_150, marathon, comeback). 32 badges, vigilance 35–40.
 **Paufinage 18/02** : Fix N+1 sur `/api/challenges/badges/progress` (stats_cache étendu). Filtre « Proches » uniquement sur onglet À débloquer.
 
+### 2.6 Exercices & Défis — Ordre aléatoire + Masquer les réussis (19/02)
+
+| Élément | Implémentation | Page |
+|--------|----------------|------|
+| **Ordre aléatoire** | `order=random` par défaut sur `/api/exercises` et `/api/challenges` | `/exercises`, `/challenges` |
+| **Masquer les réussis** | Param `hide_completed` + Switch dans les filtres | `/exercises`, `/challenges` |
+| **Backend** | `func.random()` PostgreSQL, exclusion des IDs complétés (attempts / logic_challenge_attempts) | — |
+| **usePaginatedContent** | `order`, `hide_completed` dans `paramKeys` | `useExercises`, `useChallenges` |
+
+**Contexte pédagogique** : Ordre aléatoire pour varier l'entraînement ; option « Masquer les réussis » pour se concentrer sur le contenu non maîtrisé.
+
 ---
 
 ## 3. État par domaine
@@ -125,6 +136,14 @@ Les éléments suivants ont été implémentés et sont désormais documentés i
 |----------------|---------|----------|-----|
 | Mode maintenance | ✅ | ✅ (overlay) | SITUATION (ici) |
 | Inscriptions (on/off) | ✅ | — | SITUATION (ici) |
+
+### Exercices & Défis
+| Fonctionnalité | Backend | Frontend | Doc |
+|----------------|---------|----------|-----|
+| Liste paginée (type, âge, recherche) | ✅ | ✅ | API_QUICK_REFERENCE |
+| **Ordre aléatoire** | ✅ | ✅ | SITUATION § 2.6 |
+| **Masquer les réussis** | ✅ | ✅ (Switch) | SITUATION § 2.6 |
+| Génération IA | ✅ | ✅ | ANALYSE_GENERATION_IA_CHALLENGES |
 
 ---
 

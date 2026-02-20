@@ -11,7 +11,7 @@
 ```
 Frontend (AIGenerator) 
   → GET /api/challenges/generate-ai-stream?challenge_type=X&age_group=Y
-  → Backend (challenge_handlers.generate_ai_challenge_stream)
+  → Backend (challenge_handlers → challenge_ai_service.generate_challenge_stream)
   → OpenAI API (stream, response_format: json_object)
   → Collecte full_response (pas de streaming des chunks au client)
   → Parse JSON (avec fallbacks: extraction {…}, nettoyage commentaires, complétion)
@@ -30,7 +30,7 @@ Frontend (AIGenerator)
 | Fichier | Problème |
 |---------|----------|
 | ~~`challenge_handlers.py` L1194~~ | ~~`normalized_challenge["challenge_type"] = challenge_type.upper()`~~ |
-| `challenge_handlers.py` L1556 | ✅ `normalized_challenge["challenge_type"] = challenge_type` (minuscules, L874) |
+| `challenge_ai_service.py` | ✅ `normalized_challenge["challenge_type"] = challenge_type` (minuscules, extraction 18/02) |
 
 ---
 
@@ -131,7 +131,8 @@ Pas de streaming du texte généré → pas d’effet "typing" côté client.
 
 | Fichier | Rôle |
 |---------|------|
-| `server/handlers/challenge_handlers.py` | Génération, prompt, normalisation |
+| `server/handlers/challenge_handlers.py` | Parsing params, sécurité, délégation (handler ~60 lignes) |
+| `app/services/challenge_ai_service.py` | Génération IA streaming (prompts, OpenAI, validation, normalisation, DB) |
 | `app/services/challenge_validator.py` | Validation logique, auto-correction |
 | `app/services/challenge_service.py` | CRUD, mapping age_group |
 | `frontend/components/challenges/visualizations/*.tsx` | Rendu par type |

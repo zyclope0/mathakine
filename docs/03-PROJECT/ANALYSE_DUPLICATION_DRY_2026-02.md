@@ -238,9 +238,11 @@ finally:
 | conftest.py | — | Fixtures de base |
 | test_auth_flow, test_sse_auth, test_challenges_flow… | 8+ fichiers | Non — helpers dupliqués (test_user_data, padawan_client, authenticated_user) |
 
-### 6.4 Utilitaires non dupliqués
+### 6.4 Utilitaires (mis à jour 18/02/2026)
 
-- `app/utils/json_utils.py` : pas de `safe_parse_json` — mention dans EVALUATION était peut-être obsolète ou ailleurs. Contient `parse_choices_json`, `make_json_serializable`.
+- `app/utils/json_utils.py` : `safe_parse_json()` et `extract_json_from_text()` — centralisés. Utilisés dans exercise_handlers, challenge_handlers.
+- `app/utils/sse_utils.py` : `sse_error_response()`, `sse_error_generator()`, `sse_status_message()`, `SSE_HEADERS` — DRY pour génération IA streaming (exercise, challenge handlers).
+- `app/services/challenge_ai_service.py` : Extraction de `generate_ai_challenge_stream` (~880 lignes) — handler challenge réduit à ~60 lignes.
 
 ---
 

@@ -98,7 +98,7 @@
 | **Tests** | 3.5/10 | Risque critique — couverture <20 % backend, <5 % frontend |
 | **Performance** | 4.5/10 | Monitoring inexistant (Sentry partiel) |
 | **Documentation technique** | 4/10 | README_TECH à jour, manque docs inline |
-| **Handlers longs** | — | `generate_ai_challenge_stream` ~774 lignes |
+| **Handlers longs** | ✅ Partiel | `generate_ai_challenge_stream` extrait dans `challenge_ai_service.py` (handler ~60 lignes) |
 
 ---
 
