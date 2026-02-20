@@ -1,0 +1,21 @@
+[run]
+source = app,server
+omit =
+    */tests/*
+    */migrations/*
+    */__pycache__/*
+    */venv/*
+    */.venv/*
+    */_ARCHIVE_*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+
+[xml]
+output = coverage.xml
+
+[html]
+directory = htmlcov

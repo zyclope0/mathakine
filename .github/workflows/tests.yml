@@ -111,8 +111,7 @@ jobs:
       run: |
         python -m pytest tests/ -v \
           --ignore=tests/archives/ \
-          --cov=app \
-          --cov=server \
+          --cov \
           --cov-report=xml \
           --cov-report=term-missing \
           --tb=short \
@@ -120,19 +119,19 @@ jobs:
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
         file: ./coverage.xml
         flags: backend
         name: codecov-mathakine-backend
         fail_ci_if_error: false
     
-    - name: Generate coverage report
+    - name: Coverage report
       if: always()
       run: |
-        echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        coverage report >> $GITHUB_STEP_SUMMARY || echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "## Backend Coverage" >> $GITHUB_STEP_SUMMARY
+        coverage report --format=markdown >> $GITHUB_STEP_SUMMARY 2>/dev/null || coverage report >> $GITHUB_STEP_SUMMARY || echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY
 
   lint:
     runs-on: ubuntu-latest
@@ -193,6 +192,8 @@ jobs:
     
     - name: Upload frontend coverage to Codecov
       uses: codecov/codecov-action@v5
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
         files: ./frontend/coverage/lcov.info
         flags: frontend

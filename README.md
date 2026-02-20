@@ -4,6 +4,7 @@
 
 [![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/zyclope0/mathakine)
 [![Statut](https://img.shields.io/badge/statut-production-brightgreen.svg)](https://github.com/zyclope0/mathakine)
+[![codecov](https://codecov.io/gh/zyclope0/mathakine/graph/badge.svg)](https://codecov.io/gh/zyclope0/mathakine)
 [![Licence](https://img.shields.io/badge/licence-MIT-green.svg)](LICENSE)
 
 ---

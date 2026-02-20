@@ -566,6 +566,10 @@ npm run test:e2e:ui
 
 Un echec de test bloque le merge. Les rapports de couverture sont envoyes a Codecov (backend + frontend separes).
 
+**Configuration couverture :**
+- `.coveragerc` — sources (app, server), exclusions (tests, migrations, etc.), rapport XML
+- **Codecov** : pour un badge et des rapports PR, ajouter `CODECOV_TOKEN` dans GitHub Secrets (Settings → Secrets → Actions). Repo public : optionnel. Repo privé : requis.
+
 ---
 
 ## ✅ BEST PRACTICES {#best-practices}
