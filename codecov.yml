@@ -1,0 +1,26 @@
+# Configuration Codecov - Mathakine
+# https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  range: 40..100
+  precision: 2
+  round: down
+  status:
+    project:
+      default:
+        target: 45%
+    patch:
+      default:
+        target: 40%
+
+comment:
+  layout: "reach,diff,flags,tree"
+
+flags:
+  backend:
+    paths:
+      - app/
+      - server/
+  frontend:
+    paths:
+      - frontend/
