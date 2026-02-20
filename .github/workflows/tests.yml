@@ -134,6 +134,7 @@ jobs:
         fail_ci_if_error: false
         verbose: true
         disable_search: true
+        plugins: noop
     
     - name: Coverage report
       if: always()
