@@ -15,7 +15,7 @@
 | `SECRET_KEY` | Signatures JWT | Généré par Render |
 | `FRONTEND_URL` | CORS + redirects | `https://mathakine.fun` |
 | `OPENAI_API_KEY` | Chat + génération IA | `sk-xxx` |
-| `DEFAULT_ADMIN_PASSWORD` | Compte admin — bloqué si faible en prod | Mot de passe fort (≠ "admin") |
+| `DEFAULT_ADMIN_PASSWORD` | Validation prod (bloqué si vide/faible). Admin créé via BDD si besoin. | Valeur forte ou placeholder |
 
 ### Monitoring (Sentry)
 
@@ -73,7 +73,7 @@
 
 ### Backend
 - [ ] `SECRET_KEY` générée (Render le fait si `generateValue: true`)
-- [ ] `DEFAULT_ADMIN_PASSWORD` définie (mot de passe fort, ≠ "admin")
+- [ ] `DEFAULT_ADMIN_PASSWORD` définie (obligatoire au démarrage prod, ≠ admin/password/123456)
 - [ ] `OPENAI_API_KEY` définie
 - [ ] `NEXT_PUBLIC_SENTRY_DSN` ou `SENTRY_DSN` définie
 - [ ] `FRONTEND_URL` = `https://mathakine.fun`

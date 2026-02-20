@@ -1,0 +1,17 @@
+﻿2026-02-20T22:11:10.3693836Z ##[group]Run echo "## Backend Coverage" >> $GITHUB_STEP_SUMMARY
+2026-02-20T22:11:10.3694290Z [36;1mecho "## Backend Coverage" >> $GITHUB_STEP_SUMMARY[0m
+2026-02-20T22:11:10.3695045Z [36;1mcoverage report --format=markdown >> $GITHUB_STEP_SUMMARY 2>/dev/null || coverage report >> $GITHUB_STEP_SUMMARY || echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY[0m
+2026-02-20T22:11:10.3727227Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:11:10.3727596Z env:
+2026-02-20T22:11:10.3727862Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:10.3728287Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:10.3728704Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:10.3729301Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:10.3729678Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:10.3730033Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:10.3730361Z   CC_FORK: false
+2026-02-20T22:11:10.3730632Z   CC_TOKEN: ***
+2026-02-20T22:11:10.3730808Z   CC_BRANCH: 
+2026-02-20T22:11:10.3730973Z   CC_SHA: 
+2026-02-20T22:11:10.3731133Z   CC_PR: 
+2026-02-20T22:11:10.3731290Z ##[endgroup]

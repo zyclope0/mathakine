@@ -1,0 +1,775 @@
+﻿2026-02-20T22:09:17.8987092Z ##[group]Run isort app/ server/ --check-only --diff
+2026-02-20T22:09:17.8987272Z [36;1misort app/ server/ --check-only --diff[0m
+2026-02-20T22:09:17.9019585Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:09:17.9019667Z env:
+2026-02-20T22:09:17.9019829Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:17.9020014Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:09:17.9020158Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:17.9020322Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:17.9020453Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:17.9020604Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:09:17.9020673Z ##[endgroup]
+2026-02-20T22:09:18.0154895Z ERROR: /home/runner/work/mathakine/mathakine/app/models/recommendation.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.0172240Z ERROR: /home/runner/work/mathakine/mathakine/app/models/attempt.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.0232881Z ERROR: /home/runner/work/mathakine/mathakine/app/models/all_models.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.0278814Z ERROR: /home/runner/work/mathakine/mathakine/app/models/user.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.0389608Z ERROR: /home/runner/work/mathakine/mathakine/app/utils/csrf.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.0515717Z ERROR: /home/runner/work/mathakine/mathakine/app/utils/sse_utils.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.0535707Z ERROR: /home/runner/work/mathakine/mathakine/app/utils/email_templates.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.0684766Z ERROR: /home/runner/work/mathakine/mathakine/app/services/challenge_service.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.0781841Z ERROR: /home/runner/work/mathakine/mathakine/app/services/email_service.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.0870579Z ERROR: /home/runner/work/mathakine/mathakine/app/services/recommendation_service.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.1017204Z ERROR: /home/runner/work/mathakine/mathakine/app/services/badge_service.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.1237797Z ERROR: /home/runner/work/mathakine/mathakine/app/services/challenge_ai_service.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.1612686Z ERROR: /home/runner/work/mathakine/mathakine/app/core/monitoring.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.1630627Z --- /home/runner/work/mathakine/mathakine/app/models/recommendation.py:before	2026-02-20 22:09:02.809965
+2026-02-20T22:09:18.1632149Z +++ /home/runner/work/mathakine/mathakine/app/models/recommendation.py:after	2026-02-20 22:09:18.016020
+2026-02-20T22:09:18.1632749Z @@ -1,5 +1,5 @@
+2026-02-20T22:09:18.1633310Z -from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Index, Integer, String,
+2026-02-20T22:09:18.1633845Z -                        Text)
+2026-02-20T22:09:18.1634279Z +from sqlalchemy import (Boolean, Column, DateTime, ForeignKey, Index, Integer,
+2026-02-20T22:09:18.1634765Z +                        String, Text)
+2026-02-20T22:09:18.1635085Z  from sqlalchemy.orm import relationship
+2026-02-20T22:09:18.1635427Z  from sqlalchemy.sql import func
+2026-02-20T22:09:18.1635701Z  
+2026-02-20T22:09:18.1636152Z --- /home/runner/work/mathakine/mathakine/app/models/attempt.py:before	2026-02-20 22:09:02.809965
+2026-02-20T22:09:18.1636947Z +++ /home/runner/work/mathakine/mathakine/app/models/attempt.py:after	2026-02-20 22:09:18.017728
+2026-02-20T22:09:18.1637536Z @@ -1,5 +1,5 @@
+2026-02-20T22:09:18.1637947Z -from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Index, Integer,
+2026-02-20T22:09:18.1638459Z -                        String)
+2026-02-20T22:09:18.1639188Z +from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Index,
+2026-02-20T22:09:18.1639674Z +                        Integer, String)
+2026-02-20T22:09:18.1639994Z  from sqlalchemy.orm import relationship
+2026-02-20T22:09:18.1640323Z  from sqlalchemy.sql import func
+2026-02-20T22:09:18.1640592Z  
+2026-02-20T22:09:18.1641040Z --- /home/runner/work/mathakine/mathakine/app/models/all_models.py:before	2026-02-20 22:09:02.809965
+2026-02-20T22:09:18.1641868Z +++ /home/runner/work/mathakine/mathakine/app/models/all_models.py:after	2026-02-20 22:09:18.023915
+2026-02-20T22:09:18.1642421Z @@ -3,8 +3,8 @@
+2026-02-20T22:09:18.1643102Z  À importer pour réaliser les opérations de base de données.
+2026-02-20T22:09:18.1643499Z  """
+2026-02-20T22:09:18.1643683Z  
+2026-02-20T22:09:18.1643996Z +from app.models.achievement import Achievement, UserAchievement
+2026-02-20T22:09:18.1644495Z  from app.models.admin_audit_log import AdminAuditLog
+2026-02-20T22:09:18.1644993Z -from app.models.achievement import Achievement, UserAchievement
+2026-02-20T22:09:18.1645454Z  from app.models.attempt import Attempt
+2026-02-20T22:09:18.1645921Z  from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+2026-02-20T22:09:18.1646495Z  from app.models.logic_challenge import (AgeGroup, LogicChallenge,
+2026-02-20T22:09:18.1647160Z --- /home/runner/work/mathakine/mathakine/app/models/user.py:before	2026-02-20 22:09:02.809965
+2026-02-20T22:09:18.1647932Z +++ /home/runner/work/mathakine/mathakine/app/models/user.py:after	2026-02-20 22:09:18.028857
+2026-02-20T22:09:18.1648470Z @@ -5,7 +5,8 @@
+2026-02-20T22:09:18.1648718Z  from datetime import datetime, timezone
+2026-02-20T22:09:18.1649046Z  from enum import Enum as PyEnum
+2026-02-20T22:09:18.1649321Z  
+2026-02-20T22:09:18.1649735Z -from sqlalchemy import Boolean, Column, Date, DateTime, Enum, Index, Integer, String, Text
+2026-02-20T22:09:18.1650442Z +from sqlalchemy import (Boolean, Column, Date, DateTime, Enum, Index, Integer,
+2026-02-20T22:09:18.1650923Z +                        String, Text)
+2026-02-20T22:09:18.1651284Z  from sqlalchemy.dialects.postgresql import JSONB
+2026-02-20T22:09:18.1651677Z  from sqlalchemy.orm import relationship
+2026-02-20T22:09:18.1652007Z  from sqlalchemy.sql import func
+2026-02-20T22:09:18.1652526Z --- /home/runner/work/mathakine/mathakine/app/utils/csrf.py:before	2026-02-20 22:09:02.811965
+2026-02-20T22:09:18.1653513Z +++ /home/runner/work/mathakine/mathakine/app/utils/csrf.py:after	2026-02-20 22:09:18.039440
+2026-02-20T22:09:18.1654076Z @@ -8,9 +8,10 @@
+2026-02-20T22:09:18.1654240Z  import os
+2026-02-20T22:09:18.1654398Z  import secrets
+2026-02-20T22:09:18.1654550Z  
+2026-02-20T22:09:18.1654734Z -from app.core.logging_config import get_logger
+2026-02-20T22:09:18.1655015Z  from starlette.requests import Request
+2026-02-20T22:09:18.1655302Z  from starlette.responses import JSONResponse
+2026-02-20T22:09:18.1655552Z +
+2026-02-20T22:09:18.1655734Z +from app.core.logging_config import get_logger
+2026-02-20T22:09:18.1655981Z  
+2026-02-20T22:09:18.1656136Z  logger = get_logger(__name__)
+2026-02-20T22:09:18.1656332Z  
+2026-02-20T22:09:18.1656660Z --- /home/runner/work/mathakine/mathakine/app/utils/sse_utils.py:before	2026-02-20 22:09:02.812965
+2026-02-20T22:09:18.1657263Z +++ /home/runner/work/mathakine/mathakine/app/utils/sse_utils.py:after	2026-02-20 22:09:18.051889
+2026-02-20T22:09:18.1657667Z @@ -5,7 +5,6 @@
+2026-02-20T22:09:18.1657843Z  from typing import AsyncGenerator
+2026-02-20T22:09:18.1658064Z  
+2026-02-20T22:09:18.1658255Z  from starlette.responses import StreamingResponse
+2026-02-20T22:09:18.1658518Z -
+2026-02-20T22:09:18.1658653Z  
+2026-02-20T22:09:18.1658793Z  SSE_HEADERS = {
+2026-02-20T22:09:18.1658968Z      "Cache-Control": "no-cache",
+2026-02-20T22:09:18.1659402Z --- /home/runner/work/mathakine/mathakine/app/utils/email_templates.py:before	2026-02-20 22:09:02.811965
+2026-02-20T22:09:18.1660044Z +++ /home/runner/work/mathakine/mathakine/app/utils/email_templates.py:after	2026-02-20 22:09:18.054646
+2026-02-20T22:09:18.1660474Z @@ -3,7 +3,6 @@
+2026-02-20T22:09:18.1660971Z  Design unifié, ergonomique et accessible pour tous les clients email.
+2026-02-20T22:09:18.1661287Z  """
+2026-02-20T22:09:18.1661455Z  from typing import Optional
+2026-02-20T22:09:18.1661647Z -
+2026-02-20T22:09:18.1661786Z  
+2026-02-20T22:09:18.1662038Z  # Couleurs du thème Jedi/Space (compatible clients email)
+2026-02-20T22:09:18.1662322Z  THEME = {
+2026-02-20T22:09:18.1662708Z --- /home/runner/work/mathakine/mathakine/app/services/challenge_service.py:before	2026-02-20 22:09:02.810965
+2026-02-20T22:09:18.1663527Z +++ /home/runner/work/mathakine/mathakine/app/services/challenge_service.py:after	2026-02-20 22:09:18.070643
+2026-02-20T22:09:18.1663977Z @@ -12,13 +12,12 @@
+2026-02-20T22:09:18.1664184Z  from app.core.logging_config import get_logger
+2026-02-20T22:09:18.1664433Z  
+2026-02-20T22:09:18.1664581Z  logger = get_logger(__name__)
+2026-02-20T22:09:18.1664816Z -from sqlalchemy import and_, or_, func, case
+2026-02-20T22:09:18.1665082Z +from sqlalchemy import and_, case, func, or_
+2026-02-20T22:09:18.1665348Z  from sqlalchemy.orm import Session
+2026-02-20T22:09:18.1665558Z  
+2026-02-20T22:09:18.1665796Z  from app.models.logic_challenge import (AgeGroup, LogicChallenge,
+2026-02-20T22:09:18.1666156Z                                          LogicChallengeAttempt,
+2026-02-20T22:09:18.1666447Z                                          LogicChallengeType)
+2026-02-20T22:09:18.1666691Z -
+2026-02-20T22:09:18.1666820Z  
+2026-02-20T22:09:18.1667002Z  # ============================================================================
+2026-02-20T22:09:18.1667365Z  # MAPPING DES GROUPES D'ÂGE (après migration ENUM)
+2026-02-20T22:09:18.1667851Z --- /home/runner/work/mathakine/mathakine/app/services/email_service.py:before	2026-02-20 22:09:02.811965
+2026-02-20T22:09:18.1668494Z +++ /home/runner/work/mathakine/mathakine/app/services/email_service.py:after	2026-02-20 22:09:18.080400
+2026-02-20T22:09:18.1668926Z @@ -13,24 +13,16 @@
+2026-02-20T22:09:18.1669106Z  logger = get_logger(__name__)
+2026-02-20T22:09:18.1669301Z  
+2026-02-20T22:09:18.1669469Z  from app.core.config import settings
+2026-02-20T22:09:18.1669719Z -from app.utils.email_templates import (
+2026-02-20T22:09:18.1669975Z -    password_reset_email_html,
+2026-02-20T22:09:18.1670190Z -    password_reset_email_text,
+2026-02-20T22:09:18.1670405Z -    verification_email_html,
+2026-02-20T22:09:18.1670616Z -    verification_email_text,
+2026-02-20T22:09:18.1670809Z -)
+2026-02-20T22:09:18.1671053Z +from app.utils.email_templates import (password_reset_email_html,
+2026-02-20T22:09:18.1671532Z +                                       password_reset_email_text,
+2026-02-20T22:09:18.1671825Z +                                       verification_email_html,
+2026-02-20T22:09:18.1672109Z +                                       verification_email_text)
+2026-02-20T22:09:18.1672355Z  
+2026-02-20T22:09:18.1672543Z  # Optionnel : Support SendGrid si API key disponible
+2026-02-20T22:09:18.1672806Z  try:
+2026-02-20T22:09:18.1673058Z      import sendgrid
+2026-02-20T22:09:18.1673273Z -    from sendgrid.helpers.mail import (
+2026-02-20T22:09:18.1673520Z -        Content,
+2026-02-20T22:09:18.1673678Z -        Email,
+2026-02-20T22:09:18.1673837Z -        Mail,
+2026-02-20T22:09:18.1673985Z -        To,
+2026-02-20T22:09:18.1674152Z -        TrackingSettings,
+2026-02-20T22:09:18.1674346Z -        ClickTracking,
+2026-02-20T22:09:18.1674523Z -    )
+2026-02-20T22:09:18.1674802Z +    from sendgrid.helpers.mail import (ClickTracking, Content, Email, Mail, To,
+2026-02-20T22:09:18.1675197Z +                                       TrackingSettings)
+2026-02-20T22:09:18.1675452Z      SENDGRID_AVAILABLE = True
+2026-02-20T22:09:18.1675665Z  except ImportError:
+2026-02-20T22:09:18.1675859Z      SENDGRID_AVAILABLE = False
+2026-02-20T22:09:18.1676320Z --- /home/runner/work/mathakine/mathakine/app/services/recommendation_service.py:before	2026-02-20 22:09:02.811965
+2026-02-20T22:09:18.1677074Z +++ /home/runner/work/mathakine/mathakine/app/services/recommendation_service.py:after	2026-02-20 22:09:18.089415
+2026-02-20T22:09:18.1677676Z @@ -1,11 +1,10 @@
+2026-02-20T22:09:18.1677848Z  import random
+2026-02-20T22:09:18.1678000Z -
+2026-02-20T22:09:18.1678193Z -from app.core.logging_config import get_logger
+2026-02-20T22:09:18.1678505Z  from datetime import datetime, timedelta, timezone
+2026-02-20T22:09:18.1678759Z  
+2026-02-20T22:09:18.1678931Z  from sqlalchemy import and_, exists, or_
+2026-02-20T22:09:18.1679184Z  from sqlalchemy.sql import func
+2026-02-20T22:09:18.1679394Z  
+2026-02-20T22:09:18.1679569Z +from app.core.logging_config import get_logger
+2026-02-20T22:09:18.1679848Z  from app.models.attempt import Attempt
+2026-02-20T22:09:18.1680191Z  from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+2026-02-20T22:09:18.1680660Z  from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+2026-02-20T22:09:18.1681237Z --- /home/runner/work/mathakine/mathakine/app/services/badge_service.py:before	2026-02-20 22:09:02.810965
+2026-02-20T22:09:18.1681886Z +++ /home/runner/work/mathakine/mathakine/app/services/badge_service.py:after	2026-02-20 22:09:18.106336
+2026-02-20T22:09:18.1682329Z @@ -17,7 +17,8 @@
+2026-02-20T22:09:18.1682516Z  from app.models.attempt import Attempt
+2026-02-20T22:09:18.1682779Z  from app.models.progress import Progress
+2026-02-20T22:09:18.1683145Z  from app.models.user import User
+2026-02-20T22:09:18.1683562Z -from app.services.badge_requirement_engine import check_requirements, get_requirement_progress
+2026-02-20T22:09:18.1684106Z +from app.services.badge_requirement_engine import (check_requirements,
+2026-02-20T22:09:18.1684481Z +                                                   get_requirement_progress)
+2026-02-20T22:09:18.1684753Z  
+2026-02-20T22:09:18.1684905Z  logger = get_logger(__name__)
+2026-02-20T22:09:18.1685104Z  
+2026-02-20T22:09:18.1685482Z --- /home/runner/work/mathakine/mathakine/app/services/challenge_ai_service.py:before	2026-02-20 22:09:02.810965
+2026-02-20T22:09:18.1686187Z +++ /home/runner/work/mathakine/mathakine/app/services/challenge_ai_service.py:after	2026-02-20 22:09:18.131211
+2026-02-20T22:09:18.1686646Z @@ -8,23 +8,17 @@
+2026-02-20T22:09:18.1686864Z  from typing import Any, AsyncGenerator, Dict, Optional
+2026-02-20T22:09:18.1687134Z  
+2026-02-20T22:09:18.1687388Z  from openai import APIError, APITimeoutError, AsyncOpenAI, RateLimitError
+2026-02-20T22:09:18.1687740Z -from tenacity import (
+2026-02-20T22:09:18.1687915Z -    retry,
+2026-02-20T22:09:18.1688082Z -    retry_if_exception_type,
+2026-02-20T22:09:18.1688414Z -    stop_after_attempt,
+2026-02-20T22:09:18.1688611Z -    wait_exponential,
+2026-02-20T22:09:18.1688779Z -)
+2026-02-20T22:09:18.1689040Z +from tenacity import (retry, retry_if_exception_type, stop_after_attempt,
+2026-02-20T22:09:18.1689388Z +                      wait_exponential)
+2026-02-20T22:09:18.1689600Z  
+2026-02-20T22:09:18.1689766Z  from app.core.ai_config import AIConfig
+2026-02-20T22:09:18.1690012Z  from app.core.config import settings
+2026-02-20T22:09:18.1690334Z  from app.core.constants import calculate_difficulty_for_age_group
+2026-02-20T22:09:18.1690686Z  from app.core.logging_config import get_logger
+2026-02-20T22:09:18.1690969Z  from app.services import challenge_service
+2026-02-20T22:09:18.1691249Z -from app.services.challenge_validator import (
+2026-02-20T22:09:18.1691518Z -    auto_correct_challenge,
+2026-02-20T22:09:18.1691732Z -    validate_challenge_logic,
+2026-02-20T22:09:18.1691924Z -)
+2026-02-20T22:09:18.1692194Z  from app.services.challenge_service import normalize_age_group_for_frontend
+2026-02-20T22:09:18.1692650Z +from app.services.challenge_validator import (auto_correct_challenge,
+2026-02-20T22:09:18.1693211Z +                                              validate_challenge_logic)
+2026-02-20T22:09:18.1693525Z  from app.utils.db_utils import db_session
+2026-02-20T22:09:18.1693836Z  from app.utils.generation_metrics import generation_metrics
+2026-02-20T22:09:18.1694187Z  from app.utils.json_utils import extract_json_from_text
+2026-02-20T22:09:18.1694655Z --- /home/runner/work/mathakine/mathakine/app/core/monitoring.py:before	2026-02-20 22:09:02.808965
+2026-02-20T22:09:18.1914239Z ERROR: /home/runner/work/mathakine/mathakine/server/exercise_generator.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.2138789Z ERROR: /home/runner/work/mathakine/mathakine/server/database.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.2243398Z ERROR: /home/runner/work/mathakine/mathakine/server/app.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.2335203Z ERROR: /home/runner/work/mathakine/mathakine/server/routes.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.2373368Z +++ /home/runner/work/mathakine/mathakine/app/core/monitoring.py:after	2026-02-20 22:09:18.162676
+2026-02-20T22:09:18.2374420Z @@ -17,13 +17,8 @@
+2026-02-20T22:09:18.2375305Z  # Prometheus (optionnel, évite import si désactivé)
+2026-02-20T22:09:18.2375861Z  _prometheus_available = False
+2026-02-20T22:09:18.2376227Z  try:
+2026-02-20T22:09:18.2376527Z -    from prometheus_client import (
+2026-02-20T22:09:18.2376973Z -        CONTENT_TYPE_LATEST,
+2026-02-20T22:09:18.2377338Z -        Counter,
+2026-02-20T22:09:18.2377648Z -        Histogram,
+2026-02-20T22:09:18.2377928Z -        REGISTRY,
+2026-02-20T22:09:18.2378202Z -        generate_latest,
+2026-02-20T22:09:18.2378491Z -    )
+2026-02-20T22:09:18.2378980Z +    from prometheus_client import (CONTENT_TYPE_LATEST, REGISTRY, Counter,
+2026-02-20T22:09:18.2379652Z +                                   Histogram, generate_latest)
+2026-02-20T22:09:18.2380162Z      _prometheus_available = True
+2026-02-20T22:09:18.2380570Z  except ImportError:
+2026-02-20T22:09:18.2380898Z      pass
+2026-02-20T22:09:18.2381588Z --- /home/runner/work/mathakine/mathakine/server/exercise_generator.py:before	2026-02-20 22:09:02.837965
+2026-02-20T22:09:18.2382812Z +++ /home/runner/work/mathakine/mathakine/server/exercise_generator.py:after	2026-02-20 22:09:18.204943
+2026-02-20T22:09:18.2383821Z @@ -6,8 +6,10 @@
+2026-02-20T22:09:18.2384128Z  import random
+2026-02-20T22:09:18.2384489Z  from typing import Any, Dict, List, Optional
+2026-02-20T22:09:18.2385064Z  
+2026-02-20T22:09:18.2385707Z +from app.core.constants import (DIFFICULTY_LIMITS, AgeGroups, DifficultyLevels,
+2026-02-20T22:09:18.2386599Z +                                ExerciseTypes, Messages, Tags,
+2026-02-20T22:09:18.2387457Z +                                normalize_age_group)
+2026-02-20T22:09:18.2388089Z  from app.core.logging_config import get_logger
+2026-02-20T22:09:18.2389653Z -from app.core.constants import (DIFFICULTY_LIMITS, DifficultyLevels, ExerciseTypes, Messages, Tags, AgeGroups, normalize_age_group)
+2026-02-20T22:09:18.2390892Z  
+2026-02-20T22:09:18.2391325Z  logger = get_logger(__name__)
+2026-02-20T22:09:18.2391984Z  from app.core.messages import ExerciseMessages, StarWarsNarratives
+2026-02-20T22:09:18.2392791Z @@ -74,7 +76,7 @@
+2026-02-20T22:09:18.2393951Z      Normalise et valide les paramètres d'exercice (type et groupe d'âge).
+2026-02-20T22:09:18.2395114Z      Retourne le type, le groupe d'âge, et la difficulté dérivée.
+2026-02-20T22:09:18.2395911Z      """
+2026-02-20T22:09:18.2396412Z -    from app.core.constants import ExerciseTypes, AgeGroups
+2026-02-20T22:09:18.2397218Z +    from app.core.constants import AgeGroups, ExerciseTypes
+2026-02-20T22:09:18.2397871Z  
+2026-02-20T22:09:18.2398397Z      # Normaliser les paramètres
+2026-02-20T22:09:18.2399097Z      exercise_type = normalize_exercise_type(exercise_type_raw)
+2026-02-20T22:09:18.2400146Z --- /home/runner/work/mathakine/mathakine/server/database.py:before	2026-02-20 22:09:02.836965
+2026-02-20T22:09:18.2401390Z +++ /home/runner/work/mathakine/mathakine/server/database.py:after	2026-02-20 22:09:18.214976
+2026-02-20T22:09:18.2402192Z @@ -10,6 +10,7 @@
+2026-02-20T22:09:18.2402654Z  
+2026-02-20T22:09:18.2403206Z  import psycopg2
+2026-02-20T22:09:18.2403755Z  from dotenv import load_dotenv
+2026-02-20T22:09:18.2404331Z +
+2026-02-20T22:09:18.2404794Z  from app.core.logging_config import get_logger
+2026-02-20T22:09:18.2405408Z  
+2026-02-20T22:09:18.2406005Z  logger = get_logger(__name__)
+2026-02-20T22:09:18.2406941Z --- /home/runner/work/mathakine/mathakine/server/app.py:before	2026-02-20 22:09:02.836965
+2026-02-20T22:09:18.2408099Z +++ /home/runner/work/mathakine/mathakine/server/app.py:after	2026-02-20 22:09:18.225060
+2026-02-20T22:09:18.2408906Z @@ -7,6 +7,7 @@
+2026-02-20T22:09:18.2409459Z  import os
+2026-02-20T22:09:18.2409849Z  
+2026-02-20T22:09:18.2410197Z  import uvicorn
+2026-02-20T22:09:18.2410652Z +
+2026-02-20T22:09:18.2411144Z  from app.core.logging_config import get_logger
+2026-02-20T22:09:18.2411841Z  from app.core.monitoring import init_monitoring
+2026-02-20T22:09:18.2412587Z  
+2026-02-20T22:09:18.2413548Z --- /home/runner/work/mathakine/mathakine/server/routes.py:before	2026-02-20 22:09:02.838965
+2026-02-20T22:09:18.2414845Z +++ /home/runner/work/mathakine/mathakine/server/routes.py:after	2026-02-20 22:09:18.236785
+2026-02-20T22:09:18.2415912Z @@ -10,63 +10,54 @@
+2026-02-20T22:09:18.2416480Z  from starlette.routing import Mount, Route
+2026-02-20T22:09:18.2417162Z  
+2026-02-20T22:09:18.2417689Z  # Imports API handlers - Admin
+2026-02-20T22:09:18.2418451Z -from server.handlers.admin_handlers import (
+2026-02-20T22:09:18.2419153Z -    admin_badge_get,
+2026-02-20T22:09:18.2419838Z -    admin_badges,
+2026-02-20T22:09:18.2420399Z -    admin_badges_delete,
+2026-02-20T22:09:18.2420983Z -    admin_badges_post,
+2026-02-20T22:09:18.2421566Z -    admin_badges_put,
+2026-02-20T22:09:18.2422071Z -    admin_challenge_get,
+2026-02-20T22:09:18.2422591Z -    admin_challenges,
+2026-02-20T22:09:18.2423244Z -    admin_challenges_duplicate,
+2026-02-20T22:09:18.2424015Z -    admin_challenges_patch,
+2026-02-20T22:09:18.2424521Z -    admin_challenges_post,
+2026-02-20T22:09:18.2425045Z -    admin_challenges_put,
+2026-02-20T22:09:18.2425666Z -    admin_exercise_get,
+2026-02-20T22:09:18.2426213Z -    admin_exercises,
+2026-02-20T22:09:18.2426723Z -    admin_exercises_duplicate,
+2026-02-20T22:09:18.2427429Z -    admin_exercises_patch,
+2026-02-20T22:09:18.2427988Z -    admin_exercises_post,
+2026-02-20T22:09:18.2428484Z -    admin_exercises_put,
+2026-02-20T22:09:18.2429150Z -    admin_audit_log,
+2026-02-20T22:09:18.2429620Z -    admin_config_get,
+2026-02-20T22:09:18.2430130Z -    admin_config_put,
+2026-02-20T22:09:18.2430646Z -    admin_export,
+2026-02-20T22:09:18.2431190Z -    admin_health,
+2026-02-20T22:09:18.2431611Z -    admin_moderation,
+2026-02-20T22:09:18.2432234Z -    admin_overview,
+2026-02-20T22:09:18.2433247Z -    admin_reports,
+2026-02-20T22:09:18.2433711Z -    admin_users,
+2026-02-20T22:09:18.2434348Z -    admin_users_patch,
+2026-02-20T22:09:18.2434943Z -    admin_users_resend_verification,
+2026-02-20T22:09:18.2435592Z -    admin_users_send_reset_password,
+2026-02-20T22:09:18.2436093Z -)
+2026-02-20T22:09:18.2436956Z +from server.handlers.admin_handlers import (admin_audit_log, admin_badge_get,
+2026-02-20T22:09:18.2437958Z +                                            admin_badges, admin_badges_delete,
+2026-02-20T22:09:18.2438701Z +                                            admin_badges_post,
+2026-02-20T22:09:18.2439547Z +                                            admin_badges_put,
+2026-02-20T22:09:18.2440182Z +                                            admin_challenge_get,
+2026-02-20T22:09:18.2440831Z +                                            admin_challenges,
+2026-02-20T22:09:18.2441608Z +                                            admin_challenges_duplicate,
+2026-02-20T22:09:18.2442321Z +                                            admin_challenges_patch,
+2026-02-20T22:09:18.2443273Z +                                            admin_challenges_post,
+2026-02-20T22:09:18.2444065Z +                                            admin_challenges_put,
+2026-02-20T22:09:18.2444797Z +                                            admin_config_get, admin_config_put,
+2026-02-20T22:09:18.2445478Z +                                            admin_exercise_get,
+2026-02-20T22:09:18.2446264Z +                                            admin_exercises,
+2026-02-20T22:09:18.2447262Z +                                            admin_exercises_duplicate,
+2026-02-20T22:09:18.2448037Z +                                            admin_exercises_patch,
+2026-02-20T22:09:18.2448882Z +                                            admin_exercises_post,
+2026-02-20T22:09:18.2449566Z +                                            admin_exercises_put, admin_export,
+2026-02-20T22:09:18.2450343Z +                                            admin_health, admin_moderation,
+2026-02-20T22:09:18.2451200Z +                                            admin_overview, admin_reports,
+2026-02-20T22:09:18.2451898Z +                                            admin_users, admin_users_patch,
+2026-02-20T22:09:18.2452786Z +                                            admin_users_resend_verification,
+2026-02-20T22:09:18.2453778Z +                                            admin_users_send_reset_password)
+2026-02-20T22:09:18.2454573Z  # Imports API handlers - Auth
+2026-02-20T22:09:18.2455341Z -from server.handlers.auth_handlers import (api_get_current_user, api_login,
+2026-02-20T22:09:18.2456417Z -                                           api_refresh_token, api_validate_token,
+2026-02-20T22:09:18.2457367Z +from server.handlers.auth_handlers import (api_forgot_password,
+2026-02-20T22:09:18.2458265Z                                             api_get_csrf_token,
+2026-02-20T22:09:18.2459138Z -                                           api_logout, api_forgot_password,
+2026-02-20T22:09:18.2459914Z +                                           api_get_current_user, api_login,
+2026-02-20T22:09:18.2460662Z +                                           api_logout, api_refresh_token,
+2026-02-20T22:09:18.2461468Z                                             api_reset_password,
+2026-02-20T22:09:18.2462142Z +                                           api_validate_token,
+2026-02-20T22:09:18.2462927Z                                             resend_verification_email,
+2026-02-20T22:09:18.2463778Z                                             verify_email)
+2026-02-20T22:09:18.2464686Z  # Imports API handlers - Badges
+2026-02-20T22:09:18.2465363Z  from server.handlers.badge_handlers import (check_user_badges,
+2026-02-20T22:09:18.2466166Z                                              get_available_badges,
+2026-02-20T22:09:18.2466997Z -                                            get_badges_rarity,
+2026-02-20T22:09:18.2467659Z -                                            get_user_badges,
+2026-02-20T22:09:18.2468259Z +                                            get_badges_rarity, get_user_badges,
+2026-02-20T22:09:18.2468751Z +                                            get_user_badges_progress,
+2026-02-20T22:09:18.2469166Z                                              get_user_gamification_stats,
+2026-02-20T22:09:18.2469557Z -                                            get_user_badges_progress,
+2026-02-20T22:09:18.2470027Z                                              patch_pinned_badges)
+2026-02-20T22:09:18.2470411Z  # Imports API handlers - Challenges
+2026-02-20T22:09:18.2470848Z  from server.handlers.challenge_handlers import (generate_ai_challenge_stream,
+2026-02-20T22:09:18.2471404Z                                                  get_challenge,
+2026-02-20T22:09:18.2471763Z                                                  get_challenge_hint,
+2026-02-20T22:09:18.2472166Z +                                                get_challenge_progress,
+2026-02-20T22:09:18.2472650Z +                                                get_challenge_rewards,
+2026-02-20T22:09:18.2473302Z                                                  get_challenges_list,
+2026-02-20T22:09:18.2473746Z                                                  get_completed_challenges_ids,
+2026-02-20T22:09:18.2474184Z -                                                submit_challenge_answer,
+2026-02-20T22:09:18.2474620Z                                                  start_challenge,
+2026-02-20T22:09:18.2475013Z -                                                get_challenge_progress,
+2026-02-20T22:09:18.2475613Z -                                                get_challenge_rewards)
+2026-02-20T22:09:18.2476035Z +                                                submit_challenge_answer)
+2026-02-20T22:09:18.2476384Z  # Imports API handlers - Chat
+2026-02-20T22:09:18.2476834Z  from server.handlers.chat_handlers import chat_api, chat_api_stream
+2026-02-20T22:09:18.2477294Z  # Imports API handlers - Exercises
+2026-02-20T22:09:18.2477574Z @@ -74,27 +65,25 @@
+2026-02-20T22:09:18.2477955Z                                                 generate_exercise,
+2026-02-20T22:09:18.2478339Z                                                 generate_exercise_api,
+2026-02-20T22:09:18.2478755Z                                                 get_completed_exercises_ids,
+2026-02-20T22:09:18.2479133Z -                                               get_exercise, submit_answer,
+2026-02-20T22:09:18.2479610Z +                                               get_exercise,
+2026-02-20T22:09:18.2479996Z                                                 get_exercises_list,
+2026-02-20T22:09:18.2480381Z -                                               get_exercises_stats)
+2026-02-20T22:09:18.2480830Z +                                               get_exercises_stats,
+2026-02-20T22:09:18.2481170Z +                                               submit_answer)
+2026-02-20T22:09:18.2481530Z  # Imports API handlers - Recommendations
+2026-02-20T22:09:18.2527956Z ERROR: /home/runner/work/mathakine/mathakine/server/handlers/challenge_handlers.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.2733991Z ERROR: /home/runner/work/mathakine/mathakine/server/handlers/auth_handlers.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.2819884Z -from server.handlers.recommendation_handlers import (generate_recommendations,
+2026-02-20T22:09:18.2820955Z -                                                     get_recommendations,
+2026-02-20T22:09:18.2821698Z -                                                     handle_recommendation_complete)
+2026-02-20T22:09:18.2822334Z +from server.handlers.recommendation_handlers import (
+2026-02-20T22:09:18.2822843Z +    generate_recommendations, get_recommendations,
+2026-02-20T22:09:18.2823709Z +    handle_recommendation_complete)
+2026-02-20T22:09:18.2824130Z  # Imports API handlers - Users
+2026-02-20T22:09:18.2824672Z -from server.handlers.user_handlers import (create_user_account, get_all_users,
+2026-02-20T22:09:18.2825289Z -                                           get_user_stats,
+2026-02-20T22:09:18.2826071Z +from server.handlers.user_handlers import (create_user_account, delete_user,
+2026-02-20T22:09:18.2826674Z +                                           delete_user_me, export_user_data,
+2026-02-20T22:09:18.2827116Z +                                           get_all_user_progress,
+2026-02-20T22:09:18.2827461Z +                                           get_all_users,
+2026-02-20T22:09:18.2827808Z +                                           get_challenges_progress,
+2026-02-20T22:09:18.2828200Z +                                           get_user_progress_by_exercise_type,
+2026-02-20T22:09:18.2828645Z +                                           get_user_sessions, get_user_stats,
+2026-02-20T22:09:18.2829028Z                                             get_users_leaderboard,
+2026-02-20T22:09:18.2829386Z -                                           get_all_user_progress,
+2026-02-20T22:09:18.2829759Z -                                           get_user_progress_by_exercise_type,
+2026-02-20T22:09:18.2830160Z -                                           get_challenges_progress,
+2026-02-20T22:09:18.2830519Z -                                           update_user_me,
+2026-02-20T22:09:18.2830863Z -                                           update_user_password_me,
+2026-02-20T22:09:18.2831214Z -                                           delete_user,
+2026-02-20T22:09:18.2831537Z -                                           delete_user_me,
+2026-02-20T22:09:18.2831873Z -                                           export_user_data,
+2026-02-20T22:09:18.2832335Z -                                           get_user_sessions,
+2026-02-20T22:09:18.2832686Z -                                           revoke_user_session)
+2026-02-20T22:09:18.2833190Z +                                           revoke_user_session, update_user_me,
+2026-02-20T22:09:18.2833577Z +                                           update_user_password_me)
+2026-02-20T22:09:18.2833902Z  
+2026-02-20T22:09:18.2834078Z  
+2026-02-20T22:09:18.2834278Z  async def health_handler(request):
+2026-02-20T22:09:18.2834840Z --- /home/runner/work/mathakine/mathakine/server/handlers/challenge_handlers.py:before	2026-02-20 22:09:02.837965
+2026-02-20T22:09:18.2835581Z +++ /home/runner/work/mathakine/mathakine/server/handlers/challenge_handlers.py:after	2026-02-20 22:09:18.261889
+2026-02-20T22:09:18.2836065Z @@ -11,19 +11,21 @@
+2026-02-20T22:09:18.2836264Z  from starlette.requests import Request
+2026-02-20T22:09:18.2836603Z  from starlette.responses import JSONResponse, StreamingResponse
+2026-02-20T22:09:18.2836916Z  
+2026-02-20T22:09:18.2837169Z -from server.auth import require_auth, optional_auth, require_auth_sse
+2026-02-20T22:09:18.2837531Z +import app.core.constants as constants
+2026-02-20T22:09:18.2837797Z  from app.core.config import settings
+2026-02-20T22:09:18.2838259Z  # Importer les constantes et fonctions centralisées
+2026-02-20T22:09:18.2838846Z -from app.core.constants import (CHALLENGE_TYPES_API, CHALLENGE_TYPES_DB, normalize_age_group, calculate_difficulty_for_age_group)
+2026-02-20T22:09:18.2839414Z -import app.core.constants as constants
+2026-02-20T22:09:18.2839770Z +from app.core.constants import (CHALLENGE_TYPES_API, CHALLENGE_TYPES_DB,
+2026-02-20T22:09:18.2840161Z +                                calculate_difficulty_for_age_group,
+2026-02-20T22:09:18.2840456Z +                                normalize_age_group)
+2026-02-20T22:09:18.2840742Z  from app.core.messages import SystemMessages
+2026-02-20T22:09:18.2841301Z  # NOTE: challenge_service_translations_adapter archivé - utiliser fonctions de challenge_service.py
+2026-02-20T22:09:18.2841803Z  from app.services import challenge_service
+2026-02-20T22:09:18.2842088Z -from app.utils.db_utils import db_session
+2026-02-20T22:09:18.2842447Z  from app.services.enhanced_server_adapter import EnhancedServerAdapter
+2026-02-20T22:09:18.2842905Z  from app.services.logic_challenge_service import LogicChallengeService
+2026-02-20T22:09:18.2843372Z +from app.utils.db_utils import db_session
+2026-02-20T22:09:18.2843911Z  from app.utils.error_handler import ErrorHandler, get_safe_error_message
+2026-02-20T22:09:18.2844316Z  from app.utils.translation import parse_accept_language
+2026-02-20T22:09:18.2844708Z +from server.auth import optional_auth, require_auth, require_auth_sse
+2026-02-20T22:09:18.2845030Z  
+2026-02-20T22:09:18.2845165Z  
+2026-02-20T22:09:18.2845310Z  @require_auth
+2026-02-20T22:09:18.2845474Z @@ -94,7 +96,8 @@
+2026-02-20T22:09:18.2845710Z                  exclude_ids=exclude_ids if exclude_ids else None
+2026-02-20T22:09:18.2845989Z              )
+2026-02-20T22:09:18.2846274Z              # Convertir les objets en dicts avec normalisation age_group pour frontend
+2026-02-20T22:09:18.2846771Z -            from app.services.challenge_service import normalize_age_group_for_frontend
+2026-02-20T22:09:18.2847199Z +            from app.services.challenge_service import \
+2026-02-20T22:09:18.2847496Z +                normalize_age_group_for_frontend
+2026-02-20T22:09:18.2847760Z              challenges_list = [
+2026-02-20T22:09:18.2847971Z                  {
+2026-02-20T22:09:18.2848144Z                      "id": c.id,
+2026-02-20T22:09:18.2848346Z @@ -179,10 +182,10 @@
+2026-02-20T22:09:18.2848594Z              from app.models.logic_challenge import LogicChallenge
+2026-02-20T22:09:18.2849064Z              challenge = db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
+2026-02-20T22:09:18.2849485Z              if challenge:
+2026-02-20T22:09:18.2849714Z +                # Normaliser age_group pour le frontend
+2026-02-20T22:09:18.2850154Z +                from app.services.challenge_service import \
+2026-02-20T22:09:18.2850453Z +                    normalize_age_group_for_frontend
+2026-02-20T22:09:18.2850759Z                  from app.utils.json_utils import safe_parse_json
+2026-02-20T22:09:18.2851026Z -
+2026-02-20T22:09:18.2851217Z -                # Normaliser age_group pour le frontend
+2026-02-20T22:09:18.2851613Z -                from app.services.challenge_service import normalize_age_group_for_frontend
+2026-02-20T22:09:18.2851994Z                  
+2026-02-20T22:09:18.2852172Z                  challenge_dict = {
+2026-02-20T22:09:18.2852399Z                      "id": challenge.id,
+2026-02-20T22:09:18.2852624Z @@ -860,9 +863,11 @@
+2026-02-20T22:09:18.2852883Z          age_group_raw = request.query_params.get('age_group', '10-12')
+2026-02-20T22:09:18.2853364Z          prompt_raw = request.query_params.get('prompt', '')
+2026-02-20T22:09:18.2853629Z  
+2026-02-20T22:09:18.2853938Z -        from app.utils.prompt_sanitizer import sanitize_user_prompt, validate_prompt_safety
+2026-02-20T22:09:18.2854393Z +        from app.services.challenge_ai_service import \
+2026-02-20T22:09:18.2854720Z +            generate_challenge_stream as svc_generate_stream
+2026-02-20T22:09:18.2855087Z +        from app.utils.prompt_sanitizer import (sanitize_user_prompt,
+2026-02-20T22:09:18.2855443Z +                                                validate_prompt_safety)
+2026-02-20T22:09:18.2855802Z          from app.utils.sse_utils import SSE_HEADERS, sse_error_response
+2026-02-20T22:09:18.2856308Z -        from app.services.challenge_ai_service import generate_challenge_stream as svc_generate_stream
+2026-02-20T22:09:18.2856736Z  
+2026-02-20T22:09:18.2856957Z          is_safe, safety_reason = validate_prompt_safety(prompt_raw)
+2026-02-20T22:09:18.2857266Z          if not is_safe:
+2026-02-20T22:09:18.2857684Z --- /home/runner/work/mathakine/mathakine/server/handlers/auth_handlers.py:before	2026-02-20 22:09:02.837965
+2026-02-20T22:09:18.2858364Z +++ /home/runner/work/mathakine/mathakine/server/handlers/auth_handlers.py:after	2026-02-20 22:09:18.280743
+2026-02-20T22:09:18.2858818Z @@ -12,21 +12,19 @@
+2026-02-20T22:09:18.2859013Z  from starlette.requests import Request
+2026-02-20T22:09:18.2859345Z  from starlette.responses import JSONResponse, RedirectResponse
+2026-02-20T22:09:18.2859647Z  
+2026-02-20T22:09:18.2859827Z -from app.core.security import decode_token
+2026-02-20T22:09:18.2860162Z +from app.core.security import decode_token, get_password_hash
+2026-02-20T22:09:18.2860724Z  from app.services.auth_service import (authenticate_user, create_user_token,
+2026-02-20T22:09:18.2861137Z                                         get_user_by_email, refresh_access_token)
+2026-02-20T22:09:18.2861552Z -from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
+2026-02-20T22:09:18.2861977Z +from app.services.email_service import EmailService
+2026-02-20T22:09:18.2862363Z +from app.services.enhanced_server_adapter import EnhancedServerAdapter
+2026-02-20T22:09:18.2862752Z  from app.utils.csrf import validate_csrf_token
+2026-02-20T22:09:18.2863142Z +from app.utils.db_utils import db_session
+2026-02-20T22:09:18.2863590Z +from app.utils.email_verification import (generate_verification_token,
+2026-02-20T22:09:18.2863987Z +                                          is_password_reset_token_expired,
+2026-02-20T22:09:18.2864309Z +                                          is_verification_token_expired)
+2026-02-20T22:09:18.2864634Z +from app.utils.rate_limit import (rate_limit_auth,
+2026-02-20T22:09:18.2864942Z +                                  rate_limit_resend_verification)
+2026-02-20T22:09:18.2865235Z  from server.auth import require_auth
+2026-02-20T22:09:18.2865517Z -from app.services.email_service import EmailService
+2026-02-20T22:09:18.2865812Z -from app.utils.db_utils import db_session
+2026-02-20T22:09:18.2866164Z -from app.services.enhanced_server_adapter import EnhancedServerAdapter
+2026-02-20T22:09:18.2866537Z -from app.core.security import get_password_hash
+2026-02-20T22:09:18.2866960Z -from app.utils.email_verification import (
+2026-02-20T22:09:18.2867217Z -    generate_verification_token,
+2026-02-20T22:09:18.2867450Z -    is_password_reset_token_expired,
+2026-02-20T22:09:18.2867694Z -    is_verification_token_expired,
+2026-02-20T22:09:18.2867901Z -)
+2026-02-20T22:09:18.2868046Z  
+2026-02-20T22:09:18.2868180Z  
+2026-02-20T22:09:18.2868363Z  async def api_get_csrf_token(request: Request):
+2026-02-20T22:09:18.2868617Z @@ -264,8 +262,8 @@
+2026-02-20T22:09:18.2869015Z              logger.info(f"Connexion réussie pour l'utilisateur: {user.username}")
+2026-02-20T22:09:18.2869076Z  
+2026-02-20T22:09:18.2869354Z              # Créer une entrée UserSession pour /api/users/me/sessions (sessions actives)
+2026-02-20T22:09:18.2869462Z +            from app.core.config import settings
+2026-02-20T22:09:18.2869587Z              from app.models.user_session import UserSession
+2026-02-20T22:09:18.2869682Z -            from app.core.config import settings
+2026-02-20T22:09:18.2869829Z              ip = request.client.host if request.client else None
+2026-02-20T22:09:18.2869964Z              user_agent = request.headers.get("user-agent") or ""
+2026-02-20T22:09:18.2870134Z              device_info = {"user_agent": user_agent[:500]} if user_agent else None
+2026-02-20T22:09:18.2870198Z @@ -429,6 +427,7 @@
+2026-02-20T22:09:18.2870428Z                  # Essayer de décoder l'access_token pour vérifier s'il est valide
+2026-02-20T22:09:18.2870502Z                  try:
+2026-02-20T22:09:18.2870577Z                      import jwt
+2026-02-20T22:09:18.2870641Z +
+2026-02-20T22:09:18.2870748Z                      from app.core.config import settings
+2026-02-20T22:09:18.2870835Z                      payload = jwt.decode(
+2026-02-20T22:09:18.2870931Z                          access_token_fallback,
+2026-02-20T22:09:18.2870995Z @@ -441,7 +440,8 @@
+2026-02-20T22:09:18.2871068Z                      if username:
+2026-02-20T22:09:18.2871456Z                          logger.info(f"Fallback: Création d'un nouveau refresh_token pour l'utilisateur existant: {username}")
+2026-02-20T22:09:18.2875672Z ERROR: /home/runner/work/mathakine/mathakine/server/handlers/chat_handlers.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.3052914Z ERROR: /home/runner/work/mathakine/mathakine/server/handlers/user_handlers.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.3293281Z ERROR: /home/runner/work/mathakine/mathakine/server/handlers/admin_handlers.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.3431277Z ERROR: /home/runner/work/mathakine/mathakine/server/handlers/recommendation_handlers.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.3451287Z                          async with db_session() as db_fallback:
+2026-02-20T22:09:18.3452200Z -                            from app.services.auth_service import get_user_by_username, create_user_token
+2026-02-20T22:09:18.3452874Z +                            from app.services.auth_service import (
+2026-02-20T22:09:18.3453516Z +                                create_user_token, get_user_by_username)
+2026-02-20T22:09:18.3453980Z                              user_fallback = get_user_by_username(db_fallback, username)
+2026-02-20T22:09:18.3454402Z                              if user_fallback:
+2026-02-20T22:09:18.3454963Z                                  # Créer un nouveau refresh_token pour cet utilisateur
+2026-02-20T22:09:18.3455664Z --- /home/runner/work/mathakine/mathakine/server/handlers/chat_handlers.py:before	2026-02-20 22:09:02.838965
+2026-02-20T22:09:18.3456519Z +++ /home/runner/work/mathakine/mathakine/server/handlers/chat_handlers.py:after	2026-02-20 22:09:18.292703
+2026-02-20T22:09:18.3457078Z @@ -168,7 +168,8 @@
+2026-02-20T22:09:18.3457429Z          conversation_history = data_or_err.get("conversation_history", [])[:20]
+2026-02-20T22:09:18.3457852Z  
+2026-02-20T22:09:18.3458195Z          # Sanitization du message pour éviter l'injection de prompt
+2026-02-20T22:09:18.3458776Z -        from app.utils.prompt_sanitizer import sanitize_user_prompt, validate_prompt_safety
+2026-02-20T22:09:18.3459553Z +        from app.utils.prompt_sanitizer import (sanitize_user_prompt,
+2026-02-20T22:09:18.3459988Z +                                                validate_prompt_safety)
+2026-02-20T22:09:18.3460414Z          is_safe, safety_reason = validate_prompt_safety(message_raw)
+2026-02-20T22:09:18.3460789Z          if not is_safe:
+2026-02-20T22:09:18.3461047Z              return JSONResponse(
+2026-02-20T22:09:18.3461306Z @@ -368,7 +369,8 @@
+2026-02-20T22:09:18.3461505Z              )
+2026-02-20T22:09:18.3461694Z  
+2026-02-20T22:09:18.3462029Z          # Sanitization du message pour éviter l'injection de prompt
+2026-02-20T22:09:18.3462600Z -        from app.utils.prompt_sanitizer import sanitize_user_prompt, validate_prompt_safety
+2026-02-20T22:09:18.3463311Z +        from app.utils.prompt_sanitizer import (sanitize_user_prompt,
+2026-02-20T22:09:18.3463750Z +                                                validate_prompt_safety)
+2026-02-20T22:09:18.3464181Z          is_safe, safety_reason = validate_prompt_safety(message_raw)
+2026-02-20T22:09:18.3464548Z          if not is_safe:
+2026-02-20T22:09:18.3464796Z              async def error_generator():
+2026-02-20T22:09:18.3465371Z --- /home/runner/work/mathakine/mathakine/server/handlers/user_handlers.py:before	2026-02-20 22:09:02.838965
+2026-02-20T22:09:18.3466189Z +++ /home/runner/work/mathakine/mathakine/server/handlers/user_handlers.py:after	2026-02-20 22:09:18.316887
+2026-02-20T22:09:18.3466647Z @@ -7,6 +7,7 @@
+2026-02-20T22:09:18.3466876Z  from datetime import datetime, timedelta, timezone
+2026-02-20T22:09:18.3467150Z  
+2026-02-20T22:09:18.3467326Z  from fastapi import HTTPException, status
+2026-02-20T22:09:18.3467570Z +
+2026-02-20T22:09:18.3467748Z  from app.core.logging_config import get_logger
+2026-02-20T22:09:18.3467997Z  
+2026-02-20T22:09:18.3468146Z  logger = get_logger(__name__)
+2026-02-20T22:09:18.3468350Z @@ -16,12 +17,12 @@
+2026-02-20T22:09:18.3468556Z  from app.core.messages import SystemMessages
+2026-02-20T22:09:18.3468837Z  from app.schemas.user import UserCreate
+2026-02-20T22:09:18.3469168Z  from app.services.auth_service import create_user, get_user_by_email
+2026-02-20T22:09:18.3469620Z +from app.services.enhanced_server_adapter import EnhancedServerAdapter
+2026-02-20T22:09:18.3470005Z +from app.utils.csrf import validate_csrf_token
+2026-02-20T22:09:18.3470279Z +from app.utils.db_utils import db_session
+2026-02-20T22:09:18.3470729Z  from app.utils.error_handler import get_safe_error_message
+2026-02-20T22:09:18.3471078Z  from app.utils.rate_limit import rate_limit_register
+2026-02-20T22:09:18.3471396Z -from app.utils.csrf import validate_csrf_token
+2026-02-20T22:09:18.3471674Z -from app.utils.db_utils import db_session
+2026-02-20T22:09:18.3471975Z  from app.utils.settings_reader import get_setting_bool
+2026-02-20T22:09:18.3472385Z -from app.services.enhanced_server_adapter import EnhancedServerAdapter
+2026-02-20T22:09:18.3472750Z  from server.auth import require_auth
+2026-02-20T22:09:18.3473072Z  
+2026-02-20T22:09:18.3473220Z  
+2026-02-20T22:09:18.3473356Z @@ -548,7 +549,7 @@
+2026-02-20T22:09:18.3473548Z          async with db_session() as db:
+2026-02-20T22:09:18.3473811Z              from app.models.attempt import Attempt
+2026-02-20T22:09:18.3474103Z              from app.models.exercise import Exercise
+2026-02-20T22:09:18.3474356Z -            
+2026-02-20T22:09:18.3474511Z +
+2026-02-20T22:09:18.3474819Z              # Récupérer toutes les tentatives avec jointure sur exercises
+2026-02-20T22:09:18.3475187Z              attempts_query = db.query(Attempt, Exercise).join(
+2026-02-20T22:09:18.3475530Z                  Exercise, Attempt.exercise_id == Exercise.id
+2026-02-20T22:09:18.3475797Z @@ -670,8 +671,9 @@
+2026-02-20T22:09:18.3476208Z          logger.info(f"Récupération de la progression des défis pour l'utilisateur {user_id}")
+2026-02-20T22:09:18.3476592Z          
+2026-02-20T22:09:18.3476756Z          async with db_session() as db:
+2026-02-20T22:09:18.3477268Z -            from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+2026-02-20T22:09:18.3477643Z -            
+2026-02-20T22:09:18.3477880Z +            from app.models.logic_challenge import (LogicChallenge,
+2026-02-20T22:09:18.3478227Z +                                                    LogicChallengeAttempt)
+2026-02-20T22:09:18.3478497Z +
+2026-02-20T22:09:18.3478744Z              # Nombre total de défis actifs dans le système
+2026-02-20T22:09:18.3479077Z              total_challenges = db.query(LogicChallenge).filter(
+2026-02-20T22:09:18.3479392Z                  LogicChallenge.is_active == True,
+2026-02-20T22:09:18.3479634Z @@ -970,8 +972,8 @@
+2026-02-20T22:09:18.3479804Z      if csrf_err:
+2026-02-20T22:09:18.3479973Z          return csrf_err
+2026-02-20T22:09:18.3480159Z      try:
+2026-02-20T22:09:18.3480405Z +        from app.core.security import get_password_hash, verify_password
+2026-02-20T22:09:18.3480746Z          from app.models.user import User
+2026-02-20T22:09:18.3481076Z -        from app.core.security import verify_password, get_password_hash
+2026-02-20T22:09:18.3481381Z          
+2026-02-20T22:09:18.3481555Z          current_user = request.state.user
+2026-02-20T22:09:18.3481777Z          
+2026-02-20T22:09:18.3481928Z @@ -1117,13 +1119,14 @@
+2026-02-20T22:09:18.3482320Z      Retourne un JSON avec : profil, exercices tentés, défis tentés, badges, progression.
+2026-02-20T22:09:18.3482696Z      """
+2026-02-20T22:09:18.3482843Z      try:
+2026-02-20T22:09:18.3483133Z -        from app.models.user import User
+2026-02-20T22:09:18.3483425Z +        from app.models.achievement import UserAchievement
+2026-02-20T22:09:18.3483741Z          from app.models.attempt import Attempt
+2026-02-20T22:09:18.3484023Z          from app.models.exercise import Exercise
+2026-02-20T22:09:18.3484409Z -        from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+2026-02-20T22:09:18.3484857Z -        from app.models.achievement import UserAchievement
+2026-02-20T22:09:18.3485214Z +        from app.models.logic_challenge import (LogicChallenge,
+2026-02-20T22:09:18.3485556Z +                                                LogicChallengeAttempt)
+2026-02-20T22:09:18.3485863Z          from app.models.progress import Progress
+2026-02-20T22:09:18.3486188Z          from app.models.recommendation import Recommendation
+2026-02-20T22:09:18.3486493Z +        from app.models.user import User
+2026-02-20T22:09:18.3486714Z          
+2026-02-20T22:09:18.3487017Z          current_user = request.state.user
+2026-02-20T22:09:18.3487245Z          
+2026-02-20T22:09:18.3487396Z @@ -1263,9 +1266,10 @@
+2026-02-20T22:09:18.3487563Z          
+2026-02-20T22:09:18.3487770Z          # Récupérer la session DB
+2026-02-20T22:09:18.3487998Z          async with db_session() as db:
+2026-02-20T22:09:18.3488241Z +            from sqlalchemy import and_
+2026-02-20T22:09:18.3488462Z +
+2026-02-20T22:09:18.3488661Z              from app.models.user_session import UserSession
+2026-02-20T22:09:18.3488949Z -            from sqlalchemy import and_
+2026-02-20T22:09:18.3489173Z -            
+2026-02-20T22:09:18.3489327Z +
+2026-02-20T22:09:18.3489581Z              # Récupérer toutes les sessions actives non expirées
+2026-02-20T22:09:18.3489904Z              sessions = db.query(UserSession).filter(
+2026-02-20T22:09:18.3490151Z                  and_(
+2026-02-20T22:09:18.3490324Z @@ -1318,7 +1322,7 @@
+2026-02-20T22:09:18.3490535Z          # Récupérer la session DB
+2026-02-20T22:09:18.3490768Z          async with db_session() as db:
+2026-02-20T22:09:18.3491042Z              from app.models.user_session import UserSession
+2026-02-20T22:09:18.3491303Z -            
+2026-02-20T22:09:18.3491454Z +
+2026-02-20T22:09:18.3491636Z              # Récupérer la session
+2026-02-20T22:09:18.3491884Z              session = db.query(UserSession).filter(
+2026-02-20T22:09:18.3492155Z                  UserSession.id == session_id,
+2026-02-20T22:09:18.3492640Z --- /home/runner/work/mathakine/mathakine/server/handlers/admin_handlers.py:before	2026-02-20 22:09:02.837965
+2026-02-20T22:09:18.3493718Z +++ /home/runner/work/mathakine/mathakine/server/handlers/admin_handlers.py:after	2026-02-20 22:09:18.338760
+2026-02-20T22:09:18.3494165Z @@ -9,26 +9,22 @@
+2026-02-20T22:09:18.3494324Z  
+2026-02-20T22:09:18.3494477Z  from sqlalchemy import case, func
+2026-02-20T22:09:18.3494717Z  from sqlalchemy.orm import Session
+2026-02-20T22:09:18.3494924Z -
+2026-02-20T22:09:18.3495093Z  from starlette.requests import Request
+2026-02-20T22:09:18.3495427Z  from starlette.responses import JSONResponse, StreamingResponse
+2026-02-20T22:09:18.3495737Z  
+2026-02-20T22:09:18.3495963Z +from app.models.achievement import Achievement, UserAchievement
+2026-02-20T22:09:18.3496324Z  from app.models.admin_audit_log import AdminAuditLog
+2026-02-20T22:09:18.3496686Z -from app.models.achievement import Achievement, UserAchievement
+2026-02-20T22:09:18.3497013Z  from app.models.attempt import Attempt
+2026-02-20T22:09:18.3497274Z +from app.models.exercise import Exercise
+2026-02-20T22:09:18.3497607Z +from app.models.logic_challenge import (AgeGroup, LogicChallenge,
+2026-02-20T22:09:18.3497964Z +                                        LogicChallengeAttempt,
+2026-02-20T22:09:18.3498254Z +                                        LogicChallengeType)
+2026-02-20T22:09:18.3498531Z  from app.models.setting import Setting
+2026-02-20T22:09:18.3498789Z -from app.models.exercise import Exercise
+2026-02-20T22:09:18.3499052Z -from app.models.logic_challenge import (
+2026-02-20T22:09:18.3499293Z -    AgeGroup,
+2026-02-20T22:09:18.3499458Z -    LogicChallenge,
+2026-02-20T22:09:18.3499654Z -    LogicChallengeAttempt,
+2026-02-20T22:09:18.3499864Z -    LogicChallengeType,
+2026-02-20T22:09:18.3500054Z -)
+2026-02-20T22:09:18.3500230Z  from app.models.user import User, UserRole
+2026-02-20T22:09:18.3500532Z  from app.services.email_service import EmailService
+2026-02-20T22:09:18.3500826Z  from app.utils.db_utils import db_session
+2026-02-20T22:09:18.3501169Z  from app.utils.email_verification import generate_verification_token
+2026-02-20T22:09:18.3501550Z -from server.auth import require_auth, require_admin
+2026-02-20T22:09:18.3501858Z +from server.auth import require_admin, require_auth
+2026-02-20T22:09:18.3502114Z  
+2026-02-20T22:09:18.3502245Z  
+2026-02-20T22:09:18.3502399Z  def _log_admin_action(
+2026-02-20T22:09:18.3502852Z --- /home/runner/work/mathakine/mathakine/server/handlers/recommendation_handlers.py:before	2026-02-20 22:09:02.838965
+2026-02-20T22:09:18.3503884Z +++ /home/runner/work/mathakine/mathakine/server/handlers/recommendation_handlers.py:after	2026-02-20 22:09:18.344785
+2026-02-20T22:09:18.3504381Z @@ -72,7 +72,8 @@
+2026-02-20T22:09:18.3504592Z                      rec_data["exercise_id"] = rec.exercise_id
+2026-02-20T22:09:18.3505040Z                      # Optionnel: récupérer le titre et la question de l'exercice
+2026-02-20T22:09:18.3505358Z                      try:
+2026-02-20T22:09:18.3505642Z -                        from app.services.exercise_service import ExerciseService
+2026-02-20T22:09:18.3506025Z +                        from app.services.exercise_service import \
+2026-02-20T22:09:18.3506333Z +                            ExerciseService
+2026-02-20T22:09:18.3506663Z                          exercise = ExerciseService.get_exercise(db, rec.exercise_id)
+2026-02-20T22:09:18.3506994Z                          if exercise:
+2026-02-20T22:09:18.3507267Z                              rec_data["exercise_title"] = exercise.title
+2026-02-20T22:09:18.3507552Z @@ -84,7 +85,8 @@
+2026-02-20T22:09:18.3507756Z                  if getattr(rec, "challenge_id", None):
+2026-02-20T22:09:18.3508051Z                      rec_data["challenge_id"] = rec.challenge_id
+2026-02-20T22:09:18.3508320Z                      try:
+2026-02-20T22:09:18.3599380Z ERROR: /home/runner/work/mathakine/mathakine/server/handlers/exercise_handlers.py Imports are incorrectly sorted and/or formatted.
+2026-02-20T22:09:18.3760104Z -                        from app.services.logic_challenge_service import LogicChallengeService
+2026-02-20T22:09:18.3761208Z +                        from app.services.logic_challenge_service import \
+2026-02-20T22:09:18.3761940Z +                            LogicChallengeService
+2026-02-20T22:09:18.3762522Z                          challenge = LogicChallengeService.get_challenge(db, rec.challenge_id)
+2026-02-20T22:09:18.3763401Z                          if challenge:
+2026-02-20T22:09:18.3763895Z                              rec_data["challenge_title"] = getattr(challenge, "title", None)
+2026-02-20T22:09:18.3764797Z --- /home/runner/work/mathakine/mathakine/server/handlers/exercise_handlers.py:before	2026-02-20 22:09:02.838965
+2026-02-20T22:09:18.3765807Z +++ /home/runner/work/mathakine/mathakine/server/handlers/exercise_handlers.py:after	2026-02-20 22:09:18.374412
+2026-02-20T22:09:18.3766382Z @@ -11,16 +11,16 @@
+2026-02-20T22:09:18.3766705Z  from starlette.responses import (JSONResponse, RedirectResponse,
+2026-02-20T22:09:18.3767124Z                                   StreamingResponse)
+2026-02-20T22:09:18.3767418Z  
+2026-02-20T22:09:18.3767626Z +from app.core.ai_config import AIConfig
+2026-02-20T22:09:18.3767939Z  from app.core.config import settings
+2026-02-20T22:09:18.3768241Z -from app.core.ai_config import AIConfig
+2026-02-20T22:09:18.3768572Z  from app.core.messages import SystemMessages
+2026-02-20T22:09:18.3768912Z  from app.models.exercise import ExerciseType
+2026-02-20T22:09:18.3769232Z  # Import du service de badges
+2026-02-20T22:09:18.3769544Z  from app.services.badge_service import BadgeService
+2026-02-20T22:09:18.3770012Z +from app.services.enhanced_server_adapter import EnhancedServerAdapter
+2026-02-20T22:09:18.3770460Z  from app.utils.db_utils import db_session
+2026-02-20T22:09:18.3770880Z -from app.services.enhanced_server_adapter import EnhancedServerAdapter
+2026-02-20T22:09:18.3771436Z  from app.utils.error_handler import ErrorHandler, get_safe_error_message
+2026-02-20T22:09:18.3771968Z -from server.auth import require_auth, optional_auth, require_auth_sse
+2026-02-20T22:09:18.3772490Z +from server.auth import optional_auth, require_auth, require_auth_sse
+2026-02-20T22:09:18.3773086Z  from server.exercise_generator import (ensure_explanation,
+2026-02-20T22:09:18.3773485Z                                         generate_ai_exercise,
+2026-02-20T22:09:18.3773840Z                                         generate_simple_exercise)
+2026-02-20T22:09:18.3774152Z @@ -106,9 +106,10 @@
+2026-02-20T22:09:18.3774355Z          
+2026-02-20T22:09:18.3774569Z          # Utiliser le service ORM ExerciseService
+2026-02-20T22:09:18.3775044Z          async with db_session() as db:
+2026-02-20T22:09:18.3775352Z +            from sqlalchemy import String, cast
+2026-02-20T22:09:18.3775646Z +
+2026-02-20T22:09:18.3775877Z              from app.models.exercise import Exercise
+2026-02-20T22:09:18.3776254Z              from app.utils.json_utils import safe_parse_json
+2026-02-20T22:09:18.3776603Z -            from sqlalchemy import String, cast
+2026-02-20T22:09:18.3776838Z  
+2026-02-20T22:09:18.3777315Z              # IMPORTANT: Charger les enums en tant que strings pour éviter les erreurs de conversion
+2026-02-20T22:09:18.3777995Z              # SQLAlchemy essaie de convertir automatiquement et échoue si la DB contient des minuscules
+2026-02-20T22:09:18.3778426Z @@ -935,10 +936,12 @@
+2026-02-20T22:09:18.3778650Z      logger.info("=== DEBUT get_exercises_stats ===")
+2026-02-20T22:09:18.3778947Z      try:
+2026-02-20T22:09:18.3779137Z          logger.debug("Import des modules...")
+2026-02-20T22:09:18.3779412Z -        from sqlalchemy import func, case
+2026-02-20T22:09:18.3779773Z -        from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
+2026-02-20T22:09:18.3780139Z +        from sqlalchemy import case, func
+2026-02-20T22:09:18.3780363Z +
+2026-02-20T22:09:18.3780538Z          from app.models.attempt import Attempt
+2026-02-20T22:09:18.3780922Z -        from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+2026-02-20T22:09:18.3781407Z +        from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+2026-02-20T22:09:18.3781959Z +        from app.models.logic_challenge import (LogicChallenge,
+2026-02-20T22:09:18.3782310Z +                                                LogicChallengeAttempt)
+2026-02-20T22:09:18.3782601Z          logger.debug("Imports OK")
+2026-02-20T22:09:18.3782820Z          
+2026-02-20T22:09:18.3783086Z          async with db_session() as db:
+2026-02-20T22:09:18.3901049Z ##[error]Process completed with exit code 1.

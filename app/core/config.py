@@ -73,9 +73,9 @@ class Settings:
     # Utilisez cette URL pour les tests
     SQLALCHEMY_DATABASE_URL: str = TEST_DATABASE_URL if TESTING else DATABASE_URL
     
-    # Utilisateurs par défaut
-    DEFAULT_ADMIN_EMAIL: str = os.getenv("DEFAULT_ADMIN_EMAIL", "admin@mathakine.com")
-    DEFAULT_ADMIN_PASSWORD: str = os.getenv("DEFAULT_ADMIN_PASSWORD", "admin")
+    # Utilisateurs par défaut (pas de fallback faible — admin créé via BDD/scripts si besoin)
+    DEFAULT_ADMIN_EMAIL: str = os.getenv("DEFAULT_ADMIN_EMAIL", "")
+    DEFAULT_ADMIN_PASSWORD: str = os.getenv("DEFAULT_ADMIN_PASSWORD", "")
     
     # Paramètres CORS
     BACKEND_CORS_ORIGINS: List[str] = [
@@ -150,18 +150,18 @@ def validate_production_settings():
         
         # SECRET_KEY : blocage au démarrage si vide (voir init Settings)
         # 3.3 DEFAULT_ADMIN_PASSWORD : bloquer si faible en prod (évite compte admin exploitable)
-        # Uniquement si ENVIRONMENT=production (Render), pas MATH_TRAINER_PROFILE (peut être prod en local)
+        # Uniquement si ENVIRONMENT=production (Render). Admin créé via BDD/scripts si besoin.
         if (
             os.getenv("ENVIRONMENT") == "production"
             and os.getenv("TESTING", "false").lower() != "true"
             and (
                 not settings.DEFAULT_ADMIN_PASSWORD
-                or settings.DEFAULT_ADMIN_PASSWORD == "admin"
+                or settings.DEFAULT_ADMIN_PASSWORD in ("admin", "password", "123456")
             )
         ):
             raise ValueError(
-                "DEFAULT_ADMIN_PASSWORD doit être définie et différente de 'admin' en production. "
-                "Définir une valeur forte dans les variables d'environnement Render."
+                "DEFAULT_ADMIN_PASSWORD doit être définie et forte en production "
+                "(éviter admin, password, 123456). Définir dans les variables Render."
             )
 
 # Valider les paramètres au chargement du module

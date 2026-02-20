@@ -1,0 +1,39 @@
+﻿2026-02-20T22:09:44.9382086Z ##[group]Run python -c "
+2026-02-20T22:09:44.9382378Z [36;1mpython -c "[0m
+2026-02-20T22:09:44.9382599Z [36;1mimport psycopg2[0m
+2026-02-20T22:09:44.9382914Z [36;1mfrom psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT[0m
+2026-02-20T22:09:44.9383260Z [36;1m[0m
+2026-02-20T22:09:44.9383628Z [36;1m# Se connecter à la base de données postgres par défaut pour créer test_mathakine[0m
+2026-02-20T22:09:44.9384064Z [36;1mconn = psycopg2.connect([0m
+2026-02-20T22:09:44.9384316Z [36;1m    host='localhost',[0m
+2026-02-20T22:09:44.9384538Z [36;1m    port=5432,[0m
+2026-02-20T22:09:44.9384750Z [36;1m    user='postgres',[0m
+2026-02-20T22:09:44.9384998Z [36;1m    password='postgres',[0m
+2026-02-20T22:09:44.9385308Z [36;1m    database='postgres'  # Utiliser la base par défaut[0m
+2026-02-20T22:09:44.9385606Z [36;1m)[0m
+2026-02-20T22:09:44.9385857Z [36;1mconn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)[0m
+2026-02-20T22:09:44.9386182Z [36;1mcursor = conn.cursor()[0m
+2026-02-20T22:09:44.9386428Z [36;1m[0m
+2026-02-20T22:09:44.9386662Z [36;1m# Créer la base de données si elle n'existe pas[0m
+2026-02-20T22:09:44.9387133Z [36;1mcursor.execute('SELECT 1 FROM pg_database WHERE datname = %s', ('test_mathakine',))[0m
+2026-02-20T22:09:44.9387562Z [36;1mexists = cursor.fetchone()[0m
+2026-02-20T22:09:44.9387807Z [36;1mif not exists:[0m
+2026-02-20T22:09:44.9388073Z [36;1m    cursor.execute('CREATE DATABASE test_mathakine')[0m
+2026-02-20T22:09:44.9388453Z [36;1m    print('Database test_mathakine created successfully')[0m
+2026-02-20T22:09:44.9388958Z [36;1melse:[0m
+2026-02-20T22:09:44.9389222Z [36;1m    print('Database test_mathakine already exists')[0m
+2026-02-20T22:09:44.9389529Z [36;1m[0m
+2026-02-20T22:09:44.9389710Z [36;1mcursor.close()[0m
+2026-02-20T22:09:44.9389923Z [36;1mconn.close()[0m
+2026-02-20T22:09:44.9390116Z [36;1m"[0m
+2026-02-20T22:09:44.9417773Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:09:44.9418016Z env:
+2026-02-20T22:09:44.9418266Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9418709Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:09:44.9419254Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9419622Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9419987Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9420347Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:09:44.9420713Z   PYTHONPATH: /home/runner/work/mathakine/mathakine
+2026-02-20T22:09:44.9420996Z ##[endgroup]
+2026-02-20T22:09:45.0327147Z Database test_mathakine created successfully

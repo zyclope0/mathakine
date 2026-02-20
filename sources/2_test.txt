@@ -1,0 +1,1816 @@
+﻿2026-02-20T22:09:01.0974099Z Current runner version: '2.331.0'
+2026-02-20T22:09:01.0999292Z ##[group]Runner Image Provisioner
+2026-02-20T22:09:01.1000162Z Hosted Compute Agent
+2026-02-20T22:09:01.1000734Z Version: 20260123.484
+2026-02-20T22:09:01.1001369Z Commit: 6bd6555ca37d84114959e1c76d2c01448ff61c5d
+2026-02-20T22:09:01.1002142Z Build Date: 2026-01-23T19:41:17Z
+2026-02-20T22:09:01.1002792Z Worker ID: {1037bba3-acc5-45fa-b217-78b2f19878cb}
+2026-02-20T22:09:01.1003591Z Azure Region: northcentralus
+2026-02-20T22:09:01.1004211Z ##[endgroup]
+2026-02-20T22:09:01.1005588Z ##[group]Operating System
+2026-02-20T22:09:01.1006593Z Ubuntu
+2026-02-20T22:09:01.1007123Z 24.04.3
+2026-02-20T22:09:01.1007555Z LTS
+2026-02-20T22:09:01.1008096Z ##[endgroup]
+2026-02-20T22:09:01.1008619Z ##[group]Runner Image
+2026-02-20T22:09:01.1009477Z Image: ubuntu-24.04
+2026-02-20T22:09:01.1010050Z Version: 20260201.15.1
+2026-02-20T22:09:01.1011235Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260201.15/images/ubuntu/Ubuntu2404-Readme.md
+2026-02-20T22:09:01.1012784Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260201.15
+2026-02-20T22:09:01.1013700Z ##[endgroup]
+2026-02-20T22:09:01.1016306Z ##[group]GITHUB_TOKEN Permissions
+2026-02-20T22:09:01.1018661Z Actions: write
+2026-02-20T22:09:01.1019487Z ArtifactMetadata: write
+2026-02-20T22:09:01.1020148Z Attestations: write
+2026-02-20T22:09:01.1020673Z Checks: write
+2026-02-20T22:09:01.1021173Z Contents: write
+2026-02-20T22:09:01.1021679Z Deployments: write
+2026-02-20T22:09:01.1022318Z Discussions: write
+2026-02-20T22:09:01.1022835Z Issues: write
+2026-02-20T22:09:01.1023280Z Metadata: read
+2026-02-20T22:09:01.1023860Z Models: read
+2026-02-20T22:09:01.1024320Z Packages: write
+2026-02-20T22:09:01.1024823Z Pages: write
+2026-02-20T22:09:01.1025521Z PullRequests: write
+2026-02-20T22:09:01.1026034Z RepositoryProjects: write
+2026-02-20T22:09:01.1026598Z SecurityEvents: write
+2026-02-20T22:09:01.1027207Z Statuses: write
+2026-02-20T22:09:01.1027702Z ##[endgroup]
+2026-02-20T22:09:01.1029963Z Secret source: Actions
+2026-02-20T22:09:01.1031052Z Prepare workflow directory
+2026-02-20T22:09:01.1558287Z Prepare all required actions
+2026-02-20T22:09:01.1613020Z Getting action download info
+2026-02-20T22:09:01.5218735Z Download action repository 'actions/checkout@v6' (SHA:de0fac2e4500dabe0009e67214ff5f5447ce83dd)
+2026-02-20T22:09:01.6456447Z Download action repository 'actions/setup-python@v6' (SHA:a309ff8b426b58ec0e2a45f0f869d46889d02405)
+2026-02-20T22:09:02.1430827Z Download action repository 'codecov/codecov-action@v5' (SHA:671740ac38dd9b0130fbe1cec585b89eea48d3de)
+2026-02-20T22:09:02.5747027Z Getting action download info
+2026-02-20T22:09:02.7059472Z Download action repository 'actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea' (SHA:60a0d83039c74a4aee543508d2ffcb1c3799cdea)
+2026-02-20T22:09:03.1863098Z Complete job name: test
+2026-02-20T22:09:03.2429662Z ##[group]Checking docker version
+2026-02-20T22:09:03.2443424Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+2026-02-20T22:09:03.3281747Z '1.48'
+2026-02-20T22:09:03.3293996Z Docker daemon API version: '1.48'
+2026-02-20T22:09:03.3295397Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+2026-02-20T22:09:03.3527764Z '1.48'
+2026-02-20T22:09:03.3541921Z Docker client API version: '1.48'
+2026-02-20T22:09:03.3547676Z ##[endgroup]
+2026-02-20T22:09:03.3551255Z ##[group]Clean up resources from previous jobs
+2026-02-20T22:09:03.3557138Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=72a965"
+2026-02-20T22:09:03.3696923Z ##[command]/usr/bin/docker network prune --force --filter "label=72a965"
+2026-02-20T22:09:03.3824082Z ##[endgroup]
+2026-02-20T22:09:03.3824923Z ##[group]Create local container network
+2026-02-20T22:09:03.3835601Z ##[command]/usr/bin/docker network create --label 72a965 github_network_25bc9a717fe7424f9d20c40d2f9d08d3
+2026-02-20T22:09:03.4448360Z 283e221a961b95549041f30f18d4dbc30f10b0841a71564d44c41881cdb6e31b
+2026-02-20T22:09:03.4468034Z ##[endgroup]
+2026-02-20T22:09:03.4495138Z ##[group]Starting postgres service container
+2026-02-20T22:09:03.4514940Z ##[command]/usr/bin/docker pull postgres:15
+2026-02-20T22:09:03.9290974Z 15: Pulling from library/postgres
+2026-02-20T22:09:04.0376963Z 0c8d55a45c0d: Pulling fs layer
+2026-02-20T22:09:04.0377556Z 03cf9c337134: Pulling fs layer
+2026-02-20T22:09:04.0378012Z d64dbdf800a2: Pulling fs layer
+2026-02-20T22:09:04.0378562Z 2710e764d89a: Pulling fs layer
+2026-02-20T22:09:04.0379256Z c50a02fe2f5f: Pulling fs layer
+2026-02-20T22:09:04.0379777Z 0ace4c983c3e: Pulling fs layer
+2026-02-20T22:09:04.0380224Z b64f280cfa2b: Pulling fs layer
+2026-02-20T22:09:04.0380655Z ea5e741a30ce: Pulling fs layer
+2026-02-20T22:09:04.0381082Z e60549838c5a: Pulling fs layer
+2026-02-20T22:09:04.0381517Z 6771773ef0da: Pulling fs layer
+2026-02-20T22:09:04.0381949Z 049b2237836a: Pulling fs layer
+2026-02-20T22:09:04.0382428Z 7b098c79e38c: Pulling fs layer
+2026-02-20T22:09:04.0382860Z 7aa308802868: Pulling fs layer
+2026-02-20T22:09:04.0383294Z 49b40a0a623d: Pulling fs layer
+2026-02-20T22:09:04.0383729Z 2710e764d89a: Waiting
+2026-02-20T22:09:04.0384112Z c50a02fe2f5f: Waiting
+2026-02-20T22:09:04.0384368Z 0ace4c983c3e: Waiting
+2026-02-20T22:09:04.0384605Z b64f280cfa2b: Waiting
+2026-02-20T22:09:04.0384832Z e60549838c5a: Waiting
+2026-02-20T22:09:04.0385071Z ea5e741a30ce: Waiting
+2026-02-20T22:09:04.0385319Z 6771773ef0da: Waiting
+2026-02-20T22:09:04.0385547Z 049b2237836a: Waiting
+2026-02-20T22:09:04.0385759Z 7aa308802868: Waiting
+2026-02-20T22:09:04.0385976Z 49b40a0a623d: Waiting
+2026-02-20T22:09:04.0386197Z 7b098c79e38c: Waiting
+2026-02-20T22:09:04.1462693Z 03cf9c337134: Verifying Checksum
+2026-02-20T22:09:04.1463441Z 03cf9c337134: Download complete
+2026-02-20T22:09:04.2564520Z d64dbdf800a2: Verifying Checksum
+2026-02-20T22:09:04.2565353Z d64dbdf800a2: Download complete
+2026-02-20T22:09:04.3241834Z 2710e764d89a: Verifying Checksum
+2026-02-20T22:09:04.3243075Z 2710e764d89a: Download complete
+2026-02-20T22:09:04.4498672Z 0ace4c983c3e: Verifying Checksum
+2026-02-20T22:09:04.4499739Z 0ace4c983c3e: Download complete
+2026-02-20T22:09:04.4564724Z c50a02fe2f5f: Download complete
+2026-02-20T22:09:04.4824984Z 0c8d55a45c0d: Verifying Checksum
+2026-02-20T22:09:04.4827543Z 0c8d55a45c0d: Download complete
+2026-02-20T22:09:04.5702642Z ea5e741a30ce: Verifying Checksum
+2026-02-20T22:09:04.5703288Z ea5e741a30ce: Download complete
+2026-02-20T22:09:04.6126771Z b64f280cfa2b: Verifying Checksum
+2026-02-20T22:09:04.6127492Z b64f280cfa2b: Download complete
+2026-02-20T22:09:04.7161678Z 049b2237836a: Verifying Checksum
+2026-02-20T22:09:04.7162354Z 049b2237836a: Download complete
+2026-02-20T22:09:04.7287054Z 6771773ef0da: Download complete
+2026-02-20T22:09:04.8379909Z 7aa308802868: Verifying Checksum
+2026-02-20T22:09:04.8380373Z 7aa308802868: Download complete
+2026-02-20T22:09:04.8903213Z 7b098c79e38c: Verifying Checksum
+2026-02-20T22:09:04.8905157Z 7b098c79e38c: Download complete
+2026-02-20T22:09:04.9513308Z 49b40a0a623d: Verifying Checksum
+2026-02-20T22:09:04.9514324Z 49b40a0a623d: Download complete
+2026-02-20T22:09:05.5807563Z 0c8d55a45c0d: Pull complete
+2026-02-20T22:09:05.9401969Z e60549838c5a: Verifying Checksum
+2026-02-20T22:09:05.9402464Z e60549838c5a: Download complete
+2026-02-20T22:09:07.0179227Z 03cf9c337134: Pull complete
+2026-02-20T22:09:07.1929241Z d64dbdf800a2: Pull complete
+2026-02-20T22:09:07.2315708Z 2710e764d89a: Pull complete
+2026-02-20T22:09:07.5566725Z c50a02fe2f5f: Pull complete
+2026-02-20T22:09:07.6439086Z 0ace4c983c3e: Pull complete
+2026-02-20T22:09:07.6526466Z b64f280cfa2b: Pull complete
+2026-02-20T22:09:07.6640325Z ea5e741a30ce: Pull complete
+2026-02-20T22:09:10.6281715Z e60549838c5a: Pull complete
+2026-02-20T22:09:10.6447163Z 6771773ef0da: Pull complete
+2026-02-20T22:09:10.6560251Z 049b2237836a: Pull complete
+2026-02-20T22:09:10.6685048Z 7b098c79e38c: Pull complete
+2026-02-20T22:09:10.6801517Z 7aa308802868: Pull complete
+2026-02-20T22:09:10.6898469Z 49b40a0a623d: Pull complete
+2026-02-20T22:09:10.6939785Z Digest: sha256:dafc4d8e8369da730a5ee9a320a0f0b3c6aa516f41244689c4493a27dc84472d
+2026-02-20T22:09:10.6958014Z Status: Downloaded newer image for postgres:15
+2026-02-20T22:09:10.6966429Z docker.io/library/postgres:15
+2026-02-20T22:09:10.7026852Z ##[command]/usr/bin/docker create --name cb541e8d222f47f38a59fbeab4030e74_postgres15_1871cf --label 72a965 --network github_network_25bc9a717fe7424f9d20c40d2f9d08d3 --network-alias postgres -p 5432:5432 --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5 -e "POSTGRES_USER=postgres" -e "POSTGRES_PASSWORD=postgres" -e "POSTGRES_DB=mathakine_test" -e GITHUB_ACTIONS=true -e CI=true postgres:15
+2026-02-20T22:09:10.7279424Z 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e
+2026-02-20T22:09:10.7301014Z ##[command]/usr/bin/docker start 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e
+2026-02-20T22:09:11.0383446Z 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e
+2026-02-20T22:09:11.0402282Z ##[command]/usr/bin/docker ps --all --filter id=0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-02-20T22:09:11.0543660Z 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e Up Less than a second (health: starting)
+2026-02-20T22:09:11.0565102Z ##[command]/usr/bin/docker port 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e
+2026-02-20T22:09:11.0704290Z 5432/tcp -> 0.0.0.0:5432
+2026-02-20T22:09:11.0704766Z 5432/tcp -> [::]:5432
+2026-02-20T22:09:11.0750974Z ##[endgroup]
+2026-02-20T22:09:11.0759496Z ##[group]Waiting for all services to be ready
+2026-02-20T22:09:11.0772546Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e
+2026-02-20T22:09:11.0917983Z starting
+2026-02-20T22:09:11.0940618Z postgres service is starting, waiting 2 seconds before checking again.
+2026-02-20T22:09:13.0941122Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e
+2026-02-20T22:09:13.1063329Z starting
+2026-02-20T22:09:13.1077074Z postgres service is starting, waiting 3 seconds before checking again.
+2026-02-20T22:09:17.0572114Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e
+2026-02-20T22:09:17.0695400Z starting
+2026-02-20T22:09:17.0709018Z postgres service is starting, waiting 7 seconds before checking again.
+2026-02-20T22:09:24.4139597Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e
+2026-02-20T22:09:24.4258126Z healthy
+2026-02-20T22:09:24.4274716Z postgres service is healthy.
+2026-02-20T22:09:24.4275464Z ##[endgroup]
+2026-02-20T22:09:24.4538366Z ##[group]Run actions/checkout@v6
+2026-02-20T22:09:24.4539373Z with:
+2026-02-20T22:09:24.4539602Z   repository: zyclope0/mathakine
+2026-02-20T22:09:24.4539989Z   token: ***
+2026-02-20T22:09:24.4540169Z   ssh-strict: true
+2026-02-20T22:09:24.4540359Z   ssh-user: git
+2026-02-20T22:09:24.4540546Z   persist-credentials: true
+2026-02-20T22:09:24.4540759Z   clean: true
+2026-02-20T22:09:24.4540957Z   sparse-checkout-cone-mode: true
+2026-02-20T22:09:24.4541188Z   fetch-depth: 1
+2026-02-20T22:09:24.4541371Z   fetch-tags: false
+2026-02-20T22:09:24.4541559Z   show-progress: true
+2026-02-20T22:09:24.4541739Z   lfs: false
+2026-02-20T22:09:24.4541912Z   submodules: false
+2026-02-20T22:09:24.4542094Z   set-safe-directory: true
+2026-02-20T22:09:24.4542567Z ##[endgroup]
+2026-02-20T22:09:24.5448127Z Syncing repository: zyclope0/mathakine
+2026-02-20T22:09:24.5449799Z ##[group]Getting Git version info
+2026-02-20T22:09:24.5450199Z Working directory is '/home/runner/work/mathakine/mathakine'
+2026-02-20T22:09:24.5450796Z [command]/usr/bin/git version
+2026-02-20T22:09:24.5513640Z git version 2.52.0
+2026-02-20T22:09:24.5536341Z ##[endgroup]
+2026-02-20T22:09:24.5550791Z Temporarily overriding HOME='/home/runner/work/_temp/119565e8-e687-4ddd-bf6f-9f4457652b29' before making global git config changes
+2026-02-20T22:09:24.5552233Z Adding repository directory to the temporary git global config as a safe directory
+2026-02-20T22:09:24.5555429Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/mathakine/mathakine
+2026-02-20T22:09:24.5592704Z Deleting the contents of '/home/runner/work/mathakine/mathakine'
+2026-02-20T22:09:24.5596289Z ##[group]Initializing the repository
+2026-02-20T22:09:24.5600703Z [command]/usr/bin/git init /home/runner/work/mathakine/mathakine
+2026-02-20T22:09:24.5729815Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-02-20T22:09:24.5731056Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-02-20T22:09:24.5731841Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-02-20T22:09:24.5732255Z hint: call:
+2026-02-20T22:09:24.5732423Z hint:
+2026-02-20T22:09:24.5732710Z hint: 	git config --global init.defaultBranch <name>
+2026-02-20T22:09:24.5733013Z hint:
+2026-02-20T22:09:24.5733295Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-02-20T22:09:24.5734179Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-02-20T22:09:24.5734720Z hint:
+2026-02-20T22:09:24.5734907Z hint: 	git branch -m <name>
+2026-02-20T22:09:24.5735125Z hint:
+2026-02-20T22:09:24.5735428Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-02-20T22:09:24.5736206Z Initialized empty Git repository in /home/runner/work/mathakine/mathakine/.git/
+2026-02-20T22:09:24.5744532Z [command]/usr/bin/git remote add origin https://github.com/zyclope0/mathakine
+2026-02-20T22:09:24.5778121Z ##[endgroup]
+2026-02-20T22:09:24.5778995Z ##[group]Disabling automatic garbage collection
+2026-02-20T22:09:24.5782868Z [command]/usr/bin/git config --local gc.auto 0
+2026-02-20T22:09:24.5810076Z ##[endgroup]
+2026-02-20T22:09:24.5810697Z ##[group]Setting up auth
+2026-02-20T22:09:24.5811979Z Removing SSH command configuration
+2026-02-20T22:09:24.5817977Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-02-20T22:09:24.5849156Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-02-20T22:09:24.6170558Z Removing HTTP extra header
+2026-02-20T22:09:24.6175329Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-02-20T22:09:24.6205817Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-02-20T22:09:24.6418156Z Removing includeIf entries pointing to credentials config files
+2026-02-20T22:09:24.6424523Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-02-20T22:09:24.6454870Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-02-20T22:09:24.6677567Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-02-20T22:09:24.6712608Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/mathakine/mathakine/.git.path /home/runner/work/_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:09:24.6742252Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/mathakine/mathakine/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:09:24.6771227Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:09:24.6802217Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:09:24.6836640Z ##[endgroup]
+2026-02-20T22:09:24.6837249Z ##[group]Fetching the repository
+2026-02-20T22:09:24.6838663Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +4bb592240b396ea910621b85086f612e8b38c81f:refs/remotes/origin/master
+2026-02-20T22:09:25.2100883Z From https://github.com/zyclope0/mathakine
+2026-02-20T22:09:25.2101636Z  * [new ref]         4bb592240b396ea910621b85086f612e8b38c81f -> origin/master
+2026-02-20T22:09:25.2139695Z [command]/usr/bin/git branch --list --remote origin/master
+2026-02-20T22:09:25.2171417Z   origin/master
+2026-02-20T22:09:25.2181601Z [command]/usr/bin/git rev-parse refs/remotes/origin/master
+2026-02-20T22:09:25.2203628Z 4bb592240b396ea910621b85086f612e8b38c81f
+2026-02-20T22:09:25.2208241Z ##[endgroup]
+2026-02-20T22:09:25.2209060Z ##[group]Determining the checkout info
+2026-02-20T22:09:25.2209873Z ##[endgroup]
+2026-02-20T22:09:25.2214492Z [command]/usr/bin/git sparse-checkout disable
+2026-02-20T22:09:25.2255007Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-02-20T22:09:25.2280167Z ##[group]Checking out the ref
+2026-02-20T22:09:25.2283949Z [command]/usr/bin/git checkout --progress --force -B master refs/remotes/origin/master
+2026-02-20T22:09:25.2690403Z Reset branch 'master'
+2026-02-20T22:09:25.2693004Z branch 'master' set up to track 'origin/master'.
+2026-02-20T22:09:25.2699730Z ##[endgroup]
+2026-02-20T22:09:25.2737671Z [command]/usr/bin/git log -1 --format=%H
+2026-02-20T22:09:25.2760834Z 4bb592240b396ea910621b85086f612e8b38c81f
+2026-02-20T22:09:25.2956994Z ##[group]Run actions/setup-python@v6
+2026-02-20T22:09:25.2957282Z with:
+2026-02-20T22:09:25.2957464Z   python-version: 3.12
+2026-02-20T22:09:25.2957689Z   cache: pip
+2026-02-20T22:09:25.2957865Z   check-latest: false
+2026-02-20T22:09:25.2958185Z   token: ***
+2026-02-20T22:09:25.2958381Z   update-environment: true
+2026-02-20T22:09:25.2958602Z   allow-prereleases: false
+2026-02-20T22:09:25.2959009Z   freethreaded: false
+2026-02-20T22:09:25.2959210Z ##[endgroup]
+2026-02-20T22:09:25.4186294Z ##[group]Installed versions
+2026-02-20T22:09:25.4299317Z Successfully set up CPython (3.12.12)
+2026-02-20T22:09:25.4300102Z ##[endgroup]
+2026-02-20T22:09:25.5299559Z [command]/opt/hostedtoolcache/Python/3.12.12/x64/bin/pip cache dir
+2026-02-20T22:09:27.1850805Z /home/runner/.cache/pip
+2026-02-20T22:09:27.3181824Z Cache hit for: setup-python-Linux-x64-24.04-Ubuntu-python-3.12.12-pip-1cc806b0a4983318995c106f12c3141a2a9a203334e92adb8bb355bf85ca96e1
+2026-02-20T22:09:28.0345002Z Received 65888309 of 65888309 (100.0%), 105.3 MBs/sec
+2026-02-20T22:09:28.0345556Z Cache Size: ~63 MB (65888309 B)
+2026-02-20T22:09:28.0373973Z [command]/usr/bin/tar -xf /home/runner/work/_temp/c220b8e4-5dc0-42c4-8f66-0408ce9e77c7/cache.tzst -P -C /home/runner/work/mathakine/mathakine --use-compress-program unzstd
+2026-02-20T22:09:28.1767272Z Cache restored successfully
+2026-02-20T22:09:28.1891889Z Cache restored from key: setup-python-Linux-x64-24.04-Ubuntu-python-3.12.12-pip-1cc806b0a4983318995c106f12c3141a2a9a203334e92adb8bb355bf85ca96e1
+2026-02-20T22:09:28.2063713Z ##[group]Run python -c "import sys; assert sys.version_info >= (3, 12), f'Python 3.12+ required, got {sys.version}'"
+2026-02-20T22:09:28.2064491Z [36;1mpython -c "import sys; assert sys.version_info >= (3, 12), f'Python 3.12+ required, got {sys.version}'"[0m
+2026-02-20T22:09:28.2102681Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:09:28.2102924Z env:
+2026-02-20T22:09:28.2103178Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:28.2103607Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:09:28.2104027Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:28.2104585Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:28.2104944Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:28.2105309Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:09:28.2105608Z ##[endgroup]
+2026-02-20T22:09:28.2328738Z ##[group]Run python -m pip install --upgrade pip
+2026-02-20T22:09:28.2329351Z [36;1mpython -m pip install --upgrade pip[0m
+2026-02-20T22:09:28.2329652Z [36;1mpip install -r requirements.txt[0m
+2026-02-20T22:09:28.2329986Z [36;1mpip install pytest pytest-cov pytest-asyncio httpx[0m
+2026-02-20T22:09:28.2360472Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:09:28.2360704Z env:
+2026-02-20T22:09:28.2360951Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:28.2361371Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:09:28.2361780Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:28.2362157Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:28.2362522Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:28.2362887Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:09:28.2363188Z ##[endgroup]
+2026-02-20T22:09:29.2223380Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (26.0)
+2026-02-20T22:09:29.3134935Z Collecting pip
+2026-02-20T22:09:29.3147986Z   Using cached pip-26.0.1-py3-none-any.whl.metadata (4.7 kB)
+2026-02-20T22:09:29.3180673Z Using cached pip-26.0.1-py3-none-any.whl (1.8 MB)
+2026-02-20T22:09:29.3463164Z Installing collected packages: pip
+2026-02-20T22:09:29.3464387Z   Attempting uninstall: pip
+2026-02-20T22:09:29.3483303Z     Found existing installation: pip 26.0
+2026-02-20T22:09:29.4142736Z     Uninstalling pip-26.0:
+2026-02-20T22:09:29.4205269Z       Successfully uninstalled pip-26.0
+2026-02-20T22:09:30.3117493Z Successfully installed pip-26.0.1
+2026-02-20T22:09:30.7936178Z Collecting fastapi==0.121.0 (from -r requirements.txt (line 2))
+2026-02-20T22:09:30.7949276Z   Using cached fastapi-0.121.0-py3-none-any.whl.metadata (28 kB)
+2026-02-20T22:09:30.8185892Z Collecting starlette==0.49.3 (from -r requirements.txt (line 3))
+2026-02-20T22:09:30.8197501Z   Using cached starlette-0.49.3-py3-none-any.whl.metadata (6.4 kB)
+2026-02-20T22:09:30.8378908Z Collecting uvicorn==0.23.2 (from -r requirements.txt (line 4))
+2026-02-20T22:09:30.8389985Z   Using cached uvicorn-0.23.2-py3-none-any.whl.metadata (6.2 kB)
+2026-02-20T22:09:30.8513925Z Collecting jinja2==3.1.6 (from -r requirements.txt (line 7))
+2026-02-20T22:09:30.8525019Z   Using cached jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+2026-02-20T22:09:30.8616817Z Collecting aiofiles==23.2.1 (from -r requirements.txt (line 8))
+2026-02-20T22:09:30.8627664Z   Using cached aiofiles-23.2.1-py3-none-any.whl.metadata (9.7 kB)
+2026-02-20T22:09:31.1004601Z Collecting sqlalchemy==2.0.46 (from -r requirements.txt (line 11))
+2026-02-20T22:09:31.1018368Z   Using cached sqlalchemy-2.0.46-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (9.5 kB)
+2026-02-20T22:09:31.1640029Z Collecting psycopg2-binary==2.9.11 (from -r requirements.txt (line 12))
+2026-02-20T22:09:31.1653137Z   Using cached psycopg2_binary-2.9.11-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (4.9 kB)
+2026-02-20T22:09:31.1816863Z Collecting alembic==1.13.1 (from -r requirements.txt (line 13))
+2026-02-20T22:09:31.1828366Z   Using cached alembic-1.13.1-py3-none-any.whl.metadata (7.4 kB)
+2026-02-20T22:09:31.2773359Z Collecting pydantic==2.12.4 (from -r requirements.txt (line 16))
+2026-02-20T22:09:31.2785371Z   Using cached pydantic-2.12.4-py3-none-any.whl.metadata (89 kB)
+2026-02-20T22:09:31.2931210Z Collecting pydantic-settings==2.11.0 (from -r requirements.txt (line 17))
+2026-02-20T22:09:31.2942162Z   Using cached pydantic_settings-2.11.0-py3-none-any.whl.metadata (3.4 kB)
+2026-02-20T22:09:31.3072896Z Collecting python-dotenv==1.2.1 (from -r requirements.txt (line 20))
+2026-02-20T22:09:31.3083859Z   Using cached python_dotenv-1.2.1-py3-none-any.whl.metadata (25 kB)
+2026-02-20T22:09:31.3267714Z Collecting requests==2.32.5 (from -r requirements.txt (line 21))
+2026-02-20T22:09:31.3279628Z   Using cached requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+2026-02-20T22:09:31.3387764Z Collecting email-validator==2.3.0 (from -r requirements.txt (line 22))
+2026-02-20T22:09:31.3398685Z   Using cached email_validator-2.3.0-py3-none-any.whl.metadata (26 kB)
+2026-02-20T22:09:31.3511842Z Collecting colorama==0.4.6 (from -r requirements.txt (line 23))
+2026-02-20T22:09:31.3522986Z   Using cached colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+2026-02-20T22:09:31.3670773Z Collecting typer==0.9.0 (from -r requirements.txt (line 24))
+2026-02-20T22:09:31.3681792Z   Using cached typer-0.9.0-py3-none-any.whl.metadata (14 kB)
+2026-02-20T22:09:31.3801519Z Collecting pathlib==1.0.1 (from -r requirements.txt (line 25))
+2026-02-20T22:09:31.3812515Z   Using cached pathlib-1.0.1-py3-none-any.whl.metadata (5.1 kB)
+2026-02-20T22:09:31.4166623Z Collecting openai==2.16.0 (from -r requirements.txt (line 28))
+2026-02-20T22:09:31.4177692Z   Using cached openai-2.16.0-py3-none-any.whl.metadata (29 kB)
+2026-02-20T22:09:31.4314507Z Collecting tenacity==9.1.4 (from -r requirements.txt (line 29))
+2026-02-20T22:09:31.4325758Z   Using cached tenacity-9.1.4-py3-none-any.whl.metadata (1.2 kB)
+2026-02-20T22:09:31.4425918Z Collecting loguru==0.7.3 (from -r requirements.txt (line 32))
+2026-02-20T22:09:31.4436917Z   Using cached loguru-0.7.3-py3-none-any.whl.metadata (22 kB)
+2026-02-20T22:09:31.6224022Z Collecting cryptography>=46.0.5 (from -r requirements.txt (line 35))
+2026-02-20T22:09:31.6236693Z   Using cached cryptography-46.0.5-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (5.7 kB)
+2026-02-20T22:09:31.6431795Z Collecting pyasn1>=0.6.2 (from -r requirements.txt (line 36))
+2026-02-20T22:09:31.6443312Z   Using cached pyasn1-0.6.2-py3-none-any.whl.metadata (8.4 kB)
+2026-02-20T22:09:31.6550193Z Collecting python-jose==3.5.0 (from python-jose[cryptography]==3.5.0->-r requirements.txt (line 37))
+2026-02-20T22:09:31.6561211Z   Using cached python_jose-3.5.0-py2.py3-none-any.whl.metadata (5.5 kB)
+2026-02-20T22:09:31.6910606Z Collecting bcrypt==4.0.1 (from -r requirements.txt (line 38))
+2026-02-20T22:09:31.6921837Z   Using cached bcrypt-4.0.1-cp36-abi3-manylinux_2_28_x86_64.whl.metadata (9.0 kB)
+2026-02-20T22:09:31.7154467Z Collecting pytest==9.0.2 (from -r requirements.txt (line 41))
+2026-02-20T22:09:31.7165673Z   Using cached pytest-9.0.2-py3-none-any.whl.metadata (7.6 kB)
+2026-02-20T22:09:31.7312148Z Collecting pytest-asyncio==1.3.0 (from -r requirements.txt (line 42))
+2026-02-20T22:09:31.7323392Z   Using cached pytest_asyncio-1.3.0-py3-none-any.whl.metadata (4.1 kB)
+2026-02-20T22:09:31.7469317Z Collecting beautifulsoup4==4.12.2 (from -r requirements.txt (line 43))
+2026-02-20T22:09:31.7480274Z   Using cached beautifulsoup4-4.12.2-py3-none-any.whl.metadata (3.6 kB)
+2026-02-20T22:09:31.7591069Z Collecting pytest-cov==7.0.0 (from -r requirements.txt (line 44))
+2026-02-20T22:09:31.7602294Z   Using cached pytest_cov-7.0.0-py3-none-any.whl.metadata (31 kB)
+2026-02-20T22:09:31.7748194Z Collecting httpx==0.28.1 (from -r requirements.txt (line 45))
+2026-02-20T22:09:31.7759683Z   Using cached httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+2026-02-20T22:09:31.8073168Z Collecting sphinx==7.2.6 (from -r requirements.txt (line 48))
+2026-02-20T22:09:31.8084360Z   Using cached sphinx-7.2.6-py3-none-any.whl.metadata (5.9 kB)
+2026-02-20T22:09:31.8716032Z Collecting psutil==7.2.2 (from -r requirements.txt (line 51))
+2026-02-20T22:09:31.8729592Z   Using cached psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl.metadata (22 kB)
+2026-02-20T22:09:32.0366117Z Collecting pillow==12.1.1 (from -r requirements.txt (line 52))
+2026-02-20T22:09:32.0380302Z   Using cached pillow-12.1.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (8.8 kB)
+2026-02-20T22:09:32.0595441Z Collecting redis==7.2.0 (from -r requirements.txt (line 53))
+2026-02-20T22:09:32.0607684Z   Using cached redis-7.2.0-py3-none-any.whl.metadata (12 kB)
+2026-02-20T22:09:32.0830081Z Collecting gunicorn==25.0.3 (from -r requirements.txt (line 54))
+2026-02-20T22:09:32.0843077Z   Using cached gunicorn-25.0.3-py3-none-any.whl.metadata (5.5 kB)
+2026-02-20T22:09:32.1196805Z Collecting uvloop==0.22.1 (from -r requirements.txt (line 55))
+2026-02-20T22:09:32.1210200Z   Using cached uvloop-0.22.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (4.9 kB)
+2026-02-20T22:09:32.1518622Z Collecting brotli==1.1.0 (from -r requirements.txt (line 58))
+2026-02-20T22:09:32.1531744Z   Using cached Brotli-1.1.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.5 kB)
+2026-02-20T22:09:32.1644089Z Collecting cssmin==0.2.0 (from -r requirements.txt (line 59))
+2026-02-20T22:09:32.1645999Z   Using cached cssmin-0.2.0-py3-none-any.whl
+2026-02-20T22:09:32.1788026Z Collecting jsmin==3.0.1 (from -r requirements.txt (line 60))
+2026-02-20T22:09:32.1790200Z   Using cached jsmin-3.0.1-py3-none-any.whl
+2026-02-20T22:09:32.1898205Z Collecting prometheus-client==0.24.1 (from -r requirements.txt (line 63))
+2026-02-20T22:09:32.1910212Z   Using cached prometheus_client-0.24.1-py3-none-any.whl.metadata (2.1 kB)
+2026-02-20T22:09:32.2267366Z Collecting sentry-sdk==1.40.6 (from -r requirements.txt (line 64))
+2026-02-20T22:09:32.2278634Z   Using cached sentry_sdk-1.40.6-py2.py3-none-any.whl.metadata (9.7 kB)
+2026-02-20T22:09:32.2931738Z Collecting sendgrid==6.12.5 (from -r requirements.txt (line 67))
+2026-02-20T22:09:32.2944391Z   Using cached sendgrid-6.12.5-py3-none-any.whl.metadata (12 kB)
+2026-02-20T22:09:32.3127829Z Collecting typing-extensions>=4.8.0 (from fastapi==0.121.0->-r requirements.txt (line 2))
+2026-02-20T22:09:32.3139351Z   Using cached typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+2026-02-20T22:09:32.3220408Z Collecting annotated-doc>=0.0.2 (from fastapi==0.121.0->-r requirements.txt (line 2))
+2026-02-20T22:09:32.3232610Z   Using cached annotated_doc-0.0.4-py3-none-any.whl.metadata (6.6 kB)
+2026-02-20T22:09:32.3382200Z Collecting anyio<5,>=3.6.2 (from starlette==0.49.3->-r requirements.txt (line 3))
+2026-02-20T22:09:32.3393526Z   Using cached anyio-4.12.1-py3-none-any.whl.metadata (4.3 kB)
+2026-02-20T22:09:32.3518117Z Collecting annotated-types>=0.6.0 (from pydantic==2.12.4->-r requirements.txt (line 16))
+2026-02-20T22:09:32.3529872Z   Using cached annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+2026-02-20T22:09:32.9681799Z Collecting pydantic-core==2.41.5 (from pydantic==2.12.4->-r requirements.txt (line 16))
+2026-02-20T22:09:32.9694966Z   Using cached pydantic_core-2.41.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.3 kB)
+2026-02-20T22:09:32.9789044Z Collecting typing-inspection>=0.4.2 (from pydantic==2.12.4->-r requirements.txt (line 16))
+2026-02-20T22:09:32.9800376Z   Using cached typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+2026-02-20T22:09:32.9945751Z Collecting click>=7.0 (from uvicorn==0.23.2->-r requirements.txt (line 4))
+2026-02-20T22:09:32.9957254Z   Using cached click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+2026-02-20T22:09:33.0044374Z Collecting h11>=0.8 (from uvicorn==0.23.2->-r requirements.txt (line 4))
+2026-02-20T22:09:33.0055455Z   Using cached h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+2026-02-20T22:09:33.0507298Z Collecting MarkupSafe>=2.0 (from jinja2==3.1.6->-r requirements.txt (line 7))
+2026-02-20T22:09:33.0519943Z   Using cached markupsafe-3.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+2026-02-20T22:09:33.1721797Z Collecting greenlet>=1 (from sqlalchemy==2.0.46->-r requirements.txt (line 11))
+2026-02-20T22:09:33.2790053Z   Downloading greenlet-3.3.2-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (3.7 kB)
+2026-02-20T22:09:33.2975353Z Collecting Mako (from alembic==1.13.1->-r requirements.txt (line 13))
+2026-02-20T22:09:33.2986802Z   Using cached mako-1.3.10-py3-none-any.whl.metadata (2.9 kB)
+2026-02-20T22:09:33.3721010Z Collecting charset_normalizer<4,>=2 (from requests==2.32.5->-r requirements.txt (line 21))
+2026-02-20T22:09:33.3733124Z   Using cached charset_normalizer-3.4.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (37 kB)
+2026-02-20T22:09:33.3857500Z Collecting idna<4,>=2.5 (from requests==2.32.5->-r requirements.txt (line 21))
+2026-02-20T22:09:33.3868451Z   Using cached idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+2026-02-20T22:09:33.4066184Z Collecting urllib3<3,>=1.21.1 (from requests==2.32.5->-r requirements.txt (line 21))
+2026-02-20T22:09:33.4077136Z   Using cached urllib3-2.6.3-py3-none-any.whl.metadata (6.9 kB)
+2026-02-20T22:09:33.4261315Z Collecting certifi>=2017.4.17 (from requests==2.32.5->-r requirements.txt (line 21))
+2026-02-20T22:09:33.4272484Z   Using cached certifi-2026.1.4-py3-none-any.whl.metadata (2.5 kB)
+2026-02-20T22:09:33.4381084Z Collecting dnspython>=2.0.0 (from email-validator==2.3.0->-r requirements.txt (line 22))
+2026-02-20T22:09:33.4392251Z   Using cached dnspython-2.8.0-py3-none-any.whl.metadata (5.7 kB)
+2026-02-20T22:09:33.4578614Z Collecting distro<2,>=1.7.0 (from openai==2.16.0->-r requirements.txt (line 28))
+2026-02-20T22:09:33.4589956Z   Using cached distro-1.9.0-py3-none-any.whl.metadata (6.8 kB)
+2026-02-20T22:09:33.5251946Z Collecting jiter<1,>=0.10.0 (from openai==2.16.0->-r requirements.txt (line 28))
+2026-02-20T22:09:33.5263933Z   Using cached jiter-0.13.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.2 kB)
+2026-02-20T22:09:33.5358355Z Collecting sniffio (from openai==2.16.0->-r requirements.txt (line 28))
+2026-02-20T22:09:33.5369212Z   Using cached sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+2026-02-20T22:09:33.5641991Z Collecting tqdm>4 (from openai==2.16.0->-r requirements.txt (line 28))
+2026-02-20T22:09:33.5653433Z   Using cached tqdm-4.67.3-py3-none-any.whl.metadata (57 kB)
+2026-02-20T22:09:33.5851874Z Collecting httpcore==1.* (from httpx==0.28.1->-r requirements.txt (line 45))
+2026-02-20T22:09:33.5863267Z   Using cached httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+2026-02-20T22:09:33.6009719Z Collecting ecdsa!=0.15 (from python-jose==3.5.0->python-jose[cryptography]==3.5.0->-r requirements.txt (line 37))
+2026-02-20T22:09:33.6020859Z   Using cached ecdsa-0.19.1-py2.py3-none-any.whl.metadata (29 kB)
+2026-02-20T22:09:33.6166606Z Collecting rsa!=4.1.1,!=4.4,<5.0,>=4.0 (from python-jose==3.5.0->python-jose[cryptography]==3.5.0->-r requirements.txt (line 37))
+2026-02-20T22:09:33.6177549Z   Using cached rsa-4.9.1-py3-none-any.whl.metadata (5.6 kB)
+2026-02-20T22:09:33.6275345Z Collecting iniconfig>=1.0.1 (from pytest==9.0.2->-r requirements.txt (line 41))
+2026-02-20T22:09:33.6286594Z   Using cached iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+2026-02-20T22:09:33.6400945Z Collecting packaging>=22 (from pytest==9.0.2->-r requirements.txt (line 41))
+2026-02-20T22:09:33.6412570Z   Using cached packaging-26.0-py3-none-any.whl.metadata (3.3 kB)
+2026-02-20T22:09:33.6510025Z Collecting pluggy<2,>=1.5 (from pytest==9.0.2->-r requirements.txt (line 41))
+2026-02-20T22:09:33.6521519Z   Using cached pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+2026-02-20T22:09:33.6670016Z Collecting pygments>=2.7.2 (from pytest==9.0.2->-r requirements.txt (line 41))
+2026-02-20T22:09:33.6681040Z   Using cached pygments-2.19.2-py3-none-any.whl.metadata (2.5 kB)
+2026-02-20T22:09:33.6854280Z Collecting soupsieve>1.2 (from beautifulsoup4==4.12.2->-r requirements.txt (line 43))
+2026-02-20T22:09:33.6865610Z   Using cached soupsieve-2.8.3-py3-none-any.whl.metadata (4.6 kB)
+2026-02-20T22:09:34.0840961Z Collecting coverage>=7.10.6 (from coverage[toml]>=7.10.6->pytest-cov==7.0.0->-r requirements.txt (line 44))
+2026-02-20T22:09:34.0856020Z   Using cached coverage-7.13.4-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (8.5 kB)
+2026-02-20T22:09:34.0994586Z Collecting sphinxcontrib-applehelp (from sphinx==7.2.6->-r requirements.txt (line 48))
+2026-02-20T22:09:34.1006926Z   Using cached sphinxcontrib_applehelp-2.0.0-py3-none-any.whl.metadata (2.3 kB)
+2026-02-20T22:09:34.1114806Z Collecting sphinxcontrib-devhelp (from sphinx==7.2.6->-r requirements.txt (line 48))
+2026-02-20T22:09:34.1126922Z   Using cached sphinxcontrib_devhelp-2.0.0-py3-none-any.whl.metadata (2.3 kB)
+2026-02-20T22:09:34.1240596Z Collecting sphinxcontrib-jsmath (from sphinx==7.2.6->-r requirements.txt (line 48))
+2026-02-20T22:09:34.1253071Z   Using cached sphinxcontrib_jsmath-1.0.1-py2.py3-none-any.whl.metadata (1.4 kB)
+2026-02-20T22:09:34.1476782Z Collecting sphinxcontrib-htmlhelp>=2.0.0 (from sphinx==7.2.6->-r requirements.txt (line 48))
+2026-02-20T22:09:34.1488464Z   Using cached sphinxcontrib_htmlhelp-2.1.0-py3-none-any.whl.metadata (2.3 kB)
+2026-02-20T22:09:34.1697416Z Collecting sphinxcontrib-serializinghtml>=1.1.9 (from sphinx==7.2.6->-r requirements.txt (line 48))
+2026-02-20T22:09:34.1709425Z   Using cached sphinxcontrib_serializinghtml-2.0.0-py3-none-any.whl.metadata (2.4 kB)
+2026-02-20T22:09:34.1817677Z Collecting sphinxcontrib-qthelp (from sphinx==7.2.6->-r requirements.txt (line 48))
+2026-02-20T22:09:34.1829266Z   Using cached sphinxcontrib_qthelp-2.0.0-py3-none-any.whl.metadata (2.3 kB)
+2026-02-20T22:09:34.2063400Z Collecting docutils<0.21,>=0.18.1 (from sphinx==7.2.6->-r requirements.txt (line 48))
+2026-02-20T22:09:34.2074869Z   Using cached docutils-0.20.1-py3-none-any.whl.metadata (2.8 kB)
+2026-02-20T22:09:34.2176713Z Collecting snowballstemmer>=2.0 (from sphinx==7.2.6->-r requirements.txt (line 48))
+2026-02-20T22:09:34.2188330Z   Using cached snowballstemmer-3.0.1-py3-none-any.whl.metadata (7.9 kB)
+2026-02-20T22:09:34.2331128Z Collecting babel>=2.9 (from sphinx==7.2.6->-r requirements.txt (line 48))
+2026-02-20T22:09:34.2342582Z   Using cached babel-2.18.0-py3-none-any.whl.metadata (2.2 kB)
+2026-02-20T22:09:34.2546639Z Collecting alabaster<0.8,>=0.7 (from sphinx==7.2.6->-r requirements.txt (line 48))
+2026-02-20T22:09:34.2557973Z   Using cached alabaster-0.7.16-py3-none-any.whl.metadata (2.9 kB)
+2026-02-20T22:09:34.2677336Z Collecting imagesize>=1.3 (from sphinx==7.2.6->-r requirements.txt (line 48))
+2026-02-20T22:09:34.2689087Z   Using cached imagesize-1.4.1-py2.py3-none-any.whl.metadata (1.5 kB)
+2026-02-20T22:09:34.2969843Z Collecting python-http-client>=3.2.1 (from sendgrid==6.12.5->-r requirements.txt (line 67))
+2026-02-20T22:09:34.2981875Z   Using cached python_http_client-3.3.7-py3-none-any.whl.metadata (6.9 kB)
+2026-02-20T22:09:34.3289717Z Collecting werkzeug>=2.2.0 (from sendgrid==6.12.5->-r requirements.txt (line 67))
+2026-02-20T22:09:34.3301290Z   Using cached werkzeug-3.1.6-py3-none-any.whl.metadata (4.0 kB)
+2026-02-20T22:09:34.4407656Z Collecting cffi>=2.0.0 (from cryptography>=46.0.5->-r requirements.txt (line 35))
+2026-02-20T22:09:34.4419143Z   Using cached cffi-2.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.6 kB)
+2026-02-20T22:09:34.4553694Z Collecting pycparser (from cffi>=2.0.0->cryptography>=46.0.5->-r requirements.txt (line 35))
+2026-02-20T22:09:34.4564490Z   Using cached pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+2026-02-20T22:09:34.4706853Z Collecting six>=1.9.0 (from ecdsa!=0.15->python-jose==3.5.0->python-jose[cryptography]==3.5.0->-r requirements.txt (line 37))
+2026-02-20T22:09:34.4717877Z   Using cached six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+2026-02-20T22:09:34.4931857Z Using cached fastapi-0.121.0-py3-none-any.whl (109 kB)
+2026-02-20T22:09:34.4943301Z Using cached starlette-0.49.3-py3-none-any.whl (74 kB)
+2026-02-20T22:09:34.4954767Z Using cached pydantic-2.12.4-py3-none-any.whl (463 kB)
+2026-02-20T22:09:34.4969143Z Using cached uvicorn-0.23.2-py3-none-any.whl (59 kB)
+2026-02-20T22:09:34.4980489Z Using cached jinja2-3.1.6-py3-none-any.whl (134 kB)
+2026-02-20T22:09:34.4992052Z Using cached aiofiles-23.2.1-py3-none-any.whl (15 kB)
+2026-02-20T22:09:34.5003460Z Using cached sqlalchemy-2.0.46-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (3.3 MB)
+2026-02-20T22:09:34.5040394Z Using cached psycopg2_binary-2.9.11-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (4.2 MB)
+2026-02-20T22:09:34.5082529Z Using cached alembic-1.13.1-py3-none-any.whl (233 kB)
+2026-02-20T22:09:34.5095026Z Using cached pydantic_settings-2.11.0-py3-none-any.whl (48 kB)
+2026-02-20T22:09:34.5105984Z Using cached python_dotenv-1.2.1-py3-none-any.whl (21 kB)
+2026-02-20T22:09:34.5117155Z Using cached requests-2.32.5-py3-none-any.whl (64 kB)
+2026-02-20T22:09:34.5128104Z Using cached email_validator-2.3.0-py3-none-any.whl (35 kB)
+2026-02-20T22:09:34.5139051Z Using cached colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+2026-02-20T22:09:34.5149883Z Using cached typer-0.9.0-py3-none-any.whl (45 kB)
+2026-02-20T22:09:34.5160746Z Using cached pathlib-1.0.1-py3-none-any.whl (14 kB)
+2026-02-20T22:09:34.5171447Z Using cached openai-2.16.0-py3-none-any.whl (1.1 MB)
+2026-02-20T22:09:34.5190574Z Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
+2026-02-20T22:09:34.5201995Z Using cached tenacity-9.1.4-py3-none-any.whl (28 kB)
+2026-02-20T22:09:34.5212738Z Using cached loguru-0.7.3-py3-none-any.whl (61 kB)
+2026-02-20T22:09:34.5223739Z Using cached python_jose-3.5.0-py2.py3-none-any.whl (34 kB)
+2026-02-20T22:09:34.5234671Z Using cached bcrypt-4.0.1-cp36-abi3-manylinux_2_28_x86_64.whl (593 kB)
+2026-02-20T22:09:34.5250095Z Using cached pytest-9.0.2-py3-none-any.whl (374 kB)
+2026-02-20T22:09:34.5263340Z Using cached pytest_asyncio-1.3.0-py3-none-any.whl (15 kB)
+2026-02-20T22:09:34.5274066Z Using cached beautifulsoup4-4.12.2-py3-none-any.whl (142 kB)
+2026-02-20T22:09:34.5285525Z Using cached pytest_cov-7.0.0-py3-none-any.whl (22 kB)
+2026-02-20T22:09:34.5296103Z Using cached sphinx-7.2.6-py3-none-any.whl (3.2 MB)
+2026-02-20T22:09:34.5331863Z Using cached psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl (155 kB)
+2026-02-20T22:09:34.5343766Z Using cached pillow-12.1.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.0 MB)
+2026-02-20T22:09:34.5407078Z Using cached redis-7.2.0-py3-none-any.whl (394 kB)
+2026-02-20T22:09:34.5420739Z Using cached gunicorn-25.0.3-py3-none-any.whl (171 kB)
+2026-02-20T22:09:34.5433490Z Using cached uvloop-0.22.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (4.4 MB)
+2026-02-20T22:09:34.5477269Z Using cached Brotli-1.1.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.9 MB)
+2026-02-20T22:09:34.5511082Z Using cached prometheus_client-0.24.1-py3-none-any.whl (64 kB)
+2026-02-20T22:09:34.5522319Z Using cached sentry_sdk-1.40.6-py2.py3-none-any.whl (258 kB)
+2026-02-20T22:09:34.5534970Z Using cached sendgrid-6.12.5-py3-none-any.whl (102 kB)
+2026-02-20T22:09:34.5546884Z Using cached pydantic_core-2.41.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+2026-02-20T22:09:34.5572800Z Using cached alabaster-0.7.16-py3-none-any.whl (13 kB)
+2026-02-20T22:09:34.5583717Z Using cached anyio-4.12.1-py3-none-any.whl (113 kB)
+2026-02-20T22:09:34.5595750Z Using cached charset_normalizer-3.4.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (153 kB)
+2026-02-20T22:09:34.5607322Z Using cached click-8.3.1-py3-none-any.whl (108 kB)
+2026-02-20T22:09:34.5619244Z Using cached distro-1.9.0-py3-none-any.whl (20 kB)
+2026-02-20T22:09:34.5630167Z Using cached docutils-0.20.1-py3-none-any.whl (572 kB)
+2026-02-20T22:09:34.5645141Z Using cached httpcore-1.0.9-py3-none-any.whl (78 kB)
+2026-02-20T22:09:34.5656379Z Using cached idna-3.11-py3-none-any.whl (71 kB)
+2026-02-20T22:09:34.5667746Z Using cached jiter-0.13.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (360 kB)
+2026-02-20T22:09:34.5681401Z Using cached pluggy-1.6.0-py3-none-any.whl (20 kB)
+2026-02-20T22:09:34.5692529Z Using cached rsa-4.9.1-py3-none-any.whl (34 kB)
+2026-02-20T22:09:34.5706716Z Using cached typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+2026-02-20T22:09:34.5717865Z Using cached urllib3-2.6.3-py3-none-any.whl (131 kB)
+2026-02-20T22:09:34.5730287Z Using cached cryptography-46.0.5-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
+2026-02-20T22:09:34.5775187Z Using cached pyasn1-0.6.2-py3-none-any.whl (83 kB)
+2026-02-20T22:09:34.5786594Z Using cached annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+2026-02-20T22:09:34.5797437Z Using cached annotated_types-0.7.0-py3-none-any.whl (13 kB)
+2026-02-20T22:09:34.5808093Z Using cached babel-2.18.0-py3-none-any.whl (10.2 MB)
+2026-02-20T22:09:34.5897255Z Using cached certifi-2026.1.4-py3-none-any.whl (152 kB)
+2026-02-20T22:09:34.5909279Z Using cached cffi-2.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (219 kB)
+2026-02-20T22:09:34.5922086Z Using cached coverage-7.13.4-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (254 kB)
+2026-02-20T22:09:34.5934339Z Using cached dnspython-2.8.0-py3-none-any.whl (331 kB)
+2026-02-20T22:09:34.5947783Z Using cached ecdsa-0.19.1-py2.py3-none-any.whl (150 kB)
+2026-02-20T22:09:34.6152367Z Downloading greenlet-3.3.2-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (613 kB)
+2026-02-20T22:09:34.6950209Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 613.9/613.9 kB 14.0 MB/s  0:00:00
+2026-02-20T22:09:34.6962378Z Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+2026-02-20T22:09:34.6974486Z Using cached imagesize-1.4.1-py2.py3-none-any.whl (8.8 kB)
+2026-02-20T22:09:34.6986159Z Using cached iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+2026-02-20T22:09:34.6997925Z Using cached markupsafe-3.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+2026-02-20T22:09:34.7009309Z Using cached packaging-26.0-py3-none-any.whl (74 kB)
+2026-02-20T22:09:34.7021216Z Using cached pygments-2.19.2-py3-none-any.whl (1.2 MB)
+2026-02-20T22:09:34.7042018Z Using cached python_http_client-3.3.7-py3-none-any.whl (8.4 kB)
+2026-02-20T22:09:34.7053282Z Using cached six-1.17.0-py2.py3-none-any.whl (11 kB)
+2026-02-20T22:09:34.7064526Z Using cached snowballstemmer-3.0.1-py3-none-any.whl (103 kB)
+2026-02-20T22:09:34.7076920Z Using cached soupsieve-2.8.3-py3-none-any.whl (37 kB)
+2026-02-20T22:09:34.7088355Z Using cached sphinxcontrib_htmlhelp-2.1.0-py3-none-any.whl (98 kB)
+2026-02-20T22:09:34.7100406Z Using cached sphinxcontrib_serializinghtml-2.0.0-py3-none-any.whl (92 kB)
+2026-02-20T22:09:34.7112081Z Using cached tqdm-4.67.3-py3-none-any.whl (78 kB)
+2026-02-20T22:09:34.7123746Z Using cached typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+2026-02-20T22:09:34.7134957Z Using cached werkzeug-3.1.6-py3-none-any.whl (225 kB)
+2026-02-20T22:09:34.7147829Z Using cached mako-1.3.10-py3-none-any.whl (78 kB)
+2026-02-20T22:09:34.7160335Z Using cached pycparser-3.0-py3-none-any.whl (48 kB)
+2026-02-20T22:09:34.7171812Z Using cached sniffio-1.3.1-py3-none-any.whl (10 kB)
+2026-02-20T22:09:34.7183709Z Using cached sphinxcontrib_applehelp-2.0.0-py3-none-any.whl (119 kB)
+2026-02-20T22:09:34.7195560Z Using cached sphinxcontrib_devhelp-2.0.0-py3-none-any.whl (82 kB)
+2026-02-20T22:09:34.7207313Z Using cached sphinxcontrib_jsmath-1.0.1-py2.py3-none-any.whl (5.1 kB)
+2026-02-20T22:09:34.7218559Z Using cached sphinxcontrib_qthelp-2.0.0-py3-none-any.whl (88 kB)
+2026-02-20T22:09:34.9758713Z Installing collected packages: pathlib, jsmin, cssmin, brotli, uvloop, urllib3, typing-extensions, tqdm, tenacity, sphinxcontrib-serializinghtml, sphinxcontrib-qthelp, sphinxcontrib-jsmath, sphinxcontrib-htmlhelp, sphinxcontrib-devhelp, sphinxcontrib-applehelp, soupsieve, snowballstemmer, sniffio, six, redis, python-http-client, python-dotenv, pygments, pycparser, pyasn1, psycopg2-binary, psutil, prometheus-client, pluggy, pillow, packaging, MarkupSafe, loguru, jiter, iniconfig, imagesize, idna, h11, greenlet, docutils, dnspython, distro, coverage, colorama, click, charset_normalizer, certifi, bcrypt, babel, annotated-types, annotated-doc, alabaster, aiofiles, werkzeug, uvicorn, typing-inspection, typer, sqlalchemy, sentry-sdk, rsa, requests, pytest, pydantic-core, Mako, jinja2, httpcore, gunicorn, email-validator, ecdsa, cffi, beautifulsoup4, anyio, starlette, sphinx, python-jose, pytest-cov, pytest-asyncio, pydantic, httpx, cryptography, alembic, sendgrid, pydantic-settings, openai, fastapi
+2026-02-20T22:09:43.8579184Z 
+2026-02-20T22:09:43.8652752Z Successfully installed Mako-1.3.10 MarkupSafe-3.0.3 aiofiles-23.2.1 alabaster-0.7.16 alembic-1.13.1 annotated-doc-0.0.4 annotated-types-0.7.0 anyio-4.12.1 babel-2.18.0 bcrypt-4.0.1 beautifulsoup4-4.12.2 brotli-1.1.0 certifi-2026.1.4 cffi-2.0.0 charset_normalizer-3.4.4 click-8.3.1 colorama-0.4.6 coverage-7.13.4 cryptography-46.0.5 cssmin-0.2.0 distro-1.9.0 dnspython-2.8.0 docutils-0.20.1 ecdsa-0.19.1 email-validator-2.3.0 fastapi-0.121.0 greenlet-3.3.2 gunicorn-25.0.3 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.11 imagesize-1.4.1 iniconfig-2.3.0 jinja2-3.1.6 jiter-0.13.0 jsmin-3.0.1 loguru-0.7.3 openai-2.16.0 packaging-26.0 pathlib-1.0.1 pillow-12.1.1 pluggy-1.6.0 prometheus-client-0.24.1 psutil-7.2.2 psycopg2-binary-2.9.11 pyasn1-0.6.2 pycparser-3.0 pydantic-2.12.4 pydantic-core-2.41.5 pydantic-settings-2.11.0 pygments-2.19.2 pytest-9.0.2 pytest-asyncio-1.3.0 pytest-cov-7.0.0 python-dotenv-1.2.1 python-http-client-3.3.7 python-jose-3.5.0 redis-7.2.0 requests-2.32.5 rsa-4.9.1 sendgrid-6.12.5 sentry-sdk-1.40.6 six-1.17.0 sniffio-1.3.1 snowballstemmer-3.0.1 soupsieve-2.8.3 sphinx-7.2.6 sphinxcontrib-applehelp-2.0.0 sphinxcontrib-devhelp-2.0.0 sphinxcontrib-htmlhelp-2.1.0 sphinxcontrib-jsmath-1.0.1 sphinxcontrib-qthelp-2.0.0 sphinxcontrib-serializinghtml-2.0.0 sqlalchemy-2.0.46 starlette-0.49.3 tenacity-9.1.4 tqdm-4.67.3 typer-0.9.0 typing-extensions-4.15.0 typing-inspection-0.4.2 urllib3-2.6.3 uvicorn-0.23.2 uvloop-0.22.1 werkzeug-3.1.6
+2026-02-20T22:09:44.7836330Z Requirement already satisfied: pytest in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (9.0.2)
+2026-02-20T22:09:44.7841388Z Requirement already satisfied: pytest-cov in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (7.0.0)
+2026-02-20T22:09:44.7846328Z Requirement already satisfied: pytest-asyncio in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (1.3.0)
+2026-02-20T22:09:44.7851052Z Requirement already satisfied: httpx in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (0.28.1)
+2026-02-20T22:09:44.7865602Z Requirement already satisfied: iniconfig>=1.0.1 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from pytest) (2.3.0)
+2026-02-20T22:09:44.7871467Z Requirement already satisfied: packaging>=22 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from pytest) (26.0)
+2026-02-20T22:09:44.7877209Z Requirement already satisfied: pluggy<2,>=1.5 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from pytest) (1.6.0)
+2026-02-20T22:09:44.7882448Z Requirement already satisfied: pygments>=2.7.2 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from pytest) (2.19.2)
+2026-02-20T22:09:44.7912905Z Requirement already satisfied: coverage>=7.10.6 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from coverage[toml]>=7.10.6->pytest-cov) (7.13.4)
+2026-02-20T22:09:44.7932960Z Requirement already satisfied: typing-extensions>=4.12 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from pytest-asyncio) (4.15.0)
+2026-02-20T22:09:44.7946245Z Requirement already satisfied: anyio in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from httpx) (4.12.1)
+2026-02-20T22:09:44.7950991Z Requirement already satisfied: certifi in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from httpx) (2026.1.4)
+2026-02-20T22:09:44.7956938Z Requirement already satisfied: httpcore==1.* in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from httpx) (1.0.9)
+2026-02-20T22:09:44.7961641Z Requirement already satisfied: idna in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from httpx) (3.11)
+2026-02-20T22:09:44.7981680Z Requirement already satisfied: h11>=0.16 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from httpcore==1.*->httpx) (0.16.0)
+2026-02-20T22:09:44.9257721Z ##[group]Run cat > .env << EOF
+2026-02-20T22:09:44.9258026Z [36;1mcat > .env << EOF[0m
+2026-02-20T22:09:44.9258724Z [36;1mDATABASE_URL=***localhost:5432/test_mathakine[0m
+2026-02-20T22:09:44.9259683Z [36;1mTEST_DATABASE_URL=***localhost:5432/test_mathakine[0m
+2026-02-20T22:09:44.9260071Z [36;1mSECRET_KEY=test-secret-key-for-ci-cd-pipeline[0m
+2026-02-20T22:09:44.9260397Z [36;1mALGORITHM=HS256[0m
+2026-02-20T22:09:44.9260679Z [36;1mACCESS_TOKEN_EXPIRE_MINUTES=30[0m
+2026-02-20T22:09:44.9260949Z [36;1mTESTING=true[0m
+2026-02-20T22:09:44.9261149Z [36;1mLOG_LEVEL=INFO[0m
+2026-02-20T22:09:44.9261351Z [36;1mEOF[0m
+2026-02-20T22:09:44.9293099Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:09:44.9293395Z env:
+2026-02-20T22:09:44.9293648Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9294093Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:09:44.9294548Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9294929Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9295297Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9295673Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:09:44.9295979Z ##[endgroup]
+2026-02-20T22:09:44.9382095Z ##[group]Run python -c "
+2026-02-20T22:09:44.9382381Z [36;1mpython -c "[0m
+2026-02-20T22:09:44.9382601Z [36;1mimport psycopg2[0m
+2026-02-20T22:09:44.9382917Z [36;1mfrom psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT[0m
+2026-02-20T22:09:44.9383262Z [36;1m[0m
+2026-02-20T22:09:44.9383632Z [36;1m# Se connecter à la base de données postgres par défaut pour créer test_mathakine[0m
+2026-02-20T22:09:44.9384067Z [36;1mconn = psycopg2.connect([0m
+2026-02-20T22:09:44.9384318Z [36;1m    host='localhost',[0m
+2026-02-20T22:09:44.9384540Z [36;1m    port=5432,[0m
+2026-02-20T22:09:44.9384752Z [36;1m    user='postgres',[0m
+2026-02-20T22:09:44.9385000Z [36;1m    password='postgres',[0m
+2026-02-20T22:09:44.9385311Z [36;1m    database='postgres'  # Utiliser la base par défaut[0m
+2026-02-20T22:09:44.9385609Z [36;1m)[0m
+2026-02-20T22:09:44.9385860Z [36;1mconn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)[0m
+2026-02-20T22:09:44.9386213Z [36;1mcursor = conn.cursor()[0m
+2026-02-20T22:09:44.9386430Z [36;1m[0m
+2026-02-20T22:09:44.9386665Z [36;1m# Créer la base de données si elle n'existe pas[0m
+2026-02-20T22:09:44.9387136Z [36;1mcursor.execute('SELECT 1 FROM pg_database WHERE datname = %s', ('test_mathakine',))[0m
+2026-02-20T22:09:44.9387564Z [36;1mexists = cursor.fetchone()[0m
+2026-02-20T22:09:44.9387809Z [36;1mif not exists:[0m
+2026-02-20T22:09:44.9388075Z [36;1m    cursor.execute('CREATE DATABASE test_mathakine')[0m
+2026-02-20T22:09:44.9388455Z [36;1m    print('Database test_mathakine created successfully')[0m
+2026-02-20T22:09:44.9388961Z [36;1melse:[0m
+2026-02-20T22:09:44.9389224Z [36;1m    print('Database test_mathakine already exists')[0m
+2026-02-20T22:09:44.9389531Z [36;1m[0m
+2026-02-20T22:09:44.9389712Z [36;1mcursor.close()[0m
+2026-02-20T22:09:44.9389925Z [36;1mconn.close()[0m
+2026-02-20T22:09:44.9390118Z [36;1m"[0m
+2026-02-20T22:09:44.9417779Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:09:44.9418018Z env:
+2026-02-20T22:09:44.9418283Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9418711Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:09:44.9419257Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9419624Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9419989Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:44.9420349Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:09:44.9420715Z   PYTHONPATH: /home/runner/work/mathakine/mathakine
+2026-02-20T22:09:44.9420998Z ##[endgroup]
+2026-02-20T22:09:45.0327194Z Database test_mathakine created successfully
+2026-02-20T22:09:45.0420283Z ##[group]Run python -c "
+2026-02-20T22:09:45.0420566Z [36;1mpython -c "[0m
+2026-02-20T22:09:45.0420866Z [36;1mfrom app.db.init_db import create_tables_with_test_data[0m
+2026-02-20T22:09:45.0421218Z [36;1mcreate_tables_with_test_data()[0m
+2026-02-20T22:09:45.0421515Z [36;1mprint('Database initialized successfully')[0m
+2026-02-20T22:09:45.0421792Z [36;1m"[0m
+2026-02-20T22:09:45.0453026Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:09:45.0453334Z env:
+2026-02-20T22:09:45.0453600Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:45.0454030Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:09:45.0454446Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:45.0454810Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:45.0455166Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:45.0455576Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:09:45.0456181Z   DATABASE_URL: ***localhost:5432/test_mathakine
+2026-02-20T22:09:45.0456640Z   TEST_DATABASE_URL: ***localhost:5432/test_mathakine
+2026-02-20T22:09:45.0456971Z   PYTHONPATH: /home/runner/work/mathakine/mathakine
+2026-02-20T22:09:45.0457249Z ##[endgroup]
+2026-02-20T22:09:45.6987887Z [32m2026-02-20 22:09:45.698[0m | [1mINFO    [0m | [36mapp.core.logging_config[0m:[36m95[0m    - [1mJournalisation configurée avec succès[0m
+2026-02-20T22:09:46.0205970Z [32m2026-02-20 22:09:46.020[0m | [1mINFO    [0m | [36mapp.core.config[0m:[36m19[0m    - [1mChargement de la configuration...[0m
+2026-02-20T22:09:46.0210944Z [32m2026-02-20 22:09:46.020[0m | [1mINFO    [0m | [36mapp.core.config[0m:[36m172[0m    - [1mMode test détecté, utilisation de l'URL de base de données: ***localhost:5432/test_mathakine[0m
+2026-02-20T22:09:46.0222140Z [32m2026-02-20 22:09:46.022[0m | [1mINFO    [0m | [36mapp.db.base[0m:[36m9[0m    - [1mInitialisation de la base de données: ***localhost:5432/test_mathakine[0m
+2026-02-20T22:09:46.0716844Z [32m2026-02-20 22:09:46.071[0m | [32m[1mSUCCESS [0m | [36mapp.db.base[0m:[36m22[0m    - [32m[1mMoteur SQLAlchemy (PostgreSQL) créé avec succès[0m
+2026-02-20T22:09:46.1390179Z [32m2026-02-20 22:09:46.138[0m | [1mINFO    [0m | [36mapp.db.init_db[0m:[36m19[0m    - [1mInitialisation de la base de données[0m
+2026-02-20T22:09:46.1393752Z [32m2026-02-20 22:09:46.139[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m25[0m    - [1mCréation des tables dans la base de données[0m
+2026-02-20T22:09:46.2730349Z [32m2026-02-20 22:09:46.272[0m | [32m[1mSUCCESS [0m | [36mapp.services.db_init_service[0m:[36m27[0m    - [32m[1mTables créées avec succès[0m
+2026-02-20T22:09:46.2734148Z [32m2026-02-20 22:09:46.273[0m | [1mINFO    [0m | [36mapp.db.init_db[0m:[36m29[0m    - [1mMode test détecté : ajout des données de test[0m
+2026-02-20T22:09:46.2738015Z [32m2026-02-20 22:09:46.273[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m36[0m    - [1mRemplissage de la base de données avec des données de test[0m
+2026-02-20T22:09:46.2743788Z [32m2026-02-20 22:09:46.274[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m71[0m    - [1mCréation des utilisateurs de test[0m
+2026-02-20T22:09:46.3222730Z [32m2026-02-20 22:09:46.322[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m121[0m    - [1m4 utilisateurs créés (incluant ObiWan permanent)[0m
+2026-02-20T22:09:46.3226641Z [32m2026-02-20 22:09:46.322[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m130[0m    - [1mCréation des exercices de test[0m
+2026-02-20T22:09:46.3332041Z [32m2026-02-20 22:09:46.332[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m182[0m    - [1m3 exercices créés[0m
+2026-02-20T22:09:46.3336330Z [32m2026-02-20 22:09:46.333[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m191[0m    - [1mCréation des tentatives de test[0m
+2026-02-20T22:09:46.3415519Z [32m2026-02-20 22:09:46.341[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m227[0m    - [1mTentative réussie créée pour l'exercice 1[0m
+2026-02-20T22:09:46.3428126Z [32m2026-02-20 22:09:46.342[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m253[0m    - [1mTentative échouée créée pour l'exercice 1[0m
+2026-02-20T22:09:46.3440159Z [32m2026-02-20 22:09:46.343[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m227[0m    - [1mTentative réussie créée pour l'exercice 2[0m
+2026-02-20T22:09:46.3452076Z [32m2026-02-20 22:09:46.345[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m253[0m    - [1mTentative échouée créée pour l'exercice 2[0m
+2026-02-20T22:09:46.3464676Z [32m2026-02-20 22:09:46.346[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m227[0m    - [1mTentative réussie créée pour l'exercice 3[0m
+2026-02-20T22:09:46.3476862Z [32m2026-02-20 22:09:46.347[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m253[0m    - [1mTentative échouée créée pour l'exercice 3[0m
+2026-02-20T22:09:46.3480404Z [32m2026-02-20 22:09:46.347[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m255[0m    - [1mTentatives créées pour 3 exercices[0m
+2026-02-20T22:09:46.3483163Z [32m2026-02-20 22:09:46.348[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m264[0m    - [1mCréation des défis logiques de test[0m
+2026-02-20T22:09:46.3579136Z [32m2026-02-20 22:09:46.357[0m | [1mINFO    [0m | [36mapp.services.db_init_service[0m:[36m310[0m    - [1m2 défis logiques créés[0m
+2026-02-20T22:09:46.3588293Z [32m2026-02-20 22:09:46.358[0m | [32m[1mSUCCESS [0m | [36mapp.services.db_init_service[0m:[36m56[0m    - [32m[1mDonnées de test créées avec succès[0m
+2026-02-20T22:09:46.3594082Z [32m2026-02-20 22:09:46.359[0m | [32m[1mSUCCESS [0m | [36mapp.db.init_db[0m:[36m37[0m    - [32m[1mBase de données initialisée avec succès[0m
+2026-02-20T22:09:46.3621190Z Database initialized successfully
+2026-02-20T22:09:46.4429570Z ##[group]Run python -m pytest tests/ -v \
+2026-02-20T22:09:46.4430198Z [36;1mpython -m pytest tests/ -v \[0m
+2026-02-20T22:09:46.4430687Z [36;1m  --ignore=tests/archives/ \[0m
+2026-02-20T22:09:46.4431143Z [36;1m  --cov=app \[0m
+2026-02-20T22:09:46.4431521Z [36;1m  --cov=server \[0m
+2026-02-20T22:09:46.4431913Z [36;1m  --cov-report=xml \[0m
+2026-02-20T22:09:46.4432350Z [36;1m  --cov-report=term-missing \[0m
+2026-02-20T22:09:46.4432807Z [36;1m  --tb=short \[0m
+2026-02-20T22:09:46.4433186Z [36;1m  -m "not slow"[0m
+2026-02-20T22:09:46.4479164Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:09:46.4479624Z env:
+2026-02-20T22:09:46.4480076Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:46.4480873Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:09:46.4481632Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:46.4482316Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:46.4483064Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:46.4483817Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:09:46.4484858Z   DATABASE_URL: ***localhost:5432/test_mathakine
+2026-02-20T22:09:46.4485718Z   TEST_DATABASE_URL: ***localhost:5432/test_mathakine
+2026-02-20T22:09:46.4486337Z   SECRET_KEY: test-secret-key-for-ci-cd-pipeline
+2026-02-20T22:09:46.4486843Z   TESTING: true
+2026-02-20T22:09:46.4487255Z   PYTHONPATH: /home/runner/work/mathakine/mathakine
+2026-02-20T22:09:46.4487756Z ##[endgroup]
+2026-02-20T22:09:50.7954624Z ============================= test session starts ==============================
+2026-02-20T22:09:50.7955500Z platform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0 -- /opt/hostedtoolcache/Python/3.12.12/x64/bin/python
+2026-02-20T22:09:50.7956188Z cachedir: .pytest_cache
+2026-02-20T22:09:50.7956529Z rootdir: /home/runner/work/mathakine/mathakine
+2026-02-20T22:09:50.7957257Z configfile: pytest.ini
+2026-02-20T22:09:50.7957595Z plugins: cov-7.0.0, asyncio-1.3.0, anyio-4.12.1
+2026-02-20T22:09:50.7958338Z asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+2026-02-20T22:09:52.7438521Z collecting ... collected 402 items
+2026-02-20T22:09:52.7439190Z 
+2026-02-20T22:09:53.4615924Z tests/api/test_admin_badges.py::test_admin_badges_list PASSED            [  0%]
+2026-02-20T22:09:54.0441385Z tests/api/test_admin_badges.py::test_admin_badges_create_valid PASSED    [  0%]
+2026-02-20T22:09:54.6147289Z tests/api/test_admin_badges.py::test_admin_badges_create_invalid_requirements PASSED [  0%]
+2026-02-20T22:09:55.1873164Z tests/api/test_admin_badges.py::test_admin_badges_create_missing_requirements PASSED [  0%]
+2026-02-20T22:09:55.7923763Z tests/api/test_admin_badges.py::test_admin_badges_soft_delete_and_reactivate PASSED [  1%]
+2026-02-20T22:09:56.3545008Z tests/api/test_auth_flow.py::test_login_success PASSED                   [  1%]
+2026-02-20T22:09:56.3686760Z tests/api/test_auth_flow.py::test_login_invalid_credentials PASSED       [  1%]
+2026-02-20T22:09:56.3797738Z tests/api/test_auth_flow.py::test_login_missing_username PASSED          [  1%]
+2026-02-20T22:09:56.3881687Z tests/api/test_auth_flow.py::test_login_missing_password PASSED          [  2%]
+2026-02-20T22:09:56.9542710Z tests/api/test_auth_flow.py::test_get_current_user_authenticated PASSED  [  2%]
+2026-02-20T22:09:56.9641356Z tests/api/test_auth_flow.py::test_get_current_user_unauthenticated PASSED [  2%]
+2026-02-20T22:09:56.9736920Z tests/api/test_auth_flow.py::test_get_current_user_invalid_token PASSED  [  2%]
+2026-02-20T22:09:57.2722791Z tests/api/test_auth_flow.py::test_forgot_password_success PASSED         [  3%]
+2026-02-20T22:09:57.2856470Z tests/api/test_auth_flow.py::test_forgot_password_email_not_found PASSED [  3%]
+2026-02-20T22:09:57.2957936Z tests/api/test_auth_flow.py::test_forgot_password_missing_email PASSED   [  3%]
+2026-02-20T22:09:58.1377445Z tests/api/test_auth_flow.py::test_reset_password_full_flow PASSED        [  3%]
+2026-02-20T22:09:58.1497969Z tests/api/test_auth_flow.py::test_reset_password_invalid_token PASSED    [  4%]
+2026-02-20T22:09:58.4541835Z tests/api/test_auth_flow.py::test_reset_password_mismatch PASSED         [  4%]
+2026-02-20T22:09:59.0255034Z tests/api/test_auth_flow.py::test_refresh_token PASSED                   [  4%]
+2026-02-20T22:09:59.0334568Z tests/api/test_base_endpoints.py::test_health_endpoint PASSED            [  4%]
+2026-02-20T22:09:59.0425672Z tests/api/test_base_endpoints.py::test_robots_txt PASSED                 [  5%]
+2026-02-20T22:09:59.0500447Z tests/api/test_base_endpoints.py::test_csrf_token_endpoint PASSED        [  5%]
+2026-02-20T22:09:59.0604848Z tests/api/test_base_endpoints.py::test_nonexistent_endpoint PASSED       [  5%]
+2026-02-20T22:09:59.0708203Z tests/api/test_base_endpoints.py::test_challenges_requires_auth PASSED   [  5%]
+2026-02-20T22:09:59.0786161Z tests/api/test_base_endpoints.py::test_api_auth_login_get_not_allowed PASSED [  6%]
+2026-02-20T22:09:59.0884294Z tests/api/test_base_endpoints.py::test_api_auth_login_post_missing_body PASSED [  6%]
+2026-02-20T22:09:59.1005071Z tests/api/test_base_endpoints.py::test_api_users_post_endpoint_exists PASSED [  6%]
+2026-02-20T22:09:59.9633424Z tests/api/test_challenge_endpoints.py::test_get_logic_challenges PASSED  [  6%]
+2026-02-20T22:10:00.8193303Z tests/api/test_challenge_endpoints.py::test_get_logic_challenge_by_id PASSED [  7%]
+2026-02-20T22:10:01.3956489Z tests/api/test_challenge_endpoints.py::test_get_nonexistent_challenge PASSED [  7%]
+2026-02-20T22:10:02.3522964Z tests/api/test_challenge_endpoints.py::test_challenge_attempt_correct PASSED [  7%]
+2026-02-20T22:10:03.2314974Z tests/api/test_challenge_endpoints.py::test_challenge_attempt_incorrect PASSED [  7%]
+2026-02-20T22:10:04.0808661Z tests/api/test_challenge_endpoints.py::test_get_challenge_hint PASSED    [  8%]
+2026-02-20T22:10:04.9320317Z tests/api/test_challenge_endpoints.py::test_filter_challenges_by_type PASSED [  8%]
+2026-02-20T22:10:05.7786653Z tests/api/test_challenge_endpoints.py::test_challenge_attempt_missing_data PASSED [  8%]
+2026-02-20T22:10:06.3483632Z tests/api/test_challenge_endpoints.py::test_challenge_attempt_nonexistent_challenge PASSED [  8%]
+2026-02-20T22:10:07.1842735Z tests/api/test_challenge_endpoints.py::test_challenge_hint_invalid_level PASSED [  9%]
+2026-02-20T22:10:07.1944786Z tests/api/test_challenge_endpoints.py::test_challenge_attempt_unauthenticated PASSED [  9%]
+2026-02-20T22:10:08.0730976Z tests/api/test_challenge_endpoints.py::test_challenge_with_centralized_fixtures PASSED [  9%]
+2026-02-20T22:10:08.0823359Z tests/api/test_challenges_flow.py::test_list_challenges_without_auth PASSED [  9%]
+2026-02-20T22:10:08.6540415Z tests/api/test_challenges_flow.py::test_list_challenges_authenticated PASSED [ 10%]
+2026-02-20T22:10:09.2660959Z tests/api/test_challenges_flow.py::test_list_challenges_with_type_filter PASSED [ 10%]
+2026-02-20T22:10:09.8716655Z tests/api/test_challenges_flow.py::test_list_challenges_with_age_group_filter PASSED [ 10%]
+2026-02-20T22:10:10.4557499Z tests/api/test_challenges_flow.py::test_list_challenges_with_multiple_filters PASSED [ 10%]
+2026-02-20T22:10:10.4939139Z tests/api/test_challenges_flow.py::test_challenge_service_integration PASSED [ 11%]
+2026-02-20T22:10:10.5008910Z tests/api/test_challenges_flow.py::test_constants_normalization PASSED   [ 11%]
+2026-02-20T22:10:10.5058124Z tests/api/test_challenges_flow.py::test_constants_values PASSED          [ 11%]
+2026-02-20T22:10:10.5077177Z tests/api/test_challenges_flow.py::test_generate_ai_challenge_stream SKIPPED [ 11%]
+2026-02-20T22:10:11.0981773Z tests/api/test_exercise_endpoints.py::test_get_exercises PASSED          [ 12%]
+2026-02-20T22:10:11.1029544Z tests/api/test_exercise_endpoints.py::test_exercise_types_constants PASSED [ 12%]
+2026-02-20T22:10:11.6835818Z tests/api/test_exercise_endpoints.py::test_create_exercise PASSED        [ 12%]
+2026-02-20T22:10:12.2522639Z tests/api/test_exercise_endpoints.py::test_get_nonexistent_exercise PASSED [ 12%]
+2026-02-20T22:10:12.8253658Z tests/api/test_exercise_endpoints.py::test_create_exercise_with_invalid_data PASSED [ 13%]
+2026-02-20T22:10:13.3970753Z tests/api/test_exercise_endpoints.py::test_create_exercise_with_invalid_type PASSED [ 13%]
+2026-02-20T22:10:13.9725652Z tests/api/test_exercise_endpoints.py::test_create_exercise_with_centralized_fixtures PASSED [ 13%]
+2026-02-20T22:10:14.2650329Z tests/api/test_expired_token.py::test_expired_token_access PASSED        [ 13%]
+2026-02-20T22:10:14.5587163Z tests/api/test_expired_token.py::test_expired_token_exercise_creation PASSED [ 14%]
+2026-02-20T22:10:14.8517452Z tests/api/test_expired_token.py::test_expired_token_exercise_attempt PASSED [ 14%]
+2026-02-20T22:10:15.4373829Z tests/api/test_progress_endpoints.py::test_get_user_progress PASSED      [ 14%]
+2026-02-20T22:10:16.0150193Z tests/api/test_progress_endpoints.py::test_get_user_progress_by_type PASSED [ 14%]
+2026-02-20T22:10:16.0254377Z tests/api/test_progress_endpoints.py::test_get_user_progress_unauthorized PASSED [ 15%]
+2026-02-20T22:10:16.5946665Z tests/api/test_progress_endpoints.py::test_get_user_progress_nonexistent_type PASSED [ 15%]
+2026-02-20T22:10:17.2439715Z tests/api/test_progress_endpoints.py::test_register_exercise_attempt PASSED [ 15%]
+2026-02-20T22:10:17.8546795Z tests/api/test_progress_endpoints.py::test_register_exercise_attempt_incorrect PASSED [ 15%]
+2026-02-20T22:10:18.4589224Z tests/api/test_progress_endpoints.py::test_get_user_statistics PASSED    [ 16%]
+2026-02-20T22:10:19.0360538Z tests/api/test_recommendation_endpoints.py::test_get_user_recommendations PASSED [ 16%]
+2026-02-20T22:10:19.6120900Z tests/api/test_recommendation_endpoints.py::test_mark_recommendation_as_clicked PASSED [ 16%]
+2026-02-20T22:10:20.1867578Z tests/api/test_recommendation_endpoints.py::test_mark_recommendation_as_completed PASSED [ 16%]
+2026-02-20T22:10:20.1974520Z tests/api/test_recommendation_endpoints.py::test_get_recommendations_unauthorized PASSED [ 17%]
+2026-02-20T22:10:20.7707301Z tests/api/test_recommendation_endpoints.py::test_mark_recommendation_nonexistent PASSED [ 17%]
+2026-02-20T22:10:21.8992535Z tests/api/test_recommendation_endpoints.py::test_mark_other_user_recommendation PASSED [ 17%]
+2026-02-20T22:10:22.5280940Z tests/api/test_role_permissions.py::test_padawan_permissions PASSED      [ 17%]
+2026-02-20T22:10:23.6572400Z tests/api/test_role_permissions.py::test_maitre_permissions PASSED       [ 18%]
+2026-02-20T22:10:24.2372688Z tests/api/test_role_permissions.py::test_gardien_permissions PASSED      [ 18%]
+2026-02-20T22:10:24.8228420Z tests/api/test_token_refresh.py::test_refresh_token_valid PASSED         [ 18%]
+2026-02-20T22:10:24.8469420Z tests/api/test_token_refresh.py::test_refresh_token_invalid PASSED       [ 18%]
+2026-02-20T22:10:25.4176157Z tests/api/test_token_refresh.py::test_refresh_token_wrong_type PASSED    [ 19%]
+2026-02-20T22:10:25.4330857Z tests/api/test_token_refresh.py::test_refresh_token_expired PASSED       [ 19%]
+2026-02-20T22:10:26.0007889Z tests/api/test_user_endpoints.py::test_get_current_user PASSED           [ 19%]
+2026-02-20T22:10:26.5727840Z tests/api/test_user_endpoints.py::test_get_users_as_gardien PASSED       [ 19%]
+2026-02-20T22:10:27.1416763Z tests/api/test_user_endpoints.py::test_get_users_as_padawan PASSED       [ 20%]
+2026-02-20T22:10:27.4303998Z tests/api/test_user_endpoints.py::test_create_user PASSED                [ 20%]
+2026-02-20T22:10:27.7309500Z tests/api/test_user_endpoints.py::test_create_user_duplicate_username PASSED [ 20%]
+2026-02-20T22:10:28.0304267Z tests/api/test_user_endpoints.py::test_create_user_duplicate_email PASSED [ 20%]
+2026-02-20T22:10:28.6071877Z tests/api/test_user_endpoints.py::test_update_user PASSED                [ 21%]
+2026-02-20T22:10:29.6948738Z tests/api/test_user_endpoints.py::test_update_user_password PASSED       [ 21%]
+2026-02-20T22:10:30.2679447Z tests/api/test_user_endpoints.py::test_get_leaderboard PASSED            [ 21%]
+2026-02-20T22:10:31.0967420Z tests/api/test_user_endpoints.py::test_update_user_password_wrong_current PASSED [ 21%]
+2026-02-20T22:10:31.9327232Z tests/api/test_user_endpoints.py::test_delete_user_as_gardien PASSED     [ 22%]
+2026-02-20T22:10:32.7614867Z tests/api/test_user_endpoints.py::test_delete_user_as_padawan PASSED     [ 22%]
+2026-02-20T22:10:33.3224939Z tests/api/test_user_endpoints.py::test_user_login PASSED                 [ 22%]
+2026-02-20T22:10:33.3366067Z tests/api/test_user_endpoints.py::test_user_login_invalid_credentials PASSED [ 22%]
+2026-02-20T22:10:34.1814353Z tests/functional/test_logic_challenge_isolated.py::test_logic_challenge_list PASSED [ 23%]
+2026-02-20T22:10:35.0275373Z tests/functional/test_logic_challenge_isolated.py::test_logic_challenge_detail PASSED [ 23%]
+2026-02-20T22:10:35.8900307Z tests/functional/test_logic_challenge_isolated.py::test_logic_challenge_correct_answer PASSED [ 23%]
+2026-02-20T22:10:36.8336226Z tests/functional/test_logic_challenge_isolated.py::test_logic_challenge_incorrect_answer PASSED [ 23%]
+2026-02-20T22:10:37.6754684Z tests/functional/test_logic_challenge_isolated.py::test_logic_challenge_hints PASSED [ 24%]
+2026-02-20T22:10:38.2365938Z tests/integration/test_auth_cookies_only.py::test_login_sets_refresh_token_cookie PASSED [ 24%]
+2026-02-20T22:10:38.8087825Z tests/integration/test_auth_cookies_only.py::test_refresh_uses_cookie_only PASSED [ 24%]
+2026-02-20T22:10:39.3748446Z tests/integration/test_auth_cookies_only.py::test_refresh_without_cookie_fails PASSED [ 24%]
+2026-02-20T22:10:39.9461874Z tests/integration/test_auth_cookies_only.py::test_no_localStorage_refresh_token_in_response PASSED [ 25%]
+2026-02-20T22:10:40.5147444Z tests/integration/test_auth_cookies_only.py::test_logout_clears_cookie PASSED [ 25%]
+2026-02-20T22:10:41.0798962Z tests/integration/test_auth_cookies_only.py::test_refresh_token_cookie_httponly PASSED [ 25%]
+2026-02-20T22:10:41.0912521Z tests/integration/test_auth_no_fallback.py::test_refresh_token_missing_returns_401 PASSED [ 25%]
+2026-02-20T22:10:41.1076441Z tests/integration/test_auth_no_fallback.py::test_refresh_token_expired_returns_401 PASSED [ 26%]
+2026-02-20T22:10:41.1225026Z tests/integration/test_auth_no_fallback.py::test_refresh_token_invalid_returns_401 PASSED [ 26%]
+2026-02-20T22:10:41.6973587Z tests/integration/test_auth_no_fallback.py::test_no_fallback_with_expired_access_token PASSED [ 26%]
+2026-02-20T22:10:42.2716995Z tests/integration/test_auth_no_fallback.py::test_refresh_token_from_cookie_only PASSED [ 26%]
+2026-02-20T22:10:42.2820804Z tests/integration/test_auth_no_fallback.py::test_refresh_token_missing_both_body_and_cookie PASSED [ 27%]
+2026-02-20T22:10:42.3213050Z tests/integration/test_cascade_deletion.py::test_exercise_cascade_deletion PASSED [ 27%]
+2026-02-20T22:10:42.3617313Z tests/integration/test_cascade_deletion.py::test_logic_challenge_cascade_deletion PASSED [ 27%]
+2026-02-20T22:10:42.4305111Z tests/integration/test_cascade_deletion.py::test_user_cascade_deletion PASSED [ 27%]
+2026-02-20T22:10:42.4609002Z tests/integration/test_cascade_deletion.py::test_user_recommendations_cascade_deletion PASSED [ 28%]
+2026-02-20T22:10:42.4913584Z tests/integration/test_cascade_deletion.py::test_exercise_recommendations_no_cascade PASSED [ 28%]
+2026-02-20T22:10:42.5996596Z tests/integration/test_complete_cascade_deletion.py::test_complete_user_deletion_cascade PASSED [ 28%]
+2026-02-20T22:10:42.6500168Z tests/integration/test_complete_cascade_deletion.py::test_exercise_deletion_cascade PASSED [ 28%]
+2026-02-20T22:10:42.7185122Z tests/integration/test_complete_cascade_deletion.py::test_multi_level_cascade PASSED [ 29%]
+2026-02-20T22:10:42.9123076Z tests/integration/test_complete_exercise_workflow.py::test_complete_exercise_workflow PASSED [ 29%]
+2026-02-20T22:10:42.9190511Z tests/integration/test_complete_exercise_workflow.py::test_exercise_statistics_and_trends SKIPPEDtées) [ 29%]
+2026-02-20T22:10:42.9306818Z tests/integration/test_sse_auth.py::test_sse_requires_authentication PASSED [ 29%]
+2026-02-20T22:10:43.5348415Z tests/integration/test_sse_auth.py::test_sse_with_valid_token PASSED     [ 30%]
+2026-02-20T22:10:44.1040809Z tests/integration/test_sse_auth.py::test_sse_with_cookie_auth PASSED     [ 30%]
+2026-02-20T22:10:44.1160796Z tests/integration/test_sse_auth.py::test_sse_with_invalid_token PASSED   [ 30%]
+2026-02-20T22:10:44.1265391Z tests/integration/test_sse_auth.py::test_sse_exercises_requires_auth PASSED [ 30%]
+2026-02-20T22:10:44.6958470Z tests/integration/test_sse_auth.py::test_sse_exercises_with_valid_token PASSED [ 31%]
+2026-02-20T22:10:45.2799041Z tests/integration/test_sse_auth.py::test_sse_multiple_connections PASSED [ 31%]
+2026-02-20T22:10:45.9102975Z tests/integration/test_user_exercise_flow.py::test_user_exercise_flow PASSED [ 31%]
+2026-02-20T22:10:46.5339294Z tests/integration/test_user_exercise_flow.py::test_invalid_exercise_attempt PASSED [ 31%]
+2026-02-20T22:10:46.5753659Z tests/test_enum_adaptation.py::PostgreSQLEnumTest::test_age_group_adaptation PASSED [ 32%]
+2026-02-20T22:10:46.5805490Z tests/test_enum_adaptation.py::PostgreSQLEnumTest::test_direct_adaptation PASSED [ 32%]
+2026-02-20T22:10:46.5857834Z tests/test_enum_adaptation.py::PostgreSQLEnumTest::test_logic_challenge_type_adaptation PASSED [ 32%]
+2026-02-20T22:10:46.5915851Z tests/test_enum_adaptation.py::PostgreSQLEnumTest::test_user_role_adaptation PASSED [ 32%]
+2026-02-20T22:10:46.6169175Z tests/unit/test_answer_validation.py::test_submit_correct_answer PASSED  [ 33%]
+2026-02-20T22:10:46.6383397Z tests/unit/test_answer_validation.py::test_submit_incorrect_answer PASSED [ 33%]
+2026-02-20T22:10:46.6482852Z tests/unit/test_answer_validation.py::test_submit_answer_nonexistent_exercise PASSED [ 33%]
+2026-02-20T22:10:46.6560359Z tests/unit/test_answer_validation.py::test_submit_answer_missing_answer PASSED [ 33%]
+2026-02-20T22:10:46.6632097Z tests/unit/test_answer_validation.py::test_submit_answer_unauthenticated PASSED [ 34%]
+2026-02-20T22:10:46.6853032Z tests/unit/test_answer_validation.py::test_submit_answer_internal_error PASSED [ 34%]
+2026-02-20T22:10:46.7071076Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[ADDITION-42-42-True] PASSED [ 34%]
+2026-02-20T22:10:46.7281444Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[ADDITION- 42-42-True] PASSED [ 34%]
+2026-02-20T22:10:46.7495243Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[ADDITION-42 -42-True] PASSED [ 35%]
+2026-02-20T22:10:46.8608592Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[MULTIPLICATION-100-100-True] PASSED [ 35%]
+2026-02-20T22:10:46.8824703Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[MULTIPLICATION-0100-100-False] PASSED [ 35%]
+2026-02-20T22:10:46.9043025Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[DIVISION-3.5-3.5-True] PASSED [ 35%]
+2026-02-20T22:10:46.9256410Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[DIVISION-3,5-3.5-False] PASSED [ 36%]
+2026-02-20T22:10:46.9464436Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[TEXTE-Paris-Paris-True] PASSED [ 36%]
+2026-02-20T22:10:46.9678948Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[TEXTE-paris-Paris-True] PASSED [ 36%]
+2026-02-20T22:10:46.9890845Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[TEXTE- Paris-Paris-True] PASSED [ 36%]
+2026-02-20T22:10:47.0105319Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[TEXTE-Paris -Paris-True] PASSED [ 37%]
+2026-02-20T22:10:47.0328326Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[MIXTE-Force-Force-True] PASSED [ 37%]
+2026-02-20T22:10:47.0536412Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[MIXTE-force-Force-True] PASSED [ 37%]
+2026-02-20T22:10:47.0756909Z tests/unit/test_answer_validation_formats.py::test_answer_validation_formats[MIXTE- Force -Force-True] PASSED [ 37%]
+2026-02-20T22:10:47.0980611Z tests/unit/test_answer_validation_formats.py::test_fraction_answer_validation[1/2-1/2-True] PASSED [ 38%]
+2026-02-20T22:10:47.1189987Z tests/unit/test_answer_validation_formats.py::test_fraction_answer_validation[1/2-0.5-False] PASSED [ 38%]
+2026-02-20T22:10:47.1410980Z tests/unit/test_answer_validation_formats.py::test_fraction_answer_validation[0.5-0.5-True] PASSED [ 38%]
+2026-02-20T22:10:47.1625677Z tests/unit/test_answer_validation_formats.py::test_fraction_answer_validation[0.50-0.5-False] PASSED [ 38%]
+2026-02-20T22:10:47.1834051Z tests/unit/test_answer_validation_formats.py::test_fraction_answer_validation[0,5-0.5-False] PASSED [ 39%]
+2026-02-20T22:10:47.2048314Z tests/unit/test_answer_validation_formats.py::test_unit_answer_validation[10-10-True] PASSED [ 39%]
+2026-02-20T22:10:47.2259203Z tests/unit/test_answer_validation_formats.py::test_unit_answer_validation[10-10 km-False] PASSED [ 39%]
+2026-02-20T22:10:47.2468249Z tests/unit/test_answer_validation_formats.py::test_unit_answer_validation[10 km-10 km-True] PASSED [ 39%]
+2026-02-20T22:10:47.2682231Z tests/unit/test_answer_validation_formats.py::test_unit_answer_validation[10km-10 km-False] PASSED [ 40%]
+2026-02-20T22:10:47.2890840Z tests/unit/test_answer_validation_formats.py::test_empty_answer_validation PASSED [ 40%]
+2026-02-20T22:10:47.5629811Z tests/unit/test_auth_service.py::test_get_user_by_username_existing PASSED [ 40%]
+2026-02-20T22:10:47.5695264Z tests/unit/test_auth_service.py::test_get_user_by_username_nonexistent PASSED [ 40%]
+2026-02-20T22:10:47.8434553Z tests/unit/test_auth_service.py::test_get_user_by_email_existing PASSED  [ 41%]
+2026-02-20T22:10:47.8496358Z tests/unit/test_auth_service.py::test_get_user_by_email_nonexistent PASSED [ 41%]
+2026-02-20T22:10:48.1227261Z tests/unit/test_auth_service.py::test_get_user_by_id_existing PASSED     [ 41%]
+2026-02-20T22:10:48.1288320Z tests/unit/test_auth_service.py::test_get_user_by_id_nonexistent PASSED  [ 41%]
+2026-02-20T22:10:48.6608183Z tests/unit/test_auth_service.py::test_authenticate_user_success PASSED   [ 42%]
+2026-02-20T22:10:49.1927008Z tests/unit/test_auth_service.py::test_authenticate_user_invalid_password PASSED [ 42%]
+2026-02-20T22:10:49.2010270Z tests/unit/test_auth_service.py::test_authenticate_user_nonexistent PASSED [ 42%]
+2026-02-20T22:10:49.4763621Z tests/unit/test_auth_service.py::test_authenticate_user_exception_during_verification PASSED [ 42%]
+2026-02-20T22:10:50.0114803Z tests/unit/test_auth_service.py::test_create_user_success PASSED         [ 43%]
+2026-02-20T22:10:50.2862873Z tests/unit/test_auth_service.py::test_create_user_duplicate_username PASSED [ 43%]
+2026-02-20T22:10:50.5609313Z tests/unit/test_auth_service.py::test_create_user_duplicate_email PASSED [ 43%]
+2026-02-20T22:10:50.8259841Z tests/unit/test_auth_service.py::test_create_user_token PASSED           [ 43%]
+2026-02-20T22:10:51.1016701Z tests/unit/test_auth_service.py::test_refresh_access_token_valid PASSED  [ 44%]
+2026-02-20T22:10:51.1094751Z tests/unit/test_auth_service.py::test_refresh_access_token_invalid_token PASSED [ 44%]
+2026-02-20T22:10:51.3843566Z tests/unit/test_auth_service.py::test_refresh_access_token_wrong_type PASSED [ 44%]
+2026-02-20T22:10:51.3928387Z tests/unit/test_auth_service.py::test_refresh_access_token_user_not_found PASSED [ 44%]
+2026-02-20T22:10:51.6720943Z tests/unit/test_auth_service.py::test_refresh_access_token_expired_token PASSED [ 45%]
+2026-02-20T22:10:51.9505597Z tests/unit/test_auth_service.py::test_refresh_access_token_tampered_token PASSED [ 45%]
+2026-02-20T22:10:52.3377073Z tests/unit/test_auth_service.py::test_refresh_access_token_valid_token_but_deleted_user PASSED [ 45%]
+2026-02-20T22:10:52.6121044Z tests/unit/test_auth_service.py::test_create_user_with_full_profile_data PASSED [ 45%]
+2026-02-20T22:10:52.8892647Z tests/unit/test_auth_service.py::test_update_user_without_password_change PASSED [ 46%]
+2026-02-20T22:10:53.1673772Z tests/unit/test_auth_service.py::test_update_user_success PASSED         [ 46%]
+2026-02-20T22:10:54.4793523Z tests/unit/test_auth_service.py::test_update_user_password PASSED        [ 46%]
+2026-02-20T22:10:54.7540181Z tests/unit/test_auth_service.py::test_refresh_access_token_generic_exception PASSED [ 46%]
+2026-02-20T22:10:54.7590643Z tests/unit/test_badge_requirement_engine.py::TestDetectRequirementType::test_attempts_count PASSED [ 47%]
+2026-02-20T22:10:54.7639317Z tests/unit/test_badge_requirement_engine.py::TestDetectRequirementType::test_logic_attempts_count PASSED [ 47%]
+2026-02-20T22:10:54.7687248Z tests/unit/test_badge_requirement_engine.py::TestDetectRequirementType::test_mixte PASSED [ 47%]
+2026-02-20T22:10:54.7736651Z tests/unit/test_badge_requirement_engine.py::TestDetectRequirementType::test_success_rate PASSED [ 47%]
+2026-02-20T22:10:54.7785643Z tests/unit/test_badge_requirement_engine.py::TestDetectRequirementType::test_consecutive PASSED [ 48%]
+2026-02-20T22:10:54.7835949Z tests/unit/test_badge_requirement_engine.py::TestDetectRequirementType::test_max_time PASSED [ 48%]
+2026-02-20T22:10:54.7886006Z tests/unit/test_badge_requirement_engine.py::TestDetectRequirementType::test_consecutive_days PASSED [ 48%]
+2026-02-20T22:10:54.7934271Z tests/unit/test_badge_requirement_engine.py::TestDetectRequirementType::test_min_per_type PASSED [ 48%]
+2026-02-20T22:10:54.7983790Z tests/unit/test_badge_requirement_engine.py::TestDetectRequirementType::test_comeback_days PASSED [ 49%]
+2026-02-20T22:10:54.8033024Z tests/unit/test_badge_requirement_engine.py::TestDetectRequirementType::test_empty_or_invalid PASSED [ 49%]
+2026-02-20T22:10:54.8186024Z tests/unit/test_badge_requirement_engine.py::TestGetRequirementProgress::test_attempts_count_progress PASSED [ 49%]
+2026-02-20T22:10:54.8434130Z tests/unit/test_badge_requirement_engine.py::TestGetRequirementProgress::test_attempts_count_with_data PASSED [ 49%]
+2026-02-20T22:10:54.8484909Z tests/unit/test_cascade_relationships.py::test_exercise_cascade_relationship PASSED [ 50%]
+2026-02-20T22:10:54.8534498Z tests/unit/test_cascade_relationships.py::test_user_cascade_relationships PASSED [ 50%]
+2026-02-20T22:10:54.8584974Z tests/unit/test_cascade_relationships.py::test_logic_challenge_cascade_relationship PASSED [ 50%]
+2026-02-20T22:10:54.8635789Z tests/unit/test_cascade_relationships.py::test_recommendation_exercise_relationship PASSED [ 50%]
+2026-02-20T22:10:54.8687796Z tests/unit/test_constants.py::test_challenge_types_db_not_empty PASSED   [ 50%]
+2026-02-20T22:10:54.8739428Z tests/unit/test_constants.py::test_challenge_types_expected_values PASSED [ 51%]
+2026-02-20T22:10:54.8793176Z tests/unit/test_constants.py::test_normalize_challenge_type_lowercase PASSED [ 51%]
+2026-02-20T22:10:54.8845234Z tests/unit/test_constants.py::test_normalize_challenge_type_uppercase PASSED [ 51%]
+2026-02-20T22:10:54.8896936Z tests/unit/test_constants.py::test_normalize_challenge_type_mixedcase PASSED [ 51%]
+2026-02-20T22:10:54.8967739Z tests/unit/test_constants.py::test_normalize_challenge_type_invalid PASSED [ 52%]
+2026-02-20T22:10:54.9017030Z tests/unit/test_constants.py::test_normalize_challenge_type_none PASSED  [ 52%]
+2026-02-20T22:10:54.9065894Z tests/unit/test_constants.py::test_age_groups_db_not_empty PASSED        [ 52%]
+2026-02-20T22:10:54.9117721Z tests/unit/test_constants.py::test_age_groups_expected_values PASSED     [ 52%]
+2026-02-20T22:10:54.9167814Z tests/unit/test_constants.py::test_normalize_age_group_with_age_prefix PASSED [ 53%]
+2026-02-20T22:10:54.9220532Z tests/unit/test_constants.py::test_normalize_age_group_with_group_prefix PASSED [ 53%]
+2026-02-20T22:10:54.9271859Z tests/unit/test_constants.py::test_normalize_age_group_with_hyphen PASSED [ 53%]
+2026-02-20T22:10:54.9342264Z tests/unit/test_constants.py::test_normalize_age_group_invalid PASSED    [ 53%]
+2026-02-20T22:10:54.9391067Z tests/unit/test_constants.py::test_normalize_age_group_none PASSED       [ 54%]
+2026-02-20T22:10:54.9452651Z tests/unit/test_constants.py::test_calculate_difficulty_for_age_group_valid PASSED [ 54%]
+2026-02-20T22:10:54.9501564Z tests/unit/test_constants.py::test_calculate_difficulty_for_age_group_default PASSED [ 54%]
+2026-02-20T22:10:54.9550006Z tests/unit/test_constants.py::test_calculate_difficulty_for_age_group_none PASSED [ 54%]
+2026-02-20T22:10:54.9599963Z tests/unit/test_constants.py::test_exercise_types_enum_exists PASSED     [ 55%]
+2026-02-20T22:10:54.9648032Z tests/unit/test_constants.py::test_exercise_types_expected_values PASSED [ 55%]
+2026-02-20T22:10:54.9697560Z tests/unit/test_constants.py::test_difficulty_levels_enum_exists PASSED  [ 55%]
+2026-02-20T22:10:54.9746673Z tests/unit/test_constants.py::test_difficulty_levels_expected_values PASSED [ 55%]
+2026-02-20T22:10:54.9799160Z tests/unit/test_constants.py::test_difficulty_limits_exists PASSED       [ 56%]
+2026-02-20T22:10:54.9848589Z tests/unit/test_constants.py::test_user_roles_enum_exists PASSED         [ 56%]
+2026-02-20T22:10:54.9897566Z tests/unit/test_constants.py::test_user_roles_expected_values PASSED     [ 56%]
+2026-02-20T22:10:54.9946594Z tests/unit/test_constants.py::test_display_names_exists PASSED           [ 56%]
+2026-02-20T22:10:54.9996401Z tests/unit/test_constants.py::test_display_names_exercise_types PASSED   [ 57%]
+2026-02-20T22:10:55.0045666Z tests/unit/test_constants.py::test_display_names_difficulty_levels PASSED [ 57%]
+2026-02-20T22:10:55.0097020Z tests/unit/test_constants.py::test_messages_exists PASSED                [ 57%]
+2026-02-20T22:10:55.0146971Z tests/unit/test_constants.py::test_constants_consistency PASSED          [ 57%]
+2026-02-20T22:10:55.0199150Z tests/unit/test_constants.py::test_all_constants_phase3_present PASSED   [ 58%]
+2026-02-20T22:10:55.0274671Z tests/unit/test_db_adapter.py::test_get_by_id_success PASSED             [ 58%]
+2026-02-20T22:10:55.0356959Z tests/unit/test_db_adapter.py::test_get_by_id_exception PASSED           [ 58%]
+2026-02-20T22:10:55.0428723Z tests/unit/test_db_adapter.py::test_get_by_field_success PASSED          [ 58%]
+2026-02-20T22:10:55.0510058Z tests/unit/test_db_adapter.py::test_get_by_field_exception PASSED        [ 59%]
+2026-02-20T22:10:55.0592111Z tests/unit/test_db_adapter.py::test_list_active_success PASSED           [ 59%]
+2026-02-20T22:10:55.0662967Z tests/unit/test_db_adapter.py::test_list_active_without_archived_flag PASSED [ 59%]
+2026-02-20T22:10:55.0741637Z tests/unit/test_db_adapter.py::test_list_active_exception PASSED         [ 59%]
+2026-02-20T22:10:55.0820741Z tests/unit/test_db_adapter.py::test_create_success PASSED                [ 60%]
+2026-02-20T22:10:55.0915698Z tests/unit/test_db_adapter.py::test_create_exception PASSED              [ 60%]
+2026-02-20T22:10:55.0999518Z tests/unit/test_db_adapter.py::test_update_success PASSED                [ 60%]
+2026-02-20T22:10:55.1089509Z tests/unit/test_db_adapter.py::test_update_exception PASSED              [ 60%]
+2026-02-20T22:10:55.1154737Z tests/unit/test_db_adapter.py::test_archive PASSED                       [ 61%]
+2026-02-20T22:10:55.1217810Z tests/unit/test_db_adapter.py::test_delete PASSED                        [ 61%]
+2026-02-20T22:10:55.1287610Z tests/unit/test_db_adapter.py::test_execute_query_success PASSED         [ 61%]
+2026-02-20T22:10:55.1355788Z tests/unit/test_db_adapter.py::test_execute_query_no_rows PASSED         [ 61%]
+2026-02-20T22:10:55.1415070Z tests/unit/test_db_adapter.py::test_execute_query_params_must_be_dict PASSED [ 62%]
+2026-02-20T22:10:55.1501276Z tests/unit/test_db_adapter.py::test_execute_query_exception PASSED       [ 62%]
+2026-02-20T22:10:55.1624060Z tests/unit/test_db_adapters.py::test_create_logic_challenge_with_adapted_enums PASSED [ 62%]
+2026-02-20T22:10:55.1767737Z tests/unit/test_db_adapters.py::test_create_user_with_adapted_role PASSED [ 62%]
+2026-02-20T22:10:55.1950739Z tests/unit/test_db_adapters.py::test_complex_query_with_enum_filters PASSED [ 63%]
+2026-02-20T22:10:55.2052133Z tests/unit/test_db_adapters.py::test_create_logic_challenge_with_adapted_enums_new PASSED [ 63%]
+2026-02-20T22:10:55.2122573Z tests/unit/test_db_init_service.py::test_create_tables PASSED            [ 63%]
+2026-02-20T22:10:55.2233167Z tests/unit/test_db_init_service.py::test_create_test_users PASSED        [ 63%]
+2026-02-20T22:10:55.2338513Z tests/unit/test_db_init_service.py::test_create_test_exercises PASSED    [ 64%]
+2026-02-20T22:10:55.2443357Z tests/unit/test_db_init_service.py::test_create_test_logic_challenges PASSED [ 64%]
+2026-02-20T22:10:55.2566328Z tests/unit/test_db_init_service.py::test_create_test_attempts PASSED     [ 64%]
+2026-02-20T22:10:55.2636416Z tests/unit/test_db_init_service.py::test_initialize_database PASSED      [ 64%]
+2026-02-20T22:10:55.2726410Z tests/unit/test_db_init_service.py::test_create_test_users_integration PASSED [ 65%]
+2026-02-20T22:10:55.2891066Z tests/unit/test_db_init_service.py::test_create_test_exercises_and_attempts_with_mocked_session PASSED [ 65%]
+2026-02-20T22:10:55.2982560Z tests/unit/test_db_init_service.py::test_create_test_logic_challenges_integration PASSED [ 65%]
+2026-02-20T22:10:55.3065306Z tests/unit/test_db_init_service.py::test_populate_test_data_integration PASSED [ 65%]
+2026-02-20T22:10:55.3144410Z tests/unit/test_db_init_service.py::test_populate_test_data_error_handling PASSED [ 66%]
+2026-02-20T22:10:55.3322165Z tests/unit/test_db_init_service.py::test_create_test_users_already_exist PASSED [ 66%]
+2026-02-20T22:10:55.3419514Z tests/unit/test_db_init_service.py::test_populate_test_data_exception_handling PASSED [ 66%]
+2026-02-20T22:10:55.3506087Z tests/unit/test_db_init_service.py::test_create_test_users_skip_if_exist PASSED [ 66%]
+2026-02-20T22:10:55.3595445Z tests/unit/test_db_init_service.py::test_create_test_exercises_skip_if_exist PASSED [ 67%]
+2026-02-20T22:10:55.3687249Z tests/unit/test_db_init_service.py::test_create_test_attempts_no_padawan PASSED [ 67%]
+2026-02-20T22:10:55.3800760Z tests/unit/test_db_init_service.py::test_create_test_attempts_no_exercises PASSED [ 67%]
+2026-02-20T22:10:55.3867537Z tests/unit/test_db_init_service.py::test_initialize_database_success PASSED [ 67%]
+2026-02-20T22:10:55.3935783Z tests/unit/test_db_init_service.py::test_initialize_database_exception PASSED [ 68%]
+2026-02-20T22:10:55.4027302Z tests/unit/test_db_init_service.py::test_create_test_logic_challenges_skip_if_exist PASSED [ 68%]
+2026-02-20T22:10:55.4155866Z tests/unit/test_exercise_generation.py::test_generate_addition_exercise_initie_async PASSED [ 68%]
+2026-02-20T22:10:55.4281745Z tests/unit/test_exercise_generation.py::test_generate_multiplication_exercise_chevalier PASSED [ 68%]
+2026-02-20T22:10:55.4418097Z tests/unit/test_exercise_generation.py::test_generate_division_exercise_padawan PASSED [ 69%]
+2026-02-20T22:10:55.4547831Z tests/unit/test_exercise_generation.py::test_generate_exercise_invalid_type PASSED [ 69%]
+2026-02-20T22:10:55.4673770Z tests/unit/test_exercise_generation.py::test_generate_exercise_invalid_difficulty PASSED [ 69%]
+2026-02-20T22:10:55.4872107Z tests/unit/test_exercise_generation.py::test_generate_exercise_missing_parameters PASSED [ 69%]
+2026-02-20T22:10:55.5014742Z tests/unit/test_exercise_generation.py::test_generate_exercise_service_error PASSED [ 70%]
+2026-02-20T22:10:55.5161381Z tests/unit/test_exercise_generation.py::test_generate_mixed_exercise_maitre_async PASSED [ 70%]
+2026-02-20T22:10:55.5286349Z tests/unit/test_exercise_service.py::test_get_exercise PASSED            [ 70%]
+2026-02-20T22:10:55.5347604Z tests/unit/test_exercise_service.py::test_get_nonexistent_exercise PASSED [ 70%]
+2026-02-20T22:10:55.5614994Z tests/unit/test_exercise_service.py::test_list_exercises PASSED          [ 71%]
+2026-02-20T22:10:55.5722596Z tests/unit/test_exercise_service.py::test_create_exercise PASSED         [ 71%]
+2026-02-20T22:10:55.5897081Z tests/unit/test_exercise_service.py::test_update_exercise PASSED         [ 71%]
+2026-02-20T22:10:55.5975522Z tests/unit/test_exercise_service.py::test_update_nonexistent_exercise PASSED [ 71%]
+2026-02-20T22:10:55.6151520Z tests/unit/test_exercise_service.py::test_archive_exercise PASSED        [ 72%]
+2026-02-20T22:10:55.6228345Z tests/unit/test_exercise_service.py::test_archive_nonexistent_exercise PASSED [ 72%]
+2026-02-20T22:10:55.6377481Z tests/unit/test_exercise_service.py::test_delete_exercise PASSED         [ 72%]
+2026-02-20T22:10:55.6454051Z tests/unit/test_exercise_service.py::test_delete_nonexistent_exercise PASSED [ 72%]
+2026-02-20T22:10:55.6798287Z tests/unit/test_exercise_service.py::test_delete_exercise_cascade PASSED [ 73%]
+2026-02-20T22:10:55.6995004Z tests/unit/test_exercise_service.py::test_get_exercise_attempts PASSED   [ 73%]
+2026-02-20T22:10:55.7523478Z tests/unit/test_exercise_service.py::test_record_attempt PASSED          [ 73%]
+2026-02-20T22:10:55.7801571Z tests/unit/test_exercise_service.py::test_record_attempt_nonexistent_exercise PASSED [ 73%]
+2026-02-20T22:10:55.7874457Z tests/unit/test_exercise_service.py::test_list_exercises_with_exception PASSED [ 74%]
+2026-02-20T22:10:55.7945995Z tests/unit/test_exercise_service.py::test_list_exercises_with_mock PASSED [ 74%]
+2026-02-20T22:10:55.8181131Z tests/unit/test_exercise_service.py::test_record_attempt_with_exception PASSED [ 74%]
+2026-02-20T22:10:55.8241114Z tests/unit/test_exercise_service.py::test_create_exercise_with_mock PASSED [ 74%]
+2026-02-20T22:10:55.8396591Z tests/unit/test_exercise_service.py::test_record_attempt_with_mock PASSED [ 75%]
+2026-02-20T22:10:55.8517594Z tests/unit/test_logic_challenge_service.py::test_get_challenge PASSED    [ 75%]
+2026-02-20T22:10:55.8575960Z tests/unit/test_logic_challenge_service.py::test_get_nonexistent_challenge PASSED [ 75%]
+2026-02-20T22:10:55.8879292Z tests/unit/test_logic_challenge_service.py::test_list_challenges PASSED  [ 75%]
+2026-02-20T22:10:55.8956472Z tests/unit/test_logic_challenge_service.py::test_list_challenges_with_exception PASSED [ 76%]
+2026-02-20T22:10:55.9010882Z tests/unit/test_logic_challenge_service.py::test_list_challenges_with_empty_db PASSED [ 76%]
+2026-02-20T22:10:55.9141655Z tests/unit/test_logic_challenge_service.py::test_create_challenge PASSED [ 76%]
+2026-02-20T22:10:56.1956115Z tests/unit/test_logic_challenge_service.py::test_create_challenge_with_full_data PASSED [ 76%]
+2026-02-20T22:10:56.2139351Z tests/unit/test_logic_challenge_service.py::test_update_challenge PASSED [ 77%]
+2026-02-20T22:10:56.2216358Z tests/unit/test_logic_challenge_service.py::test_update_nonexistent_challenge PASSED [ 77%]
+2026-02-20T22:10:56.2383878Z tests/unit/test_logic_challenge_service.py::test_update_challenge_with_error_handling PASSED [ 77%]
+2026-02-20T22:10:56.2548491Z tests/unit/test_logic_challenge_service.py::test_archive_challenge PASSED [ 77%]
+2026-02-20T22:10:56.2623224Z tests/unit/test_logic_challenge_service.py::test_archive_nonexistent_challenge PASSED [ 78%]
+2026-02-20T22:10:56.2753114Z tests/unit/test_logic_challenge_service.py::test_archive_challenge_with_error_handling PASSED [ 78%]
+2026-02-20T22:10:56.2926172Z tests/unit/test_logic_challenge_service.py::test_delete_challenge PASSED [ 78%]
+2026-02-20T22:10:56.3001463Z tests/unit/test_logic_challenge_service.py::test_delete_nonexistent_challenge PASSED [ 78%]
+2026-02-20T22:10:56.3364260Z tests/unit/test_logic_challenge_service.py::test_delete_challenge_cascade PASSED [ 79%]
+2026-02-20T22:10:56.3606573Z tests/unit/test_logic_challenge_service.py::test_get_challenge_attempts PASSED [ 79%]
+2026-02-20T22:10:56.3883233Z tests/unit/test_logic_challenge_service.py::test_record_attempt PASSED   [ 79%]
+2026-02-20T22:10:56.4073158Z tests/unit/test_logic_challenge_service.py::test_record_attempt_nonexistent_challenge PASSED [ 79%]
+2026-02-20T22:10:56.4169003Z tests/unit/test_logic_challenge_service.py::test_record_attempt_with_exception PASSED [ 80%]
+2026-02-20T22:10:56.6916041Z tests/unit/test_logic_challenge_service.py::test_record_attempt_error_scenarios PASSED [ 80%]
+2026-02-20T22:10:56.7225272Z tests/unit/test_logic_challenge_service.py::test_record_attempt_with_complete_user_journey PASSED [ 80%]
+2026-02-20T22:10:56.7277609Z tests/unit/test_logic_challenge_service.py::test_list_challenges_with_combined_filters PASSED [ 80%]
+2026-02-20T22:10:56.7459345Z tests/unit/test_logic_challenge_service.py::test_update_challenge_with_complex_data PASSED [ 81%]
+2026-02-20T22:10:56.7565064Z tests/unit/test_logic_challenge_service.py::test_list_challenges_with_mock PASSED [ 81%]
+2026-02-20T22:10:56.7639157Z tests/unit/test_logic_challenge_service.py::test_create_challenge_with_mock PASSED [ 81%]
+2026-02-20T22:10:56.7730681Z tests/unit/test_logic_challenge_service.py::test_record_attempt_with_mock PASSED [ 81%]
+2026-02-20T22:10:56.7782132Z tests/unit/test_models.py::test_user_model PASSED                        [ 82%]
+2026-02-20T22:10:56.7833376Z tests/unit/test_models.py::test_exercise_model PASSED                    [ 82%]
+2026-02-20T22:10:56.7887711Z tests/unit/test_models.py::test_attempt_model PASSED                     [ 82%]
+2026-02-20T22:10:56.7943959Z tests/unit/test_models.py::test_user_attempt_relationship PASSED         [ 82%]
+2026-02-20T22:10:56.7997962Z tests/unit/test_models.py::test_exercise_attempt_relationship PASSED     [ 83%]
+2026-02-20T22:10:56.8051714Z tests/unit/test_models.py::test_recommendation_model PASSED              [ 83%]
+2026-02-20T22:10:56.8105475Z tests/unit/test_models.py::test_user_recommendation_relationship PASSED  [ 83%]
+2026-02-20T22:10:56.8158314Z tests/unit/test_models.py::test_user_progress_relationship PASSED        [ 83%]
+2026-02-20T22:10:56.8211866Z tests/unit/test_queries.py::test_exercise_queries_defined PASSED         [ 84%]
+2026-02-20T22:10:56.8262548Z tests/unit/test_queries.py::test_result_queries_defined PASSED           [ 84%]
+2026-02-20T22:10:56.8312070Z tests/unit/test_queries.py::test_user_stats_queries_defined PASSED       [ 84%]
+2026-02-20T22:10:56.8361919Z tests/unit/test_queries.py::test_user_queries_defined PASSED             [ 84%]
+2026-02-20T22:10:56.8411438Z tests/unit/test_queries.py::test_setting_queries_defined PASSED          [ 85%]
+2026-02-20T22:10:56.8461240Z tests/unit/test_queries.py::test_exercise_queries_syntax PASSED          [ 85%]
+2026-02-20T22:10:56.8510943Z tests/unit/test_queries.py::test_result_queries_syntax PASSED            [ 85%]
+2026-02-20T22:10:56.8562125Z tests/unit/test_queries.py::test_user_stats_queries_syntax PASSED        [ 85%]
+2026-02-20T22:10:56.8611539Z tests/unit/test_queries.py::test_user_queries_syntax PASSED              [ 86%]
+2026-02-20T22:10:56.8661585Z tests/unit/test_queries.py::test_setting_queries_syntax PASSED           [ 86%]
+2026-02-20T22:10:56.8712153Z tests/unit/test_queries.py::test_sql_injection_prevention PASSED         [ 86%]
+2026-02-20T22:10:56.8763245Z tests/unit/test_queries.py::test_query_validity_with_sqlalchemy PASSED   [ 86%]
+2026-02-20T22:10:56.8832353Z tests/unit/test_queries.py::test_create_table_queries_contain_required_fields PASSED [ 87%]
+2026-02-20T22:10:56.9508119Z tests/unit/test_recommendation_service.py::test_generate_recommendations_basic PASSED [ 87%]
+2026-02-20T22:10:57.0586186Z tests/unit/test_recommendation_service.py::test_generate_recommendations_for_improvement PASSED [ 87%]
+2026-02-20T22:10:57.0644932Z tests/unit/test_recommendation_service.py::test_get_next_difficulty PASSED [ 87%]
+2026-02-20T22:10:57.0736847Z tests/unit/test_transaction.py::test_transaction_context_manager_commit PASSED [ 88%]
+2026-02-20T22:10:57.0833442Z tests/unit/test_transaction.py::test_transaction_context_manager_with_exception PASSED [ 88%]
+2026-02-20T22:10:57.0911596Z tests/unit/test_transaction.py::test_transaction_without_auto_commit PASSED [ 88%]
+2026-02-20T22:10:57.0982061Z tests/unit/test_transaction.py::test_commit_success PASSED               [ 88%]
+2026-02-20T22:10:57.1063768Z tests/unit/test_transaction.py::test_commit_failure PASSED               [ 89%]
+2026-02-20T22:10:57.1134227Z tests/unit/test_transaction.py::test_rollback_success PASSED             [ 89%]
+2026-02-20T22:10:57.1212283Z tests/unit/test_transaction.py::test_rollback_failure PASSED             [ 89%]
+2026-02-20T22:10:57.1308505Z tests/unit/test_transaction.py::test_safe_delete_success PASSED          [ 89%]
+2026-02-20T22:10:57.1444041Z tests/unit/test_transaction.py::test_safe_delete_with_commit_error PASSED [ 90%]
+2026-02-20T22:10:57.1579952Z tests/unit/test_transaction.py::test_safe_delete_with_alternative_error PASSED [ 90%]
+2026-02-20T22:10:57.1666879Z tests/unit/test_transaction.py::test_safe_delete_without_auto_commit PASSED [ 90%]
+2026-02-20T22:10:57.1755353Z tests/unit/test_transaction.py::test_safe_archive_success PASSED         [ 90%]
+2026-02-20T22:10:57.1856180Z tests/unit/test_transaction.py::test_safe_archive_with_error PASSED      [ 91%]
+2026-02-20T22:10:57.1936120Z tests/unit/test_transaction.py::test_safe_archive_without_is_archived PASSED [ 91%]
+2026-02-20T22:10:57.2022914Z tests/unit/test_transaction.py::test_safe_archive_without_auto_commit PASSED [ 91%]
+2026-02-20T22:10:57.2095143Z tests/unit/test_user_service.py::test_get_user PASSED                    [ 91%]
+2026-02-20T22:10:57.2158013Z tests/unit/test_user_service.py::test_get_nonexistent_user PASSED        [ 92%]
+2026-02-20T22:10:57.4895208Z tests/unit/test_user_service.py::test_get_user_by_username PASSED        [ 92%]
+2026-02-20T22:10:57.4955768Z tests/unit/test_user_service.py::test_get_nonexistent_user_by_username PASSED [ 92%]
+2026-02-20T22:10:57.5039628Z tests/unit/test_user_service.py::test_get_user_by_email PASSED           [ 92%]
+2026-02-20T22:10:57.5114357Z tests/unit/test_user_service.py::test_get_nonexistent_user_by_email PASSED [ 93%]
+2026-02-20T22:10:57.5212840Z tests/unit/test_user_service.py::test_list_users PASSED                  [ 93%]
+2026-02-20T22:10:57.5290694Z tests/unit/test_user_service.py::test_list_users_with_exception PASSED   [ 93%]
+2026-02-20T22:10:57.7976697Z tests/unit/test_user_service.py::test_create_user PASSED                 [ 93%]
+2026-02-20T22:10:57.8081916Z tests/unit/test_user_service.py::test_create_user_duplicate_username PASSED [ 94%]
+2026-02-20T22:10:57.8190708Z tests/unit/test_user_service.py::test_create_user_duplicate_email PASSED [ 94%]
+2026-02-20T22:10:58.0984383Z tests/unit/test_user_service.py::test_update_user PASSED                 [ 94%]
+2026-02-20T22:10:58.1062316Z tests/unit/test_user_service.py::test_update_nonexistent_user PASSED     [ 94%]
+2026-02-20T22:10:58.3849745Z tests/unit/test_user_service.py::test_delete_user PASSED                 [ 95%]
+2026-02-20T22:10:58.3927798Z tests/unit/test_user_service.py::test_delete_nonexistent_user PASSED     [ 95%]
+2026-02-20T22:10:58.6745925Z tests/unit/test_user_service.py::test_disable_user PASSED                [ 95%]
+2026-02-20T22:10:58.6822997Z tests/unit/test_user_service.py::test_disable_nonexistent_user PASSED    [ 95%]
+2026-02-20T22:10:58.6878176Z tests/unit/test_user_service.py::test_get_user_stats PASSED              [ 96%]
+2026-02-20T22:10:58.6956963Z tests/unit/test_user_service.py::test_get_stats_nonexistent_user PASSED  [ 96%]
+2026-02-20T22:10:58.7053496Z tests/unit/test_user_service.py::test_get_user_stats_with_exception PASSED [ 96%]
+2026-02-20T22:10:58.7108708Z tests/unit/test_user_service.py::test_get_user_stats_empty_exercise_types PASSED [ 96%]
+2026-02-20T22:10:58.7162337Z tests/unit/test_user_service.py::test_get_user_stats_zero_division_handling PASSED [ 97%]
+2026-02-20T22:10:58.7215735Z tests/unit/test_user_service.py::test_get_user_stats_with_multiple_exercise_types PASSED [ 97%]
+2026-02-20T22:10:58.7315500Z tests/unit/test_user_service.py::test_transaction_manager_in_create_user PASSED [ 97%]
+2026-02-20T22:10:59.0000246Z tests/unit/test_user_service.py::test_update_user_with_invalid_data PASSED [ 97%]
+2026-02-20T22:10:59.3066533Z tests/unit/test_user_service.py::test_cascade_delete_user_with_relationships PASSED [ 98%]
+2026-02-20T22:10:59.3123377Z tests/unit/test_user_service.py::test_get_user_stats_with_empty_attempts PASSED [ 98%]
+2026-02-20T22:10:59.3179619Z tests/unit/test_user_service.py::test_get_user_stats_with_specific_exercise_type PASSED [ 98%]
+2026-02-20T22:10:59.3233112Z tests/unit/test_user_service.py::test_get_user_stats_error_handling PASSED [ 98%]
+2026-02-20T22:10:59.3286785Z tests/unit/test_user_service.py::test_get_user_stats_performance_by_difficulty PASSED [ 99%]
+2026-02-20T22:10:59.3342763Z tests/unit/test_user_service.py::test_get_user_stats_with_complex_relations PASSED [ 99%]
+2026-02-20T22:10:59.6166376Z tests/unit/test_user_service.py::test_get_user_stats_with_malformed_data PASSED [ 99%]
+2026-02-20T22:10:59.6267762Z tests/unit/test_user_service.py::test_list_users_with_complex_filters PASSED [ 99%]
+2026-02-20T22:11:06.4861929Z tests/unit/test_user_service.py::test_user_roles_adaptation_for_different_databases PASSED [100%]
+2026-02-20T22:11:06.4862665Z 
+2026-02-20T22:11:06.4862894Z ================================ tests coverage ================================
+2026-02-20T22:11:06.4863633Z _______________ coverage: platform linux, python 3.12.12-final-0 _______________
+2026-02-20T22:11:06.4864141Z 
+2026-02-20T22:11:06.4864393Z Name                                         Stmts   Miss  Cover   Missing
+2026-02-20T22:11:06.4865021Z --------------------------------------------------------------------------
+2026-02-20T22:11:06.4865663Z app/__init__.py                                  0      0   100%
+2026-02-20T22:11:06.4866291Z app/core/__init__.py                             0      0   100%
+2026-02-20T22:11:06.4867148Z app/core/ai_config.py                           65     27    58%   118, 123, 128-130, 135, 140, 145, 150, 156-158, 163, 168-193
+2026-02-20T22:11:06.4867976Z app/core/config.py                              71      9    87%   41-50, 147-162
+2026-02-20T22:11:06.4868643Z app/core/constants.py                          129     14    89%   116, 134-147, 357
+2026-02-20T22:11:06.4869924Z app/core/logging_config.py                      28      1    96%   18
+2026-02-20T22:11:06.4870569Z app/core/messages.py                           181      4    98%   239-240, 245-246
+2026-02-20T22:11:06.4871355Z app/core/monitoring.py                          79     26    67%   28-29, 62-80, 84, 102-106, 113-119, 130-131, 147-149
+2026-02-20T22:11:06.4872187Z app/core/security.py                            60     13    78%   41, 65, 71, 96, 101-102, 109, 114-116, 137-139
+2026-02-20T22:11:06.4872877Z app/db/__init__.py                               0      0   100%
+2026-02-20T22:11:06.4873439Z app/db/adapter.py                               88      2    98%   140-141
+2026-02-20T22:11:06.4874021Z app/db/base.py                                  30     16    47%   23-25, 36-51
+2026-02-20T22:11:06.4874839Z app/db/init_db.py                               23     23     0%   1-40
+2026-02-20T22:11:06.4875391Z app/db/queries.py                               49      0   100%
+2026-02-20T22:11:06.4876047Z app/db/transaction.py                          107     11    90%   111-112, 115-116, 148-151, 179-180, 184
+2026-02-20T22:11:06.4876724Z app/models/__init__.py                           1      0   100%
+2026-02-20T22:11:06.4877299Z app/models/achievement.py                       31      0   100%
+2026-02-20T22:11:06.4877878Z app/models/admin_audit_log.py                   14      0   100%
+2026-02-20T22:11:06.4878446Z app/models/all_models.py                        12      0   100%
+2026-02-20T22:11:06.4879187Z app/models/attempt.py                           19      0   100%
+2026-02-20T22:11:06.4879753Z app/models/exercise.py                          47      0   100%
+2026-02-20T22:11:06.4880346Z app/models/legacy_tables.py                     33      0   100%
+2026-02-20T22:11:06.4880990Z app/models/logic_challenge.py                   97     23    76%   113-149
+2026-02-20T22:11:06.4881655Z app/models/notification.py                      27      5    81%   40, 44-47
+2026-02-20T22:11:06.4882308Z app/models/progress.py                          43     13    70%   67-69, 75-85
+2026-02-20T22:11:06.4882940Z app/models/recommendation.py                    26      0   100%
+2026-02-20T22:11:06.4883537Z app/models/setting.py                           15      0   100%
+2026-02-20T22:11:06.4884093Z app/models/user.py                              65      0   100%
+2026-02-20T22:11:06.4884697Z app/models/user_session.py                      27      5    81%   40-41, 45-47
+2026-02-20T22:11:06.4885310Z app/schemas/__init__.py                          1      0   100%
+2026-02-20T22:11:06.4885870Z app/schemas/all_schemas.py                       8      0   100%
+2026-02-20T22:11:06.4886496Z app/schemas/attempt.py                          65     11    83%   26-28, 49-51, 87-91
+2026-02-20T22:11:06.4887332Z app/schemas/common.py                           59      4    93%   110-113
+2026-02-20T22:11:06.4888146Z app/schemas/exercise.py                        142     64    55%   35-49, 55-69, 74-76, 81-95, 101-103, 131-149, 154-172, 177-179, 184-193
+2026-02-20T22:11:06.4889312Z app/schemas/logic_challenge.py                 138     21    85%   38-40, 45-47, 52-54, 92-94, 99-101, 139-141, 158-160
+2026-02-20T22:11:06.4890121Z app/schemas/progress.py                         88     12    86%   25-28, 57-61, 68-72
+2026-02-20T22:11:06.4890830Z app/schemas/recommendation.py                   31     31     0%   1-45
+2026-02-20T22:11:06.4891531Z app/schemas/user.py                            123     13    89%   38, 47, 62, 64, 66, 98, 192-198
+2026-02-20T22:11:06.4892179Z app/schemas/user_session.py                     32      0   100%
+2026-02-20T22:11:06.4892758Z app/services/__init__.py                         4      0   100%
+2026-02-20T22:11:06.4893646Z app/services/auth_service.py                   141     27    81%   82-83, 137, 208, 256-258, 276-277, 293-294, 314-315, 320-321, 330-331, 385-401
+2026-02-20T22:11:06.4895417Z app/services/badge_requirement_engine.py       315    231    27%   42, 51-65, 72, 81-95, 102-127, 134-149, 156-181, 188-199, 206-222, 229-250, 257-278, 336, 340, 350, 365, 368, 371-373, 389, 402-418, 424-433, 439-457, 463-487, 493-518, 524-537, 543-558, 564-587, 594-596, 602-631, 662, 665, 668-670
+2026-02-20T22:11:06.4897901Z app/services/badge_service.py                  360    221    39%   44-45, 75-77, 84, 88-90, 93, 101, 108-233, 239-266, 271-289, 294-308, 314-341, 347-374, 380-409, 436-439, 480-482, 489-496, 501-566, 571, 574-575, 577, 583-614, 619-643, 655, 658-659, 661, 666, 767-770, 774-775, 781, 807, 811-814, 817-818, 825-853, 860-878
+2026-02-20T22:11:06.4899775Z app/services/challenge_ai_service.py           201    177    12%   85-107, 403-429, 440-479, 505-778
+2026-02-20T22:11:06.4900900Z app/services/challenge_service.py              116     43    63%   91, 122, 132-135, 266, 269, 273, 277, 281, 319, 340-355, 372, 395-400, 425-454, 468-486
+2026-02-20T22:11:06.4902661Z app/services/challenge_validator.py            737    713     3%   30-95, 104-119, 127-174, 194-303, 323-412, 420-443, 451-488, 499-567, 575-612, 620-729, 737-774, 787-944, 952-965, 973-994, 999-1034, 1042-1142, 1157-1216, 1232-1277
+2026-02-20T22:11:06.4904004Z app/services/db_init_service.py                102      4    96%   195-196, 239, 329
+2026-02-20T22:11:06.4904828Z app/services/email_service.py                  125     86    31%   35-37, 67-73, 83-125, 135-197, 211, 230
+2026-02-20T22:11:06.4905899Z app/services/enhanced_server_adapter.py        111     47    58%   45-48, 50, 115-118, 139-147, 161-164, 235-238, 255, 269, 284-290, 322-323, 338-351, 364-374
+2026-02-20T22:11:06.4907186Z app/services/exercise_service.py               216     40    81%   90-92, 96-98, 106-107, 281-285, 312, 336-342, 365-366, 369-370, 376-377, 391-403, 438-441, 452-453
+2026-02-20T22:11:06.4908158Z app/services/logic_challenge_service.py         96      1    99%   77
+2026-02-20T22:11:06.4909399Z app/services/recommendation_service.py         211     76    64%   36-37, 41-42, 88-89, 155-157, 163-192, 231, 302, 313-316, 331-365, 373-376, 381-388, 393-401, 412-414, 419-430
+2026-02-20T22:11:06.4910461Z app/services/streak_service.py                  40      1    98%   67
+2026-02-20T22:11:06.4911143Z app/services/user_service.py                   124      2    98%   261-272
+2026-02-20T22:11:06.4911791Z app/utils/csrf.py                               20     10    50%   20, 31-48
+2026-02-20T22:11:06.4912417Z app/utils/db_helpers.py                         38      9    76%   106, 233-287
+2026-02-20T22:11:06.4913029Z app/utils/db_utils.py                           15      0   100%
+2026-02-20T22:11:06.4913604Z app/utils/email_templates.py                    16      0   100%
+2026-02-20T22:11:06.4914246Z app/utils/email_verification.py                 21      9    57%   33-37, 51, 66-70
+2026-02-20T22:11:06.4914954Z app/utils/error_handler.py                      42     11    74%   26-30, 78-79, 84, 108-116
+2026-02-20T22:11:06.4915931Z app/utils/generation_metrics.py                 75     55    27%   45-67, 75-94, 98-117, 121-140, 144-163, 167, 177-191
+2026-02-20T22:11:06.4916761Z app/utils/json_utils.py                         87     69    21%   25-30, 41-69, 86-93, 108-122, 135-159
+2026-02-20T22:11:06.4917506Z app/utils/prompt_sanitizer.py                   38     28    26%   28-88, 102-123
+2026-02-20T22:11:06.4918256Z app/utils/rate_limit.py                         73     27    63%   29, 44-50, 62-64, 83-85, 99-108, 118-127
+2026-02-20T22:11:06.4919168Z app/utils/rate_limiter.py                       44     18    59%   44-45, 56, 64, 75-88, 92-98
+2026-02-20T22:11:06.4919852Z app/utils/request_utils.py                      35      5    86%   58, 77, 82-84
+2026-02-20T22:11:06.4920598Z app/utils/settings_reader.py                     8      1    88%   15
+2026-02-20T22:11:06.4921224Z app/utils/sse_utils.py                          15      3    80%   25, 35, 40
+2026-02-20T22:11:06.4921935Z app/utils/token_tracker.py                      55     40    27%   42-89, 107-137, 147-159, 163-174
+2026-02-20T22:11:06.4922737Z app/utils/translation.py                        45     30    33%   37-53, 72-85, 108-115, 138-145
+2026-02-20T22:11:06.4923389Z server/__init__.py                               4      0   100%
+2026-02-20T22:11:06.4923956Z server/app.py                                   24      6    75%   57-63, 74-78
+2026-02-20T22:11:06.4924618Z server/auth.py                                  81     12    85%   62-65, 70, 77, 98-100, 151, 174, 176, 181
+2026-02-20T22:11:06.4925324Z server/database.py                              60     39    35%   35-40, 43-44, 59-61, 70-129
+2026-02-20T22:11:06.4925989Z server/error_handlers.py                        15      3    80%   52-55
+2026-02-20T22:11:06.4927189Z server/exercise_generator.py                   780    660    15%   43, 51-69, 86-87, 91-93, 117-126, 133-835, 841-850, 908-937, 1008-1165, 1169-1203, 1207-1298, 1308, 1323, 1344-1352, 1359, 1371, 1385-1494, 1498-1578, 1582-1642
+2026-02-20T22:11:06.4930133Z server/handlers/admin_handlers.py              834    641    23%   52-53, 63, 78-93, 97-99, 109-127, 138-187, 197-205, 220-262, 272-343, 353-380, 390-415, 425-490, 495, 523-562, 569-574, 581-615, 622-652, 659-678, 711, 713, 723-772, 792-794, 804-805, 810, 812, 822, 854, 868-869, 874, 877-879, 884, 886, 889-892, 912, 932-934, 964-1008, 1015-1020, 1027-1075, 1082-1114, 1124-1197, 1204-1223, 1237-1269, 1279-1321, 1331-1387, 1406-1489
+2026-02-20T22:11:06.4932747Z server/handlers/auth_handlers.py               320    132    59%   67-130, 144-213, 257, 340, 344-347, 363-383, 405-410, 428-454, 504-512, 548-551, 589-590, 612-613, 621-622, 625-628, 643, 651, 657, 662, 667, 689, 708-711, 751-754
+2026-02-20T22:11:06.4934132Z server/handlers/badge_handlers.py              113     90    20%   24-36, 40-56, 61-78, 83-128, 134-153, 161-169, 178-192
+2026-02-20T22:11:06.4936036Z server/handlers/challenge_handlers.py          527    333    37%   68-81, 145-154, 219-228, 246, 259-262, 276-277, 284-304, 311-330, 339-354, 358, 363, 376-432, 439-440, 442-473, 475-504, 507-521, 524-595, 601, 633-634, 640-641, 650-651, 659, 667-673, 688, 693-697, 699, 703, 711-716, 725-770, 783-799, 808-824, 833-848, 869-870, 877-878, 890-891, 896-918
+2026-02-20T22:11:06.4937903Z server/handlers/chat_handlers.py               177    159    10%   20-21, 32-61, 69-80, 88-92, 142-306, 322-530
+2026-02-20T22:11:06.4939747Z server/handlers/exercise_handlers.py           460    217    53%   44-45, 79-81, 134-157, 230-231, 279, 282-283, 314-316, 344, 351-359, 436-441, 449, 453, 457-458, 467, 496, 498, 500-501, 508, 512, 521-522, 547-549, 564-567, 595-596, 631-632, 638-641, 664-666, 680-868, 877-910, 935-1159, 1168-1177, 1182-1193
+2026-02-20T22:11:06.4941402Z server/handlers/recommendation_handlers.py     103     87    16%   25-101, 110-126, 136-170
+2026-02-20T22:11:06.4943733Z server/handlers/user_handlers.py               581    273    53%   43-44, 54-55, 62-63, 97, 130, 141-143, 205, 248-251, 260-262, 280-283, 301, 323, 329, 337, 343, 350, 356, 362, 416-424, 448-464, 485-488, 516, 530-533, 566, 631-634, 654-657, 666-765, 804, 806, 814, 817-822, 828, 835-841, 847, 855-866, 876, 884-886, 895, 899-904, 915-920, 950-955, 971, 986, 991, 996, 1001, 1010, 1029-1034, 1046-1080, 1098-1108, 1119-1250, 1259-1303, 1312-1351
+2026-02-20T22:11:06.4945835Z server/middleware.py                            65     29    55%   40-45, 96-117, 141-154, 165-166
+2026-02-20T22:11:06.4946495Z server/routes.py                                20      2    90%   115-116
+2026-02-20T22:11:06.4947126Z server/template_handler.py                      32     16    50%   46-68, 93-109
+2026-02-20T22:11:06.4947786Z --------------------------------------------------------------------------
+2026-02-20T22:11:06.4948320Z TOTAL                                         9776   5031    49%
+2026-02-20T22:11:06.4948940Z Coverage HTML written to dir htmlcov
+2026-02-20T22:11:06.4949345Z Coverage XML written to file coverage.xml
+2026-02-20T22:11:06.9250547Z ================== 400 passed, 2 skipped in 75.70s (0:01:15) ===================
+2026-02-20T22:11:07.3202322Z ##[group]Run test -f coverage.xml && echo "coverage.xml exists" && head -5 coverage.xml
+2026-02-20T22:11:07.3202935Z [36;1mtest -f coverage.xml && echo "coverage.xml exists" && head -5 coverage.xml[0m
+2026-02-20T22:11:07.3203324Z [36;1mwc -l coverage.xml[0m
+2026-02-20T22:11:07.3235002Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:11:07.3235238Z env:
+2026-02-20T22:11:07.3235492Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.3235918Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:07.3236330Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.3236695Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.3237063Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.3237431Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:07.3237930Z ##[endgroup]
+2026-02-20T22:11:07.3288096Z coverage.xml exists
+2026-02-20T22:11:07.3297707Z <?xml version="1.0" ?>
+2026-02-20T22:11:07.3299045Z <coverage version="7.13.4" timestamp="1771625465093" lines-valid="9776" lines-covered="4745" line-rate="0.4854" branches-covered="0" branches-valid="0" branch-rate="0" complexity="0">
+2026-02-20T22:11:07.3299955Z 	<!-- Generated by coverage.py: https://coverage.readthedocs.io/en/7.13.4 -->
+2026-02-20T22:11:07.3300570Z 	<!-- Based on https://raw.githubusercontent.com/cobertura/web/master/htdocs/xml/coverage-04.dtd -->
+2026-02-20T22:11:07.3301039Z 	<sources>
+2026-02-20T22:11:07.3315287Z 10247 coverage.xml
+2026-02-20T22:11:07.3601712Z ##[group]Run codecov/codecov-action@v5
+2026-02-20T22:11:07.3601989Z with:
+2026-02-20T22:11:07.3602167Z   files: ./coverage.xml
+2026-02-20T22:11:07.3602363Z   flags: backend
+2026-02-20T22:11:07.3602563Z   name: codecov-mathakine-backend
+2026-02-20T22:11:07.3602801Z   fail_ci_if_error: false
+2026-02-20T22:11:07.3603011Z   verbose: true
+2026-02-20T22:11:07.3603183Z   disable_search: true
+2026-02-20T22:11:07.3603381Z   disable_file_fixes: false
+2026-02-20T22:11:07.3603597Z   disable_safe_directory: false
+2026-02-20T22:11:07.3603815Z   disable_telem: false
+2026-02-20T22:11:07.3603997Z   dry_run: false
+2026-02-20T22:11:07.3604176Z   git_service: github
+2026-02-20T22:11:07.3604367Z   gcov_executable: gcov
+2026-02-20T22:11:07.3604574Z   handle_no_reports_found: false
+2026-02-20T22:11:07.3604799Z   recurse_submodules: false
+2026-02-20T22:11:07.3605018Z   run_command: upload-coverage
+2026-02-20T22:11:07.3605239Z   skip_validation: false
+2026-02-20T22:11:07.3605475Z   use_legacy_upload_endpoint: false
+2026-02-20T22:11:07.3605707Z   use_oidc: false
+2026-02-20T22:11:07.3605879Z   use_pypi: false
+2026-02-20T22:11:07.3606054Z   version: latest
+2026-02-20T22:11:07.3606222Z env:
+2026-02-20T22:11:07.3606459Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.3606862Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:07.3607263Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.3607618Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.3607977Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.3608333Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:07.3608732Z   CODECOV_TOKEN: ***
+2026-02-20T22:11:07.3609287Z ##[endgroup]
+2026-02-20T22:11:07.3697676Z ##[group]Run missing_deps=""
+2026-02-20T22:11:07.3697943Z [36;1mmissing_deps=""[0m
+2026-02-20T22:11:07.3698143Z [36;1m[0m
+2026-02-20T22:11:07.3698352Z [36;1m# Check for always-required commands[0m
+2026-02-20T22:11:07.3698629Z [36;1mfor cmd in bash git curl; do[0m
+2026-02-20T22:11:07.3699125Z [36;1m  if ! command -v "$cmd" >/dev/null 2>&1; then[0m
+2026-02-20T22:11:07.3699443Z [36;1m    missing_deps="$missing_deps $cmd"[0m
+2026-02-20T22:11:07.3699693Z [36;1m  fi[0m
+2026-02-20T22:11:07.3699866Z [36;1mdone[0m
+2026-02-20T22:11:07.3700032Z [36;1m[0m
+2026-02-20T22:11:07.3700285Z [36;1m# Check for gpg only if validation is not being skipped[0m
+2026-02-20T22:11:07.3700612Z [36;1mif [ "false" != "true" ]; then[0m
+2026-02-20T22:11:07.3700894Z [36;1m  if ! command -v gpg >/dev/null 2>&1; then[0m
+2026-02-20T22:11:07.3701198Z [36;1m    missing_deps="$missing_deps gpg"[0m
+2026-02-20T22:11:07.3701452Z [36;1m  fi[0m
+2026-02-20T22:11:07.3701620Z [36;1mfi[0m
+2026-02-20T22:11:07.3701778Z [36;1m[0m
+2026-02-20T22:11:07.3701978Z [36;1m# Report missing required dependencies[0m
+2026-02-20T22:11:07.3702265Z [36;1mif [ -n "$missing_deps" ]; then[0m
+2026-02-20T22:11:07.3702652Z [36;1m  echo "Error: The following required dependencies are missing:$missing_deps"[0m
+2026-02-20T22:11:07.3703150Z [36;1m  echo "Please install these dependencies before using this action."[0m
+2026-02-20T22:11:07.3703499Z [36;1m  exit 1[0m
+2026-02-20T22:11:07.3703674Z [36;1mfi[0m
+2026-02-20T22:11:07.3703838Z [36;1m[0m
+2026-02-20T22:11:07.3704237Z [36;1mecho "All required system dependencies are available."[0m
+2026-02-20T22:11:07.4634802Z shell: /usr/bin/sh -e {0}
+2026-02-20T22:11:07.4635115Z env:
+2026-02-20T22:11:07.4635450Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4636017Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:07.4636563Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4637099Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4637652Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4638292Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:07.4639041Z   CODECOV_TOKEN: ***
+2026-02-20T22:11:07.4639294Z ##[endgroup]
+2026-02-20T22:11:07.4708484Z All required system dependencies are available.
+2026-02-20T22:11:07.4734073Z ##[group]Run CC_ACTION_VERSION=$(cat ${GITHUB_ACTION_PATH}/src/version)
+2026-02-20T22:11:07.4734546Z [36;1mCC_ACTION_VERSION=$(cat ${GITHUB_ACTION_PATH}/src/version)[0m
+2026-02-20T22:11:07.4734992Z [36;1mecho -e "\033[0;32m==>\033[0m Running Action version $CC_ACTION_VERSION"[0m
+2026-02-20T22:11:07.4763767Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-02-20T22:11:07.4764081Z env:
+2026-02-20T22:11:07.4764327Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4764754Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:07.4765155Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4765512Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4765878Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4766244Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:07.4766654Z   CODECOV_TOKEN: ***
+2026-02-20T22:11:07.4766847Z ##[endgroup]
+2026-02-20T22:11:07.4827675Z [0;32m==>[0m Running Action version 5.5.2
+2026-02-20T22:11:07.4850954Z ##[group]Run git config --global --add safe.directory "/home/runner/work/mathakine/mathakine"
+2026-02-20T22:11:07.4851559Z [36;1mgit config --global --add safe.directory "/home/runner/work/mathakine/mathakine"[0m
+2026-02-20T22:11:07.4852064Z [36;1mgit config --global --add safe.directory "$GITHUB_WORKSPACE"[0m
+2026-02-20T22:11:07.4880546Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-02-20T22:11:07.4880860Z env:
+2026-02-20T22:11:07.4881109Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4881523Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:07.4881937Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4882300Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4882656Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.4883020Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:07.4883414Z   CODECOV_TOKEN: ***
+2026-02-20T22:11:07.4883612Z ##[endgroup]
+2026-02-20T22:11:07.4981927Z ##[group]Run CC_FORK="false"
+2026-02-20T22:11:07.4982177Z [36;1mCC_FORK="false"[0m
+2026-02-20T22:11:07.4982709Z [36;1mif [ -n "$GITHUB_EVENT_PULL_REQUEST_HEAD_REPO_FULL_NAME" ] && [ "$GITHUB_EVENT_PULL_REQUEST_HEAD_REPO_FULL_NAME" != "$GITHUB_REPOSITORY" ];[0m
+2026-02-20T22:11:07.4983271Z [36;1mthen[0m
+2026-02-20T22:11:07.4983499Z [36;1m  echo -e "\033[0;32m==>\033[0m Fork detected"[0m
+2026-02-20T22:11:07.4983781Z [36;1m  CC_FORK="true"[0m
+2026-02-20T22:11:07.4983980Z [36;1mfi[0m
+2026-02-20T22:11:07.4984185Z [36;1mecho "CC_FORK=$CC_FORK" >> "$GITHUB_ENV"[0m
+2026-02-20T22:11:07.5012807Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-02-20T22:11:07.5013136Z env:
+2026-02-20T22:11:07.5013383Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.5013849Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:07.5014522Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.5014904Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.5015266Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.5015635Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:07.5016022Z   CODECOV_TOKEN: ***
+2026-02-20T22:11:07.5016237Z   GITHUB_EVENT_PULL_REQUEST_HEAD_LABEL: 
+2026-02-20T22:11:07.5016520Z   GITHUB_EVENT_PULL_REQUEST_HEAD_REPO_FULL_NAME: 
+2026-02-20T22:11:07.5016809Z   GITHUB_REPOSITORY: zyclope0/mathakine
+2026-02-20T22:11:07.5017047Z ##[endgroup]
+2026-02-20T22:11:07.5112128Z ##[group]Run actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+2026-02-20T22:11:07.5112518Z with:
+2026-02-20T22:11:07.5113122Z   script: if (process.env.CC_USE_OIDC === 'true' && process.env.CC_FORK != 'true') {
+  const id_token = await core.getIDToken(process.env.CC_OIDC_AUDIENCE)
+  return id_token
+}
+
+2026-02-20T22:11:07.5113946Z   github-token: ***
+2026-02-20T22:11:07.5114147Z   debug: false
+2026-02-20T22:11:07.5114341Z   user-agent: actions/github-script
+2026-02-20T22:11:07.5114593Z   result-encoding: json
+2026-02-20T22:11:07.5114803Z   retries: 0
+2026-02-20T22:11:07.5115017Z   retry-exempt-status-codes: 400,401,403,404,422
+2026-02-20T22:11:07.5115282Z env:
+2026-02-20T22:11:07.5115510Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.5115910Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:07.5116310Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.5116673Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.5117032Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.5117384Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:07.5117680Z   CC_FORK: false
+2026-02-20T22:11:07.5117919Z   CODECOV_TOKEN: ***
+2026-02-20T22:11:07.5118134Z   CC_OIDC_AUDIENCE: https://codecov.io
+2026-02-20T22:11:07.5118383Z   CC_USE_OIDC: false
+2026-02-20T22:11:07.5118562Z ##[endgroup]
+2026-02-20T22:11:07.6035593Z ##[group]Run if [ "false" == 'true' ] && [ "$CC_FORK" != 'true' ];
+2026-02-20T22:11:07.6036008Z [36;1mif [ "false" == 'true' ] && [ "$CC_FORK" != 'true' ];[0m
+2026-02-20T22:11:07.6036304Z [36;1mthen[0m
+2026-02-20T22:11:07.6036593Z [36;1m  echo "CC_TOKEN=$CC_OIDC_TOKEN" >> "$GITHUB_ENV"[0m
+2026-02-20T22:11:07.6037022Z [36;1melif [ -n "***" ];[0m
+2026-02-20T22:11:07.6037237Z [36;1mthen[0m
+2026-02-20T22:11:07.6037482Z [36;1m  echo -e "\033[0;32m==>\033[0m Token set from env"[0m
+2026-02-20T22:11:07.6037920Z [36;1m    echo "CC_TOKEN=***" >> "$GITHUB_ENV"[0m
+2026-02-20T22:11:07.6038183Z [36;1melse[0m
+2026-02-20T22:11:07.6038366Z [36;1m  if [ -n "" ];[0m
+2026-02-20T22:11:07.6038576Z [36;1m  then[0m
+2026-02-20T22:11:07.6039114Z [36;1m    echo -e "\033[0;32m==>\033[0m Token set from input"[0m
+2026-02-20T22:11:07.6039475Z [36;1m    CC_TOKEN=$(echo "" | tr -d '\n')[0m
+2026-02-20T22:11:07.6039799Z [36;1m    echo "CC_TOKEN=$CC_TOKEN" >> "$GITHUB_ENV"[0m
+2026-02-20T22:11:07.6040081Z [36;1m  fi[0m
+2026-02-20T22:11:07.6040252Z [36;1mfi[0m
+2026-02-20T22:11:07.6071744Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-02-20T22:11:07.6072065Z env:
+2026-02-20T22:11:07.6072313Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6072727Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:07.6073128Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6073486Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6073851Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6074216Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:07.6074510Z   CC_FORK: false
+2026-02-20T22:11:07.6074778Z   CODECOV_TOKEN: ***
+2026-02-20T22:11:07.6074972Z   CC_OIDC_TOKEN: 
+2026-02-20T22:11:07.6075355Z   CC_OIDC_AUDIENCE: https://codecov.io
+2026-02-20T22:11:07.6075617Z ##[endgroup]
+2026-02-20T22:11:07.6126832Z [0;32m==>[0m Token set from env
+2026-02-20T22:11:07.6145819Z ##[group]Run if [ -z "$CC_BRANCH" ] && [ -z "$CC_TOKEN" ] && [ "$CC_FORK" == 'true' ]
+2026-02-20T22:11:07.6146297Z [36;1mif [ -z "$CC_BRANCH" ] && [ -z "$CC_TOKEN" ] && [ "$CC_FORK" == 'true' ][0m
+2026-02-20T22:11:07.6146634Z [36;1mthen[0m
+2026-02-20T22:11:07.6147018Z [36;1m  echo -e "\033[0;32m==>\033[0m Fork detected, setting branch to $GITHUB_EVENT_PULL_REQUEST_HEAD_LABEL"[0m
+2026-02-20T22:11:07.6147524Z [36;1m  TOKENLESS="$GITHUB_EVENT_PULL_REQUEST_HEAD_LABEL"[0m
+2026-02-20T22:11:07.6148007Z [36;1m  CC_BRANCH="$GITHUB_EVENT_PULL_REQUEST_HEAD_LABEL"[0m
+2026-02-20T22:11:07.6148349Z [36;1m  echo "TOKENLESS=$TOKENLESS" >> "$GITHUB_ENV"[0m
+2026-02-20T22:11:07.6148621Z [36;1mfi[0m
+2026-02-20T22:11:07.6149039Z [36;1m[0m
+2026-02-20T22:11:07.6149271Z [36;1mecho "CC_BRANCH=$CC_BRANCH" >> "$GITHUB_ENV"[0m
+2026-02-20T22:11:07.6177224Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-02-20T22:11:07.6177548Z env:
+2026-02-20T22:11:07.6177790Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6178206Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:07.6178624Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6179237Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6179616Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6180004Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:07.6180318Z   CC_FORK: false
+2026-02-20T22:11:07.6180594Z   CC_TOKEN: ***
+2026-02-20T22:11:07.6180835Z   CODECOV_TOKEN: ***
+2026-02-20T22:11:07.6181029Z   CC_BRANCH: 
+2026-02-20T22:11:07.6181220Z   GITHUB_EVENT_PULL_REQUEST_HEAD_LABEL: 
+2026-02-20T22:11:07.6181518Z   GITHUB_EVENT_PULL_REQUEST_HEAD_REPO_FULL_NAME: 
+2026-02-20T22:11:07.6181807Z   GITHUB_REPOSITORY: zyclope0/mathakine
+2026-02-20T22:11:07.6196558Z ##[endgroup]
+2026-02-20T22:11:07.6263837Z ##[group]Run if [ -z "$CC_SHA" ];
+2026-02-20T22:11:07.6264103Z [36;1mif [ -z "$CC_SHA" ];[0m
+2026-02-20T22:11:07.6264325Z [36;1mthen[0m
+2026-02-20T22:11:07.6264559Z [36;1m  CC_SHA="$GITHUB_EVENT_PULL_REQUEST_HEAD_SHA"[0m
+2026-02-20T22:11:07.6264840Z [36;1mfi[0m
+2026-02-20T22:11:07.6265057Z [36;1mif [ -z "$CC_PR" ] && [ "$CC_FORK" == 'true' ];[0m
+2026-02-20T22:11:07.6265327Z [36;1mthen[0m
+2026-02-20T22:11:07.6265523Z [36;1m  CC_PR="$GITHUB_EVENT_NUMBER"[0m
+2026-02-20T22:11:07.6265765Z [36;1mfi[0m
+2026-02-20T22:11:07.6265925Z [36;1m[0m
+2026-02-20T22:11:07.6266130Z [36;1mecho "CC_SHA=$CC_SHA" >> "$GITHUB_ENV"[0m
+2026-02-20T22:11:07.6266424Z [36;1mecho "CC_PR=$CC_PR" >> "$GITHUB_ENV"[0m
+2026-02-20T22:11:07.6294346Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-02-20T22:11:07.6294672Z env:
+2026-02-20T22:11:07.6294925Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6295350Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:07.6295761Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6296120Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6296490Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6296862Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:07.6297164Z   CC_FORK: false
+2026-02-20T22:11:07.6297409Z   CC_TOKEN: ***
+2026-02-20T22:11:07.6297586Z   CC_BRANCH: 
+2026-02-20T22:11:07.6297832Z   CODECOV_TOKEN: ***
+2026-02-20T22:11:07.6298021Z   CC_PR: 
+2026-02-20T22:11:07.6298178Z   CC_SHA: 
+2026-02-20T22:11:07.6298352Z   GITHUB_EVENT_NAME: push
+2026-02-20T22:11:07.6298565Z   GITHUB_EVENT_NUMBER: 
+2026-02-20T22:11:07.6298997Z   GITHUB_EVENT_PULL_REQUEST_HEAD_SHA: 
+2026-02-20T22:11:07.6299321Z ##[endgroup]
+2026-02-20T22:11:07.6369960Z ##[group]Run ${GITHUB_ACTION_PATH}/dist/codecov.sh
+2026-02-20T22:11:07.6370449Z [36;1m${GITHUB_ACTION_PATH}/dist/codecov.sh[0m
+2026-02-20T22:11:07.6398320Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-02-20T22:11:07.6398643Z env:
+2026-02-20T22:11:07.6399104Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6399532Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:07.6399949Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6400310Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6400677Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:07.6401181Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:07.6401497Z   CC_FORK: false
+2026-02-20T22:11:07.6401787Z   CC_TOKEN: ***
+2026-02-20T22:11:07.6401966Z   CC_BRANCH: 
+2026-02-20T22:11:07.6402129Z   CC_SHA: 
+2026-02-20T22:11:07.6402299Z   CC_PR: 
+2026-02-20T22:11:07.6402528Z   CODECOV_TOKEN: ***
+2026-02-20T22:11:07.6402717Z   CC_BASE_SHA: 
+2026-02-20T22:11:07.6402891Z   CC_BINARY: 
+2026-02-20T22:11:07.6403061Z   CC_BUILD: 
+2026-02-20T22:11:07.6403226Z   CC_BUILD_URL: 
+2026-02-20T22:11:07.6403394Z   CC_CODE: 
+2026-02-20T22:11:07.6403558Z   CC_DIR: 
+2026-02-20T22:11:07.6403735Z   CC_DISABLE_FILE_FIXES: false
+2026-02-20T22:11:07.6403962Z   CC_DISABLE_SEARCH: true
+2026-02-20T22:11:07.6404168Z   CC_DISABLE_TELEM: false
+2026-02-20T22:11:07.6404371Z   CC_DRY_RUN: false
+2026-02-20T22:11:07.6404558Z   CC_ENTERPRISE_URL: 
+2026-02-20T22:11:07.6404744Z   CC_ENV: 
+2026-02-20T22:11:07.6404899Z   CC_EXCLUDES: 
+2026-02-20T22:11:07.6405079Z   CC_FAIL_ON_ERROR: false
+2026-02-20T22:11:07.6405293Z   CC_FILES: ./coverage.xml
+2026-02-20T22:11:07.6405498Z   CC_FLAGS: backend
+2026-02-20T22:11:07.6405670Z   CC_FORCE: 
+2026-02-20T22:11:07.6405836Z   CC_GCOV_ARGS: 
+2026-02-20T22:11:07.6406021Z   CC_GCOV_EXECUTABLE: gcov
+2026-02-20T22:11:07.6406231Z   CC_GCOV_IGNORE: 
+2026-02-20T22:11:07.6406410Z   CC_GCOV_INCLUDE: 
+2026-02-20T22:11:07.6406600Z   CC_GIT_SERVICE: github
+2026-02-20T22:11:07.6406814Z   CC_HANDLE_NO_REPORTS_FOUND: false
+2026-02-20T22:11:07.6407046Z   CC_JOB_CODE: 
+2026-02-20T22:11:07.6407215Z   CC_LEGACY: false
+2026-02-20T22:11:07.6407417Z   CC_NAME: codecov-mathakine-backend
+2026-02-20T22:11:07.6407661Z   CC_NETWORK_FILTER: 
+2026-02-20T22:11:07.6407854Z   CC_NETWORK_PREFIX: 
+2026-02-20T22:11:07.6408041Z   CC_NETWORK_ROOT_FOLDER: 
+2026-02-20T22:11:07.6408239Z   CC_OS: 
+2026-02-20T22:11:07.6408402Z   CC_PARENT_SHA: 
+2026-02-20T22:11:07.6408581Z   CC_PLUGINS: 
+2026-02-20T22:11:07.6408921Z   CC_RECURSE_SUBMODULES: false
+2026-02-20T22:11:07.6409153Z   CC_REPORT_TYPE: 
+2026-02-20T22:11:07.6409349Z   CC_RUN_CMD: upload-coverage
+2026-02-20T22:11:07.6409569Z   CC_SERVICE: github
+2026-02-20T22:11:07.6409760Z   CC_SKIP_VALIDATION: false
+2026-02-20T22:11:07.6409967Z   CC_SLUG: 
+2026-02-20T22:11:07.6410140Z   CC_SWIFT_PROJECT: 
+2026-02-20T22:11:07.6410333Z   CC_USE_PYPI: false
+2026-02-20T22:11:07.6410517Z   CC_VERBOSE: true
+2026-02-20T22:11:07.6410699Z   CC_VERSION: latest
+2026-02-20T22:11:07.6410880Z   CC_YML_PATH: 
+2026-02-20T22:11:07.6411050Z ##[endgroup]
+2026-02-20T22:11:07.6481442Z      _____          _
+2026-02-20T22:11:07.6481804Z     / ____|        | |
+2026-02-20T22:11:07.6482146Z    | |     ___   __| | ___  ___ _____   __
+2026-02-20T22:11:07.6482446Z    | |    / _ \ / _` |/ _ \/ __/ _ \ \ / /
+2026-02-20T22:11:07.6482688Z    | |___| (_) | (_| |  __/ (_| (_) \ V /
+2026-02-20T22:11:07.6482937Z     \_____\___/ \__,_|\___|\___\___/ \_/
+2026-02-20T22:11:07.6483349Z                            [0;31m Wrapper-0.2.7[0m
+2026-02-20T22:11:07.6483628Z                            
+2026-02-20T22:11:07.6537232Z [0;32m==>[0m Detected [0;36mlinux[0m
+2026-02-20T22:11:07.6537760Z [0;32m ->[0m Downloading [0;36mhttps://cli.codecov.io/latest/linux/codecov[0m
+2026-02-20T22:11:07.6590228Z   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+2026-02-20T22:11:07.6590972Z                                  Dload  Upload   Total   Spent    Left  Speed
+2026-02-20T22:11:07.6591656Z 
+2026-02-20T22:11:07.7578590Z   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+2026-02-20T22:11:07.7580897Z 100 10.6M  100 10.6M    0     0   107M      0 --:--:-- --:--:-- --:--:--  108M
+2026-02-20T22:11:07.7605687Z [0;32m==>[0m Finishing downloading [0;36mlinux:latest[0m
+2026-02-20T22:11:07.8060075Z       Version: [0;36mv11.2.6[0m
+2026-02-20T22:11:07.8060752Z  
+2026-02-20T22:11:07.8584792Z gpg: directory '/home/runner/.gnupg' created
+2026-02-20T22:11:07.8637923Z gpg: keybox '/home/runner/.gnupg/pubring.kbx' created
+2026-02-20T22:11:07.9501010Z gpg: /home/runner/.gnupg/trustdb.gpg: trustdb created
+2026-02-20T22:11:07.9502231Z gpg: key 806BB28AED779869: public key "Codecov Uploader (Codecov Uploader Verification Key) <security@codecov.io>" imported
+2026-02-20T22:11:07.9887044Z gpg: Total number processed: 1
+2026-02-20T22:11:07.9887511Z gpg:               imported: 1
+2026-02-20T22:11:07.9893085Z [0;32m==>[0m Verifying GPG signature integrity
+2026-02-20T22:11:07.9893826Z [0;32m ->[0m Downloading [0;36mhttps://cli.codecov.io/latest/linux/codecov.SHA256SUM[0m
+2026-02-20T22:11:07.9894529Z [0;32m ->[0m Downloading [0;36mhttps://cli.codecov.io/latest/linux/codecov.SHA256SUM.sig[0m
+2026-02-20T22:11:07.9894949Z  
+2026-02-20T22:11:08.0966934Z gpg: Signature made Fri Dec  5 15:31:48 2025 UTC
+2026-02-20T22:11:08.0967615Z gpg:                using RSA key 27034E7FDB850E0BBC2C62FF806BB28AED779869
+2026-02-20T22:11:08.0970426Z gpg: Good signature from "Codecov Uploader (Codecov Uploader Verification Key) <security@codecov.io>" [unknown]
+2026-02-20T22:11:08.0971502Z gpg: WARNING: This key is not certified with a trusted signature!
+2026-02-20T22:11:08.0972252Z gpg:          There is no indication that the signature belongs to the owner.
+2026-02-20T22:11:08.0973053Z Primary key fingerprint: 2703 4E7F DB85 0E0B BC2C  62FF 806B B28A ED77 9869
+2026-02-20T22:11:08.1748050Z codecov: OK
+2026-02-20T22:11:08.1758652Z [0;32m==>[0m CLI integrity verified
+2026-02-20T22:11:08.1759208Z 
+2026-02-20T22:11:08.2399304Z [0;32m ->[0m Token length: 36
+2026-02-20T22:11:08.2399937Z [0;32m==>[0m Running upload-coverage
+2026-02-20T22:11:08.2409386Z       [0;36m./codecov --verbose upload-coverage -t <redacted> --git-service github --disable-search --file ./coverage.xml --flag backend --gcov-executable gcov --name codecov-mathakine-backend[0m
+2026-02-20T22:11:08.5952514Z info - 2026-02-20 22:11:08,594 -- ci service found: github-actions
+2026-02-20T22:11:08.5990272Z debug - 2026-02-20 22:11:08,598 -- versioning system found: <class 'codecov_cli.helpers.versioning_systems.GitVersioningSystem'>
+2026-02-20T22:11:08.6022403Z debug - 2026-02-20 22:11:08,601 -- versioning system found: <class 'codecov_cli.helpers.versioning_systems.GitVersioningSystem'>
+2026-02-20T22:11:08.6055230Z debug - 2026-02-20 22:11:08,605 -- Loading config from /home/runner/work/mathakine/mathakine/codecov.yml
+2026-02-20T22:11:08.6393140Z debug - 2026-02-20 22:11:08,638 -- Starting upload coverage --- {"verbose": true, "auto_load_params_from": null, "codecov_yml_path": null, "enterprise_url": null, "disable_telem": false, "version": "cli-11.2.6", "command": "upload-coverage", "git_service": "github", "disable_search": true, "flags": ["backend"], "gcov_executable": "gcov", "name": "codecov-mathakine-backend", "commit_sha": "4bb592240b396ea910621b85086f612e8b38c81f", "fail_on_error": false, "slug": "zyclope0/mathakine", "report_code": "default", "network_root_folder": "/home/runner/work/mathakine/mathakine", "files_search_root_folder": "/home/runner/work/mathakine/mathakine", "files_search_exclude_folders": [], "recurse_submodules": false, "disable_file_fixes": false, "build_code": "22243116450", "build_url": "https://github.com/zyclope0/mathakine/actions/runs/22243116450", "job_code": "Tests Mathakine", "branch": "master", "pull_request_number": null, "env_vars": {}, "plugin_names": ["xcode", "gcov", "pycoverage"], "dry_run": false, "use_legacy_uploader": false, "handle_no_reports_found": false, "report_type_str": "coverage", "network_filter": null, "network_prefix": null, "gcov_args": null, "gcov_ignore": null, "gcov_include": null, "swift_project": null, "parent_sha": null}
+2026-02-20T22:11:08.6400610Z debug - 2026-02-20 22:11:08,638 -- Selected preparation plugins --- {"selected_plugins": ["<class 'codecov_cli.plugins.xcode.XcodePlugin'>", "<class 'codecov_cli.plugins.gcov.GcovPlugin'>", "<class 'codecov_cli.plugins.pycoverage.Pycoverage'>"], "cli_config": {}}
+2026-02-20T22:11:08.6402179Z debug - 2026-02-20 22:11:08,638 -- Running preparation plugin: <class 'codecov_cli.plugins.xcode.XcodePlugin'>
+2026-02-20T22:11:08.6402991Z debug - 2026-02-20 22:11:08,639 -- Running xcode plugin...
+2026-02-20T22:11:08.6403737Z warning - 2026-02-20 22:11:08,639 -- xcrun is not installed or can't be found.
+2026-02-20T22:11:08.6404439Z debug - 2026-02-20 22:11:08,639 -- Running preparation plugin: <class 'codecov_cli.plugins.gcov.GcovPlugin'>
+2026-02-20T22:11:08.6404970Z debug - 2026-02-20 22:11:08,639 -- Running gcov plugin...
+2026-02-20T22:11:08.6405383Z debug - 2026-02-20 22:11:08,640 -- Translating `*.gcno` into `(?s:[^/]*\.gcno)\Z`
+2026-02-20T22:11:08.6525535Z warning - 2026-02-20 22:11:08,652 -- No gcov data found.
+2026-02-20T22:11:08.6526900Z debug - 2026-02-20 22:11:08,652 -- Running preparation plugin: <class 'codecov_cli.plugins.pycoverage.Pycoverage'>
+2026-02-20T22:11:08.6532697Z info - 2026-02-20 22:11:08,653 -- Generating coverage.xml report in /home/runner/work/mathakine/mathakine
+2026-02-20T22:11:09.6169532Z info - 2026-02-20 22:11:09,616 -- Wrote XML report to coverage.xml
+2026-02-20T22:11:09.6170889Z debug - 2026-02-20 22:11:09,616 -- Collecting relevant files
+2026-02-20T22:11:09.6260955Z debug - 2026-02-20 22:11:09,625 -- Translating `*.*js` into `(?s:[^/]*\.[^/]*js)\Z`
+2026-02-20T22:11:09.6261840Z debug - 2026-02-20 22:11:09,626 -- Translating `*.SHA256SUM` into `(?s:[^/]*\.SHA256SUM)\Z`
+2026-02-20T22:11:09.6262668Z debug - 2026-02-20 22:11:09,626 -- Translating `*.am` into `(?s:[^/]*\.am)\Z`
+2026-02-20T22:11:09.6263530Z debug - 2026-02-20 22:11:09,626 -- Translating `*.bash` into `(?s:[^/]*\.bash)\Z`
+2026-02-20T22:11:09.6264300Z debug - 2026-02-20 22:11:09,626 -- Translating `*.bat` into `(?s:[^/]*\.bat)\Z`
+2026-02-20T22:11:09.6265036Z debug - 2026-02-20 22:11:09,626 -- Translating `*.bw` into `(?s:[^/]*\.bw)\Z`
+2026-02-20T22:11:09.6265798Z debug - 2026-02-20 22:11:09,626 -- Translating `*.cfg` into `(?s:[^/]*\.cfg)\Z`
+2026-02-20T22:11:09.6266565Z debug - 2026-02-20 22:11:09,626 -- Translating `*.class` into `(?s:[^/]*\.class)\Z`
+2026-02-20T22:11:09.6267372Z debug - 2026-02-20 22:11:09,626 -- Translating `*.cmake` into `(?s:[^/]*\.cmake)\Z`
+2026-02-20T22:11:09.6268145Z debug - 2026-02-20 22:11:09,626 -- Translating `*.conf` into `(?s:[^/]*\.conf)\Z`
+2026-02-20T22:11:09.6269176Z debug - 2026-02-20 22:11:09,626 -- Translating `*.coverage` into `(?s:[^/]*\.coverage)\Z`
+2026-02-20T22:11:09.6270009Z debug - 2026-02-20 22:11:09,626 -- Translating `*.cp` into `(?s:[^/]*\.cp)\Z`
+2026-02-20T22:11:09.6270856Z debug - 2026-02-20 22:11:09,626 -- Translating `*.cpp` into `(?s:[^/]*\.cpp)\Z`
+2026-02-20T22:11:09.6271653Z debug - 2026-02-20 22:11:09,627 -- Translating `*.crt` into `(?s:[^/]*\.crt)\Z`
+2026-02-20T22:11:09.6272409Z debug - 2026-02-20 22:11:09,627 -- Translating `*.csg` into `(?s:[^/]*\.csg)\Z`
+2026-02-20T22:11:09.6273177Z debug - 2026-02-20 22:11:09,627 -- Translating `*.css` into `(?s:[^/]*\.css)\Z`
+2026-02-20T22:11:09.6273935Z debug - 2026-02-20 22:11:09,627 -- Translating `*.csv` into `(?s:[^/]*\.csv)\Z`
+2026-02-20T22:11:09.6274734Z debug - 2026-02-20 22:11:09,627 -- Translating `*.dart` into `(?s:[^/]*\.dart)\Z`
+2026-02-20T22:11:09.6275558Z debug - 2026-02-20 22:11:09,627 -- Translating `*.data` into `(?s:[^/]*\.data)\Z`
+2026-02-20T22:11:09.6276301Z debug - 2026-02-20 22:11:09,627 -- Translating `*.db` into `(?s:[^/]*\.db)\Z`
+2026-02-20T22:11:09.6277081Z debug - 2026-02-20 22:11:09,627 -- Translating `*.dox` into `(?s:[^/]*\.dox)\Z`
+2026-02-20T22:11:09.6277842Z debug - 2026-02-20 22:11:09,627 -- Translating `*.ec` into `(?s:[^/]*\.ec)\Z`
+2026-02-20T22:11:09.6279446Z debug - 2026-02-20 22:11:09,627 -- Translating `*.egg` into `(?s:[^/]*\.egg)\Z`
+2026-02-20T22:11:09.6280281Z debug - 2026-02-20 22:11:09,627 -- Translating `*.egg-info` into `(?s:[^/]*\.egg\-info)\Z`
+2026-02-20T22:11:09.6281087Z debug - 2026-02-20 22:11:09,627 -- Translating `*.el` into `(?s:[^/]*\.el)\Z`
+2026-02-20T22:11:09.6281835Z debug - 2026-02-20 22:11:09,628 -- Translating `*.env` into `(?s:[^/]*\.env)\Z`
+2026-02-20T22:11:09.6282567Z debug - 2026-02-20 22:11:09,628 -- Translating `*.erb` into `(?s:[^/]*\.erb)\Z`
+2026-02-20T22:11:09.6283822Z debug - 2026-02-20 22:11:09,628 -- Translating `*.err` into `(?s:[^/]*\.err)\Z`
+2026-02-20T22:11:09.6284602Z debug - 2026-02-20 22:11:09,628 -- Translating `*.exe` into `(?s:[^/]*\.exe)\Z`
+2026-02-20T22:11:09.6285428Z debug - 2026-02-20 22:11:09,628 -- Translating `*.feature` into `(?s:[^/]*\.feature)\Z`
+2026-02-20T22:11:09.6286216Z debug - 2026-02-20 22:11:09,628 -- Translating `*.ftl` into `(?s:[^/]*\.ftl)\Z`
+2026-02-20T22:11:09.6287016Z debug - 2026-02-20 22:11:09,628 -- Translating `*.gif` into `(?s:[^/]*\.gif)\Z`
+2026-02-20T22:11:09.6287753Z debug - 2026-02-20 22:11:09,628 -- Translating `*.go` into `(?s:[^/]*\.go)\Z`
+2026-02-20T22:11:09.6288657Z debug - 2026-02-20 22:11:09,628 -- Translating `*.gradle` into `(?s:[^/]*\.gradle)\Z`
+2026-02-20T22:11:09.6289596Z debug - 2026-02-20 22:11:09,628 -- Translating `*.gz` into `(?s:[^/]*\.gz)\Z`
+2026-02-20T22:11:09.6290434Z debug - 2026-02-20 22:11:09,628 -- Translating `*.h` into `(?s:[^/]*\.h)\Z`
+2026-02-20T22:11:09.6291218Z debug - 2026-02-20 22:11:09,629 -- Translating `*.html` into `(?s:[^/]*\.html)\Z`
+2026-02-20T22:11:09.6292031Z debug - 2026-02-20 22:11:09,629 -- Translating `*.in` into `(?s:[^/]*\.in)\Z`
+2026-02-20T22:11:09.6292893Z debug - 2026-02-20 22:11:09,629 -- Translating `*.jade` into `(?s:[^/]*\.jade)\Z`
+2026-02-20T22:11:09.6293700Z debug - 2026-02-20 22:11:09,629 -- Translating `*.jar*` into `(?s:[^/]*\.jar[^/]*)\Z`
+2026-02-20T22:11:09.6294551Z debug - 2026-02-20 22:11:09,629 -- Translating `*.jpeg` into `(?s:[^/]*\.jpeg)\Z`
+2026-02-20T22:11:09.6295368Z debug - 2026-02-20 22:11:09,629 -- Translating `*.jpg` into `(?s:[^/]*\.jpg)\Z`
+2026-02-20T22:11:09.6296106Z debug - 2026-02-20 22:11:09,629 -- Translating `*.js` into `(?s:[^/]*\.js)\Z`
+2026-02-20T22:11:09.6296986Z debug - 2026-02-20 22:11:09,629 -- Translating `*.less` into `(?s:[^/]*\.less)\Z`
+2026-02-20T22:11:09.6297828Z debug - 2026-02-20 22:11:09,629 -- Translating `*.library` into `(?s:[^/]*\.library)\Z`
+2026-02-20T22:11:09.6298611Z debug - 2026-02-20 22:11:09,629 -- Translating `*.log` into `(?s:[^/]*\.log)\Z`
+2026-02-20T22:11:09.6299664Z debug - 2026-02-20 22:11:09,629 -- Translating `*.m4` into `(?s:[^/]*\.m4)\Z`
+2026-02-20T22:11:09.6300424Z debug - 2026-02-20 22:11:09,629 -- Translating `*.mak*` into `(?s:[^/]*\.mak[^/]*)\Z`
+2026-02-20T22:11:09.6301188Z debug - 2026-02-20 22:11:09,630 -- Translating `*.map` into `(?s:[^/]*\.map)\Z`
+2026-02-20T22:11:09.6301915Z debug - 2026-02-20 22:11:09,630 -- Translating `*.md` into `(?s:[^/]*\.md)\Z`
+2026-02-20T22:11:09.6302720Z debug - 2026-02-20 22:11:09,630 -- Translating `*.module` into `(?s:[^/]*\.module)\Z`
+2026-02-20T22:11:09.6303484Z debug - 2026-02-20 22:11:09,630 -- Translating `*.mp4` into `(?s:[^/]*\.mp4)\Z`
+2026-02-20T22:11:09.6304199Z debug - 2026-02-20 22:11:09,630 -- Translating `*.o` into `(?s:[^/]*\.o)\Z`
+2026-02-20T22:11:09.6304961Z debug - 2026-02-20 22:11:09,630 -- Translating `*.p12` into `(?s:[^/]*\.p12)\Z`
+2026-02-20T22:11:09.6305698Z debug - 2026-02-20 22:11:09,630 -- Translating `*.pem` into `(?s:[^/]*\.pem)\Z`
+2026-02-20T22:11:09.6306500Z debug - 2026-02-20 22:11:09,630 -- Translating `*.png` into `(?s:[^/]*\.png)\Z`
+2026-02-20T22:11:09.6307313Z debug - 2026-02-20 22:11:09,630 -- Translating `*.pom*` into `(?s:[^/]*\.pom[^/]*)\Z`
+2026-02-20T22:11:09.6308154Z debug - 2026-02-20 22:11:09,630 -- Translating `*.profdata` into `(?s:[^/]*\.profdata)\Z`
+2026-02-20T22:11:09.6309131Z debug - 2026-02-20 22:11:09,630 -- Translating `*.proto` into `(?s:[^/]*\.proto)\Z`
+2026-02-20T22:11:09.6310178Z debug - 2026-02-20 22:11:09,630 -- Translating `*.prototxt` into `(?s:[^/]*\.prototxt)\Z`
+2026-02-20T22:11:09.6310984Z debug - 2026-02-20 22:11:09,630 -- Translating `*.ps1` into `(?s:[^/]*\.ps1)\Z`
+2026-02-20T22:11:09.6311720Z debug - 2026-02-20 22:11:09,631 -- Translating `*.pth` into `(?s:[^/]*\.pth)\Z`
+2026-02-20T22:11:09.6312486Z debug - 2026-02-20 22:11:09,631 -- Translating `*.py` into `(?s:[^/]*\.py)\Z`
+2026-02-20T22:11:09.6313290Z debug - 2026-02-20 22:11:09,631 -- Translating `*.pyc` into `(?s:[^/]*\.pyc)\Z`
+2026-02-20T22:11:09.6314091Z debug - 2026-02-20 22:11:09,631 -- Translating `*.pyo` into `(?s:[^/]*\.pyo)\Z`
+2026-02-20T22:11:09.6315059Z debug - 2026-02-20 22:11:09,631 -- Translating `*.rake` into `(?s:[^/]*\.rake)\Z`
+2026-02-20T22:11:09.6315905Z debug - 2026-02-20 22:11:09,631 -- Translating `*.rb` into `(?s:[^/]*\.rb)\Z`
+2026-02-20T22:11:09.6316638Z debug - 2026-02-20 22:11:09,631 -- Translating `*.rsp` into `(?s:[^/]*\.rsp)\Z`
+2026-02-20T22:11:09.6317402Z debug - 2026-02-20 22:11:09,631 -- Translating `*.rst` into `(?s:[^/]*\.rst)\Z`
+2026-02-20T22:11:09.6318152Z debug - 2026-02-20 22:11:09,631 -- Translating `*.ru` into `(?s:[^/]*\.ru)\Z`
+2026-02-20T22:11:09.6319055Z debug - 2026-02-20 22:11:09,631 -- Translating `*.sbt` into `(?s:[^/]*\.sbt)\Z`
+2026-02-20T22:11:09.6320160Z debug - 2026-02-20 22:11:09,631 -- Translating `*.scss` into `(?s:[^/]*\.scss)\Z`
+2026-02-20T22:11:09.6321069Z debug - 2026-02-20 22:11:09,632 -- Translating `*.serialized` into `(?s:[^/]*\.serialized)\Z`
+2026-02-20T22:11:09.6321933Z debug - 2026-02-20 22:11:09,632 -- Translating `*.sh` into `(?s:[^/]*\.sh)\Z`
+2026-02-20T22:11:09.6322756Z debug - 2026-02-20 22:11:09,632 -- Translating `*.sha256sum` into `(?s:[^/]*\.sha256sum)\Z`
+2026-02-20T22:11:09.6323642Z debug - 2026-02-20 22:11:09,632 -- Translating `*.snapshot` into `(?s:[^/]*\.snapshot)\Z`
+2026-02-20T22:11:09.6324432Z debug - 2026-02-20 22:11:09,632 -- Translating `*.sql` into `(?s:[^/]*\.sql)\Z`
+2026-02-20T22:11:09.6325198Z debug - 2026-02-20 22:11:09,632 -- Translating `*.svg` into `(?s:[^/]*\.svg)\Z`
+2026-02-20T22:11:09.6326010Z debug - 2026-02-20 22:11:09,632 -- Translating `*.tar.tz` into `(?s:[^/]*\.tar\.tz)\Z`
+2026-02-20T22:11:09.6326949Z debug - 2026-02-20 22:11:09,632 -- Translating `*.template` into `(?s:[^/]*\.template)\Z`
+2026-02-20T22:11:09.6327734Z debug - 2026-02-20 22:11:09,632 -- Translating `*.ts` into `(?s:[^/]*\.ts)\Z`
+2026-02-20T22:11:09.6328490Z debug - 2026-02-20 22:11:09,632 -- Translating `*.whl` into `(?s:[^/]*\.whl)\Z`
+2026-02-20T22:11:09.6329752Z debug - 2026-02-20 22:11:09,632 -- Translating `*.xcconfig` into `(?s:[^/]*\.xcconfig)\Z`
+2026-02-20T22:11:09.6330694Z debug - 2026-02-20 22:11:09,632 -- Translating `*.xcoverage.*` into `(?s:[^/]*\.xcoverage\.[^/]*)\Z`
+2026-02-20T22:11:09.6331574Z debug - 2026-02-20 22:11:09,633 -- Translating `*.yaml` into `(?s:[^/]*\.yaml)\Z`
+2026-02-20T22:11:09.6332313Z debug - 2026-02-20 22:11:09,633 -- Translating `*.yml` into `(?s:[^/]*\.yml)\Z`
+2026-02-20T22:11:09.6333053Z debug - 2026-02-20 22:11:09,633 -- Translating `*.zip` into `(?s:[^/]*\.zip)\Z`
+2026-02-20T22:11:09.6334002Z debug - 2026-02-20 22:11:09,633 -- Translating `*/classycle/report.xml` into `(?s:[^/]+/classycle/report\.xml)\Z`
+2026-02-20T22:11:09.6335030Z debug - 2026-02-20 22:11:09,633 -- Translating `*codecov.yml` into `(?s:[^/]*codecov\.yml)\Z`
+2026-02-20T22:11:09.6335839Z debug - 2026-02-20 22:11:09,633 -- Translating `*~` into `(?s:[^/]*\~)\Z`
+2026-02-20T22:11:09.6336634Z debug - 2026-02-20 22:11:09,633 -- Translating `.*coveragerc` into `(?s:\.[^/]*coveragerc)\Z`
+2026-02-20T22:11:09.6337515Z debug - 2026-02-20 22:11:09,633 -- Translating `.coverage*` into `(?s:\.coverage[^/]*)\Z`
+2026-02-20T22:11:09.6338382Z debug - 2026-02-20 22:11:09,633 -- Translating `.ds_store` into `(?s:\.ds_store)\Z`
+2026-02-20T22:11:09.6339386Z debug - 2026-02-20 22:11:09,633 -- Translating `.git*` into `(?s:\.git[^/]*)\Z`
+2026-02-20T22:11:09.6340141Z debug - 2026-02-20 22:11:09,633 -- Translating `.nvmrc` into `(?s:\.nvmrc)\Z`
+2026-02-20T22:11:09.6341235Z debug - 2026-02-20 22:11:09,634 -- Translating `codecov.SHA256SUM` into `(?s:codecov\.SHA256SUM)\Z`
+2026-02-20T22:11:09.6342310Z debug - 2026-02-20 22:11:09,634 -- Translating `codecov.SHA256SUM.sig` into `(?s:codecov\.SHA256SUM\.sig)\Z`
+2026-02-20T22:11:09.6343293Z debug - 2026-02-20 22:11:09,634 -- Translating `codecov.yaml` into `(?s:codecov\.yaml)\Z`
+2026-02-20T22:11:09.6344340Z debug - 2026-02-20 22:11:09,634 -- Translating `coverage-summary.json` into `(?s:coverage\-summary\.json)\Z`
+2026-02-20T22:11:09.6345392Z debug - 2026-02-20 22:11:09,634 -- Translating `createdFiles.lst` into `(?s:createdFiles\.lst)\Z`
+2026-02-20T22:11:09.6346577Z debug - 2026-02-20 22:11:09,634 -- Translating `fullLocaleNames.lst` into `(?s:fullLocaleNames\.lst)\Z`
+2026-02-20T22:11:09.6347563Z debug - 2026-02-20 22:11:09,634 -- Translating `include.lst` into `(?s:include\.lst)\Z`
+2026-02-20T22:11:09.6348453Z debug - 2026-02-20 22:11:09,634 -- Translating `inputFiles.lst` into `(?s:inputFiles\.lst)\Z`
+2026-02-20T22:11:09.6349853Z debug - 2026-02-20 22:11:09,634 -- Translating `phpunit-code-coverage.xml` into `(?s:phpunit\-code\-coverage\.xml)\Z`
+2026-02-20T22:11:09.6351066Z debug - 2026-02-20 22:11:09,634 -- Translating `phpunit-coverage.xml` into `(?s:phpunit\-coverage\.xml)\Z`
+2026-02-20T22:11:09.6352363Z debug - 2026-02-20 22:11:09,634 -- Translating `remapInstanbul.coverage*.json` into `(?s:remapInstanbul\.coverage[^/]*\.json)\Z`
+2026-02-20T22:11:09.6353752Z debug - 2026-02-20 22:11:09,635 -- Translating `scoverage.measurements.*` into `(?s:scoverage\.measurements\.[^/]*)\Z`
+2026-02-20T22:11:09.6355156Z debug - 2026-02-20 22:11:09,635 -- Translating `test-result-*-codecoverage.json` into `(?s:test\-result\-[^/]*\-codecoverage\.json)\Z`
+2026-02-20T22:11:09.6356035Z debug - 2026-02-20 22:11:09,635 -- Translating `test_*_coverage.txt` into `(?s:test_[^/]*_coverage\.txt)\Z`
+2026-02-20T22:11:09.6356664Z debug - 2026-02-20 22:11:09,635 -- Translating `testrunner-coverage*` into `(?s:testrunner\-coverage[^/]*)\Z`
+2026-02-20T22:11:09.6408009Z debug - 2026-02-20 22:11:09,640 -- Translating `coverage.xml` into `(?s:coverage\.xml)\Z`
+2026-02-20T22:11:09.6411852Z debug - 2026-02-20 22:11:09,640 -- Translating `/home/runner/work/mathakine/mathakine/coverage.xml` into `(?s:/home/runner/work/mathakine/mathakine/coverage\.xml)\Z`
+2026-02-20T22:11:09.6528544Z info - 2026-02-20 22:11:09,652 -- Found 1 coverage files to report
+2026-02-20T22:11:09.6529976Z debug - 2026-02-20 22:11:09,652 -- Found 523 network files to report, (523 without filtering)
+2026-02-20T22:11:09.6531052Z info - 2026-02-20 22:11:09,652 -- > /home/runner/work/mathakine/mathakine/coverage.xml
+2026-02-20T22:11:09.6600263Z debug - 2026-02-20 22:11:09,659 -- Selected uploader to use: <class 'codecov_cli.services.upload.upload_sender.UploadSender'>
+2026-02-20T22:11:09.6647104Z debug - 2026-02-20 22:11:09,664 -- Sending upload request to Codecov
+2026-02-20T22:11:10.0858427Z info - 2026-02-20 22:11:10,085 -- Your upload is now processing. When finished, results will be available at: https://app.codecov.io/github/zyclope0/mathakine/commit/4bb592240b396ea910621b85086f612e8b38c81f
+2026-02-20T22:11:10.0864282Z debug - 2026-02-20 22:11:10,085 -- Upload request to Codecov complete. --- {"response": {"raw_upload_location": "https://storage.googleapis.com/codecov-production/shelter/github/zyclope0%3A%3A%3A%3Amathakine/4bb592240b396ea910621b85086f612e8b38c81f/b9b9c914-11c7-4a68-98f9-7daa2b40f5b5.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=GOOG1EJWQHUGIBILH4J7Q6ZUSCIFNEOLYSNDS7L3B4N5SIBQ2J4YLYE5CRFCD%2F20260220%2Fus%2Fs3%2Faws4_request&X-Amz-Date=20260220T221110Z&X-Amz-Expires=30&X-Amz-SignedHeaders=host&X-Amz-Signature=16c168a27b28fbeaa89b2f0526c9e0e8728c28fb44e9a1e4c4683edfd0f0a979", "url": "https://app.codecov.io/github/zyclope0/mathakine/commit/4bb592240b396ea910621b85086f612e8b38c81f"}}
+2026-02-20T22:11:10.0868215Z debug - 2026-02-20 22:11:10,085 -- Sending upload (54510 bytes) to storage
+2026-02-20T22:11:10.2410726Z info - 2026-02-20 22:11:10,240 -- Process Upload complete
+2026-02-20T22:11:10.2412496Z debug - 2026-02-20 22:11:10,241 -- Upload result --- {"result": "RequestResult(error=None, warnings=[], status_code=200, text='')"}
+2026-02-20T22:11:10.3693850Z ##[group]Run echo "## Backend Coverage" >> $GITHUB_STEP_SUMMARY
+2026-02-20T22:11:10.3694293Z [36;1mecho "## Backend Coverage" >> $GITHUB_STEP_SUMMARY[0m
+2026-02-20T22:11:10.3695049Z [36;1mcoverage report --format=markdown >> $GITHUB_STEP_SUMMARY 2>/dev/null || coverage report >> $GITHUB_STEP_SUMMARY || echo "Coverage report not available" >> $GITHUB_STEP_SUMMARY[0m
+2026-02-20T22:11:10.3727234Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:11:10.3727600Z env:
+2026-02-20T22:11:10.3727865Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:10.3728289Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:11:10.3728706Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:10.3729304Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:10.3729681Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:11:10.3730062Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:11:10.3730363Z   CC_FORK: false
+2026-02-20T22:11:10.3730634Z   CC_TOKEN: ***
+2026-02-20T22:11:10.3730809Z   CC_BRANCH: 
+2026-02-20T22:11:10.3730975Z   CC_SHA: 
+2026-02-20T22:11:10.3731135Z   CC_PR: 
+2026-02-20T22:11:10.3731292Z ##[endgroup]
+2026-02-20T22:11:11.1935994Z Post job cleanup.
+2026-02-20T22:11:11.3051697Z Cache hit occurred on the primary key setup-python-Linux-x64-24.04-Ubuntu-python-3.12.12-pip-1cc806b0a4983318995c106f12c3141a2a9a203334e92adb8bb355bf85ca96e1, not saving cache.
+2026-02-20T22:11:11.3167003Z Post job cleanup.
+2026-02-20T22:11:11.3932355Z [command]/usr/bin/git version
+2026-02-20T22:11:11.3969883Z git version 2.52.0
+2026-02-20T22:11:11.4003932Z Copying '/home/runner/.gitconfig' to '/home/runner/work/_temp/8736a44c-40e9-427a-bf3f-3e60d40b46ad/.gitconfig'
+2026-02-20T22:11:11.4012753Z Temporarily overriding HOME='/home/runner/work/_temp/8736a44c-40e9-427a-bf3f-3e60d40b46ad' before making global git config changes
+2026-02-20T22:11:11.4014148Z Adding repository directory to the temporary git global config as a safe directory
+2026-02-20T22:11:11.4018681Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/mathakine/mathakine
+2026-02-20T22:11:11.4048719Z Removing SSH command configuration
+2026-02-20T22:11:11.4055703Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-02-20T22:11:11.4088699Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-02-20T22:11:11.4314162Z Removing HTTP extra header
+2026-02-20T22:11:11.4318350Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-02-20T22:11:11.4351219Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-02-20T22:11:11.4571008Z Removing includeIf entries pointing to credentials config files
+2026-02-20T22:11:11.4577182Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-02-20T22:11:11.4599505Z includeif.gitdir:/home/runner/work/mathakine/mathakine/.git.path
+2026-02-20T22:11:11.4600366Z includeif.gitdir:/home/runner/work/mathakine/mathakine/.git/worktrees/*.path
+2026-02-20T22:11:11.4601086Z includeif.gitdir:/github/workspace/.git.path
+2026-02-20T22:11:11.4601693Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-02-20T22:11:11.4609465Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/mathakine/mathakine/.git.path
+2026-02-20T22:11:11.4630663Z /home/runner/work/_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:11:11.4641429Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/mathakine/mathakine/.git.path /home/runner/work/_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:11:11.4673651Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/mathakine/mathakine/.git/worktrees/*.path
+2026-02-20T22:11:11.4695252Z /home/runner/work/_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:11:11.4704498Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/mathakine/mathakine/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:11:11.4735190Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-02-20T22:11:11.4756497Z /github/runner_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:11:11.4765607Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:11:11.4796674Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-02-20T22:11:11.4817318Z /github/runner_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:11:11.4826935Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config
+2026-02-20T22:11:11.4859149Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-02-20T22:11:11.5095656Z Removing credentials config '/home/runner/work/_temp/git-credentials-38f40fca-14e0-4639-89bb-e3932f74da5a.config'
+2026-02-20T22:11:11.5201268Z Print service container logs: cb541e8d222f47f38a59fbeab4030e74_postgres15_1871cf
+2026-02-20T22:11:11.5205742Z ##[command]/usr/bin/docker logs --details 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e
+2026-02-20T22:11:11.5330932Z  The files belonging to this database system will be owned by user "postgres".
+2026-02-20T22:11:11.5332536Z  initdb: warning: enabling "trust" authentication for local connections
+2026-02-20T22:11:11.5333759Z  initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+2026-02-20T22:11:11.5334833Z  This user must also own the server process.
+2026-02-20T22:11:11.5335282Z  
+2026-02-20T22:11:11.5335715Z  The database cluster will be initialized with locale "en_US.utf8".
+2026-02-20T22:11:11.5336479Z  The default database encoding has accordingly been set to "UTF8".
+2026-02-20T22:11:11.5337202Z  The default text search configuration will be set to "english".
+2026-02-20T22:11:11.5337774Z  
+2026-02-20T22:11:11.5338065Z  Data page checksums are disabled.
+2026-02-20T22:11:11.5338443Z  
+2026-02-20T22:11:11.5339132Z  fixing permissions on existing directory /var/lib/postgresql/data ... ok
+2026-02-20T22:11:11.5339790Z  creating subdirectories ... ok
+2026-02-20T22:11:11.5340294Z  selecting dynamic shared memory implementation ... posix
+2026-02-20T22:11:11.5340859Z  selecting default max_connections ... 100
+2026-02-20T22:11:11.5341337Z  selecting default shared_buffers ... 128MB
+2026-02-20T22:11:11.5341798Z  selecting default time zone ... Etc/UTC
+2026-02-20T22:11:11.5342249Z  creating configuration files ... ok
+2026-02-20T22:11:11.5342682Z  running bootstrap script ... ok
+2026-02-20T22:11:11.5343149Z  performing post-bootstrap initialization ... ok
+2026-02-20T22:11:11.5343639Z  syncing data to disk ... ok
+2026-02-20T22:11:11.5343995Z  
+2026-02-20T22:11:11.5344242Z  
+2026-02-20T22:11:11.5344596Z  Success. You can now start the database server using:
+2026-02-20T22:11:11.5345086Z  
+2026-02-20T22:11:11.5345439Z      pg_ctl -D /var/lib/postgresql/data -l logfile start
+2026-02-20T22:11:11.5345906Z  
+2026-02-20T22:11:11.5346964Z  waiting for server to start....2026-02-20 22:09:11.666 UTC [48] LOG:  starting PostgreSQL 15.16 (Debian 15.16-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-02-20T22:11:11.5349208Z  2026-02-20 22:09:11.971 UTC [1] LOG:  starting PostgreSQL 15.16 (Debian 15.16-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-02-20T22:11:11.5350407Z  2026-02-20 22:09:11.971 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-02-20T22:11:11.5351174Z  2026-02-20 22:09:11.971 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-02-20T22:11:11.5352031Z  2026-02-20 22:09:11.972 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-02-20T22:11:11.5352967Z  2026-02-20 22:09:11.975 UTC [64] LOG:  database system was shut down at 2026-02-20 22:09:11 UTC
+2026-02-20T22:11:11.5353836Z  2026-02-20 22:09:11.979 UTC [1] LOG:  database system is ready to accept connections
+2026-02-20T22:11:11.5354505Z  2026-02-20 22:09:21.105 UTC [75] FATAL:  role "root" does not exist
+2026-02-20T22:11:11.5355089Z  2026-02-20 22:09:31.170 UTC [83] FATAL:  role "root" does not exist
+2026-02-20T22:11:11.5355684Z  2026-02-20 22:09:41.239 UTC [91] FATAL:  role "root" does not exist
+2026-02-20T22:11:11.5356321Z  2026-02-20 22:09:51.307 UTC [102] FATAL:  role "root" does not exist
+2026-02-20T22:11:11.5356962Z  2026-02-20 22:10:01.372 UTC [112] FATAL:  role "root" does not exist
+2026-02-20T22:11:11.5357596Z  2026-02-20 22:10:11.438 UTC [120] FATAL:  role "root" does not exist
+2026-02-20T22:11:11.5359007Z  2026-02-20 22:10:21.501 UTC [130] FATAL:  role "root" does not exist
+2026-02-20T22:11:11.5359654Z  2026-02-20 22:10:31.565 UTC [138] FATAL:  role "root" does not exist
+2026-02-20T22:11:11.5360041Z  2026-02-20 22:10:41.633 UTC [146] FATAL:  role "root" does not exist
+2026-02-20T22:11:11.5360632Z  2026-02-20 22:10:51.709 UTC [156] FATAL:  role "root" does not exist
+2026-02-20T22:11:11.5361001Z  2026-02-20 22:11:01.770 UTC [167] FATAL:  role "root" does not exist
+2026-02-20T22:11:11.5361477Z  2026-02-20 22:09:11.667 UTC [48] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-02-20T22:11:11.5362021Z  2026-02-20 22:09:11.669 UTC [51] LOG:  database system was shut down at 2026-02-20 22:09:11 UTC
+2026-02-20T22:11:11.5362504Z  2026-02-20 22:09:11.673 UTC [48] LOG:  database system is ready to accept connections
+2026-02-20T22:11:11.5362845Z   done
+2026-02-20T22:11:11.5363012Z  server started
+2026-02-20T22:11:11.5363192Z  CREATE DATABASE
+2026-02-20T22:11:11.5363371Z  
+2026-02-20T22:11:11.5363519Z  
+2026-02-20T22:11:11.5363818Z  /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+2026-02-20T22:11:11.5364186Z  
+2026-02-20T22:11:11.5364428Z  2026-02-20 22:09:11.851 UTC [48] LOG:  received fast shutdown request
+2026-02-20T22:11:11.5364952Z  waiting for server to shut down....2026-02-20 22:09:11.852 UTC [48] LOG:  aborting any active transactions
+2026-02-20T22:11:11.5365619Z  2026-02-20 22:09:11.854 UTC [48] LOG:  background worker "logical replication launcher" (PID 54) exited with exit code 1
+2026-02-20T22:11:11.5366137Z  2026-02-20 22:09:11.854 UTC [49] LOG:  shutting down
+2026-02-20T22:11:11.5366494Z  2026-02-20 22:09:11.855 UTC [49] LOG:  checkpoint starting: shutdown immediate
+2026-02-20T22:11:11.5367432Z  2026-02-20 22:09:11.871 UTC [49] LOG:  checkpoint complete: wrote 922 buffers (5.6%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.014 s, sync=0.002 s, total=0.018 s; sync files=301, longest=0.001 s, average=0.001 s; distance=4239 kB, estimate=4239 kB
+2026-02-20T22:11:11.5368353Z  2026-02-20 22:09:11.877 UTC [48] LOG:  database system is shut down
+2026-02-20T22:11:11.5368653Z   done
+2026-02-20T22:11:11.5369051Z  server stopped
+2026-02-20T22:11:11.5369237Z  
+2026-02-20T22:11:11.5369449Z  PostgreSQL init process complete; ready for start up.
+2026-02-20T22:11:11.5369731Z  
+2026-02-20T22:11:11.5374630Z Stop and remove container: cb541e8d222f47f38a59fbeab4030e74_postgres15_1871cf
+2026-02-20T22:11:11.5379813Z ##[command]/usr/bin/docker rm --force 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e
+2026-02-20T22:11:11.6679704Z 0536f70f6019a301e94f3247d00b2a726d48f4220fd626fae0fefba34c26288e
+2026-02-20T22:11:11.6705994Z Remove container network: github_network_25bc9a717fe7424f9d20c40d2f9d08d3
+2026-02-20T22:11:11.6710618Z ##[command]/usr/bin/docker network rm github_network_25bc9a717fe7424f9d20c40d2f9d08d3
+2026-02-20T22:11:11.7893112Z github_network_25bc9a717fe7424f9d20c40d2f9d08d3
+2026-02-20T22:11:11.7950282Z Cleaning up orphan processes

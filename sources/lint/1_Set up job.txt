@@ -1,0 +1,45 @@
+﻿2026-02-20T22:09:01.2421977Z Current runner version: '2.331.0'
+2026-02-20T22:09:01.2459381Z ##[group]Runner Image Provisioner
+2026-02-20T22:09:01.2460630Z Hosted Compute Agent
+2026-02-20T22:09:01.2461718Z Version: 20260123.484
+2026-02-20T22:09:01.2462681Z Commit: 6bd6555ca37d84114959e1c76d2c01448ff61c5d
+2026-02-20T22:09:01.2464274Z Build Date: 2026-01-23T19:41:17Z
+2026-02-20T22:09:01.2465375Z Worker ID: {edfd4234-de1f-465d-adcb-f0cc40e13154}
+2026-02-20T22:09:01.2466605Z Azure Region: eastus2
+2026-02-20T22:09:01.2467620Z ##[endgroup]
+2026-02-20T22:09:01.2469929Z ##[group]Operating System
+2026-02-20T22:09:01.2470883Z Ubuntu
+2026-02-20T22:09:01.2471751Z 24.04.3
+2026-02-20T22:09:01.2472565Z LTS
+2026-02-20T22:09:01.2473486Z ##[endgroup]
+2026-02-20T22:09:01.2474529Z ##[group]Runner Image
+2026-02-20T22:09:01.2475440Z Image: ubuntu-24.04
+2026-02-20T22:09:01.2476336Z Version: 20260201.15.1
+2026-02-20T22:09:01.2478230Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260201.15/images/ubuntu/Ubuntu2404-Readme.md
+2026-02-20T22:09:01.2481261Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260201.15
+2026-02-20T22:09:01.2482818Z ##[endgroup]
+2026-02-20T22:09:01.2487909Z ##[group]GITHUB_TOKEN Permissions
+2026-02-20T22:09:01.2490791Z Actions: write
+2026-02-20T22:09:01.2491710Z ArtifactMetadata: write
+2026-02-20T22:09:01.2492824Z Attestations: write
+2026-02-20T22:09:01.2493956Z Checks: write
+2026-02-20T22:09:01.2495438Z Contents: write
+2026-02-20T22:09:01.2496435Z Deployments: write
+2026-02-20T22:09:01.2497355Z Discussions: write
+2026-02-20T22:09:01.2498390Z Issues: write
+2026-02-20T22:09:01.2499265Z Metadata: read
+2026-02-20T22:09:01.2500133Z Models: read
+2026-02-20T22:09:01.2501153Z Packages: write
+2026-02-20T22:09:01.2502010Z Pages: write
+2026-02-20T22:09:01.2503313Z PullRequests: write
+2026-02-20T22:09:01.2504434Z RepositoryProjects: write
+2026-02-20T22:09:01.2505363Z SecurityEvents: write
+2026-02-20T22:09:01.2506282Z Statuses: write
+2026-02-20T22:09:01.2507227Z ##[endgroup]
+2026-02-20T22:09:01.2510464Z Secret source: Actions
+2026-02-20T22:09:01.2512081Z Prepare workflow directory
+2026-02-20T22:09:01.2989768Z Prepare all required actions
+2026-02-20T22:09:01.3048205Z Getting action download info
+2026-02-20T22:09:01.5164438Z Download action repository 'actions/checkout@v6' (SHA:de0fac2e4500dabe0009e67214ff5f5447ce83dd)
+2026-02-20T22:09:01.6310210Z Download action repository 'actions/setup-python@v6' (SHA:a309ff8b426b58ec0e2a45f0f869d46889d02405)
+2026-02-20T22:09:02.0099210Z Complete job name: lint

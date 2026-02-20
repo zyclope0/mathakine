@@ -1,0 +1,83 @@
+﻿2026-02-20T22:09:46.7425660Z ##[group]Run npm run build
+2026-02-20T22:09:46.7425944Z [36;1mnpm run build[0m
+2026-02-20T22:09:46.7456873Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:09:46.7457103Z env:
+2026-02-20T22:09:46.7457268Z   CC_FORK: false
+2026-02-20T22:09:46.7457699Z   CC_TOKEN: ***
+2026-02-20T22:09:46.7457878Z   CC_BRANCH: 
+2026-02-20T22:09:46.7458041Z   CC_SHA: 
+2026-02-20T22:09:46.7458195Z   CC_PR: 
+2026-02-20T22:09:46.7458421Z   NEXT_PUBLIC_API_BASE_URL: http://localhost:10000
+2026-02-20T22:09:46.7458946Z   NEXT_PUBLIC_SITE_URL: http://localhost:3000
+2026-02-20T22:09:46.7459231Z ##[endgroup]
+2026-02-20T22:09:46.8506465Z 
+2026-02-20T22:09:46.8506851Z > frontend@2.1.0 build
+2026-02-20T22:09:46.8507274Z > next build
+2026-02-20T22:09:46.8507481Z 
+2026-02-20T22:09:48.2701751Z ⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+2026-02-20T22:09:48.3533597Z Attention: Next.js now collects completely anonymous telemetry regarding usage.
+2026-02-20T22:09:48.3534813Z This information is used to shape Next.js' roadmap and prioritize features.
+2026-02-20T22:09:48.3535900Z You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+2026-02-20T22:09:48.3536672Z https://nextjs.org/telemetry
+2026-02-20T22:09:48.3536887Z 
+2026-02-20T22:09:48.3717894Z ▲ Next.js 16.1.6 (Turbopack)
+2026-02-20T22:09:48.3718471Z - Experiments (use with caution):
+2026-02-20T22:09:48.3719910Z   · clientTraceMetadata
+2026-02-20T22:09:48.3720513Z   · optimizePackageImports
+2026-02-20T22:09:48.3721524Z 
+2026-02-20T22:09:48.4358558Z   Creating an optimized production build ...
+2026-02-20T22:10:08.5310231Z ✓ Compiled successfully in 18.9s
+2026-02-20T22:10:08.5311592Z   Running next.config.js provided runAfterProductionCompile ...
+2026-02-20T22:10:08.6201115Z [@sentry/nextjs - After Production Compile] Info: Sending telemetry data on issues and performance to Sentry. To disable telemetry, set `options.telemetry` to `false`.
+2026-02-20T22:10:08.7572916Z [@sentry/nextjs - After Production Compile] Warning: No auth token provided. Will not create release. Please set the `authToken` option. You can find information on how to generate a Sentry auth token here: https://docs.sentry.io/api/auth/
+2026-02-20T22:10:08.7576795Z [@sentry/nextjs - After Production Compile] Warning: No auth token provided. Will not upload source maps. Please set the `authToken` option. You can find information on how to generate a Sentry auth token here: https://docs.sentry.io/api/auth/
+2026-02-20T22:10:08.7933165Z ✓ Completed runAfterProductionCompile in 266ms
+2026-02-20T22:10:08.7997352Z   Running TypeScript ...
+2026-02-20T22:10:19.3565612Z   Collecting page data using 3 workers ...
+2026-02-20T22:10:19.9776453Z   Generating static pages using 3 workers (0/32) ...
+2026-02-20T22:10:20.4694944Z   Generating static pages using 3 workers (8/32) 
+2026-02-20T22:10:20.6540115Z   Generating static pages using 3 workers (16/32) 
+2026-02-20T22:10:20.6936564Z   Generating static pages using 3 workers (24/32) 
+2026-02-20T22:10:20.8710327Z ✓ Generating static pages using 3 workers (32/32) in 893.3ms
+2026-02-20T22:10:20.8770642Z   Finalizing page optimization ...
+2026-02-20T22:10:20.8844895Z 
+2026-02-20T22:10:20.8857623Z Route (app)
+2026-02-20T22:10:20.8858365Z ┌ ○ /
+2026-02-20T22:10:20.8859097Z ├ ○ /_not-found
+2026-02-20T22:10:20.8860004Z ├ ○ /admin
+2026-02-20T22:10:20.8864714Z ├ ○ /admin/audit-log
+2026-02-20T22:10:20.8865559Z ├ ○ /admin/config
+2026-02-20T22:10:20.8866254Z ├ ○ /admin/content
+2026-02-20T22:10:20.8866920Z ├ ○ /admin/moderation
+2026-02-20T22:10:20.8867522Z ├ ○ /admin/users
+2026-02-20T22:10:20.8868262Z ├ ƒ /api/auth/check-cookie
+2026-02-20T22:10:20.8869087Z ├ ƒ /api/auth/sync-cookie
+2026-02-20T22:10:20.8869678Z ├ ƒ /api/challenges/generate-ai-stream
+2026-02-20T22:10:20.8870156Z ├ ƒ /api/chat
+2026-02-20T22:10:20.8870523Z ├ ƒ /api/chat/stream
+2026-02-20T22:10:20.8871032Z ├ ƒ /api/exercises/generate-ai-stream
+2026-02-20T22:10:20.8871541Z ├ ƒ /api/sentry-status
+2026-02-20T22:10:20.8872218Z ├ ○ /badges
+2026-02-20T22:10:20.8872557Z ├ ƒ /challenge/[id]
+2026-02-20T22:10:20.8872897Z ├ ○ /challenges
+2026-02-20T22:10:20.8873214Z ├ ○ /dashboard
+2026-02-20T22:10:20.8873535Z ├ ○ /docs
+2026-02-20T22:10:20.8873849Z ├ ○ /exercises
+2026-02-20T22:10:20.8874215Z ├ ƒ /exercises/[id]
+2026-02-20T22:10:20.8874600Z ├ ○ /forgot-password
+2026-02-20T22:10:20.8874974Z ├ ○ /leaderboard
+2026-02-20T22:10:20.8875334Z ├ ○ /login
+2026-02-20T22:10:20.8875624Z ├ ○ /offline
+2026-02-20T22:10:20.8875932Z ├ ○ /profile
+2026-02-20T22:10:20.8876233Z ├ ○ /register
+2026-02-20T22:10:20.8876561Z ├ ○ /reset-password
+2026-02-20T22:10:20.8876890Z ├ ○ /settings
+2026-02-20T22:10:20.8877229Z ├ ○ /test-sentry
+2026-02-20T22:10:20.8877594Z └ ○ /verify-email
+2026-02-20T22:10:20.8877783Z 
+2026-02-20T22:10:20.8877793Z 
+2026-02-20T22:10:20.8878003Z ƒ Proxy (Middleware)
+2026-02-20T22:10:20.8878213Z 
+2026-02-20T22:10:20.8878538Z ○  (Static)   prerendered as static content
+2026-02-20T22:10:20.8879335Z ƒ  (Dynamic)  server-rendered on demand
+2026-02-20T22:10:20.8879679Z 

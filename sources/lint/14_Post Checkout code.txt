@@ -1,0 +1,32 @@
+﻿2026-02-20T22:09:18.5218321Z Post job cleanup.
+2026-02-20T22:09:18.6027122Z [command]/usr/bin/git version
+2026-02-20T22:09:18.6065551Z git version 2.52.0
+2026-02-20T22:09:18.6136849Z Temporarily overriding HOME='/home/runner/work/_temp/48a51b96-ee0f-4ae6-b711-9fba29dee483' before making global git config changes
+2026-02-20T22:09:18.6138221Z Adding repository directory to the temporary git global config as a safe directory
+2026-02-20T22:09:18.6142505Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/mathakine/mathakine
+2026-02-20T22:09:18.6173298Z Removing SSH command configuration
+2026-02-20T22:09:18.6179834Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-02-20T22:09:18.6213336Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-02-20T22:09:18.6442488Z Removing HTTP extra header
+2026-02-20T22:09:18.6447155Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-02-20T22:09:18.6478671Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-02-20T22:09:18.6698317Z Removing includeIf entries pointing to credentials config files
+2026-02-20T22:09:18.6704532Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-02-20T22:09:18.6726654Z includeif.gitdir:/home/runner/work/mathakine/mathakine/.git.path
+2026-02-20T22:09:18.6727703Z includeif.gitdir:/home/runner/work/mathakine/mathakine/.git/worktrees/*.path
+2026-02-20T22:09:18.6728473Z includeif.gitdir:/github/workspace/.git.path
+2026-02-20T22:09:18.6729101Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-02-20T22:09:18.6737194Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/mathakine/mathakine/.git.path
+2026-02-20T22:09:18.6758546Z /home/runner/work/_temp/git-credentials-80bda56a-4d93-4286-b5bb-0b28af6f56f9.config
+2026-02-20T22:09:18.6769045Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/mathakine/mathakine/.git.path /home/runner/work/_temp/git-credentials-80bda56a-4d93-4286-b5bb-0b28af6f56f9.config
+2026-02-20T22:09:18.6802148Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/mathakine/mathakine/.git/worktrees/*.path
+2026-02-20T22:09:18.6823557Z /home/runner/work/_temp/git-credentials-80bda56a-4d93-4286-b5bb-0b28af6f56f9.config
+2026-02-20T22:09:18.6832530Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/mathakine/mathakine/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-80bda56a-4d93-4286-b5bb-0b28af6f56f9.config
+2026-02-20T22:09:18.6864535Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-02-20T22:09:18.6884761Z /github/runner_temp/git-credentials-80bda56a-4d93-4286-b5bb-0b28af6f56f9.config
+2026-02-20T22:09:18.6893247Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-80bda56a-4d93-4286-b5bb-0b28af6f56f9.config
+2026-02-20T22:09:18.6927336Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-02-20T22:09:18.6952402Z /github/runner_temp/git-credentials-80bda56a-4d93-4286-b5bb-0b28af6f56f9.config
+2026-02-20T22:09:18.6964948Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-80bda56a-4d93-4286-b5bb-0b28af6f56f9.config
+2026-02-20T22:09:18.6998948Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-02-20T22:09:18.7226390Z Removing credentials config '/home/runner/work/_temp/git-credentials-80bda56a-4d93-4286-b5bb-0b28af6f56f9.config'

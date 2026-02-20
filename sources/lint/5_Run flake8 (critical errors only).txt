@@ -1,0 +1,12 @@
+﻿2026-02-20T22:09:08.3601986Z ##[group]Run flake8 app/ server/ --count --select=E9,F63,F7,F82 --show-source --statistics
+2026-02-20T22:09:08.3602621Z [36;1mflake8 app/ server/ --count --select=E9,F63,F7,F82 --show-source --statistics[0m
+2026-02-20T22:09:08.3638208Z shell: /usr/bin/bash -e {0}
+2026-02-20T22:09:08.3638432Z env:
+2026-02-20T22:09:08.3638674Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:08.3639081Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+2026-02-20T22:09:08.3639504Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:08.3640038Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:08.3640386Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+2026-02-20T22:09:08.3640740Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+2026-02-20T22:09:08.3641031Z ##[endgroup]
+2026-02-20T22:09:09.9332159Z 0
