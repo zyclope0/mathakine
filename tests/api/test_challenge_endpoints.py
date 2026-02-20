@@ -124,16 +124,12 @@ async def test_challenge_attempt_incorrect(logic_challenge_db, padawan_client):
     assert result.get("hints") is not None or "hints_remaining" in result  # Indices disponibles
 
 
-async def test_get_challenge_hint(logic_challenge_db, padawan_client):
+async def test_get_challenge_hint(challenge_with_hints_id, padawan_client):
     """Test de l'endpoint pour récupérer un indice pour un défi logique."""
     client = padawan_client["client"]
-    list_resp = await client.get("/api/challenges")
-    assert list_resp.status_code == 200
-    challenges = _get_challenges_list(list_resp.json())
-    assert len(challenges) > 0
-    challenge_id = challenges[0]["id"]
+    challenge_id = challenge_with_hints_id
 
-    # logic_challenge_db crée un défi avec hints=["Indice 1", "Indice 2", "Indice 3"]
+    # challenge_with_hints_id cible le défi créé par logic_challenge_db (hints=["Indice 1", "Indice 2", "Indice 3"])
     response = await client.get(f"/api/challenges/{challenge_id}/hint", params={"level": 1})
     assert response.status_code == 200, f"Le défi de test doit avoir des hints: {response.json()}"
     assert response.status_code == 200
@@ -209,14 +205,10 @@ async def test_challenge_attempt_nonexistent_challenge(padawan_client):
         f"Le message devrait indiquer que le défi n'existe pas. Message reçu: {data['error']}"
 
 
-async def test_challenge_hint_invalid_level(logic_challenge_db, padawan_client):
+async def test_challenge_hint_invalid_level(challenge_with_hints_id, padawan_client):
     """Test de la récupération d'un indice avec un niveau invalide."""
     client = padawan_client["client"]
-    list_resp = await client.get("/api/challenges")
-    assert list_resp.status_code == 200
-    challenges = _get_challenges_list(list_resp.json())
-    assert len(challenges) > 0
-    challenge_id = challenges[0]["id"]
+    challenge_id = challenge_with_hints_id
 
     # Tester avec un niveau d'indice négatif
     response = await client.get(f"/api/challenges/{challenge_id}/hint", params={"level": -1})

@@ -734,6 +734,22 @@ def logic_challenge_db(db_session):
             db_session.commit()
 
 
+@pytest.fixture(scope="function")
+def challenge_with_hints_id(logic_challenge_db):
+    """ID du defi cree par logic_challenge_db (avec hints).
+
+    Utilise pour les tests qui requirent un defi avec indices (hint endpoint).
+    """
+    challenge = (
+        logic_challenge_db.query(LogicChallenge)
+        .filter(LogicChallenge.title.like("Test Challenge%"))
+        .order_by(LogicChallenge.id.desc())
+        .first()
+    )
+    assert challenge is not None, "logic_challenge_db doit creer un defi Test Challenge"
+    return challenge.id
+
+
 # ================================================================
 # SECTION 7: AUTO CLEANUP
 # ================================================================
