@@ -123,7 +123,7 @@ Le backend est unifie sur **Starlette** (FastAPI archive le 06/02/2026).
 - **Responses** : `JSONResponse` (Starlette)
 - **Authentification** : `server/auth.py` (Cookie + Bearer token)
 - **Streaming** : SSE pour generation IA (exercices + challenges)
-- **Routes** : 48 routes enregistrees dans `server/routes.py`
+- **Routes** : 86 routes enregistrees dans `server/routes.py`
 
 ### Couche logique metier (`app/`)
 Couche independante du framework HTTP :
@@ -174,7 +174,7 @@ Couche independante du framework HTTP :
 
 ---
 
-## 6. API - Endpoints actifs (~70 routes Starlette)
+## 6. API - Endpoints actifs (86 routes Starlette)
 
 | Methode | Route | Handler | Description |
 |---|---|---|---|

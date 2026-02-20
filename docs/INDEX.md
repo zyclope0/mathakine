@@ -108,7 +108,7 @@ docs/
    - Stack technique
    - Architecture backend (Starlette)
    - Architecture frontend (Next.js 16)
-   - 47 endpoints API
+   - 86 endpoints API
    - Modèles de données
    - Génération IA (OpenAI)
 
@@ -174,7 +174,7 @@ docs/
 ### Document unique de référence
 **README_TECH.md** est le **document de référence unique** pour toute la partie technique :
 - Architecture backend et frontend
-- API (47 endpoints)
+- API (86 endpoints)
 - Modèles de données
 - Stack technique
 - Conventions de code

@@ -245,5 +245,4 @@ def get_routes() -> List:
         Route("/api/challenges/progress/{challenge_id:int}", endpoint=get_challenge_progress, methods=["GET"]),
         Route("/api/challenges/rewards/{challenge_id:int}", endpoint=get_challenge_rewards, methods=["GET"]),
         Route("/api/challenges/generate-ai-stream", endpoint=generate_ai_challenge_stream, methods=["GET"]),
-        Route("/api/challenges/badges/progress", endpoint=get_user_badges_progress, methods=["GET"]),
     ]

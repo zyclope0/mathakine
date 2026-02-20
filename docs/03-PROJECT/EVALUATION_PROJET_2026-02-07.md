@@ -30,7 +30,7 @@
 
 **Points forts :**
 - Separation claire handlers / services / models
-- 49 routes API bien organisees par domaine
+- 86 routes API bien organisees par domaine
 - Adapter pattern pour DB (`EnhancedServerAdapter`)
 - Pydantic schemas pour la validation
 
@@ -185,7 +185,7 @@ Monolithe simple, adapte au volume actuel.
 
 ### Points forts
 - 15 docs actifs bien organises apres rationalisation
-- `README_TECH.md` couvre architecture et 48 routes API
+- `README_TECH.md` couvre architecture et 86 routes API
 - Getting Started guide complet
 - Scripts i18n de validation
 
@@ -228,7 +228,7 @@ Monolithe simple, adapte au volume actuel.
 | "SOLID Principles" | Partiellement. SRP viole (handlers de 774 lignes) |
 | "CI/CD operationnel" | Ameliore. CI fiabilise (continue-on-error retire, Dependabot actif, Actions mises a jour) |
 | "95% lisibilite" | Subjectif et non mesure. Ameliore mais loin de 95% |
-| "Backend 100% API (37 routes)" | Mis a jour : 49 routes API actuellement |
+| "Backend 100% API (37 routes)" | Mis a jour : 86 routes API actuellement |
 | References vers ARCHITECTURE.md, API.md | Ces fichiers ont ete archives dans `_ARCHIVE_2026/` |
 
 ---

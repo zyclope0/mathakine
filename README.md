@@ -34,7 +34,7 @@
 
 | Document | Description | Priorité |
 |----------|-------------|----------|
-| **[README_TECH.md](README_TECH.md)** | Documentation technique complète (48 endpoints, architecture, stack) | 🔴 Élevée |
+| **[README_TECH.md](README_TECH.md)** | Documentation technique complète (86 endpoints, architecture, stack) | 🔴 Élevée |
 | **[docs/INDEX.md](docs/INDEX.md)** | Index navigation documentation | 🔴 Élevée |
 | **[docs/00-REFERENCE/GETTING_STARTED.md](docs/00-REFERENCE/GETTING_STARTED.md)** | Installation pas-à-pas | 🔴 Élevée |
 | **[docs/01-GUIDES/DEVELOPMENT.md](docs/01-GUIDES/DEVELOPMENT.md)** | Workflow développement | 🟡 Moyenne |
