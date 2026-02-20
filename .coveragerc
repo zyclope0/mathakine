@@ -1,21 +1,16 @@
+# Configuration Coverage.py - Mathakine
+# Chemins relatifs pour compatibilité Codecov (CI vs local)
 [run]
-source = app,server
-omit =
-    */tests/*
-    */migrations/*
-    */__pycache__/*
-    */venv/*
-    */.venv/*
-    */_ARCHIVE_*
+source =
+    app
+    server
+relative_files = True
 
 [report]
 exclude_lines =
     pragma: no cover
     def __repr__
+    raise AssertionError
     raise NotImplementedError
-
-[xml]
-output = coverage.xml
-
-[html]
-directory = htmlcov
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:

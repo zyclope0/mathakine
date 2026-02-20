@@ -609,7 +609,7 @@ Hooks avec logique réutilisable : `usePaginatedContent`, logique de filtre, etc
 Un echec de test bloque le merge. Les rapports de couverture sont envoyes a Codecov (backend + frontend separes).
 
 **Configuration couverture :**
-- `.coveragerc` — sources (app, server), exclusions (tests, migrations, etc.), rapport XML
+- `.coveragerc` — sources (app, server), `relative_files=True` (chemins relatifs pour Codecov CI), exclusions, rapport XML
 - **Codecov** : ajouter `CODECOV_TOKEN` dans GitHub Secrets. Installer l'[app Codecov](https://github.com/apps/codecov) pour le badge (sinon GitHub affiche "unknown").
 
 ---
