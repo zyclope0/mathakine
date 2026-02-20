@@ -120,7 +120,8 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
       env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        # Secrets (recommandé) ou Variables selon la config du dépôt
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
       with:
         file: ./coverage.xml
         flags: backend
@@ -193,7 +194,8 @@ jobs:
     - name: Upload frontend coverage to Codecov
       uses: codecov/codecov-action@v5
       env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        # Secrets (recommandé) ou Variables selon la config du dépôt
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
       with:
         files: ./frontend/coverage/lcov.info
         flags: frontend
