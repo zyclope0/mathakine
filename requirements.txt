@@ -62,4 +62,4 @@ prometheus-client==0.19.0  # Métriques Prometheus
 sentry-sdk==1.40.6  # Monitoring d'erreurs
 
 # Envoi d'emails (optionnel - SendGrid pour production)
-sendgrid==6.11.0  # Service d'envoi d'email professionnel (optionnel)
+sendgrid==6.12.5  # Service d'envoi d'email professionnel (optionnel)
