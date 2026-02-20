@@ -1,3 +1,4 @@
+import path from "path";
 import type { NextConfig } from "next";
 import withPWA from "@ducanh2912/next-pwa";
 import createNextIntlPlugin from "next-intl/plugin";
@@ -8,9 +9,10 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
-  // Configuration Turbopack (Next.js 16 utilise Turbopack par défaut)
-  // next-pwa ajoute une config webpack, donc on configure Turbopack explicitement
-  turbopack: {},
+  // Configuration Turbopack : root explicite pour éviter confusion avec ./app (App Router)
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
 
   // Optimisations performance (swcMinify activé par défaut dans Next.js 16)
 
@@ -40,7 +42,6 @@ const nextConfig: NextConfig = {
       "@radix-ui/react-dropdown-menu",
       "@radix-ui/react-select",
       "recharts",
-      "framer-motion",
     ],
   },
 
