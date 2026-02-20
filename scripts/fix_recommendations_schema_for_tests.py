@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Charger .env avant les imports
 from dotenv import load_dotenv
-load_dotenv(override=True)
+load_dotenv(override=False)
 
 # TESTING=true pour utiliser TEST_DATABASE_URL
 if os.environ.get("TESTING", "").lower() != "true":

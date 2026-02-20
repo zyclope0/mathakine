@@ -22,8 +22,9 @@ import sys
 from loguru import logger
 from dotenv import load_dotenv
 
-# Charger les variables d'environnement AVANT de les lire
-load_dotenv(override=True)
+# Charger les variables d'environnement (ignorer .env en prod - sécurité)
+if os.environ.get("ENVIRONMENT") != "production":
+    load_dotenv(override=False)
 
 # Import from our server module
 from server import create_app, run_server

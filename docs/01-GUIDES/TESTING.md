@@ -62,9 +62,16 @@
 
 ### Backend (pytest)
 
-#### Installation
+#### Prérequis
+> **Important** : Les tests backend nécessitent l'installation complète des dépendances.
+> Sans `python-dotenv` (chargement du `.env`), `pytest` échouera au démarrage.
 ```bash
-pip install pytest pytest-cov pytest-asyncio
+pip install -r requirements.txt
+```
+
+#### Installation minimale (CI, variables déjà définies)
+```bash
+pip install pytest pytest-cov pytest-asyncio httpx python-dotenv
 ```
 
 #### pytest.ini
@@ -603,7 +610,7 @@ Un echec de test bloque le merge. Les rapports de couverture sont envoyes a Code
 
 **Configuration couverture :**
 - `.coveragerc` — sources (app, server), exclusions (tests, migrations, etc.), rapport XML
-- **Codecov** : pour un badge et des rapports PR, ajouter `CODECOV_TOKEN` dans GitHub Secrets (Settings → Secrets → Actions). Repo public : optionnel. Repo privé : requis.
+- **Codecov** : ajouter `CODECOV_TOKEN` dans GitHub Secrets. Installer l'[app Codecov](https://github.com/apps/codecov) pour le badge (sinon GitHub affiche "unknown").
 
 ---
 

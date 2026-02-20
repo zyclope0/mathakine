@@ -16,7 +16,7 @@ sys.path.insert(0, str(root))
 env_path = root / ".env"
 if env_path.exists():
     from dotenv import load_dotenv
-    load_dotenv(env_path, override=True)
+    load_dotenv(env_path, override=False)
 
 api_key = os.getenv("SENDGRID_API_KEY")
 from_email = os.getenv("SENDGRID_FROM_EMAIL", "no-reply@mathakine.fun")

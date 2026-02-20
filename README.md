@@ -198,6 +198,8 @@ mathakine/
 
 ### Backend (Python - Pytest)
 
+> **Prérequis** : `pip install -r requirements.txt` avant de lancer les tests (nécessite python-dotenv entre autres).
+
 ```bash
 # Tous les tests
 pytest tests/ -v

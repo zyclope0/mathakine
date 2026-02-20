@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
-load_dotenv(override=True)
+load_dotenv(override=False)
 
 if os.environ.get("TESTING", "").lower() != "true":
     os.environ.setdefault("TEST_DATABASE_URL", os.environ.get("DATABASE_URL", ""))

@@ -12,7 +12,10 @@ from app.core.logging_config import get_logger
 logger = get_logger(__name__)
 
 # Chargement des variables d'environnement
-load_dotenv(override=True)  # Forcer le rechargement des variables d'environnement
+# Prod : ignorer .env (sécurité - seules les vars injectées par l'hôte sont utilisées)
+# Dev/local : charger .env avec override=False (ne pas écraser les vars déjà définies)
+if os.getenv("ENVIRONMENT") != "production":
+    load_dotenv(override=False)
 logger.info("Chargement de la configuration...")
 
 # Base de données

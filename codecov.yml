@@ -1,6 +1,11 @@
 # Configuration Codecov - Mathakine
 # https://docs.codecov.com/docs/codecov-yaml
 
+# Corriger les chemins CI (GitHub Actions) pour matcher la structure git
+# Format GitHub Actions: /home/runner/work/OWNER/REPO/
+fixes:
+  - "/home/runner/work/[^/]+/[^/]+/::"
+
 coverage:
   range: 40..100
   precision: 2

@@ -18,8 +18,14 @@ import re as _re
 os.environ["TESTING"] = "true"
 
 # Charger .env AVANT tout import applicatif pour deriver TEST_DATABASE_URL
-from dotenv import load_dotenv as _load_dotenv
-_load_dotenv(override=True)
+# Optionnel : si python-dotenv absent (env minimal), les variables doivent être déjà définies (CI)
+try:
+    from dotenv import load_dotenv as _load_dotenv
+    # Ignorer .env en prod ; en dev/CI : override=False pour ne pas écraser les vars injectées
+    if os.environ.get("ENVIRONMENT") != "production":
+        _load_dotenv(override=False)
+except ImportError:
+    pass  # TEST_DATABASE_URL / DATABASE_URL déjà définis (p.ex. CI)
 
 # Si TEST_DATABASE_URL n'est pas defini explicitement (CI le definit),
 # tenter de le deriver de DATABASE_URL si la base est une base de test.

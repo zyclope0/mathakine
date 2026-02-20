@@ -111,22 +111,28 @@ jobs:
       run: |
         python -m pytest tests/ -v \
           --ignore=tests/archives/ \
-          --cov \
+          --cov=app \
+          --cov=server \
           --cov-report=xml \
           --cov-report=term-missing \
           --tb=short \
           -m "not slow"
     
+    - name: Verify coverage file
+      run: |
+        test -f coverage.xml && echo "coverage.xml exists" && head -5 coverage.xml
+        wc -l coverage.xml
+    
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v5
       env:
-        # Secrets (recommandé) ou Variables selon la config du dépôt
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
       with:
         files: ./coverage.xml
         flags: backend
         name: codecov-mathakine-backend
         fail_ci_if_error: false
+        verbose: true
     
     - name: Coverage report
       if: always()
@@ -194,13 +200,13 @@ jobs:
     - name: Upload frontend coverage to Codecov
       uses: codecov/codecov-action@v5
       env:
-        # Secrets (recommandé) ou Variables selon la config du dépôt
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
       with:
         files: ./frontend/coverage/lcov.info
         flags: frontend
         name: codecov-mathakine-frontend
         fail_ci_if_error: false
+        verbose: true
     
     - name: Build Next.js
       working-directory: frontend

@@ -16,8 +16,9 @@ logger = get_logger(__name__)
 
 from app.db.queries import ExerciseQueries, ResultQueries, UserStatsQueries
 
-# Charger les variables d'environnement depuis .env
-load_dotenv(override=True)
+# Charger les variables d'environnement (ignorer .env en prod - sécurité)
+if os.environ.get("ENVIRONMENT") != "production":
+    load_dotenv(override=False)
 
 def get_database_url() -> str:
     """
