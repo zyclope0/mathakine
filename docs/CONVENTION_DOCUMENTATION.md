@@ -123,7 +123,32 @@ Chaque document projet devrait inclure en en-tête :
 
 ---
 
-## 7. Index et navigation
+## 7. Revue périodique — vérité terrain
+
+L'accumulation de rapports historiques rend la maintenance difficile sans processus de revue. Pour garder la documentation alignée avec le code :
+
+### Fréquence
+
+- **Trimestrielle** : au minimum 1 revue par trimestre (Fév., Mai, Août, Nov.)
+- **À la livraison** : vérifier les docs de référence après chaque release majeure
+
+### Checklist (source de vérité = code)
+
+| Point | Fichier source | Où corriger |
+|-------|----------------|-------------|
+| Nombre de routes API | `server/routes.py` (`get_routes()`) | README, README_TECH, docs référençant ce nombre |
+| Versions frontend | `frontend/package.json` (react, @tanstack/react-query, next-intl, framer-motion) | README § Stack technique |
+| Versions backend | `requirements.txt` (openai, sqlalchemy, starlette) | README, README_TECH |
+| Modèles ORM | `app/models/all_models.py` | README § Structure (nombre d'entités) |
+| Handlers | `server/handlers/` (fichiers .py) | README § Structure |
+
+### Principe
+
+**Le code prime sur la documentation.** En cas d'incohérence, corriger la doc pour refléter la réalité du code.
+
+---
+
+## 8. Index et navigation
 
 - Chaque sous-dossier d'archives dispose d'un **INDEX.md** ou est décrit dans le **README** parent
 - Le [INDEX.md](INDEX.md) principal pointe vers les entrées clés

@@ -257,7 +257,7 @@ mathakine/
 │
 ├── server/                # Starlette app (API JSON)
 │   ├── handlers/         # Request handlers
-│   ├── routes.py         # 86 routes API
+│   ├── routes.py         # ~80 routes API
 │   └── auth.py           # Auth centralisé
 │
 ├── tests/                 # Tests

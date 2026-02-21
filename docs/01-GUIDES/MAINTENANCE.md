@@ -27,8 +27,11 @@ Ce guide décrit les procédures de maintenance régulières pour assurer la sta
 |-------|-----------|-----------|
 | Tests de charge | Hebdomadaire | 🔴 Critique |
 | Vérifications sécurité | Mensuelle | 🔴 Critique |
+| **Revue documentation (vérité terrain)** | **Trimestrielle** | 🟡 Important |
 | Review logs | Quotidienne | 🟡 Important |
 | Optimisation DB | Trimestrielle | 🟢 Informatif |
+
+> **Revue vérité terrain** : aligner README, README_TECH et docs de référence avec le code (routes API, versions, modèles). Voir [CONVENTION_DOCUMENTATION.md](../CONVENTION_DOCUMENTATION.md) §7.
 
 ---
 

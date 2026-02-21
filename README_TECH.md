@@ -118,12 +118,12 @@ Le backend est unifie sur **Starlette** (FastAPI archive le 06/02/2026).
 
 ### Couche HTTP - Starlette (`server/`)
 - **Point d'entree** : `enhanced_server.py` (port 10000)
-- **Handlers** : `server/handlers/` (exercise, challenge, user, auth, chat, badge, recommendation)
+- **Handlers** : `server/handlers/` (admin, auth, badge, challenge, chat, exercise, recommendation, user)
 - **Gestion DB** : Manuelle via `EnhancedServerAdapter.get_db_session()` / `close_db_session()`
 - **Responses** : `JSONResponse` (Starlette)
 - **Authentification** : `server/auth.py` (Cookie + Bearer token)
 - **Streaming** : SSE pour generation IA (exercices + challenges)
-- **Routes** : 86 routes enregistrees dans `server/routes.py`
+- **Routes** : ~80 routes enregistrees dans `server/routes.py` (dont bloc admin)
 
 ### Couche logique metier (`app/`)
 Couche independante du framework HTTP :
@@ -174,7 +174,7 @@ Couche independante du framework HTTP :
 
 ---
 
-## 6. API - Endpoints actifs (86 routes Starlette)
+## 6. API - Endpoints actifs (~80 routes Starlette)
 
 | Methode | Route | Handler | Description |
 |---|---|---|---|

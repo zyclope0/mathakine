@@ -85,7 +85,7 @@
 
 - **UX / accessibilité** : 7/10 — thèmes, animations adaptatives, WCAG 2.1 AA
 - **Gamification** : badges, streak, leaderboard, recommandations opérationnels
-- **Architecture** : séparation handlers / services / models, 86 routes API
+- **Architecture** : séparation handlers / services / models, ~80 routes API
 - **i18n** : Français / Anglais (next-intl)
 - **Moteur badges** : générique, extensible, défis logiques supportés
 

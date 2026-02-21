@@ -34,7 +34,7 @@
 
 | Document | Description | Priorité |
 |----------|-------------|----------|
-| **[README_TECH.md](README_TECH.md)** | Documentation technique complète (86 endpoints, architecture, stack) | 🔴 Élevée |
+| **[README_TECH.md](README_TECH.md)** | Documentation technique complète (~80 endpoints, architecture, stack) | 🔴 Élevée |
 | **[docs/INDEX.md](docs/INDEX.md)** | Index navigation documentation | 🔴 Élevée |
 | **[docs/00-REFERENCE/GETTING_STARTED.md](docs/00-REFERENCE/GETTING_STARTED.md)** | Installation pas-à-pas | 🔴 Élevée |
 | **[docs/01-GUIDES/DEVELOPMENT.md](docs/01-GUIDES/DEVELOPMENT.md)** | Workflow développement | 🟡 Moyenne |
@@ -108,7 +108,7 @@ npm run dev
                ↓
 ┌─────────────────────────────────────────┐
 │  Backend Starlette (localhost:10000)    │
-│  • 48 routes API                        │
+│  • ~80 routes API (dont admin)          │
 │  • Handlers + middleware                │
 │  • SSE streaming (IA)                   │
 │  • Auth JWT (cookies + Bearer)          │
@@ -132,20 +132,20 @@ npm run dev
 
 **Frontend**
 - **Framework** : Next.js 16.1.6 (App Router)
-- **UI** : React 19.2.0, TypeScript 5.x
+- **UI** : React 19.2.4, TypeScript 5.x
 - **Styling** : Tailwind CSS 4.x, shadcn/ui
-- **State** : TanStack Query 5.90.7, Zustand 5.0.8
-- **i18n** : next-intl 4.4.0
-- **Animations** : Framer Motion 12.23.24
+- **State** : TanStack Query 5.90.21, Zustand 5.0.8
+- **i18n** : next-intl 4.8.3
+- **Animations** : Framer Motion 12.33.2
 
 **Backend**
 - **Framework** : Starlette 0.49.3 (API pure, FastAPI archivé 06/02/2026)
 - **Python** : 3.12+
-- **ORM** : SQLAlchemy 2.0.44
+- **ORM** : SQLAlchemy 2.0.46
 - **BDD** : PostgreSQL 15+ (prod), SQLite (dev)
 - **Migrations** : Alembic 1.13.1
 - **Auth** : JWT (python-jose) + Bcrypt
-- **IA** : OpenAI 1.12.0 (GPT-5.1, GPT-5-mini, GPT-5.2)
+- **IA** : OpenAI 2.16.0 (GPT-5.1, GPT-5-mini, GPT-5.2)
 - **Logs** : Loguru
 
 **DevOps**
@@ -171,14 +171,14 @@ mathakine/
 │   └── public/              # Assets statiques
 │
 ├── server/                   # Backend Starlette (couche HTTP)
-│   ├── handlers/            # 7 handlers (auth, user, exercise, challenge, etc.)
-│   ├── routes.py            # 48 routes API
+│   ├── handlers/            # 8 handlers (auth, user, exercise, challenge, admin, etc.)
+│   ├── routes.py            # ~80 routes API (dont bloc admin)
 │   ├── auth.py              # Authentification centralisée
 │   ├── middleware.py        # CORS, logging, rate limiting
 │   └── app.py               # App Starlette
 │
 ├── app/                      # Backend logique métier (indépendant HTTP)
-│   ├── models/              # SQLAlchemy ORM (7 tables)
+│   ├── models/              # SQLAlchemy ORM (15+ entités : User, Exercise, Attempt, Progress, LogicChallenge, etc.)
 │   ├── schemas/             # Pydantic validation
 │   ├── services/            # Business logic (CRUD + logique métier)
 │   ├── core/                # Config (settings, ai_config, logging)

@@ -1,7 +1,7 @@
 # 📚 Documentation Mathakine
 
 > Point d'entrée unique — Mise à jour au 20/02/2026  
-> **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md)
+> **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md) — inclut la **revue trimestrielle** (vérité terrain) §7
 
 ---
 
@@ -56,16 +56,15 @@ docs/
 │   ├── EVALUATION_PROJET_2026-02-07.md  # Référence actuelle (évaluation factuelle)
 │   ├── AUDIT_DASHBOARD_2026-02.md  # Audit dashboard (recos partielles)
 │   ├── AUDIT_SENTRY_2026-02.md  # Configuration Sentry (référence)
-│   ├── AUDIT_SECURITE_APPLICATIVE_2026-02.md  # Audit OWASP (référence)
 │   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~70-80% traité)
 │   ├── DEPLOIEMENT_2026-02-06.md  # Guide déploiement
 │   ├── ENDPOINTS_NON_INTEGRES.md  # Endpoints à intégrer
-│   ├── ANALYSE_GENERATION_IA_CHALLENGES.md  # Audit génération IA défis (bugs, optimisations)
 │   ├── PLACEHOLDERS_ET_TODO.md  # Endpoints à implémenter
 │   └── AUDITS_ET_RAPPORTS_ARCHIVES/  # 📦 Audits implémentés + rapports temporaires
 │       ├── README.md  # Index du dossier
 │       ├── AUDITS_IMPLEMENTES/  # Recos toutes appliquées
-│       │   ├── INDEX.md  # Index des 7 audits
+│       │   ├── INDEX.md  # Index des 8 audits
+│       │   ├── AUDIT_SECURITE_APPLICATIVE_2026-02.md  # OWASP (archivé)
 │       │   ├── ANALYSE_THEMES_UX_2026-02.md
 │       │   ├── CONTRAST_FIXES.md
 │       │   ├── THEMES_TEST_RESULTS.md
@@ -85,7 +84,13 @@ docs/
 │           ├── RECAP_FINAL_2026-02-06.md
 │           ├── RATIONALISATION_DOCS_2026-02-06.md
 │           ├── PLAN_ACTION_2026-02-06.md
-│           └── MIGRATION_INDEX_ROLLBACK_PLAN.md
+│           ├── MIGRATION_INDEX_ROLLBACK_PLAN.md
+│           ├── COMMIT_FIXES_FRONTEND_2026-02-20.md
+│           ├── ANALYSE_GENERATION_IA_EXERCICES.md
+│           ├── ANALYSE_GENERATION_IA_CHALLENGES.md
+│           ├── ANALYSE_DEPENDABOT_2026-02-20.md
+│           ├── SECURITY_AUDIT_REPORT.md
+│           └── BADGES_AUDIT_PAUFINAGE.md
 │
 └── 06-WIDGETS/            # 🎨 Widgets Dashboard (Nouveau 06/02/2026)
     ├── INTEGRATION_PROGRESSION_WIDGETS.md  # Guide d'intégration
@@ -108,7 +113,7 @@ docs/
    - Stack technique
    - Architecture backend (Starlette)
    - Architecture frontend (Next.js 16)
-   - 86 endpoints API
+   - ~80 endpoints API
    - Modèles de données
    - Génération IA (OpenAI)
 
@@ -134,7 +139,7 @@ docs/
 ### Je veux tester mes modifications
 1. [TESTING.md](01-GUIDES/TESTING.md) - Guide tests complet
 2. [TESTER_MODIFICATIONS_SECURITE.md](01-GUIDES/TESTER_MODIFICATIONS_SECURITE.md) - Tests sécurité
-3. [AUDIT_SECURITE_APPLICATIVE_2026-02.md](03-PROJECT/AUDIT_SECURITE_APPLICATIVE_2026-02.md) - Audit OWASP (failles, remédiations)
+3. [AUDIT_SECURITE_APPLICATIVE_2026-02.md](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/AUDIT_SECURITE_APPLICATIVE_2026-02.md) - Audit OWASP (archivé, recos appliquées)
 
 ### J'ai un problème
 1. [TROUBLESHOOTING.md](01-GUIDES/TROUBLESHOOTING.md) - Solutions problèmes courants
@@ -174,7 +179,7 @@ docs/
 ### Document unique de référence
 **README_TECH.md** est le **document de référence unique** pour toute la partie technique :
 - Architecture backend et frontend
-- API (86 endpoints)
+- API (~80 endpoints)
 - Modèles de données
 - Stack technique
 - Conventions de code

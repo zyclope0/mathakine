@@ -35,14 +35,11 @@
 | [AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md](./AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md) | 20/02/2026 | Lint, tests, typage TypeScript | ✅ Corrections appliquées (15/02) — §4 |
 | [AUDIT_DASHBOARD_2026-02.md](./AUDIT_DASHBOARD_2026-02.md) | Fév. 2026 | Dashboard — imports, i18n, handleRefresh | Recos partielles |
 | [AUDIT_SENTRY_2026-02.md](./AUDIT_SENTRY_2026-02.md) | Fév. 2026 | Configuration Sentry, monitoring | Référence config |
-| [AUDIT_SECURITE_APPLICATIVE_2026-02.md](./AUDIT_SECURITE_APPLICATIVE_2026-02.md) | Fév. 2026 | OWASP Top 10, sécurité applicative | ✅ Post-corrections |
 | [ANALYSE_DUPLICATION_DRY_2026-02.md](./ANALYSE_DUPLICATION_DRY_2026-02.md) | Fév. 2026 | DRY, duplication code | ~70–80 % traité |
 
-### Vulnérabilités (CVE / npm / pip)
+### Vulnérabilités (CVE)
 
-| Document | Emplacement | Sujet |
-|----------|-------------|-------|
-| [SECURITY_AUDIT_REPORT.md](../SECURITY_AUDIT_REPORT.md) | `docs/` racine | CVE Next.js, requests, Jinja2, npm audit — statut des vulnérabilités |
+→ [SECURITY_AUDIT_REPORT.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/SECURITY_AUDIT_REPORT.md) — archivé (12/02/2026)
 
 ### À faire
 
@@ -55,6 +52,7 @@
 
 | Document | Rôle |
 |----------|------|
+| [AUDIT_SECURITE_APPLICATIVE_2026-02.md](./AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/AUDIT_SECURITE_APPLICATIVE_2026-02.md) | OWASP — ✅ Recos appliquées |
 | [BILAN_COMPLET.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/BILAN_COMPLET.md) | Phases 1–6 (nov. 2025) — remplacé par EVALUATION_PROJET |
 | [RAPPORT_VERIFICATION_CHALLENGES.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/RAPPORT_VERIFICATION_CHALLENGES.md) | Vérification défis 29/11/2025 |
 | [PHASES/](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/PHASES/) | Documentation phases historiques (RECAP, PHASE6) |
@@ -89,6 +87,8 @@ Récaps mission, plans, rapports contextuels (contexte historique).
 **Format date :** `YYYY-MM` ou `YYYY-MM-DD` en suffixe.
 
 → Voir [CONVENTION_DOCUMENTATION.md](../CONVENTION_DOCUMENTATION.md) pour les règles complètes.
+
+**Revue trimestrielle** : l'accumulation de rapports historiques rend la maintenance difficile. Prévoir une revue trimestrielle des docs de référence (README, README_TECH) pour aligner avec le code — voir [CONVENTION_DOCUMENTATION.md](../CONVENTION_DOCUMENTATION.md) §7.
 
 ---
 
