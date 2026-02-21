@@ -100,23 +100,46 @@ jobs:
         print('Database initialized successfully')
         "
     
-    - name: Run tests
-      id: run_tests
+    - name: Run unit tests
+      id: run_unit_tests
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
         TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
         SECRET_KEY: test-secret-key-for-ci-cd-pipeline
         TESTING: true
         PYTHONPATH: ${{ github.workspace }}
+        COVERAGE_FILE: .coverage.unit
       run: |
-        python -m pytest tests/ -v \
-          --ignore=tests/archives/ \
+        python -m pytest tests/unit/ -v \
           --cov=app \
           --cov=server \
-          --cov-report=xml \
           --cov-report=term-missing \
           --tb=short \
           -m "not slow"
+
+    - name: Run integration tests
+      id: run_integration_tests
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
+        TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
+        SECRET_KEY: test-secret-key-for-ci-cd-pipeline
+        TESTING: true
+        PYTHONPATH: ${{ github.workspace }}
+        COVERAGE_FILE: .coverage.integration
+      run: |
+        python -m pytest tests/ -v \
+          --ignore=tests/unit/ \
+          --ignore=tests/archives/ \
+          --cov=app \
+          --cov=server \
+          --cov-report=term-missing \
+          --tb=short \
+          -m "not slow"
+
+    - name: Combine coverage and generate XML
+      run: |
+        coverage combine .coverage.unit .coverage.integration
+        coverage xml
     
     - name: Verify coverage file
       run: |
@@ -194,7 +217,11 @@ jobs:
     - name: TypeScript type check
       working-directory: frontend
       run: npx tsc --noEmit
-    
+
+    - name: ESLint (frontend)
+      working-directory: frontend
+      run: npm run lint
+
     - name: Run tests with coverage
       working-directory: frontend
       run: npm run test:coverage -- --run

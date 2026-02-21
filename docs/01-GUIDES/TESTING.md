@@ -62,6 +62,33 @@
 
 ### Backend (pytest)
 
+#### Commande unique (recommandé)
+```bash
+make test-backend-local
+```
+ou sans Make : `python scripts/test_backend_local.py` — démarre PostgreSQL (Docker si absent), init DB, pytest.
+
+#### Quick start manuel avec Docker
+> **Connection refused localhost:5432 ?** — Les tests backend nécessitent PostgreSQL. Avec Docker :
+
+```bash
+# 1. Démarrer PostgreSQL (postgres:15, port 5432)
+docker run -d --name pg-mathakine -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:15
+
+# 2. Créer la base de test et initialiser le schéma
+python scripts/check_local_db.py
+# Linux/Mac :
+TESTING=true TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_mathakine python -c "from app.db.init_db import create_tables_with_test_data; create_tables_with_test_data()"
+# PowerShell :
+$env:TESTING="true"; $env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_mathakine"; python -c "from app.db.init_db import create_tables_with_test_data; create_tables_with_test_data()"
+
+# 3. Ajouter dans .env : TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_mathakine
+# 4. Lancer les tests
+python -m pytest tests/ -q -m "not slow"
+```
+
+Voir [CREATE_TEST_DATABASE.md](CREATE_TEST_DATABASE.md) pour plus d’options (Option 3 Docker).
+
 #### Prérequis
 > **Important** : Les tests backend nécessitent l'installation complète des dépendances.
 > Sans `python-dotenv` (chargement du `.env`), `pytest` échouera au démarrage.
@@ -422,11 +449,11 @@ class TestAuthFlow:
 # Tous les tests
 pytest tests/ -v
 
-# Tests unitaires uniquement
+# Tests unitaires uniquement (services, logique, unicité routes)
 pytest tests/unit/ -v
 
-# Tests API uniquement
-pytest tests/api/ -v
+# Tests API / integration uniquement
+pytest tests/api/ tests/integration/ tests/functional/ -v
 
 # Tests critiques uniquement
 pytest tests/ -v -m critical
@@ -602,11 +629,15 @@ Hooks avec logique réutilisable : `usePaginatedContent`, logique de filtre, etc
 
 | Job | Actions |
 |-----|---------|
-| **test** | PostgreSQL 15, pytest avec --cov, coverage.xml, upload Codecov (flag backend) |
-| **lint** | flake8, black, isort |
-| **frontend** | npm ci, tsc --noEmit, **npm run test:coverage**, upload Codecov (flag frontend), npm run build |
+| **test** | PostgreSQL 15, **unit** (tests/unit/), **integration** (tests/api/, integration/, functional/), coverage combine, upload Codecov (flag backend) |
+| **lint** | flake8, black, isort (backend) |
+| **frontend** | npm ci, tsc --noEmit, **npm run lint** (ESLint), npm run test:coverage, upload Codecov (flag frontend), npm run build |
 
-Un echec de test bloque le merge. Les rapports de couverture sont envoyes a Codecov (backend + frontend separes).
+Un echec de test ou de lint bloque le merge. Les rapports de couverture sont envoyes a Codecov (backend + frontend separes).
+
+### Test d'unicite des routes (15/02/2026)
+
+Le fichier `tests/unit/test_routes_uniqueness.py` verifie qu'aucune route API ne partage le meme couple (method, path). Une collision provoquerait un routage errone vers Starlette. Le test parcourt `get_routes()` (Route + Mount) et echoue si un doublon est detecte.
 
 **Configuration couverture :**
 - `.coveragerc` — sources (app, server), `relative_files=True` (chemins relatifs pour Codecov CI), exclusions, rapport XML
@@ -782,6 +813,14 @@ Ce script protege les memes utilisateurs permanents et respecte le meme ordre FK
 ---
 
 ## 📝 MODIFICATIONS RECENTES {#modifications-recentes}
+
+### 15/02/2026 – Quality gates CI, test unicité routes
+
+| Domaine | Modification |
+|---------|---------------|
+| **Test unicité routes** | `tests/unit/test_routes_uniqueness.py` : détecte les collisions (method, path) dans `get_routes()`. Échoue si deux routes partagent le même couple. |
+| **CI backend** | Séparation unit (tests/unit/) et integration (tests/api/, integration/, functional/). `coverage combine` pour agréger la couverture. |
+| **CI frontend** | `npm run lint` (ESLint) ajouté avant tests et build. |
 
 ### 20/02/2026 – Nettoyage skips, suppression delete_exercise, nouveaux tests
 
