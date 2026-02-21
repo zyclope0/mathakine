@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse
 
+from app.models.admin_audit_log import AdminAuditLog
 from app.models.achievement import Achievement, UserAchievement
 from app.models.attempt import Attempt
 from app.models.setting import Setting
