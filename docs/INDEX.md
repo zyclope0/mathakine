@@ -253,6 +253,7 @@ docs/
 ### 21/02/2026
 - ✅ **Refactor exercise_generator (PR#1)** : Extraction des validateurs dans `server/exercise_generator_validators.py` (normalize_exercise_type, normalize_difficulty, normalize_and_validate_exercise_params, get_difficulty_from_age_group) — compatibilite preservee via re-exports
 - ✅ **Refactor exercise_generator (PR#2)** : Extraction des helpers dans `server/exercise_generator_helpers.py` (generate_smart_choices, generate_contextual_question) — ~170 lignes retirees de exercise_generator.py
+- ✅ **Refactor admin_handlers (PR#1)** : Extraction des utils dans `server/handlers/admin_handlers_utils.py` (CONFIG_SCHEMA, _log_admin_action, _parse_setting_value, _serialize_value)
 
 ### 11/02/2026
 - ✅ **Documentation tests mise à jour** : TESTING.md (Vitest, couverture, CI), tests/README.md, PLAN_TESTS_AMELIORATION.md

@@ -120,7 +120,7 @@ Le backend est unifie sur **Starlette** (FastAPI archive le 06/02/2026).
 
 ### Couche HTTP - Starlette (`server/`)
 - **Point d'entree** : `enhanced_server.py` (port 10000)
-- **Handlers** : `server/handlers/` (admin, auth, badge, challenge, chat, exercise, recommendation, user)
+- **Handlers** : `server/handlers/` (admin, admin_handlers_utils, auth, badge, challenge, chat, exercise, recommendation, user)
 - **Gestion DB** : Manuelle via `EnhancedServerAdapter.get_db_session()` / `close_db_session()`
 - **Responses** : `JSONResponse` (Starlette)
 - **Authentification** : `server/auth.py` (Cookie + Bearer token)
