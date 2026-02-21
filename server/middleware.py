@@ -7,6 +7,7 @@ request processing across the application.
 import os
 from typing import Callable, List
 
+from app.core.config import settings
 from app.core.logging_config import get_logger
 from app.utils.settings_reader import get_setting_bool
 
@@ -18,6 +19,26 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse
 
 # Routes exemptées du mode maintenance (admin peut se connecter et désactiver)
+# Headers de sécurité (OWASP) — appliqués si SECURE_HEADERS=true
+SECURE_HEADERS_DICT = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+}
+
+
+class SecureHeadersMiddleware(BaseHTTPMiddleware):
+    """Ajoute les headers de sécurité HTTP (X-Content-Type-Options, X-Frame-Options, etc.) si config activée."""
+
+    async def dispatch(self, request: Request, call_next: Callable):
+        response = await call_next(request)
+        if settings.SECURE_HEADERS:
+            for key, value in SECURE_HEADERS_DICT.items():
+                response.headers[key] = value
+        return response
+
+
 MAINTENANCE_EXEMPT_PREFIXES = (
     "/health",
     "/metrics",
@@ -166,6 +187,7 @@ def get_middleware() -> List[Middleware]:
         pass
 
     middleware_list.extend([
+        Middleware(SecureHeadersMiddleware),
         Middleware(
             CORSMiddleware,
             allow_origins=allowed_origins,
