@@ -7,7 +7,21 @@ import random
 from typing import Any, Dict, List, Optional
 
 from app.core.logging_config import get_logger
-from app.core.constants import (DIFFICULTY_LIMITS, DifficultyLevels, ExerciseTypes, Messages, Tags, AgeGroups, normalize_age_group)
+from app.core.constants import (
+    DIFFICULTY_LIMITS,
+    AgeGroups,
+    DifficultyLevels,
+    ExerciseTypes,
+    Messages,
+    Tags,
+    normalize_age_group,
+)
+from server.exercise_generator_validators import (
+    get_difficulty_from_age_group,
+    normalize_difficulty,
+    normalize_and_validate_exercise_params,
+    normalize_exercise_type,
+)
 
 logger = get_logger(__name__)
 from app.core.messages import ExerciseMessages, StarWarsNarratives
@@ -22,108 +36,6 @@ def _apply_test_title(exercise_data: Dict[str, Any]) -> Dict[str, Any]:
             exercise_data["title"] = f"Test {title}"
     return exercise_data
 
-
-# Fonctions de normalisation
-def normalize_exercise_type(exercise_type):
-    """Normalise le type d'exercice"""
-    if not exercise_type:
-        return ExerciseTypes.ADDITION
-
-    exercise_type_lower = exercise_type.lower()
-
-    # Parcourir tous les types d'exercices et leurs alias
-    for type_key, aliases in ExerciseTypes.TYPE_ALIASES.items():
-        if exercise_type_lower in aliases:
-            return type_key
-    
-    # Si aucune correspondance trouvée, essayer de convertir en majuscule
-    # et vérifier si c'est une valeur enum valide
-    exercise_type_upper = exercise_type.upper()
-    if exercise_type_upper in ExerciseTypes.ALL_TYPES:
-        return exercise_type_upper
-    
-    # Si toujours aucune correspondance, logger un avertissement et retourner ADDITION par défaut
-    logger.info(f"⚠️ Type d'exercice non reconnu: {exercise_type}, utilisation de ADDITION par défaut")
-    return ExerciseTypes.ADDITION
-
-def normalize_difficulty(difficulty):
-    """Normalise le niveau de difficulté"""
-    if not difficulty:
-        return DifficultyLevels.PADAWAN
-
-    difficulty_lower = difficulty.lower()
-
-    # Parcourir tous les niveaux de difficulté et leurs alias
-    for level_key, aliases in DifficultyLevels.LEVEL_ALIASES.items():
-        if difficulty_lower in aliases:
-            return level_key
-    
-    # Si aucune correspondance trouvée, essayer de convertir en majuscule
-    # et vérifier si c'est une valeur enum valide
-    difficulty_upper = difficulty.upper()
-    if difficulty_upper in DifficultyLevels.ALL_LEVELS:
-        return difficulty_upper
-            
-    # Si toujours aucune correspondance, logger un avertissement et retourner PADAWAN par défaut
-    logger.info(f"⚠️ Niveau de difficulté non reconnu: {difficulty}, utilisation de PADAWAN par défaut")
-    return DifficultyLevels.PADAWAN
-
-
-def normalize_and_validate_exercise_params(exercise_type_raw: Optional[str], age_group_raw: Optional[str]) -> tuple:
-    """
-    Normalise et valide les paramètres d'exercice (type et groupe d'âge).
-    Retourne le type, le groupe d'âge, et la difficulté dérivée.
-    """
-    from app.core.constants import ExerciseTypes, AgeGroups
-
-    # Normaliser les paramètres
-    exercise_type = normalize_exercise_type(exercise_type_raw)
-    age_group = normalize_age_group(age_group_raw)
-    derived_difficulty = get_difficulty_from_age_group(age_group)
-    
-    # Valider que le type normalisé est valide
-    if exercise_type not in ExerciseTypes.ALL_TYPES:
-        logger.info(f"⚠️ Type normalisé invalide: {exercise_type}, utilisation de ADDITION par défaut")
-        exercise_type = ExerciseTypes.ADDITION
-
-    # Valider que le groupe d'âge normalisé est valide
-    if age_group not in AgeGroups.ALL_GROUPS:
-        logger.info(f"⚠️ Groupe d'âge non reconnu: {age_group_raw}, utilisation de {AgeGroups.GROUP_6_8} par défaut")
-        age_group = AgeGroups.GROUP_6_8
-        derived_difficulty = get_difficulty_from_age_group(age_group)
-    
-    return exercise_type, age_group, derived_difficulty
-
-
-def get_difficulty_from_age_group(age_group: str) -> str:
-    """
-    Détermine le niveau de difficulté (INITIE, PADAWAN, ...) à partir du groupe d'âge.
-    
-    Mapping (aligné avec app/core/constants.py) :
-    - 6-8 ans → INITIE (débutant)
-    - 9-11 ans → PADAWAN (intermédiaire)
-    - 12-14 ans → CHEVALIER (avancé)
-    - 15-17 ans → MAITRE (expert)
-    - adulte → GRAND_MAITRE (expert+)
-    - tous-ages → PADAWAN (accessible à tous)
-    """
-    from app.core.constants import AgeGroups, DifficultyLevels
-
-    # NOTE: DifficultyLevels.INITIE etc. sont déjà des strings, pas besoin d'appeler .value
-    if age_group == AgeGroups.GROUP_6_8:
-        return DifficultyLevels.INITIE
-    elif age_group in [AgeGroups.GROUP_9_11, AgeGroups.ALL_AGES]:
-        return DifficultyLevels.PADAWAN
-    elif age_group == AgeGroups.GROUP_12_14:
-        return DifficultyLevels.CHEVALIER
-    elif age_group == AgeGroups.GROUP_15_17:
-        return DifficultyLevels.MAITRE
-    elif age_group == AgeGroups.ADULT:
-        return DifficultyLevels.GRAND_MAITRE
-    else:
-        # Valeur par défaut si le groupe d'âge n'est pas reconnu
-        logger.info(f"⚠️ Groupe d'âge non reconnu: {age_group}, utilisation de {DifficultyLevels.PADAWAN} par défaut")
-        return DifficultyLevels.PADAWAN
 
 # Fonctions de génération d'exercices
 def generate_ai_exercise(exercise_type, age_group):

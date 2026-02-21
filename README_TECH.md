@@ -46,7 +46,8 @@ Mathakine/
 │   ├── auth.py             #   Authentification JWT
 │   ├── routes.py           #   Routage principal
 │   ├── middleware.py       #   CORS, logging, securite
-│   └── exercise_generator.py  # Generateur d'exercices IA (streaming SSE)
+│   ├── exercise_generator.py      # Generateur d'exercices IA (streaming SSE)
+│   └── exercise_generator_validators.py  # Validation/normalisation parametres (type, age_group, difficulty)
 │
 ├── frontend/               # Frontend Next.js 16
 │   ├── app/                #   Pages (App Router) : /, exercises, challenges, dashboard, etc.
@@ -123,6 +124,7 @@ Le backend est unifie sur **Starlette** (FastAPI archive le 06/02/2026).
 - **Responses** : `JSONResponse` (Starlette)
 - **Authentification** : `server/auth.py` (Cookie + Bearer token)
 - **Streaming** : SSE pour generation IA (exercices + challenges)
+- **Exercise generator** : `exercise_generator.py` (generation IA/simple) + `exercise_generator_validators.py` (normalisation type, age_group, difficulty)
 - **Routes** : ~80 routes enregistrees dans `server/routes.py` (dont bloc admin)
 
 ### Couche logique metier (`app/`)
