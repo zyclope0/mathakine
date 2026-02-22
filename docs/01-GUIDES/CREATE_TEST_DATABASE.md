@@ -290,6 +290,15 @@ Vérifiez que l'utilisateur PostgreSQL a les droits de création de base de donn
 
 Vérifiez que PostgreSQL est démarré et que `DATABASE_URL` est correcte.
 
+### **"Veuillez vérifier votre adresse email" ou "Utilisateur non trouvé"**
+
+Les utilisateurs créés par `create_tables_with_test_data()` ont désormais `is_email_verified=True`. Si ObiWan manque ou n'est pas vérifié :
+
+```powershell
+$env:DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_mathakine"
+python scripts/ensure_dev_users.py
+```
+
 ---
 
 ## 📚 **Références**

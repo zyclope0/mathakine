@@ -81,11 +81,12 @@ def create_test_users(db: Session):
         User(
             username="ObiWan",
             email="obiwan.kenobi@jedi-temple.sw",
-            hashed_password="$2b$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi",  # "HelloThere123!"
+            hashed_password="$2b$12$YwQHz5jRyMGFUgvDelz/7.lWPY.sEePXKYhWEHcYJLZ2j3mLRl7uy",  # "HelloThere123!" (bcrypt Python)
             full_name="Obi-Wan Kenobi",
             role=UserRole.MAITRE,
             grade_level=12,
             created_at=datetime.now(),
+            is_email_verified=True,
         ),
         User(
             username="maitre_yoda",
@@ -95,6 +96,7 @@ def create_test_users(db: Session):
             role=UserRole.MAITRE,
             grade_level=12,
             created_at=datetime.now(),
+            is_email_verified=True,
         ),
         User(
             username="padawan1",
@@ -104,6 +106,7 @@ def create_test_users(db: Session):
             role=UserRole.PADAWAN,
             grade_level=5,
             created_at=datetime.now(),
+            is_email_verified=True,
         ),
         User(
             username="gardien1",
@@ -113,6 +116,7 @@ def create_test_users(db: Session):
             role=UserRole.GARDIEN,
             grade_level=10,
             created_at=datetime.now(),
+            is_email_verified=True,
         ),
     ]
 

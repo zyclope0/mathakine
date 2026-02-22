@@ -5,6 +5,18 @@
 
 ---
 
+## Statut (22/02/2026)
+
+| Étape | Statut |
+|-------|--------|
+| Migration `20260222_add_legacy_tables_exercises_results_userstats.py` | ✅ Créée |
+| DDL retiré de `init_database()` (no-op) | ✅ Fait |
+| Tests (pytest) | ✅ 404 passent |
+| Branche `feat/alembic-legacy-tables-ddl` | ✅ Créée |
+| **Prochaine étape** | Ouvrir PR → master, valider sur Render test |
+
+---
+
 ## 1. État actuel
 
 ### 1.1 `init_database()` (server/database.py)
