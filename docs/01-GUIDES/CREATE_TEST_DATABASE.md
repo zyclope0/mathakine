@@ -208,6 +208,8 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/test_mathakine
 
 ## 🐳 **Option 3 : Docker (PostgreSQL localhost:5432)**
 
+**Note :** La BDD de dev local tourne souvent via Docker (conteneur Postgres sur localhost:5432). Pour le backup, utiliser `docker exec` — voir [PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md](../03-PROJECT/PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md) § 1.2b.
+
 Si PostgreSQL tourne dans un conteneur Docker exposé sur `localhost:5432` :
 
 ### **Étape 1 : Créer la base de test**

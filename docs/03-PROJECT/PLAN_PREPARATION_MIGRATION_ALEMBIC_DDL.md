@@ -22,13 +22,12 @@
 
 ### 1.1 Environnements à backuper
 
-| Environnement | Base | Commande backup |
-|---------------|------|-----------------|
-| **Local dev** | `mathakine` (ou `test_mathakine`) | `pg_dump` ci-dessous |
-| **Test / staging** | `mathakine_test_gii8` (Render) | Idem avec `DATABASE_URL` de Render |
-| **Production** | `mathakine` (Render) | Idem avec URL prod (à manipuler avec précaution) |
+| Environnement | Base | Méthode |
+|---------------|------|---------|
+| **Render (test/prod)** | mathakine_test_gii8, mathakine | Dashboard Render → Database → **Export** → Create export (rétention 7 jours) |
+| **Local dev** | `mathakine` ou `test_mathakine` | **BDD via Docker** → `docker exec` (voir § 1.2b) ou `pg_dump` si client installé |
 
-### 1.2 Commande pg_dump (PostgreSQL)
+### 1.2 Commande pg_dump (PostgreSQL, client installé localement)
 
 ```powershell
 # Windows PowerShell — backup local
@@ -43,6 +42,21 @@ pg_dump -h localhost -U postgres -d mathakine -F p -f backups/mathakine_backup_$
 # Linux / Git Bash — backup avec DATABASE_URL
 pg_dump "$DATABASE_URL" -F c -f backups/mathakine_backup_$(date +%Y%m%d_%H%M).dump
 ```
+
+### 1.2b Backup local quand la BDD tourne via Docker
+
+Si PostgreSQL est dans un conteneur (ex. `pg-mathakine`), `pg_dump` n'est pas forcément installé sur l'hôte. Utiliser `docker exec` :
+
+```powershell
+# Lister les conteneurs Postgres
+docker ps --filter "ancestor=postgres"
+
+# Backup — remplacer CONTAINER et DB si besoin (conteneur local type: pg-test, pg-mathakine)
+$ts = Get-Date -Format 'yyyyMMdd_HHmm'
+cmd /c "docker exec pg-test pg_dump -U postgres -d test_mathakine -F c > backups\mathakine_backup_$ts.dump"
+```
+
+*Note :* En local, la BDD s'appelle souvent `test_mathakine` ; le conteneur peut être `pg-test` ou `pg-mathakine`.
 
 **Convention :** stocker les dumps dans `backups/` (déjà dans `.gitignore` — ne pas committer).
 
@@ -95,8 +109,8 @@ En cas de problème : revenir sur `master` et continuer à utiliser l’ancienne
 
 À valider **avant** de créer la première migration :
 
-- [ ] Backup BDD effectué (local + test si possible)
-- [ ] Branche Git dédiée créée
+- [x] **Backup BDD effectué** — Render : Export dashboard ; Local : `.\scripts\backup_db.ps1` (docker exec pg-test)
+- [x] **Branche Git dédiée** — `feat/alembic-legacy-tables-ddl` créée et poussée sur origin
 - [ ] Révision Alembic actuelle notée : `alembic current`
 - [ ] Liste des migrations à exécuter connue : `alembic history`
 - [ ] Environnement local OK : `pytest tests/` passent
