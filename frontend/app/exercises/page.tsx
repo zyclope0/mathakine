@@ -143,7 +143,10 @@ function ExercisesPageContent() {
   };
 
   const hasActiveFilters =
-    exerciseTypeFilter !== "all" || ageGroupFilter !== "all" || searchQuery.trim() !== "" || hideCompleted;
+    exerciseTypeFilter !== "all" ||
+    ageGroupFilter !== "all" ||
+    searchQuery.trim() !== "" ||
+    hideCompleted;
 
   const clearFilters = () => {
     setExerciseTypeFilter("all");

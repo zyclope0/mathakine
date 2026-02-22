@@ -39,8 +39,15 @@ export interface ExerciseDetail {
 }
 
 const EXERCISE_TYPES = [
-  "ADDITION", "SOUSTRACTION", "MULTIPLICATION", "DIVISION",
-  "FRACTIONS", "GEOMETRIE", "TEXTE", "MIXTE", "DIVERS",
+  "ADDITION",
+  "SOUSTRACTION",
+  "MULTIPLICATION",
+  "DIVISION",
+  "FRACTIONS",
+  "GEOMETRIE",
+  "TEXTE",
+  "MIXTE",
+  "DIVERS",
 ];
 
 const DIFFICULTIES = ["INITIE", "PADAWAN", "CHEVALIER", "MAITRE", "GRAND_MAITRE"];
@@ -108,7 +115,9 @@ export function ExerciseEditModal({
       onOpenChange(false);
       onSaved();
     } catch (err) {
-      toast.error("Erreur", { description: err instanceof Error ? err.message : "Échec de la sauvegarde" });
+      toast.error("Erreur", {
+        description: err instanceof Error ? err.message : "Échec de la sauvegarde",
+      });
     } finally {
       setSaving(false);
     }
@@ -151,7 +160,9 @@ export function ExerciseEditModal({
       onOpenChange(false);
       onSaved();
     } catch (err) {
-      toast.error("Erreur", { description: err instanceof Error ? err.message : "Échec de la duplication" });
+      toast.error("Erreur", {
+        description: err instanceof Error ? err.message : "Échec de la duplication",
+      });
     } finally {
       setDuplicating(false);
     }
@@ -168,7 +179,9 @@ export function ExerciseEditModal({
         ) : data ? (
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label>Titre <span className="text-destructive">*</span></Label>
+              <Label>
+                Titre <span className="text-destructive">*</span>
+              </Label>
               <Input
                 value={data.title}
                 onChange={(e) => update("title", e.target.value)}
@@ -180,7 +193,10 @@ export function ExerciseEditModal({
             <div className="grid grid-cols-3 gap-4">
               <div className="grid gap-2">
                 <Label>Type</Label>
-                <Select value={data.exercise_type} onValueChange={(v) => update("exercise_type", v)}>
+                <Select
+                  value={data.exercise_type}
+                  onValueChange={(v) => update("exercise_type", v)}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -218,7 +234,9 @@ export function ExerciseEditModal({
               </div>
             </div>
             <div className="grid gap-2">
-              <Label>Question / Énoncé <span className="text-destructive">*</span></Label>
+              <Label>
+                Question / Énoncé <span className="text-destructive">*</span>
+              </Label>
               <Textarea
                 value={data.question}
                 onChange={(e) => update("question", e.target.value)}
@@ -229,14 +247,18 @@ export function ExerciseEditModal({
               {errors.question && <p className="text-sm text-destructive">{errors.question}</p>}
             </div>
             <div className="grid gap-2">
-              <Label>Réponse correcte <span className="text-destructive">*</span></Label>
+              <Label>
+                Réponse correcte <span className="text-destructive">*</span>
+              </Label>
               <Input
                 value={data.correct_answer}
                 onChange={(e) => update("correct_answer", e.target.value)}
                 placeholder="Réponse attendue"
                 className={errors.correct_answer ? "border-destructive" : ""}
               />
-              {errors.correct_answer && <p className="text-sm text-destructive">{errors.correct_answer}</p>}
+              {errors.correct_answer && (
+                <p className="text-sm text-destructive">{errors.correct_answer}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <div className="flex items-center justify-between">
@@ -262,7 +284,12 @@ export function ExerciseEditModal({
                         placeholder={`Option ${idx + 1}`}
                         className="flex-1"
                       />
-                      <Button type="button" variant="ghost" size="sm" onClick={() => removeChoice(idx)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeChoice(idx)}
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>

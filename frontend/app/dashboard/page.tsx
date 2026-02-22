@@ -11,7 +11,15 @@ import { useProgressStats } from "@/hooks/useProgressStats";
 import { useChallengesProgress } from "@/hooks/useChallengesProgress";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, CheckCircle, Zap, Trophy, LayoutDashboard, TrendingUp, BarChart3 } from "lucide-react";
+import {
+  RefreshCw,
+  CheckCircle,
+  Zap,
+  Trophy,
+  LayoutDashboard,
+  TrendingUp,
+  BarChart3,
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ProgressChartLazy } from "@/components/dashboard/ProgressChartLazy";
@@ -35,13 +43,7 @@ import {
   PerformanceByTypeSkeleton,
 } from "@/components/dashboard/DashboardSkeletons";
 
-function DashboardLastUpdate({
-  time,
-  locale,
-}: {
-  time: string;
-  locale?: string;
-}) {
+function DashboardLastUpdate({ time, locale }: { time: string; locale?: string }) {
   const t = useTranslations("dashboard");
   let displayTime: string;
   try {
@@ -172,22 +174,35 @@ export default function DashboardPage() {
             >
               <TabsTrigger value="overview" className="flex items-center gap-2 py-2.5 text-sm">
                 <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">{t("tabs.overview", { default: "Vue d'ensemble" })}</span>
+                <span className="hidden sm:inline">
+                  {t("tabs.overview", { default: "Vue d'ensemble" })}
+                </span>
                 <span className="sm:hidden">{t("tabs.overviewShort", { default: "Vue" })}</span>
               </TabsTrigger>
-              <TabsTrigger value="recommendations" className="flex items-center gap-2 py-2.5 text-sm">
+              <TabsTrigger
+                value="recommendations"
+                className="flex items-center gap-2 py-2.5 text-sm"
+              >
                 <Zap className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">{t("tabs.recommendations", { default: "Recommandations" })}</span>
-                <span className="sm:hidden">{t("tabs.recommendationsShort", { default: "Recommandés" })}</span>
+                <span className="hidden sm:inline">
+                  {t("tabs.recommendations", { default: "Recommandations" })}
+                </span>
+                <span className="sm:hidden">
+                  {t("tabs.recommendationsShort", { default: "Recommandés" })}
+                </span>
               </TabsTrigger>
               <TabsTrigger value="progress" className="flex items-center gap-2 py-2.5 text-sm">
                 <TrendingUp className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">{t("tabs.progress", { default: "Progression" })}</span>
+                <span className="hidden sm:inline">
+                  {t("tabs.progress", { default: "Progression" })}
+                </span>
                 <span className="sm:hidden">{t("tabs.progressShort", { default: "Stats" })}</span>
               </TabsTrigger>
               <TabsTrigger value="details" className="flex items-center gap-2 py-2.5 text-sm">
                 <BarChart3 className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">{t("tabs.details", { default: "Détails" })}</span>
+                <span className="hidden sm:inline">
+                  {t("tabs.details", { default: "Détails" })}
+                </span>
                 <span className="sm:hidden">{t("tabs.detailsShort", { default: "Détails" })}</span>
               </TabsTrigger>
             </TabsList>
@@ -270,7 +285,10 @@ export default function DashboardPage() {
               ) : (
                 <PageSection>
                   <p className="text-muted-foreground text-center py-8">
-                    {t("empty.charts", { default: "Continuez à vous entraîner pour voir vos graphiques de progression." })}
+                    {t("empty.charts", {
+                      default:
+                        "Continuez à vous entraîner pour voir vos graphiques de progression.",
+                    })}
                   </p>
                 </PageSection>
               )}
@@ -285,7 +303,9 @@ export default function DashboardPage() {
               ) : (
                 <PageSection>
                   <p className="text-muted-foreground text-center py-8">
-                    {t("empty.performance", { default: "Aucune donnée de performance pour le moment." })}
+                    {t("empty.performance", {
+                      default: "Aucune donnée de performance pour le moment.",
+                    })}
                   </p>
                 </PageSection>
               )}

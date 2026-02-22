@@ -30,15 +30,13 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { useTranslations } from "next-intl";
 import { PageLayout, PageHeader, PageSection, LoadingState } from "@/components/layout";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-function getJediRankInfo(rank: string, t: (k: string) => string): { title: string; icon: string; color: string } {
+function getJediRankInfo(
+  rank: string,
+  t: (k: string) => string
+): { title: string; icon: string; color: string } {
   const icons: Record<string, string> = {
     youngling: "🌟",
     padawan: "⚔️",
@@ -233,13 +231,19 @@ export default function BadgesPage() {
                 <Star className="h-4 w-4 text-primary" aria-hidden="true" />
                 <strong className="text-foreground">Niv. {userStats.current_level ?? 1}</strong>
               </span>
-              <span className={cn("flex items-center gap-1.5", rankInfo.color)} title={t("stats.rankTooltip")}>
+              <span
+                className={cn("flex items-center gap-1.5", rankInfo.color)}
+                title={t("stats.rankTooltip")}
+              >
                 <span aria-hidden="true">{rankInfo.icon}</span>
                 <strong>{rankInfo.title}</strong>
               </span>
               <span className="flex items-center gap-1.5">
                 <Target className="h-4 w-4 text-green-500" aria-hidden="true" />
-                <strong className="text-foreground">{earnedCount}/{totalCount}</strong> badges
+                <strong className="text-foreground">
+                  {earnedCount}/{totalCount}
+                </strong>{" "}
+                badges
               </span>
               <div
                 className="w-24 bg-muted rounded-full h-2 overflow-hidden"
@@ -273,7 +277,8 @@ export default function BadgesPage() {
                   onClick={() => setFilterStatus("close")}
                   className={cn(
                     "shrink-0",
-                    filterStatus === "close" && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                    filterStatus === "close" &&
+                      "ring-2 ring-primary ring-offset-2 ring-offset-background"
                   )}
                 >
                   <Target className="h-4 w-4 mr-1" aria-hidden="true" />
@@ -383,10 +388,14 @@ export default function BadgesPage() {
                 const pinned = pinnedBadgeIds
                   .map((id: number) => filteredEarned.find((b: BadgeItem) => b.id === id))
                   .filter((b: BadgeItem | undefined): b is BadgeItem => !!b);
-                const rest = filteredEarned.filter((b: BadgeItem) => !pinnedBadgeIds.includes(b.id));
+                const rest = filteredEarned.filter(
+                  (b: BadgeItem) => !pinnedBadgeIds.includes(b.id)
+                );
                 return [...pinned, ...rest];
               })()}
-              earnedBadges={earnedBadges.filter((ub) => filteredEarned.some((b: (typeof filteredEarned)[number]) => b.id === ub.id))}
+              earnedBadges={earnedBadges.filter((ub) =>
+                filteredEarned.some((b: (typeof filteredEarned)[number]) => b.id === ub.id)
+              )}
               isLoading={false}
               sortBy={sortBy}
               rarityMap={rarityMap}
@@ -437,95 +446,112 @@ export default function BadgesPage() {
 
               <TabsContent value="inProgress" className="mt-4" role="tabpanel">
                 {inProgressWithTarget.length > 0 ? (
-                <div className="grid gap-3 grid-cols-1 xl:grid-cols-2">
-                {inProgressWithTarget.map((badge) => {
-                  const fullBadge = availableBadges.find((b) => b.id === badge.id);
-                  const criteriaText = fullBadge?.criteria_text || (badge as { criteria_text?: string }).criteria_text;
-                  const tooltipContent = [
-                    criteriaText && `${criteriaText} — ${badge.current ?? 0}/${badge.target}`,
-                    fullBadge?.description,
-                  ]
-                    .filter(Boolean)
-                    .join("\n");
-                  const catIcon =
-                    fullBadge?.category === "progression"
-                      ? "📈"
-                      : fullBadge?.category === "mastery"
-                        ? "⭐"
-                        : fullBadge?.category === "special"
-                          ? "✨"
-                          : "🏆";
-                  const diffIcon =
-                    fullBadge?.difficulty === "gold"
-                      ? "🥇"
-                      : fullBadge?.difficulty === "silver"
-                        ? "🥈"
-                        : fullBadge?.difficulty === "legendary"
-                          ? "💎"
-                          : "🥉";
-                  return (
-                    <TooltipProvider key={badge.id}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Card className="card-spatial-depth cursor-help transition-shadow hover:shadow-md">
-                            <CardContent className="pt-4">
-                              <div className="flex items-center gap-2 mb-2">
-                          <span className="text-2xl shrink-0 flex items-center justify-center w-8" aria-hidden="true">
-                            {fullBadge?.icon_url?.trim() ? (
-                              fullBadge.icon_url.trim().startsWith("http") ? (
-                                // eslint-disable-next-line @next/next/no-img-element -- URLs dynamiques (CDN/API)
-                                <img src={fullBadge.icon_url} alt="" className="w-7 h-7 object-contain" />
-                              ) : (
-                                fullBadge.icon_url.trim()
-                              )
-                            ) : (
-                              catIcon
-                            )}
-                          </span>
-                          <span className="text-lg shrink-0 opacity-75" aria-hidden="true">
-                            {diffIcon}
-                          </span>
-                          <span className="font-medium flex-1 min-w-0">{badge.name}</span>
-                          <span className="text-sm font-semibold text-foreground tabular-nums shrink-0">
-                            {badge.current ?? 0} / {badge.target}
-                          </span>
-                              </div>
-                              {(badge.progress ?? 0) >= 0.5 && (badge.target ?? 0) > 0 && (
-                          <p className="text-sm font-semibold text-amber-500/90 mb-1">
-                            {(badge.target ?? 0) - (badge.current ?? 0) > 0
-                              ? t("plusQue", { count: (badge.target ?? 0) - (badge.current ?? 0) })
-                              : t("tuApproches")}
-                              </p>
-                              )}
-                              {badge.progress != null && (
-                          <div
-                            className="w-full bg-muted rounded-full h-3 overflow-hidden ring-1 ring-inset ring-border/60"
-                            role="progressbar"
-                            aria-valuenow={Math.round((badge.progress ?? 0) * 100)}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-label={`${badge.name}: ${Math.round((badge.progress ?? 0) * 100)}%`}
-                          >
-                            <div
-                              className="bg-primary h-3 rounded-full transition-all duration-500 min-w-[2px]"
-                              style={{ width: `${Math.max((badge.progress ?? 0) * 100, 2)}%` }}
-                              />
-                            </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="top"
-                          className="max-w-[280px] whitespace-pre-line py-2.5 px-3 text-sm"
-                        >
-                          {tooltipContent || `${badge.name}: ${badge.current ?? 0}/${badge.target}`}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  );
-                })}
-                </div>
+                  <div className="grid gap-3 grid-cols-1 xl:grid-cols-2">
+                    {inProgressWithTarget.map((badge) => {
+                      const fullBadge = availableBadges.find((b) => b.id === badge.id);
+                      const criteriaText =
+                        fullBadge?.criteria_text ||
+                        (badge as { criteria_text?: string }).criteria_text;
+                      const tooltipContent = [
+                        criteriaText && `${criteriaText} — ${badge.current ?? 0}/${badge.target}`,
+                        fullBadge?.description,
+                      ]
+                        .filter(Boolean)
+                        .join("\n");
+                      const catIcon =
+                        fullBadge?.category === "progression"
+                          ? "📈"
+                          : fullBadge?.category === "mastery"
+                            ? "⭐"
+                            : fullBadge?.category === "special"
+                              ? "✨"
+                              : "🏆";
+                      const diffIcon =
+                        fullBadge?.difficulty === "gold"
+                          ? "🥇"
+                          : fullBadge?.difficulty === "silver"
+                            ? "🥈"
+                            : fullBadge?.difficulty === "legendary"
+                              ? "💎"
+                              : "🥉";
+                      return (
+                        <TooltipProvider key={badge.id}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Card className="card-spatial-depth cursor-help transition-shadow hover:shadow-md">
+                                <CardContent className="pt-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span
+                                      className="text-2xl shrink-0 flex items-center justify-center w-8"
+                                      aria-hidden="true"
+                                    >
+                                      {fullBadge?.icon_url?.trim() ? (
+                                        fullBadge.icon_url.trim().startsWith("http") ? (
+                                          // eslint-disable-next-line @next/next/no-img-element -- URLs dynamiques (CDN/API)
+                                          <img
+                                            src={fullBadge.icon_url}
+                                            alt=""
+                                            className="w-7 h-7 object-contain"
+                                          />
+                                        ) : (
+                                          fullBadge.icon_url.trim()
+                                        )
+                                      ) : (
+                                        catIcon
+                                      )}
+                                    </span>
+                                    <span
+                                      className="text-lg shrink-0 opacity-75"
+                                      aria-hidden="true"
+                                    >
+                                      {diffIcon}
+                                    </span>
+                                    <span className="font-medium flex-1 min-w-0">{badge.name}</span>
+                                    <span className="text-sm font-semibold text-foreground tabular-nums shrink-0">
+                                      {badge.current ?? 0} / {badge.target}
+                                    </span>
+                                  </div>
+                                  {(badge.progress ?? 0) >= 0.5 && (badge.target ?? 0) > 0 && (
+                                    <p className="text-sm font-semibold text-amber-500/90 mb-1">
+                                      {(badge.target ?? 0) - (badge.current ?? 0) > 0
+                                        ? t("plusQue", {
+                                            count: (badge.target ?? 0) - (badge.current ?? 0),
+                                          })
+                                        : t("tuApproches")}
+                                    </p>
+                                  )}
+                                  {badge.progress != null && (
+                                    <div
+                                      className="w-full bg-muted rounded-full h-3 overflow-hidden ring-1 ring-inset ring-border/60"
+                                      role="progressbar"
+                                      aria-valuenow={Math.round((badge.progress ?? 0) * 100)}
+                                      aria-valuemin={0}
+                                      aria-valuemax={100}
+                                      aria-label={`${badge.name}: ${Math.round((badge.progress ?? 0) * 100)}%`}
+                                    >
+                                      <div
+                                        className="bg-primary h-3 rounded-full transition-all duration-500 min-w-[2px]"
+                                        style={{
+                                          width: `${Math.max((badge.progress ?? 0) * 100, 2)}%`,
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              side="top"
+                              className="max-w-[280px] whitespace-pre-line py-2.5 px-3 text-sm"
+                            >
+                              {tooltipContent ||
+                                `${badge.name}: ${badge.current ?? 0}/${badge.target}`}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      );
+                    })}
+                  </div>
                 ) : (
                   <p className="text-muted-foreground py-6" role="status">
                     {t("tabs.noInProgress")}
@@ -552,7 +578,9 @@ export default function BadgesPage() {
                           ) : (
                             <>
                               <ChevronDown className="h-4 w-4 mr-1" />
-                              {t("collection.showMore", { count: filteredLocked.length - TO_UNLOCK_PREVIEW })}
+                              {t("collection.showMore", {
+                                count: filteredLocked.length - TO_UNLOCK_PREVIEW,
+                              })}
                             </>
                           )}
                         </Button>
@@ -606,30 +634,40 @@ export default function BadgesPage() {
             {statsExpanded && (
               <Card className="card-spatial-depth mt-3">
                 <CardHeader>
-                  <CardTitle className="text-xl text-foreground">{t("performance.title")}</CardTitle>
+                  <CardTitle className="text-xl text-foreground">
+                    {t("performance.title")}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="space-y-1">
-                      <div className="text-sm text-muted-foreground">{t("performance.totalAttempts")}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {t("performance.totalAttempts")}
+                      </div>
                       <div className="text-2xl font-bold text-foreground">
                         {gamificationStats.performance.total_attempts}
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-sm text-muted-foreground">{t("performance.correctAttempts")}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {t("performance.correctAttempts")}
+                      </div>
                       <div className="text-2xl font-bold text-green-500">
                         {gamificationStats.performance.correct_attempts}
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-sm text-muted-foreground">{t("performance.successRate")}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {t("performance.successRate")}
+                      </div>
                       <div className="text-2xl font-bold text-foreground">
                         {gamificationStats.performance.success_rate.toFixed(1)}%
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-sm text-muted-foreground">{t("performance.avgTime")}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {t("performance.avgTime")}
+                      </div>
                       <div className="text-2xl font-bold text-foreground">
                         {gamificationStats.performance.avg_time_spent.toFixed(1)}s
                       </div>

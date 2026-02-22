@@ -89,7 +89,12 @@ export function usePaginatedContent<T>(
       const url = `${endpoint}${queryString ? `?${queryString}` : ""}`;
       debugLog(`[usePaginatedContent] Fetching ${queryKey}:`, url);
       const result = await api.get<PaginatedResponse<T>>(url);
-      debugLog(`[usePaginatedContent] ${queryKey}:`, result?.items?.length ?? 0, "total:", result?.total ?? 0);
+      debugLog(
+        `[usePaginatedContent] ${queryKey}:`,
+        result?.items?.length ?? 0,
+        "total:",
+        result?.total ?? 0
+      );
       return result;
     },
     staleTime,

@@ -87,7 +87,9 @@
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease, opacity 0.25s ease;
+    transition:
+      max-height 0.3s ease,
+      opacity 0.25s ease;
   }
   .badge-card-earned-compact:hover .badge-card-expandable,
   .badge-card-earned-compact:focus-within .badge-card-expandable {

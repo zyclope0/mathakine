@@ -13,7 +13,15 @@ export const useThemeStore = create<ThemeState>()(
     (set) => ({
       theme: "spatial",
       setTheme: (theme) => {
-        const valid: Theme[] = ["spatial", "minimalist", "ocean", "dune", "forest", "peach", "dino"];
+        const valid: Theme[] = [
+          "spatial",
+          "minimalist",
+          "ocean",
+          "dune",
+          "forest",
+          "peach",
+          "dino",
+        ];
         const t = valid.includes(theme) ? theme : "spatial";
         set({ theme: t });
         if (typeof document !== "undefined") {
@@ -27,7 +35,15 @@ export const useThemeStore = create<ThemeState>()(
         if (!state || typeof document === "undefined") return;
         // Migration: neutral → dune (anciens utilisateurs avec thème Neutral)
         const theme = (state.theme as string) === "neutral" ? "dune" : state.theme;
-        const valid: Theme[] = ["spatial", "minimalist", "ocean", "dune", "forest", "peach", "dino"];
+        const valid: Theme[] = [
+          "spatial",
+          "minimalist",
+          "ocean",
+          "dune",
+          "forest",
+          "peach",
+          "dino",
+        ];
         const t = valid.includes(theme) ? theme : "spatial";
         document.documentElement.setAttribute("data-theme", t);
         if (t !== state.theme) {

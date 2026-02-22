@@ -20,7 +20,12 @@ const HIDE_PATTERN_ABOVE_DIFFICULTY = 4;
  * Affiche une séquence de manière interactive avec animation.
  * Pour difficulté ≥ 4/5, le pattern suggéré est masqué pour garder le défi stimulant.
  */
-export function SequenceRenderer({ visualData, difficultyRating, className, onAnswerChange }: SequenceRendererProps) {
+export function SequenceRenderer({
+  visualData,
+  difficultyRating,
+  className,
+  onAnswerChange,
+}: SequenceRendererProps) {
   // Parser les données de séquence avec gestion robuste des différents formats
   const parseSequence = (data: unknown): unknown[] => {
     if (!data) return [];
@@ -73,7 +78,11 @@ export function SequenceRenderer({ visualData, difficultyRating, className, onAn
               const isHighlighted = highlightedIndex === index;
               const itemValue =
                 typeof item === "object" && item !== null
-                  ? String((item as Record<string, unknown>).value ?? (item as Record<string, unknown>).label ?? JSON.stringify(item))
+                  ? String(
+                      (item as Record<string, unknown>).value ??
+                        (item as Record<string, unknown>).label ??
+                        JSON.stringify(item)
+                    )
                   : String(item);
 
               return (

@@ -68,10 +68,7 @@ export default function AdminUsersPage() {
   const [roleEditUser, setRoleEditUser] = useState<AdminUser | null>(null);
   const [roleEditValue, setRoleEditValue] = useState<string>("");
 
-  const isActive =
-    isActiveFilter === "all"
-      ? undefined
-      : isActiveFilter === "true";
+  const isActive = isActiveFilter === "all" ? undefined : isActiveFilter === "true";
 
   const { user: currentUser } = useAuth();
   const {
@@ -109,7 +106,9 @@ export default function AdminUsersPage() {
   const handleUpdateRole = async (u: AdminUser, newRole: string) => {
     try {
       await updateUserRole({ userId: u.id, role: newRole });
-      toast.success("Rôle modifié", { description: `${u.username} → ${ROLE_LABELS[newRole] ?? newRole}` });
+      toast.success("Rôle modifié", {
+        description: `${u.username} → ${ROLE_LABELS[newRole] ?? newRole}`,
+      });
       setRoleEditUser(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erreur lors de la mise à jour";
@@ -120,7 +119,9 @@ export default function AdminUsersPage() {
   const handleSendResetPassword = async (u: AdminUser) => {
     try {
       await sendResetPassword(u.id);
-      toast.success("Email envoyé", { description: `Lien de réinitialisation envoyé à ${u.email}` });
+      toast.success("Email envoyé", {
+        description: `Lien de réinitialisation envoyé à ${u.email}`,
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Échec de l'envoi";
       toast.error("Erreur", { description: msg });
@@ -143,10 +144,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Utilisateurs"
-        description="Liste des utilisateurs de la plateforme"
-      />
+      <PageHeader title="Utilisateurs" description="Liste des utilisateurs de la plateforme" />
 
       <PageSection>
         <Card>
@@ -302,16 +300,20 @@ export default function AdminUsersPage() {
                                       variant={u.is_active ? "destructive" : "default"}
                                     >
                                       {u.is_active ? (
-                                        <><UserX className="h-4 w-4" /> Désactiver</>
+                                        <>
+                                          <UserX className="h-4 w-4" /> Désactiver
+                                        </>
                                       ) : (
-                                        <><UserCheck className="h-4 w-4" /> Activer</>
+                                        <>
+                                          <UserCheck className="h-4 w-4" /> Activer
+                                        </>
                                       )}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               ) : (
                                 <span className="text-xs text-muted-foreground">Vous</span>
-                                              )}
+                              )}
                             </td>
                           </tr>
                         ))
@@ -369,10 +371,7 @@ export default function AdminUsersPage() {
               <div className="flex flex-col gap-4 py-4">
                 <div>
                   <Label className="mb-2 block">Nouveau rôle</Label>
-                  <Select
-                    value={roleEditValue}
-                    onValueChange={setRoleEditValue}
-                  >
+                  <Select value={roleEditValue} onValueChange={setRoleEditValue}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -393,7 +392,10 @@ export default function AdminUsersPage() {
               </Button>
               <Button
                 onClick={() => roleEditUser && handleUpdateRole(roleEditUser, roleEditValue)}
-                disabled={!roleEditUser || roleEditValue === (roleEditUser?.role?.toLowerCase() ?? "padawan")}
+                disabled={
+                  !roleEditUser ||
+                  roleEditValue === (roleEditUser?.role?.toLowerCase() ?? "padawan")
+                }
               >
                 Enregistrer
               </Button>

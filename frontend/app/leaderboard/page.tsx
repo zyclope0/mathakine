@@ -33,17 +33,15 @@ export default function LeaderboardPage() {
   return (
     <ProtectedRoute>
       <PageLayout>
-        <PageHeader
-          title={t("title")}
-          description={t("description")}
-          icon={Trophy}
-        />
+        <PageHeader title={t("title")} description={t("description")} icon={Trophy} />
 
         <PageSection>
           {error ? (
             <Card className="card-spatial-depth">
               <CardContent className="py-12">
-                <p className="text-center text-destructive">{t("error") ?? "Erreur de chargement"}</p>
+                <p className="text-center text-destructive">
+                  {t("error") ?? "Erreur de chargement"}
+                </p>
               </CardContent>
             </Card>
           ) : isLoading ? (
@@ -69,25 +67,20 @@ export default function LeaderboardPage() {
                       key={entry.username}
                       className={cn(
                         "flex items-center gap-4 rounded-lg px-4 py-3",
-                        entry.is_current_user &&
-                          "bg-primary/10 ring-1 ring-primary/30"
+                        entry.is_current_user && "bg-primary/10 ring-1 ring-primary/30"
                       )}
                     >
                       <span className="w-10 text-2xl">
                         {RANK_ICONS[entry.rank] ?? `#${entry.rank}`}
                       </span>
-                      <span className="w-8 text-sm text-muted-foreground">
-                        #{entry.rank}
-                      </span>
+                      <span className="w-8 text-sm text-muted-foreground">#{entry.rank}</span>
                       <User className="h-4 w-4 text-muted-foreground" aria-hidden />
                       <span className="flex-1 font-medium">{entry.username}</span>
                       <span>{getJediRankIcon(entry.jedi_rank)}</span>
                       <span className="text-sm text-muted-foreground">
                         {t("level")} {entry.current_level}
                       </span>
-                      <span className="font-semibold text-primary">
-                        {entry.total_points} pts
-                      </span>
+                      <span className="font-semibold text-primary">{entry.total_points} pts</span>
                       {entry.is_current_user && (
                         <span
                           className="text-xs bg-primary/20 px-2 py-0.5 rounded"

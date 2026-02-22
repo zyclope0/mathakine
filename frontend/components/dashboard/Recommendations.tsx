@@ -60,7 +60,8 @@ export function Recommendations() {
         ) : recommendations && recommendations.length > 0 ? (
           <div className="space-y-3">
             {recommendations.map((recommendation: Recommendation, index) => {
-              const isChallenge = recommendation.recommendation_type === "challenge" || !!recommendation.challenge_id;
+              const isChallenge =
+                recommendation.recommendation_type === "challenge" || !!recommendation.challenge_id;
               const exerciseTypeDisplay = isChallenge
                 ? t("challenge", { default: "Défi logique" })
                 : getTypeDisplay(recommendation.exercise_type);
@@ -117,9 +118,7 @@ export function Recommendations() {
                       <Check className="h-4 w-4" />
                     </Button>
                   </div>
-                  {title && (
-                    <h4 className="font-semibold text-foreground mb-2">{title}</h4>
-                  )}
+                  {title && <h4 className="font-semibold text-foreground mb-2">{title}</h4>}
                   <p className="text-sm text-muted-foreground italic mb-2">
                     {recommendation.reason}
                   </p>

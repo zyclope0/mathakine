@@ -23,8 +23,15 @@ import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 
 const EXERCISE_TYPES = [
-  "ADDITION", "SOUSTRACTION", "MULTIPLICATION", "DIVISION",
-  "FRACTIONS", "GEOMETRIE", "TEXTE", "MIXTE", "DIVERS",
+  "ADDITION",
+  "SOUSTRACTION",
+  "MULTIPLICATION",
+  "DIVISION",
+  "FRACTIONS",
+  "GEOMETRIE",
+  "TEXTE",
+  "MIXTE",
+  "DIVERS",
 ];
 
 const DIFFICULTIES = ["INITIE", "PADAWAN", "CHEVALIER", "MAITRE", "GRAND_MAITRE"];
@@ -55,11 +62,7 @@ const initialState = {
   hint: "",
 };
 
-export function ExerciseCreateModal({
-  open,
-  onOpenChange,
-  onCreated,
-}: ExerciseCreateModalProps) {
+export function ExerciseCreateModal({ open, onOpenChange, onCreated }: ExerciseCreateModalProps) {
   const [data, setData] = useState(initialState);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -101,7 +104,9 @@ export function ExerciseCreateModal({
       onOpenChange(false);
       onCreated();
     } catch (err) {
-      toast.error("Erreur", { description: err instanceof Error ? err.message : "Échec de la création" });
+      toast.error("Erreur", {
+        description: err instanceof Error ? err.message : "Échec de la création",
+      });
     } finally {
       setSaving(false);
     }
@@ -135,7 +140,9 @@ export function ExerciseCreateModal({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label>Titre <span className="text-destructive">*</span></Label>
+            <Label>
+              Titre <span className="text-destructive">*</span>
+            </Label>
             <Input
               value={data.title}
               onChange={(e) => update("title", e.target.value)}
@@ -192,7 +199,9 @@ export function ExerciseCreateModal({
             </div>
           </div>
           <div className="grid gap-2">
-            <Label>Question / Énoncé <span className="text-destructive">*</span></Label>
+            <Label>
+              Question / Énoncé <span className="text-destructive">*</span>
+            </Label>
             <Textarea
               value={data.question}
               onChange={(e) => update("question", e.target.value)}
@@ -203,14 +212,18 @@ export function ExerciseCreateModal({
             {errors.question && <p className="text-sm text-destructive">{errors.question}</p>}
           </div>
           <div className="grid gap-2">
-            <Label>Réponse correcte <span className="text-destructive">*</span></Label>
+            <Label>
+              Réponse correcte <span className="text-destructive">*</span>
+            </Label>
             <Input
               value={data.correct_answer}
               onChange={(e) => update("correct_answer", e.target.value)}
               placeholder="Réponse attendue"
               className={errors.correct_answer ? "border-destructive" : ""}
             />
-            {errors.correct_answer && <p className="text-sm text-destructive">{errors.correct_answer}</p>}
+            {errors.correct_answer && (
+              <p className="text-sm text-destructive">{errors.correct_answer}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
@@ -236,7 +249,12 @@ export function ExerciseCreateModal({
                       placeholder={`Option ${idx + 1}`}
                       className="flex-1"
                     />
-                    <Button type="button" variant="ghost" size="sm" onClick={() => removeChoice(idx)}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeChoice(idx)}
+                    >
                       Supprimer
                     </Button>
                   </div>

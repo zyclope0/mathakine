@@ -45,10 +45,7 @@ export function useAdminExercises(params: AdminExercisesParams = {}) {
   const queryString = searchParams.toString();
   const url = `/api/admin/exercises${queryString ? `?${queryString}` : ""}`;
 
-  const { data, isLoading, error, refetch } = useQuery<
-    AdminExercisesResponse,
-    ApiClientError
-  >({
+  const { data, isLoading, error, refetch } = useQuery<AdminExercisesResponse, ApiClientError>({
     queryKey: ["admin", "exercises", { archived, type, search, sort, order, skip, limit }],
     queryFn: async () => api.get<AdminExercisesResponse>(url),
     staleTime: 30 * 1000,
@@ -56,13 +53,7 @@ export function useAdminExercises(params: AdminExercisesParams = {}) {
 
   const queryClient = useQueryClient();
   const patchMutation = useMutation({
-    mutationFn: async ({
-      exerciseId,
-      isArchived,
-    }: {
-      exerciseId: number;
-      isArchived: boolean;
-    }) => {
+    mutationFn: async ({ exerciseId, isArchived }: { exerciseId: number; isArchived: boolean }) => {
       return api.patch<{
         id: number;
         title: string;

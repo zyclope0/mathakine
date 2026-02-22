@@ -31,8 +31,15 @@ interface PatternRendererProps {
  */
 export function PatternRenderer({ visualData, className, onAnswerChange }: PatternRendererProps) {
   // Parser les données de pattern
-  const grid = Array.isArray(visualData?.grid) ? visualData.grid : Array.isArray(visualData?.pattern) ? visualData.pattern : Array.isArray(visualData?.matrix) ? visualData.matrix : [];
-  const gridSize: number = typeof visualData?.size === "number" ? visualData.size : Math.sqrt(grid.length) || 3;
+  const grid = Array.isArray(visualData?.grid)
+    ? visualData.grid
+    : Array.isArray(visualData?.pattern)
+      ? visualData.pattern
+      : Array.isArray(visualData?.matrix)
+        ? visualData.matrix
+        : [];
+  const gridSize: number =
+    typeof visualData?.size === "number" ? visualData.size : Math.sqrt(grid.length) || 3;
   const [selectedCells, setSelectedCells] = useState<Set<number>>(new Set());
   const [patternAnswer, setPatternAnswer] = useState<string>("");
 
@@ -49,15 +56,20 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
   // Si grid est un tableau 1D, le convertir en 2D
   const grid2D: unknown[][] = Array.isArray(grid[0])
     ? (grid as unknown[][])
-    : Array.from({ length: gridSize }, (_, i) => (grid as unknown[]).slice(i * gridSize, (i + 1) * gridSize));
+    : Array.from({ length: gridSize }, (_, i) =>
+        (grid as unknown[]).slice(i * gridSize, (i + 1) * gridSize)
+      );
 
-  const questionCount = grid2D.flat().filter(
-    (c: unknown) => c === "?" || (typeof c === "string" && c.includes("?"))
-  ).length;
+  const questionCount = grid2D
+    .flat()
+    .filter((c: unknown) => c === "?" || (typeof c === "string" && c.includes("?"))).length;
 
   const flatGrid = grid2D.flat();
   const usesShapes = flatGrid.some((c: unknown) => {
-    const v = typeof c === "object" && c !== null ? (c as Record<string, unknown>).value ?? (c as Record<string, unknown>).label : String(c ?? "");
+    const v =
+      typeof c === "object" && c !== null
+        ? ((c as Record<string, unknown>).value ?? (c as Record<string, unknown>).label)
+        : String(c ?? "");
     return ["cercle", "circle", "triangle", "carré", "square"].includes(String(v).toLowerCase());
   });
   const placeholder = usesShapes
@@ -98,7 +110,13 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
               {grid2D.flat().map((cell: unknown, index: number) => {
                 const isSelected = selectedCells.has(index);
                 const cellValue =
-                  typeof cell === "object" && cell !== null ? String((cell as Record<string, unknown>).value ?? (cell as Record<string, unknown>).label ?? "?") : String(cell);
+                  typeof cell === "object" && cell !== null
+                    ? String(
+                        (cell as Record<string, unknown>).value ??
+                          (cell as Record<string, unknown>).label ??
+                          "?"
+                      )
+                    : String(cell);
 
                 return (
                   <motion.button

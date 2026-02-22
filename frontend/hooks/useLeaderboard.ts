@@ -17,17 +17,10 @@ export interface LeaderboardResponse {
 }
 
 export function useLeaderboard(limit = 50) {
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery<LeaderboardResponse, ApiClientError>({
+  const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse, ApiClientError>({
     queryKey: ["leaderboard", limit],
     queryFn: async () => {
-      return await api.get<LeaderboardResponse>(
-        `/api/users/leaderboard?limit=${limit}`
-      );
+      return await api.get<LeaderboardResponse>(`/api/users/leaderboard?limit=${limit}`);
     },
     staleTime: 60 * 1000,
   });

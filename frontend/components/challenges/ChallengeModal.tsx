@@ -32,7 +32,7 @@ export function ChallengeModal({
   challengeId,
   open,
   onOpenChange,
-  onChallengeCompleted,  
+  onChallengeCompleted,
 }: ChallengeModalProps) {
   const { challenge, isLoading, error } = useChallenge(challengeId || 0);
   const { theme } = useThemeStore();

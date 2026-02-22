@@ -3,10 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
-import type {
-  Challenge,
-  ChallengeAttemptResponse,
-} from "@/types/api";
+import type { Challenge, ChallengeAttemptResponse } from "@/types/api";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { ChallengeType, AgeGroup } from "@/lib/constants/challenges";
@@ -41,18 +38,21 @@ export function useChallenges(filters?: ChallengeFilters) {
     isLoading,
     isFetching,
     error,
-  } = usePaginatedContent<Challenge>(filters as Record<string, string | number | null | undefined> | undefined, {
-    endpoint: "/api/challenges",
-    queryKey: "challenges",
-    paramKeys: {
-      challenge_type: "challenge_type",
-      age_group: "age_group",
-      order: "order",
-      hide_completed: "hide_completed",
-    },
-    fixedParams: { active_only: "true" },
-    staleTime: 30 * 1000,
-  });
+  } = usePaginatedContent<Challenge>(
+    filters as Record<string, string | number | null | undefined> | undefined,
+    {
+      endpoint: "/api/challenges",
+      queryKey: "challenges",
+      paramKeys: {
+        challenge_type: "challenge_type",
+        age_group: "age_group",
+        order: "order",
+        hide_completed: "hide_completed",
+      },
+      fixedParams: { active_only: "true" },
+      staleTime: 30 * 1000,
+    }
+  );
 
   // Note: Pour récupérer un défi spécifique, utiliser le hook useChallenge(id) séparé
 

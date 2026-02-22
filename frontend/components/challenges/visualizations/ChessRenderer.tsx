@@ -36,8 +36,9 @@ export function ChessRenderer({ visualData, className = "" }: ChessRendererProps
 
   // Extraire les données
   const board = Array.isArray(visualData.board) ? visualData.board : [];
-  let knightPosition: [number, number] | null =
-    (visualData.knight_position ?? visualData.position ?? null) as [number, number] | null;
+  let knightPosition: [number, number] | null = (visualData.knight_position ??
+    visualData.position ??
+    null) as [number, number] | null;
   const rawReachable: unknown[] = Array.isArray(visualData.reachable_positions)
     ? visualData.reachable_positions
     : Array.isArray(visualData.targets)
@@ -60,7 +61,9 @@ export function ChessRenderer({ visualData, className = "" }: ChessRendererProps
   let reachablePositionsTyped: [number, number][] = [];
   if (rawReachable.length > 0 && typeof rawReachable[0] === "string") {
     reachablePositionsTyped = rawReachable
-      .map((notation: unknown) => (typeof notation === "string" ? chessNotationToCoords(notation) : null))
+      .map((notation: unknown) =>
+        typeof notation === "string" ? chessNotationToCoords(notation) : null
+      )
       .filter((c): c is [number, number] => c !== null);
   } else {
     reachablePositionsTyped = rawReachable

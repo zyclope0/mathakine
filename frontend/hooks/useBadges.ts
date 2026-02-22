@@ -57,14 +57,26 @@ export function useBadges() {
 
   // A-4 : Stats rareté par badge (preuve sociale, « X% ont débloqué »)
   const { data: rarityData } = useQuery<
-    { success: boolean; data: { total_users: number; by_badge: Record<string, { unlock_count: number; unlock_percent: number; rarity: string }> } },
+    {
+      success: boolean;
+      data: {
+        total_users: number;
+        by_badge: Record<string, { unlock_count: number; unlock_percent: number; rarity: string }>;
+      };
+    },
     ApiClientError
   >({
     queryKey: ["badges", "rarity"],
     queryFn: async () => {
       return await api.get<{
         success: boolean;
-        data: { total_users: number; by_badge: Record<string, { unlock_count: number; unlock_percent: number; rarity: string }> };
+        data: {
+          total_users: number;
+          by_badge: Record<
+            string,
+            { unlock_count: number; unlock_percent: number; rarity: string }
+          >;
+        };
       }>("/api/badges/rarity");
     },
     staleTime: 5 * 60 * 1000, // 5 min (cache)
@@ -147,10 +159,7 @@ export function useBadges() {
     return allBadgesList;
   }, [userBadges?.data?.earned_badges, availableBadges?.data]);
 
-  const rarityMap = useMemo(
-    () => rarityData?.data?.by_badge ?? {},
-    [rarityData]
-  );
+  const rarityMap = useMemo(() => rarityData?.data?.by_badge ?? {}, [rarityData]);
 
   const pinnedBadgeIds = useMemo(
     () =>

@@ -141,7 +141,9 @@ export function ChallengeEditModal({
       onOpenChange(false);
       onSaved();
     } catch (err) {
-      toast.error("Erreur", { description: err instanceof Error ? err.message : "Échec de la sauvegarde" });
+      toast.error("Erreur", {
+        description: err instanceof Error ? err.message : "Échec de la sauvegarde",
+      });
     } finally {
       setSaving(false);
     }
@@ -193,12 +195,17 @@ export function ChallengeEditModal({
     if (!data) return;
     setDuplicating(true);
     try {
-      const copy = await api.post<ChallengeDetail>(`/api/admin/challenges/${data.id}/duplicate`, {});
+      const copy = await api.post<ChallengeDetail>(
+        `/api/admin/challenges/${data.id}/duplicate`,
+        {}
+      );
       toast.success("Défi dupliqué", { description: `Créé : ${copy.title}` });
       onOpenChange(false);
       onSaved();
     } catch (err) {
-      toast.error("Erreur", { description: err instanceof Error ? err.message : "Échec de la duplication" });
+      toast.error("Erreur", {
+        description: err instanceof Error ? err.message : "Échec de la duplication",
+      });
     } finally {
       setDuplicating(false);
     }
@@ -215,7 +222,9 @@ export function ChallengeEditModal({
         ) : data ? (
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label>Titre <span className="text-destructive">*</span></Label>
+              <Label>
+                Titre <span className="text-destructive">*</span>
+              </Label>
               <Input
                 value={data.title}
                 onChange={(e) => update("title", e.target.value)}
@@ -245,10 +254,7 @@ export function ChallengeEditModal({
               </div>
               <div className="grid gap-2">
                 <Label>Groupe d&apos;âge</Label>
-                <Select
-                  value={data.age_group}
-                  onValueChange={(v) => update("age_group", v)}
-                >
+                <Select value={data.age_group} onValueChange={(v) => update("age_group", v)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -263,7 +269,9 @@ export function ChallengeEditModal({
               </div>
             </div>
             <div className="grid gap-2">
-              <Label>Description <span className="text-destructive">*</span></Label>
+              <Label>
+                Description <span className="text-destructive">*</span>
+              </Label>
               <Textarea
                 value={data.description}
                 onChange={(e) => update("description", e.target.value)}
@@ -271,7 +279,9 @@ export function ChallengeEditModal({
                 placeholder="Description du défi"
                 className={errors.description ? "border-destructive" : ""}
               />
-              {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
+              {errors.description && (
+                <p className="text-sm text-destructive">{errors.description}</p>
+              )}
             </div>
             <div className="grid gap-2">
               <Label>Consigne / Question</Label>
@@ -308,7 +318,9 @@ export function ChallengeEditModal({
             <div className="grid gap-2">
               <Label>Indices (pistes pédagogiques)</Label>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Guident sans donner la réponse</span>
+                <span className="text-sm text-muted-foreground">
+                  Guident sans donner la réponse
+                </span>
                 <Button type="button" variant="outline" size="sm" onClick={addHint}>
                   <Plus className="h-4 w-4 mr-1" /> Ajouter un indice
                 </Button>
@@ -324,7 +336,12 @@ export function ChallengeEditModal({
                         placeholder={`Indice ${idx + 1}`}
                         className="flex-1"
                       />
-                      <Button type="button" variant="ghost" size="sm" onClick={() => removeHint(idx)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeHint(idx)}
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
@@ -348,7 +365,8 @@ export function ChallengeEditModal({
               {visualDataExpanded && (
                 <>
                   <p className="text-xs text-muted-foreground">
-                    Structure selon le type (sequence, pattern, puzzle, deduction, etc.). Voir la doc des prompts IA.
+                    Structure selon le type (sequence, pattern, puzzle, deduction, etc.). Voir la
+                    doc des prompts IA.
                   </p>
                   <Textarea
                     value={visualDataRaw}

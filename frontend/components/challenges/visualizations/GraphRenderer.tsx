@@ -18,8 +18,16 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   const [dimensions, setDimensions] = useState({ width: 400, height: 300 });
 
   // Parser les données de graphe
-  const nodes = Array.isArray(visualData?.nodes) ? visualData.nodes : Array.isArray(visualData?.vertices) ? visualData.vertices : [];
-  const edges = Array.isArray(visualData?.edges) ? visualData.edges : Array.isArray(visualData?.links) ? visualData.links : [];
+  const nodes = Array.isArray(visualData?.nodes)
+    ? visualData.nodes
+    : Array.isArray(visualData?.vertices)
+      ? visualData.vertices
+      : [];
+  const edges = Array.isArray(visualData?.edges)
+    ? visualData.edges
+    : Array.isArray(visualData?.links)
+      ? visualData.links
+      : [];
 
   useEffect(() => {
     if (svgRef.current) {
@@ -43,7 +51,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   nodes.forEach((node: Record<string, unknown>, index: number) => {
     const nodeKey = String(
       typeof node === "object" && node !== null
-        ? node.label ?? node.value ?? node.id ?? index
+        ? (node.label ?? node.value ?? node.id ?? index)
         : node
     );
     nodeMap.set(nodeKey.toUpperCase(), index);
@@ -53,17 +61,31 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   const centerX = dimensions.width / 2;
   const centerY = dimensions.height / 2;
   const radius = Math.min(dimensions.width, dimensions.height) / 3;
-  const explicitPositions = (visualData?.positions ?? visualData?.layout) as Record<string, unknown> | null | undefined;
+  const explicitPositions = (visualData?.positions ?? visualData?.layout) as
+    | Record<string, unknown>
+    | null
+    | undefined;
 
   const nodePositions = nodes.map((node: Record<string, unknown>, index: number) => {
-    if (explicitPositions && typeof explicitPositions === "object" && !Array.isArray(explicitPositions)) {
+    if (
+      explicitPositions &&
+      typeof explicitPositions === "object" &&
+      !Array.isArray(explicitPositions)
+    ) {
       const nodeKey = String(
         typeof node === "object" && node !== null
-          ? node.label ?? node.value ?? node.id ?? index
+          ? (node.label ?? node.value ?? node.id ?? index)
           : node
       );
-      const pos = (explicitPositions as Record<string, unknown>)[nodeKey.toUpperCase()] ?? (explicitPositions as Record<string, unknown>)[nodeKey];
-      if (Array.isArray(pos) && pos.length >= 2 && typeof pos[0] === "number" && typeof pos[1] === "number") {
+      const pos =
+        (explicitPositions as Record<string, unknown>)[nodeKey.toUpperCase()] ??
+        (explicitPositions as Record<string, unknown>)[nodeKey];
+      if (
+        Array.isArray(pos) &&
+        pos.length >= 2 &&
+        typeof pos[0] === "number" &&
+        typeof pos[1] === "number"
+      ) {
         const padding = 40;
         const maxCoord = 200;
         const scale = Math.min(
@@ -123,7 +145,12 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
 
                   // Extraire le poids (weight, cost, time, distance, label)
                   const w = e.weight ?? e.cost ?? e.time ?? e.distance ?? e.label ?? e.value;
-                  weight = w !== undefined && w !== null ? (typeof w === "number" || typeof w === "string" ? w : String(w)) : undefined;
+                  weight =
+                    w !== undefined && w !== null
+                      ? typeof w === "number" || typeof w === "string"
+                        ? w
+                        : String(w)
+                      : undefined;
                 } else if (Array.isArray(edge)) {
                   // Format ["A", "B"] ou ["A", "B", 5] ou [0, 1, 5]
                   if (typeof edge[0] === "number") {
@@ -141,7 +168,12 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                   // Le poids peut être le 3ème élément
                   if (edge.length >= 3) {
                     const w2 = edge[2];
-                    weight = w2 !== undefined && w2 !== null ? (typeof w2 === "number" || typeof w2 === "string" ? w2 : String(w2)) : undefined;
+                    weight =
+                      w2 !== undefined && w2 !== null
+                        ? typeof w2 === "number" || typeof w2 === "string"
+                          ? w2
+                          : String(w2)
+                        : undefined;
                   }
                 }
 
@@ -217,7 +249,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
 
                 const label = String(
                   typeof node === "object" && node !== null
-                    ? node.label ?? node.value ?? node.id ?? index
+                    ? (node.label ?? node.value ?? node.id ?? index)
                     : node
                 );
 

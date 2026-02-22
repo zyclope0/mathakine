@@ -4,23 +4,68 @@
  */
 
 const SHAPE_NAMES = [
-  "triangle", "cercle", "circle", "carré", "carre", "square", "rectangle",
-  "losange", "diamond", "étoile", "etoile", "star", "hexagone", "hexagon",
-  "pentagone", "pentagon",
+  "triangle",
+  "cercle",
+  "circle",
+  "carré",
+  "carre",
+  "square",
+  "rectangle",
+  "losange",
+  "diamond",
+  "étoile",
+  "etoile",
+  "star",
+  "hexagone",
+  "hexagon",
+  "pentagone",
+  "pentagon",
 ];
 const COLOR_NAMES = [
-  "rouge", "red", "bleu", "blue", "vert", "green", "jaune", "yellow",
-  "orange", "violet", "purple", "rose", "pink", "gris", "gray", "noir",
-  "black", "blanc", "white", "marron", "brown",
+  "rouge",
+  "red",
+  "bleu",
+  "blue",
+  "vert",
+  "green",
+  "jaune",
+  "yellow",
+  "orange",
+  "violet",
+  "purple",
+  "rose",
+  "pink",
+  "gris",
+  "gray",
+  "noir",
+  "black",
+  "blanc",
+  "white",
+  "marron",
+  "brown",
 ];
 
 function toDisplayForm(shape: string): string {
   const m: Record<string, string> = {
-    circle: "cercle", square: "carré", carre: "carré", rectangle: "rectangle",
-    diamond: "losange", star: "étoile", etoile: "étoile", hexagon: "hexagone",
-    pentagon: "pentagone", red: "rouge", blue: "bleu", green: "vert",
-    yellow: "jaune", purple: "violet", pink: "rose", gray: "gris", black: "noir",
-    white: "blanc", brown: "marron",
+    circle: "cercle",
+    square: "carré",
+    carre: "carré",
+    rectangle: "rectangle",
+    diamond: "losange",
+    star: "étoile",
+    etoile: "étoile",
+    hexagon: "hexagone",
+    pentagon: "pentagone",
+    red: "rouge",
+    blue: "bleu",
+    green: "vert",
+    yellow: "jaune",
+    purple: "violet",
+    pink: "rose",
+    gray: "gris",
+    black: "noir",
+    white: "blanc",
+    brown: "marron",
   };
   return m[shape.toLowerCase()] ?? shape;
 }
@@ -65,8 +110,10 @@ export function extractShapeChoicesFromVisualData(visualData: unknown): string[]
   if (Array.isArray(shapes)) {
     for (const item of shapes) {
       if (typeof item === "string") add(item);
-      else if (item && typeof item === "object" && "label" in item) add((item as { label: string }).label);
-      else if (item && typeof item === "object" && "value" in item) add((item as { value: string }).value);
+      else if (item && typeof item === "object" && "label" in item)
+        add((item as { label: string }).label);
+      else if (item && typeof item === "object" && "value" in item)
+        add((item as { value: string }).value);
     }
   }
 
@@ -93,7 +140,9 @@ export function extractShapeChoicesFromVisualData(visualData: unknown): string[]
  * Ex: "Position 6: carré bleu, Position 9: triangle vert" -> [6, 9]
  * Ex: "carré bleu" -> [] (single)
  */
-export function parsePositionsFromCorrectAnswer(correctAnswer: string | null | undefined): number[] {
+export function parsePositionsFromCorrectAnswer(
+  correctAnswer: string | null | undefined
+): number[] {
   if (!correctAnswer || typeof correctAnswer !== "string") return [];
   const lower = correctAnswer.toLowerCase();
   if (!lower.includes("position")) return [];
@@ -121,14 +170,22 @@ export function parsePositionsFromLayout(visualData: unknown): number[] {
 
   // Symmetry layout : left/right avec question: true
   const layout = v.layout;
-  if (Array.isArray(layout) && layout.some((i: unknown) => (i as Record<string, unknown>)?.question)) {
+  if (
+    Array.isArray(layout) &&
+    layout.some((i: unknown) => (i as Record<string, unknown>)?.question)
+  ) {
     const positions: number[] = [];
     const itemPos = (i: unknown) => (i as Record<string, unknown>)?.position as number | undefined;
     const leftItems = layout
-      .filter((i: unknown) => i && typeof i === "object" && (i as Record<string, unknown>).side === "left")
+      .filter(
+        (i: unknown) => i && typeof i === "object" && (i as Record<string, unknown>).side === "left"
+      )
       .sort((a, b) => (itemPos(a) ?? 0) - (itemPos(b) ?? 0));
     const rightItems = layout
-      .filter((i: unknown) => i && typeof i === "object" && (i as Record<string, unknown>).side === "right")
+      .filter(
+        (i: unknown) =>
+          i && typeof i === "object" && (i as Record<string, unknown>).side === "right"
+      )
       .sort((a, b) => (itemPos(a) ?? 0) - (itemPos(b) ?? 0));
 
     leftItems.forEach((item: unknown, idx: number) => {
@@ -146,7 +203,7 @@ export function parsePositionsFromLayout(visualData: unknown): number[] {
     const positions: number[] = [];
     shapes.forEach((s: unknown, idx: number) => {
       const obj = s as Record<string, unknown>;
-      const val = typeof s === "string" ? s : obj?.label ?? obj?.value ?? "";
+      const val = typeof s === "string" ? s : (obj?.label ?? obj?.value ?? "");
       if (String(val).includes("?") || val === "?") positions.push(idx + 1);
     });
     return positions;

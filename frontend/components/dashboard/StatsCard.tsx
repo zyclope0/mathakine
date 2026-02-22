@@ -41,7 +41,11 @@ export function StatsCard({
     return trendDirection === "up" ? "text-success" : "text-destructive";
   };
 
-  const showTrend = trend !== undefined && trend !== null && trendDirection !== "neutral" && (trendDirection === "up" || trendDirection === "down");
+  const showTrend =
+    trend !== undefined &&
+    trend !== null &&
+    trendDirection !== "neutral" &&
+    (trendDirection === "up" || trendDirection === "down");
 
   return (
     <motion.div
@@ -70,8 +74,14 @@ export function StatsCard({
                   variant="outline"
                   className={cn("text-xs flex items-center gap-1", getTrendColor())}
                 >
-                  {trendDirection === "up" ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                  {trend !== undefined && trend !== null ? (trend > 0 ? "+" : "") + trend + "%" : ""}
+                  {trendDirection === "up" ? (
+                    <TrendingUp className="h-3 w-3" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3" />
+                  )}
+                  {trend !== undefined && trend !== null
+                    ? (trend > 0 ? "+" : "") + trend + "%"
+                    : ""}
                 </Badge>
               )}
             </div>

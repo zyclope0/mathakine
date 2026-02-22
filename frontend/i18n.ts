@@ -12,9 +12,10 @@ function normalizeLocale(locale: string | undefined): Locale {
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // Sans routing par locale, requestLocale peut être undefined ou une variante (en-US, fr-FR)
-  const rawLocale = typeof requestLocale === "object" && requestLocale && "then" in requestLocale
-    ? await requestLocale
-    : requestLocale;
+  const rawLocale =
+    typeof requestLocale === "object" && requestLocale && "then" in requestLocale
+      ? await requestLocale
+      : requestLocale;
   const validLocale = normalizeLocale(rawLocale);
 
   return {

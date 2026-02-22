@@ -33,7 +33,10 @@ const REQUIREMENT_EXAMPLES = [
   { label: "Jours consécutifs", value: '{"consecutive_days": 7}' },
   { label: "Temps max", value: '{"max_time": 5}' },
   { label: "Défis logiques (B5)", value: '{"logic_attempts_count": 10}' },
-  { label: "Mixte exercices+défis (B5)", value: '{"attempts_count": 20, "logic_attempts_count": 5}' },
+  {
+    label: "Mixte exercices+défis (B5)",
+    value: '{"attempts_count": 20, "logic_attempts_count": 5}',
+  },
   { label: "Comeback (7j)", value: '{"comeback_days": 7}' },
 ];
 
@@ -108,7 +111,7 @@ export function BadgeEditModal({
         requirements =
           typeof data.requirements === "string"
             ? (JSON.parse(data.requirements) as Record<string, unknown>)
-            : (data.requirements as Record<string, unknown>) ?? {};
+            : ((data.requirements as Record<string, unknown>) ?? {});
       } catch {
         toast.error("Requirements JSON invalide");
         setSaving(false);
@@ -210,16 +213,38 @@ export function BadgeEditModal({
               <Info className="h-4 w-4" />
               Principes psychologiques — design des badges
             </span>
-            {principlesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {principlesOpen ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
           </Button>
           {principlesOpen && (
             <div className="rounded-md border bg-muted/50 p-3 text-sm space-y-1.5 mt-2">
-              <p><strong>Goal-gradient :</strong> Objectif progressif (X/Y), barre visible, « Plus que X » — incite à l&apos;effort</p>
-              <p><strong>Endowment :</strong> Visuel valorisant pour les badges obtenus, option épingler — renforce la propriété perçue</p>
-              <p><strong>Scarcity :</strong> Badges or/légendaire = visuels distincts ; « Rare » (&lt;5%) — rareté motive</p>
-              <p><strong>Social proof :</strong> « X% ont débloqué » — comparaison avec les pairs renforce le désir</p>
-              <p><strong>Loss aversion :</strong> Streaks, « Tu approches, ne lâche pas ! » — peur de perdre motive 2× plus</p>
-              <p className="pt-2 mt-2 border-t border-border/50"><strong>Visuel (sans SW) :</strong> Emoji ou URL, nom évocateur — esprit progression/maîtrise</p>
+              <p>
+                <strong>Goal-gradient :</strong> Objectif progressif (X/Y), barre visible, « Plus
+                que X » — incite à l&apos;effort
+              </p>
+              <p>
+                <strong>Endowment :</strong> Visuel valorisant pour les badges obtenus, option
+                épingler — renforce la propriété perçue
+              </p>
+              <p>
+                <strong>Scarcity :</strong> Badges or/légendaire = visuels distincts ; « Rare »
+                (&lt;5%) — rareté motive
+              </p>
+              <p>
+                <strong>Social proof :</strong> « X% ont débloqué » — comparaison avec les pairs
+                renforce le désir
+              </p>
+              <p>
+                <strong>Loss aversion :</strong> Streaks, « Tu approches, ne lâche pas ! » — peur de
+                perdre motive 2× plus
+              </p>
+              <p className="pt-2 mt-2 border-t border-border/50">
+                <strong>Visuel (sans SW) :</strong> Emoji ou URL, nom évocateur — esprit
+                progression/maîtrise
+              </p>
             </div>
           )}
         </div>
@@ -231,7 +256,9 @@ export function BadgeEditModal({
           </div>
 
           <div className="grid gap-2">
-            <Label>Nom <span className="text-destructive">*</span></Label>
+            <Label>
+              Nom <span className="text-destructive">*</span>
+            </Label>
             <Input
               value={data.name}
               onChange={(e) => update("name", e.target.value)}
@@ -261,7 +288,10 @@ export function BadgeEditModal({
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label>Catégorie</Label>
-              <Select value={data.category || "progression"} onValueChange={(v) => update("category", v)}>
+              <Select
+                value={data.category || "progression"}
+                onValueChange={(v) => update("category", v)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -276,7 +306,10 @@ export function BadgeEditModal({
             </div>
             <div className="grid gap-2">
               <Label>Difficulté</Label>
-              <Select value={data.difficulty || "bronze"} onValueChange={(v) => update("difficulty", v)}>
+              <Select
+                value={data.difficulty || "bronze"}
+                onValueChange={(v) => update("difficulty", v)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -312,7 +345,9 @@ export function BadgeEditModal({
 
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label>Requirements (JSON) <span className="text-destructive">*</span></Label>
+              <Label>
+                Requirements (JSON) <span className="text-destructive">*</span>
+              </Label>
               <div className="flex gap-1 flex-wrap">
                 {REQUIREMENT_EXAMPLES.map((ex) => (
                   <Button
@@ -334,7 +369,9 @@ export function BadgeEditModal({
               rows={3}
               className={`font-mono text-sm ${errors.requirements ? "border-destructive" : ""}`}
             />
-            {errors.requirements && <p className="text-sm text-destructive">{errors.requirements}</p>}
+            {errors.requirements && (
+              <p className="text-sm text-destructive">{errors.requirements}</p>
+            )}
           </div>
 
           <div className="flex items-center justify-between">
@@ -371,20 +408,12 @@ export function BadgeEditModal({
 
         <DialogFooter>
           {data.is_active ? (
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={saving || deleting}
-            >
+            <Button variant="destructive" onClick={handleDelete} disabled={saving || deleting}>
               <Trash2 className="h-4 w-4 mr-1" />
               {deleting ? "Désactivation..." : "Désactiver"}
             </Button>
           ) : (
-            <Button
-              variant="outline"
-              onClick={handleReactivate}
-              disabled={saving || deleting}
-            >
+            <Button variant="outline" onClick={handleReactivate} disabled={saving || deleting}>
               <RotateCcw className="h-4 w-4 mr-1" />
               {saving ? "Réactivation..." : "Réactiver"}
             </Button>

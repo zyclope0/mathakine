@@ -122,16 +122,22 @@ function ProfilePageContent() {
       // Migration: neutral → dune
       const userThemeRaw = user.preferred_theme || "spatial";
       const userTheme = userThemeRaw === "neutral" ? "dune" : userThemeRaw;
-      const validThemes = ["spatial", "minimalist", "ocean", "dune", "forest", "peach", "dino"] as const;
+      const validThemes = [
+        "spatial",
+        "minimalist",
+        "ocean",
+        "dune",
+        "forest",
+        "peach",
+        "dino",
+      ] as const;
       setAccessibilitySettings({
         preferred_theme: userTheme,
         high_contrast: user.accessibility_settings?.high_contrast || false,
         large_text: user.accessibility_settings?.large_text || false,
         reduce_motion: user.accessibility_settings?.reduce_motion || false,
       });
-      const safeTheme = validThemes.includes(
-        userTheme as (typeof validThemes)[number]
-      )
+      const safeTheme = validThemes.includes(userTheme as (typeof validThemes)[number])
         ? (userTheme as (typeof validThemes)[number])
         : "spatial";
       setTheme(safeTheme);
@@ -222,7 +228,16 @@ function ProfilePageContent() {
         },
       });
       if (settings.preferred_theme) {
-        setTheme(settings.preferred_theme as "spatial" | "minimalist" | "ocean" | "dune" | "forest" | "peach" | "dino");
+        setTheme(
+          settings.preferred_theme as
+            | "spatial"
+            | "minimalist"
+            | "ocean"
+            | "dune"
+            | "forest"
+            | "peach"
+            | "dino"
+        );
       }
     },
     [accessibilitySettings, updateProfile, setTheme]
@@ -891,7 +906,14 @@ function ProfilePageContent() {
                   <Select
                     value={accessibilitySettings.preferred_theme}
                     onValueChange={(value) => {
-                      const theme = value as "spatial" | "minimalist" | "ocean" | "dune" | "forest" | "peach" | "dino";
+                      const theme = value as
+                        | "spatial"
+                        | "minimalist"
+                        | "ocean"
+                        | "dune"
+                        | "forest"
+                        | "peach"
+                        | "dino";
                       setAccessibilitySettings((prev) => ({ ...prev, preferred_theme: theme }));
                       handleSaveAccessibility({ preferred_theme: theme });
                     }}

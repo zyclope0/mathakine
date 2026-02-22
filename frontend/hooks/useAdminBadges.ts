@@ -26,10 +26,7 @@ export interface AdminBadgesResponse {
 }
 
 export function useAdminBadges() {
-  const { data, isLoading, error, refetch } = useQuery<
-    AdminBadgesResponse,
-    ApiClientError
-  >({
+  const { data, isLoading, error, refetch } = useQuery<AdminBadgesResponse, ApiClientError>({
     queryKey: ["admin", "badges"],
     queryFn: async () => api.get<AdminBadgesResponse>("/api/admin/badges"),
     staleTime: 30 * 1000,
@@ -47,10 +44,7 @@ export function useAdminBadges() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({
-      id,
-      payload,
-    }: { id: number; payload: Partial<AdminBadge> }) =>
+    mutationFn: async ({ id, payload }: { id: number; payload: Partial<AdminBadge> }) =>
       api.put<AdminBadge>(`/api/admin/badges/${id}`, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "badges"] });

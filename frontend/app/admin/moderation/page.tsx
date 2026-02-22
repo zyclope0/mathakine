@@ -20,14 +20,8 @@ import { Bot, BookOpen, Puzzle } from "lucide-react";
 
 export default function AdminModerationPage() {
   const [typeFilter, setTypeFilter] = useState<"all" | "exercises" | "challenges">("all");
-  const {
-    exercises,
-    challenges,
-    totalExercises,
-    totalChallenges,
-    isLoading,
-    error,
-  } = useAdminModeration(typeFilter);
+  const { exercises, challenges, totalExercises, totalChallenges, isLoading, error } =
+    useAdminModeration(typeFilter);
 
   return (
     <div className="space-y-8">
@@ -40,7 +34,10 @@ export default function AdminModerationPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="mb-4 flex items-center justify-between gap-4">
-              <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}>
+              <Select
+                value={typeFilter}
+                onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Type de contenu" />
                 </SelectTrigger>
@@ -96,7 +93,9 @@ export default function AdminModerationPage() {
                               >
                                 <td className="px-4 py-3 font-medium">{ex.title}</td>
                                 <td className="px-4 py-3 text-muted-foreground">
-                                  {EXERCISE_TYPE_DISPLAY[ex.exercise_type?.toLowerCase() as keyof typeof EXERCISE_TYPE_DISPLAY] ?? ex.exercise_type}
+                                  {EXERCISE_TYPE_DISPLAY[
+                                    ex.exercise_type?.toLowerCase() as keyof typeof EXERCISE_TYPE_DISPLAY
+                                  ] ?? ex.exercise_type}
                                 </td>
                                 <td className="px-4 py-3">{ex.age_group}</td>
                                 <td className="px-4 py-3">
@@ -105,7 +104,9 @@ export default function AdminModerationPage() {
                                   </Badge>
                                 </td>
                                 <td className="px-4 py-3 text-muted-foreground text-xs">
-                                  {ex.created_at ? new Date(ex.created_at).toLocaleDateString("fr-FR") : "-"}
+                                  {ex.created_at
+                                    ? new Date(ex.created_at).toLocaleDateString("fr-FR")
+                                    : "-"}
                                 </td>
                                 <td className="px-4 py-3">
                                   <Button variant="outline" size="sm" asChild>
@@ -164,12 +165,14 @@ export default function AdminModerationPage() {
                                   </Badge>
                                 </td>
                                 <td className="px-4 py-3 text-muted-foreground text-xs">
-                                  {ch.created_at ? new Date(ch.created_at).toLocaleDateString("fr-FR") : "-"}
+                                  {ch.created_at
+                                    ? new Date(ch.created_at).toLocaleDateString("fr-FR")
+                                    : "-"}
                                 </td>
                                 <td className="px-4 py-3">
                                   <Button variant="outline" size="sm" asChild>
-<Link href={`/admin/content?tab=challenges&edit=${ch.id}`}>
-                                    <Puzzle className="mr-1 h-4 w-4" />
+                                    <Link href={`/admin/content?tab=challenges&edit=${ch.id}`}>
+                                      <Puzzle className="mr-1 h-4 w-4" />
                                       Éditer
                                     </Link>
                                   </Button>

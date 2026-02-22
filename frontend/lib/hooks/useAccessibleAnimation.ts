@@ -34,9 +34,7 @@ export function useAccessibleAnimation() {
   /**
    * Crée une transition avec durée réduite si nécessaire
    */
-  const createTransition = (
-    baseTransition: Partial<Transition> = {}
-  ): Transition => {
+  const createTransition = (baseTransition: Partial<Transition> = {}): Transition => {
     if (shouldReduceMotion) {
       return {
         duration: 0.1,

@@ -316,9 +316,10 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
 
   // Choix dérivés pour VISUAL (toutes les formes du défi, pas d'orientation)
   const isVisual = challenge.challenge_type?.toLowerCase() === "visual";
-  const visualChoices = isVisual && challenge.visual_data
-    ? extractShapeChoicesFromVisualData(challenge.visual_data)
-    : [];
+  const visualChoices =
+    isVisual && challenge.visual_data
+      ? extractShapeChoicesFromVisualData(challenge.visual_data)
+      : [];
   const visualPositions =
     parsePositionsFromCorrectAnswer(challenge.correct_answer).length > 0
       ? parsePositionsFromCorrectAnswer(challenge.correct_answer)
@@ -326,13 +327,9 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
         ? parsePositionsFromQuestion(challenge.question)
         : parsePositionsFromLayout(challenge.visual_data);
   const hasVisualButtons =
-    isVisual &&
-    !hasChoices &&
-    visualChoices.length >= 2 &&
-    !!challenge.visual_data;
+    isVisual && !hasChoices && visualChoices.length >= 2 && !!challenge.visual_data;
   const isVisualMultiComplete =
-    visualPositions.length <= 1 ||
-    visualPositions.every((p) => visualSelections[p]);
+    visualPositions.length <= 1 || visualPositions.every((p) => visualSelections[p]);
 
   return (
     <div className="space-y-6">
@@ -504,9 +501,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                     })}
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  {t("visualSelectHint")}
-                </p>
+                <p className="text-xs text-muted-foreground">{t("visualSelectHint")}</p>
               </div>
             ) : challenge.challenge_type?.toLowerCase() === "puzzle" && puzzleOrder.length > 0 ? (
               <div className="space-y-3">

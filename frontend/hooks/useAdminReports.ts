@@ -15,12 +15,7 @@ export interface AdminReports {
 }
 
 export function useAdminReports(period: "7d" | "30d" = "7d") {
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery<AdminReports, ApiClientError>({
+  const { data, isLoading, error, refetch } = useQuery<AdminReports, ApiClientError>({
     queryKey: ["admin", "reports", period],
     queryFn: async () => {
       return await api.get<AdminReports>(`/api/admin/reports?period=${period}`);

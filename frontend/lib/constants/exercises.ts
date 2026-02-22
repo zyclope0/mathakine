@@ -106,10 +106,7 @@ const AGE_GROUP_COLORS_DARK_BG: Record<string, string> = {
 
 export type Theme = "spatial" | "minimalist" | "ocean" | "dune" | "forest" | "peach" | "dino";
 
-export function getAgeGroupColor(
-  ageGroup: string | null | undefined,
-  theme?: Theme
-): string {
+export function getAgeGroupColor(ageGroup: string | null | undefined, theme?: Theme): string {
   const key = ageGroup && AGE_GROUP_COLORS[ageGroup] ? ageGroup : "default";
   const colors =
     theme && (DARK_BG_THEMES as readonly Theme[]).includes(theme)

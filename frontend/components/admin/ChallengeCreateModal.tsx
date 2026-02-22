@@ -62,11 +62,7 @@ const initialState = {
   visual_data: "" as string,
 };
 
-export function ChallengeCreateModal({
-  open,
-  onOpenChange,
-  onCreated,
-}: ChallengeCreateModalProps) {
+export function ChallengeCreateModal({ open, onOpenChange, onCreated }: ChallengeCreateModalProps) {
   const [data, setData] = useState(initialState);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -115,7 +111,9 @@ export function ChallengeCreateModal({
       onOpenChange(false);
       onCreated();
     } catch (err) {
-      toast.error("Erreur", { description: err instanceof Error ? err.message : "Échec de la création" });
+      toast.error("Erreur", {
+        description: err instanceof Error ? err.message : "Échec de la création",
+      });
     } finally {
       setSaving(false);
     }
@@ -129,7 +127,9 @@ export function ChallengeCreateModal({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label>Titre <span className="text-destructive">*</span></Label>
+            <Label>
+              Titre <span className="text-destructive">*</span>
+            </Label>
             <Input
               value={data.title}
               onChange={(e) => update("title", e.target.value)}
@@ -141,7 +141,10 @@ export function ChallengeCreateModal({
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label>Type</Label>
-              <Select value={data.challenge_type} onValueChange={(v) => update("challenge_type", v)}>
+              <Select
+                value={data.challenge_type}
+                onValueChange={(v) => update("challenge_type", v)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -171,7 +174,9 @@ export function ChallengeCreateModal({
             </div>
           </div>
           <div className="grid gap-2">
-            <Label>Description <span className="text-destructive">*</span></Label>
+            <Label>
+              Description <span className="text-destructive">*</span>
+            </Label>
             <Textarea
               value={data.description}
               onChange={(e) => update("description", e.target.value)}

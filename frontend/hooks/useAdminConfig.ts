@@ -22,12 +22,7 @@ const EMPTY_SETTINGS: AdminConfigItem[] = [];
 export function useAdminConfig() {
   const queryClient = useQueryClient();
 
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery<AdminConfigResponse, ApiClientError>({
+  const { data, isLoading, error, refetch } = useQuery<AdminConfigResponse, ApiClientError>({
     queryKey: ["admin", "config"],
     queryFn: async () => {
       return await api.get<AdminConfigResponse>("/api/admin/config");

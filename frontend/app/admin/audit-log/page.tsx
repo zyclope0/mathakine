@@ -42,12 +42,7 @@ export default function AdminAuditLogPage() {
   const [actionFilter, setActionFilter] = useState<string>("all");
   const [resourceFilter, setResourceFilter] = useState<string>("all");
 
-  const {
-    items,
-    total,
-    isLoading,
-    error,
-  } = useAdminAuditLog({
+  const { items, total, isLoading, error } = useAdminAuditLog({
     skip: page * PAGE_SIZE,
     limit: PAGE_SIZE,
     ...(actionFilter !== "all" && { action: actionFilter }),
@@ -67,7 +62,13 @@ export default function AdminAuditLogPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="mb-4 flex flex-wrap gap-3 items-end">
-              <Select value={actionFilter} onValueChange={(v) => { setActionFilter(v); setPage(0); }}>
+              <Select
+                value={actionFilter}
+                onValueChange={(v) => {
+                  setActionFilter(v);
+                  setPage(0);
+                }}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Action" />
                 </SelectTrigger>
@@ -79,7 +80,13 @@ export default function AdminAuditLogPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={resourceFilter} onValueChange={(v) => { setResourceFilter(v); setPage(0); }}>
+              <Select
+                value={resourceFilter}
+                onValueChange={(v) => {
+                  setResourceFilter(v);
+                  setPage(0);
+                }}
+              >
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Ressource" />
                 </SelectTrigger>
@@ -129,7 +136,10 @@ export default function AdminAuditLogPage() {
                               ? new Date(log.created_at).toLocaleString("fr-FR")
                               : "-"}
                           </td>
-                          <td className="px-4 py-3">{log.admin_username ?? (log.admin_user_id != null ? `#${log.admin_user_id}` : "-")}</td>
+                          <td className="px-4 py-3">
+                            {log.admin_username ??
+                              (log.admin_user_id != null ? `#${log.admin_user_id}` : "-")}
+                          </td>
                           <td className="px-4 py-3">{getAuditActionLabel(log.action)}</td>
                           <td className="px-4 py-3">
                             {log.resource_type}

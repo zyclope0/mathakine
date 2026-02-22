@@ -66,7 +66,11 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
   // Extraire les données structurées (legacy/programmation)
   const code: string = String(visualData.code ?? visualData.snippet ?? "");
   const language: string = String(visualData.language ?? visualData.lang ?? "python");
-  const examples = Array.isArray(visualData.examples) ? visualData.examples : (Array.isArray(visualData.test_cases) ? visualData.test_cases : []);
+  const examples = Array.isArray(visualData.examples)
+    ? visualData.examples
+    : Array.isArray(visualData.test_cases)
+      ? visualData.test_cases
+      : [];
   const input: string = String(visualData.input ?? "");
   const output: string = String(visualData.output ?? "");
   const expectedOutput: string = String(visualData.expected_output ?? visualData.expected ?? "");
@@ -129,34 +133,32 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
         )}
 
         {/* Code César avec partial_key : exemples pour déduire le décalage */}
-        {codingType === "caesar" &&
-          shift === undefined &&
-          Object.keys(cryptoKey).length > 0 && (
-            <div className="bg-card/50 border border-border rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Key className="h-5 w-5 text-primary" />
-                <span className="font-semibold text-foreground">Exemples codés → clair</span>
-              </div>
-              <p className="text-xs text-muted-foreground italic mb-3">
-                Ces exemples te permettent de déduire le décalage César.
-              </p>
-              <div className="flex flex-wrap justify-center gap-2">
-                {Object.entries(cryptoKey).map(([encoded, decoded], index) => (
-                  <motion.div
-                    key={encoded}
-                    className="bg-slate-800 border border-primary/30 rounded-lg px-3 py-2 flex items-center gap-2"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <span className="text-amber-400 font-mono font-bold">{encoded}</span>
-                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-green-400 font-mono font-bold">{String(decoded)}</span>
-                  </motion.div>
-                ))}
-              </div>
+        {codingType === "caesar" && shift === undefined && Object.keys(cryptoKey).length > 0 && (
+          <div className="bg-card/50 border border-border rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Key className="h-5 w-5 text-primary" />
+              <span className="font-semibold text-foreground">Exemples codés → clair</span>
             </div>
-          )}
+            <p className="text-xs text-muted-foreground italic mb-3">
+              Ces exemples te permettent de déduire le décalage César.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {Object.entries(cryptoKey).map(([encoded, decoded], index) => (
+                <motion.div
+                  key={encoded}
+                  className="bg-slate-800 border border-primary/30 rounded-lg px-3 py-2 flex items-center gap-2"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <span className="text-amber-400 font-mono font-bold">{encoded}</span>
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-green-400 font-mono font-bold">{String(decoded)}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Substitution - Table de correspondance */}
         {codingType === "substitution" && Object.keys(cryptoKey).length > 0 && (
@@ -285,8 +287,14 @@ export function CodingRenderer({ visualData, className = "" }: CodingRendererPro
 
   // ==================== RENDU LABYRINTHE (maze/robot) ====================
   if (isMaze) {
-    const startObj = start != null && typeof start === "object" && !Array.isArray(start) ? (start as { row?: number; col?: number }) : null;
-    const endObj = end != null && typeof end === "object" && !Array.isArray(end) ? (end as { row?: number; col?: number }) : null;
+    const startObj =
+      start != null && typeof start === "object" && !Array.isArray(start)
+        ? (start as { row?: number; col?: number })
+        : null;
+    const endObj =
+      end != null && typeof end === "object" && !Array.isArray(end)
+        ? (end as { row?: number; col?: number })
+        : null;
     const startRow = Array.isArray(start) ? Number(start[0]) : (startObj?.row ?? 1);
     const startCol = Array.isArray(start) ? Number(start[1]) : (startObj?.col ?? 1);
     const endRow = Array.isArray(end) ? Number(end[0]) : (endObj?.row ?? 0);

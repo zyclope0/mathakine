@@ -155,9 +155,7 @@ export function PerformanceByType({ performance }: PerformanceByTypeProps) {
                       </Badge>
                     )}
                   </div>
-                  <div className={cn("text-2xl font-bold mb-2", colors.text)}>
-                    {displayRate}%
-                  </div>
+                  <div className={cn("text-2xl font-bold mb-2", colors.text)}>{displayRate}%</div>
                   <Progress value={displayRate} className="h-2 mb-2" />
                   <div className="text-xs text-muted-foreground">
                     {stats.correct}/{stats.completed}{" "}

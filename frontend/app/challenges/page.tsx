@@ -28,7 +28,17 @@ import {
 } from "@/lib/constants/challenges";
 import { useChallengeTranslations } from "@/hooks/useChallengeTranslations";
 import type { ChallengeFilters } from "@/hooks/useChallenges";
-import { Filter, X, Puzzle, Search, LayoutGrid, List, Sparkles, CheckCircle2, EyeOff } from "lucide-react";
+import {
+  Filter,
+  X,
+  Puzzle,
+  Search,
+  LayoutGrid,
+  List,
+  Sparkles,
+  CheckCircle2,
+  EyeOff,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import {
@@ -111,7 +121,10 @@ function ChallengesPageContent() {
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE) || 1;
 
   const hasActiveFilters =
-    challengeTypeFilter !== "all" || ageGroupFilter !== "all" || searchQuery.trim() !== "" || hideCompleted;
+    challengeTypeFilter !== "all" ||
+    ageGroupFilter !== "all" ||
+    searchQuery.trim() !== "" ||
+    hideCompleted;
 
   const handleFilterChange = () => {
     setCurrentPage(1);

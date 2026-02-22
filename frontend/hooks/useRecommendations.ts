@@ -53,10 +53,9 @@ export function useRecommendations() {
 
   const completeMutation = useMutation({
     mutationFn: async (recommendationId: number) => {
-      return await api.post<{ message: string; id: number }>(
-        "/api/recommendations/complete",
-        { recommendation_id: recommendationId }
-      );
+      return await api.post<{ message: string; id: number }>("/api/recommendations/complete", {
+        recommendation_id: recommendationId,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["recommendations"] });

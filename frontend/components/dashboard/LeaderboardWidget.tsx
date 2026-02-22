@@ -93,9 +93,7 @@ export function LeaderboardWidget() {
                     {entry.total_points}
                   </span>
                   {entry.is_current_user && (
-                    <span className="text-xs bg-primary/20 px-1.5 py-0.5 rounded">
-                      {t("you")}
-                    </span>
+                    <span className="text-xs bg-primary/20 px-1.5 py-0.5 rounded">{t("you")}</span>
                   )}
                 </li>
               ))}

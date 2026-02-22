@@ -1,4 +1,3 @@
-
 interface ChatStreamPayload {
   message: string;
   conversation_history: Array<{ role: "user" | "assistant"; content: string }>;

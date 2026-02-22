@@ -101,16 +101,37 @@ function SortableItem({ id, value, index }: SortableItemProps) {
  */
 export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleRendererProps) {
   // Parser les données de puzzle
-  const pieces = Array.isArray(visualData?.pieces) ? visualData.pieces : Array.isArray(visualData?.items) ? visualData.items : Array.isArray(visualData?.parts) ? visualData.parts : [];
+  const pieces = Array.isArray(visualData?.pieces)
+    ? visualData.pieces
+    : Array.isArray(visualData?.items)
+      ? visualData.items
+      : Array.isArray(visualData?.parts)
+        ? visualData.parts
+        : [];
 
   // Parser les indices pour aider à résoudre le puzzle
-  const hints = Array.isArray(visualData?.hints) ? visualData.hints : Array.isArray(visualData?.rules) ? visualData.rules : Array.isArray(visualData?.clues) ? visualData.clues : Array.isArray(visualData?.indices) ? visualData.indices : [];
+  const hints = Array.isArray(visualData?.hints)
+    ? visualData.hints
+    : Array.isArray(visualData?.rules)
+      ? visualData.rules
+      : Array.isArray(visualData?.clues)
+        ? visualData.clues
+        : Array.isArray(visualData?.indices)
+          ? visualData.indices
+          : [];
   const description: string = String(visualData?.description ?? "");
 
   // Initialiser les items avec un ordre mélangé pour rendre le puzzle intéressant
   const initialItems: PuzzleItem[] = pieces.map((p: Record<string, unknown>, i: number) => ({
     id: `item-${i}`,
-    value: typeof p === "object" && p !== null ? String((p as Record<string, unknown>).value ?? (p as Record<string, unknown>).label ?? JSON.stringify(p)) : String(p),
+    value:
+      typeof p === "object" && p !== null
+        ? String(
+            (p as Record<string, unknown>).value ??
+              (p as Record<string, unknown>).label ??
+              JSON.stringify(p)
+          )
+        : String(p),
     original: p,
   }));
 
@@ -121,7 +142,14 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
   useEffect(() => {
     const newItems: PuzzleItem[] = pieces.map((p: Record<string, unknown>, i: number) => ({
       id: `item-${i}`,
-      value: typeof p === "object" && p !== null ? String((p as Record<string, unknown>).value ?? (p as Record<string, unknown>).label ?? JSON.stringify(p)) : String(p),
+      value:
+        typeof p === "object" && p !== null
+          ? String(
+              (p as Record<string, unknown>).value ??
+                (p as Record<string, unknown>).label ??
+                JSON.stringify(p)
+            )
+          : String(p),
       original: p,
     }));
     setItems(newItems);
@@ -242,15 +270,15 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
                 easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
               }}
             >
-              {activeId ? (
-                (() => {
-                  const item = items.find((i) => i.id === activeId);
-                  const idx = items.findIndex((i) => i.id === activeId);
-                  return item ? (
-                    <PuzzleItemPreview value={item.value} index={idx >= 0 ? idx : 0} />
-                  ) : null;
-                })()
-              ) : null}
+              {activeId
+                ? (() => {
+                    const item = items.find((i) => i.id === activeId);
+                    const idx = items.findIndex((i) => i.id === activeId);
+                    return item ? (
+                      <PuzzleItemPreview value={item.value} index={idx >= 0 ? idx : 0} />
+                    ) : null;
+                  })()
+                : null}
             </DragOverlay>
           </DndContext>
 

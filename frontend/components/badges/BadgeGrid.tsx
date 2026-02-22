@@ -143,7 +143,10 @@ export function BadgeGrid({
             rarity={rarityMap?.[String(badge.id)] ?? null}
             isPinned={pinnedBadgeIds?.includes(badge.id) ?? false}
             {...(onTogglePin != null && { onTogglePin })}
-            canPin={pinnedBadgeIds != null && (pinnedBadgeIds?.includes(badge.id) || (pinnedBadgeIds?.length ?? 0) < 3)}
+            canPin={
+              pinnedBadgeIds != null &&
+              (pinnedBadgeIds?.includes(badge.id) || (pinnedBadgeIds?.length ?? 0) < 3)
+            }
           />
         );
       })}

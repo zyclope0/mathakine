@@ -203,6 +203,10 @@ jobs:
       working-directory: frontend
       run: npm run lint
 
+    - name: Prettier format check (frontend)
+      working-directory: frontend
+      run: npm run format:check
+
     - name: Run tests with coverage and JUnit
       working-directory: frontend
       run: npx vitest --coverage --reporter=junit --outputFile=./junit.xml --run

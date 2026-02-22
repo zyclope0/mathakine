@@ -28,12 +28,8 @@ export function MaintenanceOverlay() {
       aria-live="assertive"
     >
       <div className="mx-4 max-w-md rounded-xl border bg-card p-8 text-center shadow-lg">
-        <h2 className="text-xl font-semibold text-foreground">
-          Le temple est en maintenance
-        </h2>
-        <p className="mt-3 text-muted-foreground">
-          Réessayez dans quelques instants.
-        </p>
+        <h2 className="text-xl font-semibold text-foreground">Le temple est en maintenance</h2>
+        <p className="mt-3 text-muted-foreground">Réessayez dans quelques instants.</p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
           <a
             href="/login"

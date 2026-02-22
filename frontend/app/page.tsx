@@ -164,9 +164,7 @@ export default function HomePage() {
                   <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                     <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
                   </div>
-                  <CardTitle className="text-sm md:text-base">
-                    {t(feature.titleKey)}
-                  </CardTitle>
+                  <CardTitle className="text-sm md:text-base">{t(feature.titleKey)}</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0 px-3">
                   <CardDescription className="text-xs md:text-sm">

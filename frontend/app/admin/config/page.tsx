@@ -40,7 +40,9 @@ function ConfigEditor({
   onSave: (local: Record<string, boolean | number | string>) => Promise<void>;
   isUpdating: boolean;
 }) {
-  const [local, setLocal] = useState<Record<string, boolean | number | string>>(() => buildInitFromSettings(settings));
+  const [local, setLocal] = useState<Record<string, boolean | number | string>>(() =>
+    buildInitFromSettings(settings)
+  );
   const [dirty, setDirty] = useState(false);
 
   const handleBoolChange = (key: string, checked: boolean) => {

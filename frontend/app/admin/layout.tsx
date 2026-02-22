@@ -9,11 +9,7 @@ import { PageLayout } from "@/components/layout";
 import { cn } from "@/lib/utils";
 import { BookOpen, Bot, FileText, LayoutDashboard, Settings, Users } from "lucide-react";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
@@ -43,7 +39,8 @@ export default function AdminLayout({
         <div className="flex flex-col gap-6 md:flex-row">
           <nav className="flex shrink-0 flex-col gap-1 md:w-48">
             {navItems.map(({ href, label, icon: Icon }) => {
-              const isActive = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+              const isActive =
+                href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
               return (
                 <Link
                   key={href}

@@ -25,7 +25,16 @@ import { useAdminChallenges } from "@/hooks/useAdminChallenges";
 import { useAdminBadges } from "@/hooks/useAdminBadges";
 import { getChallengeTypeDisplay, getAdminAgeDisplay } from "@/lib/constants/challenges";
 import { getAgeGroupDisplay, EXERCISE_TYPE_DISPLAY } from "@/lib/constants/exercises";
-import { Archive, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Plus, RotateCcw, Search } from "lucide-react";
+import {
+  Archive,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Plus,
+  RotateCcw,
+  Search,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -68,7 +77,11 @@ const PAGE_SIZE = 20;
 
 function SortIcon({ col, sort, order }: { col: string; sort: string; order: "asc" | "desc" }) {
   if (sort !== col) return <ChevronDown className="ml-1 h-4 w-4 opacity-50" />;
-  return order === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />;
+  return order === "asc" ? (
+    <ChevronUp className="ml-1 h-4 w-4" />
+  ) : (
+    <ChevronDown className="ml-1 h-4 w-4" />
+  );
 }
 
 function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
@@ -81,27 +94,17 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
   const [editExerciseId, setEditExerciseId] = useState<number | null>(initialEditId ?? null);
   const [createExerciseOpen, setCreateExerciseOpen] = useState(false);
 
-  const archived =
-    archivedFilter === "all"
-      ? undefined
-      : archivedFilter === "true";
-  const {
-    exercises,
-    total,
-    isLoading,
-    error,
-    refetch,
-    updateArchived,
-    isUpdating,
-  } = useAdminExercises({
-    ...(archived !== undefined && { archived }),
-    ...(typeFilter !== "all" && { type: typeFilter }),
-    ...(search.trim() && { search: search.trim() }),
-    sort,
-    order,
-    skip: page * PAGE_SIZE,
-    limit: PAGE_SIZE,
-  });
+  const archived = archivedFilter === "all" ? undefined : archivedFilter === "true";
+  const { exercises, total, isLoading, error, refetch, updateArchived, isUpdating } =
+    useAdminExercises({
+      ...(archived !== undefined && { archived }),
+      ...(typeFilter !== "all" && { type: typeFilter }),
+      ...(search.trim() && { search: search.trim() }),
+      sort,
+      order,
+      skip: page * PAGE_SIZE,
+      limit: PAGE_SIZE,
+    });
 
   const toggleSort = (col: string) => {
     if (sort === col) setOrder((o) => (o === "asc" ? "desc" : "asc"));
@@ -112,11 +115,7 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
     setPage(0);
   };
 
-  const handleToggleArchived = async (ex: {
-    id: number;
-    title: string;
-    is_archived: boolean;
-  }) => {
+  const handleToggleArchived = async (ex: { id: number; title: string; is_archived: boolean }) => {
     try {
       await updateArchived({
         exerciseId: ex.id,
@@ -126,10 +125,9 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
         description: `${ex.title} a été ${ex.is_archived ? "réactivé" : "archivé"}.`,
       });
     } catch (err) {
-      toast.error(
-        "Erreur",
-        { description: err instanceof Error ? err.message : "Erreur lors de la mise à jour" }
-      );
+      toast.error("Erreur", {
+        description: err instanceof Error ? err.message : "Erreur lors de la mise à jour",
+      });
     }
   };
 
@@ -139,14 +137,19 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:flex-wrap">
         <div className="flex-1 min-w-[200px]">
-          <Label htmlFor="ex-search" className="sr-only">Rechercher</Label>
+          <Label htmlFor="ex-search" className="sr-only">
+            Rechercher
+          </Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="ex-search"
               placeholder="Rechercher par titre..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(0);
+              }}
               className="pl-9"
             />
           </div>
@@ -206,22 +209,38 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
               <thead>
                 <tr className="border-b bg-muted/50">
                   <th className="px-4 py-3 text-left font-medium">
-                    <button type="button" onClick={() => toggleSort("title")} className="flex items-center hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("title")}
+                      className="flex items-center hover:underline"
+                    >
                       Titre <SortIcon col="title" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">
-                    <button type="button" onClick={() => toggleSort("exercise_type")} className="flex items-center hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("exercise_type")}
+                      className="flex items-center hover:underline"
+                    >
                       Type <SortIcon col="exercise_type" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">
-                    <button type="button" onClick={() => toggleSort("difficulty")} className="flex items-center hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("difficulty")}
+                      className="flex items-center hover:underline"
+                    >
                       Difficulté <SortIcon col="difficulty" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">
-                    <button type="button" onClick={() => toggleSort("age_group")} className="flex items-center hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("age_group")}
+                      className="flex items-center hover:underline"
+                    >
                       Âge <SortIcon col="age_group" sort={sort} order={order} />
                     </button>
                   </th>
@@ -229,7 +248,11 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
                   <th className="px-4 py-3 text-left font-medium">Succès</th>
                   <th className="px-4 py-3 text-left font-medium">Statut</th>
                   <th className="px-4 py-3 text-left font-medium">
-                    <button type="button" onClick={() => toggleSort("created_at")} className="flex items-center hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("created_at")}
+                      className="flex items-center hover:underline"
+                    >
                       Date <SortIcon col="created_at" sort={sort} order={order} />
                     </button>
                   </th>
@@ -239,10 +262,7 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
               <tbody>
                 {exercises.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={9}
-                      className="px-4 py-12 text-center text-muted-foreground"
-                    >
+                    <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
                       Aucun exercice trouvé
                     </td>
                   </tr>
@@ -255,14 +275,14 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
                     >
                       <td className="px-4 py-3 font-medium">{ex.title}</td>
                       <td className="px-4 py-3 text-muted-foreground">
-                        {EXERCISE_TYPE_DISPLAY[ex.exercise_type?.toLowerCase() as keyof typeof EXERCISE_TYPE_DISPLAY] ?? ex.exercise_type}
+                        {EXERCISE_TYPE_DISPLAY[
+                          ex.exercise_type?.toLowerCase() as keyof typeof EXERCISE_TYPE_DISPLAY
+                        ] ?? ex.exercise_type}
                       </td>
                       <td className="px-4 py-3">{ex.difficulty}</td>
                       <td className="px-4 py-3">{getAgeGroupDisplay(ex.age_group)}</td>
                       <td className="px-4 py-3">{ex.attempt_count}</td>
-                      <td className="px-4 py-3">
-                        {ex.success_rate}%
-                      </td>
+                      <td className="px-4 py-3">{ex.success_rate}%</td>
                       <td className="px-4 py-3">
                         <Badge variant={ex.is_archived ? "outline" : "default"}>
                           {ex.is_archived ? "Archivé" : "Actif"}
@@ -277,11 +297,7 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
                           size="sm"
                           onClick={() => handleToggleArchived(ex)}
                           disabled={isUpdating}
-                          title={
-                            ex.is_archived
-                              ? "Réactiver l'exercice"
-                              : "Archiver l'exercice"
-                          }
+                          title={ex.is_archived ? "Réactiver l'exercice" : "Archiver l'exercice"}
                         >
                           {ex.is_archived ? (
                             <>
@@ -306,8 +322,7 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                {total} exercice{total > 1 ? "s" : ""} — Page {page + 1} /{" "}
-                {totalPages}
+                {total} exercice{total > 1 ? "s" : ""} — Page {page + 1} / {totalPages}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -322,9 +337,7 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setPage((p) => Math.min(totalPages - 1, p + 1))
-                  }
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                   disabled={page >= totalPages - 1}
                 >
                   Suivant
@@ -360,39 +373,28 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
   const [editChallengeId, setEditChallengeId] = useState<number | null>(initialEditId ?? null);
   const [createChallengeOpen, setCreateChallengeOpen] = useState(false);
 
-  const archived =
-    archivedFilter === "all"
-      ? undefined
-      : archivedFilter === "true";
-  const {
-    challenges,
-    total,
-    isLoading,
-    error,
-    refetch,
-    updateArchived,
-    isUpdating,
-  } = useAdminChallenges({
-    ...(archived !== undefined && { archived }),
-    ...(typeFilter !== "all" && { type: typeFilter }),
-    ...(search.trim() && { search: search.trim() }),
-    sort,
-    order,
-    skip: page * PAGE_SIZE,
-    limit: PAGE_SIZE,
-  });
+  const archived = archivedFilter === "all" ? undefined : archivedFilter === "true";
+  const { challenges, total, isLoading, error, refetch, updateArchived, isUpdating } =
+    useAdminChallenges({
+      ...(archived !== undefined && { archived }),
+      ...(typeFilter !== "all" && { type: typeFilter }),
+      ...(search.trim() && { search: search.trim() }),
+      sort,
+      order,
+      skip: page * PAGE_SIZE,
+      limit: PAGE_SIZE,
+    });
 
   const toggleSortCh = (col: string) => {
     if (sort === col) setOrder((o) => (o === "asc" ? "desc" : "asc"));
-    else { setSort(col); setOrder("asc"); }
+    else {
+      setSort(col);
+      setOrder("asc");
+    }
     setPage(0);
   };
 
-  const handleToggleArchived = async (ch: {
-    id: number;
-    title: string;
-    is_archived: boolean;
-  }) => {
+  const handleToggleArchived = async (ch: { id: number; title: string; is_archived: boolean }) => {
     try {
       await updateArchived({
         challengeId: ch.id,
@@ -402,31 +404,31 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
         description: `${ch.title} a été ${ch.is_archived ? "réactivé" : "archivé"}.`,
       });
     } catch (err) {
-      toast.error(
-        "Erreur",
-        {
-          description:
-            err instanceof Error ? err.message : "Erreur lors de la mise à jour",
-        }
-      );
+      toast.error("Erreur", {
+        description: err instanceof Error ? err.message : "Erreur lors de la mise à jour",
+      });
     }
   };
 
   const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
 
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:flex-wrap">
         <div className="flex-1 min-w-[200px]">
-          <Label htmlFor="ch-search" className="sr-only">Rechercher</Label>
+          <Label htmlFor="ch-search" className="sr-only">
+            Rechercher
+          </Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="ch-search"
               placeholder="Rechercher par titre ou description..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(0);
+              }}
               className="pl-9"
             />
           </div>
@@ -486,17 +488,29 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
               <thead>
                 <tr className="border-b bg-muted/50">
                   <th className="px-4 py-3 text-left font-medium">
-                    <button type="button" onClick={() => toggleSortCh("title")} className="flex items-center hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => toggleSortCh("title")}
+                      className="flex items-center hover:underline"
+                    >
                       Titre <SortIcon col="title" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">
-                    <button type="button" onClick={() => toggleSortCh("challenge_type")} className="flex items-center hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => toggleSortCh("challenge_type")}
+                      className="flex items-center hover:underline"
+                    >
                       Type <SortIcon col="challenge_type" sort={sort} order={order} />
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-medium">
-                    <button type="button" onClick={() => toggleSortCh("age_group")} className="flex items-center hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => toggleSortCh("age_group")}
+                      className="flex items-center hover:underline"
+                    >
                       Âge <SortIcon col="age_group" sort={sort} order={order} />
                     </button>
                   </th>
@@ -504,7 +518,11 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
                   <th className="px-4 py-3 text-left font-medium">Succès</th>
                   <th className="px-4 py-3 text-left font-medium">Statut</th>
                   <th className="px-4 py-3 text-left font-medium">
-                    <button type="button" onClick={() => toggleSortCh("created_at")} className="flex items-center hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => toggleSortCh("created_at")}
+                      className="flex items-center hover:underline"
+                    >
                       Date <SortIcon col="created_at" sort={sort} order={order} />
                     </button>
                   </th>
@@ -514,10 +532,7 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
               <tbody>
                 {challenges.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={8}
-                      className="px-4 py-12 text-center text-muted-foreground"
-                    >
+                    <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">
                       Aucun défi trouvé
                     </td>
                   </tr>
@@ -549,11 +564,7 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
                           size="sm"
                           onClick={() => handleToggleArchived(ch)}
                           disabled={isUpdating}
-                          title={
-                            ch.is_archived
-                              ? "Réactiver le défi"
-                              : "Archiver le défi"
-                          }
+                          title={ch.is_archived ? "Réactiver le défi" : "Archiver le défi"}
                         >
                           {ch.is_archived ? (
                             <>
@@ -578,8 +589,7 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                {total} défi{total > 1 ? "s" : ""} — Page {page + 1} /{" "}
-                {totalPages}
+                {total} défi{total > 1 ? "s" : ""} — Page {page + 1} / {totalPages}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -594,9 +604,7 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setPage((p) => Math.min(totalPages - 1, p + 1))
-                  }
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                   disabled={page >= totalPages - 1}
                 >
                   Suivant
@@ -640,10 +648,7 @@ function BadgesTab({ initialEditId }: { initialEditId?: number | null }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:flex-wrap">
-        <Select
-          value={categoryFilter}
-          onValueChange={setCategoryFilter}
-        >
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Catégorie" />
           </SelectTrigger>
@@ -655,10 +660,7 @@ function BadgesTab({ initialEditId }: { initialEditId?: number | null }) {
             ))}
           </SelectContent>
         </Select>
-        <Select
-          value={activeFilter}
-          onValueChange={setActiveFilter}
-        >
+        <Select value={activeFilter} onValueChange={setActiveFilter}>
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Statut" />
           </SelectTrigger>
@@ -746,40 +748,56 @@ export default function AdminContentPage() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const editParam = searchParams.get("edit");
-  const defaultTab = tabParam === "challenges" ? "challenges" : tabParam === "badges" ? "badges" : "exercises";
+  const defaultTab =
+    tabParam === "challenges" ? "challenges" : tabParam === "badges" ? "badges" : "exercises";
   const parsedEdit = editParam ? parseInt(editParam, 10) : null;
   const editId = parsedEdit != null && !Number.isNaN(parsedEdit) ? parsedEdit : null;
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Contenu"
-        description="Exercices, défis logiques et badges — archivage"
-      />
+      <PageHeader title="Contenu" description="Exercices, défis logiques et badges — archivage" />
 
       <PageSection>
         <Card>
           <CardContent className="pt-6">
             <Tabs defaultValue={defaultTab} key={defaultTab}>
               <TabsList className="w-full flex flex-wrap gap-1 sm:gap-2 h-auto p-1">
-                <TabsTrigger value="exercises" className="flex-1 min-w-[100px] sm:flex-initial sm:min-w-0 px-4">
+                <TabsTrigger
+                  value="exercises"
+                  className="flex-1 min-w-[100px] sm:flex-initial sm:min-w-0 px-4"
+                >
                   Exercices
                 </TabsTrigger>
-                <TabsTrigger value="challenges" className="flex-1 min-w-[100px] sm:flex-initial sm:min-w-0 px-4">
+                <TabsTrigger
+                  value="challenges"
+                  className="flex-1 min-w-[100px] sm:flex-initial sm:min-w-0 px-4"
+                >
                   Défis logiques
                 </TabsTrigger>
-                <TabsTrigger value="badges" className="flex-1 min-w-[80px] sm:flex-initial sm:min-w-0 px-4">
+                <TabsTrigger
+                  value="badges"
+                  className="flex-1 min-w-[80px] sm:flex-initial sm:min-w-0 px-4"
+                >
                   Badges
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="exercises" className="mt-6">
-                <ExercisesTab key={`exercises-${editId ?? ""}`} initialEditId={defaultTab === "exercises" ? editId : null} />
+                <ExercisesTab
+                  key={`exercises-${editId ?? ""}`}
+                  initialEditId={defaultTab === "exercises" ? editId : null}
+                />
               </TabsContent>
               <TabsContent value="challenges" className="mt-6">
-                <ChallengesTab key={`challenges-${editId ?? ""}`} initialEditId={defaultTab === "challenges" ? editId : null} />
+                <ChallengesTab
+                  key={`challenges-${editId ?? ""}`}
+                  initialEditId={defaultTab === "challenges" ? editId : null}
+                />
               </TabsContent>
               <TabsContent value="badges" className="mt-6">
-                <BadgesTab key={`badges-${editId ?? ""}`} initialEditId={defaultTab === "badges" ? editId : null} />
+                <BadgesTab
+                  key={`badges-${editId ?? ""}`}
+                  initialEditId={defaultTab === "badges" ? editId : null}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>

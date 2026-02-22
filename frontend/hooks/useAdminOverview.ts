@@ -11,12 +11,7 @@ export interface AdminOverview {
 }
 
 export function useAdminOverview() {
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery<AdminOverview, ApiClientError>({
+  const { data, isLoading, error, refetch } = useQuery<AdminOverview, ApiClientError>({
     queryKey: ["admin", "overview"],
     queryFn: async () => {
       return await api.get<AdminOverview>("/api/admin/overview");
@@ -25,7 +20,12 @@ export function useAdminOverview() {
   });
 
   return {
-    overview: data ?? { total_users: 0, total_exercises: 0, total_challenges: 0, total_attempts: 0 },
+    overview: data ?? {
+      total_users: 0,
+      total_exercises: 0,
+      total_challenges: 0,
+      total_attempts: 0,
+    },
     isLoading,
     error,
     refetch,

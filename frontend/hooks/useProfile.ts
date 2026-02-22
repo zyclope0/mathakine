@@ -55,11 +55,9 @@ export function useProfile() {
     mutationFn: async (data: PasswordUpdateData) => {
       const { getCsrfToken } = await import("@/lib/api/client");
       const csrfToken = await getCsrfToken();
-      return await api.put<{ message: string; success: boolean }>(
-        "/api/users/me/password",
-        data,
-        { headers: { "X-CSRF-Token": csrfToken } }
-      );
+      return await api.put<{ message: string; success: boolean }>("/api/users/me/password", data, {
+        headers: { "X-CSRF-Token": csrfToken },
+      });
     },
     onSuccess: () => {
       toast.success(t("passwordChangeSuccess"), {

@@ -154,7 +154,10 @@ async function handleResponse<T>(response: Response): Promise<T> {
       const errorData = await response.json();
       errorMessage = errorData.message || errorData.detail || errorData.error || errorMessage;
       errorDetails = errorData;
-      if (response.status === 503 && (errorData?.error === "maintenance" || errorMessage?.includes("maintenance"))) {
+      if (
+        response.status === 503 &&
+        (errorData?.error === "maintenance" || errorMessage?.includes("maintenance"))
+      ) {
         notifyMaintenance();
       }
     } catch {
@@ -254,7 +257,8 @@ export async function apiRequest<T>(
     // Toast API injoignable (débrayé pour éviter spam)
     if (typeof window !== "undefined") {
       const now = Date.now();
-      const last = (globalThis as { __lastApiUnreachableToast?: number }).__lastApiUnreachableToast ?? 0;
+      const last =
+        (globalThis as { __lastApiUnreachableToast?: number }).__lastApiUnreachableToast ?? 0;
       if (now - last > 15000) {
         (globalThis as { __lastApiUnreachableToast?: number }).__lastApiUnreachableToast = now;
         import("sonner").then(({ toast }) => {
@@ -318,10 +322,7 @@ export const api = {
     const res = await fetch(url, { credentials: "include" });
     if (!res.ok) {
       const text = await res.text();
-      throw new ApiClientError(
-        text || `HTTP ${res.status}`,
-        res.status
-      );
+      throw new ApiClientError(text || `HTTP ${res.status}`, res.status);
     }
     const blob = await res.blob();
     const cd = res.headers.get("Content-Disposition");

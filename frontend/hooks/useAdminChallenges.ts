@@ -44,10 +44,7 @@ export function useAdminChallenges(params: AdminChallengesParams = {}) {
   const queryString = searchParams.toString();
   const url = `/api/admin/challenges${queryString ? `?${queryString}` : ""}`;
 
-  const { data, isLoading, error, refetch } = useQuery<
-    AdminChallengesResponse,
-    ApiClientError
-  >({
+  const { data, isLoading, error, refetch } = useQuery<AdminChallengesResponse, ApiClientError>({
     queryKey: ["admin", "challenges", { archived, type, search, sort, order, skip, limit }],
     queryFn: async () => api.get<AdminChallengesResponse>(url),
     staleTime: 30 * 1000,

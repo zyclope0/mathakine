@@ -34,17 +34,20 @@ export function useExercises(filters?: ExerciseFilters) {
     isLoading,
     isFetching,
     error,
-  } = usePaginatedContent<Exercise>(filters as Record<string, string | number | null | undefined> | undefined, {
-    endpoint: "/api/exercises",
-    queryKey: "exercises",
-    paramKeys: {
-      exercise_type: "exercise_type",
-      age_group: "age_group",
-      order: "order",
-      hide_completed: "hide_completed",
-    },
-    staleTime: 10 * 1000,
-  });
+  } = usePaginatedContent<Exercise>(
+    filters as Record<string, string | number | null | undefined> | undefined,
+    {
+      endpoint: "/api/exercises",
+      queryKey: "exercises",
+      paramKeys: {
+        exercise_type: "exercise_type",
+        age_group: "age_group",
+        order: "order",
+        hide_completed: "hide_completed",
+      },
+      staleTime: 10 * 1000,
+    }
+  );
 
   // Note: Pour récupérer un exercice spécifique, utiliser le hook useExercise(id) séparé
 

@@ -28,11 +28,17 @@ const DIFFICULTIES = ["bronze", "silver", "gold", "legendary"];
 
 const REQUIREMENT_EXAMPLES = [
   { label: "Tentatives (ex: 10)", value: '{"attempts_count": 10}' },
-  { label: "Taux réussite (ex: 50 tentatives, 80%)", value: '{"min_attempts": 50, "success_rate": 80}' },
+  {
+    label: "Taux réussite (ex: 50 tentatives, 80%)",
+    value: '{"min_attempts": 50, "success_rate": 80}',
+  },
   { label: "Jours consécutifs (ex: 7)", value: '{"consecutive_days": 7}' },
   { label: "Temps max (ex: 5s)", value: '{"max_time": 5}' },
   { label: "Défis logiques (ex: 10) — B5", value: '{"logic_attempts_count": 10}' },
-  { label: "Mixte (ex: 20 exercices + 5 défis) — B5", value: '{"attempts_count": 20, "logic_attempts_count": 5}' },
+  {
+    label: "Mixte (ex: 20 exercices + 5 défis) — B5",
+    value: '{"attempts_count": 20, "logic_attempts_count": 5}',
+  },
   { label: "Comeback (7j sans activité)", value: '{"comeback_days": 7}' },
 ];
 
@@ -55,11 +61,7 @@ const initialState = {
   star_wars_title: "",
 };
 
-export function BadgeCreateModal({
-  open,
-  onOpenChange,
-  onCreated,
-}: BadgeCreateModalProps) {
+export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateModalProps) {
   const [data, setData] = useState(initialState);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -144,16 +146,38 @@ export function BadgeCreateModal({
               <Info className="h-4 w-4" />
               Principes psychologiques — design des badges
             </span>
-            {principlesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {principlesOpen ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
           </Button>
           {principlesOpen && (
             <div className="rounded-md border bg-muted/50 p-3 text-sm space-y-1.5 mt-2">
-              <p><strong>Goal-gradient :</strong> Objectif progressif (X/Y), barre visible, « Plus que X » — incite à l&apos;effort</p>
-              <p><strong>Endowment :</strong> Visuel valorisant pour les badges obtenus, option épingler — renforce la propriété perçue</p>
-              <p><strong>Scarcity :</strong> Badges or/légendaire = visuels distincts ; « Rare » (&lt;5%) — rareté motive</p>
-              <p><strong>Social proof :</strong> « X% ont débloqué » — comparaison avec les pairs renforce le désir</p>
-              <p><strong>Loss aversion :</strong> Streaks, « Tu approches, ne lâche pas ! » — peur de perdre motive 2× plus</p>
-              <p className="pt-2 mt-2 border-t border-border/50"><strong>Visuel (sans SW) :</strong> Emoji ou URL (✨ ⚡ 🎯 🌟), nom évocateur (Apprenti des Nombres, Maître des Sommes) — esprit progression/maîtrise</p>
+              <p>
+                <strong>Goal-gradient :</strong> Objectif progressif (X/Y), barre visible, « Plus
+                que X » — incite à l&apos;effort
+              </p>
+              <p>
+                <strong>Endowment :</strong> Visuel valorisant pour les badges obtenus, option
+                épingler — renforce la propriété perçue
+              </p>
+              <p>
+                <strong>Scarcity :</strong> Badges or/légendaire = visuels distincts ; « Rare »
+                (&lt;5%) — rareté motive
+              </p>
+              <p>
+                <strong>Social proof :</strong> « X% ont débloqué » — comparaison avec les pairs
+                renforce le désir
+              </p>
+              <p>
+                <strong>Loss aversion :</strong> Streaks, « Tu approches, ne lâche pas ! » — peur de
+                perdre motive 2× plus
+              </p>
+              <p className="pt-2 mt-2 border-t border-border/50">
+                <strong>Visuel (sans SW) :</strong> Emoji ou URL (✨ ⚡ 🎯 🌟), nom évocateur
+                (Apprenti des Nombres, Maître des Sommes) — esprit progression/maîtrise
+              </p>
             </div>
           )}
         </div>
@@ -161,7 +185,9 @@ export function BadgeCreateModal({
         <div className="grid gap-4 py-2">
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label>Code <span className="text-destructive">*</span></Label>
+              <Label>
+                Code <span className="text-destructive">*</span>
+              </Label>
               <Input
                 value={data.code}
                 onChange={(e) => update("code", e.target.value)}
@@ -171,7 +197,9 @@ export function BadgeCreateModal({
               {errors.code && <p className="text-sm text-destructive">{errors.code}</p>}
             </div>
             <div className="grid gap-2">
-              <Label>Nom <span className="text-destructive">*</span></Label>
+              <Label>
+                Nom <span className="text-destructive">*</span>
+              </Label>
               <Input
                 value={data.name}
                 onChange={(e) => update("name", e.target.value)}
@@ -199,7 +227,10 @@ export function BadgeCreateModal({
               onChange={(e) => update("icon_url", e.target.value)}
               placeholder="✨ ou https://..."
             />
-            <p className="text-xs text-muted-foreground">Emoji (ex: ✨ ⚡ 🎯 🌟) ou URL d&apos;image — esprit progression sans droits d&apos;auteur</p>
+            <p className="text-xs text-muted-foreground">
+              Emoji (ex: ✨ ⚡ 🎯 🌟) ou URL d&apos;image — esprit progression sans droits
+              d&apos;auteur
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -257,7 +288,9 @@ export function BadgeCreateModal({
 
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label>Requirements (JSON) <span className="text-destructive">*</span></Label>
+              <Label>
+                Requirements (JSON) <span className="text-destructive">*</span>
+              </Label>
               <div className="flex gap-1 flex-wrap">
                 {REQUIREMENT_EXAMPLES.map((ex) => (
                   <Button
@@ -280,7 +313,9 @@ export function BadgeCreateModal({
               placeholder='{"attempts_count": 10}'
               className={`font-mono text-sm ${errors.requirements ? "border-destructive" : ""}`}
             />
-            {errors.requirements && <p className="text-sm text-destructive">{errors.requirements}</p>}
+            {errors.requirements && (
+              <p className="text-sm text-destructive">{errors.requirements}</p>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

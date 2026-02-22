@@ -59,10 +59,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (!verifyRes.ok) {
-      return new Response(
-        JSON.stringify({ error: "Token invalide ou expiré" }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Token invalide ou expiré" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const cookieHeader = [

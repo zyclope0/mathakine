@@ -38,8 +38,20 @@ export function DeductionRenderer({
   const friends = Array.isArray(visualData?.friends) ? visualData.friends : [];
   const ages = Array.isArray(visualData?.ages) ? visualData.ages : [];
   const relationships = Array.isArray(visualData?.relationships) ? visualData.relationships : [];
-  const entities = (visualData?.entities != null && typeof visualData.entities === "object" && !Array.isArray(visualData.entities) ? visualData.entities : {}) as Record<string, unknown>;
-  const attributes = (visualData?.attributes != null && typeof visualData.attributes === "object" && !Array.isArray(visualData.attributes) ? visualData.attributes : {}) as Record<string, unknown>;
+  const entities = (
+    visualData?.entities != null &&
+    typeof visualData.entities === "object" &&
+    !Array.isArray(visualData.entities)
+      ? visualData.entities
+      : {}
+  ) as Record<string, unknown>;
+  const attributes = (
+    visualData?.attributes != null &&
+    typeof visualData.attributes === "object" &&
+    !Array.isArray(visualData.attributes)
+      ? visualData.attributes
+      : {}
+  ) as Record<string, unknown>;
   const rules = Array.isArray(visualData?.rules) ? visualData.rules : relationships;
   const clues = Array.isArray(visualData?.clues) ? visualData.clues : [];
   const description: string = String(visualData?.description ?? "");
@@ -312,9 +324,15 @@ export function DeductionRenderer({
                   key={index}
                   className="bg-background/50 border border-border rounded-md p-3 flex items-center gap-2 hover:border-primary/50 transition-colors"
                 >
-                  <span className="font-medium text-primary">{String(rel.name ?? rel.subject ?? "")}</span>
-                  <span className="text-muted-foreground text-sm">{String(rel.relation ?? "est")}</span>
-                  <span className="font-medium text-foreground">{String(rel.target ?? rel.object ?? "")}</span>
+                  <span className="font-medium text-primary">
+                    {String(rel.name ?? rel.subject ?? "")}
+                  </span>
+                  <span className="text-muted-foreground text-sm">
+                    {String(rel.relation ?? "est")}
+                  </span>
+                  <span className="font-medium text-foreground">
+                    {String(rel.target ?? rel.object ?? "")}
+                  </span>
                 </div>
               ))}
             </div>
@@ -343,11 +361,13 @@ export function DeductionRenderer({
                 {Boolean(attributes[entity]) && (
                   <div className="text-sm text-muted-foreground mt-1">
                     {typeof attributes[entity] === "object" && attributes[entity] !== null
-                      ? Object.entries(attributes[entity] as Record<string, unknown>).map(([key, value]) => (
-                          <div key={key}>
-                            {key}: {String(value)}
-                          </div>
-                        ))
+                      ? Object.entries(attributes[entity] as Record<string, unknown>).map(
+                          ([key, value]) => (
+                            <div key={key}>
+                              {key}: {String(value)}
+                            </div>
+                          )
+                        )
                       : String(attributes[entity])}
                   </div>
                 )}
@@ -373,7 +393,9 @@ export function DeductionRenderer({
                     <span className="text-foreground">{rule}</span>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-primary">{String(rule.name ?? rule.subject ?? "")}</span>
+                      <span className="font-medium text-primary">
+                        {String(rule.name ?? rule.subject ?? "")}
+                      </span>
                       <span className="text-muted-foreground text-sm">
                         {String(rule.relation ?? "est")}
                       </span>
@@ -416,7 +438,11 @@ export function DeductionRenderer({
                         className="bg-primary/10 border border-primary/30 px-2 py-1 rounded text-sm text-foreground"
                       >
                         {typeof item === "object" && item !== null
-                          ? String((item as Record<string, unknown>).name ?? (item as Record<string, unknown>).value ?? JSON.stringify(item))
+                          ? String(
+                              (item as Record<string, unknown>).name ??
+                                (item as Record<string, unknown>).value ??
+                                JSON.stringify(item)
+                            )
                           : String(item)}
                       </span>
                     ))}

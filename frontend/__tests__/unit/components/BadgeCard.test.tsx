@@ -57,7 +57,9 @@ describe("BadgeCard", () => {
       ...mockBadge,
       earned_at: "2025-01-01T00:00:00Z",
     };
-    render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />, { wrapper: TestWrapper });
+    render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />, {
+      wrapper: TestWrapper,
+    });
     // L'icône CheckCircle devrait être présente
     const checkIcon = document.querySelector('[class*="text-green-500"]');
     expect(checkIcon).toBeInTheDocument();
@@ -74,7 +76,9 @@ describe("BadgeCard", () => {
       ...mockBadge,
       earned_at: "2025-01-15T00:00:00Z",
     };
-    render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />, { wrapper: TestWrapper });
+    render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />, {
+      wrapper: TestWrapper,
+    });
     const dateElements = screen.getAllByText(/obtenu le/i);
     expect(dateElements.length).toBeGreaterThanOrEqual(1);
     expect(dateElements[0]).toBeInTheDocument();

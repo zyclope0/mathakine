@@ -188,7 +188,10 @@ export function BadgeCard({
                     {badge.difficulty === "legendary" && "💎"}
                   </span>
                   <span>
-                    <Trophy className="inline h-3.5 w-3.5 text-yellow-500 mr-0.5" aria-hidden="true" />
+                    <Trophy
+                      className="inline h-3.5 w-3.5 text-yellow-500 mr-0.5"
+                      aria-hidden="true"
+                    />
                     {badge.points_reward} pts
                   </span>
                   {userBadge?.earned_at && (
@@ -231,7 +234,10 @@ export function BadgeCard({
                   <CheckCircle className="h-5 w-5 text-green-500 shrink-0" aria-hidden="true" />
                 </>
               ) : (
-                <Lock className="h-5 w-5 text-muted-foreground/60 shrink-0" aria-label="Badge verrouillé" />
+                <Lock
+                  className="h-5 w-5 text-muted-foreground/60 shrink-0"
+                  aria-label="Badge verrouillé"
+                />
               )}
               {!isEarned && rarity && rarity.rarity === "rare" && (
                 <BadgeComponent
@@ -283,7 +289,9 @@ export function BadgeCard({
               )}
               <div className="rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5">
                 {badge.description ? (
-                  <p className="text-sm text-muted-foreground leading-relaxed">{badge.description}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {badge.description}
+                  </p>
                 ) : (
                   <p className="text-sm text-muted-foreground/60 italic leading-relaxed">
                     Description non disponible
@@ -367,10 +375,10 @@ export function BadgeCard({
                   aria-valuemax={100}
                   aria-label={`${badge.name}: ${Math.round(progress.progress * 100)}%`}
                 >
-                <div
-                  className="bg-primary h-3 rounded-full transition-all duration-500 min-w-[2px]"
-                  style={{ width: `${Math.max(progress.progress * 100, 2)}%` }}
-                />
+                  <div
+                    className="bg-primary h-3 rounded-full transition-all duration-500 min-w-[2px]"
+                    style={{ width: `${Math.max(progress.progress * 100, 2)}%` }}
+                  />
                 </div>
               )}
             </div>

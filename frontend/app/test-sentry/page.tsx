@@ -66,9 +66,7 @@ export default function TestSentryPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <Button variant="outline" onClick={fetchStatus} disabled={statusLoading}>
-              {statusLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : null}
+              {statusLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Récupérer le statut
             </Button>
             {status !== null && (
@@ -97,10 +95,7 @@ export default function TestSentryPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                onClick={handleCaptureException}
-                disabled={captureStep === "pending"}
-              >
+              <Button onClick={handleCaptureException} disabled={captureStep === "pending"}>
                 {captureStep === "pending" ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
@@ -111,9 +106,7 @@ export default function TestSentryPage() {
             </div>
             <div className="flex items-center gap-2 rounded-md bg-muted/50 p-3">
               {captureStep === "idle" && (
-                <span className="text-muted-foreground">
-                  Statut : en attente de clic
-                </span>
+                <span className="text-muted-foreground">Statut : en attente de clic</span>
               )}
               {captureStep === "pending" && (
                 <>
@@ -126,9 +119,7 @@ export default function TestSentryPage() {
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                   <span>
                     Envoyé. Vérifie ton dashboard Sentry (Issues) dans ~10 secondes.
-                    {lastEventId && (
-                      <span className="ml-2 text-xs">Event ID: {lastEventId}</span>
-                    )}
+                    {lastEventId && <span className="ml-2 text-xs">Event ID: {lastEventId}</span>}
                   </span>
                 </>
               )}

@@ -47,10 +47,9 @@ function LoginForm() {
     setResendLoading(true);
     setResendSuccess(false);
     try {
-      await api.post<{ message?: string; error?: string }>(
-        "/api/auth/resend-verification",
-        { email: resendEmail.trim() }
-      );
+      await api.post<{ message?: string; error?: string }>("/api/auth/resend-verification", {
+        email: resendEmail.trim(),
+      });
       setResendSuccess(true);
       toast.success(t("resendSuccess"));
     } catch (err: unknown) {

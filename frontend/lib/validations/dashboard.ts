@@ -94,7 +94,12 @@ export function safeValidateUserStats(data: unknown): UserStats | null {
   if (stats.level) {
     const level = stats.level;
     if (typeof level === "object" && level !== null) {
-      const lev = level as { current?: number; title?: string; current_xp?: number; next_level_xp?: number };
+      const lev = level as {
+        current?: number;
+        title?: string;
+        current_xp?: number;
+        next_level_xp?: number;
+      };
       if (typeof lev.current === "number") {
         validated.level = {
           current: lev.current,
@@ -116,25 +121,50 @@ export function safeValidateUserStats(data: unknown): UserStats | null {
     validated.next_level_xp = stats.next_level_xp;
   }
 
-  if (stats.exercises_by_type != null && typeof stats.exercises_by_type === "object" && !Array.isArray(stats.exercises_by_type)) {
+  if (
+    stats.exercises_by_type != null &&
+    typeof stats.exercises_by_type === "object" &&
+    !Array.isArray(stats.exercises_by_type)
+  ) {
     validated.exercises_by_type = stats.exercises_by_type as Record<string, number>;
   }
 
-  if (stats.exercises_by_difficulty != null && typeof stats.exercises_by_difficulty === "object" && !Array.isArray(stats.exercises_by_difficulty)) {
+  if (
+    stats.exercises_by_difficulty != null &&
+    typeof stats.exercises_by_difficulty === "object" &&
+    !Array.isArray(stats.exercises_by_difficulty)
+  ) {
     validated.exercises_by_difficulty = stats.exercises_by_difficulty as Record<string, number>;
   }
 
-  if (stats.performance_by_type != null && typeof stats.performance_by_type === "object" && !Array.isArray(stats.performance_by_type)) {
-    validated.performance_by_type = stats.performance_by_type as Record<string, { completed: number; correct: number; success_rate: number }>;
+  if (
+    stats.performance_by_type != null &&
+    typeof stats.performance_by_type === "object" &&
+    !Array.isArray(stats.performance_by_type)
+  ) {
+    validated.performance_by_type = stats.performance_by_type as Record<
+      string,
+      { completed: number; correct: number; success_rate: number }
+    >;
   }
 
   const progressOverTime = stats.progress_over_time;
-  if (progressOverTime != null && typeof progressOverTime === "object" && Array.isArray((progressOverTime as { labels?: unknown }).labels) && Array.isArray((progressOverTime as { datasets?: unknown }).datasets)) {
+  if (
+    progressOverTime != null &&
+    typeof progressOverTime === "object" &&
+    Array.isArray((progressOverTime as { labels?: unknown }).labels) &&
+    Array.isArray((progressOverTime as { datasets?: unknown }).datasets)
+  ) {
     validated.progress_over_time = progressOverTime as NonNullable<UserStats["progress_over_time"]>;
   }
 
   const exercisesByDay = stats.exercises_by_day;
-  if (exercisesByDay != null && typeof exercisesByDay === "object" && Array.isArray((exercisesByDay as { labels?: unknown }).labels) && Array.isArray((exercisesByDay as { datasets?: unknown }).datasets)) {
+  if (
+    exercisesByDay != null &&
+    typeof exercisesByDay === "object" &&
+    Array.isArray((exercisesByDay as { labels?: unknown }).labels) &&
+    Array.isArray((exercisesByDay as { datasets?: unknown }).datasets)
+  ) {
     validated.exercises_by_day = exercisesByDay as NonNullable<UserStats["exercises_by_day"]>;
   }
 

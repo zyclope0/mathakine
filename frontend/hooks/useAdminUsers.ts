@@ -40,12 +40,7 @@ export function useAdminUsers(params: AdminUsersParams = {}) {
   const queryString = searchParams.toString();
   const url = `/api/admin/users${queryString ? `?${queryString}` : ""}`;
 
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery<AdminUsersResponse, ApiClientError>({
+  const { data, isLoading, error, refetch } = useQuery<AdminUsersResponse, ApiClientError>({
     queryKey: ["admin", "users", { search, role, is_active, skip, limit }],
     queryFn: async () => api.get<AdminUsersResponse>(url),
     staleTime: 30 * 1000,
