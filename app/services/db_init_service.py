@@ -1,6 +1,7 @@
 """
 Service d'initialisation de la base de données
 """
+
 import random
 from datetime import datetime, timedelta
 
@@ -12,8 +13,7 @@ from sqlalchemy.orm import Session
 from app.db.base import Base, engine, get_db
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
-from app.models.logic_challenge import (AgeGroup, LogicChallenge,
-                                        LogicChallengeType)
+from app.models.logic_challenge import AgeGroup, LogicChallenge, LogicChallengeType
 from app.models.user import User, UserRole
 from app.utils.db_helpers import get_enum_value
 
@@ -25,8 +25,6 @@ def create_tables():
     logger.info("Création des tables dans la base de données")
     Base.metadata.create_all(bind=engine)
     logger.success("Tables créées avec succès")
-
-
 
 
 def populate_test_data():
@@ -56,12 +54,12 @@ def populate_test_data():
         logger.success("Données de test créées avec succès")
     except Exception as test_data_creation_error:
         db.rollback()
-        logger.error(f"Erreur lors de la création des données de test: {str(test_data_creation_error)}")
+        logger.error(
+            f"Erreur lors de la création des données de test: {str(test_data_creation_error)}"
+        )
         raise
     finally:
         db.close()
-
-
 
 
 def create_test_users(db: Session):
@@ -125,8 +123,6 @@ def create_test_users(db: Session):
     logger.info(f"{len(users)} utilisateurs créés (incluant ObiWan permanent)")
 
 
-
-
 def create_test_exercises(db: Session):
     """
     Crée des exercices de test dans la base de données.
@@ -186,8 +182,6 @@ def create_test_exercises(db: Session):
     logger.info(f"{len(exercises)} exercices créés")
 
 
-
-
 def create_test_attempts(db: Session):
     """
     Crée des tentatives de test dans la base de données.
@@ -203,7 +197,9 @@ def create_test_attempts(db: Session):
     padawan = db.query(User).filter(User.role == UserRole.PADAWAN).first()
 
     if not padawan:
-        logger.warning("Aucun utilisateur Padawan trouvé, création des tentatives ignorée")
+        logger.warning(
+            "Aucun utilisateur Padawan trouvé, création des tentatives ignorée"
+        )
         return
 
     # Récupérer tous les exercices
@@ -232,16 +228,18 @@ def create_test_attempts(db: Session):
 
         # Créer une tentative échouée
         failed_answer = ""
-        
+
         if exercise.choices and len(exercise.choices) > 0:
-            incorrect_choices = [c for c in exercise.choices if c != exercise.correct_answer]
+            incorrect_choices = [
+                c for c in exercise.choices if c != exercise.correct_answer
+            ]
             if incorrect_choices:
                 failed_answer = random.choice(incorrect_choices)
-        
+
         # Si on n'a pas trouvé de mauvaise réponse, on utilise juste un espace
         if not failed_answer:
             failed_answer = " "
-            
+
         failed_attempt = Attempt(
             user_id=padawan.id,
             exercise_id=exercise.id,
@@ -257,8 +255,6 @@ def create_test_attempts(db: Session):
         logger.info(f"Tentative échouée créée pour l'exercice {exercise.id}")
 
     logger.info(f"Tentatives créées pour {len(exercises)} exercices")
-
-
 
 
 def create_test_logic_challenges(db: Session):
@@ -314,16 +310,15 @@ def create_test_logic_challenges(db: Session):
     logger.info(f"{len(logic_challenges)} défis logiques créés")
 
 
-
-
 def initialize_database():
     """
     Initialise la base de données avec les tables et les données nécessaires.
-    
+
     ATTENTION : populate_test_data() n'est appelé qu'en dehors de la production.
     Les fonctions de peuplement vérifient déjà si des données existent.
     """
     import os
+
     try:
         create_tables()
         environment = os.getenv("ENVIRONMENT", "development")
@@ -333,5 +328,7 @@ def initialize_database():
             logger.info("Mode production : pas de données de test")
         logger.success("Base de données initialisée avec succès")
     except Exception as db_init_error:
-        logger.error(f"Erreur lors de l'initialisation de la base de données: {str(db_init_error)}")
+        logger.error(
+            f"Erreur lors de l'initialisation de la base de données: {str(db_init_error)}"
+        )
         raise

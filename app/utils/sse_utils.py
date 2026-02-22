@@ -1,11 +1,11 @@
 """
 Utilitaires SSE (Server-Sent Events) — DRY pour génération IA en streaming.
 """
+
 import json
 from typing import AsyncGenerator
 
 from starlette.responses import StreamingResponse
-
 
 SSE_HEADERS = {
     "Cache-Control": "no-cache",
@@ -18,7 +18,9 @@ async def sse_error_generator(message: str) -> AsyncGenerator[str, None]:
     yield f"data: {json.dumps({'type': 'error', 'message': message})}\n\n"
 
 
-def sse_error_response(message: str, extra_headers: dict | None = None) -> StreamingResponse:
+def sse_error_response(
+    message: str, extra_headers: dict | None = None
+) -> StreamingResponse:
     """Retourne une StreamingResponse SSE avec un message d'erreur."""
     headers = dict(SSE_HEADERS)
     if extra_headers:

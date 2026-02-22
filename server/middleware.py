@@ -4,6 +4,7 @@ Middleware for Mathakine.
 This module centralizes Starlette middleware logic for consistent
 request processing across the application.
 """
+
 import os
 import uuid
 from typing import Callable, List
@@ -34,6 +35,7 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
     Génère un request_id par requête pour corrélation logs / Sentry.
     Un seul outil : Sentry pour erreurs + métriques + corrélation.
     """
+
     REQUEST_ID_HEADER = "X-Request-ID"
 
     async def dispatch(self, request: Request, call_next: Callable):
@@ -48,6 +50,7 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
             # Tag Sentry pour corrélation erreurs ↔ logs
             try:
                 import sentry_sdk
+
                 sentry_sdk.set_tag("request_id", rid)
             except ImportError:
                 pass
@@ -90,7 +93,10 @@ class MaintenanceMiddleware(BaseHTTPMiddleware):
         try:
             if await get_setting_bool("maintenance_mode", False):
                 return JSONResponse(
-                    {"error": "maintenance", "message": "Le temple est en maintenance. Réessayez plus tard."},
+                    {
+                        "error": "maintenance",
+                        "message": "Le temple est en maintenance. Réessayez plus tard.",
+                    },
                     status_code=503,
                 )
         except Exception as e:
@@ -101,19 +107,19 @@ class MaintenanceMiddleware(BaseHTTPMiddleware):
 class AuthenticationMiddleware(BaseHTTPMiddleware):
     """
     Middleware for authenticating users.
-    
+
     This middleware checks for authentication tokens in cookies and
     redirects unauthenticated users for protected routes.
     """
-    
+
     async def dispatch(self, request: Request, call_next: Callable):
         """
         Process the request through the middleware.
-        
+
         Args:
             request: The Starlette request object
             call_next: The next middleware or route handler
-            
+
         Returns:
             Starlette Response
         """
@@ -121,9 +127,9 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
         public_routes = [
             "/",
             "/metrics",
-            "/login", 
-            "/register", 
-            "/api/auth/login", 
+            "/login",
+            "/register",
+            "/api/auth/login",
             "/api/auth/logout",  # Permet la déconnexion même sans token valide
             "/api/auth/validate-token",  # Validation token pour sync-cookie (sans session)
             "/api/auth/csrf",  # Token CSRF (sans auth)
@@ -134,16 +140,16 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             "/api/exercises",  # API exercises (publique)
             "/api/challenges",  # API challenges (publique)
             "/static",
-            "/exercises"  # On permet l'accès à la liste des exercices sans connexion
+            "/exercises",  # On permet l'accès à la liste des exercices sans connexion
         ]
-        
+
         # Check if the route is public
         is_public = any(request.url.path.startswith(route) for route in public_routes)
-        
+
         if is_public:
             response = await call_next(request)
             return response
-        
+
         # Check for authentication token
         access_token = request.cookies.get("access_token")
         if not access_token:
@@ -151,12 +157,13 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             # Return 401 JSON response (API backend, no HTML redirect)
             return JSONResponse(
                 {"error": "Unauthorized", "message": "Authentication required"},
-                status_code=401
+                status_code=401,
             )
-            
+
         try:
             # Verify the token (une seule fois — réutilisé par get_current_user)
             from app.core.security import decode_token
+
             payload = decode_token(access_token)
             request.state.auth_payload = payload
 
@@ -169,13 +176,14 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             # Return 401 JSON response (API backend, no HTML redirect)
             return JSONResponse(
                 {"error": "Unauthorized", "message": "Invalid or expired token"},
-                status_code=401
+                status_code=401,
             )
+
 
 def get_middleware() -> List[Middleware]:
     """
     Get the list of middleware for use in Starlette app initialization.
-    
+
     Returns:
         List of Middleware instances
     """
@@ -187,7 +195,7 @@ def get_middleware() -> List[Middleware]:
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
     ]
-    
+
     # Ajouter FRONTEND_URL + variantes www/non-www pour éviter OPTIONS 400
     frontend_url = os.getenv("FRONTEND_URL", "").strip()
     if frontend_url:
@@ -195,8 +203,13 @@ def get_middleware() -> List[Middleware]:
         # Si https://mathakine.fun, ajouter https://www.mathakine.fun et inversement
         try:
             from urllib.parse import urlparse
+
             parsed = urlparse(frontend_url)
-            if parsed.netloc and "." in parsed.netloc and not parsed.netloc.startswith("www."):
+            if (
+                parsed.netloc
+                and "." in parsed.netloc
+                and not parsed.netloc.startswith("www.")
+            ):
                 allowed_origins.append(f"{parsed.scheme}://www.{parsed.netloc}")
             elif parsed.netloc.startswith("www."):
                 allowed_origins.append(f"{parsed.scheme}://{parsed.netloc[4:]}")
@@ -205,7 +218,7 @@ def get_middleware() -> List[Middleware]:
         # Fallback Render frontend si déployé sur Render
         if "mathakine" in frontend_url.lower() and "render.com" not in frontend_url:
             allowed_origins.append("https://mathakine-frontend.onrender.com")
-    
+
     # Filtrer les chaînes vides et doublons
     allowed_origins = list(dict.fromkeys(o for o in allowed_origins if o))
 
@@ -217,28 +230,31 @@ def get_middleware() -> List[Middleware]:
     # Prometheus métriques (audit HIGH #1) — capture toutes les requêtes
     try:
         from app.core.monitoring import PrometheusMetricsMiddleware
+
         middleware_list.append(Middleware(PrometheusMetricsMiddleware))
     except ImportError:
         pass
 
-    middleware_list.extend([
-        Middleware(SecureHeadersMiddleware),
-        Middleware(
-            CORSMiddleware,
-            allow_origins=allowed_origins,
-            allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-            # Audit 4.2: restreindre aux headers utilisés par le frontend
-            allow_headers=[
-                "Content-Type",
-                "Authorization",
-                "Accept",
-                "Accept-Language",
-                "X-CSRF-Token",  # Protection CSRF (audit 3.2)
-            ],
-            allow_credentials=True,  # Important pour les cookies HTTP-only
-        ),
-        Middleware(MaintenanceMiddleware),
-        Middleware(AuthenticationMiddleware)
-    ])
+    middleware_list.extend(
+        [
+            Middleware(SecureHeadersMiddleware),
+            Middleware(
+                CORSMiddleware,
+                allow_origins=allowed_origins,
+                allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+                # Audit 4.2: restreindre aux headers utilisés par le frontend
+                allow_headers=[
+                    "Content-Type",
+                    "Authorization",
+                    "Accept",
+                    "Accept-Language",
+                    "X-CSRF-Token",  # Protection CSRF (audit 3.2)
+                ],
+                allow_credentials=True,  # Important pour les cookies HTTP-only
+            ),
+            Middleware(MaintenanceMiddleware),
+            Middleware(AuthenticationMiddleware),
+        ]
+    )
 
     return middleware_list

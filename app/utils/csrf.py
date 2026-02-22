@@ -5,12 +5,14 @@ Pattern double-submit : le backend génère un token, le met en cookie
 et le retourne. Le client renvoie le token dans le header X-CSRF-Token.
 Un attaquant cross-site ne peut pas lire le cookie ni forger le header.
 """
+
 import os
 import secrets
 
-from app.core.logging_config import get_logger
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+
+from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 

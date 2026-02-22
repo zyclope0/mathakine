@@ -1,8 +1,18 @@
 """
 Modèle SQLAlchemy pour les sessions utilisateur
 """
-from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Index,
-                        Integer, String, Text)
+
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -12,13 +22,14 @@ from app.db.base import Base
 
 class UserSession(Base):
     """Modèle pour les sessions utilisateur"""
+
     __tablename__ = "user_sessions"
-    __table_args__ = (
-        Index('idx_user_sessions_user_id', 'user_id'),
-    )
+    __table_args__ = (Index("idx_user_sessions_user_id", "user_id"),)
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     session_token = Column(String(255), unique=True, nullable=False, index=True)
     device_info = Column(JSON, nullable=True)
     ip_address = Column(INET, nullable=True)
@@ -38,10 +49,12 @@ class UserSession(Base):
     def is_expired(self) -> bool:
         """Vérifier si la session a expiré"""
         from datetime import datetime, timezone
+
         return datetime.now(timezone.utc) > self.expires_at
 
     def extend_session(self, hours: int = 24):
         """Prolonger la session"""
         from datetime import datetime, timedelta, timezone
+
         self.expires_at = datetime.now(timezone.utc) + timedelta(hours=hours)
         self.last_activity = datetime.now(timezone.utc)

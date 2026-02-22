@@ -1,6 +1,7 @@
 """
 Handlers pour les recommandations personnalisées.
 """
+
 import traceback
 from datetime import datetime, timezone
 
@@ -29,16 +30,22 @@ async def get_recommendations(request):
             return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
 
         async with db_session() as db:
-            recommendations = RecommendationService.get_user_recommendations(db, user_id, limit=7)
+            recommendations = RecommendationService.get_user_recommendations(
+                db, user_id, limit=7
+            )
 
             # Si aucune recommandation n'existe, générer de nouvelles
             if not recommendations:
                 try:
                     RecommendationService.generate_recommendations(db, user_id)
                     db.commit()
-                    recommendations = RecommendationService.get_user_recommendations(db, user_id, limit=7)
+                    recommendations = RecommendationService.get_user_recommendations(
+                        db, user_id, limit=7
+                    )
                 except Exception as gen_error:
-                    logger.error(f"Erreur lors de la génération des recommandations: {str(gen_error)}")
+                    logger.error(
+                        f"Erreur lors de la génération des recommandations: {str(gen_error)}"
+                    )
                     traceback.print_exc()
                     recommendations = []
 
@@ -50,13 +57,15 @@ async def get_recommendations(request):
                 "MAITRE": "15-17",
                 "GRAND_MAITRE": "adulte",
             }
-            
+
             # Sérialiser les recommandations
             recommendations_data = []
             for rec in recommendations:
-                difficulty_str = str(rec.difficulty).upper() if rec.difficulty else "PADAWAN"
+                difficulty_str = (
+                    str(rec.difficulty).upper() if rec.difficulty else "PADAWAN"
+                )
                 age_group = difficulty_to_age_group.get(difficulty_str, "9-11")
-                
+
                 rec_data = {
                     "id": rec.id,
                     "exercise_type": str(rec.exercise_type),
@@ -64,7 +73,8 @@ async def get_recommendations(request):
                     "age_group": age_group,
                     "reason": rec.reason or "",
                     "priority": rec.priority,
-                    "recommendation_type": getattr(rec, "recommendation_type", None) or "exercise",
+                    "recommendation_type": getattr(rec, "recommendation_type", None)
+                    or "exercise",
                 }
 
                 # Ajouter les informations de l'exercice si disponible
@@ -73,6 +83,7 @@ async def get_recommendations(request):
                     # Optionnel: récupérer le titre et la question de l'exercice
                     try:
                         from app.services.exercise_service import ExerciseService
+
                         exercise = ExerciseService.get_exercise(db, rec.exercise_id)
                         if exercise:
                             rec_data["exercise_title"] = exercise.title
@@ -84,11 +95,20 @@ async def get_recommendations(request):
                 if getattr(rec, "challenge_id", None):
                     rec_data["challenge_id"] = rec.challenge_id
                     try:
-                        from app.services.logic_challenge_service import LogicChallengeService
-                        challenge = LogicChallengeService.get_challenge(db, rec.challenge_id)
+                        from app.services.logic_challenge_service import (
+                            LogicChallengeService,
+                        )
+
+                        challenge = LogicChallengeService.get_challenge(
+                            db, rec.challenge_id
+                        )
                         if challenge:
-                            rec_data["challenge_title"] = getattr(challenge, "title", None)
-                            rec_data["exercise_title"] = rec_data.get("exercise_title") or challenge.title
+                            rec_data["challenge_title"] = getattr(
+                                challenge, "title", None
+                            )
+                            rec_data["exercise_title"] = (
+                                rec_data.get("exercise_title") or challenge.title
+                            )
                     except Exception:
                         pass
 
@@ -96,9 +116,14 @@ async def get_recommendations(request):
 
             return JSONResponse(recommendations_data)
     except Exception as recommendations_retrieval_error:
-        logger.error(f"Erreur lors de la récupération des recommandations: {recommendations_retrieval_error}")
+        logger.error(
+            f"Erreur lors de la récupération des recommandations: {recommendations_retrieval_error}"
+        )
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(recommendations_retrieval_error)}, status_code=500)
+        return JSONResponse(
+            {"error": get_safe_error_message(recommendations_retrieval_error)},
+            status_code=500,
+        )
 
 
 @require_auth
@@ -114,16 +139,25 @@ async def generate_recommendations(request):
             return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
 
         async with db_session() as db:
-            recommendations = RecommendationService.generate_recommendations(db, user_id)
+            recommendations = RecommendationService.generate_recommendations(
+                db, user_id
+            )
             db.commit()
-            return JSONResponse({
-                "message": "Recommandations générées avec succès",
-                "count": len(recommendations) if recommendations else 0,
-            })
+            return JSONResponse(
+                {
+                    "message": "Recommandations générées avec succès",
+                    "count": len(recommendations) if recommendations else 0,
+                }
+            )
     except Exception as recommendations_generation_error:
-        logger.error(f"Erreur lors de la génération des recommandations: {recommendations_generation_error}")
+        logger.error(
+            f"Erreur lors de la génération des recommandations: {recommendations_generation_error}"
+        )
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(recommendations_generation_error)}, status_code=500)
+        return JSONResponse(
+            {"error": get_safe_error_message(recommendations_generation_error)},
+            status_code=500,
+        )
 
 
 @require_auth
@@ -142,19 +176,29 @@ async def handle_recommendation_complete(request):
         data = await request.json()
         recommendation_id = data.get("recommendation_id")
         if recommendation_id is None:
-            return JSONResponse({"error": "recommendation_id manquant"}, status_code=400)
+            return JSONResponse(
+                {"error": "recommendation_id manquant"}, status_code=400
+            )
         try:
             recommendation_id = int(recommendation_id)
         except (TypeError, ValueError):
-            return JSONResponse({"error": "recommendation_id invalide"}, status_code=400)
+            return JSONResponse(
+                {"error": "recommendation_id invalide"}, status_code=400
+            )
 
         async with db_session() as db:
-            rec = db.query(Recommendation).filter(
-                Recommendation.id == recommendation_id,
-                Recommendation.user_id == user_id,
-            ).first()
+            rec = (
+                db.query(Recommendation)
+                .filter(
+                    Recommendation.id == recommendation_id,
+                    Recommendation.user_id == user_id,
+                )
+                .first()
+            )
             if not rec:
-                return JSONResponse({"error": "Recommandation non trouvée"}, status_code=404)
+                return JSONResponse(
+                    {"error": "Recommandation non trouvée"}, status_code=404
+                )
             rec.is_completed = True
             rec.completed_at = datetime.now(timezone.utc)
             db.commit()
@@ -168,4 +212,3 @@ async def handle_recommendation_complete(request):
         logger.error(f"Erreur lors de la gestion de la recommandation complétée: {e}")
         traceback.print_exc()
         return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
-

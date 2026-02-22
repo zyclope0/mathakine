@@ -4,6 +4,7 @@ Ce module configure loguru pour enregistrer les logs dans un dossier centralisé
 
 Politique PII/secrets : voir docs/03-PROJECT/POLITIQUE_REDACTION_LOGS_PII.md
 """
+
 import contextvars
 import os
 import sys
@@ -12,7 +13,9 @@ from pathlib import Path
 from loguru import logger
 
 # Contextvar pour request_id (corrélation logs + Sentry, un seul outil)
-request_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar("request_id", default="")
+request_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(
+    "request_id", default=""
+)
 
 # Chemins pour les logs
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
@@ -38,7 +41,6 @@ LOG_FORMAT = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}
 def _add_request_id_to_record(record):
     """Patcher : injecte request_id dans chaque record (corrélation)."""
     record["extra"]["request_id"] = request_id_ctx.get() or "-"
-
 
 
 def configure_logging(remove_existing_handlers=True):
@@ -107,6 +109,7 @@ def configure_logging(remove_existing_handlers=True):
 
     logger.info("Journalisation configurée avec succès")
     logger.debug(f"Dossier des logs: {LOGS_DIR}")
+
 
 # Configuration automatique lors de l'importation du module
 configure_logging()

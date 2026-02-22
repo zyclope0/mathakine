@@ -2,6 +2,7 @@
 Utilitaires pour le parsing des requêtes HTTP (DRY).
 Centralise le pattern await request.json() + validation des champs.
 """
+
 from typing import Any, Dict, Optional, Union
 
 from starlette.requests import Request

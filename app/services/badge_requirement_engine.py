@@ -31,7 +31,8 @@ logger = get_logger(__name__)
 
 # Type: Callable[[Session, int, dict, Optional[dict], Optional[dict]], bool]
 CheckerFn = Callable[
-    [Session, int, Dict[str, Any], Optional[Dict[str, Any]], Optional[Dict[str, Any]]], bool
+    [Session, int, Dict[str, Any], Optional[Dict[str, Any]], Optional[Dict[str, Any]]],
+    bool,
 ]
 
 
@@ -49,7 +50,10 @@ def _check_attempts_count(
     if stats_cache is not None and "attempts_count" in stats_cache:
         count = stats_cache["attempts_count"]
     else:
-        count = db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar() or 0
+        count = (
+            db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar()
+            or 0
+        )
     return count >= int(target)
 
 
@@ -89,9 +93,9 @@ def _check_mixte(
     stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie attempts_count ET logic_attempts_count. B5."""
-    return _check_attempts_count(db, user_id, req, _attempt_data, stats_cache) and _check_logic_attempts_count(
+    return _check_attempts_count(
         db, user_id, req, _attempt_data, stats_cache
-    )
+    ) and _check_logic_attempts_count(db, user_id, req, _attempt_data, stats_cache)
 
 
 def _check_success_rate(
@@ -106,7 +110,11 @@ def _check_success_rate(
     rate = req.get("success_rate")
     if target is None or rate is None:
         return False
-    if stats_cache is not None and "attempts_total" in stats_cache and "attempts_correct" in stats_cache:
+    if (
+        stats_cache is not None
+        and "attempts_total" in stats_cache
+        and "attempts_correct" in stats_cache
+    ):
         total, correct = stats_cache["attempts_total"], stats_cache["attempts_correct"]
     else:
         stats = db.execute(
@@ -136,7 +144,11 @@ def _check_consecutive(
     required = req.get("consecutive_correct")
     if required is None:
         return False
-    if stats_cache is not None and "consecutive_by_type" in stats_cache and ex_type in stats_cache["consecutive_by_type"]:
+    if (
+        stats_cache is not None
+        and "consecutive_by_type" in stats_cache
+        and ex_type in stats_cache["consecutive_by_type"]
+    ):
         streak = stats_cache["consecutive_by_type"][ex_type]
         return streak >= int(required)
     rows = db.execute(
@@ -265,12 +277,18 @@ def _check_all_types(
     stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie que l'utilisateur a essayé tous les types d'exercices."""
-    if stats_cache is not None and "exercise_types" in stats_cache and "user_exercise_types" in stats_cache:
+    if (
+        stats_cache is not None
+        and "exercise_types" in stats_cache
+        and "user_exercise_types" in stats_cache
+    ):
         all_set = set(stats_cache["exercise_types"])
         user_set = stats_cache["user_exercise_types"]
         return all_set.issubset(user_set)
     all_types = db.execute(
-        text("SELECT DISTINCT exercise_type FROM exercises WHERE is_active = true AND is_archived = false")
+        text(
+            "SELECT DISTINCT exercise_type FROM exercises WHERE is_active = true AND is_archived = false"
+        )
     ).fetchall()
     if not all_types:
         return False
@@ -330,7 +348,11 @@ def _check_min_per_type(
     """Vérifie au moins X exercices réussis par type."""
     min_count = req.get("min_per_type", req.get("min_count", 5))
     min_count = int(min_count)
-    if stats_cache is not None and "exercise_types" in stats_cache and "per_type_correct" in stats_cache:
+    if (
+        stats_cache is not None
+        and "exercise_types" in stats_cache
+        and "per_type_correct" in stats_cache
+    ):
         types_list = stats_cache["exercise_types"]
         per_type = stats_cache["per_type_correct"]
         for ex_type in types_list:
@@ -338,7 +360,9 @@ def _check_min_per_type(
                 return False
         return True
     all_types = db.execute(
-        text("SELECT DISTINCT exercise_type FROM exercises WHERE is_active = true AND is_archived = false")
+        text(
+            "SELECT DISTINCT exercise_type FROM exercises WHERE is_active = true AND is_archived = false"
+        )
     ).fetchall()
     if not all_types:
         return False
@@ -393,7 +417,11 @@ def detect_requirement_type(req: Dict[str, Any]) -> Optional[str]:
         return "logic_attempts_count"
 
     # attempts_count seul (pas de consecutive_correct, etc.)
-    if "attempts_count" in keys and "consecutive_correct" not in keys and "success_rate" not in keys:
+    if (
+        "attempts_count" in keys
+        and "consecutive_correct" not in keys
+        and "success_rate" not in keys
+    ):
         return "attempts_count"
 
     # success_rate
@@ -460,12 +488,16 @@ def check_requirements(
 # Type: Callable[[Session, int, Dict, Optional[Dict]], Optional[tuple[float, int, int]]]
 # stats_cache évite N+1 quand get_badges_progress pré-fetch les stats
 ProgressFn = Callable[
-    [Session, int, Dict[str, Any], Optional[Dict[str, Any]]], Optional[tuple[float, int, int]]
+    [Session, int, Dict[str, Any], Optional[Dict[str, Any]]],
+    Optional[tuple[float, int, int]],
 ]
 
 
 def _progress_attempts_count(
-    db: Session, user_id: int, req: Dict[str, Any], cache: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[tuple[float, int, int]]:
     t = req.get("attempts_count")
     if t is None:
@@ -474,13 +506,19 @@ def _progress_attempts_count(
     if cache is not None and "attempts_count" in cache:
         c = cache["attempts_count"]
     else:
-        c = db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar() or 0
+        c = (
+            db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar()
+            or 0
+        )
     p = min(1.0, c / max(1, t))
     return (round(p, 2), c, t)
 
 
 def _progress_logic_attempts_count(
-    db: Session, user_id: int, req: Dict[str, Any], cache: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[tuple[float, int, int]]:
     from app.models.logic_challenge import LogicChallengeAttempt
 
@@ -493,7 +531,10 @@ def _progress_logic_attempts_count(
     else:
         c = (
             db.query(func.count(LogicChallengeAttempt.id))
-            .filter(LogicChallengeAttempt.user_id == user_id, LogicChallengeAttempt.is_correct == True)
+            .filter(
+                LogicChallengeAttempt.user_id == user_id,
+                LogicChallengeAttempt.is_correct == True,
+            )
             .scalar()
             or 0
         )
@@ -502,7 +543,10 @@ def _progress_logic_attempts_count(
 
 
 def _progress_mixte(
-    db: Session, user_id: int, req: Dict[str, Any], cache: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[tuple[float, int, int]]:
     p1 = _progress_attempts_count(db, user_id, req, cache)
     p2 = _progress_logic_attempts_count(db, user_id, req, cache)
@@ -517,7 +561,10 @@ def _progress_mixte(
 
 
 def _progress_success_rate(
-    db: Session, user_id: int, req: Dict[str, Any], cache: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[tuple[float, int, int]]:
     t = req.get("min_attempts")
     rate = req.get("success_rate")
@@ -529,7 +576,9 @@ def _progress_success_rate(
         correct = cache["attempts_correct"]
     else:
         row = db.execute(
-            text("SELECT COUNT(*), COUNT(CASE WHEN is_correct THEN 1 END) FROM attempts WHERE user_id = :user_id"),
+            text(
+                "SELECT COUNT(*), COUNT(CASE WHEN is_correct THEN 1 END) FROM attempts WHERE user_id = :user_id"
+            ),
             {"user_id": user_id},
         ).fetchone()
         total = row[0] if row else 0
@@ -541,14 +590,21 @@ def _progress_success_rate(
 
 
 def _progress_consecutive(
-    db: Session, user_id: int, req: Dict[str, Any], cache: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[tuple[float, int, int]]:
     ex_type = str(req.get("exercise_type", "addition")).lower()
     t = req.get("consecutive_correct")
     if t is None:
         return None
     t = int(t)
-    if cache is not None and "consecutive_by_type" in cache and ex_type in cache["consecutive_by_type"]:
+    if (
+        cache is not None
+        and "consecutive_by_type" in cache
+        and ex_type in cache["consecutive_by_type"]
+    ):
         streak = cache["consecutive_by_type"][ex_type]
     else:
         rows = db.execute(
@@ -571,7 +627,10 @@ def _progress_consecutive(
 
 
 def _progress_consecutive_days(
-    db: Session, user_id: int, req: Dict[str, Any], cache: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[tuple[float, int, int]]:
     t = req.get("consecutive_days")
     if t is None:
@@ -602,18 +661,27 @@ def _progress_consecutive_days(
 
 
 def _progress_max_time(
-    db: Session, user_id: int, req: Dict[str, Any], cache: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[tuple[float, int, int]]:
     max_t = req.get("max_time")
     if max_t is None:
         return None
     max_t = float(max_t)
     if cache is not None and "min_fast_time" in cache:
-        has_fast = cache["min_fast_time"] is not None and cache["min_fast_time"] <= max_t
+        has_fast = (
+            cache["min_fast_time"] is not None and cache["min_fast_time"] <= max_t
+        )
     else:
         fast = (
             db.query(Attempt)
-            .filter(Attempt.user_id == user_id, Attempt.is_correct == True, Attempt.time_spent <= max_t)
+            .filter(
+                Attempt.user_id == user_id,
+                Attempt.is_correct == True,
+                Attempt.time_spent <= max_t,
+            )
             .first()
         )
         has_fast = fast is not None
@@ -621,7 +689,10 @@ def _progress_max_time(
 
 
 def _progress_perfect_day(
-    db: Session, user_id: int, req: Dict[str, Any], cache: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[tuple[float, int, int]]:
     if cache is not None and "perfect_day_today" in cache:
         total, correct = cache["perfect_day_today"]
@@ -642,14 +713,23 @@ def _progress_perfect_day(
 
 
 def _progress_all_types(
-    db: Session, user_id: int, req: Dict[str, Any], cache: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[tuple[float, int, int]]:
-    if cache is not None and "exercise_types" in cache and "user_exercise_types" in cache:
+    if (
+        cache is not None
+        and "exercise_types" in cache
+        and "user_exercise_types" in cache
+    ):
         all_set = set(cache["exercise_types"])
         user_set = cache["user_exercise_types"]
     else:
         all_rows = db.execute(
-            text("SELECT DISTINCT exercise_type FROM exercises WHERE is_active = true AND is_archived = false")
+            text(
+                "SELECT DISTINCT exercise_type FROM exercises WHERE is_active = true AND is_archived = false"
+            )
         ).fetchall()
         if not all_rows:
             return None
@@ -671,7 +751,10 @@ def _progress_all_types(
 
 
 def _progress_comeback(
-    _db: Session, _user_id: int, req: Dict[str, Any], _cache: Optional[Dict[str, Any]] = None
+    _db: Session,
+    _user_id: int,
+    req: Dict[str, Any],
+    _cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[tuple[float, int, int]]:
     """Comeback : pas de progression affichable (surprise)."""
     if "comeback_days" not in req:
@@ -680,7 +763,10 @@ def _progress_comeback(
 
 
 def _progress_min_per_type(
-    db: Session, user_id: int, req: Dict[str, Any], cache: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[tuple[float, int, int]]:
     min_count = int(req.get("min_per_type", req.get("min_count", 5)))
     if cache is not None and "exercise_types" in cache and "per_type_correct" in cache:
@@ -689,7 +775,9 @@ def _progress_min_per_type(
         min_cur = min((per_type.get(t, 0) for t in types_list), default=0)
     else:
         all_rows = db.execute(
-            text("SELECT DISTINCT exercise_type FROM exercises WHERE is_active = true AND is_archived = false")
+            text(
+                "SELECT DISTINCT exercise_type FROM exercises WHERE is_active = true AND is_archived = false"
+            )
         ).fetchall()
         if not all_rows:
             return None
@@ -697,14 +785,14 @@ def _progress_min_per_type(
         for r in all_rows:
             ex_type = str(r[0]).lower()
             cnt = db.execute(
-                    text("""
+                text("""
                         SELECT COUNT(*) FROM attempts a
                         JOIN exercises e ON a.exercise_id = e.id
                         WHERE a.user_id = :user_id AND LOWER(e.exercise_type::text) = LOWER(:ex_type)
                         AND a.is_correct = true
                     """),
-                    {"user_id": user_id, "ex_type": ex_type},
-                ).fetchone()
+                {"user_id": user_id, "ex_type": ex_type},
+            ).fetchone()
             c = cnt[0] if cnt else 0
             min_cur = min(min_cur, c)
         min_cur = int(min_cur) if min_cur != float("inf") else 0

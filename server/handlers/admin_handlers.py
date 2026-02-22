@@ -1,6 +1,7 @@
 """
 Handlers pour l'espace admin (rôle archiviste).
 """
+
 import csv
 import io
 import json
@@ -9,14 +10,12 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import case, func
 from sqlalchemy.orm import Session
-
 from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse
 
-from app.models.admin_audit_log import AdminAuditLog
 from app.models.achievement import Achievement, UserAchievement
+from app.models.admin_audit_log import AdminAuditLog
 from app.models.attempt import Attempt
-from app.models.setting import Setting
 from app.models.exercise import Exercise
 from app.models.logic_challenge import (
     AgeGroup,
@@ -24,11 +23,12 @@ from app.models.logic_challenge import (
     LogicChallengeAttempt,
     LogicChallengeType,
 )
+from app.models.setting import Setting
 from app.models.user import User, UserRole
 from app.services.email_service import EmailService
 from app.utils.db_utils import db_session
 from app.utils.email_verification import generate_verification_token
-from server.auth import require_auth, require_admin
+from server.auth import require_admin, require_auth
 from server.handlers.admin_handlers_utils import (
     CONFIG_SCHEMA,
     _log_admin_action,
@@ -63,15 +63,17 @@ async def admin_config_get(request: Request):
         row = by_key.get(key)
         raw = row.value if row else None
         value = _parse_setting_value(raw, schema)
-        result.append({
-            "key": key,
-            "value": value,
-            "type": schema["type"],
-            "category": schema.get("category", ""),
-            "label": schema.get("label", key),
-            "min": schema.get("min"),
-            "max": schema.get("max"),
-        })
+        result.append(
+            {
+                "key": key,
+                "value": value,
+                "type": schema["type"],
+                "category": schema.get("category", ""),
+                "label": schema.get("label", key),
+                "min": schema.get("min"),
+                "max": schema.get("max"),
+            }
+        )
     return JSONResponse({"settings": result})
 
 
@@ -89,7 +91,9 @@ async def admin_config_put(request: Request):
         return JSONResponse({"detail": "Body JSON invalide"}, status_code=400)
     settings_in = body.get("settings") or {}
     if not isinstance(settings_in, dict):
-        return JSONResponse({"detail": "'settings' doit être un objet"}, status_code=400)
+        return JSONResponse(
+            {"detail": "'settings' doit être un objet"}, status_code=400
+        )
 
     async with db_session() as db:
         admin_user_id = getattr(request.state, "user", {}).get("id")
@@ -101,7 +105,11 @@ async def admin_config_put(request: Request):
             # Validation
             if schema["type"] == "int":
                 try:
-                    v = int(value) if not isinstance(value, (bool, type(None))) else schema["default"]
+                    v = (
+                        int(value)
+                        if not isinstance(value, (bool, type(None)))
+                        else schema["default"]
+                    )
                     if "min" in schema and v < schema["min"]:
                         v = schema["min"]
                     if "max" in schema and v > schema["max"]:
@@ -117,17 +125,23 @@ async def admin_config_put(request: Request):
                 row.value = str_val
                 row.updated_at = datetime.now(timezone.utc)
             else:
-                db.add(Setting(
-                    key=key,
-                    value=str_val,
-                    category=schema.get("category"),
-                    description=schema.get("label"),
-                    is_system=True,
-                    is_public=False,
-                ))
+                db.add(
+                    Setting(
+                        key=key,
+                        value=str_val,
+                        category=schema.get("category"),
+                        description=schema.get("label"),
+                        is_system=True,
+                        is_public=False,
+                    )
+                )
 
         _log_admin_action(
-            db, admin_user_id, "config_update", "settings", None,
+            db,
+            admin_user_id,
+            "config_update",
+            "settings",
+            None,
             {"updated_keys": list(settings_in.keys())},
         )
         db.commit()
@@ -144,18 +158,31 @@ async def admin_overview(request: Request):
     """
     async with db_session() as db:
         total_users = db.query(func.count(User.id)).scalar() or 0
-        total_exercises = db.query(func.count(Exercise.id)).filter(Exercise.is_archived == False).scalar() or 0
-        total_challenges = db.query(func.count(LogicChallenge.id)).filter(LogicChallenge.is_archived == False).scalar() or 0
+        total_exercises = (
+            db.query(func.count(Exercise.id))
+            .filter(Exercise.is_archived == False)
+            .scalar()
+            or 0
+        )
+        total_challenges = (
+            db.query(func.count(LogicChallenge.id))
+            .filter(LogicChallenge.is_archived == False)
+            .scalar()
+            or 0
+        )
         # Tentatives (table attempts)
         from app.models.attempt import Attempt
+
         total_attempts = db.query(func.count(Attempt.id)).scalar() or 0
 
-    return JSONResponse({
-        "total_users": total_users,
-        "total_exercises": total_exercises,
-        "total_challenges": total_challenges,
-        "total_attempts": total_attempts,
-    })
+    return JSONResponse(
+        {
+            "total_users": total_users,
+            "total_exercises": total_exercises,
+            "total_challenges": total_challenges,
+            "total_attempts": total_attempts,
+        }
+    )
 
 
 @require_auth
@@ -185,7 +212,12 @@ async def admin_users(request: Request):
                     User.full_name.ilike(pattern),
                 )
             )
-        role_map = {"padawan": UserRole.PADAWAN, "maitre": UserRole.MAITRE, "gardien": UserRole.GARDIEN, "archiviste": UserRole.ARCHIVISTE}
+        role_map = {
+            "padawan": UserRole.PADAWAN,
+            "maitre": UserRole.MAITRE,
+            "gardien": UserRole.GARDIEN,
+            "archiviste": UserRole.ARCHIVISTE,
+        }
         if role and role in role_map:
             q = q.filter(User.role == role_map[role])
         if is_active_param is not None:
@@ -196,16 +228,18 @@ async def admin_users(request: Request):
 
         items = []
         for u in users:
-            items.append({
-                "id": u.id,
-                "username": u.username,
-                "email": u.email,
-                "full_name": u.full_name,
-                "role": u.role.value if u.role else "padawan",
-                "is_active": u.is_active,
-                "is_email_verified": u.is_email_verified,
-                "created_at": u.created_at.isoformat() if u.created_at else None,
-            })
+            items.append(
+                {
+                    "id": u.id,
+                    "username": u.username,
+                    "email": u.email,
+                    "full_name": u.full_name,
+                    "role": u.role.value if u.role else "padawan",
+                    "is_active": u.is_active,
+                    "is_email_verified": u.is_email_verified,
+                    "created_at": u.created_at.isoformat() if u.created_at else None,
+                }
+            )
 
     return JSONResponse({"items": items, "total": total})
 
@@ -237,13 +271,20 @@ async def admin_users_patch(request: Request):
             status_code=400,
         )
 
-    role_map = {"padawan": UserRole.PADAWAN, "maitre": UserRole.MAITRE, "gardien": UserRole.GARDIEN, "archiviste": UserRole.ARCHIVISTE}
+    role_map = {
+        "padawan": UserRole.PADAWAN,
+        "maitre": UserRole.MAITRE,
+        "gardien": UserRole.GARDIEN,
+        "archiviste": UserRole.ARCHIVISTE,
+    }
     new_role = None
     if role_raw is not None:
         r = str(role_raw).strip().lower()
         if r not in role_map:
             return JSONResponse(
-                {"error": "Rôle invalide. Valeurs: padawan, maitre, gardien, archiviste."},
+                {
+                    "error": "Rôle invalide. Valeurs: padawan, maitre, gardien, archiviste."
+                },
                 status_code=400,
             )
         new_role = role_map[r]
@@ -278,7 +319,14 @@ async def admin_users_patch(request: Request):
             user.is_active = is_active
         if new_role is not None:
             user.role = new_role
-        _log_admin_action(db, current_user_id, "user_patch", "user", user_id, {"is_active": is_active, "role": role_raw})
+        _log_admin_action(
+            db,
+            current_user_id,
+            "user_patch",
+            "user",
+            user_id,
+            {"is_active": is_active, "role": role_raw},
+        )
         db.commit()
         db.refresh(user)
 
@@ -304,7 +352,10 @@ async def admin_users_send_reset_password(request: Request):
         if not user:
             return JSONResponse({"error": "Utilisateur non trouvé."}, status_code=404)
         if not user.is_active:
-            return JSONResponse({"error": "Compte désactivé, impossible d'envoyer l'email."}, status_code=400)
+            return JSONResponse(
+                {"error": "Compte désactivé, impossible d'envoyer l'email."},
+                status_code=400,
+            )
 
         reset_token = generate_verification_token()
         expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
@@ -313,7 +364,9 @@ async def admin_users_send_reset_password(request: Request):
         user.updated_at = datetime.now(timezone.utc)
         db.commit()
 
-        frontend_url = os.getenv("FRONTEND_URL", "https://mathakine-frontend.onrender.com")
+        frontend_url = os.getenv(
+            "FRONTEND_URL", "https://mathakine-frontend.onrender.com"
+        )
         email_sent = EmailService.send_password_reset_email(
             to_email=user.email,
             username=user.username,
@@ -348,7 +401,9 @@ async def admin_users_resend_verification(request: Request):
         user.email_verification_sent_at = datetime.now(timezone.utc)
         db.commit()
 
-        frontend_url = os.getenv("FRONTEND_URL", "https://mathakine-frontend.onrender.com")
+        frontend_url = os.getenv(
+            "FRONTEND_URL", "https://mathakine-frontend.onrender.com"
+        )
         email_sent = EmailService.send_verification_email(
             to_email=user.email,
             username=user.username,
@@ -405,7 +460,9 @@ async def admin_exercises(request: Request):
                 db.query(
                     Attempt.exercise_id,
                     func.count(Attempt.id).label("attempt_count"),
-                    func.sum(case((Attempt.is_correct == True, 1), else_=0)).label("correct_count"),
+                    func.sum(case((Attempt.is_correct == True, 1), else_=0)).label(
+                        "correct_count"
+                    ),
                 )
                 .filter(Attempt.exercise_id.in_(ex_ids))
                 .group_by(Attempt.exercise_id)
@@ -423,17 +480,19 @@ async def admin_exercises(request: Request):
             a_count = stats["attempt_count"]
             c_count = stats["correct_count"]
             success_rate = round((c_count / a_count * 100), 1) if a_count > 0 else 0.0
-            items.append({
-                "id": e.id,
-                "title": e.title,
-                "exercise_type": e.exercise_type,
-                "difficulty": e.difficulty,
-                "age_group": e.age_group,
-                "is_archived": e.is_archived,
-                "attempt_count": a_count,
-                "success_rate": success_rate,
-                "created_at": e.created_at.isoformat() if e.created_at else None,
-            })
+            items.append(
+                {
+                    "id": e.id,
+                    "title": e.title,
+                    "exercise_type": e.exercise_type,
+                    "difficulty": e.difficulty,
+                    "age_group": e.age_group,
+                    "is_archived": e.is_archived,
+                    "attempt_count": a_count,
+                    "success_rate": success_rate,
+                    "created_at": e.created_at.isoformat() if e.created_at else None,
+                }
+            )
 
     return JSONResponse({"items": items, "total": total})
 
@@ -485,7 +544,9 @@ async def admin_exercises_post(request: Request):
     if not question:
         return JSONResponse({"error": "La question est obligatoire."}, status_code=400)
     if not correct_answer:
-        return JSONResponse({"error": "La réponse correcte est obligatoire."}, status_code=400)
+        return JSONResponse(
+            {"error": "La réponse correcte est obligatoire."}, status_code=400
+        )
 
     async with db_session() as db:
         ex = Exercise(
@@ -504,7 +565,9 @@ async def admin_exercises_post(request: Request):
         db.add(ex)
         db.flush()
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(db, admin_id, "exercise_create", "exercise", ex.id, {"title": ex.title})
+        _log_admin_action(
+            db, admin_id, "exercise_create", "exercise", ex.id, {"title": ex.title}
+        )
         db.commit()
         db.refresh(ex)
     return JSONResponse(_exercise_to_detail(ex), status_code=201)
@@ -533,9 +596,19 @@ async def admin_exercises_put(request: Request):
         return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
 
     allowed_str = {
-        "title", "exercise_type", "difficulty", "age_group", "tags",
-        "context_theme", "complexity", "question", "correct_answer",
-        "explanation", "hint", "image_url", "audio_url",
+        "title",
+        "exercise_type",
+        "difficulty",
+        "age_group",
+        "tags",
+        "context_theme",
+        "complexity",
+        "question",
+        "correct_answer",
+        "explanation",
+        "hint",
+        "image_url",
+        "audio_url",
     }
     allowed_bool = {"is_active", "is_archived"}
     allowed_json = {"choices"}
@@ -557,7 +630,14 @@ async def admin_exercises_put(request: Request):
         for k, v in update_data.items():
             setattr(ex, k, v)
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(db, admin_id, "exercise_update", "exercise", exercise_id, {"fields": list(update_data.keys())})
+        _log_admin_action(
+            db,
+            admin_id,
+            "exercise_update",
+            "exercise",
+            exercise_id,
+            {"fields": list(update_data.keys())},
+        )
         db.commit()
         db.refresh(ex)
     return JSONResponse(_exercise_to_detail(ex))
@@ -594,7 +674,14 @@ async def admin_exercises_duplicate(request: Request):
         db.add(copy)
         db.flush()
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(db, admin_id, "exercise_duplicate", "exercise", copy.id, {"from_id": exercise_id, "title": copy.title})
+        _log_admin_action(
+            db,
+            admin_id,
+            "exercise_duplicate",
+            "exercise",
+            copy.id,
+            {"from_id": exercise_id, "title": copy.title},
+        )
         db.commit()
         db.refresh(copy)
     return JSONResponse(_exercise_to_detail(copy))
@@ -611,7 +698,9 @@ async def admin_exercises_patch(request: Request):
         return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
     is_archived = data.get("is_archived")
     if not isinstance(is_archived, bool):
-        return JSONResponse({"error": "Le champ is_archived doit être un booléen."}, status_code=400)
+        return JSONResponse(
+            {"error": "Le champ is_archived doit être un booléen."}, status_code=400
+        )
 
     async with db_session() as db:
         ex = db.query(Exercise).filter(Exercise.id == exercise_id).first()
@@ -619,18 +708,28 @@ async def admin_exercises_patch(request: Request):
             return JSONResponse({"error": "Exercice non trouvé."}, status_code=404)
         ex.is_archived = is_archived
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(db, admin_id, "exercise_archive", "exercise", exercise_id, {"is_archived": is_archived})
+        _log_admin_action(
+            db,
+            admin_id,
+            "exercise_archive",
+            "exercise",
+            exercise_id,
+            {"is_archived": is_archived},
+        )
         db.commit()
         db.refresh(ex)
 
-    return JSONResponse({
-        "id": ex.id,
-        "title": ex.title,
-        "is_archived": ex.is_archived,
-    })
+    return JSONResponse(
+        {
+            "id": ex.id,
+            "title": ex.title,
+            "is_archived": ex.is_archived,
+        }
+    )
 
 
 # ==================== ADMIN BADGES (Lot B-1) ====================
+
 
 def _achievement_to_detail(a: Achievement) -> dict:
     """Sérialise un badge pour l'édition admin."""
@@ -658,7 +757,10 @@ def _validate_requirements(req: dict | None) -> tuple[bool, str | None]:
     if not isinstance(req, dict):
         return False, "requirements doit être un objet JSON"
     if len(req) == 0:
-        return False, "requirements doit contenir au moins une clé (attempts_count, min_attempts+success_rate, etc.)"
+        return (
+            False,
+            "requirements doit contenir au moins une clé (attempts_count, min_attempts+success_rate, etc.)",
+        )
 
     # attempts_count
     if "attempts_count" in req:
@@ -728,7 +830,9 @@ async def admin_badges(request: Request):
     Liste tous les badges (actifs et inactifs).
     """
     async with db_session() as db:
-        badges = db.query(Achievement).order_by(Achievement.category, Achievement.code).all()
+        badges = (
+            db.query(Achievement).order_by(Achievement.category, Achievement.code).all()
+        )
         counts = (
             db.query(UserAchievement.achievement_id, func.count(UserAchievement.id))
             .group_by(UserAchievement.achievement_id)
@@ -762,12 +866,16 @@ async def admin_badges_post(request: Request):
     requirements = data.get("requirements")
     ok, err = _validate_requirements(requirements)
     if not ok:
-        return JSONResponse({"error": err or "Requirements invalides."}, status_code=400)
+        return JSONResponse(
+            {"error": err or "Requirements invalides."}, status_code=400
+        )
 
     async with db_session() as db:
         existing = db.query(Achievement).filter(Achievement.code == code).first()
         if existing:
-            return JSONResponse({"error": f"Le code '{code}' existe déjà."}, status_code=409)
+            return JSONResponse(
+                {"error": f"Le code '{code}' existe déjà."}, status_code=409
+            )
 
         a = Achievement(
             code=code,
@@ -785,7 +893,14 @@ async def admin_badges_post(request: Request):
         db.add(a)
         db.flush()
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(db, admin_id, "badge_create", "achievement", a.id, {"code": a.code, "name": a.name})
+        _log_admin_action(
+            db,
+            admin_id,
+            "badge_create",
+            "achievement",
+            a.id,
+            {"code": a.code, "name": a.name},
+        )
         db.commit()
         db.refresh(a)
     return JSONResponse(_achievement_to_detail(a), status_code=201)
@@ -801,7 +916,12 @@ async def admin_badge_get(request: Request):
         if not a:
             return JSONResponse({"error": "Badge non trouvé."}, status_code=404)
         d = _achievement_to_detail(a)
-        user_count = db.query(func.count(UserAchievement.id)).filter(UserAchievement.achievement_id == badge_id).scalar() or 0
+        user_count = (
+            db.query(func.count(UserAchievement.id))
+            .filter(UserAchievement.achievement_id == badge_id)
+            .scalar()
+            or 0
+        )
         d["_user_count"] = user_count
         return JSONResponse(d)
 
@@ -824,9 +944,18 @@ async def admin_badges_put(request: Request):
         if "requirements" in data:
             ok, err = _validate_requirements(data.get("requirements"))
             if not ok:
-                return JSONResponse({"error": err or "Requirements invalides."}, status_code=400)
+                return JSONResponse(
+                    {"error": err or "Requirements invalides."}, status_code=400
+                )
 
-        str_fields = ("name", "description", "icon_url", "category", "difficulty", "star_wars_title")
+        str_fields = (
+            "name",
+            "description",
+            "icon_url",
+            "category",
+            "difficulty",
+            "star_wars_title",
+        )
         for k, v in data.items():
             if k == "code":
                 continue
@@ -840,7 +969,14 @@ async def admin_badges_put(request: Request):
                 setattr(a, k, (v or "").strip() or None)
 
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(db, admin_id, "badge_update", "achievement", badge_id, {"fields": list(data.keys())})
+        _log_admin_action(
+            db,
+            admin_id,
+            "badge_update",
+            "achievement",
+            badge_id,
+            {"fields": list(data.keys())},
+        )
         db.commit()
         db.refresh(a)
     return JSONResponse(_achievement_to_detail(a))
@@ -859,25 +995,43 @@ async def admin_badges_delete(request: Request):
         if not a:
             return JSONResponse({"error": "Badge non trouvé."}, status_code=404)
 
-        user_count = db.query(func.count(UserAchievement.id)).filter(UserAchievement.achievement_id == badge_id).scalar() or 0
+        user_count = (
+            db.query(func.count(UserAchievement.id))
+            .filter(UserAchievement.achievement_id == badge_id)
+            .scalar()
+            or 0
+        )
         a.is_active = False
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(db, admin_id, "badge_delete", "achievement", badge_id, {"soft": True, "user_count": user_count})
+        _log_admin_action(
+            db,
+            admin_id,
+            "badge_delete",
+            "achievement",
+            badge_id,
+            {"soft": True, "user_count": user_count},
+        )
         db.commit()
         db.refresh(a)
-    return JSONResponse({
-        "success": True,
-        "id": a.id,
-        "code": a.code,
-        "name": a.name,
-        "is_active": False,
-        "message": "Badge désactivé (soft delete).",
-    })
+    return JSONResponse(
+        {
+            "success": True,
+            "id": a.id,
+            "code": a.code,
+            "name": a.name,
+            "is_active": False,
+            "message": "Badge désactivé (soft delete).",
+        }
+    )
 
 
 def _challenge_to_detail(c) -> dict:
     """Sérialise un défi pour l'édition admin."""
-    ct_val = c.challenge_type.value if hasattr(c.challenge_type, "value") else str(c.challenge_type)
+    ct_val = (
+        c.challenge_type.value
+        if hasattr(c.challenge_type, "value")
+        else str(c.challenge_type)
+    )
     ag_val = c.age_group.value if hasattr(c.age_group, "value") else str(c.age_group)
     return {
         "id": c.id,
@@ -922,7 +1076,9 @@ async def admin_challenges_post(request: Request):
     if not title:
         return JSONResponse({"error": "Le titre est obligatoire."}, status_code=400)
     if not description:
-        return JSONResponse({"error": "La description est obligatoire."}, status_code=400)
+        return JSONResponse(
+            {"error": "La description est obligatoire."}, status_code=400
+        )
 
     try:
         ct = LogicChallengeType(challenge_type_raw)
@@ -943,14 +1099,17 @@ async def admin_challenges_post(request: Request):
             content=(data.get("content") or "").strip() or None,
             solution=(data.get("solution") or "").strip() or None,
             correct_answer=(data.get("correct_answer") or "").strip() or None,
-            solution_explanation=(data.get("solution_explanation") or "").strip() or None,
+            solution_explanation=(data.get("solution_explanation") or "").strip()
+            or None,
             visual_data=data.get("visual_data"),
             hints=data.get("hints"),
         )
         db.add(ch)
         db.flush()
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(db, admin_id, "challenge_create", "challenge", ch.id, {"title": ch.title})
+        _log_admin_action(
+            db, admin_id, "challenge_create", "challenge", ch.id, {"title": ch.title}
+        )
         db.commit()
         db.refresh(ch)
     return JSONResponse(_challenge_to_detail(ch), status_code=201)
@@ -979,9 +1138,16 @@ async def admin_challenges_put(request: Request):
         return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
 
     allowed_str = {
-        "title", "description", "difficulty", "content", "question",
-        "solution", "correct_answer", "solution_explanation",
-        "image_url", "tags",
+        "title",
+        "description",
+        "difficulty",
+        "content",
+        "question",
+        "solution",
+        "correct_answer",
+        "solution_explanation",
+        "image_url",
+        "tags",
     }
     allowed_bool = {"is_active", "is_archived"}
     allowed_int = {"difficulty_rating", "estimated_time_minutes"}
@@ -1017,7 +1183,14 @@ async def admin_challenges_put(request: Request):
         for k, v in update_data.items():
             setattr(ch, k, v)
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(db, admin_id, "challenge_update", "challenge", challenge_id, {"fields": list(update_data.keys())})
+        _log_admin_action(
+            db,
+            admin_id,
+            "challenge_update",
+            "challenge",
+            challenge_id,
+            {"fields": list(update_data.keys())},
+        )
         db.commit()
         db.refresh(ch)
     return JSONResponse(_challenge_to_detail(ch))
@@ -1029,7 +1202,9 @@ async def admin_challenges_duplicate(request: Request):
     """POST /api/admin/challenges/{challenge_id}/duplicate — crée une copie."""
     challenge_id = int(request.path_params.get("challenge_id"))
     async with db_session() as db:
-        orig = db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
+        orig = (
+            db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
+        )
         if not orig:
             return JSONResponse({"error": "Défi non trouvé."}, status_code=404)
         copy = LogicChallenge(
@@ -1056,7 +1231,14 @@ async def admin_challenges_duplicate(request: Request):
         db.add(copy)
         db.flush()
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(db, admin_id, "challenge_duplicate", "challenge", copy.id, {"from_id": challenge_id, "title": copy.title})
+        _log_admin_action(
+            db,
+            admin_id,
+            "challenge_duplicate",
+            "challenge",
+            copy.id,
+            {"from_id": challenge_id, "title": copy.title},
+        )
         db.commit()
         db.refresh(copy)
     return JSONResponse(_challenge_to_detail(copy))
@@ -1100,10 +1282,12 @@ async def admin_challenges(request: Request):
                 pass
         if search:
             pattern = f"%{search}%"
-            q = q.filter(or_(
-                LogicChallenge.title.ilike(pattern),
-                LogicChallenge.description.ilike(pattern),
-            ))
+            q = q.filter(
+                or_(
+                    LogicChallenge.title.ilike(pattern),
+                    LogicChallenge.description.ilike(pattern),
+                )
+            )
         total = q.count()
         challenges = q.order_by(order_by).offset(skip).limit(limit).all()
         ch_ids = [c.id for c in challenges]
@@ -1114,14 +1298,19 @@ async def admin_challenges(request: Request):
                 db.query(
                     LogicChallengeAttempt.challenge_id,
                     func.count(LogicChallengeAttempt.id).label("attempt_count"),
-                    func.sum(case((LogicChallengeAttempt.is_correct == True, 1), else_=0)).label("correct_count"),
+                    func.sum(
+                        case((LogicChallengeAttempt.is_correct == True, 1), else_=0)
+                    ).label("correct_count"),
                 )
                 .filter(LogicChallengeAttempt.challenge_id.in_(ch_ids))
                 .group_by(LogicChallengeAttempt.challenge_id)
                 .all()
             )
             for ch_id, a_count, c_count in rows:
-                attempt_stats[ch_id] = {"attempt_count": a_count or 0, "correct_count": c_count or 0}
+                attempt_stats[ch_id] = {
+                    "attempt_count": a_count or 0,
+                    "correct_count": c_count or 0,
+                }
 
         items = []
         for c in challenges:
@@ -1129,18 +1318,26 @@ async def admin_challenges(request: Request):
             a_count = stats["attempt_count"]
             c_count = stats["correct_count"]
             success_rate = round((c_count / a_count * 100), 1) if a_count > 0 else 0.0
-            ct_val = c.challenge_type.value if hasattr(c.challenge_type, "value") else str(c.challenge_type)
-            ag_val = c.age_group.value if hasattr(c.age_group, "value") else str(c.age_group)
-            items.append({
-                "id": c.id,
-                "title": c.title,
-                "challenge_type": ct_val,
-                "age_group": ag_val,
-                "is_archived": c.is_archived,
-                "attempt_count": a_count,
-                "success_rate": success_rate,
-                "created_at": c.created_at.isoformat() if c.created_at else None,
-            })
+            ct_val = (
+                c.challenge_type.value
+                if hasattr(c.challenge_type, "value")
+                else str(c.challenge_type)
+            )
+            ag_val = (
+                c.age_group.value if hasattr(c.age_group, "value") else str(c.age_group)
+            )
+            items.append(
+                {
+                    "id": c.id,
+                    "title": c.title,
+                    "challenge_type": ct_val,
+                    "age_group": ag_val,
+                    "is_archived": c.is_archived,
+                    "attempt_count": a_count,
+                    "success_rate": success_rate,
+                    "created_at": c.created_at.isoformat() if c.created_at else None,
+                }
+            )
 
     return JSONResponse({"items": items, "total": total})
 
@@ -1156,7 +1353,9 @@ async def admin_challenges_patch(request: Request):
         return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
     is_archived = data.get("is_archived")
     if not isinstance(is_archived, bool):
-        return JSONResponse({"error": "Le champ is_archived doit être un booléen."}, status_code=400)
+        return JSONResponse(
+            {"error": "Le champ is_archived doit être un booléen."}, status_code=400
+        )
 
     async with db_session() as db:
         ch = db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
@@ -1164,15 +1363,24 @@ async def admin_challenges_patch(request: Request):
             return JSONResponse({"error": "Défi non trouvé."}, status_code=404)
         ch.is_archived = is_archived
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(db, admin_id, "challenge_archive", "challenge", challenge_id, {"is_archived": is_archived})
+        _log_admin_action(
+            db,
+            admin_id,
+            "challenge_archive",
+            "challenge",
+            challenge_id,
+            {"is_archived": is_archived},
+        )
         db.commit()
         db.refresh(ch)
 
-    return JSONResponse({
-        "id": ch.id,
-        "title": ch.title,
-        "is_archived": ch.is_archived,
-    })
+    return JSONResponse(
+        {
+            "id": ch.id,
+            "title": ch.title,
+            "is_archived": ch.is_archived,
+        }
+    )
 
 
 @require_auth
@@ -1203,16 +1411,20 @@ async def admin_audit_log(request: Request):
             if log.admin_user_id:
                 u = db.query(User).filter(User.id == log.admin_user_id).first()
                 admin_username = u.username if u else None
-            items.append({
-                "id": log.id,
-                "admin_user_id": log.admin_user_id,
-                "admin_username": admin_username,
-                "action": log.action,
-                "resource_type": log.resource_type,
-                "resource_id": log.resource_id,
-                "details": json.loads(log.details) if log.details else None,
-                "created_at": log.created_at.isoformat() if log.created_at else None,
-            })
+            items.append(
+                {
+                    "id": log.id,
+                    "admin_user_id": log.admin_user_id,
+                    "admin_username": admin_username,
+                    "action": log.action,
+                    "resource_type": log.resource_type,
+                    "resource_id": log.resource_id,
+                    "details": json.loads(log.details) if log.details else None,
+                    "created_at": (
+                        log.created_at.isoformat() if log.created_at else None
+                    ),
+                }
+            )
 
     return JSONResponse({"items": items, "total": total})
 
@@ -1231,40 +1443,71 @@ async def admin_moderation(request: Request):
 
     from sqlalchemy import or_
 
-    result = {"exercises": [], "challenges": [], "total_exercises": 0, "total_challenges": 0}
+    result = {
+        "exercises": [],
+        "challenges": [],
+        "total_exercises": 0,
+        "total_challenges": 0,
+    }
 
     async with db_session() as db:
         if mod_type in ("exercises", "all"):
             q_ex = db.query(Exercise).filter(Exercise.ai_generated == True)
             result["total_exercises"] = q_ex.count()
-            rows_ex = q_ex.order_by(Exercise.created_at.desc()).offset(skip).limit(limit).all()
+            rows_ex = (
+                q_ex.order_by(Exercise.created_at.desc())
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
             for e in rows_ex:
-                result["exercises"].append({
-                    "id": e.id,
-                    "title": e.title,
-                    "exercise_type": e.exercise_type or "",
-                    "age_group": e.age_group or "",
-                    "is_archived": e.is_archived,
-                    "created_at": e.created_at.isoformat() if e.created_at else None,
-                })
+                result["exercises"].append(
+                    {
+                        "id": e.id,
+                        "title": e.title,
+                        "exercise_type": e.exercise_type or "",
+                        "age_group": e.age_group or "",
+                        "is_archived": e.is_archived,
+                        "created_at": (
+                            e.created_at.isoformat() if e.created_at else None
+                        ),
+                    }
+                )
 
         if mod_type in ("challenges", "all"):
             # Tous les défis sont générés par IA pour le moment ; generation_parameters
             # est renseigné pour les créations futures via le flux IA
             q_ch = db.query(LogicChallenge)
             result["total_challenges"] = q_ch.count()
-            rows_ch = q_ch.order_by(LogicChallenge.created_at.desc()).offset(skip).limit(limit).all()
+            rows_ch = (
+                q_ch.order_by(LogicChallenge.created_at.desc())
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
             for c in rows_ch:
-                ct_val = c.challenge_type.value if hasattr(c.challenge_type, "value") else str(c.challenge_type)
-                ag_val = c.age_group.value if hasattr(c.age_group, "value") else str(c.age_group)
-                result["challenges"].append({
-                    "id": c.id,
-                    "title": c.title,
-                    "challenge_type": ct_val,
-                    "age_group": ag_val,
-                    "is_archived": c.is_archived,
-                    "created_at": c.created_at.isoformat() if c.created_at else None,
-                })
+                ct_val = (
+                    c.challenge_type.value
+                    if hasattr(c.challenge_type, "value")
+                    else str(c.challenge_type)
+                )
+                ag_val = (
+                    c.age_group.value
+                    if hasattr(c.age_group, "value")
+                    else str(c.age_group)
+                )
+                result["challenges"].append(
+                    {
+                        "id": c.id,
+                        "title": c.title,
+                        "challenge_type": ct_val,
+                        "age_group": ag_val,
+                        "is_archived": c.is_archived,
+                        "created_at": (
+                            c.created_at.isoformat() if c.created_at else None
+                        ),
+                    }
+                )
 
     return JSONResponse(result)
 
@@ -1290,13 +1533,17 @@ async def admin_reports(request: Request):
 
     async with db_session() as db:
         # Inscriptions (nouveaux utilisateurs dans la période)
-        new_users = db.query(func.count(User.id)).filter(User.created_at >= since).scalar() or 0
+        new_users = (
+            db.query(func.count(User.id)).filter(User.created_at >= since).scalar() or 0
+        )
 
         # Tentatives exercices dans la période
         attempts_exercises = (
             db.query(
                 func.count(Attempt.id).label("total"),
-                func.sum(case((Attempt.is_correct == True, 1), else_=0)).label("correct"),
+                func.sum(case((Attempt.is_correct == True, 1), else_=0)).label(
+                    "correct"
+                ),
             )
             .filter(Attempt.created_at >= since)
             .first()
@@ -1323,25 +1570,36 @@ async def admin_reports(request: Request):
 
         # Utilisateurs actifs (au moins 1 tentative exercice ou défi dans la période)
         from sqlalchemy import union
+
         q1 = db.query(Attempt.user_id).filter(Attempt.created_at >= since).distinct()
-        q2 = db.query(LogicChallengeAttempt.user_id).filter(LogicChallengeAttempt.created_at >= since).distinct()
+        q2 = (
+            db.query(LogicChallengeAttempt.user_id)
+            .filter(LogicChallengeAttempt.created_at >= since)
+            .distinct()
+        )
         u = union(q1, q2).subquery()
         active_users_count = db.query(func.count()).select_from(u).scalar() or 0
 
         total_attempts_all = total_attempts + challenge_attempts_count
         total_correct_all = correct_attempts + challenge_correct
-        success_rate = round((total_correct_all / total_attempts_all * 100), 1) if total_attempts_all > 0 else 0.0
+        success_rate = (
+            round((total_correct_all / total_attempts_all * 100), 1)
+            if total_attempts_all > 0
+            else 0.0
+        )
 
-    return JSONResponse({
-        "period": period,
-        "days": days,
-        "new_users": new_users,
-        "attempts_exercises": total_attempts,
-        "attempts_challenges": challenge_attempts_count,
-        "total_attempts": total_attempts_all,
-        "success_rate": success_rate,
-        "active_users": active_users_count,
-    })
+    return JSONResponse(
+        {
+            "period": period,
+            "days": days,
+            "new_users": new_users,
+            "attempts_exercises": total_attempts,
+            "attempts_challenges": challenge_attempts_count,
+            "total_attempts": total_attempts_all,
+            "success_rate": success_rate,
+            "active_users": active_users_count,
+        }
+    )
 
 
 @require_auth
@@ -1363,7 +1621,14 @@ async def admin_export(request: Request):
 
     admin_id = getattr(request.state, "user", {}).get("id")
     async with db_session() as _db:
-        _log_admin_action(_db, admin_id, "export_csv", None, None, {"type": export_type, "period": period})
+        _log_admin_action(
+            _db,
+            admin_id,
+            "export_csv",
+            None,
+            None,
+            {"type": export_type, "period": period},
+        )
         _db.commit()
 
     since = None
@@ -1382,30 +1647,76 @@ async def admin_export(request: Request):
                 q = q.filter(User.created_at >= since)
             rows = q.order_by(User.created_at.desc()).limit(MAX_ROWS).all()
             rows_data = [
-                [u.id, u.username or "", u.email or "", u.full_name or "", u.role.value if u.role else "", u.is_active, u.created_at.isoformat() if u.created_at else ""]
+                [
+                    u.id,
+                    u.username or "",
+                    u.email or "",
+                    u.full_name or "",
+                    u.role.value if u.role else "",
+                    u.is_active,
+                    u.created_at.isoformat() if u.created_at else "",
+                ]
                 for u in rows
             ]
-            headers = ["id", "username", "email", "full_name", "role", "is_active", "created_at"]
+            headers = [
+                "id",
+                "username",
+                "email",
+                "full_name",
+                "role",
+                "is_active",
+                "created_at",
+            ]
         elif export_type == "exercises":
             q = db.query(Exercise)
             if since:
                 q = q.filter(Exercise.created_at >= since)
             rows = q.order_by(Exercise.created_at.desc()).limit(MAX_ROWS).all()
             rows_data = [
-                [e.id, (e.title or "").replace("\n", " "), e.exercise_type or "", e.difficulty or "", e.age_group or "", e.is_archived, e.created_at.isoformat() if e.created_at else ""]
+                [
+                    e.id,
+                    (e.title or "").replace("\n", " "),
+                    e.exercise_type or "",
+                    e.difficulty or "",
+                    e.age_group or "",
+                    e.is_archived,
+                    e.created_at.isoformat() if e.created_at else "",
+                ]
                 for e in rows
             ]
-            headers = ["id", "title", "exercise_type", "difficulty", "age_group", "is_archived", "created_at"]
+            headers = [
+                "id",
+                "title",
+                "exercise_type",
+                "difficulty",
+                "age_group",
+                "is_archived",
+                "created_at",
+            ]
         elif export_type == "attempts":
             q = db.query(Attempt)
             if since:
                 q = q.filter(Attempt.created_at >= since)
             rows = q.order_by(Attempt.created_at.desc()).limit(MAX_ROWS).all()
             rows_data = [
-                [a.id, a.user_id, a.exercise_id, a.is_correct, a.time_spent or "", a.created_at.isoformat() if a.created_at else ""]
+                [
+                    a.id,
+                    a.user_id,
+                    a.exercise_id,
+                    a.is_correct,
+                    a.time_spent or "",
+                    a.created_at.isoformat() if a.created_at else "",
+                ]
                 for a in rows
             ]
-            headers = ["id", "user_id", "exercise_id", "is_correct", "time_spent", "created_at"]
+            headers = [
+                "id",
+                "user_id",
+                "exercise_id",
+                "is_correct",
+                "time_spent",
+                "created_at",
+            ]
         else:  # overview
             total_users = db.query(func.count(User.id)).scalar() or 0
             total_exercises = db.query(func.count(Exercise.id)).scalar() or 0

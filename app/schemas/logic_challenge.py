@@ -7,67 +7,83 @@ from app.models.logic_challenge import AgeGroup, LogicChallengeType
 
 # Schémas pour la manipulation des défis logiques
 
+
 class LogicChallengeBase(BaseModel):
     """Schéma de base pour les défis de logique (Épreuves du Conseil Jedi)"""
-    title: str = Field(..., min_length=3, max_length=100,
-                    description="Titre du défi (3-100 caractères)")
-    challenge_type: LogicChallengeType = Field(...,
-                                           description="Type de défi logique")
-    age_group: AgeGroup = Field(...,
-                             description="Groupe d'âge cible")
-    description: str = Field(..., min_length=10,
-                         description="Énoncé du problème (min 10 caractères)")
-    correct_answer: str = Field(...,
-                             description="Réponse correcte au défi")
-    solution_explanation: str = Field(..., min_length=10,
-                                  description="Explication détaillée de la solution")
+
+    title: str = Field(
+        ...,
+        min_length=3,
+        max_length=100,
+        description="Titre du défi (3-100 caractères)",
+    )
+    challenge_type: LogicChallengeType = Field(..., description="Type de défi logique")
+    age_group: AgeGroup = Field(..., description="Groupe d'âge cible")
+    description: str = Field(
+        ..., min_length=10, description="Énoncé du problème (min 10 caractères)"
+    )
+    correct_answer: str = Field(..., description="Réponse correcte au défi")
+    solution_explanation: str = Field(
+        ..., min_length=10, description="Explication détaillée de la solution"
+    )
 
     # Champs optionnels
-    hints: Optional[List[str]] = Field(None,
-                                    description="Liste des indices (aide progressive)")
-    difficulty_rating: float = Field(3.0, ge=1.0, le=5.0,
-                                 description="Niveau de difficulté (1-5)")
-    estimated_time_minutes: int = Field(15, ge=1, le=120,
-                                     description="Temps estimé pour résoudre (en minutes)")
-    tags: Optional[str] = Field(None,
-                             description="Tags séparés par des virgules")
+    hints: Optional[List[str]] = Field(
+        None, description="Liste des indices (aide progressive)"
+    )
+    difficulty_rating: float = Field(
+        3.0, ge=1.0, le=5.0, description="Niveau de difficulté (1-5)"
+    )
+    estimated_time_minutes: int = Field(
+        15, ge=1, le=120, description="Temps estimé pour résoudre (en minutes)"
+    )
+    tags: Optional[str] = Field(None, description="Tags séparés par des virgules")
 
-    @field_validator('correct_answer')
+    @field_validator("correct_answer")
     @classmethod
     def answer_not_empty(cls, v):
         if not v or v.isspace():
             raise ValueError("La réponse correcte ne peut pas être vide")
         return v
 
-    @field_validator('description')
+    @field_validator("description")
     @classmethod
     def description_not_too_short(cls, v):
         if len(v) < 10:
             raise ValueError("La description doit contenir au moins 10 caractères")
         return v
 
-    @field_validator('solution_explanation')
+    @field_validator("solution_explanation")
     @classmethod
     def explanation_not_too_short(cls, v):
         if len(v) < 10:
-            raise ValueError("L'explication de la solution doit contenir au moins 10 caractères")
+            raise ValueError(
+                "L'explication de la solution doit contenir au moins 10 caractères"
+            )
         return v
+
 
 class LogicChallengeCreate(LogicChallengeBase):
     """Schéma pour la création d'un défi logique"""
-    visual_data: Optional[Dict[str, Any]] = Field(None,
-                                             description="Données pour visualisation (graphes, formes, etc.)")
-    image_url: Optional[str] = Field(None,
-                                 description="URL de l'image associée")
-    source_reference: Optional[str] = Field(None,
-                                        description="Source (concours, livre, etc.)")
-    is_template: bool = Field(False,
-                           description="S'il s'agit d'un template pour génération")
-    generation_parameters: Optional[Dict[str, Any]] = Field(None,
-                                                       description="Paramètres pour la génération")
+
+    visual_data: Optional[Dict[str, Any]] = Field(
+        None, description="Données pour visualisation (graphes, formes, etc.)"
+    )
+    image_url: Optional[str] = Field(None, description="URL de l'image associée")
+    source_reference: Optional[str] = Field(
+        None, description="Source (concours, livre, etc.)"
+    )
+    is_template: bool = Field(
+        False, description="S'il s'agit d'un template pour génération"
+    )
+    generation_parameters: Optional[Dict[str, Any]] = Field(
+        None, description="Paramètres pour la génération"
+    )
+
 
 class LogicChallengeUpdate(BaseModel):
     """Schéma pour la mise à jour d'un défi logique"""
+
     title: Optional[str] = Field(None, min_length=3, max_length=100)
     challenge_type: Optional[LogicChallengeType] = None
     age_group: Optional[AgeGroup] = None
@@ -86,22 +102,26 @@ class LogicChallengeUpdate(BaseModel):
     is_template: Optional[bool] = None
     generation_parameters: Optional[Dict[str, Any]] = None
 
-    @field_validator('description')
+    @field_validator("description")
     @classmethod
     def description_not_too_short(cls, v):
         if v is not None and len(v) < 10:
             raise ValueError("La description doit contenir au moins 10 caractères")
         return v
 
-    @field_validator('solution_explanation')
+    @field_validator("solution_explanation")
     @classmethod
     def explanation_not_too_short(cls, v):
         if v is not None and len(v) < 10:
-            raise ValueError("L'explication de la solution doit contenir au moins 10 caractères")
+            raise ValueError(
+                "L'explication de la solution doit contenir au moins 10 caractères"
+            )
         return v
+
 
 class LogicChallengeInDB(LogicChallengeBase):
     """Schéma pour un défi logique en base de données"""
+
     id: int
     creator_id: Optional[int] = None
     visual_data: Optional[Dict[str, Any]] = None
@@ -118,49 +138,65 @@ class LogicChallengeInDB(LogicChallengeBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class LogicChallenge(LogicChallengeInDB):
     """Schéma pour un défi logique complet"""
+
     model_config = ConfigDict(from_attributes=True)
+
 
 # Schémas pour les tentatives de résolution
 
+
 class LogicChallengeAttemptBase(BaseModel):
     """Schéma de base pour les tentatives de résolution de défis logiques"""
+
     challenge_id: int = Field(..., description="ID du défi logique")
     user_solution: str = Field(..., description="Réponse fournie par l'utilisateur")
-    time_spent: Optional[float] = Field(None, ge=0.0,
-                                     description="Temps passé en secondes")
-    hints_used: Optional[List[int]] = Field(None, description="Liste des indices utilisés (ex: [1, 2])")
-    notes: Optional[str] = Field(None, description="Notes personnelles de l'utilisateur")
+    time_spent: Optional[float] = Field(
+        None, ge=0.0, description="Temps passé en secondes"
+    )
+    hints_used: Optional[List[int]] = Field(
+        None, description="Liste des indices utilisés (ex: [1, 2])"
+    )
+    notes: Optional[str] = Field(
+        None, description="Notes personnelles de l'utilisateur"
+    )
 
-    @field_validator('user_solution')
+    @field_validator("user_solution")
     @classmethod
     def answer_not_empty(cls, v):
         if not v or v.isspace():
             raise ValueError("La réponse ne peut pas être vide")
         return v
 
+
 class LogicChallengeAttemptCreate(LogicChallengeAttemptBase):
     """Schéma pour la création d'une tentative de résolution de défi logique"""
+
     pass
+
 
 class LogicChallengeAttemptUpdate(BaseModel):
     """Schéma pour la mise à jour d'une tentative de résolution"""
+
     user_solution: Optional[str] = None
     is_correct: Optional[bool] = None
     time_spent: Optional[float] = Field(None, ge=0.0)
     hints_used: Optional[List[int]] = None
     notes: Optional[str] = None
 
-    @field_validator('user_solution')
+    @field_validator("user_solution")
     @classmethod
     def answer_not_empty(cls, v):
         if v is not None and (not v or v.isspace()):
             raise ValueError("La réponse ne peut pas être vide")
         return v
 
+
 class LogicChallengeAttemptInDB(LogicChallengeAttemptBase):
     """Schéma pour une tentative de résolution en base de données"""
+
     id: int
     user_id: int
     is_correct: bool
@@ -169,30 +205,42 @@ class LogicChallengeAttemptInDB(LogicChallengeAttemptBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class LogicChallengeAttempt(LogicChallengeAttemptInDB):
     """Schéma pour une tentative de résolution complète"""
+
     challenge_title: Optional[str] = None
     challenge_type: Optional[LogicChallengeType] = None
     age_group: Optional[AgeGroup] = None
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class LogicChallengeStats(BaseModel):
     """Statistiques sur un défi logique"""
+
     challenge_id: int
     view_count: int
     attempt_count: int
     success_rate: float
     average_time: Optional[float] = None
-    hint_usage_rate: Optional[Dict[str, float]] = None  # Taux d'utilisation de chaque niveau d'indice
+    hint_usage_rate: Optional[Dict[str, float]] = (
+        None  # Taux d'utilisation de chaque niveau d'indice
+    )
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class LogicChallengeAttemptResult(BaseModel):
     """Résultat d'une tentative de résolution d'un défi logique"""
+
     is_correct: bool = Field(..., description="Si la réponse est correcte")
     feedback: str = Field(..., description="Retour sur la tentative")
-    explanation: Optional[str] = Field(None, description="Explication de la solution (si correct)")
-    hints: Optional[List[str]] = Field(None, description="Indices pour aider (si incorrect)")
+    explanation: Optional[str] = Field(
+        None, description="Explication de la solution (si correct)"
+    )
+    hints: Optional[List[str]] = Field(
+        None, description="Indices pour aider (si incorrect)"
+    )
 
-    model_config = ConfigDict(from_attributes=True) 
+    model_config = ConfigDict(from_attributes=True)

@@ -1,6 +1,7 @@
 """
 Schémas Pydantic pour les sessions utilisateur
 """
+
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -9,6 +10,7 @@ from pydantic import BaseModel, ConfigDict
 
 class UserSessionBase(BaseModel):
     """Schéma de base pour une session utilisateur"""
+
     device_info: Optional[Dict[str, Any]] = None
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
@@ -17,6 +19,7 @@ class UserSessionBase(BaseModel):
 
 class UserSessionInDB(UserSessionBase):
     """Schéma pour une session en base de données (avec tous les champs)"""
+
     id: int
     user_id: int
     session_token: str
@@ -30,6 +33,7 @@ class UserSessionInDB(UserSessionBase):
 
 class UserSession(BaseModel):
     """Schéma pour une session utilisateur (réponse API)"""
+
     id: int
     device_info: Optional[Dict[str, Any]] = None
     ip_address: Optional[str] = None
@@ -46,5 +50,6 @@ class UserSession(BaseModel):
 
 class UserSessionRevoke(BaseModel):
     """Schéma pour la révocation d'une session"""
+
     success: bool
     message: str

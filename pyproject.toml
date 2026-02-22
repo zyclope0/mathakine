@@ -3,3 +3,28 @@ name = "mathakine"
 version = "2.1.0"
 description = "Plateforme d'exercices et défis logiques gamifiée"
 requires-python = ">=3.12"
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # default
+  \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  # project
+  | _ARCHIVE_2026
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88

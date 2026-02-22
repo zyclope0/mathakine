@@ -2,6 +2,7 @@
 Handlers pour le chatbot utilisant OpenAI
 Optimisé avec streaming SSE, smart routing, et best practices AI modernes
 """
+
 import json
 import os
 
@@ -16,6 +17,7 @@ logger = get_logger(__name__)
 
 try:
     from openai import AsyncOpenAI
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -25,40 +27,61 @@ def _detect_complexity(message: str, conversation_history: list) -> str:
     """
     Détecte la complexité de la question pour smart routing.
     Retourne 'simple' ou 'complex' pour choisir le modèle approprié.
-    
+
     Best practice : Utiliser gpt-4o-mini pour questions simples (coût réduit),
     gpt-4o pour questions complexes (meilleure qualité).
     """
     message_lower = message.lower()
-    
+
     # Indicateurs de complexité
     complex_keywords = [
-        'démontrer', 'prouver', 'théorème', 'formule', 'équation complexe',
-        'raisonnement', 'déduction', 'logique avancée', 'grille logique',
-        'combinatoire', 'probabilité', 'séquence complexe', 'pattern avancé',
-        'résoudre étape par étape', 'explique en détail', 'comment fonctionne'
+        "démontrer",
+        "prouver",
+        "théorème",
+        "formule",
+        "équation complexe",
+        "raisonnement",
+        "déduction",
+        "logique avancée",
+        "grille logique",
+        "combinatoire",
+        "probabilité",
+        "séquence complexe",
+        "pattern avancé",
+        "résoudre étape par étape",
+        "explique en détail",
+        "comment fonctionne",
     ]
-    
+
     simple_keywords = [
-        'combien fait', 'c\'est quoi', 'qu\'est-ce que', 'définition',
-        'exemple', 'calcul simple', 'addition', 'soustraction', 'multiplication',
-        'division', 'aide', 'explique simplement'
+        "combien fait",
+        "c'est quoi",
+        "qu'est-ce que",
+        "définition",
+        "exemple",
+        "calcul simple",
+        "addition",
+        "soustraction",
+        "multiplication",
+        "division",
+        "aide",
+        "explique simplement",
     ]
-    
+
     # Questions courtes = généralement simples
     if len(message.split()) <= 5:
-        return 'simple'
-    
+        return "simple"
+
     # Détecter mots-clés complexes
     if any(keyword in message_lower for keyword in complex_keywords):
-        return 'complex'
-    
+        return "complex"
+
     # Détecter mots-clés simples
     if any(keyword in message_lower for keyword in simple_keywords):
-        return 'simple'
-    
+        return "simple"
+
     # Par défaut, utiliser le modèle simple pour économiser les coûts
-    return 'simple'
+    return "simple"
 
 
 def _estimate_age(message: str) -> str | None:
@@ -67,16 +90,19 @@ def _estimate_age(message: str) -> str | None:
     Amélioration : pourrait utiliser le profil utilisateur si disponible.
     """
     message_lower = message.lower()
-    
-    if any(word in message_lower for word in ['cm1', 'cm2', 'cp', 'ce1', 'ce2', 'maternelle']):
-        return '5-8'
-    elif any(word in message_lower for word in ['6ème', '5ème', 'collège', 'primaire']):
-        return '9-12'
-    elif any(word in message_lower for word in ['4ème', '3ème', 'lycée', 'seconde']):
-        return '13-16'
-    elif any(word in message_lower for word in ['terminale', 'bac', 'université']):
-        return '17-20'
-    
+
+    if any(
+        word in message_lower
+        for word in ["cm1", "cm2", "cp", "ce1", "ce2", "maternelle"]
+    ):
+        return "5-8"
+    elif any(word in message_lower for word in ["6ème", "5ème", "collège", "primaire"]):
+        return "9-12"
+    elif any(word in message_lower for word in ["4ème", "3ème", "lycée", "seconde"]):
+        return "13-16"
+    elif any(word in message_lower for word in ["terminale", "bac", "université"]):
+        return "17-20"
+
     return None
 
 
@@ -136,24 +162,20 @@ Ton rôle est d'être un guide bienveillant. Tu dois engager les utilisateurs av
 async def chat_api(request):
     """
     Endpoint API pour le chatbot
-    
+
     Utilise OpenAI pour répondre aux questions sur Mathakine
     """
     try:
         # Vérifier que OpenAI est disponible
         if not OPENAI_AVAILABLE:
-            return JSONResponse(
-                {"error": "OpenAI non disponible"},
-                status_code=503
-            )
-        
+            return JSONResponse({"error": "OpenAI non disponible"}, status_code=503)
+
         # Vérifier que la clé API est configurée
         if not settings.OPENAI_API_KEY:
             return JSONResponse(
-                {"error": "Clé API OpenAI non configurée"},
-                status_code=503
+                {"error": "Clé API OpenAI non configurée"}, status_code=503
             )
-        
+
         # Récupérer les données de la requête (DRY parse_json_body)
         from app.utils.request_utils import parse_json_body
 
@@ -168,27 +190,77 @@ async def chat_api(request):
         conversation_history = data_or_err.get("conversation_history", [])[:20]
 
         # Sanitization du message pour éviter l'injection de prompt
-        from app.utils.prompt_sanitizer import sanitize_user_prompt, validate_prompt_safety
+        from app.utils.prompt_sanitizer import (
+            sanitize_user_prompt,
+            validate_prompt_safety,
+        )
+
         is_safe, safety_reason = validate_prompt_safety(message_raw)
         if not is_safe:
             return JSONResponse(
-                {"error": f"Message invalide: {safety_reason}"},
-                status_code=400
+                {"error": f"Message invalide: {safety_reason}"}, status_code=400
             )
         message = sanitize_user_prompt(message_raw, max_length=2000)
 
         # Créer le client OpenAI
         client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-        
+
         # Détecter si la demande concerne une image mathématique
-        image_keywords = ['image', 'dessine', 'dessin', 'schéma', 'diagramme', 'figure', 'graphique', 'visualise', 'montre', 'créer', 'génère', 'fais', 'montre-moi', 'affiche']
-        math_image_keywords = ['géométrie', 'triangle', 'cercle', 'carré', 'rectangle', 'forme', 'angle', 'fraction', 'graphique', 'courbe', 'polygone', 'losange', 'trapèze', 'cercle', 'ovale', 'ligne', 'point', 'segment', 'exercice', 'problème']
-        
+        image_keywords = [
+            "image",
+            "dessine",
+            "dessin",
+            "schéma",
+            "diagramme",
+            "figure",
+            "graphique",
+            "visualise",
+            "montre",
+            "créer",
+            "génère",
+            "fais",
+            "montre-moi",
+            "affiche",
+        ]
+        math_image_keywords = [
+            "géométrie",
+            "triangle",
+            "cercle",
+            "carré",
+            "rectangle",
+            "forme",
+            "angle",
+            "fraction",
+            "graphique",
+            "courbe",
+            "polygone",
+            "losange",
+            "trapèze",
+            "cercle",
+            "ovale",
+            "ligne",
+            "point",
+            "segment",
+            "exercice",
+            "problème",
+        ]
+
         is_image_request = any(keyword in message.lower() for keyword in image_keywords)
-        is_math_related = any(keyword in message.lower() for keyword in math_image_keywords) or any(
-            keyword in message.lower() for keyword in ['math', 'mathématique', 'calcul', 'nombre', 'équation', 'exercice', 'problème']
+        is_math_related = any(
+            keyword in message.lower() for keyword in math_image_keywords
+        ) or any(
+            keyword in message.lower()
+            for keyword in [
+                "math",
+                "mathématique",
+                "calcul",
+                "nombre",
+                "équation",
+                "exercice",
+                "problème",
+            ]
         )
-        
+
         # Si demande d'image ET mathématique, générer une image avec DALL-E
         # MAIS continuer avec la réponse texte complète pour avoir l'exercice résolvable
         if is_image_request and is_math_related:
@@ -197,7 +269,7 @@ async def chat_api(request):
                 dalle_prompt = f"""Image éducative mathématique pour enfants de 5 à 20 ans : {message}. 
 Style simple, clair, coloré, adapté aux enfants. Éléments visuels mathématiques uniquement. 
 Pas de texte complexe, formes géométriques simples, couleurs vives et contrastées."""
-                
+
                 # Générer une image avec DALL-E 3
                 image_response = await client.images.generate(
                     model="dall-e-3",
@@ -206,54 +278,54 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
                     quality="standard",
                     n=1,
                 )
-                
+
                 image_url = image_response.data[0].url
                 # Ne pas retourner immédiatement - continuer pour générer l'exercice complet
                 # L'image sera ajoutée à la réponse finale
             except Exception as dalle_generation_error:
                 # Si erreur de génération d'image, continuer avec la réponse texte normale
-                logger.error(f"Erreur génération image DALL-E: {str(dalle_generation_error)}")
+                logger.error(
+                    f"Erreur génération image DALL-E: {str(dalle_generation_error)}"
+                )
                 image_url = None
         else:
             image_url = None
-        
+
         # Détecter la complexité pour smart routing
         complexity = _detect_complexity(message, conversation_history)
-        
+
         # Smart routing : choisir le modèle selon la complexité
         # Best practice : gpt-4o-mini pour questions simples (coût réduit), gpt-4o pour complexes (qualité)
-        model = "gpt-4o-mini" if complexity == 'simple' else "gpt-4o"
-        
+        model = "gpt-4o-mini" if complexity == "simple" else "gpt-4o"
+
         # Détecter l'âge pour personnalisation
         estimated_age = _estimate_age(message)
-        
+
         # Construire le prompt système optimisé avec few-shot learning
         system_prompt = _build_system_prompt(estimated_age)
 
         # Construire les messages pour OpenAI
-        messages = [
-            {"role": "system", "content": system_prompt}
-        ]
-        
+        messages = [{"role": "system", "content": system_prompt}]
+
         # Ajouter l'historique de conversation (limité aux 5 derniers messages)
         for msg in conversation_history[-5:]:
-            messages.append({
-                "role": msg.get("role", "user"),
-                "content": msg.get("content", "")
-            })
-        
+            messages.append(
+                {"role": msg.get("role", "user"), "content": msg.get("content", "")}
+            )
+
         # Ajouter le message actuel
-        messages.append({
-            "role": "user",
-            "content": message
-        })
-        
+        messages.append({"role": "user", "content": message})
+
         # Appeler OpenAI avec paramètres optimisés selon la complexité
         # Best practice : Paramètres adaptés selon le modèle et la complexité
         # Augmenté max_tokens pour permettre des exercices complets et résolvables
-        temperature = 0.4 if complexity == 'simple' else 0.6  # Plus prévisible pour questions simples
-        max_tokens = 500 if complexity == 'complex' else 400  # Augmenté pour exercices complets
-        
+        temperature = (
+            0.4 if complexity == "simple" else 0.6
+        )  # Plus prévisible pour questions simples
+        max_tokens = (
+            500 if complexity == "complex" else 400
+        )  # Augmenté pour exercices complets
+
         response = await client.chat.completions.create(
             model=model,  # Smart routing : modèle choisi selon complexité
             messages=messages,
@@ -263,49 +335,49 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
             frequency_penalty=0.3,
             presence_penalty=0.1,
         )
-        
+
         # Extraire la réponse
         assistant_message = response.choices[0].message.content
-        
+
         # Nettoyer les placeholders d'images Markdown (best practice : éviter les placeholders)
         # Supprimer les patterns comme ![texte](url) ou ![texte](placeholder)
         import re
 
         # Supprimer les images Markdown avec placeholders ou URLs suspectes
         assistant_message = re.sub(
-            r'!\[([^\]]*)\]\([^)]*(?:placeholder|via\.placeholder|example\.com|example\.org)[^)]*\)',
-            r'\1',  # Remplacer par juste le texte alternatif
+            r"!\[([^\]]*)\]\([^)]*(?:placeholder|via\.placeholder|example\.com|example\.org)[^)]*\)",
+            r"\1",  # Remplacer par juste le texte alternatif
             assistant_message,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE,
         )
         # Supprimer aussi les images Markdown génériques sans URL valide
         assistant_message = re.sub(
-            r'!\[([^\]]*)\]\([^)]*\)',
-            lambda m: m.group(1) if 'http' not in m.group(0).lower() else m.group(0),
-            assistant_message
+            r"!\[([^\]]*)\]\([^)]*\)",
+            lambda m: m.group(1) if "http" not in m.group(0).lower() else m.group(0),
+            assistant_message,
         )
-        
+
         # Retourner la réponse avec l'image si elle a été générée
         response_data = {
             "response": assistant_message,
             "model_used": model,  # Debug : indiquer quel modèle a été utilisé
-            "complexity": complexity  # Debug : indiquer la complexité détectée
+            "complexity": complexity,  # Debug : indiquer la complexité détectée
         }
-        
+
         # Ajouter l'URL de l'image si elle a été générée
         if image_url:
             response_data["image_url"] = image_url
             response_data["type"] = "image"
-        
+
         return JSONResponse(response_data)
-        
+
     except Exception as chat_api_error:
         logger.error(f"Erreur dans chat_api: {str(chat_api_error)}")
         import traceback
+
         traceback.print_exc()
         return JSONResponse(
-            {"error": get_safe_error_message(chat_api_error)},
-            status_code=500
+            {"error": get_safe_error_message(chat_api_error)}, status_code=500
         )
 
 
@@ -313,66 +385,77 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
 async def chat_api_stream(request):
     """
     Endpoint API pour le chatbot avec streaming SSE.
-    
+
     Best practice : Streaming pour meilleure UX - l'utilisateur voit la réponse
     apparaître progressivement au lieu d'attendre la réponse complète.
-    
+
     Réduit la perception du temps d'attente et améliore l'engagement.
     """
     try:
         # Vérifier que OpenAI est disponible
         if not OPENAI_AVAILABLE:
+
             async def error_generator():
                 yield f"data: {json.dumps({'type': 'error', 'message': 'OpenAI non disponible'})}\n\n"
-            
+
             return StreamingResponse(
                 error_generator(),
                 media_type="text/event-stream",
                 headers={
                     "Cache-Control": "no-cache",
                     "Connection": "keep-alive",
-                }
+                },
             )
-        
+
         # Vérifier que la clé API est configurée
         if not settings.OPENAI_API_KEY:
+
             async def error_generator():
                 yield f"data: {json.dumps({'type': 'error', 'message': 'Clé API OpenAI non configurée'})}\n\n"
-            
+
             return StreamingResponse(
                 error_generator(),
                 media_type="text/event-stream",
                 headers={
                     "Cache-Control": "no-cache",
                     "Connection": "keep-alive",
-                }
+                },
             )
-        
+
         # Récupérer les données de la requête
         data = await request.json()
-        message_raw = data.get('message', '')
-        conversation_history = data.get('conversation_history', [])[:20]  # Limiter l'historique
-        use_streaming = data.get('stream', True)  # Streaming par défaut
-        
+        message_raw = data.get("message", "")
+        conversation_history = data.get("conversation_history", [])[
+            :20
+        ]  # Limiter l'historique
+        use_streaming = data.get("stream", True)  # Streaming par défaut
+
         if not message_raw:
+
             async def error_generator():
                 yield f"data: {json.dumps({'type': 'error', 'message': 'Message requis'})}\n\n"
-            
+
             return StreamingResponse(
                 error_generator(),
                 media_type="text/event-stream",
                 headers={
                     "Cache-Control": "no-cache",
                     "Connection": "keep-alive",
-                }
+                },
             )
 
         # Sanitization du message pour éviter l'injection de prompt
-        from app.utils.prompt_sanitizer import sanitize_user_prompt, validate_prompt_safety
+        from app.utils.prompt_sanitizer import (
+            sanitize_user_prompt,
+            validate_prompt_safety,
+        )
+
         is_safe, safety_reason = validate_prompt_safety(message_raw)
         if not is_safe:
+
             async def error_generator():
                 yield f"data: {json.dumps({'type': 'error', 'message': f'Message invalide: {safety_reason}'})}\n\n"
+
             return StreamingResponse(
                 error_generator(),
                 media_type="text/event-stream",
@@ -382,16 +465,63 @@ async def chat_api_stream(request):
 
         # Créer le client OpenAI
         client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-        
+
         # Détecter si la demande concerne une image mathématique
-        image_keywords = ['image', 'dessine', 'dessin', 'schéma', 'diagramme', 'figure', 'graphique', 'visualise', 'montre', 'créer', 'génère', 'fais', 'montre-moi', 'affiche']
-        math_image_keywords = ['géométrie', 'triangle', 'cercle', 'carré', 'rectangle', 'forme', 'angle', 'fraction', 'graphique', 'courbe', 'polygone', 'losange', 'trapèze', 'cercle', 'ovale', 'ligne', 'point', 'segment', 'exercice', 'problème']
-        
+        image_keywords = [
+            "image",
+            "dessine",
+            "dessin",
+            "schéma",
+            "diagramme",
+            "figure",
+            "graphique",
+            "visualise",
+            "montre",
+            "créer",
+            "génère",
+            "fais",
+            "montre-moi",
+            "affiche",
+        ]
+        math_image_keywords = [
+            "géométrie",
+            "triangle",
+            "cercle",
+            "carré",
+            "rectangle",
+            "forme",
+            "angle",
+            "fraction",
+            "graphique",
+            "courbe",
+            "polygone",
+            "losange",
+            "trapèze",
+            "cercle",
+            "ovale",
+            "ligne",
+            "point",
+            "segment",
+            "exercice",
+            "problème",
+        ]
+
         is_image_request = any(keyword in message.lower() for keyword in image_keywords)
-        is_math_related = any(keyword in message.lower() for keyword in math_image_keywords) or any(
-            keyword in message.lower() for keyword in ['math', 'mathématique', 'calcul', 'nombre', 'équation', 'exercice', 'problème']
+        is_math_related = any(
+            keyword in message.lower() for keyword in math_image_keywords
+        ) or any(
+            keyword in message.lower()
+            for keyword in [
+                "math",
+                "mathématique",
+                "calcul",
+                "nombre",
+                "équation",
+                "exercice",
+                "problème",
+            ]
         )
-        
+
         # Si demande d'image ET mathématique, générer une image avec DALL-E
         # MAIS continuer avec la réponse texte complète pour avoir l'exercice résolvable
         image_url = None
@@ -400,7 +530,7 @@ async def chat_api_stream(request):
                 dalle_prompt = f"""Image éducative mathématique pour enfants de 5 à 20 ans : {message}. 
 Style simple, clair, coloré, adapté aux enfants. Éléments visuels mathématiques uniquement. 
 Pas de texte complexe, formes géométriques simples, couleurs vives et contrastées."""
-                
+
                 image_response = await client.images.generate(
                     model="dall-e-3",
                     prompt=dalle_prompt,
@@ -408,58 +538,56 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
                     quality="standard",
                     n=1,
                 )
-                
+
                 image_url = image_response.data[0].url
                 # Ne pas retourner immédiatement - continuer pour générer l'exercice complet
                 # L'image sera envoyée dans le stream avec la réponse texte complète
             except Exception as dalle_stream_error:
-                logger.error(f"Erreur génération image DALL-E: {str(dalle_stream_error)}")
+                logger.error(
+                    f"Erreur génération image DALL-E: {str(dalle_stream_error)}"
+                )
                 # Continuer avec le traitement texte normal
                 image_url = None
-        
+
         # Détecter la complexité pour smart routing
         complexity = _detect_complexity(message, conversation_history)
-        model = "gpt-4o-mini" if complexity == 'simple' else "gpt-4o"
-        
+        model = "gpt-4o-mini" if complexity == "simple" else "gpt-4o"
+
         # Détecter l'âge pour personnalisation
         estimated_age = _estimate_age(message)
-        
+
         # Construire le prompt système optimisé
         system_prompt = _build_system_prompt(estimated_age)
-        
+
         # Construire les messages pour OpenAI
-        messages = [
-            {"role": "system", "content": system_prompt}
-        ]
-        
+        messages = [{"role": "system", "content": system_prompt}]
+
         # Ajouter l'historique de conversation (limité aux 5 derniers messages)
         # Best practice : Limiter l'historique pour éviter dépassement de contexte
         for msg in conversation_history[-5:]:
-            messages.append({
-                "role": msg.get("role", "user"),
-                "content": msg.get("content", "")
-            })
-        
+            messages.append(
+                {"role": msg.get("role", "user"), "content": msg.get("content", "")}
+            )
+
         # Ajouter le message actuel
-        messages.append({
-            "role": "user",
-            "content": message
-        })
-        
+        messages.append({"role": "user", "content": message})
+
         # Paramètres optimisés selon la complexité
         # Augmenté max_tokens pour permettre des exercices complets et résolvables
-        temperature = 0.4 if complexity == 'simple' else 0.6
-        max_tokens = 500 if complexity == 'complex' else 400  # Augmenté pour exercices complets
-        
+        temperature = 0.4 if complexity == "simple" else 0.6
+        max_tokens = (
+            500 if complexity == "complex" else 400
+        )  # Augmenté pour exercices complets
+
         async def generate_stream():
             try:
                 # Si une image a été générée, l'envoyer en premier
                 if image_url:
                     yield f"data: {json.dumps({'type': 'image', 'url': image_url})}\n\n"
-                
+
                 # Envoyer un message de démarrage
                 yield f"data: {json.dumps({'type': 'status', 'message': 'Réflexion en cours...'})}\n\n"
-                
+
                 # Créer le stream OpenAI
                 stream = await client.chat.completions.create(
                     model=model,
@@ -471,7 +599,7 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
                     frequency_penalty=0.3,
                     presence_penalty=0.1,
                 )
-                
+
                 # Stream chaque chunk de la réponse
                 full_response = ""
                 async for chunk in stream:
@@ -480,34 +608,39 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
                         full_response += content
                         # Envoyer chaque chunk au client pour affichage progressif
                         yield f"data: {json.dumps({'type': 'chunk', 'content': content})}\n\n"
-                
+
                 # Nettoyer les placeholders d'images Markdown dans la réponse complète
                 import re
+
                 cleaned_response = re.sub(
-                    r'!\[([^\]]*)\]\([^)]*(?:placeholder|via\.placeholder|example\.com|example\.org)[^)]*\)',
-                    r'\1',
+                    r"!\[([^\]]*)\]\([^)]*(?:placeholder|via\.placeholder|example\.com|example\.org)[^)]*\)",
+                    r"\1",
                     full_response,
-                    flags=re.IGNORECASE
+                    flags=re.IGNORECASE,
                 )
                 cleaned_response = re.sub(
-                    r'!\[([^\]]*)\]\([^)]*\)',
-                    lambda m: m.group(1) if 'http' not in m.group(0).lower() else m.group(0),
-                    cleaned_response
+                    r"!\[([^\]]*)\]\([^)]*\)",
+                    lambda m: (
+                        m.group(1) if "http" not in m.group(0).lower() else m.group(0)
+                    ),
+                    cleaned_response,
                 )
-                
+
                 # Si la réponse a été nettoyée, envoyer un chunk de correction si nécessaire
                 if cleaned_response != full_response:
                     # La réponse a déjà été envoyée chunk par chunk, donc on ne peut pas la modifier
                     # Mais on peut envoyer un message de fin avec indication
                     pass
-                
+
                 # Envoyer un message de fin avec métadonnées
                 yield f"data: {json.dumps({'type': 'done', 'model_used': model, 'complexity': complexity})}\n\n"
-                
+
             except Exception as stream_generation_error:
-                logger.error(f"Erreur dans generate_stream: {str(stream_generation_error)}")
+                logger.error(
+                    f"Erreur dans generate_stream: {str(stream_generation_error)}"
+                )
                 yield f"data: {json.dumps({'type': 'error', 'message': get_safe_error_message(stream_generation_error)})}\n\n"
-        
+
         return StreamingResponse(
             generate_stream(),
             media_type="text/event-stream",
@@ -515,24 +648,24 @@ Pas de texte complexe, formes géométriques simples, couleurs vives et contrast
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
                 "X-Accel-Buffering": "no",  # Important pour Nginx
-            }
+            },
         )
-        
+
     except Exception as chat_stream_error:
         logger.error(f"Erreur dans chat_api_stream: {str(chat_stream_error)}")
         import traceback
+
         traceback.print_exc()
         err = chat_stream_error  # capture for closure (Flake8 F821)
 
         async def error_generator(exc=err):
             yield f"data: {json.dumps({'type': 'error', 'message': get_safe_error_message(exc)})}\n\n"
-        
+
         return StreamingResponse(
             error_generator(),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
-            }
+            },
         )
-

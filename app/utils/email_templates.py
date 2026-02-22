@@ -2,16 +2,16 @@
 Templates emails Mathakine - Thème Jedi / L'Ordre des Mathématiques
 Design unifié, ergonomique et accessible pour tous les clients email.
 """
-from typing import Optional
 
+from typing import Optional
 
 # Couleurs du thème Jedi/Space (compatible clients email)
 THEME = {
-    "bg_dark": "#0f172a",       # Fond header (espace)
-    "bg_content": "#ffffff",    # Corps du message
-    "accent": "#06b6d4",        # Cyan (lame de sabre)
+    "bg_dark": "#0f172a",  # Fond header (espace)
+    "bg_content": "#ffffff",  # Corps du message
+    "accent": "#06b6d4",  # Cyan (lame de sabre)
     "accent_hover": "#0891b2",
-    "gold": "#f59e0b",          # Sagesse Jedi
+    "gold": "#f59e0b",  # Sagesse Jedi
     "text_dark": "#1e293b",
     "text_light": "#e2e8f0",
     "text_muted": "#64748b",

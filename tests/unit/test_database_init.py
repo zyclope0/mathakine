@@ -23,8 +23,8 @@ def test_get_database_url_unified_with_settings():
 
 def test_init_database_completes_successfully():
     """
-    init_database() doit s'exécuter sans erreur (idempotent).
-    Régression : vérifier que le basculement psycopg2 → SQLAlchemy n'a pas cassé l'init.
+    init_database() doit s'exécuter sans erreur.
+    Depuis 22/02/2026 : no-op (DDL géré par Alembic au build).
     """
     init_database()
     # Pas d'assert explicite : le test passe si aucune exception n'est levée

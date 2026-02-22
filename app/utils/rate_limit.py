@@ -1,7 +1,11 @@
 """
 Rate limiting pour les endpoints sensibles (audit 3.4).
 Protège contre bruteforce (login, forgot-password) et énumération.
+
+Limitation connue: stockage en mémoire — inefficace en multi-instances.
+Voir AUDIT_SECURITE_APPLICATIVE_2026-02.md §10 (limitations connues).
 """
+
 import os
 import time
 from collections import defaultdict
@@ -61,8 +65,11 @@ def rate_limit_auth(endpoint_name: str):
             if not _check_rate_limit(key, RATE_LIMIT_AUTH_MAX):
                 logger.warning(f"Rate limit dépassé pour {endpoint_name} depuis {ip}")
                 from starlette.responses import JSONResponse
+
                 return JSONResponse(
-                    {"error": "Trop de tentatives. Veuillez réessayer dans une minute."},
+                    {
+                        "error": "Trop de tentatives. Veuillez réessayer dans une minute."
+                    },
                     status_code=429,
                 )
             return await func(request, *args, **kwargs)
@@ -82,6 +89,7 @@ def rate_limit_register(func: Callable):
         if not _check_rate_limit(key, RATE_LIMIT_REGISTER_MAX):
             logger.warning(f"Rate limit dépassé pour register depuis {ip}")
             from starlette.responses import JSONResponse
+
             return JSONResponse(
                 {"error": "Trop de tentatives. Veuillez réessayer dans une minute."},
                 status_code=429,
@@ -101,6 +109,7 @@ def rate_limit_resend_verification(func: Callable):
         if not _check_rate_limit(key, RATE_LIMIT_RESEND_VERIFICATION_MAX):
             logger.warning(f"Rate limit dépassé pour resend-verification depuis {ip}")
             from starlette.responses import JSONResponse
+
             return JSONResponse(
                 {"error": "Trop de tentatives. Veuillez réessayer dans une minute."},
                 status_code=429,
@@ -120,8 +129,11 @@ def rate_limit_chat(func: Callable):
         if not _check_rate_limit(key, RATE_LIMIT_CHAT_MAX):
             logger.warning(f"Rate limit dépassé pour chat depuis {ip}")
             from starlette.responses import JSONResponse
+
             return JSONResponse(
-                {"error": "Limite de messages atteinte. Veuillez réessayer dans une minute."},
+                {
+                    "error": "Limite de messages atteinte. Veuillez réessayer dans une minute."
+                },
                 status_code=429,
             )
         return await func(request, *args, **kwargs)

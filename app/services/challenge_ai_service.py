@@ -2,6 +2,7 @@
 Service de génération de challenges par IA.
 Extrait la logique de génération streaming depuis challenge_handlers.
 """
+
 import json
 import traceback
 from datetime import datetime
@@ -20,11 +21,11 @@ from app.core.config import settings
 from app.core.constants import calculate_difficulty_for_age_group
 from app.core.logging_config import get_logger
 from app.services import challenge_service
+from app.services.challenge_service import normalize_age_group_for_frontend
 from app.services.challenge_validator import (
     auto_correct_challenge,
     validate_challenge_logic,
 )
-from app.services.challenge_service import normalize_age_group_for_frontend
 from app.utils.db_utils import db_session
 from app.utils.generation_metrics import generation_metrics
 from app.utils.json_utils import extract_json_from_text
@@ -87,9 +88,11 @@ def build_challenge_system_prompt(challenge_type: str, age_group: str) -> str:
     age_target_phrase = (
         "pour des adultes"
         if age_group == "adulte"
-        else "pour un public de tous âges"
-        if age_group == "tous-ages"
-        else f"pour des enfants/élèves de {age_display}"
+        else (
+            "pour un public de tous âges"
+            if age_group == "tous-ages"
+            else f"pour des enfants/élèves de {age_display}"
+        )
     )
 
     visual_adult_rule = ""
@@ -398,16 +401,20 @@ Assure-toi que le visual_data est complet et permet une visualisation interactiv
 IMPORTANT : Vérifie TOUJOURS la cohérence logique avant de retourner le JSON."""
 
 
-def build_challenge_user_prompt(challenge_type: str, age_group: str, prompt: str) -> str:
+def build_challenge_user_prompt(
+    challenge_type: str, age_group: str, prompt: str
+) -> str:
     """Construit le prompt utilisateur pour la génération de défis."""
     params = AGE_GROUP_PARAMS.get(age_group, AGE_GROUP_PARAMS["9-11"])
     age_display = params["display"]
     age_target_phrase = (
         "pour des adultes"
         if age_group == "adulte"
-        else "pour un public de tous âges"
-        if age_group == "tous-ages"
-        else f"pour des enfants/élèves de {age_display}"
+        else (
+            "pour un public de tous âges"
+            if age_group == "tous-ages"
+            else f"pour des enfants/élèves de {age_display}"
+        )
     )
 
     user_prompt = f"""Crée un défi mathélogique de type "{challenge_type}" {age_target_phrase}.
@@ -438,13 +445,19 @@ def normalize_generated_challenge(
     Normalise les données générées avec ajustements de difficulté.
     """
     if age_group not in AGE_GROUP_PARAMS:
-        logger.warning(f"Groupe d'âge '{age_group}' non trouvé dans le mapping, utilisation de '9-11' par défaut")
+        logger.warning(
+            f"Groupe d'âge '{age_group}' non trouvé dans le mapping, utilisation de '9-11' par défaut"
+        )
 
     final_age_group = age_group
     ai_difficulty = challenge_data.get("difficulty_rating")
     expected_difficulty = calculate_difficulty_for_age_group(final_age_group)
 
-    if ai_difficulty and isinstance(ai_difficulty, (int, float)) and 1.0 <= ai_difficulty <= 5.0:
+    if (
+        ai_difficulty
+        and isinstance(ai_difficulty, (int, float))
+        and 1.0 <= ai_difficulty <= 5.0
+    ):
         if abs(ai_difficulty - expected_difficulty) > 1.5:
             logger.info(
                 f"Difficulté IA ({ai_difficulty}) ajustée pour groupe d'âge {final_age_group} -> {expected_difficulty}"
@@ -560,12 +573,19 @@ async def generate_challenge_stream(
                 api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
             elif use_o3:
                 api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
-                api_kwargs["reasoning_effort"] = ai_params.get("reasoning_effort", "medium")
+                api_kwargs["reasoning_effort"] = ai_params.get(
+                    "reasoning_effort", "medium"
+                )
             elif AIConfig.is_gpt5_model(ai_params["model"]):
                 api_kwargs["max_completion_tokens"] = ai_params["max_tokens"]
-                api_kwargs["reasoning_effort"] = ai_params.get("reasoning_effort", "medium")
+                api_kwargs["reasoning_effort"] = ai_params.get(
+                    "reasoning_effort", "medium"
+                )
                 api_kwargs["verbosity"] = ai_params.get("verbosity", "low")
-                if ai_params.get("reasoning_effort") == "none" and "temperature" in ai_params:
+                if (
+                    ai_params.get("reasoning_effort") == "none"
+                    and "temperature" in ai_params
+                ):
                     api_kwargs["temperature"] = ai_params["temperature"]
             else:
                 api_kwargs["max_tokens"] = ai_params["max_tokens"]
@@ -579,8 +599,12 @@ async def generate_challenge_stream(
         try:
             stream = await create_stream_with_retry()
         except (RateLimitError, APIError, APITimeoutError) as api_error:
-            logger.error(f"Erreur API OpenAI après {AIConfig.MAX_RETRIES} tentatives: {api_error}")
-            yield sse_error_message(f"Erreur lors de la génération après plusieurs tentatives: {str(api_error)}")
+            logger.error(
+                f"Erreur API OpenAI après {AIConfig.MAX_RETRIES} tentatives: {api_error}"
+            )
+            yield sse_error_message(
+                f"Erreur lors de la génération après plusieurs tentatives: {str(api_error)}"
+            )
             return
         except Exception as unexpected_error:
             logger.error(f"Erreur inattendue lors de la génération: {unexpected_error}")
@@ -599,12 +623,18 @@ async def generate_challenge_stream(
                 full_response += content
                 completion_tokens_estimate = len(full_response) // 4
             if hasattr(chunk, "usage") and chunk.usage:
-                prompt_tokens_estimate = chunk.usage.prompt_tokens or prompt_tokens_estimate
-                completion_tokens_estimate = chunk.usage.completion_tokens or completion_tokens_estimate
+                prompt_tokens_estimate = (
+                    chunk.usage.prompt_tokens or prompt_tokens_estimate
+                )
+                completion_tokens_estimate = (
+                    chunk.usage.completion_tokens or completion_tokens_estimate
+                )
 
         # Fallback si réponse vide (o3)
         if not full_response.strip() and AIConfig.is_o3_model(ai_params["model"]):
-            logger.warning("Réponse vide de o3, fallback vers modèle sans raisonnement...")
+            logger.warning(
+                "Réponse vide de o3, fallback vers modèle sans raisonnement..."
+            )
             fallback_model = AIConfig.ADVANCED_MODEL
             try:
                 fallback_client = AsyncOpenAI(
@@ -623,11 +653,15 @@ async def generate_challenge_stream(
                 )
                 if fallback_resp.choices and fallback_resp.choices[0].message.content:
                     full_response = fallback_resp.choices[0].message.content
-                    logger.info(f"Fallback {fallback_model}: {len(full_response)} caractères reçus")
+                    logger.info(
+                        f"Fallback {fallback_model}: {len(full_response)} caractères reçus"
+                    )
             except Exception as fb_err:
                 logger.error(f"Fallback échoué: {fb_err}")
 
-        logger.info(f"Réponse reçue: {len(full_response)} caractères, ~{len(full_response)//4} tokens estimés")
+        logger.info(
+            f"Réponse reçue: {len(full_response)} caractères, ~{len(full_response)//4} tokens estimés"
+        )
 
         try:
             challenge_data = extract_json_from_text(full_response)
@@ -647,7 +681,9 @@ async def generate_challenge_stream(
 
         if not challenge_data.get("title") or not challenge_data.get("description"):
             logger.error(f"Données de challenge incomplètes: {challenge_data}")
-            yield sse_error_message("Les données générées sont incomplètes (titre ou description manquant)")
+            yield sse_error_message(
+                "Les données générées sont incomplètes (titre ou description manquant)"
+            )
             return
 
         challenge_data["challenge_type"] = challenge_type
@@ -656,17 +692,23 @@ async def generate_challenge_stream(
         is_valid, validation_errors = validate_challenge_logic(challenge_data)
 
         if not is_valid:
-            logger.warning(f"Challenge généré avec erreurs de validation: {validation_errors}")
+            logger.warning(
+                f"Challenge généré avec erreurs de validation: {validation_errors}"
+            )
             logger.info("Tentative de correction automatique...")
             corrected_challenge = auto_correct_challenge(challenge_data)
-            is_valid_after_correction, remaining_errors = validate_challenge_logic(corrected_challenge)
+            is_valid_after_correction, remaining_errors = validate_challenge_logic(
+                corrected_challenge
+            )
             if is_valid_after_correction:
                 logger.info("Correction automatique réussie")
                 challenge_data = corrected_challenge
                 auto_corrected = True
                 validation_passed = True
             else:
-                logger.error(f"Correction automatique impossible. Erreurs restantes: {remaining_errors}")
+                logger.error(
+                    f"Correction automatique impossible. Erreurs restantes: {remaining_errors}"
+                )
                 validation_passed = False
                 errors_str = ", ".join(remaining_errors[:2])
                 yield f"data: {json.dumps({'type': 'warning', 'message': f'Avertissement: {errors_str}'})}\n\n"
@@ -674,9 +716,13 @@ async def generate_challenge_stream(
             logger.debug("Challenge validé avec succès")
             validation_passed = True
 
-        normalized_challenge = normalize_generated_challenge(challenge_data, challenge_type, age_group)
+        normalized_challenge = normalize_generated_challenge(
+            challenge_data, challenge_type, age_group
+        )
 
-        if not normalized_challenge.get("title") or not normalized_challenge.get("description"):
+        if not normalized_challenge.get("title") or not normalized_challenge.get(
+            "description"
+        ):
             logger.error(f"Challenge normalisé invalide: {normalized_challenge}")
             yield sse_error_message("Erreur lors de la normalisation des données")
             return
@@ -694,8 +740,12 @@ async def generate_challenge_stream(
                     solution_explanation=normalized_challenge["solution_explanation"],
                     hints=normalized_challenge.get("hints", []),
                     visual_data=normalized_challenge.get("visual_data", {}),
-                    difficulty_rating=normalized_challenge.get("difficulty_rating", 3.0),
-                    estimated_time_minutes=normalized_challenge.get("estimated_time_minutes", 10),
+                    difficulty_rating=normalized_challenge.get(
+                        "difficulty_rating", 3.0
+                    ),
+                    estimated_time_minutes=normalized_challenge.get(
+                        "estimated_time_minutes", 10
+                    ),
                     tags=normalized_challenge.get("tags", "ai,generated"),
                     creator_id=user_id,
                     generation_parameters={
@@ -706,7 +756,11 @@ async def generate_challenge_stream(
                     },
                 )
 
-                if created_challenge and hasattr(created_challenge, "title") and created_challenge.title:
+                if (
+                    created_challenge
+                    and hasattr(created_challenge, "title")
+                    and created_challenge.title
+                ):
                     usage_stats = token_tracker.track_usage(
                         challenge_type=challenge_type,
                         prompt_tokens=prompt_tokens_estimate,
@@ -734,7 +788,9 @@ async def generate_challenge_stream(
                             if hasattr(created_challenge.challenge_type, "value")
                             else created_challenge.challenge_type
                         ),
-                        "age_group": normalize_age_group_for_frontend(created_challenge.age_group),
+                        "age_group": normalize_age_group_for_frontend(
+                            created_challenge.age_group
+                        ),
                         "question": created_challenge.question,
                         "correct_answer": created_challenge.correct_answer,
                         "solution_explanation": created_challenge.solution_explanation,
@@ -760,7 +816,9 @@ async def generate_challenge_stream(
             if normalized_challenge.get("title"):
                 yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardé en base'})}\n\n"
             else:
-                yield sse_error_message("Erreur lors de la sauvegarde et challenge invalide")
+                yield sse_error_message(
+                    "Erreur lors de la sauvegarde et challenge invalide"
+                )
 
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
 

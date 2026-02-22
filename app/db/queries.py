@@ -3,9 +3,10 @@ Requêtes SQL centralisées pour l'application Mathakine
 Ce fichier contient toutes les requêtes SQL utilisées dans l'application.
 """
 
+
 # Requêtes pour la table 'exercises'
 class ExerciseQueries:
-    # Création et modification avec optimisations
+    # NOTE: DDL désormais géré par Alembic (migration 20260222). Conservé pour test_queries.py.
     CREATE_TABLE = """
     CREATE TABLE IF NOT EXISTS exercises (
         id SERIAL PRIMARY KEY,
@@ -37,7 +38,7 @@ class ExerciseQueries:
     CREATE INDEX IF NOT EXISTS idx_exercises_view_count ON exercises(view_count DESC) WHERE is_archived = false;
     CREATE INDEX IF NOT EXISTS idx_exercises_ai_generated ON exercises(ai_generated) WHERE is_archived = false;
     """
-    
+
     # Sélection optimisée avec LIMIT par défaut
     GET_ALL = """
     SELECT * FROM exercises 
@@ -45,12 +46,12 @@ class ExerciseQueries:
     ORDER BY created_at DESC
     LIMIT 100
     """
-    
+
     GET_BY_ID = """
     SELECT * FROM exercises 
     WHERE id = %s AND is_archived = false
     """
-    
+
     # Requêtes optimisées avec index hints
     GET_BY_TYPE = """
     SELECT * FROM exercises 
@@ -58,21 +59,21 @@ class ExerciseQueries:
     ORDER BY created_at DESC
     LIMIT 50
     """
-    
+
     GET_BY_DIFFICULTY = """
     SELECT * FROM exercises 
     WHERE difficulty = %s AND is_archived = false
     ORDER BY created_at DESC
     LIMIT 50
     """
-    
+
     GET_BY_TYPE_AND_DIFFICULTY = """
     SELECT * FROM exercises 
     WHERE exercise_type = %s AND difficulty = %s AND is_archived = false
     ORDER BY created_at DESC
     LIMIT 50
     """
-    
+
     # Requêtes aléatoires optimisées avec TABLESAMPLE pour de meilleures performances
     GET_RANDOM = """
     SELECT * FROM exercises 
@@ -80,28 +81,28 @@ class ExerciseQueries:
     ORDER BY RANDOM() 
     LIMIT 1
     """
-    
+
     GET_RANDOM_BY_TYPE = """
     SELECT * FROM exercises 
     WHERE exercise_type = %s AND is_archived = false
     ORDER BY RANDOM() 
     LIMIT 1
     """
-    
+
     GET_RANDOM_BY_DIFFICULTY = """
     SELECT * FROM exercises 
     WHERE difficulty = %s AND is_archived = false
     ORDER BY RANDOM() 
     LIMIT 1
     """
-    
+
     GET_RANDOM_BY_TYPE_AND_DIFFICULTY = """
     SELECT * FROM exercises 
     WHERE exercise_type = %s AND difficulty = %s AND is_archived = false
     ORDER BY RANDOM() 
     LIMIT 1
     """
-    
+
     # Requête optimisée pour la pagination
     GET_PAGINATED = """
     SELECT * FROM exercises 
@@ -109,13 +110,13 @@ class ExerciseQueries:
     ORDER BY created_at DESC
     LIMIT %s OFFSET %s
     """
-    
+
     # Comptage optimisé
     COUNT_ACTIVE = """
     SELECT COUNT(*) FROM exercises 
     WHERE is_archived = false
     """
-    
+
     # Insertion avec RETURNING optimisé
     INSERT = """
     INSERT INTO exercises 
@@ -124,7 +125,7 @@ class ExerciseQueries:
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING id, created_at
     """
-    
+
     # Mise à jour
     UPDATE = """
     UPDATE exercises 
@@ -133,41 +134,42 @@ class ExerciseQueries:
     audio_url = %s, updated_at = CURRENT_TIMESTAMP
     WHERE id = %s
     """
-    
+
     ARCHIVE = """
     UPDATE exercises 
     SET is_archived = true, updated_at = CURRENT_TIMESTAMP
     WHERE id = %s
     """
-    
+
     ACTIVATE = """
     UPDATE exercises 
     SET is_active = true, updated_at = CURRENT_TIMESTAMP
     WHERE id = %s
     """
-    
+
     DEACTIVATE = """
     UPDATE exercises 
     SET is_active = false, updated_at = CURRENT_TIMESTAMP
     WHERE id = %s
     """
-    
+
     # Suppression
     DELETE = """
     UPDATE exercises 
     SET is_archived = true, updated_at = CURRENT_TIMESTAMP
     WHERE id = %s
     """
-    
+
     # Suppression physique (pour administration avancée ou migrations)
     DELETE_PERMANENT = """
     DELETE FROM exercises 
     WHERE id = %s
     """
 
+
 # Requêtes pour la table 'results'
 class ResultQueries:
-    # Création et modification
+    # NOTE: DDL désormais géré par Alembic (migration 20260222). Conservé pour test_queries.py.
     CREATE_TABLE = """
     CREATE TABLE IF NOT EXISTS results (
         id SERIAL PRIMARY KEY,
@@ -178,26 +180,26 @@ class ResultQueries:
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """
-    
+
     # Sélection
     GET_BY_USER = """
     SELECT * FROM results 
     WHERE user_id = %s
     ORDER BY created_at DESC
     """
-    
+
     GET_BY_EXERCISE = """
     SELECT * FROM results 
     WHERE exercise_id = %s
     ORDER BY created_at DESC
     """
-    
+
     GET_BY_USER_AND_EXERCISE = """
     SELECT * FROM results 
     WHERE user_id = %s AND exercise_id = %s
     ORDER BY created_at DESC
     """
-    
+
     # Insertion
     INSERT = """
     INSERT INTO results 
@@ -205,6 +207,7 @@ class ResultQueries:
     VALUES (%s, %s, %s, %s)
     RETURNING id
     """
+
 
 # Requêtes pour les statistiques
 class UserStatsQueries:
@@ -218,7 +221,7 @@ class UserStatsQueries:
     FROM results 
     WHERE user_id = %s
     """
-    
+
     # Statistiques par type d'exercice
     GET_USER_STATS_BY_TYPE = """
     SELECT 
@@ -232,7 +235,7 @@ class UserStatsQueries:
     WHERE r.user_id = %s
     GROUP BY e.exercise_type
     """
-    
+
     # Statistiques par niveau de difficulté
     GET_USER_STATS_BY_DIFFICULTY = """
     SELECT 
@@ -246,7 +249,7 @@ class UserStatsQueries:
     WHERE r.user_id = %s
     GROUP BY e.difficulty
     """
-    
+
     # Progression dans le temps (par jour)
     GET_USER_PROGRESS_BY_DAY = """
     SELECT 
@@ -271,6 +274,7 @@ class UserStatsQueries:
     LIMIT 30
     """
 
+
 # Requêtes pour la table 'users'
 class UserQueries:
     # Création et modification
@@ -286,32 +290,32 @@ class UserQueries:
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """
-    
+
     # Sélection
     GET_ALL = """
     SELECT id, username, email, full_name, is_active, is_admin, created_at
     FROM users
     ORDER BY id
     """
-    
+
     GET_BY_ID = """
     SELECT id, username, email, full_name, is_active, is_admin, created_at
     FROM users
     WHERE id = %s
     """
-    
+
     GET_BY_USERNAME = """
     SELECT id, username, email, full_name, is_active, is_admin, created_at, hashed_password
     FROM users
     WHERE username = %s
     """
-    
+
     GET_BY_EMAIL = """
     SELECT id, username, email, full_name, is_active, is_admin, created_at, hashed_password
     FROM users
     WHERE email = %s
     """
-    
+
     # Insertion
     INSERT = """
     INSERT INTO users 
@@ -319,25 +323,26 @@ class UserQueries:
     VALUES (%s, %s, %s, %s, %s, %s)
     RETURNING id
     """
-    
+
     # Mise à jour
     UPDATE = """
     UPDATE users 
     SET username = %s, email = %s, full_name = %s, is_active = %s
     WHERE id = %s
     """
-    
+
     UPDATE_PASSWORD = """
     UPDATE users 
     SET hashed_password = %s
     WHERE id = %s
     """
-    
+
     # Suppression
     DELETE = """
     DELETE FROM users 
     WHERE id = %s
     """
+
 
 # Requêtes pour la table 'settings'
 class SettingQueries:
@@ -353,19 +358,19 @@ class SettingQueries:
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """
-    
+
     # Sélection
     GET_ALL = """
     SELECT * FROM settings
     WHERE is_active = true
     ORDER BY key
     """
-    
+
     GET_BY_KEY = """
     SELECT * FROM settings
     WHERE key = %s AND is_active = true
     """
-    
+
     # Insertion
     INSERT = """
     INSERT INTO settings 
@@ -377,16 +382,16 @@ class SettingQueries:
                  updated_at = CURRENT_TIMESTAMP
     RETURNING id
     """
-    
+
     # Mise à jour
     UPDATE = """
     UPDATE settings 
     SET value = %s, description = %s, updated_at = CURRENT_TIMESTAMP
     WHERE key = %s
     """
-    
+
     # Suppression
     DELETE = """
     DELETE FROM settings 
     WHERE key = %s
-    """ 
+    """

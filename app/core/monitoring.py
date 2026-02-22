@@ -7,6 +7,7 @@ RÉALITÉ (audit 2026-02):
 - request_id : corrélation logs ↔ Sentry via RequestIdMiddleware
 - Désactivé en mode TESTING
 """
+
 import os
 import time
 from typing import Callable
@@ -20,11 +21,12 @@ _prometheus_available = False
 try:
     from prometheus_client import (
         CONTENT_TYPE_LATEST,
+        REGISTRY,
         Counter,
         Histogram,
-        REGISTRY,
         generate_latest,
     )
+
     _prometheus_available = True
 except ImportError:
     pass
@@ -65,7 +67,9 @@ def init_monitoring() -> bool:
     initialized = False
 
     # 1. Sentry — erreurs et APM (SENTRY_DSN ou fallback NEXT_PUBLIC_SENTRY_DSN)
-    sentry_dsn = (os.getenv("SENTRY_DSN") or os.getenv("NEXT_PUBLIC_SENTRY_DSN") or "").strip()
+    sentry_dsn = (
+        os.getenv("SENTRY_DSN") or os.getenv("NEXT_PUBLIC_SENTRY_DSN") or ""
+    ).strip()
     testing = os.getenv("TESTING", "false").lower() == "true"
 
     if sentry_dsn and not testing:
@@ -90,7 +94,9 @@ def init_monitoring() -> bool:
                 release=release,
                 send_default_pii=False,
                 traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
-                profiles_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0")),
+                profiles_sample_rate=float(
+                    os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0")
+                ),
                 integrations=[logging_integration],
                 before_send=_sentry_before_send,
             )
@@ -171,11 +177,14 @@ class PrometheusMetricsMiddleware:
             duration = time.perf_counter() - start
             # Prometheus (fallback / scraping)
             if HTTP_REQUESTS_TOTAL and HTTP_REQUEST_DURATION:
-                HTTP_REQUESTS_TOTAL.labels(method=method, path=path, status=str(status)).inc()
+                HTTP_REQUESTS_TOTAL.labels(
+                    method=method, path=path, status=str(status)
+                ).inc()
                 HTTP_REQUEST_DURATION.labels(method=method, path=path).observe(duration)
             # Sentry métriques (SDK 2.44+) — un seul outil erreurs + métriques
             try:
                 import sentry_sdk
+
                 if hasattr(sentry_sdk, "metrics"):
                     attrs = {"method": method, "path": path, "status": str(status)}
                     sentry_sdk.metrics.count("http.requests", 1, attributes=attrs)

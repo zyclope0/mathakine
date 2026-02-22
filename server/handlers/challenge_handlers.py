@@ -1,6 +1,7 @@
 """
 Handlers pour les défis logiques (API Starlette)
 """
+
 import json
 import traceback
 from datetime import datetime
@@ -11,19 +12,26 @@ logger = get_logger(__name__)
 from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse
 
-from server.auth import require_auth, optional_auth, require_auth_sse
-from app.core.config import settings
-# Importer les constantes et fonctions centralisées
-from app.core.constants import (CHALLENGE_TYPES_API, CHALLENGE_TYPES_DB, normalize_age_group, calculate_difficulty_for_age_group)
 import app.core.constants as constants
+from app.core.config import settings
+
+# Importer les constantes et fonctions centralisées
+from app.core.constants import (
+    CHALLENGE_TYPES_API,
+    CHALLENGE_TYPES_DB,
+    calculate_difficulty_for_age_group,
+    normalize_age_group,
+)
 from app.core.messages import SystemMessages
+
 # NOTE: challenge_service_translations_adapter archivé - utiliser fonctions de challenge_service.py
 from app.services import challenge_service
-from app.utils.db_utils import db_session
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.logic_challenge_service import LogicChallengeService
+from app.utils.db_utils import db_session
 from app.utils.error_handler import ErrorHandler, get_safe_error_message
 from app.utils.translation import parse_accept_language
+from server.auth import optional_auth, require_auth, require_auth_sse
 
 
 @require_auth
@@ -34,33 +42,48 @@ async def get_challenges_list(request: Request):
     """
     try:
         current_user = request.state.user
-        
+
         # Récupérer les paramètres de requête
-        challenge_type_raw = request.query_params.get('challenge_type')
-        age_group_raw = request.query_params.get('age_group')
-        search = request.query_params.get('search') or request.query_params.get('q')  # Support 'search' et 'q'
-        skip = int(request.query_params.get('skip', 0))
-        limit_param = request.query_params.get('limit')
+        challenge_type_raw = request.query_params.get("challenge_type")
+        age_group_raw = request.query_params.get("age_group")
+        search = request.query_params.get("search") or request.query_params.get(
+            "q"
+        )  # Support 'search' et 'q'
+        skip = int(request.query_params.get("skip", 0))
+        limit_param = request.query_params.get("limit")
         limit = int(limit_param) if limit_param else 20
-        active_only = request.query_params.get('active_only', 'true').lower() == 'true'
-        order = (request.query_params.get('order') or 'random').lower()
-        hide_completed = request.query_params.get('hide_completed', 'false').lower() == 'true'
-        
+        active_only = request.query_params.get("active_only", "true").lower() == "true"
+        order = (request.query_params.get("order") or "random").lower()
+        hide_completed = (
+            request.query_params.get("hide_completed", "false").lower() == "true"
+        )
+
         # Normaliser les filtres pour correspondre aux valeurs PostgreSQL
-        challenge_type = constants.normalize_challenge_type(challenge_type_raw) if challenge_type_raw else None
+        challenge_type = (
+            constants.normalize_challenge_type(challenge_type_raw)
+            if challenge_type_raw
+            else None
+        )
         # Utiliser normalize_age_group_for_db pour obtenir la valeur ENUM PostgreSQL
         from app.services.challenge_service import normalize_age_group_for_db
-        age_group_db = normalize_age_group_for_db(age_group_raw) if age_group_raw else None
-        age_group = normalize_age_group(age_group_raw) if age_group_raw else None  # Format string pour logs
-        
+
+        age_group_db = (
+            normalize_age_group_for_db(age_group_raw) if age_group_raw else None
+        )
+        age_group = (
+            normalize_age_group(age_group_raw) if age_group_raw else None
+        )  # Format string pour logs
+
         # Calculer la page à partir de skip et limit
         page = (skip // limit) + 1 if limit > 0 else 1
-        
+
         # Récupérer la locale depuis le header Accept-Language
-        accept_language = request.headers.get('Accept-Language', 'fr')
+        accept_language = request.headers.get("Accept-Language", "fr")
         locale = parse_accept_language(accept_language)
 
-        logger.debug(f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, order={order}, hide_completed={hide_completed}")
+        logger.debug(
+            f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, order={order}, hide_completed={hide_completed}"
+        )
 
         # IDs à exclure si hide_completed
         exclude_ids = []
@@ -68,14 +91,17 @@ async def get_challenges_list(request: Request):
             user_id = current_user.get("id")
             if user_id:
                 from server.database import get_db_connection
+
                 conn = get_db_connection()
                 cursor = conn.cursor()
                 try:
                     cursor.execute(
                         "SELECT DISTINCT challenge_id FROM logic_challenge_attempts WHERE user_id = %s AND is_correct = true",
-                        (user_id,)
+                        (user_id,),
                     )
-                    exclude_ids = [row[0] for row in cursor.fetchall() if row[0] is not None]
+                    exclude_ids = [
+                        row[0] for row in cursor.fetchall() if row[0] is not None
+                    ]
                 finally:
                     cursor.close()
                     conn.close()
@@ -91,10 +117,11 @@ async def get_challenges_list(request: Request):
                 limit=limit,
                 offset=skip,
                 order=order,
-                exclude_ids=exclude_ids if exclude_ids else None
+                exclude_ids=exclude_ids if exclude_ids else None,
             )
             # Convertir les objets en dicts avec normalisation age_group pour frontend
             from app.services.challenge_service import normalize_age_group_for_frontend
+
             challenges_list = [
                 {
                     "id": c.id,
@@ -108,53 +135,64 @@ async def get_challenges_list(request: Request):
                     "estimated_time_minutes": c.estimated_time_minutes,
                     "success_rate": c.success_rate,
                     "view_count": c.view_count,
-                    "is_archived": c.is_archived
-                } for c in challenges
+                    "is_archived": c.is_archived,
+                }
+                for c in challenges
             ]
-            
+
             # Compter le total pour la pagination (même session)
             total = challenge_service.count_challenges(
                 db=db,
                 challenge_type=challenge_type,
                 age_group=age_group_db,
-                exclude_ids=exclude_ids if exclude_ids else None
+                exclude_ids=exclude_ids if exclude_ids else None,
             )
-        
+
         # Filtrer les défis archivés si nécessaire (déjà fait dans la query, mais double vérification)
         if active_only:
-            challenges_list = [c for c in challenges_list if not c.get('is_archived', False)]
+            challenges_list = [
+                c for c in challenges_list if not c.get("is_archived", False)
+            ]
 
         # Log pour déboguer
-        logger.debug(f"API - Retour de {len(challenges_list)} défis sur {total} total (limit demandé: {limit}, page: {page})")
+        logger.debug(
+            f"API - Retour de {len(challenges_list)} défis sur {total} total (limit demandé: {limit}, page: {page})"
+        )
         if len(challenges_list) > 0:
-            logger.debug(f"API - Premier défi: id={challenges_list[0].get('id')}, title={challenges_list[0].get('title')}")
-        
+            logger.debug(
+                f"API - Premier défi: id={challenges_list[0].get('id')}, title={challenges_list[0].get('title')}"
+            )
+
         # Retourner le format paginé standardisé
         has_more = (skip + len(challenges_list)) < total
-        
+
         response_data = {
             "items": challenges_list,
             "total": total,
             "page": page,
             "limit": limit,
-            "hasMore": has_more
+            "hasMore": has_more,
         }
 
-        logger.info(f"Récupération réussie de {len(challenges_list)} défis logiques sur {total} total (locale: {locale})")
+        logger.info(
+            f"Récupération réussie de {len(challenges_list)} défis logiques sur {total} total (locale: {locale})"
+        )
         return JSONResponse(response_data)
     except ValueError as filter_validation_error:
         logger.error(f"Erreur de validation des paramètres: {filter_validation_error}")
         return ErrorHandler.create_validation_error(
             errors=[str(filter_validation_error)],
-            user_message="Les paramètres de filtrage sont invalides."
+            user_message="Les paramètres de filtrage sont invalides.",
         )
     except Exception as challenges_retrieval_error:
-        logger.error(f"Erreur lors de la récupération des défis: {challenges_retrieval_error}")
+        logger.error(
+            f"Erreur lors de la récupération des défis: {challenges_retrieval_error}"
+        )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
             error=challenges_retrieval_error,
             status_code=500,
-            user_message="Erreur lors de la récupération des défis."
+            user_message="Erreur lors de la récupération des défis.",
         )
 
 
@@ -166,24 +204,30 @@ async def get_challenge(request: Request):
     """
     try:
         current_user = request.state.user
-        
-        challenge_id = int(request.path_params.get('challenge_id'))
-        
+
+        challenge_id = int(request.path_params.get("challenge_id"))
+
         # Récupérer la locale depuis le header Accept-Language
-        accept_language = request.headers.get('Accept-Language', 'fr')
+        accept_language = request.headers.get("Accept-Language", "fr")
         locale = parse_accept_language(accept_language)
-        
+
         # Utiliser le service ORM challenge_service
         async with db_session() as db:
             # Récupérer le challenge via get_challenge_by_id
             from app.models.logic_challenge import LogicChallenge
-            challenge = db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
+
+            challenge = (
+                db.query(LogicChallenge)
+                .filter(LogicChallenge.id == challenge_id)
+                .first()
+            )
             if challenge:
+                # Normaliser age_group pour le frontend
+                from app.services.challenge_service import (
+                    normalize_age_group_for_frontend,
+                )
                 from app.utils.json_utils import safe_parse_json
 
-                # Normaliser age_group pour le frontend
-                from app.services.challenge_service import normalize_age_group_for_frontend
-                
                 challenge_dict = {
                     "id": challenge.id,
                     "title": challenge.title,
@@ -203,32 +247,35 @@ async def get_challenge(request: Request):
                     "success_rate": challenge.success_rate,
                     "view_count": challenge.view_count,
                     "is_active": challenge.is_active,
-                    "is_archived": challenge.is_archived
+                    "is_archived": challenge.is_archived,
                 }
             else:
                 challenge_dict = None
-        
+
         if not challenge_dict:
             return ErrorHandler.create_not_found_error(
-                resource_type="Défi logique",
-                resource_id=challenge_id
+                resource_type="Défi logique", resource_id=challenge_id
             )
-        
-        logger.info(f"Récupération réussie du défi logique {challenge_id} (locale: {locale})")
+
+        logger.info(
+            f"Récupération réussie du défi logique {challenge_id} (locale: {locale})"
+        )
         return JSONResponse(challenge_dict)
     except ValueError as id_validation_error:
         logger.error(f"Erreur de validation: {id_validation_error}")
         return ErrorHandler.create_validation_error(
             errors=["ID de défi invalide"],
-            user_message="L'identifiant du défi est invalide."
+            user_message="L'identifiant du défi est invalide.",
         )
     except Exception as challenge_retrieval_error:
-        logger.error(f"Erreur lors de la récupération du défi: {challenge_retrieval_error}")
+        logger.error(
+            f"Erreur lors de la récupération du défi: {challenge_retrieval_error}"
+        )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
             error=challenge_retrieval_error,
             status_code=500,
-            user_message="Erreur lors de la récupération du défi."
+            user_message="Erreur lors de la récupération du défi.",
         )
 
 
@@ -240,18 +287,18 @@ async def submit_challenge_answer(request: Request):
     """
     try:
         current_user = request.state.user
-        
+
         user_id = current_user.get("id")
         if not user_id:
             return JSONResponse({"error": "Utilisateur invalide"}, status_code=401)
-        
-        challenge_id = int(request.path_params.get('challenge_id'))
+
+        challenge_id = int(request.path_params.get("challenge_id"))
         data = await request.json()
-        
-        user_solution = data.get('user_solution') or data.get('answer')
-        time_spent = data.get('time_spent')
-        hints_used_raw = data.get('hints_used', [])
-        
+
+        user_solution = data.get("user_solution") or data.get("answer")
+        time_spent = data.get("time_spent")
+        hints_used_raw = data.get("hints_used", [])
+
         # Convertir hints_used de liste à entier (nombre d'indices utilisés)
         # Le modèle attend un Integer, pas une liste
         if isinstance(hints_used_raw, list):
@@ -260,39 +307,77 @@ async def submit_challenge_answer(request: Request):
             hints_used_count = hints_used_raw
         else:
             hints_used_count = 0
-        
+
         if not user_solution:
             return JSONResponse({"error": "Réponse requise"}, status_code=400)
-        
+
         async with db_session() as db:
             # Récupérer le défi
             challenge = LogicChallengeService.get_challenge(db, challenge_id)
             if not challenge:
-                return JSONResponse({"error": "Défi logique non trouvé"}, status_code=404)
-            
+                return JSONResponse(
+                    {"error": "Défi logique non trouvé"}, status_code=404
+                )
+
             # Vérifier la réponse
             def _normalize_accents(text: str) -> str:
                 """Retire les accents pour tolérance (carré→carre, élève→eleve)."""
                 import unicodedata
-                return ''.join(
-                    c for c in unicodedata.normalize('NFD', text)
-                    if unicodedata.category(c) != 'Mn'
-                ) if text else ''
+
+                return (
+                    "".join(
+                        c
+                        for c in unicodedata.normalize("NFD", text)
+                        if unicodedata.category(c) != "Mn"
+                    )
+                    if text
+                    else ""
+                )
 
             def _normalize_shape_answer(text: str) -> str:
                 """Normalise pour VISUAL : synonymes, accents, ordre forme+couleur."""
                 if not text:
-                    return ''
+                    return ""
                 t = text.lower().strip()
-                for old, new in [('rectangle', 'carre'), ('square', 'carre'), ('circle', 'cercle'),
-                                 ('carré', 'carre'), ('étoile', 'etoile'), ('losange', 'losange')]:
+                for old, new in [
+                    ("rectangle", "carre"),
+                    ("square", "carre"),
+                    ("circle", "cercle"),
+                    ("carré", "carre"),
+                    ("étoile", "etoile"),
+                    ("losange", "losange"),
+                ]:
                     if old in t:
                         t = t.replace(old, new)
                 t = _normalize_accents(t)
                 # Accepter "bleu carre" ou "carre bleu" -> normaliser en "carre bleu"
                 mots = t.split()
-                formes = {'carre', 'cercle', 'triangle', 'rectangle', 'losange', 'etoile', 'hexagone', 'pentagone'}
-                couleurs = {'rouge', 'bleu', 'vert', 'jaune', 'orange', 'violet', 'rose', 'gris', 'noir', 'blanc', 'red', 'blue', 'green', 'yellow'}
+                formes = {
+                    "carre",
+                    "cercle",
+                    "triangle",
+                    "rectangle",
+                    "losange",
+                    "etoile",
+                    "hexagone",
+                    "pentagone",
+                }
+                couleurs = {
+                    "rouge",
+                    "bleu",
+                    "vert",
+                    "jaune",
+                    "orange",
+                    "violet",
+                    "rose",
+                    "gris",
+                    "noir",
+                    "blanc",
+                    "red",
+                    "blue",
+                    "green",
+                    "yellow",
+                }
                 f, c = None, None
                 for m in mots:
                     if m in formes:
@@ -300,7 +385,7 @@ async def submit_challenge_answer(request: Request):
                     elif m in couleurs:
                         c = m
                 if f and c:
-                    t = f'{f} {c}'
+                    t = f"{f} {c}"
                 return t
 
             def _parse_multi_visual_answer(text: str) -> list:
@@ -311,18 +396,20 @@ async def submit_challenge_answer(request: Request):
                 if not text or not text.strip():
                     return []
                 parts = []
-                for segment in text.replace(',', ' , ').split(','):
+                for segment in text.replace(",", " , ").split(","):
                     segment = segment.strip()
                     if not segment:
                         continue
                     # Format "Position 6: xxx" ou "6: xxx"
-                    if ':' in segment:
-                        pos_part, ans_part = segment.split(':', 1)
+                    if ":" in segment:
+                        pos_part, ans_part = segment.split(":", 1)
                         ans_part = ans_part.strip()
-                        pos_digits = ''.join(c for c in pos_part if c.isdigit())
+                        pos_digits = "".join(c for c in pos_part if c.isdigit())
                         if pos_digits and ans_part and not ans_part.isdigit():
                             # Segment ressemble à "6:cercle rouge" ou "Position 6: cercle rouge"
-                            parts.append((int(pos_digits), _normalize_shape_answer(ans_part)))
+                            parts.append(
+                                (int(pos_digits), _normalize_shape_answer(ans_part))
+                            )
                             continue
                     parts.append((0, _normalize_shape_answer(segment)))
                 if parts:
@@ -333,11 +420,12 @@ async def submit_challenge_answer(request: Request):
             def parse_answer_to_list(answer: str) -> list:
                 """Parse une réponse en liste, gérant plusieurs formats."""
                 answer = str(answer).strip()
-                
+
                 # Format liste Python : "['Rouge', 'Vert', 'Jaune', 'Bleu']"
-                if answer.startswith('[') and answer.endswith(']'):
+                if answer.startswith("[") and answer.endswith("]"):
                     try:
                         import ast
+
                         parsed = ast.literal_eval(answer)
                         if isinstance(parsed, list):
                             return [str(item).strip().lower() for item in parsed]
@@ -347,25 +435,31 @@ async def submit_challenge_answer(request: Request):
                     inner = answer[1:-1]
                     # Retirer les quotes autour de chaque élément
                     items = []
-                    for item in inner.split(','):
+                    for item in inner.split(","):
                         item = item.strip().strip("'").strip('"').strip().lower()
                         if item:
                             items.append(item)
                     return items
-                
+
                 # Format CSV simple : "Rouge,Vert,Jaune,Bleu" ou "O, O, X, O"
-                if ',' in answer:
-                    return [item.strip().lower() for item in answer.split(',') if item.strip()]
-                
+                if "," in answer:
+                    return [
+                        item.strip().lower()
+                        for item in answer.split(",")
+                        if item.strip()
+                    ]
+
                 # Séparateur espaces : "O O X O" (sans virgules)
                 parts = [p.strip().lower() for p in answer.split() if p.strip()]
                 if len(parts) > 1:
                     return parts
-                
+
                 # Valeur simple
                 return [answer.lower()] if answer else []
-            
-            def compare_deduction_answers(user_answer: str, correct_answer: str) -> bool:
+
+            def compare_deduction_answers(
+                user_answer: str, correct_answer: str
+            ) -> bool:
                 """
                 Compare les réponses pour les défis de déduction.
                 Format attendu: "Emma:Chimie:700,Lucas:Info:600,..." ou format dict-like
@@ -374,16 +468,37 @@ async def submit_challenge_answer(request: Request):
                 """
                 # Mapping ordinaux français → chiffre (frontend affiche "1er", "2ème" etc.)
                 _ORDINAL_NORM = {
-                    "1er": "1", "1ère": "1", "1e": "1", "1ere": "1",
-                    "2ème": "2", "2eme": "2", "2e": "2",
-                    "3ème": "3", "3eme": "3", "3e": "3",
-                    "4ème": "4", "4eme": "4", "4e": "4",
-                    "5ème": "5", "5eme": "5", "5e": "5",
-                    "6ème": "6", "6eme": "6", "6e": "6",
-                    "7ème": "7", "7eme": "7", "7e": "7",
-                    "8ème": "8", "8eme": "8", "8e": "8",
-                    "9ème": "9", "9eme": "9", "9e": "9",
-                    "10ème": "10", "10eme": "10", "10e": "10",
+                    "1er": "1",
+                    "1ère": "1",
+                    "1e": "1",
+                    "1ere": "1",
+                    "2ème": "2",
+                    "2eme": "2",
+                    "2e": "2",
+                    "3ème": "3",
+                    "3eme": "3",
+                    "3e": "3",
+                    "4ème": "4",
+                    "4eme": "4",
+                    "4e": "4",
+                    "5ème": "5",
+                    "5eme": "5",
+                    "5e": "5",
+                    "6ème": "6",
+                    "6eme": "6",
+                    "6e": "6",
+                    "7ème": "7",
+                    "7eme": "7",
+                    "7e": "7",
+                    "8ème": "8",
+                    "8eme": "8",
+                    "8e": "8",
+                    "9ème": "9",
+                    "9eme": "9",
+                    "9e": "9",
+                    "10ème": "10",
+                    "10eme": "10",
+                    "10e": "10",
                 }
 
                 def _norm_ordinal(s: str) -> str:
@@ -395,95 +510,141 @@ async def submit_challenge_answer(request: Request):
                     """Parse les associations en set de tuples normalisés."""
                     answer = str(answer).strip().lower()
                     associations = set()
-                    
+
                     # Format "entité:val1:val2,..."
-                    if ':' in answer:
-                        for part in answer.split(','):
+                    if ":" in answer:
+                        for part in answer.split(","):
                             part = part.strip()
                             if part:
                                 # Normaliser ordinaux + tri pour ignorer l'ordre
-                                raw = [e.strip() for e in part.split(':') if e.strip()]
-                                elements = tuple(sorted([_norm_ordinal(e) for e in raw]))
+                                raw = [e.strip() for e in part.split(":") if e.strip()]
+                                elements = tuple(
+                                    sorted([_norm_ordinal(e) for e in raw])
+                                )
                                 if elements:
                                     associations.add(elements)
                     # Format dict-like ou JSON
-                    elif '{' in answer:
+                    elif "{" in answer:
                         try:
                             import json
+
                             data = json.loads(answer.replace("'", '"'))
                             if isinstance(data, dict):
                                 for key, values in data.items():
                                     if isinstance(values, dict):
-                                        elements = tuple(sorted([str(key).lower()] + [str(v).lower() for v in values.values()]))
+                                        elements = tuple(
+                                            sorted(
+                                                [str(key).lower()]
+                                                + [
+                                                    str(v).lower()
+                                                    for v in values.values()
+                                                ]
+                                            )
+                                        )
                                     else:
-                                        elements = tuple(sorted([str(key).lower(), str(values).lower()]))
+                                        elements = tuple(
+                                            sorted(
+                                                [str(key).lower(), str(values).lower()]
+                                            )
+                                        )
                                     associations.add(elements)
-                        except (json.JSONDecodeError, ValueError, TypeError, AttributeError):
+                        except (
+                            json.JSONDecodeError,
+                            ValueError,
+                            TypeError,
+                            AttributeError,
+                        ):
                             pass
-                    
+
                     return associations
-                
+
                 user_assoc = parse_associations(user_answer)
                 correct_assoc = parse_associations(correct_answer)
-                
-                logger.debug(f"Deduction comparison - User: {user_assoc}, Correct: {correct_assoc}")
-                
+
+                logger.debug(
+                    f"Deduction comparison - User: {user_assoc}, Correct: {correct_assoc}"
+                )
+
                 # Comparer les sets
                 return user_assoc == correct_assoc
-            
+
             # Déterminer le type de challenge pour choisir la méthode de comparaison
-            challenge_type = str(challenge.challenge_type).lower() if challenge.challenge_type else ''
+            challenge_type = (
+                str(challenge.challenge_type).lower()
+                if challenge.challenge_type
+                else ""
+            )
 
             # Comparaison spéciale pour les défis de déduction
-            if 'deduction' in challenge_type and ':' in user_solution:
-                is_correct = compare_deduction_answers(user_solution, challenge.correct_answer)
-                logger.debug(f"Comparaison déduction - User: {user_solution[:100]}, Correct: {challenge.correct_answer[:100] if challenge.correct_answer else 'None'}, Result: {is_correct}")
-            elif 'probability' in challenge_type:
+            if "deduction" in challenge_type and ":" in user_solution:
+                is_correct = compare_deduction_answers(
+                    user_solution, challenge.correct_answer
+                )
+                logger.debug(
+                    f"Comparaison déduction - User: {user_solution[:100]}, Correct: {challenge.correct_answer[:100] if challenge.correct_answer else 'None'}, Result: {is_correct}"
+                )
+            elif "probability" in challenge_type:
+
                 def _parse_probability_value(text: str) -> float | None:
                     """Parse 6/10, 3/5, 0.6, 60% → valeur décimale."""
                     if not text or not isinstance(text, str):
                         return None
                     t = text.strip()
-                    if '/' in t:
+                    if "/" in t:
                         try:
-                            a, b = t.split('/', 1)
+                            a, b = t.split("/", 1)
                             num, den = float(a.strip()), float(b.strip())
                             return num / den if den else None
                         except (ValueError, ZeroDivisionError):
                             return None
-                    if '%' in t:
+                    if "%" in t:
                         try:
-                            return float(t.replace('%', '').strip()) / 100
+                            return float(t.replace("%", "").strip()) / 100
                         except ValueError:
                             return None
                     try:
-                        return float(t.replace(',', '.'))
+                        return float(t.replace(",", "."))
                     except ValueError:
                         return None
 
                 u_val = _parse_probability_value(user_solution)
-                c_val = _parse_probability_value(challenge.correct_answer or '')
+                c_val = _parse_probability_value(challenge.correct_answer or "")
                 is_correct = (
                     u_val is not None
                     and c_val is not None
                     and abs(u_val - c_val) < 0.001
                 )
-                if not is_correct and user_solution.strip() == (challenge.correct_answer or '').strip():
+                if (
+                    not is_correct
+                    and user_solution.strip()
+                    == (challenge.correct_answer or "").strip()
+                ):
                     is_correct = True
-                logger.debug(f"Comparaison PROBABILITY - User: {user_solution}, Correct: {challenge.correct_answer}, Parsed: {u_val}/{c_val}, Result: {is_correct}")
-            elif 'chess' in challenge_type:
+                logger.debug(
+                    f"Comparaison PROBABILITY - User: {user_solution}, Correct: {challenge.correct_answer}, Parsed: {u_val}/{c_val}, Result: {is_correct}"
+                )
+            elif "chess" in challenge_type:
+
                 def _normalize_chess_answer(text: str) -> str:
                     """Normalise une réponse échecs pour comparaison tolérante."""
                     if not text or not isinstance(text, str):
                         return ""
                     import re
+
                     t = text.strip()
                     # Retirer numéros de coups (1. 2. 3. 1) 2) etc.)
-                    t = re.sub(r'\d+[.)]\s*', '', t)
+                    t = re.sub(r"\d+[.)]\s*", "", t)
                     # Collapser espaces multiples et normaliser
-                    t = re.sub(r'\s+', ' ', t).strip()
+                    t = re.sub(r"\s+", " ", t).strip()
                     # Notation anglaise → française (Q->D, R->T, B->F, N->C, K->R)
-                    _en_to_fr = {'Q': 'D', 'R': 'T', 'B': 'F', 'N': 'C', 'K': 'R', 'P': 'P'}
+                    _en_to_fr = {
+                        "Q": "D",
+                        "R": "T",
+                        "B": "F",
+                        "N": "C",
+                        "K": "R",
+                        "P": "P",
+                    }
                     parts = t.split()
                     out = []
                     for p in parts:
@@ -491,43 +652,55 @@ async def submit_challenge_answer(request: Request):
                             out.append(_en_to_fr[p[0].upper()] + p[1:])
                         else:
                             out.append(p)
-                    t = ' '.join(out).upper()
+                    t = " ".join(out).upper()
                     # Comparaison sans espaces (tolérance "Dg8+ Txg8 Cf7#" = "Dg8+Txg8Cf7#")
-                    return t.replace(' ', '')
+                    return t.replace(" ", "")
 
                 u_norm = _normalize_chess_answer(user_solution)
-                correct_raw = challenge.correct_answer or ''
+                correct_raw = challenge.correct_answer or ""
                 # Accepter plusieurs solutions (duals) séparées par " | "
-                correct_variants = [s.strip() for s in correct_raw.split('|') if s.strip()]
+                correct_variants = [
+                    s.strip() for s in correct_raw.split("|") if s.strip()
+                ]
                 correct_norms = [_normalize_chess_answer(v) for v in correct_variants]
-                is_correct = u_norm in correct_norms if correct_norms else u_norm == _normalize_chess_answer(correct_raw)
-                logger.debug(f"Comparaison CHESS - User norm: {u_norm}, Correct: {correct_norms}, Result: {is_correct}")
-            elif 'graph' in challenge_type:
+                is_correct = (
+                    u_norm in correct_norms
+                    if correct_norms
+                    else u_norm == _normalize_chess_answer(correct_raw)
+                )
+                logger.debug(
+                    f"Comparaison CHESS - User norm: {u_norm}, Correct: {correct_norms}, Result: {is_correct}"
+                )
+            elif "graph" in challenge_type:
                 # Liste de nœuds : accepter tout ordre (comparaison par ensemble)
                 user_list = parse_answer_to_list(user_solution)
-                correct_list = parse_answer_to_list(challenge.correct_answer or '')
+                correct_list = parse_answer_to_list(challenge.correct_answer or "")
                 user_set = {u.strip().upper() for u in user_list if u.strip()}
                 correct_set = {c.strip().upper() for c in correct_list if c.strip()}
                 # Liste de nœuds (set) vs chemin (ordre) : si aucun élément ne contient "-", c'est un set
-                is_node_list = (
-                    len(correct_set) > 1
-                    and not any('-' in str(c) for c in correct_list)
+                is_node_list = len(correct_set) > 1 and not any(
+                    "-" in str(c) for c in correct_list
                 )
                 if is_node_list:
                     is_correct = user_set == correct_set
                 else:
                     # Chemin ou valeur unique : comparaison ordonnée
                     is_correct = user_list == correct_list
-                logger.debug(f"Comparaison GRAPH - User: {user_set if is_node_list else user_list}, Correct: {correct_set if is_node_list else correct_list}, Result: {is_correct}")
-            elif 'visual' in challenge_type or 'pattern' in challenge_type:
+                logger.debug(
+                    f"Comparaison GRAPH - User: {user_set if is_node_list else user_list}, Correct: {correct_set if is_node_list else correct_list}, Result: {is_correct}"
+                )
+            elif "visual" in challenge_type or "pattern" in challenge_type:
                 # PATTERN avec grille : source de vérité = analyse du pattern, pas correct_answer en base
                 computed_pattern_answer = None
-                if 'pattern' in challenge_type:
+                if "pattern" in challenge_type:
                     vd = challenge.visual_data
-                    if isinstance(vd, dict) and vd.get('grid'):
+                    if isinstance(vd, dict) and vd.get("grid"):
                         from app.services.challenge_validator import (
-                            analyze_pattern, compute_pattern_answers_multi)
-                        grid = vd['grid']
+                            analyze_pattern,
+                            compute_pattern_answers_multi,
+                        )
+
+                        grid = vd["grid"]
                         # Plusieurs "?" → format "O, O, X, O" (ordre ligne par ligne)
                         computed_multi = compute_pattern_answers_multi(grid)
                         if computed_multi:
@@ -537,20 +710,28 @@ async def submit_challenge_answer(request: Request):
                                 if not isinstance(row, (list, tuple)):
                                     continue
                                 for j, cell in enumerate(row):
-                                    if cell == '?' or (isinstance(cell, str) and '?' in str(cell)):
-                                        computed_pattern_answer = analyze_pattern(grid, i, j)
+                                    if cell == "?" or (
+                                        isinstance(cell, str) and "?" in str(cell)
+                                    ):
+                                        computed_pattern_answer = analyze_pattern(
+                                            grid, i, j
+                                        )
                                         break
                                 if computed_pattern_answer is not None:
                                     break
-                effective_correct = (computed_pattern_answer or challenge.correct_answer or '').strip()
+                effective_correct = (
+                    computed_pattern_answer or challenge.correct_answer or ""
+                ).strip()
                 if computed_pattern_answer:
-                    logger.debug(f"PATTERN: réponse calculée depuis la grille = '{computed_pattern_answer}'")
+                    logger.debug(
+                        f"PATTERN: réponse calculée depuis la grille = '{computed_pattern_answer}'"
+                    )
                 # PATTERN multi-cellules : format "O, O, X, O" (liste de symboles, ordre des "?")
                 is_pattern_multi_csv = (
-                    'pattern' in challenge_type
+                    "pattern" in challenge_type
                     and effective_correct
-                    and ',' in effective_correct
-                    and 'position' not in effective_correct.lower()
+                    and "," in effective_correct
+                    and "position" not in effective_correct.lower()
                 )
                 if is_pattern_multi_csv:
                     user_list = parse_answer_to_list(user_solution)
@@ -563,19 +744,20 @@ async def submit_challenge_answer(request: Request):
                 else:
                     # VISUAL/PATTERN : tolérance synonymes, format "Position 6: x, Position 9: y"
                     user_parts = _parse_multi_visual_answer(user_solution)
-                    correct_parts = _parse_multi_visual_answer(effective_correct or '')
+                    correct_parts = _parse_multi_visual_answer(effective_correct or "")
                     is_multi_position = (
                         len(correct_parts) > 1 and any(p[0] > 0 for p in correct_parts)
-                    ) or (
-                        len(user_parts) > 1 and any(p[0] > 0 for p in user_parts)
-                    )
+                    ) or (len(user_parts) > 1 and any(p[0] > 0 for p in user_parts))
                     if is_multi_position:
                         if len(correct_parts) == 1 and len(user_parts) == 1:
                             is_correct = user_parts[0][1] == correct_parts[0][1]
                         elif len(user_parts) == len(correct_parts):
                             correct_sorted = sorted(correct_parts, key=lambda x: x[0])
                             user_sorted = sorted(user_parts, key=lambda x: x[0])
-                            by_position = all(u[1] == c[1] for u, c in zip(user_sorted, correct_sorted))
+                            by_position = all(
+                                u[1] == c[1]
+                                for u, c in zip(user_sorted, correct_sorted)
+                            )
                             if not by_position and all(u[0] == 0 for u in user_parts):
                                 user_answers = {p[1] for p in user_parts if p[1]}
                                 correct_answers = {p[1] for p in correct_parts if p[1]}
@@ -585,38 +767,46 @@ async def submit_challenge_answer(request: Request):
                         else:
                             user_answers = {p[1] for p in user_parts if p[1]}
                             correct_answers = {p[1] for p in correct_parts if p[1]}
-                            is_correct = user_answers == correct_answers and len(user_answers) == len(correct_answers)
+                            is_correct = user_answers == correct_answers and len(
+                                user_answers
+                            ) == len(correct_answers)
                     else:
                         user_list = parse_answer_to_list(user_solution)
                         correct_list = parse_answer_to_list(effective_correct)
-                        u = user_list[0] if user_list else ''
-                        c = correct_list[0] if correct_list else ''
-                        is_correct = _normalize_shape_answer(u) == _normalize_shape_answer(c)
+                        u = user_list[0] if user_list else ""
+                        c = correct_list[0] if correct_list else ""
+                        is_correct = _normalize_shape_answer(
+                            u
+                        ) == _normalize_shape_answer(c)
                 logger.debug(f"Comparaison VISUAL/PATTERN - Result: {is_correct}")
             else:
                 user_list = parse_answer_to_list(user_solution)
                 correct_list = parse_answer_to_list(challenge.correct_answer)
-                logger.debug(f"Comparaison réponse - User: {user_list}, Correct: {correct_list}")
+                logger.debug(
+                    f"Comparaison réponse - User: {user_list}, Correct: {correct_list}"
+                )
                 if len(user_list) > 1 or len(correct_list) > 1:
                     is_correct = user_list == correct_list
                 else:
-                    u = user_list[0] if user_list else ''
-                    c = correct_list[0] if correct_list else ''
+                    u = user_list[0] if user_list else ""
+                    c = correct_list[0] if correct_list else ""
                     is_correct = u == c
-            
+
             # NOTE: attempt_service_translations archivé - utiliser LogicChallengeAttempt ORM
             from app.models.logic_challenge import LogicChallengeAttempt
-            
+
             attempt_data = {
                 "user_id": user_id,
                 "challenge_id": challenge_id,
                 "user_solution": user_solution,
                 "is_correct": is_correct,
                 "time_spent": time_spent,
-                "hints_used": hints_used_count  # Utiliser le nombre d'indices, pas la liste
+                "hints_used": hints_used_count,  # Utiliser le nombre d'indices, pas la liste
             }
-            
-            logger.debug(f"Tentative d'enregistrement de challenge avec attempt_data: {attempt_data}")
+
+            logger.debug(
+                f"Tentative d'enregistrement de challenge avec attempt_data: {attempt_data}"
+            )
             attempt = LogicChallengeAttempt(**attempt_data)
             db.add(attempt)
             db.commit()
@@ -628,6 +818,7 @@ async def submit_challenge_answer(request: Request):
             if is_correct:
                 try:
                     from app.services.badge_service import BadgeService
+
                     badge_service = BadgeService(db)
                     new_badges = badge_service.check_and_award_badges(user_id)
                 except Exception as badge_err:
@@ -636,6 +827,7 @@ async def submit_challenge_answer(request: Request):
             # Mettre à jour la série d'entraînement (streak) — toute tentative compte
             try:
                 from app.services.streak_service import update_user_streak
+
                 update_user_streak(db, user_id)
             except Exception:
                 pass
@@ -645,32 +837,38 @@ async def submit_challenge_answer(request: Request):
             if not new_badges:
                 try:
                     from app.services.badge_service import BadgeService
+
                     svc = BadgeService(db)
                     progress_notif = svc.get_closest_progress_notification(user_id)
                 except Exception:
                     pass
 
             response_data = {
-                'is_correct': is_correct,
-                'explanation': challenge.solution_explanation if is_correct else None,
-                'new_badges': new_badges,
+                "is_correct": is_correct,
+                "explanation": challenge.solution_explanation if is_correct else None,
+                "new_badges": new_badges,
             }
             if progress_notif:
-                response_data['progress_notification'] = progress_notif
-            
+                response_data["progress_notification"] = progress_notif
+
             if not is_correct:
                 # Ne pas révéler la bonne réponse immédiatement, mais la donner dans l'explication après plusieurs tentatives
-                hints_list = challenge.hints if isinstance(challenge.hints, list) else []
-                response_data['hints_remaining'] = len(hints_list) - hints_used_count
-            
+                hints_list = (
+                    challenge.hints if isinstance(challenge.hints, list) else []
+                )
+                response_data["hints_remaining"] = len(hints_list) - hints_used_count
+
             return JSONResponse(response_data)
     except ValueError:
         return JSONResponse({"error": "ID de défi invalide"}, status_code=400)
     except Exception as submission_error:
         logger.error(f"Erreur lors de la soumission de la réponse: {submission_error}")
         import traceback
+
         logger.debug(traceback.format_exc())
-        return JSONResponse({"error": get_safe_error_message(submission_error)}, status_code=500)
+        return JSONResponse(
+            {"error": get_safe_error_message(submission_error)}, status_code=500
+        )
 
 
 async def get_challenge_hint(request: Request):
@@ -679,14 +877,16 @@ async def get_challenge_hint(request: Request):
     Route: GET /api/challenges/{challenge_id}/hint
     """
     try:
-        challenge_id = int(request.path_params.get('challenge_id'))
-        level = int(request.query_params.get('level', 1))
-        
+        challenge_id = int(request.path_params.get("challenge_id"))
+        level = int(request.query_params.get("level", 1))
+
         async with db_session() as db:
             challenge = LogicChallengeService.get_challenge(db, challenge_id)
             if not challenge:
-                return JSONResponse({"error": "Défi logique non trouvé"}, status_code=404)
-            
+                return JSONResponse(
+                    {"error": "Défi logique non trouvé"}, status_code=404
+                )
+
             # Récupérer les indices
             hints = challenge.hints
             if isinstance(hints, str):
@@ -697,23 +897,32 @@ async def get_challenge_hint(request: Request):
                     hints = []
             elif hints is None:
                 hints = []
-            
+
             # S'assurer que hints est une liste
             if not isinstance(hints, list):
                 hints = []
-            
+
             if level < 1 or level > len(hints):
-                return JSONResponse({"error": f"Indice de niveau {level} non disponible"}, status_code=400)
-            
+                return JSONResponse(
+                    {"error": f"Indice de niveau {level} non disponible"},
+                    status_code=400,
+                )
+
             # Retourner l'indice spécifique au niveau demandé (index 0-based)
             hint_text = hints[level - 1] if level <= len(hints) else None
-            return JSONResponse({"hint": hint_text})  # Retourner l'indice spécifique au niveau
+            return JSONResponse(
+                {"hint": hint_text}
+            )  # Retourner l'indice spécifique au niveau
     except ValueError:
         return JSONResponse({"error": "ID de défi ou niveau invalide"}, status_code=400)
     except Exception as hint_retrieval_error:
-        logger.error(f"Erreur lors de la récupération de l'indice: {hint_retrieval_error}")
+        logger.error(
+            f"Erreur lors de la récupération de l'indice: {hint_retrieval_error}"
+        )
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(hint_retrieval_error)}, status_code=500)
+        return JSONResponse(
+            {"error": get_safe_error_message(hint_retrieval_error)}, status_code=500
+        )
 
 
 @optional_auth
@@ -726,13 +935,14 @@ async def get_completed_challenges_ids(request: Request):
         current_user = request.state.user
         if not current_user:
             return JSONResponse({"completed_ids": []}, status_code=200)
-        
+
         user_id = current_user.get("id")
         if not user_id:
             return JSONResponse({"completed_ids": []}, status_code=200)
-        
+
         # Récupérer les IDs de challenges avec au moins une tentative correcte
         from server.database import get_db_connection
+
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
@@ -745,8 +955,10 @@ async def get_completed_challenges_ids(request: Request):
             """
             cursor.execute(check_query, (user_id,))
             stats = cursor.fetchone()
-            logger.debug(f"Statistiques pour user_id {user_id}: total={stats[0]}, correctes={stats[1]}")
-            
+            logger.debug(
+                f"Statistiques pour user_id {user_id}: total={stats[0]}, correctes={stats[1]}"
+            )
+
             # Ensuite, récupérer les IDs de challenges complétés
             query = """
                 SELECT DISTINCT challenge_id 
@@ -756,21 +968,25 @@ async def get_completed_challenges_ids(request: Request):
             cursor.execute(query, (user_id,))
             rows = cursor.fetchall()
             completed_ids = [row[0] for row in rows] if rows else []
-            
-            logger.debug(f"Récupération de {len(completed_ids)} challenges complétés pour l'utilisateur {user_id}")
+
+            logger.debug(
+                f"Récupération de {len(completed_ids)} challenges complétés pour l'utilisateur {user_id}"
+            )
             logger.debug(f"IDs complétés: {completed_ids}")
             return JSONResponse({"completed_ids": completed_ids})
         finally:
             cursor.close()
             conn.close()
-            
+
     except Exception as completed_challenges_error:
-        logger.error(f"Erreur lors de la récupération des challenges complétés: {completed_challenges_error}")
+        logger.error(
+            f"Erreur lors de la récupération des challenges complétés: {completed_challenges_error}"
+        )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
             error=completed_challenges_error,
             status_code=500,
-            user_message="Erreur lors de la récupération des challenges complétés."
+            user_message="Erreur lors de la récupération des challenges complétés.",
         )
 
 
@@ -782,14 +998,18 @@ async def start_challenge(request: Request):
     """
     try:
         current_user = request.state.user
-        
-        challenge_id = int(request.path_params.get('challenge_id'))
-        user_id = current_user.get('id')
-        logger.info(f"Défi {challenge_id} démarré par l'utilisateur {user_id}. Fonctionnalité en développement.")
+
+        challenge_id = int(request.path_params.get("challenge_id"))
+        user_id = current_user.get("id")
+        logger.info(
+            f"Défi {challenge_id} démarré par l'utilisateur {user_id}. Fonctionnalité en développement."
+        )
 
         return JSONResponse(
-            {"message": f"Le défi {challenge_id} a été enregistré comme démarré pour l'utilisateur {user_id}. La fonctionnalité est en cours de développement."},
-            status_code=200
+            {
+                "message": f"Le défi {challenge_id} a été enregistré comme démarré pour l'utilisateur {user_id}. La fonctionnalité est en cours de développement."
+            },
+            status_code=200,
         )
     except ValueError:
         return JSONResponse({"error": "ID de défi invalide"}, status_code=400)
@@ -807,14 +1027,18 @@ async def get_challenge_progress(request: Request):
     """
     try:
         current_user = request.state.user
-        
-        challenge_id = int(request.path_params.get('challenge_id'))
-        user_id = current_user.get('id')
-        logger.info(f"Accès à la progression du défi {challenge_id} pour l'utilisateur {user_id}. Fonctionnalité en développement.")
+
+        challenge_id = int(request.path_params.get("challenge_id"))
+        user_id = current_user.get("id")
+        logger.info(
+            f"Accès à la progression du défi {challenge_id} pour l'utilisateur {user_id}. Fonctionnalité en développement."
+        )
 
         return JSONResponse(
-            {"message": f"La fonctionnalité de progression pour le défi {challenge_id} pour l'utilisateur {user_id} est en cours de développement."},
-            status_code=200
+            {
+                "message": f"La fonctionnalité de progression pour le défi {challenge_id} pour l'utilisateur {user_id} est en cours de développement."
+            },
+            status_code=200,
         )
     except ValueError:
         return JSONResponse({"error": "ID de défi invalide"}, status_code=400)
@@ -832,13 +1056,17 @@ async def get_challenge_rewards(request: Request):
     """
     try:
         current_user = request.state.user
-        
-        challenge_id = int(request.path_params.get('challenge_id'))
-        logger.info(f"Accès aux récompenses du défi {challenge_id} par l'utilisateur {current_user.get('id')}. Fonctionnalité en développement.")
+
+        challenge_id = int(request.path_params.get("challenge_id"))
+        logger.info(
+            f"Accès aux récompenses du défi {challenge_id} par l'utilisateur {current_user.get('id')}. Fonctionnalité en développement."
+        )
 
         return JSONResponse(
-            {"message": f"La fonctionnalité de récompenses pour le défi {challenge_id} est en cours de développement."},
-            status_code=200
+            {
+                "message": f"La fonctionnalité de récompenses pour le défi {challenge_id} est en cours de développement."
+            },
+            status_code=200,
         )
     except ValueError:
         return JSONResponse({"error": "ID de défi invalide"}, status_code=400)
@@ -856,13 +1084,18 @@ async def generate_ai_challenge_stream(request: Request):
     """
     try:
         current_user = request.state.user
-        challenge_type_raw = request.query_params.get('challenge_type', 'sequence')
-        age_group_raw = request.query_params.get('age_group', '10-12')
-        prompt_raw = request.query_params.get('prompt', '')
+        challenge_type_raw = request.query_params.get("challenge_type", "sequence")
+        age_group_raw = request.query_params.get("age_group", "10-12")
+        prompt_raw = request.query_params.get("prompt", "")
 
-        from app.utils.prompt_sanitizer import sanitize_user_prompt, validate_prompt_safety
+        from app.services.challenge_ai_service import (
+            generate_challenge_stream as svc_generate_stream,
+        )
+        from app.utils.prompt_sanitizer import (
+            sanitize_user_prompt,
+            validate_prompt_safety,
+        )
         from app.utils.sse_utils import SSE_HEADERS, sse_error_response
-        from app.services.challenge_ai_service import generate_challenge_stream as svc_generate_stream
 
         is_safe, safety_reason = validate_prompt_safety(prompt_raw)
         if not is_safe:
@@ -872,23 +1105,45 @@ async def generate_ai_challenge_stream(request: Request):
         prompt = sanitize_user_prompt(prompt_raw)
 
         challenge_type = challenge_type_raw.lower()
-        valid_types = ['sequence', 'pattern', 'visual', 'puzzle', 'graph', 'riddle', 'deduction', 'chess', 'coding', 'probability']
+        valid_types = [
+            "sequence",
+            "pattern",
+            "visual",
+            "puzzle",
+            "graph",
+            "riddle",
+            "deduction",
+            "chess",
+            "coding",
+            "probability",
+        ]
         if challenge_type not in valid_types:
-            logger.warning(f"Type de challenge invalide: {challenge_type_raw}, utilisation de 'sequence' par défaut")
-            challenge_type = 'sequence'
+            logger.warning(
+                f"Type de challenge invalide: {challenge_type_raw}, utilisation de 'sequence' par défaut"
+            )
+            challenge_type = "sequence"
 
         normalized_age_group = normalize_age_group(age_group_raw)
-        age_group = normalized_age_group if normalized_age_group else constants.AgeGroups.GROUP_6_8
+        age_group = (
+            normalized_age_group
+            if normalized_age_group
+            else constants.AgeGroups.GROUP_6_8
+        )
 
-        user_id = current_user.get('id')
+        user_id = current_user.get("id")
         if user_id:
             from app.utils.rate_limiter import rate_limiter
+
             allowed, rate_limit_reason = rate_limiter.check_rate_limit(
                 user_id=user_id, max_per_hour=10, max_per_day=50
             )
             if not allowed:
-                logger.warning(f"Rate limit atteint pour utilisateur {user_id}: {rate_limit_reason}")
-                return sse_error_response(f"Limite de génération atteinte: {rate_limit_reason}")
+                logger.warning(
+                    f"Rate limit atteint pour utilisateur {user_id}: {rate_limit_reason}"
+                )
+                return sse_error_response(
+                    f"Limite de génération atteinte: {rate_limit_reason}"
+                )
 
         if not settings.OPENAI_API_KEY:
             return sse_error_response("OpenAI API key non configurée")

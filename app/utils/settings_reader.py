@@ -2,6 +2,7 @@
 Lecture des paramètres globaux (table settings).
 Utilisé par middleware et handlers pour maintenance_mode, registration_enabled, etc.
 """
+
 from app.models.setting import Setting
 from app.utils.db_utils import db_session
 

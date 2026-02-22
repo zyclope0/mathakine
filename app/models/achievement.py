@@ -1,8 +1,18 @@
 """
 Modèles SQLAlchemy pour le système de badges
 """
-from sqlalchemy import (JSON, Boolean, Column, DateTime, ForeignKey, Index,
-                        Integer, String, Text)
+
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -11,10 +21,9 @@ from app.db.base import Base
 
 class Achievement(Base):
     """Modèle pour les badges/achievements"""
+
     __tablename__ = "achievements"
-    __table_args__ = (
-        Index('idx_achievements_category', 'category'),
-    )
+    __table_args__ = (Index("idx_achievements_category", "category"),)
 
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String(100), unique=True, nullable=False, index=True)
@@ -31,7 +40,9 @@ class Achievement(Base):
     created_at = Column(DateTime(timezone=True), default=func.now())
 
     # Relations
-    user_achievements = relationship("UserAchievement", back_populates="achievement", cascade="all, delete-orphan")
+    user_achievements = relationship(
+        "UserAchievement", back_populates="achievement", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<Achievement {self.code}: {self.name} ({self.difficulty})>"
@@ -39,11 +50,16 @@ class Achievement(Base):
 
 class UserAchievement(Base):
     """Modèle pour les badges obtenus par les utilisateurs"""
+
     __tablename__ = "user_achievements"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    achievement_id = Column(Integer, ForeignKey("achievements.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    achievement_id = Column(
+        Integer, ForeignKey("achievements.id", ondelete="CASCADE"), nullable=False
+    )
     earned_at = Column(DateTime(timezone=True), default=func.now(), index=True)
     progress_data = Column(JSON, nullable=True)
     is_displayed = Column(Boolean, default=True)
@@ -53,4 +69,6 @@ class UserAchievement(Base):
     achievement = relationship("Achievement", back_populates="user_achievements")
 
     def __repr__(self):
-        return f"<UserAchievement: User {self.user_id}, Achievement {self.achievement_id}>"
+        return (
+            f"<UserAchievement: User {self.user_id}, Achievement {self.achievement_id}>"
+        )

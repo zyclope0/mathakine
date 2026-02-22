@@ -3,13 +3,13 @@ Utilitaires partagés pour les handlers admin (audit, config, sérialisation).
 
 Extrait de admin_handlers.py (PR découpage admin) — fonctions pures sans dépendance Request.
 """
+
 import json
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.models.admin_audit_log import AdminAuditLog
-
 
 # Schéma des paramètres globaux (connus et modifiables par l'admin)
 CONFIG_SCHEMA = {
@@ -78,9 +78,7 @@ def _log_admin_action(
         pass  # Ne pas faire échouer l'action principale
 
 
-def _parse_setting_value(
-    value: str | None, schema: dict
-) -> bool | int | str:
+def _parse_setting_value(value: str | None, schema: dict) -> bool | int | str:
     """Parse une valeur de paramètre selon le schéma."""
     if value is None:
         return schema.get("default", "")

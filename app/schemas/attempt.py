@@ -6,54 +6,51 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 # Schémas pour la manipulation des tentatives d'exercices
 
 
-
 class AttemptBase(BaseModel):
     """Schéma de base pour les tentatives (Tentatives d'Accomplissement)"""
+
     exercise_id: int = Field(..., description="ID de l'exercice tenté")
     user_answer: str = Field(..., description="Réponse fournie par l'utilisateur")
-    time_spent: Optional[float] = Field(None, ge=0.0,
-                                     description="Temps passé en secondes")
-    hints_used: Optional[int] = Field(0, ge=0,
-                                   description="Nombre d'indices utilisés")
-    device_info: Optional[str] = Field(None,
-                                    description="Information sur l'appareil utilisé")
+    time_spent: Optional[float] = Field(
+        None, ge=0.0, description="Temps passé en secondes"
+    )
+    hints_used: Optional[int] = Field(0, ge=0, description="Nombre d'indices utilisés")
+    device_info: Optional[str] = Field(
+        None, description="Information sur l'appareil utilisé"
+    )
 
-    @field_validator('user_answer')
+    @field_validator("user_answer")
     @classmethod
-
-
     def answer_not_empty(cls, v):
         if not v or v.isspace():
             raise ValueError("La réponse ne peut pas être vide")
         return v
 
 
-
 class AttemptCreate(AttemptBase):
     """Schéma pour la création d'une tentative (Enregistrement d'une Tentative)"""
-    pass
 
+    pass
 
 
 class AttemptUpdate(BaseModel):
     """Schéma pour la mise à jour d'une tentative (rare)"""
+
     is_correct: Optional[bool] = None
     time_spent: Optional[float] = Field(None, ge=0.0)
     hints_used: Optional[int] = Field(None, ge=0)
 
-    @field_validator('time_spent')
+    @field_validator("time_spent")
     @classmethod
-
-
     def time_spent_positive(cls, v):
         if v is not None and v < 0:
             raise ValueError("Le temps passé ne peut pas être négatif")
         return v
 
 
-
 class AttemptInDB(AttemptBase):
     """Schéma pour une tentative en base de données (Archives des Tentatives)"""
+
     id: int
     user_id: int
     is_correct: bool
@@ -63,9 +60,9 @@ class AttemptInDB(AttemptBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-
 class Attempt(AttemptInDB):
     """Schéma pour une tentative complète (Journal de Bord)"""
+
     exercise_title: Optional[str] = None
     exercise_type: Optional[str] = None
     exercise_difficulty: Optional[str] = None
@@ -73,16 +70,15 @@ class Attempt(AttemptInDB):
     model_config = ConfigDict(from_attributes=True)
 
 
-
 class AttemptBatch(BaseModel):
     """Schéma pour l'envoi de plusieurs tentatives (Rapport de Mission)"""
-    attempts: list[AttemptCreate] = Field(...,
-                                       description="Liste des tentatives à enregistrer")
 
-    @field_validator('attempts')
+    attempts: list[AttemptCreate] = Field(
+        ..., description="Liste des tentatives à enregistrer"
+    )
+
+    @field_validator("attempts")
     @classmethod
-
-
     def validate_batch(cls, v):
         if not v:
             raise ValueError("Le lot de tentatives ne peut pas être vide")
@@ -91,9 +87,9 @@ class AttemptBatch(BaseModel):
         return v
 
 
-
 class AttemptStats(BaseModel):
     """Statistiques sur les tentatives d'un utilisateur (Analyse de Performance)"""
+
     total_attempts: int
     correct_attempts: int
     success_rate: float
@@ -104,12 +100,18 @@ class AttemptStats(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class AttemptResponse(BaseModel):
     """Schéma pour la réponse à une tentative d'exercice"""
+
     is_correct: bool = Field(..., description="Si la réponse est correcte")
-    correct_answer: Optional[str] = Field(None, description="La réponse correcte (si incorrecte)")
+    correct_answer: Optional[str] = Field(
+        None, description="La réponse correcte (si incorrecte)"
+    )
     feedback: str = Field(..., description="Retour sur la tentative")
     time_spent: Optional[float] = Field(None, description="Temps passé en secondes")
-    mastery_progress: Optional[int] = Field(None, description="Progression dans la maîtrise du sujet")
-    
+    mastery_progress: Optional[int] = Field(
+        None, description="Progression dans la maîtrise du sujet"
+    )
+
     model_config = ConfigDict(from_attributes=True)

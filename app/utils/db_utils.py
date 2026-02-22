@@ -2,6 +2,7 @@
 Utilitaires DB pour les handlers (DRY).
 Context manager pour session + commit/rollback/close.
 """
+
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 

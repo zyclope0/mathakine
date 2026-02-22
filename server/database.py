@@ -8,6 +8,7 @@ Note: Le DDL (exercises, results, user_stats) est désormais géré par Alembic
 (migration 20260222_legacy_tables). init_database() est un no-op au startup :
 les migrations s'exécutent via `alembic upgrade head` avant le démarrage du serveur.
 """
+
 import os
 
 import psycopg2

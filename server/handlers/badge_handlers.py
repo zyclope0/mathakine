@@ -1,6 +1,7 @@
 """
 Handlers pour la gestion des badges et achievements (API)
 """
+
 import json
 import traceback
 
@@ -31,9 +32,14 @@ async def get_user_badges(request):
             return JSONResponse({"success": True, "data": user_badges_data})
 
     except Exception as user_badges_error:
-        logger.error(f"Erreur lors de la récupération des badges utilisateur: {user_badges_error}")
+        logger.error(
+            f"Erreur lors de la récupération des badges utilisateur: {user_badges_error}"
+        )
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(user_badges_error)}, status_code=500)
+        return JSONResponse(
+            {"error": get_safe_error_message(user_badges_error)}, status_code=500
+        )
+
 
 async def get_available_badges(request: Request):
     """Récupérer tous les badges disponibles avec traductions"""
@@ -45,15 +51,17 @@ async def get_available_badges(request: Request):
             badge_service = BadgeService(db)
             available_badges = badge_service.get_available_badges()
 
-        return JSONResponse({
-            "success": True,
-            "data": available_badges
-        })
+        return JSONResponse({"success": True, "data": available_badges})
 
     except Exception as available_badges_error:
-        logger.error(f"Erreur lors de la récupération des badges disponibles: {available_badges_error}")
+        logger.error(
+            f"Erreur lors de la récupération des badges disponibles: {available_badges_error}"
+        )
         logger.debug(traceback.format_exc())
-        return JSONResponse({"error": get_safe_error_message(available_badges_error)}, status_code=500)
+        return JSONResponse(
+            {"error": get_safe_error_message(available_badges_error)}, status_code=500
+        )
+
 
 @require_auth
 async def check_user_badges(request):
@@ -65,17 +73,28 @@ async def check_user_badges(request):
         async with db_session() as db:
             badge_service = BadgeService(db)
             new_badges = badge_service.check_and_award_badges(user_id)
-            return JSONResponse({
-                "success": True,
-                "new_badges": new_badges,
-                "badges_earned": len(new_badges),
-                "message": f"{len(new_badges)} nouveaux badges obtenus" if new_badges else "Aucun nouveau badge",
-            })
+            return JSONResponse(
+                {
+                    "success": True,
+                    "new_badges": new_badges,
+                    "badges_earned": len(new_badges),
+                    "message": (
+                        f"{len(new_badges)} nouveaux badges obtenus"
+                        if new_badges
+                        else "Aucun nouveau badge"
+                    ),
+                }
+            )
 
     except Exception as badge_verification_error:
-        logger.error(f"Erreur lors de la vérification forcée des badges: {badge_verification_error}")
+        logger.error(
+            f"Erreur lors de la vérification forcée des badges: {badge_verification_error}"
+        )
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(badge_verification_error)}, status_code=500)
+        return JSONResponse(
+            {"error": get_safe_error_message(badge_verification_error)}, status_code=500
+        )
+
 
 @require_auth
 async def get_user_gamification_stats(request):
@@ -90,22 +109,28 @@ async def get_user_gamification_stats(request):
             badge_service = BadgeService(db)
             user_data = badge_service.get_user_badges(user_id)
 
-            stats = db.execute(text("""
+            stats = db.execute(
+                text("""
                 SELECT
                     COUNT(*) as total_attempts,
                     COUNT(CASE WHEN is_correct THEN 1 END) as correct_attempts,
                     AVG(time_spent) as avg_time_spent
                 FROM attempts
                 WHERE user_id = :user_id
-            """), {"user_id": user_id}).fetchone()
+            """),
+                {"user_id": user_id},
+            ).fetchone()
 
-            badge_stats = db.execute(text("""
+            badge_stats = db.execute(
+                text("""
                 SELECT a.category, COUNT(*) as count
                 FROM achievements a
                 JOIN user_achievements ua ON a.id = ua.achievement_id
                 WHERE ua.user_id = :user_id
                 GROUP BY a.category
-            """), {"user_id": user_id}).fetchall()
+            """),
+                {"user_id": user_id},
+            ).fetchall()
 
             response_data = {
                 "user_stats": user_data.get("user_stats", {}),
@@ -116,16 +141,22 @@ async def get_user_gamification_stats(request):
                 "performance": {
                     "total_attempts": stats[0] if stats else 0,
                     "correct_attempts": stats[1] if stats else 0,
-                    "success_rate": round((stats[1] / stats[0] * 100) if stats and stats[0] > 0 else 0, 1),
+                    "success_rate": round(
+                        (stats[1] / stats[0] * 100) if stats and stats[0] > 0 else 0, 1
+                    ),
                     "avg_time_spent": round(stats[2], 2) if stats and stats[2] else 0,
                 },
             }
             return JSONResponse({"success": True, "data": response_data})
 
     except Exception as gamification_stats_error:
-        logger.error(f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}")
+        logger.error(
+            f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}"
+        )
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(gamification_stats_error)}, status_code=500)
+        return JSONResponse(
+            {"error": get_safe_error_message(gamification_stats_error)}, status_code=500
+        )
 
 
 @require_auth
@@ -135,7 +166,9 @@ async def patch_pinned_badges(request: Request):
         body = await request.json()
         badge_ids = body.get("badge_ids", [])
         if not isinstance(badge_ids, list):
-            return JSONResponse({"error": "badge_ids doit être une liste"}, status_code=400)
+            return JSONResponse(
+                {"error": "badge_ids doit être une liste"}, status_code=400
+            )
         badge_ids = [int(x) for x in badge_ids if isinstance(x, (int, float))]
         current_user = request.state.user
         user_id = current_user.get("id")
@@ -187,6 +220,8 @@ async def get_user_badges_progress(request: Request):
 
         return JSONResponse({"success": True, "data": data})
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération de la progression des badges: {e}")
+        logger.error(
+            f"Erreur lors de la récupération de la progression des badges: {e}"
+        )
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500) 
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)

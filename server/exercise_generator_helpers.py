@@ -3,6 +3,7 @@ Helpers pour la génération d'exercices : choix de réponses et questions conte
 
 Extrait de exercise_generator.py (PR découpage #2) — fonctions pures pour MCQ et templates.
 """
+
 import random
 
 from app.core.constants import DifficultyLevels
@@ -10,36 +11,56 @@ from server.exercise_generator_validators import get_difficulty_from_age_group
 
 
 def generate_smart_choices(
-    operation_type: str, num1: int, num2: int, correct_result: int, age_group_or_difficulty: str
+    operation_type: str,
+    num1: int,
+    num2: int,
+    correct_result: int,
+    age_group_or_difficulty: str,
 ) -> list[str]:
     """Génère des choix de réponses avec des erreurs typiques selon l'opération."""
     choices = [str(correct_result)]
 
     op = operation_type.upper()
     if op == "ADDITION":
-        choices.extend([
-            str(correct_result + random.randint(1, 3)),
-            str(correct_result - random.randint(1, 2)),
-            str(num1 * num2) if num1 * num2 != correct_result else str(correct_result + 5),
-        ])
+        choices.extend(
+            [
+                str(correct_result + random.randint(1, 3)),
+                str(correct_result - random.randint(1, 2)),
+                (
+                    str(num1 * num2)
+                    if num1 * num2 != correct_result
+                    else str(correct_result + 5)
+                ),
+            ]
+        )
     elif op == "SUBTRACTION":
-        choices.extend([
-            str(num2 - num1) if num2 != num1 else str(correct_result + 3),
-            str(correct_result + random.randint(1, 3)),
-            str(num1 + num2) if num1 + num2 != correct_result else str(correct_result - 2),
-        ])
+        choices.extend(
+            [
+                str(num2 - num1) if num2 != num1 else str(correct_result + 3),
+                str(correct_result + random.randint(1, 3)),
+                (
+                    str(num1 + num2)
+                    if num1 + num2 != correct_result
+                    else str(correct_result - 2)
+                ),
+            ]
+        )
     elif op == "MULTIPLICATION":
-        choices.extend([
-            str(num1 + num2),
-            str(correct_result + num1),
-            str(max(1, correct_result - num2)),
-        ])
+        choices.extend(
+            [
+                str(num1 + num2),
+                str(correct_result + num1),
+                str(max(1, correct_result - num2)),
+            ]
+        )
     elif op == "DIVISION":
-        choices.extend([
-            str(correct_result + 1),
-            str(max(1, correct_result - 1)),
-            str(num1 - num2) if num1 > num2 else str(correct_result + 2),
-        ])
+        choices.extend(
+            [
+                str(correct_result + 1),
+                str(max(1, correct_result - 1)),
+                str(num1 - num2) if num1 > num2 else str(correct_result + 2),
+            ]
+        )
 
     derived = get_difficulty_from_age_group(age_group_or_difficulty)
     if derived in [DifficultyLevels.CHEVALIER, DifficultyLevels.MAITRE]:
@@ -85,7 +106,9 @@ def generate_contextual_question(
             "MULTIPLICATION": f"Calcule {num1} × {num2}",
             "DIVISION": f"Calcule {num1} ÷ {num2}",
         }
-        return fallbacks.get(operation_type.upper(), f"Calcule {num1} {operation_type.lower()} {num2}")
+        return fallbacks.get(
+            operation_type.upper(), f"Calcule {num1} {operation_type.lower()} {num2}"
+        )
 
     objects = contexts.get("objects", ["éléments"])
     actions = contexts.get("actions", ["se combinent"])
@@ -152,4 +175,8 @@ def generate_contextual_question(
                 f"L'Empire divise {num1} {obj} entre {num2} {location}. Répartition par zone?",
             ]
 
-    return random.choice(templates) if templates else f"Calcule {num1} {operation_type.lower()} {num2}"
+    return (
+        random.choice(templates)
+        if templates
+        else f"Calcule {num1} {operation_type.lower()} {num2}"
+    )

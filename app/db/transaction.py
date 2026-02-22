@@ -2,6 +2,7 @@
 Transaction management utilities for database operations in Mathakine.
 This module provides consistent transaction management across the application.
 """
+
 from contextlib import contextmanager
 
 from app.core.logging_config import get_logger
@@ -17,21 +18,21 @@ class TransactionManager:
     Fournit des méthodes pour démarrer, valider et annuler des transactions,
     ainsi qu'un gestionnaire de contexte pour une utilisation simplifiée.
     """
-    
+
     @staticmethod
     @contextmanager
     def transaction(db_session: Session, *, auto_commit=True, log_prefix="DB"):
         """
         Gestionnaire de contexte pour les transactions de base de données.
-        
+
         Args:
             db_session: Session SQLAlchemy à utiliser
             auto_commit: Si True, commit automatiquement à la fin du bloc
             log_prefix: Préfixe pour les messages de journalisation
-            
+
         Yields:
             Session: La session de base de données
-            
+
         Usage:
             with TransactionManager.transaction(db) as session:
                 # Effectuer des opérations
@@ -43,9 +44,9 @@ class TransactionManager:
         try:
             savepoint = db_session.begin_nested()
             logger.debug(f"{log_prefix}: Début de la transaction (avec savepoint)")
-            
+
             yield db_session
-            
+
             if auto_commit:
                 # Commit du savepoint
                 savepoint.commit()
@@ -55,13 +56,15 @@ class TransactionManager:
                 logger.debug(f"{log_prefix}: Transaction validée (commit)")
         except Exception as savepoint_error:
             # Rollback au savepoint
-            if 'savepoint' in locals() and savepoint.is_active:
+            if "savepoint" in locals() and savepoint.is_active:
                 savepoint.rollback()
             # Également rollback de la transaction principale
             db_session.rollback()
-            logger.error(f"{log_prefix}: Transaction annulée (rollback) suite à l'erreur: {savepoint_error}")
+            logger.error(
+                f"{log_prefix}: Transaction annulée (rollback) suite à l'erreur: {savepoint_error}"
+            )
             raise
-    
+
     @staticmethod
     def commit(db_session: Session, log_prefix="DB"):
         """Valide les modifications de la session en cours"""
@@ -71,9 +74,11 @@ class TransactionManager:
             return True
         except Exception as commit_error:
             db_session.rollback()
-            logger.error(f"{log_prefix}: Échec de commit, transaction annulée: {commit_error}")
+            logger.error(
+                f"{log_prefix}: Échec de commit, transaction annulée: {commit_error}"
+            )
             return False
-    
+
     @staticmethod
     def rollback(db_session: Session, log_prefix="DB"):
         """Annule les modifications de la session en cours"""
@@ -84,41 +89,51 @@ class TransactionManager:
         except Exception as rollback_error:
             logger.error(f"{log_prefix}: Échec de rollback: {rollback_error}")
             return False
-    
+
     @staticmethod
     def safe_delete(db_session: Session, obj, *, auto_commit=True, log_prefix="DB"):
         """
         Supprime un objet de la base de données en toute sécurité.
         Les suppressions en cascade sont gérées automatiquement grâce aux relations SQLAlchemy.
-        
+
         Args:
             db_session: Session SQLAlchemy
             obj: L'objet à supprimer
             auto_commit: Si True, commit après la suppression
             log_prefix: Préfixe pour les messages de journalisation
-        
+
         Returns:
             bool: True si la suppression a réussi, False sinon
         """
         try:
             # Vérifier que l'objet est attaché à la session
-            obj_id = getattr(obj, 'id', None)
+            obj_id = getattr(obj, "id", None)
             if obj not in db_session:
                 # Essayer de récupérer l'objet depuis la session
                 if obj_id:
-                    obj_from_db = db_session.query(obj.__class__).filter(obj.__class__.id == obj_id).first()
+                    obj_from_db = (
+                        db_session.query(obj.__class__)
+                        .filter(obj.__class__.id == obj_id)
+                        .first()
+                    )
                     if not obj_from_db:
-                        logger.error(f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données")
+                        logger.error(
+                            f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données"
+                        )
                         return False
                     obj = obj_from_db
                 else:
-                    logger.error(f"{log_prefix}: L'objet {obj.__class__.__name__} n'a pas d'attribut id")
+                    logger.error(
+                        f"{log_prefix}: L'objet {obj.__class__.__name__} n'a pas d'attribut id"
+                    )
                     return False
-            
+
             # Supprimer directement l'objet
             db_session.delete(obj)
-            logger.debug(f"{log_prefix}: Objet {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}) marqué pour suppression")
-            
+            logger.debug(
+                f"{log_prefix}: Objet {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}) marqué pour suppression"
+            )
+
             if auto_commit:
                 # Utiliser un savepoint pour pouvoir faire un rollback partiel en cas d'erreur
                 try:
@@ -127,8 +142,10 @@ class TransactionManager:
                     return True
                 except Exception as delete_commit_error:
                     db_session.rollback()
-                    logger.error(f"{log_prefix}: Échec de la suppression lors du commit: {delete_commit_error}")
-                    
+                    logger.error(
+                        f"{log_prefix}: Échec de la suppression lors du commit: {delete_commit_error}"
+                    )
+
                     # Alternative: tenter une suppression sans cascade si la première méthode échoue
                     try:
                         from sqlalchemy import text
@@ -137,61 +154,75 @@ class TransactionManager:
                         stmt = f"DELETE FROM {obj.__tablename__} WHERE id = :id"
                         db_session.execute(text(stmt), {"id": obj.id})
                         db_session.commit()
-                        logger.info(f"{log_prefix}: Suppression alternative réussie pour {obj.__class__.__name__}(id={obj.id})")
+                        logger.info(
+                            f"{log_prefix}: Suppression alternative réussie pour {obj.__class__.__name__}(id={obj.id})"
+                        )
                         return True
                     except Exception as e2:
                         db_session.rollback()
-                        logger.error(f"{log_prefix}: Échec de la suppression alternative: {e2}")
+                        logger.error(
+                            f"{log_prefix}: Échec de la suppression alternative: {e2}"
+                        )
                         return False
-            
+
             return True
         except Exception as delete_error:
             db_session.rollback()
             logger.error(f"{log_prefix}: Échec de la suppression: {delete_error}")
             return False
-    
+
     @staticmethod
     def safe_archive(db_session: Session, obj, *, auto_commit=True, log_prefix="DB"):
         """
         Archive un objet au lieu de le supprimer physiquement.
-        
+
         Args:
             db_session: Session SQLAlchemy
             obj: L'objet à archiver (doit avoir un attribut is_archived)
             auto_commit: Si True, commit après l'archivage
             log_prefix: Préfixe pour les messages de journalisation
-            
+
         Returns:
             bool: True si l'archivage a réussi, False sinon
         """
         try:
-            if not hasattr(obj, 'is_archived'):
-                logger.error(f"{log_prefix}: L'objet {obj.__class__.__name__} n'a pas d'attribut is_archived")
+            if not hasattr(obj, "is_archived"):
+                logger.error(
+                    f"{log_prefix}: L'objet {obj.__class__.__name__} n'a pas d'attribut is_archived"
+                )
                 return False
-            
+
             # Vérifier que l'objet est attaché à la session
-            obj_id = getattr(obj, 'id', None)
+            obj_id = getattr(obj, "id", None)
             if obj not in db_session:
                 # Essayer de récupérer l'objet depuis la session
                 if obj_id:
-                    obj_from_db = db_session.query(obj.__class__).filter(obj.__class__.id == obj_id).first()
+                    obj_from_db = (
+                        db_session.query(obj.__class__)
+                        .filter(obj.__class__.id == obj_id)
+                        .first()
+                    )
                     if not obj_from_db:
-                        logger.error(f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données")
+                        logger.error(
+                            f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données"
+                        )
                         return False
                     obj = obj_from_db
                 else:
                     # Si pas d'ID, merger l'objet
                     obj = db_session.merge(obj)
-                
+
             obj.is_archived = True
-            logger.debug(f"{log_prefix}: Objet {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}) marqué comme archivé")
-            
+            logger.debug(
+                f"{log_prefix}: Objet {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}) marqué comme archivé"
+            )
+
             if auto_commit:
                 db_session.commit()
                 logger.debug(f"{log_prefix}: Archivage confirmé avec succès")
-            
+
             return True
         except Exception as e:
             db_session.rollback()
             logger.error(f"{log_prefix}: Échec de l'archivage: {e}")
-            return False 
+            return False

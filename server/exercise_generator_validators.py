@@ -3,6 +3,7 @@ Validation et normalisation des paramètres pour la génération d'exercices.
 
 Extrait de exercise_generator.py (PR découpage) — fonctions pures sans dépendance DB/HTTP.
 """
+
 from typing import Optional
 
 from app.core.constants import (

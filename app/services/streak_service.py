@@ -3,6 +3,7 @@ Service de calcul de la série d'entraînement (streak).
 
 Jours consécutifs avec au moins une activité (exercice ou défi).
 """
+
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import func
@@ -21,16 +22,22 @@ def _activity_dates_for_user(db: Session, user_id: int) -> set[date]:
     dates = set()
 
     # Dates des tentatives exercices
-    for (d,) in db.query(func.date(Attempt.created_at)).filter(
-        Attempt.user_id == user_id
-    ).distinct().all():
+    for (d,) in (
+        db.query(func.date(Attempt.created_at))
+        .filter(Attempt.user_id == user_id)
+        .distinct()
+        .all()
+    ):
         if d:
             dates.add(d)
 
     # Dates des tentatives défis
-    for (d,) in db.query(func.date(LogicChallengeAttempt.created_at)).filter(
-        LogicChallengeAttempt.user_id == user_id
-    ).distinct().all():
+    for (d,) in (
+        db.query(func.date(LogicChallengeAttempt.created_at))
+        .filter(LogicChallengeAttempt.user_id == user_id)
+        .distinct()
+        .all()
+    ):
         if d:
             dates.add(d)
 
@@ -71,7 +78,9 @@ def update_user_streak(db: Session, user_id: int) -> tuple[int, int]:
 
     user.current_streak = current
     user.best_streak = best
-    user.last_activity_date = today if today in activity_dates else user.last_activity_date
+    user.last_activity_date = (
+        today if today in activity_dates else user.last_activity_date
+    )
     db.commit()
 
     return (current, best)

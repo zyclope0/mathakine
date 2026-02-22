@@ -3,6 +3,7 @@ from app.core.logging_config import get_logger
 logger = get_logger(__name__)
 
 from app.db.base import Base, engine
+
 # Importer les modèles pour assurer qu'ils sont enregistrés par SQLAlchemy
 from app.models.all_models import __all__ as models  # Import all models
 from app.services.db_init_service import create_tables, populate_test_data
@@ -10,12 +11,13 @@ from app.services.db_init_service import create_tables, populate_test_data
 
 def create_tables_with_test_data():
     """Crée toutes les tables définies dans les modèles et ajoute des données de test.
-    
+
     ATTENTION : Cette fonction ne doit être appelée que dans un contexte de test (CI)
     ou pour initialiser une base de développement vide.
     Ne JAMAIS appeler en production.
     """
     import os
+
     logger.info("Initialisation de la base de données")
     try:
         # Créer les tables
@@ -24,7 +26,7 @@ def create_tables_with_test_data():
         # Ajouter des données de test UNIQUEMENT si TESTING=true ou base vide en dev
         is_testing = os.getenv("TESTING", "false").lower() == "true"
         environment = os.getenv("ENVIRONMENT", "development")
-        
+
         if is_testing:
             logger.info("Mode test détecté : ajout des données de test")
             populate_test_data()
