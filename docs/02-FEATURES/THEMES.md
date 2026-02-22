@@ -15,7 +15,7 @@
 | `dune` | Dune | Sable, chaud | `#b45309`, `#fef7ed` |
 | `forest` | Forêt | Verts nature | `#047857`, `#f0fdf4` |
 | `peach` | Lumière (Pêche) | Tons chauds | `#ea580c`, `#fff7ed` |
-| `dino` | Dinosaures | Lime, jungle préhistorique | `#65a30d`, `#fef9c3` |
+| `dino` | Dinosaures | Lime (clair) / vert menthe (dark, moins jaune) | `#65a30d`, `#fef9c3` |
 
 **Thème par défaut :** `spatial`
 

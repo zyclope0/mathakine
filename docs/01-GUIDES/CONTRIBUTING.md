@@ -41,6 +41,12 @@ Nous acceptons plusieurs types de contributions :
 
 ## 🚀 WORKFLOW CONTRIBUTION
 
+### Règle : tests systématiques
+
+Pour toute **nouvelle fonctionnalité**, **implémentation** ou **correction** : challenger la pertinence de créer ou mettre à jour un test. Voir [TESTING.md § Règle projet](TESTING.md#regle-tests).
+
+---
+
 ### 1. Fork & Clone
 
 ```bash
@@ -152,6 +158,7 @@ git push origin feature/nom-feature
    
    ## Checklist
    - [ ] Tests pass
+   - [ ] Test ajouté/mis à jour si pertinent (feature, implémentation, fix) — voir [TESTING.md § Règle projet](TESTING.md#regle-tests)
    - [ ] Documentation updated
    - [ ] Code reviewed
    

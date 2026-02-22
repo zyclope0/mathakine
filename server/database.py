@@ -10,45 +10,32 @@ import traceback
 
 import psycopg2
 from dotenv import load_dotenv
+from sqlalchemy import text
+
+from app.core.config import settings
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 
+from app.db.base import engine
 from app.db.queries import ExerciseQueries, ResultQueries, UserStatsQueries
 
 # Charger les variables d'environnement (ignorer .env en prod - sécurité)
 if os.environ.get("ENVIRONMENT") != "production":
     load_dotenv(override=False)
 
+
 def get_database_url() -> str:
     """
-    Get the database URL from environment variables.
-    
-    Returns:
-        Database URL as a string
+    Get the database URL (unifié avec SQLAlchemy : respecte TESTING, TEST_DATABASE_URL).
     """
-    # Essayer d'abord la variable d'environnement DATABASE_URL
-    db_url = os.environ.get("DATABASE_URL", "")
-    
-    # Si pas définie, construire depuis les variables individuelles
-    if not db_url:
-        postgres_server = os.getenv("POSTGRES_SERVER", "localhost")
-        postgres_user = os.getenv("POSTGRES_USER", "postgres")
-        postgres_password = os.getenv("POSTGRES_PASSWORD", "postgres")
-        postgres_db = os.getenv("POSTGRES_DB", "mathakine")
-        db_url = f"postgresql://{postgres_user}:{postgres_password}@{postgres_server}/{postgres_db}"
-        logger.info(f"Using default DATABASE_URL: postgresql://{postgres_user}:***@{postgres_server}/{postgres_db}")
-    
-    if not db_url:
-        logger.error("DATABASE_URL environment variable not set and no defaults available")
-        sys.exit(1)
-    
-    return db_url
+    return settings.SQLALCHEMY_DATABASE_URL
+
 
 def get_db_connection():
     """
     Obtient une connexion à la base de données PostgreSQL.
-    
+
     Returns:
         Une connexion psycopg2
     """
@@ -60,70 +47,83 @@ def get_db_connection():
         logger.error(f"Erreur de connexion à PostgreSQL: {e}")
         raise e
 
+
+def _execute_ddl_statements(conn, sql: str) -> None:
+    """Exécute les requêtes DDL séparées par ';'."""
+    for stmt in sql.split(";"):
+        stmt = stmt.strip()
+        if stmt and not stmt.startswith("--"):
+            conn.execute(text(stmt))
+
+
 def init_database():
     """
     Initialize the database if necessary.
-    
-    This function creates tables if they don't exist and
-    performs other initialization tasks.
+
+    Uses SQLAlchemy engine (same as app) — no psycopg2 direct for init.
+    Creates tables if they don't exist and performs other initialization tasks.
     """
     logger.info("Initializing database")
-    
+
     try:
-        # Get a database connection
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        try:
-            # Create exercises table if it doesn't exist
-            cursor.execute(ExerciseQueries.CREATE_TABLE)
+        with engine.connect() as conn:
+            # Create exercises table + indexes
+            _execute_ddl_statements(conn, ExerciseQueries.CREATE_TABLE)
+            conn.commit()
 
             # Add ai_generated column if it doesn't exist
             try:
-                cursor.execute("""
-                ALTER TABLE exercises ADD COLUMN IF NOT EXISTS ai_generated BOOLEAN DEFAULT FALSE
-                """)
+                conn.execute(
+                    text(
+                        "ALTER TABLE exercises ADD COLUMN IF NOT EXISTS ai_generated BOOLEAN DEFAULT FALSE"
+                    )
+                )
                 conn.commit()
             except Exception as e:
                 logger.warning(f"Note: {str(e)}")
                 conn.rollback()
-                
+
             # Update existing exercises that contain the AI prefix
             from app.core.constants import Messages
+
+            prefix = Messages.AI_EXERCISE_PREFIX
             try:
-                cursor.execute(f"""
-                UPDATE exercises
-                SET ai_generated = TRUE
-                WHERE title LIKE '%{Messages.AI_EXERCISE_PREFIX}%' OR question LIKE '%{Messages.AI_EXERCISE_PREFIX}%'
-                """)
+                conn.execute(
+                    text(
+                        "UPDATE exercises SET ai_generated = TRUE "
+                        "WHERE title LIKE :pat OR question LIKE :pat"
+                    ),
+                    {"pat": f"%{prefix}%"},
+                )
                 conn.commit()
             except Exception as e:
                 logger.warning(f"Note: {str(e)}")
                 conn.rollback()
-                
-            # Create results table if it doesn't exist
-            cursor.execute(ResultQueries.CREATE_TABLE)
-            
-            # Create user_stats table if it doesn't exist
-            cursor.execute("""
-            CREATE TABLE IF NOT EXISTS user_stats (
-                id SERIAL PRIMARY KEY,
-                exercise_type VARCHAR(50) NOT NULL,
-                difficulty VARCHAR(50) NOT NULL,
-                total_attempts INTEGER DEFAULT 0,
-                correct_attempts INTEGER DEFAULT 0,
-                last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+
+            # Create results table
+            _execute_ddl_statements(conn, ResultQueries.CREATE_TABLE)
+            conn.commit()
+
+            # Create user_stats table
+            conn.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS user_stats (
+                        id SERIAL PRIMARY KEY,
+                        exercise_type VARCHAR(50) NOT NULL,
+                        difficulty VARCHAR(50) NOT NULL,
+                        total_attempts INTEGER DEFAULT 0,
+                        correct_attempts INTEGER DEFAULT 0,
+                        last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """
+                )
             )
-            """)
-            
-            logger.success("Database initialized successfully")
-            
-        finally:
-            # Always close the connection
-            cursor.close()
-            conn.close()
-            
+            conn.commit()
+
+        logger.success("Database initialized successfully")
+
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
         traceback.print_exc()
-        sys.exit(1) 
+        sys.exit(1)

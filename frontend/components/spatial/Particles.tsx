@@ -43,7 +43,7 @@ export function Particles() {
       dune: "rgba(251, 191, 36, 0.25)",
       forest: "rgba(52, 211, 153, 0.25)",
       peach: "rgba(251, 146, 60, 0.25)",
-      dino: "rgba(132, 204, 22, 0.25)",
+      dino: "rgba(134, 239, 172, 0.18)",
     };
 
     const particleColor = themeColors[theme] || themeColors.spatial || "rgba(139, 92, 246, 0.3)";

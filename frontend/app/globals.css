@@ -746,25 +746,26 @@ select:focus {
   --ring: #65a30d;
 }
 
+/* Thème Dino dark : fond plus neutre/frais pour réduire le voile jaune (ex‑#1a2e05 trop chaud) */
 .dark[data-theme="dino"] {
-  --background: #1a2e05;
-  --foreground: #ecfccb;
-  --card: #365314;
-  --card-foreground: #ecfccb;
-  --popover: #365314;
-  --popover-foreground: #ecfccb;
-  --primary: #84cc16;
-  --primary-text-on-dark: #a3e635;
-  --primary-foreground: #1a2e05;
-  --secondary: #a3e635;
-  --secondary-foreground: #1a2e05;
-  --muted: #3f6212;
-  --muted-foreground: #bef264;
-  --accent: #eab308;
-  --accent-foreground: #1a2e05;
-  --border: #4d7c0f;
-  --input: #365314;
-  --ring: #84cc16;
+  --background: #0d1b04;
+  --foreground: #d1fae5;
+  --card: #1a2e0a;
+  --card-foreground: #d1fae5;
+  --popover: #1a2e0a;
+  --popover-foreground: #d1fae5;
+  --primary: #65a30d;
+  --primary-text-on-dark: #84cc16;
+  --primary-foreground: #0d1b04;
+  --secondary: #84cc16;
+  --secondary-foreground: #0d1b04;
+  --muted: #1e3d09;
+  --muted-foreground: #86efac;
+  --accent: #65a30d;
+  --accent-foreground: #0d1b04;
+  --border: #2d4a0f;
+  --input: #1a2e0a;
+  --ring: #65a30d;
 }
 
 @layer base {

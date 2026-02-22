@@ -628,6 +628,18 @@ Le fichier `tests/unit/test_routes_uniqueness.py` verifie qu'aucune route API ne
 
 ---
 
+## 📌 RÈGLE PROJET : TESTS SYSTÉMATIQUES {#regle-tests}
+
+> **À chaque nouvelle fonctionnalité, implémentation ou correction** : challenger systématiquement la pertinence de créer ou mettre à jour un test.
+>
+> - **Nouvelle fonctionnalité** → envisager 1+ tests (unitaire ou intégration selon le périmètre)
+> - **Nouvelle implémentation** (service, handler, utilitaire) → au minimum 1 test de non-régression
+> - **Correction de bug** → ajouter un test qui aurait détecté le bug (test de régression)
+>
+> Si le test n’est pas pertinent (ex. changement cosmétique, config), le documenter brièvement dans le commit.
+
+---
+
 ## ✅ BEST PRACTICES {#best-practices}
 
 ### Général

@@ -1,0 +1,16 @@
+---
+description: Règle projet : challenger la création ou mise à jour de tests à chaque modification
+alwaysApply: true
+---
+
+# Règle projet : tests systématiques
+
+À chaque **nouvelle fonctionnalité**, **implémentation** ou **correction** : challenger systématiquement la pertinence de créer ou mettre à jour un test.
+
+- **Nouvelle fonctionnalité** → envisager 1+ tests (unitaire ou intégration selon le périmètre)
+- **Nouvelle implémentation** (service, handler, utilitaire) → au minimum 1 test de non-régression
+- **Correction de bug** → ajouter un test qui aurait détecté le bug (test de régression)
+
+Si le test n'est pas pertinent (changement cosmétique, config), le documenter brièvement dans le commit.
+
+Voir `docs/01-GUIDES/TESTING.md` § Règle projet.

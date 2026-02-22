@@ -44,7 +44,7 @@ export function Starfield() {
       dune: "rgba(251, 191, 36, ", // Ambre
       forest: "rgba(52, 211, 153, ", // Vert menthe
       peach: "rgba(251, 146, 60, ", // Pêche
-      dino: "rgba(132, 204, 22, ", // Lime jungle
+      dino: "rgba(134, 239, 172, ", // Vert menthe (moins jaune que lime en dark)
     };
 
     const starColorBase = starColors[theme] || starColors.spatial;
