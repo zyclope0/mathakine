@@ -17,7 +17,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '20260206_exercises_idx'
-down_revision: Union[str, None] = '20260205_missing_tables_idx'
+down_revision: Union[str, None] = '20260222_legacy_tables'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -117,7 +117,18 @@ L’ordre est bon : Alembic d’abord, puis `init_database()`.
 
 ---
 
-## 5. Références
+## 6. Préparation avant migration (backup, rollback)
+
+Voir **[PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md](PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md)** pour :
+
+- Backup BDD (pg_dump)
+- Stratégie de rollback
+- Checklist pré-migration
+- Ordre d’exécution recommandé
+
+---
+
+## 7. Références
 
 - `server/database.py` : `init_database()`
 - `app/db/queries.py` : `ExerciseQueries.CREATE_TABLE`, `ResultQueries.CREATE_TABLE`
