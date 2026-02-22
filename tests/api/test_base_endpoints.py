@@ -20,6 +20,14 @@ async def test_health_endpoint(client):
     assert response.text.strip() == "ok"
 
 
+async def test_request_id_header(client):
+    """X-Request-ID — corrélation logs/Sentry (RequestIdMiddleware)."""
+    response = await client.get("/health")
+    rid = response.headers.get("X-Request-ID")
+    assert rid is not None
+    assert len(rid) >= 8  # UUID court ou header client
+
+
 async def test_robots_txt(client):
     """GET /robots.txt — évite les 404 des crawlers (stable)."""
     response = await client.get("/robots.txt")

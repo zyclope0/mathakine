@@ -1,9 +1,10 @@
 """
-Monitoring — Sentry (erreurs/APM) et Prometheus (métriques).
+Monitoring — Sentry (erreurs + métriques + corrélation request_id) et Prometheus (fallback).
 
 RÉALITÉ (audit 2026-02):
 - sentry_sdk.init() : appelé au startup si SENTRY_DSN défini
-- Endpoint /metrics : exposé pour Prometheus (p50/p95/p99, taux d'erreur)
+- Métriques : Prometheus + Sentry (éviter démultiplication outils)
+- request_id : corrélation logs ↔ Sentry via RequestIdMiddleware
 - Désactivé en mode TESTING
 """
 import os
@@ -149,6 +150,21 @@ class PrometheusMetricsMiddleware:
             raise
         finally:
             duration = time.perf_counter() - start
+            # Prometheus (fallback / scraping)
             if HTTP_REQUESTS_TOTAL and HTTP_REQUEST_DURATION:
                 HTTP_REQUESTS_TOTAL.labels(method=method, path=path, status=str(status)).inc()
                 HTTP_REQUEST_DURATION.labels(method=method, path=path).observe(duration)
+            # Sentry métriques (SDK 2.44+) — un seul outil erreurs + métriques
+            try:
+                import sentry_sdk
+                if hasattr(sentry_sdk, "metrics"):
+                    attrs = {"method": method, "path": path, "status": str(status)}
+                    sentry_sdk.metrics.count("http.requests", 1, attributes=attrs)
+                    sentry_sdk.metrics.distribution(
+                        "http.request.duration",
+                        duration,
+                        unit="second",
+                        attributes={"method": method, "path": path},
+                    )
+            except Exception:
+                pass

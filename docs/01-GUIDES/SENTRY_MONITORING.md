@@ -13,7 +13,8 @@ Sentry est configuré sur **deux périmètres** :
 - **Variables** : `SENTRY_DSN` ou `NEXT_PUBLIC_SENTRY_DSN` (fallback) — même DSN que frontend OK
 - **Environment** : `ENVIRONMENT=production` (pour taguer correctement les events dans Sentry)
 - **Désactivé** : en mode `TESTING=true`
-- **Prometheus** : Endpoint `GET /metrics` pour taux d'erreur, p50/p95/p99 (`http_requests_total`, `http_request_duration_seconds`)
+- **Erreurs + métriques** : Sentry SDK 2.44+ — `http.requests` (count), `http.request.duration` (distribution). Prometheus reste en fallback pour `/metrics`.
+- **Corrélation** : `request_id` par requête (tag Sentry + header `X-Request-ID` + logs) — retrouver les logs liés à un event Sentry.
 
 ## Configuration
 

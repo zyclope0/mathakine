@@ -61,7 +61,7 @@ jsmin==3.0.1  # Minification JavaScript
 
 # Monitoring et métriques
 prometheus-client==0.24.1  # Métriques Prometheus
-sentry-sdk==1.40.6  # Monitoring d'erreurs
+sentry-sdk>=2.44.0  # Erreurs + métriques (éviter démultiplication outils)
 
 # Envoi d'emails (optionnel - SendGrid pour production)
 sendgrid==6.12.5  # Service d'envoi d'email professionnel (optionnel)

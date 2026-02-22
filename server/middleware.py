@@ -5,6 +5,7 @@ This module centralizes Starlette middleware logic for consistent
 request processing across the application.
 """
 import os
+import uuid
 from typing import Callable, List
 
 from app.core.config import settings
@@ -26,6 +27,36 @@ SECURE_HEADERS_DICT = {
     "X-XSS-Protection": "1; mode=block",
     "Referrer-Policy": "strict-origin-when-cross-origin",
 }
+
+
+class RequestIdMiddleware(BaseHTTPMiddleware):
+    """
+    Génère un request_id par requête pour corrélation logs / Sentry.
+    Un seul outil : Sentry pour erreurs + métriques + corrélation.
+    """
+    REQUEST_ID_HEADER = "X-Request-ID"
+
+    async def dispatch(self, request: Request, call_next: Callable):
+        from app.core.logging_config import request_id_ctx
+
+        # Réutiliser un ID client si fourni (traçabilité distribuée)
+        rid = request.headers.get(self.REQUEST_ID_HEADER) or str(uuid.uuid4())[:12]
+        request.state.request_id = rid
+        token = request_id_ctx.set(rid)
+
+        try:
+            # Tag Sentry pour corrélation erreurs ↔ logs
+            try:
+                import sentry_sdk
+                sentry_sdk.set_tag("request_id", rid)
+            except ImportError:
+                pass
+
+            response = await call_next(request)
+            response.headers[self.REQUEST_ID_HEADER] = rid
+            return response
+        finally:
+            request_id_ctx.reset(token)
 
 
 class SecureHeadersMiddleware(BaseHTTPMiddleware):
@@ -180,7 +211,10 @@ def get_middleware() -> List[Middleware]:
 
     middleware_list = []
 
-    # Prometheus métriques (audit HIGH #1) — en premier pour capturer toutes les requêtes
+    # Request ID (corrélation logs + Sentry) — en premier
+    middleware_list.append(Middleware(RequestIdMiddleware))
+
+    # Prometheus métriques (audit HIGH #1) — capture toutes les requêtes
     try:
         from app.core.monitoring import PrometheusMetricsMiddleware
         middleware_list.append(Middleware(PrometheusMetricsMiddleware))

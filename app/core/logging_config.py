@@ -1,13 +1,18 @@
 """
 Configuration centralisée de la journalisation pour le projet Mathakine.
 Ce module configure loguru pour enregistrer les logs dans un dossier centralisé.
-"""
 
+Politique PII/secrets : voir docs/03-PROJECT/POLITIQUE_REDACTION_LOGS_PII.md
+"""
+import contextvars
 import os
 import sys
 from pathlib import Path
 
 from loguru import logger
+
+# Contextvar pour request_id (corrélation logs + Sentry, un seul outil)
+request_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar("request_id", default="")
 
 # Chemins pour les logs
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
@@ -26,15 +31,20 @@ LOG_LEVELS = {
     "CRITICAL": str(LOGS_DIR / "critical.log"),
 }
 
-# Format des logs
-LOG_FORMAT = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{line}</cyan>\
-    - <level>{message}</level>"
+# Format des logs (request_id pour corrélation Sentry / agrégation)
+LOG_FORMAT = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | <dim>{extra[request_id]}</dim> | <cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+
+
+def _add_request_id_to_record(record):
+    """Patcher : injecte request_id dans chaque record (corrélation)."""
+    record["extra"]["request_id"] = request_id_ctx.get() or "-"
 
 
 
 def configure_logging(remove_existing_handlers=True):
     """
     Configure la journalisation pour l'application.
+    Injecte request_id (corrélation) via patcher. Politique PII : POLITIQUE_REDACTION_LOGS_PII.md
 
     Args:
         remove_existing_handlers (bool): Si True, supprime tous les handlers existants avant de configurer.
@@ -42,6 +52,9 @@ def configure_logging(remove_existing_handlers=True):
     # Supprimer les gestionnaires existants
     if remove_existing_handlers:
         logger.remove()
+
+    # Patcher : request_id dans chaque log (corrélation avec Sentry)
+    logger.configure(patcher=_add_request_id_to_record)
 
     # Sur Windows avec uvicorn --reload : parent + child ouvrent les mêmes fichiers → PermissionError
     # lors de rotation ou écriture concurrente. On n'écrit que vers stderr sur Windows.
