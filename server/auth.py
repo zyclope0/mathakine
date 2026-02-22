@@ -46,24 +46,23 @@ async def get_current_user(request):  # noqa: C901
         
         if not access_token:
             return None
-            
-        # Utiliser le service d'authentification pour décoder le token
+
         from fastapi import HTTPException
 
         from app.core.security import decode_token
         from app.services.auth_service import get_user_by_username
 
-        # Décoder le token pour obtenir le nom d'utilisateur
-        try:
-            payload = decode_token(access_token)
-        except HTTPException:
-            # Token invalide ou expiré, retourner None silencieusement
-            return None
-        except Exception as decode_error:
-            # Autre erreur de décodage
-            logger.debug(f"Erreur lors du décodage du token: {decode_error}")
-            return None
-        
+        # Réutiliser le payload déjà décodé par AuthenticationMiddleware (évite double decode)
+        payload = getattr(request.state, "auth_payload", None)
+        if not payload or not payload.get("sub"):
+            try:
+                payload = decode_token(access_token)
+            except HTTPException:
+                return None
+            except Exception as decode_error:
+                logger.debug(f"Erreur lors du décodage du token: {decode_error}")
+                return None
+
         username = payload.get("sub")
         
         if not username:

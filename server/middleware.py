@@ -124,14 +124,15 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             )
             
         try:
-            # Verify the token
+            # Verify the token (une seule fois — réutilisé par get_current_user)
             from app.core.security import decode_token
             payload = decode_token(access_token)
-            
+            request.state.auth_payload = payload
+
             # Continue with the request if token is valid
             response = await call_next(request)
             return response
-            
+
         except Exception as auth_error:
             logger.error(f"Invalid token for {request.url.path}: {str(auth_error)}")
             # Return 401 JSON response (API backend, no HTML redirect)

@@ -467,6 +467,22 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 
 ---
 
+## 10. Limitations connues (acceptées)
+
+| Limitation | Fichiers | Risque | Plan |
+|------------|----------|--------|------|
+| **Rate limiting en mémoire (non distribué)** | `app/utils/rate_limit.py`, `app/utils/rate_limiter.py` | Chaque instance a son propre compteur → protection incomplète en multi-instances. Acceptable en mono-instance. | Migrer vers Redis si montée en charge horizontale. Pas d'augmentation de complexité à le faire plus tard. |
+
+---
+
+## 11. Optimisations réalisées (post-audit)
+
+| Optimisation | Date | Détail |
+|--------------|------|--------|
+| **Éviter double décodage JWT** | 22/02/2026 | Middleware stocke `payload` dans `request.state.auth_payload`. `get_current_user()` réutilise au lieu de décoder une 2e fois. Réduit surcoût CPU/latence sur requêtes protégées. |
+
+---
+
 ## Références
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
