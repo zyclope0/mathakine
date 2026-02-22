@@ -29,23 +29,36 @@ from app.models.attempt import Attempt
 
 logger = get_logger(__name__)
 
-# Type: Callable[[Session, int, dict, Optional[dict]], bool]
-CheckerFn = Callable[[Session, int, Dict[str, Any], Optional[Dict[str, Any]]], bool]
+# Type: Callable[[Session, int, dict, Optional[dict], Optional[dict]], bool]
+CheckerFn = Callable[
+    [Session, int, Dict[str, Any], Optional[Dict[str, Any]], Optional[Dict[str, Any]]], bool
+]
 
 
 def _check_attempts_count(
-    db: Session, user_id: int, req: Dict[str, Any], _attempt_data: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    _attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie count(attempts) >= attempts_count."""
     target = req.get("attempts_count")
     if target is None:
         return False
-    count = db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar() or 0
+    if stats_cache is not None and "attempts_count" in stats_cache:
+        count = stats_cache["attempts_count"]
+    else:
+        count = db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar() or 0
     return count >= int(target)
 
 
 def _check_logic_attempts_count(
-    db: Session, user_id: int, req: Dict[str, Any], _attempt_data: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    _attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie count(logic_challenge_attempts corrects) >= logic_attempts_count. B5."""
     from app.models.logic_challenge import LogicChallengeAttempt
@@ -53,56 +66,79 @@ def _check_logic_attempts_count(
     target = req.get("logic_attempts_count")
     if target is None:
         return False
-    count = (
-        db.query(func.count(LogicChallengeAttempt.id))
-        .filter(
-            LogicChallengeAttempt.user_id == user_id,
-            LogicChallengeAttempt.is_correct == True,
+    if stats_cache is not None and "logic_correct_count" in stats_cache:
+        count = stats_cache["logic_correct_count"]
+    else:
+        count = (
+            db.query(func.count(LogicChallengeAttempt.id))
+            .filter(
+                LogicChallengeAttempt.user_id == user_id,
+                LogicChallengeAttempt.is_correct == True,
+            )
+            .scalar()
+            or 0
         )
-        .scalar()
-        or 0
-    )
     return count >= int(target)
 
 
 def _check_mixte(
-    db: Session, user_id: int, req: Dict[str, Any], _attempt_data: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    _attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie attempts_count ET logic_attempts_count. B5."""
-    return _check_attempts_count(db, user_id, req, _attempt_data) and _check_logic_attempts_count(
-        db, user_id, req, _attempt_data
+    return _check_attempts_count(db, user_id, req, _attempt_data, stats_cache) and _check_logic_attempts_count(
+        db, user_id, req, _attempt_data, stats_cache
     )
 
 
 def _check_success_rate(
-    db: Session, user_id: int, req: Dict[str, Any], _attempt_data: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    _attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie min_attempts atteint ET success_rate >= taux."""
     target = req.get("min_attempts")
     rate = req.get("success_rate")
     if target is None or rate is None:
         return False
-    stats = db.execute(
-        text("""
-            SELECT COUNT(*) as total, COUNT(CASE WHEN is_correct THEN 1 END) as correct
-            FROM attempts WHERE user_id = :user_id
-        """),
-        {"user_id": user_id},
-    ).fetchone()
-    if not stats or stats[0] < int(target):
+    if stats_cache is not None and "attempts_total" in stats_cache and "attempts_correct" in stats_cache:
+        total, correct = stats_cache["attempts_total"], stats_cache["attempts_correct"]
+    else:
+        stats = db.execute(
+            text("""
+                SELECT COUNT(*) as total, COUNT(CASE WHEN is_correct THEN 1 END) as correct
+                FROM attempts WHERE user_id = :user_id
+            """),
+            {"user_id": user_id},
+        ).fetchone()
+        total = stats[0] if stats else 0
+        correct = stats[1] if stats else 0
+    if total < int(target):
         return False
-    success_pct = (stats[1] / stats[0] * 100) if stats[0] else 0
+    success_pct = (correct / total * 100) if total else 0
     return success_pct >= float(rate)
 
 
 def _check_consecutive(
-    db: Session, user_id: int, req: Dict[str, Any], _attempt_data: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    _attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie série consécutive de succès pour un type d'exercice."""
-    ex_type = req.get("exercise_type", "addition")
+    ex_type = str(req.get("exercise_type", "addition")).lower()
     required = req.get("consecutive_correct")
     if required is None:
         return False
+    if stats_cache is not None and "consecutive_by_type" in stats_cache and ex_type in stats_cache["consecutive_by_type"]:
+        streak = stats_cache["consecutive_by_type"][ex_type]
+        return streak >= int(required)
     rows = db.execute(
         text("""
             SELECT a.is_correct
@@ -112,7 +148,7 @@ def _check_consecutive(
             ORDER BY a.created_at DESC
             LIMIT :limit
         """),
-        {"user_id": user_id, "ex_type": str(ex_type), "limit": int(required) * 2},
+        {"user_id": user_id, "ex_type": ex_type, "limit": int(required) * 2},
     ).fetchall()
     if len(rows) < int(required):
         return False
@@ -128,7 +164,11 @@ def _check_consecutive(
 
 
 def _check_max_time(
-    db: Session, user_id: int, req: Dict[str, Any], attempt_data: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie au moins une tentative correcte en moins de max_time secondes."""
     max_t = req.get("max_time")
@@ -137,6 +177,9 @@ def _check_max_time(
     max_t = float(max_t)
     if attempt_data and attempt_data.get("time_spent", float("inf")) <= max_t:
         return True
+    if stats_cache is not None and "min_fast_time" in stats_cache:
+        min_t = stats_cache["min_fast_time"]
+        return min_t is not None and min_t <= max_t
     fast = (
         db.query(Attempt)
         .filter(
@@ -150,24 +193,30 @@ def _check_max_time(
 
 
 def _check_consecutive_days(
-    db: Session, user_id: int, req: Dict[str, Any], _attempt_data: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    _attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie X jours consécutifs d'activité (exercices)."""
     days = req.get("consecutive_days")
     if days is None:
         return False
     days = int(days)
-    # Jours avec exercices
-    rows = db.execute(
-        text("""
-            SELECT DISTINCT DATE(created_at) as day
-            FROM attempts
-            WHERE user_id = :user_id
-            ORDER BY day DESC
-            LIMIT :limit
-        """),
-        {"user_id": user_id, "limit": days + 1},
-    ).fetchall()
+    if stats_cache is not None and "activity_dates" in stats_cache:
+        rows = [(d,) for d in stats_cache["activity_dates"][: days + 1]]
+    else:
+        rows = db.execute(
+            text("""
+                SELECT DISTINCT DATE(created_at) as day
+                FROM attempts
+                WHERE user_id = :user_id
+                ORDER BY day DESC
+                LIMIT :limit
+            """),
+            {"user_id": user_id, "limit": days + 1},
+        ).fetchall()
     if len(rows) < days:
         return False
     today = datetime.now(timezone.utc).date()
@@ -182,27 +231,44 @@ def _check_consecutive_days(
 
 
 def _check_perfect_day(
-    db: Session, user_id: int, req: Dict[str, Any], _attempt_data: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    _attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie journée parfaite : tous les exercices du jour réussis, au moins 3."""
-    today = datetime.now(timezone.utc).date()
-    row = db.execute(
-        text("""
-            SELECT COUNT(*) as total, COUNT(CASE WHEN is_correct THEN 1 END) as correct
-            FROM attempts
-            WHERE user_id = :user_id AND DATE(created_at) = :today
-        """),
-        {"user_id": user_id, "today": today},
-    ).fetchone()
-    if not row or row[0] < 3:
+    if stats_cache is not None and "perfect_day_today" in stats_cache:
+        total, correct = stats_cache["perfect_day_today"]
+    else:
+        today = datetime.now(timezone.utc).date()
+        row = db.execute(
+            text("""
+                SELECT COUNT(*) as total, COUNT(CASE WHEN is_correct THEN 1 END) as correct
+                FROM attempts
+                WHERE user_id = :user_id AND DATE(created_at) = :today
+            """),
+            {"user_id": user_id, "today": today},
+        ).fetchone()
+        total = row[0] if row else 0
+        correct = row[1] if row else 0
+    if total < 3:
         return False
-    return row[0] == row[1]
+    return total == correct
 
 
 def _check_all_types(
-    db: Session, user_id: int, req: Dict[str, Any], _attempt_data: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    _attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie que l'utilisateur a essayé tous les types d'exercices."""
+    if stats_cache is not None and "exercise_types" in stats_cache and "user_exercise_types" in stats_cache:
+        all_set = set(stats_cache["exercise_types"])
+        user_set = stats_cache["user_exercise_types"]
+        return all_set.issubset(user_set)
     all_types = db.execute(
         text("SELECT DISTINCT exercise_type FROM exercises WHERE is_active = true AND is_archived = false")
     ).fetchall()
@@ -223,7 +289,11 @@ def _check_all_types(
 
 
 def _check_comeback(
-    db: Session, user_id: int, req: Dict[str, Any], attempt_data: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie si l'utilisateur revient après X jours sans activité (loss aversion)."""
     days = req.get("comeback_days")
@@ -251,11 +321,22 @@ def _check_comeback(
 
 
 def _check_min_per_type(
-    db: Session, user_id: int, req: Dict[str, Any], _attempt_data: Optional[Dict[str, Any]] = None
+    db: Session,
+    user_id: int,
+    req: Dict[str, Any],
+    _attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> bool:
     """Vérifie au moins X exercices réussis par type."""
     min_count = req.get("min_per_type", req.get("min_count", 5))
     min_count = int(min_count)
+    if stats_cache is not None and "exercise_types" in stats_cache and "per_type_correct" in stats_cache:
+        types_list = stats_cache["exercise_types"]
+        per_type = stats_cache["per_type_correct"]
+        for ex_type in types_list:
+            if per_type.get(ex_type, 0) < min_count:
+                return False
+        return True
     all_types = db.execute(
         text("SELECT DISTINCT exercise_type FROM exercises WHERE is_active = true AND is_archived = false")
     ).fetchall()
@@ -355,9 +436,11 @@ def check_requirements(
     user_id: int,
     requirements: Dict[str, Any],
     attempt_data: Optional[Dict[str, Any]] = None,
+    stats_cache: Optional[Dict[str, Any]] = None,
 ) -> Optional[bool]:
     """
     Vérifie si l'utilisateur remplit les requirements.
+    stats_cache: pré-fetch pour éviter N+1 quand appelé en boucle (check_and_award_badges).
     Retourne True/False si le type est reconnu, None pour fallback code.
     """
     req_type = detect_requirement_type(requirements)
@@ -367,7 +450,7 @@ def check_requirements(
     if not checker:
         return None
     try:
-        return checker(db, user_id, requirements, attempt_data)
+        return checker(db, user_id, requirements, attempt_data, stats_cache)
     except Exception as e:
         logger.error(f"Erreur checker {req_type}: {e}")
         return False

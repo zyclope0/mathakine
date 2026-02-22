@@ -3,6 +3,7 @@ Service de gestion des badges et achievements pour Mathakine
 
 Lot C : moteur générique via badge_requirement_engine.
 Fallback par code pour rétrocompatibilité.
+Correction N+1 : stats_cache pré-chargé avant boucle badges (Sentry).
 """
 
 import json
@@ -55,12 +56,15 @@ class BadgeService:
                 .filter(UserAchievement.user_id == user_id)
                 .all()
             )
-            
+
+            # Pré-charger stats pour éviter N+1 (Sentry N+1 Query)
+            stats_cache = self._build_stats_cache(user_id)
+
             new_badges = []
-            
+
             for badge in available_badges:
                 if badge.id not in earned_badge_ids:
-                    if self._check_badge_requirements(user_id, badge, attempt_data):
+                    if self._check_badge_requirements(user_id, badge, attempt_data, stats_cache):
                         new_badge = self._award_badge(user_id, badge)
                         if new_badge:
                             new_badges.append(new_badge)
@@ -76,9 +80,106 @@ class BadgeService:
             logger.error(f"Erreur lors de la vérification des badges pour l'utilisateur {user_id}: {badge_check_error}")
             return []
     
-    def _check_badge_requirements(self, user_id: int, badge: Achievement, attempt_data: Dict[str, Any] = None) -> bool:
+    def _build_stats_cache(self, user_id: int) -> Dict[str, Any]:
+        """Pré-charge les stats utilisateur pour éviter N+1 dans check_and_award_badges."""
+        stats_cache: Dict[str, Any] = {}
+        try:
+            row = self.db.execute(
+                text(
+                    "SELECT COUNT(*), COUNT(CASE WHEN is_correct THEN 1 END) FROM attempts WHERE user_id = :uid"
+                ),
+                {"uid": user_id},
+            ).fetchone()
+            if row:
+                stats_cache["attempts_count"] = row[0] or 0
+                stats_cache["attempts_total"] = row[0] or 0
+                stats_cache["attempts_correct"] = row[1] or 0
+            lca = self.db.execute(
+                text(
+                    "SELECT COUNT(*) FROM logic_challenge_attempts WHERE user_id = :uid AND is_correct = true"
+                ),
+                {"uid": user_id},
+            ).fetchone()
+            if lca:
+                stats_cache["logic_correct_count"] = lca[0] or 0
+            all_types_rows = self.db.execute(
+                text(
+                    "SELECT DISTINCT LOWER(exercise_type::text) FROM exercises "
+                    "WHERE is_active = true AND is_archived = false"
+                )
+            ).fetchall()
+            stats_cache["exercise_types"] = [str(r[0]).lower() for r in all_types_rows]
+            per_type = self.db.execute(
+                text("""
+                    SELECT LOWER(e.exercise_type::text), COUNT(*)
+                    FROM attempts a JOIN exercises e ON a.exercise_id = e.id
+                    WHERE a.user_id = :uid AND a.is_correct = true
+                    GROUP BY LOWER(e.exercise_type::text)
+                """),
+                {"uid": user_id},
+            ).fetchall()
+            stats_cache["per_type_correct"] = {str(r[0]).lower(): r[1] for r in per_type}
+            user_types_rows = self.db.execute(
+                text("""
+                    SELECT DISTINCT LOWER(e.exercise_type::text) FROM attempts a
+                    JOIN exercises e ON a.exercise_id = e.id WHERE a.user_id = :uid
+                """),
+                {"uid": user_id},
+            ).fetchall()
+            stats_cache["user_exercise_types"] = {str(r[0]).lower() for r in user_types_rows}
+            days_rows = self.db.execute(
+                text("""
+                    SELECT DISTINCT DATE(created_at) as day FROM attempts
+                    WHERE user_id = :uid ORDER BY day DESC LIMIT 35
+                """),
+                {"uid": user_id},
+            ).fetchall()
+            stats_cache["activity_dates"] = [r[0] if hasattr(r, "__getitem__") else r.day for r in days_rows]
+            min_time = self.db.execute(
+                text(
+                    "SELECT MIN(time_spent) FROM attempts WHERE user_id = :uid AND is_correct = true"
+                ),
+                {"uid": user_id},
+            ).fetchone()
+            stats_cache["min_fast_time"] = float(min_time[0]) if min_time and min_time[0] is not None else None
+            today = datetime.now(timezone.utc).date()
+            pd_row = self.db.execute(
+                text("""
+                    SELECT COUNT(*) as total, COUNT(CASE WHEN is_correct THEN 1 END) as correct
+                    FROM attempts WHERE user_id = :uid AND DATE(created_at) = :today
+                """),
+                {"uid": user_id, "today": today},
+            ).fetchone()
+            stats_cache["perfect_day_today"] = (pd_row[0] or 0, pd_row[1] or 0) if pd_row else (0, 0)
+            for ex_t in stats_cache.get("exercise_types", []):
+                streak_rows = self.db.execute(
+                    text("""
+                        SELECT a.is_correct FROM attempts a
+                        JOIN exercises e ON a.exercise_id = e.id
+                        WHERE a.user_id = :uid AND LOWER(e.exercise_type::text) = LOWER(:ex_type)
+                        ORDER BY a.created_at DESC LIMIT 60
+                    """),
+                    {"uid": user_id, "ex_type": ex_t},
+                ).fetchall()
+                streak = 0
+                for r in streak_rows:
+                    if r[0]:
+                        streak += 1
+                    else:
+                        break
+                if "consecutive_by_type" not in stats_cache:
+                    stats_cache["consecutive_by_type"] = {}
+                stats_cache["consecutive_by_type"][ex_t] = streak
+        except Exception:
+            pass
+        return stats_cache
+
+    def _check_badge_requirements(
+        self, user_id: int, badge: Achievement, attempt_data: Dict[str, Any] = None, stats_cache: Dict[str, Any] = None
+    ) -> bool:
         """Vérifier si un utilisateur remplit les conditions pour un badge.
         Lot C : moteur générique d'abord, fallback par code pour rétrocompatibilité.
+        stats_cache: pré-chargé pour éviter N+1.
         """
         if not badge.requirements:
             return False
@@ -93,7 +194,7 @@ class BadgeService:
             return False
 
         # Lot C : essayer le moteur générique d'abord
-        result = check_requirements(self.db, user_id, requirements, attempt_data)
+        result = check_requirements(self.db, user_id, requirements, attempt_data, stats_cache)
         if result is not None:
             return result
 
@@ -676,103 +777,7 @@ class BadgeService:
             .all()
         }
         all_badges = self.db.query(Achievement).filter(Achievement.is_active == True).all()
-
-        # Pré-fetch stats pour éviter N+1 — une requête par type de donnée
-        stats_cache: Dict[str, Any] = {}
-        try:
-            row = self.db.execute(
-                text(
-                    "SELECT COUNT(*), COUNT(CASE WHEN is_correct THEN 1 END) FROM attempts WHERE user_id = :uid"
-                ),
-                {"uid": user_id},
-            ).fetchone()
-            if row:
-                stats_cache["attempts_count"] = row[0] or 0
-                stats_cache["attempts_total"] = row[0] or 0
-                stats_cache["attempts_correct"] = row[1] or 0
-            lca = self.db.execute(
-                text(
-                    "SELECT COUNT(*) FROM logic_challenge_attempts WHERE user_id = :uid AND is_correct = true"
-                ),
-                {"uid": user_id},
-            ).fetchone()
-            if lca:
-                stats_cache["logic_correct_count"] = lca[0] or 0
-            # all_types / min_per_type : types dispo + counts par type
-            all_types_rows = self.db.execute(
-                text(
-                    "SELECT DISTINCT LOWER(exercise_type::text) FROM exercises "
-                    "WHERE is_active = true AND is_archived = false"
-                )
-            ).fetchall()
-            stats_cache["exercise_types"] = [str(r[0]).lower() for r in all_types_rows]
-            per_type = self.db.execute(
-                text("""
-                    SELECT LOWER(e.exercise_type::text), COUNT(*)
-                    FROM attempts a JOIN exercises e ON a.exercise_id = e.id
-                    WHERE a.user_id = :uid AND a.is_correct = true
-                    GROUP BY LOWER(e.exercise_type::text)
-                """),
-                {"uid": user_id},
-            ).fetchall()
-            stats_cache["per_type_correct"] = {str(r[0]).lower(): r[1] for r in per_type}
-            user_types_rows = self.db.execute(
-                text("""
-                    SELECT DISTINCT LOWER(e.exercise_type::text) FROM attempts a
-                    JOIN exercises e ON a.exercise_id = e.id WHERE a.user_id = :uid
-                """),
-                {"uid": user_id},
-            ).fetchall()
-            stats_cache["user_exercise_types"] = {str(r[0]).lower() for r in user_types_rows}
-            # consecutive_days
-            days_rows = self.db.execute(
-                text("""
-                    SELECT DISTINCT DATE(created_at) as day FROM attempts
-                    WHERE user_id = :uid ORDER BY day DESC LIMIT 35
-                """),
-                {"uid": user_id},
-            ).fetchall()
-            stats_cache["activity_dates"] = [r[0] if hasattr(r, "__getitem__") else r.day for r in days_rows]
-            # max_time : min time_spent parmi les tentatives correctes
-            min_time = self.db.execute(
-                text(
-                    "SELECT MIN(time_spent) FROM attempts WHERE user_id = :uid AND is_correct = true"
-                ),
-                {"uid": user_id},
-            ).fetchone()
-            stats_cache["min_fast_time"] = float(min_time[0]) if min_time and min_time[0] is not None else None
-            # perfect_day : stats du jour
-            today = datetime.now(timezone.utc).date()
-            pd_row = self.db.execute(
-                text("""
-                    SELECT COUNT(*) as total, COUNT(CASE WHEN is_correct THEN 1 END) as correct
-                    FROM attempts WHERE user_id = :uid AND DATE(created_at) = :today
-                """),
-                {"uid": user_id, "today": today},
-            ).fetchone()
-            stats_cache["perfect_day_today"] = (pd_row[0] or 0, pd_row[1] or 0) if pd_row else (0, 0)
-            # consecutive par type : streak actuel (dernières tentatives)
-            for ex_t in stats_cache.get("exercise_types", []):
-                streak_rows = self.db.execute(
-                    text("""
-                        SELECT a.is_correct FROM attempts a
-                        JOIN exercises e ON a.exercise_id = e.id
-                        WHERE a.user_id = :uid AND LOWER(e.exercise_type::text) = LOWER(:ex_type)
-                        ORDER BY a.created_at DESC LIMIT 60
-                    """),
-                    {"uid": user_id, "ex_type": ex_t},
-                ).fetchall()
-                streak = 0
-                for r in streak_rows:
-                    if r[0]:
-                        streak += 1
-                    else:
-                        break
-                if "consecutive_by_type" not in stats_cache:
-                    stats_cache["consecutive_by_type"] = {}
-                stats_cache["consecutive_by_type"][ex_t] = streak
-        except Exception:
-            pass
+        stats_cache = self._build_stats_cache(user_id)
 
         unlocked = []
         in_progress = []

@@ -34,6 +34,15 @@ HTTP_REQUESTS_TOTAL: "Counter | None" = None
 HTTP_REQUEST_DURATION: "Histogram | None" = None
 
 
+def _sentry_before_send(event, hint):
+    """Filtre optionnel : ignorer certaines URLs (health, metrics)."""
+    if event.get("request", {}).get("url"):
+        url = event["request"]["url"]
+        if "/health" in url or "/metrics" in url:
+            return None  # Ne pas envoyer les erreurs sur health/metrics
+    return event
+
+
 def _normalize_path(path: str) -> str:
     """Réduit les IDs dynamiques pour limiter la cardinalité des métriques."""
     if "/api/" in path:
@@ -67,15 +76,25 @@ def init_monitoring() -> bool:
             # Désactiver le logging integration par défaut (on a déjà loguru)
             logging_integration = LoggingIntegration(level=None, event_level=None)
 
+            # Release : Render expose RENDER_GIT_COMMIT ; sinon SENTRY_RELEASE ou version
+            release = (
+                os.getenv("SENTRY_RELEASE")
+                or os.getenv("RENDER_GIT_COMMIT")
+                or os.getenv("VERCEL_GIT_COMMIT_SHA")
+                or None
+            )
+
             sentry_sdk.init(
                 dsn=sentry_dsn,
                 environment=os.getenv("ENVIRONMENT", "development"),
+                release=release,
                 send_default_pii=False,
                 traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
-                profiles_sample_rate=0.0,
+                profiles_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0")),
                 integrations=[logging_integration],
+                before_send=_sentry_before_send,
             )
-            logger.info("Sentry initialisé (DSN configuré)")
+            logger.info(f"Sentry initialisé (DSN, release={release or 'auto'})")
             initialized = True
         except Exception as e:
             logger.warning(f"Sentry init échoué: {e}")

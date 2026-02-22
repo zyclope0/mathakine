@@ -22,6 +22,8 @@
 | Variable | Rôle | Valeur exemple |
 |----------|------|----------------|
 | `NEXT_PUBLIC_SENTRY_DSN` ou `SENTRY_DSN` | Erreurs backend → Sentry | Même DSN que frontend |
+| `ENVIRONMENT` | Tag Sentry (prod/staging) | `production` |
+| `SENTRY_RELEASE` | Corrélation erreurs ↔ déploiement | `${RENDER_GIT_COMMIT}` ou manuel |
 | `SENTRY_TRACES_SAMPLE_RATE` | Taux de traces APM | `0.1` (10 %) |
 
 ### Emails (un des deux : SMTP ou SendGrid)
@@ -57,6 +59,8 @@
 | `NEXT_PUBLIC_SITE_URL` | ✅ | Canonical, OpenGraph | `https://mathakine.fun` |
 | `NEXT_PUBLIC_SENTRY_DSN` | — | Erreurs client → Sentry | `https://xxx@xxx.ingest.sentry.io/xxx` |
 | `NEXT_PUBLIC_FEEDBACK_URL` | — | Lien feedback alpha (mailto ou formulaire) | `mailto:webmaster@mathakine.fun?subject=[Alpha] Feedback` |
+| `SENTRY_RELEASE` | — | Corrélation erreurs ↔ déploiement | `${RENDER_GIT_COMMIT}` |
+| `NEXT_PUBLIC_SENTRY_RELEASE` | — | Idem pour le bundle client (build) | `${RENDER_GIT_COMMIT}` |
 | `SENTRY_ORG` | — | Organisation Sentry (upload source maps) | Slug de ton org |
 | `SENTRY_PROJECT` | — | Projet Sentry (upload source maps) | `mathakine-frontend` |
 | `SENTRY_AUTH_TOKEN` | — | Token Sentry pour CI/build (source maps) | `sntrys_xxx` |
