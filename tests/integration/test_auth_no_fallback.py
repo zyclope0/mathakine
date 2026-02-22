@@ -80,9 +80,8 @@ async def test_refresh_token_missing_returns_401(client):
     # Appeler l'endpoint de refresh sans token
     response = await client.post("/api/auth/refresh", json={})
 
-    # 400 = Bad Request, 401 = Unauthorized, 422 = validation FastAPI
-    assert response.status_code in [400, 401, 422], (
-        f"Le code d'état devrait être 400, 401 ou 422, reçu {response.status_code}. "
+    assert response.status_code == 401, (
+        f"Le code d'état devrait être 401 Unauthorized, reçu {response.status_code}. "
         f"Réponse: {response.text}"
     )
 
@@ -242,16 +241,13 @@ async def test_refresh_token_from_cookie_only(client, test_user_with_tokens):
 
 async def test_refresh_token_missing_both_body_and_cookie(client):
     """
-    Test SEC-1.2 : Refresh token manquant dans body ET cookie → 400, 401 ou 422
+    Test SEC-1.2 : Refresh token manquant dans body ET cookie → 401
     Vérifie qu'aucun fallback n'est utilisé si le refresh_token est absent partout.
-    Note: FastAPI peut retourner 400/422 pour un body manquant avant d'arriver au handler.
     """
-    # Appeler l'endpoint sans token dans le body ET sans cookie
     response = await client.post("/api/auth/refresh")
 
-    # 400 = Bad Request, 401 = Unauthorized, 422 = validation FastAPI
-    assert response.status_code in [400, 401, 422], (
-        f"Le code d'état devrait être 401 ou 422, reçu {response.status_code}. "
+    assert response.status_code == 401, (
+        f"Le code d'état devrait être 401 Unauthorized, reçu {response.status_code}. "
         f"Réponse: {response.text}"
     )
 

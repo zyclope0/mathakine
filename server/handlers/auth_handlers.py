@@ -456,7 +456,7 @@ async def api_refresh_token(request: Request):
         if not refresh_token:
             return JSONResponse(
                 {"error": "Refresh token requis (body ou cookie). Veuillez vous reconnecter."},
-                status_code=400
+                status_code=401,
             )
         
         async with db_session() as db:

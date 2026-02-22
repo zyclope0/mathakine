@@ -224,56 +224,39 @@ export default defineConfig({
 
 #### Service tests
 ```python
-# tests/unit/test_challenge_service.py
+# tests/unit/test_logic_challenge_service.py
 import pytest
-from app.services import challenge_service
-from app.schemas.logic_challenge import LogicChallengeCreate
+from app.models.logic_challenge import LogicChallenge, LogicChallengeType, AgeGroup
+from app.services.logic_challenge_service import LogicChallengeService
 
 @pytest.mark.unit
-def test_create_challenge(db):
-    """Test création d'un challenge"""
-    # Arrange
-    challenge_data = LogicChallengeCreate(
-        title="Test Challenge",
-        description="Test description",
+def test_get_challenge(db_session):
+    """Test récupération d'un défi logique par ID"""
+    challenge = LogicChallenge(
+        title="Test Get Challenge",
+        description="Un défi de test",
         challenge_type="SEQUENCE",
         age_group="GROUP_10_12",
         correct_answer="42",
-        solution_explanation="Test explanation"
+        solution_explanation="Explication",
+        difficulty_rating=3.0,
     )
-    
-    # Act
-    result = challenge_service.create_challenge(db, challenge_data)
-    
-    # Assert
-    assert result.id is not None
-    assert result.title == "Test Challenge"
-    assert result.challenge_type == "SEQUENCE"
+    db_session.add(challenge)
+    db_session.commit()
 
-@pytest.mark.unit
-def test_get_challenge_by_id(db, sample_challenge):
-    """Test récupération challenge par ID"""
-    # Act
-    result = challenge_service.get_challenge_by_id(db, sample_challenge.id)
-    
-    # Assert
+    result = LogicChallengeService.get_challenge(db_session, challenge.id)
+
     assert result is not None
-    assert result.id == sample_challenge.id
-    assert result.title == sample_challenge.title
+    assert result.id == challenge.id
+    assert result.title == "Test Get Challenge"
 
 @pytest.mark.unit
-def test_list_challenges_with_filters(db, sample_challenges):
-    """Test liste challenges avec filtres"""
-    # Act
-    results = challenge_service.list_challenges(
-        db,
-        challenge_type="SEQUENCE",
-        age_group="GROUP_10_12"
-    )
-    
-    # Assert
-    assert len(results) > 0
-    assert all(c.challenge_type == "SEQUENCE" for c in results)
+def test_list_challenges(db_session):
+    """Test liste des défis logiques"""
+    results = LogicChallengeService.list_challenges(db_session, limit=10)
+
+    assert isinstance(results, list)
+    assert all(hasattr(c, "title") and hasattr(c, "challenge_type") for c in results)
 ```
 
 #### Constants tests

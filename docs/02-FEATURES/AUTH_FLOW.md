@@ -148,6 +148,13 @@ Bannière affichée avec formulaire pour renvoyer l'email de vérification via `
 | Token expiré (verify/reset) | Lien trop ancien → renvoyer l'email |
 | 401 après login | Refresh token manquant ou expiré → se reconnecter |
 
+### Codes HTTP — Auth
+
+| Endpoint | Cas d'erreur | Code |
+|----------|--------------|------|
+| `POST /api/auth/refresh` | Token/cookie manquant | **401** Unauthorized |
+| `POST /api/auth/refresh` | Token expiré ou invalide | **401** Unauthorized |
+
 → Voir [CONFIGURER_EMAIL](../01-GUIDES/CONFIGURER_EMAIL.md) pour la configuration des envois d'email.
 
 ---

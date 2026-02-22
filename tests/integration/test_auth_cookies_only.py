@@ -75,9 +75,10 @@ async def test_refresh_without_cookie_fails(client, test_user_data):
     transport = httpx.ASGITransport(app=starlette_app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as fresh_client:
         response = await fresh_client.post("/api/auth/refresh")
-    # The handler expects a body if no cookie, causing a 422. A 401 would be better, but we test the current state.
-    # 400 = Bad Request (body manquant), 401 = Unauthorized, 422 = Validation FastAPI
-    assert response.status_code in [400, 401, 422], f"Le refresh sans cookie devrait retourner 400, 401 ou 422, reçu {response.status_code}."
+    assert response.status_code == 401, (
+        f"Le refresh sans cookie doit retourner 401 Unauthorized, reçu {response.status_code}. "
+        f"Réponse: {response.text}"
+    )
 
 
 async def test_no_localStorage_refresh_token_in_response(client, test_user_data):
