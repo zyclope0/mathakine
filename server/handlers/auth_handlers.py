@@ -374,10 +374,7 @@ async def api_validate_token(request: Request):
         token = data_or_err["token"]
         if not isinstance(token, str):
             return JSONResponse({"valid": False, "error": "Token invalide"}, status_code=400)
-        payload = decode_token(token)
-        # Vérifier que c'est un access token (type=access)
-        if payload.get("type") != "access":
-            return JSONResponse({"valid": False}, status_code=401)
+        payload = decode_token(token)  # valide type=access
         return JSONResponse({"valid": True, "user_id": payload.get("sub")})
     except Exception:
         return JSONResponse({"valid": False}, status_code=401)

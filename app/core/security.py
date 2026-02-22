@@ -20,20 +20,26 @@ SECRET_KEY = settings.SECRET_KEY
 
 def decode_token(token: str) -> dict:
     """
-    Décode et vérifie un token JWT.
-    
+    Décode et vérifie un token JWT d'accès (type=access).
+    Rejette les refresh tokens pour éviter leur réutilisation comme access.
+
     Args:
-        token: Le token JWT à décoder
-        
+        token: Le token JWT à décoder (access token uniquement)
+
     Returns:
         Le contenu décodé du token
-        
+
     Raises:
-        HTTPException: Si le token est invalide ou expiré
+        HTTPException: Si le token est invalide, expiré ou n'est pas un access token
     """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[SecurityConfig.ALGORITHM])
+        if payload.get("type") != "access":
+            logger.debug("Token rejeté: type attendu 'access', reçu %s", payload.get("type"))
+            raise HTTPException(status_code=401, detail="Token invalide ou expiré")
         return payload
+    except HTTPException:
+        raise
     except JWTError as jwt_decode_error:
         # Logger en debug plutôt qu'en error car c'est normal si le token est invalide/expiré
         error_msg = str(jwt_decode_error)

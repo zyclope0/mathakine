@@ -472,6 +472,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 | Limitation | Fichiers | Risque | Plan |
 |------------|----------|--------|------|
 | **Rate limiting en mémoire (non distribué)** | `app/utils/rate_limit.py`, `app/utils/rate_limiter.py` | Chaque instance a son propre compteur → protection incomplète en multi-instances. Acceptable en mono-instance. | Migrer vers Redis si montée en charge horizontale. Pas d'augmentation de complexité à le faire plus tard. |
+| **Claims iss/aud non validés** | `app/core/security.py` | Pas de vérification `iss` (issuer) ni `aud` (audience). Risque théorique si réutilisation de tokens entre contextes. | Ajouter iss/aud si évolution multi-tenant ou scale. Priorité basse en single-tenant. |
 
 ---
 
@@ -480,6 +481,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 | Optimisation | Date | Détail |
 |--------------|------|--------|
 | **Éviter double décodage JWT** | 22/02/2026 | Middleware stocke `payload` dans `request.state.auth_payload`. `get_current_user()` réutilise au lieu de décoder une 2e fois. Réduit surcoût CPU/latence sur requêtes protégées. |
+| **Validation claims JWT (type)** | 22/02/2026 | `decode_token()` rejette désormais les tokens dont `type != "access"`. Empêche d'utiliser un refresh token (7j) comme access token (15 min). |
 
 ---
 
