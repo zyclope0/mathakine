@@ -35,7 +35,7 @@ async def test_expired_token_exercise_creation(expired_token_client):
         "choices": ["2", "3", "4", "5"]
     }
 
-    # Essayer de creer un exercice (POST /api/exercises/generate)
+    # Essayer de créer un exercice (POST /api/exercises/generate)
     # generate_exercise_api parse le JSON en premier et peut retourner 400 si params manquants
     response = await client.post("/api/exercises/generate", json=exercise_data)
 

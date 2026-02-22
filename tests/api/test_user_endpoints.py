@@ -54,7 +54,7 @@ async def test_get_users_as_padawan(padawan_client):
 
 
 async def test_create_user(client):
-    """Test pour creer un nouvel utilisateur."""
+    """Test pour créer un nouvel utilisateur."""
     unique_id = str(uuid.uuid4())[:8]
 
     user_data = {
@@ -73,7 +73,7 @@ async def test_create_user(client):
 
 
 async def test_create_user_duplicate_username(client):
-    """Test pour creer un utilisateur avec un nom d'utilisateur deja existant."""
+    """Test pour créer un utilisateur avec un nom d'utilisateur déjà existant."""
     unique_id = str(uuid.uuid4())[:8]
 
     user_data = {
@@ -85,7 +85,7 @@ async def test_create_user_duplicate_username(client):
     response = await client.post("/api/users/", json=user_data)
     assert response.status_code in (200, 201)
 
-    # Tenter de creer un deuxieme utilisateur avec le meme nom
+    # Tenter de créer un deuxième utilisateur avec le même nom
     duplicate_data = {
         "username": f"duplicate_username_test_{unique_id}",
         "email": f"different_email_{unique_id}@example.com",
@@ -97,7 +97,7 @@ async def test_create_user_duplicate_username(client):
 
 
 async def test_create_user_duplicate_email(client):
-    """Test pour creer un utilisateur avec une adresse email deja existante."""
+    """Test pour créer un utilisateur avec une adresse email déjà existante."""
     unique_id = str(uuid.uuid4())[:8]
 
     user_data = {

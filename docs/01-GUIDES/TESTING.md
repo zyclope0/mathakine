@@ -752,7 +752,7 @@ Les utilisateurs suivants sont des comptes de demonstration ou de seed. Ils ne d
 | `padawan1` | Padawan | Utilisateur seed eleve |
 | `gardien1` | Gardien | Utilisateur seed administrateur |
 
-> **REGLE ABSOLUE** : Aucun test ne doit creer de donnees (attempts, progress, recommendations) au nom de ces utilisateurs. Aucun `delete()` sans `.filter()` n'est autorise sur les tables partagees (attempts, progress, exercises, users).
+> **REGLE ABSOLUE** : Aucun test ne doit créer de données (attempts, progress, recommendations) au nom de ces utilisateurs. Aucun `delete()` sans `.filter()` n'est autorise sur les tables partagees (attempts, progress, exercises, users).
 
 ### Conventions de nommage des donnees de test
 

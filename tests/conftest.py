@@ -390,7 +390,7 @@ async def refresh_token_client():
 
 @pytest.fixture
 def role_client(db_session):
-    """Factory fixture pour creer un client authentifie avec un role specifique.
+    """Factory fixture pour créer un client authentifié avec un rôle spécifique.
 
     Usage (dans un test async):
         async def test_admin(role_client):
@@ -473,7 +473,7 @@ def mock_exercise():
 
 @pytest.fixture
 def mock_user():
-    """Factory pour creer des donnees d'utilisateur de test (dict).
+    """Factory pour créer des données d'utilisateur de test (dict).
 
     Usage:
         user_data = mock_user()
@@ -503,7 +503,7 @@ def mock_user():
 
 @pytest.fixture
 def mock_request():
-    """Factory pour creer des requetes mock compatibles Starlette.
+    """Factory pour créer des requêtes mock compatibles Starlette.
 
     Usage:
         request = mock_request()
@@ -585,10 +585,10 @@ def db_enum_values(db_session):
 
 @pytest.fixture
 def logic_challenge_data(db_session):
-    """Donnees de test pour les defis logiques avec valeurs d'enum adaptees."""
+    """Données de test pour les défis logiques avec valeurs d'enum adaptées."""
     return {
         "title": "Test Logic Challenge",
-        "description": "Un defi logique pour les tests",
+        "description": "Un défi logique pour les tests",
         "challenge_type": get_enum_value(
             LogicChallengeType, LogicChallengeType.SEQUENCE.value, db_session
         ),
@@ -601,7 +601,7 @@ def logic_challenge_data(db_session):
 
 @pytest.fixture
 def user_data(db_session):
-    """Donnees pour creer un utilisateur avec les valeurs PostgreSQL correctes."""
+    """Données pour créer un utilisateur avec les valeurs PostgreSQL correctes."""
     uid = uuid.uuid4().hex[:8]
     return {
         "username": f"testuser_{uid}",
@@ -617,9 +617,9 @@ def user_data(db_session):
 
 @pytest.fixture(scope="function")
 def logic_challenge_db(db_session):
-    """Session PostgreSQL avec donnees de defi logique pre-creees.
+    """Session PostgreSQL avec données de défi logique pré-créées.
 
-    Cree un utilisateur de test + un defi logique, puis nettoie apres le test.
+    Crée un utilisateur de test + un défi logique, puis nettoie après le test.
     SECURITE: Seules les donnees prefixees test_ sont touchees.
     """
     unique_id = uuid.uuid4().hex[:8]
@@ -669,10 +669,10 @@ def logic_challenge_db(db_session):
         db_session.add(test_user)
         db_session.commit()
 
-        # Creer un defi logique de test
+        # Créer un défi logique de test
         test_challenge = LogicChallenge(
             title=f"Test Challenge {unique_id}",
-            description="Description du defi de test",
+            description="Description du défi de test",
             challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.SEQUENCE),
             age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12),
             correct_answer="42",
@@ -742,9 +742,9 @@ def logic_challenge_db(db_session):
 
 @pytest.fixture(scope="function")
 def challenge_with_hints_id(logic_challenge_db):
-    """ID du defi cree par logic_challenge_db (avec hints).
+    """ID du défi créé par logic_challenge_db (avec hints).
 
-    Utilise pour les tests qui requirent un defi avec indices (hint endpoint).
+    Utilise pour les tests qui requièrent un défi avec indices (hint endpoint).
     """
     challenge = (
         logic_challenge_db.query(LogicChallenge)
@@ -752,7 +752,7 @@ def challenge_with_hints_id(logic_challenge_db):
         .order_by(LogicChallenge.id.desc())
         .first()
     )
-    assert challenge is not None, "logic_challenge_db doit creer un defi Test Challenge"
+    assert challenge is not None, "logic_challenge_db doit créer un défi Test Challenge"
     return challenge.id
 
 
@@ -782,7 +782,7 @@ def auto_cleanup_test_data(db_session):
         try:
             db_session.execute(text("SELECT 1"))
         except (InvalidRequestError, StatementError, Exception):
-            # Session en erreur : creer une nouvelle session pour le nettoyage
+            # Session en erreur : créer une nouvelle session pour le nettoyage
             _cleanup_logger.debug("Session principale en erreur, creation d'une session de nettoyage")
             test_engine = get_test_engine()
             CleanupSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)

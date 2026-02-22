@@ -17,7 +17,7 @@ async def test_get_exercises(padawan_client):
 
 
 def test_exercise_types_constants():
-    """Test que les types d'exercices sont correctement definis dans les constantes.
+    """Test que les types d'exercices sont correctement définis dans les constantes.
     
     Note: Les routes /api/exercises/types et /api/exercises/difficulties n'existent pas
     dans le backend Starlette. Les types/niveaux sont des constantes Python.
@@ -110,7 +110,7 @@ async def test_create_exercise_with_invalid_data(padawan_client):
 
 
 async def test_create_exercise_with_invalid_type(padawan_client):
-    """Test de l'endpoint pour creer un exercice avec un type invalide"""
+    """Test de l'endpoint pour créer un exercice avec un type invalide"""
     client = padawan_client["client"]
     invalid_exercise_data = {
         "exercise_type": "invalid_type",
