@@ -1,4 +1,6 @@
-name: Tests Mathakine
+# CI principal — déclenché automatiquement sur push/PR
+# Gate : tests + lint doivent passer avant merge
+name: CI (Tests + Lint)
 
 on:
   push:
@@ -170,12 +172,10 @@ jobs:
     - name: Check formatting with black
       run: |
         black app/ server/ --check --diff
-      continue-on-error: true
-    
+
     - name: Check import sorting with isort
       run: |
         isort app/ server/ --check-only --diff
-      continue-on-error: true
 
   frontend:
     runs-on: ubuntu-latest

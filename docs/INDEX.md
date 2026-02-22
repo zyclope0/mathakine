@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique — Mise à jour au 21/02/2026  
+> Point d'entrée unique — Mise à jour au 15/02/2026  
 > **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md) — inclut la **revue trimestrielle** (vérité terrain) §7
 
 ---
@@ -22,7 +22,7 @@ docs/
 ├── 00-REFERENCE/          # 📘 Référence technique
 │   └── GETTING_STARTED.md      # Installation et premiers pas
 │
-├── 01-GUIDES/             # 📗 Guides pratiques (9 guides)
+├── 01-GUIDES/             # 📗 Guides pratiques
 │   ├── DEVELOPMENT.md          # Workflow développement
 │   ├── TESTING.md              # Tests (pytest, vitest, playwright)
 │   ├── TROUBLESHOOTING.md      # Dépannage
@@ -30,10 +30,12 @@ docs/
 │   ├── CONTRIBUTING.md         # Comment contribuer
 │   ├── CREATE_TEST_DATABASE.md # Créer base de test
 │   ├── CONFIGURER_EMAIL.md     # Configurer envoi emails (forgot-password, verify-email)
+│   ├── DEPLOYMENT_ENV.md       # Variables d'environnement Render (prod)
+│   ├── ENV_CHECK.md            # Checklist .env et Render (dev local)
 │   ├── LANCER_SERVEUR_TEST.md  # Lancer serveur local
 │   ├── TESTER_MODIFICATIONS_SECURITE.md  # Tests sécurité
-│   ├── QU_EST_CE_QUE_VENV.md  # Guide Python venv
-│   ├── GUIDE_UTILISATEUR_MVP.md  # 🆕 Guide utilisateur (cible, rétention, parcours)
+│   ├── QU_EST_CE_QUE_VENV.md   # Guide Python venv
+│   ├── GUIDE_UTILISATEUR_MVP.md  # Guide utilisateur (cible, rétention, parcours)
 │   ├── ESLINT_PRETTIER_FRONTEND.md  # ESLint + Prettier
 │   └── SENTRY_MONITORING.md  # Monitoring Sentry
 │
@@ -57,7 +59,11 @@ docs/
 │   ├── AUDIT_DASHBOARD_2026-02.md  # Audit dashboard (recos partielles)
 │   ├── AUDIT_SENTRY_2026-02.md  # Configuration Sentry (référence)
 │   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~70-80% traité)
-│   ├── DEPLOIEMENT_2026-02-06.md  # Guide déploiement
+│   ├── CICD_DEPLOY.md  # CI/CD, smoke test, migrations, rollback
+│   ├── POLITIQUE_REDACTION_LOGS_PII.md  # Règles PII/secrets dans les logs
+│   ├── ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md  # Migration DDL → Alembic (✅ validée 22/02)
+│   ├── VALIDATION_MIGRATION_ALEMBIC_2026-02.md  # Rapport validation
+│   ├── PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md  # Plan backup/rollback
 │   ├── ENDPOINTS_NON_INTEGRES.md  # Endpoints à intégrer
 │   ├── PLACEHOLDERS_ET_TODO.md  # Endpoints à implémenter
 │   └── AUDITS_ET_RAPPORTS_ARCHIVES/  # 📦 Audits implémentés + rapports temporaires
@@ -74,6 +80,8 @@ docs/
 │       │   └── AUDIT_FINAL_DOCS_GITIGNORE_2026-02-06.md
 │       └── RAPPORTS_TEMPORAIRES/  # Rapports situationnels + historique
 │           ├── INDEX.md
+│           ├── DEPLOIEMENT_2026-02-06.md  # Rapport déploiement 06/02
+│           ├── SUIVI_MIGRATION_ALEMBIC_22-02.md  # Récap migration DDL → Alembic
 │           ├── BILAN_COMPLET.md  # ⚠️ Historique phases 1-6 (nov. 2025)
 │           ├── RAPPORT_VERIFICATION_CHALLENGES.md  # Vérification 29/11/2025
 │           ├── PHASES/  # Documentation phases historiques
@@ -131,6 +139,11 @@ docs/
 1. [ADMIN_ESPACE_PROPOSITION.md](02-FEATURES/ADMIN_ESPACE_PROPOSITION.md) — Périmètre, itérations, vision
 2. [ADMIN_FEATURE_SECURITE.md](02-FEATURES/ADMIN_FEATURE_SECURITE.md) — RBAC, décorateurs
 3. [API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md) — Section Admin (25 endpoints)
+
+### Je veux déployer ou gérer CI/CD
+1. [CICD_DEPLOY.md](03-PROJECT/CICD_DEPLOY.md) - CI automatique, smoke test /health, migrations, rollback manuel
+2. [DEPLOYMENT_ENV.md](01-GUIDES/DEPLOYMENT_ENV.md) - Variables d'environnement Render (prod)
+3. [ENV_CHECK.md](01-GUIDES/ENV_CHECK.md) - Checklist .env et Render (dev local)
 
 ### Je veux consulter des audits/rapports
 1. [03-PROJECT — Index maître](03-PROJECT/README.md) - Taxonomie audits, recommandations, rapports
@@ -201,6 +214,10 @@ docs/
 
 ## 🔄 Dernières mises à jour
 
+### 15/02/2026 — Documentation (mise en ordre)
+- 📁 **Réorganisation** : DEPLOIEMENT et SUIVI_MIGRATION → RAPPORTS_TEMPORAIRES ; ENV_CHECK → 01-GUIDES ; CICD_DEPLOY, POLITIQUE_REDACTION_LOGS_PII dans README 03-PROJECT.
+- 📝 **CICD_DEPLOY.md** : CI automatique, smoke test /health, migrations, rollback. [Lire →](03-PROJECT/CICD_DEPLOY.md)
+
 ### 15/02/2026 (qualité frontend)
 - ✅ **Refactor qualité** : Typage TypeScript strict sur tous les renderers de visualisation (ChessRenderer, CodingRenderer, DeductionRenderer, GraphRenderer, etc.), useAccessibleAnimation (Variants/Transition), validation dashboard, vitest.setup. Exclusion `scripts/` du lint.
 - ✅ **Build + tests unitaires** : 31 tests Vitest OK (dont 11 sur safeValidateUserStats). E2E : `npx playwright install` requis.
@@ -256,29 +273,16 @@ docs/
 - ✅ **Refactor admin_handlers (PR#1)** : Extraction des utils dans `server/handlers/admin_handlers_utils.py` (CONFIG_SCHEMA, _log_admin_action, _parse_setting_value, _serialize_value)
 
 ### 11/02/2026
-- ✅ **Documentation tests mise à jour** : TESTING.md (Vitest, couverture, CI), tests/README.md, PLAN_TESTS_AMELIORATION.md
-- ✅ **Corrections test_user_exercise_flow** : POST /api/exercises/generate, paramètre answer, GET /api/users/stats
-- ✅ **Tests frontend** : ExerciseCard (NextIntl + QueryClient wrappers), AccessibilityToolbar (userEvent, aria-label)
-- ✅ **CI** : test:coverage frontend avant build, Codecov backend + frontend
-- ⚠️ **CORRECTION_PLAN.md** : Marqué obsolète (état Mai 2025)
+- ✅ **Documentation tests** : TESTING.md, tests/README.md. CI : test:coverage, Codecov.
 
 ### 09/02/2026
-- ✅ **Vulnerabilites npm corrigees** (3→0) : jspdf mis a jour v4.1.0, xlsx (vulnerable) remplace par exceljs + file-saver
-- ✅ **Decorateurs auth** : `@require_auth`, `@optional_auth`, `@require_auth_sse` dans `server/auth.py` - eliminent 40+ blocs d'authentification dupliques dans 6 fichiers handlers
-- ✅ **exportExcel.ts** refactorise pour utiliser exceljs au lieu de xlsx
-- 📝 **EVALUATION_PROJET** mis a jour avec les actions completees
+- ✅ **Vulnérabilités npm** (3→0), **décorateurs auth** (@require_auth, etc.), **exportExcel** (exceljs).
 
 ### 08/02/2026
-- ✅ **Dependabot configure** : `.github/dependabot.yml` (GitHub Actions hebdo + npm hebdo, groupement React/Next.js)
-- ✅ **GitHub Actions mises a jour** : checkout v6, upload/download-artifact v6/v7, codecov v5, setup-python v6
-- ✅ **CI fiabilise** : `continue-on-error: true` retire, Flake8 F821 corrige, test data fixtures corrigees (`age_group` NOT NULL)
-- ✅ **Tests backend migres** vers httpx.AsyncClient (Starlette natif, 396 tests collectes)
-- ✅ **Dependabot groupement** : React/React-DOM/types groupes pour eviter conflits peer dependencies
+- ✅ **Dependabot**, **GitHub Actions v6**, **CI fiabilisée**, **tests httpx.AsyncClient**.
 
 ### 07/02/2026
-- ✅ **Settings page complete** : 5 sections activees (suppression, export, notifications, langue, confidentialite)
-- ✅ **Fix SQLAlchemy JSON** : Mutation tracking corrige (dict copy)
-- 📝 **EVALUATION_PROJET_2026-02-07.md** : Audit qualite factuel (supersede BILAN_COMPLET.md)
+- ✅ **Settings page** complète. **EVALUATION_PROJET_2026-02-07.md** — référence qualité.
 
 ### 06/02/2026 (soir)
 - ✅ **Index DB appliqués** : 13 index de performance créés et déployés
@@ -290,15 +294,9 @@ docs/
 - 📝 **ANALYTICS_PROGRESSION.md** : Idées de graphiques de progression
 
 ### 06/02/2026 (matin)
-- ✅ **Unification Starlette** : FastAPI archivé, architecture simplifiée
-- ✅ **3 nouveaux widgets dashboard** : Série, Défis, Précision
-- ✅ **Documentation rationalisée** : ~200 docs archivés supprimés
-- ✅ **README_TECH.md** : Mis à jour pour refléter architecture actuelle
-- ✅ **Nouveau dossier 06-WIDGETS/** : Documentation widgets dashboard
+- ✅ **Unification Starlette**, **6-WIDGETS/**, **rationalisation docs** (~200 archivés).
 
-### 20/11/2025
-- Phase 6 complétée (nommage et lisibilité)
-- Documentation phases consolidée
+*Historique antérieur : voir `git log`.*
 
 ---
 
@@ -313,10 +311,9 @@ docs/
 
 ## 🎯 Statistiques
 
-- **Documents actifs** : ~50 docs (backend, frontend, widgets, projet)
-- **Réduction initiale** : -92% de documentation (200+ → ~15 actifs en nov. 2025)
-- **Cohérence** : Validee vs code reel
-- **Dernière vérification** : 17/02/2026
+- **Documents actifs** : ~55 docs (guides, features, projet, widgets)
+- **Cohérence** : Validée vs code réel — revue trimestrielle (CONVENTION §7)
+- **Dernière vérification** : 15/02/2026
 
 ---
 

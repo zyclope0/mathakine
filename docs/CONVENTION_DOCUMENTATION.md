@@ -11,8 +11,8 @@
 |------|-------------|---------|
 | **Audit — toutes recos appliquées** | `03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/` | ANALYSE_THEMES_UX |
 | **Audit — recos partielles** | `03-PROJECT/` (racine) | AUDIT_DASHBOARD |
-| **Rapport situationnel** | `03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/` | MISSION_COMPLETE |
-| **Référence actuelle** | `03-PROJECT/` (racine) | EVALUATION_PROJET |
+| **Rapport situationnel** | `03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/` | DEPLOIEMENT_2026, MISSION_COMPLETE |
+| **Référence actuelle / CI-CD** | `03-PROJECT/` (racine) | EVALUATION_PROJET, CICD_DEPLOY |
 | **À faire / TODO** | `03-PROJECT/` (racine) | ENDPOINTS_NON_INTEGRES |
 
 ---

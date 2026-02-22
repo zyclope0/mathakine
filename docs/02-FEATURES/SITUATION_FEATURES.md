@@ -143,7 +143,7 @@ Les éléments suivants ont été implémentés et sont désormais documentés i
 | Liste paginée (type, âge, recherche) | ✅ | ✅ | API_QUICK_REFERENCE |
 | **Ordre aléatoire** | ✅ | ✅ | SITUATION § 2.6 |
 | **Masquer les réussis** | ✅ | ✅ (Switch) | SITUATION § 2.6 |
-| Génération IA | ✅ | ✅ | ANALYSE_GENERATION_IA_CHALLENGES |
+| Génération IA | ✅ | ✅ | [ANALYSE_GENERATION_IA_CHALLENGES](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/ANALYSE_GENERATION_IA_CHALLENGES.md) |
 
 ---
 

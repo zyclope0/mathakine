@@ -1,5 +1,10 @@
 # Checklist .env & Render – Environnement de développement
 
+**Dernière mise à jour :** Février 2026  
+**Complément à :** [DEPLOYMENT_ENV.md](DEPLOYMENT_ENV.md) (variables prod Render)
+
+---
+
 ## ✅ Ton .env actuel (dev local)
 
 | Variable | Statut | Note |
@@ -28,7 +33,7 @@ Ces variables ont des valeurs par défaut, pas besoin de les mettre dans le `.en
 
 ## 📧 Emails (mot de passe oublié, vérification email)
 
-Guide détaillé : **[docs/01-GUIDES/CONFIGURER_EMAIL.md](01-GUIDES/CONFIGURER_EMAIL.md)** — Sans config : simulés en dev, erreur en prod.
+Guide détaillé : **[CONFIGURER_EMAIL.md](CONFIGURER_EMAIL.md)** — Sans config : simulés en dev, erreur en prod.
 
 Par défaut, les emails sont simulés si SMTP n’est pas configuré. Pour envoyer de vrais emails (ex. vérification d’email) :
 

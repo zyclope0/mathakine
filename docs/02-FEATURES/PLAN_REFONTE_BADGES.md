@@ -524,7 +524,7 @@ B-5 ─────────► Enrichissements après C : formulaire défis/
 ### B. Références
 
 - [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) — Améliorations UX détaillées
-- [BADGES_AUDIT_PAUFINAGE](BADGES_AUDIT_PAUFINAGE.md) — Audit pré-paufinage (ergonomie 2560×1440, rétention, gamification)
+- [BADGES_AUDIT_PAUFINAGE](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/BADGES_AUDIT_PAUFINAGE.md) — Audit pré-paufinage (ergonomie 2560×1440, rétention, gamification)
 - [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) — Phase 3 : « Badges | Création/modification »
 - [SITUATION_FEATURES](SITUATION_FEATURES.md) — Priorités globales
 

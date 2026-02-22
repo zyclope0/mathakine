@@ -415,5 +415,5 @@ python scripts/update_badges_b4.py --execute    # Applique les mises à jour
 
 - [PLAN_REFONTE_BADGES](PLAN_REFONTE_BADGES.md) — Lot B, B4
 - [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) — Principes psychologiques
-- [BADGES_AUDIT_PAUFINAGE](BADGES_AUDIT_PAUFINAGE.md) — Audit page badges
+- [BADGES_AUDIT_PAUFINAGE](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/BADGES_AUDIT_PAUFINAGE.md) — Audit page badges
 - `app/services/badge_service.py` — Logique d'attribution

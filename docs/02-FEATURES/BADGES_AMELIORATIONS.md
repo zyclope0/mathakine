@@ -267,10 +267,12 @@ interface BadgeProgress {
 }
 ```
 
-### 5.2 Nouveau endpoint suggéré
+### 5.2 Endpoint implémenté (16/02)
+
+> **Implémenté** : `GET /api/challenges/badges/progress` (et non `/api/badges/progress`)
 
 ```
-GET /api/badges/progress
+GET /api/challenges/badges/progress
 Response: {
   badges_progress: BadgeProgress[],
   next_achievable: BadgeProgress[], // Badges les plus proches (<5 actions)
@@ -353,7 +355,7 @@ Préférences de gamification :
 
 | Tâche | Complexité | Fichiers impactés |
 |-------|------------|-------------------|
-| Endpoint `/api/badges/progress` | Moyenne | `badge_handlers.py`, `badge_service.py` |
+| Endpoint `/api/challenges/badges/progress` | Moyenne | `badge_handlers.py`, `badge_service.py` |
 | Hook `useBadgeProgress` | Faible | Nouveau fichier |
 | Barre de progression sur BadgeCard | Faible | `BadgeCard.tsx` |
 | Critères d'obtention visibles | Faible | `BadgeCard.tsx`, traductions |

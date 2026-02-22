@@ -15,10 +15,11 @@
 | [REMAINING_TASKS.md](./REMAINING_TASKS.md) | Checklist frontend (~99 % complété) |
 | [INDEX_DB_MANQUANTS_2026-02-06.md](./INDEX_DB_MANQUANTS_2026-02-06.md) | Index PostgreSQL manquants — 13 index appliqués |
 | [AUDIT_FINAL_DOCS_GITIGNORE_2026-02-06.md](./AUDIT_FINAL_DOCS_GITIGNORE_2026-02-06.md) | Documentation et gitignore — actions réalisées |
+| [AUDIT_SECURITE_APPLICATIVE_2026-02.md](./AUDIT_SECURITE_APPLICATIVE_2026-02.md) | OWASP Top 10, sécurité applicative — vulnérabilités corrigées |
 
 ---
 
 ## Navigation
 
 - [← Retour au README du dossier archives](../README.md)
-- [Index général documentation](../../INDEX.md)
+- [Index général documentation](../../../INDEX.md)
