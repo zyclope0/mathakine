@@ -37,6 +37,14 @@
 | [AUDIT_SENTRY_2026-02.md](./AUDIT_SENTRY_2026-02.md) | Fév. 2026 | Configuration Sentry, monitoring | Référence config |
 | [ANALYSE_DUPLICATION_DRY_2026-02.md](./ANALYSE_DUPLICATION_DRY_2026-02.md) | Fév. 2026 | DRY, duplication code | ~70–80 % traité |
 
+### Migration DDL → Alembic (✅ réalisée 22/02/2026)
+
+| Document | Rôle |
+|----------|------|
+| [ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md](./ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md) | Analyse + statut |
+| [VALIDATION_MIGRATION_ALEMBIC_2026-02.md](./VALIDATION_MIGRATION_ALEMBIC_2026-02.md) | Rapport validation |
+| [PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md](./PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md) | Plan backup/rollback |
+
 ### Vulnérabilités (CVE)
 
 → [SECURITY_AUDIT_REPORT.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/SECURITY_AUDIT_REPORT.md) — archivé (12/02/2026)

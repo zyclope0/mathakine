@@ -12,8 +12,10 @@
 | Migration `20260222_add_legacy_tables_exercises_results_userstats.py` | ✅ Créée |
 | DDL retiré de `init_database()` (no-op) | ✅ Fait |
 | Tests (pytest) | ✅ 404 passent |
-| Branche `feat/alembic-legacy-tables-ddl` | ✅ Créée |
-| **Prochaine étape** | Ouvrir PR → master, valider sur Render test |
+| Merge master + push | ✅ Fait |
+| Déploiement Render | ✅ Réussi |
+| Sanity check prod | ✅ OK (login, exercices, défis, navigation) |
+| **Rapport validation** | [VALIDATION_MIGRATION_ALEMBIC_2026-02.md](VALIDATION_MIGRATION_ALEMBIC_2026-02.md) |
 
 ---
 
@@ -21,7 +23,7 @@
 
 ### 1.1 `init_database()` (server/database.py)
 
-Depuis la refactor du 22/02/2026, `init_database()` utilise déjà SQLAlchemy (plus de psycopg2 direct pour l’init). Il exécute :
+**Depuis 22/02/2026 :** `init_database()` est un no-op (log seulement). Le DDL est dans Alembic (migration 20260222).
 
 | Élément | Source | Détail |
 |--------|--------|--------|
@@ -35,21 +37,15 @@ Depuis la refactor du 22/02/2026, `init_database()` utilise déjà SQLAlchemy (p
 
 ### 1.2 Alembic (migrations/versions/)
 
-**Chaîne de migrations :**
+**Chaîne de migrations (post-migration 22/02) :**
 ```
-initial_snapshot (pass) 
-  → 20250513_baseline (pass) 
-  → 20250107_add_enum_values 
-  → 20260205_add_missing_tables_and_indexes (user_sessions, notifications)
-  → 20260206_1530_add_exercises_indexes
-  → 20260206_1600_add_exercises_missing_indexes
-  → ... (≈16 migrations)
+... → 20260205_add_missing_tables_and_indexes
+  → 20260222_add_legacy_tables (exercises, results, user_stats)
+  → 20260206_add_exercises_indexes
+  → ... (≈16 migrations) → head
 ```
 
-**Contenu des migrations :**
-- Ne créent pas les tables `exercises`, `results`, `user_stats`
-- Ajoutent des index sur `exercises` (ix_exercises_*, parfois doublons avec init_database)
-- Créent `user_sessions`, `notifications`, `settings`, etc.
+**Contenu :** La migration `20260222` crée `exercises`, `results`, `user_stats` + index + `ai_generated`. Les autres migrations créent `user_sessions`, `notifications`, `settings`, etc.
 
 ### 1.3 Flux de déploiement (Render, scripts)
 

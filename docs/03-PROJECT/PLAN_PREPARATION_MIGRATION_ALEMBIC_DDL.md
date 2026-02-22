@@ -2,7 +2,8 @@
 
 **Date :** 22/02/2026  
 **Objectif :** Sécuriser au maximum l’opération avant de démarrer la migration (Point 3).  
-**Référence :** [ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md](ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md)
+**Référence :** [ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md](ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md)  
+**Statut :** Réalisé 22/02/2026
 
 ---
 
@@ -111,10 +112,9 @@ En cas de problème : revenir sur `master` et continuer à utiliser l’ancienne
 
 - [x] **Backup BDD effectué** — Render : Export dashboard ; Local : `.\scripts\backup_db.ps1` (docker exec pg-test)
 - [x] **Branche Git dédiée** — `feat/alembic-legacy-tables-ddl` créée et poussée sur origin
-- [ ] Révision Alembic actuelle notée : `alembic current`
-- [ ] Liste des migrations à exécuter connue : `alembic history`
-- [ ] Environnement local OK : `pytest tests/` passent
-- [ ] Tables `exercises`, `results`, `user_stats` existent (vérifier avec un `SELECT` ou script)
+- [x] **Révision Alembic** — Chaîne 20260205 → 20260222 → 20260206 → head
+- [x] **Tests** — `pytest tests/` passent
+- [x] **Merge master + déploiement Render** — 22/02/2026
 
 ### Vérification rapide état BDD
 
