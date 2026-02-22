@@ -612,9 +612,9 @@ Hooks avec logique réutilisable : `usePaginatedContent`, logique de filtre, etc
 
 | Job | Actions |
 |-----|---------|
-| **test** | PostgreSQL 15, **unit** (tests/unit/), **integration** (tests/api/, integration/, functional/), coverage combine, upload Codecov (flag backend) |
+| **test** | PostgreSQL 15, pytest (unit+api+integration), coverage + JUnit XML, upload Codecov (coverage + test_results, flag backend) |
 | **lint** | flake8, black, isort (backend) |
-| **frontend** | npm ci, tsc --noEmit, **npm run lint** (ESLint), npm run test:coverage, upload Codecov (flag frontend), npm run build |
+| **frontend** | npm ci, tsc --noEmit, ESLint, vitest --coverage --reporter=junit, upload Codecov (coverage + test_results, flag frontend), build |
 
 Un echec de test ou de lint bloque le merge. Les rapports de couverture sont envoyes a Codecov (backend + frontend separes).
 

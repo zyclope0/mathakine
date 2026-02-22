@@ -100,53 +100,28 @@ jobs:
         print('Database initialized successfully')
         "
     
-    - name: Run unit tests
-      id: run_unit_tests
+    - name: Run tests (coverage + JUnit)
+      id: run_tests
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
         TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
         SECRET_KEY: test-secret-key-for-ci-cd-pipeline
         TESTING: true
         PYTHONPATH: ${{ github.workspace }}
-        COVERAGE_FILE: .coverage.unit
-      run: |
-        python -m pytest tests/unit/ -v \
-          --cov=app \
-          --cov=server \
-          --cov-report=term-missing \
-          --tb=short \
-          -m "not slow"
-
-    - name: Run integration tests
-      id: run_integration_tests
-      env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
-        TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_mathakine
-        SECRET_KEY: test-secret-key-for-ci-cd-pipeline
-        TESTING: true
-        PYTHONPATH: ${{ github.workspace }}
-        COVERAGE_FILE: .coverage.integration
       run: |
         python -m pytest tests/ -v \
-          --ignore=tests/unit/ \
           --ignore=tests/archives/ \
           --cov=app \
           --cov=server \
           --cov-report=term-missing \
+          --cov-report=xml \
+          --junitxml=junit.xml \
+          -o junit_family=legacy \
           --tb=short \
           -m "not slow"
 
-    - name: Combine coverage and generate XML
-      run: |
-        coverage combine .coverage.unit .coverage.integration
-        coverage xml
-    
-    - name: Verify coverage file
-      run: |
-        test -f coverage.xml && echo "coverage.xml exists" && head -5 coverage.xml
-        wc -l coverage.xml
-    
     - name: Upload coverage to Codecov
+      if: ${{ !cancelled() }}
       uses: codecov/codecov-action@v5
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
@@ -155,10 +130,16 @@ jobs:
         flags: backend
         name: codecov-mathakine-backend
         fail_ci_if_error: false
-        verbose: true
-        disable_search: true
-        plugins: noop
-    
+
+    - name: Upload test results to Codecov
+      if: ${{ !cancelled() }}
+      uses: codecov/codecov-action@v5
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
+      with:
+        files: ./junit.xml
+        report_type: test_results
+
     - name: Coverage report
       if: always()
       run: |
@@ -222,11 +203,12 @@ jobs:
       working-directory: frontend
       run: npm run lint
 
-    - name: Run tests with coverage
+    - name: Run tests with coverage and JUnit
       working-directory: frontend
-      run: npm run test:coverage -- --run
-    
+      run: npx vitest --coverage --reporter=junit --outputFile=./junit.xml --run
+
     - name: Upload frontend coverage to Codecov
+      if: ${{ !cancelled() }}
       uses: codecov/codecov-action@v5
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
@@ -234,9 +216,17 @@ jobs:
         files: ./frontend/coverage/lcov.info
         flags: frontend
         name: codecov-mathakine-frontend
-        fail_ci_if_error: false
-        verbose: true
-    
+
+    - name: Upload frontend test results to Codecov
+      if: ${{ !cancelled() }}
+      uses: codecov/codecov-action@v5
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN || vars.CODECOV_TOKEN }}
+      with:
+        files: ./frontend/junit.xml
+        report_type: test_results
+        flags: frontend
+
     - name: Build Next.js
       working-directory: frontend
       env:
