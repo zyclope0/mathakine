@@ -160,7 +160,11 @@
     "admin": "Admin",
     "profile": "Profile",
     "settings": "Settings",
-    "about": "About"
+    "about": "About",
+    "contact": "Contact",
+    "changelog": "What's new",
+    "documentation": "Documentation",
+    "privacy": "Privacy Policy"
   },
   "exercises": {
     "title": "Math Exercises",
@@ -1221,7 +1225,7 @@
       "exercises": "Exercises",
       "exercisesDesc": "Addition, subtraction, multiplication, division. Pick a category and level (Padawan, Jedi, Master), start the exercise, answer and submit for instant feedback.",
       "challenges": "Logic challenges",
-      "challengesDesc": "Patterns, puzzles, graphs… Pick a challenge type, solve it and submit to see the feedback. AI-generated.",
+      "challengesDesc": "Sequences, patterns, riddles, graphs, puzzles, deduction, chess, probability… Pick a type and age group, solve and submit to see the feedback. Some are AI-generated.",
       "dashboard": "Dashboard",
       "dashboardDesc": "View your accuracy, activity and stats. Export to PDF or Excel to keep a record of your progress.",
       "badges": "Badges",
@@ -1261,12 +1265,171 @@
       "q8": "I prefer a dark theme.",
       "a8": "Settings → Theme: Light / Dark / System.",
       "q9": "Does the app work offline?",
-      "a9": "Yes, partially: install Mathakine as an app (PWA) from your browser to use it offline."
+      "a9": "Yes, partially: install Mathakine as an app (PWA) from your browser to use it offline.",
+      "q10": "An exercise or challenge seems incorrect?",
+      "a10": "Use the report button (red flag) at the bottom right to let us know. Your feedback helps us improve Mathakine."
     },
     "cta": "Ready to start?",
     "ctaExercises": "View exercises",
     "ctaChallenges": "View challenges",
     "ctaRegister": "Create an account"
+  },
+  "about": {
+    "title": "About Mathakine",
+    "subtitle": "A platform born from a family story",
+    "what": {
+      "title": "What is Mathakine?",
+      "intro": "Mathakine is a mathematics learning platform designed for children and teenagers (ages 5 to 20).",
+      "desc": "The goal is to allow everyone to progress at their own pace, without pressure or grades. The focus is on support, accessibility, and celebrating progress.",
+      "bullet1": "Adapted exercises (addition, subtraction, multiplication, division) and varied logic challenges",
+      "bullet2": "Dashboard and badges to track progress",
+      "bullet3": "Accessibility options (contrast, text, animations, Focus TSA/ADHD mode)"
+    },
+    "origin": {
+      "title": "Where does Mathakine come from?",
+      "intro": "A personal story that became a project.",
+      "p1": "Mathakine was born from a very concrete need: helping my son, Anakyn, prepare for a math competition with a simple, effective, and motivating tool.",
+      "p2": "Since he has specific needs, I was looking for content truly adapted to his way of learning. I found no solution that combined mathematics, logic challenges, accessibility, and a fun approach.",
+      "p3": "Being from the tech field and passionate about artificial intelligence, I decided to build this tool myself.",
+      "p4": "By sharing it around me, I quickly saw that it also answered the needs of other children, parents, and teachers. The project grew, with a simple idea: offer as many people as possible a more accessible, more engaging math platform—and always fun.",
+      "tagline": "That's the Mathakine spirit: learning seriously, without losing the fun."
+    },
+    "who": {
+      "title": "Who is behind Mathakine?",
+      "intro": "Mathakine is a one-person project.",
+      "desc": "Created by Zyclope, Anakyn's dad. No partners or funders — just the will to offer a useful and accessible tool to as many people as possible."
+    },
+    "contactCta": "Contact us"
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "Have a question? A suggestion? Get in touch.",
+    "responseTime": "We aim to respond within 7 business days.",
+    "form": {
+      "title": "Contact form",
+      "intro": "Fill out the form and submit — your email client will open with the message pre-filled.",
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "your@email.com",
+      "subject": "Subject",
+      "subjectPlaceholder": "Question, partnership, support…",
+      "message": "Message",
+      "messagePlaceholder": "Describe your request…",
+      "submit": "Send"
+    },
+    "feedback": {
+      "title": "Report an issue",
+      "intro": "Incorrect exercise, incoherent challenge, or a bug?",
+      "desc": "Use the report button (red flag) at the bottom right on any page to send us detailed feedback. Your reports are visible to the team and help us improve Mathakine.",
+      "cta": "Go to exercises"
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "subtitle": "How Mathakine handles your personal data",
+    "lastUpdate": "Last updated: February 2026",
+    "controller": {
+      "title": "Data controller",
+      "desc": "In accordance with the General Data Protection Regulation (GDPR).",
+      "text": "The data controller is Yannick Malgorn. For any questions regarding your personal data: webmaster@mathakine.fun"
+    },
+    "data": {
+      "title": "Data collected and purposes",
+      "intro": "Mathakine collects only the data necessary for the service to operate.",
+      "account": {
+        "title": "User account",
+        "desc": "Username, email address, password (hashed). Purpose: account creation, authentication, password recovery."
+      },
+      "progress": {
+        "title": "Progress and activity",
+        "desc": "Exercise results, attempts, completed challenges, badges earned. Purpose: progress tracking, recommendation personalization, dashboard."
+      },
+      "feedback": {
+        "title": "Reports",
+        "desc": "Report messages (incorrect exercise, bug) with relevant page. Purpose: improving content and interface."
+      },
+      "technical": {
+        "title": "Technical data",
+        "desc": "Technical logs, session identifiers, error traces (Sentry). Purpose: service operation, incident diagnostics."
+      }
+    },
+    "retention": {
+      "title": "Retention period",
+      "intro": "Data is retained for the following periods, in line with the GDPR minimization principle.",
+      "account": "Account: until deletion by the user or erasure request.",
+      "progress": "Progress and activity: same duration as the account. Deleted when the account is deleted.",
+      "feedback": "Reports: 2 years after closure (or account deletion if associated).",
+      "logs": "Technical logs: maximum 1 year."
+    },
+    "rights": {
+      "title": "Your rights",
+      "intro": "You have the following rights regarding your data:",
+      "access": "Right of access: obtain a copy of your data.",
+      "rectification": "Right to rectification: correct inaccurate data.",
+      "erasure": "Right to erasure: request deletion of your data.",
+      "portability": "Right to portability: receive your data in a structured format.",
+      "objection": "Right to object: object to certain processing.",
+      "complaint": "Right to lodge a complaint: contact your data protection authority if you believe the processing is non-compliant."
+    },
+    "subcontractors": {
+      "title": "Subcontractors",
+      "intro": "Certain service providers process data on behalf of Mathakine.",
+      "note": "Each subcontractor is contractually bound to comply with the GDPR. Standard policies, not negotiated.",
+      "render": "Render: application and database hosting (USA, standard contractual clauses).",
+      "sentry": "Sentry: error monitoring and technical diagnostics (minimal traces).",
+      "email": "SendGrid or SMTP: sending verification and password reset emails."
+    },
+    "cookies": {
+      "title": "Cookies",
+      "intro": "Mathakine uses strictly necessary cookies for the service to function.",
+      "essential": "Authentication cookies (access_token, refresh_token): maintaining the logged-in session. CSRF cookie: protection against cross-site attacks. These cookies are essential; refusing them prevents use of the service.",
+      "noMarketing": "No advertising cookies or third-party trackers."
+    }
+  },
+  "changelog": {
+    "title": "What's new",
+    "subtitle": "Latest improvements to Mathakine, explained simply.",
+    "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
+    "latestBadge": "Latest",
+    "latestLabel": "Most recent version",
+    "v222": {
+      "version": "2.2.0-alpha.1",
+      "date": "February 22, 2026",
+      "items": [
+        "New pages: About, Contact and Privacy Policy",
+        "Report button (red flag) to report an incorrect exercise, incoherent challenge or bug",
+        "Leaderboard: filter by age group",
+        "Dashboard: average session time and more relevant recommendations (without exercises and challenges already completed)",
+        "Display improvements: chatbot and footer layout more consistent"
+      ]
+    },
+    "v221": {
+      "version": "2.1.0",
+      "date": "February 6, 2026",
+      "items": [
+        "Random order and option to hide exercises and challenges already completed",
+        "Badges redesigned: \"In progress\" and \"To unlock\" tabs, rarity display, ability to pin your favourites",
+        "Challenges: better answer handling and new puzzle types",
+        "New themes: Dune, Forest, Light and Dinosaurs",
+        "User leaderboard",
+        "Export your data as PDF or Excel",
+        "Math assistant to help with exercises",
+        "Accessibility options: contrast, text size, animations and Focus mode for ASD/ADHD"
+      ]
+    },
+    "v220": {
+      "version": "2.0.0",
+      "date": "December 2025 - January 2026",
+      "items": [
+        "Adaptive exercises (addition, subtraction, multiplication, division)",
+        "Varied logic challenges (riddles, chess, puzzles)",
+        "Registration and login with email verification",
+        "Dashboard with progress tracking",
+        "Achievement badges",
+        "Visual themes to customize the interface"
+      ]
+    }
   },
   "feedback": {
     "fab": {

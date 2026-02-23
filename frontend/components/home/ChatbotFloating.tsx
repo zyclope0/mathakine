@@ -67,10 +67,10 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
 
   return (
     <>
-      {/* Overlay sombre quand ouvert - z-[100] pour être au-dessus du header (z-40) */}
+      {/* Overlay sombre quand ouvert - z-[9990] au-dessus du footer et du contenu */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-[100] animate-in fade-in duration-200"
+          className="fixed inset-0 bg-black/30 z-[9990] animate-in fade-in duration-200"
           onClick={() => handleOpenChange(false)}
           aria-hidden="true"
         />
@@ -82,7 +82,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
         aria-modal="true"
         aria-labelledby="chatbot-title"
         className={cn(
-          "fixed top-0 right-0 h-full w-full sm:w-[400px] z-[101]",
+          "fixed top-0 right-0 h-full w-full sm:w-[400px] z-[9991]",
           "bg-background border-l shadow-2xl",
           "transition-all duration-300 ease-out",
           isOpen ? "translate-x-0 visible opacity-100" : "translate-x-full invisible opacity-0"

@@ -160,7 +160,11 @@
     "admin": "Admin",
     "profile": "Profil",
     "settings": "Paramètres",
-    "about": "À propos"
+    "about": "À propos",
+    "contact": "Contact",
+    "changelog": "Nouveautés",
+    "documentation": "Documentation",
+    "privacy": "Politique de confidentialité"
   },
   "exercises": {
     "title": "Exercices Mathématiques",
@@ -1218,7 +1222,7 @@
       "exercises": "Exercices",
       "exercisesDesc": "Addition, soustraction, multiplication, division. Choisis une catégorie et un niveau (Padawan, Jedi, Maître), lance l'exercice, réponds et valide pour un feedback immédiat.",
       "challenges": "Défis logiques",
-      "challengesDesc": "Patterns, énigmes, graphes… Choisis un type de défi, résous et valide pour voir le feedback. Générés par l'IA.",
+      "challengesDesc": "Séquences, motifs, énigmes, graphes, puzzles, déduction, échecs, probabilités… Choisis un type et un groupe d'âge, résous le défi et valide pour voir le feedback. Certains sont générés par l'IA.",
       "dashboard": "Tableau de bord",
       "dashboardDesc": "Vois ta précision, ton activité et tes statistiques. Exporte en PDF ou Excel pour garder une trace de ta progression.",
       "badges": "Badges",
@@ -1258,12 +1262,171 @@
       "q8": "Je préfère un thème sombre.",
       "a8": "Paramètres → Thème : Clair / Sombre / Système.",
       "q9": "L'app fonctionne hors ligne ?",
-      "a9": "Oui, en partie : installe Mathakine comme application (PWA) depuis ton navigateur pour l'utiliser hors ligne."
+      "a9": "Oui, en partie : installe Mathakine comme application (PWA) depuis ton navigateur pour l'utiliser hors ligne.",
+      "q10": "Un exercice ou un défi semble incorrect ?",
+      "a10": "Utilise le bouton de signalement (drapeau rouge) en bas à droite pour nous le faire savoir. Ton retour nous aide à améliorer Mathakine."
     },
     "cta": "Prêt à commencer ?",
     "ctaExercises": "Voir les exercices",
     "ctaChallenges": "Voir les défis",
     "ctaRegister": "Créer un compte"
+  },
+  "about": {
+    "title": "À propos de Mathakine",
+    "subtitle": "Une plateforme née d'une histoire de famille",
+    "what": {
+      "title": "Qu'est-ce que Mathakine ?",
+      "intro": "Mathakine est une plateforme d'apprentissage des mathématiques conçue pour les enfants et adolescents (5 à 20 ans).",
+      "desc": "L'objectif est de permettre à chacun de progresser à son rythme, sans pression ni note. L'accent est mis sur la bienveillance, l'accessibilité et la valorisation des progrès.",
+      "bullet1": "Exercices adaptés (addition, soustraction, multiplication, division) et défis logiques variés",
+      "bullet2": "Tableau de bord et badges pour suivre sa progression",
+      "bullet3": "Options d'accessibilité (contraste, texte, animations, mode Focus TSA/TDAH)"
+    },
+    "origin": {
+      "title": "D'où vient Mathakine ?",
+      "intro": "Une histoire personnelle devenue projet.",
+      "p1": "Mathakine est né d'un besoin très concret : aider mon fils, Anakyn, à se préparer à un concours de mathématiques avec un outil simple, efficace et motivant.",
+      "p2": "Comme il a des besoins spécifiques, je cherchais un contenu vraiment adapté à sa manière d'apprendre. Je n'ai pas trouvé de solution qui réunissait à la fois les mathématiques, les défis logiques, l'accessibilité et le côté ludique.",
+      "p3": "Étant issu du domaine informatique et passionné par l'intelligence artificielle, j'ai décidé de créer cet outil moi-même.",
+      "p4": "En le partageant autour de moi, j'ai rapidement vu qu'il répondait aussi aux besoins d'autres enfants, parents et enseignants. Le projet a donc grandi, avec une idée simple : proposer au plus grand nombre une plateforme de mathématiques plus accessible, plus engageante, et toujours fun.",
+      "tagline": "C'est ça, l'esprit Mathakine : apprendre sérieusement, sans perdre le plaisir."
+    },
+    "who": {
+      "title": "Qui est derrière Mathakine ?",
+      "intro": "Mathakine est un projet porté par une seule personne.",
+      "desc": "Créé par Zyclope, le papa d'Anakyn. Pas de partenaire ni de financeur — juste la volonté de proposer un outil utile et accessible au plus grand nombre."
+    },
+    "contactCta": "Nous contacter"
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "Une question ? Une suggestion ? Écrivez-nous.",
+    "responseTime": "Nous nous engageons à vous répondre sous 7 jours ouvrés.",
+    "form": {
+      "title": "Formulaire de contact",
+      "intro": "Remplissez le formulaire et validez — votre client de messagerie s'ouvrira avec le message prérempli.",
+      "name": "Nom",
+      "namePlaceholder": "Votre nom",
+      "email": "Email",
+      "emailPlaceholder": "votre@email.com",
+      "subject": "Sujet",
+      "subjectPlaceholder": "Question, partenariat, support…",
+      "message": "Message",
+      "messagePlaceholder": "Décrivez votre demande…",
+      "submit": "Envoyer"
+    },
+    "feedback": {
+      "title": "Signaler un problème",
+      "intro": "Un exercice incorrect, un défi incohérent ou un bug ?",
+      "desc": "Utilisez le bouton de signalement (drapeau rouge) en bas à droite sur n'importe quelle page pour nous envoyer un retour détaillé. Vos signalements sont visibles par l'équipe et nous aident à améliorer Mathakine.",
+      "cta": "Aller aux exercices"
+    }
+  },
+  "privacy": {
+    "title": "Politique de confidentialité",
+    "subtitle": "Comment Mathakine traite vos données personnelles",
+    "lastUpdate": "Dernière mise à jour : février 2026",
+    "controller": {
+      "title": "Responsable du traitement",
+      "desc": "Conformément au Règlement général sur la protection des données (RGPD).",
+      "text": "Le responsable du traitement des données est Yannick Malgorn. Pour toute question relative à vos données personnelles : webmaster@mathakine.fun"
+    },
+    "data": {
+      "title": "Données collectées et finalités",
+      "intro": "Mathakine collecte uniquement les données nécessaires au fonctionnement du service.",
+      "account": {
+        "title": "Compte utilisateur",
+        "desc": "Nom d'utilisateur, adresse email, mot de passe (chiffré). Finalité : création de compte, authentification, récupération de mot de passe."
+      },
+      "progress": {
+        "title": "Progression et activité",
+        "desc": "Résultats d'exercices, tentatives, défis complétés, badges obtenus. Finalité : suivi de la progression, personnalisation des recommandations, tableau de bord."
+      },
+      "feedback": {
+        "title": "Signalements",
+        "desc": "Messages de signalement (exercice incorrect, bug) avec page concernée. Finalité : amélioration du contenu et de l'interface."
+      },
+      "technical": {
+        "title": "Données techniques",
+        "desc": "Logs techniques, identifiants de session, traces d'erreurs (Sentry). Finalité : fonctionnement du service, diagnostic des incidents."
+      }
+    },
+    "retention": {
+      "title": "Durée de conservation",
+      "intro": "Les données sont conservées pendant les durées suivantes, conformément au principe de minimisation du RGPD.",
+      "account": "Compte : jusqu'à suppression du compte par l'utilisateur ou demande d'effacement.",
+      "progress": "Progression et activité : même durée que le compte. Supprimées lors de la suppression du compte.",
+      "feedback": "Signalements : 2 ans après clôture (ou suppression du compte si associé).",
+      "logs": "Logs techniques : 1 an maximum."
+    },
+    "rights": {
+      "title": "Vos droits",
+      "intro": "Vous disposez des droits suivants sur vos données :",
+      "access": "Droit d'accès : obtenir une copie de vos données.",
+      "rectification": "Droit de rectification : corriger des données inexactes.",
+      "erasure": "Droit à l'effacement : demander la suppression de vos données.",
+      "portability": "Droit à la portabilité : recevoir vos données dans un format structuré.",
+      "objection": "Droit d'opposition : vous opposer à certains traitements.",
+      "complaint": "Droit de réclamation : saisir la CNIL (cnil.fr) si vous estimez que le traitement n'est pas conforme."
+    },
+    "subcontractors": {
+      "title": "Sous-traitants",
+      "intro": "Certains prestataires traitent des données pour le compte de Mathakine.",
+      "note": "Chaque sous-traitant est contractuellement tenu de respecter le RGPD. Politiques standards, non négociées.",
+      "render": "Render : hébergement de l'application et base de données (États-Unis, clauses contractuelles types).",
+      "sentry": "Sentry : surveillance des erreurs et diagnostics techniques (traces minimises).",
+      "email": "SendGrid ou SMTP : envoi d'emails de vérification et de réinitialisation de mot de passe."
+    },
+    "cookies": {
+      "title": "Cookies",
+      "intro": "Mathakine utilise des cookies strictement nécessaires au fonctionnement du service.",
+      "essential": "Cookies d'authentification (access_token, refresh_token) : maintien de la session connectée. Cookie CSRF : protection contre les attaques cross-site. Ces cookies sont indispensables ; leur refus empêche l'utilisation du service.",
+      "noMarketing": "Aucun cookie publicitaire ou de trackers tiers."
+    }
+  },
+  "changelog": {
+    "title": "Nouveautés",
+    "subtitle": "Les dernières améliorations de Mathakine, expliquées simplement.",
+    "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir régulièrement.",
+    "latestBadge": "Dernière version",
+    "latestLabel": "Version la plus récente",
+    "v222": {
+      "version": "2.2.0-alpha.1",
+      "date": "22 février 2026",
+      "items": [
+        "Nouvelles pages : À propos, Contact et Politique de confidentialité",
+        "Bouton de signalement (drapeau rouge) pour signaler un exercice incorrect, un défi incohérent ou un bug",
+        "Classement : vous pouvez filtrer par tranche d'âge",
+        "Tableau de bord : temps moyen par session et recommandations plus pertinentes (sans les exercices et défis déjà réussis)",
+        "Amélioration de l'affichage : chatbot et pied de page plus cohérents"
+      ]
+    },
+    "v221": {
+      "version": "2.1.0",
+      "date": "6 février 2026",
+      "items": [
+        "Ordre aléatoire et option pour masquer les exercices et défis déjà réussis",
+        "Badges refaits : onglets « En cours » et « À débloquer », affichage de la rareté, possibilité d'épingler vos préférés",
+        "Défis : meilleure prise en charge des réponses et nouveaux types de puzzles",
+        "Nouveaux thèmes : Dune, Forêt, Lumière et Dinosaures",
+        "Classement des utilisateurs",
+        "Export de vos données en PDF ou Excel",
+        "Assistant mathématique pour vous aider sur les exercices",
+        "Options d'accessibilité : contraste, taille du texte, animations et mode Focus pour TSA/TDAH"
+      ]
+    },
+    "v220": {
+      "version": "2.0.0",
+      "date": "Décembre 2025 - Janvier 2026",
+      "items": [
+        "Exercices adaptés (addition, soustraction, multiplication, division)",
+        "Défis logiques variés (énigmes, échecs, puzzles)",
+        "Inscription et connexion avec vérification par email",
+        "Tableau de bord avec suivi de progression",
+        "Badges de réussite",
+        "Thèmes visuels pour personnaliser l'interface"
+      ]
+    }
   },
   "feedback": {
     "fab": {

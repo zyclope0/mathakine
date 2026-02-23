@@ -1,21 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { Github, Mail, Heart } from "lucide-react";
+import { Github, Mail, Heart, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils/cn";
 
 export function Footer() {
+  const t = useTranslations("navigation");
   const currentYear = new Date().getFullYear();
 
   const footerLinks = [
-    { name: "À propos", href: "/about" },
-    { name: "Contact", href: "/contact" },
-    { name: "Documentation", href: "/docs" },
-    { name: "Politique de confidentialité", href: "/privacy" },
+    { name: t("changelog"), href: "/changelog" },
+    { name: t("about"), href: "/about" },
+    { name: t("contact"), href: "/contact" },
+    { name: t("documentation"), href: "/docs" },
+    { name: t("privacy"), href: "/privacy" },
   ];
 
   return (
     <footer
-      className="relative z-10 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      className="relative z-0 border-t border-border bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60"
       role="contentinfo"
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -40,7 +44,7 @@ export function Footer() {
                 <Github className="h-5 w-5" aria-hidden="true" />
               </a>
               <a
-                href="mailto:contact@mathakine.fr"
+                href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL || process.env.NEXT_PUBLIC_FEEDBACK_EMAIL || "webmaster@mathakine.fun"}`}
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Email"
               >
@@ -57,8 +61,14 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className={cn(
+                      "text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5",
+                      link.href === "/changelog" && "font-medium"
+                    )}
                   >
+                    {link.href === "/changelog" && (
+                      <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden />
+                    )}
                     {link.name}
                   </Link>
                 </li>

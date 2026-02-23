@@ -295,21 +295,18 @@ describe('ChallengeList', () => {
 - README si changement installation/usage
 - API docs si nouvelles routes
 - Architecture docs si changements structurels
-- CHANGELOG.md
+- CHANGELOG.md (voir § Versioning)
 
-```markdown
-## [2.1.0] - 2025-12-01
+### Versioning et Changelog
 
-### Added
-- Challenge difficulty filters
-- Age group filtering API
+**Convention alpha** : `MAJOR.MINOR.PATCH-alpha.N` (ex. `2.2.0-alpha.1`).
 
-### Fixed
-- Token expiration bug
+**À chaque push/release significatif** :
+1. Incrémenter la version dans `frontend/package.json`
+2. Mettre à jour `CHANGELOG.md` (entrées Added/Fixed/Changed)
+3. Mettre à jour `frontend/messages/fr.json` et `en.json` (clé `changelog.vXXX`) pour la page utilisateur `/changelog`
 
-### Changed
-- Updated challenge schema
-```
+La page `/changelog` est orientée utilisateurs (langage simple, pas de jargon technique).
 
 ---
 
