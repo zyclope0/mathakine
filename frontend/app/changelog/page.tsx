@@ -1,5 +1,6 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
 import {
   Sparkles,
   Rocket,
@@ -34,9 +35,8 @@ export default function ChangelogPage() {
 
   const itemIcon = (idx: number, isLatest: boolean) => {
     if (!isLatest) return <CheckCircle2 className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />;
-    // Pour la dernière version : alterner icônes selon le type (nouveau / correctif / amélioration)
-    const icons = [Plus, Zap, Wrench];
-    const Icon = icons[idx % icons.length];
+    const icons: LucideIcon[] = [Plus, Zap, Wrench];
+    const Icon = icons[idx % icons.length] ?? Plus;
     return <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden />;
   };
 

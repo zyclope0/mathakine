@@ -51,7 +51,8 @@ docs/
 │   ├── B4_REFORMULATION_BADGES.md  # Specs reformulation 17 badges
 │   ├── ADMIN_FEATURE_SECURITE.md  # RBAC admin (require_admin)
 │   ├── ADMIN_ESPACE_PROPOSITION.md # Proposition espace admin (benchmark, périmètre, plan)
-│   └── ROADMAP_FONCTIONNALITES.md # Roadmap globale fonctionnalités
+│   ├── ROADMAP_FONCTIONNALITES.md # Roadmap globale fonctionnalités
+│   └── WORKFLOW_EDUCATION_REFACTORING.md # Workflow utilisateur + éducation, priorisation refactoring
 │
 ├── 03-PROJECT/            # 📕 Gestion projet
 │   ├── README.md          # ⭐ Index maître audits/rapports

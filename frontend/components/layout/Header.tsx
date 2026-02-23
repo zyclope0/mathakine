@@ -63,7 +63,7 @@ export function Header() {
         Aller au contenu principal
       </a>
       <header
-        className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        className="fixed top-0 left-0 right-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
         role="banner"
       >
         <nav className="container mx-auto px-4 sm:px-6 lg:px-8" aria-label="Navigation principale">

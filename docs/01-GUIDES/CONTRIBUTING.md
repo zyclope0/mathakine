@@ -301,12 +301,19 @@ describe('ChallengeList', () => {
 
 **Convention alpha** : `MAJOR.MINOR.PATCH-alpha.N` (ex. `2.2.0-alpha.1`).
 
-**À chaque push/release significatif** :
-1. Incrémenter la version dans `frontend/package.json`
-2. Mettre à jour `CHANGELOG.md` (entrées Added/Fixed/Changed)
-3. Mettre à jour `frontend/messages/fr.json` et `en.json` (clé `changelog.vXXX`) pour la page utilisateur `/changelog`
+**Checklist avant chaque commit/push significatif** :
 
-La page `/changelog` est orientée utilisateurs (langage simple, pas de jargon technique).
+| Étape | Fichier | Action |
+|-------|---------|--------|
+| 1 | `frontend/package.json` | Incrémenter `version` (ex. `alpha.1` → `alpha.2`) |
+| 2 | `CHANGELOG.md` | Ajouter section `[X.Y.Z-alpha.N] - date` avec Added/Fixed/Changed |
+| 3 | `frontend/messages/fr.json` | Ajouter `changelog.vXXX` (version, date, items[]) |
+| 4 | `frontend/messages/en.json` | Idem `changelog.vXXX` |
+| 5 | `frontend/app/changelog/page.tsx` | Mettre à jour `versionKeys` si nouvelle version en tête |
+
+**Règle** : la page `/changelog` est orientée utilisateurs — langage simple, pas de jargon technique.
+
+**Exemple** : « Vous pouvez filtrer le classement par âge » ✓ — « Filtre `age_group` sur GET /api/users/leaderboard » ✗
 
 ---
 

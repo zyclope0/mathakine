@@ -1,0 +1,46 @@
+---
+description: Règle projet : incrémenter version et changelog à chaque release/commit significatif
+alwaysApply: true
+---
+
+# Versioning et changelog
+
+Avant chaque **commit/push** qui introduit des changements visibles pour l'utilisateur, mettre à jour :
+
+## 1. Version (`frontend/package.json`)
+
+- Format : `MAJOR.MINOR.PATCH-alpha.N` (ex. `2.2.0-alpha.2`)
+- Incrémenter `alpha.N` pour une release alpha (ex. `2.2.0-alpha.1` → `2.2.0-alpha.2`)
+- Incrémenter `PATCH` si sortie d'alpha (ex. `2.2.0`)
+
+## 2. CHANGELOG.md (technique)
+
+À la racine du projet. Nouvelle section en tête :
+
+```markdown
+## [X.Y.Z-alpha.N] - AAAA-MM-JJ
+
+### Added
+- ...
+
+### Fixed
+- ...
+
+### Changed
+- ...
+```
+
+## 3. Page changelog utilisateur
+
+`frontend/messages/fr.json` et `en.json` → clé `changelog.vXXX` :
+
+- Créer une entrée `vXXX` avec `version`, `date`, `items` (tableau de phrases utilisateur)
+- Mettre à jour `versionKeys` dans `frontend/app/changelog/page.tsx` si nouvelle version ajoutée en tête
+
+Langage simple, sans jargon technique. Ex : « Vous pouvez filtrer le classement par âge » plutôt que « Filtre age_group sur GET /api/... ».
+
+---
+
+**Fichiers concernés** : `frontend/package.json`, `CHANGELOG.md`, `frontend/messages/fr.json`, `frontend/messages/en.json`, `frontend/app/changelog/page.tsx`
+
+Détail : `docs/01-GUIDES/CONTRIBUTING.md` § Versioning.

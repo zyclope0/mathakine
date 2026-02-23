@@ -134,6 +134,8 @@ export default function RootLayout({
           <LocaleInitializer />
           <div className="flex min-h-screen flex-col">
             <Header />
+            {/* Espaceur pour compenser le header fixe (h-16) */}
+            <div className="h-16 shrink-0" aria-hidden="true" />
             <AlphaBanner />
             <main
               id="main-content"
