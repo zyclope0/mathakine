@@ -37,10 +37,7 @@ import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { PageLayout, PageHeader, PageSection, EmptyState } from "@/components/layout";
-import {
-  StatsCardSkeleton,
-  ChartSkeleton,
-} from "@/components/dashboard/DashboardSkeletons";
+import { StatsCardSkeleton, ChartSkeleton } from "@/components/dashboard/DashboardSkeletons";
 
 function DashboardLastUpdate({ time, locale }: { time: string; locale?: string }) {
   const t = useTranslations("dashboard");

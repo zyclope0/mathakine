@@ -66,10 +66,7 @@ export default function AdminFeedbackPage() {
                     {feedback.map((item) => {
                       const Icon = TYPE_ICONS[item.feedback_type] ?? MessageCircle;
                       return (
-                        <tr
-                          key={item.id}
-                          className="border-b last:border-0 hover:bg-muted/50"
-                        >
+                        <tr key={item.id} className="border-b last:border-0 hover:bg-muted/50">
                           <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                             {item.created_at
                               ? new Date(item.created_at).toLocaleString("fr-FR")
@@ -82,9 +79,7 @@ export default function AdminFeedbackPage() {
                             </Badge>
                           </td>
                           <td className="px-4 py-3">
-                            {item.username ?? (
-                              <span className="text-muted-foreground">—</span>
-                            )}
+                            {item.username ?? <span className="text-muted-foreground">—</span>}
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex flex-wrap gap-1">
@@ -109,9 +104,7 @@ export default function AdminFeedbackPage() {
                           </td>
                           <td className="max-w-[280px] px-4 py-3">
                             <span className="line-clamp-2">
-                              {item.description || (
-                                <span className="text-muted-foreground">—</span>
-                              )}
+                              {item.description || <span className="text-muted-foreground">—</span>}
                             </span>
                           </td>
                           <td className="px-4 py-3">

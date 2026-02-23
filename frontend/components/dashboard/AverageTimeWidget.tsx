@@ -51,14 +51,9 @@ export function AverageTimeWidget({
       <CardContent className="flex-grow">
         <div className="space-y-2">
           <div
-            className={cn(
-              "text-2xl font-bold",
-              hasData ? "text-primary" : "text-muted-foreground"
-            )}
+            className={cn("text-2xl font-bold", hasData ? "text-primary" : "text-muted-foreground")}
           >
-            {hasData
-              ? formatAverageTime(averageTimeSeconds)
-              : t("noData", { default: "—" })}
+            {hasData ? formatAverageTime(averageTimeSeconds) : t("noData", { default: "—" })}
           </div>
           <p className="text-sm text-muted-foreground">
             {hasData

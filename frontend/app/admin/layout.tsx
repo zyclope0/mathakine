@@ -7,7 +7,15 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { PageLayout } from "@/components/layout";
 import { cn } from "@/lib/utils";
-import { BookOpen, Bot, FileText, LayoutDashboard, MessageCircle, Settings, Users } from "lucide-react";
+import {
+  BookOpen,
+  Bot,
+  FileText,
+  LayoutDashboard,
+  MessageCircle,
+  Settings,
+  Users,
+} from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();

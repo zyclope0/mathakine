@@ -18,8 +18,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import { cn } from "@/lib/utils/cn";
 
-const FEEDBACK_EMAIL =
-  process.env.NEXT_PUBLIC_FEEDBACK_EMAIL || "webmaster@mathakine.fun";
+const FEEDBACK_EMAIL = process.env.NEXT_PUBLIC_FEEDBACK_EMAIL || "webmaster@mathakine.fun";
 
 export type FeedbackContext = {
   exerciseId?: number;

@@ -7,6 +7,7 @@ from app.models.achievement import Achievement, UserAchievement
 from app.models.admin_audit_log import AdminAuditLog
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+from app.models.feedback_report import FeedbackReport
 from app.models.logic_challenge import (
     AgeGroup,
     LogicChallenge,
@@ -15,7 +16,6 @@ from app.models.logic_challenge import (
 )
 from app.models.notification import Notification
 from app.models.progress import Progress
-from app.models.feedback_report import FeedbackReport
 from app.models.recommendation import Recommendation
 from app.models.setting import Setting
 from app.models.user import User, UserRole

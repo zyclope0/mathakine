@@ -76,24 +76,26 @@ export default function LeaderboardPage() {
                     {t("ranking")}
                   </CardTitle>
                   <Select
-                      value={ageFilter}
-                      onValueChange={setAgeFilter}
-                      aria-label={t("filterByAge", { default: "Filtrer par groupe d'âge" })}
-                    >
-                      <SelectTrigger className="w-[200px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">{t("allAges", { default: "Tous les âges" })}</SelectItem>
-                        {Object.values(AGE_GROUPS)
-                          .filter((g) => g !== AGE_GROUPS.ALL_AGES)
-                          .map((group) => (
-                            <SelectItem key={group} value={group}>
-                              {getAgeDisplay(group as keyof typeof AGE_GROUPS)}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
+                    value={ageFilter}
+                    onValueChange={setAgeFilter}
+                    aria-label={t("filterByAge", { default: "Filtrer par groupe d'âge" })}
+                  >
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        {t("allAges", { default: "Tous les âges" })}
+                      </SelectItem>
+                      {Object.values(AGE_GROUPS)
+                        .filter((g) => g !== AGE_GROUPS.ALL_AGES)
+                        .map((group) => (
+                          <SelectItem key={group} value={group}>
+                            {getAgeDisplay(group as keyof typeof AGE_GROUPS)}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardHeader>
               <CardContent>
