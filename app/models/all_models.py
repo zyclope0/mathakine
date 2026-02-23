@@ -15,6 +15,7 @@ from app.models.logic_challenge import (
 )
 from app.models.notification import Notification
 from app.models.progress import Progress
+from app.models.feedback_report import FeedbackReport
 from app.models.recommendation import Recommendation
 from app.models.setting import Setting
 from app.models.user import User, UserRole
@@ -27,6 +28,7 @@ __all__ = [
     "UserRole",
     "Exercise",
     "ExerciseType",
+    "FeedbackReport",
     "DifficultyLevel",
     "Attempt",
     "Progress",

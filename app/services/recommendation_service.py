@@ -65,20 +65,18 @@ class RecommendationService:
                 .all()
             )
 
-            # Récupérer les exercices complétés dans les 7 derniers jours pour éviter les doublons
-            recently_completed_exercise_ids = set()
-            recent_completed_attempts = (
-                db.query(Attempt)
+            # Exercices déjà réussis (toutes périodes) — ne pas recommander
+            all_completed_exercise_ids = {
+                a.exercise_id
+                for a in db.query(Attempt)
                 .filter(
                     Attempt.user_id == user_id,
                     Attempt.is_correct == True,
-                    Attempt.created_at > datetime.now(timezone.utc) - timedelta(days=7),
+                    Attempt.exercise_id.isnot(None),
                 )
                 .all()
-            )
-            for attempt in recent_completed_attempts:
-                if attempt.exercise_id:
-                    recently_completed_exercise_ids.add(attempt.exercise_id)
+                if a.exercise_id
+            }
 
             # Supprimer les anciennes recommandations non complétées
             db.query(Recommendation).filter(
@@ -132,25 +130,17 @@ class RecommendationService:
                         Exercise.is_active == True,
                     )
 
-                    # Exclure les exercices récemment complétés
-                    if recently_completed_exercise_ids:
+                    # Exclure les exercices déjà réussis
+                    if all_completed_exercise_ids:
                         exercise_query = exercise_query.filter(
-                            ~Exercise.id.in_(list(recently_completed_exercise_ids))
+                            ~Exercise.id.in_(list(all_completed_exercise_ids))
                         )
 
                     exercises = exercise_query.order_by(func.random()).limit(2).all()
 
                     for ex in exercises:
-                        # Vérifier si l'utilisateur a déjà fait cet exercice
-                        existing_attempt = (
-                            db.query(Attempt)
-                            .filter(
-                                Attempt.user_id == user_id, Attempt.exercise_id == ex.id
-                            )
-                            .first()
-                        )
-
-                        if not existing_attempt:
+                        # Exclure si l'utilisateur a déjà réussi cet exercice
+                        if ex.id not in all_completed_exercise_ids:
                             recommendations.append(
                                 Recommendation(
                                     user_id=user_id,
@@ -206,10 +196,10 @@ class RecommendationService:
                             Exercise.is_active == True,
                         )
 
-                        # Exclure les exercices récemment complétés
-                        if recently_completed_exercise_ids:
+                        # Exclure les exercices déjà réussis
+                        if all_completed_exercise_ids:
                             exercise_query = exercise_query.filter(
-                                ~Exercise.id.in_(list(recently_completed_exercise_ids))
+                                ~Exercise.id.in_(list(all_completed_exercise_ids))
                             )
 
                         exercises = (
@@ -217,16 +207,17 @@ class RecommendationService:
                         )
 
                         for ex in exercises:
-                            recommendations.append(
-                                Recommendation(
-                                    user_id=user_id,
-                                    exercise_type=ex.exercise_type,
-                                    difficulty=ex.difficulty,
-                                    exercise_id=ex.id,
-                                    priority=7,
-                                    reason=f"Excellent ! Vous avez {success_rate}% de réussite en {ex.exercise_type}. Essayons le niveau {next_difficulty} !",
+                            if ex.id not in all_completed_exercise_ids:
+                                recommendations.append(
+                                    Recommendation(
+                                        user_id=user_id,
+                                        exercise_type=ex.exercise_type,
+                                        difficulty=ex.difficulty,
+                                        exercise_id=ex.id,
+                                        priority=7,
+                                        reason=f"Excellent ! Vous avez {success_rate}% de réussite en {ex.exercise_type}. Essayons le niveau {next_difficulty} !",
+                                    )
                                 )
-                            )
 
             # 3. Recommandations pour maintenir les compétences (réactivation)
             # Trouver les compétences non pratiquées récemment
@@ -293,8 +284,8 @@ class RecommendationService:
                     )
 
                     for ex in exercises:
-                        # Vérifier que l'exercice n'a pas été complété récemment
-                        if ex.id not in recently_completed_exercise_ids:
+                        # Exclure les exercices déjà réussis
+                        if ex.id not in all_completed_exercise_ids:
                             recommendations.append(
                                 Recommendation(
                                     user_id=user_id,
@@ -333,8 +324,8 @@ class RecommendationService:
                 )
 
                 for ex in exercises:
-                    # Vérifier que l'exercice n'a pas été complété récemment
-                    if ex.id not in recently_completed_exercise_ids:
+                    # Exclure les exercices déjà réussis
+                    if ex.id not in all_completed_exercise_ids:
                         recommendations.append(
                             Recommendation(
                                 user_id=user_id,
@@ -415,10 +406,10 @@ class RecommendationService:
                     Exercise.is_active == True,
                 )
 
-                # Exclure les exercices récemment complétés
-                if recently_completed_exercise_ids:
+                # Exclure les exercices déjà réussis
+                if all_completed_exercise_ids:
                     exercise_query = exercise_query.filter(
-                        ~Exercise.id.in_(list(recently_completed_exercise_ids))
+                        ~Exercise.id.in_(list(all_completed_exercise_ids))
                     )
 
                 random_exercises = exercise_query.order_by(func.random()).limit(3).all()
@@ -428,6 +419,8 @@ class RecommendationService:
                     logger.debug(f"  - {ex.title} ({ex.exercise_type}/{ex.difficulty})")
 
                 for ex in random_exercises:
+                    if ex.id in all_completed_exercise_ids:
+                        continue
                     recommendations.append(
                         Recommendation(
                             user_id=user_id,

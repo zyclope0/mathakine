@@ -149,6 +149,62 @@ def test_generate_recommendations_for_improvement(db_session):
         assert rec.priority >= 1, "La priorité devrait être positive"
 
 
+def test_generate_recommendations_excludes_completed_exercises(db_session):
+    """
+    Les exercices déjà réussis (Attempt avec is_correct=True) ne doivent jamais être recommandés.
+    """
+    user = User(
+        username=unique_username(),
+        email=unique_email(),
+        hashed_password="test_hash",
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+    )
+    db_session.add(user)
+    db_session.commit()
+
+    add_type = get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session)
+    initie = get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session)
+
+    ex_completed = Exercise(
+        title="Ex déjà réussi",
+        exercise_type=add_type,
+        difficulty=initie,
+        age_group="6-8",
+        question="1+1=?",
+        correct_answer="2",
+        is_active=True,
+        is_archived=False,
+    )
+    ex_available = Exercise(
+        title="Ex jamais fait",
+        exercise_type=add_type,
+        difficulty=initie,
+        age_group="6-8",
+        question="2+2=?",
+        correct_answer="4",
+        is_active=True,
+        is_archived=False,
+    )
+    db_session.add_all([ex_completed, ex_available])
+    db_session.commit()
+
+    Attempt(
+        user_id=user.id,
+        exercise_id=ex_completed.id,
+        user_answer="2",
+        is_correct=True,
+        time_spent=1.0,
+    )
+    db_session.commit()
+
+    recommendations = RecommendationService.generate_recommendations(db_session, user.id)
+
+    completed_ids = {r.exercise_id for r in recommendations if r.exercise_id}
+    assert ex_completed.id not in completed_ids, (
+        "L'exercice déjà réussi ne doit pas être recommandé"
+    )
+
+
 def test_get_next_difficulty():
     """
     Teste la fonction _get_next_difficulty pour vérifier qu'elle retourne le bon niveau suivant.

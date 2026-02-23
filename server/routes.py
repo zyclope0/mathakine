@@ -96,6 +96,12 @@ from server.handlers.exercise_handlers import (
     submit_answer,
 )
 
+# Imports API handlers - Feedback
+from server.handlers.feedback_handlers import (
+    admin_list_feedback,
+    submit_feedback,
+)
+
 # Imports API handlers - Recommendations
 from server.handlers.recommendation_handlers import (
     generate_recommendations,
@@ -319,6 +325,7 @@ def get_routes() -> List:
                     methods=["PATCH"],
                 ),
                 Route("/reports", endpoint=admin_reports, methods=["GET"]),
+                Route("/feedback", endpoint=admin_list_feedback, methods=["GET"]),
                 Route("/audit-log", endpoint=admin_audit_log, methods=["GET"]),
                 Route("/moderation", endpoint=admin_moderation, methods=["GET"]),
                 Route("/config", endpoint=admin_config_get, methods=["GET"]),
@@ -340,6 +347,10 @@ def get_routes() -> List:
                 ),
             ],
         ),
+        # ========================================
+        # FEEDBACK API (retours utilisateurs)
+        # ========================================
+        Route("/api/feedback", endpoint=submit_feedback, methods=["POST"]),
         # ========================================
         # RECOMMENDATIONS API (3 routes)
         # ========================================

@@ -607,7 +607,10 @@ async def get_users_leaderboard(request: Request):
     """
     Handler pour récupérer le classement des utilisateurs par points.
     Route: GET /api/users/leaderboard
-    Paramètres: limit (défaut 50), orderBy (total_points|experience_points, défaut total_points)
+    Paramètres:
+      - limit (défaut 50)
+      - orderBy (total_points|experience_points, défaut total_points)
+      - age_group (optionnel): filtrer par groupe d'âge (preferred_difficulty du profil)
     """
     try:
         from app.models.user import User
@@ -617,9 +620,12 @@ async def get_users_leaderboard(request: Request):
         query_params = dict(request.query_params)
         limit = min(int(query_params.get("limit", 50)), 100)
         order_by = query_params.get("orderBy", "total_points")
+        age_group = query_params.get("age_group", "").strip() or None
 
         async with db_session() as db:
             q = db.query(User).filter(User.is_active == True)
+            if age_group:
+                q = q.filter(User.preferred_difficulty == age_group)
             users = q.order_by(User.total_points.desc()).limit(limit).all()
 
             leaderboard = []

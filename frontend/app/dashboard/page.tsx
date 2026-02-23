@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ProgressChartLazy } from "@/components/dashboard/ProgressChartLazy";
 import { DailyExercisesChartLazy } from "@/components/dashboard/DailyExercisesChartLazy";
-import { PerformanceByType } from "@/components/dashboard/PerformanceByType";
+import { AverageTimeWidget } from "@/components/dashboard/AverageTimeWidget";
 import { LevelIndicator } from "@/components/dashboard/LevelIndicator";
 import { Recommendations } from "@/components/dashboard/Recommendations";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -40,7 +40,6 @@ import { PageLayout, PageHeader, PageSection, EmptyState } from "@/components/la
 import {
   StatsCardSkeleton,
   ChartSkeleton,
-  PerformanceByTypeSkeleton,
 } from "@/components/dashboard/DashboardSkeletons";
 
 function DashboardLastUpdate({ time, locale }: { time: string; locale?: string }) {
@@ -117,7 +116,7 @@ export default function DashboardPage() {
             </div>
           </PageSection>
           <PageSection className="space-y-3">
-            <PerformanceByTypeSkeleton />
+            <ChartSkeleton />
           </PageSection>
         </PageLayout>
       </ProtectedRoute>
@@ -294,21 +293,15 @@ export default function DashboardPage() {
               )}
             </TabsContent>
 
-            {/* Onglet Détails — performance par type + activité récente */}
+            {/* Onglet Détails — tempo moyen + activité récente (remplace performance par type, doublon avec précision par catégorie) */}
             <TabsContent value="details" className="space-y-6">
-              {stats.performance_by_type && Object.keys(stats.performance_by_type).length > 0 ? (
-                <PageSection>
-                  <PerformanceByType performance={stats.performance_by_type} />
-                </PageSection>
-              ) : (
-                <PageSection>
-                  <p className="text-muted-foreground text-center py-8">
-                    {t("empty.performance", {
-                      default: "Aucune donnée de performance pour le moment.",
-                    })}
-                  </p>
-                </PageSection>
-              )}
+              <PageSection>
+                <AverageTimeWidget
+                  averageTimeSeconds={progressStats?.average_time ?? 0}
+                  totalAttempts={progressStats?.total_attempts ?? 0}
+                  isLoading={isLoadingProgress}
+                />
+              </PageSection>
               {stats.recent_activity && stats.recent_activity.length > 0 && (
                 <PageSection>
                   <RecentActivity activities={stats.recent_activity} />

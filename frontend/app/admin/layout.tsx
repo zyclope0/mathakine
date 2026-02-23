@@ -7,7 +7,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { PageLayout } from "@/components/layout";
 import { cn } from "@/lib/utils";
-import { BookOpen, Bot, FileText, LayoutDashboard, Settings, Users } from "lucide-react";
+import { BookOpen, Bot, FileText, LayoutDashboard, MessageCircle, Settings, Users } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -29,6 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/users", label: "Utilisateurs", icon: Users },
     { href: "/admin/content", label: "Contenu", icon: BookOpen },
     { href: "/admin/moderation", label: "Modération IA", icon: Bot },
+    { href: "/admin/feedback", label: "Retours", icon: MessageCircle },
     { href: "/admin/audit-log", label: "Journal d'audit", icon: FileText },
     { href: "/admin/config", label: "Paramètres", icon: Settings },
   ];

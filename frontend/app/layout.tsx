@@ -10,6 +10,7 @@ import { AlphaBanner } from "@/components/layout/AlphaBanner";
 import { LocaleInitializer } from "@/components/locale/LocaleInitializer";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { MaintenanceOverlay } from "@/components/layout/MaintenanceOverlay";
+import { FeedbackFab } from "@/components/feedback/FeedbackFab";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { SpatialBackground } from "@/components/spatial/SpatialBackground";
 
@@ -148,6 +149,7 @@ export default function RootLayout({
           <WCAGAudit />
           <InstallPrompt />
           <MaintenanceOverlay />
+          <FeedbackFab />
         </Providers>
       </body>
     </html>

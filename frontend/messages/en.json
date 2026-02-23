@@ -627,6 +627,12 @@
       "avgTime": "Avg. time",
       "noChallengesYet": "Take on your first challenge!"
     },
+    "averageTime": {
+      "title": "Avg. tempo",
+      "description": "Average time per exercise",
+      "noData": "—",
+      "emptyHint": "Complete exercises to see your tempo."
+    },
     "categoryAccuracy": {
       "title": "Accuracy by Category",
       "noData": "No data available. Start solving exercises!",
@@ -801,7 +807,9 @@
     "empty": "No users in the leaderboard yet.",
     "ranking": "Ranking by points",
     "level": "Level",
-    "you": "You"
+    "you": "You",
+    "allAges": "All ages",
+    "filterByAge": "Filter by age group"
   },
   "accessibility": {
     "toolbar": {
@@ -1259,6 +1267,26 @@
     "ctaExercises": "View exercises",
     "ctaChallenges": "View challenges",
     "ctaRegister": "Create an account"
+  },
+  "feedback": {
+    "fab": {
+      "buttonLabel": "Report an issue",
+      "exerciseSubject": "Incorrect or incoherent exercise",
+      "challengeSubject": "Incorrect or incoherent challenge",
+      "uiSubject": "Graphical bug / interface",
+      "otherSubject": "Other report",
+      "typeExercise": "Incorrect exercise",
+      "typeChallenge": "Incorrect challenge",
+      "typeUi": "Graphical bug",
+      "typeOther": "Other",
+      "bodyPlaceholder": "Describe the issue here...",
+      "modalDescription": "Describe the issue. Your feedback will be visible in admin.",
+      "successMessage": "Thank you for your feedback!",
+      "errorMessage": "Error sending feedback.",
+      "cancel": "Cancel",
+      "send": "Send",
+      "sending": "Sending..."
+    }
   },
   "api": {
     "errors": {

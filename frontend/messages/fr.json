@@ -613,6 +613,12 @@
       "avgTime": "Temps moyen",
       "noChallengesYet": "Commence par relever ton premier défi !"
     },
+    "averageTime": {
+      "title": "Tempo moyen",
+      "description": "Temps moyen par exercice",
+      "noData": "—",
+      "emptyHint": "Fais des exercices pour voir ton tempo."
+    },
     "categoryAccuracy": {
       "title": "Précision par catégorie",
       "noData": "Aucune donnée disponible. Commence à résoudre des exercices !",
@@ -798,7 +804,9 @@
     "error": "Impossible de charger le classement.",
     "ranking": "Classement par points",
     "level": "Niveau",
-    "you": "Vous"
+    "you": "Vous",
+    "allAges": "Tous les âges",
+    "filterByAge": "Filtrer par groupe d'âge"
   },
   "accessibility": {
     "toolbar": {
@@ -1256,6 +1264,26 @@
     "ctaExercises": "Voir les exercices",
     "ctaChallenges": "Voir les défis",
     "ctaRegister": "Créer un compte"
+  },
+  "feedback": {
+    "fab": {
+      "buttonLabel": "Signaler un problème",
+      "exerciseSubject": "Exercice incorrect ou incohérent",
+      "challengeSubject": "Défi incorrect ou incohérent",
+      "uiSubject": "Bug graphique / interface",
+      "otherSubject": "Autre signalement",
+      "typeExercise": "Exercice incorrect",
+      "typeChallenge": "Défi incorrect",
+      "typeUi": "Bug graphique",
+      "typeOther": "Autre",
+      "bodyPlaceholder": "Décrivez le problème ici...",
+      "modalDescription": "Décrivez le problème. Votre retour sera visible dans l'admin.",
+      "successMessage": "Merci pour votre retour !",
+      "errorMessage": "Erreur lors de l'envoi.",
+      "cancel": "Annuler",
+      "send": "Envoyer",
+      "sending": "Envoi..."
+    }
   },
   "api": {
     "errors": {

@@ -17,21 +17,41 @@ Le workflow **CI (Tests + Lint)** (`.github/workflows/tests.yml`) se déclenche 
 |-------|-------------------------------------------------|
 | test  | Backend : pytest (coverage), flake8, black, isort |
 | lint  | Backend : flake8, black, isort                  |
-| frontend | TypeScript, ESLint, Vitest, build Next.js     |
+| frontend | TypeScript, ESLint, Prettier, Vitest, build Next.js |
 
 **Gate :** Les tests et le lint doivent passer avant merge.
 
 ### Lint bloquant
 
 - `flake8` : erreurs critiques uniquement (`E9,F63,F7,F82`)
-- `black` : vérification formatage
-- `isort` : vérification tri des imports
+- `black` : vérification formatage (config dans `pyproject.toml`)
+- `isort` : vérification tri des imports (profil `black` dans `pyproject.toml`)
+- `prettier` : formatage frontend (job frontend)
+
+#### Stratégie flake8
+
+| Série | Règles | Rôle |
+|-------|--------|------|
+| **E9** | Erreurs d'exécution (indentation, etc.) | Bloquant |
+| **F63** | `break`/`continue`/`return` incorrects | Bloquant |
+| **F7** | Utilisation de variables non définies (ex. typo) | Bloquant |
+| **F82** | Référence à un nom non défini | Bloquant |
+
+**Pourquoi ne pas étendre (E501, W, etc.) ?**
+
+- **E501** (line length) : redondant — black impose 88 caractères.
+- **W** (warnings) : peut générer beaucoup de bruit (W291, W401 imports non utilisés) ; à envisager progressivement si besoin.
+- **Stratégie actuelle** : garder les erreurs critiques pour éviter les régressions, sans surcharger la CI. Une extension future (ex. W291 trailing whitespace) peut être documentée ici.
 
 Corriger en local avant de pousser :
 
 ```bash
+# Backend
 black app/ server/
 isort app/ server/
+
+# Frontend
+cd frontend && npm run format
 ```
 
 ---

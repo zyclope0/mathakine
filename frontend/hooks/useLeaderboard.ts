@@ -16,11 +16,14 @@ export interface LeaderboardResponse {
   leaderboard: LeaderboardEntry[];
 }
 
-export function useLeaderboard(limit = 50) {
+export function useLeaderboard(limit = 50, ageGroup?: string | null) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (ageGroup) params.set("age_group", ageGroup);
+
   const { data, isLoading, error, refetch } = useQuery<LeaderboardResponse, ApiClientError>({
-    queryKey: ["leaderboard", limit],
+    queryKey: ["leaderboard", limit, ageGroup ?? "all"],
     queryFn: async () => {
-      return await api.get<LeaderboardResponse>(`/api/users/leaderboard?limit=${limit}`);
+      return await api.get<LeaderboardResponse>(`/api/users/leaderboard?${params}`);
     },
     staleTime: 60 * 1000,
   });

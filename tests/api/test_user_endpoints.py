@@ -164,6 +164,41 @@ async def test_get_leaderboard(padawan_client):
     assert isinstance(data["leaderboard"], list)
 
 
+async def test_get_leaderboard_filtered_by_age_group(padawan_client, db_session):
+    """Le classement peut être filtré par groupe d'âge (preferred_difficulty)."""
+    from app.core.security import get_password_hash
+
+    client = padawan_client["client"]
+    # Créer 2 users avec preferred_difficulty différents
+    u1 = User(
+        username=f"leaderboard_9_11_{uuid.uuid4().hex[:6]}",
+        email=f"lb_9_11_{uuid.uuid4().hex[:6]}@test.com",
+        hashed_password=get_password_hash("Test123!"),
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        preferred_difficulty="9-11",
+        total_points=100,
+    )
+    u2 = User(
+        username=f"leaderboard_6_8_{uuid.uuid4().hex[:6]}",
+        email=f"lb_6_8_{uuid.uuid4().hex[:6]}@test.com",
+        hashed_password=get_password_hash("Test123!"),
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        preferred_difficulty="6-8",
+        total_points=50,
+    )
+    db_session.add_all([u1, u2])
+    db_session.commit()
+
+    # Filtre 9-11 : ne doit contenir que les users avec preferred_difficulty=9-11
+    response = await client.get("/api/users/leaderboard?age_group=9-11")
+    assert response.status_code == 200
+    data = response.json()
+    leaderboard = data.get("leaderboard", [])
+    usernames = [e["username"] for e in leaderboard]
+    assert u1.username in usernames, "User 9-11 doit apparaître dans le filtre 9-11"
+    assert u2.username not in usernames, "User 6-8 ne doit pas apparaître dans le filtre 9-11"
+
+
 async def test_update_user_password_wrong_current(padawan_client):
     """Test pour mettre a jour le mot de passe avec un mot de passe actuel incorrect."""
     client = padawan_client["client"]

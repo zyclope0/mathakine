@@ -12,6 +12,7 @@ from app.core.logging_config import get_logger
 from app.services.badge_service import BadgeService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import get_safe_error_message
+from app.utils.simple_ttl_cache import get_or_set
 
 logger = get_logger(__name__)
 # NOTE: badge_service_translations archivé - utiliser BadgeService ORM uniquement
@@ -98,56 +99,64 @@ async def check_user_badges(request):
 
 @require_auth
 async def get_user_gamification_stats(request):
-    """Récupérer les statistiques de gamification d'un utilisateur"""
+    """Récupérer les statistiques de gamification d'un utilisateur (cache TTL 60s)."""
     try:
         current_user = request.state.user
         user_id = current_user.get("id")
 
-        async with db_session() as db:
-            from sqlalchemy import text
+        async def _fetch() -> dict:
+            async with db_session() as db:
+                from sqlalchemy import text
 
-            badge_service = BadgeService(db)
-            user_data = badge_service.get_user_badges(user_id)
+                badge_service = BadgeService(db)
+                user_data = badge_service.get_user_badges(user_id)
 
-            stats = db.execute(
-                text("""
-                SELECT
-                    COUNT(*) as total_attempts,
-                    COUNT(CASE WHEN is_correct THEN 1 END) as correct_attempts,
-                    AVG(time_spent) as avg_time_spent
-                FROM attempts
-                WHERE user_id = :user_id
-            """),
-                {"user_id": user_id},
-            ).fetchone()
+                stats = db.execute(
+                    text("""
+                    SELECT
+                        COUNT(*) as total_attempts,
+                        COUNT(CASE WHEN is_correct THEN 1 END) as correct_attempts,
+                        AVG(time_spent) as avg_time_spent
+                    FROM attempts
+                    WHERE user_id = :user_id
+                """),
+                    {"user_id": user_id},
+                ).fetchone()
 
-            badge_stats = db.execute(
-                text("""
-                SELECT a.category, COUNT(*) as count
-                FROM achievements a
-                JOIN user_achievements ua ON a.id = ua.achievement_id
-                WHERE ua.user_id = :user_id
-                GROUP BY a.category
-            """),
-                {"user_id": user_id},
-            ).fetchall()
+                badge_stats = db.execute(
+                    text("""
+                    SELECT a.category, COUNT(*) as count
+                    FROM achievements a
+                    JOIN user_achievements ua ON a.id = ua.achievement_id
+                    WHERE ua.user_id = :user_id
+                    GROUP BY a.category
+                """),
+                    {"user_id": user_id},
+                ).fetchall()
 
-            response_data = {
-                "user_stats": user_data.get("user_stats", {}),
-                "badges_summary": {
-                    "total_badges": len(user_data.get("earned_badges", [])),
-                    "by_category": {row[0]: row[1] for row in badge_stats},
-                },
-                "performance": {
-                    "total_attempts": stats[0] if stats else 0,
-                    "correct_attempts": stats[1] if stats else 0,
-                    "success_rate": round(
-                        (stats[1] / stats[0] * 100) if stats and stats[0] > 0 else 0, 1
-                    ),
-                    "avg_time_spent": round(stats[2], 2) if stats and stats[2] else 0,
-                },
-            }
-            return JSONResponse({"success": True, "data": response_data})
+                return {
+                    "user_stats": user_data.get("user_stats", {}),
+                    "badges_summary": {
+                        "total_badges": len(user_data.get("earned_badges", [])),
+                        "by_category": {row[0]: row[1] for row in badge_stats},
+                    },
+                    "performance": {
+                        "total_attempts": stats[0] if stats else 0,
+                        "correct_attempts": stats[1] if stats else 0,
+                        "success_rate": round(
+                            (stats[1] / stats[0] * 100)
+                            if stats and stats[0] > 0
+                            else 0,
+                            1,
+                        ),
+                        "avg_time_spent": round(stats[2], 2) if stats and stats[2] else 0,
+                    },
+                }
+
+        response_data = await get_or_set(
+            f"gamification_stats:{user_id}", 60.0, _fetch
+        )
+        return JSONResponse({"success": True, "data": response_data})
 
     except Exception as gamification_stats_error:
         logger.error(
@@ -189,12 +198,15 @@ async def patch_pinned_badges(request: Request):
 async def get_badges_rarity(request: Request):
     """
     Stats rareté par badge (unlock_percent, rarity).
-    GET /api/badges/rarity — public (pas de données sensibles).
+    GET /api/badges/rarity — public (pas de données sensibles). Cache TTL 90s.
     """
     try:
-        async with db_session() as db:
-            badge_service = BadgeService(db)
-            data = badge_service.get_badges_rarity_stats()
+        async def _fetch() -> dict:
+            async with db_session() as db:
+                badge_service = BadgeService(db)
+                return badge_service.get_badges_rarity_stats()
+
+        data = await get_or_set("badges_rarity", 90.0, _fetch)
         return JSONResponse({"success": True, "data": data})
     except Exception as e:
         logger.error(f"Erreur get_badges_rarity: {e}")
