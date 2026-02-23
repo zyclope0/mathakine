@@ -144,18 +144,20 @@ async def get_user_gamification_stats(request):
                         "total_attempts": stats[0] if stats else 0,
                         "correct_attempts": stats[1] if stats else 0,
                         "success_rate": round(
-                            (stats[1] / stats[0] * 100)
-                            if stats and stats[0] > 0
-                            else 0,
+                            (
+                                (stats[1] / stats[0] * 100)
+                                if stats and stats[0] > 0
+                                else 0
+                            ),
                             1,
                         ),
-                        "avg_time_spent": round(stats[2], 2) if stats and stats[2] else 0,
+                        "avg_time_spent": (
+                            round(stats[2], 2) if stats and stats[2] else 0
+                        ),
                     },
                 }
 
-        response_data = await get_or_set(
-            f"gamification_stats:{user_id}", 60.0, _fetch
-        )
+        response_data = await get_or_set(f"gamification_stats:{user_id}", 60.0, _fetch)
         return JSONResponse({"success": True, "data": response_data})
 
     except Exception as gamification_stats_error:
@@ -201,6 +203,7 @@ async def get_badges_rarity(request: Request):
     GET /api/badges/rarity — public (pas de données sensibles). Cache TTL 90s.
     """
     try:
+
         async def _fetch() -> dict:
             async with db_session() as db:
                 badge_service = BadgeService(db)

@@ -188,13 +188,14 @@ def test_generate_recommendations_excludes_completed_exercises(db_session):
     db_session.add_all([ex_completed, ex_available])
     db_session.commit()
 
-    Attempt(
+    attempt = Attempt(
         user_id=user.id,
         exercise_id=ex_completed.id,
         user_answer="2",
         is_correct=True,
         time_spent=1.0,
     )
+    db_session.add(attempt)
     db_session.commit()
 
     recommendations = RecommendationService.generate_recommendations(db_session, user.id)

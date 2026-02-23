@@ -77,9 +77,7 @@ async def submit_feedback(request: Request):
     except Exception as e:
         logger.error(f"Erreur submit_feedback: {e}")
         traceback.print_exc()
-        return JSONResponse(
-            {"error": get_safe_error_message(e)}, status_code=500
-        )
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
 
 
 @require_auth
@@ -110,13 +108,13 @@ async def admin_list_feedback(request: Request):
                         "challenge_id": r.challenge_id,
                         "description": r.description,
                         "status": r.status,
-                        "created_at": r.created_at.isoformat() if r.created_at else None,
+                        "created_at": (
+                            r.created_at.isoformat() if r.created_at else None
+                        ),
                     }
                 )
             return JSONResponse({"feedback": items})
     except Exception as e:
         logger.error(f"Erreur admin_list_feedback: {e}")
         traceback.print_exc()
-        return JSONResponse(
-            {"error": get_safe_error_message(e)}, status_code=500
-        )
+        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)

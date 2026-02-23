@@ -54,9 +54,11 @@ export function FeedbackFab({ context: contextProp, className }: FeedbackFabProp
     if (contextProp) return contextProp;
     const exerciseMatch = pathname.match(/\/exercises\/(\d+)/);
     const challengeMatch = pathname.match(/\/challenge\/(\d+)/);
+    const exerciseId = exerciseMatch?.[1];
+    const challengeId = challengeMatch?.[1];
     return {
-      ...(exerciseMatch && { exerciseId: parseInt(exerciseMatch[1], 10) }),
-      ...(challengeMatch && { challengeId: parseInt(challengeMatch[1], 10) }),
+      ...(exerciseId && { exerciseId: parseInt(exerciseId, 10) }),
+      ...(challengeId && { challengeId: parseInt(challengeId, 10) }),
     };
   }, [pathname, contextProp]);
 
