@@ -12,6 +12,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import inspect
 
 
 revision: str = "20260225_edtech"
@@ -21,6 +22,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    if "edtech_events" in inspector.get_table_names():
+        return  # Table déjà présente (ex. déploiement partiel antérieur)
+
     op.create_table(
         "edtech_events",
         sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
@@ -33,5 +39,10 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    if "edtech_events" not in inspector.get_table_names():
+        return
+
     op.drop_index("ix_edtech_events_created_at", table_name="edtech_events")
     op.drop_table("edtech_events")

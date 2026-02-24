@@ -38,13 +38,15 @@ export function DeductionRenderer({
   const friends = Array.isArray(visualData?.friends) ? visualData.friends : [];
   const ages = Array.isArray(visualData?.ages) ? visualData.ages : [];
   const relationships = Array.isArray(visualData?.relationships) ? visualData.relationships : [];
-  const entities = (
-    visualData?.entities != null &&
-    typeof visualData.entities === "object" &&
-    !Array.isArray(visualData.entities)
-      ? visualData.entities
-      : {}
-  ) as Record<string, unknown>;
+  const entities = useMemo(
+    () =>
+      (visualData?.entities != null &&
+      typeof visualData.entities === "object" &&
+      !Array.isArray(visualData.entities)
+        ? visualData.entities
+        : {}) as Record<string, unknown>,
+    [visualData?.entities]
+  );
   const attributes = (
     visualData?.attributes != null &&
     typeof visualData.attributes === "object" &&

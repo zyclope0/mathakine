@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,51 @@ function VerifyEmailContent() {
   const [email, setEmail] = useState<string>("");
   const [resendLoading, setResendLoading] = useState(false);
 
+  const verifyToken = useCallback(
+    async (token: string) => {
+      try {
+        interface VerifyEmailResponse {
+          success?: boolean;
+          message?: string;
+          error?: string;
+          user?: {
+            id: number;
+            username: string;
+            email: string;
+            is_email_verified: boolean;
+          };
+        }
+
+        const response = await api.get<VerifyEmailResponse>(
+          `/api/auth/verify-email?token=${token}`
+        );
+
+        if (response && response.success) {
+          setStatus("success");
+          setMessage(response.message || t("success"));
+          if (response.user) {
+            setEmail(response.user.email);
+          }
+        } else {
+          setStatus("error");
+          setMessage(response?.error || t("error"));
+        }
+      } catch (error: unknown) {
+        const err = error as { message?: string; error?: string };
+        const errorMessage = err?.message ?? err?.error ?? t("error");
+
+        if (errorMessage.includes("expiré") || errorMessage.includes("expired")) {
+          setStatus("expired");
+          setMessage(errorMessage);
+        } else {
+          setStatus("error");
+          setMessage(errorMessage);
+        }
+      }
+    },
+    [t]
+  );
+
   useEffect(() => {
     const token = searchParams.get("token");
 
@@ -30,47 +75,7 @@ function VerifyEmailContent() {
     }
 
     verifyToken(token);
-  }, [searchParams]);
-
-  const verifyToken = async (token: string) => {
-    try {
-      interface VerifyEmailResponse {
-        success?: boolean;
-        message?: string;
-        error?: string;
-        user?: {
-          id: number;
-          username: string;
-          email: string;
-          is_email_verified: boolean;
-        };
-      }
-
-      const response = await api.get<VerifyEmailResponse>(`/api/auth/verify-email?token=${token}`);
-
-      if (response && response.success) {
-        setStatus("success");
-        setMessage(response.message || t("success"));
-        if (response.user) {
-          setEmail(response.user.email);
-        }
-      } else {
-        setStatus("error");
-        setMessage(response?.error || t("error"));
-      }
-    } catch (error: unknown) {
-      const err = error as { message?: string; error?: string };
-      const errorMessage = err?.message ?? err?.error ?? t("error");
-
-      if (errorMessage.includes("expiré") || errorMessage.includes("expired")) {
-        setStatus("expired");
-        setMessage(errorMessage);
-      } else {
-        setStatus("error");
-        setMessage(errorMessage);
-      }
-    }
-  };
+  }, [searchParams, verifyToken]);
 
   const handleResend = async (e?: React.FormEvent) => {
     e?.preventDefault();

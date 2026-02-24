@@ -52,7 +52,6 @@ import {
 import { ApiClientError } from "@/lib/api/client";
 import { useCompletedChallenges } from "@/hooks/useCompletedItems";
 import dynamic from "next/dynamic";
-import type { Challenge } from "@/types/api";
 
 // Lazy load modal pour la vue liste
 const ChallengeModal = dynamic(

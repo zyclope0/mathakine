@@ -31,7 +31,7 @@ function ResetPasswordContent() {
     } else {
       setToken(tokenParam);
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const validateForm = (): boolean => {
     if (password.length < 6) {

@@ -39,7 +39,7 @@ function getJediRankIcon(rank: string): string {
 
 export default function LeaderboardPage() {
   const t = useTranslations("leaderboard");
-  const { user } = useAuth();
+  useAuth();
   const getAgeDisplay = useAgeGroupDisplay();
   const [ageFilter, setAgeFilter] = useState<string>("all");
   const effectiveAgeGroup = ageFilter === "all" ? undefined : ageFilter;

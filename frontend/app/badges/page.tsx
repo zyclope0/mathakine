@@ -146,6 +146,7 @@ export default function BadgesPage() {
 
     return { filteredEarned: earned, filteredLocked: locked, categories, difficulties };
   }, [
+    availableBadges,
     earnedBadgesList,
     lockedBadgesList,
     filterStatus,

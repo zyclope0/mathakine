@@ -182,8 +182,8 @@ function ProfilePageContent() {
     [tValidation]
   );
 
-  // Validation mot de passe
-  const validatePassword = (): boolean => {
+  // Validation mot de passe (useCallback pour stabilité des deps)
+  const validatePassword = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
 
     if (!passwordData.current_password.trim()) {
@@ -202,7 +202,7 @@ function ProfilePageContent() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [passwordData, tValidation, tSecurity]);
 
   // Sauvegarder informations personnelles
   const handleSavePersonalInfo = useCallback(async () => {
