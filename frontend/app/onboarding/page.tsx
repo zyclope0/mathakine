@@ -94,8 +94,8 @@ function OnboardingContent() {
     }
   };
 
-  const tGoal = (key: string) => t(`goals.${key as keyof typeof LEARNING_GOALS[number]}`);
-  const tRhythm = (key: string) => t(`rhythms.${key as keyof typeof PRACTICE_RHYTHMS[number]}`);
+  const tGoal = (key: (typeof LEARNING_GOALS)[number]) => t(`goals.${String(key)}`);
+  const tRhythm = (key: (typeof PRACTICE_RHYTHMS)[number]) => t(`rhythms.${String(key)}`);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">

@@ -61,7 +61,6 @@ describe("QuickStartActions", () => {
         {
           id: 1,
           exercise_id: 42,
-          challenge_id: undefined,
           priority: 9,
           exercise_type: "ADDITION",
           exercise_title: "Addition test",
@@ -70,14 +69,14 @@ describe("QuickStartActions", () => {
         },
         {
           id: 2,
-          exercise_id: undefined,
+          exercise_type: "",
           challenge_id: 99,
           priority: 8,
           challenge_title: "Suite logique",
           reason: "",
           difficulty: "",
         },
-      ],
+      ] as ReturnType<typeof useRecommendations>["recommendations"],
       isLoading: false,
       error: null,
       generate: vi.fn(),
@@ -123,7 +122,6 @@ describe("QuickStartActions", () => {
     expect(trackQuickStartClick).toHaveBeenCalledWith({
       type: "exercise",
       guided: false,
-      targetId: undefined,
     });
   });
 });

@@ -58,8 +58,9 @@ export interface QuickStartClickPayload {
  * À appeler au clic sur un CTA Quick Start (exercice ou défi).
  */
 export function trackQuickStartClick(payload: QuickStartClickPayload): void {
-  dispatchEvent("quick_start_click", payload);
-  sendToBackend("quick_start_click", payload);
+  const p: Record<string, unknown> = { ...payload };
+  dispatchEvent("quick_start_click", p);
+  sendToBackend("quick_start_click", p);
 }
 
 export interface FirstAttemptPayload {
@@ -90,6 +91,7 @@ export function trackFirstAttempt(type: "exercise" | "challenge", targetId: numb
   }
 
   const payload: FirstAttemptPayload = { type, targetId, timeToFirstAttemptMs };
-  dispatchEvent("first_attempt", payload);
-  sendToBackend("first_attempt", payload);
+  const p: Record<string, unknown> = { ...payload };
+  dispatchEvent("first_attempt", p);
+  sendToBackend("first_attempt", p);
 }

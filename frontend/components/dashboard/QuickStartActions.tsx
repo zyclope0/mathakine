@@ -46,14 +46,14 @@ export function QuickStartActions() {
     trackQuickStartClick({
       type: "exercise",
       guided: !!bestExercise?.exercise_id,
-      targetId: bestExercise?.exercise_id,
+      ...(bestExercise?.exercise_id != null && { targetId: bestExercise.exercise_id }),
     });
   };
   const handleChallengeClick = () => {
     trackQuickStartClick({
       type: "challenge",
       guided: !!bestChallenge?.challenge_id,
-      targetId: bestChallenge?.challenge_id,
+      ...(bestChallenge?.challenge_id != null && { targetId: bestChallenge.challenge_id }),
     });
   };
 
