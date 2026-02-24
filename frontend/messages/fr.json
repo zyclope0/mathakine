@@ -1434,6 +1434,13 @@
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir régulièrement.",
     "latestBadge": "Dernière version",
     "latestLabel": "Version la plus récente",
+    "v226": {
+      "version": "2.2.0-alpha.6",
+      "date": "22 février 2026",
+      "items": [
+        "Améliorations internes : formatage du code et vérifications qualité pour la CI"
+      ]
+    },
     "v222": {
       "version": "2.2.0-alpha.1",
       "date": "22 février 2026",
