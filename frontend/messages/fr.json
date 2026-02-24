@@ -1434,11 +1434,15 @@
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir régulièrement.",
     "latestBadge": "Dernière version",
     "latestLabel": "Version la plus récente",
-    "v226": {
-      "version": "2.2.0-alpha.6",
-      "date": "22 février 2026",
+    "v221a2": {
+      "version": "2.2.1-alpha.2",
+      "date": "25 février 2026",
       "items": [
-        "Améliorations internes : formatage du code et vérifications qualité pour la CI"
+        "First Exercise < 90s : accès immédiat après inscription, 45 min de grâce, puis mode exercices uniquement jusqu'à vérification email",
+        "Onboarding : classe, groupe d'âge, objectif et rythme — personnalise les recommandations",
+        "Parcours guidé sur le dashboard : CTA « Un exercice » / « Un défi » avec recommandations intelligentes",
+        "Analytics EdTech : suivi des vues dashboard, clics Quick Start et premiers attempts — page admin pour les KPIs",
+        "Profil et paramètres accessibles aux utilisateurs non vérifiés (changer email, renvoyer lien)"
       ]
     },
     "v222": {

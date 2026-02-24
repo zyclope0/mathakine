@@ -5,7 +5,9 @@ alwaysApply: true
 
 # Versioning et changelog
 
-Avant chaque **commit/push** qui introduit des changements visibles pour l'utilisateur, mettre à jour :
+**Convention** : Tant qu'on n'a pas commit/push, on reste sur la même version — ne pas mettre à jour la page changelog du site pendant le développement. La page `/changelog` est mise à jour uniquement au moment du commit de release.
+
+Au moment du **commit/push** de release, mettre à jour :
 
 ## 1. Version (`frontend/package.json`)
 

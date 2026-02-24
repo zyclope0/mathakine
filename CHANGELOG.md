@@ -4,95 +4,9 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
-## [2.2.0-alpha.6] - 2026-02-22
+## [2.2.1-alpha.2] - 2026-02-25
 
-### Changed
-
-- **Formatage** : Black et isort — alignement de 9 fichiers (Black), 4 fichiers (isort) pour passer la CI
-
----
-
-## [2.2.0-alpha.5] - 2026-02-25
-
-### Added
-
-- **Analytics EdTech — instrumentation et admin**
-  - Instrumentation : `trackDashboardView`, `trackQuickStartClick`, `trackFirstAttempt` (lib/analytics/edtech.ts)
-  - Clic Quick Start → POST /api/analytics/event (quick_start_click) — CTR, % guidé
-  - 1er attempt (exercice/défi) → POST /api/analytics/event (first_attempt) — temps vers 1er attempt, conversion
-  - Table `edtech_events` (migration 20260225), persistance en BDD
-  - Page admin `/admin/analytics` : KPIs, agrégats, liste événements (filtres 7d/30d, type)
-  - API admin GET /api/admin/analytics/edtech
-  - Documentation : docs/02-FEATURES/EDTECH_ANALYTICS.md
-
-### Changed
-
-- **Init DB** : test_create_tables vérifie l'appel à Alembic upgrade (mock)
-
-### Tests
-
-- tests/api/test_admin_analytics.py : accès archiviste, paramètre period, 403 padawan, POST event → visible admin
-- frontend QuickStartActions : trackDashboardView au montage, trackQuickStartClick au clic
-
----
-
-## [2.2.0-alpha.4] - 2026-02-22
-
-### Added
-
-- **Parcours guidé (P1)** : bloc « Que veux-tu faire ? » en tête du dashboard
-  - 2 CTA : Un exercice / Un défi — liens vers recommandation prioritaire si dispo, sinon /exercises et /challenges
-  - Composant `QuickStartActions`, priorisation par `priority` desc
-  - `data-quick-start-*` pour instrumentation (CTR, temps vers 1er attempt)
-
-### Changed
-
-- **Tests recommandations** : alignement sur les routes réelles GET /api/recommendations, POST /api/recommendations/complete
-  - `test_get_recommendations`, `test_mark_recommendation_as_completed`, `test_get_recommendations_returns_exercise_and_challenge_ids`
-  - Nouveau test parcours guidé : vérifie `exercise_id` et `challenge_id` dans la réponse (QuickStartActions)
-  - Skip `test_mark_recommendation_as_clicked` (route POST /api/recommendations/{id}/clicked non exposée)
-- **Test frontend QuickStartActions** : 4 tests Vitest (titre + CTA, liens fallback, liens guidés, data-quick-start)
-
-### Changed
-
-- **Init DB tests** : `create_tables_with_test_data` utilise Alembic (`alembic upgrade head`) au lieu de `create_all`, garantissant un schéma à jour (grade_system, onboarding, etc.)
-- **Recommandations** : personnalisation via onboarding et profil
-  - `preferred_difficulty` (groupe d'âge) : filtre exercices et défis par âge
-  - `grade_level` : dérive le groupe d'âge si preferred_difficulty vide (1-3→6-8, 4-6→9-11, etc.)
-  - `learning_goal` : priorité renforcée pour `preparer_exam` (domaines faibles), `samuser` (défis)
-  - Sans onboarding : pas de filtre âge (comportement inchangé)
-
-### Fixed
-
-- **Recommandations** : les exercices archivés/inactifs et défis archivés ne sont plus proposés (QuickStartActions, parcours guidé)
-  - Filtrage côté API lors de la sérialisation des recommandations
-  - Test `test_get_recommendations_excludes_archived_challenge`
-
----
-
-## [2.2.0-alpha.3] - 2026-02-22
-
-### Added
-
-- **Quick Win #2 — Onboarding pédagogique** : mini-diagnostic après inscription/connexion
-  - Page `/onboarding` : classe, groupe d'âge, objectif (réviser, préparer_exam, etc.), rythme (10 min/jour, etc.)
-  - Champs BDD : `onboarding_completed_at`, `learning_goal`, `practice_rhythm`
-  - Redirection post-login vers `/onboarding` si non complété, sinon vers dashboard/exercises
-  - Protection dashboard : redirection vers onboarding si `onboarding_completed_at` null
-- **Système scolaire au choix** : Suisse romand (1H-11H) ou unifié (1-12)
-  - Champ BDD `grade_system` (« suisse » | « unifie »)
-  - Sélecteur dans l'onboarding et stockage pour contenu adaptatif futur
-
-### Changed
-
-- **Profil et paramètres accessibles aux utilisateurs non vérifiés** : ne bloque plus l'accès si email non vérifié
-  - Pages profil et paramètres sans `requireFullAccess` (permettent de modifier email, renvoyer lien vérification)
-  - APIs PUT /me, GET /users/stats, GET /badges/user sans `require_full_access`
-- Tests `test_unverified_access` : stats et badges/user retournent 200 au lieu de 403 (profil accessible)
-
----
-
-## [2.2.0-alpha.2] - 2026-02-23
+Regroupement des avancées depuis 2.2.0-alpha.1.
 
 ### Added
 
@@ -103,16 +17,36 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
   - Bandeau « Vérifiez votre email » pour débloquer les fonctionnalités
   - Navigation conditionnelle : liens masqués selon `access_scope`
   - `access_scope` et `is_email_verified` dans les réponses login/me
-- Tests backend : 16 tests (unit + API) pour unverified access
-
-### Fixed
-
-- Ordre des décorateurs : `@require_auth` avant `@require_full_access` pour les routes protégées
+- **Quick Win #2 — Onboarding pédagogique** : mini-diagnostic après inscription/connexion
+  - Page `/onboarding` : classe, groupe d'âge, objectif, rythme
+  - Champs BDD : `onboarding_completed_at`, `learning_goal`, `practice_rhythm`
+  - Redirection post-login vers `/onboarding` si non complété
+  - Système scolaire : Suisse romand (1H-11H) ou unifié (1-12), champ `grade_system`
+- **Parcours guidé (P1)** : bloc « Que veux-tu faire ? » en tête du dashboard
+  - 2 CTA : Un exercice / Un défi — liens vers recommandation prioritaire ou fallback
+  - Composant `QuickStartActions`, personnalisation via onboarding (âge, objectif)
+  - Recommandations : exclusion des exercices/défis archivés
+- **Analytics EdTech** : instrumentation et admin
+  - `trackDashboardView`, `trackQuickStartClick`, `trackFirstAttempt`
+  - POST /api/analytics/event, table `edtech_events`
+  - Page admin `/admin/analytics` : KPIs, agrégats, filtres 7d/30d
+  - Documentation : docs/02-FEATURES/EDTECH_ANALYTICS.md
 
 ### Changed
 
-- Inscription : connexion automatique au lieu de redirection vers login
-- Routes dashboard, badges, challenges, leaderboard, profile, settings : redirection vers `/exercises` si `access_scope === "exercises_only"`
+- Profil et paramètres accessibles aux utilisateurs non vérifiés (modification email, renvoi lien)
+- Init DB : `create_tables_with_test_data` utilise Alembic (`alembic upgrade head`)
+- Formatage : Black et isort — alignement des fichiers pour la CI
+
+### Fixed
+
+- Ordre des décorateurs : `@require_auth` avant `@require_full_access`
+- Recommandations : exercices et défis archivés exclus du parcours guidé
+
+### Tests
+
+- tests/api/test_unverified_access.py, test_admin_analytics.py
+- frontend QuickStartActions.test.tsx (trackDashboardView, trackQuickStartClick)
 
 ---
 

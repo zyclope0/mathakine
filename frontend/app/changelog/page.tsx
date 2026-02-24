@@ -24,14 +24,14 @@ type VersionBlock = {
   items: string[];
 };
 
-const LATEST_KEY = "v226";
+const LATEST_KEY = "v221a2";
 
 export default function ChangelogPage() {
   const t = useTranslations("changelog");
   const { shouldReduceMotion, createVariants, createTransition } =
     useAccessibleAnimation();
 
-  const versionKeys = ["v226", "v222", "v221", "v220"] as const;
+  const versionKeys = ["v221a2", "v222", "v221", "v220"] as const;
 
   const itemIcon = (idx: number, isLatest: boolean) => {
     if (!isLatest) return <CheckCircle2 className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />;
