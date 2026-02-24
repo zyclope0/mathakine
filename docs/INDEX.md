@@ -46,6 +46,7 @@ docs/
 │   ├── AUTH_FLOW.md            # Flux inscription → login → reset password
 │   ├── THEMES.md               # 7 thèmes visuels, themeStore, ajout thème
 │   ├── ANALYTICS_PROGRESSION.md  # Graphiques progression
+│   ├── EDTECH_ANALYTICS.md      # Analytics EdTech (Quick Start, conversion) — Implémenté
 │   ├── BADGES_AMELIORATIONS.md   # Roadmap badges (P0 progression implémentée)
 │   ├── PLAN_REFONTE_BADGES.md   # Plan refonte + Admin CRUD + Lot C (C-1 fait)
 │   ├── B4_REFORMULATION_BADGES.md  # Specs reformulation 17 badges

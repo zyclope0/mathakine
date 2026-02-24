@@ -18,10 +18,12 @@ def mock_db_session():
     return mock_session
 
 def test_create_tables():
-    """Test la création des tables"""
-    with patch('app.services.db_init_service.Base.metadata.create_all') as mock_create_all:
-        db_init_service.create_tables()
-        mock_create_all.assert_called_once()
+    """Test la création des tables (Alembic upgrade head)"""
+    with patch("alembic.command.upgrade") as mock_upgrade:
+        with patch("alembic.config.Config") as mock_config:
+            mock_config.return_value = MagicMock()
+            db_init_service.create_tables()
+            mock_upgrade.assert_called_once()
 
 # Tests avec des mocks pour vérifier l'appel des fonctions sans affecter la base de données réelle
 def test_create_test_users(mock_db_session):

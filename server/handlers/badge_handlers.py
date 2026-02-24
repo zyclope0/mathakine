@@ -17,7 +17,7 @@ from app.utils.simple_ttl_cache import get_or_set
 logger = get_logger(__name__)
 # NOTE: badge_service_translations archivé - utiliser BadgeService ORM uniquement
 from app.utils.translation import parse_accept_language
-from server.auth import require_auth
+from server.auth import require_auth, require_full_access
 
 
 @require_auth
@@ -65,6 +65,7 @@ async def get_available_badges(request: Request):
 
 
 @require_auth
+@require_full_access
 async def check_user_badges(request):
     """Forcer la vérification des badges pour un utilisateur (utile pour les tests)"""
     try:
@@ -171,6 +172,7 @@ async def get_user_gamification_stats(request):
 
 
 @require_auth
+@require_full_access
 async def patch_pinned_badges(request: Request):
     """A-4 : Épingler 1-3 badges. Body: { "badge_ids": [1, 2, 3] }"""
     try:
@@ -218,6 +220,7 @@ async def get_badges_rarity(request: Request):
 
 
 @require_auth
+@require_full_access
 async def get_user_badges_progress(request: Request):
     """
     Progression vers les badges (débloqués + en cours).

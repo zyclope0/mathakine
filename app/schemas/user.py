@@ -101,8 +101,21 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
     is_active: Optional[bool] = None
     grade_level: Optional[int] = None
+    grade_system: Optional[str] = Field(
+        None, max_length=20, description="Système scolaire: suisse (Harmos) ou unifie"
+    )
     learning_style: Optional[str] = None
     preferred_difficulty: Optional[str] = None
+    learning_goal: Optional[str] = Field(
+        None,
+        max_length=100,
+        description="Objectif pédagogique (réviser, préparer_exam, progresser, etc.)",
+    )
+    practice_rhythm: Optional[str] = Field(
+        None,
+        max_length=50,
+        description="Rythme souhaité (10min/jour, 30min/semaine, etc.)",
+    )
     preferred_theme: Optional[str] = Field(
         None,
         description="Thème préféré (spatial, minimalist, ocean, dune, forest, peach, dino)",

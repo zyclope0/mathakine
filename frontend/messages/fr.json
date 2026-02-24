@@ -34,6 +34,9 @@
       "username": "Nom d'utilisateur",
       "password": "Mot de passe",
       "emailNotVerifiedBanner": "Votre email n'est pas encore vérifié.",
+      "unverifiedBanner": "Vérifiez votre email pour débloquer le dashboard, les défis et les badges.",
+      "unverifiedBannerEarly": "Un dernier pas ! Clique sur le lien dans ton email pour garder toutes les fonctionnalités 🚀",
+      "verifyEmailCta": "Vérifier mon email",
       "resendEmailDesc": "Vous avez supprimé l'email ? Entrez votre adresse pour recevoir un nouveau lien.",
       "resendEmailPlaceholder": "votre@email.com",
       "resendSuccess": "Un nouvel email a été envoyé. Vérifiez votre boîte de réception.",
@@ -149,6 +152,41 @@
       }
     },
     "logout": "Déconnexion"
+  },
+  "onboarding": {
+    "title": "Personnalise ton apprentissage",
+    "description": "Quelques questions pour adapter les exercices et défis à ton profil.",
+    "step1": "Niveau et âge",
+    "gradeSystem": "Quel système scolaire ?",
+    "gradeSystems": {
+      "suisse": "Suisse romand (1H-11H)",
+      "unifie": "Système unifié (1-12)"
+    },
+    "gradeLevel": "En quelle classe es-tu ?",
+    "gradeLevelPlaceholder": "Sélectionne ta classe",
+    "ageGroup": "Contenu adapté à quel âge ?",
+    "ageGroupPlaceholder": "Choisis ton groupe d'âge",
+    "step2": "Objectif et rythme",
+    "learningGoal": "Quel est ton objectif principal ?",
+    "learningGoalPlaceholder": "Choisis ton objectif",
+    "practiceRhythm": "Combien de temps veux-tu t'entraîner ?",
+    "practiceRhythmPlaceholder": "Choisis ton rythme",
+    "submit": "C'est parti !",
+    "submitting": "Enregistrement...",
+    "goals": {
+      "reviser": "Réviser et consolider",
+      "preparer_exam": "Préparer un examen",
+      "progresser": "Progresser régulièrement",
+      "samuser": "M'amuser avec les maths",
+      "autre": "Autre"
+    },
+    "rhythms": {
+      "10min_jour": "10 min par jour",
+      "20min_jour": "20 min par jour",
+      "30min_semaine": "30 min par semaine",
+      "1h_semaine": "1 h par semaine",
+      "flexible": "Quand j'ai le temps"
+    }
   },
   "navigation": {
     "home": "Accueil",
@@ -557,6 +595,12 @@
       "performance": "Aucune donnée de performance pour le moment."
     },
     "lastUpdate": "Dernière mise à jour : {time}",
+    "quickStart": {
+      "title": "Que veux-tu faire ?",
+      "exerciseCta": "Un exercice",
+      "challengeCta": "Un défi",
+      "challengeDefault": "Défi logique"
+    },
     "stats": {
       "totalExercises": "Total exercices",
       "totalAttempts": "Total tentatives",

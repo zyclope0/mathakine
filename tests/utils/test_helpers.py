@@ -6,6 +6,7 @@ Ce module fournit des fonctions et classes pour:
 - Simplifier la création d'instances de modèles
 - Convertir des dictionnaires en instances de modèles
 """
+from datetime import datetime, timedelta, timezone
 import uuid
 from typing import Dict, Any, Type, Optional, TypeVar, cast
 from sqlalchemy.orm import Session
@@ -67,6 +68,26 @@ def verify_user_email_for_tests(username: str) -> None:
         user = db.query(User).filter(User.username == username).first()
         if user:
             user.is_email_verified = True
+            db.commit()
+    finally:
+        EnhancedServerAdapter.close_db_session(db)
+
+
+def set_user_created_at_for_tests(username: str, minutes_ago: float) -> None:
+    """
+    Recule la date de création d'un utilisateur (pour tester la période de grâce).
+
+    Args:
+        username: Nom d'utilisateur
+        minutes_ago: Nombre de minutes dans le passé (ex: 50 pour dépasser 45 min)
+    """
+    from app.services.enhanced_server_adapter import EnhancedServerAdapter
+    from app.models.user import User
+    db = EnhancedServerAdapter.get_db_session()
+    try:
+        user = db.query(User).filter(User.username == username).first()
+        if user:
+            user.created_at = datetime.now(timezone.utc) - timedelta(minutes=minutes_ago)
             db.commit()
     finally:
         EnhancedServerAdapter.close_db_session(db)

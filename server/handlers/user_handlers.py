@@ -24,7 +24,7 @@ from app.utils.db_utils import db_session
 from app.utils.error_handler import get_safe_error_message
 from app.utils.rate_limit import rate_limit_register
 from app.utils.settings_reader import get_setting_bool
-from server.auth import require_auth
+from server.auth import require_auth, require_full_access
 
 
 @require_auth
@@ -603,6 +603,7 @@ async def get_all_users(request: Request):
 
 
 @require_auth
+@require_full_access
 async def get_users_leaderboard(request: Request):
     """
     Handler pour récupérer le classement des utilisateurs par points.
@@ -662,6 +663,7 @@ async def get_users_leaderboard(request: Request):
 
 
 @require_auth
+@require_full_access
 async def get_all_user_progress(request: Request):
     """
     Handler pour récupérer la progression globale de l'utilisateur avec vraies données.
@@ -782,6 +784,7 @@ async def get_all_user_progress(request: Request):
 
 
 @require_auth
+@require_full_access
 async def get_user_progress_by_exercise_type(request: Request):
     """
     Handler pour récupérer la progression de l'utilisateur par type d'exercice (placeholder).
@@ -811,6 +814,7 @@ async def get_user_progress_by_exercise_type(request: Request):
 
 
 @require_auth
+@require_full_access
 async def get_challenges_progress(request: Request):
     """
     Handler pour récupérer la progression des défis logiques de l'utilisateur.
@@ -973,10 +977,13 @@ async def update_user_me(request: Request):
             "email",
             "full_name",
             "grade_level",
+            "grade_system",
             "learning_style",
             "preferred_difficulty",
             "preferred_theme",
             "accessibility_settings",
+            "learning_goal",
+            "practice_rhythm",
         }
 
         # Gérer les champs de confidentialité : regrouper sous privacy_settings
@@ -1044,15 +1051,29 @@ async def update_user_me(request: Request):
                 )
             update_data["full_name"] = full_name
 
-        # Validation grade_level
+        # Validation grade_system
+        VALID_GRADE_SYSTEMS = {"suisse", "unifie"}
+        if "grade_system" in update_data:
+            gs = update_data["grade_system"]
+            if gs is not None and gs not in VALID_GRADE_SYSTEMS:
+                return JSONResponse(
+                    {"error": "Système scolaire invalide. Valeurs : suisse ou unifie."},
+                    status_code=400,
+                )
+
+        # Validation grade_level (max 11 pour suisse, 12 pour unifie)
         if "grade_level" in update_data:
             grade = update_data["grade_level"]
             if grade is not None:
                 try:
                     grade = int(grade)
-                    if grade < 1 or grade > 12:
+                    grade_sys = update_data.get("grade_system")
+                    max_grade = 11 if grade_sys == "suisse" else 12
+                    if grade < 1 or grade > max_grade:
                         return JSONResponse(
-                            {"error": "Le niveau scolaire doit être entre 1 et 12."},
+                            {
+                                "error": f"Le niveau scolaire doit être entre 1 et {max_grade}."
+                            },
                             status_code=400,
                         )
                     update_data["grade_level"] = grade
@@ -1116,6 +1137,21 @@ async def update_user_me(request: Request):
                         status_code=400,
                     )
 
+            # Marquer l'onboarding comme complété si c'est la première fois
+            onboarding_fields = {
+                "grade_level",
+                "grade_system",
+                "preferred_difficulty",
+                "learning_goal",
+                "practice_rhythm",
+            }
+            if not getattr(
+                user, "onboarding_completed_at", None
+            ) and onboarding_fields.intersection(update_data.keys()):
+                from datetime import datetime, timezone
+
+                user.onboarding_completed_at = datetime.now(timezone.utc)
+
             # Appliquer les modifications
             for field, value in update_data.items():
                 if field == "accessibility_settings":
@@ -1142,8 +1178,16 @@ async def update_user_me(request: Request):
                 "full_name": user.full_name,
                 "role": user.role.value if user.role else None,
                 "grade_level": user.grade_level,
+                "grade_system": getattr(user, "grade_system", None),
                 "learning_style": user.learning_style,
                 "preferred_difficulty": user.preferred_difficulty,
+                "onboarding_completed_at": (
+                    user.onboarding_completed_at.isoformat()
+                    if getattr(user, "onboarding_completed_at", None)
+                    else None
+                ),
+                "learning_goal": getattr(user, "learning_goal", None),
+                "practice_rhythm": getattr(user, "practice_rhythm", None),
                 "preferred_theme": user.preferred_theme,
                 "accessibility_settings": user.accessibility_settings,
                 "is_active": user.is_active,
@@ -1168,6 +1212,7 @@ async def update_user_me(request: Request):
 
 
 @require_auth
+@require_full_access
 async def update_user_password_me(request: Request):
     """
     Handler pour mettre à jour le mot de passe de l'utilisateur actuel.
@@ -1249,6 +1294,7 @@ async def update_user_password_me(request: Request):
 
 
 @require_auth
+@require_full_access
 async def delete_user_me(request: Request):
     """
     Handler pour supprimer le compte de l'utilisateur connecté.
@@ -1328,6 +1374,7 @@ async def delete_user(request: Request):
 
 
 @require_auth
+@require_full_access
 async def export_user_data(request: Request):
     """
     Exporte toutes les données de l'utilisateur connecté (RGPD).
@@ -1364,6 +1411,7 @@ async def export_user_data(request: Request):
                 "role": user.role.value if user.role else None,
                 "is_active": user.is_active,
                 "grade_level": user.grade_level,
+                "grade_system": getattr(user, "grade_system", None),
                 "learning_style": user.learning_style,
                 "preferred_difficulty": user.preferred_difficulty,
                 "preferred_theme": user.preferred_theme,
@@ -1528,6 +1576,7 @@ async def export_user_data(request: Request):
 
 
 @require_auth
+@require_full_access
 async def get_user_sessions(request: Request):
     """
     Handler pour récupérer les sessions actives de l'utilisateur.
@@ -1593,6 +1642,7 @@ async def get_user_sessions(request: Request):
 
 
 @require_auth
+@require_full_access
 async def revoke_user_session(request: Request):
     """
     Handler pour révoquer une session utilisateur spécifique.

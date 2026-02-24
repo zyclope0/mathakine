@@ -7,6 +7,9 @@ import { api, ApiClientError } from "@/lib/api/client";
 import { useTranslations } from "next-intl";
 import type { User } from "@/types/api";
 
+/** Redirection optionnelle après login (ex: /dashboard post-inscription) */
+const postLoginRedirectRef = { current: null as string | null };
+
 interface LoginCredentials {
   username: string;
   password: string;
@@ -86,14 +89,19 @@ export function useAuth() {
       toast.success(t("loginSuccess"), {
         description: `Bienvenue ${data.user.username} !`,
       });
-      // Rediriger vers la page d'exercices (fonctionnalité principale)
-      // Utiliser replace pour éviter d'ajouter /login dans l'historique
-      router.replace("/exercises");
+      // Rediriger : onboarding si pas encore fait, sinon /dashboard (post-inscription) ou /exercises
+      const needsOnboarding = !data.user.onboarding_completed_at;
+      const target =
+        needsOnboarding
+          ? "/onboarding"
+          : postLoginRedirectRef.current || "/exercises";
+      postLoginRedirectRef.current = null;
+      router.replace(target);
     },
     onError: (error: ApiClientError) => {
       let message: string;
       if (error.status === 403) {
-        message = error.message || "Veuillez vérifier votre adresse email avant de vous connecter.";
+        message = error.message || "Accès refusé.";
       } else if (error.status === 401) {
         message = "Nom d'utilisateur ou mot de passe incorrect";
       } else if (error.status === 400) {
@@ -103,9 +111,7 @@ export function useAuth() {
       } else {
         message = error.message || t("loginError");
       }
-      toast.error(error.status === 403 ? "Email non vérifié" : t("loginError"), {
-        description: message,
-      });
+      toast.error(t("loginError"), { description: message });
     },
   });
 
@@ -115,16 +121,18 @@ export function useAuth() {
       const response = await api.post<User>("/api/users/", data);
       return response;
     },
-    onSuccess: (data) => {
-      // Vérifier si l'email est vérifié
-      const isVerified = data?.is_email_verified || false;
-
-      if (isVerified) {
-        toast.success(t("registerSuccess"), {
-          description: "Vous pouvez maintenant vous connecter.",
+    onSuccess: async (data, variables) => {
+      // Auto-login après inscription → onboarding si besoin, sinon dashboard
+      postLoginRedirectRef.current = "/dashboard";
+      try {
+        await loginMutation.mutateAsync({
+          username: variables.username,
+          password: variables.password,
         });
-        router.push("/login?registered=true");
-      } else {
+        // login onSuccess gère toast + redirection vers /dashboard
+      } catch {
+        // Fallback si login échoue (rare) : rediriger vers login
+        postLoginRedirectRef.current = null;
         toast.success(t("registerSuccess"), {
           description:
             "Un email de vérification a été envoyé. Veuillez vérifier votre boîte de réception.",

@@ -287,13 +287,9 @@ async def api_login(request: Request):
                     status_code=401,
                 )
 
-            if not getattr(user, "is_email_verified", True):
-                return JSONResponse(
-                    {
-                        "error": "Veuillez vérifier votre adresse email avant de vous connecter. Consultez votre boîte de réception."
-                    },
-                    status_code=403,
-                )
+            # Permettre le login pour les non vérifiés (First Exercise < 90s)
+            # Accès limité après 45 min : exercices uniquement jusqu'à vérification
+            # if not getattr(user, "is_email_verified", True): return 403 — supprimé
 
             # Créer les tokens d'accès
             token_data = create_user_token(user)
@@ -324,6 +320,9 @@ async def api_login(request: Request):
             # Ajouter les informations utilisateur à la réponse
             access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
             # refresh_token uniquement en cookie (HttpOnly) — pas dans le body (sécurité XSS)
+            from app.utils.unverified_access import get_unverified_access_scope
+
+            access_scope = get_unverified_access_scope(user)
             response_data = {
                 "access_token": token_data.get("access_token"),
                 "token_type": token_data.get("token_type", "bearer"),
@@ -339,6 +338,17 @@ async def api_login(request: Request):
                         if hasattr(user, "is_email_verified")
                         else False
                     ),
+                    "access_scope": access_scope,
+                    "onboarding_completed_at": (
+                        user.onboarding_completed_at.isoformat()
+                        if getattr(user, "onboarding_completed_at", None)
+                        else None
+                    ),
+                    "grade_level": getattr(user, "grade_level", None),
+                    "grade_system": getattr(user, "grade_system", None),
+                    "preferred_difficulty": getattr(user, "preferred_difficulty", None),
+                    "learning_goal": getattr(user, "learning_goal", None),
+                    "practice_rhythm": getattr(user, "practice_rhythm", None),
                 },
             }
 

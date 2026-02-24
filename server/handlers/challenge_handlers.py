@@ -31,10 +31,16 @@ from app.services.logic_challenge_service import LogicChallengeService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import ErrorHandler, get_safe_error_message
 from app.utils.translation import parse_accept_language
-from server.auth import optional_auth, require_auth, require_auth_sse
+from server.auth import (
+    optional_auth,
+    require_auth,
+    require_auth_sse,
+    require_full_access,
+)
 
 
 @require_auth
+@require_full_access
 async def get_challenges_list(request: Request):
     """
     Liste des défis logiques avec filtres optionnels.
@@ -197,6 +203,7 @@ async def get_challenges_list(request: Request):
 
 
 @require_auth
+@require_full_access
 async def get_challenge(request: Request):
     """
     Récupère un défi logique par son ID.
@@ -280,6 +287,7 @@ async def get_challenge(request: Request):
 
 
 @require_auth
+@require_full_access
 async def submit_challenge_answer(request: Request):
     """
     Soumet une réponse à un défi logique.
@@ -991,6 +999,7 @@ async def get_completed_challenges_ids(request: Request):
 
 
 @require_auth
+@require_full_access
 async def start_challenge(request: Request):
     """
     Handler pour démarrer un défi (placeholder).
@@ -1020,6 +1029,7 @@ async def start_challenge(request: Request):
 
 
 @require_auth
+@require_full_access
 async def get_challenge_progress(request: Request):
     """
     Handler pour récupérer la progression d'un défi pour l'utilisateur actuel (placeholder).
@@ -1049,6 +1059,7 @@ async def get_challenge_progress(request: Request):
 
 
 @require_auth
+@require_full_access
 async def get_challenge_rewards(request: Request):
     """
     Handler pour récupérer les récompenses d'un défi (placeholder).
@@ -1077,6 +1088,7 @@ async def get_challenge_rewards(request: Request):
 
 
 @require_auth_sse
+@require_full_access
 async def generate_ai_challenge_stream(request: Request):
     """
     Génère un challenge avec OpenAI en streaming SSE.

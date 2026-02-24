@@ -43,6 +43,9 @@ from server.handlers.admin_handlers import (
     admin_users_send_reset_password,
 )
 
+# Imports API handlers - Analytics
+from server.handlers.analytics_handlers import admin_analytics_edtech, analytics_event
+
 # Imports API handlers - Auth
 from server.handlers.auth_handlers import (
     api_forgot_password,
@@ -345,8 +348,17 @@ def get_routes() -> List:
                     endpoint=admin_badges_delete,
                     methods=["DELETE"],
                 ),
+                Route(
+                    "/analytics/edtech",
+                    endpoint=admin_analytics_edtech,
+                    methods=["GET"],
+                ),
             ],
         ),
+        # ========================================
+        # ANALYTICS API (événements EdTech)
+        # ========================================
+        Route("/api/analytics/event", endpoint=analytics_event, methods=["POST"]),
         # ========================================
         # FEEDBACK API (retours utilisateurs)
         # ========================================

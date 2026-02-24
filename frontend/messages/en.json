@@ -34,6 +34,9 @@
       "username": "Username",
       "password": "Password",
       "emailNotVerifiedBanner": "Your email is not verified yet.",
+      "unverifiedBanner": "Verify your email to unlock the dashboard, challenges and badges.",
+      "unverifiedBannerEarly": "One more step! Click the link in your email to keep all features 🚀",
+      "verifyEmailCta": "Verify my email",
       "resendEmailDesc": "Did you delete the email? Enter your address to receive a new link.",
       "resendEmailPlaceholder": "your@email.com",
       "resendSuccess": "A new email has been sent. Check your inbox.",
@@ -149,6 +152,41 @@
       }
     },
     "logout": "Logout"
+  },
+  "onboarding": {
+    "title": "Personalize your learning",
+    "description": "A few questions to adapt exercises and challenges to your profile.",
+    "step1": "Level and age",
+    "gradeSystem": "Which school system?",
+    "gradeSystems": {
+      "suisse": "Swiss French (1H-11H)",
+      "unifie": "Unified system (1-12)"
+    },
+    "gradeLevel": "What grade are you in?",
+    "gradeLevelPlaceholder": "Select your grade",
+    "ageGroup": "Content suited for which age?",
+    "ageGroupPlaceholder": "Choose your age group",
+    "step2": "Goal and rhythm",
+    "learningGoal": "What's your main goal?",
+    "learningGoalPlaceholder": "Choose your goal",
+    "practiceRhythm": "How much time do you want to practice?",
+    "practiceRhythmPlaceholder": "Choose your rhythm",
+    "submit": "Let's go!",
+    "submitting": "Saving...",
+    "goals": {
+      "reviser": "Review and consolidate",
+      "preparer_exam": "Prepare for an exam",
+      "progresser": "Progress regularly",
+      "samuser": "Have fun with math",
+      "autre": "Other"
+    },
+    "rhythms": {
+      "10min_jour": "10 min per day",
+      "20min_jour": "20 min per day",
+      "30min_semaine": "30 min per week",
+      "1h_semaine": "1 hour per week",
+      "flexible": "When I have time"
+    }
   },
   "navigation": {
     "home": "Home",
@@ -568,6 +606,12 @@
       "detailsShort": "Details"
     },
     "lastUpdate": "Last update: {time}",
+    "quickStart": {
+      "title": "What do you want to do?",
+      "exerciseCta": "An exercise",
+      "challengeCta": "A challenge",
+      "challengeDefault": "Logic challenge"
+    },
     "stats": {
       "totalExercises": "Total exercises",
       "totalAttempts": "Total attempts",

@@ -58,6 +58,7 @@ function ProfilePageContent() {
   const getAgeDisplay = useAgeGroupDisplay();
   const router = useRouter();
   const t = useTranslations("profile");
+  const tOnboarding = useTranslations("onboarding");
   const tPersonal = useTranslations("profile.personalInfo");
   const tLearning = useTranslations("profile.learningPreferences");
   const tSecurity = useTranslations("profile.security");
@@ -82,11 +83,18 @@ function ProfilePageContent() {
     full_name: user?.full_name || "",
   });
 
+  const GRADE_SYSTEMS = ["suisse", "unifie"] as const;
+  const LEARNING_GOALS = ["reviser", "preparer_exam", "progresser", "samuser", "autre"] as const;
+  const PRACTICE_RHYTHMS = ["10min_jour", "20min_jour", "30min_semaine", "1h_semaine", "flexible"] as const;
+
   // Données du formulaire préférences d'apprentissage
   const [learningPrefs, setLearningPrefs] = useState({
+    grade_system: (user?.grade_system as "suisse" | "unifie") || "unifie",
     grade_level: user?.grade_level?.toString() || "",
     learning_style: user?.learning_style || "",
     preferred_difficulty: user?.preferred_difficulty || "",
+    learning_goal: user?.learning_goal || "",
+    practice_rhythm: user?.practice_rhythm || "",
   });
 
   // Données du formulaire changement de mot de passe
@@ -115,9 +123,12 @@ function ProfilePageContent() {
         full_name: user.full_name || "",
       });
       setLearningPrefs({
+        grade_system: (user.grade_system as "suisse" | "unifie") || "unifie",
         grade_level: user.grade_level?.toString() || "",
         learning_style: user.learning_style || "",
         preferred_difficulty: user.preferred_difficulty || "",
+        learning_goal: user.learning_goal || "",
+        practice_rhythm: user.practice_rhythm || "",
       });
       // Migration: neutral → dune
       const userThemeRaw = user.preferred_theme || "spatial";
@@ -203,11 +214,14 @@ function ProfilePageContent() {
   // Sauvegarder préférences d'apprentissage
   const handleSaveLearningPrefs = useCallback(async () => {
     await updateProfile({
+      grade_system: learningPrefs.grade_system,
       ...(learningPrefs.grade_level ? { grade_level: parseInt(learningPrefs.grade_level) } : {}),
       ...(learningPrefs.learning_style ? { learning_style: learningPrefs.learning_style } : {}),
       ...(learningPrefs.preferred_difficulty
         ? { preferred_difficulty: learningPrefs.preferred_difficulty }
         : {}),
+      ...(learningPrefs.learning_goal ? { learning_goal: learningPrefs.learning_goal } : {}),
+      ...(learningPrefs.practice_rhythm ? { practice_rhythm: learningPrefs.practice_rhythm } : {}),
     });
     setIsEditingLearningPrefs(false);
   }, [learningPrefs, updateProfile]);
@@ -513,6 +527,36 @@ function ProfilePageContent() {
                 {isEditingLearningPrefs ? (
                   <>
                     <div className="space-y-2">
+                      <Label htmlFor="grade_system">{tOnboarding("gradeSystem")}</Label>
+                      <Select
+                        value={learningPrefs.grade_system}
+                        onValueChange={(v) => {
+                          const next = v as "suisse" | "unifie";
+                          const max = next === "suisse" ? 11 : 12;
+                          setLearningPrefs((prev) => ({
+                            ...prev,
+                            grade_system: next,
+                            grade_level:
+                              prev.grade_level && parseInt(prev.grade_level, 10) > max
+                                ? ""
+                                : prev.grade_level,
+                          }));
+                        }}
+                        disabled={isUpdatingProfile}
+                      >
+                        <SelectTrigger id="grade_system">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {GRADE_SYSTEMS.map((sys) => (
+                            <SelectItem key={sys} value={sys}>
+                              {tOnboarding(`gradeSystems.${sys}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="grade_level">{tLearning("gradeLevel")}</Label>
                       <Select
                         value={learningPrefs.grade_level}
@@ -525,9 +569,12 @@ function ProfilePageContent() {
                           <SelectValue placeholder={tLearning("gradeLevelPlaceholder")} />
                         </SelectTrigger>
                         <SelectContent>
-                          {Array.from({ length: 12 }, (_, i) => i + 1).map((level) => (
+                          {Array.from(
+                            { length: learningPrefs.grade_system === "suisse" ? 11 : 12 },
+                            (_, i) => i + 1
+                          ).map((level) => (
                             <SelectItem key={level} value={level.toString()}>
-                              {level}
+                              {learningPrefs.grade_system === "suisse" ? `${level}H` : level}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -582,6 +629,57 @@ function ProfilePageContent() {
                       </Select>
                     </div>
 
+                    <div className="space-y-2">
+                      <Label htmlFor="learning_goal">{tOnboarding("learningGoal")}</Label>
+                      <Select
+                        value={learningPrefs.learning_goal || "none"}
+                        onValueChange={(v) =>
+                          setLearningPrefs((prev) => ({
+                            ...prev,
+                            learning_goal: v === "none" ? "" : v,
+                          }))
+                        }
+                        disabled={isUpdatingProfile}
+                      >
+                        <SelectTrigger id="learning_goal">
+                          <SelectValue placeholder={tOnboarding("learningGoalPlaceholder")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">—</SelectItem>
+                          {LEARNING_GOALS.map((g) => (
+                            <SelectItem key={g} value={g}>
+                              {tOnboarding(`goals.${g}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="practice_rhythm">{tOnboarding("practiceRhythm")}</Label>
+                      <Select
+                        value={learningPrefs.practice_rhythm || "none"}
+                        onValueChange={(v) =>
+                          setLearningPrefs((prev) => ({
+                            ...prev,
+                            practice_rhythm: v === "none" ? "" : v,
+                          }))
+                        }
+                        disabled={isUpdatingProfile}
+                      >
+                        <SelectTrigger id="practice_rhythm">
+                          <SelectValue placeholder={tOnboarding("practiceRhythmPlaceholder")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">—</SelectItem>
+                          {PRACTICE_RHYTHMS.map((r) => (
+                            <SelectItem key={r} value={r}>
+                              {tOnboarding(`rhythms.${r}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div className="flex gap-2">
                       <Button
                         onClick={handleSaveLearningPrefs}
@@ -606,9 +704,12 @@ function ProfilePageContent() {
                         onClick={() => {
                           setIsEditingLearningPrefs(false);
                           setLearningPrefs({
+                            grade_system: (user.grade_system as "suisse" | "unifie") || "unifie",
                             grade_level: user.grade_level?.toString() || "",
                             learning_style: user.learning_style || "",
                             preferred_difficulty: user.preferred_difficulty || "",
+                            learning_goal: user.learning_goal || "",
+                            practice_rhythm: user.practice_rhythm || "",
                           });
                         }}
                         disabled={isUpdatingProfile}
@@ -621,11 +722,27 @@ function ProfilePageContent() {
                   </>
                 ) : (
                   <div className="space-y-3">
+                    {user.grade_system && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground">
+                          {tOnboarding("gradeSystem")}
+                        </Label>
+                        <p className="text-sm font-medium">
+                          {tOnboarding(`gradeSystems.${user.grade_system}`)}
+                        </p>
+                      </div>
+                    )}
                     <div>
                       <Label className="text-xs text-muted-foreground">
                         {tLearning("gradeLevel")}
                       </Label>
-                      <p className="text-sm font-medium">{user.grade_level || "-"}</p>
+                      <p className="text-sm font-medium">
+                        {user.grade_level
+                          ? user.grade_system === "suisse"
+                            ? `${user.grade_level}H`
+                            : user.grade_level
+                          : "-"}
+                      </p>
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">
@@ -647,6 +764,32 @@ function ProfilePageContent() {
                           : "-"}
                       </p>
                     </div>
+                    {user.learning_goal && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground">
+                          {tOnboarding("learningGoal")}
+                        </Label>
+                        <p className="text-sm font-medium">
+                          {LEARNING_GOALS.includes(user.learning_goal as (typeof LEARNING_GOALS)[number])
+                            ? tOnboarding(`goals.${user.learning_goal}`)
+                            : user.learning_goal}
+                        </p>
+                      </div>
+                    )}
+                    {user.practice_rhythm && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground">
+                          {tOnboarding("practiceRhythm")}
+                        </Label>
+                        <p className="text-sm font-medium">
+                          {PRACTICE_RHYTHMS.includes(
+                            user.practice_rhythm as (typeof PRACTICE_RHYTHMS)[number]
+                          )
+                            ? tOnboarding(`rhythms.${user.practice_rhythm}`)
+                            : user.practice_rhythm}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>

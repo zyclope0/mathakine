@@ -115,16 +115,24 @@ export DATABASE_URL="postgresql://postgres:postgres@localhost/mathakine"
 
 Après avoir créé ou réinitialisé la base de test, le schéma doit être à jour.
 
-**Option A — Migrations Alembic** (base vide ou cohérente) :
+**Option A — Initialisation complète** (recommandé) :
+
+`create_tables_with_test_data` utilise désormais **Alembic** (`alembic upgrade head`) pour créer ou mettre à jour le schéma, puis ajoute les données de test. Exécutez :
 
 ```powershell
 # Windows PowerShell
-$env:TESTING="true"; alembic upgrade head
+$env:TESTING="true"; $env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_mathakine"; python -c "from app.db.init_db import create_tables_with_test_data; create_tables_with_test_data()"
 ```
 
 ```bash
 # Linux / Mac
-TESTING=true alembic upgrade head
+TESTING=true python -c "from app.db.init_db import create_tables_with_test_data; create_tables_with_test_data()"
+```
+
+Ou manuellement avec Alembic :
+
+```powershell
+$env:TESTING="true"; alembic upgrade head
 ```
 
 **Option B — Base partiellement initialisée** (ex. créée par `create_all` ou script d’init) :
@@ -222,23 +230,22 @@ docker exec -it <nom_conteneur_postgres> psql -U postgres -c "CREATE DATABASE te
 psql -h localhost -p 5432 -U postgres -c "CREATE DATABASE test_mathakine;"
 ```
 
-### **Étape 2 : Appliquer le schéma**
+### **Étape 2 : Appliquer le schéma et les données de test**
 
-**Option A – via create_tables (recommandé pour Docker)**  
-Le `.env` peut écraser `DATABASE_URL`. Utiliser `TESTING` + `TEST_DATABASE_URL` :
+**Option A – via create_tables_with_test_data (recommandé pour les tests)**  
+Applique les migrations Alembic et ajoute les données de test (Yoda, ObiWan, exercices, etc.) :
 
 ```powershell
 # PowerShell
-$env:TESTING="true"
-$env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_mathakine"
-python -c "from app.services.db_init_service import create_tables; create_tables()"
+$env:TESTING="true"; $env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_mathakine"
+python -c "from app.db.init_db import create_tables_with_test_data; create_tables_with_test_data()"
 ```
 
-**Option B – via Alembic**  
-Alembic lit `DATABASE_URL`. Lancez en pointant vers la base de test :
+**Option B – via Alembic uniquement (schéma seul)**  
+Si vous voulez seulement le schéma, sans données de test :
 
 ```powershell
-$env:DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_mathakine"
+$env:TESTING="true"; $env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_mathakine"
 alembic upgrade head
 ```
 

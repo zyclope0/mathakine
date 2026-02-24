@@ -76,17 +76,25 @@ async def get_current_user(request):  # noqa: C901
             if user is None:
                 return None
 
+            from app.utils.unverified_access import get_unverified_access_scope
+
+            access_scope = get_unverified_access_scope(user)
+            is_email_verified = getattr(user, "is_email_verified", True)
+
             # Retourner un dictionnaire sérialisable avec tous les champs profil
             return {
                 "id": user.id,
                 "username": user.username,
                 "email": user.email if hasattr(user, "email") else None,
                 "is_authenticated": True,
+                "is_email_verified": is_email_verified,
+                "access_scope": access_scope,
                 "role": user.role.value if hasattr(user, "role") else None,
                 "full_name": user.full_name if hasattr(user, "full_name") else None,
                 "grade_level": (
                     user.grade_level if hasattr(user, "grade_level") else None
                 ),
+                "grade_system": getattr(user, "grade_system", None),
                 "learning_style": (
                     user.learning_style if hasattr(user, "learning_style") else None
                 ),
@@ -95,6 +103,13 @@ async def get_current_user(request):  # noqa: C901
                     if hasattr(user, "preferred_difficulty")
                     else None
                 ),
+                "onboarding_completed_at": (
+                    user.onboarding_completed_at.isoformat()
+                    if getattr(user, "onboarding_completed_at", None)
+                    else None
+                ),
+                "learning_goal": getattr(user, "learning_goal", None),
+                "practice_rhythm": getattr(user, "practice_rhythm", None),
                 "preferred_theme": (
                     user.preferred_theme if hasattr(user, "preferred_theme") else None
                 ),
@@ -216,6 +231,34 @@ def require_role(role: str):
 
 # Alias pratique pour les routes admin
 require_admin = require_role("archiviste")
+
+
+def require_full_access(handler):
+    """
+    Décorateur qui exige access_scope="full".
+    À utiliser APRES @require_auth. Bloque les utilisateurs non vérifiés
+    après la période de grâce (45 min) — accès exercices uniquement.
+
+    Retourne 403 si access_scope == "exercises_only".
+    """
+
+    @wraps(handler)
+    async def wrapper(request, *args, **kwargs):
+        current_user = getattr(request.state, "user", None)
+        if not current_user:
+            return JSONResponse({"error": "Authentification requise"}, status_code=401)
+        scope = current_user.get("access_scope", "full")
+        if scope == "exercises_only":
+            return JSONResponse(
+                {
+                    "error": "Vérifiez votre adresse email pour accéder à cette fonctionnalité.",
+                    "code": "EMAIL_VERIFICATION_REQUIRED",
+                },
+                status_code=403,
+            )
+        return await handler(request, *args, **kwargs)
+
+    return wrapper
 
 
 def require_auth_sse(handler):

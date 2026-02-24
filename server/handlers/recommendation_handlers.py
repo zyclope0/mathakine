@@ -14,10 +14,11 @@ from app.utils.error_handler import get_safe_error_message
 
 logger = get_logger(__name__)
 from app.services.recommendation_service import RecommendationService
-from server.auth import require_auth
+from server.auth import require_auth, require_full_access
 
 
 @require_auth
+@require_full_access
 async def get_recommendations(request):
     """
     Récupère les recommandations personnalisées pour l'utilisateur connecté.
@@ -58,9 +59,39 @@ async def get_recommendations(request):
                 "GRAND_MAITRE": "adulte",
             }
 
-            # Sérialiser les recommandations
+            # Sérialiser les recommandations (exclure exercices/défis archivés)
+            from app.models.exercise import Exercise
+            from app.models.logic_challenge import LogicChallenge
+
             recommendations_data = []
             for rec in recommendations:
+                exercise = None
+                challenge = None
+
+                # Exclure si l'exercice lié est archivé ou inactif
+                if rec.exercise_id:
+                    exercise = (
+                        db.query(Exercise)
+                        .filter(Exercise.id == rec.exercise_id)
+                        .first()
+                    )
+                    if (
+                        not exercise
+                        or exercise.is_archived
+                        or not getattr(exercise, "is_active", True)
+                    ):
+                        continue  # Ne pas proposer un exercice archivé/inactif
+
+                # Exclure si le défi lié est archivé
+                if getattr(rec, "challenge_id", None):
+                    challenge = (
+                        db.query(LogicChallenge)
+                        .filter(LogicChallenge.id == rec.challenge_id)
+                        .first()
+                    )
+                    if not challenge or getattr(challenge, "is_archived", False):
+                        continue  # Ne pas proposer un défi archivé
+
                 difficulty_str = (
                     str(rec.difficulty).upper() if rec.difficulty else "PADAWAN"
                 )
@@ -77,40 +108,19 @@ async def get_recommendations(request):
                     or "exercise",
                 }
 
-                # Ajouter les informations de l'exercice si disponible
-                if rec.exercise_id:
+                # Ajouter les informations de l'exercice si disponible (exercise déjà chargé)
+                if rec.exercise_id and exercise:
                     rec_data["exercise_id"] = rec.exercise_id
-                    # Optionnel: récupérer le titre et la question de l'exercice
-                    try:
-                        from app.services.exercise_service import ExerciseService
+                    rec_data["exercise_title"] = exercise.title
+                    rec_data["exercise_question"] = getattr(exercise, "question", None)
 
-                        exercise = ExerciseService.get_exercise(db, rec.exercise_id)
-                        if exercise:
-                            rec_data["exercise_title"] = exercise.title
-                            rec_data["exercise_question"] = exercise.question
-                    except Exception:
-                        pass  # Ignorer si l'exercice n'existe plus
-
-                # Ajouter les informations du défi si disponible (recommandation challenge)
-                if getattr(rec, "challenge_id", None):
+                # Ajouter les informations du défi si disponible (challenge déjà chargé)
+                if getattr(rec, "challenge_id", None) and challenge:
                     rec_data["challenge_id"] = rec.challenge_id
-                    try:
-                        from app.services.logic_challenge_service import (
-                            LogicChallengeService,
-                        )
-
-                        challenge = LogicChallengeService.get_challenge(
-                            db, rec.challenge_id
-                        )
-                        if challenge:
-                            rec_data["challenge_title"] = getattr(
-                                challenge, "title", None
-                            )
-                            rec_data["exercise_title"] = (
-                                rec_data.get("exercise_title") or challenge.title
-                            )
-                    except Exception:
-                        pass
+                    rec_data["challenge_title"] = getattr(challenge, "title", None)
+                    rec_data["exercise_title"] = (
+                        rec_data.get("exercise_title") or challenge.title
+                    )
 
                 recommendations_data.append(rec_data)
 
@@ -127,6 +137,7 @@ async def get_recommendations(request):
 
 
 @require_auth
+@require_full_access
 async def generate_recommendations(request):
     """
     Génère de nouvelles recommandations pour l'utilisateur connecté.
@@ -161,6 +172,7 @@ async def generate_recommendations(request):
 
 
 @require_auth
+@require_full_access
 async def handle_recommendation_complete(request):
     """
     Marquer une recommandation comme complétée.

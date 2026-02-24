@@ -145,7 +145,7 @@ function ChallengesPageContent() {
   };
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireFullAccess>
       <PageLayout>
         {/* En-tête */}
         <PageHeader title={t("title")} description={t("pageDescription")} icon={Puzzle} />
@@ -512,7 +512,7 @@ export default function ChallengesPage() {
   return (
     <Suspense
       fallback={
-        <ProtectedRoute>
+        <ProtectedRoute requireFullAccess>
           <PageLayout>
             <LoadingState message="Chargement..." />
           </PageLayout>

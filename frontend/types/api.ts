@@ -13,11 +13,17 @@ export interface User {
   role: string;
   is_active: boolean;
   is_email_verified?: boolean;
+  /** "full" = accès complet ; "exercises_only" = uniquement exercices (non vérifié hors période de grâce) */
+  access_scope?: "full" | "exercises_only";
   created_at?: string | null;
   updated_at?: string | null;
   grade_level?: number | null;
+  grade_system?: "suisse" | "unifie" | null;
   learning_style?: string | null;
   preferred_difficulty?: string | null;
+  onboarding_completed_at?: string | null;
+  learning_goal?: string | null;
+  practice_rhythm?: string | null;
   preferred_theme?: string | null;
   accessibility_settings?: Record<string, boolean> | null;
   total_points?: number;

@@ -136,6 +136,27 @@ async def test_update_user(padawan_client, db_session):
     assert data["full_name"] == update_data["full_name"]
 
 
+async def test_update_user_onboarding_fields(padawan_client):
+    """PUT /api/users/me : grade_system, learning_goal, practice_rhythm, grade_level."""
+    client = padawan_client["client"]
+
+    update_data = {
+        "grade_system": "suisse",
+        "grade_level": 5,
+        "learning_goal": "progresser",
+        "practice_rhythm": "10min_jour",
+    }
+
+    response = await client.put("/api/users/me", json=update_data)
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["grade_system"] == "suisse"
+    assert data["grade_level"] == 5
+    assert data["learning_goal"] == "progresser"
+    assert data["practice_rhythm"] == "10min_jour"
+
+
 async def test_update_user_password(padawan_client, db_session):
     """Test pour mettre a jour le mot de passe d'un utilisateur."""
     client = padawan_client["client"]

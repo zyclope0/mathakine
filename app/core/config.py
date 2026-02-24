@@ -62,6 +62,11 @@ class Settings:
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     # 7 jours (best-practice: refresh token plus long mais rotation à chaque utilisation)
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    # Période de grâce pour utilisateurs non vérifiés (First Exercise < 90s)
+    # 0-45 min : accès complet ; 45+ min : exercices uniquement jusqu'à vérification email
+    UNVERIFIED_GRACE_PERIOD_MINUTES: int = int(
+        os.getenv("UNVERIFIED_GRACE_PERIOD_MINUTES", "45")
+    )
     # Algorithme de chiffrement pour JWT
     ALGORITHM: str = "HS256"
 

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { ChallengeType, AgeGroup } from "@/lib/constants/challenges";
 import { usePaginatedContent } from "./usePaginatedContent";
+import { trackFirstAttempt } from "@/lib/analytics/edtech";
 
 export interface ChallengeFilters {
   challenge_type?: ChallengeType;
@@ -70,6 +71,8 @@ export function useChallenges(filters?: ChallengeFilters) {
       });
     },
     onSuccess: (data, variables) => {
+      trackFirstAttempt("challenge", variables.challenge_id);
+
       // Invalider le cache du défi pour recharger les stats
       queryClient.invalidateQueries({ queryKey: ["challenge", variables.challenge_id] });
       queryClient.invalidateQueries({ queryKey: ["challenges"] });

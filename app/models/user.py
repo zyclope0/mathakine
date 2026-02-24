@@ -86,8 +86,19 @@ class User(Base):
 
     # Informations pédagogiques
     grade_level = Column(Integer)
+    grade_system = Column(
+        String(20), nullable=True
+    )  # "suisse" | "unifie" pour l'affichage classe
     learning_style = Column(String(50))
     preferred_difficulty = Column(String(50))
+    # Onboarding pédagogique (Quick Win #2)
+    onboarding_completed_at = Column(DateTime(timezone=True), nullable=True)
+    learning_goal = Column(
+        String(100), nullable=True
+    )  # Objectif : réviser, préparer_exam, progresser, etc.
+    practice_rhythm = Column(
+        String(50), nullable=True
+    )  # Rythme : 10min/jour, 30min/semaine, etc.
 
     # Préférences d'interface
     preferred_theme = Column(String(50))

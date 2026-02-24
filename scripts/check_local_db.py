@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
 """
-Diagnostic : base PostgreSQL locale pour les tests.
+Prépare la base de test locale : vérifie PostgreSQL, crée la base, applique les migrations et les données de test.
 Usage: python scripts/check_local_db.py
 """
+import os
 import sys
+
+# Répertoire projet pour imports
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+os.chdir(ROOT)
+
+TEST_URL = "postgresql://postgres:postgres@localhost:5432/test_mathakine"
+
 
 def main():
     print("\n=== Diagnostic base de données locale ===\n")
@@ -52,12 +62,28 @@ def main():
         import psycopg2
         conn = psycopg2.connect("postgresql://postgres:postgres@localhost:5432/test_mathakine", connect_timeout=3)
         conn.close()
-        print("   OK: Prêt pour les tests")
+        print("   OK: Connexion OK")
     except Exception as e:
         print(f"   Erreur: {e}")
         return 1
 
-    print("\n=== Tout est OK. Tu peux lancer: python -m pytest tests/ ===\n")
+    # 4. Schéma et données de test (migrations Alembic + Yoda, ObiWan, etc.)
+    print("\n4. Schéma et données de test...")
+    try:
+        os.environ["TESTING"] = "true"
+        os.environ["TEST_DATABASE_URL"] = TEST_URL
+        os.environ["DATABASE_URL"] = TEST_URL
+
+        from app.db.init_db import create_tables_with_test_data
+        create_tables_with_test_data()
+        print("   OK: Schéma à jour, données de test prêtes")
+    except Exception as e:
+        print(f"   Erreur: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+
+    print("\n=== Prêt. Tu peux lancer: python -m pytest tests/ ===\n")
     return 0
 
 if __name__ == "__main__":

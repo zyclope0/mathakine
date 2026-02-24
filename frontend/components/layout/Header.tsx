@@ -31,16 +31,17 @@ export function Header() {
   const { shouldReduceMotion, createTransition } = useAccessibleAnimation();
 
   const isAdmin = user?.role === "archiviste";
+  const hasFullAccess = user?.access_scope !== "exercises_only";
 
   const navigation = [
     { name: t("home"), href: "/", icon: Home },
     ...(isAuthenticated
       ? [
-          { name: t("dashboard"), href: "/dashboard" },
+          ...(hasFullAccess ? [{ name: t("dashboard"), href: "/dashboard" }] : []),
           { name: t("exercises"), href: "/exercises" },
-          { name: t("challenges"), href: "/challenges" },
-          { name: t("badges"), href: "/badges" },
-          { name: t("leaderboard"), href: "/leaderboard" },
+          ...(hasFullAccess ? [{ name: t("challenges"), href: "/challenges" }] : []),
+          ...(hasFullAccess ? [{ name: t("badges"), href: "/badges" }] : []),
+          ...(hasFullAccess ? [{ name: t("leaderboard"), href: "/leaderboard" }] : []),
         ]
       : []),
   ];

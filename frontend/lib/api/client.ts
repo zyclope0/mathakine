@@ -48,6 +48,13 @@ export function notifyMaintenance(): void {
   }
 }
 
+/** Déclenché quand un 403 EMAIL_VERIFICATION_REQUIRED est reçu — invalide le cache auth et redirige si besoin */
+export function notifyAccessScopeLimited(): void {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("access-scope-limited"));
+  }
+}
+
 // État global pour gérer le refresh en cours
 let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
@@ -159,6 +166,12 @@ async function handleResponse<T>(response: Response): Promise<T> {
         (errorData?.error === "maintenance" || errorMessage?.includes("maintenance"))
       ) {
         notifyMaintenance();
+      }
+      if (
+        response.status === 403 &&
+        errorData?.code === "EMAIL_VERIFICATION_REQUIRED"
+      ) {
+        notifyAccessScopeLimited();
       }
     } catch {
       // Si la réponse n'est pas du JSON, utiliser le texte

@@ -58,7 +58,8 @@
 | `NEXT_PUBLIC_API_BASE_URL` | ✅ | URL du backend | `https://mathakine-alpha.onrender.com` |
 | `NEXT_PUBLIC_SITE_URL` | ✅ | Canonical, OpenGraph | `https://mathakine.fun` |
 | `NEXT_PUBLIC_SENTRY_DSN` | — | Erreurs client → Sentry | `https://xxx@xxx.ingest.sentry.io/xxx` |
-| `NEXT_PUBLIC_FEEDBACK_URL` | — | Lien feedback alpha (mailto ou formulaire) | `mailto:webmaster@mathakine.fun?subject=[Alpha] Feedback` |
+| `NEXT_PUBLIC_FEEDBACK_EMAIL` | — | Email signalements / feedback | `webmaster@mathakine.fun` |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | — | Email contact / formulaire (prioritaire si défini) | `webmaster@mathakine.fun` |
 | `SENTRY_RELEASE` | — | Corrélation erreurs ↔ déploiement | `${RENDER_GIT_COMMIT}` |
 | `NEXT_PUBLIC_SENTRY_RELEASE` | — | Idem pour le bundle client (build) | `${RENDER_GIT_COMMIT}` |
 | `SENTRY_ORG` | — | Organisation Sentry (upload source maps) | Slug de ton org |

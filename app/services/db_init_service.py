@@ -20,11 +20,29 @@ from app.utils.db_helpers import get_enum_value
 
 def create_tables():
     """
-    Crée toutes les tables dans la base de données.
+    Crée ou met à jour les tables via Alembic (alembic upgrade head).
+
+    Utilise les migrations pour garantir un schéma cohérent (inclut grade_system,
+    onboarding_completed_at, learning_goal, practice_rhythm, etc.).
     """
-    logger.info("Création des tables dans la base de données")
-    Base.metadata.create_all(bind=engine)
-    logger.success("Tables créées avec succès")
+    logger.info("Application des migrations Alembic (upgrade head)")
+    try:
+        from pathlib import Path
+
+        from alembic import command
+        from alembic.config import Config
+
+        root = Path(__file__).resolve().parent.parent.parent
+        alembic_ini = root / "alembic.ini"
+        alembic_cfg = Config(str(alembic_ini))
+        command.upgrade(alembic_cfg, "head")
+        logger.success("Migrations appliquées avec succès")
+    except Exception as alembic_error:
+        logger.warning(
+            f"Alembic non disponible ou échec ({alembic_error}), fallback create_all"
+        )
+        Base.metadata.create_all(bind=engine)
+        logger.success("Tables créées avec succès (create_all)")
 
 
 def populate_test_data():

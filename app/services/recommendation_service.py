@@ -1,22 +1,75 @@
 import random
 from datetime import datetime, timedelta, timezone
+from typing import Tuple
 
 from sqlalchemy import and_, exists, or_
 from sqlalchemy.sql import func
 
+from app.core.constants import AgeGroups, get_difficulty_from_age_group
 from app.core.logging_config import get_logger
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
-from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+from app.models.logic_challenge import AgeGroup, LogicChallenge, LogicChallengeAttempt
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.user import User
 
 logger = get_logger(__name__)
 
+# Mapping grade_level → age_group (quand preferred_difficulty vide)
+# Approximation : suisse 1H-11H, unifié 1-12
+_GRADE_TO_AGE_GROUP = {
+    (1, 3): AgeGroups.GROUP_6_8,  # CP-CE2
+    (4, 6): AgeGroups.GROUP_9_11,  # CM1-6e
+    (7, 9): AgeGroups.GROUP_12_14,  # 5e-3e
+    (10, 12): AgeGroups.GROUP_15_17,  # Lycée
+}
+
 
 class RecommendationService:
     """Service analysant les performances et générant des recommandations personnalisées"""
+
+    @staticmethod
+    def _get_user_context(user) -> Tuple[str, str, str, str]:
+        """
+        Extrait le contexte utilisateur (onboarding + profil) pour les recommandations.
+
+        Returns:
+            (age_group, default_difficulty, learning_goal, practice_rhythm)
+        """
+        # preferred_difficulty stocke le groupe d'âge (6-8, 9-11, etc.) depuis l'onboarding
+        age_group = None
+        if getattr(user, "preferred_difficulty", None):
+            val = str(user.preferred_difficulty).lower().strip()
+            if val in (
+                AgeGroups.GROUP_6_8,
+                AgeGroups.GROUP_9_11,
+                AgeGroups.GROUP_12_14,
+                AgeGroups.GROUP_15_17,
+                AgeGroups.ADULT,
+                AgeGroups.ALL_AGES,
+            ):
+                age_group = val
+            elif val in ("6-8", "9-11", "12-14", "15-17", "adulte", "tous-ages"):
+                age_group = val
+
+        # Fallback : dériver du grade_level
+        if not age_group and getattr(user, "grade_level", None) is not None:
+            try:
+                gl = int(user.grade_level)
+                for (lo, hi), ag in _GRADE_TO_AGE_GROUP.items():
+                    if lo <= gl <= hi:
+                        age_group = ag
+                        break
+            except (TypeError, ValueError):
+                pass
+
+        # Sans onboarding/profil : ne pas filtrer par âge (tous-ages = large)
+        age_group = age_group or AgeGroups.ALL_AGES
+        default_difficulty = get_difficulty_from_age_group(age_group)
+        learning_goal = getattr(user, "learning_goal", None) or ""
+        practice_rhythm = getattr(user, "practice_rhythm", None) or ""
+        return age_group, default_difficulty, learning_goal, practice_rhythm
 
     @staticmethod
     def generate_recommendations(db, user_id):
@@ -42,6 +95,15 @@ class RecommendationService:
             if not user:
                 logger.error(f"Utilisateur {user_id} non trouvé")
                 return []
+
+            # Contexte onboarding/profil pour personnalisation
+            user_age_group, user_default_difficulty, learning_goal, practice_rhythm = (
+                RecommendationService._get_user_context(user)
+            )
+            logger.debug(
+                f"Recommandations user {user_id}: age_group={user_age_group}, "
+                f"default_difficulty={user_default_difficulty}, goal={learning_goal}"
+            )
 
             # Récupérer les stats récentes (30 derniers jours) pour mieux cibler
             from app.services.user_service import UserService
@@ -96,13 +158,15 @@ class RecommendationService:
 
                 # Seulement recommander si au moins 3 tentatives récentes pour avoir des données fiables
                 if total >= 3 and success_rate < 70:
-                    # Déterminer la priorité selon le taux de réussite
+                    # Déterminer la priorité selon le taux de réussite + objectif (learning_goal)
                     if success_rate < 50:
                         priority = 9  # Urgent
                         reason = f"Votre taux de réussite en {ex_type} est de {success_rate}%. Continuons à progresser !"
                     else:
                         priority = 8  # Important
                         reason = f"Pour améliorer votre taux de réussite en {ex_type} ({success_rate}%)"
+                    if learning_goal == "preparer_exam":
+                        priority = min(10, priority + 1)  # Prioriser en vue d'un examen
 
                     # Trouver le niveau de difficulté le plus approprié
                     # Utiliser le niveau le plus pratiqué récemment ou le niveau actuel du Progress
@@ -113,14 +177,13 @@ class RecommendationService:
                             break
 
                     if not target_difficulty:
-                        target_difficulty = "INITIE"  # Par défaut
+                        target_difficulty = user_default_difficulty
 
                     # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
                     valid_types = [t.value for t in ExerciseType]
                     valid_difficulties = [d.value for d in DifficultyLevel]
 
-                    # Trouver des exercices appropriés pour améliorer cette compétence
-                    # Utiliser func.lower pour comparer sans tenir compte de la casse
+                    # Trouver des exercices appropriés (filtrer par age_group si dispo)
                     exercise_query = db.query(Exercise).filter(
                         func.lower(Exercise.exercise_type) == ex_type,
                         Exercise.difficulty == target_difficulty,
@@ -129,6 +192,16 @@ class RecommendationService:
                         Exercise.is_archived == False,
                         Exercise.is_active == True,
                     )
+                    # Cibler le groupe d'âge utilisateur (sauf tous-ages = pas de filtre)
+                    if user_age_group != AgeGroups.ALL_AGES:
+                        age_values = list(
+                            AgeGroups.AGE_ALIASES.get(user_age_group, [user_age_group])
+                        )
+                        age_values = [str(v).lower() for v in age_values]
+                        age_values.extend(["tous-ages", "tous ages", "all_ages"])
+                        exercise_query = exercise_query.filter(
+                            func.lower(Exercise.age_group).in_(age_values)
+                        )
 
                     # Exclure les exercices déjà réussis
                     if all_completed_exercise_ids:
@@ -263,21 +336,29 @@ class RecommendationService:
                         ):
                             user_level = p.difficulty
 
-                    # Si aucun niveau trouvé, proposer le niveau débutant
+                    # Si aucun niveau trouvé, utiliser le niveau du profil/onboarding
                     if not user_level:
-                        user_level = "INITIE"
+                        user_level = user_default_difficulty
 
                     # Proposer un exercice pour maintenir cette compétence
+                    ex_filter = [
+                        Exercise.exercise_type == ex_type,
+                        Exercise.difficulty == user_level,
+                        Exercise.exercise_type.in_(valid_types),
+                        Exercise.difficulty.in_(valid_difficulties),
+                        Exercise.is_archived == False,
+                        Exercise.is_active == True,
+                    ]
+                    if user_age_group != AgeGroups.ALL_AGES:
+                        age_values = list(
+                            AgeGroups.AGE_ALIASES.get(user_age_group, [user_age_group])
+                        )
+                        age_values = [str(v).lower() for v in age_values]
+                        age_values.extend(["tous-ages", "tous ages", "all_ages"])
+                        ex_filter.append(func.lower(Exercise.age_group).in_(age_values))
                     exercises = (
                         db.query(Exercise)
-                        .filter(
-                            Exercise.exercise_type == ex_type,
-                            Exercise.difficulty == user_level,
-                            Exercise.exercise_type.in_(valid_types),
-                            Exercise.difficulty.in_(valid_difficulties),
-                            Exercise.is_archived == False,
-                            Exercise.is_active == True,
-                        )
+                        .filter(*ex_filter)
                         .order_by(func.random())
                         .limit(1)
                         .all()
@@ -307,17 +388,24 @@ class RecommendationService:
                 valid_types = [t.value for t in ExerciseType]
                 valid_difficulties = [d.value for d in DifficultyLevel]
 
+                ex_filter = [
+                    Exercise.exercise_type == new_type,
+                    Exercise.difficulty == user_default_difficulty,
+                    Exercise.exercise_type.in_(valid_types),
+                    Exercise.difficulty.in_(valid_difficulties),
+                    Exercise.is_archived == False,
+                    Exercise.is_active == True,
+                ]
+                if user_age_group != AgeGroups.ALL_AGES:
+                    age_values = list(
+                        AgeGroups.AGE_ALIASES.get(user_age_group, [user_age_group])
+                    )
+                    age_values = [str(v).lower() for v in age_values]
+                    age_values.extend(["tous-ages", "tous ages", "all_ages"])
+                    ex_filter.append(func.lower(Exercise.age_group).in_(age_values))
                 exercises = (
                     db.query(Exercise)
-                    .filter(
-                        Exercise.exercise_type == new_type,
-                        Exercise.difficulty
-                        == "INITIE",  # Commencer par le niveau le plus simple
-                        Exercise.exercise_type.in_(valid_types),
-                        Exercise.difficulty.in_(valid_difficulties),
-                        Exercise.is_archived == False,
-                        Exercise.is_active == True,
-                    )
+                    .filter(*ex_filter)
                     .order_by(func.random())
                     .limit(1)
                     .all()
@@ -337,7 +425,9 @@ class RecommendationService:
                             )
                         )
 
-            # 5. Recommandations de défis logiques (challenges) — au moins 2, jusqu'à 4
+            # 5. Recommandations de défis logiques (challenges) — ciblés par age_group
+            from app.services.challenge_service import normalize_age_group_for_db
+
             completed_challenge_ids = {
                 a.challenge_id
                 for a in db.query(LogicChallengeAttempt)
@@ -350,6 +440,18 @@ class RecommendationService:
             challenge_query = db.query(LogicChallenge).filter(
                 LogicChallenge.is_archived == False
             )
+            # Filtrer par groupe d'âge utilisateur (sauf tous-ages)
+            if user_age_group != AgeGroups.ALL_AGES:
+                try:
+                    db_age_group = normalize_age_group_for_db(user_age_group)
+                    challenge_query = challenge_query.filter(
+                        or_(
+                            LogicChallenge.age_group == db_age_group,
+                            LogicChallenge.age_group == AgeGroup.ALL_AGES,
+                        )
+                    )
+                except Exception:
+                    pass  # Garder tous les défis si erreur de conversion
             if completed_challenge_ids:
                 challenge_query = challenge_query.filter(
                     ~LogicChallenge.id.in_(list(completed_challenge_ids))
@@ -357,11 +459,13 @@ class RecommendationService:
             suggested_challenges = (
                 challenge_query.order_by(func.random()).limit(4).all()
             )
-            # Priorité plus élevée si l'utilisateur n'a pas encore fait de défis (incitation à découvrir)
+            # Priorité selon défis complétés + objectif (samuser → plus de défis)
             num_completed = len(completed_challenge_ids)
             challenge_priority = (
                 8 if num_completed == 0 else 7 if num_completed < 3 else 6
             )
+            if learning_goal == "samuser":
+                challenge_priority = min(9, challenge_priority + 1)
             for ch in suggested_challenges:
                 challenge_type_str = (
                     str(ch.challenge_type).lower() if ch.challenge_type else "logique"
@@ -399,12 +503,20 @@ class RecommendationService:
                 logger.debug(f"Types valides: {valid_types}")
                 logger.debug(f"Difficultés valides: {valid_difficulties}")
 
-                exercise_query = db.query(Exercise).filter(
+                ex_filter = [
                     Exercise.exercise_type.in_(valid_types),
                     Exercise.difficulty.in_(valid_difficulties),
                     Exercise.is_archived == False,
                     Exercise.is_active == True,
-                )
+                ]
+                if user_age_group != AgeGroups.ALL_AGES:
+                    age_values = list(
+                        AgeGroups.AGE_ALIASES.get(user_age_group, [user_age_group])
+                    )
+                    age_values = [str(v).lower() for v in age_values]
+                    age_values.extend(["tous-ages", "tous ages", "all_ages"])
+                    ex_filter.append(func.lower(Exercise.age_group).in_(age_values))
+                exercise_query = db.query(Exercise).filter(*ex_filter)
 
                 # Exclure les exercices déjà réussis
                 if all_completed_exercise_ids:

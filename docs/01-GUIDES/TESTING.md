@@ -48,11 +48,11 @@
 
 > **Strategie actuelle** : Augmenter progressivement plutot qu'en bloc. Pour chaque nouvelle feature importante, ajouter 1-2 tests. Passer a une phase de montée en couverture quand les features sont stabilisees.
 
-### Tests actuels (20/02/2026)
-- ✅ **Backend** : ~375 tests passent, skippes réduits, ~48% couverture (app + server)
-- ✅ **Frontend** : 31 tests (Vitest), utils/lib validations + composants + hooks
+### Tests actuels (25/02/2026)
+- ✅ **Backend** : ~443 tests passent, skippes réduits, ~48% couverture (app + server)
+- ✅ **Frontend** : 37 tests (Vitest), utils/lib validations + composants + hooks (dont QuickStartActions analytics)
 - ✅ **CI** : Tests + couverture backend et frontend, upload Codecov (flags backend/frontend)
-- ✅ **Tests critiques** : auth, challenges, exercises, user_exercise_flow
+- ✅ **Tests critiques** : auth, challenges, exercises, user_exercise_flow, admin analytics EdTech
 - ✅ **Base de test separee** : `TEST_DATABASE_URL` obligatoire (protection production)
 - ✅ **Tests async** : httpx.AsyncClient + pytest-asyncio (Starlette natif)
 
@@ -75,19 +75,14 @@ ou sans Make : `python scripts/test_backend_local.py` — démarre PostgreSQL (D
 # 1. Démarrer PostgreSQL (postgres:15, port 5432)
 docker run -d --name pg-mathakine -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:15
 
-# 2. Créer la base de test et initialiser le schéma
+# 2. Préparer la base de test (crée la base + migrations + données de test)
 python scripts/check_local_db.py
-# Linux/Mac :
-TESTING=true TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_mathakine python -c "from app.db.init_db import create_tables_with_test_data; create_tables_with_test_data()"
-# PowerShell :
-$env:TESTING="true"; $env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_mathakine"; python -c "from app.db.init_db import create_tables_with_test_data; create_tables_with_test_data()"
 
-# 3. Ajouter dans .env : TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/test_mathakine
-# 4. Lancer les tests
+# 3. Lancer les tests
 python -m pytest tests/ -q -m "not slow"
 ```
 
-Voir [CREATE_TEST_DATABASE.md](CREATE_TEST_DATABASE.md) pour plus d’options (Option 3 Docker).
+Voir [CREATE_TEST_DATABASE.md](CREATE_TEST_DATABASE.md) pour plus d’options. Alternative tout-en-un : `make test-backend-local`.
 
 #### Prérequis
 > **Important** : Les tests backend nécessitent l'installation complète des dépendances.

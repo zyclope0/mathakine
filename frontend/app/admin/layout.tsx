@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { PageLayout } from "@/components/layout";
 import { cn } from "@/lib/utils";
 import {
+  BarChart3,
   BookOpen,
   Bot,
   FileText,
@@ -35,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
     { href: "/admin/users", label: "Utilisateurs", icon: Users },
+    { href: "/admin/analytics", label: "Analytics EdTech", icon: BarChart3 },
     { href: "/admin/content", label: "Contenu", icon: BookOpen },
     { href: "/admin/moderation", label: "Modération IA", icon: Bot },
     { href: "/admin/feedback", label: "Retours", icon: MessageCircle },

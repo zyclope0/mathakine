@@ -1,26 +1,25 @@
 """
 Tests des endpoints API pour les recommandations.
+
+Routes réelles:
+- GET /api/recommendations
+- POST /api/recommendations/generate
+- POST /api/recommendations/complete (body: { recommendation_id: int })
 """
 import pytest
-from app.models.user import User, UserRole
-from app.models.recommendation import Recommendation
 from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
+from app.models.logic_challenge import AgeGroup, LogicChallenge, LogicChallengeType
+from app.models.recommendation import Recommendation
 from app.utils.db_helpers import get_enum_value
 
 
-async def test_get_user_recommendations(padawan_client, db_session, mock_exercise):
-    """Test pour récupérer les recommandations d'un utilisateur."""
-    # Récupérer le client authentifié et les informations de l'utilisateur
+async def test_get_recommendations(padawan_client, db_session, mock_exercise):
+    """GET /api/recommendations : récupère les recommandations de l'utilisateur."""
     client = padawan_client["client"]
     user_id = padawan_client["user_id"]
+    assert user_id is not None
 
-    # S'assurer que user_id n'est pas None
-    assert user_id is not None, "user_id est None dans le fixture padawan_client"
-
-    # Créer un exercice pour la recommandation
     exercise_data = mock_exercise()
-
-    # Convertir en instance d'Exercise pour l'ajouter à la base
     exercise = Exercise(
         title=exercise_data["title"],
         exercise_type=exercise_data["exercise_type"],
@@ -32,13 +31,12 @@ async def test_get_user_recommendations(padawan_client, db_session, mock_exercis
         explanation=exercise_data.get("explanation"),
         is_active=exercise_data.get("is_active", True),
         creator_id=None,
-        is_archived=False
+        is_archived=False,
     )
     db_session.add(exercise)
     db_session.commit()
     db_session.refresh(exercise)
 
-    # Créer une recommandation pour l'utilisateur
     recommendation = Recommendation(
         user_id=user_id,
         exercise_id=exercise.id,
@@ -49,105 +47,38 @@ async def test_get_user_recommendations(padawan_client, db_session, mock_exercis
         shown_count=0,
         clicked_count=0,
         last_clicked_at=None,
-        completed_at=None
+        completed_at=None,
     )
     db_session.add(recommendation)
     db_session.commit()
 
-    # Récupérer les recommandations de l'utilisateur
-    response = await client.get("/api/users/me/recommendations")
+    response = await client.get("/api/recommendations")
 
-    # Vérifier la réponse
-    assert response.status_code in [200, 404]  # 404 si l'endpoint n'existe pas exactement
-    if response.status_code == 200:
-        data = response.json()
-        assert isinstance(data, list)
-
-        # Vérifier qu'au moins une recommandation existe
-        if len(data) > 0:
-            assert "id" in data[0]
-            assert "exercise_id" in data[0]
-            assert "exercise_type" in data[0]
-            assert "difficulty" in data[0]
-            assert "reason" in data[0]
-
-            # Vérifier que notre recommandation est dans les résultats
-            recommendation_ids = [r["id"] for r in data]
-            assert recommendation.id in recommendation_ids
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) >= 1
+    rec = next((r for r in data if r.get("id") == recommendation.id), None)
+    assert rec is not None
+    assert rec["exercise_id"] == exercise.id
+    assert rec["exercise_type"] == str(exercise.exercise_type)
+    assert rec["reason"] == "Test recommendation reason"
+    assert rec["priority"] == 8
 
 
+@pytest.mark.skip(reason="POST /api/recommendations/{id}/clicked non exposé (service existant, route absente)")
 async def test_mark_recommendation_as_clicked(padawan_client, db_session, mock_exercise):
-    """Test pour marquer une recommandation comme cliquée."""
-    # Récupérer le client authentifié et les informations de l'utilisateur
-    client = padawan_client["client"]
-    user_id = padawan_client["user_id"]
-
-    # S'assurer que user_id n'est pas None
-    assert user_id is not None, "user_id est None dans le fixture padawan_client"
-
-    # Créer un exercice pour la recommandation
-    exercise_data = mock_exercise()
-
-    # Convertir en instance d'Exercise pour l'ajouter à la base
-    exercise = Exercise(
-        title=exercise_data["title"],
-        exercise_type=exercise_data["exercise_type"],
-        difficulty=exercise_data["difficulty"],
-        age_group=exercise_data.get("age_group", "6-8"),
-        question=exercise_data["question"],
-        correct_answer=exercise_data["correct_answer"],
-        choices=exercise_data.get("choices"),
-        explanation=exercise_data.get("explanation"),
-        is_active=exercise_data.get("is_active", True),
-        creator_id=None,
-        is_archived=False
-    )
-    db_session.add(exercise)
-    db_session.commit()
-    db_session.refresh(exercise)
-
-    # Créer une recommandation pour l'utilisateur
-    recommendation = Recommendation(
-        user_id=user_id,
-        exercise_id=exercise.id,
-        exercise_type=exercise.exercise_type,
-        difficulty=exercise.difficulty,
-        reason="Test recommendation reason",
-        priority=8,
-        shown_count=0,
-        clicked_count=0,
-        last_clicked_at=None,
-        completed_at=None
-    )
-    db_session.add(recommendation)
-    db_session.commit()
-
-    # Marquer la recommandation comme cliquée
-    response = await client.post(f"/api/recommendations/{recommendation.id}/clicked")
-
-    # Vérifier la réponse
-    assert response.status_code in [200, 404]  # 404 si l'endpoint n'existe pas exactement
-
-    if response.status_code == 200:
-        # Vérifier que la recommandation a été mise à jour dans la base
-        db_session.refresh(recommendation)
-        assert recommendation.clicked_count == 1
-        assert recommendation.last_clicked_at is not None
+    """POST /api/recommendations/{id}/clicked — endpoint non implémenté."""
+    pass
 
 
 async def test_mark_recommendation_as_completed(padawan_client, db_session, mock_exercise):
-    """Test pour marquer une recommandation comme complétée."""
-    # Récupérer le client authentifié et les informations de l'utilisateur
+    """POST /api/recommendations/complete : marque une recommandation comme complétée."""
     client = padawan_client["client"]
     user_id = padawan_client["user_id"]
+    assert user_id is not None
 
-    # S'assurer que user_id n'est pas None
-    assert user_id is not None, "user_id est None dans le fixture padawan_client"
-
-    # Créer un exercice pour la recommandation
     exercise_data = mock_exercise()
-
-    # Convertir en instance d'Exercise pour l'ajouter à la base
     exercise = Exercise(
         title=exercise_data["title"],
         exercise_type=exercise_data["exercise_type"],
@@ -159,13 +90,12 @@ async def test_mark_recommendation_as_completed(padawan_client, db_session, mock
         explanation=exercise_data.get("explanation"),
         is_active=exercise_data.get("is_active", True),
         creator_id=None,
-        is_archived=False
+        is_archived=False,
     )
     db_session.add(exercise)
     db_session.commit()
     db_session.refresh(exercise)
 
-    # Créer une recommandation pour l'utilisateur
     recommendation = Recommendation(
         user_id=user_id,
         exercise_id=exercise.id,
@@ -176,59 +106,33 @@ async def test_mark_recommendation_as_completed(padawan_client, db_session, mock
         shown_count=0,
         clicked_count=0,
         last_clicked_at=None,
-        completed_at=None
+        completed_at=None,
     )
     db_session.add(recommendation)
     db_session.commit()
+    db_session.refresh(recommendation)
 
-    # Marquer la recommandation comme complétée
-    response = await client.post(f"/api/recommendations/{recommendation.id}/completed")
+    response = await client.post(
+        "/api/recommendations/complete",
+        json={"recommendation_id": recommendation.id},
+    )
 
-    # Vérifier la réponse
-    assert response.status_code in [200, 404]  # 404 si l'endpoint n'existe pas exactement
-
-    if response.status_code == 200:
-        # Vérifier que la recommandation a été mise à jour dans la base
-        db_session.refresh(recommendation)
-        assert recommendation.completed_at is not None
-
-
-async def test_get_recommendations_unauthorized(client):
-    """Test pour vérifier que les recommandations ne sont pas accessibles sans authentification."""
-    response = await client.get("/api/users/me/recommendations")
-    assert response.status_code in [401, 404]  # 401 si unauthorized, 404 si l'endpoint n'existe pas
+    assert response.status_code == 200
+    db_session.refresh(recommendation)
+    assert recommendation.is_completed is True
+    assert recommendation.completed_at is not None
 
 
-async def test_mark_recommendation_nonexistent(padawan_client):
-    """Test pour marquer une recommandation inexistante."""
+async def test_get_recommendations_returns_exercise_and_challenge_ids(
+    padawan_client, db_session, mock_exercise
+):
+    """GET /api/recommendations : exercise_id et challenge_id pour parcours guidé (QuickStartActions)."""
     client = padawan_client["client"]
+    user_id = padawan_client["user_id"]
+    assert user_id is not None
 
-    # Tenter de marquer une recommandation inexistante comme cliquée
-    response = await client.post("/api/recommendations/9999/clicked")
-
-    # Vérifier que la requête échoue
-    assert response.status_code in [404, 422]  # 404 si la recommandation n'existe pas ou endpoint incorrect
-
-    # Tenter de marquer une recommandation inexistante comme complétée
-    response = await client.post("/api/recommendations/9999/completed")
-
-    # Vérifier que la requête échoue
-    assert response.status_code in [404, 422]  # 404 si la recommandation n'existe pas ou endpoint incorrect
-
-
-async def test_mark_other_user_recommendation(padawan_client, maitre_client, db_session, mock_exercise):
-    """Test pour vérifier qu'un utilisateur ne peut pas modifier les recommandations d'un autre utilisateur."""
-    # Récupérer les informations du premier utilisateur (padawan)
-    padawan_id = padawan_client["user_id"]
-    maitre_client_api = maitre_client["client"]
-
-    # S'assurer que padawan_id n'est pas None
-    assert padawan_id is not None, "padawan_id est None dans le fixture padawan_client"
-
-    # Créer un exercice pour la recommandation
+    # Recommandation exercice
     exercise_data = mock_exercise()
-
-    # Convertir en instance d'Exercise pour l'ajouter à la base
     exercise = Exercise(
         title=exercise_data["title"],
         exercise_type=exercise_data["exercise_type"],
@@ -237,33 +141,177 @@ async def test_mark_other_user_recommendation(padawan_client, maitre_client, db_
         question=exercise_data["question"],
         correct_answer=exercise_data["correct_answer"],
         choices=exercise_data.get("choices"),
-        explanation=exercise_data.get("explanation"),
-        is_active=exercise_data.get("is_active", True),
+        is_active=True,
         creator_id=None,
-        is_archived=False
+        is_archived=False,
     )
     db_session.add(exercise)
     db_session.commit()
     db_session.refresh(exercise)
 
-    # Créer une recommandation pour le padawan
+    # Recommandation défi
+    challenge = LogicChallenge(
+        title="Défi Test Reco QuickStart",
+        description="Test",
+        challenge_type=get_enum_value(
+            LogicChallengeType, LogicChallengeType.SEQUENCE.value, db_session
+        ),
+        age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12.value, db_session),
+        correct_answer="42",
+        solution_explanation="Test",
+        difficulty_rating=2.0,
+    )
+    db_session.add(challenge)
+    db_session.commit()
+    db_session.refresh(challenge)
+
+    reco_exercise = Recommendation(
+        user_id=user_id,
+        exercise_id=exercise.id,
+        challenge_id=None,
+        exercise_type="ADDITION",
+        difficulty="PADAWAN",
+        reason="Exo prioritaire",
+        priority=9,
+        recommendation_type="exercise",
+    )
+    reco_challenge = Recommendation(
+        user_id=user_id,
+        exercise_id=None,
+        challenge_id=challenge.id,
+        exercise_type="SEQUENCE",
+        difficulty="PADAWAN",
+        reason="Défi prioritaire",
+        priority=8,
+        recommendation_type="challenge",
+    )
+    db_session.add_all([reco_exercise, reco_challenge])
+    db_session.commit()
+
+    response = await client.get("/api/recommendations")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    reco_exo = next((r for r in data if r.get("exercise_id") == exercise.id), None)
+    reco_ch = next((r for r in data if r.get("challenge_id") == challenge.id), None)
+
+    assert reco_exo is not None, "Recommandation exercice doit être retournée"
+    assert reco_exo["exercise_id"] == exercise.id
+    assert "exercise_title" in reco_exo or "exercise_type" in reco_exo
+
+    assert reco_ch is not None, "Recommandation défi doit être retournée"
+    assert reco_ch["challenge_id"] == challenge.id
+    assert "challenge_title" in reco_ch or "exercise_title" in reco_ch
+
+
+async def test_get_recommendations_excludes_archived_challenge(
+    padawan_client, db_session, mock_exercise
+):
+    """Les recommandations n'incluent pas les défis archivés."""
+    client = padawan_client["client"]
+    user_id = padawan_client["user_id"]
+    assert user_id is not None
+
+    challenge = LogicChallenge(
+        title="Défi à archiver",
+        description="Test",
+        challenge_type=get_enum_value(
+            LogicChallengeType, LogicChallengeType.SEQUENCE.value, db_session
+        ),
+        age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12.value, db_session),
+        correct_answer="42",
+        solution_explanation="Test",
+        difficulty_rating=2.0,
+        is_archived=False,
+    )
+    db_session.add(challenge)
+    db_session.commit()
+    db_session.refresh(challenge)
+
+    reco = Recommendation(
+        user_id=user_id,
+        exercise_id=None,
+        challenge_id=challenge.id,
+        exercise_type="SEQUENCE",
+        difficulty="PADAWAN",
+        reason="Défi archivé",
+        priority=8,
+        recommendation_type="challenge",
+    )
+    db_session.add(reco)
+    db_session.commit()
+
+    # Archiver le défi
+    challenge.is_archived = True
+    db_session.commit()
+
+    response = await client.get("/api/recommendations")
+
+    assert response.status_code == 200
+    data = response.json()
+    reco_archived = next(
+        (r for r in data if r.get("challenge_id") == challenge.id), None
+    )
+    assert reco_archived is None, "Un défi archivé ne doit pas être proposé"
+
+
+async def test_get_recommendations_unauthorized(client):
+    """GET /api/recommendations requiert authentification."""
+    response = await client.get("/api/recommendations")
+    assert response.status_code == 401
+
+
+async def test_mark_recommendation_complete_nonexistent(padawan_client):
+    """POST /api/recommendations/complete avec recommendation_id inexistant → 404."""
+    client = padawan_client["client"]
+    response = await client.post(
+        "/api/recommendations/complete",
+        json={"recommendation_id": 99999},
+    )
+    assert response.status_code == 404
+
+
+async def test_mark_other_user_recommendation_as_completed(
+    padawan_client, maitre_client, db_session, mock_exercise
+):
+    """Un utilisateur ne peut pas compléter la recommandation d'un autre."""
+    padawan_id = padawan_client["user_id"]
+    maitre_client_api = maitre_client["client"]
+    assert padawan_id is not None
+
+    exercise_data = mock_exercise()
+    exercise = Exercise(
+        title=exercise_data["title"],
+        exercise_type=exercise_data["exercise_type"],
+        difficulty=exercise_data["difficulty"],
+        age_group=exercise_data.get("age_group", "6-8"),
+        question=exercise_data["question"],
+        correct_answer=exercise_data["correct_answer"],
+        choices=exercise_data.get("choices"),
+        is_active=True,
+        creator_id=None,
+        is_archived=False,
+    )
+    db_session.add(exercise)
+    db_session.commit()
+    db_session.refresh(exercise)
+
     recommendation = Recommendation(
         user_id=padawan_id,
         exercise_id=exercise.id,
         exercise_type=exercise.exercise_type,
         difficulty=exercise.difficulty,
-        reason="Test recommendation reason",
+        reason="Padawan reco",
         priority=8,
-        shown_count=0,
-        clicked_count=0,
-        last_clicked_at=None,
-        completed_at=None
     )
     db_session.add(recommendation)
     db_session.commit()
+    db_session.refresh(recommendation)
 
-    # Essayer de marquer la recommandation du padawan comme cliquée avec le compte maître
-    response = await maitre_client_api.post(f"/api/recommendations/{recommendation.id}/clicked")
+    response = await maitre_client_api.post(
+        "/api/recommendations/complete",
+        json={"recommendation_id": recommendation.id},
+    )
 
-    # Vérifier que la requête échoue (403 Forbidden ou 404 Not Found)
-    assert response.status_code in [403, 404]
+    assert response.status_code == 404

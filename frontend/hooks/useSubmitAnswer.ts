@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { trackFirstAttempt } from "@/lib/analytics/edtech";
 
 export interface SubmitAnswerPayload {
   exercise_id: number;
@@ -39,6 +40,8 @@ export function useSubmitAnswer() {
       return api.post<SubmitAnswerResponse>(`/api/exercises/${exerciseId}/attempt`, dataToSend);
     },
     onSuccess: (data, variables) => {
+      trackFirstAttempt("exercise", variables.exercise_id);
+
       // Invalider le cache de l'exercice pour recharger les stats
       queryClient.invalidateQueries({ queryKey: ["exercise", variables.exercise_id] });
       // Ne PAS invalider ["exercises"] : évite le reshuffle aléatoire au rafraîchissement.

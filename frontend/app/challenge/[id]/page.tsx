@@ -21,7 +21,7 @@ export default function ChallengePage({ params }: ChallengePageProps) {
 
   if (isNaN(challengeId)) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute requireFullAccess>
         <PageLayout>
           <EmptyState
             title={tError("invalidId")}
@@ -41,7 +41,7 @@ export default function ChallengePage({ params }: ChallengePageProps) {
   }
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireFullAccess>
       <PageLayout>
         <div className="max-w-4xl mx-auto">
           <ChallengeSolver challengeId={challengeId} />

@@ -27,6 +27,7 @@ import { DailyExercisesChartLazy } from "@/components/dashboard/DailyExercisesCh
 import { AverageTimeWidget } from "@/components/dashboard/AverageTimeWidget";
 import { LevelIndicator } from "@/components/dashboard/LevelIndicator";
 import { Recommendations } from "@/components/dashboard/Recommendations";
+import { QuickStartActions } from "@/components/dashboard/QuickStartActions";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { StreakWidget } from "@/components/dashboard/StreakWidget";
 import { ChallengesProgressWidget } from "@/components/dashboard/ChallengesProgressWidget";
@@ -92,7 +93,7 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute requireFullAccess requireOnboardingCompleted>
         <PageLayout>
           <PageHeader
             title={user?.username ? `${t("welcome")}, ${user.username} !` : t("title")}
@@ -122,7 +123,7 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute requireFullAccess requireOnboardingCompleted>
         <PageLayout>
           <EmptyState
             title={t("error.title")}
@@ -134,7 +135,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireFullAccess requireOnboardingCompleted>
       <PageLayout>
         {/* En-tête */}
         <PageHeader
@@ -203,8 +204,11 @@ export default function DashboardPage() {
               </TabsTrigger>
             </TabsList>
 
-            {/* Onglet Vue d'ensemble — KPIs + streak + classement (léger) */}
+            {/* Onglet Vue d'ensemble — Parcours guidé + KPIs + streak + classement */}
             <TabsContent value="overview" className="space-y-6">
+              <PageSection>
+                <QuickStartActions />
+              </PageSection>
               <PageSection className="space-y-3">
                 <div className="grid gap-4 md:grid-cols-3">
                   <StatsCard

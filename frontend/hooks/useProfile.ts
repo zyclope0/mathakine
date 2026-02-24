@@ -10,8 +10,11 @@ export interface ProfileUpdateData {
   email?: string;
   full_name?: string;
   grade_level?: number;
+  grade_system?: "suisse" | "unifie";
   learning_style?: string;
   preferred_difficulty?: string;
+  learning_goal?: string;
+  practice_rhythm?: string;
   preferred_theme?: string;
   accessibility_settings?: Record<string, boolean>;
 }

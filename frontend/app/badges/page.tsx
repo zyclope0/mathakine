@@ -191,7 +191,7 @@ export default function BadgesPage() {
   }, [defaultTab]);
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireFullAccess>
       <PageLayout maxWidth="2xl">
         {/* En-tête allégé : titre + stats condensées (A-1) */}
         <div className="space-y-4">

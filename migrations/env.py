@@ -24,6 +24,7 @@ from app.models.notification import Notification
 from app.models.user_session import UserSession
 from app.models.feedback_report import FeedbackReport
 from app.models.recommendation import Recommendation
+from app.models.edtech_event import EdTechEvent
 from app.models.legacy_tables import Results, Statistics, UserStats, SchemaVersion
 from app.db.base import Base
 

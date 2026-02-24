@@ -7,6 +7,7 @@ import { WCAGAudit } from "@/components/accessibility/WCAGAudit";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AlphaBanner } from "@/components/layout/AlphaBanner";
+import { UnverifiedBanner } from "@/components/layout/UnverifiedBanner";
 import { LocaleInitializer } from "@/components/locale/LocaleInitializer";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { MaintenanceOverlay } from "@/components/layout/MaintenanceOverlay";
@@ -137,6 +138,7 @@ export default function RootLayout({
             {/* Espaceur pour compenser le header fixe (h-16) */}
             <div className="h-16 shrink-0" aria-hidden="true" />
             <AlphaBanner />
+            <UnverifiedBanner />
             <main
               id="main-content"
               className="flex-1 relative z-10"

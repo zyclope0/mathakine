@@ -8,12 +8,18 @@ import { Loader2 } from "lucide-react";
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAuth?: boolean;
+  /** Si true, redirige vers /exercises si access_scope === "exercises_only" */
+  requireFullAccess?: boolean;
+  /** Si true, redirige vers /onboarding si onboarding_completed_at est null */
+  requireOnboardingCompleted?: boolean;
   redirectTo?: string;
 }
 
 export function ProtectedRoute({
   children,
   requireAuth = true,
+  requireFullAccess = false,
+  requireOnboardingCompleted = false,
   redirectTo = "/login",
 }: ProtectedRouteProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -44,18 +50,50 @@ export function ProtectedRoute({
     }
   }, [isLoading, user, hasCheckedAuth]);
 
-  // Vérifier l'authentification
+  // Vérifier l'authentification, l'accès complet et l'onboarding
   useEffect(() => {
-    // Si on a déjà vérifié l'auth et qu'on doit rediriger
-    if (hasCheckedAuth && requireAuth && !isAuthenticated && user === null) {
-      // Log uniquement en développement
+    if (!hasCheckedAuth) return;
+    // Onboarding non complété sur une route qui l'exige
+    if (
+      requireOnboardingCompleted &&
+      user &&
+      !user.onboarding_completed_at &&
+      user.access_scope !== "exercises_only"
+    ) {
+      if (process.env.NODE_ENV === "development") {
+        console.log("[ProtectedRoute] Onboarding non complété → redirection vers /onboarding");
+      }
+      setShouldRedirect(true);
+      router.push("/onboarding");
+      return;
+    }
+    // Accès limité (exercises_only) sur une route qui exige full
+    if (requireFullAccess && user && user.access_scope === "exercises_only") {
+      if (process.env.NODE_ENV === "development") {
+        console.log("[ProtectedRoute] Accès limité → redirection vers /exercises");
+      }
+      setShouldRedirect(true);
+      router.push("/exercises");
+      return;
+    }
+    // Non authentifié
+    if (requireAuth && !isAuthenticated && user === null) {
       if (process.env.NODE_ENV === "development") {
         console.log("[ProtectedRoute] Redirection vers", redirectTo);
       }
       setShouldRedirect(true);
       router.push(redirectTo);
     }
-  }, [hasCheckedAuth, requireAuth, isAuthenticated, router, redirectTo, user]);
+  }, [
+    hasCheckedAuth,
+    requireAuth,
+    requireFullAccess,
+    requireOnboardingCompleted,
+    isAuthenticated,
+    router,
+    redirectTo,
+    user,
+  ]);
 
   // Si on est en chargement initial ET qu'on n'a pas encore de données utilisateur en cache
   // ET qu'on n'a pas encore dépassé le timeout de sécurité
@@ -75,8 +113,26 @@ export function ProtectedRoute({
     );
   }
 
-  // Si on doit rediriger, ne rien afficher (redirection en cours)
-  if (shouldRedirect || (hasCheckedAuth && requireAuth && !isAuthenticated)) {
+  // Si on doit rediriger
+  const mustRedirectToLogin =
+    hasCheckedAuth && requireAuth && !isAuthenticated;
+  const mustRedirectToExercises =
+    hasCheckedAuth &&
+    requireFullAccess &&
+    user &&
+    user.access_scope === "exercises_only";
+  const mustRedirectToOnboarding =
+    hasCheckedAuth &&
+    requireOnboardingCompleted &&
+    user &&
+    !user.onboarding_completed_at &&
+    user.access_scope !== "exercises_only";
+  if (
+    shouldRedirect ||
+    mustRedirectToLogin ||
+    mustRedirectToExercises ||
+    mustRedirectToOnboarding
+  ) {
     return null;
   }
 

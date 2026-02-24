@@ -46,7 +46,7 @@ export default function LeaderboardPage() {
   const { leaderboard, isLoading, error } = useLeaderboard(50, effectiveAgeGroup);
 
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireFullAccess>
       <PageLayout>
         <PageHeader title={t("title")} description={t("description")} icon={Trophy} />
 
