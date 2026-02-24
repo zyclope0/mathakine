@@ -17,9 +17,7 @@ function sendToBackend(event: string, payload: Record<string, unknown>): void {
   if (!isClient()) return;
   import("@/lib/api/client")
     .then(({ api }) => {
-      api
-        .post("/api/analytics/event", { event, payload })
-        .catch(() => {});
+      api.post("/api/analytics/event", { event, payload }).catch(() => {});
     })
     .catch(() => {});
 }

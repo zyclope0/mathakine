@@ -1,15 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import {
-  Sparkles,
-  Rocket,
-  Calendar,
-  Plus,
-  Wrench,
-  Zap,
-  CheckCircle2,
-} from "lucide-react";
+import { Sparkles, Rocket, Calendar, Plus, Wrench, Zap, CheckCircle2 } from "lucide-react";
 import { PageLayout } from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,13 +20,13 @@ const LATEST_KEY = "v221a2";
 
 export default function ChangelogPage() {
   const t = useTranslations("changelog");
-  const { shouldReduceMotion, createVariants, createTransition } =
-    useAccessibleAnimation();
+  const { shouldReduceMotion, createVariants, createTransition } = useAccessibleAnimation();
 
   const versionKeys = ["v221a2", "v222", "v221", "v220"] as const;
 
   const itemIcon = (idx: number, isLatest: boolean) => {
-    if (!isLatest) return <CheckCircle2 className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />;
+    if (!isLatest)
+      return <CheckCircle2 className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />;
     const icons: LucideIcon[] = [Plus, Zap, Wrench];
     const Icon = icons[idx % icons.length] ?? Plus;
     return <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden />;
@@ -54,18 +46,11 @@ export default function ChangelogPage() {
               })}
         >
           <div className="rounded-full bg-gradient-to-br from-primary/20 to-accent/20 p-5 ring-2 ring-primary/30">
-            <Sparkles
-              className="h-14 w-14 text-primary"
-              aria-hidden="true"
-            />
+            <Sparkles className="h-14 w-14 text-primary" aria-hidden="true" />
           </div>
         </motion.div>
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-          {t("title")}
-        </h1>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          {t("subtitle")}
-        </p>
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground">{t("title")}</h1>
+        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{t("subtitle")}</p>
       </header>
 
       {/* Timeline */}
@@ -103,9 +88,7 @@ export default function ChangelogPage() {
                 <div
                   className={cn(
                     "relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 md:ml-0",
-                    isLatest
-                      ? "border-primary bg-primary/15"
-                      : "border-muted bg-muted/50"
+                    isLatest ? "border-primary bg-primary/15" : "border-muted bg-muted/50"
                   )}
                   aria-hidden="true"
                 >
@@ -119,9 +102,7 @@ export default function ChangelogPage() {
                 <div className="min-w-0 flex-1 pb-2">
                   {/* En-tête version */}
                   <div className="mb-3 flex flex-wrap items-center gap-2">
-                    <h2 className="text-lg font-semibold text-foreground">
-                      {block.version}
-                    </h2>
+                    <h2 className="text-lg font-semibold text-foreground">{block.version}</h2>
                     {isLatest && (
                       <Badge
                         variant="default"
@@ -144,9 +125,7 @@ export default function ChangelogPage() {
                   <Card
                     className={cn(
                       "transition-colors",
-                      isLatest
-                        ? "border-primary/30 bg-primary/5 shadow-sm"
-                        : "border-border"
+                      isLatest ? "border-primary/30 bg-primary/5 shadow-sm" : "border-border"
                     )}
                   >
                     <CardContent className="pt-4 pb-4">
@@ -157,12 +136,7 @@ export default function ChangelogPage() {
                             className="flex gap-3 items-start text-muted-foreground"
                           >
                             {itemIcon(itemIdx, isLatest)}
-                            <span
-                              className={cn(
-                                "pt-0.5",
-                                isLatest && "text-foreground/90"
-                              )}
-                            >
+                            <span className={cn("pt-0.5", isLatest && "text-foreground/90")}>
                               {item}
                             </span>
                           </li>

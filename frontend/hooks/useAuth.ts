@@ -91,10 +91,7 @@ export function useAuth() {
       });
       // Rediriger : onboarding si pas encore fait, sinon /dashboard (post-inscription) ou /exercises
       const needsOnboarding = !data.user.onboarding_completed_at;
-      const target =
-        needsOnboarding
-          ? "/onboarding"
-          : postLoginRedirectRef.current || "/exercises";
+      const target = needsOnboarding ? "/onboarding" : postLoginRedirectRef.current || "/exercises";
       postLoginRedirectRef.current = null;
       router.replace(target);
     },

@@ -114,13 +114,9 @@ export function ProtectedRoute({
   }
 
   // Si on doit rediriger
-  const mustRedirectToLogin =
-    hasCheckedAuth && requireAuth && !isAuthenticated;
+  const mustRedirectToLogin = hasCheckedAuth && requireAuth && !isAuthenticated;
   const mustRedirectToExercises =
-    hasCheckedAuth &&
-    requireFullAccess &&
-    user &&
-    user.access_scope === "exercises_only";
+    hasCheckedAuth && requireFullAccess && user && user.access_scope === "exercises_only";
   const mustRedirectToOnboarding =
     hasCheckedAuth &&
     requireOnboardingCompleted &&

@@ -20,13 +20,7 @@ import { api } from "@/lib/api/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { AGE_GROUPS, getAgeGroupDisplay } from "@/lib/constants/exercises";
 
-const LEARNING_GOALS = [
-  "reviser",
-  "preparer_exam",
-  "progresser",
-  "samuser",
-  "autre",
-] as const;
+const LEARNING_GOALS = ["reviser", "preparer_exam", "progresser", "samuser", "autre"] as const;
 const PRACTICE_RHYTHMS = [
   "10min_jour",
   "20min_jour",

@@ -4,12 +4,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 
-const FULL_ACCESS_PATHS = [
-  "/dashboard",
-  "/challenges",
-  "/badges",
-  "/leaderboard",
-];
+const FULL_ACCESS_PATHS = ["/dashboard", "/challenges", "/badges", "/leaderboard"];
 const FULL_ACCESS_PREFIX = "/challenge/";
 
 /**

@@ -85,7 +85,13 @@ function ProfilePageContent() {
 
   const GRADE_SYSTEMS = ["suisse", "unifie"] as const;
   const LEARNING_GOALS = ["reviser", "preparer_exam", "progresser", "samuser", "autre"] as const;
-  const PRACTICE_RHYTHMS = ["10min_jour", "20min_jour", "30min_semaine", "1h_semaine", "flexible"] as const;
+  const PRACTICE_RHYTHMS = [
+    "10min_jour",
+    "20min_jour",
+    "30min_semaine",
+    "1h_semaine",
+    "flexible",
+  ] as const;
 
   // Données du formulaire préférences d'apprentissage
   const [learningPrefs, setLearningPrefs] = useState({
@@ -770,7 +776,9 @@ function ProfilePageContent() {
                           {tOnboarding("learningGoal")}
                         </Label>
                         <p className="text-sm font-medium">
-                          {LEARNING_GOALS.includes(user.learning_goal as (typeof LEARNING_GOALS)[number])
+                          {LEARNING_GOALS.includes(
+                            user.learning_goal as (typeof LEARNING_GOALS)[number]
+                          )
                             ? tOnboarding(`goals.${user.learning_goal}`)
                             : user.learning_goal}
                         </p>

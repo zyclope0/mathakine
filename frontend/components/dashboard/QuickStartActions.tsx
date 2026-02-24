@@ -25,9 +25,7 @@ export function QuickStartActions() {
   const t = useTranslations("dashboard.quickStart");
 
   // Priorisation : priority desc, puis premier exercice et premier défi
-  const sorted = [...recommendations].sort(
-    (a, b) => (b.priority ?? 5) - (a.priority ?? 5)
-  );
+  const sorted = [...recommendations].sort((a, b) => (b.priority ?? 5) - (a.priority ?? 5));
   const bestExercise = sorted.find((r) => r.exercise_id && !r.challenge_id);
   const bestChallenge = sorted.find((r) => r.challenge_id);
 
@@ -63,9 +61,7 @@ export function QuickStartActions() {
       aria-label={t("title")}
       data-quick-start-block="true"
     >
-      <h2 className="text-base font-semibold text-foreground mb-4">
-        {t("title")}
-      </h2>
+      <h2 className="text-base font-semibold text-foreground mb-4">{t("title")}</h2>
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <Link
           href={exerciseHref}
@@ -74,13 +70,8 @@ export function QuickStartActions() {
           data-quick-start="exercise"
           data-quick-start-guided={!!bestExercise?.exercise_id}
         >
-          <Calculator
-            className="h-8 w-8 text-primary"
-            aria-hidden="true"
-          />
-          <span className="text-sm font-medium text-center">
-            {t("exerciseCta")}
-          </span>
+          <Calculator className="h-8 w-8 text-primary" aria-hidden="true" />
+          <span className="text-sm font-medium text-center">{t("exerciseCta")}</span>
           {bestExercise && (
             <span className="text-xs text-muted-foreground line-clamp-1">
               {bestExercise.exercise_title || bestExercise.exercise_type}
@@ -94,13 +85,8 @@ export function QuickStartActions() {
           data-quick-start="challenge"
           data-quick-start-guided={!!bestChallenge?.challenge_id}
         >
-          <Swords
-            className="h-8 w-8 text-primary"
-            aria-hidden="true"
-          />
-          <span className="text-sm font-medium text-center">
-            {t("challengeCta")}
-          </span>
+          <Swords className="h-8 w-8 text-primary" aria-hidden="true" />
+          <span className="text-sm font-medium text-center">{t("challengeCta")}</span>
           {bestChallenge && (
             <span className="text-xs text-muted-foreground line-clamp-1">
               {bestChallenge.challenge_title || t("challengeDefault")}

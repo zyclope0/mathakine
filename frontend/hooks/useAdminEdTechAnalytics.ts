@@ -32,10 +32,7 @@ export interface AdminEdTechAnalyticsResponse {
   events: EdTechEventItem[];
 }
 
-export function useAdminEdTechAnalytics(
-  period: "7d" | "30d" = "7d",
-  eventFilter?: string
-) {
+export function useAdminEdTechAnalytics(period: "7d" | "30d" = "7d", eventFilter?: string) {
   const params = new URLSearchParams();
   params.set("period", period);
   if (eventFilter) params.set("event", eventFilter);

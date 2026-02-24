@@ -167,10 +167,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
       ) {
         notifyMaintenance();
       }
-      if (
-        response.status === 403 &&
-        errorData?.code === "EMAIL_VERIFICATION_REQUIRED"
-      ) {
+      if (response.status === 403 && errorData?.code === "EMAIL_VERIFICATION_REQUIRED") {
         notifyAccessScopeLimited();
       }
     } catch {

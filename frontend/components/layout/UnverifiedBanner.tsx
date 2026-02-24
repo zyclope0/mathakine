@@ -26,11 +26,12 @@ export function UnverifiedBanner() {
       className="bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 dark:from-amber-600 dark:via-amber-700 dark:to-amber-600 text-amber-950 dark:text-amber-50 px-4 py-2.5 relative z-40 border-b border-amber-600/30"
     >
       <div className="container mx-auto flex items-center justify-center gap-2 flex-wrap text-sm">
-        <Sparkles className="h-4 w-4 flex-shrink-0 text-amber-800 dark:text-amber-200" aria-hidden="true" />
+        <Sparkles
+          className="h-4 w-4 flex-shrink-0 text-amber-800 dark:text-amber-200"
+          aria-hidden="true"
+        />
         <span className="font-medium">
-          {isLimited
-            ? t("unverifiedBanner")
-            : t("unverifiedBannerEarly")}
+          {isLimited ? t("unverifiedBanner") : t("unverifiedBannerEarly")}
         </span>
         <Link
           href="/verify-email"
