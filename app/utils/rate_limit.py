@@ -12,6 +12,8 @@ from collections import defaultdict
 from functools import wraps
 from typing import Callable
 
+from starlette.responses import JSONResponse
+
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -25,6 +27,10 @@ RATE_LIMIT_REGISTER_MAX = 3  # création de compte
 RATE_LIMIT_RESEND_VERIFICATION_MAX = 2  # resend-verification (abus email)
 RATE_LIMIT_CHAT_MAX = 15  # chat/stream — coût OpenAI, éviter abus
 
+# Messages d'erreur centralisés (429 Too Many Requests)
+MSG_RATE_LIMIT_RETRY = "Trop de tentatives. Veuillez réessayer dans une minute."
+MSG_CHAT_RATE_LIMIT = "Limite de messages atteinte. Veuillez réessayer dans une minute."
+
 
 def _get_client_ip(request) -> str:
     """Récupère l'IP cliente (X-Forwarded-For si derrière proxy)."""
@@ -32,6 +38,11 @@ def _get_client_ip(request) -> str:
     if forwarded:
         return forwarded.split(",")[0].strip()
     return getattr(request.client, "host", "unknown") or "unknown"
+
+
+def _rate_limit_response(message: str) -> JSONResponse:
+    """Retourne une réponse 429 Too Many Requests."""
+    return JSONResponse({"error": message}, status_code=429)
 
 
 def _check_rate_limit(
@@ -64,14 +75,7 @@ def rate_limit_auth(endpoint_name: str):
             key = f"rate_limit:{endpoint_name}:{ip}"
             if not _check_rate_limit(key, RATE_LIMIT_AUTH_MAX):
                 logger.warning(f"Rate limit dépassé pour {endpoint_name} depuis {ip}")
-                from starlette.responses import JSONResponse
-
-                return JSONResponse(
-                    {
-                        "error": "Trop de tentatives. Veuillez réessayer dans une minute."
-                    },
-                    status_code=429,
-                )
+                return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
             return await func(request, *args, **kwargs)
 
         return wrapped
@@ -88,12 +92,7 @@ def rate_limit_register(func: Callable):
         key = f"rate_limit:register:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_REGISTER_MAX):
             logger.warning(f"Rate limit dépassé pour register depuis {ip}")
-            from starlette.responses import JSONResponse
-
-            return JSONResponse(
-                {"error": "Trop de tentatives. Veuillez réessayer dans une minute."},
-                status_code=429,
-            )
+            return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
         return await func(request, *args, **kwargs)
 
     return wrapped
@@ -108,12 +107,7 @@ def rate_limit_resend_verification(func: Callable):
         key = f"rate_limit:resend_verification:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_RESEND_VERIFICATION_MAX):
             logger.warning(f"Rate limit dépassé pour resend-verification depuis {ip}")
-            from starlette.responses import JSONResponse
-
-            return JSONResponse(
-                {"error": "Trop de tentatives. Veuillez réessayer dans une minute."},
-                status_code=429,
-            )
+            return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
         return await func(request, *args, **kwargs)
 
     return wrapped
@@ -128,14 +122,7 @@ def rate_limit_chat(func: Callable):
         key = f"rate_limit:chat:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_CHAT_MAX):
             logger.warning(f"Rate limit dépassé pour chat depuis {ip}")
-            from starlette.responses import JSONResponse
-
-            return JSONResponse(
-                {
-                    "error": "Limite de messages atteinte. Veuillez réessayer dans une minute."
-                },
-                status_code=429,
-            )
+            return _rate_limit_response(MSG_CHAT_RATE_LIMIT)
         return await func(request, *args, **kwargs)
 
     return wrapped

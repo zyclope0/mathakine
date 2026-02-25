@@ -130,7 +130,10 @@ export function FeedbackFab({ context: contextProp, className }: FeedbackFabProp
 
   return (
     <>
-      <div ref={dropdownRef} className={cn("fixed bottom-6 right-6 z-[9985]", className)}>
+      <div
+        ref={dropdownRef}
+        className={cn("fixed bottom-6 right-6 z-[9985] feedback-fab", className)}
+      >
         <div
           className={cn(
             "absolute bottom-14 right-0 mb-2 flex flex-col gap-1 rounded-lg border bg-card p-1 shadow-lg transition-opacity",

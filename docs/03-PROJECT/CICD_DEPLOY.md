@@ -7,7 +7,7 @@
 
 ## 1. CI automatique (push/PR)
 
-Le workflow **CI (Tests + Lint)** (`.github/workflows/tests.yml`) se déclenche sur :
+Le workflow **CI (Tests + Lint)** (`.github/workflows/tests.yml`) est la **source de vérité unique** (ci.yml supprimé 25/02/2026). Déclenchement sur :
 
 - `push` et `pull_request` vers `main`, `master`, `develop`
 
@@ -15,7 +15,7 @@ Le workflow **CI (Tests + Lint)** (`.github/workflows/tests.yml`) se déclenche 
 
 | Job   | Actions                                        |
 |-------|-------------------------------------------------|
-| test  | Backend : pytest (coverage), flake8, black, isort |
+| test  | Backend : pytest (coverage), smoke /health, Codecov |
 | lint  | Backend : flake8, black, isort                  |
 | frontend | TypeScript, ESLint, Prettier, Vitest, build Next.js |
 

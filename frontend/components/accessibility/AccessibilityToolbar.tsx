@@ -183,17 +183,16 @@ export function AccessibilityToolbar() {
           "hover:scale-110 hover:shadow-xl hover:shadow-violet-600/40",
           // Focus visible (WCAG)
           "focus:outline-none focus:ring-4 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-background",
-          // État actif
-          isOpen && "ring-2 ring-violet-400",
-          activeCount > 0 && "animate-pulse"
+          // État actif (sans pulse pour ne pas distraire)
+          isOpen && "ring-2 ring-violet-400"
         )}
       >
         <Settings2 className="h-6 w-6" aria-hidden="true" />
 
-        {/* Badge compteur */}
+        {/* Badge compteur — discret, cohérent avec le violet */}
         {activeCount > 0 && (
           <span
-            className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white"
+            className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-violet-600 ring-2 ring-violet-600"
             aria-hidden="true"
           >
             {activeCount}
@@ -210,23 +209,19 @@ export function AccessibilityToolbar() {
           className={cn(
             "absolute bottom-14 left-0",
             "w-64 rounded-lg",
-            "bg-white dark:bg-gray-900",
-            "border border-gray-200 dark:border-gray-700",
-            "shadow-2xl",
+            "bg-popover border border-border shadow-2xl",
             "animate-in fade-in slide-in-from-bottom-2 duration-200"
           )}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <span className="font-semibold text-sm text-gray-900 dark:text-white">
-              Accessibilité
-            </span>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <span className="font-semibold text-sm text-popover-foreground">Accessibilité</span>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-1 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
               aria-label="Fermer le menu"
             >
-              <X className="h-4 w-4 text-gray-500" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
@@ -244,55 +239,40 @@ export function AccessibilityToolbar() {
                 }}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-2.5 text-left",
-                  "hover:bg-gray-100 dark:hover:bg-gray-800",
-                  "focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-800",
+                  "hover:bg-muted focus:outline-none focus:bg-muted",
                   "transition-colors",
-                  option.isActive && "bg-violet-50 dark:bg-violet-900/20"
+                  option.isActive && "bg-primary/10"
                 )}
               >
-                {/* Icône */}
                 <span
                   className={cn(
                     "flex-shrink-0",
-                    option.isActive
-                      ? "text-violet-600 dark:text-violet-400"
-                      : "text-gray-500 dark:text-gray-400"
+                    option.isActive ? "text-primary" : "text-muted-foreground"
                   )}
                 >
                   {option.icon}
                 </span>
-
-                {/* Label */}
                 <span
                   className={cn(
-                    "flex-1 text-sm",
-                    option.isActive
-                      ? "text-violet-700 dark:text-violet-300 font-medium"
-                      : "text-gray-700 dark:text-gray-300"
+                    "flex-1 text-sm text-foreground",
+                    option.isActive && "font-medium"
                   )}
                 >
                   {option.label}
                 </span>
-
-                {/* Raccourci */}
-                <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:inline">
+                <span className="text-xs text-muted-foreground hidden sm:inline">
                   {option.shortcut}
                 </span>
-
-                {/* Indicateur actif */}
                 {option.isActive && (
-                  <Check
-                    className="h-4 w-4 text-violet-600 dark:text-violet-400 flex-shrink-0"
-                    aria-hidden="true"
-                  />
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" aria-hidden="true" />
                 )}
               </button>
             ))}
           </div>
 
           {/* Footer avec info */}
-          <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-b-lg">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="px-4 py-2 border-t border-border bg-muted/50 rounded-b-lg">
+            <p className="text-xs text-muted-foreground">
               Utilisez Alt + lettre pour activer rapidement
             </p>
           </div>

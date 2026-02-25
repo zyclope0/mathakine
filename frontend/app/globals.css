@@ -854,19 +854,19 @@ select:focus {
   html:not(.dark)[data-theme="minimalist"] .text-muted-foreground {
     color: #525252; /* neutral-600 - contraste 7.0:1 sur blanc */
   }
+
+  /* Prose sur fond muted (chatbot, bulles d'assistant) — contraste WCAG en mode clair */
+  html:not(.dark) [class*="bg-muted"] .prose,
+  html:not(.dark) [class*="bg-muted"] .prose p,
+  html:not(.dark) [class*="bg-muted"] .prose li {
+    color: var(--foreground);
+  }
 }
 
-/* Accessibilité - Mode Focus TSA/TDAH (Phase 1 - Affinements) */
-.focus-mode {
-  /* Réduire les distractions visuelles */
-  --background: #000000;
-  --card: #0a0a0a;
-  --foreground: #ffffff;
-  --muted-foreground: #cccccc;
-  --primary: #ffffff;
-  --ring: #ffffff;
-  --border: rgba(255, 255, 255, 0.3);
-}
+/* Accessibilité - Mode Focus TSA/TDAH (Phase 1 - Affinements)
+ * Ne change PAS le thème (clair/sombre) : respecte le choix utilisateur.
+ * Objectifs : masquer distractions, réduire animations, renforcer focus visible.
+ */
 
 /* Masquer éléments non essentiels */
 .focus-mode .navigation-secondary,
@@ -877,7 +877,8 @@ select:focus {
 .focus-mode .badges-preview,
 .focus-mode .stars,
 .focus-mode .particles,
-.focus-mode .planets {
+.focus-mode .planets,
+.focus-mode .feedback-fab {
   display: none !important;
 }
 
@@ -887,9 +888,7 @@ select:focus {
   background: var(--background) !important;
 }
 
-.focus-mode header nav > div:last-child {
-  /* Masquer les actions secondaires (thème, langue) mais garder logout si connecté */
-}
+/* Header : thème/langue restent (pas de sélecteur spécifique) ; logout conservé */
 
 /* Agrandir et optimiser zone de travail */
 .focus-mode .exercise-solver,

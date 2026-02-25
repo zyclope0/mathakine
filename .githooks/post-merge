@@ -13,7 +13,7 @@ fi
 # Vérifier si des migrations sont nécessaires
 if git diff-tree -r --name-only --no-commit-id HEAD@{1} HEAD | grep -q "migrations/"; then
     echo "🗃️  Nouvelles migrations détectées"
-    echo "💡 Pensez à exécuter: python mathakine_cli.py migrate"
+    echo "💡 Pensez à exécuter: alembic upgrade head"
 fi
 
 echo "✅ Post-merge terminé"

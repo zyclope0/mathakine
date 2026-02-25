@@ -10,7 +10,6 @@ RÉALITÉ (audit 2026-02):
 
 import os
 import time
-from typing import Callable
 
 from app.core.logging_config import get_logger
 

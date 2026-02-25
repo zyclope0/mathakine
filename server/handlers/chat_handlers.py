@@ -4,7 +4,6 @@ Optimisé avec streaming SSE, smart routing, et best practices AI modernes
 """
 
 import json
-import os
 
 from starlette.responses import JSONResponse, StreamingResponse
 

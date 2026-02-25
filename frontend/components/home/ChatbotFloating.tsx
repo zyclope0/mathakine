@@ -131,7 +131,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
                 )}
                 <div
                   className={cn(
-                    "prose prose-sm prose-invert max-w-[85%] rounded-2xl px-4 py-3",
+                    "prose prose-sm dark:prose-invert max-w-[85%] rounded-2xl px-4 py-3",
                     message.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-md"
                       : "bg-muted rounded-bl-md"

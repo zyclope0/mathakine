@@ -5,8 +5,8 @@ Verifie la sante de l'application, le routage et les reponses d'erreur.
 Routes testees :
 - GET /health
 - GET /robots.txt
-- GET /api/exercises (existe, necessite auth → 401)
-- GET /api/challenges (existe, necessite auth → 401)
+- GET /api/exercises (route publique, whitelist deny-by-default)
+- GET /api/challenges (requiert auth → 401)
 - GET /nonexistent (404)
 - GET /api/auth/login (methode GET non autorisee → 405)
 """
@@ -53,6 +53,15 @@ async def test_nonexistent_endpoint(client):
     assert response.status_code == 404
 
 
+async def test_exercises_public_without_auth(client):
+    """GET /api/exercises — route publique (whitelist deny-by-default), accessible sans token."""
+    response = await client.get("/api/exercises")
+    assert response.status_code == 200
+    data = response.json()
+    assert "items" in data or "exercises" in data
+    assert "total" in data
+
+
 async def test_challenges_requires_auth(client):
     """Test que /api/challenges requiert une authentification (401)."""
     response = await client.get("/api/challenges")
@@ -62,9 +71,10 @@ async def test_challenges_requires_auth(client):
 
 
 async def test_api_auth_login_get_not_allowed(client):
-    """Test que GET /api/auth/login retourne 405 (POST uniquement)."""
+    """Test que GET /api/auth/login est refusé (405 ou 401 selon middleware deny-by-default)."""
     response = await client.get("/api/auth/login")
-    assert response.status_code == 405
+    # 401 : middleware bloque (whitelist POST only) ; 405 : route atteinte, méthode non autorisée
+    assert response.status_code in (401, 405)
 
 
 async def test_api_auth_login_post_missing_body(client):

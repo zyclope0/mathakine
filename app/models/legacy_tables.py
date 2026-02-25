@@ -8,13 +8,10 @@ from sqlalchemy import (
     Column,
     DateTime,
     Float,
-    ForeignKey,
     Integer,
     String,
-    Text,
     text,
 )
-from sqlalchemy.orm import relationship
 
 from app.db.base import Base
 

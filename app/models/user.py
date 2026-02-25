@@ -3,7 +3,6 @@ Modèle SQLAlchemy pour les utilisateurs
 """
 
 import json
-from datetime import datetime, timezone
 from enum import Enum as PyEnum
 
 from sqlalchemy import (
@@ -20,7 +19,6 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from sqlalchemy.sql.expression import text
 from sqlalchemy.types import TypeDecorator
 
 from app.db.base import Base
@@ -40,12 +38,12 @@ class JSONEncodedDict(TypeDecorator):
 
     impl = Text
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(self, value, _dialect):
         if value is not None:
             value = json.dumps(value)
         return value
 
-    def process_result_value(self, value, dialect):
+    def process_result_value(self, value, _dialect):
         if value is not None:
             value = json.loads(value)
         return value

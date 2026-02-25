@@ -1,0 +1,17 @@
+---
+description: Challenger si documentation nécessaire ; privilégier la documentation existante
+alwaysApply: true
+---
+
+# Documentation après intervention
+
+Après chaque intervention, **challenger** : faut-il documenter ?
+
+**Principe** : pas de nouvelle documentation par défaut. Utiliser et mettre à jour la documentation en place.
+
+- **Exister** : `docs/INDEX.md`, `docs/01-GUIDES/`, `docs/03-PROJECT/`, `README_TECH.md`
+- **Mettre à jour** un document existant plutôt que d'en créer un nouveau
+- **Nouveau doc** : uniquement si aucun document existant ne couvre le sujet et que la création apporte une valeur claire
+- Éviter la multiplication de fichiers isolés ; centraliser dans la structure existante
+
+Voir `docs/CONVENTION_DOCUMENTATION.md` pour les règles de nommage et d'organisation.

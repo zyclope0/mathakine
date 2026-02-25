@@ -298,10 +298,13 @@ export function ChallengeEditModal({
             <div className="grid gap-2">
               <Label>Solution / Réponse correcte</Label>
               <Input
-                value={data.correct_answer || data.solution || ""}
+                value={data.correct_answer ?? data.solution ?? ""}
                 onChange={(e) => {
-                  update("correct_answer", e.target.value);
-                  update("solution", e.target.value);
+                  const val = e.target.value;
+                  if (!data) return;
+                  setData({ ...data, correct_answer: val, solution: val });
+                  if (errors.correct_answer)
+                    setErrors((prev) => ({ ...prev, correct_answer: "" }));
                 }}
                 placeholder="Réponse attendue"
               />

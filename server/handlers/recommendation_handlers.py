@@ -59,17 +59,46 @@ async def get_recommendations(request):
                 "GRAND_MAITRE": "adulte",
             }
 
-            # Sérialiser les recommandations (exclure exercices/défis archivés)
+            # Sérialiser les recommandations (exclure exercices/défis archivés ou déjà réussis)
+            from app.models.attempt import Attempt
             from app.models.exercise import Exercise
-            from app.models.logic_challenge import LogicChallenge
+            from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+
+            # Exercices déjà réussis
+            completed_exercise_ids = {
+                a.exercise_id
+                for a in db.query(Attempt)
+                .filter(
+                    Attempt.user_id == user_id,
+                    Attempt.is_correct == True,
+                    Attempt.exercise_id.isnot(None),
+                )
+                .all()
+                if a.exercise_id
+            }
+
+            # Défis déjà réussis par l'utilisateur — ne pas les proposer
+            completed_challenge_ids = {
+                a.challenge_id
+                for a in db.query(LogicChallengeAttempt)
+                .filter(
+                    LogicChallengeAttempt.user_id == user_id,
+                    LogicChallengeAttempt.is_correct == True,
+                    LogicChallengeAttempt.challenge_id.isnot(None),
+                )
+                .all()
+                if a.challenge_id
+            }
 
             recommendations_data = []
             for rec in recommendations:
                 exercise = None
                 challenge = None
 
-                # Exclure si l'exercice lié est archivé ou inactif
+                # Exclure si l'exercice lié est archivé, inactif ou déjà réussi
                 if rec.exercise_id:
+                    if rec.exercise_id in completed_exercise_ids:
+                        continue  # Ne pas proposer un exercice déjà réussi
                     exercise = (
                         db.query(Exercise)
                         .filter(Exercise.id == rec.exercise_id)
@@ -82,8 +111,10 @@ async def get_recommendations(request):
                     ):
                         continue  # Ne pas proposer un exercice archivé/inactif
 
-                # Exclure si le défi lié est archivé
+                # Exclure si le défi lié est archivé ou déjà réussi
                 if getattr(rec, "challenge_id", None):
+                    if rec.challenge_id in completed_challenge_ids:
+                        continue  # Ne pas proposer un défi déjà réussi
                     challenge = (
                         db.query(LogicChallenge)
                         .filter(LogicChallenge.id == rec.challenge_id)

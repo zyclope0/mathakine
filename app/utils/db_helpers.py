@@ -4,7 +4,6 @@ Utilitaires pour la gestion des valeurs d'énumération PostgreSQL.
 
 from typing import Any, Dict, Optional
 
-from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 
 

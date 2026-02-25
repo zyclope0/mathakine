@@ -1,5 +1,5 @@
 from enum import Enum as PyEnum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from sqlalchemy import (
     JSON,
@@ -12,7 +12,6 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
-    Table,
     Text,
 )
 from sqlalchemy.orm import relationship

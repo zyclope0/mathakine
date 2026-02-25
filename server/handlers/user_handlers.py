@@ -785,36 +785,6 @@ async def get_all_user_progress(request: Request):
 
 @require_auth
 @require_full_access
-async def get_user_progress_by_exercise_type(request: Request):
-    """
-    Handler pour récupérer la progression de l'utilisateur par type d'exercice (placeholder).
-    Route: GET /api/users/me/progress/{exercise_type}
-    """
-    try:
-        current_user = request.state.user
-
-        user_id = current_user.get("id")
-        exercise_type = request.path_params.get("exercise_type")
-        logger.info(
-            f"Accès à la progression de l'utilisateur {user_id} pour le type d'exercice '{exercise_type}'. Fonctionnalité en développement."
-        )
-
-        return JSONResponse(
-            {
-                "message": f"La progression de l'utilisateur {user_id} pour le type d'exercice '{exercise_type}' est en cours de développement."
-            },
-            status_code=200,
-        )
-    except Exception as e:
-        logger.error(
-            f"Erreur lors de la récupération de la progression par type d'exercice: {e}"
-        )
-        traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
-
-
-@require_auth
-@require_full_access
 async def get_challenges_progress(request: Request):
     """
     Handler pour récupérer la progression des défis logiques de l'utilisateur.

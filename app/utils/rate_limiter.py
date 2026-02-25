@@ -8,7 +8,7 @@ Voir AUDIT_SECURITE_APPLICATIVE_2026-02.md §10.
 
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from app.core.logging_config import get_logger
 

@@ -76,11 +76,8 @@ from server.handlers.challenge_handlers import (
     generate_ai_challenge_stream,
     get_challenge,
     get_challenge_hint,
-    get_challenge_progress,
-    get_challenge_rewards,
     get_challenges_list,
     get_completed_challenges_ids,
-    start_challenge,
     submit_challenge_answer,
 )
 
@@ -121,7 +118,6 @@ from server.handlers.user_handlers import (
     get_all_user_progress,
     get_all_users,
     get_challenges_progress,
-    get_user_progress_by_exercise_type,
     get_user_sessions,
     get_user_stats,
     get_users_leaderboard,
@@ -198,11 +194,6 @@ def get_routes() -> List:
         ),
         Route(
             "/api/users/me/progress", endpoint=get_all_user_progress, methods=["GET"]
-        ),
-        Route(
-            "/api/users/me/progress/{exercise_type}",
-            endpoint=get_user_progress_by_exercise_type,
-            methods=["GET"],
         ),
         Route(
             "/api/users/me/challenges/progress",
@@ -404,21 +395,6 @@ def get_routes() -> List:
         Route(
             "/api/challenges/completed-ids",
             endpoint=get_completed_challenges_ids,
-            methods=["GET"],
-        ),
-        Route(
-            "/api/challenges/start/{challenge_id:int}",
-            endpoint=start_challenge,
-            methods=["POST"],
-        ),
-        Route(
-            "/api/challenges/progress/{challenge_id:int}",
-            endpoint=get_challenge_progress,
-            methods=["GET"],
-        ),
-        Route(
-            "/api/challenges/rewards/{challenge_id:int}",
-            endpoint=get_challenge_rewards,
             methods=["GET"],
         ),
         Route(

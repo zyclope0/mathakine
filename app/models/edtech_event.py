@@ -2,7 +2,7 @@
 Modèle pour les événements analytiques EdTech (CTR Quick Start, temps vers 1er attempt, conversion).
 """
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

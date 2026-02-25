@@ -31,7 +31,10 @@ export function Header() {
   const { shouldReduceMotion, createTransition } = useAccessibleAnimation();
 
   const isAdmin = user?.role === "archiviste";
-  const hasFullAccess = user?.access_scope !== "exercises_only";
+  // Non vérifié : menu restreint sauf si access_scope === "full" (période de grâce).
+  // Évite d'afficher le menu complet quand access_scope est undefined (chargement, cache).
+  const hasFullAccess =
+    user?.is_email_verified === true || user?.access_scope === "full";
 
   const navigation = [
     { name: t("home"), href: "/", icon: Home },

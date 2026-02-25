@@ -26,8 +26,6 @@ Erreur `Failed to fetch` lors de la connexion - le frontend ne peut pas atteindr
 # Dans un terminal séparé
 cd D:\Mathakine
 python enhanced_server.py
-# OU
-python mathakine_cli.py run
 ```
 
 Le backend doit être accessible sur `http://localhost:8000`

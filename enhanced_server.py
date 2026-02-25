@@ -1,19 +1,10 @@
 """
-Serveur web amélioré pour Mathakine (Math Trainer)
+Point d'entrée principal du backend Mathakine (Math Trainer).
 
-Ce module est l'interface web principale de Mathakine, fournissant à la fois:
-- Une interface utilisateur web complète via des templates Jinja2
-- Des endpoints API JSON pour les interactions programmatiques
+Lance l'application Starlette unifiée (server/app.py) avec toutes les routes API,
+le middleware d'auth, SSE streaming IA, etc. FastAPI a été archivé (06/02/2026).
 
-Relation avec app/main.py:
-- enhanced_server.py: Interface principale avec UI web + API minimaliste (à utiliser par défaut)
-- app/main.py: API REST pure destinée aux tests, au débogage ou aux clients externes
-
-Les deux modules partagent les mêmes modèles de données et services, mais ont des objectifs différents:
-- enhanced_server.py est optimisé pour l'expérience utilisateur et l'interface web
-- app/main.py est optimisé pour les interactions programmatiques via API REST
-
-Pour démarrer ce serveur:
+Usage:
     python enhanced_server.py
 """
 

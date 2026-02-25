@@ -78,12 +78,13 @@ export function useChallenges(filters?: ChallengeFilters) {
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
       queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
 
-      // Si la réponse est correcte, invalider et refetch la progression + badges
+      // Si la réponse est correcte, invalider et refetch la progression + badges + recommandations
       if (data.is_correct) {
         queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });
         queryClient.refetchQueries({ queryKey: ["completed-challenges"] });
         queryClient.invalidateQueries({ queryKey: ["badges"] });
         queryClient.invalidateQueries({ queryKey: ["user", "progress"] });
+        queryClient.invalidateQueries({ queryKey: ["recommendations"] });
       }
 
       // Afficher les badges gagnés si présents

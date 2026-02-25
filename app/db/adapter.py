@@ -3,7 +3,7 @@ Adaptateur de base de données pour Mathakine.
 Fournit une interface unifiée entre les modèles SQLAlchemy et les requêtes SQL directes.
 """
 
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type
 
 from app.core.logging_config import get_logger
 

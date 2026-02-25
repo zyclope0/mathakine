@@ -3,7 +3,6 @@ Module de tracking de l'utilisation des tokens OpenAI.
 Permet de monitorer les coûts et l'utilisation de l'API.
 """
 
-import json
 from collections import defaultdict
 from datetime import datetime
 from typing import Dict, Optional

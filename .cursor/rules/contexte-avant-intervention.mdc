@@ -1,0 +1,16 @@
+---
+description: S'assurer d'avoir ~95% du contexte général du projet avant toute intervention
+alwaysApply: true
+---
+
+# Contexte avant intervention
+
+Avant toute intervention significative, s'assurer d'avoir une compréhension solide du projet (~95% du contexte général).
+
+**Actions à réaliser selon la demande :**
+- Explorer la structure (`app/`, `server/`, `frontend/`, `tests/`)
+- Consulter la documentation existante : `docs/INDEX.md`, `README_TECH.md`, guides pertinents
+- Identifier les fichiers et conventions en jeu
+- Comprendre le périmètre (feature, bugfix, refactor) avant de modifier le code
+
+La doc est maintenue comme source de vérité. L'utiliser en priorité.

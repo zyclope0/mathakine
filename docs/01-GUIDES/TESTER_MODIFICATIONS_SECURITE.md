@@ -68,15 +68,12 @@ INFO:     Mathakine server started successfully
 INFO:     Uvicorn running on http://0.0.0.0:8000
 ```
 
-### Option B : Via `mathakine_cli.py`
+### Option B : Avec variables d'environnement
 
 ```bash
 # Windows PowerShell
-python mathakine_cli.py run --debug --port 8000
-
-# Ou avec variables d'environnement
 $env:RUN_STARTUP_MIGRATIONS="true"
-python mathakine_cli.py run --debug
+python enhanced_server.py
 ```
 
 ---

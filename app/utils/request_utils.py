@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Union
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from app.core.constants import Messages
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -51,13 +52,13 @@ async def parse_json_body(
     except Exception as e:
         logger.warning(f"parse_json_body: body JSON invalide — {e}")
         return JSONResponse(
-            {"error": "Corps de requête JSON invalide ou manquant"},
+            {"error": Messages.JSON_BODY_INVALID},
             status_code=422,
         )
 
     if not isinstance(body, dict):
         return JSONResponse(
-            {"error": "Le corps doit être un objet JSON"},
+            {"error": Messages.JSON_BODY_NOT_OBJECT},
             status_code=400,
         )
 

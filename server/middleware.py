@@ -6,8 +6,9 @@ request processing across the application.
 """
 
 import os
+import re
 import uuid
-from typing import Callable, List
+from typing import Callable, List, Set, Tuple
 
 from app.core.config import settings
 from app.core.logging_config import get_logger
@@ -18,7 +19,7 @@ from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse, RedirectResponse
+from starlette.responses import JSONResponse
 
 # Routes exemptées du mode maintenance (admin peut se connecter et désactiver)
 # Headers de sécurité (OWASP) — appliqués si SECURE_HEADERS=true
@@ -104,53 +105,68 @@ class MaintenanceMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+# Whitelist deny-by-default : seules ces routes sont accessibles sans token.
+# Format : (path_exact ou path_prefix, méthodes autorisées, None=exact, True=prefix)
+# Les routes /api/* non listées exigent l'auth au niveau middleware.
+_AUTH_PUBLIC_EXACT: List[Tuple[str, Set[str]]] = [
+    ("/health", {"GET"}),
+    ("/robots.txt", {"GET"}),
+    ("/metrics", {"GET"}),
+    ("/api/auth/login", {"POST"}),
+    ("/api/auth/logout", {"POST"}),
+    ("/api/auth/validate-token", {"POST"}),
+    ("/api/auth/csrf", {"GET"}),
+    ("/api/auth/refresh", {"POST"}),
+    ("/api/auth/forgot-password", {"POST"}),
+    ("/api/auth/reset-password", {"POST"}),
+    ("/api/auth/verify-email", {"GET"}),
+    ("/api/auth/resend-verification", {"POST"}),
+    ("/api/users/", {"POST"}),  # Inscription uniquement ; GET = admin (auth)
+    ("/api/exercises", {"GET"}),
+    ("/api/exercises/stats", {"GET"}),
+    ("/api/exercises/completed-ids", {"GET"}),
+    ("/api/challenges/completed-ids", {"GET"}),
+    ("/api/badges/available", {"GET"}),
+    ("/api/badges/rarity", {"GET"}),
+    ("/api/users/leaderboard", {"GET"}),
+]
+_AUTH_PUBLIC_PATTERNS: List[Tuple[re.Pattern, Set[str]]] = [
+    # Détail exercice (get_exercise sans décorateur = public)
+    (re.compile(r"^/api/exercises/\d+$"), {"GET"}),
+]
+
+
+def _is_auth_public(path: str, method: str) -> bool:
+    """True si la route est explicitement autorisée sans token."""
+    for route_path, methods in _AUTH_PUBLIC_EXACT:
+        if path == route_path or path.rstrip("/") == route_path.rstrip("/"):
+            if method in methods:
+                return True
+    for pattern, methods in _AUTH_PUBLIC_PATTERNS:
+        if pattern.match(path) and method in methods:
+            return True
+    return False
+
+
 class AuthenticationMiddleware(BaseHTTPMiddleware):
     """
-    Middleware for authenticating users.
+    Middleware d'authentification deny-by-default.
 
-    This middleware checks for authentication tokens in cookies and
-    redirects unauthenticated users for protected routes.
+    Seules les routes de la whitelist sont accessibles sans token.
+    Les routes /api/* non listées exigent un cookie access_token valide.
     """
 
     async def dispatch(self, request: Request, call_next: Callable):
-        """
-        Process the request through the middleware.
+        path = request.url.path
+        method = request.method
 
-        Args:
-            request: The Starlette request object
-            call_next: The next middleware or route handler
+        if _is_auth_public(path, method):
+            return await call_next(request)
 
-        Returns:
-            Starlette Response
-        """
-        # List of routes that don't require authentication
-        public_routes = [
-            "/",
-            "/metrics",
-            "/login",
-            "/register",
-            "/api/auth/login",
-            "/api/auth/logout",  # Permet la déconnexion même sans token valide
-            "/api/auth/validate-token",  # Validation token pour sync-cookie (sans session)
-            "/api/auth/csrf",  # Token CSRF (sans auth)
-            "/api/auth/forgot-password",
-            "/api/auth/verify-email",
-            "/api/auth/resend-verification",
-            "/api/users/",
-            "/api/exercises",  # API exercises (publique)
-            "/api/challenges",  # API challenges (publique)
-            "/static",
-            "/exercises",  # On permet l'accès à la liste des exercices sans connexion
-        ]
+        # Routes hors /api : health, metrics, robots - déjà gérées en exact
+        if not path.startswith("/api/"):
+            return await call_next(request)
 
-        # Check if the route is public
-        is_public = any(request.url.path.startswith(route) for route in public_routes)
-
-        if is_public:
-            response = await call_next(request)
-            return response
-
-        # Check for authentication token
         access_token = request.cookies.get("access_token")
         if not access_token:
             logger.info(f"Unauthorized access attempt to {request.url.path}")

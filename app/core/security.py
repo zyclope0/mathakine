@@ -2,8 +2,8 @@
 Utilitaires de sécurité pour l'authentification
 """
 
-from datetime import UTC, datetime, timedelta, timezone
-from typing import Any, Optional, Union
+from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 import bcrypt
 from fastapi import HTTPException

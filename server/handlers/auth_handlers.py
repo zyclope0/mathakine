@@ -11,17 +11,15 @@ from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 from starlette.requests import Request
-from starlette.responses import JSONResponse, RedirectResponse
+from starlette.responses import JSONResponse
 
 from app.core.security import decode_token, get_password_hash
 from app.services.auth_service import (
     authenticate_user,
     create_user_token,
-    get_user_by_email,
     refresh_access_token,
 )
 from app.services.email_service import EmailService
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.utils.csrf import validate_csrf_token
 from app.utils.db_utils import db_session
 from app.utils.email_verification import (

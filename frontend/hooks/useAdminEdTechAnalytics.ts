@@ -15,6 +15,7 @@ export interface EdTechAggregates {
   [event: string]: {
     count: number;
     avg_time_to_first_attempt_ms: number | null;
+    by_type?: { exercise: number; challenge: number };
   };
 }
 
@@ -22,6 +23,7 @@ export interface EdTechCtrSummary {
   total_clicks: number;
   guided_clicks: number;
   guided_rate_pct: number;
+  by_type?: { exercise: number; challenge: number };
 }
 
 export interface AdminEdTechAnalyticsResponse {
@@ -29,6 +31,7 @@ export interface AdminEdTechAnalyticsResponse {
   since: string;
   aggregates: EdTechAggregates;
   ctr_summary: EdTechCtrSummary;
+  unique_users?: number;
   events: EdTechEventItem[];
 }
 

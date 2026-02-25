@@ -401,7 +401,7 @@ Le script `scripts/update_badges_b4.py` applique ces reformulations en base via 
 
 **Exécution :**
 ```bash
-python scripts/update_badges_b4.py              # Dry-run (prévisualisation)
+python scripts/archived/update_badges_b4.py    # Dry-run (script one-off archivé)
 python scripts/update_badges_b4.py --execute    # Applique les mises à jour
 ```
 

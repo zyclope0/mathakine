@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAdminEdTechAnalytics } from "@/hooks/useAdminEdTechAnalytics";
-import { BarChart3, MousePointer, Clock, Zap, Target, Swords } from "lucide-react";
+import { BarChart3, MousePointer, Clock, Zap, Target, Swords, Users } from "lucide-react";
 import Link from "next/link";
 
 const EVENT_LABELS: Record<string, string> = {
@@ -84,6 +84,16 @@ export default function AdminAnalyticsPage() {
           <div className="space-y-6">
             {/* KPIs */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium">Utilisateurs uniques</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl font-bold">{data.unique_users ?? 0}</p>
+                    <p className="text-xs text-muted-foreground">sur la période</p>
+                  </CardContent>
+                </Card>
               {data.ctr_summary && data.ctr_summary.total_clicks > 0 && (
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -95,6 +105,14 @@ export default function AdminAnalyticsPage() {
                     <p className="text-xs text-muted-foreground">
                       {data.ctr_summary.guided_clicks} guidés ({data.ctr_summary.guided_rate_pct}%)
                     </p>
+                    {data.ctr_summary.by_type &&
+                      (data.ctr_summary.by_type.exercise > 0 ||
+                        data.ctr_summary.by_type.challenge > 0) && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {data.ctr_summary.by_type.exercise} ex. /{" "}
+                          {data.ctr_summary.by_type.challenge} défis
+                        </p>
+                      )}
                   </CardContent>
                 </Card>
               )}
@@ -113,6 +131,14 @@ export default function AdminAnalyticsPage() {
                           )}s en moyenne`
                         : "—"}
                     </p>
+                    {data.aggregates.first_attempt.by_type &&
+                      (data.aggregates.first_attempt.by_type.exercise > 0 ||
+                        data.aggregates.first_attempt.by_type.challenge > 0) && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {data.aggregates.first_attempt.by_type.exercise} ex. /{" "}
+                          {data.aggregates.first_attempt.by_type.challenge} défis
+                        </p>
+                      )}
                   </CardContent>
                 </Card>
               )}

@@ -56,9 +56,11 @@
 
 ```
 connect-src ... https://*.sentry.io https://*.ingest.sentry.io ...
+worker-src 'self' blob:
 ```
 
-✅ Couvre ingest.de.sentry.io (région DE) et ingest.sentry.io
+✅ Couvre ingest.de.sentry.io (région DE) et ingest.sentry.io  
+✅ `worker-src 'self' blob:` — évite le blocage du worker de compression Sentry en prod (erreur console CSP)
 
 ### 2.6 Diagnostic
 

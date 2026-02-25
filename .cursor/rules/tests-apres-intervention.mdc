@@ -1,0 +1,16 @@
+---
+description: Après chaque intervention, évaluer la nécessité de modifier/supprimer/créer des tests et le documenter
+alwaysApply: true
+---
+
+# Tests après intervention
+
+À la fin de chaque intervention (feature, correction, refactor), **évaluer** :
+
+1. **Faut-il créer** un nouveau test ? (régression, non-régression)
+2. **Faut-il modifier** un test existant ? (comportement changé)
+3. **Faut-il supprimer** un test ? (objet testé obsolète)
+
+**Documenter** la décision : dans le message de commit ou en commentaire si le test n'est pas pertinent (changement cosmétique, config).
+
+Voir `docs/01-GUIDES/TESTING.md` § Règle projet.

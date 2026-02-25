@@ -424,6 +424,10 @@ class Messages:
     DEFAULT_ERROR = "Une erreur est survenue."
     DEFAULT_SUCCESS = "Opération réussie."
 
+    # Messages d'erreur API (réponses JSON standardisées)
+    JSON_BODY_INVALID = "Corps de requête JSON invalide ou manquant"
+    JSON_BODY_NOT_OBJECT = "Le corps doit être un objet JSON"
+
 
 # Paramètres de pagination
 class PaginationConfig:

@@ -99,11 +99,12 @@
 
 **Effets** :
 
-- Masquage distractions (sidebar, footer, recommandations)
+- Masquage distractions (sidebar, footer, recommandations, feedback flottant)
 - Zone de focus agrandie
 - Animations désactivées
 - Focus visible renforcé
 - Éléments décoratifs masqués (étoiles, particules)
+- **Ne modifie pas les couleurs** : le thème choisi (clair/sombre) est conservé
 
 **CSS** : Classe `.focus-mode` appliquée à `<html>`
 

@@ -8,7 +8,6 @@ from contextlib import contextmanager
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 

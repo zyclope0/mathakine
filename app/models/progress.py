@@ -1,6 +1,5 @@
 from sqlalchemy import (
     JSON,
-    Boolean,
     Column,
     DateTime,
     Float,
@@ -13,7 +12,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.db.base import Base
-from app.models.exercise import ExerciseType
 
 
 class Progress(Base):

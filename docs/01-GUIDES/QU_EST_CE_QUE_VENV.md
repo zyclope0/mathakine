@@ -140,8 +140,8 @@ deactivate
 
 ### Configuration actuelle
 
-Le projet Mathakine utilise **`venv/`** dans le code :
-- `mathakine_cli.py` référence `venv` (ligne 15)
+Le projet Mathakine utilise **`venv/`** :
+- Point d'entrée backend : `python enhanced_server.py`
 - Documentation mentionne `venv`
 
 Mais **`.venv/`** existe aussi (créé le 28 novembre 2025).

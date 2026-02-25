@@ -108,8 +108,13 @@ async def admin_analytics_edtech(request: Request):
         aggregates = defaultdict(lambda: {"count": 0, "time_to_first_attempt_ms": []})
         ctr_guided = 0
         ctr_total = 0
+        unique_user_ids = set()
+        clicks_by_type = {"exercise": 0, "challenge": 0}
+        attempts_by_type = {"exercise": 0, "challenge": 0}
 
         for e in events_all:
+            if e.user_id:
+                unique_user_ids.add(e.user_id)
             aggregates[e.event]["count"] += 1
             if e.event == "first_attempt" and e.payload:
                 t = e.payload.get("timeToFirstAttemptMs")
@@ -118,10 +123,16 @@ async def admin_analytics_edtech(request: Request):
                         aggregates[e.event]["time_to_first_attempt_ms"].append(float(t))
                     except (TypeError, ValueError):
                         pass
+                typ = (e.payload.get("type") or "").lower()
+                if typ in attempts_by_type:
+                    attempts_by_type[typ] += 1
             if e.event == "quick_start_click":
                 ctr_total += 1
                 if e.payload and e.payload.get("guided"):
                     ctr_guided += 1
+                typ = (e.payload.get("type") or "").lower()
+                if typ in clicks_by_type:
+                    clicks_by_type[typ] += 1
 
         # Résumé agrégé
         agg_result = {}
@@ -139,7 +150,12 @@ async def admin_analytics_edtech(request: Request):
                 "total_clicks": ctr_total,
                 "guided_clicks": ctr_guided,
                 "guided_rate_pct": round(100 * ctr_guided / ctr_total, 1),
+                "by_type": dict(clicks_by_type),
             }
+
+        # Répartition type pour first_attempt
+        if aggregates.get("first_attempt"):
+            agg_result["first_attempt"]["by_type"] = dict(attempts_by_type)
 
         events_data = [
             {
@@ -158,6 +174,7 @@ async def admin_analytics_edtech(request: Request):
                 "since": since.isoformat(),
                 "aggregates": dict(agg_result),
                 "ctr_summary": ctr_summary,
+                "unique_users": len(unique_user_ids),
                 "events": events_data,
             }
         )

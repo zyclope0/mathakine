@@ -165,7 +165,7 @@ mathakine/
 ├── frontend/                 # Next.js App Router
 │   ├── app/                 # Pages (dashboard, exercises, challenges, profile)
 │   ├── components/          # Composants React (ui/, dashboard/, auth/, etc.)
-│   ├── hooks/               # 16 hooks React Query
+│   ├── hooks/               # ~30 hooks React Query
 │   ├── lib/                 # Utilitaires (api/, stores/)
 │   ├── messages/            # i18n (fr.json, en.json)
 │   └── public/              # Assets statiques
@@ -186,7 +186,7 @@ mathakine/
 │
 ├── tests/                    # Tests (pytest, vitest, playwright)
 ├── docs/                     # Documentation (voir docs/INDEX.md)
-├── alembic/                  # Migrations DB
+├── migrations/               # Migrations Alembic (alembic.ini → script_location)
 ├── _ARCHIVE_2026/           # Code archivé (FastAPI, docs obsolètes)
 ├── enhanced_server.py       # Point d'entrée backend
 └── requirements.txt         # Dépendances Python

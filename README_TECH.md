@@ -126,7 +126,7 @@ Le backend est unifie sur **Starlette** (FastAPI archive le 06/02/2026).
 - **Authentification** : `server/auth.py` (Cookie + Bearer token)
 - **Streaming** : SSE pour generation IA (exercices + challenges)
 - **Exercise generator** : `exercise_generator.py` + `exercise_generator_validators.py` + `exercise_generator_helpers.py` (choix MCQ, questions contextualisees)
-- **Routes** : ~80 routes enregistrees dans `server/routes.py` (dont bloc admin)
+- **Routes** : ~85 routes enregistrees dans `server/routes.py` (dont bloc admin)
 
 ### Couche logique metier (`app/`)
 Couche independante du framework HTTP :
@@ -177,7 +177,7 @@ Couche independante du framework HTTP :
 
 ---
 
-## 6. API - Endpoints actifs (~80 routes Starlette)
+## 6. API - Endpoints actifs (~85 routes Starlette)
 
 | Methode | Route | Handler | Description |
 |---|---|---|---|
@@ -247,7 +247,7 @@ Toutes les requetes passent par `frontend/lib/api/client.ts` qui gere :
 
 **Prod cross-domain** : Frontend et backend sur domaines differents (ex. Render) → le cookie backend n'est pas envoye aux routes Next.js. Le flux `sync-cookie` copie le token sur le domaine frontend (login, refresh, `ensureFrontendAuthCookie()` avant generation IA). Voir `docs/01-GUIDES/TROUBLESHOOTING.md` si erreur « Cookie manquant ».
 
-### Hooks (16 hooks custom)
+### Hooks (~30 hooks custom)
 Chaque domaine a son hook dedie base sur React Query :
 - `useAuth` - login/register/logout + gestion token
 - `useExercises` / `useExercise` - CRUD exercices + pagination
