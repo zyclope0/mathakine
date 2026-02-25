@@ -25,7 +25,7 @@ typer==0.9.0  # CLI améliorée
 pathlib==1.0.1  # Manipulation de chemins de fichiers
 
 # Intégration IA - version figee pour stabilite (support max_completion_tokens GPT-5.x)
-openai==2.16.0
+openai==2.24.0
 tenacity==9.1.4  # Retry logic avec backoff exponentiel
 
 # Journalisation et débogage
