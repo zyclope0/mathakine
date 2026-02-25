@@ -184,11 +184,11 @@ Les éléments suivants ont été implémentés et sont désormais documentés i
 | **Mode classe/enseignant** | Élevé | ROADMAP 4.4 | — |
 | **Tuteur IA contextuel** | Élevé | ROADMAP 5.1 | — |
 
-### À supprimer / Ne pas implémenter
-- `start_challenge` — Non nécessaire
-- `get_challenge_progress` — Redondant
-- `get_challenge_rewards` — Système non défini
-- `get_user_progress_by_exercise_type` — Redondant avec /me/progress
+### À supprimer / Ne pas implémenter — ✅ Supprimés (22/02/2026)
+- ~~`start_challenge`~~ — Supprimé (non nécessaire)
+- ~~`get_challenge_progress`~~ — Supprimé (redondant avec /me/challenges/progress)
+- ~~`get_challenge_rewards`~~ — Supprimé (système non défini)
+- ~~`get_user_progress_by_exercise_type`~~ — Supprimé (redondant avec /me/progress)
 
 ---
 

@@ -1,7 +1,7 @@
 # 📕 Gestion projet Mathakine
 
 > Index maître — Audits, recommandations, rapports situationnels  
-> **Dernière mise à jour :** 15/02/2026
+> **Dernière mise à jour :** 25/02/2026
 
 ---
 
@@ -36,7 +36,7 @@
 | [AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md](./AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md) | 20/02/2026 | Lint, tests, typage TypeScript | ✅ Corrections appliquées (15/02) — §4 |
 | [AUDIT_DASHBOARD_2026-02.md](./AUDIT_DASHBOARD_2026-02.md) | Fév. 2026 | Dashboard — imports, i18n, handleRefresh | Recos partielles |
 | [AUDIT_SENTRY_2026-02.md](./AUDIT_SENTRY_2026-02.md) | Fév. 2026 | Configuration Sentry, monitoring | Référence config |
-| [ANALYSE_DUPLICATION_DRY_2026-02.md](./ANALYSE_DUPLICATION_DRY_2026-02.md) | Fév. 2026 | DRY, duplication code | ~70–80 % traité |
+| [ANALYSE_DUPLICATION_DRY_2026-02.md](./ANALYSE_DUPLICATION_DRY_2026-02.md) | Fév. 2026 | DRY, duplication code | ~90 % traité (db_session, parse_json_body, safe_parse_json) — vérité terrain 25/02 |
 
 ### Migration DDL → Alembic (✅ réalisée 22/02/2026)
 
@@ -55,7 +55,7 @@
 | Document | Sujet |
 |----------|-------|
 | [ENDPOINTS_NON_INTEGRES.md](./ENDPOINTS_NON_INTEGRES.md) | Endpoints API — section Admin intégrée (16/02) |
-| [PLACEHOLDERS_ET_TODO.md](./PLACEHOLDERS_ET_TODO.md) | Placeholders restants (badges progress, recommandations complete, etc.) |
+| [PLACEHOLDERS_ET_TODO.md](./PLACEHOLDERS_ET_TODO.md) | Placeholders restants (4 supprimés 22/02) — maintenance_mode, delete_user, etc. |
 
 ### Historique (archivé, consultable)
 

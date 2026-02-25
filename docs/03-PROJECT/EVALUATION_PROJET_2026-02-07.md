@@ -37,7 +37,7 @@
 **Points faibles :**
 - **Handlers trop longs** : `generate_ai_challenge_stream()` = 774 lignes, `get_user_stats()` = 271 lignes
 - ~~**Duplication massive** : auth check copie dans chaque handler~~ → **CORRIGE** (08/02/2026) : decorateurs `@require_auth`, `@optional_auth`, `@require_auth_sse` eliminent 40+ blocs dupliques
-- **Duplication restante** : pattern DB session repete ~50 fois, `safe_parse_json()` duplique dans 3 fichiers
+- ~~**Duplication restante** : pattern DB session repete ~50 fois, `safe_parse_json()` duplique~~ → **CORRIGE** (25/02/2026) : `db_session()` (app/utils/db_utils.py) utilise dans tous les handlers ; `safe_parse_json` centralise dans json_utils.py
 - **Typage insuffisant** : ~40-50% couverture, aucun handler n'a de type retour, pas de mypy
 - **Error handling inconsistant** : mix de `ErrorHandler.create_error_response()` et `JSONResponse()` direct
 - **Estimé ~15,000-20,000 LOC backend**

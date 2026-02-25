@@ -1,8 +1,10 @@
 # Analyse de duplication (DRY) — Mathakine
 
 **Date :** Février 2026  
-**Dernière analyse complète :** Février 2026  
+**Dernière revue vérité terrain :** 25/02/2026  
 **Objectif :** Identifier le code dupliqué frontend/backend pour préparer la consolidation (DRY)
+
+> **⚠️ Mise à jour 25/02/2026 — Vérité terrain :** La majorité des duplications backend listées ci-dessous ( §§ 1.1, 1.2) sont **déjà traitées**. Les sections « Pattern actuel » et « Proposition » reflètent l'état avant refactoring. Voir § 5 « Réalisations » pour l'état actuel.
 
 ---
 
@@ -22,62 +24,45 @@
 
 | Périmètre | Zones de duplication | Effort estimé | Statut |
 |-----------|----------------------|---------------|--------|
-| **Backend** | 4–5 patterns majeurs | 4–6 h | ~70 % traité |
+| **Backend** | 4–5 patterns majeurs | 4–6 h | ~90 % traité (db_session 100 %, parse_json_body, safe_parse_json) |
 | **Frontend** | 3–4 zones (cards, modals, hooks) | 6–8 h | ~80 % traité |
-| **Tests** | Fixtures, patterns | 2 h | En attente |
+| **Tests** | Fixtures, patterns | 2 h | En attente (optionnel) |
 
 ---
 
 ## 1. Backend — Duplications identifiées
 
-### 1.1 Pattern `await request.json()` + validation (répété ~15×)
+### 1.1 Pattern `await request.json()` + validation (répété ~15×) — ✅ TRAITÉ
 
-**Fichiers :** Tous les handlers (auth, user, chat, exercise, challenge, recommendation)
+**Statut :** `app/utils/request_utils.py` — `parse_json_body()` existe et est utilisé (auth, chat). Extension optionnelle dans les autres handlers.
 
-**Pattern actuel (copié ~15 fois) :**
+**Solution en place :**
 ```python
-try:
-    data = await request.json()
-    field = data.get('field', '').strip()
-    if not field:
-        return JSONResponse({"error": "Champ requis"}, status_code=400)
-    # ...
-except Exception as e:
-    return ErrorHandler.create_error_response(e, 400)
+data_or_err = await parse_json_body(request, required={"email": "Adresse email requise"})
+if isinstance(data_or_err, JSONResponse):
+    return data_or_err
 ```
-
-**Proposition :** Créer `app/utils/request_utils.py` avec :
-- `parse_json_body(request, required_fields: list, optional_fields: dict) -> dict | JSONResponse`
-- Gère le try/except, les `.strip()`, les messages 400 standardisés
 
 ---
 
-### 1.2 Pattern `get_db_session()` + try/finally (répété ~50×)
+### 1.2 Pattern `get_db_session()` + try/finally (répété ~50×) — ✅ TRAITÉ
 
-**Fichiers :** `auth_handlers`, `user_handlers`, `exercise_handlers`, `challenge_handlers`, `badge_handlers`, `recommendation_handlers`, `auth.py`
+**Statut :** `app/utils/db_utils.py` — `db_session()` context manager async. **100 % des handlers** utilisent `async with db_session() as db:`.
 
-**Pattern actuel :**
+**Solution en place :**
 ```python
-db = EnhancedServerAdapter.get_db_session()
-try:
-    # ... logique ...
+async with db_session() as db:
+    # logique métier
     db.commit()
-except Exception as e:
-    db.rollback()
-    return ErrorHandler.create_error_response(e)
-finally:
-    db.close()
+    return JSONResponse(...)
+# rollback/close gérés automatiquement
 ```
-
-**Proposition :** Décorateur `@with_db_session` ou context manager `with get_db_session() as db:` qui gère commit/rollback/close automatiquement.
 
 ---
 
-### 1.3 `safe_parse_json` dupliqué (évaluation 2026-02)
+### 1.3 `safe_parse_json` dupliqué — ✅ TRAITÉ
 
-**Mentionné dans :** `EVALUATION_PROJET_2026-02-07.md` — « `safe_parse_json()` dupliqué dans 3 fichiers »
-
-**Proposition :** Centraliser dans `app/utils/json_utils.py` (qui existe déjà avec `parse_choices_json`, `make_json_serializable`) — ajouter `safe_parse_json(request)` si ce n'est pas déjà présent.
+**Statut :** Centralisé dans `app/utils/json_utils.py`. Utilisé dans exercise_handlers, challenge_handlers.
 
 ---
 
@@ -182,14 +167,14 @@ finally:
 
 ## 4. Priorités suggérées pour refactoring
 
-| Priorité | Action | Effort | Impact |
+| Priorité | Action | Effort | Statut |
 |----------|--------|--------|--------|
-| P1 | Backend : `parse_json_body()` utilitaire | 1h | Réduit ~15 blocs |
-| P2 | Backend : décorateur/CM `@with_db_session` | 2h | Réduit ~50 blocs try/finally |
-| P3 | Frontend : `ContentCard` ou `useContentCard` | 2h | Réduit duplication cards |
-| P4 | Frontend : `usePaginatedContent` hook | 1h | Réduit duplication hooks |
-| P5 | Frontend : `getAgeGroupDisplay` unifié | 30 min | Supprime doublon |
-| P6 | Tests : fixtures auth centralisées | 1h | Maintenabilité |
+| P1 | Backend : `parse_json_body()` utilitaire | 1h | ✅ Fait |
+| P2 | Backend : context manager `db_session()` | 2h | ✅ Fait |
+| P3 | Frontend : `ContentCard` ou `useContentCard` | 2h | ✅ Fait |
+| P4 | Frontend : `usePaginatedContent` hook | 1h | ✅ Fait |
+| P5 | Frontend : `getAgeGroupDisplay` unifié | 30 min | ✅ Fait |
+| P6 | Tests : fixtures auth centralisées | 1h | ⏳ En attente (optionnel) |
 
 ---
 

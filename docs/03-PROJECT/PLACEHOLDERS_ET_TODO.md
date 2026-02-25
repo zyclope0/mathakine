@@ -14,6 +14,21 @@
 
 ---
 
+## ✅ Quick wins maintenance / code quality (22/02/2026)
+
+Tâches à faible risque : optimiser, nettoyer, sécuriser, faciliter modularité.
+
+| # | Tâche | Statut | Description |
+|---|-------|--------|-------------|
+| 1 | **rate_limit.py nettoyage** | ✅ Fait | Import `JSONResponse` en top-level, constantes `MSG_RATE_LIMIT_RETRY` et `MSG_CHAT_RATE_LIMIT` |
+| 2 | **rate_limiter.py import** | ✅ Fait | Suppression import `Tuple` inutilisé |
+| 3 | **Messages erreur API** | ✅ Fait | `Messages.JSON_BODY_INVALID`, `JSON_BODY_NOT_OBJECT` dans `request_utils.py` |
+| 4 | **Helper `_rate_limit_response** | ✅ Fait | Ajouté dans `rate_limit.py` |
+| 5 | **Tests rate_limit** | ✅ Fait | `tests/unit/test_rate_limit.py` |
+| 6 | **Nettoyage placeholders** | ✅ Fait | Suppression routes + handlers : `start_challenge`, `get_challenge_progress`, `get_challenge_rewards`, `get_user_progress_by_exercise_type` |
+
+---
+
 ## 📋 Récapitulatif
 
 Ce document liste tous les endpoints/handlers **placeholders** (non implémentés) dans le projet.
@@ -79,15 +94,9 @@ Ce document liste tous les endpoints/handlers **placeholders** (non implémenté
 
 ---
 
-### 7. ❌ `get_user_progress_by_exercise_type` - Progression par type
-**Fichier** : `server/handlers/user_handlers.py:637`  
-**Route** : `GET /api/users/me/progress/{exercise_type}`  
-**Impact** : **Basse** - Détail granulaire (déjà disponible dans `/api/users/stats`)  
-**Description** : Endpoint placeholder
-
-**Solution recommandée** :
-- Peut être supprimé car `/api/users/me/progress` contient déjà `by_category`
-- Ou implémenter pour avoir encore plus de détails (historique par type)
+### 7. ~~`get_user_progress_by_exercise_type`~~ — ✅ Supprimé (22/02/2026)
+**Route** : ~~`GET /api/users/me/progress/{exercise_type}`~~  
+Redondant avec `/api/users/me/progress`. Route et handler supprimés.
 
 ---
 
@@ -118,41 +127,21 @@ Ce document liste tous les endpoints/handlers **placeholders** (non implémenté
 
 ---
 
-### 11. ❌ `start_challenge` - Démarrer un défi
-**Fichier** : `server/handlers/challenge_handlers.py:522`  
-**Route** : `POST /api/challenges/start/{challenge_id}`  
-**Impact** : **Très basse** - Tracking optionnel  
-**Description** : Endpoint placeholder (tracking de démarrage)
-
-**Solution recommandée** :
-- Créer une table `challenge_sessions` avec `started_at`, `user_id`, `challenge_id`
-- Permet de tracker le temps total passé sur un défi (différence entre started_at et attempt.created_at)
-- **OU** : Supprimer cet endpoint (pas vraiment nécessaire)
+### 11. ~~`start_challenge`~~ — ✅ Supprimé (22/02/2026)
+**Route** : ~~`POST /api/challenges/start/{challenge_id}`~~  
+Non nécessaire. Route et handler supprimés.
 
 ---
 
-### 12. ❌ `get_challenge_progress` - Progression d'un défi
-**Fichier** : `server/handlers/challenge_handlers.py:549`  
-**Route** : `GET /api/challenges/progress/{challenge_id}`  
-**Impact** : **Très basse** - Tracking optionnel  
-**Description** : Endpoint placeholder
-
-**Solution recommandée** :
-- Retourner les tentatives de l'utilisateur pour ce défi spécifique
-- Nombre de tentatives, meilleur temps, indices utilisés
-- **OU** : Ces infos sont déjà dans `/api/users/me/challenges/progress`
+### 12. ~~`get_challenge_progress`~~ — ✅ Supprimé (22/02/2026)
+**Route** : ~~`GET /api/challenges/progress/{challenge_id}`~~  
+Redondant avec `/api/users/me/challenges/progress`. Route et handler supprimés.
 
 ---
 
-### 13. ❌ `get_challenge_rewards` - Récompenses d'un défi
-**Fichier** : `server/handlers/challenge_handlers.py:576`  
-**Route** : `GET /api/challenges/rewards/{challenge_id}`  
-**Impact** : **Très basse** - Système de récompenses non implémenté  
-**Description** : Endpoint placeholder
-
-**Solution recommandée** :
-- Dépend de la création d'un système de récompenses (XP, badges, items virtuels)
-- **Suggestion** : Reporter à plus tard ou supprimer
+### 13. ~~`get_challenge_rewards`~~ — ✅ Supprimé (22/02/2026)
+**Route** : ~~`GET /api/challenges/rewards/{challenge_id}`~~  
+Système de récompenses non défini. Route et handler supprimés.
 
 ---
 
@@ -186,16 +175,16 @@ from server.auth import require_auth, optional_auth, require_auth_sse
 4. **P4 - Admin** : `get_all_users`, `delete_user`
 5. **P5 - Optionnel** : Autres endpoints (peuvent être supprimés)
 
-### Endpoints à **supprimer** (plutôt qu'implémenter)
+### Endpoints à **supprimer** (plutôt qu'implémenter) — ✅ Fait (22/02/2026)
 
-- `start_challenge` → Non nécessaire
-- `get_challenge_progress` → Redondant avec `/api/users/me/challenges/progress`
-- `get_challenge_rewards` → Système de récompenses non défini
-- `get_user_progress_by_exercise_type` → Redondant avec `/api/users/me/progress`
+- ~~`start_challenge`~~ — Supprimé
+- ~~`get_challenge_progress`~~ — Supprimé
+- ~~`get_challenge_rewards`~~ — Supprimé
+- ~~`get_user_progress_by_exercise_type`~~ — Supprimé
 
-### Nettoyage recommandé
+### Nettoyage recommandé — ✅ Fait (22/02/2026)
 
-Supprimer les handlers placeholders et leurs routes associées dans `server/routes.py` pour éviter la confusion.
+Les handlers placeholders `start_challenge`, `get_challenge_progress`, `get_challenge_rewards`, `get_user_progress_by_exercise_type` ont été supprimés de `server/routes.py` et des handlers associés.
 
 ---
 

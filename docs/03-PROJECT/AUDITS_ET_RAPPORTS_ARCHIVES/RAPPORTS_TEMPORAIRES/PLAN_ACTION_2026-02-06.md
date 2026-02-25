@@ -5,6 +5,7 @@
 **Statut :** ⚠️ Obsolète → [EVALUATION_PROJET_2026-02-07](../../EVALUATION_PROJET_2026-02-07.md)
 
 > **⚠️ Obsolète** - Ce plan date du 06/02/2026. Plusieurs actions ont ete completees depuis :
+> - ✅ **25/02/2026** : Pattern DB session — `db_session()` (app/utils/db_utils.py) deja en place partout ; pas de ~50 blocs try/finally restants
 > - ✅ 4.2 Mise a jour profil (implemente)
 > - ✅ Widgets dashboard (testes et deployes)
 > - ✅ Deploiement Render (valide)

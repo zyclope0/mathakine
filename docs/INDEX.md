@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique — Mise à jour au 15/02/2026  
+> Point d'entrée unique — Mise à jour au 25/02/2026  
 > **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md) — inclut la **revue trimestrielle** (vérité terrain) §7
 
 ---
@@ -60,7 +60,7 @@ docs/
 │   ├── EVALUATION_PROJET_2026-02-07.md  # Référence actuelle (évaluation factuelle)
 │   ├── AUDIT_DASHBOARD_2026-02.md  # Audit dashboard (recos partielles)
 │   ├── AUDIT_SENTRY_2026-02.md  # Configuration Sentry (référence)
-│   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~70-80% traité)
+│   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~90% traité, vérité terrain 25/02)
 │   ├── CICD_DEPLOY.md  # CI/CD, smoke test, migrations, rollback
 │   ├── POLITIQUE_REDACTION_LOGS_PII.md  # Règles PII/secrets dans les logs
 │   ├── ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md  # Migration DDL → Alembic (✅ validée 22/02)
