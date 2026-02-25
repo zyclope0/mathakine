@@ -253,10 +253,7 @@ export function AccessibilityToolbar() {
                   {option.icon}
                 </span>
                 <span
-                  className={cn(
-                    "flex-1 text-sm text-foreground",
-                    option.isActive && "font-medium"
-                  )}
+                  className={cn("flex-1 text-sm text-foreground", option.isActive && "font-medium")}
                 >
                   {option.label}
                 </span>

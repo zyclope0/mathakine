@@ -17,6 +17,7 @@ from app.core.security import decode_token, get_password_hash
 from app.services.auth_service import (
     authenticate_user,
     create_user_token,
+    get_user_by_email,
     refresh_access_token,
 )
 from app.services.email_service import EmailService

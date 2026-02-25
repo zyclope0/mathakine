@@ -233,13 +233,19 @@ async def test_challenge_attempt_unauthenticated(client):
     # Devrait retourner 401 Unauthorized
     assert response.status_code == 401, f"Le code d'état devrait être 401, reçu {response.status_code}"
 
-    # Vérifier le message d'erreur (Starlette @require_auth retourne {"error": "..."})
+    # Vérifier le message d'erreur (Starlette @require_auth ou middleware retourne {"error": "..."})
     data = response.json()
     assert "error" in data, f"La réponse devrait contenir un champ 'error': {data}"
-    error_message = data["error"].lower()
-    assert ("authentication" in error_message or
-            "authentification" in error_message or
-            "requise" in error_message), f"Le message devrait indiquer un problème d'authentification. Message reçu: {data['error']}"
+    error_message = data.get("error", "").lower()
+    message_lower = data.get("message", "").lower()
+    assert (
+        "authentication" in error_message
+        or "authentification" in error_message
+        or "requise" in error_message
+        or "unauthorized" in error_message
+        or "authentication" in message_lower
+        or "authentification" in message_lower
+    ), f"Le message devrait indiquer un problème d'authentification. Reçu: {data}"
 
 
 async def test_challenge_with_centralized_fixtures(logic_challenge_db, padawan_client, mock_request, mock_api_response):

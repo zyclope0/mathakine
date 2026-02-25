@@ -169,6 +169,10 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
 
         access_token = request.cookies.get("access_token")
         if not access_token:
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                access_token = auth_header[7:].strip()
+        if not access_token:
             logger.info(f"Unauthorized access attempt to {request.url.path}")
             # Return 401 JSON response (API backend, no HTML redirect)
             return JSONResponse(

@@ -85,15 +85,15 @@ export default function AdminAnalyticsPage() {
             {/* KPIs */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">Utilisateurs uniques</CardTitle>
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-2xl font-bold">{data.unique_users ?? 0}</p>
-                    <p className="text-xs text-muted-foreground">sur la période</p>
-                  </CardContent>
-                </Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">Utilisateurs uniques</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{data.unique_users ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">sur la période</p>
+                </CardContent>
+              </Card>
               {data.ctr_summary && data.ctr_summary.total_clicks > 0 && (
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">

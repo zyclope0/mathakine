@@ -303,8 +303,7 @@ export function ChallengeEditModal({
                   const val = e.target.value;
                   if (!data) return;
                   setData({ ...data, correct_answer: val, solution: val });
-                  if (errors.correct_answer)
-                    setErrors((prev) => ({ ...prev, correct_answer: "" }));
+                  if (errors.correct_answer) setErrors((prev) => ({ ...prev, correct_answer: "" }));
                 }}
                 placeholder="Réponse attendue"
               />

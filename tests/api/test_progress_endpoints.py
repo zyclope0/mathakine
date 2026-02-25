@@ -83,30 +83,24 @@ async def test_get_user_progress(padawan_client, db_session, mock_exercise):
 
 
 async def test_get_user_progress_by_type(padawan_client, db_session, mock_exercise):
-    """Test pour récupérer les progrès d'un utilisateur par type d'exercice."""
-    # Récupérer le client authentifié et les informations de l'utilisateur
+    """Test pour récupérer les progrès d'un utilisateur (by_category inclut le type)."""
+    # L'API /api/users/me/progress agrège depuis Attempts et retourne by_category
     client = padawan_client["client"]
     user_id = padawan_client["user_id"]
 
-    # Créer un exercice pour le progrès
+    # Créer un exercice et une tentative (comme l'API)
     exercise_data = mock_exercise(exercise_type="addition")
-
-    # Normaliser les valeurs d'enum en majuscules pour PostgreSQL et utiliser les enums Python
     exercise_type_str = exercise_data["exercise_type"].upper() if isinstance(exercise_data["exercise_type"], str) else exercise_data["exercise_type"]
     difficulty_str = exercise_data["difficulty"].upper() if isinstance(exercise_data["difficulty"], str) else exercise_data["difficulty"]
-
-    # Convertir les strings en enums Python
     try:
         exercise_type_enum = ExerciseType(exercise_type_str)
     except ValueError:
         exercise_type_enum = ExerciseType.ADDITION
-
     try:
         difficulty_enum = DifficultyLevel(difficulty_str)
     except ValueError:
         difficulty_enum = DifficultyLevel.INITIE
 
-    # Convertir en instance d'Exercise pour l'ajouter à la base
     exercise = Exercise(
         title=exercise_data["title"],
         exercise_type=exercise_type_enum,
@@ -124,39 +118,26 @@ async def test_get_user_progress_by_type(padawan_client, db_session, mock_exerci
     db_session.commit()
     db_session.refresh(exercise)
 
-    # Créer un progrès pour l'utilisateur
-    exercise_type_val = _enum_val(exercise.exercise_type)
-    difficulty_val = _enum_val(exercise.difficulty)
-    if isinstance(difficulty_val, str):
-        difficulty_val = difficulty_val.upper()
-    progress = Progress(
+    # Créer une tentative pour que by_category soit peuplé
+    attempt = Attempt(
         user_id=user_id,
-        exercise_type=exercise_type_val,
-        difficulty=difficulty_val,
-        total_attempts=5,
-        correct_attempts=4,
-        mastery_level=3  # 3 correspond au niveau Padawan
+        exercise_id=exercise.id,
+        user_answer=exercise.correct_answer,
+        is_correct=True,
+        time_spent=30
     )
-    db_session.add(progress)
+    db_session.add(attempt)
     db_session.commit()
 
-    # Récupérer les progrès de l'utilisateur pour le type d'exercice spécifique
-    # L'endpoint est un placeholder qui retourne 200 avec un message
-    response = await client.get(f"/api/users/me/progress/{exercise_type_val}")
-
-    # Vérifier la réponse (200 avec données complètes ou message placeholder)
+    response = await client.get("/api/users/me/progress")
     assert response.status_code == 200
     data = response.json()
-    if "message" in data:
-        # Format placeholder
-        assert "message" in data
-    else:
-        # Format complet (si implémenté)
-        assert "exercise_type" in data
-        assert "mastery_level" in data
-        assert "total_attempts" in data
-        assert "correct_attempts" in data
-        assert data["exercise_type"] == _enum_val(exercise.exercise_type)
+    assert "by_category" in data
+    exercise_type_val = _enum_val(exercise.exercise_type)
+    assert exercise_type_val in data["by_category"], f"by_category devrait contenir {exercise_type_val}: {data['by_category']}"
+    cat = data["by_category"][exercise_type_val]
+    assert "completed" in cat
+    assert "accuracy" in cat
 
 
 async def test_get_user_progress_unauthorized(client):
