@@ -255,7 +255,9 @@ jobs:
   codecov:
     runs-on: ubuntu-latest
     needs: [test, frontend]
-    if: ${{ !cancelled() }}
+    # Ne tenter de combiner les coverages que si les deux jobs ont réussi
+    # (évite "Artifact not found" quand frontend a échoué avant l'upload)
+    if: ${{ always() && needs.test.result == 'success' && needs.frontend.result == 'success' }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
