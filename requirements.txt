@@ -10,7 +10,7 @@ aiofiles==23.2.1
 # Base de données
 sqlalchemy==2.0.46  # Version compatible Python 3.13
 psycopg2-binary==2.9.11  # Pilote PostgreSQL pour Python - Compatible Python 3.13
-alembic==1.13.1  # Migrations de base de données
+alembic==1.18.4  # Migrations de base de données
 
 # Modèles de données
 pydantic==2.12.4  # Version compatible Python 3.13
