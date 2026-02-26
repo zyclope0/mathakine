@@ -229,6 +229,40 @@ def get_challenge(db: Session, challenge_id: int) -> Optional[LogicChallenge]:
     )
 
 
+def get_challenge_for_api(db: Session, challenge_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Récupère un challenge formaté pour l'API (GET /api/challenges/{id}).
+    Inclut les défis archivés (pas de filtre is_active).
+    """
+    from app.services.logic_challenge_service import LogicChallengeService
+    from app.utils.json_utils import safe_parse_json
+
+    challenge = LogicChallengeService.get_challenge(db, challenge_id)
+    if not challenge:
+        return None
+    return {
+        "id": challenge.id,
+        "title": challenge.title,
+        "description": challenge.description,
+        "challenge_type": challenge.challenge_type,
+        "age_group": normalize_age_group_for_frontend(challenge.age_group),
+        "difficulty": challenge.difficulty,
+        "question": challenge.question,
+        "correct_answer": challenge.correct_answer,
+        "choices": safe_parse_json(challenge.choices, []),
+        "solution_explanation": challenge.solution_explanation,
+        "visual_data": safe_parse_json(challenge.visual_data, {}),
+        "hints": safe_parse_json(challenge.hints, []),
+        "tags": challenge.tags,
+        "difficulty_rating": challenge.difficulty_rating,
+        "estimated_time_minutes": challenge.estimated_time_minutes,
+        "success_rate": challenge.success_rate,
+        "view_count": challenge.view_count,
+        "is_active": challenge.is_active,
+        "is_archived": challenge.is_archived,
+    }
+
+
 def list_challenges(
     db: Session,
     challenge_type: Optional[str] = None,

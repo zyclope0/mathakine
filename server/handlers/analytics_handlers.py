@@ -9,13 +9,11 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
-from app.models.edtech_event import EdTechEvent
+from app.services.analytics_service import AnalyticsService
 from app.utils.db_utils import db_session
 from server.auth import require_auth
 
 logger = get_logger(__name__)
-
-VALID_EVENTS = frozenset({"quick_start_click", "first_attempt"})
 
 
 @require_auth
@@ -27,14 +25,8 @@ async def analytics_event(request: Request):
     """
     try:
         body = await request.json()
-        event = (body.get("event") or "").strip().lower()
+        event = (body.get("event") or "").strip()
         payload = body.get("payload") or {}
-
-        if event not in VALID_EVENTS:
-            return JSONResponse(
-                {"error": f"event invalide (attendu: {sorted(VALID_EVENTS)})"},
-                status_code=400,
-            )
 
         user_id = None
         if hasattr(request.state, "user") and request.state.user:
@@ -49,13 +41,19 @@ async def analytics_event(request: Request):
         logger.info("[EDTECH] %s", json.dumps(log_payload, default=str))
 
         async with db_session() as db:
-            record = EdTechEvent(
-                user_id=user_id,
+            ok = AnalyticsService.record_edtech_event(
+                db,
                 event=event,
                 payload=payload_dict,
+                user_id=user_id,
             )
-            db.add(record)
-            db.commit()
+            if not ok:
+                return JSONResponse(
+                    {
+                        "error": "event invalide (attendu: first_attempt, quick_start_click)"
+                    },
+                    status_code=400,
+                )
 
         return JSONResponse({"ok": True}, status_code=200)
     except json.JSONDecodeError as e:
@@ -68,7 +66,6 @@ async def analytics_event(request: Request):
 
 # --- Admin : consultation des analytics EdTech ---
 
-from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
 from server.auth import require_admin
@@ -83,8 +80,8 @@ async def admin_analytics_edtech(request: Request):
     """
     try:
         period = request.query_params.get("period", "7d")
-        event_filter = request.query_params.get("event", "").strip().lower()
-        limit = min(int(request.query_params.get("limit", "200")), 500)
+        event_filter = request.query_params.get("event", "").strip()
+        limit = int(request.query_params.get("limit", "200"))
 
         since = datetime.now(timezone.utc)
         if period == "30d":
@@ -93,89 +90,21 @@ async def admin_analytics_edtech(request: Request):
             since -= timedelta(days=7)
 
         async with db_session() as db:
-            q = db.query(EdTechEvent).filter(EdTechEvent.created_at >= since)
-            if event_filter and event_filter in VALID_EVENTS:
-                q = q.filter(EdTechEvent.event == event_filter)
-            events = q.order_by(EdTechEvent.created_at.desc()).limit(limit).all()
-
-            # Agrégats sur TOUS les événements de la période (sans limit)
-            q_all = db.query(EdTechEvent).filter(EdTechEvent.created_at >= since)
-            if event_filter and event_filter in VALID_EVENTS:
-                q_all = q_all.filter(EdTechEvent.event == event_filter)
-            events_all = q_all.all()
-
-        # Agrégats calculés en Python
-        aggregates = defaultdict(lambda: {"count": 0, "time_to_first_attempt_ms": []})
-        ctr_guided = 0
-        ctr_total = 0
-        unique_user_ids = set()
-        clicks_by_type = {"exercise": 0, "challenge": 0}
-        attempts_by_type = {"exercise": 0, "challenge": 0}
-
-        for e in events_all:
-            if e.user_id:
-                unique_user_ids.add(e.user_id)
-            aggregates[e.event]["count"] += 1
-            if e.event == "first_attempt" and e.payload:
-                t = e.payload.get("timeToFirstAttemptMs")
-                if t is not None:
-                    try:
-                        aggregates[e.event]["time_to_first_attempt_ms"].append(float(t))
-                    except (TypeError, ValueError):
-                        pass
-                typ = (e.payload.get("type") or "").lower()
-                if typ in attempts_by_type:
-                    attempts_by_type[typ] += 1
-            if e.event == "quick_start_click":
-                ctr_total += 1
-                if e.payload and e.payload.get("guided"):
-                    ctr_guided += 1
-                typ = (e.payload.get("type") or "").lower()
-                if typ in clicks_by_type:
-                    clicks_by_type[typ] += 1
-
-        # Résumé agrégé
-        agg_result = {}
-        for evt, data in aggregates.items():
-            times = data["time_to_first_attempt_ms"]
-            avg_ms = round(sum(times) / len(times), 0) if times else None
-            agg_result[evt] = {
-                "count": data["count"],
-                "avg_time_to_first_attempt_ms": avg_ms,
-            }
-
-        ctr_summary = {}
-        if ctr_total > 0:
-            ctr_summary = {
-                "total_clicks": ctr_total,
-                "guided_clicks": ctr_guided,
-                "guided_rate_pct": round(100 * ctr_guided / ctr_total, 1),
-                "by_type": dict(clicks_by_type),
-            }
-
-        # Répartition type pour first_attempt
-        if aggregates.get("first_attempt"):
-            agg_result["first_attempt"]["by_type"] = dict(attempts_by_type)
-
-        events_data = [
-            {
-                "id": e.id,
-                "user_id": e.user_id,
-                "event": e.event,
-                "payload": e.payload,
-                "created_at": e.created_at.isoformat() if e.created_at else None,
-            }
-            for e in events
-        ]
+            result = AnalyticsService.get_edtech_analytics_for_admin(
+                db,
+                since=since,
+                event_filter=event_filter,
+                limit=limit,
+            )
 
         return JSONResponse(
             {
                 "period": period,
-                "since": since.isoformat(),
-                "aggregates": dict(agg_result),
-                "ctr_summary": ctr_summary,
-                "unique_users": len(unique_user_ids),
-                "events": events_data,
+                "since": result["since"],
+                "aggregates": result["aggregates"],
+                "ctr_summary": result["ctr_summary"],
+                "unique_users": result["unique_users"],
+                "events": result["events"],
             }
         )
     except Exception as e:

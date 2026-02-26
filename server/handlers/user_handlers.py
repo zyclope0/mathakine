@@ -756,189 +756,22 @@ async def export_user_data(request: Request):
     Retourne un JSON avec : profil, exercices tentés, défis tentés, badges, progression.
     """
     try:
-        from app.models.achievement import UserAchievement
-        from app.models.attempt import Attempt
-        from app.models.exercise import Exercise
-        from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
-        from app.models.progress import Progress
-        from app.models.recommendation import Recommendation
-        from app.models.user import User
-
         current_user = request.state.user
-
         user_id = current_user.get("id")
 
         async with db_session() as db:
-            user = db.query(User).filter(User.id == user_id).first()
-            if not user:
+            export = UserService.get_user_export_data_for_api(db, user_id)
+            if export is None:
                 return JSONResponse(
                     {"error": "Utilisateur introuvable."}, status_code=404
                 )
 
-            # Profil utilisateur (tous les champs)
-            profile = {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "full_name": user.full_name,
-                "role": user.role.value if user.role else None,
-                "is_active": user.is_active,
-                "grade_level": user.grade_level,
-                "grade_system": getattr(user, "grade_system", None),
-                "learning_style": user.learning_style,
-                "preferred_difficulty": user.preferred_difficulty,
-                "preferred_theme": user.preferred_theme,
-                "accessibility_settings": user.accessibility_settings,
-                "total_points": user.total_points,
-                "current_level": user.current_level,
-                "experience_points": (
-                    user.experience_points if hasattr(user, "experience_points") else 0
-                ),
-                "jedi_rank": user.jedi_rank,
-                "avatar_url": user.avatar_url if hasattr(user, "avatar_url") else None,
-                "created_at": user.created_at.isoformat() if user.created_at else None,
-                "updated_at": user.updated_at.isoformat() if user.updated_at else None,
-            }
-
-            # Tentatives d'exercices
-            attempts = db.query(Attempt).filter(Attempt.user_id == user_id).all()
-            exercises_data = []
-            for a in attempts:
-                exercises_data.append(
-                    {
-                        "exercise_id": a.exercise_id,
-                        "answer": a.user_answer if hasattr(a, "user_answer") else None,
-                        "is_correct": a.is_correct,
-                        "time_spent": (
-                            a.time_spent if hasattr(a, "time_spent") else None
-                        ),
-                        "attempt_number": (
-                            a.attempt_number if hasattr(a, "attempt_number") else None
-                        ),
-                        "hints_used": a.hints_used if hasattr(a, "hints_used") else 0,
-                        "created_at": (
-                            a.created_at.isoformat() if a.created_at else None
-                        ),
-                    }
-                )
-
-            # Tentatives de défis logiques
-            challenge_attempts = (
-                db.query(LogicChallengeAttempt)
-                .filter(LogicChallengeAttempt.user_id == user_id)
-                .all()
-            )
-            challenges_data = []
-            for ca in challenge_attempts:
-                challenges_data.append(
-                    {
-                        "challenge_id": ca.challenge_id,
-                        "user_solution": ca.user_solution,
-                        "is_correct": ca.is_correct,
-                        "time_spent": ca.time_spent,
-                        "hints_used": ca.hints_used,
-                        "created_at": (
-                            ca.created_at.isoformat() if ca.created_at else None
-                        ),
-                    }
-                )
-
-            # Badges obtenus
-            achievements = (
-                db.query(UserAchievement)
-                .filter(UserAchievement.user_id == user_id)
-                .all()
-            )
-            badges_data = []
-            for ach in achievements:
-                badges_data.append(
-                    {
-                        "achievement_id": (
-                            ach.achievement_id
-                            if hasattr(ach, "achievement_id")
-                            else ach.id
-                        ),
-                        "earned_at": (
-                            ach.earned_at.isoformat()
-                            if hasattr(ach, "earned_at") and ach.earned_at
-                            else None
-                        ),
-                        "progress_data": (
-                            ach.progress_data if hasattr(ach, "progress_data") else None
-                        ),
-                        "is_displayed": (
-                            ach.is_displayed if hasattr(ach, "is_displayed") else True
-                        ),
-                    }
-                )
-
-            # Progression par type d'exercice
-            progress_records = (
-                db.query(Progress).filter(Progress.user_id == user_id).all()
-            )
-            progress_data = []
-            for p in progress_records:
-                progress_data.append(
-                    {
-                        "exercise_type": p.exercise_type,
-                        "difficulty": p.difficulty,
-                        "total_attempts": p.total_attempts,
-                        "correct_attempts": p.correct_attempts,
-                        "success_rate": (
-                            p.success_rate if hasattr(p, "success_rate") else None
-                        ),
-                        "last_attempt_at": (
-                            p.last_attempt_at.isoformat()
-                            if hasattr(p, "last_attempt_at") and p.last_attempt_at
-                            else None
-                        ),
-                    }
-                )
-
-            # Recommandations personnalisées
-            recommendations = (
-                db.query(Recommendation).filter(Recommendation.user_id == user_id).all()
-            )
-            recommendations_data = []
-            for r in recommendations:
-                recommendations_data.append(
-                    {
-                        "exercise_type": (
-                            r.exercise_type if hasattr(r, "exercise_type") else None
-                        ),
-                        "priority": r.priority if hasattr(r, "priority") else None,
-                        "is_completed": (
-                            r.is_completed if hasattr(r, "is_completed") else False
-                        ),
-                        "reason": r.reason if hasattr(r, "reason") else None,
-                        "created_at": (
-                            r.created_at.isoformat()
-                            if hasattr(r, "created_at") and r.created_at
-                            else None
-                        ),
-                    }
-                )
-
-            export = {
-                "export_date": datetime.now(timezone.utc).isoformat(),
-                "format_version": "1.1",
-                "profile": profile,
-                "exercise_attempts": exercises_data,
-                "challenge_attempts": challenges_data,
-                "badges_earned": badges_data,
-                "progress": progress_data,
-                "recommendations": recommendations_data,
-                "statistics": {
-                    "total_exercise_attempts": len(exercises_data),
-                    "total_challenge_attempts": len(challenges_data),
-                    "total_badges": len(badges_data),
-                    "total_progress_records": len(progress_data),
-                    "total_recommendations": len(recommendations_data),
-                },
-            }
-
+            stats = export["statistics"]
             logger.info(
-                f"Export de données pour l'utilisateur {user_id} : {len(exercises_data)} exercices, {len(challenges_data)} défis, {len(badges_data)} badges"
+                f"Export de données pour l'utilisateur {user_id} : "
+                f"{stats['total_exercise_attempts']} exercices, "
+                f"{stats['total_challenge_attempts']} défis, "
+                f"{stats['total_badges']} badges"
             )
             return JSONResponse(export)
 

@@ -218,46 +218,10 @@ async def get_challenge(request: Request):
         accept_language = request.headers.get("Accept-Language", "fr")
         locale = parse_accept_language(accept_language)
 
-        # Utiliser le service ORM challenge_service
         async with db_session() as db:
-            # Récupérer le challenge via get_challenge_by_id
-            from app.models.logic_challenge import LogicChallenge
+            from app.services.challenge_service import get_challenge_for_api
 
-            challenge = (
-                db.query(LogicChallenge)
-                .filter(LogicChallenge.id == challenge_id)
-                .first()
-            )
-            if challenge:
-                # Normaliser age_group pour le frontend
-                from app.services.challenge_service import (
-                    normalize_age_group_for_frontend,
-                )
-                from app.utils.json_utils import safe_parse_json
-
-                challenge_dict = {
-                    "id": challenge.id,
-                    "title": challenge.title,
-                    "description": challenge.description,
-                    "challenge_type": challenge.challenge_type,
-                    "age_group": normalize_age_group_for_frontend(challenge.age_group),
-                    "difficulty": challenge.difficulty,
-                    "question": challenge.question,
-                    "correct_answer": challenge.correct_answer,
-                    "choices": safe_parse_json(challenge.choices, []),
-                    "solution_explanation": challenge.solution_explanation,
-                    "visual_data": safe_parse_json(challenge.visual_data, {}),
-                    "hints": safe_parse_json(challenge.hints, []),
-                    "tags": challenge.tags,
-                    "difficulty_rating": challenge.difficulty_rating,
-                    "estimated_time_minutes": challenge.estimated_time_minutes,
-                    "success_rate": challenge.success_rate,
-                    "view_count": challenge.view_count,
-                    "is_active": challenge.is_active,
-                    "is_archived": challenge.is_archived,
-                }
-            else:
-                challenge_dict = None
+            challenge_dict = get_challenge_for_api(db, challenge_id)
 
         if not challenge_dict:
             return ErrorHandler.create_not_found_error(
@@ -800,25 +764,23 @@ async def submit_challenge_answer(request: Request):
                     c = correct_list[0] if correct_list else ""
                     is_correct = u == c
 
-            # NOTE: attempt_service_translations archivé - utiliser LogicChallengeAttempt ORM
-            from app.models.logic_challenge import LogicChallengeAttempt
-
             attempt_data = {
                 "user_id": user_id,
                 "challenge_id": challenge_id,
                 "user_solution": user_solution,
                 "is_correct": is_correct,
                 "time_spent": time_spent,
-                "hints_used": hints_used_count,  # Utiliser le nombre d'indices, pas la liste
+                "hints_used": hints_used_count,
             }
-
             logger.debug(
                 f"Tentative d'enregistrement de challenge avec attempt_data: {attempt_data}"
             )
-            attempt = LogicChallengeAttempt(**attempt_data)
-            db.add(attempt)
-            db.commit()
-            db.refresh(attempt)
+            attempt = LogicChallengeService.record_attempt(db, attempt_data)
+            if not attempt:
+                return JSONResponse(
+                    {"error": "Impossible d'enregistrer la tentative."},
+                    status_code=500,
+                )
             logger.debug(f"Tentative challenge créée: {attempt.id}")
 
             # Lot C / B5 : vérifier les badges (défis logiques, mixte) après une tentative correcte

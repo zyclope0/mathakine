@@ -9,14 +9,14 @@
 
 | Handler | Requêtes directes | Priorité |
 |---------|-------------------|----------|
-| admin_handlers | ~80+ | Moyenne (admin, peu modifié) |
-| user_handlers | 1 (export) | ✅ Refactoré |
+| admin_handlers | ~50+ (CRUD restant) | Partiel — lectures via AdminService |
+| user_handlers | 0 | ✅ Refactoré |
 | exercise_handlers | 0 | ✅ Refactoré |
 | auth_handlers | 0 | ✅ Refactoré (26/02) |
 | recommendation_handlers | 0 | ✅ Refactoré |
-| feedback_handlers | ~2 | Basse |
-| analytics_handlers | 1 import | Basse |
-| challenge_handlers | 2 imports (minimal) | Basse |
+| feedback_handlers | 0 | ✅ Refactoré (26/02) |
+| analytics_handlers | 0 | ✅ Refactoré (26/02) |
+| challenge_handlers | 0 | ✅ Refactoré (26/02) |
 
 ---
 
@@ -34,7 +34,7 @@ Fréquenté par les utilisateurs connectés. Logique métier déplacée vers `Us
 | `delete_user_me` | ✅ `UserService.delete_user` |
 | `get_user_sessions` | ✅ `UserService.get_user_sessions_for_api` |
 | `revoke_user_session` | ✅ `UserService.revoke_user_session` |
-| `export_user_data` | ⏳ Reste en DB directe (non prioritaire) |
+| `export_user_data` | ✅ `UserService.get_user_export_data_for_api` (26/02) |
 
 ---
 
@@ -70,29 +70,23 @@ Les handlers login/logout/refresh passent déjà par `AuthService`. Les flows ve
 
 ---
 
-## 5. admin_handlers.py — Priorité MOYENNE
+## 5. admin_handlers.py — Priorité MOYENNE ⏳ Partiel (26/02)
 
-Admin uniquement, beaucoup de requêtes :
+**AdminService créé** — lectures/agrégats déplacés :
+- Config GET/PUT : `AdminService.get_config_for_api`, `update_config`
+- Overview : `AdminService.get_overview_for_api`
+- Audit log : `AdminService.get_audit_log_for_api`
+- Modération : `AdminService.get_moderation_for_api`
+- Reports : `AdminService.get_reports_for_api`
 
-- Config : `Setting`
-- Overview : `User`, `Exercise`, `LogicChallenge`, `Attempt`
-- Users : CRUD `User`
-- Exercises : CRUD `Exercise`, duplication
-- Badges : `Achievement`, `UserAchievement`
-- Challenges : CRUD `LogicChallenge`, duplication
-- Audit : `AdminAuditLog`
-- Analytics / moderation : agrégations diverses
-
-Créer un `AdminService` serait cohérent mais représente un gros chantier.
+**Reste en DB directe** (CRUD) : Users, Exercises, Badges, Challenges, Export CSV.
 
 ---
 
-## 6. feedback_handlers.py — Priorité BASSE
+## 6. feedback_handlers.py — Priorité BASSE ✅ Refactoré (26/02)
 
-- `submit_feedback` : `db.add(FeedbackReport)`, `db.commit`
-- `admin_list_feedback` : `db.query(FeedbackReport)`
-
-2 opérations, volumétrie faible.
+- `submit_feedback` : ✅ `FeedbackService.create_feedback_report`
+- `admin_list_feedback` : ✅ `FeedbackService.list_feedback_for_admin`
 
 ---
 
@@ -102,5 +96,5 @@ Créer un `AdminService` serait cohérent mais représente un gros chantier.
 2. ~~**user_handlers**~~ ✅ Fait
 3. ~~**exercise_handlers**~~ ✅ Fait
 4. ~~**auth_handlers**~~ ✅ Fait (26/02/2026)
-5. **feedback_handlers** : rapide, 2 méthodes.
-6. **admin_handlers** : à traiter en dernier (volume important).
+5. ~~**feedback_handlers**~~ ✅ Fait (26/02)
+6. ~~**admin_handlers**~~ Partiel (26/02) — config, overview, audit, modération, reports via AdminService. CRUD reste en DB directe.

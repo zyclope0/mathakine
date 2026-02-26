@@ -29,12 +29,7 @@ from app.services.email_service import EmailService
 from app.utils.db_utils import db_session
 from app.utils.email_verification import generate_verification_token
 from server.auth import require_admin, require_auth
-from server.handlers.admin_handlers_utils import (
-    CONFIG_SCHEMA,
-    _log_admin_action,
-    _parse_setting_value,
-    _serialize_value,
-)
+from server.handlers.admin_handlers_utils import _log_admin_action
 
 
 @require_auth
@@ -54,26 +49,10 @@ async def admin_config_get(request: Request):
     GET /api/admin/config
     Liste les paramètres globaux (paramètres du Temple).
     """
-    async with db_session() as db:
-        rows = db.query(Setting).filter(Setting.key.in_(CONFIG_SCHEMA)).all()
-        by_key = {r.key: r for r in rows}
+    from app.services.admin_service import AdminService
 
-    result = []
-    for key, schema in CONFIG_SCHEMA.items():
-        row = by_key.get(key)
-        raw = row.value if row else None
-        value = _parse_setting_value(raw, schema)
-        result.append(
-            {
-                "key": key,
-                "value": value,
-                "type": schema["type"],
-                "category": schema.get("category", ""),
-                "label": schema.get("label", key),
-                "min": schema.get("min"),
-                "max": schema.get("max"),
-            }
-        )
+    async with db_session() as db:
+        result = AdminService.get_config_for_api(db)
     return JSONResponse({"settings": result})
 
 
@@ -85,6 +64,8 @@ async def admin_config_put(request: Request):
     Met à jour les paramètres globaux.
     Body: { "settings": { "key": value, ... } }
     """
+    from app.services.admin_service import AdminService
+
     try:
         body = await request.json()
     except Exception:
@@ -97,54 +78,7 @@ async def admin_config_put(request: Request):
 
     async with db_session() as db:
         admin_user_id = getattr(request.state, "user", {}).get("id")
-        for key, value in settings_in.items():
-            if key not in CONFIG_SCHEMA:
-                continue
-            schema = CONFIG_SCHEMA[key]
-            str_val = _serialize_value(value)
-            # Validation
-            if schema["type"] == "int":
-                try:
-                    v = (
-                        int(value)
-                        if not isinstance(value, (bool, type(None)))
-                        else schema["default"]
-                    )
-                    if "min" in schema and v < schema["min"]:
-                        v = schema["min"]
-                    if "max" in schema and v > schema["max"]:
-                        v = schema["max"]
-                    str_val = str(v)
-                except (ValueError, TypeError):
-                    str_val = str(schema.get("default", 0))
-            elif schema["type"] == "bool":
-                str_val = "true" if value in (True, "true", "1", 1) else "false"
-
-            row = db.query(Setting).filter(Setting.key == key).first()
-            if row:
-                row.value = str_val
-                row.updated_at = datetime.now(timezone.utc)
-            else:
-                db.add(
-                    Setting(
-                        key=key,
-                        value=str_val,
-                        category=schema.get("category"),
-                        description=schema.get("label"),
-                        is_system=True,
-                        is_public=False,
-                    )
-                )
-
-        _log_admin_action(
-            db,
-            admin_user_id,
-            "config_update",
-            "settings",
-            None,
-            {"updated_keys": list(settings_in.keys())},
-        )
-        db.commit()
+        AdminService.update_config(db, settings_in, admin_user_id)
 
     return JSONResponse({"status": "ok"})
 
@@ -156,33 +90,11 @@ async def admin_overview(request: Request):
     GET /api/admin/overview
     KPIs globaux de la plateforme.
     """
+    from app.services.admin_service import AdminService
+
     async with db_session() as db:
-        total_users = db.query(func.count(User.id)).scalar() or 0
-        total_exercises = (
-            db.query(func.count(Exercise.id))
-            .filter(Exercise.is_archived == False)
-            .scalar()
-            or 0
-        )
-        total_challenges = (
-            db.query(func.count(LogicChallenge.id))
-            .filter(LogicChallenge.is_archived == False)
-            .scalar()
-            or 0
-        )
-        # Tentatives (table attempts)
-        from app.models.attempt import Attempt
-
-        total_attempts = db.query(func.count(Attempt.id)).scalar() or 0
-
-    return JSONResponse(
-        {
-            "total_users": total_users,
-            "total_exercises": total_exercises,
-            "total_challenges": total_challenges,
-            "total_attempts": total_attempts,
-        }
-    )
+        result = AdminService.get_overview_for_api(db)
+    return JSONResponse(result)
 
 
 @require_auth
@@ -1390,6 +1302,8 @@ async def admin_audit_log(request: Request):
     GET /api/admin/audit-log?skip=&limit=&action=&resource_type=
     Journal des actions admin (qui a fait quoi, quand).
     """
+    from app.services.admin_service import AdminService
+
     query_params = dict(request.query_params)
     skip = max(0, int(query_params.get("skip", 0)))
     limit = min(200, max(1, int(query_params.get("limit", 50))))
@@ -1397,36 +1311,14 @@ async def admin_audit_log(request: Request):
     resource_filter = (query_params.get("resource_type") or "").strip() or None
 
     async with db_session() as db:
-        q = db.query(AdminAuditLog).order_by(AdminAuditLog.created_at.desc())
-        if action_filter:
-            q = q.filter(AdminAuditLog.action == action_filter)
-        if resource_filter:
-            q = q.filter(AdminAuditLog.resource_type == resource_filter)
-        total = q.count()
-        logs = q.offset(skip).limit(limit).all()
-
-        items = []
-        for log in logs:
-            admin_username = None
-            if log.admin_user_id:
-                u = db.query(User).filter(User.id == log.admin_user_id).first()
-                admin_username = u.username if u else None
-            items.append(
-                {
-                    "id": log.id,
-                    "admin_user_id": log.admin_user_id,
-                    "admin_username": admin_username,
-                    "action": log.action,
-                    "resource_type": log.resource_type,
-                    "resource_id": log.resource_id,
-                    "details": json.loads(log.details) if log.details else None,
-                    "created_at": (
-                        log.created_at.isoformat() if log.created_at else None
-                    ),
-                }
-            )
-
-    return JSONResponse({"items": items, "total": total})
+        result = AdminService.get_audit_log_for_api(
+            db,
+            skip=skip,
+            limit=limit,
+            action_filter=action_filter,
+            resource_filter=resource_filter,
+        )
+    return JSONResponse(result)
 
 
 @require_auth
@@ -1436,79 +1328,17 @@ async def admin_moderation(request: Request):
     GET /api/admin/moderation?type=exercises|challenges
     Liste du contenu généré par IA pour modération (validation, signalement).
     """
+    from app.services.admin_service import AdminService
+
     query_params = dict(request.query_params)
     mod_type = (query_params.get("type") or "all").strip().lower()
     skip = max(0, int(query_params.get("skip", 0)))
     limit = min(100, max(1, int(query_params.get("limit", 50))))
 
-    from sqlalchemy import or_
-
-    result = {
-        "exercises": [],
-        "challenges": [],
-        "total_exercises": 0,
-        "total_challenges": 0,
-    }
-
     async with db_session() as db:
-        if mod_type in ("exercises", "all"):
-            q_ex = db.query(Exercise).filter(Exercise.ai_generated == True)
-            result["total_exercises"] = q_ex.count()
-            rows_ex = (
-                q_ex.order_by(Exercise.created_at.desc())
-                .offset(skip)
-                .limit(limit)
-                .all()
-            )
-            for e in rows_ex:
-                result["exercises"].append(
-                    {
-                        "id": e.id,
-                        "title": e.title,
-                        "exercise_type": e.exercise_type or "",
-                        "age_group": e.age_group or "",
-                        "is_archived": e.is_archived,
-                        "created_at": (
-                            e.created_at.isoformat() if e.created_at else None
-                        ),
-                    }
-                )
-
-        if mod_type in ("challenges", "all"):
-            # Tous les défis sont générés par IA pour le moment ; generation_parameters
-            # est renseigné pour les créations futures via le flux IA
-            q_ch = db.query(LogicChallenge)
-            result["total_challenges"] = q_ch.count()
-            rows_ch = (
-                q_ch.order_by(LogicChallenge.created_at.desc())
-                .offset(skip)
-                .limit(limit)
-                .all()
-            )
-            for c in rows_ch:
-                ct_val = (
-                    c.challenge_type.value
-                    if hasattr(c.challenge_type, "value")
-                    else str(c.challenge_type)
-                )
-                ag_val = (
-                    c.age_group.value
-                    if hasattr(c.age_group, "value")
-                    else str(c.age_group)
-                )
-                result["challenges"].append(
-                    {
-                        "id": c.id,
-                        "title": c.title,
-                        "challenge_type": ct_val,
-                        "age_group": ag_val,
-                        "is_archived": c.is_archived,
-                        "created_at": (
-                            c.created_at.isoformat() if c.created_at else None
-                        ),
-                    }
-                )
-
+        result = AdminService.get_moderation_for_api(
+            db, mod_type=mod_type, skip=skip, limit=limit
+        )
     return JSONResponse(result)
 
 
@@ -1519,6 +1349,8 @@ async def admin_reports(request: Request):
     GET /api/admin/reports?period=7d|30d
     Rapports par période : inscriptions, activité, taux succès.
     """
+    from app.services.admin_service import AdminService
+
     query_params = dict(request.query_params)
     period = (query_params.get("period") or "7d").strip().lower()
 
@@ -1528,78 +1360,9 @@ async def admin_reports(request: Request):
             status_code=400,
         )
 
-    days = 7 if period == "7d" else 30
-    since = datetime.now(timezone.utc) - timedelta(days=days)
-
     async with db_session() as db:
-        # Inscriptions (nouveaux utilisateurs dans la période)
-        new_users = (
-            db.query(func.count(User.id)).filter(User.created_at >= since).scalar() or 0
-        )
-
-        # Tentatives exercices dans la période
-        attempts_exercises = (
-            db.query(
-                func.count(Attempt.id).label("total"),
-                func.sum(case((Attempt.is_correct == True, 1), else_=0)).label(
-                    "correct"
-                ),
-            )
-            .filter(Attempt.created_at >= since)
-            .first()
-        )
-        total_attempts = attempts_exercises[0] or 0
-        correct_attempts = attempts_exercises[1] or 0
-
-        # Tentatives défis dans la période
-        challenge_attempts_count = (
-            db.query(func.count(LogicChallengeAttempt.id))
-            .filter(LogicChallengeAttempt.created_at >= since)
-            .scalar()
-            or 0
-        )
-        challenge_correct = (
-            db.query(func.count(LogicChallengeAttempt.id))
-            .filter(
-                LogicChallengeAttempt.created_at >= since,
-                LogicChallengeAttempt.is_correct == True,
-            )
-            .scalar()
-            or 0
-        )
-
-        # Utilisateurs actifs (au moins 1 tentative exercice ou défi dans la période)
-        from sqlalchemy import union
-
-        q1 = db.query(Attempt.user_id).filter(Attempt.created_at >= since).distinct()
-        q2 = (
-            db.query(LogicChallengeAttempt.user_id)
-            .filter(LogicChallengeAttempt.created_at >= since)
-            .distinct()
-        )
-        u = union(q1, q2).subquery()
-        active_users_count = db.query(func.count()).select_from(u).scalar() or 0
-
-        total_attempts_all = total_attempts + challenge_attempts_count
-        total_correct_all = correct_attempts + challenge_correct
-        success_rate = (
-            round((total_correct_all / total_attempts_all * 100), 1)
-            if total_attempts_all > 0
-            else 0.0
-        )
-
-    return JSONResponse(
-        {
-            "period": period,
-            "days": days,
-            "new_users": new_users,
-            "attempts_exercises": total_attempts,
-            "attempts_challenges": challenge_attempts_count,
-            "total_attempts": total_attempts_all,
-            "success_rate": success_rate,
-            "active_users": active_users_count,
-        }
-    )
+        result = AdminService.get_reports_for_api(db, period=period)
+    return JSONResponse(result)
 
 
 @require_auth

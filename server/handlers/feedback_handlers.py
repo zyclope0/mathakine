@@ -8,14 +8,12 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
-from app.models.feedback_report import FeedbackReport
+from app.services.feedback_service import FeedbackService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import get_safe_error_message
 from server.auth import require_admin, require_auth
 
 logger = get_logger(__name__)
-
-VALID_TYPES = frozenset({"exercise", "challenge", "ui", "other"})
 
 
 @require_auth
@@ -27,12 +25,7 @@ async def submit_feedback(request: Request):
     """
     try:
         body = await request.json()
-        feedback_type = (body.get("feedback_type") or "").strip().lower()
-        if feedback_type not in VALID_TYPES:
-            return JSONResponse(
-                {"error": "feedback_type invalide (exercise, challenge, ui, other)"},
-                status_code=400,
-            )
+        feedback_type = (body.get("feedback_type") or "").strip()
 
         user_id = None
         if hasattr(request.state, "user") and request.state.user:
@@ -55,17 +48,22 @@ async def submit_feedback(request: Request):
                 challenge_id = None
 
         async with db_session() as db:
-            report = FeedbackReport(
-                user_id=user_id,
+            report, err = FeedbackService.create_feedback_report(
+                db,
                 feedback_type=feedback_type,
+                description=description or None,
                 page_url=page_url or None,
                 exercise_id=exercise_id,
                 challenge_id=challenge_id,
-                description=description or None,
+                user_id=user_id,
             )
-            db.add(report)
-            db.commit()
-            db.refresh(report)
+            if err:
+                return JSONResponse(
+                    {
+                        "error": f"feedback_type invalide (exercise, challenge, ui, other)"
+                    },
+                    status_code=400,
+                )
 
         logger.info(
             f"Feedback enregistré: type={feedback_type}, user_id={user_id}, id={report.id}"
@@ -89,30 +87,7 @@ async def admin_list_feedback(request: Request):
     """
     try:
         async with db_session() as db:
-            reports = (
-                db.query(FeedbackReport)
-                .order_by(FeedbackReport.created_at.desc())
-                .limit(500)
-                .all()
-            )
-            items = []
-            for r in reports:
-                items.append(
-                    {
-                        "id": r.id,
-                        "user_id": r.user_id,
-                        "username": r.user.username if r.user else None,
-                        "feedback_type": r.feedback_type,
-                        "page_url": r.page_url,
-                        "exercise_id": r.exercise_id,
-                        "challenge_id": r.challenge_id,
-                        "description": r.description,
-                        "status": r.status,
-                        "created_at": (
-                            r.created_at.isoformat() if r.created_at else None
-                        ),
-                    }
-                )
+            items = FeedbackService.list_feedback_for_admin(db, limit=500)
             return JSONResponse({"feedback": items})
     except Exception as e:
         logger.error(f"Erreur admin_list_feedback: {e}")
