@@ -79,7 +79,9 @@ Les handlers login/logout/refresh passent déjà par `AuthService`. Les flows ve
 - Modération : `AdminService.get_moderation_for_api`
 - Reports : `AdminService.get_reports_for_api`
 
-**Reste en DB directe** (CRUD) : Users, Exercises, Badges, Challenges, Export CSV.
+**Users CRUD** : ✅ `AdminService.list_users_for_admin`, `patch_user_for_admin`, `send_reset_password_for_admin`, `resend_verification_for_admin` (26/02)
+
+**Reste en DB directe** : Exercises, Badges, Challenges, Export CSV.
 
 ---
 

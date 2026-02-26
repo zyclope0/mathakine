@@ -104,7 +104,7 @@ async def admin_users(request: Request):
     GET /api/admin/users
     Liste paginée des utilisateurs avec filtres (search, role, is_active).
     """
-    from sqlalchemy import or_
+    from app.services.admin_service import AdminService
 
     query_params = dict(request.query_params)
     search = (query_params.get("search") or "").strip()
@@ -112,48 +112,17 @@ async def admin_users(request: Request):
     is_active_param = query_params.get("is_active")
     skip = max(0, int(query_params.get("skip", 0)))
     limit = min(100, max(1, int(query_params.get("limit", 20))))
+    is_active = (
+        str(is_active_param).lower() in ("true", "1", "yes")
+        if is_active_param is not None
+        else None
+    )
 
     async with db_session() as db:
-        q = db.query(User)
-        if search:
-            pattern = f"%{search}%"
-            q = q.filter(
-                or_(
-                    User.username.ilike(pattern),
-                    User.email.ilike(pattern),
-                    User.full_name.ilike(pattern),
-                )
-            )
-        role_map = {
-            "padawan": UserRole.PADAWAN,
-            "maitre": UserRole.MAITRE,
-            "gardien": UserRole.GARDIEN,
-            "archiviste": UserRole.ARCHIVISTE,
-        }
-        if role and role in role_map:
-            q = q.filter(User.role == role_map[role])
-        if is_active_param is not None:
-            is_active = str(is_active_param).lower() in ("true", "1", "yes")
-            q = q.filter(User.is_active == is_active)
-        total = q.count()
-        users = q.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
-
-        items = []
-        for u in users:
-            items.append(
-                {
-                    "id": u.id,
-                    "username": u.username,
-                    "email": u.email,
-                    "full_name": u.full_name,
-                    "role": u.role.value if u.role else "padawan",
-                    "is_active": u.is_active,
-                    "is_email_verified": u.is_email_verified,
-                    "created_at": u.created_at.isoformat() if u.created_at else None,
-                }
-            )
-
-    return JSONResponse({"items": items, "total": total})
+        result = AdminService.list_users_for_admin(
+            db, search=search, role=role, is_active=is_active, skip=skip, limit=limit
+        )
+    return JSONResponse(result)
 
 
 @require_auth
@@ -163,6 +132,8 @@ async def admin_users_patch(request: Request):
     PATCH /api/admin/users/{user_id}
     Mise à jour is_active et/ou role. Un admin ne peut pas se désactiver ni se rétrograder.
     """
+    from app.services.admin_service import AdminService
+
     user_id = int(request.path_params.get("user_id"))
     current_user_id = request.state.user.get("id")
 
@@ -207,7 +178,6 @@ async def admin_users_patch(request: Request):
             status_code=400,
         )
 
-    # Un admin ne peut pas se désactiver ou se rétrograder
     if user_id == current_user_id:
         if is_active is False:
             return JSONResponse(
@@ -221,33 +191,16 @@ async def admin_users_patch(request: Request):
             )
 
     async with db_session() as db:
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            return JSONResponse(
-                {"error": "Utilisateur non trouvé."},
-                status_code=404,
-            )
-        if is_active is not None:
-            user.is_active = is_active
-        if new_role is not None:
-            user.role = new_role
-        _log_admin_action(
+        result, err, code = AdminService.patch_user_for_admin(
             db,
-            current_user_id,
-            "user_patch",
-            "user",
-            user_id,
-            {"is_active": is_active, "role": role_raw},
+            user_id=user_id,
+            admin_user_id=current_user_id,
+            is_active=is_active,
+            new_role=new_role,
+            role_raw=role_raw,
         )
-        db.commit()
-        db.refresh(user)
-
-    result = {
-        "id": user.id,
-        "username": user.username,
-        "is_active": user.is_active,
-        "role": user.role.value if user.role else "padawan",
-    }
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
     return JSONResponse(result)
 
 
@@ -258,38 +211,13 @@ async def admin_users_send_reset_password(request: Request):
     POST /api/admin/users/{user_id}/send-reset-password
     Force l'envoi d'un email de réinitialisation de mot de passe (bypass rate limit).
     """
+    from app.services.admin_service import AdminService
+
     user_id = int(request.path_params.get("user_id"))
     async with db_session() as db:
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            return JSONResponse({"error": "Utilisateur non trouvé."}, status_code=404)
-        if not user.is_active:
-            return JSONResponse(
-                {"error": "Compte désactivé, impossible d'envoyer l'email."},
-                status_code=400,
-            )
-
-        reset_token = generate_verification_token()
-        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-        user.password_reset_token = reset_token
-        user.password_reset_expires_at = expires_at
-        user.updated_at = datetime.now(timezone.utc)
-        db.commit()
-
-        frontend_url = os.getenv(
-            "FRONTEND_URL", "https://mathakine-frontend.onrender.com"
-        )
-        email_sent = EmailService.send_password_reset_email(
-            to_email=user.email,
-            username=user.username,
-            reset_token=reset_token,
-            frontend_url=frontend_url,
-        )
-        if not email_sent:
-            return JSONResponse(
-                {"error": "Impossible d'envoyer l'email. Réessayez plus tard."},
-                status_code=500,
-            )
+        success, err, code = AdminService.send_reset_password_for_admin(db, user_id)
+    if not success:
+        return JSONResponse({"error": err}, status_code=code)
     return JSONResponse({"message": "Email de réinitialisation envoyé."})
 
 
@@ -300,33 +228,17 @@ async def admin_users_resend_verification(request: Request):
     POST /api/admin/users/{user_id}/resend-verification
     Force l'envoi d'un email de vérification d'inscription (bypass cooldown).
     """
+    from app.services.admin_service import AdminService
+
     user_id = int(request.path_params.get("user_id"))
     async with db_session() as db:
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            return JSONResponse({"error": "Utilisateur non trouvé."}, status_code=404)
-        if user.is_email_verified:
-            return JSONResponse({"message": "L'email est déjà vérifié."})
-
-        verification_token = generate_verification_token()
-        user.email_verification_token = verification_token
-        user.email_verification_sent_at = datetime.now(timezone.utc)
-        db.commit()
-
-        frontend_url = os.getenv(
-            "FRONTEND_URL", "https://mathakine-frontend.onrender.com"
+        success, already_verified, err, code = (
+            AdminService.resend_verification_for_admin(db, user_id)
         )
-        email_sent = EmailService.send_verification_email(
-            to_email=user.email,
-            username=user.username,
-            verification_token=verification_token,
-            frontend_url=frontend_url,
-        )
-        if not email_sent:
-            return JSONResponse(
-                {"error": "Impossible d'envoyer l'email. Réessayez plus tard."},
-                status_code=500,
-            )
+    if not success:
+        return JSONResponse({"error": err}, status_code=code)
+    if already_verified:
+        return JSONResponse({"message": "L'email est déjà vérifié."})
     return JSONResponse({"message": "Email de vérification envoyé."})
 
 
