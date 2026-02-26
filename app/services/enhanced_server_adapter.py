@@ -309,7 +309,7 @@ class EnhancedServerAdapter:
         db: Session, user_id: int, time_range: str = "30"
     ) -> Dict[str, Any]:
         """
-        Récupère les statistiques d'un utilisateur.
+        Récupère les statistiques d'un utilisateur (base).
 
         Args:
             db: Session de base de données
@@ -320,6 +320,17 @@ class EnhancedServerAdapter:
             Un dictionnaire contenant les statistiques de l'utilisateur
         """
         return UserService.get_user_stats(db, user_id, time_range=time_range)
+
+    @staticmethod
+    def get_user_stats_for_dashboard(
+        db: Session, user_id: int, time_range: str = "30"
+    ) -> Dict[str, Any]:
+        """
+        Récupère les statistiques complètes pour le tableau de bord (XP, niveau, activité).
+        """
+        return UserService.get_user_stats_for_dashboard(
+            db, user_id, time_range=time_range
+        )
 
     @staticmethod
     def execute_raw_query(

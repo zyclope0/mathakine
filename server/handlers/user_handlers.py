@@ -18,6 +18,7 @@ from starlette.responses import JSONResponse
 from app.core.messages import SystemMessages
 from app.schemas.user import UserCreate
 from app.services.auth_service import create_user, get_user_by_email
+from app.services.user_service import UserService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.utils.csrf import validate_csrf_token
 from app.utils.db_utils import db_session
@@ -32,12 +33,10 @@ async def get_user_stats(request):
     """
     Endpoint pour obtenir les statistiques utilisateur pour le tableau de bord.
     Route: /api/users/stats
-    Paramètres de requête:
-        - timeRange: "7" (7 jours), "30" (30 jours), "90" (3 mois), "all" (tout)
+    Paramètres de requête: timeRange: "7", "30", "90", "all"
     """
     try:
         current_user = request.state.user
-
         user_id = current_user.get("id")
         username = current_user.get("username")
 
@@ -45,327 +44,19 @@ async def get_user_stats(request):
             logger.warning(f"ID utilisateur manquant pour {username}")
             return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
 
-        # Récupérer le paramètre timeRange depuis la requête
-        from starlette.requests import Request
-
-        query_params = dict(request.query_params)
-        time_range = query_params.get("timeRange", "30")  # Par défaut 30 jours
-
-        # Valider timeRange
+        time_range = request.query_params.get("timeRange", "30")
         valid_ranges = ["7", "30", "90", "all"]
         if time_range not in valid_ranges:
-            logger.debug(
-                f"TimeRange invalide '{time_range}', utilisation de la valeur par défaut '30'"
-            )
-            time_range = "30"  # Fallback sur 30 jours
+            time_range = "30"
 
         logger.debug(
-            f"Récupération des statistiques pour l'utilisateur {username} (ID: {user_id}), période: {time_range}"
+            f"Récupération des statistiques pour {username} (ID: {user_id}), période: {time_range}"
         )
 
         async with db_session() as db:
-            stats = EnhancedServerAdapter.get_user_stats(
+            response_data = EnhancedServerAdapter.get_user_stats_for_dashboard(
                 db, user_id, time_range=time_range
             )
-            if not stats:
-                logger.debug(
-                    f"Aucune statistique trouvée pour l'utilisateur {username}, utilisation de valeurs par défaut"
-                )
-                stats = {
-                    "total_attempts": 0,
-                    "correct_attempts": 0,
-                    "success_rate": 0,
-                    "by_exercise_type": {},
-                }
-
-            logger.debug(
-                f"Statistiques récupérées pour {username}: {stats.get('total_attempts', 0)} tentatives"
-            )
-
-            experience_points = stats.get("total_attempts", 0) * 10
-            performance_by_type = {}
-            # Les types sont déjà normalisés en minuscules dans user_service.py
-            for exercise_type, type_stats in stats.get("by_exercise_type", {}).items():
-                # S'assurer que la clé est en minuscules (déjà normalisée mais sécurité)
-                type_key = str(exercise_type).lower() if exercise_type else "unknown"
-                performance_by_type[type_key] = {
-                    "completed": type_stats.get("total", 0),
-                    "correct": type_stats.get("correct", 0),
-                    "success_rate": (
-                        type_stats.get("correct", 0) / type_stats.get("total", 1) * 100
-                    ),
-                }
-            # Récupérer l'activité récente (dernières 10 tentatives)
-            # Filtrer selon time_range si différent de "all"
-            recent_activity = []
-            try:
-                from datetime import datetime, timedelta, timezone
-
-                from app.models.attempt import Attempt
-                from app.models.logic_challenge import LogicChallengeAttempt
-
-                # Calculer la date limite si nécessaire
-                if time_range != "all":
-                    days = int(time_range)
-                    cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
-                else:
-                    cutoff_date = None
-
-                # Récupérer les tentatives d'exercices récentes
-                # IMPORTANT: Appliquer tous les filter() AVANT limit() et order_by()
-                exercise_attempts_query = db.query(Attempt).filter(
-                    Attempt.user_id == user_id
-                )
-
-                if cutoff_date:
-                    exercise_attempts_query = exercise_attempts_query.filter(
-                        Attempt.created_at >= cutoff_date
-                    )
-
-                exercise_attempts = (
-                    exercise_attempts_query.order_by(Attempt.created_at.desc())
-                    .limit(5)
-                    .all()
-                )
-
-                for attempt in exercise_attempts:
-                    recent_activity.append(
-                        {
-                            "type": "exercise",
-                            "description": f"Exercice complété",
-                            "time": (
-                                attempt.created_at.isoformat()
-                                if attempt.created_at
-                                else datetime.now(timezone.utc).isoformat()
-                            ),
-                            "is_correct": attempt.is_correct,
-                        }
-                    )
-
-                # Récupérer les tentatives de challenges récentes
-                # IMPORTANT: Appliquer tous les filter() AVANT limit() et order_by()
-                challenge_attempts_query = db.query(LogicChallengeAttempt).filter(
-                    LogicChallengeAttempt.user_id == user_id
-                )
-
-                if cutoff_date:
-                    challenge_attempts_query = challenge_attempts_query.filter(
-                        LogicChallengeAttempt.created_at >= cutoff_date
-                    )
-
-                challenge_attempts = (
-                    challenge_attempts_query.order_by(
-                        LogicChallengeAttempt.created_at.desc()
-                    )
-                    .limit(5)
-                    .all()
-                )
-
-                for attempt in challenge_attempts:
-                    recent_activity.append(
-                        {
-                            "type": "challenge",
-                            "description": f"Défi logique complété",
-                            "time": (
-                                attempt.created_at.isoformat()
-                                if attempt.created_at
-                                else datetime.now(timezone.utc).isoformat()
-                            ),
-                            "is_correct": attempt.is_correct,
-                        }
-                    )
-
-                # Trier par date décroissante et prendre les 10 plus récentes
-                recent_activity.sort(key=lambda x: x.get("time", ""), reverse=True)
-                recent_activity = recent_activity[:10]
-
-            except Exception as activity_error:
-                logger.error(
-                    f"Erreur lors de la récupération de l'activité récente: {activity_error}"
-                )
-                recent_activity = []
-
-            # Calculer le niveau et XP
-            def calculate_user_level(xp: int) -> dict:
-                """
-                Calcule le niveau utilisateur basé sur les points d'expérience.
-
-                Args:
-                    xp: Points d'expérience totaux
-
-                Returns:
-                    Dictionnaire avec current, title, current_xp, next_level_xp
-                """
-                # Seuils de niveau (100 points par niveau)
-                level_thresholds = [
-                    0,
-                    100,
-                    300,
-                    600,
-                    1000,
-                    1500,
-                    2100,
-                    2800,
-                    3600,
-                    4500,
-                    5500,
-                ]
-
-                # Trouver le niveau actuel
-                current_level = 1
-                for i, threshold in enumerate(level_thresholds):
-                    if xp >= threshold:
-                        current_level = i + 1
-
-                # Calculer les XP pour le niveau actuel et suivant
-                current_xp = (
-                    xp - level_thresholds[current_level - 1]
-                    if current_level > 1
-                    else xp
-                )
-                next_level_xp = (
-                    level_thresholds[current_level]
-                    - level_thresholds[current_level - 1]
-                    if current_level < len(level_thresholds)
-                    else 100
-                )
-
-                # Titres de niveau
-                level_titles = {
-                    1: "Jeune Padawan",
-                    2: "Padawan",
-                    3: "Chevalier Jedi",
-                    4: "Maître Jedi",
-                    5: "Grand Maître",
-                    6: "Maître du Conseil",
-                    7: "Légende Jedi",
-                    8: "Gardien de la Force",
-                    9: "Seigneur Jedi",
-                    10: "Archiviste Jedi",
-                    11: "Grand Archiviste",
-                }
-
-                title = level_titles.get(current_level, f"Niveau {current_level}")
-
-                return {
-                    "current": current_level,
-                    "title": title,
-                    "current_xp": current_xp,
-                    "next_level_xp": next_level_xp,
-                }
-
-            level_data = calculate_user_level(experience_points)
-
-            # Calculer la progression dans le temps
-            progress_over_time = []
-            exercises_by_day = []
-
-            try:
-                from collections import defaultdict
-                from datetime import datetime, timedelta, timezone
-
-                # Calculer la date de début selon time_range
-                if time_range == "all":
-                    start_date = datetime.now(timezone.utc) - timedelta(
-                        days=90
-                    )  # Par défaut 90 jours
-                else:
-                    start_date = datetime.now(timezone.utc) - timedelta(
-                        days=int(time_range)
-                    )
-
-                # Récupérer les tentatives par jour
-                daily_stats = defaultdict(lambda: {"total": 0, "correct": 0})
-
-                attempts_query = (
-                    db.query(Attempt)
-                    .filter(
-                        Attempt.user_id == user_id, Attempt.created_at >= start_date
-                    )
-                    .all()
-                )
-
-                for attempt in attempts_query:
-                    if attempt.created_at:
-                        day_key = attempt.created_at.date().isoformat()
-                        daily_stats[day_key]["total"] += 1
-                        if attempt.is_correct:
-                            daily_stats[day_key]["correct"] += 1
-
-                # Créer les datasets pour les graphiques
-                sorted_days = sorted(daily_stats.keys())
-                progress_over_time = {
-                    "labels": sorted_days,
-                    "datasets": [
-                        {
-                            "label": "Taux de réussite (%)",
-                            "data": [
-                                (
-                                    (
-                                        daily_stats[day]["correct"]
-                                        / daily_stats[day]["total"]
-                                        * 100
-                                    )
-                                    if daily_stats[day]["total"] > 0
-                                    else 0
-                                )
-                                for day in sorted_days
-                            ],
-                        }
-                    ],
-                }
-
-                exercises_by_day = {
-                    "labels": sorted_days,
-                    "datasets": [
-                        {
-                            "label": "Exercices complétés",
-                            "data": [daily_stats[day]["total"] for day in sorted_days],
-                            "borderColor": "rgb(139, 92, 246)",
-                            "backgroundColor": "rgba(139, 92, 246, 0.1)",
-                        }
-                    ],
-                }
-
-            except Exception as progress_calculation_error:
-                logger.error(
-                    f"Erreur lors du calcul de la progression: {progress_calculation_error}"
-                )
-                progress_over_time = {"labels": [], "datasets": []}
-                exercises_by_day = {"labels": [], "datasets": []}
-
-            # Compter les challenges complétés
-            try:
-                from app.models.logic_challenge import LogicChallengeAttempt
-
-                total_challenges = (
-                    db.query(LogicChallengeAttempt)
-                    .filter(
-                        LogicChallengeAttempt.user_id == user_id,
-                        LogicChallengeAttempt.is_correct == True,
-                    )
-                    .count()
-                )
-            except Exception as challenge_count_error:
-                logger.error(
-                    f"Erreur lors du comptage des challenges: {challenge_count_error}"
-                )
-                total_challenges = 0
-
-            response_data = {
-                "total_exercises": stats.get("total_attempts", 0),
-                "total_challenges": total_challenges,
-                "correct_answers": stats.get("correct_attempts", 0),
-                "success_rate": stats.get("success_rate", 0),
-                "experience_points": experience_points,
-                "performance_by_type": performance_by_type,
-                "recent_activity": recent_activity,
-                "level": level_data,
-                "progress_over_time": progress_over_time,
-                "exercises_by_day": exercises_by_day,
-                "lastUpdated": datetime.now(timezone.utc).isoformat(),
-            }
-
             return JSONResponse(response_data)
 
     except Exception as stats_retrieval_error:
@@ -614,42 +305,16 @@ async def get_users_leaderboard(request: Request):
       - age_group (optionnel): filtrer par groupe d'âge (preferred_difficulty du profil)
     """
     try:
-        from app.models.user import User
-
         current_user = request.state.user
         user_id = current_user.get("id")
         query_params = dict(request.query_params)
         limit = min(int(query_params.get("limit", 50)), 100)
-        order_by = query_params.get("orderBy", "total_points")
         age_group = query_params.get("age_group", "").strip() or None
 
         async with db_session() as db:
-            q = db.query(User).filter(User.is_active == True)
-            if age_group:
-                q = q.filter(User.preferred_difficulty == age_group)
-            users = q.order_by(User.total_points.desc()).limit(limit).all()
-
-            leaderboard = []
-            for user in users:
-                settings = user.accessibility_settings or {}
-                privacy = (
-                    (settings.get("privacy_settings") or {})
-                    if isinstance(settings.get("privacy_settings"), dict)
-                    else {}
-                )
-                if privacy.get("show_in_leaderboards") is False:
-                    continue
-                leaderboard.append(
-                    {
-                        "username": user.username,
-                        "total_points": user.total_points or 0,
-                        "current_level": user.current_level or 1,
-                        "jedi_rank": user.jedi_rank or "youngling",
-                        "is_current_user": user.id == user_id,
-                    }
-                )
-            for i, entry in enumerate(leaderboard, start=1):
-                entry["rank"] = i
+            leaderboard = UserService.get_leaderboard_for_api(
+                db, user_id, limit=limit, age_group=age_group
+            )
 
             logger.info(
                 f"Classement récupéré par {current_user.get('username')}: {len(leaderboard)} utilisateurs"
@@ -671,109 +336,14 @@ async def get_all_user_progress(request: Request):
     """
     try:
         current_user = request.state.user
-
         user_id = current_user.get("id")
         logger.info(
             f"Récupération de la progression globale pour l'utilisateur {user_id}"
         )
 
         async with db_session() as db:
-            from app.models.attempt import Attempt
-            from app.models.exercise import Exercise
-
-            # Récupérer toutes les tentatives avec jointure sur exercises
-            attempts_query = (
-                db.query(Attempt, Exercise)
-                .join(Exercise, Attempt.exercise_id == Exercise.id)
-                .filter(Attempt.user_id == user_id)
-                .order_by(Attempt.created_at)
-                .all()
-            )
-
-            # Streak depuis la table users (série de jours consécutifs avec activité)
-            from app.models.user import User
-
-            user_row = db.query(User).filter(User.id == user_id).first()
-            current_streak = getattr(user_row, "current_streak", None) or 0
-            best_streak = getattr(user_row, "best_streak", None) or 0
-
-            if not attempts_query:
-                return JSONResponse(
-                    {
-                        "total_attempts": 0,
-                        "correct_attempts": 0,
-                        "accuracy": 0.0,
-                        "average_time": 0.0,
-                        "exercises_completed": 0,
-                        "highest_streak": best_streak,
-                        "current_streak": current_streak,
-                        "by_category": {},
-                    },
-                    status_code=200,
-                )
-
-            # Stats globales
-            total_attempts = len(attempts_query)
-            correct_attempts = sum(
-                1 for attempt, _ in attempts_query if attempt.is_correct
-            )
-            accuracy = correct_attempts / total_attempts if total_attempts > 0 else 0.0
-
-            # Temps moyen
-            times = [
-                attempt.time_spent
-                for attempt, _ in attempts_query
-                if attempt.time_spent
-            ]
-            average_time = sum(times) / len(times) if times else 0.0
-
-            # Exercices uniques complétés
-            completed_exercise_ids = set()
-            for attempt, exercise in attempts_query:
-                if attempt.is_correct:
-                    completed_exercise_ids.add(exercise.id)
-            exercises_completed = len(completed_exercise_ids)
-
-            # Grouper par catégorie
-            by_category = {}
-            category_attempts = {}
-
-            for attempt, exercise in attempts_query:
-                exercise_type = exercise.exercise_type or "unknown"
-
-                if exercise_type not in category_attempts:
-                    category_attempts[exercise_type] = {
-                        "total": 0,
-                        "correct": 0,
-                        "completed_ids": set(),
-                    }
-
-                category_attempts[exercise_type]["total"] += 1
-                if attempt.is_correct:
-                    category_attempts[exercise_type]["correct"] += 1
-                    category_attempts[exercise_type]["completed_ids"].add(exercise.id)
-
-            for exercise_type, stats in category_attempts.items():
-                total = stats["total"]
-                correct = stats["correct"]
-                by_category[exercise_type] = {
-                    "completed": len(stats["completed_ids"]),
-                    "accuracy": round(correct / total, 2) if total > 0 else 0.0,
-                }
-
-            return JSONResponse(
-                {
-                    "total_attempts": total_attempts,
-                    "correct_attempts": correct_attempts,
-                    "accuracy": round(accuracy, 2),
-                    "average_time": round(average_time, 1),
-                    "exercises_completed": exercises_completed,
-                    "highest_streak": best_streak,
-                    "current_streak": current_streak,
-                    "by_category": by_category,
-                },
-                status_code=200,
-            )
+            response_data = UserService.get_user_progress_for_api(db, user_id)
+            return JSONResponse(response_data, status_code=200)
 
     except Exception as e:
         logger.error(
@@ -792,125 +362,14 @@ async def get_challenges_progress(request: Request):
     """
     try:
         current_user = request.state.user
-
         user_id = current_user.get("id")
         logger.info(
             f"Récupération de la progression des défis pour l'utilisateur {user_id}"
         )
 
         async with db_session() as db:
-            from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
-
-            # Nombre total de défis actifs dans le système
-            total_challenges = (
-                db.query(LogicChallenge)
-                .filter(
-                    LogicChallenge.is_active == True,
-                    LogicChallenge.is_archived == False,
-                )
-                .count()
-            )
-
-            # Récupérer toutes les tentatives de l'utilisateur
-            all_attempts = (
-                db.query(LogicChallengeAttempt)
-                .filter(LogicChallengeAttempt.user_id == user_id)
-                .all()
-            )
-
-            if not all_attempts:
-                return JSONResponse(
-                    {
-                        "completed_challenges": 0,
-                        "total_challenges": total_challenges,
-                        "success_rate": 0.0,
-                        "average_time": 0.0,
-                        "challenges": [],
-                    },
-                    status_code=200,
-                )
-
-            # Identifier les défis complétés
-            completed_challenge_ids = set()
-            challenge_stats = {}
-
-            for attempt in all_attempts:
-                challenge_id = attempt.challenge_id
-
-                if challenge_id not in challenge_stats:
-                    challenge_stats[challenge_id] = {
-                        "attempts": 0,
-                        "correct_attempts": 0,
-                        "best_time": None,
-                        "times": [],
-                    }
-
-                challenge_stats[challenge_id]["attempts"] += 1
-
-                if attempt.is_correct:
-                    challenge_stats[challenge_id]["correct_attempts"] += 1
-                    completed_challenge_ids.add(challenge_id)
-
-                    if attempt.time_spent:
-                        if challenge_stats[challenge_id]["best_time"] is None:
-                            challenge_stats[challenge_id][
-                                "best_time"
-                            ] = attempt.time_spent
-                        else:
-                            challenge_stats[challenge_id]["best_time"] = min(
-                                challenge_stats[challenge_id]["best_time"],
-                                attempt.time_spent,
-                            )
-
-                if attempt.time_spent:
-                    challenge_stats[challenge_id]["times"].append(attempt.time_spent)
-
-            # Calculer le success_rate global
-            total_attempts = len(all_attempts)
-            correct_attempts = sum(1 for a in all_attempts if a.is_correct)
-            success_rate = (
-                correct_attempts / total_attempts if total_attempts > 0 else 0.0
-            )
-
-            # Calculer le temps moyen
-            all_times = [a.time_spent for a in all_attempts if a.time_spent]
-            average_time = sum(all_times) / len(all_times) if all_times else 0.0
-
-            # Construire la liste des défis complétés avec détails
-            challenges_list = []
-            if completed_challenge_ids:
-                completed_challenges = (
-                    db.query(LogicChallenge)
-                    .filter(LogicChallenge.id.in_(completed_challenge_ids))
-                    .all()
-                )
-
-                for challenge in completed_challenges:
-                    stats = challenge_stats.get(challenge.id, {})
-                    challenges_list.append(
-                        {
-                            "id": challenge.id,
-                            "title": challenge.title,
-                            "is_completed": True,
-                            "attempts": stats.get("attempts", 0),
-                            "best_time": (
-                                round(stats.get("best_time", 0), 2)
-                                if stats.get("best_time")
-                                else None
-                            ),
-                        }
-                    )
-
-            return JSONResponse(
-                {
-                    "completed_challenges": len(completed_challenge_ids),
-                    "total_challenges": total_challenges,
-                    "success_rate": round(success_rate, 2),
-                    "average_time": round(average_time, 1),
-                    "challenges": challenges_list,
-                },
-                status_code=200,
-            )
+            response_data = UserService.get_challenges_progress_for_api(db, user_id)
+            return JSONResponse(response_data, status_code=200)
 
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de la progression des défis: {e}")
@@ -934,10 +393,7 @@ async def update_user_me(request: Request):
     - accessibility_settings (JSON)
     """
     try:
-        from app.models.user import User
-
         current_user = request.state.user
-
         user_id = current_user.get("id")
         data = await request.json()
         logger.info(f"Mise à jour profil utilisateur {user_id}")
@@ -1086,59 +542,19 @@ async def update_user_me(request: Request):
                     status_code=400,
                 )
 
-        # Mise à jour en base
+        # Mise à jour en base via le service
         async with db_session() as db:
-            user = db.query(User).filter(User.id == user_id).first()
-            if not user:
+            user, err = UserService.update_user_profile(db, user_id, update_data)
+            if err == "not_found":
                 return JSONResponse(
                     {"error": "Utilisateur introuvable."}, status_code=404
                 )
-
-            # Vérifier unicité email si modifié
-            if "email" in update_data and update_data["email"] != user.email:
-                existing = (
-                    db.query(User)
-                    .filter(User.email == update_data["email"], User.id != user_id)
-                    .first()
+            if err == "email_taken":
+                return JSONResponse(
+                    {"error": "Cette adresse email est déjà utilisée."},
+                    status_code=400,
                 )
-                if existing:
-                    return JSONResponse(
-                        {"error": "Cette adresse email est déjà utilisée."},
-                        status_code=400,
-                    )
-
-            # Marquer l'onboarding comme complété si c'est la première fois
-            onboarding_fields = {
-                "grade_level",
-                "grade_system",
-                "preferred_difficulty",
-                "learning_goal",
-                "practice_rhythm",
-            }
-            if not getattr(
-                user, "onboarding_completed_at", None
-            ) and onboarding_fields.intersection(update_data.keys()):
-                from datetime import datetime, timezone
-
-                user.onboarding_completed_at = datetime.now(timezone.utc)
-
-            # Appliquer les modifications
-            for field, value in update_data.items():
-                if field == "accessibility_settings":
-                    # Merger avec les settings existants pour ne pas écraser
-                    # IMPORTANT: créer un NOUVEAU dict pour que SQLAlchemy détecte le changement
-                    # (les mutations in-place sur JSON ne sont pas trackées)
-                    existing_settings = dict(user.accessibility_settings or {})
-                    if isinstance(value, dict):
-                        existing_settings.update(value)
-                        setattr(user, field, existing_settings)
-                    else:
-                        setattr(user, field, value)
-                else:
-                    setattr(user, field, value)
-
-            db.commit()
-            db.refresh(user)
+            # user is not None
 
             # Construire la réponse
             response_data = {
@@ -1147,6 +563,7 @@ async def update_user_me(request: Request):
                 "email": user.email,
                 "full_name": user.full_name,
                 "role": user.role.value if user.role else None,
+                "is_email_verified": getattr(user, "is_email_verified", True),
                 "grade_level": user.grade_level,
                 "grade_system": getattr(user, "grade_system", None),
                 "learning_style": user.learning_style,
@@ -1197,11 +614,7 @@ async def update_user_password_me(request: Request):
     if csrf_err:
         return csrf_err
     try:
-        from app.core.security import get_password_hash, verify_password
-        from app.models.user import User
-
         current_user = request.state.user
-
         user_id = current_user.get("id")
         data = await request.json()
 
@@ -1230,23 +643,20 @@ async def update_user_password_me(request: Request):
                 status_code=400,
             )
 
-        # Vérification et mise à jour en base
+        # Vérification et mise à jour en base via le service
         async with db_session() as db:
-            user = db.query(User).filter(User.id == user_id).first()
-            if not user:
+            ok, err_msg = UserService.update_user_password(
+                db, user_id, current_password, new_password
+            )
+            if not ok:
+                if "introuvable" in (err_msg or ""):
+                    return JSONResponse(
+                        {"error": "Utilisateur introuvable."}, status_code=404
+                    )
                 return JSONResponse(
-                    {"error": "Utilisateur introuvable."}, status_code=404
+                    {"error": err_msg or "Erreur lors de la mise à jour."},
+                    status_code=401,
                 )
-
-            # Vérifier le mot de passe actuel
-            if not verify_password(current_password, user.hashed_password):
-                return JSONResponse(
-                    {"error": "Le mot de passe actuel est incorrect."}, status_code=401
-                )
-
-            # Hasher et sauvegarder le nouveau mot de passe
-            user.hashed_password = get_password_hash(new_password)
-            db.commit()
 
             logger.info(
                 f"Mot de passe de l'utilisateur {user_id} mis à jour avec succès"
@@ -1264,7 +674,6 @@ async def update_user_password_me(request: Request):
 
 
 @require_auth
-@require_full_access
 async def delete_user_me(request: Request):
     """
     Handler pour supprimer le compte de l'utilisateur connecté.
@@ -1272,28 +681,22 @@ async def delete_user_me(request: Request):
     Protégé CSRF (audit 3.2).
 
     Supprime l'utilisateur et toutes ses données associées (cascade).
+    Accessible aux utilisateurs non vérifiés (RGPD, droit à l'effacement).
     """
     csrf_err = validate_csrf_token(request)
     if csrf_err:
         return csrf_err
     try:
-        from app.models.user import User
-
         current_user = request.state.user
-
         user_id = current_user.get("id")
         username = current_user.get("username")
 
         async with db_session() as db:
-            user = db.query(User).filter(User.id == user_id).first()
-            if not user:
+            deleted = UserService.delete_user(db, user_id)
+            if not deleted:
                 return JSONResponse(
                     {"error": "Utilisateur introuvable."}, status_code=404
                 )
-
-            # Suppression (les relations cascade suppriment les données liées)
-            db.delete(user)
-            db.commit()
 
             logger.info(f"Compte utilisateur supprimé : {username} (ID: {user_id})")
 
@@ -1554,52 +957,14 @@ async def get_user_sessions(request: Request):
     """
     try:
         current_user = request.state.user
-
         user_id = current_user.get("id")
 
-        # Récupérer la session DB
         async with db_session() as db:
-            from sqlalchemy import and_
-
-            from app.models.user_session import UserSession
-
-            # Récupérer toutes les sessions actives non expirées
-            sessions = (
-                db.query(UserSession)
-                .filter(
-                    and_(
-                        UserSession.user_id == user_id,
-                        UserSession.is_active == True,
-                        UserSession.expires_at > datetime.now(timezone.utc),
-                    )
-                )
-                .order_by(UserSession.last_activity.desc())
-                .all()
-            )
+            session_list = UserService.get_user_sessions_for_api(db, user_id)
 
             logger.debug(
-                f"Récupération de {len(sessions)} sessions actives pour user_id={user_id}"
+                f"Récupération de {len(session_list)} sessions actives pour user_id={user_id}"
             )
-
-            # Session la plus récente = probablement la session actuelle (requête depuis celle-ci)
-            most_recent_id = sessions[0].id if sessions else None
-            session_list = []
-            for session in sessions:
-                session_dict = {
-                    "id": session.id,
-                    "device_info": session.device_info,
-                    "ip_address": (
-                        str(session.ip_address) if session.ip_address else None
-                    ),
-                    "user_agent": session.user_agent,
-                    "location_data": session.location_data,
-                    "is_active": session.is_active,
-                    "last_activity": session.last_activity.isoformat(),
-                    "created_at": session.created_at.isoformat(),
-                    "expires_at": session.expires_at.isoformat(),
-                    "is_current": session.id == most_recent_id,
-                }
-                session_list.append(session_dict)
 
             return JSONResponse(session_list, status_code=200)
 
@@ -1620,22 +985,13 @@ async def revoke_user_session(request: Request):
     """
     try:
         current_user = request.state.user
-
         user_id = current_user.get("id")
         session_id = int(request.path_params.get("session_id"))
 
-        # Récupérer la session DB
         async with db_session() as db:
-            from app.models.user_session import UserSession
+            ok, err_msg = UserService.revoke_user_session(db, session_id, user_id)
 
-            # Récupérer la session
-            session = (
-                db.query(UserSession)
-                .filter(UserSession.id == session_id, UserSession.user_id == user_id)
-                .first()
-            )
-
-            if not session:
+            if not ok:
                 logger.warning(
                     f"Tentative de révocation d'une session inexistante ou non autorisée: session_id={session_id}, user_id={user_id}"
                 )
@@ -1645,10 +1001,6 @@ async def revoke_user_session(request: Request):
                     },
                     status_code=404,
                 )
-
-            # Marquer la session comme inactive
-            session.is_active = False
-            db.commit()
 
             logger.info(f"Session {session_id} révoquée pour user_id={user_id}")
 

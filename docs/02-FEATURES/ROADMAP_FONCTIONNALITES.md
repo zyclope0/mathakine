@@ -1,6 +1,6 @@
 # Roadmap Fonctionnalités - Analyse Globale
 
-> **Date** : 06/02/2026 — **Dernière MAJ** : 15/02/2026  
+> **Date** : 06/02/2026 — **Dernière MAJ** : 26/02/2026  
 > **Objectif** : Identifier les pages et fonctionnalités à ajouter pour maximiser l'engagement et la rétention  
 > **Cible** : Enfants 5-20 ans + Parents
 
@@ -357,7 +357,26 @@ Notifications :
 
 ---
 
-### 4.4 🏫 Mode classe/école (P3)
+### 4.4 🏠 Préférence page d'accueil après connexion (P2)
+
+**Objectif** : Permettre à l'utilisateur de choisir où il est redirigé après login.
+
+| Valeur | Redirection |
+|--------|-------------|
+| `exercises` (défaut) | `/exercises` |
+| `dashboard` | `/dashboard` |
+
+**Implémentation** :
+- Champ `login_redirect_preference` (ou équivalent) en base (modèle `User` ou `accessibility_settings`)
+- Option dans la page Profil / Paramètres : « Page d'accueil après connexion » [Exercices | Tableau de bord]
+- Réponse `GET /api/users/me` et `PUT /api/users/me` incluent ce champ
+- `useAuth.ts` : après onboarding OK, utiliser `data.user.login_redirect_preference` pour la cible
+
+**Effort estimé** : Faible (1 colonne, 1 champ formulaire, 1 branche dans useAuth).
+
+---
+
+### 4.5 🏫 Mode classe/école (P3)
 
 **Pour les enseignants** :
 - Créer une classe
@@ -434,6 +453,7 @@ Notifications :
 | Système streak | ⭐⭐⭐⭐⭐ | Faible | **P1** |
 | Notifications | ⭐⭐⭐ | Moyen | **P2** |
 | Objectifs perso | ⭐⭐⭐ | Faible | **P2** |
+| Préférence page d'accueil (profil) | ⭐⭐ | Faible | **P2** |
 | Rapports détaillés | ⭐⭐⭐ | Moyen | **P2** |
 | Mode classe | ⭐⭐⭐ | Élevé | **P3** |
 | Tuteur IA | ⭐⭐⭐⭐ | Élevé | **P3** |
@@ -462,6 +482,7 @@ Notifications :
 | Système de révisions espacées | Moyenne |
 | Recommandations personnalisées | Moyenne |
 | Objectifs utilisateur | Faible |
+| Préférence page d'accueil après connexion (profil) | Faible |
 
 ### Phase 3 - Parents (2-3 sprints)
 

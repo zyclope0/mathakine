@@ -21,6 +21,9 @@ updates:
     labels:
       - "dependencies"
       - "frontend"
+    # eslint 10 incompatible avec eslint-config-next (getFilename API)
+    ignore:
+      - dependency-name: "eslint"
     groups:
       react:
         patterns:

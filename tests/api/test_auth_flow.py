@@ -174,6 +174,41 @@ async def test_forgot_password_missing_email(client):
     assert "error" in data
 
 
+async def test_verify_email_success(client, test_user_data):
+    """Test vérification email via GET /api/auth/verify-email?token=..."""
+    # Créer utilisateur (non vérifié par défaut)
+    resp = await client.post("/api/users/", json=test_user_data)
+    assert resp.status_code in (200, 201)
+
+    # Récupérer le token depuis la DB (en test, on ne reçoit pas l'email)
+    from app.services.enhanced_server_adapter import EnhancedServerAdapter
+    from app.models.user import User
+
+    db = EnhancedServerAdapter.get_db_session()
+    try:
+        user = db.query(User).filter(User.username == test_user_data["username"]).first()
+        assert user is not None
+        token = user.email_verification_token
+        assert token is not None, "Token vérification non généré"
+    finally:
+        EnhancedServerAdapter.close_db_session(db)
+
+    # Vérifier l'email avec le token
+    resp_verify = await client.get(f"/api/auth/verify-email?token={token}")
+    assert resp_verify.status_code == 200, resp_verify.text
+    data = resp_verify.json()
+    assert data.get("success") is True
+    assert data.get("user", {}).get("is_email_verified") is True
+
+
+async def test_verify_email_invalid_token(client):
+    """Test verify-email avec token invalide"""
+    resp = await client.get("/api/auth/verify-email?token=invalid_token_xyz")
+    assert resp.status_code == 400
+    data = resp.json()
+    assert "error" in data
+
+
 async def test_reset_password_full_flow(client, test_user_data):
     """Test flow complet : forgot -> récupérer token en DB -> reset -> login"""
     await client.post("/api/users/", json=test_user_data)

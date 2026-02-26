@@ -20,7 +20,9 @@ from app.services.auth_service import (
     create_user,
     create_user_token,
     refresh_access_token,
-    update_user
+    update_user,
+    verify_email_token,
+    reset_password_with_token,
 )
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.models.user import User, UserRole
@@ -823,3 +825,124 @@ def test_refresh_access_token_generic_exception(db_session, mock_user):
         # Vérifier les détails de l'exception (500 Erreur interne du serveur)
         assert excinfo.value.status_code == 500
         assert "Erreur interne du serveur" in excinfo.value.detail
+
+
+# --- Tests verify_email_token (service, refactoré 26/02) ---
+
+
+def test_verify_email_token_success(db_session, mock_user):
+    """Teste la vérification d'email avec un token valide."""
+    user_data = mock_user()
+    user = adapted_dict_to_user(user_data, db_session)
+    user.is_email_verified = False
+    user.email_verification_token = "valid_token_abc123"
+    user.email_verification_sent_at = datetime.now(timezone.utc) - timedelta(hours=1)
+    db_session.add(user)
+    db_session.commit()
+
+    result_user, error = verify_email_token(db_session, "valid_token_abc123")
+
+    assert error is None
+    assert result_user is not None
+    assert result_user.id == user.id
+    assert result_user.is_email_verified is True
+    db_session.refresh(user)
+    assert user.is_email_verified is True
+
+
+def test_verify_email_token_invalid(db_session):
+    """Teste verify_email_token avec un token inexistant."""
+    user, error = verify_email_token(db_session, "nonexistent_token_xyz")
+    assert user is None
+    assert error == "invalid"
+
+
+def test_verify_email_token_expired(db_session, mock_user):
+    """Teste verify_email_token avec un token expiré (>24h)."""
+    user_data = mock_user()
+    user = adapted_dict_to_user(user_data, db_session)
+    user.is_email_verified = False
+    user.email_verification_token = "expired_token"
+    user.email_verification_sent_at = datetime.now(timezone.utc) - timedelta(hours=25)
+    db_session.add(user)
+    db_session.commit()
+
+    result_user, error = verify_email_token(db_session, "expired_token")
+
+    assert result_user is not None
+    assert result_user.id == user.id
+    assert error == "expired"
+    db_session.refresh(user)
+    assert user.is_email_verified is False
+
+
+def test_verify_email_token_already_verified(db_session, mock_user):
+    """Teste verify_email_token quand l'email est déjà vérifié."""
+    user_data = mock_user()
+    user = adapted_dict_to_user(user_data, db_session)
+    user.is_email_verified = True
+    user.email_verification_token = "token_already"
+    user.email_verification_sent_at = datetime.now(timezone.utc) - timedelta(hours=1)
+    db_session.add(user)
+    db_session.commit()
+
+    result_user, error = verify_email_token(db_session, "token_already")
+
+    assert result_user is not None
+    assert error == "already_verified"
+    db_session.refresh(user)
+    assert user.is_email_verified is True
+
+
+# --- Tests reset_password_with_token (service, refactoré 26/02) ---
+
+
+def test_reset_password_with_token_success(db_session, mock_user):
+    """Teste la réinitialisation du mot de passe avec un token valide."""
+    user_data = mock_user()
+    user = adapted_dict_to_user(user_data, db_session)
+    user.password_reset_token = "valid_reset_token"
+    user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    db_session.add(user)
+    db_session.commit()
+
+    result_user, error = reset_password_with_token(
+        db_session, "valid_reset_token", "NewSecurePass123"
+    )
+
+    assert error is None
+    assert result_user is not None
+    assert result_user.id == user.id
+    assert authenticate_user(db_session, user.username, "NewSecurePass123") is not None
+    db_session.refresh(user)
+    assert user.password_reset_token is None
+    assert user.password_reset_expires_at is None
+
+
+def test_reset_password_with_token_invalid(db_session):
+    """Teste reset_password_with_token avec un token inexistant."""
+    user, error = reset_password_with_token(
+        db_session, "invalid_reset_token", "NewPass123"
+    )
+    assert user is None
+    assert error == "invalid"
+
+
+def test_reset_password_with_token_expired(db_session, mock_user):
+    """Teste reset_password_with_token avec un token expiré."""
+    user_data = mock_user()
+    user = adapted_dict_to_user(user_data, db_session)
+    old_hash = get_password_hash("OldPass123")
+    user.hashed_password = old_hash
+    user.password_reset_token = "expired_reset_token"
+    user.password_reset_expires_at = datetime.now(timezone.utc) - timedelta(hours=2)
+    db_session.add(user)
+    db_session.commit()
+
+    result_user, error = reset_password_with_token(
+        db_session, "expired_reset_token", "NewPass456"
+    )
+
+    assert result_user is not None
+    assert error == "expired"
+    assert authenticate_user(db_session, user.username, "OldPass123") is not None

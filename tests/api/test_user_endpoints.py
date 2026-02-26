@@ -134,6 +134,8 @@ async def test_update_user(padawan_client, db_session):
     assert response.status_code == 200
     data = response.json()
     assert data["full_name"] == update_data["full_name"]
+    # Régression : is_email_verified doit être présent (évite bannière "compte non validé" au refresh du cache auth)
+    assert "is_email_verified" in data
 
 
 async def test_update_user_onboarding_fields(padawan_client):

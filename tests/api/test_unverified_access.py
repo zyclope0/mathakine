@@ -227,3 +227,26 @@ async def test_unverified_beyond_grace_period_challenges_list_403(client, unveri
         headers={"Authorization": f"Bearer {token}"},
     )
     assert resp.status_code == 403
+
+
+async def test_unverified_beyond_grace_period_delete_account_200(client, unverified_user_data):
+    """Non vérifié > 45 min : DELETE /api/users/me retourne 200 (RGPD, droit à l'effacement)."""
+    await client.post("/api/users/", json=unverified_user_data)
+    set_user_created_at_for_tests(unverified_user_data["username"], 50)
+
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "username": unverified_user_data["username"],
+            "password": unverified_user_data["password"],
+        },
+    )
+    token = login_resp.json()["access_token"]
+
+    resp = await client.delete(
+        "/api/users/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 200, f"DELETE /me devrait autoriser les non vérifiés: {resp.text}"
+    data = resp.json()
+    assert data.get("success") is True

@@ -188,6 +188,7 @@ async with db_session() as db:
 | **P3** | ✅ Fait | `ContentCardBase.tsx` déjà existant, utilisé par `ExerciseCard` et `ChallengeCard` |
 | **P4** | ✅ Fait | `frontend/hooks/usePaginatedContent.ts` — hook générique pour pagination. Refactor de `useExercises` et `useChallenges` qui l'utilisent. |
 | **P6** | ⏳ En attente | Fixtures auth centralisées — à faire si besoin |
+| **Auth** | ✅ Fait (26/02) | `auth_handlers` : verify_email et reset_password via `AuthService.verify_email_token` et `reset_password_with_token`. Plus d'accès DB direct dans ces handlers. |
 
 ---
 

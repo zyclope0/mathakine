@@ -13,21 +13,19 @@ logger = get_logger(__name__)
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from app.core.security import decode_token, get_password_hash
+from app.core.security import decode_token
 from app.services.auth_service import (
     authenticate_user,
     create_user_token,
     get_user_by_email,
     refresh_access_token,
+    reset_password_with_token,
+    verify_email_token,
 )
 from app.services.email_service import EmailService
 from app.utils.csrf import validate_csrf_token
 from app.utils.db_utils import db_session
-from app.utils.email_verification import (
-    generate_verification_token,
-    is_password_reset_token_expired,
-    is_verification_token_expired,
-)
+from app.utils.email_verification import generate_verification_token
 from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
 from server.auth import require_auth
 
@@ -67,7 +65,6 @@ async def verify_email(request: Request):
     Route: GET /api/auth/verify-email?token=...
     """
     try:
-        # Récupérer le token depuis les query params
         token = request.query_params.get("token")
 
         if not token:
@@ -75,19 +72,15 @@ async def verify_email(request: Request):
                 {"error": "Token de vérification manquant"}, status_code=400
             )
 
-        from app.utils.db_utils import db_session
-
         async with db_session() as db:
-            from app.models.user import User
+            user, err = verify_email_token(db, token)
 
-            user = db.query(User).filter(User.email_verification_token == token).first()
-
-            if not user:
+            if err == "invalid":
                 return JSONResponse(
                     {"error": "Token de vérification invalide"}, status_code=400
                 )
 
-            if is_verification_token_expired(user.email_verification_sent_at):
+            if err == "expired":
                 return JSONResponse(
                     {
                         "error": "Le token de vérification a expiré. Veuillez demander un nouveau lien."
@@ -95,7 +88,7 @@ async def verify_email(request: Request):
                     status_code=400,
                 )
 
-            if user.is_email_verified:
+            if err == "already_verified":
                 return JSONResponse(
                     {
                         "message": "Votre adresse email est déjà vérifiée",
@@ -109,15 +102,6 @@ async def verify_email(request: Request):
                     },
                     status_code=200,
                 )
-
-            user.is_email_verified = True
-            user.updated_at = datetime.now(timezone.utc)
-            db.commit()
-            db.refresh(user)
-
-            logger.info(
-                f"Email vérifié pour l'utilisateur {user.username} ({user.email})"
-            )
 
             return JSONResponse(
                 {
@@ -763,30 +747,19 @@ async def api_reset_password(request: Request):
             )
 
         async with db_session() as db:
-            from app.models.user import User
+            user, err = reset_password_with_token(db, token, password)
 
-            user = db.query(User).filter(User.password_reset_token == token).first()
-
-            if not user:
+            if err == "invalid":
                 return JSONResponse(
                     {"error": "Token invalide ou déjà utilisé"}, status_code=400
                 )
 
-            if is_password_reset_token_expired(user.password_reset_expires_at):
+            if err == "expired":
                 return JSONResponse(
                     {"error": "Le lien a expiré. Veuillez demander un nouveau lien."},
                     status_code=400,
                 )
 
-            user.hashed_password = get_password_hash(password)
-            user.password_reset_token = None
-            user.password_reset_expires_at = None
-            user.updated_at = datetime.now(timezone.utc)
-
-            db.commit()
-            db.refresh(user)
-
-            logger.info(f"Mot de passe réinitialisé pour {user.username}")
             return JSONResponse(
                 {
                     "message": "Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.",

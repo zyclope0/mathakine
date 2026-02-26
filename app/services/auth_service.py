@@ -3,7 +3,7 @@ Service d'authentification pour gérer les utilisateurs et les connexions
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, Tuple
 
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
@@ -20,6 +20,10 @@ from app.core.security import (
 from app.models.user import User, UserRole
 from app.schemas.user import TokenData, UserCreate, UserUpdate
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
+from app.utils.email_verification import (
+    is_password_reset_token_expired,
+    is_verification_token_expired,
+)
 
 logger = get_logger(__name__)
 
@@ -437,3 +441,63 @@ def update_user_password(
 
     logger.info(f"Mot de passe mis à jour pour l'utilisateur: {user.username}")
     return True
+
+
+def verify_email_token(db: Session, token: str) -> Tuple[Optional[User], Optional[str]]:
+    """
+    Vérifie un token d'email et marque l'utilisateur comme vérifié si valide.
+
+    Args:
+        db: Session de base de données
+        token: Token de vérification
+
+    Returns:
+        (user, error): user si succès, error parmi "invalid", "expired", "already_verified"
+    """
+    user = db.query(User).filter(User.email_verification_token == token).first()
+    if not user:
+        return None, "invalid"
+
+    if is_verification_token_expired(user.email_verification_sent_at):
+        return user, "expired"
+
+    if user.is_email_verified:
+        return user, "already_verified"
+
+    user.is_email_verified = True
+    user.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(user)
+    logger.info(f"Email vérifié pour l'utilisateur {user.username} ({user.email})")
+    return user, None
+
+
+def reset_password_with_token(
+    db: Session, token: str, new_password: str
+) -> Tuple[Optional[User], Optional[str]]:
+    """
+    Réinitialise le mot de passe avec un token valide.
+
+    Args:
+        db: Session de base de données
+        token: Token de réinitialisation
+        new_password: Nouveau mot de passe (déjà validé par le handler)
+
+    Returns:
+        (user, error): user si succès, error parmi "invalid", "expired"
+    """
+    user = db.query(User).filter(User.password_reset_token == token).first()
+    if not user:
+        return None, "invalid"
+
+    if is_password_reset_token_expired(user.password_reset_expires_at):
+        return user, "expired"
+
+    user.hashed_password = get_password_hash(new_password)
+    user.password_reset_token = None
+    user.password_reset_expires_at = None
+    user.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(user)
+    logger.info(f"Mot de passe réinitialisé pour {user.username}")
+    return user, None

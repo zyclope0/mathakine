@@ -19,6 +19,7 @@ from app.models.exercise import ExerciseType
 # Import du service de badges
 from app.services.badge_service import BadgeService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from app.services.exercise_service import ExerciseService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import ErrorHandler, get_safe_error_message
 from server.auth import optional_auth, require_auth, require_auth_sse
@@ -111,80 +112,20 @@ async def generate_exercise(request):
 
 
 async def get_exercise(request):
-    """Récupère un exercice par son ID avec support des traductions"""
+    """Récupère un exercice par son ID (format API, sans correct_answer)."""
     exercise_id = request.path_params.get("exercise_id")
-
     try:
-        # Extraire la locale depuis le header Accept-Language
-        from app.utils.translation import parse_accept_language
-
-        accept_language = request.headers.get("Accept-Language")
-        locale = parse_accept_language(accept_language) or "fr"
-
-        # Utiliser le service ORM ExerciseService
         async with db_session() as db:
-            from sqlalchemy import String, cast
-
-            from app.models.exercise import Exercise
-            from app.utils.json_utils import safe_parse_json
-
-            # IMPORTANT: Charger les enums en tant que strings pour éviter les erreurs de conversion
-            # SQLAlchemy essaie de convertir automatiquement et échoue si la DB contient des minuscules
-            # Solution: Utiliser cast() pour forcer le chargement en string dès le début
-            exercise_row = (
-                db.query(
-                    Exercise.id,
-                    Exercise.title,
-                    Exercise.question,
-                    Exercise.correct_answer,
-                    Exercise.choices,
-                    Exercise.explanation,
-                    Exercise.hint,
-                    Exercise.tags,
-                    Exercise.ai_generated,
-                    Exercise.age_group,
-                    cast(Exercise.exercise_type, String).label("exercise_type_str"),
-                    cast(Exercise.difficulty, String).label("difficulty_str"),
-                )
-                .filter(Exercise.id == exercise_id)
-                .first()
-            )
-
-            if not exercise_row:
-                return ErrorHandler.create_not_found_error(
-                    resource_type="Exercice", resource_id=exercise_id
-                )
-
-            exercise = {
-                "id": exercise_row.id,
-                "title": exercise_row.title,
-                "exercise_type": (
-                    exercise_row.exercise_type_str.upper()
-                    if exercise_row.exercise_type_str
-                    else "ADDITION"
-                ),
-                "difficulty": (
-                    exercise_row.difficulty_str.upper()
-                    if exercise_row.difficulty_str
-                    else "PADAWAN"
-                ),
-                "age_group": exercise_row.age_group,
-                "question": exercise_row.question,
-                # correct_answer volontairement omis pour éviter la triche (renvoyé uniquement après soumission)
-                "choices": safe_parse_json(exercise_row.choices, []),
-                "explanation": exercise_row.explanation,
-                "hint": exercise_row.hint,
-                "tags": safe_parse_json(exercise_row.tags, []),
-                "ai_generated": exercise_row.ai_generated or False,
-            }
-
+            exercise = ExerciseService.get_exercise_for_api(db, int(exercise_id))
         if not exercise:
-            return JSONResponse(
-                {"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404
+            return ErrorHandler.create_not_found_error(
+                resource_type="Exercice", resource_id=exercise_id
             )
-
         return JSONResponse(exercise)
-
+    except (ValueError, TypeError):
+        return ErrorHandler.create_not_found_error(
+            resource_type="Exercice", resource_id=exercise_id
+        )
     except Exception as exercise_retrieval_error:
         logger.error(
             f"Erreur lors de la récupération de l'exercice: {exercise_retrieval_error}"
@@ -235,51 +176,16 @@ async def submit_answer(request):
 
         # Utiliser le service ORM ExerciseService (une seule session pour lecture + tentative + badges)
         async with db_session() as db:
-            from sqlalchemy import String, cast
+            from app.models.exercise import ExerciseType
 
-            from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
-
-            # IMPORTANT: Charger les enums en tant que strings pour éviter les erreurs de conversion
-            exercise_row = (
-                db.query(
-                    Exercise.id,
-                    Exercise.question,
-                    Exercise.correct_answer,
-                    Exercise.choices,
-                    Exercise.explanation,
-                    cast(Exercise.exercise_type, String).label("exercise_type_str"),
-                    cast(Exercise.difficulty, String).label("difficulty_str"),
-                )
-                .filter(Exercise.id == exercise_id)
-                .first()
+            exercise = ExerciseService.get_exercise_for_submit_validation(
+                db, exercise_id
             )
 
-            if not exercise_row:
+            if not exercise:
                 return JSONResponse(
                     {"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404
                 )
-
-            # Normaliser les valeurs enum en majuscules
-            exercise_type_normalized = (
-                exercise_row.exercise_type_str.upper()
-                if exercise_row.exercise_type_str
-                else "ADDITION"
-            )
-            difficulty_normalized = (
-                exercise_row.difficulty_str.upper()
-                if exercise_row.difficulty_str
-                else "PADAWAN"
-            )
-
-            exercise = {
-                "id": exercise_row.id,
-                "exercise_type": exercise_type_normalized,
-                "difficulty": difficulty_normalized,
-                "correct_answer": exercise_row.correct_answer,
-                "choices": exercise_row.choices,
-                "question": exercise_row.question,
-                "explanation": exercise_row.explanation,
-            }
 
             # Déterminer si la réponse est correcte
             is_correct = False
@@ -328,9 +234,6 @@ async def submit_answer(request):
                 logger.debug(
                     f"Tentative d'enregistrement avec attempt_data: {attempt_data}"
                 )
-                # Utiliser le service ORM ExerciseService.record_attempt
-                from app.services.exercise_service import ExerciseService
-
                 attempt_obj = ExerciseService.record_attempt(db, attempt_data)
                 logger.debug(f"Résultat de record_attempt: {attempt_obj}")
 
@@ -535,187 +438,24 @@ async def get_exercises_list(request):
             f"[STEP 4] API - Paramètres finaux: limit={limit}, skip={skip}, page={page}, exercise_type={exercise_type}, age_group={age_group}, search={search}, locale={locale}"
         )
 
-        # Utiliser le service ORM ExerciseService (100% ORM comme recommandé par l'audit)
+        user_id = current_user.get("id") if current_user else None
+
         async with db_session() as db:
-            logger.debug("[STEP 5] Session DB obtenue")
-            logger.debug("[STEP 6] Début du bloc try DB")
-            from sqlalchemy import String, cast, or_, text
-
-            from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
-
-            logger.debug("[STEP 7] Imports effectués")
-            from sqlalchemy import func
-
-            # IDs à exclure si hide_completed et utilisateur connecté
-            completed_ids_to_exclude = []
-            if hide_completed and current_user and current_user.get("id"):
-                from app.models.attempt import Attempt
-
-                subq = (
-                    db.query(Attempt.exercise_id)
-                    .filter(
-                        Attempt.user_id == current_user["id"],
-                        Attempt.is_correct == True,
-                    )
-                    .distinct()
-                    .all()
-                )
-                completed_ids_to_exclude = [r[0] for r in subq if r[0] is not None]
-
-            # Construire la requête ORM
-            query = db.query(Exercise).filter(Exercise.is_archived == False)
-            logger.debug("[STEP 8] Query de base créée")
-
-            # Filtrer par type si spécifié (utiliser l'enum normalisé)
-            if exercise_type:
-                query = query.filter(Exercise.exercise_type == exercise_type)
-
-            # Filtrer par groupe d'âge si spécifié
-            if age_group:
-                query = query.filter(Exercise.age_group == age_group)
-
-            # Recherche textuelle si spécifié
-            if search:
-                search_pattern = f"%{search}%"
-                query = query.filter(
-                    or_(
-                        Exercise.title.ilike(search_pattern),
-                        Exercise.question.ilike(search_pattern),
-                    )
-                )
-
-            # Exclure les exercices déjà réussis si demandé
-            if completed_ids_to_exclude:
-                query = query.filter(Exercise.id.notin_(completed_ids_to_exclude))
-
-            logger.debug("[STEP 9] Filtres appliqués")
-
-            # Compter le total
-            total = query.count()
-            logger.debug(f"[STEP 10] Total compté: {total}")
-
-            # Récupérer les exercices avec pagination (mêmes filtres que la query principale)
-            exercises_objs_raw = db.query(
-                Exercise.id,
-                Exercise.title,
-                Exercise.question,
-                Exercise.correct_answer,
-                Exercise.choices,
-                Exercise.explanation,
-                Exercise.hint,
-                Exercise.tags,
-                Exercise.ai_generated,
-                Exercise.is_active,
-                Exercise.view_count,
-                Exercise.created_at,
-                cast(Exercise.exercise_type, String).label("exercise_type_str"),
-                cast(Exercise.difficulty, String).label("difficulty_str"),
-                Exercise.age_group,  # Récupérer aussi le groupe d'âge
-            ).filter(Exercise.is_archived == False)
-
-            # Appliquer les mêmes filtres que la requête principale
-            if exercise_type:
-                exercises_objs_raw = exercises_objs_raw.filter(
-                    Exercise.exercise_type == exercise_type
-                )
-            if age_group:
-                exercises_objs_raw = exercises_objs_raw.filter(
-                    Exercise.age_group == age_group
-                )
-            if search:
-                search_pattern = f"%{search}%"
-                exercises_objs_raw = exercises_objs_raw.filter(
-                    or_(
-                        Exercise.title.ilike(search_pattern),
-                        Exercise.question.ilike(search_pattern),
-                    )
-                )
-            if completed_ids_to_exclude:
-                exercises_objs_raw = exercises_objs_raw.filter(
-                    Exercise.id.notin_(completed_ids_to_exclude)
-                )
-
-            # Ordre : aléatoire par défaut (varier l'entraînement), ou récent
-            if order == "recent":
-                exercises_objs_raw = (
-                    exercises_objs_raw.order_by(Exercise.created_at.desc())
-                    .limit(limit)
-                    .offset(skip)
-                    .all()
-                )
-            else:
-                exercises_objs_raw = (
-                    exercises_objs_raw.order_by(func.random())
-                    .limit(limit)
-                    .offset(skip)
-                    .all()
-                )
-            logger.debug(
-                f"[STEP 11] Exercices récupérés: {len(exercises_objs_raw)} éléments"
+            response_data = ExerciseService.get_exercises_list_for_api(
+                db,
+                limit=limit,
+                skip=skip,
+                exercise_type=exercise_type,
+                age_group=age_group,
+                search=search,
+                order=order,
+                hide_completed=hide_completed,
+                user_id=user_id,
             )
-
-            import json as json_module
-
-            def safe_parse_json(value, default=None):
-                if not value:
-                    return default if default is not None else []
-                if isinstance(value, str):
-                    try:
-                        return json_module.loads(value)
-                    except (json_module.JSONDecodeError, ValueError):
-                        return default if default is not None else []
-                return value
-
-            logger.debug("[STEP 12] Début de la construction de la liste d'exercices")
-            exercises = []
-            for idx, row in enumerate(exercises_objs_raw):
-                try:
-                    logger.debug(
-                        f"[STEP 12.{idx}] Processing row id={row.id}, type={type(row.exercise_type_str)}, diff={type(row.difficulty_str)}"
-                    )
-                    exercise_dict = {
-                        "id": row.id,
-                        "title": row.title,
-                        "exercise_type": (
-                            row.exercise_type_str.upper()
-                            if row.exercise_type_str
-                            else "ADDITION"
-                        ),
-                        "difficulty": (
-                            row.difficulty_str.upper()
-                            if row.difficulty_str
-                            else "PADAWAN"
-                        ),
-                        "age_group": row.age_group,
-                        "question": row.question,
-                        "correct_answer": row.correct_answer,
-                        "choices": safe_parse_json(row.choices, []),
-                        "explanation": row.explanation,
-                        "hint": row.hint,
-                        "tags": safe_parse_json(row.tags, []),
-                        "ai_generated": row.ai_generated,
-                        "is_active": row.is_active,
-                        "view_count": row.view_count,
-                    }
-                    exercises.append(exercise_dict)
-                except Exception as row_error:
-                    logger.error(f"[STEP 12.{idx}] ERROR processing row: {row_error}")
-                    raise
             logger.debug(
-                f"[STEP 13] Liste d'exercices construite: {len(exercises)} éléments"
+                f"[STEP 5] Liste d'exercices: {len(response_data['items'])} éléments"
             )
-
-        has_more = (skip + len(exercises)) < total
-
-        response_data = {
-            "items": exercises,
-            "total": total,
-            "page": page,
-            "limit": limit,
-            "hasMore": has_more,
-        }
-
-        return JSONResponse(response_data)
+            return JSONResponse(response_data)
 
     except Exception as exercises_list_error:
         logger.error(
@@ -1174,337 +914,9 @@ async def get_exercises_stats(request: Request):
     """
     logger.info("=== DEBUT get_exercises_stats ===")
     try:
-        logger.debug("Import des modules...")
-        from sqlalchemy import case, func
-
-        from app.models.attempt import Attempt
-        from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
-        from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
-
-        logger.debug("Imports OK")
-
         async with db_session() as db:
-            # ════════════════════════════════════════════════════════════════
-            # 1. STATISTIQUES GÉNÉRALES - Chroniques de l'Académie (Exercices)
-            # ════════════════════════════════════════════════════════════════
-
-            total_exercises = (
-                db.query(func.count(Exercise.id))
-                .filter(Exercise.is_active == True)
-                .scalar()
-                or 0
-            )
-
-            total_archived = (
-                db.query(func.count(Exercise.id))
-                .filter(Exercise.is_archived == True)
-                .scalar()
-                or 0
-            )
-
-            ai_generated_count = (
-                db.query(func.count(Exercise.id))
-                .filter(Exercise.ai_generated == True, Exercise.is_active == True)
-                .scalar()
-                or 0
-            )
-
-            # ════════════════════════════════════════════════════════════════
-            # 2. RÉPARTITION PAR DISCIPLINE (Type d'exercice)
-            # ════════════════════════════════════════════════════════════════
-
-            # Noms des disciplines mathématiques
-            discipline_names = {
-                "ADDITION": "Art de l'Addition",
-                "SOUSTRACTION": "Maîtrise de la Soustraction",
-                "MULTIPLICATION": "Puissance Multiplicative",
-                "DIVISION": "Science de la Division",
-                "FRACTIONS": "Sagesse des Fractions",
-                "GEOMETRIE": "Vision Spatiale",
-                "TEXTE": "Énigmes Logiques",
-                "MIXTE": "Épreuves Combinées",
-                "DIVERS": "Défis Variés",
-            }
-
-            by_type_query = (
-                db.query(Exercise.exercise_type, func.count(Exercise.id).label("count"))
-                .filter(Exercise.is_active == True)
-                .group_by(Exercise.exercise_type)
-                .all()
-            )
-
-            by_discipline = {}
-            for exercise_type, count in by_type_query:
-                type_upper = str(exercise_type).upper() if exercise_type else "DIVERS"
-                discipline_name = discipline_names.get(type_upper, type_upper)
-                by_discipline[type_upper] = {
-                    "count": count,
-                    "discipline_name": discipline_name,
-                    "percentage": (
-                        round((count / total_exercises * 100), 1)
-                        if total_exercises > 0
-                        else 0
-                    ),
-                }
-
-            # ════════════════════════════════════════════════════════════════
-            # 3. RÉPARTITION PAR RANG (Difficulté)
-            # ════════════════════════════════════════════════════════════════
-
-            # Rangs de l'Académie avec descriptions
-            academy_ranks = {
-                "INITIE": {
-                    "name": "Initié",
-                    "description": "Premier pas vers la sagesse",
-                    "min_age": 6,
-                },
-                "PADAWAN": {
-                    "name": "Apprenti",
-                    "description": "En cours de formation",
-                    "min_age": 9,
-                },
-                "CHEVALIER": {
-                    "name": "Chevalier",
-                    "description": "Maîtrise confirmée",
-                    "min_age": 12,
-                },
-                "MAITRE": {
-                    "name": "Maître",
-                    "description": "Sagesse avancée",
-                    "min_age": 15,
-                },
-                "GRAND_MAITRE": {
-                    "name": "Grand Maître",
-                    "description": "Sommité de l'Académie",
-                    "min_age": 17,
-                },
-            }
-
-            by_difficulty_query = (
-                db.query(Exercise.difficulty, func.count(Exercise.id).label("count"))
-                .filter(Exercise.is_active == True)
-                .group_by(Exercise.difficulty)
-                .all()
-            )
-
-            by_rank = {}
-            for difficulty, count in by_difficulty_query:
-                diff_upper = str(difficulty).upper() if difficulty else "PADAWAN"
-                rank_info = academy_ranks.get(
-                    diff_upper,
-                    {"name": diff_upper, "description": "Rang spécial", "min_age": 10},
-                )
-                by_rank[diff_upper] = {
-                    "count": count,
-                    "rank_name": rank_info["name"],
-                    "description": rank_info["description"],
-                    "min_age": rank_info["min_age"],
-                    "percentage": (
-                        round((count / total_exercises * 100), 1)
-                        if total_exercises > 0
-                        else 0
-                    ),
-                }
-
-            # ════════════════════════════════════════════════════════════════
-            # 4. RÉPARTITION PAR GROUPE D'APPRENTIS (Groupe d'âge)
-            # ════════════════════════════════════════════════════════════════
-
-            apprentice_groups = {
-                "6-8": {
-                    "name": "Novices",
-                    "description": "Futurs espoirs de l'Académie",
-                },
-                "8-10": {
-                    "name": "Apprentis Débutants",
-                    "description": "En début de formation",
-                },
-                "9-11": {
-                    "name": "Apprentis Juniors",
-                    "description": "Formation intermédiaire",
-                },
-                "10-12": {
-                    "name": "Apprentis Confirmés",
-                    "description": "Prêts pour les épreuves",
-                },
-                "11-13": {
-                    "name": "Aspirants Chevaliers",
-                    "description": "Sur le chemin de la maîtrise",
-                },
-                "12-14": {
-                    "name": "Chevaliers en Devenir",
-                    "description": "Défis avancés",
-                },
-                "14-16": {
-                    "name": "Élite de l'Académie",
-                    "description": "Formation d'excellence",
-                },
-                "15-17": {
-                    "name": "Candidats Maîtres",
-                    "description": "Ultimes épreuves",
-                },
-                "17+": {
-                    "name": "Conseil des Sages",
-                    "description": "Niveau Grand Maître",
-                },
-            }
-
-            by_age_query = (
-                db.query(Exercise.age_group, func.count(Exercise.id).label("count"))
-                .filter(Exercise.is_active == True)
-                .group_by(Exercise.age_group)
-                .all()
-            )
-
-            by_apprentice_group = {}
-            for age_group, count in by_age_query:
-                group_key = str(age_group) if age_group else "10-12"
-                group_info = apprentice_groups.get(
-                    group_key,
-                    {
-                        "name": f"Groupe {group_key}",
-                        "description": "Formation spéciale",
-                    },
-                )
-                by_apprentice_group[group_key] = {
-                    "count": count,
-                    "group_name": group_info["name"],
-                    "description": group_info["description"],
-                    "percentage": (
-                        round((count / total_exercises * 100), 1)
-                        if total_exercises > 0
-                        else 0
-                    ),
-                }
-
-            # ════════════════════════════════════════════════════════════════
-            # 5. STATISTIQUES DE COMPLÉTION GLOBALES
-            # ════════════════════════════════════════════════════════════════
-
-            # Total des tentatives sur tous les exercices
-            total_attempts = db.query(func.count(Attempt.id)).scalar() or 0
-            correct_attempts = (
-                db.query(func.count(Attempt.id))
-                .filter(Attempt.is_correct == True)
-                .scalar()
-                or 0
-            )
-
-            global_success_rate = (
-                round((correct_attempts / total_attempts * 100), 1)
-                if total_attempts > 0
-                else 0
-            )
-
-            # Exercices les plus populaires (plus de tentatives)
-            popular_query = (
-                db.query(
-                    Exercise.id,
-                    Exercise.title,
-                    Exercise.exercise_type,
-                    Exercise.difficulty,
-                    func.count(Attempt.id).label("attempt_count"),
-                )
-                .join(Attempt, Attempt.exercise_id == Exercise.id)
-                .filter(Exercise.is_active == True)
-                .group_by(
-                    Exercise.id,
-                    Exercise.title,
-                    Exercise.exercise_type,
-                    Exercise.difficulty,
-                )
-                .order_by(func.count(Attempt.id).desc())
-                .limit(5)
-                .all()
-            )
-
-            popular_challenges = []
-            for ex_id, title, ex_type, diff, attempt_count in popular_query:
-                type_upper = str(ex_type).upper() if ex_type else "DIVERS"
-                popular_challenges.append(
-                    {
-                        "id": ex_id,
-                        "title": title,
-                        "discipline": discipline_names.get(type_upper, type_upper),
-                        "rank": academy_ranks.get(str(diff).upper(), {}).get(
-                            "name", diff
-                        ),
-                        "apprentices_trained": attempt_count,
-                    }
-                )
-
-            # ════════════════════════════════════════════════════════════════
-            # 6. STATISTIQUES DES DÉFIS LOGIQUES (Challenges)
-            # ════════════════════════════════════════════════════════════════
-
-            total_logic_challenges = (
-                db.query(func.count(LogicChallenge.id))
-                .filter(LogicChallenge.is_archived == False)
-                .scalar()
-                or 0
-            )
-
-            # Tous les challenges sont actuellement générés par IA
-            ai_generated_challenges = total_logic_challenges
-
-            # Tentatives sur les défis logiques
-            total_challenge_attempts = (
-                db.query(func.count(LogicChallengeAttempt.id)).scalar() or 0
-            )
-            correct_challenge_attempts = (
-                db.query(func.count(LogicChallengeAttempt.id))
-                .filter(LogicChallengeAttempt.is_correct == True)
-                .scalar()
-                or 0
-            )
-
-            challenge_success_rate = (
-                round((correct_challenge_attempts / total_challenge_attempts * 100), 1)
-                if total_challenge_attempts > 0
-                else 0
-            )
-
-            # ════════════════════════════════════════════════════════════════
-            # 7. CONSTRUCTION DE LA RÉPONSE - Chroniques de l'Académie
-            # ════════════════════════════════════════════════════════════════
-
-            # Totaux combinés pour les stats AI
-            total_ai_generated = ai_generated_count + ai_generated_challenges
-            total_content = total_exercises + total_logic_challenges
-
-            response_data = {
-                "archive_status": "Chroniques accessibles",
-                "academy_statistics": {
-                    "total_exercises": total_exercises,
-                    "total_challenges": total_logic_challenges,
-                    "total_content": total_content,
-                    "archived_exercises": total_archived,
-                    "ai_generated": total_ai_generated,
-                    "ai_generated_exercises": ai_generated_count,
-                    "ai_generated_challenges": ai_generated_challenges,
-                    "ai_generated_percentage": (
-                        round((total_ai_generated / total_content * 100), 1)
-                        if total_content > 0
-                        else 0
-                    ),
-                },
-                "by_discipline": by_discipline,
-                "by_rank": by_rank,
-                "by_apprentice_group": by_apprentice_group,
-                "global_performance": {
-                    "total_attempts": total_attempts + total_challenge_attempts,
-                    "exercise_attempts": total_attempts,
-                    "challenge_attempts": total_challenge_attempts,
-                    "successful_attempts": correct_attempts
-                    + correct_challenge_attempts,
-                    "mastery_rate": global_success_rate,
-                    "challenge_mastery_rate": challenge_success_rate,
-                    "message": _get_mastery_message(global_success_rate),
-                },
-                "legendary_challenges": popular_challenges,
-                "sage_wisdom": _get_sage_wisdom(),
-            }
-
+            response_data = ExerciseService.get_exercises_stats_for_api(db)
+            total_exercises = response_data["academy_statistics"]["total_exercises"]
             logger.info(
                 f"Statistiques des épreuves récupérées: {total_exercises} épreuves actives"
             )
@@ -1525,34 +937,3 @@ async def get_exercises_stats(request: Request):
         )
 
 
-def _get_mastery_message(success_rate: float) -> str:
-    """Retourne un message thématique basé sur le taux de réussite global."""
-    if success_rate >= 90:
-        return "L'Académie forme d'excellents mathématiciens ! La sagesse règne ici."
-    elif success_rate >= 75:
-        return "Belle progression des apprentis. Le Conseil est satisfait."
-    elif success_rate >= 60:
-        return "Les apprentis progressent. La patience est une vertu des sages."
-    elif success_rate >= 40:
-        return (
-            "L'entraînement doit s'intensifier. La voie de la maîtrise est exigeante."
-        )
-    else:
-        return "Beaucoup reste à apprendre. Persévérance et courage sont essentiels."
-
-
-def _get_sage_wisdom() -> str:
-    """Retourne une citation de sagesse aléatoire."""
-    import random
-
-    wisdoms = [
-        "La connaissance est le premier pas vers la sagesse. — Les Anciens",
-        "Fais-le, ou ne le fais pas. L'hésitation est l'ennemi du progrès. — Proverbe des Maîtres",
-        "L'erreur est le chemin de l'apprentissage. — Sagesse ancestrale",
-        "Celui qui pose des questions ne s'égare jamais. — Dicton des Sages",
-        "L'apprentissage est une voie sans fin. — Chroniques de l'Académie",
-        "La patience transforme l'apprenti en maître. — Conseil des Sages",
-        "Chaque problème résolu ouvre la porte à de nouveaux défis. — Tradition mathématique",
-        "La persévérance est l'arme secrète du mathématicien. — Archives de l'Académie",
-    ]
-    return random.choice(wisdoms)

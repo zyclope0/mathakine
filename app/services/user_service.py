@@ -3,7 +3,7 @@ Service pour la gestion des utilisateurs.
 Implémente les opérations métier liées aux utilisateurs et utilise le transaction manager.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from app.core.logging_config import get_logger
 
@@ -18,6 +18,7 @@ from app.models.exercise import Exercise
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
 from app.models.progress import Progress
 from app.models.user import User, UserRole
+from app.models.user_session import UserSession
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
 
@@ -352,3 +353,614 @@ class UserService:
                 f"Erreur lors de la récupération des statistiques: {stats_fetch_error}"
             )
             return {"stats_error": "Erreur lors de la récupération des statistiques"}
+
+    @staticmethod
+    def _calculate_user_level(xp: int) -> dict:
+        """
+        Calcule le niveau utilisateur basé sur les points d'expérience.
+
+        Args:
+            xp: Points d'expérience totaux
+
+        Returns:
+            Dictionnaire avec current, title, current_xp, next_level_xp
+        """
+        level_thresholds = [
+            0,
+            100,
+            300,
+            600,
+            1000,
+            1500,
+            2100,
+            2800,
+            3600,
+            4500,
+            5500,
+        ]
+        current_level = 1
+        for i, threshold in enumerate(level_thresholds):
+            if xp >= threshold:
+                current_level = i + 1
+        current_xp = (
+            xp - level_thresholds[current_level - 1] if current_level > 1 else xp
+        )
+        next_level_xp = (
+            level_thresholds[current_level] - level_thresholds[current_level - 1]
+            if current_level < len(level_thresholds)
+            else 100
+        )
+        level_titles = {
+            1: "Jeune Padawan",
+            2: "Padawan",
+            3: "Chevalier Jedi",
+            4: "Maître Jedi",
+            5: "Grand Maître",
+            6: "Maître du Conseil",
+            7: "Légende Jedi",
+            8: "Gardien de la Force",
+            9: "Seigneur Jedi",
+            10: "Archiviste Jedi",
+            11: "Grand Archiviste",
+        }
+        title = level_titles.get(current_level, f"Niveau {current_level}")
+        return {
+            "current": current_level,
+            "title": title,
+            "current_xp": current_xp,
+            "next_level_xp": next_level_xp,
+        }
+
+    @staticmethod
+    def get_user_stats_for_dashboard(
+        db: Session, user_id: int, time_range: str = "30"
+    ) -> Dict[str, Any]:
+        """
+        Récupère les statistiques complètes pour le tableau de bord utilisateur.
+
+        Agrège XP, niveau, activité récente, progression dans le temps.
+        Route: GET /api/users/stats
+
+        Args:
+            db: Session de base de données
+            user_id: ID de l'utilisateur
+            time_range: "7", "30", "90" ou "all"
+
+        Returns:
+            Dictionnaire prêt pour JSONResponse
+        """
+        from collections import defaultdict
+        from datetime import datetime, timedelta, timezone
+
+        stats = UserService.get_user_stats(db, user_id, time_range=time_range)
+        if not stats:
+            stats = {
+                "total_attempts": 0,
+                "correct_attempts": 0,
+                "success_rate": 0,
+                "by_exercise_type": {},
+            }
+
+        experience_points = stats.get("total_attempts", 0) * 10
+        performance_by_type = {}
+        for exercise_type, type_stats in stats.get("by_exercise_type", {}).items():
+            type_key = str(exercise_type).lower() if exercise_type else "unknown"
+            total_t = type_stats.get("total", 0)
+            correct_t = type_stats.get("correct", 0)
+            performance_by_type[type_key] = {
+                "completed": total_t,
+                "correct": correct_t,
+                "success_rate": (correct_t / total_t * 100) if total_t > 0 else 0,
+            }
+
+        # Activité récente
+        recent_activity = []
+        try:
+            if time_range != "all":
+                days = int(time_range)
+                cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+            else:
+                cutoff_date = None
+
+            exercise_attempts_query = db.query(Attempt).filter(
+                Attempt.user_id == user_id
+            )
+            if cutoff_date:
+                exercise_attempts_query = exercise_attempts_query.filter(
+                    Attempt.created_at >= cutoff_date
+                )
+            exercise_attempts = (
+                exercise_attempts_query.order_by(Attempt.created_at.desc())
+                .limit(5)
+                .all()
+            )
+            for attempt in exercise_attempts:
+                recent_activity.append(
+                    {
+                        "type": "exercise",
+                        "description": "Exercice complété",
+                        "time": (
+                            attempt.created_at.isoformat()
+                            if attempt.created_at
+                            else datetime.now(timezone.utc).isoformat()
+                        ),
+                        "is_correct": attempt.is_correct,
+                    }
+                )
+
+            challenge_attempts_query = db.query(LogicChallengeAttempt).filter(
+                LogicChallengeAttempt.user_id == user_id
+            )
+            if cutoff_date:
+                challenge_attempts_query = challenge_attempts_query.filter(
+                    LogicChallengeAttempt.created_at >= cutoff_date
+                )
+            challenge_attempts = (
+                challenge_attempts_query.order_by(
+                    LogicChallengeAttempt.created_at.desc()
+                )
+                .limit(5)
+                .all()
+            )
+            for attempt in challenge_attempts:
+                recent_activity.append(
+                    {
+                        "type": "challenge",
+                        "description": "Défi logique complété",
+                        "time": (
+                            attempt.created_at.isoformat()
+                            if attempt.created_at
+                            else datetime.now(timezone.utc).isoformat()
+                        ),
+                        "is_correct": attempt.is_correct,
+                    }
+                )
+
+            recent_activity.sort(key=lambda x: x.get("time", ""), reverse=True)
+            recent_activity = recent_activity[:10]
+        except Exception as activity_error:
+            logger.error(f"Erreur activité récente: {activity_error}")
+            recent_activity = []
+
+        level_data = UserService._calculate_user_level(experience_points)
+
+        # Progression dans le temps
+        progress_over_time = {"labels": [], "datasets": []}
+        exercises_by_day = {"labels": [], "datasets": []}
+        try:
+            if time_range == "all":
+                start_date = datetime.now(timezone.utc) - timedelta(days=90)
+            else:
+                start_date = datetime.now(timezone.utc) - timedelta(
+                    days=int(time_range)
+                )
+            daily_stats = defaultdict(lambda: {"total": 0, "correct": 0})
+            attempts_query = (
+                db.query(Attempt)
+                .filter(
+                    Attempt.user_id == user_id,
+                    Attempt.created_at >= start_date,
+                )
+                .all()
+            )
+            for attempt in attempts_query:
+                if attempt.created_at:
+                    day_key = attempt.created_at.date().isoformat()
+                    daily_stats[day_key]["total"] += 1
+                    if attempt.is_correct:
+                        daily_stats[day_key]["correct"] += 1
+
+            sorted_days = sorted(daily_stats.keys())
+            progress_over_time = {
+                "labels": sorted_days,
+                "datasets": [
+                    {
+                        "label": "Taux de réussite (%)",
+                        "data": [
+                            (
+                                daily_stats[day]["correct"]
+                                / daily_stats[day]["total"]
+                                * 100
+                            )
+                            if daily_stats[day]["total"] > 0
+                            else 0
+                            for day in sorted_days
+                        ],
+                    }
+                ],
+            }
+            exercises_by_day = {
+                "labels": sorted_days,
+                "datasets": [
+                    {
+                        "label": "Exercices complétés",
+                        "data": [daily_stats[day]["total"] for day in sorted_days],
+                        "borderColor": "rgb(139, 92, 246)",
+                        "backgroundColor": "rgba(139, 92, 246, 0.1)",
+                    }
+                ],
+            }
+        except Exception as progress_err:
+            logger.error(f"Erreur progression: {progress_err}")
+
+        # Challenges complétés
+        try:
+            total_challenges = (
+                db.query(LogicChallengeAttempt)
+                .filter(
+                    LogicChallengeAttempt.user_id == user_id,
+                    LogicChallengeAttempt.is_correct == True,
+                )
+                .count()
+            )
+        except Exception:
+            total_challenges = 0
+
+        return {
+            "total_exercises": stats.get("total_attempts", 0),
+            "total_challenges": total_challenges,
+            "correct_answers": stats.get("correct_attempts", 0),
+            "success_rate": stats.get("success_rate", 0),
+            "experience_points": experience_points,
+            "performance_by_type": performance_by_type,
+            "recent_activity": recent_activity,
+            "level": level_data,
+            "progress_over_time": progress_over_time,
+            "exercises_by_day": exercises_by_day,
+            "lastUpdated": datetime.now(timezone.utc).isoformat(),
+        }
+
+    @staticmethod
+    def get_leaderboard_for_api(
+        db: Session,
+        current_user_id: int,
+        limit: int = 50,
+        age_group: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Récupère le classement des utilisateurs pour l'API.
+        Applique le filtre de confidentialité (show_in_leaderboards).
+        """
+        q = db.query(User).filter(User.is_active == True)
+        if age_group:
+            q = q.filter(User.preferred_difficulty == age_group)
+        users = q.order_by(User.total_points.desc()).limit(limit).all()
+
+        leaderboard = []
+        for user in users:
+            settings = user.accessibility_settings or {}
+            privacy = (
+                (settings.get("privacy_settings") or {})
+                if isinstance(settings.get("privacy_settings"), dict)
+                else {}
+            )
+            if privacy.get("show_in_leaderboards") is False:
+                continue
+            leaderboard.append(
+                {
+                    "username": user.username,
+                    "total_points": user.total_points or 0,
+                    "current_level": user.current_level or 1,
+                    "jedi_rank": user.jedi_rank or "youngling",
+                    "is_current_user": user.id == current_user_id,
+                }
+            )
+        for i, entry in enumerate(leaderboard, start=1):
+            entry["rank"] = i
+        return leaderboard
+
+    @staticmethod
+    def get_user_progress_for_api(db: Session, user_id: int) -> Dict[str, Any]:
+        """
+        Récupère la progression globale de l'utilisateur (exercices) pour l'API.
+        """
+        attempts_query = (
+            db.query(Attempt, Exercise)
+            .join(Exercise, Attempt.exercise_id == Exercise.id)
+            .filter(Attempt.user_id == user_id)
+            .order_by(Attempt.created_at)
+            .all()
+        )
+
+        user_row = db.query(User).filter(User.id == user_id).first()
+        current_streak = getattr(user_row, "current_streak", None) or 0
+        best_streak = getattr(user_row, "best_streak", None) or 0
+
+        if not attempts_query:
+            return {
+                "total_attempts": 0,
+                "correct_attempts": 0,
+                "accuracy": 0.0,
+                "average_time": 0.0,
+                "exercises_completed": 0,
+                "highest_streak": best_streak,
+                "current_streak": current_streak,
+                "by_category": {},
+            }
+
+        total_attempts = len(attempts_query)
+        correct_attempts = sum(
+            1 for attempt, _ in attempts_query if attempt.is_correct
+        )
+        accuracy = correct_attempts / total_attempts if total_attempts > 0 else 0.0
+
+        times = [
+            attempt.time_spent
+            for attempt, _ in attempts_query
+            if attempt.time_spent
+        ]
+        average_time = sum(times) / len(times) if times else 0.0
+
+        completed_exercise_ids = set()
+        for attempt, exercise in attempts_query:
+            if attempt.is_correct:
+                completed_exercise_ids.add(exercise.id)
+        exercises_completed = len(completed_exercise_ids)
+
+        by_category = {}
+        category_attempts = {}
+
+        for attempt, exercise in attempts_query:
+            exercise_type = exercise.exercise_type or "unknown"
+            if exercise_type not in category_attempts:
+                category_attempts[exercise_type] = {
+                    "total": 0,
+                    "correct": 0,
+                    "completed_ids": set(),
+                }
+            category_attempts[exercise_type]["total"] += 1
+            if attempt.is_correct:
+                category_attempts[exercise_type]["correct"] += 1
+                category_attempts[exercise_type]["completed_ids"].add(exercise.id)
+
+        for exercise_type, stats in category_attempts.items():
+            total = stats["total"]
+            correct = stats["correct"]
+            by_category[exercise_type] = {
+                "completed": len(stats["completed_ids"]),
+                "accuracy": round(correct / total, 2) if total > 0 else 0.0,
+            }
+
+        return {
+            "total_attempts": total_attempts,
+            "correct_attempts": correct_attempts,
+            "accuracy": round(accuracy, 2),
+            "average_time": round(average_time, 1),
+            "exercises_completed": exercises_completed,
+            "highest_streak": best_streak,
+            "current_streak": current_streak,
+            "by_category": by_category,
+        }
+
+    @staticmethod
+    def get_challenges_progress_for_api(db: Session, user_id: int) -> Dict[str, Any]:
+        """
+        Récupère la progression des défis logiques pour l'API.
+        """
+        total_challenges = (
+            db.query(LogicChallenge)
+            .filter(
+                LogicChallenge.is_active == True,
+                LogicChallenge.is_archived == False,
+            )
+            .count()
+        )
+
+        all_attempts = (
+            db.query(LogicChallengeAttempt)
+            .filter(LogicChallengeAttempt.user_id == user_id)
+            .all()
+        )
+
+        if not all_attempts:
+            return {
+                "completed_challenges": 0,
+                "total_challenges": total_challenges,
+                "success_rate": 0.0,
+                "average_time": 0.0,
+                "challenges": [],
+            }
+
+        completed_challenge_ids = set()
+        challenge_stats = {}
+
+        for attempt in all_attempts:
+            challenge_id = attempt.challenge_id
+            if challenge_id not in challenge_stats:
+                challenge_stats[challenge_id] = {
+                    "attempts": 0,
+                    "correct_attempts": 0,
+                    "best_time": None,
+                    "times": [],
+                }
+            challenge_stats[challenge_id]["attempts"] += 1
+
+            if attempt.is_correct:
+                challenge_stats[challenge_id]["correct_attempts"] += 1
+                completed_challenge_ids.add(challenge_id)
+                if attempt.time_spent:
+                    bt = challenge_stats[challenge_id]["best_time"]
+                    if bt is None:
+                        challenge_stats[challenge_id]["best_time"] = attempt.time_spent
+                    else:
+                        challenge_stats[challenge_id]["best_time"] = min(
+                            bt, attempt.time_spent
+                        )
+            if attempt.time_spent:
+                challenge_stats[challenge_id]["times"].append(attempt.time_spent)
+
+        total_attempts = len(all_attempts)
+        correct_attempts = sum(1 for a in all_attempts if a.is_correct)
+        success_rate = (
+            correct_attempts / total_attempts if total_attempts > 0 else 0.0
+        )
+        all_times = [a.time_spent for a in all_attempts if a.time_spent]
+        average_time = sum(all_times) / len(all_times) if all_times else 0.0
+
+        challenges_list = []
+        if completed_challenge_ids:
+            completed_challenges = (
+                db.query(LogicChallenge)
+                .filter(LogicChallenge.id.in_(completed_challenge_ids))
+                .all()
+            )
+            for challenge in completed_challenges:
+                stats = challenge_stats.get(challenge.id, {})
+                challenges_list.append(
+                    {
+                        "id": challenge.id,
+                        "title": challenge.title,
+                        "is_completed": True,
+                        "attempts": stats.get("attempts", 0),
+                        "best_time": (
+                            round(stats.get("best_time", 0), 2)
+                            if stats.get("best_time")
+                            else None
+                        ),
+                    }
+                )
+
+        return {
+            "completed_challenges": len(completed_challenge_ids),
+            "total_challenges": total_challenges,
+            "success_rate": round(success_rate, 2),
+            "average_time": round(average_time, 1),
+            "challenges": challenges_list,
+        }
+
+    @staticmethod
+    def update_user_profile(
+        db: Session, user_id: int, update_data: Dict[str, Any]
+    ) -> Tuple[Optional[User], Optional[str]]:
+        """
+        Met à jour le profil utilisateur.
+        Vérifie l'unicité de l'email si modifié.
+        Retourne (user, None) en succès, (None, "not_found") ou (None, "email_taken").
+        """
+        user = UserService.get_user(db, user_id)
+        if not user:
+            return None, "not_found"
+
+        if "email" in update_data and update_data["email"] != user.email:
+            existing = (
+                db.query(User)
+                .filter(
+                    User.email == update_data["email"],
+                    User.id != user_id,
+                )
+                .first()
+            )
+            if existing:
+                return None, "email_taken"
+
+        onboarding_fields = {
+            "grade_level",
+            "grade_system",
+            "preferred_difficulty",
+            "learning_goal",
+            "practice_rhythm",
+        }
+        if not getattr(user, "onboarding_completed_at", None) and onboarding_fields.intersection(
+            update_data.keys()
+        ):
+            from datetime import datetime, timezone
+
+            user.onboarding_completed_at = datetime.now(timezone.utc)
+
+        for field, value in update_data.items():
+            if field == "accessibility_settings":
+                existing_settings = dict(user.accessibility_settings or {})
+                if isinstance(value, dict):
+                    existing_settings.update(value)
+                    setattr(user, field, existing_settings)
+                else:
+                    setattr(user, field, value)
+            else:
+                setattr(user, field, value)
+
+        db.commit()
+        db.refresh(user)
+        return user, None
+
+    @staticmethod
+    def update_user_password(
+        db: Session, user_id: int, current_password: str, new_password: str
+    ) -> Tuple[bool, Optional[str]]:
+        """
+        Met à jour le mot de passe de l'utilisateur.
+        Retourne (True, None) en cas de succès, (False, "message_erreur") sinon.
+        """
+        from app.core.security import get_password_hash, verify_password
+
+        user = UserService.get_user(db, user_id)
+        if not user:
+            return False, "Utilisateur introuvable."
+
+        if not verify_password(current_password, user.hashed_password):
+            return False, "Le mot de passe actuel est incorrect."
+
+        user.hashed_password = get_password_hash(new_password)
+        db.commit()
+        return True, None
+
+    @staticmethod
+    def get_user_sessions_for_api(db: Session, user_id: int) -> List[Dict[str, Any]]:
+        """
+        Récupère les sessions actives non expirées de l'utilisateur.
+        """
+        from datetime import datetime, timezone
+        from sqlalchemy import and_
+
+        sessions = (
+            db.query(UserSession)
+            .filter(
+                and_(
+                    UserSession.user_id == user_id,
+                    UserSession.is_active == True,
+                    UserSession.expires_at > datetime.now(timezone.utc),
+                )
+            )
+            .order_by(UserSession.last_activity.desc())
+            .all()
+        )
+
+        most_recent_id = sessions[0].id if sessions else None
+        result = []
+        for session in sessions:
+            result.append(
+                {
+                    "id": session.id,
+                    "device_info": session.device_info,
+                    "ip_address": (
+                        str(session.ip_address) if session.ip_address else None
+                    ),
+                    "user_agent": session.user_agent,
+                    "location_data": session.location_data,
+                    "is_active": session.is_active,
+                    "last_activity": session.last_activity.isoformat(),
+                    "created_at": session.created_at.isoformat(),
+                    "expires_at": session.expires_at.isoformat(),
+                    "is_current": session.id == most_recent_id,
+                }
+            )
+        return result
+
+    @staticmethod
+    def revoke_user_session(
+        db: Session, session_id: int, user_id: int
+    ) -> Tuple[bool, Optional[str]]:
+        """
+        Révoque une session utilisateur (la marque inactive).
+        Retourne (True, None) en cas de succès, (False, "message_erreur") sinon.
+        """
+        session = (
+            db.query(UserSession)
+            .filter(UserSession.id == session_id, UserSession.user_id == user_id)
+            .first()
+        )
+        if not session:
+            return False, "Session non trouvée ou non autorisée"
+
+        session.is_active = False
+        db.commit()
+        return True, None

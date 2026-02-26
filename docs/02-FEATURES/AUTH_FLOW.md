@@ -44,7 +44,8 @@
 ## 2. Vérification email (Verify Email)
 
 **Page :** `/verify-email`  
-**API :** `GET /api/auth/verify-email?token=xxx`
+**API :** `GET /api/auth/verify-email?token=xxx`  
+**Service :** `AuthService.verify_email_token` (refactoré 26/02)
 
 | Paramètre URL | Rôle |
 |---------------|------|
@@ -103,7 +104,8 @@ Bannière affichée avec formulaire pour renvoyer l'email de vérification via `
 ## 5. Réinitialisation mot de passe (Reset Password)
 
 **Page :** `/reset-password`  
-**API :** `POST /api/auth/reset-password`
+**API :** `POST /api/auth/reset-password`  
+**Service :** `AuthService.reset_password_with_token` (refactoré 26/02)
 
 | Paramètre | Source |
 |-----------|--------|
@@ -134,6 +136,7 @@ Bannière affichée avec formulaire pour renvoyer l'email de vérification via `
 | Route protégée | `frontend/components/auth/ProtectedRoute.tsx` |
 | Pages | `frontend/app/{login,register,verify-email,forgot-password,reset-password}/page.tsx` |
 | Backend handlers | `server/handlers/auth_handlers.py` |
+| Logique métier | `app/services/auth_service.py` (verify_email_token, reset_password_with_token depuis 26/02) |
 
 **Note Next.js (15/02)** : Les pages `reset-password` et `verify-email` utilisent `useSearchParams()` pour lire le token dans l'URL. Elles sont enveloppées dans un boundary `<Suspense>` afin de respecter les exigences de l'App Router (prerender).
 

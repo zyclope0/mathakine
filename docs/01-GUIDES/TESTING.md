@@ -12,9 +12,10 @@
 2. [Configuration tests](#configuration)
 3. [Tests backend](#tests-backend)
 4. [Tests frontend](#tests-frontend)
-5. [CI/CD](#cicd)
-6. [Best practices](#best-practices)
-7. [Modifications recentes](#modifications-recentes)
+5. [Plan de test manuel — Environnement dev](#plan-test-manuel-dev)
+6. [CI/CD](#cicd)
+7. [Best practices](#best-practices)
+8. [Modifications recentes](#modifications-recentes)
 
 ---
 
@@ -566,6 +567,118 @@ npm run test:e2e:ui
 
 ---
 
+### Plan de test manuel — Environnement dev {#plan-test-manuel-dev}
+
+> Checklist pour valider l’interface manuellement en local. Backend et frontend doivent être démarrés (`make dev` ou `python enhanced_server.py` + `cd frontend && npm run dev`).
+
+#### Pré-requis
+
+| Étape | Action | Résultat attendu |
+|-------|--------|------------------|
+| 1 | Démarrer le backend | Serveur écoute (ex. port 8000) |
+| 2 | Démarrer le frontend | App Next.js sur http://localhost:3000 |
+| 3 | Créer ou se connecter avec un compte test | Authentification OK, redirection vers `/dashboard` ou `/onboarding` |
+
+---
+
+#### Profil (`/profile`)
+
+| Étape | Action | Résultat attendu |
+|-------|--------|------------------|
+| 1 | Accéder à `/profile` (menu utilisateur → Profil) | Infos personnelles affichées (username, email masqué, tranche d’âge, thème) |
+| 2 | Onglet « Infos personnelles » : modifier nom affiché (display_name) → Enregistrer | Toast succès, données mises à jour |
+| 3 | Onglet « Préférences d’apprentissage » : modifier tranche d’âge → Enregistrer | Toast succès, préférences enregistrées |
+| 4 | Onglet « Sécurité » : ouvrir le formulaire de changement de mot de passe | Formulaire affiché (mot de passe actuel, nouveau, confirmation) |
+| 5 | Changer le mot de passe avec valeurs valides | Toast succès, déconnexion puis reconnexion avec nouveau MDP |
+| 6 | Changer le mot de passe avec mauvais mot de passe actuel | Erreur affichée, MDP inchangé |
+
+---
+
+#### Paramètres et suppression de compte (`/settings`)
+
+| Étape | Action | Résultat attendu |
+|-------|--------|------------------|
+| 1 | Accéder à `/settings` | Langue, notifications, confidentialité, données, sessions, zone de suppression visibles |
+| 2 | Modifier une préférence (ex. langue) → Enregistrer | Toast succès |
+| 3 | Onglet « Sessions actives » : vérifier la liste | Sessions actuelles affichées (appareil, date, etc.) |
+| 4 | Révocation d’une session autre que la courante | Session retirée de la liste (ou erreur explicite si non supporté) |
+| 5 | Compte vérifié : cliquer « Supprimer mon compte » → confirmer | Redirection vers `/`, compte supprimé, déconnexion |
+| 6 | Compte non vérifié : supprimer le compte | Idem — suppression possible (RGPD) sans vérification préalable |
+
+---
+
+#### Classement (`/leaderboard`)
+
+| Étape | Action | Résultat attendu |
+|-------|--------|------------------|
+| 1 | Accéder à `/leaderboard` (ou widget dashboard → lien) | Liste des utilisateurs avec rangs, points, niveaux |
+| 2 | Filtrer par tranche d’âge (ex. 8–10 ans) | Classement filtré selon la tranche |
+| 3 | Filtrer « Tous les âges » | Retour au classement global |
+
+---
+
+#### Progression et Dashboard (`/dashboard`)
+
+| Étape | Action | Résultat attendu |
+|-------|--------|------------------|
+| 1 | Accéder à `/dashboard` | Stats (exercices, défis, niveau), graphiques, recommandations |
+| 2 | Changer la plage temporelle (7j, 30j, 90j) | Données mises à jour |
+| 3 | Vérifier le widget « Progression des défis » | Nb complétés, progression par type affichée |
+| 4 | Vérifier le widget « Recommandations » | Exercices/défis suggérés avec liens cliquables |
+| 5 | Accéder à `/badges` | Badges débloqués et non débloqués affichés |
+
+---
+
+#### Exercices (`/exercises`, `/exercises/[id]`)
+
+| Étape | Action | Résultat attendu |
+|-------|--------|------------------|
+| 1 | Accéder à `/exercises` | Liste d’exercices avec cards |
+| 2 | Filtrer par type (ex. calcul, géométrie) | Liste filtrée |
+| 3 | Filtrer par tranche d’âge | Liste filtrée |
+| 4 | Activer « Masquer les complétés » | Exercices complétés masqués |
+| 5 | Recherche texte | Résultats filtrés (si implémenté côté API) |
+| 6 | Paginer (page 2) | Nouveaux exercices affichés |
+| 7 | Cliquer sur un exercice → ouvrir `/exercises/[id]` | Page de résolution chargée |
+| 8 | Soumettre une réponse correcte | Feedback succès, progression mise à jour |
+| 9 | Soumettre une réponse incorrecte | Feedback erreur, possibilité de réessayer |
+| 10 | Retour à la liste | Progression et stats actualisées (badge complété si applicable) |
+
+---
+
+#### Défis (`/challenges`, `/challenge/[id]`)
+
+| Étape | Action | Résultat attendu |
+|-------|--------|------------------|
+| 1 | Accéder à `/challenges` | Liste de défis avec cards |
+| 2 | Filtrer par type, tranche d’âge, masquer complétés | Liste filtrée |
+| 3 | Paginer | Nouveaux défis affichés |
+| 4 | Cliquer sur un défi → ouvrir `/challenge/[id]` | Page de résolution chargée |
+| 5 | Résoudre un défi (selon type : logique, visuel, etc.) | Feedback et mise à jour progression |
+| 6 | Retour liste | Progression des défis cohérente avec le dashboard |
+
+---
+
+#### Recommandations
+
+| Étape | Action | Résultat attendu |
+|-------|--------|------------------|
+| 1 | Sur le dashboard : afficher le widget Recommandations | Exercices et/ou défis suggérés |
+| 2 | Cliquer sur une recommandation (exercice) | Redirection vers `/exercises/[id]` |
+| 3 | Cliquer sur une recommandation (défi) | Redirection vers `/challenge/[id]` |
+
+---
+
+#### Utilisateur non vérifié
+
+| Étape | Action | Résultat attendu |
+|-------|--------|------------------|
+| 1 | Se connecter avec un compte non vérifié | Bannière « Vérifiez votre email » affichée |
+| 2 | Accéder à `/profile` | Profil affiché (lecture, édition limitée selon implémentation) |
+| 3 | Accéder à `/settings` → Supprimer mon compte | Compte supprimé sans vérification préalable |
+
+---
+
 ### Priorités de couverture frontend {#priorites-couverture}
 
 > **Contexte** (audit 20/02/2026) : Les tests unitaires passent mais couvrent un sous-ensemble réduit (~4 fichiers vs ~120+ modules). Stratégie pragmatique : prioriser par impact sans complexifier.
@@ -803,6 +916,16 @@ Ce script protege les memes utilisateurs permanents et respecte le meme ordre FK
 ---
 
 ## 📝 MODIFICATIONS RECENTES {#modifications-recentes}
+
+### 26/02/2026 – Refactoring auth service, tests unitaires
+
+| Domaine | Modification |
+|---------|--------------|
+| **auth_handlers** | `verify_email` et `api_reset_password` passent par `AuthService.verify_email_token`, `AuthService.reset_password_with_token` — plus d'accès DB direct |
+| **user_handlers** | Réponse `PUT /api/users/me` inclut `is_email_verified` |
+| **Tests unitaires** | `test_auth_service.py` : `test_verify_email_token_*`, `test_reset_password_with_token_*` (succès, invalid, expired, already_verified) |
+| **Tests API** | `test_auth_flow.py` : `test_verify_email_success`, `test_verify_email_invalid_token` ; `test_user_endpoints.py` : régression `is_email_verified` sur mise à jour profil |
+| **Documentation** | `AUTH_FLOW.md` : mention AuthService ; `INVENTAIRE_HANDLERS_DB_DIRECTE.md` : auth refactoré ; `CHANGELOG.md` 2.2.2-alpha.1 |
 
 ### 15/02/2026 – Quality gates CI, test unicité routes
 

@@ -30,25 +30,45 @@ SECURE_HEADERS_DICT = {
     "Referrer-Policy": "strict-origin-when-cross-origin",
 }
 
+REQUEST_ID_HEADER = "X-Request-ID"
 
-class RequestIdMiddleware(BaseHTTPMiddleware):
+
+def _get_header(scope: dict, name: str) -> str | None:
+    """Extrait une valeur de header depuis scope (ASGI)."""
+    name_lower = name.lower().encode()
+    for key, value in scope.get("headers", []):
+        if key.lower() == name_lower:
+            return value.decode("latin-1")
+    return None
+
+
+class RequestIdMiddleware:
     """
-    Génère un request_id par requête pour corrélation logs / Sentry.
-    Un seul outil : Sentry pour erreurs + métriques + corrélation.
+    Middleware ASGI pur : génère un request_id par requête pour corrélation logs / Sentry.
+
+    Utilise ASGI natif (pas BaseHTTPMiddleware) pour éviter LocalProtocolError
+    "Can't send data when our state is ERROR" avec streaming / déconnexion client.
     """
 
-    REQUEST_ID_HEADER = "X-Request-ID"
+    def __init__(self, app):
+        self.app = app
 
-    async def dispatch(self, request: Request, call_next: Callable):
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        rid = _get_header(scope, REQUEST_ID_HEADER) or str(uuid.uuid4())[:12]
+
+        # scope["state"] = dict pour que Request.state utilise State(dict) — pas State(State)
+        scope.setdefault("state", {})
+        scope["state"]["request_id"] = rid
+
         from app.core.logging_config import request_id_ctx
 
-        # Réutiliser un ID client si fourni (traçabilité distribuée)
-        rid = request.headers.get(self.REQUEST_ID_HEADER) or str(uuid.uuid4())[:12]
-        request.state.request_id = rid
         token = request_id_ctx.set(rid)
 
         try:
-            # Tag Sentry pour corrélation erreurs ↔ logs
             try:
                 import sentry_sdk
 
@@ -56,9 +76,14 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
             except ImportError:
                 pass
 
-            response = await call_next(request)
-            response.headers[self.REQUEST_ID_HEADER] = rid
-            return response
+            async def send_wrapper(message):
+                if message.get("type") == "http.response.start":
+                    headers = list(message.get("headers", []))
+                    headers.append((REQUEST_ID_HEADER.encode(), rid.encode()))
+                    message = {**message, "headers": headers}
+                await send(message)
+
+            await self.app(scope, receive, send_wrapper)
         finally:
             request_id_ctx.reset(token)
 

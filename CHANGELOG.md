@@ -4,6 +4,28 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [2.2.2-alpha.1] - 2026-02-26
+
+### Fixed
+
+- **LocalProtocolError sur POST /api/recommendations/generate** : `RequestIdMiddleware` converti de `BaseHTTPMiddleware` en middleware ASGI pur pour éviter l'erreur "Can't send data when our state is ERROR" (problème connu BaseHTTPMiddleware + streaming/déconnexion client).
+
+### Changed — Refactoring handlers → services
+
+- **auth_handlers** : `verify_email` et `api_reset_password` passent par `AuthService` (verify_email_token, reset_password_with_token) — plus d'accès DB direct
+- **user_handlers** : Réponse `PUT /api/users/me` inclut `is_email_verified` pour éviter la bannière « compte non validé » après mise à jour du profil
+
+### Tests
+
+- `test_verify_email_success`, `test_verify_email_invalid_token` (test_auth_flow.py)
+- `test_update_user` : assertion régression sur `is_email_verified`
+
+### Documentation
+
+- `docs/03-PROJECT/INVENTAIRE_HANDLERS_DB_DIRECTE.md` : auth_handlers marqué refactoré (26/02)
+
+---
+
 ## [2.2.1-alpha.2] - 2026-02-25
 
 Regroupement des avancées depuis 2.2.0-alpha.1.

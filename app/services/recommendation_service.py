@@ -596,23 +596,128 @@ class RecommendationService:
             db.rollback()
 
     @staticmethod
-    def mark_recommendation_as_completed(db, recommendation_id):
-        """Marque une recommandation comme complétée"""
+    def mark_recommendation_as_completed(db, recommendation_id, user_id=None):
+        """
+        Marque une recommandation comme complétée.
+        Si user_id fourni, vérifie que la recommandation appartient à l'utilisateur.
+
+        Returns:
+            (success: bool, recommendation: Recommendation | None)
+        """
         try:
-            recommendation = (
-                db.query(Recommendation)
-                .filter(Recommendation.id == recommendation_id)
-                .first()
-            )
+            q = db.query(Recommendation).filter(Recommendation.id == recommendation_id)
+            if user_id is not None:
+                q = q.filter(Recommendation.user_id == user_id)
+            recommendation = q.first()
             if recommendation:
                 recommendation.is_completed = True
                 recommendation.completed_at = datetime.now(timezone.utc)
                 db.commit()
+                db.refresh(recommendation)
+                return True, recommendation
+            return False, None
         except Exception as mark_completed_error:
             logger.error(
                 f"Erreur lors du marquage de la recommandation comme complétée: {str(mark_completed_error)}"
             )
             db.rollback()
+            return False, None
+
+    @staticmethod
+    def get_recommendations_for_api(db, user_id, limit=7):
+        """
+        Récupère les recommandations formatées pour l'API (filtrage archivés, enrichissement).
+
+        Returns:
+            Liste de dicts prêts pour JSONResponse
+        """
+        recommendations = RecommendationService.get_user_recommendations(
+            db, user_id, limit=limit
+        )
+        if not recommendations:
+            try:
+                RecommendationService.generate_recommendations(db, user_id)
+                db.commit()
+                recommendations = RecommendationService.get_user_recommendations(
+                    db, user_id, limit=limit
+                )
+            except Exception as gen_error:
+                logger.error(f"Erreur génération recommandations: {gen_error}")
+                return []
+
+        completed_exercise_ids = {
+            a.exercise_id
+            for a in db.query(Attempt)
+            .filter(
+                Attempt.user_id == user_id,
+                Attempt.is_correct == True,
+                Attempt.exercise_id.isnot(None),
+            )
+            .all()
+            if a.exercise_id
+        }
+        completed_challenge_ids = {
+            a.challenge_id
+            for a in db.query(LogicChallengeAttempt)
+            .filter(
+                LogicChallengeAttempt.user_id == user_id,
+                LogicChallengeAttempt.is_correct == True,
+                LogicChallengeAttempt.challenge_id.isnot(None),
+            )
+            .all()
+            if a.challenge_id
+        }
+
+        difficulty_to_age_group = {
+            "INITIE": "6-8",
+            "PADAWAN": "9-11",
+            "CHEVALIER": "12-14",
+            "MAITRE": "15-17",
+            "GRAND_MAITRE": "adulte",
+        }
+
+        result = []
+        for rec in recommendations:
+            if rec.exercise_id and rec.exercise_id in completed_exercise_ids:
+                continue
+            if getattr(rec, "challenge_id", None) and rec.challenge_id in completed_challenge_ids:
+                continue
+
+            exercise = None
+            challenge = None
+            if rec.exercise_id:
+                exercise = db.query(Exercise).filter(Exercise.id == rec.exercise_id).first()
+                if not exercise or exercise.is_archived or not getattr(exercise, "is_active", True):
+                    continue
+            if getattr(rec, "challenge_id", None):
+                challenge = db.query(LogicChallenge).filter(LogicChallenge.id == rec.challenge_id).first()
+                if not challenge or getattr(challenge, "is_archived", False):
+                    continue
+
+            difficulty_str = str(rec.difficulty).upper() if rec.difficulty else "PADAWAN"
+            age_group = difficulty_to_age_group.get(difficulty_str, "9-11")
+
+            rec_data = {
+                "id": rec.id,
+                "exercise_type": str(rec.exercise_type),
+                "difficulty": difficulty_str,
+                "age_group": age_group,
+                "reason": rec.reason or "",
+                "priority": rec.priority,
+                "recommendation_type": getattr(rec, "recommendation_type", None) or "exercise",
+            }
+            if rec.exercise_id and exercise:
+                rec_data["exercise_id"] = rec.exercise_id
+                rec_data["exercise_title"] = exercise.title
+                rec_data["exercise_question"] = getattr(exercise, "question", None)
+            if getattr(rec, "challenge_id", None) and challenge:
+                rec_data["challenge_id"] = rec.challenge_id
+                rec_data["challenge_title"] = getattr(challenge, "title", None)
+                rec_data["exercise_title"] = rec_data.get("exercise_title") or challenge.title
+
+            result.append(rec_data)
+
+        return result
 
     @staticmethod
     def get_user_recommendations(db, user_id, limit=7):
