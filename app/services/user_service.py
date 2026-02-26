@@ -905,6 +905,7 @@ class UserService:
         Récupère les sessions actives non expirées de l'utilisateur.
         """
         from datetime import datetime, timezone
+
         from sqlalchemy import and_
 
         sessions = (

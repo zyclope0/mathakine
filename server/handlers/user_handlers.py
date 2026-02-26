@@ -18,8 +18,8 @@ from starlette.responses import JSONResponse
 from app.core.messages import SystemMessages
 from app.schemas.user import UserCreate
 from app.services.auth_service import create_user, get_user_by_email
-from app.services.user_service import UserService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from app.services.user_service import UserService
 from app.utils.csrf import validate_csrf_token
 from app.utils.db_utils import db_session
 from app.utils.error_handler import get_safe_error_message
