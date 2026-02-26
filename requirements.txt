@@ -55,7 +55,7 @@ gunicorn==25.1.0  # Serveur WSGI optimisé pour production
 uvloop==0.22.1; sys_platform != 'win32'  # Boucle d'événements optimisée (Unix seulement, non supporté sur Windows)
 
 # Compression et optimisation
-brotli==1.1.0  # Compression Brotli
+brotli==1.2.0  # Compression Brotli
 cssmin==0.2.0  # Minification CSS
 jsmin==3.0.1  # Minification JavaScript
 
