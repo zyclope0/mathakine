@@ -365,26 +365,23 @@ class ExerciseService:
         total = query.count()
 
         # Récupérer les exercices avec les mêmes filtres
-        exercises_query = (
-            db.query(
-                Exercise.id,
-                Exercise.title,
-                Exercise.question,
-                Exercise.correct_answer,
-                Exercise.choices,
-                Exercise.explanation,
-                Exercise.hint,
-                Exercise.tags,
-                Exercise.ai_generated,
-                Exercise.is_active,
-                Exercise.view_count,
-                Exercise.created_at,
-                cast(Exercise.exercise_type, String).label("exercise_type_str"),
-                cast(Exercise.difficulty, String).label("difficulty_str"),
-                Exercise.age_group,
-            )
-            .filter(Exercise.is_archived == False)
-        )
+        exercises_query = db.query(
+            Exercise.id,
+            Exercise.title,
+            Exercise.question,
+            Exercise.correct_answer,
+            Exercise.choices,
+            Exercise.explanation,
+            Exercise.hint,
+            Exercise.tags,
+            Exercise.ai_generated,
+            Exercise.is_active,
+            Exercise.view_count,
+            Exercise.created_at,
+            cast(Exercise.exercise_type, String).label("exercise_type_str"),
+            cast(Exercise.difficulty, String).label("difficulty_str"),
+            Exercise.age_group,
+        ).filter(Exercise.is_archived == False)
 
         if exercise_type:
             exercises_query = exercises_query.filter(
@@ -430,9 +427,7 @@ class ExerciseService:
                         else "ADDITION"
                     ),
                     "difficulty": (
-                        row.difficulty_str.upper()
-                        if row.difficulty_str
-                        else "PADAWAN"
+                        row.difficulty_str.upper() if row.difficulty_str else "PADAWAN"
                     ),
                     "age_group": row.age_group,
                     "question": row.question,
@@ -514,18 +509,40 @@ class ExerciseService:
             by_discipline[type_upper] = {
                 "count": count,
                 "discipline_name": discipline_names.get(type_upper, type_upper),
-                "percentage": round((count / total_exercises * 100), 1)
-                if total_exercises > 0
-                else 0,
+                "percentage": (
+                    round((count / total_exercises * 100), 1)
+                    if total_exercises > 0
+                    else 0
+                ),
             }
 
         # 3. Par rang (difficulté)
         academy_ranks = {
-            "INITIE": {"name": "Initié", "description": "Premier pas vers la sagesse", "min_age": 6},
-            "PADAWAN": {"name": "Apprenti", "description": "En cours de formation", "min_age": 9},
-            "CHEVALIER": {"name": "Chevalier", "description": "Maîtrise confirmée", "min_age": 12},
-            "MAITRE": {"name": "Maître", "description": "Sagesse avancée", "min_age": 15},
-            "GRAND_MAITRE": {"name": "Grand Maître", "description": "Sommité de l'Académie", "min_age": 17},
+            "INITIE": {
+                "name": "Initié",
+                "description": "Premier pas vers la sagesse",
+                "min_age": 6,
+            },
+            "PADAWAN": {
+                "name": "Apprenti",
+                "description": "En cours de formation",
+                "min_age": 9,
+            },
+            "CHEVALIER": {
+                "name": "Chevalier",
+                "description": "Maîtrise confirmée",
+                "min_age": 12,
+            },
+            "MAITRE": {
+                "name": "Maître",
+                "description": "Sagesse avancée",
+                "min_age": 15,
+            },
+            "GRAND_MAITRE": {
+                "name": "Grand Maître",
+                "description": "Sommité de l'Académie",
+                "min_age": 17,
+            },
         }
         by_difficulty_query = (
             db.query(Exercise.difficulty, func.count(Exercise.id).label("count"))
@@ -545,20 +562,37 @@ class ExerciseService:
                 "rank_name": rank_info["name"],
                 "description": rank_info["description"],
                 "min_age": rank_info["min_age"],
-                "percentage": round((count / total_exercises * 100), 1)
-                if total_exercises > 0
-                else 0,
+                "percentage": (
+                    round((count / total_exercises * 100), 1)
+                    if total_exercises > 0
+                    else 0
+                ),
             }
 
         # 4. Par groupe d'apprentis (âge)
         apprentice_groups = {
             "6-8": {"name": "Novices", "description": "Futurs espoirs de l'Académie"},
-            "8-10": {"name": "Apprentis Débutants", "description": "En début de formation"},
-            "9-11": {"name": "Apprentis Juniors", "description": "Formation intermédiaire"},
-            "10-12": {"name": "Apprentis Confirmés", "description": "Prêts pour les épreuves"},
-            "11-13": {"name": "Aspirants Chevaliers", "description": "Sur le chemin de la maîtrise"},
+            "8-10": {
+                "name": "Apprentis Débutants",
+                "description": "En début de formation",
+            },
+            "9-11": {
+                "name": "Apprentis Juniors",
+                "description": "Formation intermédiaire",
+            },
+            "10-12": {
+                "name": "Apprentis Confirmés",
+                "description": "Prêts pour les épreuves",
+            },
+            "11-13": {
+                "name": "Aspirants Chevaliers",
+                "description": "Sur le chemin de la maîtrise",
+            },
             "12-14": {"name": "Chevaliers en Devenir", "description": "Défis avancés"},
-            "14-16": {"name": "Élite de l'Académie", "description": "Formation d'excellence"},
+            "14-16": {
+                "name": "Élite de l'Académie",
+                "description": "Formation d'excellence",
+            },
             "15-17": {"name": "Candidats Maîtres", "description": "Ultimes épreuves"},
             "17+": {"name": "Conseil des Sages", "description": "Niveau Grand Maître"},
         }
@@ -579,21 +613,23 @@ class ExerciseService:
                 "count": count,
                 "group_name": group_info["name"],
                 "description": group_info["description"],
-                "percentage": round((count / total_exercises * 100), 1)
-                if total_exercises > 0
-                else 0,
+                "percentage": (
+                    round((count / total_exercises * 100), 1)
+                    if total_exercises > 0
+                    else 0
+                ),
             }
 
         # 5. Complétion globale
         total_attempts = db.query(func.count(Attempt.id)).scalar() or 0
         correct_attempts = (
-            db.query(func.count(Attempt.id))
-            .filter(Attempt.is_correct == True)
-            .scalar()
+            db.query(func.count(Attempt.id)).filter(Attempt.is_correct == True).scalar()
             or 0
         )
         global_success_rate = (
-            round((correct_attempts / total_attempts * 100), 1) if total_attempts > 0 else 0
+            round((correct_attempts / total_attempts * 100), 1)
+            if total_attempts > 0
+            else 0
         )
 
         popular_query = (
@@ -606,7 +642,9 @@ class ExerciseService:
             )
             .join(Attempt, Attempt.exercise_id == Exercise.id)
             .filter(Exercise.is_active == True)
-            .group_by(Exercise.id, Exercise.title, Exercise.exercise_type, Exercise.difficulty)
+            .group_by(
+                Exercise.id, Exercise.title, Exercise.exercise_type, Exercise.difficulty
+            )
             .order_by(func.count(Attempt.id).desc())
             .limit(5)
             .all()
@@ -659,7 +697,9 @@ class ExerciseService:
                 return "Les apprentis progressent. La patience est une vertu des sages."
             if rate >= 40:
                 return "L'entraînement doit s'intensifier. La voie de la maîtrise est exigeante."
-            return "Beaucoup reste à apprendre. Persévérance et courage sont essentiels."
+            return (
+                "Beaucoup reste à apprendre. Persévérance et courage sont essentiels."
+            )
 
         wisdoms = [
             "La connaissance est le premier pas vers la sagesse. — Les Anciens",
@@ -682,11 +722,11 @@ class ExerciseService:
                 "ai_generated": total_ai_generated,
                 "ai_generated_exercises": ai_generated_count,
                 "ai_generated_challenges": total_logic_challenges,
-                "ai_generated_percentage": round(
-                    (total_ai_generated / total_content * 100), 1
-                )
-                if total_content > 0
-                else 0,
+                "ai_generated_percentage": (
+                    round((total_ai_generated / total_content * 100), 1)
+                    if total_content > 0
+                    else 0
+                ),
             },
             "by_discipline": by_discipline,
             "by_rank": by_rank,

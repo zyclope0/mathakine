@@ -680,21 +680,36 @@ class RecommendationService:
         for rec in recommendations:
             if rec.exercise_id and rec.exercise_id in completed_exercise_ids:
                 continue
-            if getattr(rec, "challenge_id", None) and rec.challenge_id in completed_challenge_ids:
+            if (
+                getattr(rec, "challenge_id", None)
+                and rec.challenge_id in completed_challenge_ids
+            ):
                 continue
 
             exercise = None
             challenge = None
             if rec.exercise_id:
-                exercise = db.query(Exercise).filter(Exercise.id == rec.exercise_id).first()
-                if not exercise or exercise.is_archived or not getattr(exercise, "is_active", True):
+                exercise = (
+                    db.query(Exercise).filter(Exercise.id == rec.exercise_id).first()
+                )
+                if (
+                    not exercise
+                    or exercise.is_archived
+                    or not getattr(exercise, "is_active", True)
+                ):
                     continue
             if getattr(rec, "challenge_id", None):
-                challenge = db.query(LogicChallenge).filter(LogicChallenge.id == rec.challenge_id).first()
+                challenge = (
+                    db.query(LogicChallenge)
+                    .filter(LogicChallenge.id == rec.challenge_id)
+                    .first()
+                )
                 if not challenge or getattr(challenge, "is_archived", False):
                     continue
 
-            difficulty_str = str(rec.difficulty).upper() if rec.difficulty else "PADAWAN"
+            difficulty_str = (
+                str(rec.difficulty).upper() if rec.difficulty else "PADAWAN"
+            )
             age_group = difficulty_to_age_group.get(difficulty_str, "9-11")
 
             rec_data = {
@@ -704,7 +719,8 @@ class RecommendationService:
                 "age_group": age_group,
                 "reason": rec.reason or "",
                 "priority": rec.priority,
-                "recommendation_type": getattr(rec, "recommendation_type", None) or "exercise",
+                "recommendation_type": getattr(rec, "recommendation_type", None)
+                or "exercise",
             }
             if rec.exercise_id and exercise:
                 rec_data["exercise_id"] = rec.exercise_id
@@ -713,7 +729,9 @@ class RecommendationService:
             if getattr(rec, "challenge_id", None) and challenge:
                 rec_data["challenge_id"] = rec.challenge_id
                 rec_data["challenge_title"] = getattr(challenge, "title", None)
-                rec_data["exercise_title"] = rec_data.get("exercise_title") or challenge.title
+                rec_data["exercise_title"] = (
+                    rec_data.get("exercise_title") or challenge.title
+                )
 
             result.append(rec_data)
 

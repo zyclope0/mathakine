@@ -558,12 +558,14 @@ class UserService:
                         "label": "Taux de réussite (%)",
                         "data": [
                             (
-                                daily_stats[day]["correct"]
-                                / daily_stats[day]["total"]
-                                * 100
+                                (
+                                    daily_stats[day]["correct"]
+                                    / daily_stats[day]["total"]
+                                    * 100
+                                )
+                                if daily_stats[day]["total"] > 0
+                                else 0
                             )
-                            if daily_stats[day]["total"] > 0
-                            else 0
                             for day in sorted_days
                         ],
                     }
@@ -679,15 +681,11 @@ class UserService:
             }
 
         total_attempts = len(attempts_query)
-        correct_attempts = sum(
-            1 for attempt, _ in attempts_query if attempt.is_correct
-        )
+        correct_attempts = sum(1 for attempt, _ in attempts_query if attempt.is_correct)
         accuracy = correct_attempts / total_attempts if total_attempts > 0 else 0.0
 
         times = [
-            attempt.time_spent
-            for attempt, _ in attempts_query
-            if attempt.time_spent
+            attempt.time_spent for attempt, _ in attempts_query if attempt.time_spent
         ]
         average_time = sum(times) / len(times) if times else 0.0
 
@@ -791,9 +789,7 @@ class UserService:
 
         total_attempts = len(all_attempts)
         correct_attempts = sum(1 for a in all_attempts if a.is_correct)
-        success_rate = (
-            correct_attempts / total_attempts if total_attempts > 0 else 0.0
-        )
+        success_rate = correct_attempts / total_attempts if total_attempts > 0 else 0.0
         all_times = [a.time_spent for a in all_attempts if a.time_spent]
         average_time = sum(all_times) / len(all_times) if all_times else 0.0
 
@@ -860,9 +856,9 @@ class UserService:
             "learning_goal",
             "practice_rhythm",
         }
-        if not getattr(user, "onboarding_completed_at", None) and onboarding_fields.intersection(
-            update_data.keys()
-        ):
+        if not getattr(
+            user, "onboarding_completed_at", None
+        ) and onboarding_fields.intersection(update_data.keys()):
             from datetime import datetime, timezone
 
             user.onboarding_completed_at = datetime.now(timezone.utc)

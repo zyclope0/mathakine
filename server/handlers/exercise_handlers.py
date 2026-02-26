@@ -935,5 +935,3 @@ async def get_exercises_stats(request: Request):
             },
             status_code=500,
         )
-
-
