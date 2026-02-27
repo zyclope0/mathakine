@@ -1,7 +1,7 @@
 # Inventaire — Handlers qui interrogent la DB directement
 
 > Audit du contournement de la couche service.  
-> Date : 22/02/2026
+> Date : 22/02/2026 — Dernière MAJ : 27/02/2026
 
 ---
 
@@ -70,7 +70,7 @@ Les handlers login/logout/refresh passent déjà par `AuthService`. Les flows ve
 
 ---
 
-## 5. admin_handlers.py — Priorité MOYENNE ⏳ Partiel (26/02)
+## 5. admin_handlers.py — Priorité MOYENNE ✅ Refactoré (27/02)
 
 **AdminService créé** — lectures/agrégats déplacés :
 - Config GET/PUT : `AdminService.get_config_for_api`, `update_config`

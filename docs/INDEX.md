@@ -66,6 +66,9 @@ docs/
 │   ├── ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md  # Migration DDL → Alembic (✅ validée 22/02)
 │   ├── VALIDATION_MIGRATION_ALEMBIC_2026-02.md  # Rapport validation
 │   ├── PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md  # Plan backup/rollback
+│   ├── INVENTAIRE_HANDLERS_DB_DIRECTE.md  # ⭐ Handlers vs services — tous refactorés (27/02)
+│   ├── REFACTO_EXERCISE_HANDLERS.md  # Plan exercise_handlers (✅ complété)
+│   ├── REFACTO_ADMIN_HANDLERS.md  # Plan admin_handlers → AdminService (✅ complété 27/02)
 │   ├── ENDPOINTS_NON_INTEGRES.md  # Endpoints à intégrer
 │   ├── PLACEHOLDERS_ET_TODO.md  # Endpoints à implémenter
 │   └── AUDITS_ET_RAPPORTS_ARCHIVES/  # 📦 Audits implémentés + rapports temporaires
@@ -268,6 +271,10 @@ docs/
 - ✅ **Échecs (ChessRenderer)** : Highlights uniquement sur les pièces, affichage tour/objectif (mat en X coups), format de réponse attendu, prompt IA pour positions tactiques réalistes
 - ✅ **Auth production (cross-domain)** : await sync au login, `ensureFrontendAuthCookie()` avant génération IA, routes `/api/auth/sync-cookie` et `/api/auth/check-cookie` pour diagnostic
 - 📝 **TROUBLESHOOTING.md** : Section « Cookie manquant » en production enrichie
+
+### 27/02/2026
+- ✅ **Refactor admin_handlers — AdminService complet** : Toute la logique DB déplacée dans `app/services/admin_service.py` (users, badges, exercises, challenges, export CSV). Handlers minces sans requêtes directes. Voir INVENTAIRE_HANDLERS_DB_DIRECTE.md, REFACTO_ADMIN_HANDLERS.md.
+- ✅ **Fix admin modération** : Bouton « Éditer » ouvre la modal d’édition in-place au lieu de rediriger vers la page Contenu.
 
 ### 21/02/2026
 - ✅ **Refactor exercise_generator (PR#1)** : Extraction des validateurs dans `server/exercise_generator_validators.py` (normalize_exercise_type, normalize_difficulty, normalize_and_validate_exercise_params, get_difficulty_from_age_group) — compatibilite preservee via re-exports

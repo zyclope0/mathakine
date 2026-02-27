@@ -1,7 +1,7 @@
 # 📕 Gestion projet Mathakine
 
 > Index maître — Audits, recommandations, rapports situationnels  
-> **Dernière mise à jour :** 25/02/2026
+> **Dernière mise à jour :** 27/02/2026
 
 ---
 
@@ -49,6 +49,14 @@
 ### Vulnérabilités (CVE)
 
 → [SECURITY_AUDIT_REPORT.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/SECURITY_AUDIT_REPORT.md) — archivé (12/02/2026)
+
+### Référence handlers / services
+
+| Document | Sujet |
+|----------|-------|
+| [INVENTAIRE_HANDLERS_DB_DIRECTE.md](./INVENTAIRE_HANDLERS_DB_DIRECTE.md) | Handlers vs DB direct — **tous refactorés** (admin 27/02) |
+| [REFACTO_ADMIN_HANDLERS.md](./REFACTO_ADMIN_HANDLERS.md) | Plan admin_handlers → AdminService — ✅ complété 27/02 |
+| [REFACTO_EXERCISE_HANDLERS.md](./REFACTO_EXERCISE_HANDLERS.md) | Plan exercise_handlers → ExerciseService — ✅ complété |
 
 ### À faire
 
