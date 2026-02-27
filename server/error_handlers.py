@@ -37,7 +37,9 @@ async def server_error(request: Request, exc: Exception):
     Handle 500 Server Error and other unexpected exceptions.
     """
     trace_id = str(uuid.uuid4())[:8]
-    logger.error(f"500 Server Error for {request.url.path} [trace_id={trace_id}]: {exc}")
+    logger.error(
+        f"500 Server Error for {request.url.path} [trace_id={trace_id}]: {exc}"
+    )
     logger.error(traceback.format_exc())
 
     return api_error_response(
