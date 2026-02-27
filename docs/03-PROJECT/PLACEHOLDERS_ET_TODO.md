@@ -190,6 +190,12 @@ Les handlers placeholders `start_challenge`, `get_challenge_progress`, `get_chal
 
 ## 🚀 Pour aller plus loin
 
+### Normalisation des niveaux de difficulté (souhait produit — 27/02/2026)
+
+Sortir de la logique Star Wars (INITIE, PADAWAN, CHEVALIER, MAITRE, GRAND_MAITRE) pour des libellés plus universels. Voir **[docs/02-FEATURES/NIVEAUX_DIFFICULTE_NORMALISATION.md](../02-FEATURES/NIVEAUX_DIFFICULTE_NORMALISATION.md)**.
+
+---
+
 - Créer des issues GitHub/Jira pour chaque endpoint à implémenter
 - Définir les specs fonctionnelles (Figma, PRD) pour les fonctionnalités UX
 - Tester chaque endpoint implémenté avec des scripts Python (voir `test_progress_api.py` comme modèle)

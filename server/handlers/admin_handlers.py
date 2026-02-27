@@ -248,6 +248,8 @@ async def admin_exercises(request: Request):
     GET /api/admin/exercises
     Liste paginée avec recherche (titre), tri (sort, order).
     """
+    from app.services.admin_service import AdminService
+
     query_params = dict(request.query_params)
     archived_param = query_params.get("archived")
     exercise_type = (query_params.get("type") or "").strip().upper() or None
@@ -257,263 +259,104 @@ async def admin_exercises(request: Request):
     skip = max(0, int(query_params.get("skip", 0)))
     limit = min(100, max(1, int(query_params.get("limit", 20))))
 
-    sortable = {"title", "exercise_type", "difficulty", "age_group", "created_at"}
-    if sort not in sortable:
-        sort = "created_at"
-    order_fn = "asc" if order == "asc" else "desc"
-    sort_col = getattr(Exercise, sort, Exercise.created_at)
-    order_by = getattr(sort_col, order_fn)()
+    is_archived = None
+    if archived_param is not None:
+        is_archived = str(archived_param).lower() in ("true", "1", "yes")
 
     async with db_session() as db:
-        q = db.query(Exercise)
-        if archived_param is not None:
-            is_archived = str(archived_param).lower() in ("true", "1", "yes")
-            q = q.filter(Exercise.is_archived == is_archived)
-        if exercise_type:
-            q = q.filter(Exercise.exercise_type == exercise_type)
-        if search:
-            q = q.filter(Exercise.title.ilike(f"%{search}%"))
-        total = q.count()
-        exercises = q.order_by(order_by).offset(skip).limit(limit).all()
-        ex_ids = [e.id for e in exercises]
-
-        attempt_stats = {}
-        if ex_ids:
-            rows = (
-                db.query(
-                    Attempt.exercise_id,
-                    func.count(Attempt.id).label("attempt_count"),
-                    func.sum(case((Attempt.is_correct == True, 1), else_=0)).label(
-                        "correct_count"
-                    ),
-                )
-                .filter(Attempt.exercise_id.in_(ex_ids))
-                .group_by(Attempt.exercise_id)
-                .all()
-            )
-            for ex_id, a_count, c_count in rows:
-                attempt_stats[ex_id] = {
-                    "attempt_count": a_count or 0,
-                    "correct_count": c_count or 0,
-                }
-
-        items = []
-        for e in exercises:
-            stats = attempt_stats.get(e.id, {"attempt_count": 0, "correct_count": 0})
-            a_count = stats["attempt_count"]
-            c_count = stats["correct_count"]
-            success_rate = round((c_count / a_count * 100), 1) if a_count > 0 else 0.0
-            items.append(
-                {
-                    "id": e.id,
-                    "title": e.title,
-                    "exercise_type": e.exercise_type,
-                    "difficulty": e.difficulty,
-                    "age_group": e.age_group,
-                    "is_archived": e.is_archived,
-                    "attempt_count": a_count,
-                    "success_rate": success_rate,
-                    "created_at": e.created_at.isoformat() if e.created_at else None,
-                }
-            )
-
-    return JSONResponse({"items": items, "total": total})
-
-
-def _exercise_to_detail(e) -> dict:
-    """Sérialise un exercice pour l'édition admin."""
-    return {
-        "id": e.id,
-        "title": e.title,
-        "exercise_type": e.exercise_type or "",
-        "difficulty": e.difficulty or "",
-        "age_group": e.age_group or "",
-        "tags": e.tags or "",
-        "context_theme": e.context_theme or "",
-        "complexity": e.complexity,
-        "ai_generated": e.ai_generated or False,
-        "question": e.question or "",
-        "correct_answer": e.correct_answer or "",
-        "choices": e.choices,
-        "explanation": e.explanation or "",
-        "hint": e.hint or "",
-        "image_url": e.image_url or "",
-        "audio_url": e.audio_url or "",
-        "is_active": e.is_active,
-        "is_archived": e.is_archived,
-        "created_at": e.created_at.isoformat() if e.created_at else None,
-        "updated_at": e.updated_at.isoformat() if e.updated_at else None,
-    }
+        result = AdminService.list_exercises_for_admin(
+            db,
+            archived=is_archived,
+            exercise_type=exercise_type,
+            search=search,
+            sort=sort,
+            order=order,
+            skip=skip,
+            limit=limit,
+        )
+    return JSONResponse(result)
 
 
 @require_auth
 @require_admin
 async def admin_exercises_post(request: Request):
     """POST /api/admin/exercises — création d'un exercice."""
+    from app.services.admin_service import AdminService
+
     try:
         data = await request.json()
     except Exception:
         return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
 
-    title = (data.get("title") or "").strip()
-    question = (data.get("question") or "").strip()
-    correct_answer = (data.get("correct_answer") or "").strip()
-    exercise_type = (data.get("exercise_type") or "DIVERS").strip().upper()
-    difficulty = (data.get("difficulty") or "PADAWAN").strip()
-    age_group = (data.get("age_group") or "9-11").strip()
-
-    if not title:
-        return JSONResponse({"error": "Le titre est obligatoire."}, status_code=400)
-    if not question:
-        return JSONResponse({"error": "La question est obligatoire."}, status_code=400)
-    if not correct_answer:
-        return JSONResponse(
-            {"error": "La réponse correcte est obligatoire."}, status_code=400
-        )
-
     async with db_session() as db:
-        ex = Exercise(
-            title=title,
-            exercise_type=exercise_type,
-            difficulty=difficulty,
-            age_group=age_group,
-            question=question,
-            correct_answer=correct_answer,
-            choices=data.get("choices"),
-            explanation=(data.get("explanation") or "").strip() or None,
-            hint=(data.get("hint") or "").strip() or None,
-            tags=(data.get("tags") or "").strip() or None,
-            ai_generated=False,
-        )
-        db.add(ex)
-        db.flush()
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(
-            db, admin_id, "exercise_create", "exercise", ex.id, {"title": ex.title}
+        result, err, code = AdminService.create_exercise_for_admin(
+            db, data=data, admin_user_id=admin_id
         )
-        db.commit()
-        db.refresh(ex)
-    return JSONResponse(_exercise_to_detail(ex), status_code=201)
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result, status_code=201)
 
 
 @require_auth
 @require_admin
 async def admin_exercise_get(request: Request):
     """GET /api/admin/exercises/{exercise_id} — détail complet pour édition."""
+    from app.services.admin_service import AdminService
+
     exercise_id = int(request.path_params.get("exercise_id"))
     async with db_session() as db:
-        ex = db.query(Exercise).filter(Exercise.id == exercise_id).first()
-        if not ex:
-            return JSONResponse({"error": "Exercice non trouvé."}, status_code=404)
-        return JSONResponse(_exercise_to_detail(ex))
+        result, err, code = AdminService.get_exercise_for_admin(db, exercise_id)
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result)
 
 
 @require_auth
 @require_admin
 async def admin_exercises_put(request: Request):
     """PUT /api/admin/exercises/{exercise_id} — mise à jour complète."""
+    from app.services.admin_service import AdminService
+
     exercise_id = int(request.path_params.get("exercise_id"))
     try:
         data = await request.json()
     except Exception:
         return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
 
-    allowed_str = {
-        "title",
-        "exercise_type",
-        "difficulty",
-        "age_group",
-        "tags",
-        "context_theme",
-        "complexity",
-        "question",
-        "correct_answer",
-        "explanation",
-        "hint",
-        "image_url",
-        "audio_url",
-    }
-    allowed_bool = {"is_active", "is_archived"}
-    allowed_json = {"choices"}
-
-    update_data = {}
-    for k, v in data.items():
-        if k in allowed_str and v is not None:
-            update_data[k] = str(v) if not isinstance(v, str) else v
-        elif k in allowed_bool:
-            if v is not None:
-                update_data[k] = v in (True, "true", "1", 1)
-        elif k in allowed_json:
-            update_data[k] = v
-
     async with db_session() as db:
-        ex = db.query(Exercise).filter(Exercise.id == exercise_id).first()
-        if not ex:
-            return JSONResponse({"error": "Exercice non trouvé."}, status_code=404)
-        for k, v in update_data.items():
-            setattr(ex, k, v)
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(
-            db,
-            admin_id,
-            "exercise_update",
-            "exercise",
-            exercise_id,
-            {"fields": list(update_data.keys())},
+        result, err, code = AdminService.put_exercise_for_admin(
+            db, exercise_id=exercise_id, data=data, admin_user_id=admin_id
         )
-        db.commit()
-        db.refresh(ex)
-    return JSONResponse(_exercise_to_detail(ex))
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result)
 
 
 @require_auth
 @require_admin
 async def admin_exercises_duplicate(request: Request):
     """POST /api/admin/exercises/{exercise_id}/duplicate — crée une copie."""
+    from app.services.admin_service import AdminService
+
     exercise_id = int(request.path_params.get("exercise_id"))
     async with db_session() as db:
-        orig = db.query(Exercise).filter(Exercise.id == exercise_id).first()
-        if not orig:
-            return JSONResponse({"error": "Exercice non trouvé."}, status_code=404)
-        copy = Exercise(
-            title=f"{orig.title} (copie)",
-            exercise_type=orig.exercise_type,
-            difficulty=orig.difficulty,
-            age_group=orig.age_group,
-            tags=orig.tags,
-            context_theme=orig.context_theme,
-            complexity=orig.complexity,
-            ai_generated=orig.ai_generated,
-            question=orig.question,
-            correct_answer=orig.correct_answer,
-            choices=orig.choices,
-            explanation=orig.explanation,
-            hint=orig.hint,
-            image_url=orig.image_url,
-            audio_url=orig.audio_url,
-            is_active=orig.is_active,
-            is_archived=False,
-        )
-        db.add(copy)
-        db.flush()
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(
-            db,
-            admin_id,
-            "exercise_duplicate",
-            "exercise",
-            copy.id,
-            {"from_id": exercise_id, "title": copy.title},
+        result, err, code = AdminService.duplicate_exercise_for_admin(
+            db, exercise_id=exercise_id, admin_user_id=admin_id
         )
-        db.commit()
-        db.refresh(copy)
-    return JSONResponse(_exercise_to_detail(copy))
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result, status_code=201)
 
 
 @require_auth
 @require_admin
 async def admin_exercises_patch(request: Request):
     """PATCH /api/admin/exercises/{exercise_id} — toggle is_archived."""
+    from app.services.admin_service import AdminService
+
     exercise_id = int(request.path_params.get("exercise_id"))
     try:
         data = await request.json()
@@ -526,29 +369,13 @@ async def admin_exercises_patch(request: Request):
         )
 
     async with db_session() as db:
-        ex = db.query(Exercise).filter(Exercise.id == exercise_id).first()
-        if not ex:
-            return JSONResponse({"error": "Exercice non trouvé."}, status_code=404)
-        ex.is_archived = is_archived
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(
-            db,
-            admin_id,
-            "exercise_archive",
-            "exercise",
-            exercise_id,
-            {"is_archived": is_archived},
+        result, err, code = AdminService.patch_exercise_for_admin(
+            db, exercise_id=exercise_id, is_archived=is_archived, admin_user_id=admin_id
         )
-        db.commit()
-        db.refresh(ex)
-
-    return JSONResponse(
-        {
-            "id": ex.id,
-            "title": ex.title,
-            "is_archived": ex.is_archived,
-        }
-    )
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result)
 
 
 # ==================== ADMIN BADGES (Lot B-1) — via AdminService ====================

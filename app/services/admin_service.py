@@ -773,3 +773,234 @@ class AdminService:
             None,
             200,
         )
+
+    # --- Exercises CRUD ---
+
+    @staticmethod
+    def _exercise_to_detail(e: Exercise) -> Dict[str, Any]:
+        return {
+            "id": e.id,
+            "title": e.title,
+            "exercise_type": e.exercise_type or "",
+            "difficulty": e.difficulty or "",
+            "age_group": e.age_group or "",
+            "tags": e.tags or "",
+            "context_theme": e.context_theme or "",
+            "complexity": e.complexity,
+            "ai_generated": e.ai_generated or False,
+            "question": e.question or "",
+            "correct_answer": e.correct_answer or "",
+            "choices": e.choices,
+            "explanation": e.explanation or "",
+            "hint": e.hint or "",
+            "image_url": e.image_url or "",
+            "audio_url": e.audio_url or "",
+            "is_active": e.is_active,
+            "is_archived": e.is_archived,
+            "created_at": e.created_at.isoformat() if e.created_at else None,
+            "updated_at": e.updated_at.isoformat() if e.updated_at else None,
+        }
+
+    @staticmethod
+    def list_exercises_for_admin(
+        db: Session,
+        *,
+        archived: Optional[bool] = None,
+        exercise_type: Optional[str] = None,
+        search: str = "",
+        sort: str = "created_at",
+        order: str = "desc",
+        skip: int = 0,
+        limit: int = 20,
+    ) -> Dict[str, Any]:
+        sortable = {"title", "exercise_type", "difficulty", "age_group", "created_at"}
+        if sort not in sortable:
+            sort = "created_at"
+        order_fn = "asc" if order == "asc" else "desc"
+        sort_col = getattr(Exercise, sort, Exercise.created_at)
+        order_by = getattr(sort_col, order_fn)()
+
+        q = db.query(Exercise)
+        if archived is not None:
+            q = q.filter(Exercise.is_archived == archived)
+        if exercise_type:
+            q = q.filter(Exercise.exercise_type == exercise_type)
+        if search:
+            q = q.filter(Exercise.title.ilike(f"%{search}%"))
+        total = q.count()
+        exercises = q.order_by(order_by).offset(skip).limit(limit).all()
+        ex_ids = [e.id for e in exercises]
+
+        attempt_stats: Dict[int, Dict[str, int]] = {}
+        if ex_ids:
+            rows = (
+                db.query(
+                    Attempt.exercise_id,
+                    func.count(Attempt.id).label("attempt_count"),
+                    func.sum(case((Attempt.is_correct == True, 1), else_=0)).label(
+                        "correct_count"
+                    ),
+                )
+                .filter(Attempt.exercise_id.in_(ex_ids))
+                .group_by(Attempt.exercise_id)
+                .all()
+            )
+            for ex_id, a_count, c_count in rows:
+                attempt_stats[ex_id] = {
+                    "attempt_count": a_count or 0,
+                    "correct_count": c_count or 0,
+                }
+
+        items = []
+        for e in exercises:
+            stats = attempt_stats.get(e.id, {"attempt_count": 0, "correct_count": 0})
+            a_count = stats["attempt_count"]
+            c_count = stats["correct_count"]
+            success_rate = round((c_count / a_count * 100), 1) if a_count > 0 else 0.0
+            items.append(
+                {
+                    "id": e.id,
+                    "title": e.title,
+                    "exercise_type": e.exercise_type,
+                    "difficulty": e.difficulty,
+                    "age_group": e.age_group,
+                    "is_archived": e.is_archived,
+                    "attempt_count": a_count,
+                    "success_rate": success_rate,
+                    "created_at": e.created_at.isoformat() if e.created_at else None,
+                }
+            )
+        return {"items": items, "total": total}
+
+    @staticmethod
+    def create_exercise_for_admin(
+        db: Session,
+        *,
+        data: Dict[str, Any],
+        admin_user_id: Optional[int] = None,
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+        title = (data.get("title") or "").strip()
+        question = (data.get("question") or "").strip()
+        correct_answer = (data.get("correct_answer") or "").strip()
+        exercise_type = (data.get("exercise_type") or "DIVERS").strip().upper()
+        difficulty = (data.get("difficulty") or "PADAWAN").strip()
+        age_group = (data.get("age_group") or "9-11").strip()
+
+        if not title:
+            return None, "Le titre est obligatoire.", 400
+        if not question:
+            return None, "La question est obligatoire.", 400
+        if not correct_answer:
+            return None, "La réponse correcte est obligatoire.", 400
+
+        ex = Exercise(
+            title=title,
+            exercise_type=exercise_type,
+            difficulty=difficulty,
+            age_group=age_group,
+            question=question,
+            correct_answer=correct_answer,
+            choices=data.get("choices"),
+            explanation=(data.get("explanation") or "").strip() or None,
+            hint=(data.get("hint") or "").strip() or None,
+            tags=(data.get("tags") or "").strip() or None,
+            ai_generated=False,
+        )
+        db.add(ex)
+        db.flush()
+        _log_admin_action(db, admin_user_id, "exercise_create", "exercise", ex.id, {"title": ex.title})
+        db.commit()
+        db.refresh(ex)
+        return AdminService._exercise_to_detail(ex), None, 201
+
+    @staticmethod
+    def get_exercise_for_admin(
+        db: Session, exercise_id: int
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+        ex = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+        if not ex:
+            return None, "Exercice non trouvé.", 404
+        return AdminService._exercise_to_detail(ex), None, 200
+
+    @staticmethod
+    def put_exercise_for_admin(
+        db: Session,
+        *,
+        exercise_id: int,
+        data: Dict[str, Any],
+        admin_user_id: Optional[int] = None,
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+        ex = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+        if not ex:
+            return None, "Exercice non trouvé.", 404
+        allowed_str = {
+            "title", "exercise_type", "difficulty", "age_group", "tags",
+            "context_theme", "complexity", "question", "correct_answer",
+            "explanation", "hint", "image_url", "audio_url",
+        }
+        allowed_bool = {"is_active", "is_archived"}
+        allowed_json = {"choices"}
+        for k, v in data.items():
+            if k in allowed_str and v is not None:
+                setattr(ex, k, str(v) if not isinstance(v, str) else v)
+            elif k in allowed_bool and v is not None:
+                setattr(ex, k, v in (True, "true", "1", 1))
+            elif k in allowed_json:
+                setattr(ex, k, v)
+        _log_admin_action(db, admin_user_id, "exercise_update", "exercise", exercise_id, {"fields": list(data.keys())})
+        db.commit()
+        db.refresh(ex)
+        return AdminService._exercise_to_detail(ex), None, 200
+
+    @staticmethod
+    def duplicate_exercise_for_admin(
+        db: Session,
+        *,
+        exercise_id: int,
+        admin_user_id: Optional[int] = None,
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+        orig = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+        if not orig:
+            return None, "Exercice non trouvé.", 404
+        copy = Exercise(
+            title=f"{orig.title} (copie)",
+            exercise_type=orig.exercise_type,
+            difficulty=orig.difficulty,
+            age_group=orig.age_group,
+            tags=orig.tags,
+            context_theme=orig.context_theme,
+            complexity=orig.complexity,
+            ai_generated=orig.ai_generated,
+            question=orig.question,
+            correct_answer=orig.correct_answer,
+            choices=orig.choices,
+            explanation=orig.explanation,
+            hint=orig.hint,
+            image_url=orig.image_url,
+            audio_url=orig.audio_url,
+            is_active=orig.is_active,
+            is_archived=False,
+        )
+        db.add(copy)
+        db.flush()
+        _log_admin_action(db, admin_user_id, "exercise_duplicate", "exercise", copy.id, {"from_id": exercise_id, "title": copy.title})
+        db.commit()
+        db.refresh(copy)
+        return AdminService._exercise_to_detail(copy), None, 201
+
+    @staticmethod
+    def patch_exercise_for_admin(
+        db: Session,
+        *,
+        exercise_id: int,
+        is_archived: bool,
+        admin_user_id: Optional[int] = None,
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+        ex = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+        if not ex:
+            return None, "Exercice non trouvé.", 404
+        ex.is_archived = is_archived
+        _log_admin_action(db, admin_user_id, "exercise_archive", "exercise", exercise_id, {"is_archived": is_archived})
+        db.commit()
+        db.refresh(ex)
+        return {"id": ex.id, "title": ex.title, "is_archived": ex.is_archived}, None, 200
