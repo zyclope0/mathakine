@@ -30,9 +30,9 @@
 2. **SQL brut badge_handlers** : `BadgeService.get_user_gamification_stats(user_id)` — plus de SQL dans le handler.
 3. **requirements.txt** : Commentaire starlette corrigé (FastAPI 0.133.1).
 
-### P2 — Prochaine itération
+### P2 — ✅ Implémenté (28/02/2026)
 
-4. **submit_answer** : Extraire logique `is_correct` et assemblage réponse vers `ExerciseService.submit_answer_result(db, exercise, selected_answer, time_spent, user_id)`.
+4. **submit_answer** : Logique extraite vers `ExerciseService.submit_answer_result` (validation, record_attempt, badges, streak). Handler = orchestration HTTP uniquement.
 
 ### P3 — Backlog
 

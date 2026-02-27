@@ -13,13 +13,11 @@ from starlette.responses import JSONResponse, RedirectResponse, StreamingRespons
 
 from app.core.ai_config import AIConfig
 from app.core.config import settings
-from app.core.messages import SystemMessages
 from app.models.exercise import ExerciseType
 
 # Import du service de badges
-from app.services.badge_service import BadgeService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.services.exercise_service import ExerciseService
+from app.services.exercise_service import ExerciseService, ExerciseSubmitError
 from app.utils.db_utils import db_session
 from app.utils.error_handler import (
     ErrorHandler,
@@ -144,232 +142,52 @@ async def get_exercise(request):
 
 @require_auth
 async def submit_answer(request):
-    """Traite la soumission d'une réponse à un exercice"""
+    """Orchestration HTTP : parse, valide, délègue à ExerciseService.submit_answer_result."""
     try:
-        # Utilisateur authentifié via le décorateur @require_auth
         current_user = request.state.user
-
-        # Récupérer les données de la requête
         data = await request.json()
-        exercise_id = int(
-            request.path_params.get("exercise_id")
-        )  # Get from path_params
-        selected_answer = data.get("answer") or data.get(
-            "selected_answer"
-        )  # Support both formats
+        exercise_id = int(request.path_params.get("exercise_id"))
+        selected_answer = data.get("answer") or data.get("selected_answer")
         time_spent = data.get("time_spent", 0)
-        user_id = current_user.get(
-            "id", 1
-        )  # Utiliser l'ID de l'utilisateur authentifié
-
-        # Valider les paramètres requis
-        # exercise_id est maintenant garanti par le path_params, donc pas besoin de vérifier s'il est None
+        user_id = current_user.get("id", 1)
 
         if selected_answer is None:
             return api_error_response(400, "La réponse est requise.")
 
         logger.debug(
-            f"Traitement de la réponse: exercise_id={exercise_id}, selected_answer={selected_answer}"
+            f"Traitement de la réponse: exercise_id={exercise_id}, "
+            f"selected_answer={selected_answer}"
         )
 
-        # Extraire la locale depuis le header Accept-Language
-        from app.utils.translation import parse_accept_language
-
-        accept_language = request.headers.get("Accept-Language")
-        locale = parse_accept_language(accept_language) or "fr"
-
-        # Utiliser le service ORM ExerciseService (une seule session pour lecture + tentative + badges)
         async with db_session() as db:
-            from app.models.exercise import ExerciseType
-
-            exercise = ExerciseService.get_exercise_for_submit_validation(
-                db, exercise_id
-            )
-
-            if not exercise:
-                return api_error_response(404, SystemMessages.ERROR_EXERCISE_NOT_FOUND)
-
-            # Déterminer si la réponse est correcte
-            is_correct = False
-
-            # Vérifier que correct_answer existe
-            correct_answer = exercise.get("correct_answer")
-            if not correct_answer:
-                logger.error(
-                    f"ERREUR: L'exercice {exercise_id} n'a pas de correct_answer"
-                )
-                return ErrorHandler.create_error_response(
-                    ValueError("L'exercice n'a pas de réponse correcte définie"),
-                    status_code=500,
-                    user_message="L'exercice n'a pas de réponse correcte définie.",
-                )
-
-            # Types d'exercices qui devraient avoir une comparaison insensible à la casse
-            text_based_types = [ExerciseType.TEXTE.value, ExerciseType.MIXTE.value]
-            exercise_type_str = exercise.get("exercise_type", "")
-
-            # Pour les types de questions textuelles, la comparaison est insensible à la casse
-            if exercise_type_str in text_based_types:
-                is_correct = (
-                    str(selected_answer).lower().strip()
-                    == str(correct_answer).lower().strip()
-                )
-            else:
-                # Pour les questions numériques et autres, comparaison stricte
-                is_correct = str(selected_answer).strip() == str(correct_answer).strip()
-
-            logger.debug(
-                f"Réponse correcte? {is_correct} (selected: '{selected_answer}', correct: '{correct_answer}')"
-            )
-
-            # Enregistrer la tentative avec PostgreSQL direct
             try:
-                # Préparer les données de la tentative
-                attempt_data = {
-                    "user_id": user_id,
-                    "exercise_id": exercise_id,
-                    "user_answer": selected_answer,
-                    "is_correct": is_correct,
-                    "time_spent": time_spent,
-                }
-
-                logger.debug(
-                    f"Tentative d'enregistrement avec attempt_data: {attempt_data}"
+                response_data = ExerciseService.submit_answer_result(
+                    db, exercise_id, user_id, selected_answer, time_spent
                 )
-                attempt_obj = ExerciseService.record_attempt(db, attempt_data)
-                logger.debug(f"Résultat de record_attempt: {attempt_obj}")
-
-                # Convertir l'objet Attempt en dictionnaire pour la réponse
-                if attempt_obj:
-                    attempt = {
-                        "id": attempt_obj.id,
-                        "user_id": attempt_obj.user_id,
-                        "exercise_id": attempt_obj.exercise_id,
-                        "user_answer": attempt_obj.user_answer,
-                        "is_correct": attempt_obj.is_correct,
-                        "time_spent": attempt_obj.time_spent,
-                        "created_at": (
-                            attempt_obj.created_at.isoformat()
-                            if attempt_obj.created_at
-                            else None
-                        ),
-                    }
-                else:
-                    attempt = None
-
-                if not attempt:
-                    logger.error(
-                        "ERREUR: La tentative n'a pas été enregistrée correctement"
-                    )
-                    return api_error_response(
-                        500, "Erreur lors de l'enregistrement de la tentative"
-                    )
-
-                logger.info("Tentative enregistrée avec succès")
-
-                # 🎖️ NOUVEAU: Vérifier et attribuer les badges (même session)
-                new_badges = []
-                try:
-                    badge_service = BadgeService(db)
-
-                    # Préparer les données de la tentative pour l'évaluation des badges
-                    attempt_for_badges = {
-                        "exercise_type": exercise.get("exercise_type"),
-                        "is_correct": is_correct,
-                        "time_spent": time_spent,
-                        "exercise_id": exercise_id,
-                        "created_at": (
-                            attempt_obj.created_at.isoformat()
-                            if attempt_obj and attempt_obj.created_at
-                            else None
-                        ),
-                    }
-
-                    # Vérifier et attribuer les nouveaux badges
-                    new_badges = badge_service.check_and_award_badges(
-                        user_id, attempt_for_badges
-                    )
-
-                    if new_badges:
-                        logger.info(
-                            f"🎖️ {len(new_badges)} nouveaux badges attribués à l'utilisateur {user_id}"
-                        )
-                        for badge in new_badges:
-                            logger.debug(
-                                f"   - {badge['name']} ({badge['star_wars_title']})"
-                            )
-
-                except Exception as badge_error:
-                    logger.warning(
-                        f"⚠️ Erreur lors de la vérification des badges: {badge_error}"
-                    )
-                    logger.debug(traceback.format_exc())
-                    # Ne pas faire échouer la soumission si les badges échouent
-
-                # Mettre à jour la série d'entraînement (streak)
-                try:
-                    from app.services.streak_service import update_user_streak
-
-                    update_user_streak(db, user_id)
-                except Exception as streak_err:
-                    logger.debug(f"Streak update skipped: {streak_err}")
-
-                # Retourner le résultat avec l'ID de tentative et les nouveaux badges
-                from app.utils.json_utils import make_json_serializable
-
-                response_data = {
-                    "is_correct": is_correct,
-                    "correct_answer": correct_answer,
-                    "explanation": exercise.get("explanation", ""),
-                    "attempt_id": attempt.get("id") if attempt else None,
-                }
-
-                # Ajouter les nouveaux badges à la réponse (nettoyer pour sérialisation JSON)
-                if new_badges:
-                    response_data["new_badges"] = make_json_serializable(new_badges)
-                    response_data["badges_earned"] = len(new_badges)
-                else:
-                    # Notification « Tu approches » si un badge est proche (>= 50 %, target > 0)
-                    progress_notif = badge_service.get_closest_progress_notification(
-                        user_id
-                    )
-                    if progress_notif:
-                        response_data["progress_notification"] = progress_notif
-
-                # Nettoyer toutes les données avant sérialisation JSON (gère les MagicMock dans les tests)
-                response_data = make_json_serializable(response_data)
-
                 return JSONResponse(response_data)
-
+            except ExerciseSubmitError as e:
+                return api_error_response(e.status_code, e.message)
             except Exception as db_error:
-                # Gérer les erreurs spécifiques à la base de données
                 error_msg = str(db_error)
                 error_type = type(db_error).__name__
                 logger.error(
-                    f"❌ ERREUR DB lors de l'enregistrement: {error_type}: {error_msg}"
+                    f"❌ ERREUR DB lors de l'enregistrement: "
+                    f"{error_type}: {error_msg}"
                 )
                 logger.debug(traceback.format_exc())
-
-                # Retourner quand même le résultat de validation même si l'enregistrement échoue
-                return JSONResponse(
-                    {
-                        "is_correct": is_correct,
-                        "correct_answer": correct_answer,
-                        "explanation": exercise.get("explanation", ""),
-                        "error": "Erreur lors de l'enregistrement de la tentative",
-                        "error_type": error_type,
-                        "error_message": error_msg,
-                    },
-                    status_code=500,
+                return api_error_response(
+                    500, "Erreur lors de l'enregistrement de la tentative"
                 )
 
+    except ExerciseSubmitError as e:
+        return api_error_response(e.status_code, e.message)
     except Exception as response_processing_error:
         logger.error(
-            f"❌ ERREUR lors du traitement de la réponse: {type(response_processing_error).__name__}: {str(response_processing_error)}"
+            f"❌ ERREUR lors du traitement de la réponse: "
+            f"{type(response_processing_error).__name__}: "
+            f"{response_processing_error}"
         )
         logger.debug(traceback.format_exc())
-
-        # Retourner une réponse d'erreur standardisée
         return ErrorHandler.create_error_response(
             response_processing_error,
             status_code=500,

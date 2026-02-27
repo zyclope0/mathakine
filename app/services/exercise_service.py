@@ -8,6 +8,17 @@ from typing import Any, Dict, List, Optional, Union
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
+
+
+class ExerciseSubmitError(Exception):
+    """Erreur lors de la soumission d'une réponse (submit_answer)."""
+
+    def __init__(self, status_code: int, message: str):
+        self.status_code = status_code
+        self.message = message
+        super().__init__(message)
+
+
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -246,6 +257,124 @@ class ExerciseService:
                 f"Erreur get_exercise_for_submit_validation {exercise_id}: {err}"
             )
             return None
+
+    @staticmethod
+    def _check_answer_correct(exercise: Dict[str, Any], selected_answer: Any) -> bool:
+        """
+        Détermine si la réponse est correcte selon le type d'exercice.
+        TEXTE/MIXTE : comparaison insensible à la casse ; autres : stricte.
+        """
+        correct_answer = exercise.get("correct_answer")
+        if not correct_answer:
+            return False
+        text_based = [ExerciseType.TEXTE.value, ExerciseType.MIXTE.value]
+        exercise_type = exercise.get("exercise_type", "")
+        if exercise_type in text_based:
+            return (
+                str(selected_answer).lower().strip()
+                == str(correct_answer).lower().strip()
+            )
+        return str(selected_answer).strip() == str(correct_answer).strip()
+
+    @staticmethod
+    def submit_answer_result(
+        db: Session,
+        exercise_id: int,
+        user_id: int,
+        selected_answer: Any,
+        time_spent: float = 0,
+    ) -> Dict[str, Any]:
+        """
+        Traite la soumission d'une réponse : validation, enregistrement, badges, streak.
+        Retourne le dict response_data pour JSONResponse.
+        Lève ExerciseSubmitError en cas d'erreur métier.
+        """
+        from app.services.badge_service import BadgeService
+        from app.utils.json_utils import make_json_serializable
+
+        exercise = ExerciseService.get_exercise_for_submit_validation(db, exercise_id)
+        if not exercise:
+            raise ExerciseSubmitError(404, "Exercice non trouvé")
+
+        correct_answer = exercise.get("correct_answer")
+        if not correct_answer:
+            logger.error(f"ERREUR: L'exercice {exercise_id} n'a pas de correct_answer")
+            raise ExerciseSubmitError(
+                500, "L'exercice n'a pas de réponse correcte définie."
+            )
+
+        is_correct = ExerciseService._check_answer_correct(exercise, selected_answer)
+        logger.debug(
+            f"Réponse correcte? {is_correct} "
+            f"(selected: '{selected_answer}', correct: '{correct_answer}')"
+        )
+
+        attempt_data = {
+            "user_id": user_id,
+            "exercise_id": exercise_id,
+            "user_answer": selected_answer,
+            "is_correct": is_correct,
+            "time_spent": time_spent,
+        }
+        attempt_obj = ExerciseService.record_attempt(db, attempt_data)
+        if not attempt_obj:
+            logger.error("ERREUR: La tentative n'a pas été enregistrée correctement")
+            raise ExerciseSubmitError(
+                500, "Erreur lors de l'enregistrement de la tentative"
+            )
+
+        logger.info("Tentative enregistrée avec succès")
+
+        new_badges = []
+        try:
+            badge_service = BadgeService(db)
+            attempt_for_badges = {
+                "exercise_type": exercise.get("exercise_type"),
+                "is_correct": is_correct,
+                "time_spent": time_spent,
+                "exercise_id": exercise_id,
+                "created_at": (
+                    attempt_obj.created_at.isoformat()
+                    if attempt_obj.created_at
+                    else None
+                ),
+            }
+            new_badges = badge_service.check_and_award_badges(
+                user_id, attempt_for_badges
+            )
+            if new_badges:
+                logger.info(
+                    f"🎖️ {len(new_badges)} nouveaux badges attribués "
+                    f"à l'utilisateur {user_id}"
+                )
+        except Exception as badge_error:
+            logger.warning(
+                f"⚠️ Erreur lors de la vérification des badges: {badge_error}"
+            )
+
+        try:
+            from app.services.streak_service import update_user_streak
+
+            update_user_streak(db, user_id)
+        except Exception as streak_err:
+            logger.debug(f"Streak update skipped: {streak_err}")
+
+        badge_service = BadgeService(db)
+        response_data = {
+            "is_correct": is_correct,
+            "correct_answer": correct_answer,
+            "explanation": exercise.get("explanation", ""),
+            "attempt_id": attempt_obj.id,
+        }
+        if new_badges:
+            response_data["new_badges"] = make_json_serializable(new_badges)
+            response_data["badges_earned"] = len(new_badges)
+        else:
+            progress_notif = badge_service.get_closest_progress_notification(user_id)
+            if progress_notif:
+                response_data["progress_notification"] = progress_notif
+
+        return make_json_serializable(response_data)
 
     @staticmethod
     def list_exercises(
