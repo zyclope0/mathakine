@@ -252,7 +252,9 @@ async def api_login(request: Request):
 
             if not user:
                 logger.warning(f"Échec de connexion pour l'utilisateur: {username}")
-                return api_error_response(401, "Nom d'utilisateur ou mot de passe incorrect")
+                return api_error_response(
+                    401, "Nom d'utilisateur ou mot de passe incorrect"
+                )
 
             # Permettre le login pour les non vérifiés (First Exercise < 90s)
             # Accès limité après 45 min : exercices uniquement jusqu'à vérification
@@ -581,7 +583,9 @@ async def api_get_current_user(request: Request):
             f"Erreur lors de la récupération de l'utilisateur: {user_retrieval_error}"
         )
         logger.debug(traceback.format_exc())
-        return api_error_response(500, "Erreur lors de la récupération de l'utilisateur")
+        return api_error_response(
+            500, "Erreur lors de la récupération de l'utilisateur"
+        )
 
 
 @rate_limit_auth("forgot-password")
@@ -707,7 +711,9 @@ async def api_reset_password(request: Request):
     except Exception as reset_err:
         logger.error(f"Erreur reset-password: {reset_err}")
         logger.debug(traceback.format_exc())
-        return api_error_response(500, "Erreur lors de la réinitialisation du mot de passe")
+        return api_error_response(
+            500, "Erreur lors de la réinitialisation du mot de passe"
+        )
 
 
 async def api_logout(request: Request):

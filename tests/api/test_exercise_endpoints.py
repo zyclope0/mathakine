@@ -2,9 +2,8 @@ import json
 import pytest
 
 
-async def test_get_exercises(padawan_client):
-    """Test de l'endpoint pour récupérer tous les exercices"""
-    client = padawan_client["client"]
+async def test_get_exercises(client):
+    """Test de l'endpoint pour récupérer tous les exercices (route publique @optional_auth)."""
     response = await client.get("/api/exercises")
     assert response.status_code == 200
     data = response.json()

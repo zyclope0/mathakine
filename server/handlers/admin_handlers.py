@@ -133,7 +133,7 @@ async def admin_users_patch(request: Request):
     role_raw = data.get("role")
 
     if is_active is not None and not isinstance(is_active, bool):
-            return api_error_response(400, "Le champ is_active doit être un booléen.")
+        return api_error_response(400, "Le champ is_active doit être un booléen.")
 
     role_map = {
         "padawan": UserRole.PADAWAN,
@@ -155,9 +155,13 @@ async def admin_users_patch(request: Request):
 
     if user_id == current_user_id:
         if is_active is False:
-            return api_error_response(400, "Vous ne pouvez pas désactiver votre propre compte.")
+            return api_error_response(
+                400, "Vous ne pouvez pas désactiver votre propre compte."
+            )
         if new_role is not None and new_role != UserRole.ARCHIVISTE:
-            return api_error_response(400, "Vous ne pouvez pas rétrograder votre propre rôle.")
+            return api_error_response(
+                400, "Vous ne pouvez pas rétrograder votre propre rôle."
+            )
 
     async with db_session() as db:
         result, err, code = AdminService.patch_user_for_admin(
@@ -659,7 +663,9 @@ async def admin_export(request: Request):
     period = (query_params.get("period") or "all").strip().lower()
 
     if export_type not in ("users", "exercises", "attempts", "overview"):
-        return api_error_response(400, "type invalide. Valeurs: users, exercises, attempts, overview.")
+        return api_error_response(
+            400, "type invalide. Valeurs: users, exercises, attempts, overview."
+        )
 
     admin_id = getattr(request.state, "user", {}).get("id")
     async with db_session() as db:

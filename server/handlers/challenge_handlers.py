@@ -29,7 +29,11 @@ from app.services import challenge_service
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.logic_challenge_service import LogicChallengeService
 from app.utils.db_utils import db_session
-from app.utils.error_handler import ErrorHandler, api_error_response, get_safe_error_message
+from app.utils.error_handler import (
+    ErrorHandler,
+    api_error_response,
+    get_safe_error_message,
+)
 from app.utils.translation import parse_accept_language
 from server.auth import (
     optional_auth,

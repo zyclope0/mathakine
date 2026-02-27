@@ -472,7 +472,9 @@ async def update_user_me(request: Request):
                         )
                     update_data["grade_level"] = grade
                 except (ValueError, TypeError):
-                    return api_error_response(400, "Le niveau scolaire doit être un nombre.")
+                    return api_error_response(
+                        400, "Le niveau scolaire doit être un nombre."
+                    )
 
         # Validation learning_style
         VALID_STYLES = {"visuel", "auditif", "kinesthésique", "lecture"}
@@ -599,7 +601,9 @@ async def update_user_password_me(request: Request):
             if not ok:
                 if "introuvable" in (err_msg or ""):
                     return api_error_response(404, "Utilisateur introuvable.")
-                return api_error_response(401, err_msg or "Erreur lors de la mise à jour.")
+                return api_error_response(
+                    401, err_msg or "Erreur lors de la mise à jour."
+                )
 
             logger.info(
                 f"Mot de passe de l'utilisateur {user_id} mis à jour avec succès"
@@ -740,9 +744,7 @@ async def get_user_sessions(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération des sessions: {e}")
         traceback.print_exc()
-        return api_error_response(
-            500, "Erreur lors de la récupération des sessions"
-        )
+        return api_error_response(500, "Erreur lors de la récupération des sessions")
 
 
 @require_auth
