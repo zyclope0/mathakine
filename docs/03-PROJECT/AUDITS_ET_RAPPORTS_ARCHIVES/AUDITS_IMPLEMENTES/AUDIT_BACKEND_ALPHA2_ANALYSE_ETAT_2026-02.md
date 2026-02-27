@@ -1,4 +1,4 @@
-# Analyse de l'audit Backend Alpha 2 — État au 27/02/2026
+# Analyse de l'audit Backend Alpha 2 — État au 28/02/2026
 
 > Ce document croise **AUDIT_BACKEND_ALPHA2_INDUSTRIALISATION.md** avec l'état réel du code pour distinguer : ✅ déjà fait, ⚠️ partiel, ❌ encore à faire.
 
@@ -36,10 +36,8 @@ La logique métier est dans les services, pas dans les handlers. Cet item peut �
 
 **Audit :** Handlers interrogent directement la DB au lieu de passer par des services.
 
-**Réalité :** Voir [INVENTAIRE_HANDLERS_DB_DIRECTE.md](./INVENTAIRE_HANDLERS_DB_DIRECTE.md). Tous les handlers (admin, user, exercise, auth, feedback, analytics, challenge, recommendation) utilisent des services.  
-Exception : `recommendation_handlers.generate_recommendations` appelle `RecommendationService.generate_recommendations` puis `db.commit()` dans le handler — redondant si le service commit déjà.
-
-Les services restent couplés aux modèles SQLAlchemy (`db.query`, etc.). L’audit suggère un niveau supplémentaire (repositories / unit-of-work) non mis en place.
+**Réalité :** Voir [INVENTAIRE_HANDLERS_DB_DIRECTE.md](../RAPPORTS_TEMPORAIRES/INVENTAIRE_HANDLERS_DB_DIRECTE.md). Tous les handlers (admin, user, exercise, auth, feedback, analytics, challenge, recommendation) utilisent des services.  
+Le `db.commit()` redondant a été retiré (27/02). Les services restent couplés aux modèles SQLAlchemy (`db.query`, etc.). L’audit suggère un niveau supplémentaire (repositories / unit-of-work) non mis en place.
 
 ---
 
@@ -51,11 +49,11 @@ Les services restent couplés aux modèles SQLAlchemy (`db.query`, etc.). L’au
 
 ---
 
-### 4. Gestion d'erreurs non uniforme — ❌ À faire
+### 4. Gestion d'erreurs non uniforme — ⚠️ Partiel
 
 **Audit :** Handlers renvoient des formats ad hoc (`{"error": ...}`) au lieu d’un schéma d’erreur standardisé.
 
-**Réalité :** `error_handlers.py` fournit 404/500 génériques. Les handlers renvoient des réponses variées (`{"error": "..."}`, `{"detail": "..."}`, etc.). Pas de schéma d’erreur unifié (code, message, details, trace_id, field_errors).
+**Réalité (28/02) :** Schéma unifié `api_error_json` / `api_error_response` avec `{code, message, error, path?, trace_id?, field_errors?}`. Les `error_handlers.py` (404, 500) les utilisent. Handlers métier à migrer progressivement.
 
 ---
 
@@ -95,7 +93,7 @@ Les services restent couplés aux modèles SQLAlchemy (`db.query`, etc.). L’au
 
 | Étape audit | État | Action |
 |-------------|------|--------|
-| 1. Stabiliser contrats API d'erreurs | ❌ | Introduire un schéma d’erreur unifié et l’appliquer à tous les handlers. |
+| 1. Stabiliser contrats API d'erreurs | ⚠️ | Schéma unifié introduit ; 404/500 migrés. Handlers métier à migrer progressivement. |
 | 2. Refactor handlers minces | ✅ | Tous les handlers passent par des services (voir INVENTAIRE). |
 | 3. Isoler accès DB (repository/UoW) | ✅ | `create_generated_exercise` corrigé. Optionnel : repositories / unit-of-work. |
 | 4. Durcir reproductibilité déploiement | ⚠️ | Smoke test dans CI. Pre/post-deploy (alembic current, DB ping, version API) et rollback à documenter. |
@@ -109,4 +107,6 @@ L’audit reflète un état plus ancien sur plusieurs points (handlers, CI). Les
 
 1. ~~Corriger `create_generated_exercise`~~ ✅ Fait.
 2. ~~Alignement version + pathlib~~ ✅ Fait.
-3. **Schéma d’erreur API** unifié (priorité moyenne pour industrialisation).
+3. ~~Schéma d’erreur API (base)~~ ✅ Fait. Handlers métier à migrer au fil de l'eau.
+4. ~~db.commit redondant recommendation_handlers~~ ✅ Fait.
+5. Restent : documenter politique downgrade migrations ; pre-deploy/smoke si souhaité.

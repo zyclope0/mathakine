@@ -63,18 +63,12 @@ docs/
 │   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~90% traité, vérité terrain 25/02)
 │   ├── CICD_DEPLOY.md  # CI/CD, smoke test, migrations, rollback
 │   ├── POLITIQUE_REDACTION_LOGS_PII.md  # Règles PII/secrets dans les logs
-│   ├── ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md  # Migration DDL → Alembic (✅ validée 22/02)
-│   ├── VALIDATION_MIGRATION_ALEMBIC_2026-02.md  # Rapport validation
-│   ├── PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md  # Plan backup/rollback
-│   ├── INVENTAIRE_HANDLERS_DB_DIRECTE.md  # ⭐ Handlers vs services — tous refactorés (27/02)
-│   ├── REFACTO_EXERCISE_HANDLERS.md  # Plan exercise_handlers (✅ complété)
-│   ├── REFACTO_ADMIN_HANDLERS.md  # Plan admin_handlers → AdminService (✅ complété 27/02)
 │   ├── ENDPOINTS_NON_INTEGRES.md  # Endpoints à intégrer
 │   ├── PLACEHOLDERS_ET_TODO.md  # Endpoints à implémenter
 │   └── AUDITS_ET_RAPPORTS_ARCHIVES/  # 📦 Audits implémentés + rapports temporaires
 │       ├── README.md  # Index du dossier
-│       ├── AUDITS_IMPLEMENTES/  # Recos toutes appliquées
-│       │   ├── INDEX.md  # Index des 8 audits
+│       ├── AUDITS_IMPLEMENTES/  # Recos toutes appliquées (Backend Alpha2, Dette qual., etc.)
+│       │   ├── INDEX.md  # Index des audits complétés
 │       │   ├── AUDIT_SECURITE_APPLICATIVE_2026-02.md  # OWASP (archivé)
 │       │   ├── ANALYSE_THEMES_UX_2026-02.md
 │       │   ├── CONTRAST_FIXES.md
@@ -103,7 +97,10 @@ docs/
 │           ├── ANALYSE_GENERATION_IA_CHALLENGES.md
 │           ├── ANALYSE_DEPENDABOT_2026-02-20.md
 │           ├── SECURITY_AUDIT_REPORT.md
-│           └── BADGES_AUDIT_PAUFINAGE.md
+│           ├── BADGES_AUDIT_PAUFINAGE.md
+│           ├── REFACTO_*_HANDLERS.md  # Plans complétés
+│           ├── *_MIGRATION_ALEMBIC*.md  # Migration DDL → Alembic
+│           └── CONTEXTE_PROJET_REEL.md
 │
 └── 06-WIDGETS/            # 🎨 Widgets Dashboard (Nouveau 06/02/2026)
     ├── INTEGRATION_PROGRESSION_WIDGETS.md  # Guide d'intégration
@@ -273,7 +270,7 @@ docs/
 - 📝 **TROUBLESHOOTING.md** : Section « Cookie manquant » en production enrichie
 
 ### 27/02/2026
-- ✅ **Refactor admin_handlers — AdminService complet** : Toute la logique DB déplacée dans `app/services/admin_service.py` (users, badges, exercises, challenges, export CSV). Handlers minces sans requêtes directes. Voir INVENTAIRE_HANDLERS_DB_DIRECTE.md, REFACTO_ADMIN_HANDLERS.md.
+- ✅ **Refactor admin_handlers — AdminService complet** : Toute la logique DB déplacée dans `app/services/admin_service.py` (users, badges, exercises, challenges, export CSV). Handlers minces sans requêtes directes. Voir [INVENTAIRE_HANDLERS_DB_DIRECTE](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INVENTAIRE_HANDLERS_DB_DIRECTE.md), [REFACTO_ADMIN_HANDLERS](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/REFACTO_ADMIN_HANDLERS.md).
 - ✅ **Fix admin modération** : Bouton « Éditer » ouvre la modal d’édition in-place au lieu de rediriger vers la page Contenu.
 
 ### 21/02/2026

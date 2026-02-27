@@ -153,3 +153,29 @@ L'accumulation de rapports historiques rend la maintenance difficile sans proces
 - Chaque sous-dossier d'archives dispose d'un **INDEX.md** ou est décrit dans le **README** parent
 - Le [INDEX.md](INDEX.md) principal pointe vers les entrées clés
 - Le [03-PROJECT/README.md](03-PROJECT/README.md) est l'index maître des audits et rapports
+
+---
+
+## 9. Principe d'archivage — projet entier
+
+**Règle :** Tout document d'audit, d'analyse ou de rapport **passé, obsolète ou entièrement implémenté** doit être rangé dans `AUDITS_ET_RAPPORTS_ARCHIVES` (et non laissé en racine).
+
+### Où archiver ?
+
+| Statut du document | Destination |
+|-------------------|-------------|
+| Audit — **toutes** les recommandations appliquées | `AUDITS_IMPLEMENTES/` |
+| Rapport situationnel, plan exécuté, migration terminée | `RAPPORTS_TEMPORAIRES/` |
+| Document remplacé par un autre (ex. PLAN_ACTION → EVALUATION_PROJET) | `RAPPORTS_TEMPORAIRES/` (marquer obsolète) |
+
+### Application au reste du projet
+
+- **02-FEATURES, 01-GUIDES, frontend/docs** : Pas de sous-dossier archives dédié. Les docs obsolètes :
+  - Soit sont fusionnés/supprimés si redondants avec un doc unique (ex. README_TECH)
+  - Soit déplacés vers `03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/` si ce sont des rapports ou audits projet
+- **Principe unique** : Une seule source de vérité par sujet ; archives centralisées dans `03-PROJECT`.
+
+### Fréquence de rangement
+
+- À chaque livraison majeure : vérifier si des audits/plans peuvent être archivés
+- Revue trimestrielle (§7) : identifier les docs obsolètes et les archiver

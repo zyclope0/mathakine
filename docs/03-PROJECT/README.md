@@ -1,7 +1,7 @@
 # 📕 Gestion projet Mathakine
 
 > Index maître — Audits, recommandations, rapports situationnels  
-> **Dernière mise à jour :** 27/02/2026
+> **Dernière mise à jour :** 28/02/2026
 
 ---
 
@@ -33,30 +33,13 @@
 
 | Document | Date | Sujet | État |
 |----------|------|-------|------|
-| [AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md](./AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md) | 20/02/2026 | Lint, tests, typage TypeScript | ✅ Corrections appliquées (15/02) — §4 |
 | [AUDIT_DASHBOARD_2026-02.md](./AUDIT_DASHBOARD_2026-02.md) | Fév. 2026 | Dashboard — imports, i18n, handleRefresh | Recos partielles |
 | [AUDIT_SENTRY_2026-02.md](./AUDIT_SENTRY_2026-02.md) | Fév. 2026 | Configuration Sentry, monitoring | Référence config |
 | [ANALYSE_DUPLICATION_DRY_2026-02.md](./ANALYSE_DUPLICATION_DRY_2026-02.md) | Fév. 2026 | DRY, duplication code | ~90 % traité (db_session, parse_json_body, safe_parse_json) — vérité terrain 25/02 |
 
-### Migration DDL → Alembic (✅ réalisée 22/02/2026)
-
-| Document | Rôle |
-|----------|------|
-| [ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md](./ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md) | Analyse + statut |
-| [VALIDATION_MIGRATION_ALEMBIC_2026-02.md](./VALIDATION_MIGRATION_ALEMBIC_2026-02.md) | Rapport validation |
-| [PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md](./PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md) | Plan backup/rollback |
-
 ### Vulnérabilités (CVE)
 
 → [SECURITY_AUDIT_REPORT.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/SECURITY_AUDIT_REPORT.md) — archivé (12/02/2026)
-
-### Référence handlers / services
-
-| Document | Sujet |
-|----------|-------|
-| [INVENTAIRE_HANDLERS_DB_DIRECTE.md](./INVENTAIRE_HANDLERS_DB_DIRECTE.md) | Handlers vs DB direct — **tous refactorés** (admin 27/02) |
-| [REFACTO_ADMIN_HANDLERS.md](./REFACTO_ADMIN_HANDLERS.md) | Plan admin_handlers → AdminService — ✅ complété 27/02 |
-| [REFACTO_EXERCISE_HANDLERS.md](./REFACTO_EXERCISE_HANDLERS.md) | Plan exercise_handlers → ExerciseService — ✅ complété |
 
 ### À faire
 
@@ -67,14 +50,9 @@
 
 ### Historique (archivé, consultable)
 
-| Document | Rôle |
-|----------|------|
-| [AUDIT_SECURITE_APPLICATIVE_2026-02.md](./AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/AUDIT_SECURITE_APPLICATIVE_2026-02.md) | OWASP — ✅ Recos appliquées |
-| [BILAN_COMPLET.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/BILAN_COMPLET.md) | Phases 1–6 (nov. 2025) — remplacé par EVALUATION_PROJET |
-| [DEPLOIEMENT_2026-02-06.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/DEPLOIEMENT_2026-02-06.md) | Rapport déploiement 06/02/2026 |
-| [SUIVI_MIGRATION_ALEMBIC_22-02.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/SUIVI_MIGRATION_ALEMBIC_22-02.md) | Récap final migration DDL → Alembic (22/02) |
-| [RAPPORT_VERIFICATION_CHALLENGES.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/RAPPORT_VERIFICATION_CHALLENGES.md) | Vérification défis 29/11/2025 |
-| [PHASES/](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/PHASES/) | Documentation phases historiques (RECAP, PHASE6) |
+→ Tous les documents archivés : [AUDITS_IMPLEMENTES](./AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/INDEX.md) | [RAPPORTS_TEMPORAIRES](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INDEX.md)
+
+Exemples : Backend Alpha 2, Dette qualité frontend, Qualité code, Refacto handlers, Migration Alembic, BILAN_COMPLET, PHASES…
 
 ---
 

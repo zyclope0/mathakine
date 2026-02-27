@@ -925,7 +925,7 @@ Ce script protege les memes utilisateurs permanents et respecte le meme ordre FK
 | **user_handlers** | Réponse `PUT /api/users/me` inclut `is_email_verified` |
 | **Tests unitaires** | `test_auth_service.py` : `test_verify_email_token_*`, `test_reset_password_with_token_*` (succès, invalid, expired, already_verified) |
 | **Tests API** | `test_auth_flow.py` : `test_verify_email_success`, `test_verify_email_invalid_token` ; `test_user_endpoints.py` : régression `is_email_verified` sur mise à jour profil |
-| **Documentation** | `AUTH_FLOW.md` : mention AuthService ; `INVENTAIRE_HANDLERS_DB_DIRECTE.md` : auth refactoré ; `CHANGELOG.md` 2.2.2-alpha.1 |
+| **Documentation** | `AUTH_FLOW.md` : mention AuthService ; [INVENTAIRE_HANDLERS_DB_DIRECTE](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INVENTAIRE_HANDLERS_DB_DIRECTE.md) : auth refactoré ; `CHANGELOG.md` 2.2.2-alpha.1 |
 
 ### 15/02/2026 – Quality gates CI, test unicité routes
 

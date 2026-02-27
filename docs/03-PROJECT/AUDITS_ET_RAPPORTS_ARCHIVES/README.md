@@ -21,6 +21,8 @@ Audits et rapports dont **toutes les recommandations** ont été appliquées.
 | [INDEX_DB_MANQUANTS_2026-02-06.md](./AUDITS_IMPLEMENTES/INDEX_DB_MANQUANTS_2026-02-06.md) | 06/02/2026 | Index PostgreSQL | ✅ 13 index |
 | [AUDIT_FINAL_DOCS_GITIGNORE_2026-02-06.md](./AUDITS_IMPLEMENTES/AUDIT_FINAL_DOCS_GITIGNORE_2026-02-06.md) | 06/02/2026 | Docs et gitignore | ✅ Fait |
 | [AUDIT_SECURITE_APPLICATIVE_2026-02.md](./AUDITS_IMPLEMENTES/AUDIT_SECURITE_APPLICATIVE_2026-02.md) | Fév. 2026 | OWASP Top 10 | ✅ Toutes recos |
+| [AUDIT_BACKEND_ALPHA2_*.md](./AUDITS_IMPLEMENTES/) | 28/02/2026 | Backend Alpha 2 industrialisation | ✅ Corrections v2.1.0 |
+| [AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md](./AUDITS_IMPLEMENTES/AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md) | 20/02/2026 | Lint, tests frontend | ✅ §4 corrections |
 
 → [Index détaillé](./AUDITS_IMPLEMENTES/INDEX.md)
 
@@ -43,6 +45,13 @@ Rapports situationnels : récaps mission, plans contextuels (pas de suivi actif)
 | [ANALYSE_DEPENDABOT_2026-02-20.md](./RAPPORTS_TEMPORAIRES/ANALYSE_DEPENDABOT_2026-02-20.md) | 20/02/2026 | Dependabot, pip-audit, npm audit |
 | [SECURITY_AUDIT_REPORT.md](./RAPPORTS_TEMPORAIRES/SECURITY_AUDIT_REPORT.md) | 12/02/2026 | CVE Next.js, requests, Jinja2 |
 | [BADGES_AUDIT_PAUFINAGE.md](./RAPPORTS_TEMPORAIRES/BADGES_AUDIT_PAUFINAGE.md) | 16/02/2026 | Audit page badges (ergonomie, rétention) |
+| [REFACTO_*_HANDLERS.md](./RAPPORTS_TEMPORAIRES/) | 22–27/02 | Plans refacto exercise + admin — ✅ complétés |
+| [INVENTAIRE_HANDLERS_DB_DIRECTE.md](./RAPPORTS_TEMPORAIRES/) | 27/02 | Handlers vs DB — tous refactorés |
+| [*_MIGRATION_ALEMBIC*.md](./RAPPORTS_TEMPORAIRES/) | 22/02 | Migration DDL → Alembic — ✅ réalisée |
+| [CONTEXTE_PROJET_REEL.md](./RAPPORTS_TEMPORAIRES/) | 22/02 | Snapshot contexte projet |
+| [AUDIT_QUALITE_CODE_2026-02.md](./RAPPORTS_TEMPORAIRES/) | 25/02 | État des lieux qualité |
+
+→ [Index détaillé](./RAPPORTS_TEMPORAIRES/INDEX.md)
 
 ---
 
@@ -53,8 +62,7 @@ Rapports situationnels : récaps mission, plans contextuels (pas de suivi actif)
 - **EVALUATION_PROJET_2026-02-07.md** — ⭐ Référence actuelle (évaluation factuelle)
 - **AUDIT_DASHBOARD_2026-02.md** — Audit dashboard (recos partielles)
 - **AUDIT_SENTRY_2026-02.md** — Configuration Sentry (référence)
-- **AUDIT_SECURITE_APPLICATIVE_2026-02.md** — Archivé (AUDITS_IMPLEMENTES)
-- **ANALYSE_DUPLICATION_DRY_2026-02.md** — DRY (~70–80 % traité)
+- **ANALYSE_DUPLICATION_DRY_2026-02.md** — DRY (~90 % traité)
 - **CICD_DEPLOY.md** — CI/CD, smoke test, migrations, rollback
 - **ENDPOINTS_NON_INTEGRES.md** — Admin intégré (16/02)
 - **PLACEHOLDERS_ET_TODO.md** — Placeholders restants
