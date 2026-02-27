@@ -5,62 +5,46 @@ This module centralizes Starlette exception handling logic for a consistent
 error management across the application.
 
 Since the frontend is now Next.js, all error responses are JSON (no HTML templates).
+Utilise le schéma d'erreur unifié (app.utils.error_handler.api_error_response).
 """
 
 import traceback
+import uuid
 
-from app.core.logging_config import get_logger
-
-logger = get_logger(__name__)
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+
+from app.core.logging_config import get_logger
+from app.utils.error_handler import api_error_response
+
+logger = get_logger(__name__)
 
 
 async def not_found(request: Request, exc: HTTPException):
     """
     Handle 404 Not Found errors.
-
-    Args:
-        request: The Starlette request object
-        exc: The exception that was raised
-
-    Returns:
-        JSON error response
     """
     logger.warning(f"404 Not Found: {request.url.path}")
-    return JSONResponse(
-        {
-            "error": "Not Found",
-            "message": "The requested resource does not exist.",
-            "path": str(request.url.path),
-        },
-        status_code=404,
+    return api_error_response(
+        404,
+        "The requested resource does not exist.",
+        path=str(request.url.path),
     )
 
 
 async def server_error(request: Request, exc: Exception):
     """
     Handle 500 Server Error and other unexpected exceptions.
-
-    Args:
-        request: The Starlette request object
-        exc: The exception that was raised
-
-    Returns:
-        JSON error response
     """
-    # Log the error for debugging
-    logger.error(f"500 Server Error for {request.url.path}: {str(exc)}")
+    trace_id = str(uuid.uuid4())[:8]
+    logger.error(f"500 Server Error for {request.url.path} [trace_id={trace_id}]: {exc}")
     logger.error(traceback.format_exc())
 
-    return JSONResponse(
-        {
-            "error": "Internal Server Error",
-            "message": "An internal server error occurred. Please try again later.",
-            "path": str(request.url.path),
-        },
-        status_code=500,
+    return api_error_response(
+        500,
+        "An internal server error occurred. Please try again later.",
+        path=str(request.url.path),
+        trace_id=trace_id,
     )
 
 

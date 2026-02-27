@@ -11,7 +11,7 @@
 | 1. Fuite logique métier dans handlers | ⚠️ Partiellement obsolète | `get_user_stats` et `get_exercise` déléguent aux services. Voir détail ci‑dessous. |
 | 2. Couplage services↔modèles / contournement DB | ✅ Fait | Tous les handlers passent par des services. `db.commit()` redondant retiré de `recommendation_handlers` (27/02). |
 | 3. Adapter ignore session injectée | ✅ Corrigé (27/02) | `create_generated_exercise` utilise désormais la session injectée via `ExerciseService.create_exercise`. |
-| 4. Gestion d'erreurs non uniforme | ❌ À faire | `error_handlers.py` → 404/500 génériques ; handlers renvoient `{"error": ...}` ad hoc. |
+| 4. Gestion d'erreurs non uniforme | ⚠️ Partiel (28/02) | Schéma unifié introduit (`api_error_response`), 404/500 migrés. Handlers à migrer progressivement. |
 | 5. Migrations chronologie / downgrade | ⚠️ Partiel | Chaîne Alembic cohérente (20260205→20260222→20260206…). Downgrade `20260222_legacy_tables` = no-op (volontaire). |
 | 6. CI/CD | ✅ Fait | `tests.yml` actif sur push/PR (master, main, develop). Pas de `ci.yml` désactivé. ObiWan dans `create_tables_with_test_data()` pour env de test. |
 | 7. Alignement packaging | ✅ Corrigé (27/02) | `PROJECT_VERSION` aligné à 2.1.0 ; `pathlib` retiré de `requirements.txt`. |

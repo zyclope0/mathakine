@@ -48,9 +48,13 @@ async def test_csrf_token_endpoint(client):
 
 
 async def test_nonexistent_endpoint(client):
-    """Test qu'un endpoint inexistant retourne 404."""
+    """Test qu'un endpoint inexistant retourne 404 avec le schéma d'erreur unifié."""
     response = await client.get("/nonexistent")
     assert response.status_code == 404
+    data = response.json()
+    assert data.get("code") == "NOT_FOUND"
+    assert "message" in data
+    assert data.get("path") == "/nonexistent"
 
 
 async def test_exercises_public_without_auth(client):

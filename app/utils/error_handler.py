@@ -1,10 +1,17 @@
 """
 Helper pour la gestion standardisée des erreurs dans les handlers.
+
+Schéma d'erreur API unifié (audit Alpha 2):
+- code: code machine-readable (NOT_FOUND, VALIDATION_ERROR, etc.)
+- message: message utilisateur principal
+- error: alias de message (rétrocompatibilité frontend)
+- path, trace_id, field_errors: optionnels
 """
 
 import os
 import traceback
-from typing import Any, Dict, Optional
+import uuid
+from typing import Any, Dict, List, Optional
 
 from app.core.logging_config import get_logger
 
@@ -16,6 +23,74 @@ from app.utils.json_utils import make_json_serializable
 
 # Message générique pour ne pas exposer les détails techniques en production
 GENERIC_ERROR_MESSAGE = "Une erreur est survenue. Veuillez réessayer."
+
+# Codes d'erreur standardisés (alignés frontend: client.ts lit message || detail || error)
+API_ERROR_CODES = {
+    400: "BAD_REQUEST",
+    401: "UNAUTHORIZED",
+    403: "FORBIDDEN",
+    404: "NOT_FOUND",
+    422: "VALIDATION_ERROR",
+    500: "INTERNAL_ERROR",
+    503: "SERVICE_UNAVAILABLE",
+}
+
+
+def api_error_json(
+    status_code: int,
+    message: str,
+    *,
+    path: Optional[str] = None,
+    trace_id: Optional[str] = None,
+    field_errors: Optional[List[Dict[str, str]]] = None,
+    include_error_alias: bool = True,
+) -> Dict[str, Any]:
+    """
+    Construit un corps JSON d'erreur standardisé.
+
+    Args:
+        status_code: Code HTTP (400, 401, 404, 500, etc.)
+        message: Message utilisateur principal
+        path: Chemin de la requête (optionnel)
+        trace_id: ID de traçabilité pour 500 (optionnel)
+        field_errors: Erreurs de validation par champ (optionnel)
+        include_error_alias: Inclure "error" = message pour rétrocompatibilité frontend
+
+    Returns:
+        Dictionnaire prêt pour JSONResponse
+    """
+    code = API_ERROR_CODES.get(status_code, f"HTTP_{status_code}")
+    payload: Dict[str, Any] = {
+        "code": code,
+        "message": message,
+    }
+    if include_error_alias:
+        payload["error"] = message
+    if path:
+        payload["path"] = path
+    if trace_id:
+        payload["trace_id"] = trace_id
+    if field_errors:
+        payload["field_errors"] = field_errors
+    return payload
+
+
+def api_error_response(
+    status_code: int,
+    message: str,
+    *,
+    path: Optional[str] = None,
+    trace_id: Optional[str] = None,
+    field_errors: Optional[List[Dict[str, str]]] = None,
+) -> JSONResponse:
+    """
+    Retourne une JSONResponse avec le schéma d'erreur unifié.
+    Utilisable par les handlers et error_handlers globaux.
+    """
+    payload = api_error_json(
+        status_code, message, path=path, trace_id=trace_id, field_errors=field_errors
+    )
+    return JSONResponse(payload, status_code=status_code)
 
 
 def get_safe_error_message(exc: Exception, default: str = None) -> str:
