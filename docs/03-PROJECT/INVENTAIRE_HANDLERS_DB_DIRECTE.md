@@ -81,7 +81,9 @@ Les handlers login/logout/refresh passent déjà par `AuthService`. Les flows ve
 
 **Users CRUD** : ✅ `AdminService.list_users_for_admin`, `patch_user_for_admin`, `send_reset_password_for_admin`, `resend_verification_for_admin` (26/02)
 
-**Reste en DB directe** : Exercises, Badges, Challenges, Export CSV.
+**Badges CRUD** : ✅ `AdminService.list_badges_for_admin`, `create_badge_for_admin`, `get_badge_for_admin`, `put_badge_for_admin`, `delete_badge_for_admin` (26/02)
+
+**Reste en DB directe** : Exercises, Challenges, Export CSV.
 
 ---
 

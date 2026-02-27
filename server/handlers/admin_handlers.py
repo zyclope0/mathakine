@@ -13,7 +13,6 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse
 
-from app.models.achievement import Achievement, UserAchievement
 from app.models.admin_audit_log import AdminAuditLog
 from app.models.attempt import Attempt
 from app.models.exercise import Exercise
@@ -552,98 +551,7 @@ async def admin_exercises_patch(request: Request):
     )
 
 
-# ==================== ADMIN BADGES (Lot B-1) ====================
-
-
-def _achievement_to_detail(a: Achievement) -> dict:
-    """Sérialise un badge pour l'édition admin."""
-    return {
-        "id": a.id,
-        "code": a.code or "",
-        "name": a.name or "",
-        "description": a.description or "",
-        "icon_url": a.icon_url or "",
-        "category": a.category or "",
-        "difficulty": a.difficulty or "",
-        "points_reward": a.points_reward or 0,
-        "is_secret": a.is_secret or False,
-        "requirements": a.requirements,
-        "star_wars_title": a.star_wars_title or "",
-        "is_active": a.is_active if a.is_active is not None else True,
-        "created_at": a.created_at.isoformat() if a.created_at else None,
-    }
-
-
-def _validate_requirements(req: dict | None) -> tuple[bool, str | None]:
-    """Valide le schéma requirements (B7). Retourne (ok, erreur)."""
-    if req is None:
-        return False, "requirements est requis"
-    if not isinstance(req, dict):
-        return False, "requirements doit être un objet JSON"
-    if len(req) == 0:
-        return (
-            False,
-            "requirements doit contenir au moins une clé (attempts_count, min_attempts+success_rate, etc.)",
-        )
-
-    # attempts_count
-    if "attempts_count" in req:
-        v = req.get("attempts_count")
-        if not isinstance(v, (int, float)) or v < 1:
-            return False, "attempts_count doit être un nombre >= 1"
-        return True, None
-
-    # min_attempts + success_rate
-    if "min_attempts" in req and "success_rate" in req:
-        ma, sr = req.get("min_attempts"), req.get("success_rate")
-        if not isinstance(ma, (int, float)) or ma < 1:
-            return False, "min_attempts doit être un nombre >= 1"
-        if not isinstance(sr, (int, float)) or sr < 0 or sr > 100:
-            return False, "success_rate doit être entre 0 et 100"
-        return True, None
-
-    # exercise_type + consecutive_correct
-    if "consecutive_correct" in req:
-        cc = req.get("consecutive_correct")
-        if not isinstance(cc, (int, float)) or cc < 1:
-            return False, "consecutive_correct doit être un nombre >= 1"
-        return True, None
-
-    # max_time
-    if "max_time" in req:
-        mt = req.get("max_time")
-        if not isinstance(mt, (int, float)) or mt < 0:
-            return False, "max_time doit être un nombre >= 0"
-        return True, None
-
-    # consecutive_days
-    if "consecutive_days" in req:
-        cd = req.get("consecutive_days")
-        if not isinstance(cd, (int, float)) or cd < 1:
-            return False, "consecutive_days doit être un nombre >= 1"
-        return True, None
-
-    # logic_attempts_count (B5 — défis logiques)
-    if "logic_attempts_count" in req:
-        lac = req.get("logic_attempts_count")
-        if not isinstance(lac, (int, float)) or lac < 1:
-            return False, "logic_attempts_count doit être un nombre >= 1"
-        # mixte : attempts_count + logic_attempts_count
-        if "attempts_count" in req:
-            ac = req.get("attempts_count")
-            if not isinstance(ac, (int, float)) or ac < 1:
-                return False, "attempts_count doit être un nombre >= 1 (mixte)"
-        return True, None
-
-    # comeback_days (retour après X jours sans activité)
-    if "comeback_days" in req:
-        cd = req.get("comeback_days")
-        if not isinstance(cd, (int, float)) or cd < 1:
-            return False, "comeback_days doit être un nombre >= 1"
-        return True, None
-
-    # Autres schémas — accepter si objet non vide (extensible)
-    return True, None
+# ==================== ADMIN BADGES (Lot B-1) — via AdminService ====================
 
 
 @require_auth
@@ -653,107 +561,54 @@ async def admin_badges(request: Request):
     GET /api/admin/badges
     Liste tous les badges (actifs et inactifs).
     """
+    from app.services.admin_service import AdminService
+
     async with db_session() as db:
-        badges = (
-            db.query(Achievement).order_by(Achievement.category, Achievement.code).all()
-        )
-        counts = (
-            db.query(UserAchievement.achievement_id, func.count(UserAchievement.id))
-            .group_by(UserAchievement.achievement_id)
-            .all()
-        )
-        count_map = {aid: c for aid, c in counts}
-    items = []
-    for a in badges:
-        d = _achievement_to_detail(a)
-        d["_user_count"] = count_map.get(a.id, 0)
-        items.append(d)
-    return JSONResponse({"success": True, "data": items})
+        result = AdminService.list_badges_for_admin(db)
+    return JSONResponse(result)
 
 
 @require_auth
 @require_admin
 async def admin_badges_post(request: Request):
     """POST /api/admin/badges — création d'un badge."""
+    from app.services.admin_service import AdminService
+
     try:
         data = await request.json()
     except Exception:
         return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
 
-    code = (data.get("code") or "").strip().lower().replace(" ", "_")
-    name = (data.get("name") or "").strip()
-    if not code:
-        return JSONResponse({"error": "Le code est obligatoire."}, status_code=400)
-    if not name:
-        return JSONResponse({"error": "Le nom est obligatoire."}, status_code=400)
-
-    requirements = data.get("requirements")
-    ok, err = _validate_requirements(requirements)
-    if not ok:
-        return JSONResponse(
-            {"error": err or "Requirements invalides."}, status_code=400
-        )
-
     async with db_session() as db:
-        existing = db.query(Achievement).filter(Achievement.code == code).first()
-        if existing:
-            return JSONResponse(
-                {"error": f"Le code '{code}' existe déjà."}, status_code=409
-            )
-
-        a = Achievement(
-            code=code,
-            name=name,
-            description=(data.get("description") or "").strip() or None,
-            icon_url=(data.get("icon_url") or "").strip() or None,
-            category=(data.get("category") or "").strip() or None,
-            difficulty=(data.get("difficulty") or "bronze").strip().lower() or "bronze",
-            points_reward=int(data.get("points_reward") or 0),
-            is_secret=bool(data.get("is_secret")),
-            requirements=requirements,
-            star_wars_title=(data.get("star_wars_title") or "").strip() or None,
-            is_active=True,
-        )
-        db.add(a)
-        db.flush()
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(
-            db,
-            admin_id,
-            "badge_create",
-            "achievement",
-            a.id,
-            {"code": a.code, "name": a.name},
+        result, err, code = AdminService.create_badge_for_admin(
+            db, data=data, admin_user_id=admin_id
         )
-        db.commit()
-        db.refresh(a)
-    return JSONResponse(_achievement_to_detail(a), status_code=201)
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result, status_code=201)
 
 
 @require_auth
 @require_admin
 async def admin_badge_get(request: Request):
     """GET /api/admin/badges/{badge_id} — détail pour édition."""
+    from app.services.admin_service import AdminService
+
     badge_id = int(request.path_params.get("badge_id"))
     async with db_session() as db:
-        a = db.query(Achievement).filter(Achievement.id == badge_id).first()
-        if not a:
-            return JSONResponse({"error": "Badge non trouvé."}, status_code=404)
-        d = _achievement_to_detail(a)
-        user_count = (
-            db.query(func.count(UserAchievement.id))
-            .filter(UserAchievement.achievement_id == badge_id)
-            .scalar()
-            or 0
-        )
-        d["_user_count"] = user_count
-        return JSONResponse(d)
+        result, err, code = AdminService.get_badge_for_admin(db, badge_id=badge_id)
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result)
 
 
 @require_auth
 @require_admin
 async def admin_badges_put(request: Request):
     """PUT /api/admin/badges/{badge_id} — mise à jour complète."""
+    from app.services.admin_service import AdminService
+
     badge_id = int(request.path_params.get("badge_id"))
     try:
         data = await request.json()
@@ -761,49 +616,13 @@ async def admin_badges_put(request: Request):
         return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
 
     async with db_session() as db:
-        a = db.query(Achievement).filter(Achievement.id == badge_id).first()
-        if not a:
-            return JSONResponse({"error": "Badge non trouvé."}, status_code=404)
-
-        if "requirements" in data:
-            ok, err = _validate_requirements(data.get("requirements"))
-            if not ok:
-                return JSONResponse(
-                    {"error": err or "Requirements invalides."}, status_code=400
-                )
-
-        str_fields = (
-            "name",
-            "description",
-            "icon_url",
-            "category",
-            "difficulty",
-            "star_wars_title",
-        )
-        for k, v in data.items():
-            if k == "code":
-                continue
-            if k == "points_reward":
-                a.points_reward = int(v) if v is not None else 0
-            elif k in ("is_secret", "is_active"):
-                setattr(a, k, v in (True, "true", "1", 1))
-            elif k == "requirements":
-                a.requirements = v
-            elif k in str_fields and v is not None:
-                setattr(a, k, (v or "").strip() or None)
-
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(
-            db,
-            admin_id,
-            "badge_update",
-            "achievement",
-            badge_id,
-            {"fields": list(data.keys())},
+        result, err, code = AdminService.put_badge_for_admin(
+            db, badge_id=badge_id, data=data, admin_user_id=admin_id
         )
-        db.commit()
-        db.refresh(a)
-    return JSONResponse(_achievement_to_detail(a))
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result)
 
 
 @require_auth
@@ -813,40 +632,17 @@ async def admin_badges_delete(request: Request):
     DELETE /api/admin/badges/{badge_id}
     Soft delete : is_active = False (recommandé).
     """
+    from app.services.admin_service import AdminService
+
     badge_id = int(request.path_params.get("badge_id"))
     async with db_session() as db:
-        a = db.query(Achievement).filter(Achievement.id == badge_id).first()
-        if not a:
-            return JSONResponse({"error": "Badge non trouvé."}, status_code=404)
-
-        user_count = (
-            db.query(func.count(UserAchievement.id))
-            .filter(UserAchievement.achievement_id == badge_id)
-            .scalar()
-            or 0
-        )
-        a.is_active = False
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(
-            db,
-            admin_id,
-            "badge_delete",
-            "achievement",
-            badge_id,
-            {"soft": True, "user_count": user_count},
+        result, err, code = AdminService.delete_badge_for_admin(
+            db, badge_id=badge_id, admin_user_id=admin_id
         )
-        db.commit()
-        db.refresh(a)
-    return JSONResponse(
-        {
-            "success": True,
-            "id": a.id,
-            "code": a.code,
-            "name": a.name,
-            "is_active": False,
-            "message": "Badge désactivé (soft delete).",
-        }
-    )
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result)
 
 
 def _challenge_to_detail(c) -> dict:

@@ -12,9 +12,15 @@ from sqlalchemy import case, func, or_, union
 from sqlalchemy.orm import Session
 
 from app.models.admin_audit_log import AdminAuditLog
+from app.models.achievement import Achievement, UserAchievement
 from app.models.attempt import Attempt
 from app.models.exercise import Exercise
-from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+from app.models.logic_challenge import (
+    AgeGroup,
+    LogicChallenge,
+    LogicChallengeAttempt,
+    LogicChallengeType,
+)
 from app.models.setting import Setting
 from app.models.user import User, UserRole
 from app.services.email_service import EmailService
@@ -561,3 +567,209 @@ class AdminService:
                 500,
             )
         return True, False, None, 200
+
+    # --- Badges CRUD ---
+
+    @staticmethod
+    def _achievement_to_detail(a: Achievement) -> Dict[str, Any]:
+        return {
+            "id": a.id,
+            "code": a.code or "",
+            "name": a.name or "",
+            "description": a.description or "",
+            "icon_url": a.icon_url or "",
+            "category": a.category or "",
+            "difficulty": a.difficulty or "",
+            "points_reward": a.points_reward or 0,
+            "is_secret": a.is_secret or False,
+            "requirements": a.requirements,
+            "star_wars_title": a.star_wars_title or "",
+            "is_active": a.is_active if a.is_active is not None else True,
+            "created_at": a.created_at.isoformat() if a.created_at else None,
+        }
+
+    @staticmethod
+    def _validate_badge_requirements(
+        req: Optional[Dict],
+    ) -> Tuple[bool, Optional[str]]:
+        if req is None:
+            return False, "requirements est requis"
+        if not isinstance(req, dict):
+            return False, "requirements doit être un objet JSON"
+        if len(req) == 0:
+            return False, "requirements doit contenir au moins une clé"
+        if "attempts_count" in req:
+            v = req.get("attempts_count")
+            if not isinstance(v, (int, float)) or v < 1:
+                return False, "attempts_count doit être un nombre >= 1"
+            return True, None
+        if "min_attempts" in req and "success_rate" in req:
+            ma, sr = req.get("min_attempts"), req.get("success_rate")
+            if not isinstance(ma, (int, float)) or ma < 1:
+                return False, "min_attempts doit être un nombre >= 1"
+            if not isinstance(sr, (int, float)) or sr < 0 or sr > 100:
+                return False, "success_rate doit être entre 0 et 100"
+            return True, None
+        if "consecutive_correct" in req:
+            cc = req.get("consecutive_correct")
+            if not isinstance(cc, (int, float)) or cc < 1:
+                return False, "consecutive_correct doit être un nombre >= 1"
+            return True, None
+        if "max_time" in req:
+            mt = req.get("max_time")
+            if not isinstance(mt, (int, float)) or mt < 0:
+                return False, "max_time doit être un nombre >= 0"
+            return True, None
+        if "consecutive_days" in req:
+            cd = req.get("consecutive_days")
+            if not isinstance(cd, (int, float)) or cd < 1:
+                return False, "consecutive_days doit être un nombre >= 1"
+            return True, None
+        if "logic_attempts_count" in req:
+            lac = req.get("logic_attempts_count")
+            if not isinstance(lac, (int, float)) or lac < 1:
+                return False, "logic_attempts_count doit être un nombre >= 1"
+            if "attempts_count" in req:
+                ac = req.get("attempts_count")
+                if not isinstance(ac, (int, float)) or ac < 1:
+                    return False, "attempts_count doit être un nombre >= 1 (mixte)"
+            return True, None
+        if "comeback_days" in req:
+            cd = req.get("comeback_days")
+            if not isinstance(cd, (int, float)) or cd < 1:
+                return False, "comeback_days doit être un nombre >= 1"
+            return True, None
+        return True, None
+
+    @staticmethod
+    def list_badges_for_admin(db: Session) -> Dict[str, Any]:
+        badges = (
+            db.query(Achievement).order_by(Achievement.category, Achievement.code).all()
+        )
+        counts = (
+            db.query(UserAchievement.achievement_id, func.count(UserAchievement.id))
+            .group_by(UserAchievement.achievement_id)
+            .all()
+        )
+        count_map = {aid: c for aid, c in counts}
+        items = []
+        for a in badges:
+            d = AdminService._achievement_to_detail(a)
+            d["_user_count"] = count_map.get(a.id, 0)
+            items.append(d)
+        return {"success": True, "data": items}
+
+    @staticmethod
+    def create_badge_for_admin(
+        db: Session,
+        *,
+        data: Dict[str, Any],
+        admin_user_id: Optional[int] = None,
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+        code = (data.get("code") or "").strip().lower().replace(" ", "_")
+        name = (data.get("name") or "").strip()
+        if not code:
+            return None, "Le code est obligatoire.", 400
+        if not name:
+            return None, "Le nom est obligatoire.", 400
+        requirements = data.get("requirements")
+        ok, err = AdminService._validate_badge_requirements(requirements)
+        if not ok:
+            return None, err or "Requirements invalides.", 400
+        existing = db.query(Achievement).filter(Achievement.code == code).first()
+        if existing:
+            return None, f"Le code '{code}' existe déjà.", 409
+        a = Achievement(
+            code=code,
+            name=name,
+            description=(data.get("description") or "").strip() or None,
+            icon_url=(data.get("icon_url") or "").strip() or None,
+            category=(data.get("category") or "").strip() or None,
+            difficulty=(data.get("difficulty") or "bronze").strip().lower() or "bronze",
+            points_reward=int(data.get("points_reward") or 0),
+            is_secret=bool(data.get("is_secret")),
+            requirements=requirements,
+            star_wars_title=(data.get("star_wars_title") or "").strip() or None,
+            is_active=True,
+        )
+        db.add(a)
+        db.flush()
+        _log_admin_action(db, admin_user_id, "badge_create", "achievement", a.id, {"code": a.code, "name": a.name})
+        db.commit()
+        db.refresh(a)
+        return AdminService._achievement_to_detail(a), None, 201
+
+    @staticmethod
+    def get_badge_for_admin(
+        db: Session, badge_id: int
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+        a = db.query(Achievement).filter(Achievement.id == badge_id).first()
+        if not a:
+            return None, "Badge non trouvé.", 404
+        d = AdminService._achievement_to_detail(a)
+        user_count = (
+            db.query(func.count(UserAchievement.id))
+            .filter(UserAchievement.achievement_id == badge_id)
+            .scalar()
+            or 0
+        )
+        d["_user_count"] = user_count
+        return d, None, 200
+
+    @staticmethod
+    def put_badge_for_admin(
+        db: Session,
+        *,
+        badge_id: int,
+        data: Dict[str, Any],
+        admin_user_id: Optional[int] = None,
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+        a = db.query(Achievement).filter(Achievement.id == badge_id).first()
+        if not a:
+            return None, "Badge non trouvé.", 404
+        if "requirements" in data:
+            ok, err = AdminService._validate_badge_requirements(data.get("requirements"))
+            if not ok:
+                return None, err or "Requirements invalides.", 400
+        str_fields = ("name", "description", "icon_url", "category", "difficulty", "star_wars_title")
+        for k, v in data.items():
+            if k == "code":
+                continue
+            if k == "points_reward":
+                a.points_reward = int(v) if v is not None else 0
+            elif k in ("is_secret", "is_active"):
+                setattr(a, k, v in (True, "true", "1", 1))
+            elif k == "requirements":
+                a.requirements = v
+            elif k in str_fields and v is not None:
+                setattr(a, k, (v or "").strip() or None)
+        _log_admin_action(db, admin_user_id, "badge_update", "achievement", badge_id, {"fields": list(data.keys())})
+        db.commit()
+        db.refresh(a)
+        return AdminService._achievement_to_detail(a), None, 200
+
+    @staticmethod
+    def delete_badge_for_admin(
+        db: Session,
+        *,
+        badge_id: int,
+        admin_user_id: Optional[int] = None,
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+        a = db.query(Achievement).filter(Achievement.id == badge_id).first()
+        if not a:
+            return None, "Badge non trouvé.", 404
+        user_count = (
+            db.query(func.count(UserAchievement.id))
+            .filter(UserAchievement.achievement_id == badge_id)
+            .scalar()
+            or 0
+        )
+        a.is_active = False
+        _log_admin_action(db, admin_user_id, "badge_delete", "achievement", badge_id, {"soft": True, "user_count": user_count})
+        db.commit()
+        db.refresh(a)
+        return (
+            {"success": True, "id": a.id, "code": a.code, "name": a.name, "is_active": False, "message": "Badge désactivé (soft delete)."},
+            None,
+            200,
+        )
