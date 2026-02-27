@@ -15,8 +15,8 @@ from app.models.setting import Setting
 from app.models.user import User, UserRole
 from app.services.email_service import EmailService
 from app.utils.db_utils import db_session
-from app.utils.error_handler import api_error_response
 from app.utils.email_verification import generate_verification_token
+from app.utils.error_handler import api_error_response
 from server.auth import require_admin, require_auth
 from server.handlers.admin_handlers_utils import _log_admin_action
 

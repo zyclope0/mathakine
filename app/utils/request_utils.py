@@ -9,8 +9,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.constants import Messages
-from app.utils.error_handler import api_error_response
 from app.core.logging_config import get_logger
+from app.utils.error_handler import api_error_response
 
 logger = get_logger(__name__)
 

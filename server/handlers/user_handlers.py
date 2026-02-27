@@ -19,8 +19,8 @@ from app.core.messages import SystemMessages
 from app.schemas.user import UserCreate
 from app.services.auth_service import (
     create_user,
-    set_verification_token_for_new_user,
     get_user_by_email,
+    set_verification_token_for_new_user,
 )
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.user_service import UserService

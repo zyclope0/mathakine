@@ -7,9 +7,9 @@ async def test_get_exercises(client):
     response = await client.get("/api/exercises")
     assert response.status_code == 200
     data = response.json()
-    # API returns "items" or "exercises" depending on implementation
-    items = data.get("items") or data.get("exercises")
-    assert items is not None, "Response should contain 'items' or 'exercises'"
+    # API returns "items" (or "exercises"). Use explicit None check: [] is valid (empty list in CI).
+    items = data.get("items") if "items" in data else data.get("exercises")
+    assert items is not None, f"Response should contain 'items' or 'exercises', got keys: {list(data.keys())}"
     assert isinstance(items, list)
     assert "total" in data
     assert "limit" in data
