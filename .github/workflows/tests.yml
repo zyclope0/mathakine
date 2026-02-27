@@ -97,9 +97,9 @@ jobs:
         PYTHONPATH: ${{ github.workspace }}
       run: |
         python -c "
-        from app.db.init_db import create_tables_with_test_data
-        create_tables_with_test_data()
-        print('Database initialized successfully')
+        from app.services.db_init_service import create_tables
+        create_tables()
+        print('Database schema initialized (no seed - tests use fixtures)')
         "
     
     - name: Run tests (coverage + JUnit)

@@ -15,6 +15,7 @@ from app.models.setting import Setting
 from app.models.user import User, UserRole
 from app.services.email_service import EmailService
 from app.utils.db_utils import db_session
+from app.utils.error_handler import api_error_response
 from app.utils.email_verification import generate_verification_token
 from server.auth import require_admin, require_auth
 from server.handlers.admin_handlers_utils import _log_admin_action
@@ -57,12 +58,10 @@ async def admin_config_put(request: Request):
     try:
         body = await request.json()
     except Exception:
-        return JSONResponse({"detail": "Body JSON invalide"}, status_code=400)
+        return api_error_response(400, "Body JSON invalide")
     settings_in = body.get("settings") or {}
     if not isinstance(settings_in, dict):
-        return JSONResponse(
-            {"detail": "'settings' doit être un objet"}, status_code=400
-        )
+        return api_error_response(400, "'settings' doit être un objet")
 
     async with db_session() as db:
         admin_user_id = getattr(request.state, "user", {}).get("id")
@@ -128,19 +127,13 @@ async def admin_users_patch(request: Request):
     try:
         data = await request.json()
     except Exception:
-        return JSONResponse(
-            {"error": "Corps JSON invalide."},
-            status_code=400,
-        )
+        return api_error_response(400, "Corps JSON invalide.")
 
     is_active = data.get("is_active")
     role_raw = data.get("role")
 
     if is_active is not None and not isinstance(is_active, bool):
-        return JSONResponse(
-            {"error": "Le champ is_active doit être un booléen."},
-            status_code=400,
-        )
+            return api_error_response(400, "Le champ is_active doit être un booléen.")
 
     role_map = {
         "padawan": UserRole.PADAWAN,
@@ -152,31 +145,19 @@ async def admin_users_patch(request: Request):
     if role_raw is not None:
         r = str(role_raw).strip().lower()
         if r not in role_map:
-            return JSONResponse(
-                {
-                    "error": "Rôle invalide. Valeurs: padawan, maitre, gardien, archiviste."
-                },
-                status_code=400,
+            return api_error_response(
+                400, "Rôle invalide. Valeurs: padawan, maitre, gardien, archiviste."
             )
         new_role = role_map[r]
 
     if is_active is None and new_role is None:
-        return JSONResponse(
-            {"error": "Fournissez is_active et/ou role à modifier."},
-            status_code=400,
-        )
+        return api_error_response(400, "Fournissez is_active et/ou role à modifier.")
 
     if user_id == current_user_id:
         if is_active is False:
-            return JSONResponse(
-                {"error": "Vous ne pouvez pas désactiver votre propre compte."},
-                status_code=400,
-            )
+            return api_error_response(400, "Vous ne pouvez pas désactiver votre propre compte.")
         if new_role is not None and new_role != UserRole.ARCHIVISTE:
-            return JSONResponse(
-                {"error": "Vous ne pouvez pas rétrograder votre propre rôle."},
-                status_code=400,
-            )
+            return api_error_response(400, "Vous ne pouvez pas rétrograder votre propre rôle.")
 
     async with db_session() as db:
         result, err, code = AdminService.patch_user_for_admin(
@@ -188,7 +169,7 @@ async def admin_users_patch(request: Request):
             role_raw=role_raw,
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result)
 
 
@@ -205,7 +186,7 @@ async def admin_users_send_reset_password(request: Request):
     async with db_session() as db:
         success, err, code = AdminService.send_reset_password_for_admin(db, user_id)
     if not success:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse({"message": "Email de réinitialisation envoyé."})
 
 
@@ -224,7 +205,7 @@ async def admin_users_resend_verification(request: Request):
             AdminService.resend_verification_for_admin(db, user_id)
         )
     if not success:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     if already_verified:
         return JSONResponse({"message": "L'email est déjà vérifié."})
     return JSONResponse({"message": "Email de vérification envoyé."})
@@ -275,7 +256,7 @@ async def admin_exercises_post(request: Request):
     try:
         data = await request.json()
     except Exception:
-        return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
+        return api_error_response(400, "Corps JSON invalide.")
 
     async with db_session() as db:
         admin_id = getattr(request.state, "user", {}).get("id")
@@ -283,7 +264,7 @@ async def admin_exercises_post(request: Request):
             db, data=data, admin_user_id=admin_id
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result, status_code=201)
 
 
@@ -297,7 +278,7 @@ async def admin_exercise_get(request: Request):
     async with db_session() as db:
         result, err, code = AdminService.get_exercise_for_admin(db, exercise_id)
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result)
 
 
@@ -311,7 +292,7 @@ async def admin_exercises_put(request: Request):
     try:
         data = await request.json()
     except Exception:
-        return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
+        return api_error_response(400, "Corps JSON invalide.")
 
     async with db_session() as db:
         admin_id = getattr(request.state, "user", {}).get("id")
@@ -319,7 +300,7 @@ async def admin_exercises_put(request: Request):
             db, exercise_id=exercise_id, data=data, admin_user_id=admin_id
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result)
 
 
@@ -336,7 +317,7 @@ async def admin_exercises_duplicate(request: Request):
             db, exercise_id=exercise_id, admin_user_id=admin_id
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result, status_code=201)
 
 
@@ -350,12 +331,10 @@ async def admin_exercises_patch(request: Request):
     try:
         data = await request.json()
     except Exception:
-        return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
+        return api_error_response(400, "Corps JSON invalide.")
     is_archived = data.get("is_archived")
     if not isinstance(is_archived, bool):
-        return JSONResponse(
-            {"error": "Le champ is_archived doit être un booléen."}, status_code=400
-        )
+        return api_error_response(400, "Le champ is_archived doit être un booléen.")
 
     async with db_session() as db:
         admin_id = getattr(request.state, "user", {}).get("id")
@@ -363,7 +342,7 @@ async def admin_exercises_patch(request: Request):
             db, exercise_id=exercise_id, is_archived=is_archived, admin_user_id=admin_id
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result)
 
 
@@ -393,7 +372,7 @@ async def admin_badges_post(request: Request):
     try:
         data = await request.json()
     except Exception:
-        return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
+        return api_error_response(400, "Corps JSON invalide.")
 
     async with db_session() as db:
         admin_id = getattr(request.state, "user", {}).get("id")
@@ -401,7 +380,7 @@ async def admin_badges_post(request: Request):
             db, data=data, admin_user_id=admin_id
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result, status_code=201)
 
 
@@ -415,7 +394,7 @@ async def admin_badge_get(request: Request):
     async with db_session() as db:
         result, err, code = AdminService.get_badge_for_admin(db, badge_id=badge_id)
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result)
 
 
@@ -429,7 +408,7 @@ async def admin_badges_put(request: Request):
     try:
         data = await request.json()
     except Exception:
-        return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
+        return api_error_response(400, "Corps JSON invalide.")
 
     async with db_session() as db:
         admin_id = getattr(request.state, "user", {}).get("id")
@@ -437,7 +416,7 @@ async def admin_badges_put(request: Request):
             db, badge_id=badge_id, data=data, admin_user_id=admin_id
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result)
 
 
@@ -457,7 +436,7 @@ async def admin_badges_delete(request: Request):
             db, badge_id=badge_id, admin_user_id=admin_id
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result)
 
 
@@ -470,7 +449,7 @@ async def admin_challenges_post(request: Request):
     try:
         data = await request.json()
     except Exception:
-        return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
+        return api_error_response(400, "Corps JSON invalide.")
 
     async with db_session() as db:
         admin_id = getattr(request.state, "user", {}).get("id")
@@ -478,7 +457,7 @@ async def admin_challenges_post(request: Request):
             db, data=data, admin_user_id=admin_id
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result, status_code=201)
 
 
@@ -492,7 +471,7 @@ async def admin_challenge_get(request: Request):
     async with db_session() as db:
         result, err, code = AdminService.get_challenge_for_admin(db, challenge_id)
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result)
 
 
@@ -506,7 +485,7 @@ async def admin_challenges_put(request: Request):
     try:
         data = await request.json()
     except Exception:
-        return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
+        return api_error_response(400, "Corps JSON invalide.")
 
     async with db_session() as db:
         admin_id = getattr(request.state, "user", {}).get("id")
@@ -514,7 +493,7 @@ async def admin_challenges_put(request: Request):
             db, challenge_id=challenge_id, data=data, admin_user_id=admin_id
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result)
 
 
@@ -531,7 +510,7 @@ async def admin_challenges_duplicate(request: Request):
             db, challenge_id=challenge_id, admin_user_id=admin_id
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result, status_code=201)
 
 
@@ -581,12 +560,10 @@ async def admin_challenges_patch(request: Request):
     try:
         data = await request.json()
     except Exception:
-        return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
+        return api_error_response(400, "Corps JSON invalide.")
     is_archived = data.get("is_archived")
     if not isinstance(is_archived, bool):
-        return JSONResponse(
-            {"error": "Le champ is_archived doit être un booléen."}, status_code=400
-        )
+        return api_error_response(400, "Le champ is_archived doit être un booléen.")
 
     async with db_session() as db:
         admin_id = getattr(request.state, "user", {}).get("id")
@@ -597,7 +574,7 @@ async def admin_challenges_patch(request: Request):
             admin_user_id=admin_id,
         )
     if err:
-        return JSONResponse({"error": err}, status_code=code)
+        return api_error_response(code, err)
     return JSONResponse(result)
 
 
@@ -661,10 +638,7 @@ async def admin_reports(request: Request):
     period = (query_params.get("period") or "7d").strip().lower()
 
     if period not in ("7d", "30d"):
-        return JSONResponse(
-            {"error": "period invalide. Valeurs: 7d, 30d."},
-            status_code=400,
-        )
+        return api_error_response(400, "period invalide. Valeurs: 7d, 30d.")
 
     async with db_session() as db:
         result = AdminService.get_reports_for_api(db, period=period)
@@ -685,10 +659,7 @@ async def admin_export(request: Request):
     period = (query_params.get("period") or "all").strip().lower()
 
     if export_type not in ("users", "exercises", "attempts", "overview"):
-        return JSONResponse(
-            {"error": "type invalide. Valeurs: users, exercises, attempts, overview."},
-            status_code=400,
-        )
+        return api_error_response(400, "type invalide. Valeurs: users, exercises, attempts, overview.")
 
     admin_id = getattr(request.state, "user", {}).get("id")
     async with db_session() as db:

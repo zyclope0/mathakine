@@ -107,32 +107,36 @@ def test_challenge_service_integration(db_session):
         delete_challenge
     )
     from app.models.user import User
+    from app.models.logic_challenge import AgeGroup, LogicChallengeType
 
     # Créer un utilisateur pour être le créateur (UUID pour éviter les doublons)
     unique_id = uuid.uuid4().hex[:8]
-    test_user = User(username=f"service_test_{unique_id}", email=f"service_{unique_id}@test.com", hashed_password="password")
+    test_user = User(
+        username=f"service_test_{unique_id}",
+        email=f"service_{unique_id}@test.com",
+        hashed_password="password",
+    )
     db_session.add(test_user)
     db_session.commit()
     db_session.refresh(test_user)
 
     challenge_data = {
-        "title": "Test Challenge Phase 4",
+        "title": f"Test Challenge Phase 4 {unique_id}",
         "description": "Challenge de test pour validation Phase 4",
         "challenge_type": "SEQUENCE",
         "age_group": "GROUP_10_12",
         "correct_answer": "42",
         "solution_explanation": "La réponse est 42",
-        "creator_id": test_user.id
+        "creator_id": test_user.id,
     }
 
     challenge = create_challenge(db=db_session, **challenge_data)
     assert challenge is not None, "Échec création challenge"
     assert challenge.id is not None
     assert challenge.title == challenge_data["title"]
-    assert challenge.challenge_type.value == challenge_data["challenge_type"].lower()
-    from app.models.logic_challenge import AgeGroup
-    age_group_value = challenge.age_group.value if hasattr(challenge.age_group, 'value') else challenge.age_group
-    assert age_group_value == AgeGroup[challenge_data["age_group"]].value
+    assert challenge.challenge_type == LogicChallengeType.SEQUENCE
+    age_group_value = challenge.age_group.value if hasattr(challenge.age_group, "value") else challenge.age_group
+    assert age_group_value == AgeGroup.GROUP_10_12.value
 
     challenge_id = challenge.id
 
@@ -140,9 +144,16 @@ def test_challenge_service_integration(db_session):
     assert retrieved is not None
     assert retrieved.id == challenge_id
 
-    challenges = list_challenges(db=db_session, challenge_type="SEQUENCE")
-    assert len(challenges) > 0
-    assert any(c.id == challenge_id for c in challenges)
+    # list_challenges filtre par enum (valeurs lowercase en DB) ; limit élevé pour inclure notre défi
+    challenges = list_challenges(
+        db=db_session,
+        challenge_type=LogicChallengeType.SEQUENCE.value,
+        limit=100,
+    )
+    assert len(challenges) >= 1
+    assert any(c.id == challenge_id for c in challenges), (
+        f"Notre défi {challenge_id} absent de la liste ({len(challenges)} défis SEQUENCE)"
+    )
 
     deleted = delete_challenge(db=db_session, challenge_id=challenge_id)
     assert deleted is True

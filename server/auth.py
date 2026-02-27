@@ -11,6 +11,7 @@ from functools import wraps
 from starlette.responses import JSONResponse, StreamingResponse
 
 from app.core.logging_config import get_logger
+from app.utils.error_handler import api_error_response
 
 logger = get_logger(__name__)
 
@@ -169,7 +170,7 @@ def require_auth(handler):
     async def wrapper(request, *args, **kwargs):
         current_user = await get_current_user(request)
         if not current_user or not current_user.get("is_authenticated"):
-            return JSONResponse({"error": "Authentification requise"}, status_code=401)
+            return api_error_response(401, "Authentification requise")
         request.state.user = current_user
         return await handler(request, *args, **kwargs)
 
@@ -216,11 +217,9 @@ def require_role(role: str):
             if not current_user:
                 current_user = await get_current_user(request)
             if not current_user or not current_user.get("is_authenticated"):
-                return JSONResponse(
-                    {"error": "Authentification requise"}, status_code=401
-                )
+                return api_error_response(401, "Authentification requise")
             if current_user.get("role") != role:
-                return JSONResponse({"error": "Droits insuffisants"}, status_code=403)
+                return api_error_response(403, "Droits insuffisants")
             request.state.user = current_user
             return await handler(request, *args, **kwargs)
 
@@ -246,15 +245,11 @@ def require_full_access(handler):
     async def wrapper(request, *args, **kwargs):
         current_user = getattr(request.state, "user", None)
         if not current_user:
-            return JSONResponse({"error": "Authentification requise"}, status_code=401)
+            return api_error_response(401, "Authentification requise")
         scope = current_user.get("access_scope", "full")
         if scope == "exercises_only":
-            return JSONResponse(
-                {
-                    "error": "Vérifiez votre adresse email pour accéder à cette fonctionnalité.",
-                    "code": "EMAIL_VERIFICATION_REQUIRED",
-                },
-                status_code=403,
+            return api_error_response(
+                403, "Vérifiez votre adresse email pour accéder à cette fonctionnalité."
             )
         return await handler(request, *args, **kwargs)
 

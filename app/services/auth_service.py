@@ -18,6 +18,7 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User, UserRole
+from app.models.user_session import UserSession
 from app.schemas.user import TokenData, UserCreate, UserUpdate
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 from app.utils.email_verification import (
@@ -493,11 +494,9 @@ def create_session(
     ip: Optional[str],
     user_agent: Optional[str],
     expires_at: datetime,
-) -> "UserSession":
+) -> UserSession:
     """Crée une entrée UserSession pour le suivi des sessions actives."""
     import secrets
-
-    from app.models.user_session import UserSession
 
     session_token = secrets.token_urlsafe(32)
     session_row = UserSession(

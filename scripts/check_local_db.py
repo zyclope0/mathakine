@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 Prépare la base de test locale : vérifie PostgreSQL, crée la base, applique les migrations et les données de test.
-Usage: python scripts/check_local_db.py
+
+Usage:
+  python scripts/check_local_db.py              # Schéma + seed (défaut)
+  SKIP_SEED=true python scripts/check_local_db.py  # Schéma seul (aligné CI)
 """
 import os
 import sys
@@ -67,16 +70,22 @@ def main():
         print(f"   Erreur: {e}")
         return 1
 
-    # 4. Schéma et données de test (migrations Alembic + Yoda, ObiWan, etc.)
+    # 4. Schéma et données de test (migrations Alembic + optionnellement seed)
     print("\n4. Schéma et données de test...")
     try:
         os.environ["TESTING"] = "true"
         os.environ["TEST_DATABASE_URL"] = TEST_URL
         os.environ["DATABASE_URL"] = TEST_URL
 
-        from app.db.init_db import create_tables_with_test_data
-        create_tables_with_test_data()
-        print("   OK: Schéma à jour, données de test prêtes")
+        skip_seed = os.environ.get("SKIP_SEED", "").lower() in ("true", "1", "yes")
+        if skip_seed:
+            from app.services.db_init_service import create_tables
+            create_tables()
+            print("   OK: Schéma à jour (sans seed - aligné CI)")
+        else:
+            from app.db.init_db import create_tables_with_test_data
+            create_tables_with_test_data()
+            print("   OK: Schéma à jour, données de test prêtes")
     except Exception as e:
         print(f"   Erreur: {e}")
         import traceback

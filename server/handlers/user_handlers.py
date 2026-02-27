@@ -26,7 +26,7 @@ from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.user_service import UserService
 from app.utils.csrf import validate_csrf_token
 from app.utils.db_utils import db_session
-from app.utils.error_handler import get_safe_error_message
+from app.utils.error_handler import api_error_response, get_safe_error_message
 from app.utils.rate_limit import rate_limit_register
 from app.utils.settings_reader import get_setting_bool
 from server.auth import require_auth, require_full_access
@@ -46,7 +46,7 @@ async def get_user_stats(request):
 
         if not user_id:
             logger.warning(f"ID utilisateur manquant pour {username}")
-            return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
+            return api_error_response(400, "ID utilisateur manquant")
 
         time_range = request.query_params.get("timeRange", "30")
         valid_ranges = ["7", "30", "90", "all"]
@@ -68,9 +68,8 @@ async def get_user_stats(request):
             f"Erreur lors de la récupération des statistiques: {stats_retrieval_error}"
         )
         logger.debug(traceback.format_exc())
-        return JSONResponse(
-            {"error": "Erreur lors de la récupération des statistiques"},
-            status_code=500,
+        return api_error_response(
+            500, "Erreur lors de la récupération des statistiques"
         )
 
 
@@ -89,10 +88,7 @@ async def create_user_account(request: Request):
     }
     """
     if not await get_setting_bool("registration_enabled", True):
-        return JSONResponse(
-            {"error": "Les inscriptions sont temporairement fermées."},
-            status_code=403,
-        )
+        return api_error_response(403, "Les inscriptions sont temporairement fermées.")
     try:
         # Récupérer les données JSON de la requête
         data = await request.json()
@@ -105,46 +101,38 @@ async def create_user_account(request: Request):
 
         # Validation basique côté serveur
         if not username:
-            return JSONResponse(
-                {"error": "Le nom d'utilisateur est requis"}, status_code=400
-            )
+            return api_error_response(400, "Le nom d'utilisateur est requis")
 
         if len(username) < 3:
-            return JSONResponse(
-                {"error": "Le nom d'utilisateur doit contenir au moins 3 caractères"},
-                status_code=400,
+            return api_error_response(
+                400, "Le nom d'utilisateur doit contenir au moins 3 caractères"
             )
 
         if not email:
-            return JSONResponse({"error": "L'email est requis"}, status_code=400)
+            return api_error_response(400, "L'email est requis")
 
         # Validation email basique
         email_pattern = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
         if not re.match(email_pattern, email):
-            return JSONResponse({"error": "Format d'email invalide"}, status_code=400)
+            return api_error_response(400, "Format d'email invalide")
 
         if not password:
-            return JSONResponse(
-                {"error": "Le mot de passe est requis"}, status_code=400
-            )
+            return api_error_response(400, "Le mot de passe est requis")
 
         # Validation mot de passe selon le schéma UserCreate
         if len(password) < 8:
-            return JSONResponse(
-                {"error": "Le mot de passe doit contenir au moins 8 caractères"},
-                status_code=400,
+            return api_error_response(
+                400, "Le mot de passe doit contenir au moins 8 caractères"
             )
 
         if not any(char.isdigit() for char in password):
-            return JSONResponse(
-                {"error": "Le mot de passe doit contenir au moins un chiffre"},
-                status_code=400,
+            return api_error_response(
+                400, "Le mot de passe doit contenir au moins un chiffre"
             )
 
         if not any(char.isupper() for char in password):
-            return JSONResponse(
-                {"error": "Le mot de passe doit contenir au moins une majuscule"},
-                status_code=400,
+            return api_error_response(
+                400, "Le mot de passe doit contenir au moins une majuscule"
             )
 
         # Créer l'utilisateur via le service
@@ -239,28 +227,22 @@ async def create_user_account(request: Request):
             logger.warning(
                 f"Erreur HTTP lors de la création de l'utilisateur: {http_error.detail}"
             )
-            return JSONResponse(
-                {"error": http_error.detail}, status_code=http_error.status_code
-            )
+            return api_error_response(http_error.status_code, http_error.detail)
         except Exception as user_creation_error:
             logger.error(
                 f"Erreur lors de la création de l'utilisateur: {user_creation_error}"
             )
             logger.debug(traceback.format_exc())
-            return JSONResponse(
-                {"error": "Erreur lors de la création du compte"}, status_code=500
-            )
+            return api_error_response(500, "Erreur lors de la création du compte")
 
     except json.JSONDecodeError:
-        return JSONResponse({"error": "Format JSON invalide"}, status_code=400)
+        return api_error_response(400, "Format JSON invalide")
     except Exception as unexpected_creation_error:
         logger.error(
             f"Erreur inattendue lors de la création de l'utilisateur: {unexpected_creation_error}"
         )
         logger.debug(traceback.format_exc())
-        return JSONResponse(
-            {"error": "Erreur lors de la création du compte"}, status_code=500
-        )
+        return api_error_response(500, "Erreur lors de la création du compte")
 
 
 @require_auth
@@ -285,7 +267,7 @@ async def get_all_users(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de tous les utilisateurs: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -319,7 +301,7 @@ async def get_users_leaderboard(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération du classement: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -345,7 +327,7 @@ async def get_all_user_progress(request: Request):
             f"Erreur lors de la récupération de la progression globale de l'utilisateur: {e}"
         )
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -369,7 +351,7 @@ async def get_challenges_progress(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération de la progression des défis: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -447,17 +429,13 @@ async def update_user_me(request: Request):
         update_data = {k: v for k, v in data.items() if k in ALLOWED_FIELDS}
 
         if not update_data:
-            return JSONResponse(
-                {"error": "Aucun champ valide à mettre à jour."}, status_code=400
-            )
+            return api_error_response(400, "Aucun champ valide à mettre à jour.")
 
         # Validation email si fourni
         if "email" in update_data:
             email = update_data["email"].strip().lower()
             if not email or not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
-                return JSONResponse(
-                    {"error": "Adresse email invalide."}, status_code=400
-                )
+                return api_error_response(400, "Adresse email invalide.")
             update_data["email"] = email
 
         # Validation full_name
@@ -466,9 +444,8 @@ async def update_user_me(request: Request):
                 update_data["full_name"].strip() if update_data["full_name"] else None
             )
             if full_name and len(full_name) > 100:
-                return JSONResponse(
-                    {"error": "Le nom complet ne peut pas dépasser 100 caractères."},
-                    status_code=400,
+                return api_error_response(
+                    400, "Le nom complet ne peut pas dépasser 100 caractères."
                 )
             update_data["full_name"] = full_name
 
@@ -477,9 +454,8 @@ async def update_user_me(request: Request):
         if "grade_system" in update_data:
             gs = update_data["grade_system"]
             if gs is not None and gs not in VALID_GRADE_SYSTEMS:
-                return JSONResponse(
-                    {"error": "Système scolaire invalide. Valeurs : suisse ou unifie."},
-                    status_code=400,
+                return api_error_response(
+                    400, "Système scolaire invalide. Valeurs : suisse ou unifie."
                 )
 
         # Validation grade_level (max 11 pour suisse, 12 pour unifie)
@@ -491,29 +467,21 @@ async def update_user_me(request: Request):
                     grade_sys = update_data.get("grade_system")
                     max_grade = 11 if grade_sys == "suisse" else 12
                     if grade < 1 or grade > max_grade:
-                        return JSONResponse(
-                            {
-                                "error": f"Le niveau scolaire doit être entre 1 et {max_grade}."
-                            },
-                            status_code=400,
+                        return api_error_response(
+                            400, f"Le niveau scolaire doit être entre 1 et {max_grade}."
                         )
                     update_data["grade_level"] = grade
                 except (ValueError, TypeError):
-                    return JSONResponse(
-                        {"error": "Le niveau scolaire doit être un nombre."},
-                        status_code=400,
-                    )
+                    return api_error_response(400, "Le niveau scolaire doit être un nombre.")
 
         # Validation learning_style
         VALID_STYLES = {"visuel", "auditif", "kinesthésique", "lecture"}
         if "learning_style" in update_data:
             style = update_data["learning_style"]
             if style and style not in VALID_STYLES:
-                return JSONResponse(
-                    {
-                        "error": f"Style d'apprentissage invalide. Valeurs acceptées : {', '.join(VALID_STYLES)}"
-                    },
-                    status_code=400,
+                return api_error_response(
+                    400,
+                    f"Style d'apprentissage invalide. Valeurs acceptées : {', '.join(VALID_STYLES)}",
                 )
 
         # Validation preferred_theme
@@ -530,25 +498,18 @@ async def update_user_me(request: Request):
         if "preferred_theme" in update_data:
             theme = update_data["preferred_theme"]
             if theme and theme not in VALID_THEMES:
-                return JSONResponse(
-                    {
-                        "error": f"Thème invalide. Valeurs acceptées : {', '.join(VALID_THEMES)}"
-                    },
-                    status_code=400,
+                return api_error_response(
+                    400,
+                    f"Thème invalide. Valeurs acceptées : {', '.join(VALID_THEMES)}",
                 )
 
         # Mise à jour en base via le service
         async with db_session() as db:
             user, err = UserService.update_user_profile(db, user_id, update_data)
             if err == "not_found":
-                return JSONResponse(
-                    {"error": "Utilisateur introuvable."}, status_code=404
-                )
+                return api_error_response(404, "Utilisateur introuvable.")
             if err == "email_taken":
-                return JSONResponse(
-                    {"error": "Cette adresse email est déjà utilisée."},
-                    status_code=400,
-                )
+                return api_error_response(400, "Cette adresse email est déjà utilisée.")
             # user is not None
 
             # Construire la réponse
@@ -586,11 +547,11 @@ async def update_user_me(request: Request):
             return JSONResponse(response_data)
 
     except json.JSONDecodeError:
-        return JSONResponse({"error": "Données JSON invalides."}, status_code=400)
+        return api_error_response(400, "Données JSON invalides.")
     except Exception as e:
         logger.error(f"Erreur lors de la mise à jour de l'utilisateur: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -618,24 +579,16 @@ async def update_user_password_me(request: Request):
 
         # Validation
         if not current_password:
-            return JSONResponse(
-                {"error": "Le mot de passe actuel est requis."}, status_code=400
-            )
+            return api_error_response(400, "Le mot de passe actuel est requis.")
         if not new_password:
-            return JSONResponse(
-                {"error": "Le nouveau mot de passe est requis."}, status_code=400
-            )
+            return api_error_response(400, "Le nouveau mot de passe est requis.")
         if len(new_password) < 8:
-            return JSONResponse(
-                {
-                    "error": "Le nouveau mot de passe doit contenir au moins 8 caractères."
-                },
-                status_code=400,
+            return api_error_response(
+                400, "Le nouveau mot de passe doit contenir au moins 8 caractères."
             )
         if current_password == new_password:
-            return JSONResponse(
-                {"error": "Le nouveau mot de passe doit être différent de l'ancien."},
-                status_code=400,
+            return api_error_response(
+                400, "Le nouveau mot de passe doit être différent de l'ancien."
             )
 
         # Vérification et mise à jour en base via le service
@@ -645,13 +598,8 @@ async def update_user_password_me(request: Request):
             )
             if not ok:
                 if "introuvable" in (err_msg or ""):
-                    return JSONResponse(
-                        {"error": "Utilisateur introuvable."}, status_code=404
-                    )
-                return JSONResponse(
-                    {"error": err_msg or "Erreur lors de la mise à jour."},
-                    status_code=401,
-                )
+                    return api_error_response(404, "Utilisateur introuvable.")
+                return api_error_response(401, err_msg or "Erreur lors de la mise à jour.")
 
             logger.info(
                 f"Mot de passe de l'utilisateur {user_id} mis à jour avec succès"
@@ -661,11 +609,11 @@ async def update_user_password_me(request: Request):
             )
 
     except json.JSONDecodeError:
-        return JSONResponse({"error": "Données JSON invalides."}, status_code=400)
+        return api_error_response(400, "Données JSON invalides.")
     except Exception as e:
         logger.error(f"Erreur lors de la mise à jour du mot de passe: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -689,9 +637,7 @@ async def delete_user_me(request: Request):
         async with db_session() as db:
             deleted = UserService.delete_user(db, user_id)
             if not deleted:
-                return JSONResponse(
-                    {"error": "Utilisateur introuvable."}, status_code=404
-                )
+                return api_error_response(404, "Utilisateur introuvable.")
 
             logger.info(f"Compte utilisateur supprimé : {username} (ID: {user_id})")
 
@@ -706,7 +652,7 @@ async def delete_user_me(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la suppression du compte: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -722,23 +668,20 @@ async def delete_user(request: Request):
         current_user_id = current_user.get("id")
 
         if user_to_delete_id != current_user_id:
-            return JSONResponse(
-                {"error": "Non autorisé à supprimer cet utilisateur"}, status_code=403
-            )
+            return api_error_response(403, "Non autorisé à supprimer cet utilisateur")
 
         logger.info(
             f"Tentative de suppression de l'utilisateur {user_to_delete_id} - Redirigé vers DELETE /api/users/me"
         )
-        return JSONResponse(
-            {"message": "Utilisez DELETE /api/users/me pour supprimer votre compte."},
-            status_code=400,
+        return api_error_response(
+            400, "Utilisez DELETE /api/users/me pour supprimer votre compte."
         )
     except ValueError:
-        return JSONResponse({"error": "ID utilisateur invalide"}, status_code=400)
+        return api_error_response(400, "ID utilisateur invalide")
     except Exception as e:
         logger.error(f"Erreur lors de la suppression de l'utilisateur: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -757,9 +700,7 @@ async def export_user_data(request: Request):
         async with db_session() as db:
             export = UserService.get_user_export_data_for_api(db, user_id)
             if export is None:
-                return JSONResponse(
-                    {"error": "Utilisateur introuvable."}, status_code=404
-                )
+                return api_error_response(404, "Utilisateur introuvable.")
 
             stats = export["statistics"]
             logger.info(
@@ -773,7 +714,7 @@ async def export_user_data(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de l'export des données: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -799,8 +740,8 @@ async def get_user_sessions(request: Request):
     except Exception as e:
         logger.error(f"Erreur lors de la récupération des sessions: {e}")
         traceback.print_exc()
-        return JSONResponse(
-            {"error": "Erreur lors de la récupération des sessions"}, status_code=500
+        return api_error_response(
+            500, "Erreur lors de la récupération des sessions"
         )
 
 
@@ -823,11 +764,9 @@ async def revoke_user_session(request: Request):
                 logger.warning(
                     f"Tentative de révocation d'une session inexistante ou non autorisée: session_id={session_id}, user_id={user_id}"
                 )
-                return JSONResponse(
-                    {
-                        "error": "Session non trouvée ou vous n'avez pas l'autorisation de la révoquer"
-                    },
-                    status_code=404,
+                return api_error_response(
+                    404,
+                    "Session non trouvée ou vous n'avez pas l'autorisation de la révoquer",
                 )
 
             logger.info(f"Session {session_id} révoquée pour user_id={user_id}")
@@ -838,10 +777,8 @@ async def revoke_user_session(request: Request):
             )
 
     except ValueError:
-        return JSONResponse({"error": "ID de session invalide"}, status_code=400)
+        return api_error_response(400, "ID de session invalide")
     except Exception as e:
         logger.error(f"Erreur lors de la révocation de la session: {e}")
         traceback.print_exc()
-        return JSONResponse(
-            {"error": "Erreur lors de la révocation de la session"}, status_code=500
-        )
+        return api_error_response(500, "Erreur lors de la révocation de la session")

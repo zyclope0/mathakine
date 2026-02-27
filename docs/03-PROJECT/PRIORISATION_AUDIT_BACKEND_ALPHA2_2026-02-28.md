@@ -37,7 +37,7 @@
 ### P3 — ✅ Implémenté (28/02/2026)
 
 5. **auth/user db.commit** : AuthService.resend_verification_token, create_session, initiate_password_reset, set_verification_token_for_new_user. Handlers n'ont plus de db.add/db.commit.
-6. **CI fixtures** : Remplacer seed global par fixtures ciblées par test (plus gros chantier).
+6. **CI fixtures** : ✅ 22/02/2026 — CI initialise le schéma uniquement (create_tables), sans seed ObiWan. Tests isolés via fixtures. BDD prod non impactée (base test dédiée CI/Docker).
 
 ### P4 — Non prioritaire
 

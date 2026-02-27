@@ -21,6 +21,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from app.utils.error_handler import api_error_response
+
 # Routes exemptées du mode maintenance (admin peut se connecter et désactiver)
 # Headers de sécurité (OWASP) — appliqués si SECURE_HEADERS=true
 SECURE_HEADERS_DICT = {
@@ -118,12 +120,8 @@ class MaintenanceMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         try:
             if await get_setting_bool("maintenance_mode", False):
-                return JSONResponse(
-                    {
-                        "error": "maintenance",
-                        "message": "Le temple est en maintenance. Réessayez plus tard.",
-                    },
-                    status_code=503,
+                return api_error_response(
+                    503, "Le temple est en maintenance. Réessayez plus tard."
                 )
         except Exception as e:
             logger.debug(f"Maintenance check failed (default: off): {e}")
@@ -199,11 +197,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
                 access_token = auth_header[7:].strip()
         if not access_token:
             logger.info(f"Unauthorized access attempt to {request.url.path}")
-            # Return 401 JSON response (API backend, no HTML redirect)
-            return JSONResponse(
-                {"error": "Unauthorized", "message": "Authentication required"},
-                status_code=401,
-            )
+            return api_error_response(401, "Authentication required")
 
         try:
             # Verify the token (une seule fois — réutilisé par get_current_user)
@@ -218,11 +212,7 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
 
         except Exception as auth_error:
             logger.error(f"Invalid token for {request.url.path}: {str(auth_error)}")
-            # Return 401 JSON response (API backend, no HTML redirect)
-            return JSONResponse(
-                {"error": "Unauthorized", "message": "Invalid or expired token"},
-                status_code=401,
-            )
+            return api_error_response(401, "Invalid or expired token")
 
 
 def get_middleware() -> List[Middleware]:

@@ -11,6 +11,7 @@ from starlette.responses import JSONResponse
 from app.core.logging_config import get_logger
 from app.services.analytics_service import AnalyticsService
 from app.utils.db_utils import db_session
+from app.utils.error_handler import api_error_response
 from server.auth import require_auth
 
 logger = get_logger(__name__)
@@ -48,20 +49,17 @@ async def analytics_event(request: Request):
                 user_id=user_id,
             )
             if not ok:
-                return JSONResponse(
-                    {
-                        "error": "event invalide (attendu: first_attempt, quick_start_click)"
-                    },
-                    status_code=400,
+                return api_error_response(
+                    400, "event invalide (attendu: first_attempt, quick_start_click)"
                 )
 
         return JSONResponse({"ok": True}, status_code=200)
     except json.JSONDecodeError as e:
         logger.warning("analytics_event: body JSON invalide: %s", e)
-        return JSONResponse({"error": "body JSON invalide"}, status_code=400)
+        return api_error_response(400, "body JSON invalide")
     except Exception as e:
         logger.exception("analytics_event: %s", e)
-        return JSONResponse({"error": "Erreur serveur"}, status_code=500)
+        return api_error_response(500, "Erreur serveur")
 
 
 # --- Admin : consultation des analytics EdTech ---
@@ -109,4 +107,4 @@ async def admin_analytics_edtech(request: Request):
         )
     except Exception as e:
         logger.exception("admin_analytics_edtech: %s", e)
-        return JSONResponse({"error": "Erreur serveur"}, status_code=500)
+        return api_error_response(500, "Erreur serveur")

@@ -29,6 +29,7 @@ from app.services.auth_service import (
 from app.services.email_service import EmailService
 from app.utils.csrf import validate_csrf_token
 from app.utils.db_utils import db_session
+from app.utils.error_handler import api_error_response
 from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
 from server.auth import require_auth
 
@@ -71,24 +72,18 @@ async def verify_email(request: Request):
         token = request.query_params.get("token")
 
         if not token:
-            return JSONResponse(
-                {"error": "Token de vérification manquant"}, status_code=400
-            )
+            return api_error_response(400, "Token de vérification manquant")
 
         async with db_session() as db:
             user, err = verify_email_token(db, token)
 
             if err == "invalid":
-                return JSONResponse(
-                    {"error": "Token de vérification invalide"}, status_code=400
-                )
+                return api_error_response(400, "Token de vérification invalide")
 
             if err == "expired":
-                return JSONResponse(
-                    {
-                        "error": "Le token de vérification a expiré. Veuillez demander un nouveau lien."
-                    },
-                    status_code=400,
+                return api_error_response(
+                    400,
+                    "Le token de vérification a expiré. Veuillez demander un nouveau lien.",
                 )
 
             if err == "already_verified":
@@ -125,9 +120,7 @@ async def verify_email(request: Request):
             f"Erreur lors de la vérification de l'email: {email_verification_error}"
         )
         logger.debug(traceback.format_exc())
-        return JSONResponse(
-            {"error": "Erreur lors de la vérification de l'email"}, status_code=500
-        )
+        return api_error_response(500, "Erreur lors de la vérification de l'email")
 
 
 @rate_limit_resend_verification
@@ -212,11 +205,9 @@ async def resend_verification_email(request: Request):
                 logger.warning(
                     f"Échec de l'envoi de l'email de vérification à {user.email}"
                 )
-                return JSONResponse(
-                    {
-                        "error": "Impossible d'envoyer l'email de vérification. Veuillez réessayer plus tard."
-                    },
-                    status_code=500,
+                return api_error_response(
+                    500,
+                    "Impossible d'envoyer l'email de vérification. Veuillez réessayer plus tard.",
                 )
 
     except Exception as resend_verification_error:
@@ -224,9 +215,8 @@ async def resend_verification_email(request: Request):
             f"Erreur lors du renvoi de l'email de vérification: {resend_verification_error}"
         )
         logger.debug(traceback.format_exc())
-        return JSONResponse(
-            {"error": "Erreur lors du renvoi de l'email de vérification"},
-            status_code=500,
+        return api_error_response(
+            500, "Erreur lors du renvoi de l'email de vérification"
         )
 
 
@@ -262,10 +252,7 @@ async def api_login(request: Request):
 
             if not user:
                 logger.warning(f"Échec de connexion pour l'utilisateur: {username}")
-                return JSONResponse(
-                    {"error": "Nom d'utilisateur ou mot de passe incorrect"},
-                    status_code=401,
-                )
+                return api_error_response(401, "Nom d'utilisateur ou mot de passe incorrect")
 
             # Permettre le login pour les non vérifiés (First Exercise < 90s)
             # Accès limité après 45 min : exercices uniquement jusqu'à vérification
@@ -369,7 +356,7 @@ async def api_login(request: Request):
     except Exception as login_error:
         logger.error(f"Erreur lors de la connexion: {login_error}")
         logger.debug(traceback.format_exc())
-        return JSONResponse({"error": "Erreur lors de la connexion"}, status_code=500)
+        return api_error_response(500, "Erreur lors de la connexion")
 
 
 @rate_limit_auth("validate-token")
@@ -389,19 +376,14 @@ async def api_validate_token(request: Request):
             request, required={"token": "Token manquant"}, no_strip_fields={"token"}
         )
         if isinstance(data_or_err, JSONResponse):
-            return JSONResponse(
-                {"valid": False, "error": "Token manquant"},
-                status_code=400,
-            )
+            return data_or_err
         token = data_or_err["token"]
         if not isinstance(token, str):
-            return JSONResponse(
-                {"valid": False, "error": "Token invalide"}, status_code=400
-            )
+            return api_error_response(400, "Token invalide")
         payload = decode_token(token)  # valide type=access
         return JSONResponse({"valid": True, "user_id": payload.get("sub")})
     except Exception:
-        return JSONResponse({"valid": False}, status_code=401)
+        return api_error_response(401, "Token invalide ou expiré")
 
 
 async def api_refresh_token(request: Request):
@@ -500,11 +482,9 @@ async def api_refresh_token(request: Request):
                     logger.debug(f"Fallback échoué: {fallback_error}")
 
         if not refresh_token:
-            return JSONResponse(
-                {
-                    "error": "Refresh token requis (body ou cookie). Veuillez vous reconnecter."
-                },
-                status_code=401,
+            return api_error_response(
+                401,
+                "Refresh token requis (body ou cookie). Veuillez vous reconnecter.",
             )
 
         async with db_session() as db:
@@ -582,9 +562,7 @@ async def api_refresh_token(request: Request):
     except Exception as token_refresh_error:
         logger.error(f"Erreur lors du rafraîchissement du token: {token_refresh_error}")
         logger.debug(traceback.format_exc())
-        return JSONResponse(
-            {"error": "Refresh token invalide ou expiré"}, status_code=401
-        )
+        return api_error_response(401, "Refresh token invalide ou expiré")
 
 
 @require_auth
@@ -603,10 +581,7 @@ async def api_get_current_user(request: Request):
             f"Erreur lors de la récupération de l'utilisateur: {user_retrieval_error}"
         )
         logger.debug(traceback.format_exc())
-        return JSONResponse(
-            {"error": "Erreur lors de la récupération de l'utilisateur"},
-            status_code=500,
-        )
+        return api_error_response(500, "Erreur lors de la récupération de l'utilisateur")
 
 
 @rate_limit_auth("forgot-password")
@@ -622,7 +597,7 @@ async def api_forgot_password(request: Request):
         email = data.get("email", "").strip().lower()
 
         if not email:
-            return JSONResponse({"error": "Adresse email requise"}, status_code=400)
+            return api_error_response(400, "Adresse email requise")
 
         async with db_session() as db:
             user = get_user_by_email(db, email)
@@ -655,11 +630,9 @@ async def api_forgot_password(request: Request):
 
             if not email_sent:
                 logger.warning(f"Échec envoi email reset à {user.email}")
-                return JSONResponse(
-                    {
-                        "error": "Impossible d'envoyer l'email. Veuillez réessayer plus tard."
-                    },
-                    status_code=500,
+                return api_error_response(
+                    500,
+                    "Impossible d'envoyer l'email. Veuillez réessayer plus tard.",
                 )
 
             logger.info(f"Email de réinitialisation envoyé à {user.email}")
@@ -674,9 +647,7 @@ async def api_forgot_password(request: Request):
     except Exception as forgot_err:
         logger.error(f"Erreur forgot-password: {forgot_err}")
         logger.debug(traceback.format_exc())
-        return JSONResponse(
-            {"error": "Erreur lors du traitement de la demande"}, status_code=500
-        )
+        return api_error_response(500, "Erreur lors du traitement de la demande")
 
 
 async def api_reset_password(request: Request):
@@ -696,43 +667,33 @@ async def api_reset_password(request: Request):
         password_confirm = data.get("password_confirm", "")
 
         if not token:
-            return JSONResponse(
-                {"error": "Token de réinitialisation manquant"}, status_code=400
-            )
+            return api_error_response(400, "Token de réinitialisation manquant")
 
         if not password or len(password) < 8:
-            return JSONResponse(
-                {"error": "Le mot de passe doit contenir au moins 8 caractères"},
-                status_code=400,
+            return api_error_response(
+                400, "Le mot de passe doit contenir au moins 8 caractères"
             )
         if not any(char.isdigit() for char in password):
-            return JSONResponse(
-                {"error": "Le mot de passe doit contenir au moins un chiffre"},
-                status_code=400,
+            return api_error_response(
+                400, "Le mot de passe doit contenir au moins un chiffre"
             )
         if not any(char.isupper() for char in password):
-            return JSONResponse(
-                {"error": "Le mot de passe doit contenir au moins une majuscule"},
-                status_code=400,
+            return api_error_response(
+                400, "Le mot de passe doit contenir au moins une majuscule"
             )
 
         if password != password_confirm:
-            return JSONResponse(
-                {"error": "Les mots de passe ne correspondent pas"}, status_code=400
-            )
+            return api_error_response(400, "Les mots de passe ne correspondent pas")
 
         async with db_session() as db:
             user, err = reset_password_with_token(db, token, password)
 
             if err == "invalid":
-                return JSONResponse(
-                    {"error": "Token invalide ou déjà utilisé"}, status_code=400
-                )
+                return api_error_response(400, "Token invalide ou déjà utilisé")
 
             if err == "expired":
-                return JSONResponse(
-                    {"error": "Le lien a expiré. Veuillez demander un nouveau lien."},
-                    status_code=400,
+                return api_error_response(
+                    400, "Le lien a expiré. Veuillez demander un nouveau lien."
                 )
 
             return JSONResponse(
@@ -746,10 +707,7 @@ async def api_reset_password(request: Request):
     except Exception as reset_err:
         logger.error(f"Erreur reset-password: {reset_err}")
         logger.debug(traceback.format_exc())
-        return JSONResponse(
-            {"error": "Erreur lors de la réinitialisation du mot de passe"},
-            status_code=500,
-        )
+        return api_error_response(500, "Erreur lors de la réinitialisation du mot de passe")
 
 
 async def api_logout(request: Request):
@@ -789,4 +747,4 @@ async def api_logout(request: Request):
     except Exception as logout_error:
         logger.error(f"Erreur lors de la déconnexion: {logout_error}")
         logger.debug(traceback.format_exc())
-        return JSONResponse({"error": "Erreur lors de la déconnexion"}, status_code=500)
+        return api_error_response(500, "Erreur lors de la déconnexion")

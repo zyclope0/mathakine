@@ -29,7 +29,7 @@ from app.services import challenge_service
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.logic_challenge_service import LogicChallengeService
 from app.utils.db_utils import db_session
-from app.utils.error_handler import ErrorHandler, get_safe_error_message
+from app.utils.error_handler import ErrorHandler, api_error_response, get_safe_error_message
 from app.utils.translation import parse_accept_language
 from server.auth import (
     optional_auth,
@@ -262,7 +262,7 @@ async def submit_challenge_answer(request: Request):
 
         user_id = current_user.get("id")
         if not user_id:
-            return JSONResponse({"error": "Utilisateur invalide"}, status_code=401)
+            return api_error_response(401, "Utilisateur invalide")
 
         challenge_id = int(request.path_params.get("challenge_id"))
         data = await request.json()
@@ -281,15 +281,13 @@ async def submit_challenge_answer(request: Request):
             hints_used_count = 0
 
         if not user_solution:
-            return JSONResponse({"error": "Réponse requise"}, status_code=400)
+            return api_error_response(400, "Réponse requise")
 
         async with db_session() as db:
             # Récupérer le défi
             challenge = LogicChallengeService.get_challenge(db, challenge_id)
             if not challenge:
-                return JSONResponse(
-                    {"error": "Défi logique non trouvé"}, status_code=404
-                )
+                return api_error_response(404, "Défi logique non trouvé")
 
             # Vérifier la réponse
             def _normalize_accents(text: str) -> str:
@@ -777,10 +775,7 @@ async def submit_challenge_answer(request: Request):
             )
             attempt = LogicChallengeService.record_attempt(db, attempt_data)
             if not attempt:
-                return JSONResponse(
-                    {"error": "Impossible d'enregistrer la tentative."},
-                    status_code=500,
-                )
+                return api_error_response(500, "Impossible d'enregistrer la tentative.")
             logger.debug(f"Tentative challenge créée: {attempt.id}")
 
             # Lot C / B5 : vérifier les badges (défis logiques, mixte) après une tentative correcte
@@ -830,15 +825,13 @@ async def submit_challenge_answer(request: Request):
 
             return JSONResponse(response_data)
     except ValueError:
-        return JSONResponse({"error": "ID de défi invalide"}, status_code=400)
+        return api_error_response(400, "ID de défi invalide")
     except Exception as submission_error:
         logger.error(f"Erreur lors de la soumission de la réponse: {submission_error}")
         import traceback
 
         logger.debug(traceback.format_exc())
-        return JSONResponse(
-            {"error": get_safe_error_message(submission_error)}, status_code=500
-        )
+        return api_error_response(500, get_safe_error_message(submission_error))
 
 
 async def get_challenge_hint(request: Request):
@@ -853,9 +846,7 @@ async def get_challenge_hint(request: Request):
         async with db_session() as db:
             challenge = LogicChallengeService.get_challenge(db, challenge_id)
             if not challenge:
-                return JSONResponse(
-                    {"error": "Défi logique non trouvé"}, status_code=404
-                )
+                return api_error_response(404, "Défi logique non trouvé")
 
             # Récupérer les indices
             hints = challenge.hints
@@ -873,9 +864,8 @@ async def get_challenge_hint(request: Request):
                 hints = []
 
             if level < 1 or level > len(hints):
-                return JSONResponse(
-                    {"error": f"Indice de niveau {level} non disponible"},
-                    status_code=400,
+                return api_error_response(
+                    400, f"Indice de niveau {level} non disponible"
                 )
 
             # Retourner l'indice spécifique au niveau demandé (index 0-based)
@@ -884,15 +874,13 @@ async def get_challenge_hint(request: Request):
                 {"hint": hint_text}
             )  # Retourner l'indice spécifique au niveau
     except ValueError:
-        return JSONResponse({"error": "ID de défi ou niveau invalide"}, status_code=400)
+        return api_error_response(400, "ID de défi ou niveau invalide")
     except Exception as hint_retrieval_error:
         logger.error(
             f"Erreur lors de la récupération de l'indice: {hint_retrieval_error}"
         )
         traceback.print_exc()
-        return JSONResponse(
-            {"error": get_safe_error_message(hint_retrieval_error)}, status_code=500
-        )
+        return api_error_response(500, get_safe_error_message(hint_retrieval_error))
 
 
 @optional_auth

@@ -305,9 +305,8 @@ async def generate_exercise_api(request):
 
         # Valider les paramètres
         if not exercise_type_raw or not age_group_raw:
-            return JSONResponse(
-                {"error": "Les paramètres 'exercise_type' et 'age_group' sont requis"},
-                status_code=400,
+            return api_error_response(
+                400, "Les paramètres 'exercise_type' et 'age_group' sont requis"
             )
 
         # Générer l'exercice
@@ -741,11 +740,6 @@ async def get_exercises_stats(request: Request):
             f"Erreur lors de la récupération des statistiques d'exercices: {e}"
         )
         traceback.print_exc()
-        return JSONResponse(
-            {
-                "archive_status": "Chroniques inaccessibles",
-                "error": "Une perturbation empêche l'accès aux archives. Réessayez plus tard.",
-                "details": str(e) if settings.LOG_LEVEL == "DEBUG" else None,
-            },
-            status_code=500,
+        return api_error_response(
+            500, "Une perturbation empêche l'accès aux archives. Réessayez plus tard."
         )

@@ -3,8 +3,10 @@
 Commande unique pour lancer les tests backend en local.
 Démarre PostgreSQL (Docker si besoin), initialise la DB, lance pytest.
 
-Usage: python scripts/test_backend_local.py
-       ou: make test-backend-local
+Usage:
+  python scripts/test_backend_local.py              # Schéma + seed (défaut)
+  SKIP_SEED=true python scripts/test_backend_local.py  # Schéma seul (aligné CI)
+  make test-backend-local
 """
 import os
 import subprocess
@@ -108,14 +110,20 @@ def create_test_db():
 
 
 def init_schema():
-    """Initialise le schéma et les données de test."""
+    """Initialise le schéma et (optionnellement) les données de test."""
     os.environ["TESTING"] = "true"
     os.environ["TEST_DATABASE_URL"] = TEST_URL
     os.environ["DATABASE_URL"] = TEST_URL
 
-    from app.db.init_db import create_tables_with_test_data
-    create_tables_with_test_data()
-    print("   OK: Schéma et données de test initialisés")
+    skip_seed = os.environ.get("SKIP_SEED", "").lower() in ("true", "1", "yes")
+    if skip_seed:
+        from app.services.db_init_service import create_tables
+        create_tables()
+        print("   OK: Schéma initialisé (sans seed - aligné CI)")
+    else:
+        from app.db.init_db import create_tables_with_test_data
+        create_tables_with_test_data()
+        print("   OK: Schéma et données de test initialisés")
 
 
 def run_pytest():

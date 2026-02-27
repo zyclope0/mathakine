@@ -716,11 +716,21 @@ Hooks avec logique réutilisable : `usePaginatedContent`, logique de filtre, etc
 
 ## 🔄 CI/CD {#cicd}
 
+### Contexte BDD test / prod (refactor 22/02/2026)
+
+| Environnement | Base de données | Initialisation |
+|---------------|-----------------|----------------|
+| **CI (GitHub Actions)** | `test_mathakine` (PostgreSQL 15) | Schéma uniquement (`create_tables`). Pas de seed ObiWan. Tests isolés via fixtures. |
+| **Développement local (Docker)** | `test_mathakine` ou similaire | Optionnel : `create_tables_with_test_data()` pour seed de démo (scripts). |
+| **Production** | Base dédiée prod | Jamais de seed. Migrations Alembic uniquement. |
+
+> **Important** : La BDD prod est totalement isolée. Le refactor CI (suppression du seed global) n'impacte que l'environnement de test. Risque minimal.
+
 ### GitHub Actions Workflow (.github/workflows/tests.yml)
 
 | Job | Actions |
 |-----|---------|
-| **test** | PostgreSQL 15, pytest (unit+api+integration), coverage + JUnit XML, upload Codecov (coverage + test_results, flag backend) |
+| **test** | PostgreSQL 15, schema init uniquement (sans seed), pytest (unit+api+integration), coverage + JUnit XML, upload Codecov (coverage + test_results, flag backend) |
 | **lint** | flake8, black, isort (backend) |
 | **frontend** | npm ci, tsc --noEmit, ESLint, vitest --coverage --reporter=junit, upload Codecov (coverage + test_results, flag frontend), build |
 
@@ -916,6 +926,15 @@ Ce script protege les memes utilisateurs permanents et respecte le meme ordre FK
 ---
 
 ## 📝 MODIFICATIONS RECENTES {#modifications-recentes}
+
+### 22/02/2026 – Refactor CI ObiWan, couverture ExerciseService
+
+| Domaine | Modification |
+|---------|---------------|
+| **CI** | Initialisation DB : schéma uniquement (`create_tables`), suppression du seed global ObiWan. Tests isolés via fixtures. |
+| **ExerciseService** | 3 tests unitaires pour `submit_answer_result` : réponse correcte, incorrecte, exercice inexistant (zone critique P2). |
+| **Scripts locaux** | `check_local_db.py`, `test_backend_local.py` : variable `SKIP_SEED=true` pour schéma seul (aligné CI). Par défaut : schéma + seed. |
+| **test_challenge_service_integration** | Fix flaky : filtre `LogicChallengeType.SEQUENCE.value`, titre unique, `limit=100` pour `list_challenges`. |
 
 ### 26/02/2026 – Refactoring auth service, tests unitaires
 

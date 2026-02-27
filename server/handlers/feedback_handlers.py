@@ -10,7 +10,7 @@ from starlette.responses import JSONResponse
 from app.core.logging_config import get_logger
 from app.services.feedback_service import FeedbackService
 from app.utils.db_utils import db_session
-from app.utils.error_handler import get_safe_error_message
+from app.utils.error_handler import api_error_response, get_safe_error_message
 from server.auth import require_admin, require_auth
 
 logger = get_logger(__name__)
@@ -58,11 +58,8 @@ async def submit_feedback(request: Request):
                 user_id=user_id,
             )
             if err:
-                return JSONResponse(
-                    {
-                        "error": f"feedback_type invalide (exercise, challenge, ui, other)"
-                    },
-                    status_code=400,
+                return api_error_response(
+                    400, "feedback_type invalide (exercise, challenge, ui, other)"
                 )
 
         logger.info(
@@ -75,7 +72,7 @@ async def submit_feedback(request: Request):
     except Exception as e:
         logger.error(f"Erreur submit_feedback: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -92,4 +89,4 @@ async def admin_list_feedback(request: Request):
     except Exception as e:
         logger.error(f"Erreur admin_list_feedback: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))

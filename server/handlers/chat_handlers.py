@@ -9,7 +9,7 @@ from starlette.responses import JSONResponse, StreamingResponse
 
 from app.core.config import settings
 from app.core.logging_config import get_logger
-from app.utils.error_handler import get_safe_error_message
+from app.utils.error_handler import api_error_response, get_safe_error_message
 from app.utils.rate_limit import rate_limit_chat
 
 logger = get_logger(__name__)
@@ -167,13 +167,11 @@ async def chat_api(request):
     try:
         # Vérifier que OpenAI est disponible
         if not OPENAI_AVAILABLE:
-            return JSONResponse({"error": "OpenAI non disponible"}, status_code=503)
+            return api_error_response(503, "OpenAI non disponible")
 
         # Vérifier que la clé API est configurée
         if not settings.OPENAI_API_KEY:
-            return JSONResponse(
-                {"error": "Clé API OpenAI non configurée"}, status_code=503
-            )
+            return api_error_response(503, "Clé API OpenAI non configurée")
 
         # Récupérer les données de la requête (DRY parse_json_body)
         from app.utils.request_utils import parse_json_body

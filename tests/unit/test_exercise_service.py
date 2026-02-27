@@ -760,4 +760,129 @@ def test_record_attempt_with_mock(mock_transaction, mock_get_exercise, mock_adap
     assert attempt.exercise_id == 1
     assert attempt.user_answer == "4"
     assert attempt.is_correct is True
-    assert attempt.time_spent == 12.5 
+    assert attempt.time_spent == 12.5
+
+
+# --- Zone critique : submit_answer_result (refactor P2) ---
+
+
+def test_submit_answer_result_correct(db_session):
+    """Test submit_answer_result avec réponse correcte (zone critique P2)."""
+    from app.services.exercise_service import ExerciseService, ExerciseSubmitError
+
+    unique_id = str(uuid.uuid4())[:8]
+    user = User(
+        username=f"submit_test_{unique_id}",
+        email=f"submit_{unique_id}@test.com",
+        hashed_password="hash",
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+    )
+    db_session.add(user)
+    db_session.flush()
+
+    exercise = Exercise(
+        title=f"Submit Test {unique_id}",
+        exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
+        difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
+        question="2+2=?",
+        correct_answer="4",
+        choices=["2", "3", "4", "5"],
+        explanation="2+2=4",
+    )
+    db_session.add(exercise)
+    db_session.commit()
+    db_session.refresh(exercise)
+
+    result = ExerciseService.submit_answer_result(
+        db_session,
+        exercise.id,
+        user.id,
+        selected_answer="4",
+        time_spent=5.0,
+    )
+
+    assert result["is_correct"] is True
+    assert result["correct_answer"] == "4"
+    assert "attempt_id" in result
+    assert result["attempt_id"] is not None
+
+    attempt = db_session.query(Attempt).filter(
+        Attempt.exercise_id == exercise.id,
+        Attempt.user_id == user.id,
+    ).first()
+    assert attempt is not None
+    assert attempt.is_correct is True
+    assert attempt.user_answer == "4"
+
+
+def test_submit_answer_result_incorrect(db_session):
+    """Test submit_answer_result avec réponse incorrecte."""
+    from app.services.exercise_service import ExerciseService
+
+    unique_id = str(uuid.uuid4())[:8]
+    user = User(
+        username=f"submit_incorrect_{unique_id}",
+        email=f"submit_inc_{unique_id}@test.com",
+        hashed_password="hash",
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+    )
+    db_session.add(user)
+    db_session.flush()
+
+    exercise = Exercise(
+        title=f"Submit Incorrect {unique_id}",
+        exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
+        difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        age_group="6-8",
+        question="2+2=?",
+        correct_answer="4",
+        choices=["2", "3", "4", "5"],
+    )
+    db_session.add(exercise)
+    db_session.commit()
+    db_session.refresh(exercise)
+
+    result = ExerciseService.submit_answer_result(
+        db_session,
+        exercise.id,
+        user.id,
+        selected_answer="5",
+        time_spent=3.0,
+    )
+
+    assert result["is_correct"] is False
+    assert result["correct_answer"] == "4"
+    assert "attempt_id" in result
+
+    attempt = db_session.query(Attempt).filter(
+        Attempt.exercise_id == exercise.id,
+        Attempt.user_id == user.id,
+    ).first()
+    assert attempt is not None
+    assert attempt.is_correct is False
+
+
+def test_submit_answer_result_exercise_not_found(db_session):
+    """Test submit_answer_result lève ExerciseSubmitError si exercice inexistant."""
+    from app.services.exercise_service import ExerciseService, ExerciseSubmitError
+
+    unique_id = str(uuid.uuid4())[:8]
+    user = User(
+        username=f"submit_nf_{unique_id}",
+        email=f"submit_nf_{unique_id}@test.com",
+        hashed_password="hash",
+        role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+    )
+    db_session.add(user)
+    db_session.commit()
+
+    with pytest.raises(ExerciseSubmitError) as exc_info:
+        ExerciseService.submit_answer_result(
+            db_session,
+            exercise_id=999999,
+            user_id=user.id,
+            selected_answer="4",
+        )
+    assert exc_info.value.status_code == 404
+    assert "non trouvé" in exc_info.value.message.lower()

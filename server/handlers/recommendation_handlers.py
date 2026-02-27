@@ -9,7 +9,7 @@ from starlette.responses import JSONResponse
 from app.core.logging_config import get_logger
 from app.services.recommendation_service import RecommendationService
 from app.utils.db_utils import db_session
-from app.utils.error_handler import get_safe_error_message
+from app.utils.error_handler import api_error_response, get_safe_error_message
 from server.auth import require_auth, require_full_access
 
 logger = get_logger(__name__)
@@ -26,7 +26,7 @@ async def get_recommendations(request):
         current_user = request.state.user
         user_id = current_user.get("id")
         if not user_id:
-            return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
+            return api_error_response(400, "ID utilisateur manquant")
 
         async with db_session() as db:
             recommendations_data = RecommendationService.get_recommendations_for_api(
@@ -38,9 +38,8 @@ async def get_recommendations(request):
             f"Erreur lors de la récupération des recommandations: {recommendations_retrieval_error}"
         )
         traceback.print_exc()
-        return JSONResponse(
-            {"error": get_safe_error_message(recommendations_retrieval_error)},
-            status_code=500,
+        return api_error_response(
+            500, get_safe_error_message(recommendations_retrieval_error)
         )
 
 
@@ -55,7 +54,7 @@ async def generate_recommendations(request):
         current_user = request.state.user
         user_id = current_user.get("id")
         if not user_id:
-            return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
+            return api_error_response(400, "ID utilisateur manquant")
 
         async with db_session() as db:
             recommendations = RecommendationService.generate_recommendations(
@@ -72,9 +71,8 @@ async def generate_recommendations(request):
             f"Erreur lors de la génération des recommandations: {recommendations_generation_error}"
         )
         traceback.print_exc()
-        return JSONResponse(
-            {"error": get_safe_error_message(recommendations_generation_error)},
-            status_code=500,
+        return api_error_response(
+            500, get_safe_error_message(recommendations_generation_error)
         )
 
 
@@ -90,29 +88,23 @@ async def handle_recommendation_complete(request):
         current_user = request.state.user
         user_id = current_user.get("id")
         if not user_id:
-            return JSONResponse({"error": "ID utilisateur manquant"}, status_code=400)
+            return api_error_response(400, "ID utilisateur manquant")
 
         data = await request.json()
         recommendation_id = data.get("recommendation_id")
         if recommendation_id is None:
-            return JSONResponse(
-                {"error": "recommendation_id manquant"}, status_code=400
-            )
+            return api_error_response(400, "recommendation_id manquant")
         try:
             recommendation_id = int(recommendation_id)
         except (TypeError, ValueError):
-            return JSONResponse(
-                {"error": "recommendation_id invalide"}, status_code=400
-            )
+            return api_error_response(400, "recommendation_id invalide")
 
         async with db_session() as db:
             success, rec = RecommendationService.mark_recommendation_as_completed(
                 db, recommendation_id, user_id=user_id
             )
             if not success or not rec:
-                return JSONResponse(
-                    {"error": "Recommandation non trouvée"}, status_code=404
-                )
+                return api_error_response(404, "Recommandation non trouvée")
 
         return JSONResponse(
             {"message": "Recommandation marquée comme complétée", "id": rec.id},
@@ -121,4 +113,4 @@ async def handle_recommendation_complete(request):
     except Exception as e:
         logger.error(f"Erreur lors de la gestion de la recommandation complétée: {e}")
         traceback.print_exc()
-        return JSONResponse({"error": get_safe_error_message(e)}, status_code=500)
+        return api_error_response(500, get_safe_error_message(e))

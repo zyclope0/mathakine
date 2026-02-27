@@ -42,7 +42,9 @@ def _get_client_ip(request) -> str:
 
 def _rate_limit_response(message: str) -> JSONResponse:
     """Retourne une réponse 429 Too Many Requests."""
-    return JSONResponse({"error": message}, status_code=429)
+    from app.utils.error_handler import api_error_response
+
+    return api_error_response(429, message)
 
 
 def _check_rate_limit(

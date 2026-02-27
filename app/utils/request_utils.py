@@ -9,6 +9,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.constants import Messages
+from app.utils.error_handler import api_error_response
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -51,16 +52,10 @@ async def parse_json_body(
         body = await request.json()
     except Exception as e:
         logger.warning(f"parse_json_body: body JSON invalide — {e}")
-        return JSONResponse(
-            {"error": Messages.JSON_BODY_INVALID},
-            status_code=422,
-        )
+        return api_error_response(422, Messages.JSON_BODY_INVALID)
 
     if not isinstance(body, dict):
-        return JSONResponse(
-            {"error": Messages.JSON_BODY_NOT_OBJECT},
-            status_code=400,
-        )
+        return api_error_response(400, Messages.JSON_BODY_NOT_OBJECT)
 
     def _strip_val(val: Any, field: str) -> Any:
         if isinstance(val, str) and strip_strings and field not in no_strip_fields:
@@ -73,10 +68,10 @@ async def parse_json_body(
     for field, error_msg in required.items():
         value = body.get(field)
         if value is None:
-            return JSONResponse({"error": error_msg}, status_code=400)
+            return api_error_response(400, error_msg)
         value = _strip_val(value, field)
         if isinstance(value, str) and not value:
-            return JSONResponse({"error": error_msg}, status_code=400)
+            return api_error_response(400, error_msg)
         result[field] = value
 
     # Champs optionnels
