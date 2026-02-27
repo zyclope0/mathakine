@@ -11,8 +11,8 @@ from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy import case, func, or_, union
 from sqlalchemy.orm import Session
 
-from app.models.admin_audit_log import AdminAuditLog
 from app.models.achievement import Achievement, UserAchievement
+from app.models.admin_audit_log import AdminAuditLog
 from app.models.attempt import Attempt
 from app.models.exercise import Exercise
 from app.models.logic_challenge import (
