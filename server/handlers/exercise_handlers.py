@@ -21,7 +21,7 @@ from app.services.badge_service import BadgeService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.exercise_service import ExerciseService
 from app.utils.db_utils import db_session
-from app.utils.error_handler import ErrorHandler, get_safe_error_message
+from app.utils.error_handler import ErrorHandler, api_error_response, get_safe_error_message
 from server.auth import optional_auth, require_auth, require_auth_sse
 from server.exercise_generator import (
     ensure_explanation,
@@ -162,7 +162,7 @@ async def submit_answer(request):
         # exercise_id est maintenant garanti par le path_params, donc pas besoin de vérifier s'il est None
 
         if selected_answer is None:
-            return JSONResponse({"error": "La réponse est requise."}, status_code=400)
+            return api_error_response(400, "La réponse est requise.")
 
         logger.debug(
             f"Traitement de la réponse: exercise_id={exercise_id}, selected_answer={selected_answer}"
@@ -183,8 +183,8 @@ async def submit_answer(request):
             )
 
             if not exercise:
-                return JSONResponse(
-                    {"error": SystemMessages.ERROR_EXERCISE_NOT_FOUND}, status_code=404
+                return api_error_response(
+                    404, SystemMessages.ERROR_EXERCISE_NOT_FOUND
                 )
 
             # Déterminer si la réponse est correcte
@@ -259,14 +259,8 @@ async def submit_answer(request):
                     logger.error(
                         "ERREUR: La tentative n'a pas été enregistrée correctement"
                     )
-                    return JSONResponse(
-                        {
-                            "is_correct": is_correct,
-                            "correct_answer": correct_answer,
-                            "explanation": exercise.get("explanation", ""),
-                            "error": "Erreur lors de l'enregistrement de la tentative",
-                        },
-                        status_code=500,
+                    return api_error_response(
+                        500, "Erreur lors de l'enregistrement de la tentative"
                     )
 
                 logger.info("Tentative enregistrée avec succès")

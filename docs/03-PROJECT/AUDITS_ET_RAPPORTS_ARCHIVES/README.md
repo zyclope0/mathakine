@@ -60,6 +60,7 @@ Rapports situationnels : récaps mission, plans contextuels (pas de suivi actif)
 → Voir [03-PROJECT/README.md](../README.md) pour l'index complet.
 
 - **EVALUATION_PROJET_2026-02-07.md** — ⭐ Référence actuelle (évaluation factuelle)
+- **AUDIT_TECHNIQUE_BACKEND_ALPHA2_2026-02-27.md** — ⭐ Audit Backend Alpha 2 (modularité, config, CI, plan 5 étapes)
 - **AUDIT_DASHBOARD_2026-02.md** — Audit dashboard (recos partielles)
 - **AUDIT_SENTRY_2026-02.md** — Configuration Sentry (référence)
 - **ANALYSE_DUPLICATION_DRY_2026-02.md** — DRY (~90 % traité)

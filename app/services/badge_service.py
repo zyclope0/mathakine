@@ -778,6 +778,58 @@ class BadgeService:
             )
             return {"earned_badges": [], "user_stats": {}}
 
+    def get_user_gamification_stats(self, user_id: int) -> Dict[str, Any]:
+        """
+        Statistiques gamification (attempts, badges par catégorie, performance).
+        Remplace le SQL brut précédemment dans badge_handlers (audit Alpha 2).
+        """
+        user_data = self.get_user_badges(user_id)
+        earned_count = len(user_data.get("earned_badges", []))
+
+        stats = self.db.execute(
+            text("""
+                SELECT
+                    COUNT(*) as total_attempts,
+                    COUNT(CASE WHEN is_correct THEN 1 END) as correct_attempts,
+                    AVG(time_spent) as avg_time_spent
+                FROM attempts
+                WHERE user_id = :user_id
+            """),
+            {"user_id": user_id},
+        ).fetchone()
+
+        badge_stats = self.db.execute(
+            text("""
+                SELECT a.category, COUNT(*) as count
+                FROM achievements a
+                JOIN user_achievements ua ON a.id = ua.achievement_id
+                WHERE ua.user_id = :user_id
+                GROUP BY a.category
+            """),
+            {"user_id": user_id},
+        ).fetchall()
+
+        by_category = {row[0]: row[1] for row in badge_stats}
+        total = stats[0] if stats else 0
+        correct = stats[1] if stats else 0
+        avg_time = stats[2] if stats and stats[2] is not None else 0
+
+        return {
+            "user_stats": user_data.get("user_stats", {}),
+            "badges_summary": {
+                "total_badges": earned_count,
+                "by_category": by_category,
+            },
+            "performance": {
+                "total_attempts": total,
+                "correct_attempts": correct,
+                "success_rate": round(
+                    (correct / total * 100) if total > 0 else 0, 1
+                ),
+                "avg_time_spent": round(avg_time, 2) if avg_time else 0,
+            },
+        }
+
     def _format_requirements_to_text(self, badge: Achievement) -> Optional[str]:
         """Convertit le JSON requirements en texte lisible (critères d'obtention)."""
         if not badge.requirements:

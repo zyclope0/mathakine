@@ -145,26 +145,17 @@ class ErrorHandler:
             error_message if include_details else GENERIC_ERROR_MESSAGE
         )
 
-        # Construire la réponse
-        response_data: Dict[str, Any] = {
-            "error": display_error,
-            "error_type": error_type,
-        }
-
-        # Ajouter les détails techniques uniquement en dev
-        if include_details:
-            response_data["error_message"] = error_message
-            response_data["details"] = traceback.format_exc()
-
-        # Logger l'erreur
         logger.error(f"{error_type}: {error_message}")
         if include_details:
             logger.debug(f"Traceback complet:\n{traceback.format_exc()}")
 
-        # Nettoyer les données pour sérialisation JSON (gère les MagicMock dans les tests)
-        response_data = make_json_serializable(response_data)
+        payload = api_error_json(status_code, display_error)
+        if include_details:
+            payload["error_type"] = error_type
+            payload["details"] = traceback.format_exc()
+        payload = make_json_serializable(payload)
 
-        return JSONResponse(response_data, status_code=status_code)
+        return JSONResponse(payload, status_code=status_code)
 
     @staticmethod
     def create_validation_error(
@@ -181,15 +172,14 @@ class ErrorHandler:
         Returns:
             JSONResponse avec le format d'erreur de validation
         """
-        response_data = {
-            "error": "Erreur de validation",
-            "field": field,
-            "message": message,
-        }
-
         logger.warning(f"Erreur de validation pour le champ '{field}': {message}")
-
-        return JSONResponse(response_data, status_code=status_code)
+        payload = api_error_json(
+            status_code,
+            message,
+            field_errors=[{"field": field, "message": message}],
+        )
+        payload["field"] = field  # rétrocompatibilité
+        return JSONResponse(payload, status_code=status_code)
 
     @staticmethod
     def create_not_found_error(
@@ -206,12 +196,9 @@ class ErrorHandler:
         Returns:
             JSONResponse avec le format d'erreur "non trouvé"
         """
-        response_data = {
-            "error": f"{resource_type.capitalize()} non trouvé",
-            "resource_type": resource_type,
-            "resource_id": str(resource_id),
-        }
-
-        logger.warning(f"{resource_type.capitalize()} non trouvé: ID {resource_id}")
-
-        return JSONResponse(response_data, status_code=status_code)
+        message = f"{resource_type.capitalize()} non trouvé"
+        logger.warning(f"{message}: ID {resource_id}")
+        payload = api_error_json(status_code, message)
+        payload["resource_type"] = resource_type
+        payload["resource_id"] = str(resource_id)
+        return JSONResponse(payload, status_code=status_code)
