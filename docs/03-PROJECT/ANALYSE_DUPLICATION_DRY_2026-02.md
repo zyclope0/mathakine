@@ -197,11 +197,11 @@ Tous les handlers utilisent `api_error_response(status_code, message)`. Contrat 
 | Pattern | Occurrences | Traité | Restant | Fichiers concernés |
 |---------|-------------|--------|---------|-------------------|
 | `await request.json()` | 11 | 4 (parse_json_body) | 7 | auth, chat, exercise, challenge, user, recommendation |
-| `JSONResponse({"error": ...})` | ~45 | — | ~45 | Tous les handlers |
+| `api_error_response` (ex-`JSONResponse`) | — | ~45 | 0 | Tous les handlers (unifié 22/02) |
 | `ErrorHandler.create_error_response()` | ~10 | ~10 | 0 | exercise, challenge |
 | `db_session()` (CM) | — | 100 % | 0 | Tous les handlers migrés |
 
-**Constat :** `parse_json_body` utilisé dans 4 endpoints (auth x3, chat x1). Les 7 autres `request.json()` dans exercise, challenge, user, recommendation pourraient en bénéficier. Error handling : mix ErrorHandler (~10) et JSONResponse direct (~45) — uniformisation optionnelle.
+**Constat :** `parse_json_body` utilisé dans 4 endpoints (auth x3, chat x1). Les 7 autres `request.json()` dans exercise, challenge, user, recommendation pourraient en bénéficier. Error handling : ✅ unifié — tous les handlers utilisent `api_error_response` (22/02).
 
 ### 6.2 Frontend — Occurrences mesurées
 
@@ -243,7 +243,7 @@ Tous les handlers utilisent `api_error_response(status_code, message)`. Contrat 
 | useCompletedExercises / useCompletedChallenges | 2 | Idem | Basse |
 | ExerciseModal / ChallengeModal | 2 | Idem | Basse |
 | Étendre parse_json_body | 7 handlers | Réduit duplication mineure | Moyenne |
-| Error handling uniforme | ~45 JSONResponse | Effort élevé, gain modéré | Basse |
+| Error handling uniforme | — | ✅ Fait (api_error_response partout) | — |
 | Fixtures auth tests | 8+ fichiers | Si maintenance tests douloureuse | Conditionnelle |
 
 ### Conclusion

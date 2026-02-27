@@ -1,6 +1,7 @@
 # Priorisation des corrections — Audit Backend Alpha 2
 
 **Date :** 28/02/2026  
+**Statut :** ✅ Clôturé (22/02/2026) — voir [CLOTURE_AUDIT_BACKEND_ALPHA2_2026-02-22.md](./AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/CLOTURE_AUDIT_BACKEND_ALPHA2_2026-02-22.md)  
 **Référence :** [AUDIT_TECHNIQUE_BACKEND_ALPHA2_2026-02-27.md](./AUDIT_TECHNIQUE_BACKEND_ALPHA2_2026-02-27.md)  
 **Critères :** Risque × Facilité × Gain (1–3, 3 = élevé)
 

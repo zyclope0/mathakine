@@ -1,7 +1,7 @@
 # 📕 Gestion projet Mathakine
 
 > Index maître — Audits, recommandations, rapports situationnels  
-> **Dernière mise à jour :** 28/02/2026
+> **Dernière mise à jour :** 28/02/2026 (clôture Audit Backend Alpha 2)
 
 ---
 
@@ -33,9 +33,6 @@
 
 | Document | Date | Sujet | État |
 |----------|------|-------|------|
-| [AUDIT_TECHNIQUE_BACKEND_ALPHA2_2026-02-27.md](./AUDIT_TECHNIQUE_BACKEND_ALPHA2_2026-02-27.md) | 27/02/2026 | ⭐ **Audit Backend Alpha 2** — modularité, config, reprod., observabilité. Plan d'action 5 étapes. | Actif |
-| [CHALLENGE_AUDIT_TECHNIQUE_BACKEND_2026-02-28.md](./CHALLENGE_AUDIT_TECHNIQUE_BACKEND_2026-02-28.md) | 28/02/2026 | **Challenge factuel** — vérification de l'audit 27/02 vs code réel. Tous les points confirmés. | Référence |
-| [PRIORISATION_AUDIT_BACKEND_ALPHA2_2026-02-28.md](./PRIORISATION_AUDIT_BACKEND_ALPHA2_2026-02-28.md) | 28/02/2026 | **Priorisation** — risque × facilité × gain. P1 implémenté (erreurs unifiées, SQL badge → service, requirements). | Référence |
 | [AUDIT_DASHBOARD_2026-02.md](./AUDIT_DASHBOARD_2026-02.md) | Fév. 2026 | Dashboard — imports, i18n, handleRefresh | Recos partielles |
 | [AUDIT_SENTRY_2026-02.md](./AUDIT_SENTRY_2026-02.md) | Fév. 2026 | Configuration Sentry, monitoring | Référence config |
 | [ANALYSE_DUPLICATION_DRY_2026-02.md](./ANALYSE_DUPLICATION_DRY_2026-02.md) | Fév. 2026 | DRY, duplication code | ~90 % traité (db_session, parse_json_body, safe_parse_json) — vérité terrain 25/02 |
@@ -55,7 +52,7 @@
 
 → Tous les documents archivés : [AUDITS_IMPLEMENTES](./AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/INDEX.md) | [RAPPORTS_TEMPORAIRES](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INDEX.md)
 
-Exemples : Backend Alpha 2, Dette qualité frontend, Qualité code, Refacto handlers, Migration Alembic, BILAN_COMPLET, PHASES…
+Exemples : **Audit Backend Alpha 2** (clôturé 28/02 — [clôture](./AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/CLOTURE_AUDIT_BACKEND_ALPHA2_2026-02-22.md)), Dette qualité frontend, Refacto handlers, Migration Alembic, BILAN_COMPLET, PHASES…
 
 ---
 

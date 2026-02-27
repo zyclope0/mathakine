@@ -2,10 +2,10 @@
 
 **Date :** 27/02/2026  
 **Type :** Audit technique  
-**Statut :** Actif — plan d'action à appliquer  
+**Statut :** ✅ Clôturé (28/02/2026) — voir [CLOTURE_AUDIT_BACKEND_ALPHA2_2026-02-22.md](./CLOTURE_AUDIT_BACKEND_ALPHA2_2026-02-22.md)  
 **Périmètre :** `app/`, `server/`, `migrations/`, fichiers de configuration (`requirements.txt`, `pyproject.toml`, `runtime.txt`, `render.yaml`, `.github/workflows/tests.yml`).
 
-> Audit complémentaire à [AUDIT_BACKEND_ALPHA2_INDUSTRIALISATION](../AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/AUDIT_BACKEND_ALPHA2_INDUSTRIALISATION.md) (archivé, corrections v2.1.0 appliquées).  
+> Audit complémentaire à [AUDIT_BACKEND_ALPHA2_INDUSTRIALISATION](./AUDIT_BACKEND_ALPHA2_INDUSTRIALISATION.md) (corrections v2.1.0 appliquées).  
 > **Challenge factuel :** [CHALLENGE_AUDIT_TECHNIQUE_BACKEND_2026-02-28.md](./CHALLENGE_AUDIT_TECHNIQUE_BACKEND_2026-02-28.md) — vérification point par point vs code réel.
 
 ---
@@ -96,9 +96,9 @@
 - Pipeline inclut lint backend (flake8/black/isort) et pipeline frontend (tsc/eslint/prettier/tests/build).
 - `flake8` est restreint aux erreurs critiques (`--select=E9,F63,F7,F82`), donc ne couvre pas la totalité des dettes style/qualité Python.
 
-### 5.2 Points de friction industrialisation
+### 5.2 Points de friction industrialisation — ✅ Corrigé (22/02/2026)
 
-- Initialisation CI appelle `create_tables_with_test_data()` qui peuple des données de test non minimales (dont utilisateur "ObiWan" permanent et jeux de données associés), ce qui augmente le couplage des tests à un dataset préseedé.
+- Initialisation CI appelle `create_tables()` sans seed — schéma uniquement. Tests isolés via fixtures. Plus de dépendance à ObiWan.
 - Création DB et init via scripts inline Python dans le YAML (maintenance plus difficile qu'une commande outillée unique/versionnée).
 - `ci.yml` n'existe plus (remplacé par `tests.yml`), ce qui peut créer une ambiguïté documentaire si des docs/process mentionnent encore `ci.yml`.
 
@@ -107,12 +107,12 @@
 ## 6) Points faibles factuels bloquants (fichiers ciblés)
 
 1. ~~**Contrat d'erreur API hétérogène**~~ ✅ Corrigé (22/02/2026) — tous les handlers utilisent `api_error_response`.
-2. **Logique métier encore dans les handlers** (`submit_answer` en particulier).
-3. **Accès DB direct et SQL brut dans handlers** (modèles/commit/SQL text dans couche HTTP).
+2. ~~**Logique métier encore dans les handlers**~~ ✅ Corrigé (28/02) — `submit_answer` délègue à `ExerciseService.submit_answer_result`.
+3. ~~**Accès DB direct et SQL brut dans handlers**~~ ✅ Corrigé (28/02) — BadgeService.get_user_gamification_stats, AuthService/UserService pour commit.
 4. **Migrations non pleinement réversibles** (`pass`, `NotImplementedError` sur downgrade).
 5. **Chaîne Alembic à chronologie de nommage incohérente** (fichier 20260206 dépend d'une révision 20260222).
 6. **Runtime async + DB sync** sans adoption explicite du stack SQLAlchemy async.
-7. **CI couplée à seed de données lourdes/permanentes** (ObiWan + fixtures applicatives).
+7. ~~**CI couplée à seed de données lourdes/permanentes**~~ ✅ Corrigé (22/02) — CI utilise `create_tables()` sans seed.
 8. **Double source de vérité partielle dépendances/packaging** (`requirements.txt` vs pyproject minimal).
 9. **`gunicorn` et `uvloop` présents mais non explicitement activés dans le démarrage Render/code**.
 

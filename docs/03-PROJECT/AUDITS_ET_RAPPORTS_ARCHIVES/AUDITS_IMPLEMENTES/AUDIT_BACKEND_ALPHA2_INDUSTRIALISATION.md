@@ -82,7 +82,7 @@
 |---|-------|------|
 | 1 | Logique/agrégations dans handlers | ⚠️ Réduit (handlers délèguent) |
 | 2 | Transaction/session adapter | ✅ Corrigé |
-| 3 | Contrat d'erreur API | ⚠️ Base unifiée ; handlers à migrer |
+| 3 | Contrat d'erreur API | ✅ Tous les handlers utilisent `api_error_response` |
 | 4 | Migrations downgrade / graphe | ⚠️ À documenter |
 | 5 | Config versioning | ✅ Aligné |
 | 6 | CI/CD | ✅ tests.yml actif |
