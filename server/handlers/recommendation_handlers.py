@@ -61,7 +61,6 @@ async def generate_recommendations(request):
             recommendations = RecommendationService.generate_recommendations(
                 db, user_id
             )
-            db.commit()
             return JSONResponse(
                 {
                     "message": "Recommandations générées avec succès",

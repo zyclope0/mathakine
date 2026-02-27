@@ -9,7 +9,7 @@
 | Point audit | État réel | Commentaire |
 |-------------|-----------|-------------|
 | 1. Fuite logique métier dans handlers | ⚠️ Partiellement obsolète | `get_user_stats` et `get_exercise` déléguent aux services. Voir détail ci‑dessous. |
-| 2. Couplage services↔modèles / contournement DB | ✅ Fait (handlers) | Tous les handlers passent par des services. `recommendation_handlers` a un `db.commit()` résiduel dans `generate_recommendations`. |
+| 2. Couplage services↔modèles / contournement DB | ✅ Fait | Tous les handlers passent par des services. `db.commit()` redondant retiré de `recommendation_handlers` (27/02). |
 | 3. Adapter ignore session injectée | ✅ Corrigé (27/02) | `create_generated_exercise` utilise désormais la session injectée via `ExerciseService.create_exercise`. |
 | 4. Gestion d'erreurs non uniforme | ❌ À faire | `error_handlers.py` → 404/500 génériques ; handlers renvoient `{"error": ...}` ad hoc. |
 | 5. Migrations chronologie / downgrade | ⚠️ Partiel | Chaîne Alembic cohérente (20260205→20260222→20260206…). Downgrade `20260222_legacy_tables` = no-op (volontaire). |
