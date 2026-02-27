@@ -26,9 +26,17 @@
 
 ### P1 — ✅ Implémenté (28/02/2026)
 
-1. **Erreurs API unifiées** : ErrorHandler utilise maintenant `api_error_json` (code, message, error). `api_error_response` utilisé dans submit_answer et badge_handlers pour les erreurs ad hoc.
+1. **Erreurs API unifiées** : Tous les handlers utilisent `api_error_response(status_code, message)` — contrat unifié `{code, message, error}`. Handlers migrés : auth, user, admin, challenge, chat, exercise, feedback, recommendation, analytics, middleware, server/auth, request_utils, rate_limit.
 2. **SQL brut badge_handlers** : `BadgeService.get_user_gamification_stats(user_id)` — plus de SQL dans le handler.
 3. **requirements.txt** : Commentaire starlette corrigé (FastAPI 0.133.1).
+
+### Session 22/02/2026 — Refactors et stabilisation
+
+| Réfacteur | Détail |
+|-----------|--------|
+| **Unification erreurs API** | Remplacement de tous les `JSONResponse({"error":...})` et `{"detail":...}` par `api_error_response` dans auth_handlers (~25 occ.), user_handlers, admin_handlers, challenge_handlers, chat_handlers, exercise_handlers, feedback_handlers, recommendation_handlers, analytics_handlers |
+| **Qualité code** | Black (admin, auth, challenge, user), isort (request_utils, admin_handlers, user_handlers), flake8 F821 (UserSession import auth_service) |
+| **CI tests** | test_get_exercises : correction assert `[] or None` → vérifier `"items" in data` (liste vide en CI sans seed) |
 
 ### P2 — ✅ Implémenté (28/02/2026)
 
@@ -42,3 +50,11 @@
 ### P4 — Non prioritaire
 
 7. Migrations réversibles, nommage Alembic, uvloop : documentation ou choix assumé.
+
+---
+
+### Option A — ✅ Implémenté (22/02/2026)
+
+7. **Config pydantic-settings** : `app/core/config.py` migré vers `BaseSettings` (pydantic-settings). Typage des champs, validation via `Field`, chargement depuis `.env` + variables d'environnement. Valeurs sensibles (postgres/postgres) restent en défaut pour dev local uniquement.
+
+**Validation** : Serveur démarre (`python enhanced_server.py`), connexion et login fonctionnent. Tests backend passent.

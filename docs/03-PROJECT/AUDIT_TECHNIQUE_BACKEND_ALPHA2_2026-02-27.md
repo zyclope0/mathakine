@@ -15,9 +15,9 @@
 | Axe | Score | Constats factuels principaux |
 |-----|------:|------------------------------|
 | Modularité | 5/10 | Les services centralisent une partie de la logique métier mais restent fortement couplés aux modèles ORM. Des handlers contiennent encore de la logique métier + SQL direct + mapping manuel de DTO. |
-| Sécurité de configuration | 6/10 | Blocages utiles en production (`SECRET_KEY`, mot de passe admin faible), mais `Settings` n'utilise pas `pydantic-settings` et conserve des valeurs par défaut sensibles en local (DB postgres/postgres). |
+| Sécurité de configuration | 6/10 | Blocages prod (`SECRET_KEY`, mot de passe admin). `Settings` migré vers pydantic-settings (22/02). Valeurs postgres/postgres en défaut pour dev local. |
 | Reproductibilité | 5/10 | Build Render exécute migrations, CI exécute tests/lint/smoke test. Mais seed de données de test non minimaliste en CI (incluant utilisateur ObiWan et datasets), et historique Alembic partiellement non réversible/no-op. |
-| Observabilité | 7/10 | Sentry + Prometheus intégrés, middleware métriques présent, healthcheck CI et Render. Structuration d'erreurs encore hétérogène selon handlers (schéma unifié non appliqué partout). |
+| Observabilité | 7/10 | Sentry + Prometheus intégrés, middleware métriques présent, healthcheck CI et Render. Erreurs API unifiées via `api_error_response` dans tous les handlers (22/02/2026). |
 
 ---
 
@@ -31,14 +31,14 @@
 ### 2.2 Fuite de logique métier dans les handlers
 
 - `submit_answer` contient de la logique métier applicative (règles de correction selon type, assemblage attempt, attribution badges, streak, formatage réponse) au lieu d'être uniquement orchestration HTTP.
-- Plusieurs handlers retournent des structures d'erreur ad hoc (`{"error": ...}` / `{"detail": ...}`), en parallèle du helper d'erreur unifié.
+- ~~Handlers avec structures ad hoc~~ ✅ Unifié (22/02/2026) — tous utilisent `api_error_response`.
 - Certains handlers manipulent directement des modèles et la transaction SQLAlchemy (`db.add`, `db.commit`) au lieu de passer strictement par des services.
 - Présence de SQL brut dans handler de badges (`db.execute(text(...))`).
 
 ### 2.3 `requirements.txt` (compatibilité/conflits visibles)
 
 - Incohérence de commentaire : `starlette==0.52.1` est annoté "compatible FastAPI 0.121.0" alors que `fastapi` est pinné `0.133.1`.
-- `pydantic-settings` est déclaré mais la configuration actuelle n'utilise pas `BaseSettings`.
+- ~~pydantic-settings non utilisé~~ ✅ Config migrée vers `BaseSettings` (22/02).
 - `gunicorn` est installé mais le démarrage Render est `python enhanced_server.py` (donc `uvicorn.run` en code), pas de commande Gunicorn effective dans `render.yaml`.
 - `uvloop` est présent dans les dépendances, mais aucun usage explicite/configuration uvloop n'est visible dans le bootstrap serveur.
 
@@ -46,18 +46,12 @@
 
 ## 3) Reproductibilité & configuration
 
-### 3.1 `app/core/config.py`
+### 3.1 `app/core/config.py` — ✅ Migré (22/02/2026)
 
-**Points robustes :**
-
+- `Settings` hérite de `BaseSettings` (pydantic-settings) : typage, validation, chargement env.
 - Refus de démarrage en production si `SECRET_KEY` absent.
-- Validation post-init en prod qui empêche un `DEFAULT_ADMIN_PASSWORD` vide/faible.
-
-**Limites factuelles :**
-
-- Classe `Settings` maison (attributs de classe) sans validation/typage runtime de `pydantic-settings`.
-- Valeurs par défaut locales pour DB et credentials (`postgres/postgres`) encore en dur.
-- Logique de détection production répartie sur plusieurs variables (`NODE_ENV`, `ENVIRONMENT`, `MATH_TRAINER_PROFILE`) augmentant la surface d'écart de config.
+- Validation post-init en prod pour `DEFAULT_ADMIN_PASSWORD` faible.
+- Valeurs par défaut postgres/postgres conservées pour dev local.
 
 ### 3.2 `render.yaml` (déterminisme build/migration)
 
@@ -75,11 +69,10 @@
 
 ## 4) Industrialisation & robustesse backend
 
-### 4.1 Gestion des erreurs (`server/error_handlers.py`)
+### 4.1 Gestion des erreurs — ✅ Unifié (22/02/2026)
 
-- Handler global 404/500 renvoie JSON unifié via `api_error_response`.
-- Cependant, les handlers applicatifs utilisent aussi `ErrorHandler.create_*` (schéma différent : `error_type`, `details`) et parfois des réponses JSON brutes (`error`/`detail`), créant une hétérogénéité de contrat API.
-- Les erreurs ne sont donc pas totalement typées/normalisées de bout en bout pour consommation frontend industrielle.
+- Handler global 404/500 et tous les handlers applicatifs utilisent `api_error_response(status_code, message)`.
+- Contrat unifié : `{code, message, error}` (rétrocompat frontend via `error`). Handlers auth, user, admin, challenge, chat, exercise, feedback, recommendation, analytics, middleware, utils.
 
 ### 4.2 Migrations (`migrations/versions/`)
 
@@ -113,7 +106,7 @@
 
 ## 6) Points faibles factuels bloquants (fichiers ciblés)
 
-1. **Contrat d'erreur API hétérogène** (global handler unifié vs réponses ad hoc dans handlers).
+1. ~~**Contrat d'erreur API hétérogène**~~ ✅ Corrigé (22/02/2026) — tous les handlers utilisent `api_error_response`.
 2. **Logique métier encore dans les handlers** (`submit_answer` en particulier).
 3. **Accès DB direct et SQL brut dans handlers** (modèles/commit/SQL text dans couche HTTP).
 4. **Migrations non pleinement réversibles** (`pass`, `NotImplementedError` sur downgrade).
@@ -127,8 +120,7 @@
 
 ## 7) Plan d'action technique prioritaire (5 étapes)
 
-1. **Uniformiser le contrat d'erreur API**  
-   Imposer une seule fabrique d'erreur (`code`, `message`, `trace_id`, `field_errors`) pour tous les handlers et retirer les payloads ad hoc.
+1. ~~**Uniformiser le contrat d'erreur API**~~ ✅ Fait — `api_error_response` utilisé partout.
 
 2. **Extraire la logique métier des handlers**  
    Commencer par `submit_answer` : déplacer règles de correction, attribution badges/streak, assemblage du résultat dans un service d'application transactionnel unique.

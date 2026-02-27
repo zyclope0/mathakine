@@ -13,7 +13,7 @@
 | Axe | Score | Constat factuel |
 |---|---:|---|
 | Modularité | 5/10 | Une couche `app/services` existe ; couche repository non explicite ; adapter session corrigé (28/02). |
-| Sécurité de configuration | 6/10 | Contrôles prod réels ; config non BaseSettings ; version alignée (28/02). |
+| Sécurité de configuration | 6/10 | Contrôles prod réels ; config migrée BaseSettings (22/02) ; version alignée. |
 | Reproductibilité | 6/10 | Render build déterministe ; CI tests.yml actif sur push/PR. |
 | Observabilité | 6/10 | Sentry + Prometheus + `/metrics` ; schéma d'erreur unifié introduit (28/02). |
 
@@ -40,7 +40,7 @@
 ### 2.1 `app/core/config.py`
 - Contrôles prod : `.env` ignoré en production, `SECRET_KEY` obligatoire, mot de passe admin faible interdit.
 - **Alignement version (27/02)** : `PROJECT_VERSION = "2.1.0"` (aligné avec pyproject.toml).
-- `BaseSettings` importé mais non utilisé.
+- **Mise à jour 22/02** : Config migrée vers `BaseSettings` (pydantic-settings). Serveur démarre, login OK.
 
 ### 2.2 `render.yaml`
 - Build déterministe : `pip install -r requirements.txt && alembic upgrade head`.
@@ -57,10 +57,9 @@
 
 ## 3) Industrialisation & robustesse
 
-### 3.1 Gestion des erreurs — ⚠️ Partiellement corrigé (28/02)
-- **Corrigé** : schéma unifié `api_error_json` / `api_error_response` avec `code`, `message`, `error`, `path`, `trace_id`, `field_errors`.
-- 404/500 globaux (`error_handlers.py`) utilisent ce schéma.
-- Handlers métier utilisent encore `{"error": ...}` — migration progressive possible.
+### 3.1 Gestion des erreurs — ✅ Unifié (22/02/2026)
+- **Corrigé** : schéma unifié `api_error_json` / `api_error_response` avec `code`, `message`, `error`.
+- Tous les handlers (auth, user, admin, challenge, chat, exercise, etc.) utilisent `api_error_response`.
 
 ### 3.2 Migrations
 - `upgrade()`/`downgrade()` définis ; certains downgrade sont no-op (legacy tables).

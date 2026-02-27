@@ -8,16 +8,16 @@
 
 ## Synthèse rapide
 
-| Point audit | Vérification code | Commentaire |
-|-------------|-------------------|-------------|
-| **2.2 Fuite logique métier dans submit_answer** | ✅ **Confirmé** | Logique `is_correct` (texte vs numérique), assemblage réponse, badges, streak dans le handler |
-| **2.2 Erreurs ad hoc vs unifié** | ✅ **Confirmé** | `JSONResponse({"error": ...})`, `ErrorHandler.create_*` (schema différent de `api_error_response`) |
-| **2.2 db.add / db.commit dans handlers** | ✅ **Confirmé** | auth_handlers (185, 300-301, 668), user_handlers (171), admin_handlers_utils (76) |
-| **2.2 SQL brut dans handlers** | ✅ **Confirmé** | badge_handlers.py L115-136 : `db.execute(text(""SELECT...""))` |
-| **2.3 requirements.txt** | ✅ **Confirmé** | starlette "0.121.0" vs fastapi 0.133.1 ; pydantic-settings non utilisé ; gunicorn/uvloop présents non activés |
-| **3.1 config.py** | ✅ **Confirmé** | Settings maison, postgres/postgres en dur, multi-variables prod |
-| **3.2 render.yaml** | ✅ **Confirmé** | `python enhanced_server.py`, pas Gunicorn, pas pre-deploy bloquante |
-| **4.1 Hétérogénéité erreurs** | ✅ **Confirmé** | api_error_response (code, message) vs ErrorHandler (error, error_type, details) vs JSONResponse brut |
+| Point audit | État | Commentaire |
+|-------------|------|-------------|
+| **2.2 Fuite logique métier dans submit_answer** | ✅ Corrigé | Logique extraite vers `ExerciseService.submit_answer_result` (28/02) |
+| **2.2 Erreurs ad hoc vs unifié** | ✅ Corrigé | Tous les handlers utilisent `api_error_response` (22/02) |
+| **2.2 db.add / db.commit dans handlers** | ✅ Corrigé | Services AuthService, UserService ; plus de commit dans handlers (28/02) |
+| **2.2 SQL brut dans handlers** | ✅ Corrigé | `BadgeService.get_user_gamification_stats` (28/02) |
+| **2.3 requirements.txt** | ⚠️ Partiel | starlette corrigé ; pydantic-settings / gunicorn / uvloop à traiter |
+| **3.1 config.py** | ✅ Corrigé | Migré vers pydantic-settings BaseSettings (22/02) |
+| **3.2 render.yaml** | ✅ Confirmé | `python enhanced_server.py`, pas Gunicorn |
+| **4.1 Hétérogénéité erreurs** | ✅ Corrigé | Contrat unifié `api_error_response` partout (22/02) |
 | **4.2 Migrations chronologie** | ✅ **Confirmé** | 20260206_exercises_idx dépend de 20260222_legacy_tables |
 | **4.3 uvloop** | ✅ **Confirmé** | Aucun `loop=uvloop` ou import explicite dans enhanced_server / server/app.py |
 | **5.2 CI ObiWan** | ✅ **Confirmé** | create_tables_with_test_data() en CI ; db_init_service crée ObiWan |
@@ -41,49 +41,17 @@
 
 **Délégation partielle :** `ExerciseService.get_exercise_for_submit_validation` et `ExerciseService.record_attempt` sont utilisés. La logique de correction et l’orchestration (badges, streak, réponse) restent dans le handler.
 
-### 2.2 Erreurs ad hoc vs schéma unifié
+### 2.2 Erreurs ad hoc vs schéma unifié — ✅ Corrigé (22/02/2026)
 
-**Fichiers concernés :**
+Tous les handlers utilisent désormais `api_error_response(status_code, message)` — contrat unifié `{code, message, error}`. Fichiers : auth, user, admin, challenge, chat, exercise, feedback, recommendation, analytics, middleware, utils.
 
-| Handler | Format utilisé | Fichier |
-|---------|---------------|---------|
-| exercise_handlers | `JSONResponse({"error": ...})` L165, L263 | exercise_handlers.py |
-| exercise_handlers | `ErrorHandler.create_not_found_error` L121, 126 | exercise_handlers.py |
-| exercise_handlers | `ErrorHandler.create_error_response` L134, 199, 377, 465, 555, 890 | exercise_handlers.py |
-| error_handlers (global) | `api_error_response` (code, message, trace_id) | error_handlers.py |
+### 2.2 db.add / db.commit dans handlers — ✅ Corrigé (28/02/2026)
 
-**Schéma ErrorHandler :** `error`, `error_type`, `details` (optionnel) — différent de `api_error_json` (code, message, path, trace_id, field_errors).
+Logique déplacée vers services : `AuthService.resend_verification_token`, `create_session`, `initiate_password_reset`, `set_verification_token_for_new_user` ; `UserService` pour register. Handlers = orchestration HTTP uniquement.
 
-### 2.2 db.add / db.commit dans handlers
+### 2.2 SQL brut dans badge_handlers — ✅ Corrigé (28/02/2026)
 
-| Fichier | Ligne | Contexte |
-|---------|-------|----------|
-| auth_handlers.py | 185 | `db.commit()` — resend verification token |
-| auth_handlers.py | 300-301 | `db.add(db_session_row)` + `db.commit()` — création UserSession au login |
-| auth_handlers.py | 668 | `db.commit()` — autre flow |
-| user_handlers.py | 171 | `db.commit()` — register, mise à jour verification token |
-| admin_handlers_utils.py | 76 | `db.add(log)` — audit log (pas de commit explicite, transaction parente) |
-
-### 2.2 SQL brut dans badge_handlers
-
-**Fichier :** `server/handlers/badge_handlers.py` L115-136
-
-```python
-stats = db.execute(
-    text("""
-    SELECT COUNT(*) as total_attempts, ...
-    FROM attempts WHERE user_id = :user_id
-    """),
-    {"user_id": user_id},
-).fetchone()
-
-badge_stats = db.execute(
-    text("""SELECT a.category, COUNT(*) ... FROM achievements a JOIN user_achievements ua ..."""),
-    {"user_id": user_id},
-).fetchall()
-```
-
-**Confirmé :** Requêtes SQL brutes dans le handler, non encapsulées dans un service/repository.
+Remplacé par `BadgeService.get_user_gamification_stats(user_id)`. Handler délègue au service.
 
 ---
 
@@ -94,31 +62,19 @@ badge_stats = db.execute(
 | Point | Code réel |
 |-------|-----------|
 | starlette "compatible FastAPI 0.121.0" | requirements.txt L3 : `starlette==0.52.1  # Version compatible FastAPI 0.121.0` — fastapi L2 : `0.133.1` |
-| pydantic-settings non utilisé | config.py : `class Settings` avec attributs de classe, pas `BaseSettings` |
+| pydantic-settings | ✅ Utilisé — config.py hérite de BaseSettings (22/02) |
 | gunicorn | requirements.txt L52, render.yaml L14 : `python enhanced_server.py` — pas Gunicorn |
 | uvloop | requirements.txt L53 (conditionnel Windows), server/app.py L81 : `uvicorn.run(...)` sans paramètre `loop` |
 
-### 3.1 app/core/config.py
+### 3.1 app/core/config.py — ✅ Corrigé (22/02/2026)
 
-- `Settings` : classe maison, attributs `os.getenv(...)`, pas de pydantic-settings
-- Valeurs par défaut : `postgres/postgres` dans DATABASE_URL, TEST_DATABASE_URL, POSTGRES_*
-- Détection prod : `NODE_ENV`, `ENVIRONMENT`, `MATH_TRAINER_PROFILE` (L163-166)
+- `Settings` : hérite de `BaseSettings` (pydantic-settings), typage et validation via `Field`
+- Chargement : `.env` en dev, variables d'environnement (prod)
+- Valeurs par défaut postgres/postgres conservées pour dev local
 
-### 4.1 Hétérogénéité schéma erreurs
+### 4.1 Hétérogénéité schéma erreurs — ✅ Corrigé (22/02/2026)
 
-**api_error_json / api_error_response (app/utils/error_handler.py) :**
-- Champs : `code`, `message`, `error` (alias), `path`, `trace_id`, `field_errors`
-
-**ErrorHandler.create_error_response :**
-- Champs : `error`, `error_type`, `error_message`, `details` (en dev)
-
-**ErrorHandler.create_not_found_error :**
-- Champs : `error`, `resource_type`, `resource_id`
-
-**ErrorHandler.create_validation_error :**
-- Champs : `error`, `field`, `message`
-
-**Conclusion :** Plusieurs schémas coexistent. Le frontend doit gérer `message`, `detail`, `error` selon les endpoints (client.ts).
+Contrat unifié `api_error_response` : `{code, message, error}`. Tous les handlers l'utilisent. Le frontend lit `message` ou `error` (client.ts ligne 162).
 
 ---
 

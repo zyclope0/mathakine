@@ -419,9 +419,8 @@ def db(engine):
 
 **Diagnostics** :
 ```python
-# Activer logging SQL
-# app/core/config.py
-SQLALCHEMY_ECHO = True  # Voir toutes les requêtes
+# Activer logging SQL : LOG_LEVEL=DEBUG dans .env
+# (app/db/base.py utilise echo=settings.LOG_LEVEL == "DEBUG")
 
 # Profiler
 import cProfile

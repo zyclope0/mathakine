@@ -66,11 +66,9 @@ async with db_session() as db:
 
 ---
 
-### 1.4 Error handling mixte
+### 1.4 Error handling — ✅ Unifié (22/02/2026)
 
-**Constat :** Mix de `ErrorHandler.create_error_response()` et `JSONResponse({"error": ...}, status_code=400)` direct.
-
-**Proposition :** Uniformiser via `ErrorHandler.create_error_response()` ou `ErrorHandler.create_validation_error()` pour toutes les erreurs 4xx/5xx.
+Tous les handlers utilisent `api_error_response(status_code, message)`. Contrat unifié `{code, message, error}`.
 
 ---
 
