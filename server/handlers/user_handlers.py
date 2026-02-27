@@ -17,7 +17,11 @@ from starlette.responses import JSONResponse
 
 from app.core.messages import SystemMessages
 from app.schemas.user import UserCreate
-from app.services.auth_service import create_user, get_user_by_email
+from app.services.auth_service import (
+    create_user,
+    set_verification_token_for_new_user,
+    get_user_by_email,
+)
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.user_service import UserService
 from app.utils.csrf import validate_csrf_token
@@ -157,19 +161,10 @@ async def create_user_account(request: Request):
                 # Créer l'utilisateur
                 user = create_user(db, user_create)
 
-                # Générer un token de vérification email
-                from datetime import datetime, timezone
-
                 from app.utils.email_verification import generate_verification_token
 
                 verification_token = generate_verification_token()
-                user.email_verification_token = verification_token
-                user.email_verification_sent_at = datetime.now(timezone.utc)
-                user.is_email_verified = False  # Par défaut non vérifié
-
-                # Sauvegarder les modifications
-                db.commit()
-                db.refresh(user)
+                set_verification_token_for_new_user(db, user, verification_token)
 
                 # Envoyer l'email de vérification
                 try:

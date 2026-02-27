@@ -16,16 +16,19 @@ from starlette.responses import JSONResponse
 from app.core.security import decode_token
 from app.services.auth_service import (
     authenticate_user,
+    create_session,
     create_user_token,
     get_user_by_email,
+    initiate_password_reset,
     refresh_access_token,
+    resend_verification_token,
     reset_password_with_token,
+    set_verification_token_for_new_user,
     verify_email_token,
 )
 from app.services.email_service import EmailService
 from app.utils.csrf import validate_csrf_token
 from app.utils.db_utils import db_session
-from app.utils.email_verification import generate_verification_token
 from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
 from server.auth import require_auth
 
@@ -177,13 +180,7 @@ async def resend_verification_email(request: Request):
                         status_code=200,
                     )  # 200 pour ne pas révéler l'existence du compte
 
-            # Générer un nouveau token
-            verification_token = generate_verification_token()
-            user.email_verification_token = verification_token
-            user.email_verification_sent_at = datetime.now(timezone.utc)
-
-            db.commit()
-            db.refresh(user)
+            verification_token = resend_verification_token(db, user)
 
             # Envoyer l'email
             frontend_url = os.getenv(
@@ -278,27 +275,14 @@ async def api_login(request: Request):
             token_data = create_user_token(user)
             logger.info(f"Connexion réussie pour l'utilisateur: {user.username}")
 
-            # Créer une entrée UserSession pour /api/users/me/sessions (sessions actives)
             from app.core.config import settings
-            from app.models.user_session import UserSession
 
             ip = request.client.host if request.client else None
             user_agent = request.headers.get("user-agent") or ""
-            device_info = {"user_agent": user_agent[:500]} if user_agent else None
-            session_token = secrets.token_urlsafe(32)
             expires_at = datetime.now(timezone.utc) + timedelta(
                 days=settings.REFRESH_TOKEN_EXPIRE_DAYS
             )
-            db_session_row = UserSession(
-                user_id=user.id,
-                session_token=session_token,
-                device_info=device_info,
-                ip_address=ip,
-                user_agent=user_agent[:2000] if user_agent else None,
-                expires_at=expires_at,
-            )
-            db.add(db_session_row)
-            db.commit()
+            create_session(db, user.id, ip, user_agent, expires_at)
 
             # Ajouter les informations utilisateur à la réponse
             access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
@@ -657,16 +641,7 @@ async def api_forgot_password(request: Request):
                 logger.warning(f"Demande reset password pour compte inactif: {email}")
                 return JSONResponse({"message": success_message}, status_code=200)
 
-            # Générer token (1h d'expiration)
-            reset_token = generate_verification_token()
-            expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-
-            user.password_reset_token = reset_token
-            user.password_reset_expires_at = expires_at
-            user.updated_at = datetime.now(timezone.utc)
-
-            db.commit()
-            db.refresh(user)
+            reset_token = initiate_password_reset(db, user)
 
             frontend_url = os.getenv(
                 "FRONTEND_URL", "https://mathakine-frontend.onrender.com"

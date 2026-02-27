@@ -13,7 +13,7 @@
 | 1 | Contrat erreur API hétérogène | 3 | 2 | 3 | 18 | **P1** |
 | 2 | Logique métier dans submit_answer | 2 | 2 | 3 | 12 | **P2** |
 | 3 | SQL brut dans badge_handlers | 2 | 3 | 3 | 18 | **P1** |
-| 4 | db.add/db.commit dans handlers (auth/user) | 2 | 1 | 2 | 4 | P3 |
+| 4 | db.add/db.commit dans handlers (auth/user) | 2 | 1 | 2 | 4 | **P3 ✅** |
 | 5 | requirements.txt (commentaire, pydantic-settings) | 1 | 3 | 1 | 3 | **P1** (partiel) |
 | 6 | Migrations non réversibles | 1 | 1 | 1 | 1 | P4 |
 | 7 | Chaîne Alembic nommage | 1 | 1 | 1 | 1 | P4 |
@@ -34,9 +34,9 @@
 
 4. **submit_answer** : Logique extraite vers `ExerciseService.submit_answer_result` (validation, record_attempt, badges, streak). Handler = orchestration HTTP uniquement.
 
-### P3 — Backlog
+### P3 — ✅ Implémenté (28/02/2026)
 
-5. **auth/user db.commit** : Migrer `resend_verification_email`, `login` (UserSession), `register` vers AuthService/UserService.
+5. **auth/user db.commit** : AuthService.resend_verification_token, create_session, initiate_password_reset, set_verification_token_for_new_user. Handlers n'ont plus de db.add/db.commit.
 6. **CI fixtures** : Remplacer seed global par fixtures ciblées par test (plus gros chantier).
 
 ### P4 — Non prioritaire

@@ -472,6 +472,72 @@ def verify_email_token(db: Session, token: str) -> Tuple[Optional[User], Optiona
     return user, None
 
 
+def resend_verification_token(db: Session, user: User) -> str:
+    """
+    Génère et enregistre un nouveau token de vérification pour l'utilisateur.
+    Returns: le token généré.
+    """
+    from app.utils.email_verification import generate_verification_token
+
+    token = generate_verification_token()
+    user.email_verification_token = token
+    user.email_verification_sent_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(user)
+    return token
+
+
+def create_session(
+    db: Session,
+    user_id: int,
+    ip: Optional[str],
+    user_agent: Optional[str],
+    expires_at: datetime,
+) -> "UserSession":
+    """Crée une entrée UserSession pour le suivi des sessions actives."""
+    import secrets
+
+    from app.models.user_session import UserSession
+
+    session_token = secrets.token_urlsafe(32)
+    session_row = UserSession(
+        user_id=user_id,
+        session_token=session_token,
+        device_info={"user_agent": (user_agent or "")[:500]} if user_agent else None,
+        ip_address=ip,
+        user_agent=(user_agent or "")[:2000] if user_agent else None,
+        expires_at=expires_at,
+    )
+    db.add(session_row)
+    db.commit()
+    return session_row
+
+
+def initiate_password_reset(db: Session, user: User) -> str:
+    """
+    Initialise la réinitialisation mot de passe : token + expiration.
+    Returns: le token de réinitialisation.
+    """
+    from app.utils.email_verification import generate_verification_token
+
+    token = generate_verification_token()
+    user.password_reset_token = token
+    user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    user.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(user)
+    return token
+
+
+def set_verification_token_for_new_user(db: Session, user: User, token: str) -> None:
+    """Enregistre le token de vérification pour un nouvel utilisateur (register)."""
+    user.email_verification_token = token
+    user.email_verification_sent_at = datetime.now(timezone.utc)
+    user.is_email_verified = False
+    db.commit()
+    db.refresh(user)
+
+
 def reset_password_with_token(
     db: Session, token: str, new_password: str
 ) -> Tuple[Optional[User], Optional[str]]:
