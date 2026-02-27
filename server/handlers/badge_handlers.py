@@ -37,9 +37,7 @@ async def get_user_badges(request):
             f"Erreur lors de la récupération des badges utilisateur: {user_badges_error}"
         )
         traceback.print_exc()
-        return api_error_response(
-            500, get_safe_error_message(user_badges_error)
-        )
+        return api_error_response(500, get_safe_error_message(user_badges_error))
 
 
 async def get_available_badges(request: Request):
@@ -59,9 +57,7 @@ async def get_available_badges(request: Request):
             f"Erreur lors de la récupération des badges disponibles: {available_badges_error}"
         )
         logger.debug(traceback.format_exc())
-        return api_error_response(
-            500, get_safe_error_message(available_badges_error)
-        )
+        return api_error_response(500, get_safe_error_message(available_badges_error))
 
 
 @require_auth
@@ -93,9 +89,7 @@ async def check_user_badges(request):
             f"Erreur lors de la vérification forcée des badges: {badge_verification_error}"
         )
         traceback.print_exc()
-        return api_error_response(
-            500, get_safe_error_message(badge_verification_error)
-        )
+        return api_error_response(500, get_safe_error_message(badge_verification_error))
 
 
 @require_auth
@@ -118,9 +112,7 @@ async def get_user_gamification_stats(request):
             f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}"
         )
         traceback.print_exc()
-        return api_error_response(
-            500, get_safe_error_message(gamification_stats_error)
-        )
+        return api_error_response(500, get_safe_error_message(gamification_stats_error))
 
 
 @require_auth

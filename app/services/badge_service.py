@@ -823,9 +823,7 @@ class BadgeService:
             "performance": {
                 "total_attempts": total,
                 "correct_attempts": correct,
-                "success_rate": round(
-                    (correct / total * 100) if total > 0 else 0, 1
-                ),
+                "success_rate": round((correct / total * 100) if total > 0 else 0, 1),
                 "avg_time_spent": round(avg_time, 2) if avg_time else 0,
             },
         }

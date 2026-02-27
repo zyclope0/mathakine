@@ -21,7 +21,11 @@ from app.services.badge_service import BadgeService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.exercise_service import ExerciseService
 from app.utils.db_utils import db_session
-from app.utils.error_handler import ErrorHandler, api_error_response, get_safe_error_message
+from app.utils.error_handler import (
+    ErrorHandler,
+    api_error_response,
+    get_safe_error_message,
+)
 from server.auth import optional_auth, require_auth, require_auth_sse
 from server.exercise_generator import (
     ensure_explanation,
@@ -183,9 +187,7 @@ async def submit_answer(request):
             )
 
             if not exercise:
-                return api_error_response(
-                    404, SystemMessages.ERROR_EXERCISE_NOT_FOUND
-                )
+                return api_error_response(404, SystemMessages.ERROR_EXERCISE_NOT_FOUND)
 
             # Déterminer si la réponse est correcte
             is_correct = False
