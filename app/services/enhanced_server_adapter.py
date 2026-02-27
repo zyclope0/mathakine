@@ -193,7 +193,7 @@ class EnhancedServerAdapter:
         dans enhanced_server.py.
 
         Args:
-            db: Session de base de données (non utilisée, conservée pour compatibilité)
+            db: Session de base de données (utilisée pour cohérence transactionnelle)
             exercise_type: Type d'exercice
             age_group: Groupe d'âge de l'exercice
             difficulty: Niveau de difficulté
@@ -216,7 +216,7 @@ class EnhancedServerAdapter:
         exercise_data = {
             "title": title,
             "exercise_type": exercise_type,
-            "age_group": age_group,  # Utilisation du nouveau paramètre
+            "age_group": age_group,
             "difficulty": difficulty,
             "question": question,
             "correct_answer": correct_answer,
@@ -233,22 +233,8 @@ class EnhancedServerAdapter:
         logger.info(
             f"Création d'un exercice généré de type {exercise_type}, groupe d'âge {age_group}, difficulté {difficulty}"
         )
-        # NOTE: Utiliser ExerciseService ORM directement
-        db = EnhancedServerAdapter.get_db_session()
-        try:
-            from app.models.exercise import Exercise
-
-            exercise = Exercise(**exercise_data)
-            db.add(exercise)
-            db.commit()
-            db.refresh(exercise)
-            return _serialize_exercise(exercise)
-        except Exception as exercise_creation_error:
-            logger.error(f"Erreur création exercice: {exercise_creation_error}")
-            db.rollback()
-            return None
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
+        exercise = ExerciseService.create_exercise(db, exercise_data)
+        return _serialize_exercise(exercise) if exercise else None
 
     @staticmethod
     def update_exercise(

@@ -37,7 +37,7 @@ class Settings:
     """
 
     PROJECT_NAME: str = "Mathakine"
-    PROJECT_VERSION: str = "1.5.0"
+    PROJECT_VERSION: str = "2.1.0"
 
     API_V1_STR: str = "/api"
     SECRET_KEY: str = os.getenv("SECRET_KEY", "")
