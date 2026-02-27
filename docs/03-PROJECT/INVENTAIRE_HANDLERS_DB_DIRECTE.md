@@ -9,7 +9,7 @@
 
 | Handler | Requêtes directes | Priorité |
 |---------|-------------------|----------|
-| admin_handlers | ~50+ (CRUD restant) | Partiel — lectures via AdminService |
+| admin_handlers | 0 | ✅ Refactoré (27/02) |
 | user_handlers | 0 | ✅ Refactoré |
 | exercise_handlers | 0 | ✅ Refactoré |
 | auth_handlers | 0 | ✅ Refactoré (26/02) |
@@ -85,7 +85,11 @@ Les handlers login/logout/refresh passent déjà par `AuthService`. Les flows ve
 
 **Exercises CRUD** : ✅ `AdminService.list_exercises_for_admin`, `create_exercise_for_admin`, `get_exercise_for_admin`, `put_exercise_for_admin`, `duplicate_exercise_for_admin`, `patch_exercise_for_admin` (27/02)
 
-**Reste en DB directe** : Challenges, Export CSV.
+**Challenges CRUD** : ✅ `AdminService.list_challenges_for_admin`, `create_challenge_for_admin`, `get_challenge_for_admin`, `put_challenge_for_admin`, `duplicate_challenge_for_admin`, `patch_challenge_for_admin` (27/02)
+
+**Export CSV** : ✅ `AdminService.export_csv_data_for_admin` (27/02)
+
+**Reste en DB directe** : Aucun — admin_handlers refactoré.
 
 ---
 
@@ -103,4 +107,4 @@ Les handlers login/logout/refresh passent déjà par `AuthService`. Les flows ve
 3. ~~**exercise_handlers**~~ ✅ Fait
 4. ~~**auth_handlers**~~ ✅ Fait (26/02/2026)
 5. ~~**feedback_handlers**~~ ✅ Fait (26/02)
-6. ~~**admin_handlers**~~ Partiel (26/02) — config, overview, audit, modération, reports via AdminService. CRUD reste en DB directe.
+6. ~~**admin_handlers**~~ ✅ Refactoré (27/02) — tout via AdminService (config, users, badges, exercises, challenges, export CSV).

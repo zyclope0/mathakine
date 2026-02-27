@@ -6,22 +6,11 @@ import csv
 import io
 import json
 import os
-from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import case, func
-from sqlalchemy.orm import Session
 from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse
 
 from app.models.admin_audit_log import AdminAuditLog
-from app.models.attempt import Attempt
-from app.models.exercise import Exercise
-from app.models.logic_challenge import (
-    AgeGroup,
-    LogicChallenge,
-    LogicChallengeAttempt,
-    LogicChallengeType,
-)
 from app.models.setting import Setting
 from app.models.user import User, UserRole
 from app.services.email_service import EmailService
@@ -472,223 +461,78 @@ async def admin_badges_delete(request: Request):
     return JSONResponse(result)
 
 
-def _challenge_to_detail(c) -> dict:
-    """Sérialise un défi pour l'édition admin."""
-    ct_val = (
-        c.challenge_type.value
-        if hasattr(c.challenge_type, "value")
-        else str(c.challenge_type)
-    )
-    ag_val = c.age_group.value if hasattr(c.age_group, "value") else str(c.age_group)
-    return {
-        "id": c.id,
-        "title": c.title,
-        "description": c.description or "",
-        "challenge_type": ct_val,
-        "age_group": ag_val,
-        "difficulty": c.difficulty or "",
-        "content": c.content or "",
-        "question": c.question or "",
-        "solution": c.solution or "",
-        "correct_answer": c.correct_answer or "",
-        "choices": c.choices,
-        "solution_explanation": c.solution_explanation or "",
-        "visual_data": c.visual_data,
-        "hints": c.hints,
-        "image_url": c.image_url or "",
-        "tags": c.tags or "",
-        "is_active": c.is_active,
-        "is_archived": c.is_archived,
-        "difficulty_rating": c.difficulty_rating,
-        "estimated_time_minutes": c.estimated_time_minutes,
-        "created_at": c.created_at.isoformat() if c.created_at else None,
-        "updated_at": c.updated_at.isoformat() if c.updated_at else None,
-    }
-
-
 @require_auth
 @require_admin
 async def admin_challenges_post(request: Request):
     """POST /api/admin/challenges — création d'un défi."""
+    from app.services.admin_service import AdminService
+
     try:
         data = await request.json()
     except Exception:
         return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
 
-    title = (data.get("title") or "").strip()
-    description = (data.get("description") or "").strip()
-    challenge_type_raw = (data.get("challenge_type") or "puzzle").strip().lower()
-    age_group_raw = (data.get("age_group") or "GROUP_10_12").strip()
-
-    if not title:
-        return JSONResponse({"error": "Le titre est obligatoire."}, status_code=400)
-    if not description:
-        return JSONResponse(
-            {"error": "La description est obligatoire."}, status_code=400
-        )
-
-    try:
-        ct = LogicChallengeType(challenge_type_raw)
-    except ValueError:
-        ct = LogicChallengeType.PUZZLE
-    try:
-        ag = AgeGroup(age_group_raw)
-    except ValueError:
-        ag = AgeGroup.GROUP_10_12
-
     async with db_session() as db:
-        ch = LogicChallenge(
-            title=title,
-            description=description,
-            challenge_type=ct,
-            age_group=ag,
-            question=(data.get("question") or "").strip() or None,
-            content=(data.get("content") or "").strip() or None,
-            solution=(data.get("solution") or "").strip() or None,
-            correct_answer=(data.get("correct_answer") or "").strip() or None,
-            solution_explanation=(data.get("solution_explanation") or "").strip()
-            or None,
-            visual_data=data.get("visual_data"),
-            hints=data.get("hints"),
-        )
-        db.add(ch)
-        db.flush()
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(
-            db, admin_id, "challenge_create", "challenge", ch.id, {"title": ch.title}
+        result, err, code = AdminService.create_challenge_for_admin(
+            db, data=data, admin_user_id=admin_id
         )
-        db.commit()
-        db.refresh(ch)
-    return JSONResponse(_challenge_to_detail(ch), status_code=201)
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result, status_code=201)
 
 
 @require_auth
 @require_admin
 async def admin_challenge_get(request: Request):
     """GET /api/admin/challenges/{challenge_id} — détail complet pour édition."""
+    from app.services.admin_service import AdminService
+
     challenge_id = int(request.path_params.get("challenge_id"))
     async with db_session() as db:
-        ch = db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
-        if not ch:
-            return JSONResponse({"error": "Défi non trouvé."}, status_code=404)
-        return JSONResponse(_challenge_to_detail(ch))
+        result, err, code = AdminService.get_challenge_for_admin(db, challenge_id)
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result)
 
 
 @require_auth
 @require_admin
 async def admin_challenges_put(request: Request):
     """PUT /api/admin/challenges/{challenge_id} — mise à jour complète."""
+    from app.services.admin_service import AdminService
+
     challenge_id = int(request.path_params.get("challenge_id"))
     try:
         data = await request.json()
     except Exception:
         return JSONResponse({"error": "Corps JSON invalide."}, status_code=400)
 
-    allowed_str = {
-        "title",
-        "description",
-        "difficulty",
-        "content",
-        "question",
-        "solution",
-        "correct_answer",
-        "solution_explanation",
-        "image_url",
-        "tags",
-    }
-    allowed_bool = {"is_active", "is_archived"}
-    allowed_int = {"difficulty_rating", "estimated_time_minutes"}
-    allowed_json = {"choices", "visual_data", "hints"}
-
-    update_data = {}
-    for k, v in data.items():
-        if k in allowed_str and v is not None:
-            update_data[k] = str(v) if not isinstance(v, str) else v
-        elif k in allowed_bool:
-            if v is not None:
-                update_data[k] = v in (True, "true", "1", 1)
-        elif k in allowed_int and v is not None:
-            update_data[k] = int(v) if isinstance(v, (int, float)) else v
-        elif k in allowed_json:
-            update_data[k] = v
-        elif k == "challenge_type" and v is not None:
-            try:
-                update_data[k] = LogicChallengeType(str(v).lower())
-            except ValueError:
-                pass
-        elif k == "age_group" and v is not None:
-            try:
-                sv = str(v).strip()
-                update_data[k] = AgeGroup(sv)
-            except ValueError:
-                pass
-
     async with db_session() as db:
-        ch = db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
-        if not ch:
-            return JSONResponse({"error": "Défi non trouvé."}, status_code=404)
-        for k, v in update_data.items():
-            setattr(ch, k, v)
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(
-            db,
-            admin_id,
-            "challenge_update",
-            "challenge",
-            challenge_id,
-            {"fields": list(update_data.keys())},
+        result, err, code = AdminService.put_challenge_for_admin(
+            db, challenge_id=challenge_id, data=data, admin_user_id=admin_id
         )
-        db.commit()
-        db.refresh(ch)
-    return JSONResponse(_challenge_to_detail(ch))
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result)
 
 
 @require_auth
 @require_admin
 async def admin_challenges_duplicate(request: Request):
     """POST /api/admin/challenges/{challenge_id}/duplicate — crée une copie."""
+    from app.services.admin_service import AdminService
+
     challenge_id = int(request.path_params.get("challenge_id"))
     async with db_session() as db:
-        orig = (
-            db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
-        )
-        if not orig:
-            return JSONResponse({"error": "Défi non trouvé."}, status_code=404)
-        copy = LogicChallenge(
-            title=f"{orig.title} (copie)",
-            description=orig.description,
-            challenge_type=orig.challenge_type,
-            age_group=orig.age_group,
-            difficulty=orig.difficulty,
-            content=orig.content,
-            question=orig.question,
-            solution=orig.solution,
-            correct_answer=orig.correct_answer,
-            choices=orig.choices,
-            solution_explanation=orig.solution_explanation,
-            visual_data=orig.visual_data,
-            hints=orig.hints,
-            image_url=orig.image_url,
-            tags=orig.tags,
-            is_active=orig.is_active,
-            is_archived=False,
-            difficulty_rating=orig.difficulty_rating,
-            estimated_time_minutes=orig.estimated_time_minutes,
-        )
-        db.add(copy)
-        db.flush()
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(
-            db,
-            admin_id,
-            "challenge_duplicate",
-            "challenge",
-            copy.id,
-            {"from_id": challenge_id, "title": copy.title},
+        result, err, code = AdminService.duplicate_challenge_for_admin(
+            db, challenge_id=challenge_id, admin_user_id=admin_id
         )
-        db.commit()
-        db.refresh(copy)
-    return JSONResponse(_challenge_to_detail(copy))
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result, status_code=201)
 
 
 @require_auth
@@ -698,7 +542,7 @@ async def admin_challenges(request: Request):
     GET /api/admin/challenges
     Liste paginée avec recherche (titre), tri (sort, order).
     """
-    from sqlalchemy import or_
+    from app.services.admin_service import AdminService
 
     query_params = dict(request.query_params)
     archived_param = query_params.get("archived")
@@ -709,90 +553,30 @@ async def admin_challenges(request: Request):
     skip = max(0, int(query_params.get("skip", 0)))
     limit = min(100, max(1, int(query_params.get("limit", 20))))
 
-    sortable = {"title", "challenge_type", "age_group", "created_at"}
-    if sort not in sortable:
-        sort = "created_at"
-    order_fn = "asc" if order == "asc" else "desc"
-    sort_col = getattr(LogicChallenge, sort, LogicChallenge.created_at)
-    order_by = getattr(sort_col, order_fn)()
+    is_archived = None
+    if archived_param is not None:
+        is_archived = str(archived_param).lower() in ("true", "1", "yes")
 
     async with db_session() as db:
-        q = db.query(LogicChallenge)
-        if archived_param is not None:
-            is_archived = str(archived_param).lower() in ("true", "1", "yes")
-            q = q.filter(LogicChallenge.is_archived == is_archived)
-        if challenge_type_param:
-            try:
-                ct = LogicChallengeType(challenge_type_param)
-                q = q.filter(LogicChallenge.challenge_type == ct)
-            except ValueError:
-                pass
-        if search:
-            pattern = f"%{search}%"
-            q = q.filter(
-                or_(
-                    LogicChallenge.title.ilike(pattern),
-                    LogicChallenge.description.ilike(pattern),
-                )
-            )
-        total = q.count()
-        challenges = q.order_by(order_by).offset(skip).limit(limit).all()
-        ch_ids = [c.id for c in challenges]
-
-        attempt_stats = {}
-        if ch_ids:
-            rows = (
-                db.query(
-                    LogicChallengeAttempt.challenge_id,
-                    func.count(LogicChallengeAttempt.id).label("attempt_count"),
-                    func.sum(
-                        case((LogicChallengeAttempt.is_correct == True, 1), else_=0)
-                    ).label("correct_count"),
-                )
-                .filter(LogicChallengeAttempt.challenge_id.in_(ch_ids))
-                .group_by(LogicChallengeAttempt.challenge_id)
-                .all()
-            )
-            for ch_id, a_count, c_count in rows:
-                attempt_stats[ch_id] = {
-                    "attempt_count": a_count or 0,
-                    "correct_count": c_count or 0,
-                }
-
-        items = []
-        for c in challenges:
-            stats = attempt_stats.get(c.id, {"attempt_count": 0, "correct_count": 0})
-            a_count = stats["attempt_count"]
-            c_count = stats["correct_count"]
-            success_rate = round((c_count / a_count * 100), 1) if a_count > 0 else 0.0
-            ct_val = (
-                c.challenge_type.value
-                if hasattr(c.challenge_type, "value")
-                else str(c.challenge_type)
-            )
-            ag_val = (
-                c.age_group.value if hasattr(c.age_group, "value") else str(c.age_group)
-            )
-            items.append(
-                {
-                    "id": c.id,
-                    "title": c.title,
-                    "challenge_type": ct_val,
-                    "age_group": ag_val,
-                    "is_archived": c.is_archived,
-                    "attempt_count": a_count,
-                    "success_rate": success_rate,
-                    "created_at": c.created_at.isoformat() if c.created_at else None,
-                }
-            )
-
-    return JSONResponse({"items": items, "total": total})
+        result = AdminService.list_challenges_for_admin(
+            db,
+            archived=is_archived,
+            challenge_type=challenge_type_param,
+            search=search,
+            sort=sort,
+            order=order,
+            skip=skip,
+            limit=limit,
+        )
+    return JSONResponse(result)
 
 
 @require_auth
 @require_admin
 async def admin_challenges_patch(request: Request):
     """PATCH /api/admin/challenges/{challenge_id} — toggle is_archived."""
+    from app.services.admin_service import AdminService
+
     challenge_id = int(request.path_params.get("challenge_id"))
     try:
         data = await request.json()
@@ -805,29 +589,16 @@ async def admin_challenges_patch(request: Request):
         )
 
     async with db_session() as db:
-        ch = db.query(LogicChallenge).filter(LogicChallenge.id == challenge_id).first()
-        if not ch:
-            return JSONResponse({"error": "Défi non trouvé."}, status_code=404)
-        ch.is_archived = is_archived
         admin_id = getattr(request.state, "user", {}).get("id")
-        _log_admin_action(
+        result, err, code = AdminService.patch_challenge_for_admin(
             db,
-            admin_id,
-            "challenge_archive",
-            "challenge",
-            challenge_id,
-            {"is_archived": is_archived},
+            challenge_id=challenge_id,
+            is_archived=is_archived,
+            admin_user_id=admin_id,
         )
-        db.commit()
-        db.refresh(ch)
-
-    return JSONResponse(
-        {
-            "id": ch.id,
-            "title": ch.title,
-            "is_archived": ch.is_archived,
-        }
-    )
+    if err:
+        return JSONResponse({"error": err}, status_code=code)
+    return JSONResponse(result)
 
 
 @require_auth
@@ -907,6 +678,8 @@ async def admin_export(request: Request):
     GET /api/admin/export?type=users|exercises|attempts|overview&period=7d|30d|all
     Export CSV streamé. Limite 10 000 lignes par export.
     """
+    from app.services.admin_service import AdminService
+
     query_params = dict(request.query_params)
     export_type = (query_params.get("type") or "users").strip().lower()
     period = (query_params.get("period") or "all").strip().lower()
@@ -918,115 +691,10 @@ async def admin_export(request: Request):
         )
 
     admin_id = getattr(request.state, "user", {}).get("id")
-    async with db_session() as _db:
-        _log_admin_action(
-            _db,
-            admin_id,
-            "export_csv",
-            None,
-            None,
-            {"type": export_type, "period": period},
-        )
-        _db.commit()
-
-    since = None
-    if period == "7d":
-        since = datetime.now(timezone.utc) - timedelta(days=7)
-    elif period == "30d":
-        since = datetime.now(timezone.utc) - timedelta(days=30)
-
-    MAX_ROWS = 10_000
-    rows_data = []
-
     async with db_session() as db:
-        if export_type == "users":
-            q = db.query(User)
-            if since:
-                q = q.filter(User.created_at >= since)
-            rows = q.order_by(User.created_at.desc()).limit(MAX_ROWS).all()
-            rows_data = [
-                [
-                    u.id,
-                    u.username or "",
-                    u.email or "",
-                    u.full_name or "",
-                    u.role.value if u.role else "",
-                    u.is_active,
-                    u.created_at.isoformat() if u.created_at else "",
-                ]
-                for u in rows
-            ]
-            headers = [
-                "id",
-                "username",
-                "email",
-                "full_name",
-                "role",
-                "is_active",
-                "created_at",
-            ]
-        elif export_type == "exercises":
-            q = db.query(Exercise)
-            if since:
-                q = q.filter(Exercise.created_at >= since)
-            rows = q.order_by(Exercise.created_at.desc()).limit(MAX_ROWS).all()
-            rows_data = [
-                [
-                    e.id,
-                    (e.title or "").replace("\n", " "),
-                    e.exercise_type or "",
-                    e.difficulty or "",
-                    e.age_group or "",
-                    e.is_archived,
-                    e.created_at.isoformat() if e.created_at else "",
-                ]
-                for e in rows
-            ]
-            headers = [
-                "id",
-                "title",
-                "exercise_type",
-                "difficulty",
-                "age_group",
-                "is_archived",
-                "created_at",
-            ]
-        elif export_type == "attempts":
-            q = db.query(Attempt)
-            if since:
-                q = q.filter(Attempt.created_at >= since)
-            rows = q.order_by(Attempt.created_at.desc()).limit(MAX_ROWS).all()
-            rows_data = [
-                [
-                    a.id,
-                    a.user_id,
-                    a.exercise_id,
-                    a.is_correct,
-                    a.time_spent or "",
-                    a.created_at.isoformat() if a.created_at else "",
-                ]
-                for a in rows
-            ]
-            headers = [
-                "id",
-                "user_id",
-                "exercise_id",
-                "is_correct",
-                "time_spent",
-                "created_at",
-            ]
-        else:  # overview
-            total_users = db.query(func.count(User.id)).scalar() or 0
-            total_exercises = db.query(func.count(Exercise.id)).scalar() or 0
-            total_challenges = db.query(func.count(LogicChallenge.id)).scalar() or 0
-            total_attempts = db.query(func.count(Attempt.id)).scalar() or 0
-            headers = ["metric", "value", "period"]
-            rows_data = [
-                ["total_users", total_users, period],
-                ["total_exercises", total_exercises, period],
-                ["total_challenges", total_challenges, period],
-                ["total_attempts", total_attempts, period],
-            ]
+        headers, rows_data = AdminService.export_csv_data_for_admin(
+            db, export_type=export_type, period=period, admin_user_id=admin_id
+        )
 
     def generate_csv():
         buf = io.StringIO()

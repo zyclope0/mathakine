@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { PageHeader, PageSection, LoadingState } from "@/components/layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ExerciseEditModal } from "@/components/admin/ExerciseEditModal";
+import { ChallengeEditModal } from "@/components/admin/ChallengeEditModal";
 import { useAdminModeration } from "@/hooks/useAdminModeration";
 import { getChallengeTypeDisplay, getAdminAgeDisplay } from "@/lib/constants/challenges";
 import { EXERCISE_TYPE_DISPLAY } from "@/lib/constants/exercises";
@@ -20,7 +21,9 @@ import { Bot, BookOpen, Puzzle } from "lucide-react";
 
 export default function AdminModerationPage() {
   const [typeFilter, setTypeFilter] = useState<"all" | "exercises" | "challenges">("all");
-  const { exercises, challenges, totalExercises, totalChallenges, isLoading, error } =
+  const [editExerciseId, setEditExerciseId] = useState<number | null>(null);
+  const [editChallengeId, setEditChallengeId] = useState<number | null>(null);
+  const { exercises, challenges, totalExercises, totalChallenges, isLoading, error, refetch } =
     useAdminModeration(typeFilter);
 
   return (
@@ -109,11 +112,13 @@ export default function AdminModerationPage() {
                                     : "-"}
                                 </td>
                                 <td className="px-4 py-3">
-                                  <Button variant="outline" size="sm" asChild>
-                                    <Link href={`/admin/content?tab=exercises&edit=${ex.id}`}>
-                                      <BookOpen className="mr-1 h-4 w-4" />
-                                      Éditer
-                                    </Link>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setEditExerciseId(ex.id)}
+                                  >
+                                    <BookOpen className="mr-1 h-4 w-4" />
+                                    Éditer
                                   </Button>
                                 </td>
                               </tr>
@@ -170,11 +175,13 @@ export default function AdminModerationPage() {
                                     : "-"}
                                 </td>
                                 <td className="px-4 py-3">
-                                  <Button variant="outline" size="sm" asChild>
-                                    <Link href={`/admin/content?tab=challenges&edit=${ch.id}`}>
-                                      <Puzzle className="mr-1 h-4 w-4" />
-                                      Éditer
-                                    </Link>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setEditChallengeId(ch.id)}
+                                  >
+                                    <Puzzle className="mr-1 h-4 w-4" />
+                                    Éditer
                                   </Button>
                                 </td>
                               </tr>
@@ -190,6 +197,19 @@ export default function AdminModerationPage() {
           </CardContent>
         </Card>
       </PageSection>
+
+      <ExerciseEditModal
+        exerciseId={editExerciseId}
+        open={editExerciseId !== null}
+        onOpenChange={(o) => !o && setEditExerciseId(null)}
+        onSaved={refetch}
+      />
+      <ChallengeEditModal
+        challengeId={editChallengeId}
+        open={editChallengeId !== null}
+        onOpenChange={(o) => !o && setEditChallengeId(null)}
+        onSaved={refetch}
+      />
     </div>
   );
 }
