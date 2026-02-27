@@ -2,6 +2,7 @@
 Configuration de l'application via pydantic-settings.
 Charge les variables depuis l'environnement (.env en dev, vars injectées en prod).
 """
+
 import os
 import secrets
 from typing import List
@@ -57,7 +58,9 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = Field(default="postgres")
     POSTGRES_DB: str = Field(default="mathakine")
     DATABASE_URL: str = Field(default="")
-    TEST_DATABASE_URL: str = Field(default="postgresql://postgres:postgres@localhost/test_mathakine")
+    TEST_DATABASE_URL: str = Field(
+        default="postgresql://postgres:postgres@localhost/test_mathakine"
+    )
     TESTING: bool = Field(default=False)
 
     DEFAULT_ADMIN_EMAIL: str = Field(default="")
@@ -124,7 +127,9 @@ class Settings(BaseSettings):
                     'Générer avec: python -c "import secrets; print(secrets.token_urlsafe(32))"'
                 )
             self.SECRET_KEY = secrets.token_urlsafe(32)
-            logger.warning("SECRET_KEY non définie, génération automatique (DEV uniquement)")
+            logger.warning(
+                "SECRET_KEY non définie, génération automatique (DEV uniquement)"
+            )
 
         return self
 
@@ -136,12 +141,15 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+
 # Validation post-initialisation pour la sécurité en production
 def _validate_production_settings():
     if not _is_production():
         return
     if settings.LOG_LEVEL.upper() == "DEBUG":
-        logger.warning("LOG_LEVEL=DEBUG détecté en production - Forcé à INFO pour sécurité")
+        logger.warning(
+            "LOG_LEVEL=DEBUG détecté en production - Forcé à INFO pour sécurité"
+        )
         object.__setattr__(settings, "LOG_LEVEL", "INFO")
     if (
         os.getenv("ENVIRONMENT") == "production"
@@ -160,4 +168,6 @@ def _validate_production_settings():
 _validate_production_settings()
 
 if settings.TESTING:
-    logger.info(f"Mode test détecté, utilisation de l'URL: {settings.SQLALCHEMY_DATABASE_URL}")
+    logger.info(
+        f"Mode test détecté, utilisation de l'URL: {settings.SQLALCHEMY_DATABASE_URL}"
+    )
