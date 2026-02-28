@@ -254,6 +254,9 @@
 | 28/02/2026 | 1 | ✅ create_validation_error : surcharge (errors, user_message) |
 | 28/02/2026 | 1 | ✅ get_safe_error_message : typage Optional[str] |
 | 28/02/2026 | 1 | Tests unitaires TestCreateValidationError (4 tests) |
+| 28/02/2026 | 2 | Imports en tête : exercise_service, exercise_handlers |
+| 28/02/2026 | 2 | Validators DRY : _validate_exercise_type, _validate_difficulty |
+| 28/02/2026 | 2 | queries.py : docstring STATUT LEGACY |
 
 ---
 
