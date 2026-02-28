@@ -50,142 +50,61 @@ async def get_challenges_list(request: Request):
     Liste des défis logiques avec filtres optionnels.
     Route: GET /api/challenges
     """
+    from app.utils.response_formatters import format_paginated_response
+
+    from server.handlers.challenge_list_params import (
+        parse_challenge_list_params,
+    )
+
     try:
         current_user = request.state.user
+        p = parse_challenge_list_params(request)
 
-        # Récupérer les paramètres de requête
-        challenge_type_raw = request.query_params.get("challenge_type")
-        age_group_raw = request.query_params.get("age_group")
-        search = request.query_params.get("search") or request.query_params.get(
-            "q"
-        )  # Support 'search' et 'q'
-        skip = int(request.query_params.get("skip", 0))
-        limit_param = request.query_params.get("limit")
-        limit = int(limit_param) if limit_param else 20
-        active_only = request.query_params.get("active_only", "true").lower() == "true"
-        order = (request.query_params.get("order") or "random").lower()
-        hide_completed = (
-            request.query_params.get("hide_completed", "false").lower() == "true"
-        )
-
-        # Normaliser les filtres pour correspondre aux valeurs PostgreSQL
-        challenge_type = (
-            constants.normalize_challenge_type(challenge_type_raw)
-            if challenge_type_raw
-            else None
-        )
-        # Utiliser normalize_age_group_for_db pour obtenir la valeur ENUM PostgreSQL
-        from app.services.challenge_service import normalize_age_group_for_db
-
-        age_group_db = (
-            normalize_age_group_for_db(age_group_raw) if age_group_raw else None
-        )
-        age_group = (
-            normalize_age_group(age_group_raw) if age_group_raw else None
-        )  # Format string pour logs
-
-        # Calculer la page à partir de skip et limit
-        page = (skip // limit) + 1 if limit > 0 else 1
-
-        # Récupérer la locale depuis le header Accept-Language
         accept_language = request.headers.get("Accept-Language", "fr")
         locale = parse_accept_language(accept_language)
-
         logger.debug(
-            f"API - Paramètres reçus: limit={limit}, skip={skip}, page={page}, order={order}, hide_completed={hide_completed}"
+            f"API - Paramètres: limit={p.limit}, skip={p.skip}, order={p.order}, "
+            f"hide_completed={p.hide_completed}"
         )
 
-        # IDs à exclure si hide_completed
-        exclude_ids = []
-        if hide_completed:
-            user_id = current_user.get("id")
-            if user_id:
-                from server.database import get_db_connection
+        user_id = current_user.get("id")
+        exclude_ids: list[int] = []
 
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                try:
-                    cursor.execute(
-                        "SELECT DISTINCT challenge_id FROM logic_challenge_attempts WHERE user_id = %s AND is_correct = true",
-                        (user_id,),
-                    )
-                    exclude_ids = [
-                        row[0] for row in cursor.fetchall() if row[0] is not None
-                    ]
-                finally:
-                    cursor.close()
-                    conn.close()
-
-        # Utiliser le service ORM challenge_service
         async with db_session() as db:
-            # Récupérer les challenges via la fonction list_challenges
+            if p.hide_completed and user_id:
+                exclude_ids = challenge_service.get_user_completed_challenges(
+                    db, user_id
+                )
             challenges = challenge_service.list_challenges(
                 db=db,
-                challenge_type=challenge_type,
-                age_group=age_group_db,  # Utiliser la valeur ENUM DB
-                tags=search,  # Utiliser search comme filtre tags
-                limit=limit,
-                offset=skip,
-                order=order,
+                challenge_type=p.challenge_type,
+                age_group=p.age_group_db,
+                tags=p.search,
+                limit=p.limit,
+                offset=p.skip,
+                order=p.order,
                 exclude_ids=exclude_ids if exclude_ids else None,
             )
-            # Convertir les objets en dicts avec normalisation age_group pour frontend
-            from app.services.challenge_service import normalize_age_group_for_frontend
-
             challenges_list = [
-                {
-                    "id": c.id,
-                    "title": c.title,
-                    "description": c.description,
-                    "challenge_type": c.challenge_type,
-                    "age_group": normalize_age_group_for_frontend(c.age_group),
-                    "difficulty": c.difficulty,
-                    "tags": c.tags,
-                    "difficulty_rating": c.difficulty_rating,
-                    "estimated_time_minutes": c.estimated_time_minutes,
-                    "success_rate": c.success_rate,
-                    "view_count": c.view_count,
-                    "is_archived": c.is_archived,
-                }
-                for c in challenges
+                challenge_service.challenge_to_api_dict(c) for c in challenges
             ]
-
-            # Compter le total pour la pagination (même session)
             total = challenge_service.count_challenges(
                 db=db,
-                challenge_type=challenge_type,
-                age_group=age_group_db,
+                challenge_type=p.challenge_type,
+                age_group=p.age_group_db,
                 exclude_ids=exclude_ids if exclude_ids else None,
             )
 
-        # Filtrer les défis archivés si nécessaire (déjà fait dans la query, mais double vérification)
-        if active_only:
+        if p.active_only:
             challenges_list = [
                 c for c in challenges_list if not c.get("is_archived", False)
             ]
 
-        # Log pour déboguer
-        logger.debug(
-            f"API - Retour de {len(challenges_list)} défis sur {total} total (limit demandé: {limit}, page: {page})"
-        )
-        if len(challenges_list) > 0:
-            logger.debug(
-                f"API - Premier défi: id={challenges_list[0].get('id')}, title={challenges_list[0].get('title')}"
-            )
-
-        # Retourner le format paginé standardisé
-        has_more = (skip + len(challenges_list)) < total
-
-        response_data = {
-            "items": challenges_list,
-            "total": total,
-            "page": page,
-            "limit": limit,
-            "hasMore": has_more,
-        }
-
         logger.info(
-            f"Récupération réussie de {len(challenges_list)} défis logiques sur {total} total (locale: {locale})"
+            f"Récupération réussie de {len(challenges_list)} défis sur {total} total (locale: {locale})"
+        )
+        response_data = format_paginated_response(
+            challenges_list, total, p.skip, p.limit
         )
         return JSONResponse(response_data)
     except ValueError as filter_validation_error:
@@ -902,43 +821,13 @@ async def get_completed_challenges_ids(request: Request):
         if not user_id:
             return JSONResponse({"completed_ids": []}, status_code=200)
 
-        # Récupérer les IDs de challenges avec au moins une tentative correcte
-        from server.database import get_db_connection
+        async with db_session() as db:
+            completed_ids = challenge_service.get_user_completed_challenges(db, user_id)
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        try:
-            # D'abord, vérifier combien de tentatives existent pour cet utilisateur
-            check_query = """
-                SELECT COUNT(*) as total_attempts,
-                       COUNT(CASE WHEN is_correct = true THEN 1 END) as correct_attempts
-                FROM logic_challenge_attempts 
-                WHERE user_id = %s
-            """
-            cursor.execute(check_query, (user_id,))
-            stats = cursor.fetchone()
-            logger.debug(
-                f"Statistiques pour user_id {user_id}: total={stats[0]}, correctes={stats[1]}"
-            )
-
-            # Ensuite, récupérer les IDs de challenges complétés
-            query = """
-                SELECT DISTINCT challenge_id 
-                FROM logic_challenge_attempts 
-                WHERE user_id = %s AND is_correct = true
-            """
-            cursor.execute(query, (user_id,))
-            rows = cursor.fetchall()
-            completed_ids = [row[0] for row in rows] if rows else []
-
-            logger.debug(
-                f"Récupération de {len(completed_ids)} challenges complétés pour l'utilisateur {user_id}"
-            )
-            logger.debug(f"IDs complétés: {completed_ids}")
-            return JSONResponse({"completed_ids": completed_ids})
-        finally:
-            cursor.close()
-            conn.close()
+        logger.debug(
+            f"Récupération de {len(completed_ids)} challenges complétés pour l'utilisateur {user_id}"
+        )
+        return JSONResponse({"completed_ids": completed_ids})
 
     except Exception as completed_challenges_error:
         logger.error(

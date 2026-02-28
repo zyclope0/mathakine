@@ -26,6 +26,7 @@ from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.user_service import UserService
 from app.utils.csrf import validate_csrf_token
 from app.utils.db_utils import db_session
+from app.utils.pagination import parse_pagination_params
 from app.utils.error_handler import api_error_response, get_safe_error_message
 from app.utils.rate_limit import rate_limit_register
 from app.utils.settings_reader import get_setting_bool
@@ -285,7 +286,9 @@ async def get_users_leaderboard(request: Request):
         current_user = request.state.user
         user_id = current_user.get("id")
         query_params = dict(request.query_params)
-        limit = min(int(query_params.get("limit", 50)), 100)
+        _, limit = parse_pagination_params(
+            query_params, default_limit=50, max_limit=100
+        )
         age_group = query_params.get("age_group", "").strip() or None
 
         async with db_session() as db:

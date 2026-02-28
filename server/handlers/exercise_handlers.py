@@ -18,7 +18,9 @@ from app.models.exercise import ExerciseType
 # Import du service de badges
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.exercise_service import ExerciseService, ExerciseSubmitError
+from app.services.exercise_stats_service import ExerciseStatsService
 from app.utils.db_utils import db_session
+from app.utils.pagination import parse_pagination_params
 from app.utils.error_handler import (
     ErrorHandler,
     api_error_response,
@@ -203,9 +205,9 @@ async def get_exercises_list(request):
         current_user = getattr(request.state, "user", None)
 
         # Récupérer les paramètres de requête
-        limit_param = request.query_params.get("limit")
-        limit = int(limit_param) if limit_param else 20
-        skip = int(request.query_params.get("skip", 0))
+        skip, limit = parse_pagination_params(
+            request.query_params, default_limit=20, max_limit=100
+        )
         exercise_type_raw = request.query_params.get("exercise_type", None)
         age_group_raw = request.query_params.get(
             "age_group", None
@@ -376,267 +378,54 @@ async def generate_exercise_api(request):
 async def generate_ai_exercise_stream(request):
     """
     Génère un exercice avec OpenAI en streaming SSE.
-    Permet un affichage progressif de la génération pour une meilleure UX.
+    Délègue la logique au service exercise_ai_service.
     """
     try:
-        # Utilisateur authentifié via le décorateur @require_auth_sse
-        current_user = request.state.user
+        from app.services.exercise_ai_service import (
+            generate_exercise_stream as svc_generate_stream,
+        )
+        from app.utils.prompt_sanitizer import (
+            sanitize_user_prompt,
+            validate_prompt_safety,
+        )
+        from app.utils.sse_utils import SSE_HEADERS, sse_error_response
+        from app.utils.translation import parse_accept_language
+        from server.exercise_generator import normalize_and_validate_exercise_params
 
-        # Récupérer les paramètres de la requête
+        current_user = request.state.user
         exercise_type_raw = request.query_params.get("exercise_type", "addition")
-        # Support des deux paramètres : age_group (nouveau) et difficulty (legacy)
         age_group_raw = request.query_params.get(
             "age_group"
         ) or request.query_params.get("difficulty", "6-8")
         prompt_raw = request.query_params.get("prompt", "")
 
-        # Sanitizer le prompt utilisateur pour éviter l'injection
-        from app.utils.prompt_sanitizer import (
-            sanitize_user_prompt,
-            validate_prompt_safety,
-        )
-
         is_safe, safety_reason = validate_prompt_safety(prompt_raw)
         if not is_safe:
             logger.warning(f"Prompt utilisateur rejeté pour sécurité: {safety_reason}")
-            from app.utils.sse_utils import sse_error_response
-
             return sse_error_response(f"Prompt invalide: {safety_reason}")
         prompt = sanitize_user_prompt(prompt_raw)
-
-        # Normaliser et valider les paramètres de manière centralisée
-        from server.exercise_generator import normalize_and_validate_exercise_params
 
         exercise_type, age_group, derived_difficulty = (
             normalize_and_validate_exercise_params(exercise_type_raw, age_group_raw)
         )
 
-        # Vérifier que la clé OpenAI est configurée
         if not settings.OPENAI_API_KEY:
-            from app.utils.sse_utils import sse_error_response
-
             return sse_error_response("OpenAI API key non configurée")
 
+        accept_language = request.headers.get("Accept-Language")
+        locale = parse_accept_language(accept_language) or "fr"
+        user_id = current_user.get("id") if current_user else None
+
         async def generate():
-            try:
-                # Importer OpenAI de manière conditionnelle
-                try:
-                    from openai import AsyncOpenAI
-                except ImportError:
-                    yield f"data: {json.dumps({'type': 'error', 'message': 'Bibliothèque OpenAI non installée'})}\n\n"
-                    return
-
-                client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-
-                # Définir les plages de nombres selon la difficulté
-                difficulty_ranges = {
-                    "INITIE": {
-                        "min": 1,
-                        "max": 20,
-                        "desc": "nombres simples de 1 à 20",
-                    },
-                    "PADAWAN": {"min": 1, "max": 100, "desc": "nombres jusqu'à 100"},
-                    "CHEVALIER": {
-                        "min": 10,
-                        "max": 500,
-                        "desc": "nombres jusqu'à 500, calculs intermédiaires",
-                    },
-                    "MAITRE": {
-                        "min": 50,
-                        "max": 1000,
-                        "desc": "nombres jusqu'à 1000, problèmes complexes",
-                    },
-                    "GRAND_MAITRE": {
-                        "min": 100,
-                        "max": 10000,
-                        "desc": "grands nombres, problèmes avancés",
-                    },
-                }
-                diff_info = difficulty_ranges.get(
-                    derived_difficulty, difficulty_ranges["PADAWAN"]
-                )
-
-                # Déterminer le contexte thématique
-                has_custom_theme = prompt and any(
-                    word in prompt.lower()
-                    for word in [
-                        "thème",
-                        "theme",
-                        "contexte",
-                        "histoire",
-                        "univers",
-                        "monde",
-                    ]
-                )
-                default_theme = (
-                    "spatial/galactique (vaisseaux, planètes, étoiles - sans références Star Wars)"
-                    if not has_custom_theme
-                    else ""
-                )
-
-                # Construire le prompt système optimisé
-                system_prompt = f"""Tu es un créateur d'exercices mathématiques pédagogiques.
-
-## CONTRAINTES OBLIGATOIRES
-- Type d'exercice : **{exercise_type}** (STRICTEMENT ce type, aucun autre)
-- Niveau : {derived_difficulty} ({diff_info['desc']})
-- Groupe d'âge cible : {age_group}
-{f"- Contexte par défaut : {default_theme}" if default_theme else ""}
-
-## GUIDE PAR TYPE
-- addition/soustraction/multiplication/division : opération unique du type demandé
-- fractions : opérations avec fractions (addition, simplification, comparaison)
-- geometrie : périmètres, aires, volumes avec formules adaptées au niveau
-- texte : problème concret avec mise en situation, nécessitant raisonnement
-- mixte : combiner 2-3 opérations différentes dans un même calcul
-- divers : suites logiques, pourcentages, conversions, probabilités simples
-
-## RÈGLES QUALITÉ
-1. La question doit être claire et sans ambiguïté
-2. Les 4 choix doivent inclure : la bonne réponse + 3 erreurs plausibles (erreurs de calcul typiques)
-3. L'explication doit détailler le raisonnement étape par étape, avec des calculs COHÉRENTS avec la réponse
-4. L'indice doit GUIDER sans donner la réponse (ex: "Quelle opération pour trouver le total ?")
-5. CRITIQUE: Vérifie que correct_answer correspond EXACTEMENT aux calculs dans l'explication. Pas de contradiction.
-6. FRACTIONS (moitié/tiers/etc.) : formule A = total×frac1, B = total×frac2, puis (total - A - B). L'explication doit suivre EXACTEMENT ces calculs et conclure par correct_answer. INTERDIT : inventer une "erreur", une "correction" ou un recalcul contradictoire. Exemple : 120 cristaux, 1/2 rouges (60) + 1/3 bleus (40) = 100 → ni rouges ni bleus = 20. Jamais 30.
-
-## FORMAT JSON STRICT
-{{
-  "title": "Titre court et engageant",
-  "question": "Énoncé complet du problème",
-  "correct_answer": "Réponse numérique uniquement",
-  "choices": ["choix1", "choix2", "choix3", "choix4"],
-  "explanation": "Explication pédagogique détaillée",
-  "hint": "Piste sans révéler la solution"
-}}"""
-
-                # Modèle : o1/o3 pour fractions/texte/mixte/divers quand OPENAI_MODEL_REASONING est défini
-                _reasoning_types = ("fractions", "texte", "mixte", "divers")
-                model = (
-                    settings.OPENAI_MODEL_REASONING
-                    if settings.OPENAI_MODEL_REASONING
-                    and exercise_type in _reasoning_types
-                    else settings.OPENAI_MODEL
-                )
-                use_o1 = AIConfig.is_o1_model(model)
-                use_o3 = AIConfig.is_o3_model(model)
-                if use_o1:
-                    system_prompt += "\n\nCRITIQUE : Retourne UNIQUEMENT un objet JSON valide, sans texte ou markdown avant/après."
-
-                # Construire le prompt utilisateur - PRIORITÉ à la description personnalisée
-                if prompt and prompt.strip():
-                    # Si l'utilisateur a une description, elle est PRIORITAIRE
-                    user_prompt = f"""INSTRUCTIONS PERSONNALISÉES DE L'UTILISATEUR (PRIORITAIRES) :
-"{prompt.strip()}"
-
-Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respectant ces instructions personnalisées."""
-                else:
-                    # Pas de description personnalisée, utiliser le contexte par défaut
-                    user_prompt = f"Crée un exercice de type {exercise_type} pour le niveau {derived_difficulty} avec un contexte spatial engageant."
-
-                # Envoyer un message de démarrage (sans afficher le JSON brut)
-                yield f"data: {json.dumps({'type': 'status', 'message': 'Génération en cours...'})}\n\n"
-
-                api_kwargs = {
-                    "model": model,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt},
-                    ],
-                    "stream": True,
-                }
-                if use_o1:
-                    api_kwargs["max_completion_tokens"] = 4000
-                elif use_o3:
-                    api_kwargs["response_format"] = {"type": "json_object"}
-                    api_kwargs["max_completion_tokens"] = 4000
-                    api_kwargs["reasoning_effort"] = (
-                        "low"  # Exercices plus simples que défis
-                    )
-                else:
-                    api_kwargs["temperature"] = 0.7
-                    api_kwargs["response_format"] = {"type": "json_object"}
-
-                stream = await client.chat.completions.create(**api_kwargs)
-
-                full_response = ""
-                # Ne pas envoyer les chunks JSON au client (pas utile pour l'utilisateur)
-                # On accumule juste la réponse complète en arrière-plan
-                async for chunk in stream:
-                    if chunk.choices and chunk.choices[0].delta.content:
-                        content = chunk.choices[0].delta.content
-                        full_response += content
-                        # Ne plus envoyer les chunks JSON au client (masqué pour meilleure UX)
-
-                # Parser la réponse JSON complète (o1 peut renvoyer du texte autour du JSON)
-                from app.utils.json_utils import extract_json_from_text
-
-                try:
-                    exercise_data = extract_json_from_text(full_response)
-
-                    # Normaliser les données pour correspondre au format attendu
-                    # Utiliser les valeurs normalisées (déjà normalisées plus haut)
-                    normalized_exercise = {
-                        "exercise_type": exercise_type,  # Déjà normalisé
-                        "age_group": age_group,  # Groupe d'âge normalisé
-                        "difficulty": derived_difficulty,  # Difficulté dérivée du groupe d'âge
-                        "title": exercise_data.get(
-                            "title", f"Exercice {exercise_type} {age_group}"
-                        ),
-                        "question": exercise_data.get("question", ""),
-                        "correct_answer": str(exercise_data.get("correct_answer", "")),
-                        "choices": exercise_data.get("choices", []),
-                        "explanation": exercise_data.get("explanation", ""),
-                        "hint": exercise_data.get("hint", ""),
-                        "ai_generated": True,
-                        "tags": "ai,generated",
-                    }
-
-                    # Optionnellement sauvegarder en base de données
-                    try:
-                        # Extraire la locale depuis le header Accept-Language
-                        from app.utils.translation import parse_accept_language
-
-                        accept_language = request.headers.get("Accept-Language")
-                        locale = parse_accept_language(accept_language) or "fr"
-
-                        async with db_session() as db:
-                            created_exercise = (
-                                EnhancedServerAdapter.create_generated_exercise(
-                                    db=db,
-                                    exercise_type=normalized_exercise["exercise_type"],
-                                    age_group=normalized_exercise["age_group"],
-                                    difficulty=normalized_exercise["difficulty"],
-                                    title=normalized_exercise["title"],
-                                    question=normalized_exercise["question"],
-                                    correct_answer=normalized_exercise[
-                                        "correct_answer"
-                                    ],
-                                    choices=normalized_exercise["choices"],
-                                    explanation=normalized_exercise["explanation"],
-                                    hint=normalized_exercise.get("hint"),
-                                    tags=normalized_exercise.get(
-                                        "tags", "ai,generated"
-                                    ),
-                                    ai_generated=True,
-                                    locale=locale,
-                                )
-                            )
-                            if created_exercise:
-                                normalized_exercise["id"] = created_exercise["id"]
-                    except Exception as save_error:
-                        logger.warning(f"Erreur lors de la sauvegarde: {save_error}")
-                        # Continuer même si la sauvegarde échoue
-
-                    # Envoyer l'exercice complet
-                    yield f"data: {json.dumps({'type': 'exercise', 'exercise': normalized_exercise})}\n\n"
-
-                except json.JSONDecodeError as json_error:
-                    yield f"data: {json.dumps({'type': 'error', 'message': f'Erreur de parsing JSON: {str(json_error)}'})}\n\n"
-
-            except Exception as ai_generation_error:
-                logger.error(f"Erreur lors de la génération IA: {ai_generation_error}")
-                logger.debug(traceback.format_exc())
-                yield f"data: {json.dumps({'type': 'error', 'message': str(ai_generation_error)})}\n\n"
+            async for event in svc_generate_stream(
+                exercise_type=exercise_type,
+                age_group=age_group,
+                derived_difficulty=derived_difficulty,
+                prompt=prompt,
+                locale=locale,
+                user_id=user_id,
+            ):
+                yield event
 
         return StreamingResponse(
             generate(),
@@ -644,7 +433,8 @@ Crée un exercice de type {exercise_type} (niveau {derived_difficulty}) en respe
             headers={
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
-                "X-Accel-Buffering": "no",  # Désactiver le buffering pour nginx
+                "X-Accel-Buffering": "no",
+                **dict(SSE_HEADERS),
             },
         )
 
@@ -663,7 +453,6 @@ async def get_completed_exercises_ids(request: Request):
     Route: GET /api/exercises/completed-ids
     """
     try:
-        # Utilisateur optionnellement authentifié via le décorateur @optional_auth
         current_user = request.state.user
         if not current_user:
             return JSONResponse({"completed_ids": []}, status_code=200)
@@ -672,28 +461,13 @@ async def get_completed_exercises_ids(request: Request):
         if not user_id:
             return JSONResponse({"completed_ids": []}, status_code=200)
 
-        # Récupérer les IDs d'exercices avec au moins une tentative correcte
-        from server.database import get_db_connection
+        async with db_session() as db:
+            completed_ids = ExerciseService.get_user_completed_exercise_ids(db, user_id)
 
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        try:
-            query = """
-                SELECT DISTINCT exercise_id 
-                FROM attempts 
-                WHERE user_id = %s AND is_correct = true
-            """
-            cursor.execute(query, (user_id,))
-            rows = cursor.fetchall()
-            completed_ids = [row[0] for row in rows] if rows else []
-
-            logger.debug(
-                f"Récupération de {len(completed_ids)} exercices complétés pour l'utilisateur {user_id}"
-            )
-            return JSONResponse({"completed_ids": completed_ids})
-        finally:
-            cursor.close()
-            conn.close()
+        logger.debug(
+            f"Récupération de {len(completed_ids)} exercices complétés pour l'utilisateur {user_id}"
+        )
+        return JSONResponse({"completed_ids": completed_ids})
 
     except Exception as completed_retrieval_error:
         logger.error(
@@ -728,7 +502,7 @@ async def get_exercises_stats(request: Request):
     logger.info("=== DEBUT get_exercises_stats ===")
     try:
         async with db_session() as db:
-            response_data = ExerciseService.get_exercises_stats_for_api(db)
+            response_data = ExerciseStatsService.get_exercises_stats_for_api(db)
             total_exercises = response_data["academy_statistics"]["total_exercises"]
             logger.info(
                 f"Statistiques des épreuves récupérées: {total_exercises} épreuves actives"

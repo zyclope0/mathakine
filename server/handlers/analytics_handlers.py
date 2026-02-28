@@ -11,6 +11,7 @@ from starlette.responses import JSONResponse
 from app.core.logging_config import get_logger
 from app.services.analytics_service import AnalyticsService
 from app.utils.db_utils import db_session
+from app.utils.pagination import parse_pagination_params
 from app.utils.error_handler import api_error_response
 from server.auth import require_auth
 
@@ -79,7 +80,9 @@ async def admin_analytics_edtech(request: Request):
     try:
         period = request.query_params.get("period", "7d")
         event_filter = request.query_params.get("event", "").strip()
-        limit = int(request.query_params.get("limit", "200"))
+        _, limit = parse_pagination_params(
+            request.query_params, default_limit=200, max_limit=500
+        )
 
         since = datetime.now(timezone.utc)
         if period == "30d":

@@ -15,6 +15,7 @@ from app.models.setting import Setting
 from app.models.user import User, UserRole
 from app.services.email_service import EmailService
 from app.utils.db_utils import db_session
+from app.utils.pagination import parse_pagination_params
 from app.utils.email_verification import generate_verification_token
 from app.utils.error_handler import api_error_response
 from server.auth import require_admin, require_auth
@@ -93,21 +94,17 @@ async def admin_users(request: Request):
     """
     from app.services.admin_service import AdminService
 
-    query_params = dict(request.query_params)
-    search = (query_params.get("search") or "").strip()
-    role = (query_params.get("role") or "").strip().lower()
-    is_active_param = query_params.get("is_active")
-    skip = max(0, int(query_params.get("skip", 0)))
-    limit = min(100, max(1, int(query_params.get("limit", 20))))
-    is_active = (
-        str(is_active_param).lower() in ("true", "1", "yes")
-        if is_active_param is not None
-        else None
-    )
+    from server.handlers.admin_list_params import parse_admin_users_params
 
+    p = parse_admin_users_params(request)
     async with db_session() as db:
         result = AdminService.list_users_for_admin(
-            db, search=search, role=role, is_active=is_active, skip=skip, limit=limit
+            db,
+            search=p.search,
+            role=p.role,
+            is_active=p.is_active,
+            skip=p.skip,
+            limit=p.limit,
         )
     return JSONResponse(result)
 
@@ -129,48 +126,12 @@ async def admin_users_patch(request: Request):
     except Exception:
         return api_error_response(400, "Corps JSON invalide.")
 
-    is_active = data.get("is_active")
-    role_raw = data.get("role")
-
-    if is_active is not None and not isinstance(is_active, bool):
-        return api_error_response(400, "Le champ is_active doit être un booléen.")
-
-    role_map = {
-        "padawan": UserRole.PADAWAN,
-        "maitre": UserRole.MAITRE,
-        "gardien": UserRole.GARDIEN,
-        "archiviste": UserRole.ARCHIVISTE,
-    }
-    new_role = None
-    if role_raw is not None:
-        r = str(role_raw).strip().lower()
-        if r not in role_map:
-            return api_error_response(
-                400, "Rôle invalide. Valeurs: padawan, maitre, gardien, archiviste."
-            )
-        new_role = role_map[r]
-
-    if is_active is None and new_role is None:
-        return api_error_response(400, "Fournissez is_active et/ou role à modifier.")
-
-    if user_id == current_user_id:
-        if is_active is False:
-            return api_error_response(
-                400, "Vous ne pouvez pas désactiver votre propre compte."
-            )
-        if new_role is not None and new_role != UserRole.ARCHIVISTE:
-            return api_error_response(
-                400, "Vous ne pouvez pas rétrograder votre propre rôle."
-            )
-
     async with db_session() as db:
-        result, err, code = AdminService.patch_user_for_admin(
+        result, err, code = AdminService.validate_and_patch_user(
             db,
             user_id=user_id,
             admin_user_id=current_user_id,
-            is_active=is_active,
-            new_role=new_role,
-            role_raw=role_raw,
+            data=data,
         )
     if err:
         return api_error_response(code, err)
@@ -224,29 +185,19 @@ async def admin_exercises(request: Request):
     """
     from app.services.admin_service import AdminService
 
-    query_params = dict(request.query_params)
-    archived_param = query_params.get("archived")
-    exercise_type = (query_params.get("type") or "").strip().upper() or None
-    search = (query_params.get("search") or "").strip()
-    sort = (query_params.get("sort") or "created_at").strip().lower()
-    order = (query_params.get("order") or "desc").strip().lower()
-    skip = max(0, int(query_params.get("skip", 0)))
-    limit = min(100, max(1, int(query_params.get("limit", 20))))
+    from server.handlers.admin_list_params import parse_admin_exercises_params
 
-    is_archived = None
-    if archived_param is not None:
-        is_archived = str(archived_param).lower() in ("true", "1", "yes")
-
+    base, exercise_type = parse_admin_exercises_params(request)
     async with db_session() as db:
         result = AdminService.list_exercises_for_admin(
             db,
-            archived=is_archived,
+            archived=base.archived,
             exercise_type=exercise_type,
-            search=search,
-            sort=sort,
-            order=order,
-            skip=skip,
-            limit=limit,
+            search=base.search,
+            sort=base.sort,
+            order=base.order,
+            skip=base.skip,
+            limit=base.limit,
         )
     return JSONResponse(result)
 
@@ -527,29 +478,19 @@ async def admin_challenges(request: Request):
     """
     from app.services.admin_service import AdminService
 
-    query_params = dict(request.query_params)
-    archived_param = query_params.get("archived")
-    challenge_type_param = (query_params.get("type") or "").strip().lower() or None
-    search = (query_params.get("search") or "").strip()
-    sort = (query_params.get("sort") or "created_at").strip().lower()
-    order = (query_params.get("order") or "desc").strip().lower()
-    skip = max(0, int(query_params.get("skip", 0)))
-    limit = min(100, max(1, int(query_params.get("limit", 20))))
+    from server.handlers.admin_list_params import parse_admin_challenges_params
 
-    is_archived = None
-    if archived_param is not None:
-        is_archived = str(archived_param).lower() in ("true", "1", "yes")
-
+    base, challenge_type_param = parse_admin_challenges_params(request)
     async with db_session() as db:
         result = AdminService.list_challenges_for_admin(
             db,
-            archived=is_archived,
+            archived=base.archived,
             challenge_type=challenge_type_param,
-            search=search,
-            sort=sort,
-            order=order,
-            skip=skip,
-            limit=limit,
+            search=base.search,
+            sort=base.sort,
+            order=base.order,
+            skip=base.skip,
+            limit=base.limit,
         )
     return JSONResponse(result)
 
@@ -592,8 +533,7 @@ async def admin_audit_log(request: Request):
     from app.services.admin_service import AdminService
 
     query_params = dict(request.query_params)
-    skip = max(0, int(query_params.get("skip", 0)))
-    limit = min(200, max(1, int(query_params.get("limit", 50))))
+    skip, limit = parse_pagination_params(query_params, default_limit=50, max_limit=200)
     action_filter = (query_params.get("action") or "").strip() or None
     resource_filter = (query_params.get("resource_type") or "").strip() or None
 
@@ -619,8 +559,7 @@ async def admin_moderation(request: Request):
 
     query_params = dict(request.query_params)
     mod_type = (query_params.get("type") or "all").strip().lower()
-    skip = max(0, int(query_params.get("skip", 0)))
-    limit = min(100, max(1, int(query_params.get("limit", 50))))
+    skip, limit = parse_pagination_params(query_params, default_limit=50, max_limit=100)
 
     async with db_session() as db:
         result = AdminService.get_moderation_for_api(

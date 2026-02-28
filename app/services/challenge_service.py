@@ -138,6 +138,32 @@ def normalize_age_group_for_frontend(age_group) -> str:
     return DB_TO_FRONTEND_AGE_GROUP_EXTENDED.get(age_group, "tous-ages")
 
 
+def challenge_to_api_dict(challenge) -> Dict[str, Any]:
+    """
+    Convertit un objet LogicChallenge en dict pour l'API liste.
+
+    Args:
+        challenge: Objet LogicChallenge (ORM)
+
+    Returns:
+        Dict avec les champs attendus par le frontend.
+    """
+    return {
+        "id": challenge.id,
+        "title": challenge.title,
+        "description": challenge.description,
+        "challenge_type": challenge.challenge_type,
+        "age_group": normalize_age_group_for_frontend(challenge.age_group),
+        "difficulty": challenge.difficulty,
+        "tags": challenge.tags,
+        "difficulty_rating": challenge.difficulty_rating,
+        "estimated_time_minutes": challenge.estimated_time_minutes,
+        "success_rate": challenge.success_rate,
+        "view_count": challenge.view_count,
+        "is_archived": challenge.is_archived,
+    }
+
+
 def create_challenge(
     db: Session,
     title: str,
@@ -416,25 +442,25 @@ def delete_challenge(db: Session, challenge_id: int) -> bool:
 
 def get_user_completed_challenges(db: Session, user_id: int) -> List[int]:
     """
-    Récupérer les IDs des challenges complétés par un utilisateur.
+    Récupérer les IDs des challenges complétés par un utilisateur (distincts).
 
     Args:
         db: Session SQLAlchemy
         user_id: ID de l'utilisateur
 
     Returns:
-        Liste des IDs de challenges complétés
+        Liste des IDs de challenges complétés (sans doublons)
     """
-    attempts = (
-        db.query(LogicChallengeAttempt)
+    rows = (
+        db.query(LogicChallengeAttempt.challenge_id)
         .filter(
             LogicChallengeAttempt.user_id == user_id,
             LogicChallengeAttempt.is_correct == True,
         )
+        .distinct()
         .all()
     )
-
-    return [attempt.challenge_id for attempt in attempts]
+    return [r[0] for r in rows if r[0] is not None]
 
 
 def record_attempt(
