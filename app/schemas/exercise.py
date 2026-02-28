@@ -7,6 +7,54 @@ from app.models.exercise import DifficultyLevel, ExerciseType
 
 # Schémas pour la manipulation des exercices
 
+# ---------------------------------------------------------------------------
+# Validators réutilisables (DRY — ExerciseBase et ExerciseUpdate)
+# ---------------------------------------------------------------------------
+
+
+def _validate_exercise_type(v: Any, allow_none: bool = False) -> Optional[str]:
+    """Valide et normalise exercise_type. Retourne la valeur string ou None si allow_none."""
+    if v is None:
+        if allow_none:
+            return None
+        raise ValueError(
+            "Le type d'exercice est requis. "
+            f"Valeurs possibles: {', '.join(t.value for t in ExerciseType)}"
+        )
+    if isinstance(v, ExerciseType):
+        return v.value
+    if isinstance(v, str):
+        v_upper = v.upper()
+        valid = [t.value for t in ExerciseType]
+        if v_upper in valid:
+            return v_upper
+        raise ValueError(
+            f"Le type d'exercice '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid)}"
+        )
+    raise ValueError(f"Type non valide: {type(v)}")
+
+
+def _validate_difficulty(v: Any, allow_none: bool = False) -> Optional[str]:
+    """Valide et normalise difficulty. Retourne la valeur string ou None si allow_none."""
+    if v is None:
+        if allow_none:
+            return None
+        raise ValueError(
+            "La difficulté est requise. "
+            f"Valeurs possibles: {', '.join(d.value for d in DifficultyLevel)}"
+        )
+    if isinstance(v, DifficultyLevel):
+        return v.value
+    if isinstance(v, str):
+        v_upper = v.upper()
+        valid = [d.value for d in DifficultyLevel]
+        if v_upper in valid:
+            return v_upper
+        raise ValueError(
+            f"La difficulté '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid)}"
+        )
+    raise ValueError(f"Type non valide: {type(v)}")
+
 
 class ExerciseBase(BaseModel):
     """Schéma de base pour les exercices (Épreuves Jedi)"""
@@ -37,50 +85,12 @@ class ExerciseBase(BaseModel):
     @field_validator("exercise_type")
     @classmethod
     def validate_exercise_type(cls, v):
-        # Si c'est déjà un objet ExerciseType, retourner sa valeur
-        if isinstance(v, ExerciseType):
-            return v.value
-
-        # Si c'est une chaîne, vérifier qu'elle correspond à une valeur valide
-        if isinstance(v, str):
-            # Convertir en majuscules pour comparaison avec les valeurs d'enum
-            v_upper = v.upper()
-            valid_types = [
-                t.value for t in ExerciseType
-            ]  # Les valeurs sont en MAJUSCULES
-            # Vérifier si la valeur (en majuscules) correspond à une valeur valide
-            if v_upper in valid_types:
-                return v_upper
-            else:
-                raise ValueError(
-                    f"Le type d'exercice '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_types)}"
-                )
-
-        raise ValueError(f"Type non valide: {type(v)}")
+        return _validate_exercise_type(v, allow_none=False)
 
     @field_validator("difficulty")
     @classmethod
     def validate_difficulty(cls, v):
-        # Si c'est déjà un objet DifficultyLevel, retourner sa valeur
-        if isinstance(v, DifficultyLevel):
-            return v.value
-
-        # Si c'est une chaîne, vérifier qu'elle correspond à une valeur valide
-        if isinstance(v, str):
-            # Convertir en majuscules pour comparaison avec les valeurs d'enum
-            v_upper = v.upper()
-            valid_difficulties = [
-                d.value for d in DifficultyLevel
-            ]  # Les valeurs sont en MAJUSCULES
-            # Vérifier si la valeur (en majuscules) correspond à une valeur valide
-            if v_upper in valid_difficulties:
-                return v_upper
-            else:
-                raise ValueError(
-                    f"La difficulté '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_difficulties)}"
-                )
-
-        raise ValueError(f"Type non valide: {type(v)}")
+        return _validate_difficulty(v, allow_none=False)
 
     @field_validator("correct_answer")
     @classmethod
@@ -148,56 +158,12 @@ class ExerciseUpdate(BaseModel):
     @field_validator("exercise_type")
     @classmethod
     def validate_exercise_type(cls, v):
-        if v is None:
-            return None
-
-        # Si c'est déjà un objet ExerciseType, retourner sa valeur
-        if isinstance(v, ExerciseType):
-            return v.value
-
-        # Si c'est une chaîne, vérifier qu'elle correspond à une valeur valide
-        if isinstance(v, str):
-            # Convertir en majuscules pour comparaison avec les valeurs d'enum
-            v_upper = v.upper()
-            valid_types = [
-                t.value for t in ExerciseType
-            ]  # Les valeurs sont en MAJUSCULES
-            # Vérifier si la valeur (en majuscules) correspond à une valeur valide
-            if v_upper in valid_types:
-                return v_upper
-            else:
-                raise ValueError(
-                    f"Le type d'exercice '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_types)}"
-                )
-
-        raise ValueError(f"Type non valide: {type(v)}")
+        return _validate_exercise_type(v, allow_none=True)
 
     @field_validator("difficulty")
     @classmethod
     def validate_difficulty(cls, v):
-        if v is None:
-            return None
-
-        # Si c'est déjà un objet DifficultyLevel, retourner sa valeur
-        if isinstance(v, DifficultyLevel):
-            return v.value
-
-        # Si c'est une chaîne, vérifier qu'elle correspond à une valeur valide
-        if isinstance(v, str):
-            # Convertir en majuscules pour comparaison avec les valeurs d'enum
-            v_upper = v.upper()
-            valid_difficulties = [
-                d.value for d in DifficultyLevel
-            ]  # Les valeurs sont en MAJUSCULES
-            # Vérifier si la valeur (en majuscules) correspond à une valeur valide
-            if v_upper in valid_difficulties:
-                return v_upper
-            else:
-                raise ValueError(
-                    f"La difficulté '{v}' n'est pas valide. Valeurs possibles: {', '.join(valid_difficulties)}"
-                )
-
-        raise ValueError(f"Type non valide: {type(v)}")
+        return _validate_difficulty(v, allow_none=True)
 
     @field_validator("question")
     @classmethod

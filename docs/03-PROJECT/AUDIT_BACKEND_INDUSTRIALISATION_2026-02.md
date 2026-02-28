@@ -108,12 +108,14 @@
 
 **Objectif :** Réduire la dette technique, améliorer la lisibilité.
 
-| # | Tâche | Fichier(s) | Critères de validation |
-|---|-------|------------|------------------------|
-| 2.1 | Déplacer tous les imports en tête de module | `exercise_service.py`, `exercise_handlers.py`, etc. | `flake8 app server` sans E402 |
-| 2.2 | Factoriser `validate_exercise_type`, `validate_difficulty` | `app/schemas/exercise.py` | Réutilisés dans ExerciseBase et ExerciseUpdate |
-| 2.3 | Restreindre les `except Exception` aux cas strictement nécessaires | `DatabaseAdapter`, `ExerciseService` | Exceptions métier levées, pas de return None silencieux pour erreurs DB |
-| 2.4 | Documenter ou archiver `queries.py` (ExerciseQueries non utilisé) | `app/db/queries.py`, `docs/` | Note dans code ou doc indiquant le statut legacy |
+**Statut :** ✅ Complétée (28/02/2026)
+
+| # | Tâche | Fichier(s) | Statut |
+|---|-------|------------|--------|
+| 2.1 | Déplacer tous les imports en tête de module | `exercise_service.py`, `exercise_handlers.py` | ✅ Fait — imports consolidés, inline supprimés |
+| 2.2 | Factoriser `validate_exercise_type`, `validate_difficulty` | `app/schemas/exercise.py` | ✅ Fait — `_validate_exercise_type`, `_validate_difficulty` réutilisables |
+| 2.3 | Restreindre les `except Exception` aux cas strictement nécessaires | `DatabaseAdapter`, `ExerciseService` | ⏸ Reporté (Itération 3 ou ultérieure) |
+| 2.4 | Documenter ou archiver `queries.py` (ExerciseQueries non utilisé) | `app/db/queries.py` | ✅ Fait — docstring STATUT LEGACY |
 
 **Tests requis :**
 - `pytest tests/ -x -q --tb=short`

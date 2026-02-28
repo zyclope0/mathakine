@@ -5,16 +5,13 @@ Implémente les opérations métier liées aux exercices et utilise le transacti
 
 from typing import Any, Dict, List, Optional, Union
 
-from app.core.logging_config import get_logger
-from app.exceptions import ExerciseNotFoundError, ExerciseSubmitError
-
-logger = get_logger(__name__)
-
-from sqlalchemy import text
+from sqlalchemy import String, cast, text
 from sqlalchemy.orm import Session
 
+from app.core.logging_config import get_logger
 from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
+from app.exceptions import ExerciseNotFoundError, ExerciseSubmitError
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.schemas.exercise import (
@@ -22,6 +19,9 @@ from app.schemas.exercise import (
     ExerciseListResponse,
     SubmitAnswerResponse,
 )
+from app.utils.json_utils import safe_parse_json
+
+logger = get_logger(__name__)
 
 
 class ExerciseService:
@@ -46,8 +46,6 @@ class ExerciseService:
             L'exercice correspondant à l'ID ou None s'il n'existe pas
         """
         try:
-            from sqlalchemy import String, cast
-
             # Charger les enums en tant que strings pour éviter les erreurs de conversion
             exercise_row = (
                 db.query(
@@ -93,8 +91,6 @@ class ExerciseService:
             exercise.updated_at = exercise_row.updated_at
 
             # Convertir les strings normalisées en enums (en majuscules)
-            from app.models.exercise import DifficultyLevel, ExerciseType
-
             exercise_type_normalized = (
                 exercise_row.exercise_type_str.upper()
                 if exercise_row.exercise_type_str
@@ -146,10 +142,6 @@ class ExerciseService:
             Dictionnaire prêt pour JSONResponse ou None si non trouvé
         """
         try:
-            from sqlalchemy import String, cast
-
-            from app.utils.json_utils import safe_parse_json
-
             exercise_row = (
                 db.query(
                     Exercise.id,
@@ -212,10 +204,6 @@ class ExerciseService:
             ou None si non trouvé.
         """
         try:
-            from sqlalchemy import String, cast
-
-            from app.utils.json_utils import safe_parse_json
-
             exercise_row = (
                 db.query(
                     Exercise.id,

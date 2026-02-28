@@ -1,6 +1,11 @@
 """
-Requêtes SQL centralisées pour l'application Mathakine
-Ce fichier contient toutes les requêtes SQL utilisées dans l'application.
+Requêtes SQL centralisées pour l'application Mathakine.
+
+STATUT LEGACY (audit industrialisation 28/02/2026) :
+- ExerciseQueries, UserQueries, etc. : utilisent le format %s (psycopg2).
+- L'application principale utilise SQLAlchemy ORM (app/services/*, app/db/adapter).
+- Ces classes sont conservées pour : tests/unit/test_queries.py, référence DDL.
+- DatabaseAdapter.execute_query utilise :param (paramètres nommés). Ne pas mélanger.
 """
 
 

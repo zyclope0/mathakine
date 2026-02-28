@@ -5,35 +5,28 @@ Handlers pour la génération d'exercices (API)
 import json
 import traceback
 
-from app.core.logging_config import get_logger
-
-logger = get_logger(__name__)
 from pydantic import ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse, StreamingResponse
 
-from app.core.ai_config import AIConfig
 from app.core.config import settings
+from app.core.logging_config import get_logger
 from app.exceptions import ExerciseNotFoundError, ExerciseSubmitError
-from app.models.exercise import ExerciseType
 from app.schemas.exercise import SubmitAnswerRequest
-
-# Import du service de badges
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.exercise_service import ExerciseService
 from app.services.exercise_stats_service import ExerciseStatsService
 from app.utils.db_utils import db_session
-from app.utils.error_handler import (
-    ErrorHandler,
-    api_error_response,
-    get_safe_error_message,
-)
+from app.utils.error_handler import ErrorHandler, api_error_response
 from server.auth import optional_auth, require_auth, require_auth_sse
 from server.exercise_generator import (
     ensure_explanation,
     generate_ai_exercise,
     generate_simple_exercise,
+    normalize_and_validate_exercise_params,
 )
+
+logger = get_logger(__name__)
 
 
 async def generate_exercise(request):
@@ -44,8 +37,6 @@ async def generate_exercise(request):
     use_ai = params.get("ai", False)
 
     # Normaliser et valider les paramètres
-    from server.exercise_generator import normalize_and_validate_exercise_params
-
     exercise_type, age_group, derived_difficulty = (
         normalize_and_validate_exercise_params(exercise_type_raw, age_group_raw)
     )
