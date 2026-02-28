@@ -93,7 +93,7 @@ def api_error_response(
     return JSONResponse(payload, status_code=status_code)
 
 
-def get_safe_error_message(exc: Exception, default: str = None) -> str:
+def get_safe_error_message(exc: Exception, default: Optional[str] = None) -> str:
     """
     Retourne un message d'erreur sûr pour l'utilisateur.
     En production ou hors DEBUG : message générique.
@@ -159,27 +159,53 @@ class ErrorHandler:
 
     @staticmethod
     def create_validation_error(
-        field: str, message: str, status_code: int = 400
+        field: Optional[str] = None,
+        message: Optional[str] = None,
+        status_code: int = 400,
+        *,
+        errors: Optional[List[str]] = None,
+        user_message: Optional[str] = None,
     ) -> JSONResponse:
         """
         Crée une réponse d'erreur de validation.
 
+        Deux modes d'appel :
+        1) (field, message) : erreur sur un champ donné — rétrocompatibilité
+        2) (errors=[...], user_message=...) : erreurs multiples (ex. paramètres filtrage)
+
         Args:
-            field: Nom du champ en erreur
-            message: Message d'erreur
+            field: Nom du champ en erreur (mode 1)
+            message: Message d'erreur (mode 1)
             status_code: Code HTTP (défaut: 400)
+            errors: Liste de messages d'erreur (mode 2)
+            user_message: Message principal utilisateur (mode 2)
 
         Returns:
             JSONResponse avec le format d'erreur de validation
         """
-        logger.warning(f"Erreur de validation pour le champ '{field}': {message}")
-        payload = api_error_json(
-            status_code,
-            message,
-            field_errors=[{"field": field, "message": message}],
+        if errors is not None and user_message is not None:
+            # Mode 2 : erreurs multiples (challenge_handlers, etc.)
+            field_errors = [{"field": "params", "message": e} for e in errors]
+            logger.warning(f"Erreur de validation: {user_message} — {errors}")
+            payload = api_error_json(
+                status_code,
+                user_message,
+                field_errors=field_errors,
+            )
+            return JSONResponse(payload, status_code=status_code)
+        if field and message:
+            # Mode 1 : champ unique — rétrocompatibilité
+            logger.warning(f"Erreur de validation pour le champ '{field}': {message}")
+            payload = api_error_json(
+                status_code,
+                message,
+                field_errors=[{"field": field, "message": message}],
+            )
+            payload["field"] = field  # rétrocompatibilité
+            return JSONResponse(payload, status_code=status_code)
+        raise TypeError(
+            "create_validation_error: (field, message) ou (errors=..., user_message=...) requis"
         )
-        payload["field"] = field  # rétrocompatibilité
-        return JSONResponse(payload, status_code=status_code)
 
     @staticmethod
     def create_not_found_error(

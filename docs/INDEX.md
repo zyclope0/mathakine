@@ -60,6 +60,7 @@ docs/
 │   ├── REFACTOR_STATUS_2026-02.md  # État refactor Clean Code + Architecture (28/02)
 │   ├── EVALUATION_PROJET_2026-02-07.md  # Référence actuelle (évaluation factuelle)
 │   ├── AUDIT_DASHBOARD_2026-02.md  # Audit dashboard (recos partielles)
+│   ├── AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md  # Audit backend + plan itérations Dev/Test/Prod
 │   ├── AUDIT_SENTRY_2026-02.md  # Configuration Sentry (référence)
 │   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~90% traité, vérité terrain 28/02)
 │   ├── CICD_DEPLOY.md  # CI/CD, smoke test, migrations, rollback

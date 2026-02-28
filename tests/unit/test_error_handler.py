@@ -1,9 +1,12 @@
 """Tests pour le schéma d'erreur API unifié (audit Alpha 2)."""
 
+import json
+
 import pytest
 
 from app.utils.error_handler import (
     API_ERROR_CODES,
+    ErrorHandler,
     api_error_json,
     api_error_response,
     get_safe_error_message,
@@ -78,3 +81,49 @@ class TestGetSafeErrorMessage:
         msg = get_safe_error_message(ValueError("e"), default="Erreur")
         assert isinstance(msg, str)
         assert len(msg) > 0
+
+
+class TestCreateValidationError:
+    """Tests ErrorHandler.create_validation_error — modes (field, message) et (errors, user_message)."""
+
+    def test_mode_field_message_retrocompatibilite(self):
+        """Mode classique (field, message) — rétrocompatibilité."""
+        resp = ErrorHandler.create_validation_error(
+            field="email", message="Email invalide", status_code=400
+        )
+        assert resp.status_code == 400
+        data = json.loads(resp.body.decode())
+        assert data["code"] == "BAD_REQUEST"
+        assert data["message"] == "Email invalide"
+        assert data["field"] == "email"
+        assert data["field_errors"] == [{"field": "email", "message": "Email invalide"}]
+
+    def test_mode_errors_user_message_challenge_handlers(self):
+        """Mode (errors, user_message) — utilisé par challenge_handlers."""
+        resp = ErrorHandler.create_validation_error(
+            errors=["Paramètre limit invalide"],
+            user_message="Les paramètres de filtrage sont invalides.",
+        )
+        assert resp.status_code == 400
+        data = json.loads(resp.body.decode())
+        assert data["code"] == "BAD_REQUEST"
+        assert data["message"] == "Les paramètres de filtrage sont invalides."
+        assert data["field_errors"] == [
+            {"field": "params", "message": "Paramètre limit invalide"}
+        ]
+
+    def test_mode_errors_multiple(self):
+        """Mode (errors, user_message) avec plusieurs erreurs."""
+        resp = ErrorHandler.create_validation_error(
+            errors=["Erreur 1", "Erreur 2"],
+            user_message="Validation échouée.",
+        )
+        data = json.loads(resp.body.decode())
+        assert len(data["field_errors"]) == 2
+        assert data["field_errors"][0]["message"] == "Erreur 1"
+        assert data["field_errors"][1]["message"] == "Erreur 2"
+
+    def test_missing_args_raises_typeerror(self):
+        """Appel sans args valides lève TypeError."""
+        with pytest.raises(TypeError, match="create_validation_error.*requis"):
+            ErrorHandler.create_validation_error()
