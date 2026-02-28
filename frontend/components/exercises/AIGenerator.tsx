@@ -137,8 +137,11 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
             setIsGenerating(false);
             eventSourceRef.current = null;
 
-            // Invalider le cache pour recharger la liste
-            queryClient.invalidateQueries({ queryKey: ["exercises"] });
+            // Invalider le cache en différé pour éviter un refetch synchrone
+            // qui peut provoquer remontage/blanc sur la première génération
+            setTimeout(() => {
+              queryClient.invalidateQueries({ queryKey: ["exercises"] });
+            }, 100);
 
             toast.success(t("aiGenerator.success"), {
               description: t("aiGenerator.successDescription", { title: exercise.title }),

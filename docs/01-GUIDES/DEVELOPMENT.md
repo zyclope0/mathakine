@@ -203,9 +203,8 @@ async def create_my_model_handler(request):
         }, status_code=201)
         
     except Exception as creation_error:
-        return JSONResponse({
-            "error": str(creation_error)
-        }, status_code=500)
+        from app.utils.error_handler import api_error_response
+        return api_error_response(500, str(creation_error))
 
 @optional_auth  # Auth optionnelle - request.state.user = None si non connecte
 async def list_my_models_handler(request):

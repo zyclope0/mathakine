@@ -123,7 +123,7 @@ Si une migration pose problème après déploiement :
 
 1. **Backup BDD** (Recommandé avant toute manipulation)  
    - Render : Dashboard → Database → **Export** → Create export  
-   - Voir [PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md](PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md) (backup local)
+   - Voir [PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md) (backup local)
 
 2. **Downgrade une révision**
    ```bash
@@ -149,5 +149,5 @@ Si le nouveau code dépend de la nouvelle migration :
 | Doc | Contenu |
 |-----|---------|
 | [DEPLOYMENT_ENV.md](../01-GUIDES/DEPLOYMENT_ENV.md) | Variables d'environnement, checklist pré-déploiement |
-| [PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md](PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md) | Backup, procédures détaillées rollback BDD |
+| [PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md) | Backup, procédures détaillées rollback BDD |
 | [DEPLOIEMENT_2026-02-06.md](AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/DEPLOIEMENT_2026-02-06.md) | Exemple de rapport déploiement |

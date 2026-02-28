@@ -24,6 +24,8 @@ La feature **Admin** est prévue dans la roadmap. Les endpoints admin exposent d
 
 ```python
 # server/auth.py
+from app.utils.error_handler import api_error_response
+
 def require_role(role: str):
     """Décorateur qui exige un rôle spécifique (ex: admin)."""
     def decorator(handler):
@@ -31,15 +33,9 @@ def require_role(role: str):
         async def wrapper(request, *args, **kwargs):
             current_user = await get_current_user(request)
             if not current_user or not current_user.get("is_authenticated"):
-                return JSONResponse(
-                    {"error": "Authentification requise"},
-                    status_code=401
-                )
+                return api_error_response(401, "Authentification requise")
             if current_user.get("role") != role:
-                return JSONResponse(
-                    {"error": "Droits insuffisants"},
-                    status_code=403
-                )
+                return api_error_response(403, "Droits insuffisants")
             request.state.user = current_user
             return await handler(request, *args, **kwargs)
         return wrapper

@@ -39,7 +39,7 @@
 - ~~**Duplication massive** : auth check copie dans chaque handler~~ → **CORRIGE** (08/02/2026) : decorateurs `@require_auth`, `@optional_auth`, `@require_auth_sse` eliminent 40+ blocs dupliques
 - ~~**Duplication restante** : pattern DB session repete ~50 fois, `safe_parse_json()` duplique~~ → **CORRIGE** (25/02/2026) : `db_session()` (app/utils/db_utils.py) utilise dans tous les handlers ; `safe_parse_json` centralise dans json_utils.py
 - **Typage insuffisant** : ~40-50% couverture, aucun handler n'a de type retour, pas de mypy
-- **Error handling inconsistant** : mix de `ErrorHandler.create_error_response()` et `JSONResponse()` direct
+- ~~**Error handling inconsistant**~~ → **CORRIGÉ** (22/02/2026) : tous les handlers utilisent `api_error_response(status_code, message)` — contrat unifié `{code, message, error}`
 - **Estimé ~15,000-20,000 LOC backend**
 
 ### Frontend (Next.js 16 + TypeScript)

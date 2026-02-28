@@ -458,6 +458,69 @@ class AdminService:
         ]
         return {"items": items, "total": total}
 
+    ROLE_MAP = {
+        "padawan": UserRole.PADAWAN,
+        "maitre": UserRole.MAITRE,
+        "gardien": UserRole.GARDIEN,
+        "archiviste": UserRole.ARCHIVISTE,
+    }
+
+    @classmethod
+    def validate_and_patch_user(
+        cls,
+        db: Session,
+        *,
+        user_id: int,
+        admin_user_id: int,
+        data: Dict[str, Any],
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+        """
+        Valide les données et met à jour is_active et/ou role.
+        Returns: (result_dict, error_message, status_code)
+        """
+        is_active = data.get("is_active")
+        role_raw = data.get("role")
+
+        if is_active is not None and not isinstance(is_active, bool):
+            return None, "Le champ is_active doit être un booléen.", 400
+
+        new_role = None
+        if role_raw is not None:
+            r = str(role_raw).strip().lower()
+            if r not in cls.ROLE_MAP:
+                return (
+                    None,
+                    "Rôle invalide. Valeurs: padawan, maitre, gardien, archiviste.",
+                    400,
+                )
+            new_role = cls.ROLE_MAP[r]
+
+        if is_active is None and new_role is None:
+            return None, "Fournissez is_active et/ou role à modifier.", 400
+
+        if user_id == admin_user_id:
+            if is_active is False:
+                return (
+                    None,
+                    "Vous ne pouvez pas désactiver votre propre compte.",
+                    400,
+                )
+            if new_role is not None and new_role != UserRole.ARCHIVISTE:
+                return (
+                    None,
+                    "Vous ne pouvez pas rétrograder votre propre rôle.",
+                    400,
+                )
+
+        return cls.patch_user_for_admin(
+            db,
+            user_id=user_id,
+            admin_user_id=admin_user_id,
+            is_active=is_active,
+            new_role=new_role,
+            role_raw=role_raw,
+        )
+
     @staticmethod
     def patch_user_for_admin(
         db: Session,

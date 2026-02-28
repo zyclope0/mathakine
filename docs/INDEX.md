@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique — Mise à jour au 25/02/2026  
+> Point d'entrée unique — Mise à jour au 28/02/2026  
 > **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md) — inclut la **revue trimestrielle** (vérité terrain) §7
 
 ---
@@ -60,7 +60,7 @@ docs/
 │   ├── EVALUATION_PROJET_2026-02-07.md  # Référence actuelle (évaluation factuelle)
 │   ├── AUDIT_DASHBOARD_2026-02.md  # Audit dashboard (recos partielles)
 │   ├── AUDIT_SENTRY_2026-02.md  # Configuration Sentry (référence)
-│   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~90% traité, vérité terrain 25/02)
+│   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~90% traité, vérité terrain 28/02)
 │   ├── CICD_DEPLOY.md  # CI/CD, smoke test, migrations, rollback
 │   ├── POLITIQUE_REDACTION_LOGS_PII.md  # Règles PII/secrets dans les logs
 │   ├── ENDPOINTS_NON_INTEGRES.md  # Endpoints à intégrer
@@ -69,6 +69,10 @@ docs/
 │       ├── README.md  # Index du dossier
 │       ├── AUDITS_IMPLEMENTES/  # Recos toutes appliquées (Backend Alpha2, Dette qual., etc.)
 │       │   ├── INDEX.md  # Index des audits complétés
+│       │   ├── CLOTURE_AUDIT_BACKEND_ALPHA2_2026-02-22.md  # Clôture audit Backend Alpha 2 (28/02)
+│       │   ├── AUDIT_TECHNIQUE_BACKEND_ALPHA2_2026-02-27.md  # Audit technique factuel
+│       │   ├── PRIORISATION_AUDIT_BACKEND_ALPHA2_2026-02-28.md
+│       │   ├── CHALLENGE_AUDIT_TECHNIQUE_BACKEND_2026-02-28.md
 │       │   ├── AUDIT_SECURITE_APPLICATIVE_2026-02.md  # OWASP (archivé)
 │       │   ├── ANALYSE_THEMES_UX_2026-02.md
 │       │   ├── CONTRAST_FIXES.md

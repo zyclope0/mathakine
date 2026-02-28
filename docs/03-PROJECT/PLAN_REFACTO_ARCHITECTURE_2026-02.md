@@ -71,6 +71,12 @@ server/
 
 ---
 
+## Suite — Clean Code & DTO
+
+→ **[PLAN_CLEAN_CODE_ET_DTO_2026-02.md](./PLAN_CLEAN_CODE_ET_DTO_2026-02.md)** : plan par priorité (DTO, duplication, exceptions, typage).
+
+---
+
 ## Historique des modifications
 
 | Date | Phase | Détail |
