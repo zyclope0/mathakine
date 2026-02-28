@@ -83,7 +83,9 @@ async def get_challenges_list(request: Request):
                 exclude_ids=exclude_ids if exclude_ids else None,
             )
             challenges_list = [
-                ChallengeListItem.model_validate(challenge_service.challenge_to_api_dict(c))
+                ChallengeListItem.model_validate(
+                    challenge_service.challenge_to_api_dict(c)
+                )
                 for c in challenges
             ]
             total = challenge_service.count_challenges(
@@ -94,9 +96,7 @@ async def get_challenges_list(request: Request):
             )
 
         if p.active_only:
-            challenges_list = [
-                c for c in challenges_list if not c.is_archived
-            ]
+            challenges_list = [c for c in challenges_list if not c.is_archived]
 
         page = (p.skip // p.limit) + 1 if p.limit > 0 else 1
         has_more = (p.skip + len(challenges_list)) < total
