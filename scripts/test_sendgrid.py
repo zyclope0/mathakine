@@ -6,6 +6,7 @@ Usage:
   python scripts/test_sendgrid.py [email] --verify     # Template vérification inscription
   python scripts/test_sendgrid.py [email] --reset      # Template mot de passe oublié
 """
+
 import os
 import sys
 from pathlib import Path
@@ -16,6 +17,7 @@ sys.path.insert(0, str(root))
 env_path = root / ".env"
 if env_path.exists():
     from dotenv import load_dotenv
+
     load_dotenv(env_path, override=False)
 
 api_key = os.getenv("SENDGRID_API_KEY")
@@ -32,22 +34,29 @@ if not api_key:
     sys.exit(1)
 
 if "@" not in to_email:
-    print("Usage: python scripts/test_sendgrid.py ton_email@example.com [--verify|--reset]")
+    print(
+        "Usage: python scripts/test_sendgrid.py ton_email@example.com [--verify|--reset]"
+    )
     sys.exit(1)
 
 try:
     from sendgrid import SendGridAPIClient
     from sendgrid.helpers.mail import Mail
+
     from app.services.email_service import EmailService
 
     if template:
         token = "test_token_preview_123"
         username = "PadawanTest"
         if "--reset" in args:
-            sent = EmailService.send_password_reset_email(to_email, username, token, frontend_url)
+            sent = EmailService.send_password_reset_email(
+                to_email, username, token, frontend_url
+            )
             print("OK - Email reset-password envoye" if sent else "ECHEC")
         else:
-            sent = EmailService.send_verification_email(to_email, username, token, frontend_url)
+            sent = EmailService.send_verification_email(
+                to_email, username, token, frontend_url
+            )
             print("OK - Email verification envoye" if sent else "ECHEC")
         print(f"   À: {to_email}")
         print(f"   Template: thème Jedi unifié")

@@ -6,11 +6,11 @@ Create Date: 2026-02-17
 
 Colonnes : current_streak (jours consécutifs), best_streak (record), last_activity_date (dernier jour d'activité).
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "20260217_streak"
 down_revision: Union[str, None] = "20260216_pinned"
@@ -23,11 +23,21 @@ def upgrade() -> None:
     insp = sa.inspect(conn)
     cols = {c["name"] for c in insp.get_columns("users")}
     if "current_streak" not in cols:
-        op.add_column("users", sa.Column("current_streak", sa.Integer(), nullable=True, server_default="0"))
+        op.add_column(
+            "users",
+            sa.Column(
+                "current_streak", sa.Integer(), nullable=True, server_default="0"
+            ),
+        )
     if "best_streak" not in cols:
-        op.add_column("users", sa.Column("best_streak", sa.Integer(), nullable=True, server_default="0"))
+        op.add_column(
+            "users",
+            sa.Column("best_streak", sa.Integer(), nullable=True, server_default="0"),
+        )
     if "last_activity_date" not in cols:
-        op.add_column("users", sa.Column("last_activity_date", sa.Date(), nullable=True))
+        op.add_column(
+            "users", sa.Column("last_activity_date", sa.Date(), nullable=True)
+        )
 
 
 def downgrade() -> None:

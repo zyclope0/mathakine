@@ -152,7 +152,7 @@ const { data: challengesProgress } = useChallengesProgress();
 - **Architecture actuelle :** Starlette pur (port 10000)
 - **FastAPI archivé :** `_ARCHIVE_2026/app/main.py` + `_ARCHIVE_2026/app/api/api.py`
 - **Handlers actifs :** `server/handlers/user_handlers.py`
-- **Routes :** `server/routes.py` (~85 routes totales)
+- **Routes :** `server/routes/` (~85 routes totales, agrégées via `get_routes()`)
 
 **Authentification supportée :**
 - ✅ Cookie `access_token` (HttpOnly)

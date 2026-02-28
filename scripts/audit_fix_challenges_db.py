@@ -10,6 +10,7 @@ Usage:
     python scripts/audit_fix_challenges_db.py              # Dry-run (affiche sans modifier)
     python scripts/audit_fix_challenges_db.py --execute   # Applique les corrections
 """
+
 import argparse
 import json
 import os
@@ -21,6 +22,7 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT_DIR / ".env")
 
 
@@ -90,17 +92,17 @@ def extract_final_result_from_explanation(text):
         return None
 
     # Pattern: "X + Y = Z" ou "X+Y=Z"
-    m = re.search(r'(\d+)\s*\+\s*(\d+)\s*=\s*(\d+)', text)
+    m = re.search(r"(\d+)\s*\+\s*(\d+)\s*=\s*(\d+)", text)
     if m:
         return m.group(3)
 
     # Pattern: "pour obtenir N" ou "obtenir N"
-    m = re.search(r'obtenir\s+(\d+)', text, re.I)
+    m = re.search(r"obtenir\s+(\d+)", text, re.I)
     if m:
         return m.group(1)
 
     # Pattern: "= N." en fin de phrase (dernier calcul)
-    matches = re.findall(r'=\s*(\d+)(?:\s|\.|$)', text)
+    matches = re.findall(r"=\s*(\d+)(?:\s|\.|$)", text)
     if matches:
         return matches[-1]
 
@@ -136,14 +138,12 @@ def audit_and_fix(dry_run=True):
     Session = sessionmaker(bind=engine, autocommit=False)
     session = Session()
 
-    result = session.execute(
-        text("""
+    result = session.execute(text("""
             SELECT id, title, challenge_type, correct_answer, solution_explanation, visual_data
             FROM logic_challenges
             WHERE is_archived = false
             ORDER BY id
-        """)
-    )
+        """))
     rows = result.fetchall()
 
     issues = []
@@ -167,21 +167,25 @@ def audit_and_fix(dry_run=True):
             if seq and isinstance(seq, list):
                 next_val, pattern = compute_next_sequence(seq)
                 if next_val and correct_norm and next_val != correct_norm:
-                    issues.append({
-                        "id": cid,
-                        "type": "sequence_mismatch",
-                        "title": (title or "")[:50],
-                        "correct_answer": correct_answer,
-                        "expected": next_val,
-                        "pattern": pattern,
-                        "sequence": seq,
-                    })
-                    fixes.append({
-                        "id": cid,
-                        "field": "correct_answer",
-                        "old": correct_answer,
-                        "new": next_val,
-                    })
+                    issues.append(
+                        {
+                            "id": cid,
+                            "type": "sequence_mismatch",
+                            "title": (title or "")[:50],
+                            "correct_answer": correct_answer,
+                            "expected": next_val,
+                            "pattern": pattern,
+                            "sequence": seq,
+                        }
+                    )
+                    fixes.append(
+                        {
+                            "id": cid,
+                            "field": "correct_answer",
+                            "old": correct_answer,
+                            "new": next_val,
+                        }
+                    )
 
         # --- SEQUENCE seulement: si expl contient un calcul et contredit ---
         # (Pour les autres types, extraction trop risquée - faux positifs)
@@ -190,20 +194,24 @@ def audit_and_fix(dry_run=True):
             if expl_result and correct_norm and expl_result != correct_norm:
                 # Déjà une fix sequence ? Si expl et computed diffèrent, priorité au computed
                 if not any(f["id"] == cid for f in fixes):
-                    issues.append({
-                        "id": cid,
-                        "type": "explanation_contradicts",
-                        "title": (title or "")[:50],
-                        "correct_answer": correct_answer,
-                        "explanation_says": expl_result,
-                    })
+                    issues.append(
+                        {
+                            "id": cid,
+                            "type": "explanation_contradicts",
+                            "title": (title or "")[:50],
+                            "correct_answer": correct_answer,
+                            "explanation_says": expl_result,
+                        }
+                    )
                     # Pour SEQUENCE : l'explication qui calcule est fiable (ex: 16+6=22)
-                    fixes.append({
-                        "id": cid,
-                        "field": "correct_answer",
-                        "old": correct_answer,
-                        "new": expl_result,
-                    })
+                    fixes.append(
+                        {
+                            "id": cid,
+                            "field": "correct_answer",
+                            "old": correct_answer,
+                            "new": expl_result,
+                        }
+                    )
 
     # Affichage
     print(f"\n=== Audit défis logiques ({len(rows)} défis analysés) ===\n")
@@ -218,7 +226,9 @@ def audit_and_fix(dry_run=True):
         print(f"   Type: {iss['type']}")
         print(f"   correct_answer actuel: {iss['correct_answer']}")
         if "expected" in iss:
-            print(f"   Valeur attendue (séquence): {iss['expected']} (pattern: {iss.get('pattern', '?')})")
+            print(
+                f"   Valeur attendue (séquence): {iss['expected']} (pattern: {iss.get('pattern', '?')})"
+            )
             print(f"   Séquence: {iss.get('sequence', [])}")
         if "explanation_says" in iss:
             print(f"   L'explication conclut: {iss['explanation_says']}")
@@ -231,12 +241,16 @@ def audit_and_fix(dry_run=True):
     if fixes_to_apply and not dry_run:
         for fix in fixes_to_apply:
             session.execute(
-                text("UPDATE logic_challenges SET correct_answer = :new WHERE id = :id"),
-                {"new": fix["new"], "id": fix["id"]}
+                text(
+                    "UPDATE logic_challenges SET correct_answer = :new WHERE id = :id"
+                ),
+                {"new": fix["new"], "id": fix["id"]},
             )
             print(f"   Defi #{fix['id']}: correct_answer {fix['old']} -> {fix['new']}")
         session.commit()
-        print(f"\n[OK] {len(fixes_to_apply)} correction(s) appliquee(s) (sequence_mismatch uniquement).")
+        print(
+            f"\n[OK] {len(fixes_to_apply)} correction(s) appliquee(s) (sequence_mismatch uniquement)."
+        )
     elif dry_run:
         print("[MODE DRY-RUN] Lancez avec --execute pour appliquer les corrections.")
 
@@ -248,7 +262,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Audit et correction des incohérences dans les défis logiques"
     )
-    parser.add_argument("--execute", action="store_true", help="Appliquer les corrections")
+    parser.add_argument(
+        "--execute", action="store_true", help="Appliquer les corrections"
+    )
     args = parser.parse_args()
     return audit_and_fix(dry_run=not args.execute)
 

@@ -1,6 +1,7 @@
 """
 Tests de l'endpoint admin GET /api/admin/analytics/edtech.
 """
+
 import pytest
 
 
@@ -58,6 +59,7 @@ async def test_analytics_event_post_and_visible(padawan_client, archiviste_clien
     matching = [e for e in events if e.get("event") == "quick_start_click"]
     assert len(matching) >= 1
     assert any(
-        (m.get("payload") or {}).get("type") == "challenge" and (m.get("payload") or {}).get("targetId") == 42
+        (m.get("payload") or {}).get("type") == "challenge"
+        and (m.get("payload") or {}).get("targetId") == 42
         for m in matching
     )

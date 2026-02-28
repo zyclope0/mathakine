@@ -29,13 +29,21 @@
 | **[CICD_DEPLOY.md](./CICD_DEPLOY.md)** | Fév. 2026 | **CI/CD opérationnel** — CI automatique, smoke test /health, migrations Alembic, rollback manuel. |
 | **[POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md)** | 22/02/2026 | **Politique** — Règles PII et secrets dans les logs. |
 
+### Refactoring (terminé P1–P3 / Ph1–Ph3)
+
+| Document | Date | Sujet |
+|----------|------|-------|
+| **[REFACTOR_STATUS_2026-02.md](./REFACTOR_STATUS_2026-02.md)** | 28/02/2026 | **État refactor** — Clean Code P1–P3, Architecture Ph1–Ph3, synthèse |
+| [PLAN_CLEAN_CODE_ET_DTO_2026-02.md](./PLAN_CLEAN_CODE_ET_DTO_2026-02.md) | 28/02/2026 | DTO, exceptions, typage — P4 (admin, OpenAPI) restant |
+| [PLAN_REFACTO_ARCHITECTURE_2026-02.md](./PLAN_REFACTO_ARCHITECTURE_2026-02.md) | 28/02/2026 | Routes découpées, handlers, ExerciseStatsService — Ph4 reporté |
+
 ### Audits avec recommandations partielles
 
 | Document | Date | Sujet | État |
 |----------|------|-------|------|
 | [AUDIT_DASHBOARD_2026-02.md](./AUDIT_DASHBOARD_2026-02.md) | Fév. 2026 | Dashboard — imports, i18n, handleRefresh | Recos partielles |
 | [AUDIT_SENTRY_2026-02.md](./AUDIT_SENTRY_2026-02.md) | Fév. 2026 | Configuration Sentry, monitoring | Référence config |
-| [ANALYSE_DUPLICATION_DRY_2026-02.md](./ANALYSE_DUPLICATION_DRY_2026-02.md) | Fév. 2026 | DRY, duplication code | ~90 % traité (db_session, parse_json_body, safe_parse_json, api_error_response) — vérité terrain 28/02 |
+| [ANALYSE_DUPLICATION_DRY_2026-02.md](./ANALYSE_DUPLICATION_DRY_2026-02.md) | Fév. 2026 | DRY, duplication code | ~90 % traité (db_session, parse_json_body, safe_parse_json, api_error_response, exceptions P3) — vérité terrain 28/02 |
 
 ### Vulnérabilités (CVE)
 

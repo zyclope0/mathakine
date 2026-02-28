@@ -7,11 +7,13 @@ Le handler submit_answer utilise:
 - ExerciseService.record_attempt pour enregistrer la tentative
 - request.path_params['exercise_id'] pour l'ID exercice
 """
-import pytest
-import json
-from unittest.mock import patch, MagicMock, AsyncMock
 
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
+import json
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.user import UserRole
 from app.utils.db_helpers import get_enum_value
 from server.handlers.exercise_handlers import submit_answer
@@ -23,19 +25,25 @@ def _mock_user(db_session=None, role=UserRole.PADAWAN):
     return {
         "id": 1,
         "username": "test_user",
-        "role": role.value if hasattr(role, 'value') else str(role),
-        "is_authenticated": True
+        "role": role.value if hasattr(role, "value") else str(role),
+        "is_authenticated": True,
     }
 
 
 def _patch_auth(mock_user):
     """Patch server.auth.get_current_user (appele par @require_auth)."""
-    return patch('server.auth.get_current_user', AsyncMock(return_value=mock_user))
+    return patch("server.auth.get_current_user", AsyncMock(return_value=mock_user))
 
 
-def _mock_exercise_row(exercise_id=1, correct_answer="8", exercise_type="ADDITION",
-                       difficulty="INITIE", question="5 + 3 = ?",
-                       explanation="Explication", choices=None):
+def _mock_exercise_row(
+    exercise_id=1,
+    correct_answer="8",
+    exercise_type="ADDITION",
+    difficulty="INITIE",
+    question="5 + 3 = ?",
+    explanation="Explication",
+    choices=None,
+):
     """Cree un mock qui simule le resultat de db.query(...).filter(...).first()."""
     row = MagicMock()
     row.id = exercise_id
@@ -48,8 +56,14 @@ def _mock_exercise_row(exercise_id=1, correct_answer="8", exercise_type="ADDITIO
     return row
 
 
-def _mock_attempt_obj(attempt_id=1, user_id=1, exercise_id=1,
-                      user_answer="8", is_correct=True, time_spent=10.0):
+def _mock_attempt_obj(
+    attempt_id=1,
+    user_id=1,
+    exercise_id=1,
+    user_answer="8",
+    is_correct=True,
+    time_spent=10.0,
+):
     """Cree un mock d'objet Attempt retourne par ExerciseService.record_attempt."""
     attempt = MagicMock()
     attempt.id = attempt_id
@@ -68,7 +82,7 @@ async def test_submit_correct_answer(db_session):
     mock_user = _mock_user(db_session)
     mock_request = create_mock_request(
         json_data={"selected_answer": "8", "time_spent": 15.5},
-        path_params={"exercise_id": "1"}
+        path_params={"exercise_id": "1"},
     )
     # Mock headers pour Accept-Language
     mock_request.headers = {"Accept-Language": "fr"}
@@ -85,13 +99,18 @@ async def test_submit_correct_answer(db_session):
     # Mock pour badges
     mock_db_badges = MagicMock()
 
-    with patch('app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session',
-               side_effect=[mock_db_ex, mock_db_att, mock_db_badges]):
-        with patch('app.services.exercise_service.ExerciseService.record_attempt', return_value=attempt_obj):
+    with patch(
+        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
+        side_effect=[mock_db_ex, mock_db_att, mock_db_badges],
+    ):
+        with patch(
+            "app.services.exercise_service.ExerciseService.record_attempt",
+            return_value=attempt_obj,
+        ):
             with _patch_auth(mock_user):
                 response = await submit_answer(mock_request)
 
-    result = json.loads(response.body.decode('utf-8'))
+    result = json.loads(response.body.decode("utf-8"))
     assert response.status_code == 200
     assert result["is_correct"] is True
     assert "correct_answer" in result
@@ -103,12 +122,14 @@ async def test_submit_incorrect_answer(db_session):
     mock_user = _mock_user(db_session)
     mock_request = create_mock_request(
         json_data={"selected_answer": "36", "time_spent": 25.0},
-        path_params={"exercise_id": "1"}
+        path_params={"exercise_id": "1"},
     )
     mock_request.headers = {"Accept-Language": "fr"}
 
     mock_db_ex = MagicMock()
-    exercise_row = _mock_exercise_row(correct_answer="42", exercise_type="MULTIPLICATION")
+    exercise_row = _mock_exercise_row(
+        correct_answer="42", exercise_type="MULTIPLICATION"
+    )
     mock_db_ex.query.return_value.filter.return_value.first.return_value = exercise_row
 
     mock_db_att = MagicMock()
@@ -116,13 +137,18 @@ async def test_submit_incorrect_answer(db_session):
 
     mock_db_badges = MagicMock()
 
-    with patch('app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session',
-               side_effect=[mock_db_ex, mock_db_att, mock_db_badges]):
-        with patch('app.services.exercise_service.ExerciseService.record_attempt', return_value=attempt_obj):
+    with patch(
+        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
+        side_effect=[mock_db_ex, mock_db_att, mock_db_badges],
+    ):
+        with patch(
+            "app.services.exercise_service.ExerciseService.record_attempt",
+            return_value=attempt_obj,
+        ):
             with _patch_auth(mock_user):
                 response = await submit_answer(mock_request)
 
-    result = json.loads(response.body.decode('utf-8'))
+    result = json.loads(response.body.decode("utf-8"))
     assert response.status_code == 200
     assert result["is_correct"] is False
     assert result["correct_answer"] == "42"
@@ -134,18 +160,21 @@ async def test_submit_answer_nonexistent_exercise(db_session):
     mock_user = _mock_user(db_session)
     mock_request = create_mock_request(
         json_data={"selected_answer": "42", "time_spent": 10.0},
-        path_params={"exercise_id": "999"}
+        path_params={"exercise_id": "999"},
     )
     mock_request.headers = {"Accept-Language": "fr"}
 
     mock_db = MagicMock()
     mock_db.query.return_value.filter.return_value.first.return_value = None
 
-    with patch('app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session', return_value=mock_db):
+    with patch(
+        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
+        return_value=mock_db,
+    ):
         with _patch_auth(mock_user):
             response = await submit_answer(mock_request)
 
-    result = json.loads(response.body.decode('utf-8'))
+    result = json.loads(response.body.decode("utf-8"))
     assert response.status_code == 404
     assert "error" in result
 
@@ -155,15 +184,14 @@ async def test_submit_answer_missing_answer(db_session):
     """Teste la soumission sans reponse selectionnee → 422 (SubmitAnswerRequest)."""
     mock_user = _mock_user(db_session)
     mock_request = create_mock_request(
-        json_data={"time_spent": 10.0},
-        path_params={"exercise_id": "1"}
+        json_data={"time_spent": 10.0}, path_params={"exercise_id": "1"}
     )
     mock_request.headers = {"Accept-Language": "fr"}
 
     with _patch_auth(mock_user):
         response = await submit_answer(mock_request)
 
-    result = json.loads(response.body.decode('utf-8'))
+    result = json.loads(response.body.decode("utf-8"))
     assert response.status_code == 422
     assert "detail" in result
 
@@ -173,7 +201,7 @@ async def test_submit_answer_unauthenticated():
     """Teste la soumission d'une reponse sans authentification."""
     mock_request = create_mock_request(
         json_data={"selected_answer": "8", "time_spent": 10.0},
-        path_params={"exercise_id": "1"}
+        path_params={"exercise_id": "1"},
     )
     mock_request.headers = {"Accept-Language": "fr"}
 
@@ -181,7 +209,7 @@ async def test_submit_answer_unauthenticated():
     with _patch_auth(mock_unauthenticated):
         response = await submit_answer(mock_request)
 
-    result = json.loads(response.body.decode('utf-8'))
+    result = json.loads(response.body.decode("utf-8"))
     assert response.status_code == 401
     assert "error" in result
 
@@ -192,17 +220,20 @@ async def test_submit_answer_internal_error(db_session):
     mock_user = _mock_user(db_session)
     mock_request = create_mock_request(
         json_data={"selected_answer": "8", "time_spent": 10.0},
-        path_params={"exercise_id": "1"}
+        path_params={"exercise_id": "1"},
     )
     mock_request.headers = {"Accept-Language": "fr"}
 
     def raise_error(*args, **kwargs):
         raise Exception("Erreur interne")
 
-    with patch('app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session', side_effect=raise_error):
+    with patch(
+        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
+        side_effect=raise_error,
+    ):
         with _patch_auth(mock_user):
             response = await submit_answer(mock_request)
 
-    result = json.loads(response.body.decode('utf-8'))
+    result = json.loads(response.body.decode("utf-8"))
     assert response.status_code == 500
     assert "error" in result

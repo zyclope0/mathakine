@@ -1,4 +1,5 @@
 """Tests pour app.utils.simple_ttl_cache."""
+
 import asyncio
 
 import pytest
@@ -34,6 +35,7 @@ async def test_get_or_set_caches_value():
 @pytest.mark.asyncio
 async def test_get_or_set_different_keys():
     """Des clés différentes ont des entrées séparées."""
+
     async def factory_a():
         return "A"
 

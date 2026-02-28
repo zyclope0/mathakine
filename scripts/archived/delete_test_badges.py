@@ -6,6 +6,7 @@ Usage:
     python scripts/delete_test_badges.py              # Dry-run
     python scripts/delete_test_badges.py --execute    # Supprime effectivement
 """
+
 import argparse
 import os
 import sys
@@ -15,6 +16,7 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT_DIR / ".env")
 
 from sqlalchemy import create_engine, text
@@ -71,9 +73,7 @@ def main():
             print("\n>> Dry-run. Relancer avec --execute pour supprimer.")
             return
 
-        conn.execute(
-            text("DELETE FROM achievements WHERE code IN ('test', 'test2')")
-        )
+        conn.execute(text("DELETE FROM achievements WHERE code IN ('test', 'test2')"))
         conn.commit()
         print(f"\n[OK] {len(rows)} badge(s) supprime(s).")
 

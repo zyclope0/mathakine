@@ -8,11 +8,11 @@ Tables créées par init_database(), désormais gérées par Alembic.
 Idempotent : CREATE TABLE IF NOT EXISTS, ADD COLUMN IF NOT EXISTS, CREATE INDEX IF NOT EXISTS.
 Doit s'exécuter avant 20260206_1530 (index sur exercises).
 """
+
 from typing import Sequence, Union
 
 from alembic import op
 from sqlalchemy import text
-
 
 revision: str = "20260222_legacy_tables"
 down_revision: Union[str, None] = "20260205_missing_tables_idx"
@@ -60,9 +60,11 @@ def upgrade() -> None:
         conn.execute(text(idx_sql))
 
     # Colonne ai_generated (si table créée par autre source)
-    conn.execute(text(
-        "ALTER TABLE exercises ADD COLUMN IF NOT EXISTS ai_generated BOOLEAN DEFAULT FALSE"
-    ))
+    conn.execute(
+        text(
+            "ALTER TABLE exercises ADD COLUMN IF NOT EXISTS ai_generated BOOLEAN DEFAULT FALSE"
+        )
+    )
 
     # UPDATE ai_generated pour exercices avec préfixe IA (idempotent)
     from app.core.constants import Messages

@@ -20,6 +20,7 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT_DIR / ".env")
 
 # Nouveaux badges : exercices, défis, mixte, secrets
@@ -190,7 +191,11 @@ def run_add(dry_run: bool = True):
 
     engine = create_engine(get_db_url())
     with engine.connect() as conn:
-        print("=== Ajout badges psycho/retention - mode", "DRY-RUN" if dry_run else "EXECUTION", "===\n")
+        print(
+            "=== Ajout badges psycho/retention - mode",
+            "DRY-RUN" if dry_run else "EXECUTION",
+            "===\n",
+        )
 
         for b in NEW_BADGES:
             code = b["code"]
@@ -208,7 +213,9 @@ def run_add(dry_run: bool = True):
             star_wars = b.get("star_wars_title") or ""
 
             if dry_run:
-                print(f"  [ADD] {code} - {b['name']} ({'secret' if secret else 'visible'})")
+                print(
+                    f"  [ADD] {code} - {b['name']} ({'secret' if secret else 'visible'})"
+                )
                 continue
 
             conn.execute(

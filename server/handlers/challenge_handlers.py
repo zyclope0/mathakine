@@ -23,6 +23,7 @@ from app.core.constants import (
     normalize_age_group,
 )
 from app.core.messages import SystemMessages
+from app.exceptions import ChallengeNotFoundError
 
 # NOTE: challenge_service_translations_adapter archivé - utiliser fonctions de challenge_service.py
 from app.services import challenge_service
@@ -34,6 +35,7 @@ from app.utils.error_handler import (
     api_error_response,
     get_safe_error_message,
 )
+from app.utils.request_utils import parse_json_body_any
 from app.utils.translation import parse_accept_language
 from server.auth import (
     optional_auth,
@@ -150,15 +152,12 @@ async def get_challenge(request: Request):
 
             challenge_dict = get_challenge_for_api(db, challenge_id)
 
-        if not challenge_dict:
-            return ErrorHandler.create_not_found_error(
-                resource_type="Défi logique", resource_id=challenge_id
-            )
-
         logger.info(
             f"Récupération réussie du défi logique {challenge_id} (locale: {locale})"
         )
         return JSONResponse(challenge_dict)
+    except ChallengeNotFoundError:
+        return api_error_response(404, "Défi logique non trouvé")
     except ValueError as id_validation_error:
         logger.error(f"Erreur de validation: {id_validation_error}")
         return ErrorHandler.create_validation_error(
@@ -192,7 +191,10 @@ async def submit_challenge_answer(request: Request):
             return api_error_response(401, "Utilisateur invalide")
 
         challenge_id = int(request.path_params.get("challenge_id"))
-        data = await request.json()
+        data_or_err = await parse_json_body_any(request)
+        if isinstance(data_or_err, JSONResponse):
+            return data_or_err
+        data = data_or_err
 
         user_solution = data.get("user_solution") or data.get("answer")
         time_spent = data.get("time_spent")
@@ -211,10 +213,7 @@ async def submit_challenge_answer(request: Request):
             return api_error_response(400, "Réponse requise")
 
         async with db_session() as db:
-            # Récupérer le défi
-            challenge = LogicChallengeService.get_challenge(db, challenge_id)
-            if not challenge:
-                return api_error_response(404, "Défi logique non trouvé")
+            challenge = LogicChallengeService.get_challenge_or_raise(db, challenge_id)
 
             # Vérifier la réponse
             def _normalize_accents(text: str) -> str:
@@ -751,6 +750,8 @@ async def submit_challenge_answer(request: Request):
                 response_data["hints_remaining"] = len(hints_list) - hints_used_count
 
             return JSONResponse(response_data)
+    except ChallengeNotFoundError:
+        return api_error_response(404, "Défi logique non trouvé")
     except ValueError:
         return api_error_response(400, "ID de défi invalide")
     except Exception as submission_error:
@@ -771,9 +772,7 @@ async def get_challenge_hint(request: Request):
         level = int(request.query_params.get("level", 1))
 
         async with db_session() as db:
-            challenge = LogicChallengeService.get_challenge(db, challenge_id)
-            if not challenge:
-                return api_error_response(404, "Défi logique non trouvé")
+            challenge = LogicChallengeService.get_challenge_or_raise(db, challenge_id)
 
             # Récupérer les indices
             hints = challenge.hints
@@ -800,6 +799,8 @@ async def get_challenge_hint(request: Request):
             return JSONResponse(
                 {"hint": hint_text}
             )  # Retourner l'indice spécifique au niveau
+    except ChallengeNotFoundError:
+        return api_error_response(404, "Défi logique non trouvé")
     except ValueError:
         return api_error_response(400, "ID de défi ou niveau invalide")
     except Exception as hint_retrieval_error:

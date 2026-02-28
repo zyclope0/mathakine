@@ -5,11 +5,11 @@ Revises: 20260217_streak
 Create Date: 2026-02-22
 
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "20260222_feedback"
 down_revision: Union[str, None] = "20260217_streak"
@@ -25,18 +25,29 @@ def upgrade() -> None:
         op.create_table(
             "feedback_reports",
             sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
-            sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+            sa.Column(
+                "user_id",
+                sa.Integer(),
+                sa.ForeignKey("users.id", ondelete="SET NULL"),
+                nullable=True,
+            ),
             sa.Column("feedback_type", sa.String(20), nullable=False),
             sa.Column("page_url", sa.Text(), nullable=True),
             sa.Column("exercise_id", sa.Integer(), nullable=True),
             sa.Column("challenge_id", sa.Integer(), nullable=True),
             sa.Column("description", sa.Text(), nullable=True),
             sa.Column("status", sa.String(20), nullable=False, server_default="new"),
-            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+            sa.Column(
+                "created_at", sa.DateTime(timezone=True), server_default=sa.func.now()
+            ),
         )
         op.create_index("ix_feedback_reports_user_id", "feedback_reports", ["user_id"])
-        op.create_index("ix_feedback_reports_feedback_type", "feedback_reports", ["feedback_type"])
-        op.create_index("ix_feedback_reports_created_at", "feedback_reports", ["created_at"])
+        op.create_index(
+            "ix_feedback_reports_feedback_type", "feedback_reports", ["feedback_type"]
+        )
+        op.create_index(
+            "ix_feedback_reports_created_at", "feedback_reports", ["created_at"]
+        )
 
 
 def downgrade() -> None:

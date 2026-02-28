@@ -254,7 +254,7 @@ mathakine/
 │
 ├── server/                # Backend Starlette (couche HTTP)
 │   ├── handlers/         # Request handlers (auth, user, exercise, challenge, admin...)
-│   ├── routes.py         # Routes API (source de vérité)
+│   ├── routes/           # Routes API par domaine (get_routes() agrège)
 │   └── auth.py           # Auth centralisé
 │
 ├── tests/                 # Tests

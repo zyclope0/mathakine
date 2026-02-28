@@ -184,7 +184,7 @@ from server.auth import require_auth, optional_auth, require_auth_sse
 
 ### Nettoyage recommandé — ✅ Fait (22/02/2026)
 
-Les handlers placeholders `start_challenge`, `get_challenge_progress`, `get_challenge_rewards`, `get_user_progress_by_exercise_type` ont été supprimés de `server/routes.py` et des handlers associés.
+Les handlers placeholders `start_challenge`, `get_challenge_progress`, `get_challenge_rewards`, `get_user_progress_by_exercise_type` ont été supprimés de `server/routes/` et des handlers associés.
 
 ---
 

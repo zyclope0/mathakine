@@ -10,6 +10,7 @@ Routes testees :
 - GET /nonexistent (404)
 - GET /api/auth/login (methode GET non autorisee → 405)
 """
+
 import pytest
 
 

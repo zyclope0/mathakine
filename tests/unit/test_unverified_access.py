@@ -1,4 +1,5 @@
 """Tests unitaires pour app.utils.unverified_access (get_unverified_access_scope)."""
+
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
@@ -50,6 +51,7 @@ def test_unverified_just_over_boundary():
 
 def test_missing_created_at_returns_full():
     """created_at manquant ou None → full (fallback conservateur)."""
+
     class UserStub:
         is_email_verified = False
         created_at = None

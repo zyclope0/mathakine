@@ -2,15 +2,16 @@
 Tests unitaires pour badge_requirement_engine (Lot C-2).
 Détection type, get_requirement_progress.
 """
+
 from app.models.attempt import Attempt
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
+from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.user import User, UserRole
 from app.services.badge_requirement_engine import (
     detect_requirement_type,
     get_requirement_progress,
 )
 from app.utils.db_helpers import get_enum_value
-from tests.utils.test_helpers import unique_username, unique_email
+from tests.utils.test_helpers import unique_email, unique_username
 
 
 class TestDetectRequirementType:
@@ -20,16 +21,30 @@ class TestDetectRequirementType:
         assert detect_requirement_type({"attempts_count": 50}) == "attempts_count"
 
     def test_logic_attempts_count(self):
-        assert detect_requirement_type({"logic_attempts_count": 10}) == "logic_attempts_count"
+        assert (
+            detect_requirement_type({"logic_attempts_count": 10})
+            == "logic_attempts_count"
+        )
 
     def test_mixte(self):
-        assert detect_requirement_type({"attempts_count": 20, "logic_attempts_count": 5}) == "mixte"
+        assert (
+            detect_requirement_type({"attempts_count": 20, "logic_attempts_count": 5})
+            == "mixte"
+        )
 
     def test_success_rate(self):
-        assert detect_requirement_type({"min_attempts": 50, "success_rate": 80}) == "success_rate"
+        assert (
+            detect_requirement_type({"min_attempts": 50, "success_rate": 80})
+            == "success_rate"
+        )
 
     def test_consecutive(self):
-        assert detect_requirement_type({"exercise_type": "addition", "consecutive_correct": 20}) == "consecutive"
+        assert (
+            detect_requirement_type(
+                {"exercise_type": "addition", "consecutive_correct": 20}
+            )
+            == "consecutive"
+        )
         assert detect_requirement_type({"consecutive_correct": 15}) == "consecutive"
 
     def test_max_time(self):
@@ -81,8 +96,12 @@ class TestGetRequirementProgress:
         db_session.add(user)
         ex = Exercise(
             title="Ex",
-            exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
-            difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+            exercise_type=get_enum_value(
+                ExerciseType, ExerciseType.ADDITION.value, db_session
+            ),
+            difficulty=get_enum_value(
+                DifficultyLevel, DifficultyLevel.INITIE.value, db_session
+            ),
             age_group="6-8",
             question="1+1=?",
             correct_answer="2",
@@ -94,7 +113,11 @@ class TestGetRequirementProgress:
         db_session.refresh(ex)
 
         for _ in range(5):
-            db_session.add(Attempt(user_id=user.id, exercise_id=ex.id, user_answer="2", is_correct=True))
+            db_session.add(
+                Attempt(
+                    user_id=user.id, exercise_id=ex.id, user_answer="2", is_correct=True
+                )
+            )
         db_session.commit()
 
         p = get_requirement_progress(db_session, user.id, {"attempts_count": 10})

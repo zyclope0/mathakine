@@ -10,8 +10,9 @@ Usage:
 
 import os
 import sys
-from loguru import logger
+
 from dotenv import load_dotenv
+from loguru import logger
 
 # Charger les variables d'environnement (ignorer .env en prod - sécurité)
 if os.environ.get("ENVIRONMENT") != "production":
@@ -28,6 +29,7 @@ HOST = os.environ.get("MATH_TRAINER_HOST", "0.0.0.0")
 # Create the Starlette application using our modular architecture
 app = create_app(debug=DEBUG)
 
+
 def main():
     """Point d'entrée principal pour le serveur"""
     print("========================================")
@@ -36,5 +38,6 @@ def main():
     print("========================================")
     run_server(host=HOST, port=PORT, debug=DEBUG)
 
+
 if __name__ == "__main__":
-    main() 
+    main()

@@ -34,7 +34,7 @@
 
 | Document | Description | Priorité |
 |----------|-------------|----------|
-| **[README_TECH.md](README_TECH.md)** | Documentation technique complète (voir `server/routes.py` pour les endpoints) | 🔴 Élevée |
+| **[README_TECH.md](README_TECH.md)** | Documentation technique complète (voir `server/routes/` pour les endpoints) | 🔴 Élevée |
 | **[docs/INDEX.md](docs/INDEX.md)** | Index navigation documentation | 🔴 Élevée |
 | **[docs/00-REFERENCE/GETTING_STARTED.md](docs/00-REFERENCE/GETTING_STARTED.md)** | Installation pas-à-pas | 🔴 Élevée |
 | **[docs/01-GUIDES/DEVELOPMENT.md](docs/01-GUIDES/DEVELOPMENT.md)** | Workflow développement | 🟡 Moyenne |
@@ -108,7 +108,7 @@ npm run dev
                ↓
 ┌─────────────────────────────────────────┐
 │  Backend Starlette (localhost:10000)    │
-│  • Routes API (voir server/routes.py)   │
+│  • Routes API (voir server/routes/)    │
 │  • Handlers + middleware                │
 │  • SSE streaming (IA)                   │
 │  • Auth JWT (cookies + Bearer)          │
@@ -172,7 +172,7 @@ mathakine/
 │
 ├── server/                   # Backend Starlette (couche HTTP)
 │   ├── handlers/            # 8 handlers (auth, user, exercise, challenge, admin, etc.)
-│   ├── routes.py            # Routes API (server/routes.py)
+│   ├── routes/              # Routes API par domaine (get_routes())
 │   ├── auth.py              # Authentification centralisée
 │   ├── middleware.py        # CORS, logging, rate limiting
 │   └── app.py               # App Starlette

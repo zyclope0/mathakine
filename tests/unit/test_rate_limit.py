@@ -2,6 +2,7 @@
 Tests pour app.utils.rate_limit.
 Vérifie _check_rate_limit, _get_client_ip, _rate_limit_response et les décorateurs.
 """
+
 import uuid
 from unittest.mock import MagicMock
 
@@ -29,6 +30,7 @@ def test_rate_limit_response_returns_429():
     resp = _rate_limit_response("Message custom")
     assert resp.status_code == 429
     import json
+
     body = json.loads(resp.body)
     assert body["error"] == "Message custom"
 
@@ -38,6 +40,7 @@ def test_rate_limit_response_uses_constants():
     resp = _rate_limit_response(MSG_RATE_LIMIT_RETRY)
     assert resp.status_code == 429
     import json
+
     assert json.loads(resp.body)["error"] == MSG_RATE_LIMIT_RETRY
 
     resp2 = _rate_limit_response(MSG_CHAT_RATE_LIMIT)
@@ -96,6 +99,7 @@ def test_check_rate_limit_enforces_limit_when_testing_false(monkeypatch):
 @pytest.mark.asyncio
 async def test_rate_limit_auth_decorator_allows_when_testing():
     """rate_limit_auth laisse passer quand TESTING=true (comportement tests)."""
+
     @rate_limit_auth("login")
     async def handler(request):
         return {"ok": True}
@@ -110,6 +114,7 @@ async def test_rate_limit_auth_decorator_allows_when_testing():
 @pytest.mark.asyncio
 async def test_rate_limit_register_decorator_allows_when_testing():
     """rate_limit_register laisse passer quand TESTING=true."""
+
     @rate_limit_register
     async def handler(request):
         return {"ok": True}

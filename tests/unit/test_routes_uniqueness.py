@@ -4,6 +4,7 @@ Test d'unicité des routes API : détecte les collisions method+path.
 Si deux routes partagent le même (method, path), Starlette peut router
 vers la mauvaise handler. Ce test échoue en cas de collision.
 """
+
 import pytest
 from starlette.routing import Mount, Route
 

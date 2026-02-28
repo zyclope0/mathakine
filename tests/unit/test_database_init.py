@@ -4,10 +4,10 @@ Tests pour server.database (init_database, get_database_url).
 Règle projet : tests systématiques — nouvelle implémentation → test de non-régression.
 Refactor 22/02/2026 : config unifiée + init basculé sur SQLAlchemy.
 """
+
 import pytest
 
 from app.core.config import settings
-
 from server.database import get_database_url, init_database
 
 

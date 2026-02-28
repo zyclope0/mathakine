@@ -20,14 +20,14 @@ class TestApiErrorJson:
         assert payload["error"] == "Données invalides"
 
     def test_404_with_path(self):
-        payload = api_error_json(404, "Ressource non trouvée", path="/api/exercises/999")
+        payload = api_error_json(
+            404, "Ressource non trouvée", path="/api/exercises/999"
+        )
         assert payload["code"] == "NOT_FOUND"
         assert payload["path"] == "/api/exercises/999"
 
     def test_500_with_trace_id(self):
-        payload = api_error_json(
-            500, "Erreur serveur", trace_id="abc123"
-        )
+        payload = api_error_json(500, "Erreur serveur", trace_id="abc123")
         assert payload["code"] == "INTERNAL_ERROR"
         assert payload["trace_id"] == "abc123"
 
@@ -64,6 +64,7 @@ class TestApiErrorResponse:
         assert resp.status_code == 404
         # Body est bytes, on vérifie le contenu
         import json
+
         data = json.loads(resp.body.decode())
         assert data["code"] == "NOT_FOUND"
         assert data["message"] == "Not found"

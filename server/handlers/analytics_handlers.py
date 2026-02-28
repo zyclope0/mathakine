@@ -13,6 +13,7 @@ from app.services.analytics_service import AnalyticsService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response
 from app.utils.pagination import parse_pagination_params
+from app.utils.request_utils import parse_json_body_any
 from server.auth import require_auth
 
 logger = get_logger(__name__)
@@ -25,10 +26,12 @@ async def analytics_event(request: Request):
     Route: POST /api/analytics/event
     Body: { "event": "quick_start_click"|"first_attempt", "payload": {...} }
     """
+    body_or_err = await parse_json_body_any(request)
+    if isinstance(body_or_err, JSONResponse):
+        return body_or_err
     try:
-        body = await request.json()
-        event = (body.get("event") or "").strip()
-        payload = body.get("payload") or {}
+        event = (body_or_err.get("event") or "").strip()
+        payload = body_or_err.get("payload") or {}
 
         user_id = None
         if hasattr(request.state, "user") and request.state.user:
@@ -55,9 +58,6 @@ async def analytics_event(request: Request):
                 )
 
         return JSONResponse({"ok": True}, status_code=200)
-    except json.JSONDecodeError as e:
-        logger.warning("analytics_event: body JSON invalide: %s", e)
-        return api_error_response(400, "body JSON invalide")
     except Exception as e:
         logger.exception("analytics_event: %s", e)
         return api_error_response(500, "Erreur serveur")

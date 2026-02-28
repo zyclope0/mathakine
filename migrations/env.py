@@ -1,11 +1,9 @@
-from logging.config import fileConfig
 import os
 import sys
-
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from logging.config import fileConfig
 
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 # Ajouter le répertoire parent au sys.path pour pouvoir importer l'app
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -13,20 +11,20 @@ sys.path.append(BASE_DIR)
 
 # Import de configuration et modèles de notre application
 from app.core.config import settings
-from app.models.user import User
-from app.models.exercise import Exercise
-from app.models.attempt import Attempt
-from app.models.progress import Progress
-from app.models.logic_challenge import LogicChallenge
-from app.models.setting import Setting
-from app.models.achievement import Achievement, UserAchievement
-from app.models.notification import Notification
-from app.models.user_session import UserSession
-from app.models.feedback_report import FeedbackReport
-from app.models.recommendation import Recommendation
-from app.models.edtech_event import EdTechEvent
-from app.models.legacy_tables import Results, Statistics, UserStats, SchemaVersion
 from app.db.base import Base
+from app.models.achievement import Achievement, UserAchievement
+from app.models.attempt import Attempt
+from app.models.edtech_event import EdTechEvent
+from app.models.exercise import Exercise
+from app.models.feedback_report import FeedbackReport
+from app.models.legacy_tables import Results, SchemaVersion, Statistics, UserStats
+from app.models.logic_challenge import LogicChallenge
+from app.models.notification import Notification
+from app.models.progress import Progress
+from app.models.recommendation import Recommendation
+from app.models.setting import Setting
+from app.models.user import User
+from app.models.user_session import UserSession
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -53,12 +51,7 @@ target_metadata = Base.metadata
 
 # Liste des tables à ignorer lors des migrations (ne pas les supprimer)
 # Ces tables sont gérées manuellement
-tables_to_keep = {
-    'results', 
-    'statistics', 
-    'user_stats', 
-    'schema_version'
-}
+tables_to_keep = {"results", "statistics", "user_stats", "schema_version"}
 
 
 def run_migrations_offline() -> None:
@@ -98,7 +91,7 @@ def run_migrations_online() -> None:
     """
     # Paramètres de connexion spécifiques pour SQLite
     connect_args = {}
-    if db_url.startswith('sqlite'):
+    if db_url.startswith("sqlite"):
         connect_args = {"check_same_thread": False}
 
     connectable = engine_from_config(
@@ -110,7 +103,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
+            connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
             compare_server_default=True,
@@ -124,12 +117,14 @@ def run_migrations_online() -> None:
         with context.begin_transaction():
             context.run_migrations()
 
+
 # Fonction pour personnaliser le rendu des éléments dans les migrations
 def render_item(type_, obj, autogen_context):
     """Personnaliser le rendu des éléments dans les migrations."""
-    if type_ == 'table' and obj.name == 'alembic_version':
+    if type_ == "table" and obj.name == "alembic_version":
         return False
     return True
+
 
 # Fonction pour déterminer quelles tables et objets inclure dans les migrations
 def include_object(object, name, type_, reflected, compare_to):
@@ -142,8 +137,9 @@ def include_object(object, name, type_, reflected, compare_to):
         # Si compare_to est None, cela signifie que l'objet n'existe pas dans le modèle
         # donc Alembic essaierait de le supprimer
         return False
-    
+
     return True
+
 
 if context.is_offline_mode():
     run_migrations_offline()

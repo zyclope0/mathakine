@@ -339,7 +339,7 @@ HTTP 404: Not Found
 
 1. **Route n'existe pas**
 ```python
-# Vérifier server/routes.py
+# Vérifier server/routes/
 Route("/api/challenges", challenges_handler, methods=["GET"]),
 ```
 

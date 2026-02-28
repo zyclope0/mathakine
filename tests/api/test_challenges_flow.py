@@ -6,12 +6,15 @@ Teste :
 - Les filtres par challenge_type et age_group
 - La génération IA streaming
 """
+
 import os
+
 import pytest
+
 from app.core.constants import (
-    normalize_challenge_type,
-    normalize_age_group,
     CHALLENGE_TYPES_DB,
+    normalize_age_group,
+    normalize_challenge_type,
 )
 from app.models.logic_challenge import AgeGroup
 
@@ -53,10 +56,10 @@ async def test_list_challenges_with_type_filter(client, padawan_client):
     test_types = ["sequence", "SEQUENCE", "pattern", "PATTERN"]
 
     for challenge_type in test_types:
-        response = await client.get(
-            f"/api/challenges?challenge_type={challenge_type}"
-        )
-        assert response.status_code == 200, f"Échec pour type={challenge_type}: {response.text}"
+        response = await client.get(f"/api/challenges?challenge_type={challenge_type}")
+        assert (
+            response.status_code == 200
+        ), f"Échec pour type={challenge_type}: {response.text}"
         data = response.json()
         assert isinstance(data["items"], list)
 
@@ -71,10 +74,10 @@ async def test_list_challenges_with_age_group_filter(client, padawan_client):
     test_age_groups = ["age_6_8", "age_10_12", "GROUP_10_12"]
 
     for age_group in test_age_groups:
-        response = await client.get(
-            f"/api/challenges?age_group={age_group}"
-        )
-        assert response.status_code == 200, f"Échec pour age_group={age_group}: {response.text}"
+        response = await client.get(f"/api/challenges?age_group={age_group}")
+        assert (
+            response.status_code == 200
+        ), f"Échec pour age_group={age_group}: {response.text}"
         data = response.json()
         assert isinstance(data["items"], list)
 
@@ -100,14 +103,15 @@ async def test_list_challenges_with_multiple_filters(client, padawan_client):
 def test_challenge_service_integration(db_session):
     """Test nouveau challenge_service.py (Phase 4)"""
     import uuid
+
+    from app.models.logic_challenge import AgeGroup, LogicChallengeType
+    from app.models.user import User
     from app.services.challenge_service import (
         create_challenge,
-        list_challenges,
+        delete_challenge,
         get_challenge,
-        delete_challenge
+        list_challenges,
     )
-    from app.models.user import User
-    from app.models.logic_challenge import AgeGroup, LogicChallengeType
 
     # Créer un utilisateur pour être le créateur (UUID pour éviter les doublons)
     unique_id = uuid.uuid4().hex[:8]
@@ -135,7 +139,11 @@ def test_challenge_service_integration(db_session):
     assert challenge.id is not None
     assert challenge.title == challenge_data["title"]
     assert challenge.challenge_type == LogicChallengeType.SEQUENCE
-    age_group_value = challenge.age_group.value if hasattr(challenge.age_group, "value") else challenge.age_group
+    age_group_value = (
+        challenge.age_group.value
+        if hasattr(challenge.age_group, "value")
+        else challenge.age_group
+    )
     assert age_group_value == AgeGroup.GROUP_10_12.value
 
     challenge_id = challenge.id
@@ -151,9 +159,9 @@ def test_challenge_service_integration(db_session):
         limit=100,
     )
     assert len(challenges) >= 1
-    assert any(c.id == challenge_id for c in challenges), (
-        f"Notre défi {challenge_id} absent de la liste ({len(challenges)} défis SEQUENCE)"
-    )
+    assert any(
+        c.id == challenge_id for c in challenges
+    ), f"Notre défi {challenge_id} absent de la liste ({len(challenges)} défis SEQUENCE)"
 
     deleted = delete_challenge(db=db_session, challenge_id=challenge_id)
     assert deleted is True
@@ -164,7 +172,7 @@ def test_challenge_service_integration(db_session):
 
 def test_constants_normalization():
     """Test normalisation constantes (Phase 3).
-    
+
     normalize_challenge_type retourne le format DB MAJUSCULE (ex: "SEQUENCE").
     normalize_age_group retourne le format standard (ex: "6-8", "9-11").
     NOTE: normalize_age_group ne retourne jamais None - retourne "9-11" par defaut.
@@ -198,7 +206,9 @@ def test_constants_values():
     assert "GROUP_10_12" in AGE_GROUPS_DB
 
 
-@pytest.mark.skipif(not os.getenv("OPENAI_API_KEY"), reason="Test streaming nécessite OPENAI_API_KEY")
+@pytest.mark.skipif(
+    not os.getenv("OPENAI_API_KEY"), reason="Test streaming nécessite OPENAI_API_KEY"
+)
 async def test_generate_ai_challenge_stream(client, padawan_client):
     """Test génération IA streaming (si implémenté)"""
     token = padawan_client["token"]
@@ -206,7 +216,7 @@ async def test_generate_ai_challenge_stream(client, padawan_client):
 
     async with client.stream(
         "GET",
-        "/api/challenges/generate-ai-stream?challenge_type=calculation&difficulty=easy"
+        "/api/challenges/generate-ai-stream?challenge_type=calculation&difficulty=easy",
     ) as response:
         if response.status_code == 200:
             assert "text/event-stream" in response.headers.get("content-type", "")

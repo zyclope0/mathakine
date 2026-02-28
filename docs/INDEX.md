@@ -57,6 +57,7 @@ docs/
 │
 ├── 03-PROJECT/            # 📕 Gestion projet
 │   ├── README.md          # ⭐ Index maître audits/rapports
+│   ├── REFACTOR_STATUS_2026-02.md  # État refactor Clean Code + Architecture (28/02)
 │   ├── EVALUATION_PROJET_2026-02-07.md  # Référence actuelle (évaluation factuelle)
 │   ├── AUDIT_DASHBOARD_2026-02.md  # Audit dashboard (recos partielles)
 │   ├── AUDIT_SENTRY_2026-02.md  # Configuration Sentry (référence)
@@ -127,7 +128,7 @@ docs/
    - Stack technique
    - Architecture backend (Starlette)
    - Architecture frontend (Next.js 16)
-   - voir server/routes.py
+   - voir server/routes/ (get_routes())
    - Modèles de données
    - Génération IA (OpenAI)
 
@@ -150,6 +151,11 @@ docs/
 1. [CICD_DEPLOY.md](03-PROJECT/CICD_DEPLOY.md) - CI automatique, smoke test /health, migrations, rollback manuel
 2. [DEPLOYMENT_ENV.md](01-GUIDES/DEPLOYMENT_ENV.md) - Variables d'environnement Render (prod)
 3. [ENV_CHECK.md](01-GUIDES/ENV_CHECK.md) - Checklist .env et Render (dev local)
+
+### Je veux consulter l'état du refactor
+1. [REFACTOR_STATUS_2026-02.md](03-PROJECT/REFACTOR_STATUS_2026-02.md) — État Clean Code P1–P3 + Architecture Ph1–Ph3
+2. [PLAN_CLEAN_CODE_ET_DTO](03-PROJECT/PLAN_CLEAN_CODE_ET_DTO_2026-02.md) — Détail DTO, exceptions, typage
+3. [PLAN_REFACTO_ARCHITECTURE](03-PROJECT/PLAN_REFACTO_ARCHITECTURE_2026-02.md) — Phases routes, handlers, services
 
 ### Je veux consulter des audits/rapports
 1. [03-PROJECT — Index maître](03-PROJECT/README.md) - Taxonomie audits, recommandations, rapports
@@ -198,7 +204,7 @@ docs/
 ### Document unique de référence
 **README_TECH.md** est le **document de référence unique** pour toute la partie technique :
 - Architecture backend et frontend
-- API (voir server/routes.py)
+- API (voir server/routes/)
 - Modèles de données
 - Stack technique
 - Conventions de code
@@ -219,6 +225,11 @@ docs/
 ---
 
 ## 🔄 Dernières mises à jour
+
+### 28/02/2026 — Refactor + documentation alignée
+- 📐 **Refactor terminé** : Clean Code P1–P3, Architecture Ph1–Ph3. Voir [REFACTOR_STATUS_2026-02.md](03-PROJECT/REFACTOR_STATUS_2026-02.md).
+- 📝 **Documentation alignée** : Toutes les refs `server/routes.py` → `server/routes/`. README_TECH, INDEX, DEVELOPMENT, CONVENTION, TROUBLESHOOTING, etc.
+- 📝 **ANALYSE_DUPLICATION_DRY** : P3 exceptions et SubmitAnswerResponse ajoutés aux réalisations.
 
 ### 15/02/2026 — Documentation (mise en ordre)
 - 📁 **Réorganisation** : DEPLOIEMENT et SUIVI_MIGRATION → RAPPORTS_TEMPORAIRES ; ENV_CHECK → 01-GUIDES ; CICD_DEPLOY, POLITIQUE_REDACTION_LOGS_PII dans README 03-PROJECT.
@@ -323,7 +334,7 @@ docs/
 
 - **Documents actifs** : ~55 docs (guides, features, projet, widgets)
 - **Cohérence** : Validée vs code réel — revue trimestrielle (CONVENTION §7)
-- **Dernière vérification** : 15/02/2026
+- **Dernière vérification** : 28/02/2026 (refactor P1–P3, routes/, exceptions)
 
 ---
 

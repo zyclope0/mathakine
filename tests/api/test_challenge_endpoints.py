@@ -1,9 +1,11 @@
 import json
+
 """
 Tests des endpoints API pour les défis logiques.
 """
 import pytest
-from app.models.logic_challenge import LogicChallengeType, AgeGroup
+
+from app.models.logic_challenge import AgeGroup, LogicChallengeType
 from app.models.user import User, UserRole
 from app.utils.db_helpers import get_enum_value
 from tests.fixtures.model_fixtures import test_logic_challenge, test_logic_challenges
@@ -82,14 +84,18 @@ async def test_challenge_attempt_correct(logic_challenge_db, padawan_client):
 
     # Soumettre la réponse correcte
     attempt_data = {"answer": correct_answer}
-    response = await client.post(f"/api/challenges/{challenge_id}/attempt", json=attempt_data)
+    response = await client.post(
+        f"/api/challenges/{challenge_id}/attempt", json=attempt_data
+    )
     assert response.status_code == 200
 
     # Vérifier la réponse (API peut retourner feedback ou explanation)
     result = response.json()
     assert result["is_correct"] is True
     assert "explanation" in result
-    assert result.get("hints") is None or result.get("hints_remaining") is None  # Pas d'indice nécessaire
+    assert (
+        result.get("hints") is None or result.get("hints_remaining") is None
+    )  # Pas d'indice nécessaire
 
 
 async def test_challenge_attempt_incorrect(logic_challenge_db, padawan_client):
@@ -114,14 +120,20 @@ async def test_challenge_attempt_incorrect(logic_challenge_db, padawan_client):
 
     # Soumettre la réponse incorrecte
     attempt_data = {"answer": incorrect_answer}
-    response = await client.post(f"/api/challenges/{challenge_id}/attempt", json=attempt_data)
+    response = await client.post(
+        f"/api/challenges/{challenge_id}/attempt", json=attempt_data
+    )
     assert response.status_code == 200
 
     # Vérifier la réponse (API peut retourner hints ou hints_remaining)
     result = response.json()
     assert result["is_correct"] is False
-    assert result["explanation"] is None  # Pas d'explication pour une réponse incorrecte
-    assert result.get("hints") is not None or "hints_remaining" in result  # Indices disponibles
+    assert (
+        result["explanation"] is None
+    )  # Pas d'explication pour une réponse incorrecte
+    assert (
+        result.get("hints") is not None or "hints_remaining" in result
+    )  # Indices disponibles
 
 
 async def test_get_challenge_hint(challenge_with_hints_id, padawan_client):
@@ -130,8 +142,12 @@ async def test_get_challenge_hint(challenge_with_hints_id, padawan_client):
     challenge_id = challenge_with_hints_id
 
     # challenge_with_hints_id cible le défi créé par logic_challenge_db (hints=["Indice 1", "Indice 2", "Indice 3"])
-    response = await client.get(f"/api/challenges/{challenge_id}/hint", params={"level": 1})
-    assert response.status_code == 200, f"Le défi de test doit avoir des hints: {response.json()}"
+    response = await client.get(
+        f"/api/challenges/{challenge_id}/hint", params={"level": 1}
+    )
+    assert (
+        response.status_code == 200
+    ), f"Le défi de test doit avoir des hints: {response.json()}"
     assert response.status_code == 200
     hint_data = response.json()
 
@@ -141,7 +157,9 @@ async def test_get_challenge_hint(challenge_with_hints_id, padawan_client):
     assert isinstance(hint_data["hint"], str)
 
     # Récupérer un niveau d'indice non disponible (généralement > 3)
-    response = await client.get(f"/api/challenges/{challenge_id}/hint", params={"level": 99})
+    response = await client.get(
+        f"/api/challenges/{challenge_id}/hint", params={"level": 99}
+    )
     assert response.status_code in (400, 404)  # 400 pour niveau invalide
 
 
@@ -149,7 +167,9 @@ async def test_filter_challenges_by_type(logic_challenge_db, padawan_client):
     """Test du filtrage des défis par type."""
     client = padawan_client["client"]
     # Récupérer les défis de type SEQUENCE (logic_challenge_db en crée un)
-    response = await client.get("/api/challenges", params={"challenge_type": "sequence"})
+    response = await client.get(
+        "/api/challenges", params={"challenge_type": "sequence"}
+    )
     assert response.status_code == 200
     challenges = _get_challenges_list(response.json())
     assert len(challenges) > 0, "logic_challenge_db crée un défi SEQUENCE"
@@ -172,10 +192,14 @@ async def test_challenge_attempt_missing_data(logic_challenge_db, padawan_client
 
     # Soumettre une tentative sans données
     attempt_data = {}  # Données vides, manque le champ 'answer'
-    response = await client.post(f"/api/challenges/{challenge_id}/attempt", json=attempt_data)
+    response = await client.post(
+        f"/api/challenges/{challenge_id}/attempt", json=attempt_data
+    )
 
     # Starlette retourne 400 (pas 422 comme FastAPI) pour données manquantes
-    assert response.status_code == 400, f"Le code d'état devrait être 400, reçu {response.status_code}"
+    assert (
+        response.status_code == 400
+    ), f"Le code d'état devrait être 400, reçu {response.status_code}"
 
     # Vérifier que l'erreur est présente
     data = response.json()
@@ -189,21 +213,26 @@ async def test_challenge_attempt_nonexistent_challenge(padawan_client):
     challenge_id = 9999
 
     attempt_data = {"answer": "Une réponse quelconque"}
-    response = await client.post(f"/api/challenges/{challenge_id}/attempt", json=attempt_data)
+    response = await client.post(
+        f"/api/challenges/{challenge_id}/attempt", json=attempt_data
+    )
 
     # Devrait retourner 404 Not Found
-    assert response.status_code == 404, f"Le code d'état devrait être 404, reçu {response.status_code}"
+    assert (
+        response.status_code == 404
+    ), f"Le code d'état devrait être 404, reçu {response.status_code}"
 
     # Vérifier le message d'erreur (Starlette retourne {"error": "..."})
     data = response.json()
     assert "error" in data, f"La réponse devrait contenir un champ 'error': {data}"
     error_message = data["error"].lower()
-    assert ("not found" in error_message or
-            "introuvable" in error_message or
-            "non trouvé" in error_message or
-            "non trouve" in error_message or
-            "non trouvé" in error_message.replace("é", "e")), \
-        f"Le message devrait indiquer que le défi n'existe pas. Message reçu: {data['error']}"
+    assert (
+        "not found" in error_message
+        or "introuvable" in error_message
+        or "non trouvé" in error_message
+        or "non trouve" in error_message
+        or "non trouvé" in error_message.replace("é", "e")
+    ), f"Le message devrait indiquer que le défi n'existe pas. Message reçu: {data['error']}"
 
 
 async def test_challenge_hint_invalid_level(challenge_with_hints_id, padawan_client):
@@ -212,10 +241,16 @@ async def test_challenge_hint_invalid_level(challenge_with_hints_id, padawan_cli
     challenge_id = challenge_with_hints_id
 
     # Tester avec un niveau d'indice négatif
-    response = await client.get(f"/api/challenges/{challenge_id}/hint", params={"level": -1})
+    response = await client.get(
+        f"/api/challenges/{challenge_id}/hint", params={"level": -1}
+    )
 
     # 400/422 pour niveau invalide, 404 si défi inexistant
-    assert response.status_code in (400, 404, 422), f"Le code d'état devrait être 400, 404 ou 422, reçu {response.status_code}"
+    assert response.status_code in (
+        400,
+        404,
+        422,
+    ), f"Le code d'état devrait être 400, 404 ou 422, reçu {response.status_code}"
 
     # Vérifier que l'erreur est présente
     data = response.json()
@@ -229,10 +264,14 @@ async def test_challenge_attempt_unauthenticated(client):
 
     # Soumettre une tentative (client non authentifié)
     attempt_data = {"answer": "Une réponse quelconque"}
-    response = await client.post(f"/api/challenges/{challenge_id}/attempt", json=attempt_data)
+    response = await client.post(
+        f"/api/challenges/{challenge_id}/attempt", json=attempt_data
+    )
 
     # Devrait retourner 401 Unauthorized
-    assert response.status_code == 401, f"Le code d'état devrait être 401, reçu {response.status_code}"
+    assert (
+        response.status_code == 401
+    ), f"Le code d'état devrait être 401, reçu {response.status_code}"
 
     # Vérifier le message d'erreur (Starlette @require_auth ou middleware retourne {"error": "..."})
     data = response.json()
@@ -249,7 +288,9 @@ async def test_challenge_attempt_unauthenticated(client):
     ), f"Le message devrait indiquer un problème d'authentification. Reçu: {data}"
 
 
-async def test_challenge_with_centralized_fixtures(logic_challenge_db, padawan_client, mock_request, mock_api_response):
+async def test_challenge_with_centralized_fixtures(
+    logic_challenge_db, padawan_client, mock_request, mock_api_response
+):
     """Test d'un défi logique en utilisant les fixtures centralisées."""
     client = padawan_client["client"]
 
@@ -268,7 +309,7 @@ async def test_challenge_with_centralized_fixtures(logic_challenge_db, padawan_c
         authenticated=True,
         role="padawan",
         json_data={"answer": challenge["correct_answer"]},
-        path_params={"challenge_id": challenge_id}
+        path_params={"challenge_id": challenge_id},
     )
 
     # Simuler une réponse d'API (utile pour les mocks de tests)
@@ -278,18 +319,24 @@ async def test_challenge_with_centralized_fixtures(logic_challenge_db, padawan_c
             "is_correct": True,
             "feedback": "Excellente réponse, jeune Padawan!",
             "explanation": challenge.get("solution_explanation", ""),
-            "hints": None
-        }
+            "hints": None,
+        },
     )
 
     # Test réel avec le client
     attempt_data = {"answer": challenge["correct_answer"]}
-    response = await client.post(f"/api/challenges/{challenge_id}/attempt", json=attempt_data)
+    response = await client.post(
+        f"/api/challenges/{challenge_id}/attempt", json=attempt_data
+    )
 
     # Vérifier que la tentative a réussi
-    assert response.status_code == 200, f"Le code d'état devrait être 200, reçu {response.status_code}"
+    assert (
+        response.status_code == 200
+    ), f"Le code d'état devrait être 200, reçu {response.status_code}"
 
     # Vérifier la réponse (API peut retourner feedback ou explanation)
     result = response.json()
-    assert result["is_correct"] is True, "La réponse devrait être marquée comme correcte"
+    assert (
+        result["is_correct"] is True
+    ), "La réponse devrait être marquée comme correcte"
     assert "explanation" in result, "La réponse devrait contenir une explication"

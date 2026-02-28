@@ -6,8 +6,10 @@ Routes réelles:
 - POST /api/recommendations/generate
 - POST /api/recommendations/complete (body: { recommendation_id: int })
 """
+
 import pytest
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
+
+from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import AgeGroup, LogicChallenge, LogicChallengeType
 from app.models.recommendation import Recommendation
 from app.utils.db_helpers import get_enum_value
@@ -66,13 +68,19 @@ async def test_get_recommendations(padawan_client, db_session, mock_exercise):
     assert rec["priority"] == 8
 
 
-@pytest.mark.skip(reason="POST /api/recommendations/{id}/clicked non exposé (service existant, route absente)")
-async def test_mark_recommendation_as_clicked(padawan_client, db_session, mock_exercise):
+@pytest.mark.skip(
+    reason="POST /api/recommendations/{id}/clicked non exposé (service existant, route absente)"
+)
+async def test_mark_recommendation_as_clicked(
+    padawan_client, db_session, mock_exercise
+):
     """POST /api/recommendations/{id}/clicked — endpoint non implémenté."""
     pass
 
 
-async def test_mark_recommendation_as_completed(padawan_client, db_session, mock_exercise):
+async def test_mark_recommendation_as_completed(
+    padawan_client, db_session, mock_exercise
+):
     """POST /api/recommendations/complete : marque une recommandation comme complétée."""
     client = padawan_client["client"]
     user_id = padawan_client["user_id"]

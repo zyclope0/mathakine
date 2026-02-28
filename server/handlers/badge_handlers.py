@@ -12,6 +12,7 @@ from app.core.logging_config import get_logger
 from app.services.badge_service import BadgeService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response, get_safe_error_message
+from app.utils.request_utils import parse_json_body_any
 from app.utils.simple_ttl_cache import get_or_set
 
 logger = get_logger(__name__)
@@ -119,9 +120,11 @@ async def get_user_gamification_stats(request):
 @require_full_access
 async def patch_pinned_badges(request: Request):
     """A-4 : Épingler 1-3 badges. Body: { "badge_ids": [1, 2, 3] }"""
+    body_or_err = await parse_json_body_any(request)
+    if isinstance(body_or_err, JSONResponse):
+        return body_or_err
     try:
-        body = await request.json()
-        badge_ids = body.get("badge_ids", [])
+        badge_ids = body_or_err.get("badge_ids", [])
         if not isinstance(badge_ids, list):
             return api_error_response(400, "badge_ids doit être une liste")
         badge_ids = [int(x) for x in badge_ids if isinstance(x, (int, float))]
@@ -133,8 +136,6 @@ async def patch_pinned_badges(request: Request):
             badge_service = BadgeService(db)
             pinned = badge_service.set_pinned_badges(user_id, badge_ids)
         return JSONResponse({"success": True, "data": {"pinned_badge_ids": pinned}})
-    except json.JSONDecodeError:
-        return api_error_response(400, "JSON invalide")
     except Exception as e:
         logger.error(f"Erreur patch_pinned_badges: {e}")
         traceback.print_exc()

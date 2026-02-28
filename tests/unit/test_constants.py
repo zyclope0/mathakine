@@ -2,27 +2,26 @@
 Tests constantes centralisées (Phase 3).
 Teste app/core/constants.py créé dans la Phase 3.
 """
+
 import pytest
-from app.core.constants import (
-    # Constantes challenges
-    CHALLENGE_TYPES_DB,
+
+from app.core.constants import (  # Constantes challenges; Constantes exercises; Autres constantes
     AGE_GROUPS_DB,
-    AgeGroups,
-    normalize_challenge_type,
-    normalize_age_group,
-    calculate_difficulty_for_age_group,
-    # Constantes exercises
-    ExerciseTypes,
-    DifficultyLevels,
+    CHALLENGE_TYPES_DB,
     DIFFICULTY_LIMITS,
-    # Autres constantes
-    UserRoles,
+    DISPLAY_NAMES,
+    AgeGroups,
+    DifficultyLevels,
+    ExerciseTypes,
     Messages,
-    DISPLAY_NAMES
+    UserRoles,
+    calculate_difficulty_for_age_group,
+    normalize_age_group,
+    normalize_challenge_type,
 )
 
-
 # ==== Tests Challenge Types ====
+
 
 def test_challenge_types_db_not_empty():
     """Vérifie que CHALLENGE_TYPES_DB contient des valeurs"""
@@ -31,10 +30,23 @@ def test_challenge_types_db_not_empty():
 
 def test_challenge_types_expected_values():
     """Vérifie que les types de challenges attendus existent (alignés avec CHALLENGE_TYPES_DB)"""
-    expected_types = ["SEQUENCE", "PATTERN", "PUZZLE", "VISUAL", "DEDUCTION", "GRAPH", "RIDDLE", "CHESS", "CODING", "PROBABILITY"]
-    
+    expected_types = [
+        "SEQUENCE",
+        "PATTERN",
+        "PUZZLE",
+        "VISUAL",
+        "DEDUCTION",
+        "GRAPH",
+        "RIDDLE",
+        "CHESS",
+        "CODING",
+        "PROBABILITY",
+    ]
+
     for expected_type in expected_types:
-        assert expected_type in CHALLENGE_TYPES_DB, f"{expected_type} manquant dans CHALLENGE_TYPES_DB"
+        assert (
+            expected_type in CHALLENGE_TYPES_DB
+        ), f"{expected_type} manquant dans CHALLENGE_TYPES_DB"
 
 
 def test_normalize_challenge_type_lowercase():
@@ -44,7 +56,9 @@ def test_normalize_challenge_type_lowercase():
     assert normalize_challenge_type("puzzle") == "PUZZLE"
     assert normalize_challenge_type("visual") == "VISUAL"
     assert normalize_challenge_type("deduction") == "DEDUCTION"
-    assert normalize_challenge_type("spatial") == "VISUAL"  # alias dans CHALLENGE_TYPE_ALIASES
+    assert (
+        normalize_challenge_type("spatial") == "VISUAL"
+    )  # alias dans CHALLENGE_TYPE_ALIASES
 
 
 def test_normalize_challenge_type_uppercase():
@@ -74,6 +88,7 @@ def test_normalize_challenge_type_none():
 
 # ==== Tests Age Groups ====
 
+
 def test_age_groups_db_not_empty():
     """Vérifie que AGE_GROUPS_DB contient des valeurs"""
     assert len(AGE_GROUPS_DB) > 0, "AGE_GROUPS_DB ne doit pas être vide"
@@ -81,10 +96,19 @@ def test_age_groups_db_not_empty():
 
 def test_age_groups_expected_values():
     """Vérifie que les groupes d'âge attendus existent (alignés avec AgeGroup enum)"""
-    expected_groups = ["GROUP_6_8", "GROUP_10_12", "GROUP_13_15", "GROUP_15_17", "ADULT", "ALL_AGES"]
-    
+    expected_groups = [
+        "GROUP_6_8",
+        "GROUP_10_12",
+        "GROUP_13_15",
+        "GROUP_15_17",
+        "ADULT",
+        "ALL_AGES",
+    ]
+
     for expected_group in expected_groups:
-        assert expected_group in AGE_GROUPS_DB, f"{expected_group} manquant dans AGE_GROUPS_DB"
+        assert (
+            expected_group in AGE_GROUPS_DB
+        ), f"{expected_group} manquant dans AGE_GROUPS_DB"
 
 
 def test_normalize_age_group_with_age_prefix():
@@ -129,14 +153,15 @@ def test_normalize_age_group_none():
 
 # ==== Tests Calculate Difficulty ====
 
+
 def test_calculate_difficulty_for_age_group_valid():
     """Test calcul difficulté pour groupes d'âge valides (format canonique 6-8, 9-11, etc.)"""
     # Jeunes enfants = plus facile
     assert calculate_difficulty_for_age_group("6-8") == 1.5
-    
+
     # Enfants moyens
     assert calculate_difficulty_for_age_group("9-11") == 2.5
-    
+
     # Adolescents = plus difficile
     assert calculate_difficulty_for_age_group("12-14") == 3.5
     assert calculate_difficulty_for_age_group("15-17") == 4.0
@@ -157,6 +182,7 @@ def test_calculate_difficulty_for_age_group_none():
 
 # ==== Tests Exercise Types ====
 
+
 def test_exercise_types_enum_exists():
     """Vérifie que ExerciseTypes existe"""
     assert ExerciseTypes is not None
@@ -165,12 +191,15 @@ def test_exercise_types_enum_exists():
 def test_exercise_types_expected_values():
     """Vérifie que les types d'exercices attendus existent"""
     expected_types = ["ADDITION", "SOUSTRACTION", "MULTIPLICATION", "DIVISION", "MIXED"]
-    
+
     for expected_type in expected_types:
-        assert hasattr(ExerciseTypes, expected_type), f"{expected_type} manquant dans ExerciseTypes"
+        assert hasattr(
+            ExerciseTypes, expected_type
+        ), f"{expected_type} manquant dans ExerciseTypes"
 
 
 # ==== Tests Difficulty Levels ====
+
 
 def test_difficulty_levels_enum_exists():
     """Vérifie que DifficultyLevels existe"""
@@ -180,9 +209,11 @@ def test_difficulty_levels_enum_exists():
 def test_difficulty_levels_expected_values():
     """Vérifie que les niveaux de difficulté attendus existent"""
     expected_levels = ["INITIE", "PADAWAN", "CHEVALIER", "MAITRE"]
-    
+
     for expected_level in expected_levels:
-        assert hasattr(DifficultyLevels, expected_level), f"{expected_level} manquant dans DifficultyLevels"
+        assert hasattr(
+            DifficultyLevels, expected_level
+        ), f"{expected_level} manquant dans DifficultyLevels"
 
 
 def test_difficulty_limits_exists():
@@ -193,6 +224,7 @@ def test_difficulty_limits_exists():
 
 # ==== Tests User Roles ====
 
+
 def test_user_roles_enum_exists():
     """Vérifie que UserRoles existe"""
     assert UserRoles is not None
@@ -201,12 +233,15 @@ def test_user_roles_enum_exists():
 def test_user_roles_expected_values():
     """Vérifie que les rôles attendus existent"""
     expected_roles = ["INITIE", "PADAWAN", "CHEVALIER", "MAITRE", "GARDIEN"]
-    
+
     for expected_role in expected_roles:
-        assert hasattr(UserRoles, expected_role), f"{expected_role} manquant dans UserRoles"
+        assert hasattr(
+            UserRoles, expected_role
+        ), f"{expected_role} manquant dans UserRoles"
 
 
 # ==== Tests Display Names ====
+
 
 def test_display_names_exists():
     """Vérifie que DISPLAY_NAMES existe"""
@@ -235,6 +270,7 @@ def test_display_names_difficulty_levels():
 
 # ==== Tests Messages ====
 
+
 def test_messages_exists():
     """Vérifie que Messages existe"""
     assert Messages is not None
@@ -242,12 +278,13 @@ def test_messages_exists():
 
 # ==== Tests intégration ====
 
+
 def test_constants_consistency():
     """Vérifie la cohérence entre les différentes constantes"""
     # Les valeurs normalisées doivent correspondre aux valeurs dans les listes
     normalized_sequence = normalize_challenge_type("sequence")
     assert normalized_sequence in CHALLENGE_TYPES_DB, "Incohérence SEQUENCE"
-    
+
     # normalize_age_group retourne le format canonique (6-8, 9-11, etc.) qui est dans AgeGroups.ALL_GROUPS
     normalized_age = normalize_age_group("age_10_12")
     assert normalized_age in AgeGroups.ALL_GROUPS, "Incohérence age_10_12"
@@ -264,11 +301,13 @@ def test_all_constants_phase3_present():
         "calculate_difficulty_for_age_group",
         "ExerciseTypes",
         "DifficultyLevels",
-        "UserRoles"
+        "UserRoles",
     ]
-    
+
     # Vérifier que toutes sont importables
     from app.core import constants
-    for const_name in required_constants:
-        assert hasattr(constants, const_name), f"Constante {const_name} manquante dans constants.py"
 
+    for const_name in required_constants:
+        assert hasattr(
+            constants, const_name
+        ), f"Constante {const_name} manquante dans constants.py"

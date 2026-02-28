@@ -2,20 +2,21 @@
 Tests unitaires pour le service de gestion des exercices (ExerciseService).
 """
 
-import pytest
+import time
 import uuid
 from datetime import datetime
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
 from unittest.mock import MagicMock, patch
-import time
 
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
+import pytest
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
 from app.models.attempt import Attempt
-from app.models.user import User, UserRole
+from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import LogicChallenge
+from app.models.user import User, UserRole
 from app.services.exercise_service import ExerciseService
-from app.utils.db_helpers import get_enum_value, adapt_enum_for_db
+from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
 
 def test_get_exercise(db_session):

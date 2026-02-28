@@ -6,10 +6,11 @@ Create Date: 2026-02-16
 
 Option « Épingler » 1-3 badges — stockage des IDs épinglés par l'utilisateur.
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "20260216_pinned"

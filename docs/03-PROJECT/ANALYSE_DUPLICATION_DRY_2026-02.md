@@ -1,7 +1,7 @@
 # Analyse de duplication (DRY) — Mathakine
 
 **Date :** Février 2026  
-**Dernière revue vérité terrain :** 25/02/2026  
+**Dernière revue vérité terrain :** 28/02/2026  
 **Objectif :** Identifier le code dupliqué frontend/backend pour préparer la consolidation (DRY)
 
 > **⚠️ Mise à jour 25/02/2026 — Vérité terrain :** La majorité des duplications backend listées ci-dessous ( §§ 1.1, 1.2) sont **déjà traitées**. Les sections « Pattern actuel » et « Proposition » reflètent l'état avant refactoring. Voir § 5 « Réalisations » pour l'état actuel.
@@ -181,12 +181,14 @@ Tous les handlers utilisent `api_error_response(status_code, message)`. Contrat 
 | Priorité | Statut | Détails |
 |----------|--------|---------|
 | **P5** | ✅ Fait | `getAgeGroupDisplay` dans `exercises.ts`, ré-exporté par `challenges.ts` |
-| **P1** | ✅ Fait | `app/utils/request_utils.py` — `parse_json_body()`. Utilisé dans : `auth_handlers` (3×), `chat_handlers` (1×). Reste 7× `request.json()` dans exercise, challenge, user, recommendation — extension optionnelle |
+| **P1** | ✅ Fait | `app/utils/request_utils.py` — `parse_json_body()` + `parse_json_body_any()`. Extension 28/02 : admin (10×), user (3×), challenge, recommendation, badge, feedback, analytics |
 | **P2** | ✅ Fait | `app/utils/db_utils.py` — `db_session()` context manager async. Migration complète vers `async with db_session() as db` dans : `auth.py`, `auth_handlers`, `user_handlers`, `exercise_handlers`, `challenge_handlers`, `badge_handlers`, `recommendation_handlers` |
 | **P3** | ✅ Fait | `ContentCardBase.tsx` déjà existant, utilisé par `ExerciseCard` et `ChallengeCard` |
 | **P4** | ✅ Fait | `frontend/hooks/usePaginatedContent.ts` — hook générique pour pagination. Refactor de `useExercises` et `useChallenges` qui l'utilisent. |
 | **P6** | ⏳ En attente | Fixtures auth centralisées — à faire si besoin |
 | **Auth** | ✅ Fait (26/02) | `auth_handlers` : verify_email et reset_password via `AuthService.verify_email_token` et `reset_password_with_token`. Plus d'accès DB direct dans ces handlers. |
+| **P3 Exceptions** | ✅ Fait (28/02) | `app/exceptions.py` : ExerciseNotFoundError, ExerciseSubmitError, ChallengeNotFoundError. Handlers submit_answer, get_exercise, get_challenge, submit_challenge_answer, get_challenge_hint : catch ciblé. |
+| **P3 Typage** | ✅ Fait (28/02) | `SubmitAnswerResponse` (Pydantic) ; `submit_answer_result` retourne type dédié au lieu de `Dict[str, Any]`. |
 
 ---
 
@@ -232,8 +234,9 @@ Tous les handlers utilisent `api_error_response(status_code, message)`. Contrat 
 
 ## 7. Synthèse et recommandations
 
-### Réalisé (priorités P1–P5)
-- Backend : db_session (100 %), parse_json_body (4 endpoints)
+### Réalisé (priorités P1–P5 + P3 Clean Code)
+- Backend : db_session (100 %), parse_json_body (4 endpoints), api_error_response unifié
+- Backend P3 (28/02) : `app/exceptions.py` (ExerciseNotFoundError, ExerciseSubmitError), catch ciblé submit_answer/get_exercise, `SubmitAnswerResponse` typé
 - Frontend : usePaginatedContent, ContentCardBase, getAgeGroupDisplay unifié
 
 ### Optionnel (règle des 3 non atteinte)

@@ -373,7 +373,7 @@ async def api_login(request): ...
 ### Fichiers modifiés
 
 - `server/handlers/auth_handlers.py` — `api_validate_token` (POST /api/auth/validate-token)
-- `server/routes.py` — Route validate-token
+- `server/routes/auth.py` — Route validate-token
 - `server/middleware.py` — validate-token en route publique
 - `frontend/app/api/auth/sync-cookie/route.ts` — Appel validate-token avant Set-Cookie
 - `app/utils/rate_limit.py` — Décorateurs rate_limit_auth, rate_limit_register

@@ -10,6 +10,7 @@ Usage:
     python scripts/update_badges_b4.py              # Dry-run (affiche sans modifier)
     python scripts/update_badges_b4.py --execute    # Applique les mises à jour
 """
+
 import argparse
 import os
 import sys
@@ -19,6 +20,7 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT_DIR / ".env")
 
 # Reformulations B4 — aligné sur B4_REFORMULATION_BADGES.md
@@ -180,7 +182,9 @@ def run_update(dry_run=True):
     with Session() as session:
         for code, updates in BADGE_UPDATES.items():
             row = session.execute(
-                text("SELECT id, name, description, star_wars_title, category, difficulty, points_reward FROM achievements WHERE code = :code"),
+                text(
+                    "SELECT id, name, description, star_wars_title, category, difficulty, points_reward FROM achievements WHERE code = :code"
+                ),
                 {"code": code},
             ).fetchone()
 
@@ -194,7 +198,9 @@ def run_update(dry_run=True):
                 print(f"\n{code}:")
                 print(f"  name: {old_name!r} -> {updates['name']!r}")
                 print(f"  description: ... -> {updates['description'][:60]}...")
-                print(f"  star_wars_title: {old_sw!r} -> {updates['star_wars_title']!r}")
+                print(
+                    f"  star_wars_title: {old_sw!r} -> {updates['star_wars_title']!r}"
+                )
                 print(f"  category: {old_cat!r} -> {updates['category']!r}")
                 print(f"  difficulty: {old_diff!r} -> {updates['difficulty']!r}")
                 print(f"  points_reward: {old_pts} -> {updates['points_reward']}")
@@ -224,8 +230,14 @@ def run_update(dry_run=True):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Applique les reformulations B4 aux badges")
-    parser.add_argument("--execute", action="store_true", help="Exécuter les mises à jour (sinon dry-run)")
+    parser = argparse.ArgumentParser(
+        description="Applique les reformulations B4 aux badges"
+    )
+    parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="Exécuter les mises à jour (sinon dry-run)",
+    )
     args = parser.parse_args()
 
     if args.execute:

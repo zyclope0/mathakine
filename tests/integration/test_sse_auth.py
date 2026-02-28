@@ -7,9 +7,11 @@ Ces tests garantissent que :
 2. SSE avec token valide → 200 (stream fonctionne)
 3. Plusieurs connexions SSE simultanées fonctionnent
 """
+
 import asyncio
-import pytest
 import uuid
+
+import pytest
 
 from tests.utils.test_helpers import verify_user_email_for_tests
 
@@ -22,7 +24,7 @@ async def authenticated_user(client):
         "username": f"test_sse_{unique_id}",
         "email": f"sse_{unique_id}@test.com",
         "password": "SecurePassword123!",
-        "role": "padawan"
+        "role": "padawan",
     }
 
     # Créer l'utilisateur
@@ -31,10 +33,7 @@ async def authenticated_user(client):
     verify_user_email_for_tests(user_data["username"])
 
     # Se connecter
-    login_data = {
-        "username": user_data["username"],
-        "password": user_data["password"]
-    }
+    login_data = {"username": user_data["username"], "password": user_data["password"]}
     login_response = await client.post("/api/auth/login", json=login_data)
     assert login_response.status_code == 200, f"Échec login: {login_response.text}"
 
@@ -43,7 +42,7 @@ async def authenticated_user(client):
     return {
         "user_data": user_data,
         "access_token": login_data_response.get("access_token"),
-        "cookies": dict(login_response.cookies)
+        "cookies": dict(login_response.cookies),
     }
 
 
@@ -58,8 +57,8 @@ async def test_sse_requires_authentication(client):
         params={
             "challenge_type": "SEQUENCE",
             "difficulty": "medium",
-            "age_group": "GROUP_10_12"
-        }
+            "age_group": "GROUP_10_12",
+        },
     )
 
     # Doit retourner 401 ou un stream d'erreur
@@ -70,15 +69,17 @@ async def test_sse_requires_authentication(client):
     else:
         # Cas alternatif : stream d'erreur
         # Vérifier que le stream contient une erreur d'authentification
-        assert response.status_code == 200, (
-            f"Le code d'état devrait être 200 (stream) ou 401, reçu {response.status_code}"
-        )
+        assert (
+            response.status_code == 200
+        ), f"Le code d'état devrait être 200 (stream) ou 401, reçu {response.status_code}"
 
         # Lire le premier événement du stream
         content = response.text
-        assert "error" in content.lower() or "non authentifié" in content.lower() or "unauthorized" in content.lower(), (
-            f"Le stream devrait contenir une erreur d'authentification. Contenu: {content[:200]}"
-        )
+        assert (
+            "error" in content.lower()
+            or "non authentifié" in content.lower()
+            or "unauthorized" in content.lower()
+        ), f"Le stream devrait contenir une erreur d'authentification. Contenu: {content[:200]}"
 
 
 async def test_sse_with_valid_token(client, authenticated_user):
@@ -97,10 +98,10 @@ async def test_sse_with_valid_token(client, authenticated_user):
         params={
             "challenge_type": "SEQUENCE",
             "difficulty": "medium",
-            "age_group": "GROUP_10_12"
+            "age_group": "GROUP_10_12",
         },
         headers={"Authorization": f"Bearer {access_token}"},
-        cookies=authenticated_user["cookies"]
+        cookies=authenticated_user["cookies"],
     )
 
     # Doit retourner 200 (stream accepté)
@@ -111,9 +112,9 @@ async def test_sse_with_valid_token(client, authenticated_user):
 
     # Vérifier le Content-Type
     content_type = response.headers.get("content-type", "")
-    assert "text/event-stream" in content_type or "event-stream" in content_type.lower(), (
-        f"Le Content-Type devrait être text/event-stream, reçu {content_type}"
-    )
+    assert (
+        "text/event-stream" in content_type or "event-stream" in content_type.lower()
+    ), f"Le Content-Type devrait être text/event-stream, reçu {content_type}"
 
 
 async def test_sse_with_cookie_auth(client, authenticated_user):
@@ -127,9 +128,9 @@ async def test_sse_with_cookie_auth(client, authenticated_user):
         params={
             "challenge_type": "SEQUENCE",
             "difficulty": "medium",
-            "age_group": "GROUP_10_12"
+            "age_group": "GROUP_10_12",
         },
-        cookies=authenticated_user["cookies"]
+        cookies=authenticated_user["cookies"],
     )
 
     # Doit retourner 200 (stream accepté)
@@ -149,11 +150,8 @@ async def test_sse_with_invalid_token(client):
     # Appeler l'endpoint SSE avec un token invalide
     response = await client.get(
         "/api/challenges/generate-ai-stream",
-        params={
-            "challenge_type": "SEQUENCE",
-            "difficulty": "medium"
-        },
-        headers={"Authorization": f"Bearer {invalid_token}"}
+        params={"challenge_type": "SEQUENCE", "difficulty": "medium"},
+        headers={"Authorization": f"Bearer {invalid_token}"},
     )
 
     # Doit retourner 401 ou un stream d'erreur
@@ -161,13 +159,15 @@ async def test_sse_with_invalid_token(client):
         assert True, "SSE correctement protégé (401 avec token invalide)"
     else:
         # Vérifier que le stream contient une erreur
-        assert response.status_code == 200, (
-            f"Le code d'état devrait être 200 (stream) ou 401, reçu {response.status_code}"
-        )
+        assert (
+            response.status_code == 200
+        ), f"Le code d'état devrait être 200 (stream) ou 401, reçu {response.status_code}"
         content = response.text
-        assert "error" in content.lower() or "invalide" in content.lower() or "invalid" in content.lower(), (
-            f"Le stream devrait contenir une erreur. Contenu: {content[:200]}"
-        )
+        assert (
+            "error" in content.lower()
+            or "invalide" in content.lower()
+            or "invalid" in content.lower()
+        ), f"Le stream devrait contenir une erreur. Contenu: {content[:200]}"
 
 
 async def test_sse_exercises_requires_auth(client):
@@ -178,23 +178,22 @@ async def test_sse_exercises_requires_auth(client):
     # Appeler l'endpoint SSE sans authentification
     response = await client.get(
         "/api/exercises/generate-ai-stream",
-        params={
-            "exercise_type": "addition",
-            "difficulty": "easy"
-        }
+        params={"exercise_type": "addition", "difficulty": "easy"},
     )
 
     # Doit retourner 401 ou un stream d'erreur
     if response.status_code == 401:
         assert True, "SSE exercices correctement protégé par authentification (401)"
     else:
-        assert response.status_code == 200, (
-            f"Le code d'état devrait être 200 (stream) ou 401, reçu {response.status_code}"
-        )
+        assert (
+            response.status_code == 200
+        ), f"Le code d'état devrait être 200 (stream) ou 401, reçu {response.status_code}"
         content = response.text
-        assert "error" in content.lower() or "non authentifié" in content.lower() or "unauthorized" in content.lower(), (
-            f"Le stream devrait contenir une erreur d'authentification. Contenu: {content[:200]}"
-        )
+        assert (
+            "error" in content.lower()
+            or "non authentifié" in content.lower()
+            or "unauthorized" in content.lower()
+        ), f"Le stream devrait contenir une erreur d'authentification. Contenu: {content[:200]}"
 
 
 async def test_sse_exercises_with_valid_token(client, authenticated_user):
@@ -207,24 +206,21 @@ async def test_sse_exercises_with_valid_token(client, authenticated_user):
     # Appeler l'endpoint SSE avec authentification
     response = await client.get(
         "/api/exercises/generate-ai-stream",
-        params={
-            "exercise_type": "addition",
-            "difficulty": "easy"
-        },
+        params={"exercise_type": "addition", "difficulty": "easy"},
         headers={"Authorization": f"Bearer {access_token}"},
-        cookies=authenticated_user["cookies"]
+        cookies=authenticated_user["cookies"],
     )
 
     # Doit retourner 200 (stream accepté)
-    assert response.status_code == 200, (
-        f"Le SSE exercices avec token valide devrait retourner 200, reçu {response.status_code}"
-    )
+    assert (
+        response.status_code == 200
+    ), f"Le SSE exercices avec token valide devrait retourner 200, reçu {response.status_code}"
 
     # Vérifier le Content-Type
     content_type = response.headers.get("content-type", "")
-    assert "text/event-stream" in content_type or "event-stream" in content_type.lower(), (
-        f"Le Content-Type devrait être text/event-stream, reçu {content_type}"
-    )
+    assert (
+        "text/event-stream" in content_type or "event-stream" in content_type.lower()
+    ), f"Le Content-Type devrait être text/event-stream, reçu {content_type}"
 
 
 async def test_sse_multiple_connections(client, authenticated_user):
@@ -257,6 +253,7 @@ async def test_sse_multiple_connections(client, authenticated_user):
 
     for status, content_type in results:
         assert status == 200, f"Attendu 200, reçu {status}"
-        assert "text/event-stream" in (content_type or "") or "event-stream" in (content_type or "").lower(), (
-            f"Content-Type attendu text/event-stream, reçu: {content_type}"
-        )
+        assert (
+            "text/event-stream" in (content_type or "")
+            or "event-stream" in (content_type or "").lower()
+        ), f"Content-Type attendu text/event-stream, reçu: {content_type}"

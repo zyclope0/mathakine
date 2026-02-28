@@ -29,6 +29,7 @@ from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response, get_safe_error_message
 from app.utils.pagination import parse_pagination_params
 from app.utils.rate_limit import rate_limit_register
+from app.utils.request_utils import parse_json_body_any
 from app.utils.settings_reader import get_setting_bool
 from server.auth import require_auth, require_full_access
 
@@ -90,10 +91,11 @@ async def create_user_account(request: Request):
     """
     if not await get_setting_bool("registration_enabled", True):
         return api_error_response(403, "Les inscriptions sont temporairement fermées.")
+    data_or_err = await parse_json_body_any(request)
+    if isinstance(data_or_err, JSONResponse):
+        return data_or_err
+    data = data_or_err
     try:
-        # Récupérer les données JSON de la requête
-        data = await request.json()
-
         # Extraire les champs requis
         username = data.get("username", "").strip()
         email = data.get("email", "").strip()
@@ -236,8 +238,6 @@ async def create_user_account(request: Request):
             logger.debug(traceback.format_exc())
             return api_error_response(500, "Erreur lors de la création du compte")
 
-    except json.JSONDecodeError:
-        return api_error_response(400, "Format JSON invalide")
     except Exception as unexpected_creation_error:
         logger.error(
             f"Erreur inattendue lors de la création de l'utilisateur: {unexpected_creation_error}"
@@ -372,10 +372,13 @@ async def update_user_me(request: Request):
     - preferred_theme
     - accessibility_settings (JSON)
     """
+    data_or_err = await parse_json_body_any(request)
+    if isinstance(data_or_err, JSONResponse):
+        return data_or_err
+    data = data_or_err
     try:
         current_user = request.state.user
         user_id = current_user.get("id")
-        data = await request.json()
         logger.info(f"Mise à jour profil utilisateur {user_id}")
 
         # Champs autorisés à modifier
@@ -574,10 +577,13 @@ async def update_user_password_me(request: Request):
     csrf_err = validate_csrf_token(request)
     if csrf_err:
         return csrf_err
+    data_or_err = await parse_json_body_any(request)
+    if isinstance(data_or_err, JSONResponse):
+        return data_or_err
+    data = data_or_err
     try:
         current_user = request.state.user
         user_id = current_user.get("id")
-        data = await request.json()
 
         current_password = data.get("current_password", "").strip()
         new_password = data.get("new_password", "").strip()
@@ -615,8 +621,6 @@ async def update_user_password_me(request: Request):
                 {"success": True, "message": "Mot de passe mis à jour avec succès."}
             )
 
-    except json.JSONDecodeError:
-        return api_error_response(400, "Données JSON invalides.")
     except Exception as e:
         logger.error(f"Erreur lors de la mise à jour du mot de passe: {e}")
         traceback.print_exc()

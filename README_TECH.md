@@ -1,6 +1,6 @@
 # README_TECH.md - Mathakine
 
-> Documentation technique de référence — Mise à jour le 16/02/2026
+> Documentation technique de référence — Mise à jour le 28/02/2026
 
 ---
 
@@ -35,6 +35,7 @@ Mathakine/
 │   │   └── endpoints/      #   Logique metier reutilisable (reference)
 │   ├── core/               #   Configuration, securite, logging, constantes
 │   ├── db/                 #   Base SQLAlchemy, adapter, queries
+│   ├── exceptions.py      #   Exceptions metier (ExerciseNotFoundError, ExerciseSubmitError)
 │   ├── models/             #   Modeles SQLAlchemy (User, Exercise, Attempt, LogicChallenge, etc.)
 │   ├── schemas/            #   Schemas Pydantic (validation API)
 │   ├── services/           #   Logique metier (exercise_service, challenge_service, challenge_ai_service, etc.)
@@ -44,7 +45,7 @@ Mathakine/
 │   ├── handlers/           #   Handlers HTTP (exercise, challenge, user, auth, chat, badge)
 │   ├── app.py              #   Factory de l'app Starlette
 │   ├── auth.py             #   Authentification JWT
-│   ├── routes.py           #   Routage principal
+│   ├── routes/             #   Routes par domaine (core, auth, users, exercises, challenges, badges, admin, misc)
 │   ├── middleware.py       #   CORS, logging, securite
 │   ├── exercise_generator.py           # Generateur d'exercices IA (streaming SSE)
 │   ├── exercise_generator_validators.py  # Validation/normalisation (type, age_group, difficulty)
@@ -126,7 +127,7 @@ Le backend est unifie sur **Starlette** (FastAPI archive le 06/02/2026).
 - **Authentification** : `server/auth.py` (Cookie + Bearer token)
 - **Streaming** : SSE pour generation IA (exercices + challenges)
 - **Exercise generator** : `exercise_generator.py` + `exercise_generator_validators.py` + `exercise_generator_helpers.py` (choix MCQ, questions contextualisees)
-- **Routes** : ~85 routes enregistrees dans `server/routes.py` (dont bloc admin)
+- **Routes** : ~85 routes dans `server/routes/` — agrégées via `get_routes()` (dont bloc admin)
 
 ### Couche logique metier (`app/`)
 Couche independante du framework HTTP :
@@ -134,6 +135,7 @@ Couche independante du framework HTTP :
 - **Schemas** : Pydantic validation (`app/schemas/`)
 - **Services** : Logique metier (`app/services/`)
   - `exercise_service.py` - CRUD exercices
+  - `exercise_stats_service.py` - Statistiques Académie (extrait 28/02)
   - `challenge_service.py` - CRUD defis
   - `user_service.py` - Gestion utilisateurs
   - `auth_service.py` - Authentification, JWT

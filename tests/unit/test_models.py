@@ -1,12 +1,13 @@
-import pytest
-from app.models.user import User, UserRole
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
-from app.models.attempt import Attempt
-from app.models.recommendation import Recommendation
-from app.utils.db_helpers import get_enum_value
 from datetime import datetime
-from tests.utils.test_helpers import unique_username, unique_email
 
+import pytest
+
+from app.models.attempt import Attempt
+from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+from app.models.recommendation import Recommendation
+from app.models.user import User, UserRole
+from app.utils.db_helpers import get_enum_value
+from tests.utils.test_helpers import unique_email, unique_username
 
 
 def test_user_model():
@@ -16,15 +17,14 @@ def test_user_model():
         username=unique_username(),
         email=unique_email(),
         hashed_password="hashed_password",
-        role=UserRole.PADAWAN.value
+        role=UserRole.PADAWAN.value,
     )
-    
+
     # Vérifier les attributs
     assert user.username is not None
     assert user.email is not None
     assert user.hashed_password == "hashed_password"
     assert user.role == UserRole.PADAWAN.value
-
 
 
 def test_exercise_model():
@@ -36,7 +36,7 @@ def test_exercise_model():
         age_group="6-8",
         question="2 + 2 = ?",
         correct_answer="4",
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
 
     assert exercise.exercise_type == ExerciseType.ADDITION
@@ -46,18 +46,21 @@ def test_exercise_model():
     assert isinstance(exercise.created_at, datetime)
 
 
-
 def test_attempt_model():
     """Test de création et validation d'un modèle tentative"""
-    user = User(username=unique_username(), email=unique_email(), hashed_password="test_password"
-        , role=UserRole.PADAWAN)
+    user = User(
+        username=unique_username(),
+        email=unique_email(),
+        hashed_password="test_password",
+        role=UserRole.PADAWAN,
+    )
     exercise = Exercise(
         title="Test Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
         age_group="6-8",
         question="2 + 2 = ?",
-        correct_answer="4"
+        correct_answer="4",
     )
 
     attempt = Attempt(
@@ -65,7 +68,7 @@ def test_attempt_model():
         exercise=exercise,
         user_answer="4",
         is_correct=True,
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
 
     assert attempt.user == user
@@ -75,17 +78,20 @@ def test_attempt_model():
     assert isinstance(attempt.created_at, datetime)
 
 
-
 def test_user_attempt_relationship():
     """Test de la relation entre User et Attempt."""
-    user = User(username=unique_username(), email=unique_email(), hashed_password="test_password")
+    user = User(
+        username=unique_username(),
+        email=unique_email(),
+        hashed_password="test_password",
+    )
     exercise = Exercise(
         title="Test Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
         age_group="6-8",
         question="2 + 2 = ?",
-        correct_answer="4"
+        correct_answer="4",
     )
 
     attempt1 = Attempt(user=user, exercise=exercise, user_answer="4", is_correct=True)
@@ -98,18 +104,21 @@ def test_user_attempt_relationship():
     assert user.attempts[1].is_correct is False
 
 
-
 def test_exercise_attempt_relationship():
     """Test de la relation entre exercice et tentatives"""
-    user = User(username=unique_username(), email=unique_email(), hashed_password="test_password"
-        , role=UserRole.PADAWAN)
+    user = User(
+        username=unique_username(),
+        email=unique_email(),
+        hashed_password="test_password",
+        role=UserRole.PADAWAN,
+    )
     exercise = Exercise(
         title="Test Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
         age_group="6-8",
         question="2 + 2 = ?",
-        correct_answer="4"
+        correct_answer="4",
     )
 
     attempt1 = Attempt(user=user, exercise=exercise, user_answer="4", is_correct=True)
@@ -124,17 +133,21 @@ def test_exercise_attempt_relationship():
 
 def test_recommendation_model():
     """Test de création et validation d'un modèle recommandation"""
-    user = User(username=unique_username(), email=unique_email(), hashed_password="test_password"
-        , role=UserRole.PADAWAN)
+    user = User(
+        username=unique_username(),
+        email=unique_email(),
+        hashed_password="test_password",
+        role=UserRole.PADAWAN,
+    )
     exercise = Exercise(
         title="Test Recommended Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
         age_group="6-8",
         question="3 + 3 = ?",
-        correct_answer="6"
+        correct_answer="6",
     )
-    
+
     recommendation = Recommendation(
         user=user,
         exercise=exercise,
@@ -145,9 +158,9 @@ def test_recommendation_model():
         created_at=datetime.now(),
         is_completed=False,
         shown_count=0,
-        clicked_count=0
+        clicked_count=0,
     )
-    
+
     assert recommendation.user == user
     assert recommendation.exercise == exercise
     assert recommendation.exercise_type == ExerciseType.ADDITION
@@ -162,34 +175,38 @@ def test_recommendation_model():
 
 def test_user_recommendation_relationship():
     """Test de la relation entre User et Recommendation."""
-    user = User(username=unique_username(), email=unique_email(), hashed_password="test_password")
+    user = User(
+        username=unique_username(),
+        email=unique_email(),
+        hashed_password="test_password",
+    )
     exercise = Exercise(
         title="Test Rec Exercise",
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
         age_group="6-8",
         question="5 + 5 = ?",
-        correct_answer="10"
+        correct_answer="10",
     )
-    
+
     rec1 = Recommendation(
         user=user,
         exercise=exercise,
         exercise_type=ExerciseType.ADDITION,
         difficulty=DifficultyLevel.INITIE,
         priority=8,
-        reason="Recommendation 1"
+        reason="Recommendation 1",
     )
     rec2 = Recommendation(
         user=user,
         exercise_type=ExerciseType.MULTIPLICATION,
         difficulty=DifficultyLevel.PADAWAN,
         priority=5,
-        reason="Recommendation 2"
+        reason="Recommendation 2",
     )
-    
+
     user.recommendations = [rec1, rec2]
-    
+
     assert len(user.recommendations) == 2
     assert user.recommendations[0].reason == "Recommendation 1"
     assert user.recommendations[1].reason == "Recommendation 2"
@@ -199,4 +216,8 @@ def test_user_recommendation_relationship():
 
 def test_user_progress_relationship():
     """Test de la relation entre User et Progress."""
-    user = User(username=unique_username(), email=unique_email(), hashed_password="test_password")
+    user = User(
+        username=unique_username(),
+        email=unique_email(),
+        hashed_password="test_password",
+    )

@@ -10,6 +10,7 @@ Usage:
 Ou avec DATABASE_URL pointant vers la base de test :
     DATABASE_URL="postgresql://.../test_mathakine" python scripts/add_pinned_badges_to_test_db.py
 """
+
 import os
 import sys
 from pathlib import Path
@@ -17,12 +18,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+
 load_dotenv(override=False)
 
 if os.environ.get("TESTING", "").lower() != "true":
     os.environ.setdefault("TEST_DATABASE_URL", os.environ.get("DATABASE_URL", ""))
 
 from sqlalchemy import create_engine, text
+
 from app.core.config import settings
 
 
@@ -30,7 +33,9 @@ def main():
     url = settings.SQLALCHEMY_DATABASE_URL
     if "test" not in url.lower() and "localhost" not in url:
         print("⚠️  ATTENTION: Ce script modifie la base de données.")
-        print("   Pour la base de test, utilisez: TESTING=true python scripts/add_pinned_badges_to_test_db.py")
+        print(
+            "   Pour la base de test, utilisez: TESTING=true python scripts/add_pinned_badges_to_test_db.py"
+        )
         if input("   Continuer quand même ? (y/N): ").lower() != "y":
             sys.exit(1)
 

@@ -170,7 +170,7 @@ class ExerciseService:
             )
 
             if not exercise_row:
-                return None
+                raise ExerciseNotFoundError()
 
             return {
                 "id": exercise_row.id,
@@ -193,6 +193,8 @@ class ExerciseService:
                 "tags": safe_parse_json(exercise_row.tags, []),
                 "ai_generated": exercise_row.ai_generated or False,
             }
+        except ExerciseNotFoundError:
+            raise
         except Exception as err:
             logger.error(f"Erreur get_exercise_for_api {exercise_id}: {err}")
             return None

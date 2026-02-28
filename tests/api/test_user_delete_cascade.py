@@ -4,14 +4,16 @@ Test de suppression de compte utilisateur : vérification qu'aucun reliquat ne r
 Vérifie que DELETE /api/users/me supprime l'utilisateur et toutes les données
 associées (cascade) sans orphelins.
 """
+
 import uuid
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
 from app.core.security import get_password_hash
 from app.models.achievement import Achievement, UserAchievement
 from app.models.attempt import Attempt
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
+from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
 from app.models.notification import Notification
 from app.models.progress import Progress
@@ -19,7 +21,6 @@ from app.models.recommendation import Recommendation
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
 from app.utils.db_helpers import get_enum_value
-from datetime import datetime, timedelta, timezone
 
 
 @pytest.fixture
@@ -33,7 +34,9 @@ def user_to_delete_data():
     }
 
 
-async def test_delete_user_me_cascade_no_orphans(client, db_session, user_to_delete_data):
+async def test_delete_user_me_cascade_no_orphans(
+    client, db_session, user_to_delete_data
+):
     """
     Suppression via DELETE /api/users/me : aucune ligne orpheline en base.
 
@@ -172,7 +175,9 @@ async def test_delete_user_me_cascade_no_orphans(client, db_session, user_to_del
     assert db_session.query(Attempt).filter(Attempt.user_id == user_id).count() == 0
     assert db_session.query(Progress).filter(Progress.user_id == user_id).count() == 0
     assert (
-        db_session.query(Recommendation).filter(Recommendation.user_id == user_id).count()
+        db_session.query(Recommendation)
+        .filter(Recommendation.user_id == user_id)
+        .count()
         == 0
     )
     assert (

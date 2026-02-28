@@ -2,6 +2,7 @@
 Tests des endpoints API admin badges (Lot B-3).
 Soft delete, validation requirements, réactivation.
 """
+
 import uuid
 
 import pytest
@@ -95,6 +96,8 @@ async def test_admin_badges_soft_delete_and_reactivate(archiviste_client, db_ses
     assert get_resp.json().get("is_active") is False
 
     # Réactiver via PUT
-    put_resp = await client.put(f"/api/admin/badges/{badge_id}", json={"is_active": True})
+    put_resp = await client.put(
+        f"/api/admin/badges/{badge_id}", json={"is_active": True}
+    )
     assert put_resp.status_code == 200
     assert put_resp.json().get("is_active") is True

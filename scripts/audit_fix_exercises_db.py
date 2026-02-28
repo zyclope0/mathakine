@@ -11,6 +11,7 @@ Usage:
     python scripts/audit_fix_exercises_db.py              # Dry-run (affiche sans modifier)
     python scripts/audit_fix_exercises_db.py --execute  # Applique les corrections
 """
+
 import argparse
 import os
 import re
@@ -21,6 +22,7 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT_DIR / ".env")
 
 
@@ -52,12 +54,13 @@ def normalize_answer(val):
 # Parsers par type d'exercice
 # ---------------------------------------------------------------------------
 
+
 def parse_addition(question):
     """Extrait les opérandes d'une addition. Retourne (expected, confidence)."""
     # Patterns: "12 + 7", "12+7", "Calcule 12 + 7", "combien font 12 + 7 ?", "12 + 7 = ?"
     if not question:
         return None, 0
-    m = re.search(r'(\d+)\s*\+\s*(\d+)(?:\s*\+\s*(\d+))?', question)
+    m = re.search(r"(\d+)\s*\+\s*(\d+)(?:\s*\+\s*(\d+))?", question)
     if not m:
         return None, 0
     a, b = int(m.group(1)), int(m.group(2))
@@ -69,7 +72,7 @@ def parse_subtraction(question):
     """Extrait les opérandes d'une soustraction."""
     if not question:
         return None, 0
-    m = re.search(r'(\d+)\s*[-−]\s*(\d+)', question)
+    m = re.search(r"(\d+)\s*[-−]\s*(\d+)", question)
     if not m:
         return None, 0
     a, b = int(m.group(1)), int(m.group(2))
@@ -82,7 +85,7 @@ def parse_multiplication(question):
     """Extrait les opérandes d'une multiplication."""
     if not question:
         return None, 0
-    m = re.search(r'(\d+)\s*[×*xX]\s*(\d+)', question)
+    m = re.search(r"(\d+)\s*[×*xX]\s*(\d+)", question)
     if not m:
         return None, 0
     return str(int(m.group(1)) * int(m.group(2))), 1
@@ -92,7 +95,7 @@ def parse_division(question):
     """Extrait les opérandes d'une division (quotient entier)."""
     if not question:
         return None, 0
-    m = re.search(r'(\d+)\s*[÷/:]\s*(\d+)', question)
+    m = re.search(r"(\d+)\s*[÷/:]\s*(\d+)", question)
     if not m:
         return None, 0
     a, b = int(m.group(1)), int(m.group(2))
@@ -113,46 +116,63 @@ def parse_fractions(question, explanation, correct_answer=None):
         return None, 0
 
     # Uniquement si la question demande le RESTE / ni l'un ni l'autre
-    reste_keywords = ["ni l'un ni l'autre", "ni rouges ni bleus", "ni rouge ni bleu",
-                      "combien reste", "combien restent", "quel est le reste",
-                      "aucune de ces couleurs", "reste-t-il", "restent-ils"]
+    reste_keywords = [
+        "ni l'un ni l'autre",
+        "ni rouges ni bleus",
+        "ni rouge ni bleu",
+        "combien reste",
+        "combien restent",
+        "quel est le reste",
+        "aucune de ces couleurs",
+        "reste-t-il",
+        "restent-ils",
+    ]
     if not any(kw in q for kw in reste_keywords):
         return None, 0
 
     full = (question or "") + " " + (explanation or "")
-    
+
     # Extraire le total
-    total_m = re.search(r'(\d+)\s*(?:cristaux?|objets?|éléments?|pièces?|bonbons?|billes?|minéraux?|étoiles?)', full, re.I)
+    total_m = re.search(
+        r"(\d+)\s*(?:cristaux?|objets?|éléments?|pièces?|bonbons?|billes?|minéraux?|étoiles?)",
+        full,
+        re.I,
+    )
     if not total_m:
-        total_m = re.search(r'(?:total\s+de\s+)?(\d+)\s', full, re.I)
+        total_m = re.search(r"(?:total\s+de\s+)?(\d+)\s", full, re.I)
     total = int(total_m.group(1)) if total_m else None
     if not total or total <= 0:
         return None, 0
-    
+
     fracs = []
-    for m in re.finditer(r'(\d+)/(\d+)', full):
+    for m in re.finditer(r"(\d+)/(\d+)", full):
         n, d = int(m.group(1)), int(m.group(2))
         if d > 0:
             fracs.append(n / d)
-    if 'moitié' in full.lower() or 'moitie' in full.lower() or 'demi' in full.lower():
+    if "moitié" in full.lower() or "moitie" in full.lower() or "demi" in full.lower():
         if not any(abs(f - 0.5) < 0.01 for f in fracs):
             fracs.append(0.5)
-    if 'tiers' in full.lower() or 'tier ' in full.lower():
+    if "tiers" in full.lower() or "tier " in full.lower():
         if not any(0.32 <= f <= 0.34 for f in fracs):
-            fracs.append(1/3)
-    if 'quart' in full.lower():
+            fracs.append(1 / 3)
+    if "quart" in full.lower():
         if not any(abs(f - 0.25) < 0.01 for f in fracs):
             fracs.append(0.25)
-    
+
     if not fracs:
         return None, 0
-    
+
     parts_sum = sum(total * f for f in fracs)
     reste = total - int(round(parts_sum))
     if reste < 0:
         reste = 0
     # Cas spécial 120 cristaux : moitié + tiers = 100, reste = 20 (erreur fréquente : 30)
-    if total == 120 and abs(parts_sum - 100) < 1 and correct_answer and str(correct_answer) == "30":
+    if (
+        total == 120
+        and abs(parts_sum - 100) < 1
+        and correct_answer
+        and str(correct_answer) == "30"
+    ):
         return "20", 1.0
     return str(reste), 0.9
 
@@ -165,11 +185,15 @@ def extract_final_from_explanation(explanation):
     if not explanation:
         return None
     # "La réponse est 42." / "donc 42." en fin de phrase
-    m = re.search(r'(?:réponse|résultat|donc)\s*(?:est|:)?\s*(\d+(?:[.,]\d+)?)\s*\.?\s*$', explanation, re.I)
+    m = re.search(
+        r"(?:réponse|résultat|donc)\s*(?:est|:)?\s*(\d+(?:[.,]\d+)?)\s*\.?\s*$",
+        explanation,
+        re.I,
+    )
     if m:
         return m.group(1).replace(",", ".")
     # Dernier "= N" ou "= N." (éviter nombres trop petits type rayon 3)
-    matches = re.findall(r'=\s*(\d+(?:[.,]\d+)?)(?:\s|\.|,|$)', explanation)
+    matches = re.findall(r"=\s*(\d+(?:[.,]\d+)?)(?:\s|\.|,|$)", explanation)
     if matches:
         last = matches[-1].replace(",", ".")
         # Ignorer si c'est un petit nombre isolé (risque paramètre)
@@ -187,6 +211,7 @@ def extract_final_from_explanation(explanation):
 # Audit principal
 # ---------------------------------------------------------------------------
 
+
 def audit_and_fix(dry_run=True):
     from sqlalchemy import create_engine, text
     from sqlalchemy.orm import sessionmaker
@@ -195,14 +220,12 @@ def audit_and_fix(dry_run=True):
     Session = sessionmaker(bind=engine, autocommit=False)
     session = Session()
 
-    result = session.execute(
-        text("""
+    result = session.execute(text("""
             SELECT id, title, exercise_type, question, correct_answer, choices, explanation
             FROM exercises
             WHERE is_archived = false
             ORDER BY id
-        """)
-    )
+        """))
     rows = result.fetchall()
 
     issues = []
@@ -262,21 +285,25 @@ def audit_and_fix(dry_run=True):
 
         fix_reason = f"compute_{ex_type_lower}" if parser else "explanation_extract"
 
-        issues.append({
-            "id": ex_id,
-            "type": fix_reason,
-            "title": (title or "")[:50],
-            "exercise_type": ex_type_lower,
-            "correct_answer": correct_answer,
-            "expected": expected_norm,
-            "confidence": confidence,
-        })
-        fixes.append({
-            "id": ex_id,
-            "field": "correct_answer",
-            "old": correct_answer,
-            "new": expected_norm,
-        })
+        issues.append(
+            {
+                "id": ex_id,
+                "type": fix_reason,
+                "title": (title or "")[:50],
+                "exercise_type": ex_type_lower,
+                "correct_answer": correct_answer,
+                "expected": expected_norm,
+                "confidence": confidence,
+            }
+        )
+        fixes.append(
+            {
+                "id": ex_id,
+                "field": "correct_answer",
+                "old": correct_answer,
+                "new": expected_norm,
+            }
+        )
 
     # Vérifier aussi que correct_answer est dans choices (si choices existent)
     for row in rows:
@@ -289,13 +316,15 @@ def audit_and_fix(dry_run=True):
             # Vérifier si une variante existe (ex: "20" vs "20 cristaux")
             found = any(correct_norm in c or c in correct_norm for c in choices_str)
             if not found and not any(f["id"] == ex_id for f in fixes):
-                issues.append({
-                    "id": ex_id,
-                    "type": "correct_not_in_choices",
-                    "title": (title or "")[:50],
-                    "correct_answer": correct_answer,
-                    "choices": choices_str[:4],
-                })
+                issues.append(
+                    {
+                        "id": ex_id,
+                        "type": "correct_not_in_choices",
+                        "title": (title or "")[:50],
+                        "correct_answer": correct_answer,
+                        "choices": choices_str[:4],
+                    }
+                )
                 # Pas de fix auto pour ce cas - nécessite mise à jour des choices
 
     # Affichage
@@ -311,26 +340,38 @@ def audit_and_fix(dry_run=True):
         print(f"   Type: {iss.get('exercise_type', '?')} / {iss['type']}")
         print(f"   correct_answer actuel: {iss['correct_answer']}")
         if "expected" in iss:
-            print(f"   Valeur attendue: {iss['expected']} (confiance: {iss.get('confidence', 1)})")
+            print(
+                f"   Valeur attendue: {iss['expected']} (confiance: {iss.get('confidence', 1)})"
+            )
         if "choices" in iss:
             print(f"   Choices: {iss['choices']}")
         print()
 
     # Appliquer les corrections (uniquement compute_* et explanation_extract)
-    fixable_types = {"compute_addition", "compute_soustraction", "compute_subtraction",
-                     "compute_multiplication", "compute_division", "compute_fractions",
-                     "explanation_extract"}
-    fixes_to_apply = [f for f in fixes if any(
-        iss["type"] in fixable_types and iss["id"] == f["id"] for iss in issues
-    )]
+    fixable_types = {
+        "compute_addition",
+        "compute_soustraction",
+        "compute_subtraction",
+        "compute_multiplication",
+        "compute_division",
+        "compute_fractions",
+        "explanation_extract",
+    }
+    fixes_to_apply = [
+        f
+        for f in fixes
+        if any(iss["type"] in fixable_types and iss["id"] == f["id"] for iss in issues)
+    ]
 
     if fixes_to_apply and not dry_run:
         for fix in fixes_to_apply:
             session.execute(
                 text("UPDATE exercises SET correct_answer = :new WHERE id = :id"),
-                {"new": fix["new"], "id": fix["id"]}
+                {"new": fix["new"], "id": fix["id"]},
             )
-            print(f"   Exercice #{fix['id']}: correct_answer {fix['old']} -> {fix['new']}")
+            print(
+                f"   Exercice #{fix['id']}: correct_answer {fix['old']} -> {fix['new']}"
+            )
         session.commit()
         print(f"\n[OK] {len(fixes_to_apply)} correction(s) appliquée(s).")
     elif dry_run:
@@ -344,7 +385,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Audit et correction des incohérences dans les exercices"
     )
-    parser.add_argument("--execute", action="store_true", help="Appliquer les corrections")
+    parser.add_argument(
+        "--execute", action="store_true", help="Appliquer les corrections"
+    )
     args = parser.parse_args()
     return audit_and_fix(dry_run=not args.execute)
 

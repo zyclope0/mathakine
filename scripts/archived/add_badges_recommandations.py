@@ -22,6 +22,7 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT_DIR / ".env")
 
 NEW_BADGES = [
@@ -77,7 +78,11 @@ def run_add(dry_run: bool = True):
 
     engine = create_engine(get_db_url())
     with engine.connect() as conn:
-        print("=== Ajout badges recommandations - mode", "DRY-RUN" if dry_run else "EXECUTION", "===\n")
+        print(
+            "=== Ajout badges recommandations - mode",
+            "DRY-RUN" if dry_run else "EXECUTION",
+            "===\n",
+        )
 
         for b in NEW_BADGES:
             code = b["code"]

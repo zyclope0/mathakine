@@ -8,11 +8,11 @@ Système scolaire au choix :
 - suisse : 1H, 2H, ... 11H (Harmos)
 - unifie : 1, 2, ... 12 (système international unifié)
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "20260224_gradesys"
 down_revision: Union[str, None] = "20260223_onboarding"

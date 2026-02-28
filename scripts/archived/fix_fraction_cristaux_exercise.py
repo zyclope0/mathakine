@@ -11,6 +11,7 @@ Usage:
     python scripts/fix_fraction_cristaux_exercise.py              # Dry-run (affiche sans modifier)
     python scripts/fix_fraction_cristaux_exercise.py --execute    # Applique les corrections
 """
+
 import argparse
 import os
 import sys
@@ -20,6 +21,7 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT_DIR / ".env")
 
 # Correction à appliquer
@@ -51,8 +53,7 @@ def find_and_fix(dry_run=True):
     session = Session()
 
     # Rechercher l'exercice : 120 cristaux, moitié rouges, tiers bleus (critères élargis)
-    result = session.execute(
-        text("""
+    result = session.execute(text("""
             SELECT id, title, question, correct_answer, choices, explanation
             FROM exercises
             WHERE question ILIKE '%120%'
@@ -62,8 +63,7 @@ def find_and_fix(dry_run=True):
                    OR question ILIKE '%tiers%' OR question ILIKE '%tier %'
                    OR question ILIKE '%demi%' OR question ILIKE '%tier %')
             ORDER BY id DESC
-        """)
-    )
+        """))
     rows = result.fetchall()
 
     if not rows:
@@ -88,8 +88,10 @@ def find_and_fix(dry_run=True):
         if not dry_run:
             # Mettre à jour correct_answer et explanation
             session.execute(
-                text("UPDATE exercises SET correct_answer = :ans, explanation = :exp WHERE id = :id"),
-                {"ans": CORRECT_ANSWER, "exp": CORRECT_EXPLANATION, "id": ex_id}
+                text(
+                    "UPDATE exercises SET correct_answer = :ans, explanation = :exp WHERE id = :id"
+                ),
+                {"ans": CORRECT_ANSWER, "exp": CORRECT_EXPLANATION, "id": ex_id},
             )
             fixed += 1
             print(f"  -> Corrigé.")
@@ -98,15 +100,21 @@ def find_and_fix(dry_run=True):
         session.commit()
         print(f"\n{fixed} exercice(s) corrigé(s).")
     elif dry_run and rows:
-        print("\n[MODE DRY-RUN] Aucune modification. Lancez avec --execute pour appliquer.")
+        print(
+            "\n[MODE DRY-RUN] Aucune modification. Lancez avec --execute pour appliquer."
+        )
 
     session.close()
     return 0
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Corrige l'exercice fractions cristaux 120")
-    parser.add_argument("--execute", action="store_true", help="Appliquer les corrections")
+    parser = argparse.ArgumentParser(
+        description="Corrige l'exercice fractions cristaux 120"
+    )
+    parser.add_argument(
+        "--execute", action="store_true", help="Appliquer les corrections"
+    )
     args = parser.parse_args()
     return find_and_fix(dry_run=not args.execute)
 

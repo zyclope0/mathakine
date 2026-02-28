@@ -9,11 +9,11 @@ Colonnes pour contenu adaptatif :
 - learning_goal : objectif pédagogique court (réviser, préparer examen, progresser, etc.)
 - practice_rhythm : rythme souhaité (10min/jour, 30min/semaine, etc.)
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision: str = "20260223_onboarding"
 down_revision: Union[str, None] = "20260222_feedback"

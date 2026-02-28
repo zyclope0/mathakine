@@ -21,6 +21,7 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from dotenv import load_dotenv
+
 load_dotenv(ROOT_DIR / ".env")
 
 from sqlalchemy import create_engine, text
@@ -45,32 +46,46 @@ def run_reset(dry_run: bool = True):
         ).scalar()
         users_count = conn.execute(text("SELECT COUNT(*) FROM users")).scalar()
 
-        print("=== Reset badges + classement — mode", "DRY-RUN (simulation)" if dry_run else "EXECUTION", "===\n")
+        print(
+            "=== Reset badges + classement — mode",
+            "DRY-RUN (simulation)" if dry_run else "EXECUTION",
+            "===\n",
+        )
         print(f"  user_achievements a supprimer : {badge_count}")
-        print(f"  utilisateurs avec badges epingles a reinitialiser : {users_with_pins}")
+        print(
+            f"  utilisateurs avec badges epingles a reinitialiser : {users_with_pins}"
+        )
         print(f"  utilisateurs a remettre a zero (classement) : {users_count}")
 
         if dry_run:
             print("\n>> Aucune modification. Relancer avec --execute pour appliquer.")
             return
 
-        ok = input("\nConfirmer le reset badges + classement pour TOUS les utilisateurs ? (oui/non) : ")
+        ok = input(
+            "\nConfirmer le reset badges + classement pour TOUS les utilisateurs ? (oui/non) : "
+        )
         if ok.strip().lower() != "oui":
             print("Annule.")
             return
 
         conn.execute(text("DELETE FROM user_achievements"))
         conn.execute(text("UPDATE users SET pinned_badge_ids = NULL"))
-        conn.execute(text(
-            "UPDATE users SET total_points = 0, current_level = 1, experience_points = 0, jedi_rank = 'youngling'"
-        ))
+        conn.execute(
+            text(
+                "UPDATE users SET total_points = 0, current_level = 1, experience_points = 0, jedi_rank = 'youngling'"
+            )
+        )
         conn.commit()
         print("\n[OK] Reset termine (badges + classement).")
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Reset tous les badges pour tous les utilisateurs")
-    ap.add_argument("--execute", action="store_true", help="Exécuter le reset (sinon dry-run)")
+    ap = argparse.ArgumentParser(
+        description="Reset tous les badges pour tous les utilisateurs"
+    )
+    ap.add_argument(
+        "--execute", action="store_true", help="Exécuter le reset (sinon dry-run)"
+    )
     args = ap.parse_args()
     run_reset(dry_run=not args.execute)
 

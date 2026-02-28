@@ -2,13 +2,15 @@
 Tests des endpoints API pour les utilisateurs.
 Migre de FastAPI TestClient vers httpx.AsyncClient (Starlette).
 """
-import pytest
+
 import uuid
 
-from app.models.user import User, UserRole
-from tests.utils.test_helpers import verify_user_email_for_tests
+import pytest
+
 from app.core.security import get_password_hash, verify_password
+from app.models.user import User, UserRole
 from app.utils.db_helpers import get_enum_value
+from tests.utils.test_helpers import verify_user_email_for_tests
 
 
 async def test_get_current_user(padawan_client):
@@ -219,7 +221,9 @@ async def test_get_leaderboard_filtered_by_age_group(padawan_client, db_session)
     leaderboard = data.get("leaderboard", [])
     usernames = [e["username"] for e in leaderboard]
     assert u1.username in usernames, "User 9-11 doit apparaître dans le filtre 9-11"
-    assert u2.username not in usernames, "User 6-8 ne doit pas apparaître dans le filtre 9-11"
+    assert (
+        u2.username not in usernames
+    ), "User 6-8 ne doit pas apparaître dans le filtre 9-11"
 
 
 async def test_update_user_password_wrong_current(padawan_client):

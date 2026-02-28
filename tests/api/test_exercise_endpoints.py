@@ -5,7 +5,9 @@ async def test_get_exercises(client):
     data = response.json()
     # API returns "items" (or "exercises"). Use explicit None check: [] is valid (empty list in CI).
     items = data.get("items") if "items" in data else data.get("exercises")
-    assert items is not None, f"Response should contain 'items' or 'exercises', got keys: {list(data.keys())}"
+    assert (
+        items is not None
+    ), f"Response should contain 'items' or 'exercises', got keys: {list(data.keys())}"
     assert isinstance(items, list)
     assert "total" in data
     assert "limit" in data
@@ -27,7 +29,14 @@ async def test_get_exercises_response_format_non_regression(client):
     assert data["limit"] == 2
     if data["items"]:
         item = data["items"][0]
-        for key in ("id", "title", "exercise_type", "difficulty", "question", "correct_answer"):
+        for key in (
+            "id",
+            "title",
+            "exercise_type",
+            "difficulty",
+            "question",
+            "correct_answer",
+        ):
             assert key in item, f"Exercise item must contain '{key}'"
 
 
@@ -67,11 +76,11 @@ async def test_get_exercises_order_recent(client):
 
 def test_exercise_types_constants():
     """Test que les types d'exercices sont correctement définis dans les constantes.
-    
+
     Note: Les routes /api/exercises/types et /api/exercises/difficulties n'existent pas
     dans le backend Starlette. Les types/niveaux sont des constantes Python.
     """
-    from app.core.constants import ExerciseTypes, DifficultyLevels
+    from app.core.constants import DifficultyLevels, ExerciseTypes
 
     # Verifier les types d'exercices (values are UPPERCASE)
     assert "ADDITION" in ExerciseTypes.ALL_TYPES
@@ -155,7 +164,11 @@ async def test_create_exercise_with_invalid_data(padawan_client):
     response = await client.post("/api/exercises/generate", json=invalid_exercise_data)
 
     # Starlette retourne 400 ou 500 pour donnees invalides (pas 422 comme FastAPI)
-    assert response.status_code in (400, 422, 500), f"Le code d'etat devrait etre 400/422/500, recu {response.status_code}"
+    assert response.status_code in (
+        400,
+        422,
+        500,
+    ), f"Le code d'etat devrait etre 400/422/500, recu {response.status_code}"
 
 
 async def test_create_exercise_with_invalid_type(padawan_client):
@@ -169,7 +182,12 @@ async def test_create_exercise_with_invalid_type(padawan_client):
     response = await client.post("/api/exercises/generate", json=invalid_exercise_data)
 
     # Handler may normalize invalid_type to default (200) or return 400/500
-    assert response.status_code in (200, 400, 422, 500), f"Le code d'etat devrait etre 200/400/422/500, recu {response.status_code}"
+    assert response.status_code in (
+        200,
+        400,
+        422,
+        500,
+    ), f"Le code d'etat devrait etre 200/400/422/500, recu {response.status_code}"
 
 
 async def test_create_exercise_with_centralized_fixtures(padawan_client):
@@ -179,14 +197,22 @@ async def test_create_exercise_with_centralized_fixtures(padawan_client):
     exercise_data = {"exercise_type": "addition", "age_group": "6-8"}
     response = await client.post("/api/exercises/generate", json=exercise_data)
 
-    assert response.status_code == 200, f"Le code d'état devrait être 200, reçu {response.status_code}"
+    assert (
+        response.status_code == 200
+    ), f"Le code d'état devrait être 200, reçu {response.status_code}"
 
     data = response.json()
-    assert "title" in data or "question" in data, "La réponse devrait contenir l'exercice généré"
-    assert "exercise_type" in data or "correct_answer" in data, "La réponse devrait contenir les champs de l'exercice"
+    assert (
+        "title" in data or "question" in data
+    ), "La réponse devrait contenir l'exercice généré"
+    assert (
+        "exercise_type" in data or "correct_answer" in data
+    ), "La réponse devrait contenir les champs de l'exercice"
 
 
-async def test_submit_answer_invalid_payload_returns_422(padawan_client, db_session, mock_exercise):
+async def test_submit_answer_invalid_payload_returns_422(
+    padawan_client, db_session, mock_exercise
+):
     """SubmitAnswerRequest : payload invalide (answer manquant) → 422."""
     from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 
@@ -224,7 +250,9 @@ async def test_submit_answer_invalid_payload_returns_422(padawan_client, db_sess
     assert response2.status_code == 422
 
 
-async def test_submit_answer_selected_answer_alias(padawan_client, db_session, mock_exercise):
+async def test_submit_answer_selected_answer_alias(
+    padawan_client, db_session, mock_exercise
+):
     """SubmitAnswerRequest : alias selected_answer accepté (compatibilité frontend)."""
     from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 
@@ -255,7 +283,9 @@ async def test_submit_answer_selected_answer_alias(padawan_client, db_session, m
     assert data["is_correct"] is True
 
 
-async def test_submit_answer_invalid_json_returns_400(padawan_client, db_session, mock_exercise):
+async def test_submit_answer_invalid_json_returns_400(
+    padawan_client, db_session, mock_exercise
+):
     """POST /api/exercises/{id}/attempt avec corps JSON invalide → 400."""
     from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 

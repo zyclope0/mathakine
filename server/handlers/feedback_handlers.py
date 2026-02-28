@@ -11,6 +11,7 @@ from app.core.logging_config import get_logger
 from app.services.feedback_service import FeedbackService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response, get_safe_error_message
+from app.utils.request_utils import parse_json_body_any
 from server.auth import require_admin, require_auth
 
 logger = get_logger(__name__)
@@ -23,18 +24,20 @@ async def submit_feedback(request: Request):
     Route: POST /api/feedback
     Body: { "feedback_type": "exercise"|"challenge"|"ui"|"other", "description": "...", "page_url": "...", "exercise_id": int?, "challenge_id": int? }
     """
+    body_or_err = await parse_json_body_any(request)
+    if isinstance(body_or_err, JSONResponse):
+        return body_or_err
     try:
-        body = await request.json()
-        feedback_type = (body.get("feedback_type") or "").strip()
+        feedback_type = (body_or_err.get("feedback_type") or "").strip()
 
         user_id = None
         if hasattr(request.state, "user") and request.state.user:
             user_id = request.state.user.get("id")
 
-        page_url = body.get("page_url") or ""
-        exercise_id = body.get("exercise_id")
-        challenge_id = body.get("challenge_id")
-        description = (body.get("description") or "").strip()
+        page_url = body_or_err.get("page_url") or ""
+        exercise_id = body_or_err.get("exercise_id")
+        challenge_id = body_or_err.get("challenge_id")
+        description = (body_or_err.get("description") or "").strip()
 
         if exercise_id is not None:
             try:

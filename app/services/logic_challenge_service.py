@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
+from app.exceptions import ChallengeNotFoundError
 from app.models.logic_challenge import (
     AgeGroup,
     LogicChallenge,
@@ -40,6 +41,17 @@ class LogicChallengeService:
             Le défi correspondant à l'ID ou None s'il n'existe pas
         """
         return DatabaseAdapter.get_by_id(db, LogicChallenge, challenge_id)
+
+    @staticmethod
+    def get_challenge_or_raise(db: Session, challenge_id: int) -> LogicChallenge:
+        """
+        Récupère un défi par son ID.
+        Lève ChallengeNotFoundError si le défi n'existe pas.
+        """
+        challenge = DatabaseAdapter.get_by_id(db, LogicChallenge, challenge_id)
+        if not challenge:
+            raise ChallengeNotFoundError()
+        return challenge
 
     @staticmethod
     def list_challenges(

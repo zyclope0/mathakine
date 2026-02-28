@@ -6,12 +6,12 @@ Create Date: 2026-02-16
 
 Table settings : paramètres globaux modifiables via l'admin (/admin/config).
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
-
 
 revision: str = "20260216_settings"
 down_revision: Union[str, None] = "20260216_audit_log"
@@ -23,9 +23,19 @@ def upgrade() -> None:
     conn = op.get_bind()
     insp = sa.inspect(conn)
     if "settings" in insp.get_table_names():
-        op.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_settings_id ON settings (id)"))
-        op.execute(sa.text("CREATE UNIQUE INDEX IF NOT EXISTS ix_settings_key ON settings (key)"))
-        op.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_settings_category ON settings (category)"))
+        op.execute(
+            sa.text("CREATE INDEX IF NOT EXISTS ix_settings_id ON settings (id)")
+        )
+        op.execute(
+            sa.text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS ix_settings_key ON settings (key)"
+            )
+        )
+        op.execute(
+            sa.text(
+                "CREATE INDEX IF NOT EXISTS ix_settings_category ON settings (category)"
+            )
+        )
         return
     op.create_table(
         "settings",
@@ -37,12 +47,22 @@ def upgrade() -> None:
         sa.Column("category", sa.String(64), nullable=True),
         sa.Column("is_system", sa.Boolean(), server_default=sa.text("false")),
         sa.Column("is_public", sa.Boolean(), server_default=sa.text("true")),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now()
+        ),
     )
     op.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_settings_id ON settings (id)"))
-    op.execute(sa.text("CREATE UNIQUE INDEX IF NOT EXISTS ix_settings_key ON settings (key)"))
-    op.execute(sa.text("CREATE INDEX IF NOT EXISTS ix_settings_category ON settings (category)"))
+    op.execute(
+        sa.text("CREATE UNIQUE INDEX IF NOT EXISTS ix_settings_key ON settings (key)")
+    )
+    op.execute(
+        sa.text(
+            "CREATE INDEX IF NOT EXISTS ix_settings_category ON settings (category)"
+        )
+    )
 
 
 def downgrade() -> None:

@@ -220,7 +220,7 @@ async def list_my_models_handler(request):
 | `@optional_auth` | Endpoints mixtes | `request.state.user = None` |
 | `@require_auth_sse` | Streams SSE proteges | Retourne erreur SSE |
 
-**Ajouter route** (`server/routes.py`)
+**Ajouter route** (`server/routes/` — module concerné, ex. `exercises.py`)
 ```python
 from server.handlers.my_model_handlers import create_my_model_handler
 

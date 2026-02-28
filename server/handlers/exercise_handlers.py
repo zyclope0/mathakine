@@ -123,11 +123,9 @@ async def get_exercise(request):
     try:
         async with db_session() as db:
             exercise = ExerciseService.get_exercise_for_api(db, int(exercise_id))
-        if not exercise:
-            return ErrorHandler.create_not_found_error(
-                resource_type="Exercice", resource_id=exercise_id
-            )
         return JSONResponse(exercise)
+    except (ExerciseNotFoundError,) as e:
+        return api_error_response(e.status_code, e.message)
     except (ValueError, TypeError):
         return ErrorHandler.create_not_found_error(
             resource_type="Exercice", resource_id=exercise_id

@@ -6,20 +6,20 @@ Create Date: 2026-02-15 20:00:00.000000
 
 Permet l'accès admin via le rôle archiviste.
 """
+
 from typing import Sequence, Union
 
 from alembic import op
 
-
-revision: str = '20260215_userrole'
-down_revision: Union[str, None] = '20260210_rec_challenge'
+revision: str = "20260215_userrole"
+down_revision: Union[str, None] = "20260210_rec_challenge"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
     # Ajouter GARDIEN et ARCHIVISTE (uppercase) à l'enum userrole si absents
-    for value in ('GARDIEN', 'ARCHIVISTE'):
+    for value in ("GARDIEN", "ARCHIVISTE"):
         op.execute(f"""
             DO $$
             BEGIN

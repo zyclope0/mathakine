@@ -1,8 +1,11 @@
-# Refactoring pages — Résumé
+# Refactoring pages frontend — Résumé
 
 **Date :** Novembre 2025  
 **Type :** Audit (implémenté)  
-**Statut :** ✅ Complété
+**Statut :** ✅ Complété  
+**Périmètre :** Frontend uniquement (pages /exercises, /challenges, /dashboard, /badges).
+
+> **Backend refactor :** Voir [REFACTOR_STATUS_2026-02.md](../../REFACTOR_STATUS_2026-02.md), [PLAN_CLEAN_CODE_ET_DTO](../../PLAN_CLEAN_CODE_ET_DTO_2026-02.md), [PLAN_REFACTO_ARCHITECTURE](../../PLAN_REFACTO_ARCHITECTURE_2026-02.md).
 
 ---
 

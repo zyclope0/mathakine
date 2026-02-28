@@ -290,7 +290,7 @@ Une fois les badges défi/mixte et le visuel optimisé livrés, **point de contr
 ### 5.5 Fichiers impactés
 
 - `server/handlers/admin_handlers.py` ou nouveau fichier
-- `server/routes.py`
+- `server/routes/`
 - `app/schemas/` (schema Achievement pour admin)
 - `frontend/app/admin/content/` ou `admin/badges/`
 - `frontend/hooks/useAdminBadges.ts` (à créer)

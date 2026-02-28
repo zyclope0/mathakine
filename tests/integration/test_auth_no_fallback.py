@@ -8,13 +8,14 @@ Ces tests garantissent que :
 3. Un refresh token invalide retourne 401
 4. Un access token expiré ne peut pas créer un nouveau refresh token
 """
-import pytest
+
 import uuid
-from jose import jwt
 from datetime import datetime, timedelta, timezone
 
-from app.core.config import settings
+import pytest
+from jose import jwt
 
+from app.core.config import settings
 from tests.utils.test_helpers import verify_user_email_for_tests
 
 
@@ -38,7 +39,7 @@ async def test_user_with_tokens(client):
         "username": f"test_no_fallback_{unique_id}",
         "email": f"no_fallback_{unique_id}@test.com",
         "password": "SecurePassword123!",
-        "role": "padawan"
+        "role": "padawan",
     }
 
     # Créer l'utilisateur
@@ -47,16 +48,21 @@ async def test_user_with_tokens(client):
     verify_user_email_for_tests(user_data["username"])
 
     # Se connecter pour obtenir les tokens
-    login_data = {
-        "username": user_data["username"],
-        "password": user_data["password"]
-    }
+    login_data = {"username": user_data["username"], "password": user_data["password"]}
     login_response = await client.post("/api/auth/login", json=login_data)
     assert login_response.status_code == 200, f"Échec login: {login_response.text}"
 
     login_data_response = login_response.json()
-    refresh_from_cookie = login_response.cookies.get("refresh_token") if hasattr(login_response, "cookies") else None
-    refresh_from_set_cookie = _extract_refresh_token_from_response(login_response) if not refresh_from_cookie else None
+    refresh_from_cookie = (
+        login_response.cookies.get("refresh_token")
+        if hasattr(login_response, "cookies")
+        else None
+    )
+    refresh_from_set_cookie = (
+        _extract_refresh_token_from_response(login_response)
+        if not refresh_from_cookie
+        else None
+    )
     refresh_token = refresh_from_cookie or refresh_from_set_cookie
 
     cookies = dict(login_response.cookies) if hasattr(login_response, "cookies") else {}
@@ -67,7 +73,7 @@ async def test_user_with_tokens(client):
         "user_data": user_data,
         "access_token": login_data_response.get("access_token"),
         "refresh_token": refresh_token,
-        "cookies": cookies
+        "cookies": cookies,
     }
 
 
@@ -87,7 +93,9 @@ async def test_refresh_token_missing_returns_401(client):
 
     # Vérifier le message d'erreur
     data = response.json()
-    assert "detail" in data or "error" in data, "La réponse devrait contenir un message d'erreur"
+    assert (
+        "detail" in data or "error" in data
+    ), "La réponse devrait contenir un message d'erreur"
 
     # Gérer le cas où detail est une liste (422 FastAPI) ou une chaîne (401 handler)
     detail = data.get("detail") or data.get("error", "")
@@ -96,9 +104,17 @@ async def test_refresh_token_missing_returns_401(client):
     else:
         error_message = str(detail).lower()
 
-    assert any(keyword in error_message.lower() for keyword in ["manquant", "missing", "requis", "required", "invalide", "invalid"]), (
-        f"Le message d'erreur devrait indiquer que le token est manquant. Message: {error_message}"
-    )
+    assert any(
+        keyword in error_message.lower()
+        for keyword in [
+            "manquant",
+            "missing",
+            "requis",
+            "required",
+            "invalide",
+            "invalid",
+        ]
+    ), f"Le message d'erreur devrait indiquer que le token est manquant. Message: {error_message}"
 
 
 async def test_refresh_token_expired_returns_401(client):
@@ -111,13 +127,15 @@ async def test_refresh_token_expired_returns_401(client):
         "sub": "test_user_expired",
         "role": "padawan",
         "type": "refresh",
-        "exp": datetime.now(timezone.utc) - timedelta(days=1)  # Expiré depuis 1 jour
+        "exp": datetime.now(timezone.utc) - timedelta(days=1),  # Expiré depuis 1 jour
     }
 
     expired_refresh_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
     # Appeler l'endpoint de refresh avec le token expiré
-    response = await client.post("/api/auth/refresh", json={"refresh_token": expired_refresh_token})
+    response = await client.post(
+        "/api/auth/refresh", json={"refresh_token": expired_refresh_token}
+    )
 
     # Doit retourner 401
     assert response.status_code == 401, (
@@ -130,9 +148,10 @@ async def test_refresh_token_expired_returns_401(client):
     assert "detail" in data or "error" in data
 
     error_message = (data.get("detail") or data.get("error", "")).lower()
-    assert any(keyword in error_message for keyword in ["expiré", "expired", "invalide", "invalid"]), (
-        f"Le message devrait indiquer que le token est expiré ou invalide. Message: {error_message}"
-    )
+    assert any(
+        keyword in error_message
+        for keyword in ["expiré", "expired", "invalide", "invalid"]
+    ), f"Le message devrait indiquer que le token est expiré ou invalide. Message: {error_message}"
 
 
 async def test_refresh_token_invalid_returns_401(client):
@@ -144,7 +163,9 @@ async def test_refresh_token_invalid_returns_401(client):
     invalid_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJpbnZhbGlkX3VzZXIiLCJyb2xlIjoicGFkYXdhbiIsInR5cGUiOiJyZWZyZXNoIn0.invalid_signature"
 
     # Appeler l'endpoint de refresh avec le token invalide
-    response = await client.post("/api/auth/refresh", json={"refresh_token": invalid_token})
+    response = await client.post(
+        "/api/auth/refresh", json={"refresh_token": invalid_token}
+    )
 
     # Doit retourner 401
     assert response.status_code == 401, (
@@ -157,9 +178,10 @@ async def test_refresh_token_invalid_returns_401(client):
     assert "detail" in data or "error" in data
 
     error_message = (data.get("detail") or data.get("error", "")).lower()
-    assert any(keyword in error_message for keyword in ["invalide", "invalid", "malformé", "malformed"]), (
-        f"Le message devrait indiquer que le token est invalide. Message: {error_message}"
-    )
+    assert any(
+        keyword in error_message
+        for keyword in ["invalide", "invalid", "malformé", "malformed"]
+    ), f"Le message devrait indiquer que le token est invalide. Message: {error_message}"
 
 
 async def test_no_fallback_with_expired_access_token(client, test_user_with_tokens):
@@ -173,7 +195,8 @@ async def test_no_fallback_with_expired_access_token(client, test_user_with_toke
         "sub": test_user_with_tokens["user_data"]["username"],
         "role": "padawan",
         "type": "access",
-        "exp": datetime.now(timezone.utc) - timedelta(minutes=30)  # Expiré depuis 30 minutes
+        "exp": datetime.now(timezone.utc)
+        - timedelta(minutes=30),  # Expiré depuis 30 minutes
     }
 
     expired_access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
@@ -183,7 +206,9 @@ async def test_no_fallback_with_expired_access_token(client, test_user_with_toke
     response = await client.post(
         "/api/auth/refresh",
         json={"refresh_token": expired_access_token},
-        cookies={"access_token": expired_access_token}  # Aussi dans les cookies pour simuler le fallback
+        cookies={
+            "access_token": expired_access_token
+        },  # Aussi dans les cookies pour simuler le fallback
     )
 
     # Doit retourner 401 (pas de fallback)
@@ -202,9 +227,17 @@ async def test_no_fallback_with_expired_access_token(client, test_user_with_toke
     # Vérifier le message d'erreur
     assert "detail" in data or "error" in data
     error_message = (data.get("detail") or data.get("error", "")).lower()
-    assert any(keyword in error_message for keyword in ["invalide", "invalid", "expiré", "expired", "manquant", "missing"]), (
-        f"Le message devrait indiquer que le token est invalide ou expiré. Message: {error_message}"
-    )
+    assert any(
+        keyword in error_message
+        for keyword in [
+            "invalide",
+            "invalid",
+            "expiré",
+            "expired",
+            "manquant",
+            "missing",
+        ]
+    ), f"Le message devrait indiquer que le token est invalide ou expiré. Message: {error_message}"
 
 
 async def test_refresh_token_from_cookie_only(client, test_user_with_tokens):
@@ -213,18 +246,16 @@ async def test_refresh_token_from_cookie_only(client, test_user_with_tokens):
     Vérifie que le refresh fonctionne avec le cookie HTTP-only.
     En test (HTTP), le token est extrait du Set-Cookie puis passé en cookie.
     """
-    refresh_token_cookie = (
-        test_user_with_tokens["cookies"].get("refresh_token")
-        or test_user_with_tokens.get("refresh_token")
-    )
+    refresh_token_cookie = test_user_with_tokens["cookies"].get(
+        "refresh_token"
+    ) or test_user_with_tokens.get("refresh_token")
 
     if not refresh_token_cookie:
         pytest.skip("refresh_token non disponible (absent du login)")
 
     # Appeler l'endpoint de refresh avec uniquement le cookie (pas de body)
     response = await client.post(
-        "/api/auth/refresh",
-        cookies={"refresh_token": refresh_token_cookie}
+        "/api/auth/refresh", cookies={"refresh_token": refresh_token_cookie}
     )
 
     # Doit fonctionner (200)
@@ -253,7 +284,9 @@ async def test_refresh_token_missing_both_body_and_cookie(client):
 
     # Vérifier le message d'erreur
     data = response.json()
-    assert "detail" in data or "error" in data, "La réponse devrait contenir un message d'erreur"
+    assert (
+        "detail" in data or "error" in data
+    ), "La réponse devrait contenir un message d'erreur"
 
     # Gérer le cas où detail est une liste (422 FastAPI) ou une chaîne (401 handler)
     detail = data.get("detail") or data.get("error", "")
@@ -262,6 +295,7 @@ async def test_refresh_token_missing_both_body_and_cookie(client):
     else:
         error_message = str(detail).lower()
 
-    assert any(keyword in error_message.lower() for keyword in ["manquant", "missing", "requis", "required"]), (
-        f"Le message devrait indiquer que le token est manquant. Message: {error_message}"
-    )
+    assert any(
+        keyword in error_message.lower()
+        for keyword in ["manquant", "missing", "requis", "required"]
+    ), f"Le message devrait indiquer que le token est manquant. Message: {error_message}"

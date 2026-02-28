@@ -8,6 +8,7 @@ Usage:
   SKIP_SEED=true python scripts/test_backend_local.py  # Schéma seul (aligné CI)
   make test-backend-local
 """
+
 import os
 import subprocess
 import sys
@@ -32,6 +33,7 @@ def run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
 def pg_ready(timeout: int = 30) -> bool:
     """Vérifie si PostgreSQL répond sur localhost:5432."""
     import psycopg2
+
     end = time.time() + timeout
     while time.time() < end:
         try:
@@ -62,15 +64,25 @@ def ensure_pg_running() -> bool:
             timeout=5,
         )
         if r.returncode == 0 and r.stdout.strip():
-            subprocess.run(["docker", "start", CONTAINER_NAME], check=True, capture_output=True, timeout=10)
+            subprocess.run(
+                ["docker", "start", CONTAINER_NAME],
+                check=True,
+                capture_output=True,
+                timeout=10,
+            )
             print(f"   Conteneur {CONTAINER_NAME} redémarré")
         else:
             subprocess.run(
                 [
-                    "docker", "run", "-d",
-                    "--name", CONTAINER_NAME,
-                    "-e", "POSTGRES_PASSWORD=postgres",
-                    "-p", "5432:5432",
+                    "docker",
+                    "run",
+                    "-d",
+                    "--name",
+                    CONTAINER_NAME,
+                    "-e",
+                    "POSTGRES_PASSWORD=postgres",
+                    "-p",
+                    "5432:5432",
                     "postgres:15",
                 ],
                 check=True,
@@ -81,7 +93,9 @@ def ensure_pg_running() -> bool:
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         print("\n   ECHEC: Docker non disponible ou erreur.")
         print("   Démarrer PostgreSQL manuellement :")
-        print(f"   docker run -d --name {CONTAINER_NAME} -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:15")
+        print(
+            f"   docker run -d --name {CONTAINER_NAME} -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:15"
+        )
         return False
 
     if not pg_ready(timeout=20):
@@ -96,7 +110,9 @@ def create_test_db():
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-    conn = psycopg2.connect("postgresql://postgres:postgres@localhost:5432/postgres", connect_timeout=5)
+    conn = psycopg2.connect(
+        "postgresql://postgres:postgres@localhost:5432/postgres", connect_timeout=5
+    )
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = conn.cursor()
     cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", ("test_mathakine",))
@@ -118,10 +134,12 @@ def init_schema():
     skip_seed = os.environ.get("SKIP_SEED", "").lower() in ("true", "1", "yes")
     if skip_seed:
         from app.services.db_init_service import create_tables
+
         create_tables()
         print("   OK: Schéma initialisé (sans seed - aligné CI)")
     else:
         from app.db.init_db import create_tables_with_test_data
+
         create_tables_with_test_data()
         print("   OK: Schéma et données de test initialisés")
 
@@ -134,6 +152,7 @@ def run_pytest():
     os.environ["SECRET_KEY"] = "test-secret-key-for-ci-cd-pipeline"
 
     import pytest
+
     args = [
         "tests/",
         "-v",
@@ -142,7 +161,8 @@ def run_pytest():
         "--cov=server",
         "--cov-report=term-missing",
         "--tb=short",
-        '-m', "not slow",
+        "-m",
+        "not slow",
     ]
     return pytest.main(args)
 

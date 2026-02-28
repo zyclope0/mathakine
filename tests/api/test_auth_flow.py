@@ -5,8 +5,10 @@ Teste les routes créées dans server/auth.py :
 - POST /api/auth/refresh
 - GET /api/users/me
 """
-import pytest
+
 import uuid
+
+import pytest
 
 from tests.utils.test_helpers import verify_user_email_for_tests
 
@@ -19,7 +21,7 @@ def test_user_data():
         "username": f"auth_test_{unique_id}",
         "email": f"auth_test_{unique_id}@example.com",
         "password": "SecurePassword123!",
-        "role": "padawan"
+        "role": "padawan",
     }
 
 
@@ -33,7 +35,7 @@ async def test_login_success(client, test_user_data):
     # Tester le login
     login_data = {
         "username": test_user_data["username"],
-        "password": test_user_data["password"]
+        "password": test_user_data["password"],
     }
     response = await client.post("/api/auth/login", json=login_data)
 
@@ -55,10 +57,7 @@ async def test_login_success(client, test_user_data):
 
 async def test_login_invalid_credentials(client):
     """Test login avec credentials invalides"""
-    login_data = {
-        "username": "user_inexistant_xyz",
-        "password": "wrong_password"
-    }
+    login_data = {"username": "user_inexistant_xyz", "password": "wrong_password"}
     response = await client.post("/api/auth/login", json=login_data)
 
     # Doit retourner 401 Unauthorized
@@ -69,9 +68,7 @@ async def test_login_invalid_credentials(client):
 
 async def test_login_missing_username(client):
     """Test login sans username"""
-    login_data = {
-        "password": "password123"
-    }
+    login_data = {"password": "password123"}
     response = await client.post("/api/auth/login", json=login_data)
 
     # Starlette retourne 400 Bad Request (pas 422 comme FastAPI)
@@ -82,9 +79,7 @@ async def test_login_missing_username(client):
 
 async def test_login_missing_password(client):
     """Test login sans password"""
-    login_data = {
-        "username": "testuser"
-    }
+    login_data = {"username": "testuser"}
     response = await client.post("/api/auth/login", json=login_data)
 
     # Starlette retourne 400 Bad Request (pas 422 comme FastAPI)
@@ -101,7 +96,7 @@ async def test_get_current_user_authenticated(client, test_user_data):
 
     login_data = {
         "username": test_user_data["username"],
-        "password": test_user_data["password"]
+        "password": test_user_data["password"],
     }
     login_response = await client.post("/api/auth/login", json=login_data)
     assert login_response.status_code == 200
@@ -149,19 +144,28 @@ async def test_forgot_password_success(client, test_user_data):
     """Test demande réinitialisation mot de passe - utilisateur existant"""
     await client.post("/api/users/", json=test_user_data)
 
-    response = await client.post("/api/auth/forgot-password", json={"email": test_user_data["email"]})
+    response = await client.post(
+        "/api/auth/forgot-password", json={"email": test_user_data["email"]}
+    )
 
     assert response.status_code == 200, f"Échec: {response.text}"
     data = response.json()
     assert "message" in data
-    assert "réinitialisation" in data["message"].lower() or "reset" in data["message"].lower()
+    assert (
+        "réinitialisation" in data["message"].lower()
+        or "reset" in data["message"].lower()
+    )
 
 
 async def test_forgot_password_email_not_found(client):
     """Test forgot-password avec email inexistant (même message pour sécurité)"""
-    response = await client.post("/api/auth/forgot-password", json={"email": "nonexistent@example.com"})
+    response = await client.post(
+        "/api/auth/forgot-password", json={"email": "nonexistent@example.com"}
+    )
 
-    assert response.status_code == 200, "Pour la sécurité, on retourne 200 même si email inexistant"
+    assert (
+        response.status_code == 200
+    ), "Pour la sécurité, on retourne 200 même si email inexistant"
     data = response.json()
     assert "message" in data
 
@@ -181,12 +185,14 @@ async def test_verify_email_success(client, test_user_data):
     assert resp.status_code in (200, 201)
 
     # Récupérer le token depuis la DB (en test, on ne reçoit pas l'email)
-    from app.services.enhanced_server_adapter import EnhancedServerAdapter
     from app.models.user import User
+    from app.services.enhanced_server_adapter import EnhancedServerAdapter
 
     db = EnhancedServerAdapter.get_db_session()
     try:
-        user = db.query(User).filter(User.username == test_user_data["username"]).first()
+        user = (
+            db.query(User).filter(User.username == test_user_data["username"]).first()
+        )
         assert user is not None
         token = user.email_verification_token
         assert token is not None, "Token vérification non généré"
@@ -215,12 +221,14 @@ async def test_reset_password_full_flow(client, test_user_data):
     verify_user_email_for_tests(test_user_data["username"])
 
     # Demander reset
-    resp_forgot = await client.post("/api/auth/forgot-password", json={"email": test_user_data["email"]})
+    resp_forgot = await client.post(
+        "/api/auth/forgot-password", json={"email": test_user_data["email"]}
+    )
     assert resp_forgot.status_code == 200
 
     # Récupérer le token depuis la DB (en test, on ne reçoit pas l'email)
-    from app.services.enhanced_server_adapter import EnhancedServerAdapter
     from app.models.user import User
+    from app.services.enhanced_server_adapter import EnhancedServerAdapter
 
     db = EnhancedServerAdapter.get_db_session()
     try:
@@ -233,29 +241,38 @@ async def test_reset_password_full_flow(client, test_user_data):
 
     # Réinitialiser avec le token
     new_password = "NewSecurePass456!"
-    resp_reset = await client.post("/api/auth/reset-password", json={
-        "token": token,
-        "password": new_password,
-        "password_confirm": new_password,
-    })
+    resp_reset = await client.post(
+        "/api/auth/reset-password",
+        json={
+            "token": token,
+            "password": new_password,
+            "password_confirm": new_password,
+        },
+    )
     assert resp_reset.status_code == 200, f"Reset échoué: {resp_reset.text}"
     assert resp_reset.json().get("success") is True
 
     # Vérifier qu'on peut se connecter avec le nouveau mot de passe
-    login_resp = await client.post("/api/auth/login", json={
-        "username": test_user_data["username"],
-        "password": new_password,
-    })
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "username": test_user_data["username"],
+            "password": new_password,
+        },
+    )
     assert login_resp.status_code == 200, "Connexion avec nouveau mot de passe échouée"
 
 
 async def test_reset_password_invalid_token(client):
     """Test reset-password avec token invalide"""
-    response = await client.post("/api/auth/reset-password", json={
-        "token": "invalid_token_xyz",
-        "password": "NewPass123!",
-        "password_confirm": "NewPass123!",
-    })
+    response = await client.post(
+        "/api/auth/reset-password",
+        json={
+            "token": "invalid_token_xyz",
+            "password": "NewPass123!",
+            "password_confirm": "NewPass123!",
+        },
+    )
     assert response.status_code == 400
     data = response.json()
     assert "error" in data
@@ -264,10 +281,12 @@ async def test_reset_password_invalid_token(client):
 async def test_reset_password_mismatch(client, test_user_data):
     """Test reset-password avec mots de passe non correspondants"""
     await client.post("/api/users/", json=test_user_data)
-    await client.post("/api/auth/forgot-password", json={"email": test_user_data["email"]})
+    await client.post(
+        "/api/auth/forgot-password", json={"email": test_user_data["email"]}
+    )
 
-    from app.services.enhanced_server_adapter import EnhancedServerAdapter
     from app.models.user import User
+    from app.services.enhanced_server_adapter import EnhancedServerAdapter
 
     db = EnhancedServerAdapter.get_db_session()
     try:
@@ -279,11 +298,14 @@ async def test_reset_password_mismatch(client, test_user_data):
     if not token:
         pytest.skip("Token non généré")
 
-    response = await client.post("/api/auth/reset-password", json={
-        "token": token,
-        "password": "NewPass123!",
-        "password_confirm": "DifferentPass456!",
-    })
+    response = await client.post(
+        "/api/auth/reset-password",
+        json={
+            "token": token,
+            "password": "NewPass123!",
+            "password_confirm": "DifferentPass456!",
+        },
+    )
     assert response.status_code == 400
     data = response.json()
     assert "error" in data
@@ -302,7 +324,7 @@ async def test_refresh_token(client, test_user_data):
 
     login_data = {
         "username": test_user_data["username"],
-        "password": test_user_data["password"]
+        "password": test_user_data["password"],
     }
     login_response = await client.post("/api/auth/login", json=login_data)
     assert login_response.status_code == 200, f"Login: {login_response.text}"
@@ -323,7 +345,9 @@ async def test_refresh_token(client, test_user_data):
 
     assert refresh_token, "refresh_token absent du Set-Cookie du login"
 
-    response = await client.post("/api/auth/refresh", json={"refresh_token": refresh_token})
+    response = await client.post(
+        "/api/auth/refresh", json={"refresh_token": refresh_token}
+    )
     assert response.status_code == 200, f"Refresh: {response.text}"
     data = response.json()
     assert "access_token" in data, f"access_token absent: {data}"

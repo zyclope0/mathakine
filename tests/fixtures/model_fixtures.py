@@ -3,15 +3,18 @@ Fixtures pour les modèles de données à utiliser dans les tests.
 Ce module centralise la création d'instances de modèles pour les tests,
 évitant ainsi la duplication de code et facilitant la maintenance.
 """
-import pytest
-from datetime import datetime, timedelta
+
 import random
-from app.models.user import User, UserRole
-from app.models.exercise import Exercise, ExerciseType, DifficultyLevel
+from datetime import datetime, timedelta
+
+import pytest
+
 from app.models.attempt import Attempt
+from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+from app.models.logic_challenge import AgeGroup, LogicChallenge, LogicChallengeType
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
-from app.models.logic_challenge import LogicChallenge, LogicChallengeType, AgeGroup
+from app.models.user import User, UserRole
 from app.utils.db_helpers import get_enum_value
 
 
@@ -25,7 +28,7 @@ def test_user(db_session):
         role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
         full_name="Test User",
         grade_level=5,
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
 
 
@@ -39,7 +42,7 @@ def test_maitre_user(db_session):
         role=get_enum_value(UserRole, UserRole.MAITRE.value, db_session),
         full_name="Test Maitre",
         grade_level=10,
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
 
 
@@ -48,14 +51,18 @@ def test_exercise(db_session):
     """Crée un exercice de test."""
     return Exercise(
         title="Test Exercise",
-        exercise_type=get_enum_value(ExerciseType, ExerciseType.ADDITION.value, db_session),
-        difficulty=get_enum_value(DifficultyLevel, DifficultyLevel.INITIE.value, db_session),
+        exercise_type=get_enum_value(
+            ExerciseType, ExerciseType.ADDITION.value, db_session
+        ),
+        difficulty=get_enum_value(
+            DifficultyLevel, DifficultyLevel.INITIE.value, db_session
+        ),
         age_group="6-8",
         question="2 + 2 = ?",
         correct_answer="4",
         choices=["2", "3", "4", "5"],
         explanation="C'est une addition simple: 2 + 2 = 4",
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
 
 
@@ -72,7 +79,7 @@ def test_exercises():
             correct_answer="4",
             choices=["2", "3", "4", "5"],
             explanation="C'est une addition simple: 2 + 2 = 4",
-            created_at=datetime.now() - timedelta(days=3)
+            created_at=datetime.now() - timedelta(days=3),
         ),
         Exercise(
             title="Test Multiplication",
@@ -83,7 +90,7 @@ def test_exercises():
             correct_answer="30",
             choices=["24", "30", "36", "40"],
             explanation="5 × 6 = 30",
-            created_at=datetime.now() - timedelta(days=2)
+            created_at=datetime.now() - timedelta(days=2),
         ),
         Exercise(
             title="Test Soustraction",
@@ -94,7 +101,7 @@ def test_exercises():
             correct_answer="3",
             choices=["2", "3", "4", "7"],
             explanation="10 - 7 = 3",
-            created_at=datetime.now() - timedelta(days=1)
+            created_at=datetime.now() - timedelta(days=1),
         ),
         Exercise(
             title="Test Division",
@@ -105,8 +112,8 @@ def test_exercises():
             correct_answer="5",
             choices=["4", "5", "6", "10"],
             explanation="20 ÷ 4 = 5",
-            created_at=datetime.now()
-        )
+            created_at=datetime.now(),
+        ),
     ]
 
 
@@ -121,7 +128,7 @@ def test_attempt(test_user, test_exercise):
         time_spent=10,  # 10 secondes
         attempt_number=1,
         hints_used=0,
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
 
 
@@ -131,51 +138,59 @@ def test_attempts(test_user, test_exercises):
     attempts = []
 
     # Tentative réussie pour le premier exercice
-    attempts.append(Attempt(
-        user=test_user,
-        exercise=test_exercises[0],
-        user_answer=test_exercises[0].correct_answer,
-        is_correct=True,
-        time_spent=random.randint(5, 15),
-        attempt_number=1,
-        hints_used=0,
-        created_at=datetime.now() - timedelta(days=3, hours=1)
-    ))
+    attempts.append(
+        Attempt(
+            user=test_user,
+            exercise=test_exercises[0],
+            user_answer=test_exercises[0].correct_answer,
+            is_correct=True,
+            time_spent=random.randint(5, 15),
+            attempt_number=1,
+            hints_used=0,
+            created_at=datetime.now() - timedelta(days=3, hours=1),
+        )
+    )
 
     # Tentative échouée puis réussie pour le deuxième exercice
-    attempts.append(Attempt(
-        user=test_user,
-        exercise=test_exercises[1],
-        user_answer="24",  # Mauvaise réponse
-        is_correct=False,
-        time_spent=random.randint(5, 10),
-        attempt_number=1,
-        hints_used=1,
-        created_at=datetime.now() - timedelta(days=2, hours=2)
-    ))
+    attempts.append(
+        Attempt(
+            user=test_user,
+            exercise=test_exercises[1],
+            user_answer="24",  # Mauvaise réponse
+            is_correct=False,
+            time_spent=random.randint(5, 10),
+            attempt_number=1,
+            hints_used=1,
+            created_at=datetime.now() - timedelta(days=2, hours=2),
+        )
+    )
 
-    attempts.append(Attempt(
-        user=test_user,
-        exercise=test_exercises[1],
-        user_answer=test_exercises[1].correct_answer,
-        is_correct=True,
-        time_spent=random.randint(3, 8),
-        attempt_number=2,
-        hints_used=1,
-        created_at=datetime.now() - timedelta(days=2, hours=1)
-    ))
+    attempts.append(
+        Attempt(
+            user=test_user,
+            exercise=test_exercises[1],
+            user_answer=test_exercises[1].correct_answer,
+            is_correct=True,
+            time_spent=random.randint(3, 8),
+            attempt_number=2,
+            hints_used=1,
+            created_at=datetime.now() - timedelta(days=2, hours=1),
+        )
+    )
 
     # Tentative réussie pour le troisième exercice
-    attempts.append(Attempt(
-        user=test_user,
-        exercise=test_exercises[2],
-        user_answer=test_exercises[2].correct_answer,
-        is_correct=True,
-        time_spent=random.randint(3, 8),
-        attempt_number=1,
-        hints_used=0,
-        created_at=datetime.now() - timedelta(days=1, hours=1)
-    ))
+    attempts.append(
+        Attempt(
+            user=test_user,
+            exercise=test_exercises[2],
+            user_answer=test_exercises[2].correct_answer,
+            is_correct=True,
+            time_spent=random.randint(3, 8),
+            attempt_number=1,
+            hints_used=0,
+            created_at=datetime.now() - timedelta(days=1, hours=1),
+        )
+    )
 
     return attempts
 
@@ -193,7 +208,7 @@ def test_logic_challenge():
         hints='["Observez comment chaque nombre est lié au précédent", "C\'est une progression géométrique", "Multipliez par 2"]',
         difficulty_rating=2.0,
         estimated_time_minutes=5,
-        created_at=datetime.now()
+        created_at=datetime.now(),
     )
 
 
@@ -211,7 +226,7 @@ def test_logic_challenges():
             hints='["Observez comment chaque nombre est lié au précédent", "C\'est une progression géométrique", "Multipliez par 2"]',
             difficulty_rating=2.0,
             estimated_time_minutes=5,
-            created_at=datetime.now() - timedelta(days=3)
+            created_at=datetime.now() - timedelta(days=3),
         ),
         LogicChallenge(
             title="Test Énigme mathématique",
@@ -223,7 +238,7 @@ def test_logic_challenges():
             hints='["Calculez d\'abord le coût total des crayons", "Ensuite, calculez le coût total des cahiers", "Additionnez les deux résultats"]',
             difficulty_rating=1.5,
             estimated_time_minutes=3,
-            created_at=datetime.now() - timedelta(days=2)
+            created_at=datetime.now() - timedelta(days=2),
         ),
         LogicChallenge(
             title="Test Problème de logique",
@@ -235,6 +250,6 @@ def test_logic_challenges():
             hints='["Utilisez le raisonnement déductif", "C\'est un exemple de syllogisme", "Si tous les A sont B, et X est A, alors X est..."]',
             difficulty_rating=2.5,
             estimated_time_minutes=7,
-            created_at=datetime.now() - timedelta(days=1)
-        )
+            created_at=datetime.now() - timedelta(days=1),
+        ),
     ]

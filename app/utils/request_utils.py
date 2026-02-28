@@ -18,6 +18,22 @@ logger = get_logger(__name__)
 ParseResult = Union[Dict[str, Any], JSONResponse]
 
 
+async def parse_json_body_any(request: Request) -> ParseResult:
+    """
+    Parse le body JSON sans validation de champs.
+    Retourne le dict parsé ou JSONResponse 422/400 si invalide.
+    """
+    try:
+        body = await request.json()
+    except Exception as e:
+        logger.warning(f"parse_json_body_any: body JSON invalide — {e}")
+        return api_error_response(422, Messages.JSON_BODY_INVALID)
+
+    if not isinstance(body, dict):
+        return api_error_response(400, Messages.JSON_BODY_NOT_OBJECT)
+    return body
+
+
 async def parse_json_body(
     request: Request,
     required: Optional[Dict[str, str]] = None,

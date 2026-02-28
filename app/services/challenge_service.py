@@ -259,13 +259,15 @@ def get_challenge_for_api(db: Session, challenge_id: int) -> Optional[Dict[str, 
     """
     Récupère un challenge formaté pour l'API (GET /api/challenges/{id}).
     Inclut les défis archivés (pas de filtre is_active).
+    Lève ChallengeNotFoundError si le défi n'existe pas.
     """
+    from app.exceptions import ChallengeNotFoundError
     from app.services.logic_challenge_service import LogicChallengeService
     from app.utils.json_utils import safe_parse_json
 
     challenge = LogicChallengeService.get_challenge(db, challenge_id)
     if not challenge:
-        return None
+        raise ChallengeNotFoundError()
     return {
         "id": challenge.id,
         "title": challenge.title,

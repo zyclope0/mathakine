@@ -5,8 +5,10 @@ Tests Quick Win #1 : First Exercise < 90s — accès limité utilisateurs non v�
 - Non vérifié > 45 min : exercices uniquement (403 leaderboard, challenges)
   + profil, paramètres, stats, badges : accessibles (200) pour permettre vérification email
 """
-import pytest
+
 import uuid
+
+import pytest
 
 from tests.utils.test_helpers import set_user_created_at_for_tests
 
@@ -22,7 +24,9 @@ def unverified_user_data():
     }
 
 
-async def test_unverified_within_grace_period_login_succeeds(client, unverified_user_data):
+async def test_unverified_within_grace_period_login_succeeds(
+    client, unverified_user_data
+):
     """Utilisateur non vérifié < 45 min : login autorisé."""
     await client.post("/api/users/", json=unverified_user_data)
     # Ne pas appeler verify_user_email_for_tests
@@ -42,7 +46,9 @@ async def test_unverified_within_grace_period_login_succeeds(client, unverified_
     assert data["user"].get("is_email_verified") is False
 
 
-async def test_unverified_within_grace_period_me_returns_full(client, unverified_user_data):
+async def test_unverified_within_grace_period_me_returns_full(
+    client, unverified_user_data
+):
     """Non vérifié < 45 min : GET /me retourne access_scope full."""
     await client.post("/api/users/", json=unverified_user_data)
     login_resp = await client.post(
@@ -83,7 +89,9 @@ async def test_unverified_within_grace_period_stats_200(client, unverified_user_
     assert resp.status_code == 200
 
 
-async def test_unverified_beyond_grace_period_login_succeeds(client, unverified_user_data):
+async def test_unverified_beyond_grace_period_login_succeeds(
+    client, unverified_user_data
+):
     """Utilisateur non vérifié > 45 min : login toujours autorisé."""
     await client.post("/api/users/", json=unverified_user_data)
     set_user_created_at_for_tests(unverified_user_data["username"], 50)
@@ -145,7 +153,9 @@ async def test_unverified_beyond_grace_period_stats_200(client, unverified_user_
     assert resp.status_code == 200
 
 
-async def test_unverified_beyond_grace_period_leaderboard_403(client, unverified_user_data):
+async def test_unverified_beyond_grace_period_leaderboard_403(
+    client, unverified_user_data
+):
     """Non vérifié > 45 min : /api/users/leaderboard retourne 403."""
     await client.post("/api/users/", json=unverified_user_data)
     set_user_created_at_for_tests(unverified_user_data["username"], 50)
@@ -166,7 +176,9 @@ async def test_unverified_beyond_grace_period_leaderboard_403(client, unverified
     assert resp.status_code == 403
 
 
-async def test_unverified_beyond_grace_period_exercises_200(client, unverified_user_data):
+async def test_unverified_beyond_grace_period_exercises_200(
+    client, unverified_user_data
+):
     """Non vérifié > 45 min : GET /api/exercises retourne 200."""
     await client.post("/api/users/", json=unverified_user_data)
     set_user_created_at_for_tests(unverified_user_data["username"], 50)
@@ -187,7 +199,9 @@ async def test_unverified_beyond_grace_period_exercises_200(client, unverified_u
     assert resp.status_code == 200
 
 
-async def test_unverified_beyond_grace_period_badges_user_200(client, unverified_user_data):
+async def test_unverified_beyond_grace_period_badges_user_200(
+    client, unverified_user_data
+):
     """Non vérifié > 45 min : GET /api/badges/user retourne 200 (profil accessible)."""
     await client.post("/api/users/", json=unverified_user_data)
     set_user_created_at_for_tests(unverified_user_data["username"], 50)
@@ -208,7 +222,9 @@ async def test_unverified_beyond_grace_period_badges_user_200(client, unverified
     assert resp.status_code == 200
 
 
-async def test_unverified_beyond_grace_period_challenges_list_403(client, unverified_user_data):
+async def test_unverified_beyond_grace_period_challenges_list_403(
+    client, unverified_user_data
+):
     """Non vérifié > 45 min : GET /api/challenges retourne 403."""
     await client.post("/api/users/", json=unverified_user_data)
     set_user_created_at_for_tests(unverified_user_data["username"], 50)
@@ -229,7 +245,9 @@ async def test_unverified_beyond_grace_period_challenges_list_403(client, unveri
     assert resp.status_code == 403
 
 
-async def test_unverified_beyond_grace_period_delete_account_200(client, unverified_user_data):
+async def test_unverified_beyond_grace_period_delete_account_200(
+    client, unverified_user_data
+):
     """Non vérifié > 45 min : DELETE /api/users/me retourne 200 (RGPD, droit à l'effacement)."""
     await client.post("/api/users/", json=unverified_user_data)
     set_user_created_at_for_tests(unverified_user_data["username"], 50)
@@ -247,6 +265,8 @@ async def test_unverified_beyond_grace_period_delete_account_200(client, unverif
         "/api/users/me",
         headers={"Authorization": f"Bearer {token}"},
     )
-    assert resp.status_code == 200, f"DELETE /me devrait autoriser les non vérifiés: {resp.text}"
+    assert (
+        resp.status_code == 200
+    ), f"DELETE /me devrait autoriser les non vérifiés: {resp.text}"
     data = resp.json()
     assert data.get("success") is True

@@ -15,12 +15,14 @@ Architecture:
 # === IMPORTANT: Definir TESTING=true AVANT tout import applicatif ===
 import os
 import re as _re
+
 os.environ["TESTING"] = "true"
 
 # Charger .env AVANT tout import applicatif pour deriver TEST_DATABASE_URL
 # Optionnel : si python-dotenv absent (env minimal), les variables doivent être déjà définies (CI)
 try:
     from dotenv import load_dotenv as _load_dotenv
+
     # Ignorer .env en prod ; en dev/CI : override=False pour ne pas écraser les vars injectées
     if os.environ.get("ENVIRONMENT") != "production":
         _load_dotenv(override=False)
@@ -32,15 +34,19 @@ except ImportError:
 if not os.environ.get("TEST_DATABASE_URL"):
     _db_url = os.environ.get("DATABASE_URL", "")
     if _db_url:
-        _db_name_match = _re.search(r'/([^/?]+)(?:\?|$)', _db_url)
+        _db_name_match = _re.search(r"/([^/?]+)(?:\?|$)", _db_url)
         if _db_name_match:
             _db_name = _db_name_match.group(1)
             if "test" in _db_name.lower():
                 os.environ["TEST_DATABASE_URL"] = _db_url
                 print(f"  TEST_DATABASE_URL derive de DATABASE_URL (base: {_db_name})")
             else:
-                print(f"  ATTENTION: DATABASE_URL pointe vers '{_db_name}' (pas une base test)")
-                print("  Les tests utiliseront postgresql://postgres:postgres@localhost/test_mathakine par defaut")
+                print(
+                    f"  ATTENTION: DATABASE_URL pointe vers '{_db_name}' (pas une base test)"
+                )
+                print(
+                    "  Les tests utiliseront postgresql://postgres:postgres@localhost/test_mathakine par defaut"
+                )
 
 import json
 import sys
@@ -81,17 +87,21 @@ from app.utils.db_helpers import (
     get_enum_value,
 )
 
-# Test utilities
-from tests.utils.test_data_cleanup import TestDataManager
-from tests.utils.test_helpers import unique_email, unique_username, verify_user_email_for_tests
-
 # Application Starlette
 from enhanced_server import app as starlette_app
 
+# Test utilities
+from tests.utils.test_data_cleanup import TestDataManager
+from tests.utils.test_helpers import (
+    unique_email,
+    unique_username,
+    verify_user_email_for_tests,
+)
 
 # ================================================================
 # SECTION 1: SECURITE - Protection de la base de production
 # ================================================================
+
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_environment():
@@ -107,9 +117,10 @@ def setup_test_environment():
 
     # SECURITE 1 : Verifier l'engine SQLAlchemy importe
     from app.db.base import engine as imported_engine
+
     engine_url = str(imported_engine.url)
 
-    engine_db_match = re.search(r'/([^/?]+)(?:\?|$)', engine_url)
+    engine_db_match = re.search(r"/([^/?]+)(?:\?|$)", engine_url)
     if engine_db_match:
         engine_db_name = engine_db_match.group(1)
         if "test" not in engine_db_name.lower():
@@ -122,14 +133,20 @@ def setup_test_environment():
                     f"   Solution: Definir TEST_DATABASE_URL=postgresql://postgres:postgres@localhost/test_mathakine"
                 )
             else:
-                print(f"\n  ATTENTION: Les tests tournent sur la base '{engine_db_name}' (pas de base de test separee)")
-                print("   Les operations destructrices sont filtrees sur les donnees test_ uniquement.\n")
+                print(
+                    f"\n  ATTENTION: Les tests tournent sur la base '{engine_db_name}' (pas de base de test separee)"
+                )
+                print(
+                    "   Les operations destructrices sont filtrees sur les donnees test_ uniquement.\n"
+                )
 
     # SECURITE 2 : Definir TEST_DATABASE_URL par defaut
     if "TEST_DATABASE_URL" not in os.environ:
         default_test_db = "postgresql://postgres:postgres@localhost/test_mathakine"
         os.environ["TEST_DATABASE_URL"] = default_test_db
-        print(f"  TEST_DATABASE_URL non defini, utilisation par defaut: {default_test_db}")
+        print(
+            f"  TEST_DATABASE_URL non defini, utilisation par defaut: {default_test_db}"
+        )
 
     # SECURITE 3 : Verifier TEST_DATABASE_URL != DATABASE_URL en production
     test_db_url = os.environ.get("TEST_DATABASE_URL", "")
@@ -137,8 +154,8 @@ def setup_test_environment():
 
     if test_db_url and prod_db_url and test_db_url == prod_db_url:
         # Extraire le nom de la base (derniere partie du path, apres le dernier /)
-        test_db_match = re.search(r'/([^/?]+)(?:\?|$)', test_db_url)
-        prod_db_match = re.search(r'/([^/?]+)(?:\?|$)', prod_db_url)
+        test_db_match = re.search(r"/([^/?]+)(?:\?|$)", test_db_url)
+        prod_db_match = re.search(r"/([^/?]+)(?:\?|$)", prod_db_url)
         if test_db_match and prod_db_match:
             test_db_name = test_db_match.group(1)
             prod_db_name = prod_db_match.group(1)
@@ -223,6 +240,7 @@ def db_session():
 # SECTION 3: HTTP CLIENT FIXTURES (httpx.AsyncClient + Starlette)
 # ================================================================
 
+
 @asynccontextmanager
 async def _create_authenticated_client(role="padawan", db_session_for_role=None):
     """Helper interne: cree un client httpx authentifie avec un role donne.
@@ -251,9 +269,11 @@ async def _create_authenticated_client(role="padawan", db_session_for_role=None)
 
         # Mettre a jour le role en DB si different de padawan
         if role != "padawan" and db_session_for_role is not None:
-            user = db_session_for_role.query(User).filter(
-                User.username == user_data["username"]
-            ).first()
+            user = (
+                db_session_for_role.query(User)
+                .filter(User.username == user_data["username"])
+                .first()
+            )
             if user:
                 adapted_role = adapt_enum_for_db("UserRole", role, db_session_for_role)
                 user.role = adapted_role
@@ -373,7 +393,9 @@ async def refresh_token_client():
 
             tokens = response.json()
             # refresh_token uniquement en cookie HttpOnly (plus dans le body)
-            refresh_token = response.cookies.get("refresh_token") if response.cookies else None
+            refresh_token = (
+                response.cookies.get("refresh_token") if response.cookies else None
+            )
             if not refresh_token:
                 pytest.skip("Refresh token not in cookie (login response)")
 
@@ -399,6 +421,7 @@ def role_client(db_session):
                 response = await client.get("/api/users/me")
                 assert response.status_code == 200
     """
+
     def _make_client(role):
         return _create_authenticated_client(role=role, db_session_for_role=db_session)
 
@@ -416,27 +439,34 @@ async def padawan_client():
 @pytest.fixture
 async def maitre_client(db_session):
     """Client authentifie avec role MAITRE."""
-    async with _create_authenticated_client(role="maitre", db_session_for_role=db_session) as result:
+    async with _create_authenticated_client(
+        role="maitre", db_session_for_role=db_session
+    ) as result:
         yield result
 
 
 @pytest.fixture
 async def gardien_client(db_session):
     """Client authentifie avec role GARDIEN."""
-    async with _create_authenticated_client(role="gardien", db_session_for_role=db_session) as result:
+    async with _create_authenticated_client(
+        role="gardien", db_session_for_role=db_session
+    ) as result:
         yield result
 
 
 @pytest.fixture
 async def archiviste_client(db_session):
     """Client authentifie avec role ARCHIVISTE."""
-    async with _create_authenticated_client(role="archiviste", db_session_for_role=db_session) as result:
+    async with _create_authenticated_client(
+        role="archiviste", db_session_for_role=db_session
+    ) as result:
         yield result
 
 
 # ================================================================
 # SECTION 4: MOCK FIXTURES (donnees de test en memoire)
 # ================================================================
+
 
 @pytest.fixture
 def mock_exercise():
@@ -446,6 +476,7 @@ def mock_exercise():
         exercise = mock_exercise()
         custom = mock_exercise(title="Custom", difficulty="maitre")
     """
+
     def _create_exercise(**kwargs):
         default_values = {
             "title": "Exercice de test",
@@ -479,6 +510,7 @@ def mock_user():
         user_data = mock_user()
         admin = mock_user(role='maitre', username='admin_test')
     """
+
     def _create_user(**kwargs):
         username = kwargs.get("username", unique_username())
         email = kwargs.get("email", unique_email())
@@ -510,6 +542,7 @@ def mock_request():
         auth_request = mock_request(authenticated=True, role="maitre")
         data_request = mock_request(json_data={"key": "value"})
     """
+
     def _create_request(
         authenticated=False,
         role="padawan",
@@ -557,6 +590,7 @@ def mock_api_response():
         response = mock_api_response()
         error = mock_api_response(status_code=404, data={"detail": "Not found"})
     """
+
     def _create_response(status_code=200, data=None, headers=None):
         mock_resp = MagicMock()
         mock_resp.status_code = status_code
@@ -576,6 +610,7 @@ def mock_api_response():
 # ================================================================
 # SECTION 5: ENUM & MODEL FIXTURES
 # ================================================================
+
 
 @pytest.fixture
 def db_enum_values(db_session):
@@ -615,6 +650,7 @@ def user_data(db_session):
 # SECTION 6: LOGIC CHALLENGE DB FIXTURE
 # ================================================================
 
+
 @pytest.fixture(scope="function")
 def logic_challenge_db(db_session):
     """Session PostgreSQL avec données de défi logique pré-créées.
@@ -627,12 +663,18 @@ def logic_challenge_db(db_session):
     # Nettoyage pre-test des donnees de test existantes
     try:
         db_session.execute(
-            text("DELETE FROM logic_challenge_attempts WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'test_%')")
+            text(
+                "DELETE FROM logic_challenge_attempts WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'test_%')"
+            )
         )
         db_session.execute(
-            text("DELETE FROM attempts WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'test_%')")
+            text(
+                "DELETE FROM attempts WHERE user_id IN (SELECT id FROM users WHERE username LIKE 'test_%')"
+            )
         )
-        db_session.execute(text("DELETE FROM logic_challenges WHERE title LIKE 'Test %'"))
+        db_session.execute(
+            text("DELETE FROM logic_challenges WHERE title LIKE 'Test %'")
+        )
         db_session.execute(text("DELETE FROM users WHERE username LIKE 'test_%'"))
         db_session.commit()
     except Exception:
@@ -645,9 +687,9 @@ def logic_challenge_db(db_session):
             db_session.query(LogicChallengeAttempt).filter(
                 LogicChallengeAttempt.user_id.in_(test_user_ids)
             ).delete(synchronize_session=False)
-            db_session.query(Attempt).filter(
-                Attempt.user_id.in_(test_user_ids)
-            ).delete(synchronize_session=False)
+            db_session.query(Attempt).filter(Attempt.user_id.in_(test_user_ids)).delete(
+                synchronize_session=False
+            )
 
         db_session.query(LogicChallenge).filter(
             LogicChallenge.title.like("Test %")
@@ -673,7 +715,9 @@ def logic_challenge_db(db_session):
         test_challenge = LogicChallenge(
             title=f"Test Challenge {unique_id}",
             description="Description du défi de test",
-            challenge_type=get_enum_value(LogicChallengeType, LogicChallengeType.SEQUENCE),
+            challenge_type=get_enum_value(
+                LogicChallengeType, LogicChallengeType.SEQUENCE
+            ),
             age_group=get_enum_value(AgeGroup, AgeGroup.GROUP_10_12),
             correct_answer="42",
             solution_explanation="La reponse est 42",
@@ -703,11 +747,13 @@ def logic_challenge_db(db_session):
                     "DELETE FROM logic_challenge_attempts WHERE challenge_id IN "
                     "(SELECT id FROM logic_challenges WHERE title LIKE :pat)"
                 ),
-                {"pat": f"Test Challenge {unique_id}%"}
+                {"pat": f"Test Challenge {unique_id}%"},
             )
             # 3. Puis supprimer les challenges
             db_session.execute(
-                text(f"DELETE FROM logic_challenges WHERE title LIKE 'Test Challenge {unique_id}%'")
+                text(
+                    f"DELETE FROM logic_challenges WHERE title LIKE 'Test Challenge {unique_id}%'"
+                )
             )
             db_session.execute(
                 text(f"DELETE FROM users WHERE username = 'test_jedi_{unique_id}'")
@@ -715,13 +761,17 @@ def logic_challenge_db(db_session):
             db_session.commit()
         except Exception:
             db_session.rollback()
-            test_user = db_session.query(User).filter(
-                User.username == f"test_jedi_{unique_id}"
-            ).first()
+            test_user = (
+                db_session.query(User)
+                .filter(User.username == f"test_jedi_{unique_id}")
+                .first()
+            )
             # Définir les challenges à supprimer
-            challenges_to_delete = db_session.query(LogicChallenge).filter(
-                LogicChallenge.title.like(f"Test Challenge {unique_id}%")
-            ).all()
+            challenges_to_delete = (
+                db_session.query(LogicChallenge)
+                .filter(LogicChallenge.title.like(f"Test Challenge {unique_id}%"))
+                .all()
+            )
             challenge_ids = [c.id for c in challenges_to_delete]
             # Supprimer d'abord les attempts (FK) par user_id puis par challenge_id
             if test_user:
@@ -760,6 +810,7 @@ def challenge_with_hints_id(logic_challenge_db):
 # SECTION 7: AUTO CLEANUP
 # ================================================================
 
+
 @pytest.fixture(autouse=True, scope="function")
 def auto_cleanup_test_data(db_session):
     """Nettoyage automatique des donnees de test apres chaque test.
@@ -772,6 +823,7 @@ def auto_cleanup_test_data(db_session):
     """
     import logging
     import traceback
+
     _cleanup_logger = logging.getLogger("tests.cleanup")
 
     yield
@@ -783,19 +835,29 @@ def auto_cleanup_test_data(db_session):
             db_session.execute(text("SELECT 1"))
         except (InvalidRequestError, StatementError, Exception):
             # Session en erreur : créer une nouvelle session pour le nettoyage
-            _cleanup_logger.debug("Session principale en erreur, creation d'une session de nettoyage")
+            _cleanup_logger.debug(
+                "Session principale en erreur, creation d'une session de nettoyage"
+            )
             test_engine = get_test_engine()
-            CleanupSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+            CleanupSessionLocal = sessionmaker(
+                autocommit=False, autoflush=False, bind=test_engine
+            )
             cleanup_session = CleanupSessionLocal()
             try:
                 manager = TestDataManager(cleanup_session)
                 result = manager.cleanup_test_data(dry_run=False)
                 if result.get("success") and result.get("total_deleted", 0) > 0:
-                    _cleanup_logger.info(f"Nettoyage (session secours): {result['total_deleted']} elements supprimes")
+                    _cleanup_logger.info(
+                        f"Nettoyage (session secours): {result['total_deleted']} elements supprimes"
+                    )
                 elif not result.get("success"):
-                    _cleanup_logger.warning(f"Nettoyage echoue (session secours): {result.get('error', 'inconnue')}")
+                    _cleanup_logger.warning(
+                        f"Nettoyage echoue (session secours): {result.get('error', 'inconnue')}"
+                    )
             except Exception as fallback_error:
-                _cleanup_logger.error(f"Erreur nettoyage (session secours): {fallback_error}\n{traceback.format_exc()}")
+                _cleanup_logger.error(
+                    f"Erreur nettoyage (session secours): {fallback_error}\n{traceback.format_exc()}"
+                )
             finally:
                 cleanup_session.close()
             return
@@ -803,12 +865,18 @@ def auto_cleanup_test_data(db_session):
         manager = TestDataManager(db_session)
         result = manager.cleanup_test_data(dry_run=False)
         if result.get("success") and result.get("total_deleted", 0) > 0:
-            _cleanup_logger.info(f"Nettoyage: {result['total_deleted']} elements supprimes")
+            _cleanup_logger.info(
+                f"Nettoyage: {result['total_deleted']} elements supprimes"
+            )
         elif not result.get("success"):
-            _cleanup_logger.warning(f"Nettoyage echoue: {result.get('error', 'inconnue')}")
+            _cleanup_logger.warning(
+                f"Nettoyage echoue: {result.get('error', 'inconnue')}"
+            )
 
     except Exception as cleanup_error:
-        _cleanup_logger.error(f"Erreur critique nettoyage: {cleanup_error}\n{traceback.format_exc()}")
+        _cleanup_logger.error(
+            f"Erreur critique nettoyage: {cleanup_error}\n{traceback.format_exc()}"
+        )
 
 
 @pytest.fixture

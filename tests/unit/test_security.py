@@ -1,13 +1,15 @@
 """
 Tests pour app.core.security (decode_token, create_access_token, etc.).
 """
-import pytest
+
 from datetime import datetime, timedelta, timezone
+
+import pytest
 from jose import jwt
 
-from app.core.security import decode_token, create_access_token
 from app.core.config import settings
 from app.core.constants import SecurityConfig
+from app.core.security import create_access_token, decode_token
 
 
 def test_decode_token_accepts_access_token():

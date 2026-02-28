@@ -21,12 +21,11 @@
 
 **Objectif :** Réduire le fichier routes unique (~383 lignes, 65+ imports) en modules par domaine.
 
-**Structure cible :**
+**Structure cible (implémentée) :**
 ```
 server/
-  routes.py              # Point d'entrée unique, agrège les sous-modules
   routes/
-    __init__.py         # get_routes() — concatène toutes les listes
+    __init__.py         # get_routes() — agrège les sous-modules
     core.py             # health, robots, metrics
     auth.py             # api/auth/*
     users.py            # api/users/*

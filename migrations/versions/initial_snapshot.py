@@ -1,20 +1,30 @@
 """Initial schema snapshot
 
 Revision ID: initial_snapshot
-Revises: 
+Revises:
 Create Date: 2025-05-12 00:35:00.000000
 
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects import postgresql
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, JSON, String, Text
-
 
 # revision identifiers, used by Alembic.
-revision: str = 'initial_snapshot'
+revision: str = "initial_snapshot"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

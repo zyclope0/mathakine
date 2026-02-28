@@ -4,6 +4,7 @@ Backup BDD Mathakine — fonctionne sans pg_dump dans le PATH.
 Usage: python scripts/backup_db.py
 Charge DATABASE_URL depuis .env si non définie.
 """
+
 import os
 import subprocess
 import sys
@@ -19,7 +20,9 @@ except ImportError:
 
 url = os.environ.get("DATABASE_URL")
 if not url:
-    print("ERREUR: DATABASE_URL non définie. Définir la var ou ajouter DATABASE_URL dans .env")
+    print(
+        "ERREUR: DATABASE_URL non définie. Définir la var ou ajouter DATABASE_URL dans .env"
+    )
     sys.exit(1)
 
 backup_dir = Path("backups")

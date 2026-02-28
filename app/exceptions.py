@@ -19,3 +19,12 @@ class ExerciseNotFoundError(ExerciseSubmitError):
 
     def __init__(self, message: str = "Exercice non trouvé"):
         super().__init__(404, message)
+
+
+class ChallengeNotFoundError(Exception):
+    """Défi logique non trouvé (404)."""
+
+    def __init__(self, message: str = "Défi logique non trouvé"):
+        self.status_code = 404
+        self.message = message
+        super().__init__(message)

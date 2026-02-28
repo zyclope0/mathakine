@@ -10,6 +10,7 @@ Usage:
 Ou avec DATABASE_URL pointant vers la base de test :
     DATABASE_URL="postgresql://.../test_mathakine" python scripts/fix_recommendations_schema_for_tests.py
 """
+
 import os
 import sys
 from pathlib import Path
@@ -19,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Charger .env avant les imports
 from dotenv import load_dotenv
+
 load_dotenv(override=False)
 
 # TESTING=true pour utiliser TEST_DATABASE_URL
@@ -26,13 +28,17 @@ if os.environ.get("TESTING", "").lower() != "true":
     os.environ.setdefault("TEST_DATABASE_URL", os.environ.get("DATABASE_URL", ""))
 
 from sqlalchemy import create_engine, text
+
 from app.core.config import settings
+
 
 def main():
     url = settings.SQLALCHEMY_DATABASE_URL
     if "test" not in url.lower() and "localhost" not in url:
         print("⚠️  ATTENTION: Ce script modifie la base de données.")
-        print("   Pour la base de test, utilisez: TESTING=true python scripts/fix_recommendations_schema_for_tests.py")
+        print(
+            "   Pour la base de test, utilisez: TESTING=true python scripts/fix_recommendations_schema_for_tests.py"
+        )
         if input("   Continuer quand même ? (y/N): ").lower() != "y":
             sys.exit(1)
 
@@ -53,7 +59,11 @@ def main():
             ADD COLUMN challenge_id INTEGER
             REFERENCES logic_challenges(id) ON DELETE SET NULL
         """))
-        conn.execute(text("CREATE INDEX ix_recommendations_challenge_id ON recommendations (challenge_id)"))
+        conn.execute(
+            text(
+                "CREATE INDEX ix_recommendations_challenge_id ON recommendations (challenge_id)"
+            )
+        )
         conn.commit()
 
         # recommendation_type
@@ -72,6 +82,7 @@ def main():
             conn.commit()
 
     print("OK Schema recommendations mis a jour.")
+
 
 if __name__ == "__main__":
     main()

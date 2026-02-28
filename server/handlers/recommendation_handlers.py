@@ -4,12 +4,14 @@ Handlers pour les recommandations personnalisées.
 
 import traceback
 
+from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
 from app.services.recommendation_service import RecommendationService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response, get_safe_error_message
+from app.utils.request_utils import parse_json_body_any
 from server.auth import require_auth, require_full_access
 
 logger = get_logger(__name__)
@@ -90,7 +92,10 @@ async def handle_recommendation_complete(request):
         if not user_id:
             return api_error_response(400, "ID utilisateur manquant")
 
-        data = await request.json()
+        data_or_err = await parse_json_body_any(request)
+        if isinstance(data_or_err, JSONResponse):
+            return data_or_err
+        data = data_or_err
         recommendation_id = data.get("recommendation_id")
         if recommendation_id is None:
             return api_error_response(400, "recommendation_id manquant")

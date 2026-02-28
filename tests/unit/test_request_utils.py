@@ -65,9 +65,7 @@ async def test_parse_json_body_required_field_missing_returns_400():
     request = MagicMock()
     request.json = AsyncMock(return_value={"other": "value"})
 
-    result = await parse_json_body(
-        request, required={"email": "Adresse email requise"}
-    )
+    result = await parse_json_body(request, required={"email": "Adresse email requise"})
 
     assert result.status_code == 400
     data = json.loads(_response_body_text(result))
