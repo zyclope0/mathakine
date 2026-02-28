@@ -14,12 +14,12 @@ from starlette.responses import JSONResponse, RedirectResponse, StreamingRespons
 
 from app.core.ai_config import AIConfig
 from app.core.config import settings
+from app.exceptions import ExerciseNotFoundError, ExerciseSubmitError
 from app.models.exercise import ExerciseType
 from app.schemas.exercise import SubmitAnswerRequest
 
 # Import du service de badges
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.exceptions import ExerciseNotFoundError, ExerciseSubmitError
 from app.services.exercise_service import ExerciseService
 from app.services.exercise_stats_service import ExerciseStatsService
 from app.utils.db_utils import db_session
