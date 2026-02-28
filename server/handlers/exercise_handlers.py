@@ -27,7 +27,6 @@ from app.utils.error_handler import (
     api_error_response,
     get_safe_error_message,
 )
-from app.utils.pagination import parse_pagination_params
 from server.auth import optional_auth, require_auth, require_auth_sse
 from server.exercise_generator import (
     ensure_explanation,
@@ -209,76 +208,31 @@ async def submit_answer(request):
 @optional_auth
 async def get_exercises_list(request):
     """Retourne la liste des exercices avec pagination. Ordre aléatoire par défaut pour varier l'entraînement."""
+    from server.handlers.exercise_list_params import (
+        parse_exercise_list_params,
+    )
+
     try:
-        logger.debug("[STEP 1] Début de get_exercises_list")
         current_user = getattr(request.state, "user", None)
-
-        # Récupérer les paramètres de requête
-        skip, limit = parse_pagination_params(
-            request.query_params, default_limit=20, max_limit=100
-        )
-        exercise_type_raw = request.query_params.get("exercise_type", None)
-        age_group_raw = request.query_params.get(
-            "age_group", None
-        )  # Changed from difficulty
-        search = request.query_params.get("search") or request.query_params.get(
-            "q"
-        )  # Support 'search' et 'q'
-        order = (request.query_params.get("order") or "random").lower()
-        hide_completed = (
-            request.query_params.get("hide_completed", "false").lower() == "true"
-        )
-
-        logger.debug(
-            f"[STEP 2] Params: limit={limit}, skip={skip}, type={exercise_type_raw}, age_group={age_group_raw}"
-        )
-
-        # Normaliser les paramètres de filtrage
-        from server.exercise_generator import normalize_and_validate_exercise_params
-
-        exercise_type, age_group, _ = normalize_and_validate_exercise_params(
-            exercise_type_raw, age_group_raw
-        )
-
-        logger.debug(
-            f"[STEP 3] Après normalisation: type={exercise_type}, age_group={age_group}"
-        )
-
-        # Si aucun paramètre n'était fourni, remettre à None pour ne pas filtrer
-        if not exercise_type_raw:
-            exercise_type = None
-        if not age_group_raw:
-            age_group = None
-
-        # Calculer la page à partir de skip et limit
-        page = (skip // limit) + 1 if limit > 0 else 1
-
-        # Extraire la locale depuis le header Accept-Language
-        from app.utils.translation import parse_accept_language
-
-        accept_language = request.headers.get("Accept-Language")
-        locale = parse_accept_language(accept_language) or "fr"
-
-        logger.debug(
-            f"[STEP 4] API - Paramètres finaux: limit={limit}, skip={skip}, page={page}, exercise_type={exercise_type}, age_group={age_group}, search={search}, locale={locale}"
-        )
-
+        q = parse_exercise_list_params(request)
         user_id = current_user.get("id") if current_user else None
+
+        logger.debug(
+            f"API exercises: limit={q.limit}, skip={q.skip}, "
+            f"exercise_type={q.exercise_type}, age_group={q.age_group}"
+        )
 
         async with db_session() as db:
             response_data = ExerciseService.get_exercises_list_for_api(
                 db,
-                limit=limit,
-                skip=skip,
-                exercise_type=exercise_type,
-                age_group=age_group,
-                search=search,
-                order=order,
-                hide_completed=hide_completed,
+                limit=q.limit,
+                skip=q.skip,
+                exercise_type=q.exercise_type,
+                age_group=q.age_group,
+                search=q.search,
+                order=q.order,
+                hide_completed=q.hide_completed,
                 user_id=user_id,
-            )
-            logger.debug(
-                f"[STEP 5] Liste d'exercices: {len(response_data.items)} éléments"
             )
             return JSONResponse(response_data.model_dump())
 

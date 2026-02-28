@@ -50,10 +50,8 @@ async def get_challenges_list(request: Request):
     Liste des défis logiques avec filtres optionnels.
     Route: GET /api/challenges
     """
-    from app.utils.response_formatters import format_paginated_response
-    from server.handlers.challenge_list_params import (
-        parse_challenge_list_params,
-    )
+    from app.schemas.logic_challenge import ChallengeListItem, ChallengeListResponse
+    from server.handlers.challenge_list_params import parse_challenge_list_params
 
     try:
         current_user = request.state.user
@@ -85,7 +83,8 @@ async def get_challenges_list(request: Request):
                 exclude_ids=exclude_ids if exclude_ids else None,
             )
             challenges_list = [
-                challenge_service.challenge_to_api_dict(c) for c in challenges
+                ChallengeListItem.model_validate(challenge_service.challenge_to_api_dict(c))
+                for c in challenges
             ]
             total = challenge_service.count_challenges(
                 db=db,
@@ -96,16 +95,22 @@ async def get_challenges_list(request: Request):
 
         if p.active_only:
             challenges_list = [
-                c for c in challenges_list if not c.get("is_archived", False)
+                c for c in challenges_list if not c.is_archived
             ]
 
+        page = (p.skip // p.limit) + 1 if p.limit > 0 else 1
+        has_more = (p.skip + len(challenges_list)) < total
+        response_data = ChallengeListResponse(
+            items=challenges_list,
+            total=total,
+            page=page,
+            limit=p.limit,
+            hasMore=has_more,
+        )
         logger.info(
             f"Récupération réussie de {len(challenges_list)} défis sur {total} total (locale: {locale})"
         )
-        response_data = format_paginated_response(
-            challenges_list, total, p.skip, p.limit
-        )
-        return JSONResponse(response_data)
+        return JSONResponse(response_data.model_dump())
     except ValueError as filter_validation_error:
         logger.error(f"Erreur de validation des paramètres: {filter_validation_error}")
         return ErrorHandler.create_validation_error(

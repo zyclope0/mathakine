@@ -31,6 +31,40 @@ async def test_get_exercises_response_format_non_regression(client):
             assert key in item, f"Exercise item must contain '{key}'"
 
 
+async def test_get_exercises_with_filters(client):
+    """Test des filtres GET /api/exercises (exercise_type, age_group, search, order, limit)."""
+    # Filtres combinés : l'API doit accepter les params et retourner 200
+    response = await client.get(
+        "/api/exercises",
+        params={
+            "exercise_type": "addition",
+            "age_group": "6-8",
+            "search": "test",
+            "limit": 5,
+            "skip": 0,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "items" in data
+    assert "total" in data
+    assert data["limit"] == 5
+    assert isinstance(data["items"], list)
+    # Si des items correspondent, vérifier qu'ils respectent les filtres
+    for item in data["items"]:
+        assert item.get("exercise_type", "").upper() == "ADDITION"
+        assert item.get("age_group") == "6-8"
+
+
+async def test_get_exercises_order_recent(client):
+    """Test ordre order=recent sur GET /api/exercises (tri par created_at desc)."""
+    response = await client.get("/api/exercises?limit=3&order=recent")
+    assert response.status_code == 200
+    data = response.json()
+    assert "items" in data
+    assert data["limit"] == 3
+
+
 def test_exercise_types_constants():
     """Test que les types d'exercices sont correctement définis dans les constantes.
     
@@ -188,3 +222,63 @@ async def test_submit_answer_invalid_payload_returns_422(padawan_client, db_sess
         json={"answer": "", "time_spent": 0},
     )
     assert response2.status_code == 422
+
+
+async def test_submit_answer_selected_answer_alias(padawan_client, db_session, mock_exercise):
+    """SubmitAnswerRequest : alias selected_answer accepté (compatibilité frontend)."""
+    from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+
+    client = padawan_client["client"]
+    ex_data = mock_exercise()
+    exercise = Exercise(
+        title=ex_data["title"],
+        exercise_type=ExerciseType(ex_data["exercise_type"]),
+        difficulty=DifficultyLevel(ex_data["difficulty"]),
+        age_group=ex_data.get("age_group", "6-8"),
+        question=ex_data["question"],
+        correct_answer=ex_data["correct_answer"],
+        choices=ex_data.get("choices"),
+        is_active=True,
+        is_archived=False,
+    )
+    db_session.add(exercise)
+    db_session.commit()
+    db_session.refresh(exercise)
+
+    response = await client.post(
+        f"/api/exercises/{exercise.id}/attempt",
+        json={"selected_answer": ex_data["correct_answer"], "time_spent": 2.5},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "is_correct" in data
+    assert data["is_correct"] is True
+
+
+async def test_submit_answer_invalid_json_returns_400(padawan_client, db_session, mock_exercise):
+    """POST /api/exercises/{id}/attempt avec corps JSON invalide → 400."""
+    from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+
+    client = padawan_client["client"]
+    ex_data = mock_exercise()
+    exercise = Exercise(
+        title=ex_data["title"],
+        exercise_type=ExerciseType(ex_data["exercise_type"]),
+        difficulty=DifficultyLevel(ex_data["difficulty"]),
+        age_group=ex_data.get("age_group", "6-8"),
+        question=ex_data["question"],
+        correct_answer=ex_data["correct_answer"],
+        choices=ex_data.get("choices"),
+        is_active=True,
+        is_archived=False,
+    )
+    db_session.add(exercise)
+    db_session.commit()
+    db_session.refresh(exercise)
+
+    response = await client.post(
+        f"/api/exercises/{exercise.id}/attempt",
+        content=b"not valid json",
+        headers={"Content-Type": "application/json"},
+    )
+    assert response.status_code == 400

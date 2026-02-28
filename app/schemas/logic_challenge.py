@@ -216,6 +216,33 @@ class LogicChallengeAttempt(LogicChallengeAttemptInDB):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ChallengeListItem(BaseModel):
+    """Un challenge dans la liste GET /api/challenges."""
+
+    id: int
+    title: str
+    description: str
+    challenge_type: str
+    age_group: str
+    difficulty: Optional[str] = None
+    tags: Optional[str] = None
+    difficulty_rating: Optional[float] = None
+    estimated_time_minutes: Optional[int] = None
+    success_rate: Optional[float] = None
+    view_count: int = 0
+    is_archived: bool = False
+
+
+class ChallengeListResponse(BaseModel):
+    """Réponse paginée GET /api/challenges."""
+
+    items: List[ChallengeListItem]
+    total: int
+    page: int
+    limit: int
+    hasMore: bool
+
+
 class LogicChallengeStats(BaseModel):
     """Statistiques sur un défi logique"""
 

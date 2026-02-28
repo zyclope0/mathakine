@@ -16,8 +16,8 @@ from app.utils.pagination import parse_pagination_params
 
 
 @dataclass
-class ChallengeListParams:
-    """Paramètres parsés pour la liste des challenges."""
+class ListChallengesQuery:
+    """Paramètres parsés pour la liste des challenges (GET /api/challenges)."""
 
     challenge_type: Optional[str]
     age_group_db: Optional[object]  # AgeGroup enum
@@ -29,7 +29,11 @@ class ChallengeListParams:
     hide_completed: bool
 
 
-def parse_challenge_list_params(request: Request) -> ChallengeListParams:
+# Alias rétrocompatibilité
+ChallengeListParams = ListChallengesQuery
+
+
+def parse_challenge_list_params(request: Request) -> ListChallengesQuery:
     """
     Parse et normalise les paramètres de GET /api/challenges.
 
@@ -57,7 +61,7 @@ def parse_challenge_list_params(request: Request) -> ChallengeListParams:
 
     age_group_db = normalize_age_group_for_db(age_group_raw) if age_group_raw else None
 
-    return ChallengeListParams(
+    return ListChallengesQuery(
         challenge_type=challenge_type,
         age_group_db=age_group_db,
         search=search,
