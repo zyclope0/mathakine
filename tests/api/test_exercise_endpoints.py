@@ -1,7 +1,3 @@
-import json
-import pytest
-
-
 async def test_get_exercises(client):
     """Test de l'endpoint pour récupérer tous les exercices (route publique @optional_auth)."""
     response = await client.get("/api/exercises")
@@ -13,6 +9,26 @@ async def test_get_exercises(client):
     assert isinstance(items, list)
     assert "total" in data
     assert "limit" in data
+
+
+async def test_get_exercises_response_format_non_regression(client):
+    """Non-régression : format paginé GET /api/exercises (items, total, page, limit, hasMore)."""
+    response = await client.get("/api/exercises?limit=2&skip=0")
+    assert response.status_code == 200
+    data = response.json()
+    assert "items" in data
+    assert "total" in data
+    assert "page" in data
+    assert "limit" in data
+    assert "hasMore" in data
+    assert isinstance(data["items"], list)
+    assert isinstance(data["total"], int)
+    assert isinstance(data["page"], int)
+    assert data["limit"] == 2
+    if data["items"]:
+        item = data["items"][0]
+        for key in ("id", "title", "exercise_type", "difficulty", "question", "correct_answer"):
+            assert key in item, f"Exercise item must contain '{key}'"
 
 
 def test_exercise_types_constants():
@@ -134,3 +150,41 @@ async def test_create_exercise_with_centralized_fixtures(padawan_client):
     data = response.json()
     assert "title" in data or "question" in data, "La réponse devrait contenir l'exercice généré"
     assert "exercise_type" in data or "correct_answer" in data, "La réponse devrait contenir les champs de l'exercice"
+
+
+async def test_submit_answer_invalid_payload_returns_422(padawan_client, db_session, mock_exercise):
+    """SubmitAnswerRequest : payload invalide (answer manquant) → 422."""
+    from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+
+    client = padawan_client["client"]
+    ex_data = mock_exercise()
+    exercise = Exercise(
+        title=ex_data["title"],
+        exercise_type=ExerciseType(ex_data["exercise_type"]),
+        difficulty=DifficultyLevel(ex_data["difficulty"]),
+        age_group=ex_data.get("age_group", "6-8"),
+        question=ex_data["question"],
+        correct_answer=ex_data["correct_answer"],
+        choices=ex_data.get("choices"),
+        is_active=True,
+        is_archived=False,
+    )
+    db_session.add(exercise)
+    db_session.commit()
+    db_session.refresh(exercise)
+
+    # answer manquant
+    response = await client.post(
+        f"/api/exercises/{exercise.id}/attempt",
+        json={"time_spent": 5},
+    )
+    assert response.status_code == 422
+    data = response.json()
+    assert "detail" in data
+
+    # answer vide
+    response2 = await client.post(
+        f"/api/exercises/{exercise.id}/attempt",
+        json={"answer": "", "time_spent": 0},
+    )
+    assert response2.status_code == 422

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.exercise import DifficultyLevel, ExerciseType
 
@@ -243,6 +243,59 @@ class Exercise(ExerciseInDB):
     """Schéma pour un exercice complet (Holocron d'Épreuve)"""
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ExerciseListItem(BaseModel):
+    """Un exercice dans la liste GET /api/exercises."""
+
+    id: int
+    title: str
+    exercise_type: str
+    difficulty: str
+    age_group: Optional[str] = None
+    question: str
+    correct_answer: str
+    choices: List[str] = Field(default_factory=list)
+    explanation: Optional[str] = None
+    hint: Optional[str] = None
+    tags: List[str] = Field(default_factory=list)
+    ai_generated: bool = False
+    is_active: bool = True
+    view_count: int = 0
+
+
+class ExerciseListResponse(BaseModel):
+    """Réponse paginée GET /api/exercises."""
+
+    items: List[ExerciseListItem]
+    total: int
+    page: int
+    limit: int
+    hasMore: bool
+
+
+class SubmitAnswerRequest(BaseModel):
+    """
+    DTO entrée pour POST /api/exercises/{id}/attempt.
+    Contrat explicite pour la soumission d'une réponse.
+    """
+
+    answer: str = Field(..., min_length=1, description="Réponse de l'élève")
+    time_spent: float = Field(default=0.0, ge=0, description="Temps passé en secondes")
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_selected_answer_alias(cls, data):
+        """Compatibilité : answer ou selected_answer."""
+        if (
+            isinstance(data, dict)
+            and "answer" not in data
+            and "selected_answer" in data
+        ):
+            data = {**data, "answer": data["selected_answer"]}
+        return data
+
+    model_config = ConfigDict(extra="ignore")
 
 
 class ExerciseStats(BaseModel):

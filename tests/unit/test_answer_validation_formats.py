@@ -209,5 +209,6 @@ async def test_empty_answer_validation(db_session):
                 response = await submit_answer(mock_request)
 
     result = json.loads(response.body.decode('utf-8'))
-    assert response.status_code == 200
-    assert result["is_correct"] is False
+    # SubmitAnswerRequest : answer vide → 422 (min_length=1)
+    assert response.status_code == 422
+    assert "detail" in result

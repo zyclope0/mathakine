@@ -8,12 +8,14 @@ import traceback
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
+from pydantic import ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 from app.core.ai_config import AIConfig
 from app.core.config import settings
 from app.models.exercise import ExerciseType
+from app.schemas.exercise import SubmitAnswerRequest
 
 # Import du service de badges
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
@@ -147,24 +149,31 @@ async def submit_answer(request):
     """Orchestration HTTP : parse, valide, délègue à ExerciseService.submit_answer_result."""
     try:
         current_user = request.state.user
-        data = await request.json()
-        exercise_id = int(request.path_params.get("exercise_id"))
-        selected_answer = data.get("answer") or data.get("selected_answer")
-        time_spent = data.get("time_spent", 0)
-        user_id = current_user.get("id", 1)
+        try:
+            raw_data = await request.json()
+        except (json.JSONDecodeError, TypeError):
+            return api_error_response(400, "Corps JSON invalide.")
 
-        if selected_answer is None:
-            return api_error_response(400, "La réponse est requise.")
+        try:
+            payload = SubmitAnswerRequest.model_validate(raw_data)
+        except ValidationError as e:
+            return JSONResponse(
+                {"detail": e.errors()},
+                status_code=422,
+            )
+
+        exercise_id = int(request.path_params.get("exercise_id"))
+        user_id = current_user.get("id", 1)
 
         logger.debug(
             f"Traitement de la réponse: exercise_id={exercise_id}, "
-            f"selected_answer={selected_answer}"
+            f"answer={payload.answer}"
         )
 
         async with db_session() as db:
             try:
                 response_data = ExerciseService.submit_answer_result(
-                    db, exercise_id, user_id, selected_answer, time_spent
+                    db, exercise_id, user_id, payload.answer, payload.time_spent
                 )
                 return JSONResponse(response_data)
             except ExerciseSubmitError as e:
@@ -269,9 +278,9 @@ async def get_exercises_list(request):
                 user_id=user_id,
             )
             logger.debug(
-                f"[STEP 5] Liste d'exercices: {len(response_data['items'])} éléments"
+                f"[STEP 5] Liste d'exercices: {len(response_data.items)} éléments"
             )
-            return JSONResponse(response_data)
+            return JSONResponse(response_data.model_dump())
 
     except Exception as exercises_list_error:
         logger.error(

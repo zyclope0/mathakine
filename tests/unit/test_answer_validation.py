@@ -152,7 +152,7 @@ async def test_submit_answer_nonexistent_exercise(db_session):
 
 @pytest.mark.asyncio
 async def test_submit_answer_missing_answer(db_session):
-    """Teste la soumission sans reponse selectionnee."""
+    """Teste la soumission sans reponse selectionnee → 422 (SubmitAnswerRequest)."""
     mock_user = _mock_user(db_session)
     mock_request = create_mock_request(
         json_data={"time_spent": 10.0},
@@ -164,8 +164,8 @@ async def test_submit_answer_missing_answer(db_session):
         response = await submit_answer(mock_request)
 
     result = json.loads(response.body.decode('utf-8'))
-    assert response.status_code == 400
-    assert "error" in result
+    assert response.status_code == 422
+    assert "detail" in result
 
 
 @pytest.mark.asyncio

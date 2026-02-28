@@ -26,6 +26,7 @@ from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+from app.schemas.exercise import ExerciseListItem, ExerciseListResponse
 
 
 class ExerciseService:
@@ -437,6 +438,36 @@ class ExerciseService:
             return []
 
     @staticmethod
+    def _apply_exercise_list_filters(
+        query,
+        exercise_type: Optional[str],
+        age_group: Optional[str],
+        search: Optional[str],
+        completed_ids_to_exclude: List[int],
+    ):
+        """
+        Applique les filtres communs pour count et select.
+        Évite la duplication de logique dans get_exercises_list_for_api.
+        """
+        from sqlalchemy import or_
+
+        if exercise_type:
+            query = query.filter(Exercise.exercise_type == exercise_type)
+        if age_group:
+            query = query.filter(Exercise.age_group == age_group)
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.filter(
+                or_(
+                    Exercise.title.ilike(search_pattern),
+                    Exercise.question.ilike(search_pattern),
+                )
+            )
+        if completed_ids_to_exclude:
+            query = query.filter(Exercise.id.notin_(completed_ids_to_exclude))
+        return query
+
+    @staticmethod
     def get_exercises_list_for_api(
         db: Session,
         limit: int = 20,
@@ -447,14 +478,14 @@ class ExerciseService:
         order: str = "random",
         hide_completed: bool = False,
         user_id: Optional[int] = None,
-    ) -> Dict[str, Any]:
+    ) -> ExerciseListResponse:
         """
         Liste des exercices pour l'API avec pagination et filtres.
 
         Returns:
-            Dict avec items, total, page, limit, hasMore
+            ExerciseListResponse (DTO) avec items, total, page, limit, hasMore
         """
-        from sqlalchemy import String, cast, func, or_
+        from sqlalchemy import String, cast, func
 
         from app.models.attempt import Attempt
         from app.utils.json_utils import safe_parse_json
@@ -473,27 +504,18 @@ class ExerciseService:
             )
             completed_ids_to_exclude = [r[0] for r in subq if r[0] is not None]
 
-        # Requête de base
-        query = db.query(Exercise).filter(Exercise.is_archived == False)
+        # Requête de base pour le count
+        count_query = db.query(Exercise).filter(Exercise.is_archived == False)
+        count_query = ExerciseService._apply_exercise_list_filters(
+            count_query,
+            exercise_type,
+            age_group,
+            search,
+            completed_ids_to_exclude,
+        )
+        total = count_query.count()
 
-        if exercise_type:
-            query = query.filter(Exercise.exercise_type == exercise_type)
-        if age_group:
-            query = query.filter(Exercise.age_group == age_group)
-        if search:
-            search_pattern = f"%{search}%"
-            query = query.filter(
-                or_(
-                    Exercise.title.ilike(search_pattern),
-                    Exercise.question.ilike(search_pattern),
-                )
-            )
-        if completed_ids_to_exclude:
-            query = query.filter(Exercise.id.notin_(completed_ids_to_exclude))
-
-        total = query.count()
-
-        # Récupérer les exercices avec les mêmes filtres
+        # Requête select avec les mêmes filtres
         exercises_query = db.query(
             Exercise.id,
             Exercise.title,
@@ -511,25 +533,13 @@ class ExerciseService:
             cast(Exercise.difficulty, String).label("difficulty_str"),
             Exercise.age_group,
         ).filter(Exercise.is_archived == False)
-
-        if exercise_type:
-            exercises_query = exercises_query.filter(
-                Exercise.exercise_type == exercise_type
-            )
-        if age_group:
-            exercises_query = exercises_query.filter(Exercise.age_group == age_group)
-        if search:
-            search_pattern = f"%{search}%"
-            exercises_query = exercises_query.filter(
-                or_(
-                    Exercise.title.ilike(search_pattern),
-                    Exercise.question.ilike(search_pattern),
-                )
-            )
-        if completed_ids_to_exclude:
-            exercises_query = exercises_query.filter(
-                Exercise.id.notin_(completed_ids_to_exclude)
-            )
+        exercises_query = ExerciseService._apply_exercise_list_filters(
+            exercises_query,
+            exercise_type,
+            age_group,
+            search,
+            completed_ids_to_exclude,
+        )
 
         if order == "recent":
             exercises_query = (
@@ -544,43 +554,42 @@ class ExerciseService:
 
         rows = exercises_query.all()
 
-        exercises = []
-        for row in rows:
-            exercises.append(
-                {
-                    "id": row.id,
-                    "title": row.title,
-                    "exercise_type": (
-                        row.exercise_type_str.upper()
-                        if row.exercise_type_str
-                        else "ADDITION"
-                    ),
-                    "difficulty": (
-                        row.difficulty_str.upper() if row.difficulty_str else "PADAWAN"
-                    ),
-                    "age_group": row.age_group,
-                    "question": row.question,
-                    "correct_answer": row.correct_answer,
-                    "choices": safe_parse_json(row.choices, []),
-                    "explanation": row.explanation,
-                    "hint": row.hint,
-                    "tags": safe_parse_json(row.tags, []),
-                    "ai_generated": row.ai_generated,
-                    "is_active": row.is_active,
-                    "view_count": row.view_count,
-                }
+        items = [
+            ExerciseListItem(
+                id=row.id,
+                title=row.title,
+                exercise_type=(
+                    row.exercise_type_str.upper()
+                    if row.exercise_type_str
+                    else "ADDITION"
+                ),
+                difficulty=(
+                    row.difficulty_str.upper() if row.difficulty_str else "PADAWAN"
+                ),
+                age_group=row.age_group,
+                question=row.question,
+                correct_answer=row.correct_answer,
+                choices=safe_parse_json(row.choices, []),
+                explanation=row.explanation,
+                hint=row.hint,
+                tags=safe_parse_json(row.tags, []),
+                ai_generated=row.ai_generated or False,
+                is_active=row.is_active if row.is_active is not None else True,
+                view_count=row.view_count or 0,
             )
+            for row in rows
+        ]
 
         page = (skip // limit) + 1 if limit > 0 else 1
-        has_more = (skip + len(exercises)) < total
+        has_more = (skip + len(items)) < total
 
-        return {
-            "items": exercises,
-            "total": total,
-            "page": page,
-            "limit": limit,
-            "hasMore": has_more,
-        }
+        return ExerciseListResponse(
+            items=items,
+            total=total,
+            page=page,
+            limit=limit,
+            hasMore=has_more,
+        )
 
     @staticmethod
     def create_exercise(
