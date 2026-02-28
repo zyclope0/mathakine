@@ -6,18 +6,9 @@ Implémente les opérations métier liées aux exercices et utilise le transacti
 from typing import Any, Dict, List, Optional, Union
 
 from app.core.logging_config import get_logger
+from app.exceptions import ExerciseNotFoundError, ExerciseSubmitError
 
 logger = get_logger(__name__)
-
-
-class ExerciseSubmitError(Exception):
-    """Erreur lors de la soumission d'une réponse (submit_answer)."""
-
-    def __init__(self, status_code: int, message: str):
-        self.status_code = status_code
-        self.message = message
-        super().__init__(message)
-
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -26,7 +17,11 @@ from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
-from app.schemas.exercise import ExerciseListItem, ExerciseListResponse
+from app.schemas.exercise import (
+    ExerciseListItem,
+    ExerciseListResponse,
+    SubmitAnswerResponse,
+)
 
 
 class ExerciseService:
@@ -284,18 +279,18 @@ class ExerciseService:
         user_id: int,
         selected_answer: Any,
         time_spent: float = 0,
-    ) -> Dict[str, Any]:
+    ) -> SubmitAnswerResponse:
         """
         Traite la soumission d'une réponse : validation, enregistrement, badges, streak.
-        Retourne le dict response_data pour JSONResponse.
-        Lève ExerciseSubmitError en cas d'erreur métier.
+        Retourne SubmitAnswerResponse pour la réponse HTTP.
+        Lève ExerciseNotFoundError (404) ou ExerciseSubmitError (500) en cas d'erreur métier.
         """
         from app.services.badge_service import BadgeService
         from app.utils.json_utils import make_json_serializable
 
         exercise = ExerciseService.get_exercise_for_submit_validation(db, exercise_id)
         if not exercise:
-            raise ExerciseSubmitError(404, "Exercice non trouvé")
+            raise ExerciseNotFoundError()
 
         correct_answer = exercise.get("correct_answer")
         if not correct_answer:
@@ -361,21 +356,18 @@ class ExerciseService:
             logger.debug(f"Streak update skipped: {streak_err}")
 
         badge_service = BadgeService(db)
-        response_data = {
-            "is_correct": is_correct,
-            "correct_answer": correct_answer,
-            "explanation": exercise.get("explanation", ""),
-            "attempt_id": attempt_obj.id,
-        }
-        if new_badges:
-            response_data["new_badges"] = make_json_serializable(new_badges)
-            response_data["badges_earned"] = len(new_badges)
-        else:
+        progress_notif = None
+        if not new_badges:
             progress_notif = badge_service.get_closest_progress_notification(user_id)
-            if progress_notif:
-                response_data["progress_notification"] = progress_notif
-
-        return make_json_serializable(response_data)
+        return SubmitAnswerResponse(
+            is_correct=is_correct,
+            correct_answer=correct_answer,
+            explanation=exercise.get("explanation") or "",
+            attempt_id=attempt_obj.id,
+            new_badges=make_json_serializable(new_badges) if new_badges else None,
+            badges_earned=len(new_badges) if new_badges else None,
+            progress_notification=progress_notif,
+        )
 
     @staticmethod
     def list_exercises(

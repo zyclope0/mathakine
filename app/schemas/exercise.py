@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -272,6 +272,20 @@ class ExerciseListResponse(BaseModel):
     page: int
     limit: int
     hasMore: bool
+
+
+class SubmitAnswerResponse(BaseModel):
+    """Réponse POST /api/exercises/{id}/attempt."""
+
+    is_correct: bool
+    correct_answer: str
+    explanation: str = ""
+    attempt_id: int
+    new_badges: Optional[List[Any]] = None
+    badges_earned: Optional[int] = None
+    progress_notification: Optional[Dict[str, Any]] = None
+
+    model_config = ConfigDict(extra="ignore")
 
 
 class SubmitAnswerRequest(BaseModel):

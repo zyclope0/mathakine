@@ -19,7 +19,8 @@ from app.schemas.exercise import SubmitAnswerRequest
 
 # Import du service de badges
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.services.exercise_service import ExerciseService, ExerciseSubmitError
+from app.exceptions import ExerciseNotFoundError, ExerciseSubmitError
+from app.services.exercise_service import ExerciseService
 from app.services.exercise_stats_service import ExerciseStatsService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import (
@@ -133,7 +134,8 @@ async def get_exercise(request):
         )
     except Exception as exercise_retrieval_error:
         logger.error(
-            f"Erreur lors de la récupération de l'exercice: {exercise_retrieval_error}"
+            f"Erreur récupération exercice: "
+            f"{type(exercise_retrieval_error).__name__}: {exercise_retrieval_error}"
         )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
@@ -174,22 +176,20 @@ async def submit_answer(request):
                 response_data = ExerciseService.submit_answer_result(
                     db, exercise_id, user_id, payload.answer, payload.time_spent
                 )
-                return JSONResponse(response_data)
-            except ExerciseSubmitError as e:
+                return JSONResponse(response_data.model_dump())
+            except (ExerciseNotFoundError, ExerciseSubmitError) as e:
                 return api_error_response(e.status_code, e.message)
             except Exception as db_error:
-                error_msg = str(db_error)
-                error_type = type(db_error).__name__
                 logger.error(
-                    f"❌ ERREUR DB lors de l'enregistrement: "
-                    f"{error_type}: {error_msg}"
+                    f"❌ ERREUR lors de l'enregistrement: "
+                    f"{type(db_error).__name__}: {db_error}"
                 )
                 logger.debug(traceback.format_exc())
                 return api_error_response(
                     500, "Erreur lors de l'enregistrement de la tentative"
                 )
 
-    except ExerciseSubmitError as e:
+    except (ExerciseNotFoundError, ExerciseSubmitError) as e:
         return api_error_response(e.status_code, e.message)
     except Exception as response_processing_error:
         logger.error(

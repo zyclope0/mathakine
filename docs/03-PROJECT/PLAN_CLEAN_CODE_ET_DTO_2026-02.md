@@ -107,3 +107,6 @@ Ou, plus léger : extension des `app/schemas/exercise.py` existants avec des cla
 | 28/02/2026 | 2.1 | `ListExercisesQuery`, `parse_exercise_list_params` ; handler `get_exercises_list` refactoré |
 | 28/02/2026 | 2.2 | `ListChallengesQuery` (alias `ChallengeListParams`), `ChallengeListResponse`, `ChallengeListItem` ; handler `get_challenges_list` utilise DTOs |
 | 28/02/2026 | 2.3 | `app/utils/enum_mapping.py` : `*_from_api`, `*_to_api` pour exercise_type, difficulty, challenge_type, age_group ; tests unitaires |
+| 22/02/2026 | 3.1 | `app/exceptions.py` : `ExerciseNotFoundError`, `ExerciseSubmitError` ; service lève exceptions métier ; handlers catch ciblé |
+| 22/02/2026 | 3.2 | Handlers submit_answer, get_exercise : catch `(ExerciseNotFoundError, ExerciseSubmitError)` au lieu de `except Exception` |
+| 22/02/2026 | 3.3 | `SubmitAnswerResponse` (Pydantic) ; `submit_answer_result` retourne type dédié ; tests mis à jour |
