@@ -20,12 +20,12 @@ from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.exercise_service import ExerciseService, ExerciseSubmitError
 from app.services.exercise_stats_service import ExerciseStatsService
 from app.utils.db_utils import db_session
-from app.utils.pagination import parse_pagination_params
 from app.utils.error_handler import (
     ErrorHandler,
     api_error_response,
     get_safe_error_message,
 )
+from app.utils.pagination import parse_pagination_params
 from server.auth import optional_auth, require_auth, require_auth_sse
 from server.exercise_generator import (
     ensure_explanation,

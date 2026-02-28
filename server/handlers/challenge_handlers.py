@@ -51,7 +51,6 @@ async def get_challenges_list(request: Request):
     Route: GET /api/challenges
     """
     from app.utils.response_formatters import format_paginated_response
-
     from server.handlers.challenge_list_params import (
         parse_challenge_list_params,
     )

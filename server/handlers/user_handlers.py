@@ -26,8 +26,8 @@ from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.user_service import UserService
 from app.utils.csrf import validate_csrf_token
 from app.utils.db_utils import db_session
-from app.utils.pagination import parse_pagination_params
 from app.utils.error_handler import api_error_response, get_safe_error_message
+from app.utils.pagination import parse_pagination_params
 from app.utils.rate_limit import rate_limit_register
 from app.utils.settings_reader import get_setting_bool
 from server.auth import require_auth, require_full_access

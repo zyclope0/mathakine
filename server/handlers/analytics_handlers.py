@@ -11,8 +11,8 @@ from starlette.responses import JSONResponse
 from app.core.logging_config import get_logger
 from app.services.analytics_service import AnalyticsService
 from app.utils.db_utils import db_session
-from app.utils.pagination import parse_pagination_params
 from app.utils.error_handler import api_error_response
+from app.utils.pagination import parse_pagination_params
 from server.auth import require_auth
 
 logger = get_logger(__name__)

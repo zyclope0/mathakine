@@ -15,9 +15,9 @@ from app.models.setting import Setting
 from app.models.user import User, UserRole
 from app.services.email_service import EmailService
 from app.utils.db_utils import db_session
-from app.utils.pagination import parse_pagination_params
 from app.utils.email_verification import generate_verification_token
 from app.utils.error_handler import api_error_response
+from app.utils.pagination import parse_pagination_params
 from server.auth import require_admin, require_auth
 from server.handlers.admin_handlers_utils import _log_admin_action
 
@@ -93,7 +93,6 @@ async def admin_users(request: Request):
     Liste paginée des utilisateurs avec filtres (search, role, is_active).
     """
     from app.services.admin_service import AdminService
-
     from server.handlers.admin_list_params import parse_admin_users_params
 
     p = parse_admin_users_params(request)
@@ -184,7 +183,6 @@ async def admin_exercises(request: Request):
     Liste paginée avec recherche (titre), tri (sort, order).
     """
     from app.services.admin_service import AdminService
-
     from server.handlers.admin_list_params import parse_admin_exercises_params
 
     base, exercise_type = parse_admin_exercises_params(request)
@@ -477,7 +475,6 @@ async def admin_challenges(request: Request):
     Liste paginée avec recherche (titre), tri (sort, order).
     """
     from app.services.admin_service import AdminService
-
     from server.handlers.admin_list_params import parse_admin_challenges_params
 
     base, challenge_type_param = parse_admin_challenges_params(request)
