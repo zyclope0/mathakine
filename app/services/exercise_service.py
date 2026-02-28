@@ -3,7 +3,7 @@ Service pour la gestion des exercices mathématiques.
 Implémente les opérations métier liées aux exercices et utilise le transaction manager.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Protocol, Union
 
 from sqlalchemy import String, cast, text
 from sqlalchemy.orm import Session
@@ -22,6 +22,77 @@ from app.schemas.exercise import (
 from app.utils.json_utils import safe_parse_json
 
 logger = get_logger(__name__)
+
+
+class ExerciseServiceProtocol(Protocol):
+    """
+    Protocol pour injection future et tests.
+    Définit le contrat des méthodes exercices utilisées par les handlers.
+    """
+
+    @staticmethod
+    def get_exercise_for_api(
+        db: Session, exercise_id: int
+    ) -> Optional[Dict[str, Any]]: ...
+
+    @staticmethod
+    def get_exercise_for_submit_validation(
+        db: Session, exercise_id: int
+    ) -> Optional[Dict[str, Any]]: ...
+
+    @staticmethod
+    def submit_answer_result(
+        db: Session,
+        exercise_id: int,
+        user_id: int,
+        selected_answer: Any,
+        time_spent: float,
+    ) -> SubmitAnswerResponse: ...
+
+
+def _exercise_row_to_dict(
+    row: Any,
+    *,
+    include_correct_answer: bool = False,
+    include_title: bool = False,
+    include_age_group: bool = False,
+    include_hint: bool = False,
+    include_tags: bool = False,
+    include_ai_generated: bool = False,
+) -> Dict[str, Any]:
+    """
+    Mapper row → dict (DRY). Centralise la normalisation enum et safe_parse_json.
+    Chaque caller spécifie les champs optionnels à inclure.
+    """
+    result: Dict[str, Any] = {
+        "id": row.id,
+        "exercise_type": (
+            (row.exercise_type_str or "ADDITION").upper()
+            if getattr(row, "exercise_type_str", None)
+            else "ADDITION"
+        ),
+        "difficulty": (
+            (row.difficulty_str or "PADAWAN").upper()
+            if getattr(row, "difficulty_str", None)
+            else "PADAWAN"
+        ),
+        "choices": safe_parse_json(getattr(row, "choices", None), []),
+        "question": getattr(row, "question", ""),
+        "explanation": getattr(row, "explanation") or "",
+    }
+    if include_correct_answer:
+        result["correct_answer"] = getattr(row, "correct_answer", "")
+    if include_title:
+        result["title"] = getattr(row, "title", "")
+    if include_age_group:
+        result["age_group"] = getattr(row, "age_group", None)
+    if include_hint:
+        result["hint"] = getattr(row, "hint", None)
+    if include_tags:
+        result["tags"] = safe_parse_json(getattr(row, "tags", None), [])
+    if include_ai_generated:
+        result["ai_generated"] = getattr(row, "ai_generated", False) or False
+    return result
 
 
 class ExerciseService:
@@ -164,27 +235,14 @@ class ExerciseService:
             if not exercise_row:
                 raise ExerciseNotFoundError()
 
-            return {
-                "id": exercise_row.id,
-                "title": exercise_row.title,
-                "exercise_type": (
-                    exercise_row.exercise_type_str.upper()
-                    if exercise_row.exercise_type_str
-                    else "ADDITION"
-                ),
-                "difficulty": (
-                    exercise_row.difficulty_str.upper()
-                    if exercise_row.difficulty_str
-                    else "PADAWAN"
-                ),
-                "age_group": exercise_row.age_group,
-                "question": exercise_row.question,
-                "choices": safe_parse_json(exercise_row.choices, []),
-                "explanation": exercise_row.explanation,
-                "hint": exercise_row.hint,
-                "tags": safe_parse_json(exercise_row.tags, []),
-                "ai_generated": exercise_row.ai_generated or False,
-            }
+            return _exercise_row_to_dict(
+                exercise_row,
+                include_title=True,
+                include_age_group=True,
+                include_hint=True,
+                include_tags=True,
+                include_ai_generated=True,
+            )
         except ExerciseNotFoundError:
             raise
         except Exception as err:
@@ -221,23 +279,10 @@ class ExerciseService:
             if not exercise_row:
                 return None
 
-            return {
-                "id": exercise_row.id,
-                "exercise_type": (
-                    exercise_row.exercise_type_str.upper()
-                    if exercise_row.exercise_type_str
-                    else "ADDITION"
-                ),
-                "difficulty": (
-                    exercise_row.difficulty_str.upper()
-                    if exercise_row.difficulty_str
-                    else "PADAWAN"
-                ),
-                "correct_answer": exercise_row.correct_answer,
-                "choices": safe_parse_json(exercise_row.choices, []),
-                "question": exercise_row.question,
-                "explanation": exercise_row.explanation,
-            }
+            return _exercise_row_to_dict(
+                exercise_row,
+                include_correct_answer=True,
+            )
         except Exception as err:
             logger.error(
                 f"Erreur get_exercise_for_submit_validation {exercise_id}: {err}"

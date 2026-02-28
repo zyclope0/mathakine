@@ -25,7 +25,7 @@
 | Pilier | Problème | Gravité | Fichiers concernés |
 |--------|----------|---------|-------------------|
 | **Architecture** | Services statiques (non injectables) | Moyenne | `exercise_service`, `admin_service`, `challenge_service` |
-| **Architecture** | Duplication mapping row→dict (3×) | Moyenne | `exercise_service.py` |
+| **Architecture** | ~~Duplication mapping row→dict (3×)~~ | ~~Moyenne~~ ✅ Résolu It3 | `_exercise_row_to_dict` centralisé |
 | **Architecture** | Incohérence exceptions métier | Faible | `exceptions.py` (ChallengeNotFoundError vs ExerciseNotFoundError) |
 | **Architecture** | `queries.py` non utilisé (legacy) | Faible | `app/db/queries.py` |
 | **Clean Code** | Imports hors top (E402) | Faible | `exercise_service`, `exercise_handlers` |
@@ -132,12 +132,14 @@
 
 **Objectif :** Extraire les responsabilités, réduire la duplication.
 
-| # | Tâche | Fichier(s) | Critères de validation |
-|---|-------|------------|------------------------|
-| 3.1 | Créer `ExerciseRepository` ou mapper `_row_to_api_dict` | `app/repositories/` ou `app/services/exercise_service.py` | Une seule implémentation du mapping row→dict |
-| 3.2 | Refactorer `get_exercise`, `get_exercise_for_api`, `get_exercise_for_submit_validation` | `exercise_service.py` | Délégation au mapper, pas de duplication |
-| 3.3 | Introduire `ExerciseServiceProtocol` (typing.Protocol) | `app/services/` | Type hint pour injection future |
-| 3.4 | (Optionnel) Factory ou DI minimale pour services | `server/app.py` ou `app/core/` | Services instanciés, pas de static |
+**Statut :** ✅ Complétée (28/02/2026)
+
+| # | Tâche | Fichier(s) | Statut |
+|---|-------|------------|--------|
+| 3.1 | Créer mapper `_exercise_row_to_dict` | `app/services/exercise_service.py` | ✅ Fait — une implémentation centralisée |
+| 3.2 | Refactorer `get_exercise_for_api`, `get_exercise_for_submit_validation` | `exercise_service.py` | ✅ Fait — délégation au mapper |
+| 3.3 | Introduire `ExerciseServiceProtocol` (typing.Protocol) | `exercise_service.py` | ✅ Fait |
+| 3.4 | (Optionnel) Factory ou DI minimale | — | ⏸ Reporté |
 
 **Tests requis :**
 - Tests unitaires `test_exercise_service` mis à jour.
@@ -257,6 +259,8 @@
 | 28/02/2026 | 2 | Imports en tête : exercise_service, exercise_handlers |
 | 28/02/2026 | 2 | Validators DRY : _validate_exercise_type, _validate_difficulty |
 | 28/02/2026 | 2 | queries.py : docstring STATUT LEGACY |
+| 28/02/2026 | 3 | _exercise_row_to_dict : mapper DRY row→dict |
+| 28/02/2026 | 3 | ExerciseServiceProtocol (typing.Protocol) |
 
 ---
 
