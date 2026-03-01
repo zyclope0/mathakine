@@ -9,6 +9,7 @@ from datetime import datetime
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
+from sqlalchemy.exc import SQLAlchemyError
 from starlette.requests import Request
 from starlette.responses import JSONResponse, StreamingResponse
 
@@ -24,7 +25,6 @@ from app.core.constants import (
 )
 from app.core.messages import SystemMessages
 from app.exceptions import ChallengeNotFoundError
-from sqlalchemy.exc import SQLAlchemyError
 
 # NOTE: challenge_service_translations_adapter archivé - utiliser fonctions de challenge_service.py
 from app.services import challenge_service
