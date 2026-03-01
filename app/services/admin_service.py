@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import case, func, or_, union
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.achievement import Achievement, UserAchievement
 from app.models.admin_audit_log import AdminAuditLog
@@ -240,7 +240,11 @@ class AdminService:
         resource_filter: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Journal des actions admin."""
-        q = db.query(AdminAuditLog).order_by(AdminAuditLog.created_at.desc())
+        q = (
+            db.query(AdminAuditLog)
+            .options(joinedload(AdminAuditLog.admin_user))
+            .order_by(AdminAuditLog.created_at.desc())
+        )
         if action_filter:
             q = q.filter(AdminAuditLog.action == action_filter)
         if resource_filter:
@@ -249,10 +253,7 @@ class AdminService:
         logs = q.offset(skip).limit(limit).all()
         items = []
         for log in logs:
-            admin_username = None
-            if log.admin_user_id:
-                u = db.query(User).filter(User.id == log.admin_user_id).first()
-                admin_username = u.username if u else None
+            admin_username = log.admin_user.username if log.admin_user else None
             items.append(
                 {
                     "id": log.id,

@@ -2,9 +2,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Tuple
 
 from sqlalchemy import and_, exists, or_
+from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import func
 
-from app.core.constants import AgeGroups, get_difficulty_from_age_group
+from app.core.constants import AgeGroups, get_difficulty_from_age_group, normalize_age_group
 from app.core.logging_config import get_logger
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
@@ -467,7 +468,10 @@ class RecommendationService:
                 challenge_priority = min(9, challenge_priority + 1)
             for ch in suggested_challenges:
                 challenge_type_str = (
-                    str(ch.challenge_type).lower() if ch.challenge_type else "logique"
+                    getattr(ch.challenge_type, "value", str(ch.challenge_type))
+                    .lower()
+                    if ch.challenge_type
+                    else "logique"
                 )
                 if num_completed == 0:
                     reason = "Découvrez les défis logiques pour aiguiser votre raisonnement !"
@@ -686,31 +690,33 @@ class RecommendationService:
             ):
                 continue
 
-            exercise = None
-            challenge = None
-            if rec.exercise_id:
-                exercise = (
-                    db.query(Exercise).filter(Exercise.id == rec.exercise_id).first()
-                )
-                if (
-                    not exercise
-                    or exercise.is_archived
-                    or not getattr(exercise, "is_active", True)
-                ):
-                    continue
-            if getattr(rec, "challenge_id", None):
-                challenge = (
-                    db.query(LogicChallenge)
-                    .filter(LogicChallenge.id == rec.challenge_id)
-                    .first()
-                )
-                if not challenge or getattr(challenge, "is_archived", False):
-                    continue
+            exercise = rec.exercise if rec.exercise_id else None
+            challenge = rec.challenge if getattr(rec, "challenge_id", None) else None
+            if rec.exercise_id and (
+                not exercise
+                or exercise.is_archived
+                or not getattr(exercise, "is_active", True)
+            ):
+                continue
+            if getattr(rec, "challenge_id", None) and (
+                not challenge or getattr(challenge, "is_archived", False)
+            ):
+                continue
 
             difficulty_str = (
                 str(rec.difficulty).upper() if rec.difficulty else "PADAWAN"
             )
-            age_group = difficulty_to_age_group.get(difficulty_str, "9-11")
+            # Utiliser l'âge réel de l'exercice/défi, pas celui dérivé de la difficulté
+            if exercise and getattr(exercise, "age_group", None):
+                age_group = normalize_age_group(exercise.age_group)
+            elif challenge and getattr(challenge, "age_group", None):
+                from app.services.challenge_service import (
+                    normalize_age_group_for_frontend,
+                )
+
+                age_group = normalize_age_group_for_frontend(challenge.age_group)
+            else:
+                age_group = difficulty_to_age_group.get(difficulty_str, "9-11")
 
             rec_data = {
                 "id": rec.id,
@@ -742,6 +748,10 @@ class RecommendationService:
         """Récupère les recommandations actives (mix exercices + défis)"""
         all_recs = (
             db.query(Recommendation)
+            .options(
+                selectinload(Recommendation.exercise),
+                selectinload(Recommendation.challenge),
+            )
             .filter(
                 Recommendation.user_id == user_id, Recommendation.is_completed == False
             )
@@ -751,11 +761,19 @@ class RecommendationService:
         )
         result = list(all_recs[:limit])
         challenges = [r for r in all_recs if getattr(r, "challenge_id", None)]
-        # Si aucun défi dans le top limit mais qu'il en existe, en insérer un
-        if challenges and not any(getattr(r, "challenge_id", None) for r in result):
+        # Si peu de défis dans le top limit mais qu'il en existe, en insérer davantage
+        num_challenges_in_result = sum(
+            1 for r in result if getattr(r, "challenge_id", None)
+        )
+        min_challenges = min(2, len(challenges))  # viser au moins 2 défis si dispo
+        if challenges and num_challenges_in_result < min_challenges:
             exercises_only = [r for r in result if not getattr(r, "challenge_id", None)]
-            if len(exercises_only) >= limit - 1:
-                result = exercises_only[: limit - 1] + [challenges[0]]
+            slots_for_challenges = min(min_challenges, limit - 1)
+            if len(exercises_only) >= limit - slots_for_challenges:
+                result = (
+                    exercises_only[: limit - slots_for_challenges]
+                    + challenges[:slots_for_challenges]
+                )
         return result[:limit]
 
     @staticmethod

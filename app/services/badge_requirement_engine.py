@@ -361,24 +361,26 @@ def _check_min_per_type(
         return True
     all_types = db.execute(
         text(
-            "SELECT DISTINCT exercise_type FROM exercises WHERE is_active = true AND is_archived = false"
+            "SELECT DISTINCT LOWER(exercise_type::text) FROM exercises WHERE is_active = true AND is_archived = false"
         )
     ).fetchall()
     if not all_types:
         return False
-    for r in all_types:
-        ex_type = str(r[0])
-        cnt = db.execute(
-            text("""
-                SELECT COUNT(*)
-                FROM attempts a
-                JOIN exercises e ON a.exercise_id = e.id
-                WHERE a.user_id = :user_id AND LOWER(e.exercise_type::text) = LOWER(:ex_type)
-                AND a.is_correct = true
-            """),
-            {"user_id": user_id, "ex_type": ex_type},
-        ).fetchone()
-        if not cnt or cnt[0] < min_count:
+    all_types_set = {str(r[0]).lower() for r in all_types}
+    # Une seule requête GROUP BY (évite N+1)
+    per_type_rows = db.execute(
+        text("""
+            SELECT LOWER(e.exercise_type::text), COUNT(*) as cnt
+            FROM attempts a
+            JOIN exercises e ON a.exercise_id = e.id
+            WHERE a.user_id = :user_id AND a.is_correct = true
+            GROUP BY LOWER(e.exercise_type::text)
+        """),
+        {"user_id": user_id},
+    ).fetchall()
+    counts_by_type = {str(r[0]).lower(): r[1] for r in per_type_rows}
+    for ex_type in all_types_set:
+        if counts_by_type.get(ex_type, 0) < min_count:
             return False
     return True
 

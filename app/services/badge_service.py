@@ -174,24 +174,28 @@ class BadgeService:
             stats_cache["perfect_day_today"] = (
                 (pd_row[0] or 0, pd_row[1] or 0) if pd_row else (0, 0)
             )
+            # Une seule requête pour tous les types (évite N+1)
+            all_streak_rows = self.db.execute(
+                text("""
+                    SELECT LOWER(e.exercise_type::text) as ex_type, a.is_correct
+                    FROM attempts a
+                    JOIN exercises e ON a.exercise_id = e.id
+                    WHERE a.user_id = :uid
+                    ORDER BY a.created_at DESC
+                    LIMIT 500
+                """),
+                {"uid": user_id},
+            ).fetchall()
+            if "consecutive_by_type" not in stats_cache:
+                stats_cache["consecutive_by_type"] = {}
             for ex_t in stats_cache.get("exercise_types", []):
-                streak_rows = self.db.execute(
-                    text("""
-                        SELECT a.is_correct FROM attempts a
-                        JOIN exercises e ON a.exercise_id = e.id
-                        WHERE a.user_id = :uid AND LOWER(e.exercise_type::text) = LOWER(:ex_type)
-                        ORDER BY a.created_at DESC LIMIT 60
-                    """),
-                    {"uid": user_id, "ex_type": ex_t},
-                ).fetchall()
                 streak = 0
-                for r in streak_rows:
-                    if r[0]:
-                        streak += 1
-                    else:
-                        break
-                if "consecutive_by_type" not in stats_cache:
-                    stats_cache["consecutive_by_type"] = {}
+                for row in all_streak_rows:
+                    if str(row[0]).lower() == ex_t:
+                        if row[1]:
+                            streak += 1
+                        else:
+                            break
                 stats_cache["consecutive_by_type"][ex_t] = streak
         except Exception:
             pass
@@ -562,32 +566,27 @@ class BadgeService:
             return False
 
         all_types_set = {
-            row.exercise_type if hasattr(row, "exercise_type") else row[0]
+            str(row.exercise_type if hasattr(row, "exercise_type") else row[0]).lower()
             for row in all_types
         }
 
-        # Pour chaque type, vérifier si l'utilisateur a réussi au moins min_count exercices
-        for ex_type in all_types_set:
-            success_count = self.db.execute(
-                text("""
-                SELECT COUNT(*) as count
+        # Une seule requête GROUP BY (évite N+1)
+        per_type_rows = self.db.execute(
+            text("""
+                SELECT LOWER(e.exercise_type::text), COUNT(*) as count
                 FROM attempts a
                 JOIN exercises e ON a.exercise_id = e.id
-                WHERE a.user_id = :user_id
-                AND LOWER(e.exercise_type::text) = LOWER(:exercise_type)
-                AND a.is_correct = true
+                WHERE a.user_id = :user_id AND a.is_correct = true
+                GROUP BY LOWER(e.exercise_type::text)
             """),
-                {"user_id": user_id, "exercise_type": str(ex_type)},
-            ).fetchone()
+            {"user_id": user_id},
+        ).fetchall()
+        counts_by_type = {str(r[0]).lower(): r[1] for r in per_type_rows}
 
-            count = (
-                success_count.count
-                if hasattr(success_count, "count")
-                else success_count[0]
-            )
+        for ex_type in all_types_set:
+            count = counts_by_type.get(ex_type, 0)
             if count < min_count:
                 return False
-
         return True
 
     def _award_badge(

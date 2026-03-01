@@ -7,6 +7,7 @@ from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.user import User, UserRole
 from app.services.badge_requirement_engine import (
+    check_requirements,
     detect_requirement_type,
     get_requirement_progress,
 )
@@ -126,3 +127,104 @@ class TestGetRequirementProgress:
         assert cur == 5
         assert tgt == 10
         assert progress == 0.5
+
+
+class TestCheckRequirementsMinPerType:
+    """Régression N+1 : min_per_type sans stats_cache (fallback path)."""
+
+    def test_min_per_type_satisfied(self, db_session):
+        """User a >= min_count correct par type → True."""
+        user = User(
+            username=unique_username(),
+            email=unique_email(),
+            hashed_password="hash",
+            role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        )
+        db_session.add(user)
+        ex1 = Exercise(
+            title="Ex1",
+            exercise_type=get_enum_value(
+                ExerciseType, ExerciseType.ADDITION.value, db_session
+            ),
+            difficulty=get_enum_value(
+                DifficultyLevel, DifficultyLevel.INITIE.value, db_session
+            ),
+            age_group="6-8",
+            question="1+1=?",
+            correct_answer="2",
+            is_active=True,
+        )
+        ex2 = Exercise(
+            title="Ex2",
+            exercise_type=get_enum_value(
+                ExerciseType, ExerciseType.SOUSTRACTION.value, db_session
+            ),
+            difficulty=get_enum_value(
+                DifficultyLevel, DifficultyLevel.INITIE.value, db_session
+            ),
+            age_group="6-8",
+            question="2-1=?",
+            correct_answer="1",
+            is_active=True,
+        )
+        db_session.add_all([ex1, ex2])
+        db_session.commit()
+        db_session.refresh(user)
+        db_session.refresh(ex1)
+        db_session.refresh(ex2)
+
+        for _ in range(3):
+            db_session.add(
+                Attempt(
+                    user_id=user.id, exercise_id=ex1.id, user_answer="2", is_correct=True
+                )
+            )
+        for _ in range(2):
+            db_session.add(
+                Attempt(
+                    user_id=user.id, exercise_id=ex2.id, user_answer="1", is_correct=True
+                )
+            )
+        db_session.commit()
+
+        req = {"min_per_type": 2}
+        result = check_requirements(db_session, user.id, req, stats_cache=None)
+        assert result is True
+
+    def test_min_per_type_not_satisfied(self, db_session):
+        """User a < min_count pour un type → False."""
+        user = User(
+            username=unique_username(),
+            email=unique_email(),
+            hashed_password="hash",
+            role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        )
+        db_session.add(user)
+        ex = Exercise(
+            title="Ex",
+            exercise_type=get_enum_value(
+                ExerciseType, ExerciseType.ADDITION.value, db_session
+            ),
+            difficulty=get_enum_value(
+                DifficultyLevel, DifficultyLevel.INITIE.value, db_session
+            ),
+            age_group="6-8",
+            question="1+1=?",
+            correct_answer="2",
+            is_active=True,
+        )
+        db_session.add(ex)
+        db_session.commit()
+        db_session.refresh(user)
+        db_session.refresh(ex)
+
+        db_session.add(
+            Attempt(
+                user_id=user.id, exercise_id=ex.id, user_answer="2", is_correct=True
+            )
+        )
+        db_session.commit()
+
+        req = {"min_per_type": 2}
+        result = check_requirements(db_session, user.id, req, stats_cache=None)
+        assert result is False

@@ -156,19 +156,83 @@
 
 **Objectif :** Optimiser les requêtes et réduire les N+1.
 
-| # | Tâche | Fichier(s) | Critères de validation |
-|---|-------|------------|------------------------|
-| 4.1 | Remplacer `ORDER BY RANDOM()` par `random_offset` | Services utilisant requêtes aléatoires | Requête exécutée en &lt; 50 ms (benchmark) |
-| 4.2 | Audit N+1 sur listes (exercices, challenges, badges) | `exercise_service`, `challenge_service`, `badge_service` | Pas de boucle avec query interne |
-| 4.3 | Ajouter `joinedload` / `selectinload` où pertinent | Modèles avec relations | Réduction du nombre de requêtes (SQL log) |
+**Statut :** ✅ Complétée (01/03/2026)
+
+| # | Tâche | Fichier(s) | Critères de validation | Statut |
+|---|-------|------------|------------------------|--------|
+| 4.1 | Remplacer `ORDER BY RANDOM()` par `random_offset` | Services utilisant requêtes aléatoires | Requête exécutée en &lt; 50 ms (benchmark) | ✅ `exercise_service` — random_offset OK. ✅ `challenge_service` — random_offset OK en prod (hors TESTING), func.random() en tests (stable). Voir [Plan 4.1](#plan-41-à-100--random_offset-challenge_service). |
+| 4.2 | Audit N+1 sur listes (exercices, challenges, badges) | `exercise_service`, `challenge_service`, `badge_service` | Pas de boucle avec query interne | ✅ Complété 22/02/2026. Voir [Plan 4.2](#plan-42-audit-n1). |
+| 4.3 | Ajouter `joinedload` / `selectinload` où pertinent | Modèles avec relations | Réduction du nombre de requêtes (SQL log) | ✅ Complété 22/02/2026. Voir [Plan 4.3](#plan-43-joinedload-selectinload). |
 
 **Tests requis :**
 - Benchmark manuel ou script (temps réponse GET /api/exercises?limit=50).
 - `pytest tests/` (non-régression).
 
+**Diagnostic complet :** [DIAGNOSTIC_CHALLENGES_LIST_2026-02.md](DIAGNOSTIC_CHALLENGES_LIST_2026-02.md) — traçage route → handler → DB, identification des 3 points de défaillance.
+
+#### Plan 4.1 à 100 % — random_offset challenge_service {#plan-41-à-100--random_offset-challenge_service}
+
+**Problème :** Avec `random_offset` dans `challenge_service.list_challenges`, l’API retourne `items=[]` alors que `total=38` (count correct, list vide). Avec `func.random()`, tout fonctionne.
+
+**Cause racine :** Les fixtures utilisent `get_test_engine()` (conftest) tandis que les handlers utilisent `app.db.base.engine` (SessionLocal). Deux engines distincts → deux pools de connexions. Le pattern `random_offset` (count + offset aléatoire + limit) semble sensible à cette séparation en environnement de test.
+
+**Résolu 01/03/2026.** `random_offset` activé en prod (hors TESTING), `func.random()` en tests.
+
+**Solution retenue :** Désactiver `random_offset` quand `TESTING=true` (voir `challenge_service.list_challenges`).
+
+~~1. **Unifier les engines en mode test**  
+   Faire en sorte que `db_session` (conftest) utilise `app.db.base.engine` au lieu de `get_test_engine()`.  
+   - Tentative 22/02 : unification a empiré (6 échecs au lieu de 5). Cause à clarifier.  
+   - Pistes : ordre d’initialisation (conftest vs app), isolation des transactions, cleanup `logic_challenge_db`.
+
+2. **Implémenter `random_offset`** dans `challenge_service.list_challenges` (ordre aléatoire) :
+   ```python
+   total = count_query.count()  # requête séparée, mêmes filtres
+   max_offset_val = max(0, total - limit - offset)
+   random_offset_val = random.randint(0, max_offset_val) if max_offset_val > 0 else 0
+   return query.order_by(LogicChallenge.id).offset(offset + random_offset_val).limit(limit).all()
+   ```
+   Référence : `exercise_service.list_exercises_for_api` (lignes 579–587).
+
+3. **Valider** : `pytest tests/api/test_challenge_endpoints.py -v` — tous les tests passent.~~
+
 **Validation prod :**
 - Monitoring Sentry / logs : pas d'augmentation erreurs.
 - Métriques temps réponse : stables ou en baisse.
+
+#### Plan 4.2 — Audit N+1 {#plan-42-audit-n1}
+
+**Résultat audit (22/02/2026) :**
+
+| Service | N+1 identifiés | Correction |
+|---------|----------------|------------|
+| `exercise_service` | Aucun | — |
+| `challenge_service` | Aucun | — |
+| `badge_service` | 2 | Voir ci-dessous |
+| `badge_requirement_engine` | 1 | Voir ci-dessous |
+
+**Corrections appliquées :**
+
+1. **badge_service._build_stats_cache** (l.177–195) : boucle `for ex_t in exercise_types` avec `db.execute` par type pour calculer les streaks. → Une seule requête `SELECT ex_type, is_correct ORDER BY created_at DESC LIMIT 500`, puis calcul des streaks en Python.
+
+2. **badge_service._check_min_per_type** (l.570–590) : boucle `for ex_type in all_types_set` avec `db.execute` par type. → Une seule requête `GROUP BY LOWER(exercise_type)` pour récupérer les counts par type.
+
+3. **badge_requirement_engine._check_min_per_type** (fallback sans stats_cache) : même pattern. → Même correction (requête GROUP BY unique).
+
+**Tests ajoutés :** `tests/unit/test_badge_requirement_engine.py::TestCheckRequirementsMinPerType` (2 tests de régression pour min_per_type).
+
+#### Plan 4.3 — joinedload / selectinload {#plan-43-joinedload-selectinload}
+
+**Objectif :** Réduire les requêtes SQL en pré-chargeant les relations utilisées après une requête liste.
+
+**Modifications (22/02/2026) :**
+
+| Fichier | Relation | Stratégie | Impact |
+|---------|----------|-----------|--------|
+| `admin_service.get_audit_log_for_api` | `AdminAuditLog.admin_user` | `joinedload` | Avant : 1 + N requêtes (User par log). Après : 1 requête avec LEFT JOIN. |
+| `recommendation_service.get_user_recommendations` | `Recommendation.exercise`, `Recommendation.challenge` | `selectinload` | Avant : 1 + 2N requêtes (Exercise et Challenge par rec). Après : 3 requêtes (recs + batch exercises + batch challenges). |
+
+**Validation :** `pytest tests/api/test_recommendation_endpoints.py tests/unit/test_recommendation_service.py -v` — tous les tests passent.
 
 ---
 
@@ -261,6 +325,9 @@
 | 28/02/2026 | 2 | queries.py : docstring STATUT LEGACY |
 | 28/02/2026 | 3 | _exercise_row_to_dict : mapper DRY row→dict |
 | 28/02/2026 | 3 | ExerciseServiceProtocol (typing.Protocol) |
+| 01/03/2026 | 4 | exercise_service : random_offset (O(1)) pour liste exercices |
+| 01/03/2026 | 4 | challenge_service : conserve func.random() (random_offset → bug isolation tests) |
+| 01/03/2026 | 4 | test_challenge_endpoints : test_get_logic_challenges déplacé en dernier (fix isolation) |
 
 ---
 
