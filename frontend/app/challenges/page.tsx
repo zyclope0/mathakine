@@ -294,10 +294,7 @@ function ChallengesPageContent() {
 
             {/* Tri (ordre) */}
             <div className="lg:w-40 space-y-2">
-              <label
-                htmlFor="filter-order"
-                className="text-sm font-medium text-muted-foreground"
-              >
+              <label htmlFor="filter-order" className="text-sm font-medium text-muted-foreground">
                 {t("filters.order", { default: "Tri" })}
               </label>
               <Select
