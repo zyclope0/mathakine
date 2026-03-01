@@ -3,6 +3,7 @@ Service pour la gestion des exercices mathématiques.
 Implémente les opérations métier liées aux exercices et utilise le transaction manager.
 """
 
+import random
 from typing import Any, Dict, List, Optional, Protocol, Union
 
 from sqlalchemy import String, cast, text
@@ -512,7 +513,7 @@ class ExerciseService:
         Returns:
             ExerciseListResponse (DTO) avec items, total, page, limit, hasMore
         """
-        from sqlalchemy import String, cast, func
+        from sqlalchemy import String, cast
 
         from app.models.attempt import Attempt
         from app.utils.json_utils import safe_parse_json
@@ -575,8 +576,13 @@ class ExerciseService:
                 .offset(skip)
             )
         else:
+            # Optimisation: random_offset au lieu de ORDER BY RANDOM() (O(1) vs O(n))
+            max_offset = max(0, total - limit - skip)
+            random_offset_val = random.randint(0, max_offset) if max_offset > 0 else 0
             exercises_query = (
-                exercises_query.order_by(func.random()).limit(limit).offset(skip)
+                exercises_query.order_by(Exercise.id)
+                .offset(skip + random_offset_val)
+                .limit(limit)
             )
 
         rows = exercises_query.all()

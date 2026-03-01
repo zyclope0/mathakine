@@ -756,6 +756,9 @@ Le fichier `tests/unit/test_routes_uniqueness.py` verifie qu'aucune route API ne
 >
 > Si le test n’est pas pertinent (ex. changement cosmétique, config), le documenter brièvement dans le commit.
 
+**Références :**
+- Plan 4.1 (random_offset challenge_service) : [AUDIT_BACKEND § Plan 4.1](../03-PROJECT/AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md#plan-41-à-100--random_offset-challenge_service)
+
 ---
 
 ## ✅ BEST PRACTICES {#best-practices}

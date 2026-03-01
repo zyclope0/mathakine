@@ -55,8 +55,9 @@ ENUM_MAPPING = {
     ("DifficultyLevel", "padawan"): "PADAWAN",
     ("DifficultyLevel", "chevalier"): "CHEVALIER",
     ("DifficultyLevel", "maitre"): "MAITRE",
-    # LogicChallengeType - Valeurs PostgreSQL exactes
+    # LogicChallengeType - Valeurs PostgreSQL exactes (API peut envoyer maj/min)
     ("LogicChallengeType", "sequence"): "SEQUENCE",
+    ("LogicChallengeType", "SEQUENCE"): "SEQUENCE",
     ("LogicChallengeType", "pattern"): "PATTERN",
     ("LogicChallengeType", "visual"): "VISUAL",
     ("LogicChallengeType", "puzzle"): "PUZZLE",

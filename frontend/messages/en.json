@@ -388,6 +388,9 @@
       "ageGroup": "Age group",
       "allTypes": "All types",
       "allGroups": "All groups",
+      "order": "Sort",
+      "orderRandom": "Random",
+      "orderRecent": "Most recent",
       "hideCompleted": "Hide completed"
     },
     "search": {

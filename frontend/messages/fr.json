@@ -388,6 +388,9 @@
       "ageGroup": "Groupe d'âge",
       "allTypes": "Tous les types",
       "allGroups": "Tous les groupes",
+      "order": "Tri",
+      "orderRandom": "Aléatoire",
+      "orderRecent": "Plus récents",
       "hideCompleted": "Masquer les réussis"
     },
     "search": {

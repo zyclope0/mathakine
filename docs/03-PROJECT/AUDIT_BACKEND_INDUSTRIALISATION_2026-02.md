@@ -328,6 +328,47 @@
 | 01/03/2026 | 4 | exercise_service : random_offset (O(1)) pour liste exercices |
 | 01/03/2026 | 4 | challenge_service : conserve func.random() (random_offset → bug isolation tests) |
 | 01/03/2026 | 4 | test_challenge_endpoints : test_get_logic_challenges déplacé en dernier (fix isolation) |
+| 01/03/2026 | 7 | Unification engines : db_session (conftest) utilise app.db.base.engine. Corrige test_get_current_user_authenticated (FK user_sessions). |
+
+---
+
+## 7. Effets de bord et régressions (post-audit)
+
+**Constat :** Des erreurs de tests signalées après la mise en œuvre de l'audit n'existaient pas avant. La cause peut venir des **Itérations 1, 2 ou 3** (ou de leur combinaison), pas spécifiquement de l'Itération 4.
+
+### 7.1 Erreurs signalées
+
+| Test / symptôme | Erreur | Cause probable |
+|-----------------|--------|----------------|
+| `test_reset_password_full_flow` | `StaleDataError: UPDATE statement on table 'users' expected to update 1 row(s); 0 were matched` | Isolation sessions/engines ou ordre d'import (It1–3). En isolation, le test **passe**. |
+| Admin / challenge (archiviste, etc.) | "Cannot authenticate archiviste: Erreur lors de la connexion" | Ordre des tests ou état DB (fixtures, rollback) qui casse l’auth pour les tests suivants. |
+| `test_get_challenge_hint` | SKIP "Erreur lors de la connexion" | Même hypothèse que ci-dessus. |
+
+### 7.2 Trace par itération (à investiguer)
+
+| Itération | Fichiers modifiés | Lien potentiel avec les erreurs |
+|-----------|-------------------|----------------------------------|
+| **It1** | `error_handler.py` : `create_validation_error`, `get_safe_error_message` | `user_handlers` et `auth_handlers` importent `api_error_response`, `get_safe_error_message`. Changement de signature ou de comportement en cas d'exception pourrait masquer ou modifier le flux d'erreur. **À vérifier :** les `except` dans auth_handlers qui appellent `get_safe_error_message` ou `api_error_response`. |
+| **It2** | `exercise_service.py`, `exercise_handlers.py` : imports en tête ; `app/schemas/exercise.py` : validators | **Ordre d'import** : les imports déplacés en tête changent l'ordre de chargement des modules. Si `exercise_service` ou `exercise_handlers` est chargé avant/après un module critique (ex. `app.db.base`), l'initialisation de l'engine ou des pools peut différer. **À vérifier :** chaîne d'import au démarrage (conftest → enhanced_server → routes → handlers). |
+| **It3** | `exercise_service.py` : `_exercise_row_to_dict`, `ExerciseServiceProtocol`, refactor `get_exercise_for_api` | Pas de lien direct avec auth. `auth_service` et `auth_handlers` n'utilisent pas `TransactionManager` ni `DatabaseAdapter`. **It3 peu probable** pour les erreurs auth. |
+
+### 7.3 Cause racine connue (Plan 4.1)
+
+- Deux engines en test : `app.db.base.engine` (handlers) vs `get_test_engine()` (conftest `db_session`). Même URL, pools distincts.
+- **Repro** : `test_reset_password_full_flow` passe en isolation et avec `tests/api/test_auth_flow.py` complet. L’erreur apparaît probablement en **suite complète** ou **CI** (ordre, parallélisme, état DB).
+
+### 7.4 Plan d'investigation (à exécuter)
+
+1. **It1** : Comparer les blocs `except` dans `auth_handlers.py` et `user_handlers.py` avant/après It1 (git log). Vérifier si `get_safe_error_message` ou `create_validation_error` modifient le flux en cas de `StaleDataError`.
+2. **It2** : Reproduire l'ordre d'import au chargement : lister les modules chargés (ex. `python -c "import enhanced_server; ..."` avec trace) et comparer avec un revert des imports en tête.
+3. **It3** : Vérifier si `TransactionManager` ou `DatabaseAdapter` sont utilisés dans le flux auth (forgot-password, reset-password). Si non, It3 peu probable.
+4. **Suite complète** : Lancer `pytest tests/ -v --tb=long` et noter l'ordre exact du premier échec. Reproduire avec `-x` sur le test précédent pour tester l'effet de l'ordre.
+
+### 7.5 Pistes de résolution
+
+1. **Unifier les engines en test** : ✅ Fait (22/02/2026). La fixture `db_session` utilise désormais `app.db.base.engine` au lieu de `get_test_engine()`. Corrige la FK `user_sessions_user_id_fkey` (user non visible entre requêtes).
+2. **Rendre le test robuste** : éviter la lecture directe en DB pour le token ; par ex. endpoint test-only ou mock du flux email.
+3. **Isolation des tests admin** : vérifier l’ordre des fixtures (`role_client`, `archiviste_client`) et le cleanup entre tests.
 
 ---
 

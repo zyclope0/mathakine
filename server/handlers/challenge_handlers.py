@@ -74,15 +74,26 @@ async def get_challenges_list(request: Request):
                 exclude_ids = challenge_service.get_user_completed_challenges(
                     db, user_id
                 )
+            # Count d'abord pour random_offset (O(1) vs ORDER BY RANDOM() O(n))
+            total = challenge_service.count_challenges(
+                db=db,
+                challenge_type=p.challenge_type,
+                age_group=p.age_group_db,
+                search=p.search,
+                exclude_ids=exclude_ids if exclude_ids else None,
+                active_only=p.active_only,
+            )
             challenges = challenge_service.list_challenges(
                 db=db,
                 challenge_type=p.challenge_type,
                 age_group=p.age_group_db,
-                tags=p.search,
+                search=p.search,
                 limit=p.limit,
                 offset=p.skip,
                 order=p.order,
                 exclude_ids=exclude_ids if exclude_ids else None,
+                total=total if p.order == "random" else None,
+                active_only=p.active_only,
             )
             challenges_list = [
                 ChallengeListItem.model_validate(
@@ -90,15 +101,6 @@ async def get_challenges_list(request: Request):
                 )
                 for c in challenges
             ]
-            total = challenge_service.count_challenges(
-                db=db,
-                challenge_type=p.challenge_type,
-                age_group=p.age_group_db,
-                exclude_ids=exclude_ids if exclude_ids else None,
-            )
-
-        if p.active_only:
-            challenges_list = [c for c in challenges_list if not c.is_archived]
 
         page = (p.skip // p.limit) + 1 if p.limit > 0 else 1
         has_more = (p.skip + len(challenges_list)) < total

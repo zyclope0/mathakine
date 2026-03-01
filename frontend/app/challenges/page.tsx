@@ -74,6 +74,7 @@ function ChallengesPageContent() {
   const [challengeTypeFilter, setChallengeTypeFilter] = useState<string>("all");
   const [ageGroupFilter, setAgeGroupFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [orderFilter, setOrderFilter] = useState<"random" | "recent">("random");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedChallengeId, setSelectedChallengeId] = useState<number | null>(null);
@@ -108,11 +109,11 @@ function ChallengesPageContent() {
       f.search = searchQuery.trim();
     }
 
-    f.order = "random"; // Ordre aléatoire par défaut
+    f.order = orderFilter;
     f.hide_completed = hideCompleted;
 
     return f;
-  }, [challengeTypeFilter, ageGroupFilter, searchQuery, currentPage, hideCompleted]);
+  }, [challengeTypeFilter, ageGroupFilter, searchQuery, orderFilter, currentPage, hideCompleted]);
 
   const { challenges, total, isLoading, error } = useChallenges(filters);
 
@@ -123,6 +124,7 @@ function ChallengesPageContent() {
     challengeTypeFilter !== "all" ||
     ageGroupFilter !== "all" ||
     searchQuery.trim() !== "" ||
+    orderFilter !== "random" ||
     hideCompleted;
 
   const handleFilterChange = () => {
@@ -133,6 +135,7 @@ function ChallengesPageContent() {
     setChallengeTypeFilter("all");
     setAgeGroupFilter("all");
     setSearchQuery("");
+    setOrderFilter("random");
     setHideCompleted(false);
     setCurrentPage(1);
   };
@@ -285,6 +288,35 @@ function ChallengesPageContent() {
                       {getAgeDisplay(value)}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Tri (ordre) */}
+            <div className="lg:w-40 space-y-2">
+              <label
+                htmlFor="filter-order"
+                className="text-sm font-medium text-muted-foreground"
+              >
+                {t("filters.order", { default: "Tri" })}
+              </label>
+              <Select
+                value={orderFilter}
+                onValueChange={(value: "random" | "recent") => {
+                  setOrderFilter(value);
+                  handleFilterChange();
+                }}
+              >
+                <SelectTrigger id="filter-order" className="h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="random">
+                    {t("filters.orderRandom", { default: "Aléatoire" })}
+                  </SelectItem>
+                  <SelectItem value="recent">
+                    {t("filters.orderRecent", { default: "Plus récents" })}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

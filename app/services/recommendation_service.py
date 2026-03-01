@@ -5,7 +5,11 @@ from sqlalchemy import and_, exists, or_
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import func
 
-from app.core.constants import AgeGroups, get_difficulty_from_age_group, normalize_age_group
+from app.core.constants import (
+    AgeGroups,
+    get_difficulty_from_age_group,
+    normalize_age_group,
+)
 from app.core.logging_config import get_logger
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
@@ -468,8 +472,7 @@ class RecommendationService:
                 challenge_priority = min(9, challenge_priority + 1)
             for ch in suggested_challenges:
                 challenge_type_str = (
-                    getattr(ch.challenge_type, "value", str(ch.challenge_type))
-                    .lower()
+                    getattr(ch.challenge_type, "value", str(ch.challenge_type)).lower()
                     if ch.challenge_type
                     else "logique"
                 )

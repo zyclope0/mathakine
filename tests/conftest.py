@@ -172,25 +172,27 @@ def setup_test_environment():
 # ================================================================
 # SECTION 2: DATABASE ENGINE & SESSION
 # ================================================================
+#
+# INDUSTRIALISATION: Un seul engine pour fixtures ET handlers (app.db.base.engine).
+# Évite les bugs d'isolation (random_offset, filtres) et garantit cohérence.
+# Réf: DIAGNOSTIC_CHALLENGES_LIST_2026-02.md
+# ================================================================
 
 _test_engine = None
 
 
 def get_test_engine():
-    """Obtient ou cree l'engine de test partage."""
+    """Engine de test — DEPRECATED pour db_session. Utiliser _get_session_engine().
+    Conservé pour compatibilité (cleanup fallback, scripts)."""
     global _test_engine
     if _test_engine is None:
         test_db_url = settings.SQLALCHEMY_DATABASE_URL
-
         if not test_db_url or test_db_url == settings.DATABASE_URL:
-            if "test" not in test_db_url.lower() and "localhost" not in test_db_url:
+            if "test" not in (test_db_url or "").lower() and "localhost" not in (test_db_url or ""):
                 raise RuntimeError(
                     f"SECURITE: Tentative d'utiliser la base de production dans les tests!\n"
-                    f"   SQLALCHEMY_DATABASE_URL={test_db_url}\n"
-                    f"   DATABASE_URL={settings.DATABASE_URL}\n"
                     f"   Assurez-vous que TEST_DATABASE_URL est defini."
                 )
-
         _test_engine = create_engine(
             test_db_url,
             pool_pre_ping=True,
@@ -202,17 +204,18 @@ def get_test_engine():
     return _test_engine
 
 
+def _get_session_engine():
+    """Engine pour les tests. Utilise app.db.base pour unifier avec les handlers (évite FK/visibilité)."""
+    from app.db.base import engine
+
+    return engine
+
+
 @pytest.fixture
 def db_session():
-    """Session DB avec rollback automatique et isolation complete.
-
-    Garantit :
-    1. Nouvelle session par test (isolation)
-    2. Rollback automatique en cas d'erreur
-    3. Fermeture propre de la session
-    """
-    test_engine = get_test_engine()
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+    """Session DB avec rollback automatique et isolation complete."""
+    session_engine = _get_session_engine()
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=session_engine)
     session = SessionLocal()
 
     try:
@@ -838,9 +841,9 @@ def auto_cleanup_test_data(db_session):
             _cleanup_logger.debug(
                 "Session principale en erreur, creation d'une session de nettoyage"
             )
-            test_engine = get_test_engine()
+            fallback_engine = get_test_engine()
             CleanupSessionLocal = sessionmaker(
-                autocommit=False, autoflush=False, bind=test_engine
+                autocommit=False, autoflush=False, bind=fallback_engine
             )
             cleanup_session = CleanupSessionLocal()
             try:

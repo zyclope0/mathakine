@@ -18,27 +18,6 @@ def _get_challenges_list(data):
     return data.get("items", [])
 
 
-async def test_get_logic_challenges(logic_challenge_db, padawan_client):
-    """Test de l'endpoint pour récupérer tous les défis logiques."""
-    client = padawan_client["client"]
-    response = await client.get("/api/challenges")
-    assert response.status_code == 200
-    raw = response.json()
-    data = _get_challenges_list(raw)
-
-    # Vérifier que c'est une liste (logic_challenge_db peuple la base)
-    assert isinstance(data, list)
-    assert len(data) > 0, "logic_challenge_db doit créer au moins un défi"
-
-    # Vérifier les champs requis
-    first_challenge = data[0]
-    assert "id" in first_challenge
-    assert "type" in first_challenge or "challenge_type" in first_challenge
-    assert "age_group" in first_challenge
-    assert "question" in first_challenge or "description" in first_challenge
-    # correct_answer may be omitted in list endpoint for security
-
-
 async def test_get_logic_challenge_by_id(logic_challenge_db, padawan_client):
     """Test de l'endpoint pour récupérer un défi logique par ID."""
     client = padawan_client["client"]
@@ -340,3 +319,107 @@ async def test_challenge_with_centralized_fixtures(
         result["is_correct"] is True
     ), "La réponse devrait être marquée comme correcte"
     assert "explanation" in result, "La réponse devrait contenir une explication"
+
+
+async def test_get_logic_challenges(logic_challenge_db, padawan_client):
+    """Test de l'endpoint pour récupérer tous les défis logiques.
+
+    Placé en dernier car son cleanup semble affecter l'isolation des tests suivants
+    (engines distincts fixture vs app). Voir AUDIT_BACKEND § It4.
+    """
+    client = padawan_client["client"]
+    response = await client.get("/api/challenges")
+    assert response.status_code == 200
+    raw = response.json()
+    data = _get_challenges_list(raw)
+
+    # Vérifier que c'est une liste (logic_challenge_db peuple la base)
+    assert isinstance(data, list)
+    assert len(data) > 0, "logic_challenge_db doit créer au moins un défi"
+
+    # Vérifier les champs requis
+    first_challenge = data[0]
+    assert "id" in first_challenge
+    assert "type" in first_challenge or "challenge_type" in first_challenge
+    assert "age_group" in first_challenge
+    assert "question" in first_challenge or "description" in first_challenge
+
+
+# ========== Tests normatifs et ponctuels (recherche, pagination, tri) ==========
+
+
+async def test_search_challenges_by_title(logic_challenge_db, padawan_client):
+    """Recherche par titre — doit trouver les défis dont le titre contient la chaîne."""
+    client = padawan_client["client"]
+    # logic_challenge_db crée un défi avec titre "Test Challenge {uuid}"
+    response = await client.get(
+        "/api/challenges", params={"search": "Test Challenge"}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    items = _get_challenges_list(data)
+    total = data.get("total", 0)
+    assert total >= 1, "Recherche 'Test Challenge' doit trouver au moins un défi"
+    assert len(items) >= 1
+    for c in items:
+        assert "Test Challenge" in (c.get("title") or c.get("description") or "")
+
+
+async def test_search_challenges_by_description(logic_challenge_db, padawan_client):
+    """Recherche par description — doit trouver les défis dont la description contient la chaîne."""
+    client = padawan_client["client"]
+    # logic_challenge_db crée un défi avec description "Description du défi de test"
+    response = await client.get(
+        "/api/challenges", params={"search": "défi de test"}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    items = _get_challenges_list(data)
+    total = data.get("total", 0)
+    assert total >= 1, "Recherche 'défi de test' doit trouver au moins un défi"
+
+
+async def test_search_challenges_no_match(padawan_client):
+    """Recherche sans résultat — doit retourner items=[], total=0."""
+    client = padawan_client["client"]
+    response = await client.get(
+        "/api/challenges", params={"search": "XyZ123AucunDefiAvecCeTitre"}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert _get_challenges_list(data) == []
+    assert data.get("total", -1) == 0
+
+
+async def test_order_recent(logic_challenge_db, padawan_client):
+    """Tri par ordre récent — l'endpoint accepte order=recent et retourne des défis."""
+    client = padawan_client["client"]
+    response = await client.get(
+        "/api/challenges", params={"order": "recent", "limit": 5}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    items = _get_challenges_list(data)
+    total = data.get("total", 0)
+    assert total >= 0
+    assert len(items) <= 5
+
+
+async def test_pagination_count_consistency(logic_challenge_db, padawan_client):
+    """Pagination — total et len(items) cohérents (active_only filtré en DB)."""
+    client = padawan_client["client"]
+    response = await client.get(
+        "/api/challenges",
+        params={"limit": 10, "skip": 0, "active_only": "true"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    items = _get_challenges_list(data)
+    total = data.get("total", -1)
+    assert total >= 0
+    assert len(items) <= 10
+    # Si total > 0, on doit avoir des items sur la première page
+    if total > 0 and total <= 10:
+        assert len(items) == total
+    elif total > 10:
+        assert len(items) == 10
