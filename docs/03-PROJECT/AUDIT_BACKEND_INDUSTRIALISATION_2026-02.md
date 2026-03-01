@@ -34,7 +34,7 @@
 | **Clean Code** | ~~`get_safe_error_message(default: str = None)`~~ | ~~Faible~~ ✅ Résolu It1 | `error_handler.py` |
 | **Performance** | `ORDER BY RANDOM()` O(n) | Moyenne | `queries.py` (legacy) |
 | **Performance** | Absence eager loading explicite | Moyenne | Services (badges, challenges) |
-| **Robustesse** | `except Exception` trop large | Moyenne | `adapter`, `transaction`, `exercise_service` |
+| **Robustesse** | ~~`except Exception` trop large~~ | ~~Moyenne~~ ✅ Résolu 22/02 | `adapter`, `exercise_service`, `logic_challenge_service`, `badge_service`, `user_service`, `recommendation_service`, `challenge_handlers`, etc. — SQLAlchemyError + (TypeError, ValueError) pour best-effort |
 | **Industrialisation** | Services non mockables | Moyenne | Tous les services |
 
 ### 1.2 Anti-patterns
@@ -114,7 +114,7 @@
 |---|-------|------------|--------|
 | 2.1 | Déplacer tous les imports en tête de module | `exercise_service.py`, `exercise_handlers.py` | ✅ Fait — imports consolidés, inline supprimés |
 | 2.2 | Factoriser `validate_exercise_type`, `validate_difficulty` | `app/schemas/exercise.py` | ✅ Fait — `_validate_exercise_type`, `_validate_difficulty` réutilisables |
-| 2.3 | Restreindre les `except Exception` aux cas strictement nécessaires | `DatabaseAdapter`, `ExerciseService` | ⏸ Reporté (Itération 3 ou ultérieure) |
+| 2.3 | Restreindre les `except Exception` aux cas strictement nécessaires | `DatabaseAdapter`, `ExerciseService`, + services étendus | ✅ Fait (22/02) — SQLAlchemyError pour DB, (TypeError, ValueError) pour best-effort (badges, streak, stats). Pas de catch-all. |
 | 2.4 | Documenter ou archiver `queries.py` (ExerciseQueries non utilisé) | `app/db/queries.py` | ✅ Fait — docstring STATUT LEGACY |
 
 **Tests requis :**
@@ -330,6 +330,7 @@
 | 01/03/2026 | 4 | test_challenge_endpoints : test_get_logic_challenges déplacé en dernier (fix isolation) |
 | 01/03/2026 | 7 | Unification engines : db_session (conftest) utilise app.db.base.engine. Corrige test_get_current_user_authenticated (FK user_sessions). |
 | 01/03/2026 | 1.4 | ChallengeNotFoundError hérite de ExerciseSubmitError (alignement exceptions métier). |
+| 22/02/2026 | 2.3 | ✅ except Exception → SQLAlchemyError + (TypeError, ValueError). Fichiers : adapter, exercise_service, logic_challenge_service, badge_service, user_service, recommendation_service, enhanced_server_adapter, challenge_handlers. Tests : 526 passent. |
 
 ---
 

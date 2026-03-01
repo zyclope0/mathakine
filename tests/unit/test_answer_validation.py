@@ -96,7 +96,7 @@ async def test_submit_correct_answer(db_session):
     mock_db_att = MagicMock()
     attempt_obj = _mock_attempt_obj(is_correct=True, user_answer="8")
 
-    # Mock pour badges
+    # Mock pour badges (évite MagicMock dans check_and_award_badges / get_closest_progress_notification)
     mock_db_badges = MagicMock()
 
     with patch(
@@ -108,7 +108,12 @@ async def test_submit_correct_answer(db_session):
             return_value=attempt_obj,
         ):
             with _patch_auth(mock_user):
-                response = await submit_answer(mock_request)
+                with patch(
+                    "app.services.badge_service.BadgeService"
+                ) as mock_badge_cls:
+                    mock_badge_cls.return_value.check_and_award_badges.return_value = []
+                    mock_badge_cls.return_value.get_closest_progress_notification.return_value = None
+                    response = await submit_answer(mock_request)
 
     result = json.loads(response.body.decode("utf-8"))
     assert response.status_code == 200
@@ -134,7 +139,6 @@ async def test_submit_incorrect_answer(db_session):
 
     mock_db_att = MagicMock()
     attempt_obj = _mock_attempt_obj(is_correct=False, user_answer="36")
-
     mock_db_badges = MagicMock()
 
     with patch(
@@ -146,7 +150,12 @@ async def test_submit_incorrect_answer(db_session):
             return_value=attempt_obj,
         ):
             with _patch_auth(mock_user):
-                response = await submit_answer(mock_request)
+                with patch(
+                    "app.services.badge_service.BadgeService"
+                ) as mock_badge_cls:
+                    mock_badge_cls.return_value.check_and_award_badges.return_value = []
+                    mock_badge_cls.return_value.get_closest_progress_notification.return_value = None
+                    response = await submit_answer(mock_request)
 
     result = json.loads(response.body.decode("utf-8"))
     assert response.status_code == 200

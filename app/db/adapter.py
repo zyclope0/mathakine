@@ -9,6 +9,7 @@ from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.base import Base
@@ -37,7 +38,7 @@ class DatabaseAdapter:
         """
         try:
             return db.query(model_class).filter(model_class.id == id).first()
-        except Exception as e:
+        except SQLAlchemyError as e:
             logger.error(
                 f"Erreur lors de la récupération de {model_class.__name__} avec id={id}: {e}"
             )
@@ -65,7 +66,7 @@ class DatabaseAdapter:
                 .filter(getattr(model_class, field_name) == value)
                 .all()
             )
-        except Exception as e:
+        except SQLAlchemyError as e:
             logger.error(
                 f"Erreur lors de la récupération de {model_class.__name__} avec {field_name}={value}: {e}"
             )
@@ -101,7 +102,7 @@ class DatabaseAdapter:
                 query = query.limit(limit)
 
             return query.all()
-        except Exception as e:
+        except SQLAlchemyError as e:
             logger.error(
                 f"Erreur lors de la liste des {model_class.__name__} actifs: {e}"
             )
@@ -128,7 +129,7 @@ class DatabaseAdapter:
                 session.add(obj)
                 session.flush()  # Pour obtenir l'ID généré
                 return obj
-            except Exception as e:
+            except SQLAlchemyError as e:
                 logger.error(
                     f"Erreur lors de la création de {model_class.__name__}: {e}"
                 )
@@ -174,7 +175,7 @@ class DatabaseAdapter:
                         setattr(obj, key, value)
                 session.flush()
                 return True
-            except Exception as e:
+            except SQLAlchemyError as e:
                 logger.error(
                     f"Erreur lors de la mise à jour de {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}): {e}"
                 )
@@ -240,7 +241,7 @@ class DatabaseAdapter:
                 column_names = result.keys()
                 return [dict(zip(column_names, row)) for row in result.fetchall()]
             return []
-        except Exception as e:
+        except SQLAlchemyError as e:
             logger.error(f"Erreur lors de l'exécution de la requête SQL: {e}")
             db.rollback()
             return []

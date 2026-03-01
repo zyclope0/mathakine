@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter
@@ -100,7 +101,7 @@ class LogicChallengeService:
                 query = query.limit(limit)
 
             return query.all()
-        except Exception as challenges_fetch_error:
+        except SQLAlchemyError as challenges_fetch_error:
             logger.error(
                 f"Erreur lors de la récupération des défis: {challenges_fetch_error}"
             )
@@ -282,8 +283,13 @@ class LogicChallengeService:
                 )
 
                 return attempt
-            except Exception as attempt_save_error:
+            except SQLAlchemyError as attempt_save_error:
                 logger.error(
                     f"Erreur lors de l'enregistrement de la tentative: {attempt_save_error}"
+                )
+                return None
+            except (TypeError, ValueError) as attempt_save_error:
+                logger.error(
+                    f"Erreur de données lors de l'enregistrement de la tentative: {attempt_save_error}"
                 )
                 return None

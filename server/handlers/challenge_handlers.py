@@ -24,6 +24,7 @@ from app.core.constants import (
 )
 from app.core.messages import SystemMessages
 from app.exceptions import ChallengeNotFoundError
+from sqlalchemy.exc import SQLAlchemyError
 
 # NOTE: challenge_service_translations_adapter archivé - utiliser fonctions de challenge_service.py
 from app.services import challenge_service
@@ -714,16 +715,31 @@ async def submit_challenge_answer(request: Request):
 
                     badge_service = BadgeService(db)
                     new_badges = badge_service.check_and_award_badges(user_id)
-                except Exception as badge_err:
-                    logger.warning(f"Badge check après défi: {badge_err}")
+                except (SQLAlchemyError, TypeError, ValueError) as badge_err:
+                    logger.warning(
+                        "Badge check après défi (best effort): %s",
+                        badge_err,
+                        exc_info=True,
+                    )
 
             # Mettre à jour la série d'entraînement (streak) — toute tentative compte
             try:
                 from app.services.streak_service import update_user_streak
-
-                update_user_streak(db, user_id)
-            except Exception:
-                pass
+            except ImportError:
+                logger.warning(
+                    "Streak service indisponible (ImportError)", exc_info=True
+                )
+            else:
+                try:
+                    update_user_streak(db, user_id)
+                except SQLAlchemyError:
+                    logger.debug(
+                        "Streak update skipped (DB error)", exc_info=True
+                    )
+                except (TypeError, ValueError):
+                    logger.debug(
+                        "Streak update skipped (data/type error)", exc_info=True
+                    )
 
             # Notification « Tu approches » si pas de nouveau badge mais un proche
             progress_notif = None
@@ -733,8 +749,11 @@ async def submit_challenge_answer(request: Request):
 
                     svc = BadgeService(db)
                     progress_notif = svc.get_closest_progress_notification(user_id)
-                except Exception:
-                    pass
+                except (SQLAlchemyError, TypeError, ValueError):
+                    logger.debug(
+                        "Progress notification skipped (best effort)",
+                        exc_info=True,
+                    )
 
             response_data = {
                 "is_correct": is_correct,

@@ -7,6 +7,7 @@ import random
 from typing import Any, Dict, List, Optional, Protocol, Union
 
 from sqlalchemy import String, cast, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.logging_config import get_logger
@@ -191,14 +192,14 @@ class ExerciseService:
                 exercise.difficulty = DifficultyLevel.PADAWAN
 
             return exercise
-        except Exception as get_exercise_error:
+        except SQLAlchemyError as get_exercise_error:
             logger.error(
                 f"Erreur lors de la récupération de l'exercice {exercise_id}: {get_exercise_error}"
             )
             # Fallback vers la méthode originale en cas d'erreur
             try:
                 return DatabaseAdapter.get_by_id(db, Exercise, exercise_id)
-            except Exception:
+            except SQLAlchemyError:
                 return None
 
     @staticmethod
@@ -246,7 +247,7 @@ class ExerciseService:
             )
         except ExerciseNotFoundError:
             raise
-        except Exception as err:
+        except SQLAlchemyError as err:
             logger.error(f"Erreur get_exercise_for_api {exercise_id}: {err}")
             return None
 
@@ -284,7 +285,7 @@ class ExerciseService:
                 exercise_row,
                 include_correct_answer=True,
             )
-        except Exception as err:
+        except SQLAlchemyError as err:
             logger.error(
                 f"Erreur get_exercise_for_submit_validation {exercise_id}: {err}"
             )
@@ -379,17 +380,32 @@ class ExerciseService:
                     f"🎖️ {len(new_badges)} nouveaux badges attribués "
                     f"à l'utilisateur {user_id}"
                 )
-        except Exception as badge_error:
+        except SQLAlchemyError as e:
             logger.warning(
-                f"⚠️ Erreur lors de la vérification des badges: {badge_error}"
+                "⚠️ Erreur DB lors de la vérification des badges",
+                exc_info=True,
+            )
+        except (TypeError, ValueError) as e:
+            logger.warning(
+                "⚠️ Erreur de données lors de la vérification des badges",
+                exc_info=True,
             )
 
         try:
             from app.services.streak_service import update_user_streak
-
-            update_user_streak(db, user_id)
-        except Exception as streak_err:
-            logger.debug(f"Streak update skipped: {streak_err}")
+        except ImportError:
+            logger.warning(
+                "Streak service indisponible (ImportError)", exc_info=True
+            )
+        else:
+            try:
+                update_user_streak(db, user_id)
+            except SQLAlchemyError:
+                logger.debug("Streak update skipped (DB error)", exc_info=True)
+            except (TypeError, ValueError):
+                logger.debug(
+                    "Streak update skipped (data/type error)", exc_info=True
+                )
 
         badge_service = BadgeService(db)
         progress_notif = None
@@ -459,7 +475,7 @@ class ExerciseService:
                 query = query.limit(limit)
 
             return query.all()
-        except Exception as exercises_fetch_error:
+        except SQLAlchemyError as exercises_fetch_error:
             logger.error(
                 f"Erreur lors de la récupération des exercices: {exercises_fetch_error}"
             )
@@ -775,7 +791,7 @@ class ExerciseService:
                             exercise = ExerciseService.get_exercise(
                                 session, exercise_id
                             )
-                    except Exception as pg_error:
+                    except SQLAlchemyError as pg_error:
                         logger.error(
                             f"Erreur lors de la récupération PostgreSQL directe: {pg_error}"
                         )
@@ -845,14 +861,19 @@ class ExerciseService:
                     logger.info(
                         f"Statistiques mises à jour pour l'utilisateur {attempt_data.get('user_id')}"
                     )
-                except Exception as stats_error:
+                except SQLAlchemyError as stats_error:
                     logger.error(
-                        f"Erreur lors de la mise à jour des statistiques: {stats_error}"
+                        f"Erreur DB lors de la mise à jour des statistiques: {stats_error}"
+                    )
+                    # Ne pas faire échouer la tentative pour une erreur de stats
+                except (TypeError, ValueError) as stats_error:
+                    logger.error(
+                        f"Erreur de données lors de la mise à jour des statistiques: {stats_error}"
                     )
                     # Ne pas faire échouer la tentative pour une erreur de stats
 
                 return attempt
-            except Exception as attempt_record_error:
+            except SQLAlchemyError as attempt_record_error:
                 error_type = type(attempt_record_error).__name__
                 error_msg = str(attempt_record_error)
                 import traceback
@@ -999,7 +1020,7 @@ class ExerciseService:
                     aux_session.commit()
             finally:
                 aux_session.close()
-        except Exception as user_stats_err:
+        except SQLAlchemyError as user_stats_err:
             logger.debug("UserStats ignoré: %s", user_stats_err)
 
         session.flush()

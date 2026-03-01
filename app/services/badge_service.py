@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import func, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.logging_config import get_logger
@@ -87,9 +88,14 @@ class BadgeService:
 
             return new_badges
 
-        except Exception as badge_check_error:
+        except SQLAlchemyError as badge_check_error:
             logger.error(
-                f"Erreur lors de la vérification des badges pour l'utilisateur {user_id}: {badge_check_error}"
+                f"Erreur DB lors de la vérification des badges pour l'utilisateur {user_id}: {badge_check_error}"
+            )
+            return []
+        except (TypeError, ValueError) as badge_check_error:
+            logger.error(
+                f"Erreur de données lors de la vérification des badges pour l'utilisateur {user_id}: {badge_check_error}"
             )
             return []
 
@@ -197,7 +203,7 @@ class BadgeService:
                         else:
                             break
                 stats_cache["consecutive_by_type"][ex_t] = streak
-        except Exception:
+        except (SQLAlchemyError, TypeError, ValueError):
             pass
         return stats_cache
 
@@ -616,7 +622,7 @@ class BadgeService:
                 "earned_at": user_achievement.earned_at.isoformat(),
             }
 
-        except Exception as badge_award_error:
+        except SQLAlchemyError as badge_award_error:
             self.db.rollback()
             logger.error(
                 f"Erreur lors de l'attribution du badge {badge.code}: {badge_award_error}"
@@ -725,7 +731,7 @@ class BadgeService:
                         for x in user.pinned_badge_ids
                         if isinstance(x, (int, float))
                     ]
-            except Exception:
+            except (SQLAlchemyError, TypeError, ValueError):
                 pass
 
             return {
@@ -771,7 +777,7 @@ class BadgeService:
                 ),
             }
 
-        except Exception as user_badges_error:
+        except SQLAlchemyError as user_badges_error:
             logger.error(
                 f"Erreur récupération badges utilisateur {user_id}: {user_badges_error}"
             )
@@ -912,7 +918,7 @@ class BadgeService:
                 for badge in badges
             ]
 
-        except Exception as available_badges_error:
+        except SQLAlchemyError as available_badges_error:
             logger.error(
                 f"Erreur récupération badges disponibles: {available_badges_error}"
             )
@@ -1072,7 +1078,7 @@ class BadgeService:
             if user:
                 user.pinned_badge_ids = valid
                 self.db.commit()
-        except Exception as e:
+        except SQLAlchemyError as e:
             self.db.rollback()
             logger.error(f"Erreur set_pinned_badges: {e}")
             return []

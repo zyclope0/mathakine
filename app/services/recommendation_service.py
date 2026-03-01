@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Tuple
 
 from sqlalchemy import and_, exists, or_
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import func
 
@@ -454,7 +455,7 @@ class RecommendationService:
                             LogicChallenge.age_group == AgeGroup.ALL_AGES,
                         )
                     )
-                except Exception:
+                except (TypeError, ValueError):
                     pass  # Garder tous les défis si erreur de conversion
             if completed_challenge_ids:
                 challenge_query = challenge_query.filter(
@@ -558,7 +559,7 @@ class RecommendationService:
 
             return recommendations
 
-        except Exception as recommendations_generation_error:
+        except SQLAlchemyError as recommendations_generation_error:
             logger.error(
                 f"Erreur dans la génération des recommandations: {str(recommendations_generation_error)}"
             )
@@ -577,7 +578,7 @@ class RecommendationService:
             if recommendation:
                 recommendation.shown_count += 1
                 db.commit()
-        except Exception as mark_shown_error:
+        except SQLAlchemyError as mark_shown_error:
             logger.error(
                 f"Erreur lors du marquage de la recommandation comme montrée: {str(mark_shown_error)}"
             )
@@ -596,7 +597,7 @@ class RecommendationService:
                 recommendation.clicked_count += 1
                 recommendation.last_clicked_at = datetime.now(timezone.utc)
                 db.commit()
-        except Exception as mark_clicked_error:
+        except SQLAlchemyError as mark_clicked_error:
             logger.error(
                 f"Erreur lors du marquage de la recommandation comme cliquée: {str(mark_clicked_error)}"
             )
@@ -623,7 +624,7 @@ class RecommendationService:
                 db.refresh(recommendation)
                 return True, recommendation
             return False, None
-        except Exception as mark_completed_error:
+        except SQLAlchemyError as mark_completed_error:
             logger.error(
                 f"Erreur lors du marquage de la recommandation comme complétée: {str(mark_completed_error)}"
             )
@@ -648,7 +649,7 @@ class RecommendationService:
                 recommendations = RecommendationService.get_user_recommendations(
                     db, user_id, limit=limit
                 )
-            except Exception as gen_error:
+            except SQLAlchemyError as gen_error:
                 logger.error(f"Erreur génération recommandations: {gen_error}")
                 return []
 

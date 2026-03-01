@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import LogicChallenge
+from app.models.progress import Progress
 from app.models.user import User, UserRole
 from app.services.exercise_service import ExerciseService
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
@@ -796,6 +797,19 @@ def test_record_attempt_with_mock(mock_transaction, mock_get_exercise, mock_adap
     mock_session.add.side_effect = side_effect_add
     mock_session.flush.return_value = None
 
+    # Mock Progress pour _update_user_statistics (évite TypeError: int > MagicMock)
+    mock_progress = MagicMock(spec=Progress)
+    mock_progress.total_attempts = 0
+    mock_progress.correct_attempts = 0
+    mock_progress.streak = 0
+    mock_progress.highest_streak = 0
+    mock_progress.average_time = None
+    mock_progress.calculate_completion_rate.return_value = 0.0
+    mock_progress.update_mastery_level.return_value = None
+    mock_session.query.return_value.filter.return_value.first.return_value = (
+        mock_progress
+    )
+
     # Données pour la tentative
     attempt_data = {
         "user_id": 1,
@@ -814,8 +828,8 @@ def test_record_attempt_with_mock(mock_transaction, mock_get_exercise, mock_adap
     # Vérifier que session.add a été appelé
     mock_session.add.assert_called_once()
 
-    # Vérifier que flush a été appelé
-    mock_session.flush.assert_called_once()
+    # Vérifier que flush a été appelé (attempt + stats en fin de _update_user_statistics)
+    assert mock_session.flush.call_count >= 1
 
     # Vérifications sur la tentative
     assert attempt is not None

@@ -9,6 +9,7 @@ from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 from sqlalchemy import func, text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter
@@ -100,7 +101,7 @@ class UserService:
                 query = query.limit(limit)
 
             return query.all()
-        except Exception as users_fetch_error:
+        except SQLAlchemyError as users_fetch_error:
             logger.error(
                 f"Erreur lors de la récupération des utilisateurs: {users_fetch_error}"
             )
@@ -350,7 +351,7 @@ class UserService:
 
             return stats
 
-        except Exception as stats_fetch_error:
+        except SQLAlchemyError as stats_fetch_error:
             logger.error(
                 f"Erreur lors de la récupération des statistiques: {stats_fetch_error}"
             )
@@ -520,7 +521,7 @@ class UserService:
 
             recent_activity.sort(key=lambda x: x.get("time", ""), reverse=True)
             recent_activity = recent_activity[:10]
-        except Exception as activity_error:
+        except SQLAlchemyError as activity_error:
             logger.error(f"Erreur activité récente: {activity_error}")
             recent_activity = []
 
@@ -597,7 +598,7 @@ class UserService:
                 )
                 .count()
             )
-        except Exception:
+        except SQLAlchemyError:
             total_challenges = 0
 
         return {

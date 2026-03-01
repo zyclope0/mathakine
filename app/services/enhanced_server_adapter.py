@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Union
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter
@@ -359,8 +360,13 @@ class EnhancedServerAdapter:
 
             # Convertir en dictionnaires - utiliser to_dict() pour éviter les erreurs d'attributs
             return [ch.to_dict() for ch in challenges]
-        except Exception as e:
+        except SQLAlchemyError as e:
             logger.error(f"Erreur lors de la récupération des logic challenges: {e}")
+            return []
+        except (TypeError, ValueError) as e:
+            logger.error(
+                f"Erreur de données lors de la récupération des logic challenges: {e}"
+            )
             return []
         finally:
             EnhancedServerAdapter.close_db_session(db)
@@ -382,9 +388,14 @@ class EnhancedServerAdapter:
             if challenge:
                 return challenge.to_dict()
             return None
-        except Exception as e:
+        except SQLAlchemyError as e:
             logger.error(
                 f"Erreur lors de la récupération du logic challenge {challenge_id}: {e}"
+            )
+            return None
+        except (TypeError, ValueError) as e:
+            logger.error(
+                f"Erreur de données lors de la récupération du logic challenge {challenge_id}: {e}"
             )
             return None
         finally:
