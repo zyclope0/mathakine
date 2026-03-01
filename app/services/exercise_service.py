@@ -394,18 +394,14 @@ class ExerciseService:
         try:
             from app.services.streak_service import update_user_streak
         except ImportError:
-            logger.warning(
-                "Streak service indisponible (ImportError)", exc_info=True
-            )
+            logger.warning("Streak service indisponible (ImportError)", exc_info=True)
         else:
             try:
                 update_user_streak(db, user_id)
             except SQLAlchemyError:
                 logger.debug("Streak update skipped (DB error)", exc_info=True)
             except (TypeError, ValueError):
-                logger.debug(
-                    "Streak update skipped (data/type error)", exc_info=True
-                )
+                logger.debug("Streak update skipped (data/type error)", exc_info=True)
 
         badge_service = BadgeService(db)
         progress_notif = None

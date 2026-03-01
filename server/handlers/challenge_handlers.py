@@ -733,9 +733,7 @@ async def submit_challenge_answer(request: Request):
                 try:
                     update_user_streak(db, user_id)
                 except SQLAlchemyError:
-                    logger.debug(
-                        "Streak update skipped (DB error)", exc_info=True
-                    )
+                    logger.debug("Streak update skipped (DB error)", exc_info=True)
                 except (TypeError, ValueError):
                     logger.debug(
                         "Streak update skipped (data/type error)", exc_info=True
