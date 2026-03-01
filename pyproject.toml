@@ -28,3 +28,33 @@ extend-exclude = '''
 [tool.isort]
 profile = "black"
 line_length = 88
+
+# Mypy 5.2 (audit) — démarrage progressif : passe en CI, durcissement ultérieur
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+# Permettre Optional implicite (def foo(x: str = None)) — à durcir plus tard
+no_implicit_optional = false
+# Désactiver temporairement les codes les plus bruyants (à réactiver module par module)
+disable_error_code = [
+    "no-any-return",
+    "assignment",
+    "arg-type",
+    "return-value",
+    "union-attr",
+    "attr-defined",
+    "var-annotated",
+    "call-overload",
+    "operator",
+    "index",
+]
+
+# Modules critiques : réactiver no-any-return pour détecter retours Any incorrects
+[[tool.mypy.overrides]]
+module = ["app.db.adapter", "app.utils.error_handler", "app.exceptions"]
+disable_error_code = [
+    "assignment", "arg-type", "return-value", "union-attr", "attr-defined",
+    "var-annotated", "call-overload", "operator", "index",
+]

@@ -180,7 +180,7 @@ jobs:
     - name: Install linting tools
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 black isort
+        pip install flake8 black isort mypy
     
     - name: Run flake8 (critical errors only)
       run: |
@@ -193,6 +193,10 @@ jobs:
     - name: Check import sorting with isort
       run: |
         isort app/ server/ --check-only --diff
+
+    - name: Type check with mypy
+      run: |
+        mypy app/ server/ --ignore-missing-imports
 
   frontend:
     runs-on: ubuntu-latest

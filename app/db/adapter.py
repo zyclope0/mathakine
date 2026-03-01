@@ -74,7 +74,10 @@ class DatabaseAdapter:
 
     @staticmethod
     def list_active(
-        db: Session, model_class: Type[Base], limit: int = None, offset: int = None
+        db: Session,
+        model_class: Type[Base],
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> List[Base]:
         """
         Liste les objets actifs (non archivés) d'un modèle.

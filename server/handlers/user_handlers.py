@@ -147,6 +147,11 @@ async def create_user_account(request: Request):
                     email=email,
                     password=password,
                     full_name=full_name,
+                    grade_level=None,
+                    learning_style=None,
+                    preferred_difficulty=None,
+                    preferred_theme=None,
+                    accessibility_settings=None,
                 )
 
                 # Créer l'utilisateur

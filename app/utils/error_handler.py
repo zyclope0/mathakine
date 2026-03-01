@@ -116,7 +116,7 @@ class ErrorHandler:
         error: Exception,
         status_code: int = 500,
         user_message: Optional[str] = None,
-        include_details: bool = None,
+        include_details: Optional[bool] = None,
     ) -> JSONResponse:
         """
         Crée une réponse d'erreur JSON standardisée.
