@@ -594,8 +594,8 @@ def record_attempt(
             .first()
         )
 
-        total_attempts = stats.total if stats else 0
-        correct_attempts = stats.correct if stats else 0
+        total_attempts = stats.total if stats and stats.total else 0
+        correct_attempts = stats.correct if stats and stats.correct else 0
         challenge.success_rate = (
             (correct_attempts / total_attempts) * 100 if total_attempts > 0 else 0.0
         )

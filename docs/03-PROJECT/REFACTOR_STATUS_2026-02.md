@@ -1,7 +1,7 @@
 # État du refactoring — Mathakine
 
 **Date :** 28/02/2026  
-**Référence :** [PLAN_CLEAN_CODE_ET_DTO_2026-02.md](./PLAN_CLEAN_CODE_ET_DTO_2026-02.md), [PLAN_REFACTO_ARCHITECTURE_2026-02.md](./PLAN_REFACTO_ARCHITECTURE_2026-02.md)
+**Référence :** [PLAN_CLEAN_CODE_ET_DTO_2026-02.md](./PLAN_CLEAN_CODE_ET_DTO_2026-02.md), [PLAN_REFACTO_ARCHITECTURE_2026-02.md](./AUDITS_ET_RAPPORTS_ARCHIVES/PLAN_REFACTO_ARCHITECTURE_2026-02.md)
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Plan | P1–P3 / Ph1–Ph3 | Restant |
 |------|-----------------|---------|
-| **Clean Code & DTO** | ✅ Terminé | P4 (admin DTO, OpenAPI, mypy) |
+| **Clean Code & DTO** | ✅ Terminé | P4 (admin DTO, OpenAPI) — mypy ✅ fait |
 | **Architecture** | ✅ Terminé | Ph4 (dépendances inversées, reporté) |
 
 ---
@@ -40,7 +40,7 @@
 ### Priorité 4 (à faire)
 - 4.1 DTO endpoints admin (AdminUsersQuery, etc.)
 - 4.2 Documenter contrats OpenAPI
-- 4.3 Audit mypy modules critiques
+- 4.3 Audit mypy modules critiques — ✅ Fait (22/02) : config pyproject, CI, types critiques (adapter, error_handler), overrides no-any-return
 
 ---
 
@@ -82,5 +82,5 @@
 ## Références
 
 - [PLAN_CLEAN_CODE_ET_DTO_2026-02.md](./PLAN_CLEAN_CODE_ET_DTO_2026-02.md) — Détail étapes et historique
-- [PLAN_REFACTO_ARCHITECTURE_2026-02.md](./PLAN_REFACTO_ARCHITECTURE_2026-02.md) — Phases architecture
+- [PLAN_REFACTO_ARCHITECTURE_2026-02.md](./AUDITS_ET_RAPPORTS_ARCHIVES/PLAN_REFACTO_ARCHITECTURE_2026-02.md) — Phases architecture
 - [ANALYSE_DUPLICATION_DRY_2026-02.md](./ANALYSE_DUPLICATION_DRY_2026-02.md) — DRY backend/frontend

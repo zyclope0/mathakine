@@ -781,6 +781,8 @@ async def submit_challenge_answer(request: Request):
         return api_error_response(500, get_safe_error_message(submission_error))
 
 
+@require_auth
+@require_full_access
 async def get_challenge_hint(request: Request):
     """
     Récupère un indice pour un défi logique.

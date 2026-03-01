@@ -329,20 +329,12 @@ def refresh_access_token(db: Session, refresh_token: str) -> dict:
                 detail="Compte utilisateur désactivé",
             )
 
-        # Générer un nouveau token d'accès ET un nouveau refresh token (rotation)
-        # Best-practice: chaque refresh invalide l'ancien en émettant un nouveau
-        # Gérer le cas où role est string ou enum
-        role_value = user.role if isinstance(user.role, str) else user.role.value
         new_token_data = create_user_token(user)
         return {
             "access_token": new_token_data.get("access_token"),
-            "refresh_token": new_token_data.get(
-                "refresh_token"
-            ),  # Rotation: nouveau à chaque refresh
+            "refresh_token": new_token_data.get("refresh_token"),
             "token_type": "bearer",
         }
-
-        # ... (le code précédent reste le même) ...
 
     except jwt.ExpiredSignatureError:
         logger.warning("Tentative de rafraîchissement avec un token expiré")

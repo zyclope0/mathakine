@@ -151,7 +151,7 @@ _AUTH_PUBLIC_EXACT: List[Tuple[str, Set[str]]] = [
     ("/api/challenges/completed-ids", {"GET"}),
     ("/api/badges/available", {"GET"}),
     ("/api/badges/rarity", {"GET"}),
-    ("/api/users/leaderboard", {"GET"}),
+    # leaderboard : protégé par @require_auth dans le handler
 ]
 _AUTH_PUBLIC_PATTERNS: List[Tuple[re.Pattern, Set[str]]] = [
     # Détail exercice (get_exercise sans décorateur = public)

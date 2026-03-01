@@ -156,7 +156,7 @@ docs/
 ### Je veux consulter l'état du refactor
 1. [REFACTOR_STATUS_2026-02.md](03-PROJECT/REFACTOR_STATUS_2026-02.md) — État Clean Code P1–P3 + Architecture Ph1–Ph3
 2. [PLAN_CLEAN_CODE_ET_DTO](03-PROJECT/PLAN_CLEAN_CODE_ET_DTO_2026-02.md) — Détail DTO, exceptions, typage
-3. [PLAN_REFACTO_ARCHITECTURE](03-PROJECT/PLAN_REFACTO_ARCHITECTURE_2026-02.md) — Phases routes, handlers, services
+3. [PLAN_REFACTO_ARCHITECTURE](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/PLAN_REFACTO_ARCHITECTURE_2026-02.md) — Phases routes, handlers, services
 
 ### Je veux consulter des audits/rapports
 1. [03-PROJECT — Index maître](03-PROJECT/README.md) - Taxonomie audits, recommandations, rapports

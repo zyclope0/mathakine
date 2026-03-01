@@ -243,7 +243,7 @@
 | # | Tâche | Fichier(s) | Critères de validation |
 |---|-------|------------|------------------------|
 | 5.1 | Passer les services en instances injectables | Tous les services | Handler reçoit service en param ou via factory |
-| 5.2 | Activer mypy sur modules critiques | `app/`, `server/` | ✅ Fait — config progressive (ignore_missing_imports, disable_error_code), CI, 3 corrections (chat_handlers, challenges API, user_handlers) |
+| 5.2 | Activer mypy sur modules critiques | `app/`, `server/` | ✅ Fait — config progressive (ignore_missing_imports, disable_error_code), CI, 3 corrections (chat_handlers, challenges API, user_handlers). Types critiques : `adapter.list_active(limit, offset)` Optional[int], `error_handler.create_error_response(include_details)` Optional[bool], pyproject overrides `no-any-return` pour modules critiques. |
 | 5.3 | Documenter les contrats OpenAPI (schémas) | `docs/` ou annotations | Référence à jour pour les endpoints principaux |
 
 **Tests requis :**
@@ -332,6 +332,7 @@
 | 01/03/2026 | 1.4 | ChallengeNotFoundError hérite de ExerciseSubmitError (alignement exceptions métier). |
 | 22/02/2026 | 2.3 | ✅ except Exception → SQLAlchemyError + (TypeError, ValueError). Fichiers : adapter, exercise_service, logic_challenge_service, badge_service, user_service, recommendation_service, enhanced_server_adapter, challenge_handlers. Tests : 526 passent. |
 | 22/02/2026 | 5.2 | ✅ Mypy : pyproject.toml config progressive, CI lint job, corrections chat_handlers (error_generator), challenges API (LogicChallengeService static), user_handlers (UserCreate args). |
+| 22/02/2026 | 5.2 | ✅ Types critiques : adapter.list_active(limit, offset) Optional[int], error_handler.create_error_response(include_details) Optional[bool], pyproject overrides no-any-return pour app.db.adapter, app.utils.error_handler, app.exceptions. |
 
 ---
 
@@ -356,6 +357,6 @@
 ## Références
 
 - [REFACTOR_STATUS_2026-02.md](./REFACTOR_STATUS_2026-02.md) — État du refactoring en cours
-- [PLAN_REFACTO_ARCHITECTURE_2026-02.md](./PLAN_REFACTO_ARCHITECTURE_2026-02.md) — Plan architecture
+- [PLAN_REFACTO_ARCHITECTURE_2026-02.md](./AUDITS_ET_RAPPORTS_ARCHIVES/PLAN_REFACTO_ARCHITECTURE_2026-02.md) — Plan architecture
 - [docs/01-GUIDES/TESTING.md](../01-GUIDES/TESTING.md) — Guide tests
 - [docs/01-GUIDES/DEPLOYMENT_ENV.md](../01-GUIDES/DEPLOYMENT_ENV.md) — Environnements déploiement

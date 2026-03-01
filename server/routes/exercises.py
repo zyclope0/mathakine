@@ -4,7 +4,6 @@ from starlette.routing import Route
 
 from server.handlers.exercise_handlers import (
     generate_ai_exercise_stream,
-    generate_exercise,
     generate_exercise_api,
     get_completed_exercises_ids,
     get_exercise,
@@ -25,11 +24,6 @@ def get_exercises_routes():
         Route(
             "/api/exercises/{exercise_id:int}",
             endpoint=get_exercise,
-            methods=["GET"],
-        ),
-        Route(
-            "/api/exercises/generate",
-            endpoint=generate_exercise,
             methods=["GET"],
         ),
         Route(

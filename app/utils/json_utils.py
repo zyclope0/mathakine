@@ -42,7 +42,7 @@ def extract_json_from_text(text: str) -> dict:
         json.JSONDecodeError: Si aucun JSON valide n'est trouvé
     """
     if not text or not text.strip():
-        raise json.JSONDecodeError("Réponse vide", text, 0)
+        raise json.JSONDecodeError("Réponse vide", text or "", 0)
     try:
         return json.loads(text)
     except json.JSONDecodeError:

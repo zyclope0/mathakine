@@ -240,13 +240,16 @@ async def get_exercises_list(request):
 async def generate_exercise_api(request):
     """Génère un nouvel exercice via API JSON (POST) en utilisant le groupe d'âge."""
     try:
-        # Récupérer les données JSON de la requête
         data = await request.json()
         exercise_type_raw = data.get("exercise_type")
-        age_group_raw = data.get("age_group")  # Changed from difficulty
+        age_group_raw = data.get("age_group")
         use_ai = data.get("ai", False)
 
-        # Normaliser et valider les paramètres
+        if not exercise_type_raw or not age_group_raw:
+            return api_error_response(
+                400, "Les paramètres 'exercise_type' et 'age_group' sont requis"
+            )
+
         from server.exercise_generator import normalize_and_validate_exercise_params
 
         exercise_type, age_group, derived_difficulty = (
@@ -256,12 +259,6 @@ async def generate_exercise_api(request):
         logger.debug(
             f"Génération API: type={exercise_type_raw}→{exercise_type}, groupe d'âge={age_group_raw}→{age_group}, IA={use_ai}"
         )
-
-        # Valider les paramètres
-        if not exercise_type_raw or not age_group_raw:
-            return api_error_response(
-                400, "Les paramètres 'exercise_type' et 'age_group' sont requis"
-            )
 
         # Générer l'exercice
         ai_generated = False

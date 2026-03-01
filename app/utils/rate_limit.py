@@ -59,9 +59,10 @@ def _check_rate_limit(
     if os.getenv("TESTING", "false").lower() == "true":
         return True
     now = time.time()
-    # Nettoyer les entrées expirées
     _rate_limit_store[key] = [t for t in _rate_limit_store[key] if now - t < window_sec]
-    if len(_rate_limit_store[key]) >= max_requests:
+    if not _rate_limit_store[key]:
+        del _rate_limit_store[key]
+    if len(_rate_limit_store.get(key, [])) >= max_requests:
         return False
     _rate_limit_store[key].append(now)
     return True

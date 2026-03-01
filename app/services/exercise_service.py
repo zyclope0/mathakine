@@ -4,7 +4,7 @@ Implémente les opérations métier liées aux exercices et utilise le transacti
 """
 
 import random
-from typing import Any, Dict, List, Optional, Protocol, Union
+from typing import Any, Dict, List, Optional, Union
 
 from sqlalchemy import String, cast, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -25,31 +25,6 @@ from app.utils.json_utils import safe_parse_json
 
 logger = get_logger(__name__)
 
-
-class ExerciseServiceProtocol(Protocol):
-    """
-    Protocol pour injection future et tests.
-    Définit le contrat des méthodes exercices utilisées par les handlers.
-    """
-
-    @staticmethod
-    def get_exercise_for_api(
-        db: Session, exercise_id: int
-    ) -> Optional[Dict[str, Any]]: ...
-
-    @staticmethod
-    def get_exercise_for_submit_validation(
-        db: Session, exercise_id: int
-    ) -> Optional[Dict[str, Any]]: ...
-
-    @staticmethod
-    def submit_answer_result(
-        db: Session,
-        exercise_id: int,
-        user_id: int,
-        selected_answer: Any,
-        time_spent: float,
-    ) -> SubmitAnswerResponse: ...
 
 
 def _exercise_row_to_dict(
@@ -403,10 +378,14 @@ class ExerciseService:
             except (TypeError, ValueError):
                 logger.debug("Streak update skipped (data/type error)", exc_info=True)
 
-        badge_service = BadgeService(db)
         progress_notif = None
         if not new_badges:
-            progress_notif = badge_service.get_closest_progress_notification(user_id)
+            try:
+                progress_notif = badge_service.get_closest_progress_notification(
+                    user_id
+                )
+            except (SQLAlchemyError, TypeError, ValueError):
+                logger.debug("Badge progress notification skipped", exc_info=True)
         return SubmitAnswerResponse(
             is_correct=is_correct,
             correct_answer=correct_answer,
@@ -442,21 +421,6 @@ class ExerciseService:
             query = db.query(Exercise).filter(
                 Exercise.is_archived == False, Exercise.is_active == True
             )
-
-            # FILTRE CRITIQUE : Accepter les valeurs en majuscules ET minuscules
-            # pour compatibilité avec les données existantes
-            valid_types = [t.value for t in ExerciseType]
-            valid_difficulties = [d.value for d in DifficultyLevel]
-
-            # Ajouter les valeurs en minuscules pour compatibilité
-            valid_types.extend(
-                ["addition", "subtraction", "multiplication", "division", "mixed"]
-            )
-            valid_difficulties.extend(["initie", "padawan", "chevalier", "maitre"])
-
-            # Ne pas filtrer par énumération pour éviter les problèmes
-            # query = query.filter(Exercise.exercise_type.in_(valid_types))
-            # query = query.filter(Exercise.difficulty.in_(valid_difficulties))
 
             if exercise_type:
                 query = query.filter(Exercise.exercise_type == exercise_type)
@@ -770,66 +734,10 @@ class ExerciseService:
 
                 exercise = ExerciseService.get_exercise(session, exercise_id)
 
-                # Si SQLAlchemy ne trouve pas l'exercice, essayer avec PostgreSQL direct
-                if not exercise:
-                    logger.warning(
-                        f"SQLAlchemy n'a pas trouvé l'exercice {exercise_id}, tentative avec PostgreSQL direct"
-                    )
-                    try:
-                        # NOTE: exercise_service_translations archivé - fallback désactivé
-                        logger.error(f"Exercice {exercise_id} introuvable en base")
-                        exercise_dict = None
-                        if exercise_dict:
-                            logger.info(
-                                f"Exercice {exercise_id} trouvé via PostgreSQL direct"
-                            )
-                            # Utiliser get_exercise qui gère correctement les enums
-                            exercise = ExerciseService.get_exercise(
-                                session, exercise_id
-                            )
-                    except SQLAlchemyError as pg_error:
-                        logger.error(
-                            f"Erreur lors de la récupération PostgreSQL directe: {pg_error}"
-                        )
-
                 if not exercise:
                     logger.error(
-                        f"Tentative d'enregistrement d'une tentative pour un exercice inexistant (ID {exercise_id})"
+                        f"Exercice {exercise_id} introuvable — tentative non enregistrée"
                     )
-                    # Essayer de vérifier si l'exercice existe vraiment en BDD avec une requête directe
-                    from server.database import get_db_connection
-
-                    conn = get_db_connection()
-                    cursor = conn.cursor()
-                    try:
-                        cursor.execute(
-                            "SELECT id FROM exercises WHERE id = %s", (exercise_id,)
-                        )
-                        exists = cursor.fetchone()
-                        if exists:
-                            logger.warning(
-                                f"L'exercice {exercise_id} existe en BDD mais n'est pas trouvé par SQLAlchemy ORM"
-                            )
-                            # Forcer le refresh de la session SQLAlchemy et utiliser get_exercise qui gère les enums
-                            session.expire_all()
-                            exercise = ExerciseService.get_exercise(
-                                session, exercise_id
-                            )
-                            if not exercise:
-                                logger.error(
-                                    f"Impossible de charger l'exercice {exercise_id} même après refresh"
-                                )
-                                return None
-                        else:
-                            logger.error(
-                                f"L'exercice {exercise_id} n'existe vraiment pas en BDD"
-                            )
-                            return None
-                    finally:
-                        cursor.close()
-                        conn.close()
-
-                if not exercise:
                     return None
 
                 logger.info(f"Exercice {exercise_id} trouvé: {exercise.title}")

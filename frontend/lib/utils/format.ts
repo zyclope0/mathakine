@@ -10,7 +10,7 @@
  * @returns Le pourcentage formaté ou null si invalide
  */
 export function formatSuccessRate(rate: number | null | undefined): string | null {
-  if (rate === null || rate === undefined || rate <= 0) {
+  if (rate === null || rate === undefined || rate < 0) {
     return null;
   }
   // Si > 1, c'est déjà un pourcentage (ex: 75 pour 75%)

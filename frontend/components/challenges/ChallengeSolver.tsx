@@ -82,8 +82,6 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
           const parsed = JSON.parse(challenge.hints);
           hintsArray = Array.isArray(parsed) ? parsed : [];
         } catch {
-          // JSON malformé, utiliser un tableau vide
-          console.warn("Impossible de parser les indices JSON:", challenge.hints);
           hintsArray = [];
         }
       }

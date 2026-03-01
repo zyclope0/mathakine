@@ -34,17 +34,18 @@
 | Document | Date | Sujet |
 |----------|------|-------|
 | **[REFACTOR_STATUS_2026-02.md](./REFACTOR_STATUS_2026-02.md)** | 28/02/2026 | **État refactor** — Clean Code P1–P3, Architecture Ph1–Ph3, synthèse |
-| [PLAN_CLEAN_CODE_ET_DTO_2026-02.md](./PLAN_CLEAN_CODE_ET_DTO_2026-02.md) | 28/02/2026 | DTO, exceptions, typage — P4 (admin, OpenAPI) restant |
-| [PLAN_REFACTO_ARCHITECTURE_2026-02.md](./PLAN_REFACTO_ARCHITECTURE_2026-02.md) | 28/02/2026 | Routes découpées, handlers, ExerciseStatsService — Ph4 reporté |
+| [PLAN_CLEAN_CODE_ET_DTO_2026-02.md](./PLAN_CLEAN_CODE_ET_DTO_2026-02.md) | 28/02/2026 | DTO, exceptions, typage — P4 (admin, OpenAPI) restant ; mypy ✅ fait |
+| [PLAN_REFACTO_ARCHITECTURE_2026-02.md](./AUDITS_ET_RAPPORTS_ARCHIVES/PLAN_REFACTO_ARCHITECTURE_2026-02.md) | 28/02/2026 | Routes découpées, handlers, ExerciseStatsService — Ph4 reporté |
 
 ### Audits avec recommandations partielles
 
 | Document | Date | Sujet | État |
 |----------|------|-------|------|
-| **[AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md](./AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md)** | 28/02/2026 | Audit backend (5 piliers) + plan itérations Dev/Test/Prod | Plan d'intervention par itération |
+| **[AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md](./AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md)** | 28/02/2026 | Audit backend (5 piliers) + plan itérations Dev/Test/Prod | It1–4 ✅, It5.2 mypy + types critiques ✅ |
 | [AUDIT_DASHBOARD_2026-02.md](./AUDIT_DASHBOARD_2026-02.md) | Fév. 2026 | Dashboard — imports, i18n, handleRefresh | Recos partielles |
 | [AUDIT_SENTRY_2026-02.md](./AUDIT_SENTRY_2026-02.md) | Fév. 2026 | Configuration Sentry, monitoring | Référence config |
 | [ANALYSE_DUPLICATION_DRY_2026-02.md](./ANALYSE_DUPLICATION_DRY_2026-02.md) | Fév. 2026 | DRY, duplication code | ~90 % traité (db_session, parse_json_body, safe_parse_json, api_error_response, exceptions P3) — vérité terrain 28/02 |
+| **[AUDIT_CODE_CLEANUP_2026-03-01.md](./AUDIT_CODE_CLEANUP_2026-03-01.md)** | 01/03/2026 | Bugs, dead code, incohérences (app/, server/, frontend/) | 4 CRITICAL, 15 HIGH, 20 MEDIUM — plan d'action priorisé |
 
 ### Vulnérabilités (CVE)
 

@@ -384,8 +384,10 @@ cd frontend && npx next build                # Build de production
 cd frontend && npm test                      # Tests unitaires (vitest)
 cd frontend && npx playwright test           # Tests E2E
 
-# Tests Python
+# Tests et qualite Python
 pytest tests/                                # Lancer les tests pytest
+mypy app/ server/ --ignore-missing-imports   # Typage statique (CI)
+black app/ server/ && isort app/ server/    # Formatage (pre-commit)
 ```
 
 ---

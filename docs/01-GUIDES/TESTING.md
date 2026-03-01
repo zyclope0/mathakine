@@ -731,7 +731,7 @@ Hooks avec logique réutilisable : `usePaginatedContent`, logique de filtre, etc
 | Job | Actions |
 |-----|---------|
 | **test** | PostgreSQL 15, schema init uniquement (sans seed), pytest (unit+api+integration), coverage + JUnit XML, upload Codecov (coverage + test_results, flag backend) |
-| **lint** | flake8, black, isort (backend) |
+| **lint** | flake8, black, isort, mypy (backend) |
 | **frontend** | npm ci, tsc --noEmit, ESLint, vitest --coverage --reporter=junit, upload Codecov (coverage + test_results, flag frontend), build |
 
 Un echec de test ou de lint bloque le merge. Les rapports de couverture sont envoyes a Codecov (backend + frontend separes).
@@ -929,6 +929,14 @@ Ce script protege les memes utilisateurs permanents et respecte le meme ordre FK
 ---
 
 ## 📝 MODIFICATIONS RECENTES {#modifications-recentes}
+
+### 22/02/2026 – Mypy CI, types critiques (audit backend 5.2)
+
+| Domaine | Modification |
+|---------|---------------|
+| **CI lint** | mypy ajouté au job lint : `mypy app/ server/ --ignore-missing-imports` |
+| **Types critiques** | adapter.list_active(limit, offset) Optional[int], error_handler.create_error_response(include_details) Optional[bool], pyproject overrides no-any-return pour modules critiques |
+| **Référence** | [AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md](../03-PROJECT/AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md) § 5.2 |
 
 ### 22/02/2026 – Refactor CI ObiWan, couverture ExerciseService
 

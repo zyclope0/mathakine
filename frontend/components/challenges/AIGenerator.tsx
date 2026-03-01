@@ -24,6 +24,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
+import { ensureFrontendAuthCookie } from "@/lib/api/client";
 
 interface AIGeneratorProps {
   onChallengeGenerated?: (challenge: Challenge) => void;
@@ -96,33 +97,16 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
-      // Appeler directement le backend (pas d'API route proxy)
-      // C'est la même approche que tous les autres endpoints (login, exercices, etc.)
-      const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
+      await ensureFrontendAuthCookie();
 
-      if (!backendUrl) {
-        // En développement, utiliser localhost par défaut
-        // En production, les variables d'environnement DOIVENT être définies
-        const isDev = process.env.NODE_ENV === "development";
-        if (!isDev) {
-          throw new Error("Configuration manquante: NEXT_PUBLIC_API_BASE_URL non défini");
-        }
-      }
-
-      const finalUrl = backendUrl || "http://localhost:10000";
-      const url = `${finalUrl}/api/challenges/generate-ai-stream?${params.toString()}`;
-
-      if (process.env.NODE_ENV === "development") {
-        console.log("[AIGenerator] Calling backend:", url);
-      }
+      const url = `/api/challenges/generate-ai-stream?${params.toString()}`;
 
       const response = await fetch(url, {
         method: "GET",
         headers: {
           Accept: "text/event-stream",
         },
-        credentials: "include", // Important : envoie les cookies HTTP-only
-        signal: abortController.signal, // Permet l'annulation
+        signal: abortController.signal,
       });
 
       if (!response.ok) {

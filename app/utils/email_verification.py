@@ -34,6 +34,8 @@ def is_verification_token_expired(sent_at: Optional[datetime]) -> bool:
     if not sent_at:
         return True
 
+    if sent_at.tzinfo is None:
+        sent_at = sent_at.replace(tzinfo=timezone.utc)
     expiration_time = sent_at + timedelta(hours=24)
     return datetime.now(timezone.utc) > expiration_time
 
@@ -50,6 +52,8 @@ def is_password_reset_token_expired(expires_at: Optional[datetime]) -> bool:
     """
     if not expires_at:
         return True
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
     return datetime.now(timezone.utc) > expires_at
 
 

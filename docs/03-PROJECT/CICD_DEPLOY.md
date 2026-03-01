@@ -16,7 +16,7 @@ Le workflow **CI (Tests + Lint)** (`.github/workflows/tests.yml`) est la **sourc
 | Job   | Actions                                        |
 |-------|-------------------------------------------------|
 | test  | Backend : pytest (coverage), smoke /health, Codecov |
-| lint  | Backend : flake8, black, isort                  |
+| lint  | Backend : flake8, black, isort, mypy            |
 | frontend | TypeScript, ESLint, Prettier, Vitest, build Next.js |
 
 **Gate :** Les tests et le lint doivent passer avant merge.
@@ -26,6 +26,7 @@ Le workflow **CI (Tests + Lint)** (`.github/workflows/tests.yml`) est la **sourc
 - `flake8` : erreurs critiques uniquement (`E9,F63,F7,F82`)
 - `black` : vérification formatage (config dans `pyproject.toml`)
 - `isort` : vérification tri des imports (profil `black` dans `pyproject.toml`)
+- `mypy` : typage statique (`mypy app/ server/ --ignore-missing-imports`) — config progressive dans `pyproject.toml`
 - `prettier` : formatage frontend (job frontend)
 
 #### Stratégie flake8

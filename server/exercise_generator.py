@@ -157,10 +157,12 @@ def generate_ai_exercise(exercise_type, age_group):
             )
 
         # Générer des choix proches mais différents
+        # Guard: result // 2 peut être 0 si result == 1 → random.randint(1, 0) crash
+        wrong_offset = min(3, max(1, result // 2))
         choices = [
             str(result),
             str(result + random.randint(1, min(5, max2))),
-            str(result - random.randint(1, min(3, result // 2))),
+            str(result - random.randint(1, wrong_offset)),
             str(num2 - num1),  # Erreur commune: inverser l'ordre de la soustraction
         ]
         random.shuffle(choices)

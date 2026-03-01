@@ -448,38 +448,50 @@ async def api_refresh_token(request: Request):
                         access_token_fallback,
                         settings.SECRET_KEY,
                         algorithms=[settings.ALGORITHM],
-                        options={
-                            "verify_exp": False
-                        },  # Ne pas vérifier l'expiration pour le fallback
+                        options={"verify_exp": False},
                     )
-                    # Si l'access_token est valide mais expiré, créer un nouveau refresh_token
-                    username = payload.get("sub")
-                    if username:
-                        logger.info(
-                            f"Fallback: Création d'un nouveau refresh_token pour l'utilisateur existant: {username}"
+                    exp = payload.get("exp")
+                    if exp is None:
+                        logger.warning(
+                            "Fallback refusé: access_token sans claim exp"
                         )
-                        async with db_session() as db_fallback:
-                            from app.services.auth_service import (
-                                create_user_token,
-                                get_user_by_username,
+                        payload = None
+                    else:
+                        max_age_sec = 7 * 24 * 3600
+                        if datetime.now(timezone.utc).timestamp() - exp > max_age_sec:
+                            logger.warning(
+                                "Fallback refusé: access_token expiré depuis plus de 7 jours"
                             )
+                            payload = None
+                    if payload:
+                        username = payload.get("sub")
+                        if username:
+                            logger.info(
+                                f"Fallback: Création d'un nouveau refresh_token pour l'utilisateur existant: {username}"
+                            )
+                            async with db_session() as db_fallback:
+                                from app.services.auth_service import (
+                                    create_user_token,
+                                    get_user_by_username,
+                                )
 
-                            user_fallback = get_user_by_username(db_fallback, username)
-                            if user_fallback:
-                                # Créer un nouveau refresh_token pour cet utilisateur
-                                new_token_data_fallback = create_user_token(
-                                    user_fallback
+                                user_fallback = get_user_by_username(
+                                    db_fallback, username
                                 )
-                                refresh_token = new_token_data_fallback.get(
-                                    "refresh_token"
-                                )
-                                logger.info(
-                                    f"Fallback: Nouveau refresh_token créé pour {username}"
-                                )
-                            else:
-                                logger.warning(
-                                    f"Fallback: Utilisateur {username} non trouvé"
-                                )
+                                if user_fallback:
+                                    new_token_data_fallback = create_user_token(
+                                        user_fallback
+                                    )
+                                    refresh_token = new_token_data_fallback.get(
+                                        "refresh_token"
+                                    )
+                                    logger.info(
+                                        f"Fallback: Nouveau refresh_token créé pour {username}"
+                                    )
+                                else:
+                                    logger.warning(
+                                        f"Fallback: Utilisateur {username} non trouvé"
+                                    )
                 except Exception as fallback_error:
                     logger.debug(f"Fallback échoué: {fallback_error}")
 

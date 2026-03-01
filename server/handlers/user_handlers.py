@@ -661,8 +661,27 @@ async def delete_user_me(request: Request):
             response = JSONResponse(
                 {"success": True, "message": "Votre compte a été supprimé avec succès."}
             )
-            response.delete_cookie("access_token")
-            response.delete_cookie("refresh_token")
+            import os
+
+            is_production = (
+                os.getenv("NODE_ENV") == "production"
+                or os.getenv("ENVIRONMENT") == "production"
+                or os.getenv("MATH_TRAINER_PROFILE") == "prod"
+            )
+            cookie_samesite = "none" if is_production else "lax"
+            cookie_secure = is_production
+            response.delete_cookie(
+                "access_token",
+                path="/",
+                samesite=cookie_samesite,
+                secure=cookie_secure,
+            )
+            response.delete_cookie(
+                "refresh_token",
+                path="/",
+                samesite=cookie_samesite,
+                secure=cookie_secure,
+            )
             return response
 
     except Exception as e:

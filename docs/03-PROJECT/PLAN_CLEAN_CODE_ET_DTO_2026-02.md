@@ -58,7 +58,7 @@
 |-------|----------|----------|
 | **4.1** | DTO endpoints admin | `AdminUsersQuery`, `AdminExercisesQuery`, etc. |
 | **4.2** | Documenter contrats dans docstrings / OpenAPI | Schémas référencés dans routes |
-| **4.3** | Audit mypy sur modules critiques | Typer retours des services |
+| **4.3** | Audit mypy sur modules critiques | ✅ Fait (22/02) — config pyproject, CI, types critiques (adapter, error_handler), overrides no-any-return |
 
 ---
 
@@ -110,3 +110,4 @@ Ou, plus léger : extension des `app/schemas/exercise.py` existants avec des cla
 | 22/02/2026 | 3.1 | `app/exceptions.py` : `ExerciseNotFoundError`, `ExerciseSubmitError` ; service lève exceptions métier ; handlers catch ciblé |
 | 22/02/2026 | 3.2 | Handlers submit_answer, get_exercise : catch `(ExerciseNotFoundError, ExerciseSubmitError)` au lieu de `except Exception` |
 | 22/02/2026 | 3.3 | `SubmitAnswerResponse` (Pydantic) ; `submit_answer_result` retourne type dédié ; tests mis à jour |
+| 22/02/2026 | 4.3 | Mypy : config pyproject, CI lint, types critiques (adapter.list_active, error_handler.create_error_response), overrides no-any-return |
