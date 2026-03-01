@@ -102,7 +102,7 @@ if exercise_dict:  # ← TOUJOURS False
 |---|---|
 | **Fichier** | `app/services/exercise_service.py:994-1000` |
 | **Catégorie** | BUG — Données |
-| **Statut** | ⏸ Reporté — table `user_stats` legacy sans colonne `user_id` (schema par design). Migration nécessaire pour corriger. |
+| **Statut** | ✅ Corrigé 01/03 — dead write supprimé (aucun consumer ne lit cette table) |
 
 ```python
 user_stat = (
@@ -117,7 +117,7 @@ user_stat = (
 
 **Impact :** La requête filtre par `exercise_type` et `difficulty` mais **jamais par `user_id`**. Tous les utilisateurs partagent les mêmes lignes de stats. Les compteurs sont globaux au lieu d'être par utilisateur.
 
-**Correction :** Ajouter `.filter(UserStats.user_id == user_id)`.
+**Correction :** Suppression du bloc d'écriture `user_stats` dans `update_progress_after_attempt` (~55 lignes). La table n'est lue par aucun consumer (le dashboard utilise `attempts JOIN exercises` via `UserService.get_user_stats()`). Table conservée pour cohérence Alembic.
 
 ---
 
@@ -344,7 +344,7 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | 01/03/2026 | C2/C3 | Suppression bloc dead `server.database` dans `record_attempt` |
 | 01/03/2026 | H1 | Guard `max(1, result // 2)` pour subtraction choices |
 | 01/03/2026 | H4 | Accès `row.value` déplacé dans le context manager |
-| 01/03/2026 | C4 | Reporté — table user_stats sans user_id (schema legacy) |
+| 01/03/2026 | C4 | Dead write `user_stats` supprimé (~55 lignes) — aucun consumer, table conservée pour Alembic |
 | 01/03/2026 | H2+M8 | Route GET `/api/exercises/generate` supprimée (HTML legacy) |
 | 01/03/2026 | H3 | `challenges/AIGenerator.tsx` → proxy Next.js + `ensureFrontendAuthCookie()` |
 | 01/03/2026 | H5 | `auth_service.py` : suppression `role_value` mort + except blocks restaurés |

@@ -452,9 +452,7 @@ async def api_refresh_token(request: Request):
                     )
                     exp = payload.get("exp")
                     if exp is None:
-                        logger.warning(
-                            "Fallback refusé: access_token sans claim exp"
-                        )
+                        logger.warning("Fallback refusé: access_token sans claim exp")
                         payload = None
                     else:
                         max_age_sec = 7 * 24 * 3600

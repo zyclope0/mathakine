@@ -52,7 +52,13 @@ class Statistics(Base):
 
 
 class UserStats(Base):
-    """Modèle pour la table user_stats (statistiques utilisateur)."""
+    """Modèle pour la table user_stats (statistiques utilisateur).
+
+    DEPRECATED: Table legacy sans colonne user_id — les stats sont globales,
+    pas par utilisateur. Plus alimentée depuis 01/03/2026 (audit C4).
+    Le dashboard utilise `attempts JOIN exercises` via UserService.get_user_stats().
+    Conservée pour cohérence Alembic / historique schema.
+    """
 
     __tablename__ = "user_stats"
 
