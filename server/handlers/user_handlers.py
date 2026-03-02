@@ -24,7 +24,7 @@ from app.services.auth_service import (
 )
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.user_service import UserService
-from app.utils.csrf import validate_csrf_token
+
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response, get_safe_error_message
 from app.utils.pagination import parse_pagination_params
@@ -573,15 +573,12 @@ async def update_user_password_me(request: Request):
     """
     Handler pour mettre à jour le mot de passe de l'utilisateur actuel.
     Route: PUT /api/users/me/password
-    Protégé CSRF (audit 3.2).
+    Protégé CSRF via CsrfMiddleware (audit H6).
 
     Body attendu :
     - current_password: mot de passe actuel
     - new_password: nouveau mot de passe (min 8 caractères)
     """
-    csrf_err = validate_csrf_token(request)
-    if csrf_err:
-        return csrf_err
     data_or_err = await parse_json_body_any(request)
     if isinstance(data_or_err, JSONResponse):
         return data_or_err
@@ -637,14 +634,11 @@ async def delete_user_me(request: Request):
     """
     Handler pour supprimer le compte de l'utilisateur connecté.
     Route: DELETE /api/users/me
-    Protégé CSRF (audit 3.2).
+    Protégé CSRF via CsrfMiddleware (audit H6).
 
     Supprime l'utilisateur et toutes ses données associées (cascade).
     Accessible aux utilisateurs non vérifiés (RGPD, droit à l'effacement).
     """
-    csrf_err = validate_csrf_token(request)
-    if csrf_err:
-        return csrf_err
     try:
         current_user = request.state.user
         user_id = current_user.get("id")

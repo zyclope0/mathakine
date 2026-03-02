@@ -53,14 +53,9 @@ export function useProfile() {
     },
   });
 
-  // Changement de mot de passe (protégé CSRF)
   const changePasswordMutation = useMutation({
     mutationFn: async (data: PasswordUpdateData) => {
-      const { getCsrfToken } = await import("@/lib/api/client");
-      const csrfToken = await getCsrfToken();
-      return await api.put<{ message: string; success: boolean }>("/api/users/me/password", data, {
-        headers: { "X-CSRF-Token": csrfToken },
-      });
+      return await api.put<{ message: string; success: boolean }>("/api/users/me/password", data);
     },
     onSuccess: () => {
       toast.success(t("passwordChangeSuccess"), {

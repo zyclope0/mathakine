@@ -27,7 +27,7 @@ from app.services.auth_service import (
     verify_email_token,
 )
 from app.services.email_service import EmailService
-from app.utils.csrf import validate_csrf_token
+
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response
 from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
@@ -353,6 +353,19 @@ async def api_login(request: Request):
                     f"ERREUR: refresh_token non créé pour l'utilisateur: {user.username}"
                 )
 
+            import secrets
+
+            csrf_token = secrets.token_urlsafe(32)
+            response.set_cookie(
+                "csrf_token",
+                csrf_token,
+                path="/",
+                samesite=cookie_samesite,
+                secure=cookie_secure,
+                httponly=False,
+                max_age=3600,
+            )
+
             return response
 
     except Exception as login_error:
@@ -669,11 +682,8 @@ async def api_reset_password(request: Request):
     Réinitialise le mot de passe avec un token valide.
     Route: POST /api/auth/reset-password
     Body: {"token": "...", "password": "...", "password_confirm": "..."}
-    Protégé CSRF (audit 3.2).
+    Protégé CSRF via CsrfMiddleware (audit H6).
     """
-    csrf_err = validate_csrf_token(request)
-    if csrf_err:
-        return csrf_err
     try:
         data = await request.json()
         token = (data.get("token") or "").strip()

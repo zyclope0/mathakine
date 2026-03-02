@@ -60,8 +60,18 @@ let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
 
 /**
- * Récupère un token CSRF pour les actions sensibles (reset password, changement mot de passe, suppression compte).
- * Protège contre les attaques CSRF (audit 3.2).
+ * Lit le cookie csrf_token (httponly=false, pattern double-submit).
+ * Utilisé automatiquement par apiRequest() sur les requêtes mutantes.
+ */
+function getCsrfTokenFromCookie(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Récupère un token CSRF depuis le backend et le pose en cookie.
+ * Appelé au login pour initialiser le cookie csrf_token.
  */
 export async function getCsrfToken(): Promise<string> {
   const baseUrl = getApiBaseUrl();
@@ -221,11 +231,19 @@ export async function apiRequest<T>(
     ...options,
     headers: {
       "Content-Type": "application/json",
-      "Accept-Language": locale, // Envoyer la locale au backend
+      "Accept-Language": locale,
       ...options?.headers,
     },
-    credentials: "include", // Important pour les cookies HTTP-only
+    credentials: "include",
   };
+
+  const method = config.method?.toUpperCase() ?? "GET";
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const csrfToken = getCsrfTokenFromCookie();
+    if (csrfToken) {
+      config.headers = { ...config.headers, "X-CSRF-Token": csrfToken };
+    }
+  }
 
   try {
     const response = await fetch(url, config);

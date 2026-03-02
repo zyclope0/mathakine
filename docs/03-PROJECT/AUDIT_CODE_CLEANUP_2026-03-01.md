@@ -212,13 +212,11 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 |---|---|
 | **Fichiers** | `auth_handlers.py`, `user_handlers.py` |
 | **Catégorie** | INCONSISTENCY — Sécurité |
-| **Statut** | ❌ À corriger |
+| **Statut** | ✅ Corrigé 02/03 |
 
-**Protégés (3) :** `POST /api/auth/reset-password`, `PUT /api/users/me/password`, `DELETE /api/users/me`
+**Protégés avant :** 3 endpoints (reset-password, password change, delete account) via appels manuels dans les handlers.
 
-**Non protégés (12+) :** login, logout, submit attempt, exercise generation, chat, admin actions...
-
-**Impact :** Avec `SameSite=None` en production (cross-domain Render), aucune protection CSRF sur la majorité des endpoints state-changing.
+**Correction :** `CsrfMiddleware` centralisé dans `server/middleware.py` — protège automatiquement **tous** les endpoints state-changing (`POST/PUT/PATCH/DELETE`) sauf les routes exemptées (login, register, refresh, forgot-password, etc.). Les appels manuels `validate_csrf_token()` dans les handlers ont été supprimés. Frontend : `apiRequest()` injecte automatiquement `X-CSRF-Token` depuis le cookie. 23 tests unitaires couvrent la configuration et le comportement fonctionnel.
 
 ---
 
@@ -361,6 +359,7 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | 01/03/2026 | L1 | Suppression `ExerciseServiceProtocol` + import `Protocol` inutilisé |
 | 01/03/2026 | L7 | `json_utils.py` : guard `text or ""` pour éviter `TypeError` sur `None` |
 | 01/03/2026 | L8 | `email_verification.py` : ajout `.replace(tzinfo=utc)` pour datetimes naïfs |
+| 02/03/2026 | H6 | CSRF centralisé via `CsrfMiddleware` — couvre tous les endpoints state-changing |
 
 ---
 

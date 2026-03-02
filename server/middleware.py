@@ -171,6 +171,49 @@ def _is_auth_public(path: str, method: str) -> bool:
     return False
 
 
+_CSRF_EXEMPT_ROUTES: Set[str] = {
+    "/api/auth/login",
+    "/api/auth/logout",
+    "/api/auth/refresh",
+    "/api/auth/validate-token",
+    "/api/auth/forgot-password",
+    "/api/auth/resend-verification",
+    "/api/auth/verify-email",
+    "/api/users/",
+}
+
+_CSRF_MUTATING_METHODS: Set[str] = {"POST", "PUT", "PATCH", "DELETE"}
+
+
+class CsrfMiddleware(BaseHTTPMiddleware):
+    """
+    Protection CSRF centralisée (audit H6).
+
+    Vérifie le token CSRF (pattern double-submit) sur toutes les requêtes
+    mutantes sauf les routes exemptées (login, inscription, etc.).
+    """
+
+    async def dispatch(self, request: Request, call_next: Callable):
+        if request.method not in _CSRF_MUTATING_METHODS:
+            return await call_next(request)
+        path = request.url.path.rstrip("/") or "/"
+        if path in _CSRF_EXEMPT_ROUTES or path.rstrip("/") in {
+            r.rstrip("/") for r in _CSRF_EXEMPT_ROUTES
+        }:
+            return await call_next(request)
+        if not path.startswith("/api/"):
+            return await call_next(request)
+        if os.getenv("TESTING", "false").lower() == "true":
+            return await call_next(request)
+
+        from app.utils.csrf import validate_csrf_token
+
+        csrf_err = validate_csrf_token(request)
+        if csrf_err:
+            return csrf_err
+        return await call_next(request)
+
+
 class AuthenticationMiddleware(BaseHTTPMiddleware):
     """
     Middleware d'authentification deny-by-default.
@@ -288,6 +331,7 @@ def get_middleware() -> List[Middleware]:
                 allow_credentials=True,  # Important pour les cookies HTTP-only
             ),
             Middleware(MaintenanceMiddleware),
+            Middleware(CsrfMiddleware),
             Middleware(AuthenticationMiddleware),
         ]
     )

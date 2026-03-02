@@ -111,14 +111,9 @@ export function useSettings() {
     },
   });
 
-  // Suppression de compte (protégé CSRF)
   const deleteAccountMutation = useMutation({
     mutationFn: async () => {
-      const { getCsrfToken } = await import("@/lib/api/client");
-      const csrfToken = await getCsrfToken();
-      return await api.delete<{ message: string }>("/api/users/me", {
-        headers: { "X-CSRF-Token": csrfToken },
-      });
+      return await api.delete<{ message: string }>("/api/users/me");
     },
     onSuccess: () => {
       toast.success(t("deleteSuccess"), {
