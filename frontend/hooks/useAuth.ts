@@ -27,6 +27,7 @@ interface TokenResponse {
   token_type: string;
   expires_in: number;
   refresh_token?: string; // Optionnel car peut être dans les cookies
+  csrf_token?: string; // Inclus pour permettre de le poser sur le domaine frontend (cross-domain)
   user: User;
 }
 
@@ -81,6 +82,14 @@ export function useAuth() {
       if (data.access_token && typeof window !== "undefined") {
         const { syncAccessTokenToFrontend } = await import("@/lib/api/client");
         await syncAccessTokenToFrontend(data.access_token);
+      }
+
+      // Sync csrf_token sur le domaine frontend (cross-domain prod).
+      // Le cookie est posé par le backend sur son domaine — inaccessible via document.cookie ici.
+      // On le reçoit dans le body JSON et on le fixe sur window.location.hostname.
+      if (data.csrf_token && typeof window !== "undefined") {
+        const isSecure = window.location.protocol === "https:";
+        document.cookie = `csrf_token=${data.csrf_token}; Path=/; SameSite=Strict; Max-Age=3600${isSecure ? "; Secure" : ""}`;
       }
 
       // Mettre à jour le cache directement avec les données utilisateur reçues

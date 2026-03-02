@@ -144,6 +144,11 @@ async function refreshAccessToken(): Promise<boolean> {
           if (data.access_token) {
             await syncAccessTokenToFrontend(data.access_token);
           }
+          // Sync csrf_token renouvelé sur le domaine frontend (cross-domain prod)
+          if (data.csrf_token && typeof document !== "undefined") {
+            const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+            document.cookie = `csrf_token=${data.csrf_token}; Path=/; SameSite=Strict; Max-Age=3600${isSecure ? "; Secure" : ""}`;
+          }
         } catch {
           // Réponse non-JSON non critique
         }

@@ -278,10 +278,14 @@ async def api_login(request: Request):
             from app.utils.unverified_access import get_unverified_access_scope
 
             access_scope = get_unverified_access_scope(user)
+            import secrets as _secrets
+
+            csrf_token_value = _secrets.token_urlsafe(32)
             response_data = {
                 "access_token": token_data.get("access_token"),
                 "token_type": token_data.get("token_type", "bearer"),
                 "expires_in": access_token_max_age,
+                "csrf_token": csrf_token_value,
                 "user": {
                     "id": user.id,
                     "username": user.username,
@@ -352,12 +356,9 @@ async def api_login(request: Request):
                     f"ERREUR: refresh_token non créé pour l'utilisateur: {user.username}"
                 )
 
-            import secrets
-
-            csrf_token = secrets.token_urlsafe(32)
             response.set_cookie(
                 "csrf_token",
-                csrf_token,
+                csrf_token_value,
                 path="/",
                 samesite=cookie_samesite,
                 secure=cookie_secure,
@@ -517,10 +518,15 @@ async def api_refresh_token(request: Request):
 
             logger.info("Token rafraîchi avec succès")
 
+            import secrets as _secrets
+
+            new_csrf_token = _secrets.token_urlsafe(32)
             # refresh_token UNIQUEMENT en cookie (HttpOnly) — jamais dans le body (sécurité XSS)
+            # csrf_token inclus dans le body pour permettre la sync cross-domain côté frontend
             response_data = {
                 "access_token": new_token_data.get("access_token"),
                 "token_type": new_token_data.get("token_type", "bearer"),
+                "csrf_token": new_csrf_token,
             }
             response = JSONResponse(response_data, status_code=200)
 
@@ -580,6 +586,17 @@ async def api_refresh_token(request: Request):
                 logger.debug(
                     f"Cookie refresh_token roté (SameSite={cookie_samesite}, Secure={cookie_secure})"
                 )
+
+            # Renouveler le csrf_token — cookie sur domaine backend + valeur dans body pour sync cross-domain
+            response.set_cookie(
+                "csrf_token",
+                new_csrf_token,
+                path="/",
+                samesite=cookie_samesite,
+                secure=cookie_secure,
+                httponly=False,
+                max_age=3600,
+            )
 
             return response
 
