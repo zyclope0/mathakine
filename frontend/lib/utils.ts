@@ -1,6 +1,4 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+// Re-export depuis lib/utils/cn.ts (source de vérité unique — M15 audit).
+// Les composants shadcn/UI importent depuis "@/lib/utils" ; les autres depuis "@/lib/utils/cn".
+// Les deux chemins fonctionnent, la logique n'est définie qu'en un seul endroit.
+export { cn } from "./utils/cn";

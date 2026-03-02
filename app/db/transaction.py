@@ -47,11 +47,10 @@ class TransactionManager:
             yield db_session
 
             if auto_commit:
-                # Commit du savepoint
+                # Commit du savepoint (libère le SAVEPOINT côté DB)
                 savepoint.commit()
-                # Commit de la transaction principale si nous ne sommes pas dans une transaction de test
-                if not savepoint.is_active:
-                    db_session.commit()
+                # Commit de la transaction principale pour persister les données
+                db_session.commit()
                 logger.debug(f"{log_prefix}: Transaction validée (commit)")
         except Exception as savepoint_error:
             # Rollback au savepoint

@@ -295,7 +295,7 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | M4 | `rate_limit.py:22` | `_rate_limit_store` grossit indéfiniment — fuite mémoire lente | ✅ Corrigé 01/03 |
 | M5 | `token_tracker.py:168-179` | `key.split("_")[0]` tronque les types contenant `_` | ✅ Corrigé 02/03 |
 | M6 | `simple_ttl_cache.py:17-22` | TOCTOU race sur init du lock asyncio | BUG |
-| M7 | `transaction.py:49-54` | `if not savepoint.is_active` toujours True après commit → condition inutile | INCONSISTENCY |
+| M7 | `transaction.py:49-54` | `if not savepoint.is_active` toujours True après commit → condition inutile | ✅ Corrigé 02/03 |
 | M8 | `server/routes/exercises.py:30-34` | GET `/api/exercises/generate` crée en DB (non-idempotent, CSRF vector) | ✅ Corrigé 01/03 (supprimé avec H2) |
 | M9 | `exercise_handlers.py:249-264` | Validation des params après le normalize qui les a déjà defaultés | ✅ Corrigé 01/03 |
 | M10 | `challenge_handlers.py:784` | `get_challenge_hint` sans auth decorator (protection middleware seule) | ✅ Corrigé 01/03 |
@@ -303,7 +303,7 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | M12 | `frontend/lib/utils/format.ts:13` | `rate <= 0` traite 0% de succès comme invalide (devrait être `rate < 0`) | ✅ Corrigé 01/03 |
 | M13 | `frontend/hooks/useAuth.ts:90-107` | Strings françaises hardcodées au milieu du i18n | INCONSISTENCY |
 | M14 | `frontend/components/challenges/ChallengeSolver.tsx:86` | `console.warn` non gated fuit les hints dans la console en prod | ✅ Corrigé 01/03 |
-| M15 | `frontend/lib/utils.ts` vs `frontend/lib/utils/cn.ts` | Fichier dupliqué identique — `cn()` existe en double | DEAD_CODE |
+| M15 | `frontend/lib/utils.ts` vs `frontend/lib/utils/cn.ts` | Fichier dupliqué identique — `cn()` existe en double | ✅ Corrigé 02/03 |
 | M16 | `frontend/components/challenges/ChallengeModal.tsx:28` | `onChallengeCompleted` prop acceptée mais ignorée (underscore-prefixed) | DEAD_CODE |
 | M17 | `frontend/components/exercises/AIGenerator.tsx:308+371` | Double bouton cancel pendant la génération | INCONSISTENCY |
 
@@ -383,6 +383,8 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | 02/03/2026 | M5 | `token_tracker.py` : `key[: -len(date_suffix)]` remplace `key.split("_")[0]` — types avec `_` plus tronqués. 6 tests unitaires. |
 | 02/03/2026 | H9 | Analyse complète : 2 suppressions nettes (`render_template/render_error` dans `template_handler.py`, `generate_contextual_question` dans `exercise_generator_helpers.py`). 5 modules conservés (infrastructure active ou câblage futur documenté). |
 | 02/03/2026 | M3 | `_calculate_user_level` : `is_max_level` ajouté, `current_xp`/`next_level_xp` = 0 au niveau max (était next_level_xp=100 hardcodé → texte "4500/100 XP pour le niveau 12"). Thresholds extraits en constantes de classe. Frontend `LevelIndicator` affiche "Niveau maximum atteint". 7 tests de régression. |
+| 02/03/2026 | M7 | `transaction.py` : suppression de `if not savepoint.is_active` (toujours True après `savepoint.commit()` → condition morte). `db_session.commit()` appelé directement. 16 tests transaction : 16/16 passent. |
+| 02/03/2026 | M15 | `frontend/lib/utils.ts` transformé en re-export de `./utils/cn` (source de vérité unique). Les 20 fichiers shadcn (`@/lib/utils`) et les 31 fichiers refactorisés (`@/lib/utils/cn`) fonctionnent sans migration. |
 
 ---
 
