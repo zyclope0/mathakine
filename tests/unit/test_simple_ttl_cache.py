@@ -82,3 +82,35 @@ async def test_get_or_set_respects_ttl():
 
     assert v1 == 1
     assert v2 == 2
+
+
+@pytest.mark.asyncio
+async def test_concurrent_calls_invoke_factory_once():
+    """Régression M6 : des appels concurrents ne doivent appeler factory() qu'une seule fois.
+
+    Vérifie que le lock protège correctement la section critique :
+    avec l'ancien _get_lock() (lazy init), deux coroutines pouvaient
+    potentiellement obtenir des instances de lock différentes et entrer
+    simultanément dans la section critique.
+    """
+    call_count = 0
+
+    async def slow_factory():
+        nonlocal call_count
+        call_count += 1
+        await asyncio.sleep(0.02)  # simule une factory lente (ex: DB query)
+        return {"data": "result"}
+
+    # Lance 5 coroutines simultanément sur la même clé
+    results = await asyncio.gather(
+        get_or_set("concurrent_key", 60.0, slow_factory),
+        get_or_set("concurrent_key", 60.0, slow_factory),
+        get_or_set("concurrent_key", 60.0, slow_factory),
+        get_or_set("concurrent_key", 60.0, slow_factory),
+        get_or_set("concurrent_key", 60.0, slow_factory),
+    )
+
+    # factory() ne doit avoir été appelée qu'une seule fois malgré la concurrence
+    assert call_count == 1
+    # Toutes les coroutines reçoivent la même valeur
+    assert all(r == {"data": "result"} for r in results)

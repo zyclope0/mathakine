@@ -1,25 +1,23 @@
 """
 Cache TTL simple en mémoire pour endpoints badges/stats et badges/rarity.
 Sans dépendance externe, aligné avec rate_limiter (stockage mémoire mono-instance).
+
+Note Python 3.10+ : asyncio.Lock() peut être instancié au niveau module sans
+nécessiter une event loop active — le binding à la loop se fait au premier await.
 """
 
 import asyncio
 import time
-from typing import Any, Awaitable, Callable, Optional, TypeVar
+from typing import Any, Awaitable, Callable, TypeVar
 
 T = TypeVar("T")
 
 # Stockage: {clé: (valeur, timestamp)}
 _cache: dict[str, tuple[Any, float]] = {}
-_lock: Optional[asyncio.Lock] = None
 
-
-def _get_lock() -> asyncio.Lock:
-    """Initialisation lazy du lock (éviter création avant loop)."""
-    global _lock
-    if _lock is None:
-        _lock = asyncio.Lock()
-    return _lock
+# Lock module-level — safe en Python 3.10+ (pas besoin de lazy init).
+# Élimine le TOCTOU de l'ancienne initialisation lazy _get_lock() (M6 audit).
+_lock = asyncio.Lock()
 
 
 async def get_or_set(
@@ -37,7 +35,7 @@ async def get_or_set(
         Valeur (depuis cache ou factory)
     """
     now = time.monotonic()
-    async with _get_lock():
+    async with _lock:
         entry = _cache.get(key)
         if entry is not None:
             val, stored_at = entry
