@@ -7,6 +7,13 @@ Les handlers importent depuis ce module au lieu de manipuler les enums directeme
 Utilisation :
   - from_api_str : string brute (query/body) → valeur normalisée pour le service
   - to_api_str  : valeur enum/DB → string pour la réponse JSON
+
+TODO(H9-câblage): migrer les handlers pour utiliser ce module à la place de normalize_*
+appelés en direct. Concerne :
+  - server/handlers/exercise_handlers.py  (normalize_exercise_type, normalize_difficulty)
+  - server/handlers/challenge_handlers.py (normalize_age_group_for_db, normalize_challenge_type)
+  - server/handlers/user_handlers.py      (conversions .upper() inline)
+Ce module a été créé lors du refactoring architecture (itération 2.3) et est prêt à l'emploi.
 """
 
 from typing import Optional, Union

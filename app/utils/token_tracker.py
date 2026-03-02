@@ -97,6 +97,9 @@ class TokenTracker:
             "completion_tokens": completion_tokens,
         }
 
+    # TODO(H9-câblage): exposer via GET /api/admin/ai-stats dans un handler admin dédié.
+    # Les données sont collectées en mémoire (track_usage actif dans challenge_ai_service.py)
+    # mais jamais consultées en production.
     def get_stats(self, challenge_type: Optional[str] = None, days: int = 1) -> Dict:
         """
         Retourne les statistiques d'utilisation.
@@ -165,6 +168,7 @@ class TokenTracker:
 
         return stats_by_type
 
+    # TODO(H9-câblage): exposer avec get_stats via l'endpoint admin.
     def get_daily_summary(self, date: Optional[datetime] = None) -> Dict:
         """Retourne un résumé quotidien."""
         if date is None:

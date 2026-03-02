@@ -71,6 +71,9 @@ class GenerationMetrics:
             f"Auto-corrected: {auto_corrected}, Duration: {duration_seconds:.2f}s"
         )
 
+    # TODO(H9-câblage): exposer via GET /api/admin/generation-metrics dans un handler admin dédié.
+    # record_generation() est actif (3 appels dans challenge_ai_service.py) — données collectées
+    # mais jamais consultées en production.
     def get_success_rate(
         self, challenge_type: Optional[str] = None, days: int = 1
     ) -> float:

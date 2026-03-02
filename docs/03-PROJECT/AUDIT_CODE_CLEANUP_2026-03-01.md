@@ -250,18 +250,38 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 
 ### H9. Dead code massif — modules entiers jamais appelés en production
 
-| Fichier | Fonction(s) mortes | ~Lignes |
-|---------|-------------------|---------|
-| `app/utils/enum_mapping.py` | **Tout le module** (10 fonctions) | ~128 |
-| `app/utils/response_formatters.py` | `format_paginated_response` | ~36 |
-| `app/utils/generation_metrics.py` | `get_success_rate`, `get_validation_failure_rate`, `get_auto_correction_rate`, `get_average_duration`, `get_summary` | ~140 |
-| `app/utils/token_tracker.py` | `get_stats`, `get_daily_summary` | ~80 |
-| `server/template_handler.py` | `render_template`, `render_error` | ~90 |
-| `server/exercise_generator_helpers.py` | `generate_contextual_question` | ~90 |
-| `app/utils/rate_limiter.py` | `get_user_stats` | ~15 |
-| **Total** | | **~580** |
+**Statut global :** ✅ Partiellement corrigé 02/03 — analyse complète effectuée, suppressions nettes appliquées, reste documenté pour câblage futur.
 
-> Note : certaines fonctions sont couvertes par des tests unitaires dédiés mais n'ont aucun appelant en production.
+#### Décision par item
+
+| Fichier | Fonction(s) | ~Lignes | Décision |
+|---------|-------------|---------|----------|
+| `app/utils/token_tracker.py` | `get_stats`, `get_daily_summary` | ~80 | **Garder** — câblage futur |
+| `app/utils/generation_metrics.py` | `get_success_rate`, `get_validation_failure_rate`, `get_auto_correction_rate`, `get_average_duration`, `get_summary` | ~140 | **Garder** — câblage futur |
+| `app/utils/response_formatters.py` | `format_paginated_response` | ~36 | **Garder** — câblage futur |
+| `app/utils/enum_mapping.py` | Tout le module (10 fonctions) | ~128 | **Garder** — câblage futur |
+| `server/template_handler.py` | `render_template`, `render_error` | ~90 | ✅ **Supprimé** 02/03 |
+| `server/exercise_generator_helpers.py` | `generate_contextual_question` | ~90 | ✅ **Supprimé** 02/03 |
+| `app/utils/rate_limiter.py` | `get_user_stats` | ~15 | **Garder** |
+
+#### Justifications
+
+- **`token_tracker` (`get_stats`, `get_daily_summary`) :** `track_usage()` est activement appelé dans `challenge_ai_service.py`. Ce sont les méthodes de lecture d'un système de suivi des coûts OpenAI déjà actif. Les données sont collectées en mémoire mais jamais exposées. À brancher sur un futur endpoint admin.
+- **`generation_metrics` (méthodes read) :** `record_generation()` est appelé à 3 endroits dans `challenge_ai_service.py`. Système de monitoring IA complet déjà actif côté write. Même logique que `token_tracker`. À exposer.
+- **`format_paginated_response` :** Factorisation saine du format `{items, total, page, limit, hasMore}` que les handlers construisent manuellement en doublon. Ne pas supprimer — à adopter dans les handlers.
+- **`enum_mapping.py` (tout le module) :** Créé lors du refactoring architecture (itération 2.3) pour centraliser les conversions enum ↔ API string. Les handlers utilisent encore `normalize_*` en direct. À adopter lors du prochain passage sur les handlers.
+- **`template_handler.render_template` + `render_error` :** App est désormais une API pure JSON (frontend Next.js séparé). Ces fonctions HTML/Jinja2 ne seront plus jamais appelées. Supprimées. `get_templates()` conservé (utilisé dans `server/app.py`).
+- **`generate_contextual_question` :** Vraiment orpheline. `generate_smart_choices` dans le même fichier reste utilisé. L'exercise_generator génère ses propres questions sans passer par cette fonction.
+- **`rate_limiter.get_user_stats` :** Méthode de diagnostic légitime sur le `RateLimiter`. 15 lignes, coût maintenance nul. À exposer si besoin via un endpoint admin.
+
+#### Câblages futurs identifiés
+
+| Priorité | Action | Fichiers cibles |
+|----------|--------|----------------|
+| Moyenne | Adopter `format_paginated_response` dans les handlers (supprimer duplications inline) | `exercise_handlers.py`, `challenge_handlers.py`, `user_handlers.py` |
+| Moyenne | Adopter `enum_mapping.py` dans les handlers (remplacer conversions `.upper()` / `normalize_*` inline) | Tous les handlers |
+| Basse | Créer endpoint `GET /api/admin/ai-stats` exposant `token_tracker.get_stats()` | Nouveau handler admin |
+| Basse | Créer endpoint `GET /api/admin/generation-metrics` exposant `generation_metrics.get_summary()` | Nouveau handler admin |
 
 ---
 
@@ -327,7 +347,7 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 
 | Priorité | Item | Action |
 |----------|------|--------|
-| 8 | **H9** | Supprimer les ~580 lignes de dead code identifiées |
+| 8 | **H9** | ✅ Suppressions nettes effectuées (`render_template/error`, `generate_contextual_question`). Câblages futurs documentés dans H9. |
 | 9 | **H2** | Supprimer le GET handler HTML legacy sur `/api/exercises/generate` |
 | 10 | **M1–M17** | Items MEDIUM selon priorité |
 
@@ -361,6 +381,7 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | 01/03/2026 | L8 | `email_verification.py` : ajout `.replace(tzinfo=utc)` pour datetimes naïfs |
 | 02/03/2026 | H6 | CSRF centralisé via `CsrfMiddleware` — couvre tous les endpoints state-changing |
 | 02/03/2026 | M5 | `token_tracker.py` : `key[: -len(date_suffix)]` remplace `key.split("_")[0]` — types avec `_` plus tronqués. 6 tests unitaires. |
+| 02/03/2026 | H9 | Analyse complète : 2 suppressions nettes (`render_template/render_error` dans `template_handler.py`, `generate_contextual_question` dans `exercise_generator_helpers.py`). 5 modules conservés (infrastructure active ou câblage futur documenté). |
 
 ---
 

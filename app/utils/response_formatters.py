@@ -1,6 +1,12 @@
 """
 Utilitaires de formatage des réponses API.
 Factorise le format paginé standardisé (items, total, page, limit, hasMore).
+
+TODO(H9-câblage): adopter format_paginated_response dans les handlers qui construisent
+manuellement ce format en doublon :
+  - server/handlers/exercise_handlers.py
+  - server/handlers/challenge_handlers.py
+  - server/handlers/user_handlers.py
 """
 
 from typing import Any, Dict, List
