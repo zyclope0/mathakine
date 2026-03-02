@@ -22,6 +22,18 @@
 
 L'espace admin est opérationnel (rôle `archiviste`). Voir [ADMIN_ESPACE_PROPOSITION.md](ADMIN_ESPACE_PROPOSITION.md) et [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md).
 
+## ℹ️ Monitoring IA Admin — Implémenté (22/02/2026)
+
+Page `/admin/ai-monitoring` opérationnelle :
+- KPIs tokens OpenAI (total, coût estimé, moyenne par génération)
+- Qualité des générations (taux de succès, échecs validation, auto-corrections, durée)
+- Breakdown par type de défi et par modèle IA (o3, o3-mini, gpt-4o-mini…)
+- Sélecteur de période (1j / 7j / 30j)
+- Endpoints : `GET /api/admin/ai-stats` et `GET /api/admin/generation-metrics`
+
+**Limitation actuelle** : données **in-memory** — perdues à chaque redémarrage serveur.
+**Évolution prévue** : persistance DB (voir section 4.6 ci-dessous et `AUDIT_CODE_CLEANUP_2026-03-01.md § 8`).
+
 ---
 
 ## 1. État actuel du projet
@@ -376,6 +388,36 @@ Notifications :
 
 ---
 
+### 4.6 🤖 Monitoring IA — Persistance historique (P2)
+
+**Contexte** : `token_tracker` et `generation_metrics` sont en mémoire. Un redémarrage Render efface tout. La page `/admin/ai-monitoring` est souvent à zéro en prod.
+
+**Objectif** : Persister chaque génération en DB pour des stats fiables sur 7/30/90 jours.
+
+**Valeur** :
+- Suivre les coûts OpenAI réels sur la durée (budgétisation)
+- Détecter les dérives de qualité IA (hausse des échecs de validation)
+- Identifier les types de défis les plus coûteux / lents
+
+**Effort estimé** : ~1 jour — complexité moyenne, faible risque.
+
+**Ce qu'il faut faire** :
+
+| # | Action |
+|---|--------|
+| 1 | 2 nouveaux modèles SQLAlchemy : `AiTokenUsage`, `AiGenerationMetric` |
+| 2 | 1 migration Alembic (pattern identique à `edtech_events`) |
+| 3 | `token_tracker.track_usage()` → INSERT en DB |
+| 4 | `generation_metrics.record_generation()` → INSERT en DB |
+| 5 | `get_stats()` / `get_summary()` → requêtes SQL avec filtre `created_at` |
+| 6 | Passer la session DB depuis `challenge_ai_service.py` (point délicat) |
+| 7 | Mise à jour tests admin |
+
+**Pattern de référence** : `edtech_events` (table JSONB + migration + handler admin).
+**Doc technique** : `docs/03-PROJECT/AUDIT_CODE_CLEANUP_2026-03-01.md § 8`.
+
+---
+
 ### 4.5 🏫 Mode classe/école (P3)
 
 **Pour les enseignants** :
@@ -455,6 +497,7 @@ Notifications :
 | Objectifs perso | ⭐⭐⭐ | Faible | **P2** |
 | Préférence page d'accueil (profil) | ⭐⭐ | Faible | **P2** |
 | Rapports détaillés | ⭐⭐⭐ | Moyen | **P2** |
+| Monitoring IA — persistance DB | ⭐⭐ | Faible | **P2** |
 | Mode classe | ⭐⭐⭐ | Élevé | **P3** |
 | Tuteur IA | ⭐⭐⭐⭐ | Élevé | **P3** |
 | Mode aventure | ⭐⭐⭐ | Très élevé | **P4** |
@@ -483,6 +526,12 @@ Notifications :
 | Recommandations personnalisées | Moyenne |
 | Objectifs utilisateur | Faible |
 | Préférence page d'accueil après connexion (profil) | Faible |
+
+### Phase 2b - Infrastructure IA (1 sprint)
+
+| Tâche | Complexité |
+|-------|------------|
+| Monitoring IA — persistance DB (`AiTokenUsage`, `AiGenerationMetric`) | Moyenne |
 
 ### Phase 3 - Parents (2-3 sprints)
 
