@@ -27,7 +27,6 @@ from app.services.auth_service import (
     verify_email_token,
 )
 from app.services.email_service import EmailService
-
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response
 from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
