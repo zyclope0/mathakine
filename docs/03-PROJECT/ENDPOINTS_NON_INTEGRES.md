@@ -93,7 +93,7 @@ export default function AdminStatsPage() {
 ## 2. `/api/users/leaderboard` - Classement des utilisateurs
 
 ### Statut
-- **Backend** : ✅ Implémenté (15/02/2026)
+- **Backend** : ✅ Implémenté (15/02/2026) — **Authentification requise** (audit H7, 01/03/2026)
 - **Frontend** : ✅ Page `/leaderboard` + widget dashboard (Vue d'ensemble)
 
 ### Description
@@ -134,7 +134,7 @@ Retourne le top 50 des utilisateurs par `total_points`. Respecte `show_in_leader
 | `/api/users/stats` | ✅ | ✅ Dashboard | - |
 | `GET /api/users/leaderboard` | ✅ | ✅ Page + widget | 15/02/2026 |
 | `PUT /api/users/me` | ✅ | ✅ Profil | - |
-| `PUT /api/users/me/password` | ✅ | ✅ Paramètres | Protégé CSRF |
+| `PUT /api/users/me/password` | ✅ | ✅ Paramètres | Protégé CSRF via `CsrfMiddleware` (02/03/2026) |
 | `GET /api/users/me/sessions` | ✅ | ✅ /settings | Sessions actives + is_current (16/02) |
 | `DELETE /api/users/me/sessions/{id}` | ✅ | ✅ /settings | Révocation session |
 | `GET /api/challenges/badges/progress` | ✅ | ✅ /badges | Barres progression badges (16/02) |

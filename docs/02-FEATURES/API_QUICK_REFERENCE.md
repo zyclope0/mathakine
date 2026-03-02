@@ -52,7 +52,7 @@
 | DELETE | `/api/users/me/sessions/{id}` | Oui | — | OK |
 | GET | `/api/users/me/export` | Oui | — | OK |
 | GET | `/api/users/stats` | Oui | `?timeRange=7|30|90|all` | OK |
-| GET | `/api/users/leaderboard` | Non | `?limit=50` | OK |
+| GET | `/api/users/leaderboard` | Oui | `?limit=50` | OK |
 | GET | `/api/users/` | Admin | — | Placeholder |
 | DELETE | `/api/users/{id}` | Admin | — | Placeholder |
 
@@ -67,7 +67,7 @@
 | GET | `/api/exercises/{id}` | Non | — | OK |
 | POST | `/api/exercises/{id}/attempt` | Oui | `{answer}` | OK |
 | GET | `/api/exercises/completed-ids` | Oui | — | OK |
-| GET | `/api/exercises/generate` | Non | `?type=,rank=` | OK |
+| ~~GET~~ | ~~`/api/exercises/generate`~~ | — | — | Supprimé (audit H2, 01/03/2026) |
 | POST | `/api/exercises/generate` | Non | `{type, rank, ...}` | OK |
 | GET | `/api/exercises/generate-ai-stream` | Non | — | OK (SSE) |
 | ~~DELETE~~ | ~~`/api/exercises/{id}`~~ | — | — | Supprimé — archivage prévu dans l’admin |

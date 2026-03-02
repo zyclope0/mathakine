@@ -123,7 +123,7 @@ Bannière affichée avec formulaire pour renvoyer l'email de vérification via `
 | `success` | Redirection vers /login après 2s |
 | `error` | Token manquant ou expiré / erreur API |
 
-**CSRF :** La requête inclut `X-CSRF-Token` (obtenu via `GET /api/auth/csrf`).
+**CSRF :** Le header `X-CSRF-Token` est automatiquement injecté par `apiRequest()` (lecture du cookie `csrf_token` posé au login). Centralisé via `CsrfMiddleware` depuis l'audit H6 (02/03/2026) — plus d'appel explicite à `getCsrfToken()` dans les composants.
 
 ---
 

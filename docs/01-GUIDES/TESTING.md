@@ -49,8 +49,8 @@
 
 > **Strategie actuelle** : Augmenter progressivement plutot qu'en bloc. Pour chaque nouvelle feature importante, ajouter 1-2 tests. Passer a une phase de montée en couverture quand les features sont stabilisees.
 
-### Tests actuels (25/02/2026)
-- ✅ **Backend** : ~443 tests passent, skippes réduits, ~48% couverture (app + server)
+### Tests actuels (02/03/2026)
+- ✅ **Backend** : ~526 tests passent (dont 23 CSRF), skippes réduits, ~48% couverture (app + server)
 - ✅ **Frontend** : 37 tests (Vitest), utils/lib validations + composants + hooks (dont QuickStartActions analytics)
 - ✅ **CI** : Tests + couverture backend et frontend, upload Codecov (flags backend/frontend)
 - ✅ **Tests critiques** : auth, challenges, exercises, user_exercise_flow, admin analytics EdTech
@@ -929,6 +929,16 @@ Ce script protege les memes utilisateurs permanents et respecte le meme ordre FK
 ---
 
 ## 📝 MODIFICATIONS RECENTES {#modifications-recentes}
+
+### 02/03/2026 – CSRF centralisé (audit H6), nettoyage code (audit cleanup)
+
+| Domaine | Modification |
+|---------|---------------|
+| **Sécurité** | `CsrfMiddleware` centralisé dans `server/middleware.py` — protège automatiquement tous les endpoints state-changing. Appels manuels `validate_csrf_token()` supprimés des handlers. |
+| **Frontend** | `apiRequest()` injecte automatiquement `X-CSRF-Token` depuis le cookie. Injections manuelles supprimées de `useSettings`, `useProfile`, `reset-password/page.tsx`. |
+| **Nouveaux tests** | `tests/unit/test_csrf_middleware.py` : 23 tests unitaires (config + dispatch). `tests/unit/test_auth_middleware.py` : `test_leaderboard_get_requires_auth` (H7). |
+| **Fixes audit C1-H8** | Refresh token fallback durci, soustraction choices, DetachedInstanceError, dead code BadgeService, route GET /api/exercises/generate supprimée, leaderboard sorti de la whitelist publique. |
+| **Référence** | [AUDIT_CODE_CLEANUP_2026-03-01.md](../03-PROJECT/AUDIT_CODE_CLEANUP_2026-03-01.md) — 47 findings, ~30 corrigés |
 
 ### 22/02/2026 – Mypy CI, types critiques (audit backend 5.2)
 

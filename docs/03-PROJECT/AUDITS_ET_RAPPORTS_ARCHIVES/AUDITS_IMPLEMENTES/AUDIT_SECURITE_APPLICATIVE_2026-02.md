@@ -231,7 +231,7 @@ if not any(char.isupper() for char in password):
 
 **Vecteur d'attaque :** Avec `SameSite=Lax`, les requêtes POST cross-site ne contiennent pas les cookies. Mais si `SameSite=None` est utilisé (cross-domain avec frontend séparé), ou en cas de sous-domaine partagé, un site tiers peut provoquer des actions au nom de l'utilisateur (ex. changement de mot de passe, suppression de compte).
 
-**Remédiation :** ✅ **Implémenté** (13/02/2026) — Endpoint `GET /api/auth/csrf`, pattern double-submit. Protection reset-password, change-password, delete-account.
+**Remédiation :** ✅ **Implémenté** (13/02/2026 → centralisé 02/03/2026) — Endpoint `GET /api/auth/csrf`, pattern double-submit. `CsrfMiddleware` centralisé dans `server/middleware.py` : protège automatiquement **tous** les endpoints state-changing (`POST/PUT/PATCH/DELETE`) sauf routes exemptées (login, register, refresh, forgot-password, etc.). Les appels manuels `validate_csrf_token()` ont été supprimés des handlers. Frontend : `apiRequest()` injecte automatiquement `X-CSRF-Token` depuis le cookie.
 
 ---
 
@@ -356,7 +356,7 @@ async def api_login(request): ...
 | **4.1** Logging de données sensibles | ✅ Corrigé | Suppression du log `user.hashed_password` dans `auth_service.authenticate_user`. |
 | **1.2** Route sync-cookie sans validation | ✅ Corrigé | Endpoint backend `POST /api/auth/validate-token` ajouté. La route sync-cookie appelle désormais ce endpoint pour valider la signature et l'expiration du token avant de le poser en cookie. Protection contre session hijacking. |
 | **2.3** SECRET_KEY auto-générée | ✅ Corrigé | `raise ValueError` au démarrage si SECRET_KEY vide et ENVIRONMENT=production (sauf TESTING=true). Dev/tests : génération auto + warning. |
-| **3.2** Protection CSRF | ✅ Corrigé | Endpoint GET /api/auth/csrf (pattern double-submit). Protection reset-password, change-password, delete-account. Désactivé en TESTING. |
+| **3.2** Protection CSRF | ✅ Corrigé (centralisé 02/03/2026) | `CsrfMiddleware` centralisé dans `server/middleware.py` — protège tous les endpoints state-changing (POST/PUT/PATCH/DELETE) sauf routes exemptées. Appels manuels `validate_csrf_token()` supprimés des handlers. Frontend : injection automatique `X-CSRF-Token` depuis cookie par `apiRequest()`. Désactivé en TESTING. 23 tests unitaires. |
 | **3.1** DatabaseAdapter.execute_query | ✅ Corrigé | params exigé en dict pour paramètres nommés. TypeError si tuple. Documenté (audit 3.1). |
 | **CSP** (audit tier 3.2) | ✅ Corrigé | Content-Security-Policy ajoutée dans next.config.ts (default-src, script-src, style-src, img-src, font-src, connect-src, frame-ancestors, base-uri). 15/02/2026 |
 | **Rate limit resend-verification** | ✅ Corrigé | 2 req/min par IP (rate_limit_resend_verification). 15/02/2026 |
@@ -387,14 +387,15 @@ async def api_login(request): ...
 - `server/handlers/exercise_handlers.py` — Messages d'erreur sécurisés
 - `server/handlers/badge_handlers.py` — Messages d'erreur sécurisés
 - `server/handlers/recommendation_handlers.py` — Messages d'erreur sécurisés
-- `server/middleware.py` — `allow_headers` restreint (4.2), X-CSRF-Token, route csrf publique
+- `server/middleware.py` — `allow_headers` restreint (4.2), X-CSRF-Token, route csrf publique, `CsrfMiddleware` centralisé (02/03/2026)
 - `app/utils/csrf.py` — Validation token double-submit (3.2)
-- `server/handlers/auth_handlers.py` — api_get_csrf_token, CSRF sur reset-password
-- `server/handlers/user_handlers.py` — CSRF sur change-password, delete-account
-- `frontend/lib/api/client.ts` — getCsrfToken()
-- `frontend/hooks/useProfile.ts` — X-CSRF-Token sur changement mot de passe
-- `frontend/hooks/useSettings.ts` — X-CSRF-Token sur suppression compte
-- `frontend/app/reset-password/page.tsx` — CSRF sur reset-password
+- `server/handlers/auth_handlers.py` — api_get_csrf_token, cookie `csrf_token` posé au login. ~~CSRF sur reset-password~~ → centralisé dans middleware (02/03/2026)
+- `server/handlers/user_handlers.py` — ~~CSRF sur change-password, delete-account~~ → centralisé dans middleware (02/03/2026)
+- `frontend/lib/api/client.ts` — `getCsrfTokenFromCookie()` + injection automatique `X-CSRF-Token` dans `apiRequest()` pour mutating methods (02/03/2026). `getCsrfToken()` conservé pour bootstrapping initial.
+- ~~`frontend/hooks/useProfile.ts`~~ — injection manuelle supprimée (02/03/2026), gérée par `apiRequest()`
+- ~~`frontend/hooks/useSettings.ts`~~ — injection manuelle supprimée (02/03/2026), gérée par `apiRequest()`
+- ~~`frontend/app/reset-password/page.tsx`~~ — injection manuelle supprimée (02/03/2026), gérée par `apiRequest()`
+- `tests/unit/test_csrf_middleware.py` — 23 tests unitaires CsrfMiddleware (config + dispatch) (02/03/2026)
 - `app/services/email_service.py` — Envoi simulé en TESTING (tests auth)
 - `app/db/adapter.py` — execute_query: params dict obligatoire, validation (3.1)
 - `app/services/enhanced_server_adapter.py` — execute_raw_query: params dict
@@ -459,7 +460,7 @@ Proposition basée sur le rapport coût/bénéfice et le risque de régression. 
 
 **Validation SECRET_KEY (2.3) :** ✅ En prod sans SECRET_KEY → `ValueError` au démarrage. En dev/tests (TESTING=true ou ENVIRONMENT≠production) → génération auto OK. S'assurer que Render définit `SECRET_KEY` avant déploiement.
 
-**Validation CSRF (3.2) :** ✅ Endpoint GET /api/auth/csrf. Protection reset-password, change-password, delete-account. Désactivé en TESTING. 18 tests auth passés. Déploiement prod OK.
+**Validation CSRF (3.2) :** ✅ `CsrfMiddleware` centralisé — couvre tous les endpoints state-changing. Appels manuels retirés. Frontend : injection automatique. Désactivé en TESTING. 23 tests unitaires CsrfMiddleware. Commit `967af5e` (02/03/2026).
 
 **Validation DEFAULT_ADMIN_PASSWORD (3.3) :** ✅ En prod sans `DEFAULT_ADMIN_PASSWORD` ou égale à "admin" → `ValueError` au démarrage. Variable obligatoire sur Render.
 
