@@ -27,11 +27,7 @@ interface ChallengeModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function ChallengeModal({
-  challengeId,
-  open,
-  onOpenChange,
-}: ChallengeModalProps) {
+export function ChallengeModal({ challengeId, open, onOpenChange }: ChallengeModalProps) {
   const { challenge, isLoading, error } = useChallenge(challengeId || 0);
   const { theme } = useThemeStore();
   const t = useTranslations("challenges.modal");

@@ -158,7 +158,7 @@ export function PuzzleRenderer({ visualData, className, onOrderChange }: PuzzleR
     queueMicrotask(() => {
       onOrderChangeRef.current?.(order);
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pieces.length, visualData]);
 
   const sensors = useSensors(

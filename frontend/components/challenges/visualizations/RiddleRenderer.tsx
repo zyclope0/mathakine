@@ -230,7 +230,9 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
           <div className="space-y-2">
             {pots.map((pot: Record<string, unknown>, index: number) => {
               const label = (pot.label as string | number | undefined) ?? `Pot ${index + 1}`;
-              const cluesList = Array.isArray(pot.visible_clues) ? (pot.visible_clues as string[]) : [];
+              const cluesList = Array.isArray(pot.visible_clues)
+                ? (pot.visible_clues as string[])
+                : [];
               return (
                 <div
                   key={index}
