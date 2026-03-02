@@ -273,7 +273,7 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | M2 | `challenge_service.py:582-601` | `stats.total` peut être `None` → `TypeError` dans le calcul de success_rate | ✅ Corrigé 01/03 |
 | M3 | `user_service.py:384-395` | Calcul de niveau fragile à la borne max (`xp >= 5500`) | BUG |
 | M4 | `rate_limit.py:22` | `_rate_limit_store` grossit indéfiniment — fuite mémoire lente | ✅ Corrigé 01/03 |
-| M5 | `token_tracker.py:168-179` | `key.split("_")[0]` tronque les types contenant `_` | BUG |
+| M5 | `token_tracker.py:168-179` | `key.split("_")[0]` tronque les types contenant `_` | ✅ Corrigé 02/03 |
 | M6 | `simple_ttl_cache.py:17-22` | TOCTOU race sur init du lock asyncio | BUG |
 | M7 | `transaction.py:49-54` | `if not savepoint.is_active` toujours True après commit → condition inutile | INCONSISTENCY |
 | M8 | `server/routes/exercises.py:30-34` | GET `/api/exercises/generate` crée en DB (non-idempotent, CSRF vector) | ✅ Corrigé 01/03 (supprimé avec H2) |
@@ -360,6 +360,7 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | 01/03/2026 | L7 | `json_utils.py` : guard `text or ""` pour éviter `TypeError` sur `None` |
 | 01/03/2026 | L8 | `email_verification.py` : ajout `.replace(tzinfo=utc)` pour datetimes naïfs |
 | 02/03/2026 | H6 | CSRF centralisé via `CsrfMiddleware` — couvre tous les endpoints state-changing |
+| 02/03/2026 | M5 | `token_tracker.py` : `key[: -len(date_suffix)]` remplace `key.split("_")[0]` — types avec `_` plus tronqués. 6 tests unitaires. |
 
 ---
 

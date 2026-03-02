@@ -171,11 +171,12 @@ class TokenTracker:
             date = datetime.now()
 
         date_key = date.date()
+        date_suffix = f"_{date_key}"
         summary = {}
 
         for key, totals in self._daily_totals.items():
-            if str(date_key) in key:
-                challenge_type = key.split("_")[0]
+            if key.endswith(date_suffix):
+                challenge_type = key[: -len(date_suffix)]
                 summary[challenge_type] = totals
 
         return summary
