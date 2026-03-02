@@ -86,61 +86,6 @@ def get_translated_array(
     return None
 
 
-def build_translations_dict(
-    fr_text: Optional[str], en_text: Optional[str] = None, **other_locales
-) -> Dict[str, Any]:
-    """
-    Construit un dictionnaire de traductions pour insertion en JSONB.
-
-    Args:
-        fr_text: Texte français (obligatoire)
-        en_text: Texte anglais (optionnel)
-        **other_locales: Autres langues (ex: es="Texto en español")
-
-    Returns:
-        Dictionnaire de traductions
-
-    Example:
-        >>> build_translations_dict("Bonjour", "Hello", es="Hola")
-        {"fr": "Bonjour", "en": "Hello", "es": "Hola"}
-    """
-    translations = {"fr": fr_text}
-
-    if en_text:
-        translations["en"] = en_text
-
-    translations.update(other_locales)
-
-    return translations
-
-
-def build_translations_array(
-    fr_array: Optional[List[str]], en_array: Optional[List[str]] = None, **other_locales
-) -> Dict[str, List[str]]:
-    """
-    Construit un dictionnaire de traductions pour arrays.
-
-    Args:
-        fr_array: Array français (obligatoire)
-        en_array: Array anglais (optionnel)
-        **other_locales: Autres langues (ex: es=["Opción 1", "Opción 2"])
-
-    Returns:
-        Dictionnaire de traductions pour arrays
-
-    Example:
-        >>> build_translations_array(["Choix 1", "Choix 2"], ["Choice 1", "Choice 2"])
-        {"fr": ["Choix 1", "Choix 2"], "en": ["Choice 1", "Choice 2"]}
-    """
-    translations = {"fr": fr_array}
-
-    if en_array:
-        translations["en"] = en_array
-
-    translations.update(other_locales)
-
-    return translations
-
 
 def parse_accept_language(accept_language: Optional[str]) -> str:
     """

@@ -304,7 +304,7 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | M13 | `frontend/hooks/useAuth.ts:90-107` | Strings françaises hardcodées au milieu du i18n | ✅ Corrigé 22/02 |
 | M14 | `frontend/components/challenges/ChallengeSolver.tsx:86` | `console.warn` non gated fuit les hints dans la console en prod | ✅ Corrigé 01/03 |
 | M15 | `frontend/lib/utils.ts` vs `frontend/lib/utils/cn.ts` | Fichier dupliqué identique — `cn()` existe en double | ✅ Corrigé 02/03 |
-| M16 | `frontend/components/challenges/ChallengeModal.tsx:28` | `onChallengeCompleted` prop acceptée mais ignorée (underscore-prefixed) | DEAD_CODE |
+| M16 | `frontend/components/challenges/ChallengeModal.tsx:28` | `onChallengeCompleted` prop acceptée mais ignorée (underscore-prefixed) | ✅ Corrigé 02/03 |
 | M17 | `frontend/components/exercises/AIGenerator.tsx:308+371` | Double bouton cancel pendant la génération | ✅ Corrigé 22/02 |
 
 ---
@@ -314,11 +314,11 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | # | Fichier | Problème | Catégorie |
 |---|---------|----------|-----------|
 | L1 | `exercise_service.py:29-52` | `ExerciseServiceProtocol` jamais importé | ✅ Corrigé 01/03 |
-| L2 | `recommendation_service.py:570-584` | `mark_recommendation_as_shown` jamais appelé | DEAD_CODE |
-| L3 | `enhanced_server_adapter.py:323-402` | `execute_raw_query`, `get_logic_challenges`, `get_logic_challenge` jamais appelés | DEAD_CODE |
-| L4 | `db/adapter.py:76-112` | `list_active` jamais appelé en prod (seulement tests) | DEAD_CODE |
-| L5 | `db_helpers.py:10-35` | `get_db_engine`, `is_postgresql` jamais appelés en prod | DEAD_CODE |
-| L6 | `translation.py:89-142` | `build_translations_dict`, `build_translations_array` jamais appelés | DEAD_CODE |
+| L2 | `recommendation_service.py:570-584` | `mark_recommendation_as_shown` jamais appelé | ✅ Supprimé 22/02 |
+| L3 | `enhanced_server_adapter.py:323-402` | `execute_raw_query`, `get_logic_challenges`, `get_logic_challenge` jamais appelés | ✅ Supprimé 22/02 — import `LogicChallengeService` retiré aussi |
+| L4 | `db/adapter.py:76-112` | `list_active` jamais appelé en prod (seulement tests) | Garder — utilitaire générique testé |
+| L5 | `db_helpers.py:10-35` | `get_db_engine`, `is_postgresql` jamais appelés en prod | Garder — module actif, 5 lignes, coût nul |
+| L6 | `translation.py:89-142` | `build_translations_dict`, `build_translations_array` jamais appelés | ✅ Supprimé 22/02 |
 | L7 | `json_utils.py:44-45` | `JSONDecodeError(text=None)` crashe en `TypeError` si input `None` | ✅ Corrigé 01/03 |
 | L8 | `email_verification.py:24-38` | `datetime.now(timezone.utc)` comparé à un datetime potentiellement naïf | ✅ Corrigé 01/03 |
 
@@ -386,6 +386,11 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | 02/03/2026 | M6 | `simple_ttl_cache.py` : suppression de `_get_lock()` (lazy init TOCTOU). `_lock = asyncio.Lock()` initialisé au niveau module — safe en Python 3.10+ (binding à la loop au premier await). 1 test de régression concurrence : 5 appels simultanés → factory() appelée 1 seule fois. |
 | 02/03/2026 | M7 | `transaction.py` : suppression de `if not savepoint.is_active` (toujours True après `savepoint.commit()` → condition morte). `db_session.commit()` appelé directement. 16 tests transaction : 16/16 passent. |
 | 02/03/2026 | M15 | `frontend/lib/utils.ts` transformé en re-export de `./utils/cn` (source de vérité unique). Les 20 fichiers shadcn (`@/lib/utils`) et les 31 fichiers refactorisés (`@/lib/utils/cn`) fonctionnent sans migration. |
+| 22/02/2026 | M13 | `useAuth.ts` : 5 strings françaises hardcodées remplacées par `t()`. Nouvelles clés `toasts.auth.*` dans `fr.json` et `en.json`. |
+| 22/02/2026 | M17 | `AIGenerator.tsx` : bouton X inline retiré de la zone streaming (doublon avec le bouton full-width). |
+| 22/02/2026 | L2 | `recommendation_service.py` : `mark_recommendation_as_shown` supprimé — aucun handler ne l'appelait. |
+| 22/02/2026 | L3 | `enhanced_server_adapter.py` : `execute_raw_query`, `get_logic_challenges`, `get_logic_challenge` supprimés (~83 lignes). Import `LogicChallengeService` retiré. |
+| 22/02/2026 | L6 | `translation.py` : `build_translations_dict`, `build_translations_array` supprimés (~54 lignes). `parse_accept_language` (seule fonction utilisée) conservée. |
 
 ---
 

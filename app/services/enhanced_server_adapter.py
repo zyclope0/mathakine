@@ -20,7 +20,7 @@ from app.models.attempt import Attempt
 from app.models.exercise import Exercise
 from app.models.logic_challenge import LogicChallenge
 from app.models.user import User
-from app.services import ExerciseService, LogicChallengeService, UserService
+from app.services import ExerciseService, UserService
 
 
 def _serialize_exercise(exercise: Exercise) -> Dict[str, Any]:
@@ -318,85 +318,3 @@ class EnhancedServerAdapter:
         return UserService.get_user_stats_for_dashboard(
             db, user_id, time_range=time_range
         )
-
-    @staticmethod
-    def execute_raw_query(
-        db: Session, query: str, params: dict = None
-    ) -> List[Dict[str, Any]]:
-        """
-        Exécute une requête SQL brute (paramètres nommés uniquement).
-        À utiliser uniquement pour la compatibilité avec le code existant.
-        Privilégier les méthodes du service (audit 3.1).
-
-        Args:
-            db: Session de base de données
-            query: Requête SQL avec paramètres nommés (:param_name)
-            params: Dictionnaire de paramètres nommés
-
-        Returns:
-            Liste de dictionnaires contenant les résultats
-        """
-        logger.warning(
-            "Utilisation de execute_raw_query - À remplacer par les méthodes du service"
-        )
-        return DatabaseAdapter.execute_query(db, query, params or {})
-
-    # === MÉTHODES POUR LOGIC CHALLENGES (NOUVEAU !) ===
-
-    @staticmethod
-    def get_logic_challenges(limit: Optional[int] = None) -> List[Dict[str, Any]]:
-        """
-        Récupère la liste des logic challenges actifs.
-
-        Args:
-            limit: Nombre maximum de challenges à retourner
-
-        Returns:
-            Liste de dictionnaires contenant les données des logic challenges
-        """
-        db = EnhancedServerAdapter.get_db_session()
-        try:
-            challenges = LogicChallengeService.list_challenges(db, limit=limit)
-
-            # Convertir en dictionnaires - utiliser to_dict() pour éviter les erreurs d'attributs
-            return [ch.to_dict() for ch in challenges]
-        except SQLAlchemyError as e:
-            logger.error(f"Erreur lors de la récupération des logic challenges: {e}")
-            return []
-        except (TypeError, ValueError) as e:
-            logger.error(
-                f"Erreur de données lors de la récupération des logic challenges: {e}"
-            )
-            return []
-        finally:
-            EnhancedServerAdapter.close_db_session(db)
-
-    @staticmethod
-    def get_logic_challenge(challenge_id: int) -> Optional[Dict[str, Any]]:
-        """
-        Récupère un logic challenge par son ID.
-
-        Args:
-            challenge_id: ID du challenge
-
-        Returns:
-            Un dictionnaire contenant les données du challenge ou None
-        """
-        db = EnhancedServerAdapter.get_db_session()
-        try:
-            challenge = LogicChallengeService.get_challenge(db, challenge_id)
-            if challenge:
-                return challenge.to_dict()
-            return None
-        except SQLAlchemyError as e:
-            logger.error(
-                f"Erreur lors de la récupération du logic challenge {challenge_id}: {e}"
-            )
-            return None
-        except (TypeError, ValueError) as e:
-            logger.error(
-                f"Erreur de données lors de la récupération du logic challenge {challenge_id}: {e}"
-            )
-            return None
-        finally:
-            EnhancedServerAdapter.close_db_session(db)

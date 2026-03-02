@@ -567,24 +567,6 @@ class RecommendationService:
             return []
 
     @staticmethod
-    def mark_recommendation_as_shown(db, recommendation_id):
-        """Marque une recommandation comme ayant été montrée à l'utilisateur"""
-        try:
-            recommendation = (
-                db.query(Recommendation)
-                .filter(Recommendation.id == recommendation_id)
-                .first()
-            )
-            if recommendation:
-                recommendation.shown_count += 1
-                db.commit()
-        except SQLAlchemyError as mark_shown_error:
-            logger.error(
-                f"Erreur lors du marquage de la recommandation comme montrée: {str(mark_shown_error)}"
-            )
-            db.rollback()
-
-    @staticmethod
     def mark_recommendation_as_clicked(db, recommendation_id):
         """Marque une recommandation comme ayant été cliquée par l'utilisateur"""
         try:
