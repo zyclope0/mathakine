@@ -17,8 +17,10 @@ from app.services.email_service import EmailService
 from app.utils.db_utils import db_session
 from app.utils.email_verification import generate_verification_token
 from app.utils.error_handler import api_error_response
+from app.utils.generation_metrics import generation_metrics
 from app.utils.pagination import parse_pagination_params
 from app.utils.request_utils import parse_json_body_any
+from app.utils.token_tracker import token_tracker
 from server.auth import require_admin, require_auth
 from server.handlers.admin_handlers_utils import _log_admin_action
 
@@ -620,3 +622,42 @@ async def admin_export(request: Request):
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@require_auth
+@require_admin
+async def admin_ai_stats(request: Request):
+    """
+    GET /api/admin/ai-stats?days=N&challenge_type=...
+    Stats tokens OpenAI : coûts, volumes, breakdown par type de challenge.
+    Données in-memory collectées par token_tracker depuis challenge_ai_service.
+    """
+    try:
+        days = int(request.query_params.get("days", 1))
+        challenge_type = request.query_params.get("challenge_type") or None
+        if days < 1 or days > 365:
+            return api_error_response(400, "days doit être compris entre 1 et 365.")
+        stats = token_tracker.get_stats(challenge_type=challenge_type, days=days)
+        daily = token_tracker.get_daily_summary()
+        return JSONResponse({"stats": stats, "daily_summary": daily, "days": days})
+    except ValueError:
+        return api_error_response(400, "Paramètre days invalide.")
+
+
+@require_auth
+@require_admin
+async def admin_generation_metrics(request: Request):
+    """
+    GET /api/admin/generation-metrics?days=N
+    Qualité des générations IA : taux de succès, échecs de validation,
+    auto-corrections, durée moyenne. Données in-memory collectées par
+    generation_metrics depuis challenge_ai_service.
+    """
+    try:
+        days = int(request.query_params.get("days", 1))
+        if days < 1 or days > 365:
+            return api_error_response(400, "days doit être compris entre 1 et 365.")
+        summary = generation_metrics.get_summary(days=days)
+        return JSONResponse({"summary": summary, "days": days})
+    except ValueError:
+        return api_error_response(400, "Paramètre days invalide.")

@@ -3,6 +3,7 @@
 from starlette.routing import Mount, Route
 
 from server.handlers.admin_handlers import (
+    admin_ai_stats,
     admin_audit_log,
     admin_badge_get,
     admin_badges,
@@ -24,6 +25,7 @@ from server.handlers.admin_handlers import (
     admin_exercises_post,
     admin_exercises_put,
     admin_export,
+    admin_generation_metrics,
     admin_health,
     admin_moderation,
     admin_overview,
@@ -136,6 +138,12 @@ def get_admin_routes():
                 Route(
                     "/analytics/edtech",
                     endpoint=admin_analytics_edtech,
+                    methods=["GET"],
+                ),
+                Route("/ai-stats", endpoint=admin_ai_stats, methods=["GET"]),
+                Route(
+                    "/generation-metrics",
+                    endpoint=admin_generation_metrics,
                     methods=["GET"],
                 ),
             ],

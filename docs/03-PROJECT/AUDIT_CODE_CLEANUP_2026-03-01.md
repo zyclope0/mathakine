@@ -280,8 +280,8 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 |----------|--------|----------------|
 | Moyenne | Adopter `format_paginated_response` dans les handlers (supprimer duplications inline) | `exercise_handlers.py`, `challenge_handlers.py`, `user_handlers.py` |
 | Moyenne | Adopter `enum_mapping.py` dans les handlers (remplacer conversions `.upper()` / `normalize_*` inline) | Tous les handlers |
-| Basse | Créer endpoint `GET /api/admin/ai-stats` exposant `token_tracker.get_stats()` | Nouveau handler admin |
-| Basse | Créer endpoint `GET /api/admin/generation-metrics` exposant `generation_metrics.get_summary()` | Nouveau handler admin |
+| ~~Basse~~ | ~~Créer endpoint `GET /api/admin/ai-stats`~~ | ✅ Câblé 22/02 — `admin_ai_stats` dans `admin_handlers.py` |
+| ~~Basse~~ | ~~Créer endpoint `GET /api/admin/generation-metrics`~~ | ✅ Câblé 22/02 — `admin_generation_metrics` dans `admin_handlers.py` |
 
 ---
 
@@ -391,6 +391,37 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | 22/02/2026 | L2 | `recommendation_service.py` : `mark_recommendation_as_shown` supprimé — aucun handler ne l'appelait. |
 | 22/02/2026 | L3 | `enhanced_server_adapter.py` : `execute_raw_query`, `get_logic_challenges`, `get_logic_challenge` supprimés (~83 lignes). Import `LogicChallengeService` retiré. |
 | 22/02/2026 | L6 | `translation.py` : `build_translations_dict`, `build_translations_array` supprimés (~54 lignes). `parse_accept_language` (seule fonction utilisée) conservée. |
+| 22/02/2026 | H9-câblage | `GET /api/admin/ai-stats` et `GET /api/admin/generation-metrics` câblés dans `admin_handlers.py`. `token_tracker` et `generation_metrics` exposés en prod. 9 tests API. |
+
+---
+
+## 8. Chantiers futurs identifiés {#8-chantiers-futurs}
+
+### AI Stats — Persistance en base de données
+
+**Contexte :** `token_tracker` et `generation_metrics` sont actuellement **in-memory uniquement**. Toutes les données sont perdues à chaque redémarrage serveur (fréquent sur Render). La page admin `/admin/ai-monitoring` affiche donc souvent `0`.
+
+**Objectif :** Persister chaque enregistrement en DB pour avoir un historique réel (coûts, taux de succès, durée) consultable sur 7/30/90 jours.
+
+**Travail estimé :** ~1 jour — complexité moyenne, pas risqué.
+
+**Étapes :**
+
+| # | Fichier | Action |
+|---|---------|--------|
+| 1 | `app/models/ai_usage.py` | Nouveau modèle `AiTokenUsage` (challenge_type, model, prompt_tokens, completion_tokens, cost, created_at) |
+| 2 | `app/models/ai_usage.py` | Nouveau modèle `AiGenerationMetric` (challenge_type, success, validation_passed, auto_corrected, duration_seconds, error_type, created_at) |
+| 3 | `migrations/versions/` | Migration Alembic pour les 2 tables + index sur `created_at` |
+| 4 | `app/utils/token_tracker.py` | `track_usage()` : INSERT en DB (en plus ou à la place de la mémoire) |
+| 5 | `app/utils/token_tracker.py` | `get_stats()` / `get_daily_summary()` : requêtes SQL avec filtre `created_at > now() - interval` |
+| 6 | `app/utils/generation_metrics.py` | `record_generation()` : INSERT en DB |
+| 7 | `app/utils/generation_metrics.py` | `get_summary()` : requêtes SQL |
+| 8 | `app/services/challenge_ai_service.py` | Passer la `db session` aux trackers (point le plus délicat) |
+| 9 | `tests/` | Mettre à jour les tests admin + ajouter tests d'intégration DB |
+
+**Point délicat :** `track_usage()` et `record_generation()` sont appelés depuis `challenge_ai_service.py` (service async). Il faut passer la session DB en paramètre ou créer une session courte dédiée au logging (pattern `db_session()` contextmanager déjà disponible dans `app/utils/db_utils.py`).
+
+**Pattern de référence :** `edtech_events` (table + migration + handler) — même structure, même besoin.
 
 ---
 

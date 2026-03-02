@@ -43,24 +43,42 @@ class TokenTracker:
         """
         total_tokens = prompt_tokens + completion_tokens
 
-        # Coûts par modèle (USD par 1K tokens) - Mise à jour janvier 2025
+        # Coûts par modèle (USD par 1K tokens) - Mise à jour février 2026
         # Source: https://openai.com/pricing
+        # Les modèles o3/o3-mini sont facturés sur les tokens de raisonnement (output élargi)
         cost_per_1k_tokens = {
             "gpt-4o-mini": {
-                "input": 0.15 / 1000,  # $0.15 per 1M tokens = $0.00015 per 1K
-                "output": 0.60 / 1000,  # $0.60 per 1M tokens = $0.0006 per 1K
+                "input": 0.15 / 1000,   # $0.15 per 1M tokens
+                "output": 0.60 / 1000,  # $0.60 per 1M tokens
             },
             "gpt-4o": {
-                "input": 2.50 / 1000,  # $2.50 per 1M tokens = $0.0025 per 1K
-                "output": 10.00 / 1000,  # $10.00 per 1M tokens = $0.01 per 1K
+                "input": 2.50 / 1000,    # $2.50 per 1M tokens
+                "output": 10.00 / 1000,  # $10.00 per 1M tokens
             },
             "gpt-4-turbo": {
-                "input": 10.00 / 1000,  # $10.00 per 1M tokens
+                "input": 10.00 / 1000,   # $10.00 per 1M tokens
                 "output": 30.00 / 1000,  # $30.00 per 1M tokens
+            },
+            "o3": {
+                "input": 2.00 / 1000,    # $2.00 per 1M tokens
+                "output": 8.00 / 1000,   # $8.00 per 1M tokens (inclut reasoning tokens)
+            },
+            "o3-mini": {
+                "input": 1.10 / 1000,    # $1.10 per 1M tokens
+                "output": 4.40 / 1000,   # $4.40 per 1M tokens
+            },
+            "o4-mini": {
+                "input": 1.10 / 1000,    # $1.10 per 1M tokens (estimation)
+                "output": 4.40 / 1000,   # $4.40 per 1M tokens (estimation)
             },
         }
 
-        # Calculer le coût
+        # Calculer le coût — warning explicite si modèle inconnu (pas de fallback silencieux)
+        if model not in cost_per_1k_tokens:
+            logger.warning(
+                f"Modèle '{model}' absent de la table de coûts — estimation avec gpt-4o-mini. "
+                f"Mettre à jour token_tracker.py § cost_per_1k_tokens."
+            )
         model_costs = cost_per_1k_tokens.get(model, cost_per_1k_tokens["gpt-4o-mini"])
         cost = (prompt_tokens / 1000 * model_costs["input"]) + (
             completion_tokens / 1000 * model_costs["output"]
@@ -97,9 +115,6 @@ class TokenTracker:
             "completion_tokens": completion_tokens,
         }
 
-    # TODO(H9-câblage): exposer via GET /api/admin/ai-stats dans un handler admin dédié.
-    # Les données sont collectées en mémoire (track_usage actif dans challenge_ai_service.py)
-    # mais jamais consultées en production.
     def get_stats(self, challenge_type: Optional[str] = None, days: int = 1) -> Dict:
         """
         Retourne les statistiques d'utilisation.
@@ -149,7 +164,20 @@ class TokenTracker:
             "by_type": (
                 self._get_stats_by_type(cutoff_date) if not challenge_type else {}
             ),
+            "by_model": self._get_stats_by_model(records),
         }
+
+    def _get_stats_by_model(self, records: list) -> Dict[str, Dict]:
+        """Retourne les stats groupées par modèle IA utilisé."""
+        stats_by_model: Dict[str, Dict] = {}
+        for r in records:
+            model = r.get("model", "unknown")
+            if model not in stats_by_model:
+                stats_by_model[model] = {"total_tokens": 0, "total_cost": 0.0, "count": 0}
+            stats_by_model[model]["total_tokens"] += r["total_tokens"]
+            stats_by_model[model]["total_cost"] += r["cost"]
+            stats_by_model[model]["count"] += 1
+        return stats_by_model
 
     def _get_stats_by_type(self, cutoff_date: datetime) -> Dict[str, Dict]:
         """Retourne les stats groupées par type."""
@@ -168,7 +196,6 @@ class TokenTracker:
 
         return stats_by_type
 
-    # TODO(H9-câblage): exposer avec get_stats via l'endpoint admin.
     def get_daily_summary(self, date: Optional[datetime] = None) -> Dict:
         """Retourne un résumé quotidien."""
         if date is None:

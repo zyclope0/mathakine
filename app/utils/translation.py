@@ -86,7 +86,6 @@ def get_translated_array(
     return None
 
 
-
 def parse_accept_language(accept_language: Optional[str]) -> str:
     """
     Parse le header Accept-Language et retourne la locale préférée.
