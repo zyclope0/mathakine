@@ -67,9 +67,7 @@ export function useAdminAiStats(days: number = 1, challengeType?: string) {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["admin", "ai-stats", days, challengeType ?? "all"],
     queryFn: async () => {
-      return await api.get<AdminAiStatsResponse>(
-        `/api/admin/ai-stats?${params.toString()}`
-      );
+      return await api.get<AdminAiStatsResponse>(`/api/admin/ai-stats?${params.toString()}`);
     },
     staleTime: 60 * 1000,
   });

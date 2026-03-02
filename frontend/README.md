@@ -81,22 +81,18 @@ npm run lint
 
 ```
 frontend/
-├── app/                          # Next.js App Router
-│   ├── (auth)/                  # Routes authentification
-│   │   ├── login/
-│   │   ├── register/
-│   │   └── forgot-password/
-│   ├── (dashboard)/              # Routes protégées
-│   │   ├── dashboard/
-│   │   ├── exercises/
-│   │   ├── exercise/[id]/
-│   │   ├── challenges/
-│   │   ├── challenge/[id]/
-│   │   └── badges/
-│   ├── api/                      # API Routes Next.js
+├── app/                          # Next.js App Router (routes plates)
+│   ├── admin/                    # Espace admin (rôle archiviste)
+│   ├── dashboard/                # Tableau de bord
+│   ├── exercises/ + [id]/        # Exercices
+│   ├── challenges/ + challenge/[id]/  # Défis
+│   ├── badges/                   # Badges
+│   ├── leaderboard/              # Classement
+│   ├── profile/ + settings/      # Profil et préférences
+│   ├── api/                      # API Routes Next.js (proxy backend + streaming)
 │   ├── layout.tsx                # Layout racine
 │   ├── page.tsx                  # Page d'accueil
-│   └── globals.css               # Styles globaux + thèmes
+│   └── globals.css               # Styles globaux + variables CSS thèmes
 │
 ├── components/                    # Composants React
 │   ├── ui/                       # Composants shadcn/ui
@@ -113,8 +109,8 @@ frontend/
 │   ├── challenges/               # Composants défis logiques
 │   │   ├── ChallengeCard.tsx
 │   │   ├── ChallengeSolver.tsx
-│   │   ├── LogicGrid.tsx
-│   │   └── PatternSolver.tsx
+│   │   ├── ChallengeModal.tsx
+│   │   └── visualizations/       # Renderers visuels
 │   ├── badges/                   # Composants badges
 │   │   ├── BadgeCard.tsx
 │   │   └── BadgeGrid.tsx
@@ -134,15 +130,14 @@ frontend/
 │   └── locale/                    # Composants i18n
 │       └── LanguageSelector.tsx
 │
-├── hooks/                         # Custom hooks
-│   ├── useAuth.ts                # Authentification
-│   ├── useExercises.ts           # Liste exercices
-│   ├── useExercise.ts            # Exercice individuel
-│   ├── useChallenges.ts          # Liste défis
-│   ├── useChallenge.ts           # Défi individuel
-│   ├── useBadges.ts              # Badges
-│   ├── useUserStats.ts           # Statistiques utilisateur
-│   └── useRecommendations.ts     # Recommandations
+├── hooks/                         # 35 custom hooks (React Query)
+│   ├── useAuth.ts, useProfile.ts, useSettings.ts
+│   ├── useExercises.ts, useExercise.ts, useSubmitAnswer.ts
+│   ├── useChallenges.ts, useChallenge.ts, usePaginatedContent.ts
+│   ├── useBadges.ts, useBadgesProgress.ts
+│   ├── useUserStats.ts, useProgressStats.ts
+│   ├── useRecommendations.ts, useLeaderboard.ts, useChat.ts
+│   └── useAdmin*.ts              # 12 hooks admin
 │
 ├── lib/                          # Utilitaires et configs
 │   ├── api/                      # Clients API
@@ -310,7 +305,7 @@ Tous les composants sont dans `components/ui/` :
 
 ### **Composants Métier**
 
-Voir [Guide Composants](./docs/COMPONENTS_GUIDE.md) pour la documentation complète.
+Voir [Architecture Frontend](../docs/04-FRONTEND/ARCHITECTURE.md) pour la documentation complète.
 
 ---
 
@@ -332,7 +327,7 @@ Voir [Guide Composants](./docs/COMPONENTS_GUIDE.md) pour la documentation compl�
 - `useAccessibleAnimation()` : Animations avec garde-fous accessibilité
 - `useKeyboardNavigation()` : Navigation clavier
 
-Voir [Guide Hooks](./docs/HOOKS_GUIDE.md) pour la documentation complète.
+Voir [Architecture Frontend](../docs/04-FRONTEND/ARCHITECTURE.md) pour la liste complète des 35 hooks.
 
 ---
 
@@ -379,7 +374,7 @@ Les données (exercices, défis, badges) sont traduites via PostgreSQL JSONB :
 - Extraction automatique selon `Accept-Language` header
 - Fallback vers français si traduction manquante
 
-Voir [Guide i18n](../docs/i18n/I18N_GUIDE.md) pour la documentation complète.
+Voir [Guide i18n](../docs/02-FEATURES/I18N.md) pour la documentation complète.
 
 ---
 
@@ -405,7 +400,7 @@ Voir [Guide i18n](../docs/i18n/I18N_GUIDE.md) pour la documentation complète.
 - `AccessibilityToolbar` : Barre d'outils flottante
 - `WCAGAudit` : Audit automatique avec @axe-core/react
 
-Voir [Guide Accessibilité](./docs/ACCESSIBILITY_GUIDE.md) pour la documentation complète.
+Voir [Guide Accessibilité](../docs/04-FRONTEND/ACCESSIBILITY.md) pour la documentation complète.
 
 ---
 
@@ -518,10 +513,15 @@ npx shadcn@latest add [component-name]
 
 ## 📚 **Documentation Complémentaire**
 
-- [Guide Composants](./docs/COMPONENTS_GUIDE.md) - Documentation des composants
-- [Guide Accessibilité](./docs/ACCESSIBILITY_GUIDE.md) - Standards et bonnes pratiques
-- [Guide i18n](../docs/i18n/I18N_GUIDE.md) - Internationalisation complète
-- [Guide Tests](./__tests__/README.md) - Tests unitaires et E2E
+La documentation frontend est centralisée dans `docs/04-FRONTEND/` :
+
+- [Architecture](../docs/04-FRONTEND/ARCHITECTURE.md) — structure, stack, patterns
+- [Design System](../docs/04-FRONTEND/DESIGN_SYSTEM.md) — composants layout standardisés
+- [Accessibilité](../docs/04-FRONTEND/ACCESSIBILITY.md) — WCAG AAA, 5 modes
+- [Animations](../docs/04-FRONTEND/ANIMATIONS.md) — composants spatiaux
+- [PWA](../docs/04-FRONTEND/PWA.md) — Progressive Web App
+- [Thèmes](../docs/02-FEATURES/THEMES.md) — 7 thèmes, variables CSS
+- [i18n](../docs/02-FEATURES/I18N.md) — internationalisation next-intl
 
 ---
 
@@ -566,4 +566,4 @@ Propriétaire - Mathakine
 
 ---
 
-**Dernière mise à jour** : 9 Novembre 2025
+**Dernière mise à jour** : 22/02/2026

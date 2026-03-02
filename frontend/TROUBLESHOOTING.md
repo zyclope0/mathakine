@@ -23,9 +23,11 @@ Erreur `Failed to fetch` lors de la connexion - le frontend ne peut pas atteindr
 ### **1. Vérifier que le backend est démarré**
 
 ```bash
-# Dans un terminal séparé
+# Dans un terminal séparé (depuis la racine du projet)
 cd D:\Mathakine
-python enhanced_server.py
+python server.py
+# ou
+uvicorn app.main:app --reload --port 8000
 ```
 
 Le backend doit être accessible sur `http://localhost:8000`

@@ -48,28 +48,28 @@ class TokenTracker:
         # Les modèles o3/o3-mini sont facturés sur les tokens de raisonnement (output élargi)
         cost_per_1k_tokens = {
             "gpt-4o-mini": {
-                "input": 0.15 / 1000,   # $0.15 per 1M tokens
+                "input": 0.15 / 1000,  # $0.15 per 1M tokens
                 "output": 0.60 / 1000,  # $0.60 per 1M tokens
             },
             "gpt-4o": {
-                "input": 2.50 / 1000,    # $2.50 per 1M tokens
+                "input": 2.50 / 1000,  # $2.50 per 1M tokens
                 "output": 10.00 / 1000,  # $10.00 per 1M tokens
             },
             "gpt-4-turbo": {
-                "input": 10.00 / 1000,   # $10.00 per 1M tokens
+                "input": 10.00 / 1000,  # $10.00 per 1M tokens
                 "output": 30.00 / 1000,  # $30.00 per 1M tokens
             },
             "o3": {
-                "input": 2.00 / 1000,    # $2.00 per 1M tokens
-                "output": 8.00 / 1000,   # $8.00 per 1M tokens (inclut reasoning tokens)
+                "input": 2.00 / 1000,  # $2.00 per 1M tokens
+                "output": 8.00 / 1000,  # $8.00 per 1M tokens (inclut reasoning tokens)
             },
             "o3-mini": {
-                "input": 1.10 / 1000,    # $1.10 per 1M tokens
-                "output": 4.40 / 1000,   # $4.40 per 1M tokens
+                "input": 1.10 / 1000,  # $1.10 per 1M tokens
+                "output": 4.40 / 1000,  # $4.40 per 1M tokens
             },
             "o4-mini": {
-                "input": 1.10 / 1000,    # $1.10 per 1M tokens (estimation)
-                "output": 4.40 / 1000,   # $4.40 per 1M tokens (estimation)
+                "input": 1.10 / 1000,  # $1.10 per 1M tokens (estimation)
+                "output": 4.40 / 1000,  # $4.40 per 1M tokens (estimation)
             },
         }
 
@@ -173,7 +173,11 @@ class TokenTracker:
         for r in records:
             model = r.get("model", "unknown")
             if model not in stats_by_model:
-                stats_by_model[model] = {"total_tokens": 0, "total_cost": 0.0, "count": 0}
+                stats_by_model[model] = {
+                    "total_tokens": 0,
+                    "total_cost": 0.0,
+                    "count": 0,
+                }
             stats_by_model[model]["total_tokens"] += r["total_tokens"]
             stats_by_model[model]["total_cost"] += r["cost"]
             stats_by_model[model]["count"] += 1

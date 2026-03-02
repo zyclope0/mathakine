@@ -56,10 +56,7 @@ export default function AdminAiMonitoringPage() {
 
       <PageSection>
         <div className="flex flex-wrap gap-4 items-center mb-4">
-          <Select
-            value={String(days)}
-            onValueChange={(v) => setDays(Number(v))}
-          >
+          <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
             <SelectTrigger className="w-[180px]">
               <SelectValue />
             </SelectTrigger>
@@ -128,9 +125,7 @@ export default function AdminAiMonitoringPage() {
                     <p className="text-2xl font-bold">
                       {formatCost(statsData?.stats.total_cost ?? 0)}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      USD — estimation
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">USD — estimation</p>
                   </CardContent>
                 </Card>
 
@@ -180,7 +175,9 @@ export default function AdminAiMonitoringPage() {
                             <tr key={type} className="border-b last:border-0 hover:bg-muted/50">
                               <td className="px-4 py-3 capitalize">{type}</td>
                               <td className="px-4 py-3 text-right">{s.count}</td>
-                              <td className="px-4 py-3 text-right">{s.average_tokens.toFixed(0)}</td>
+                              <td className="px-4 py-3 text-right">
+                                {s.average_tokens.toFixed(0)}
+                              </td>
                               <td className="px-4 py-3 text-right">{formatCost(s.total_cost)}</td>
                             </tr>
                           ))}
@@ -199,8 +196,8 @@ export default function AdminAiMonitoringPage() {
                       Répartition par modèle IA
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      Coûts réels selon le modèle utilisé — o3 pour les défis complexes,
-                      o3-mini / gpt-4o-mini pour les types simples
+                      Coûts réels selon le modèle utilisé — o3 pour les défis complexes, o3-mini /
+                      gpt-4o-mini pour les types simples
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -219,7 +216,9 @@ export default function AdminAiMonitoringPage() {
                             <tr key={model} className="border-b last:border-0 hover:bg-muted/50">
                               <td className="px-4 py-3 font-mono text-xs">{model}</td>
                               <td className="px-4 py-3 text-right">{s.count}</td>
-                              <td className="px-4 py-3 text-right">{s.total_tokens.toLocaleString()}</td>
+                              <td className="px-4 py-3 text-right">
+                                {s.total_tokens.toLocaleString()}
+                              </td>
                               <td className="px-4 py-3 text-right">{formatCost(s.total_cost)}</td>
                             </tr>
                           ))}
@@ -319,9 +318,15 @@ export default function AdminAiMonitoringPage() {
                               <td className="px-4 py-3 capitalize">{type}</td>
                               <td className="px-4 py-3 text-right">{m.total_generations}</td>
                               <td className="px-4 py-3 text-right">{formatRate(m.success_rate)}</td>
-                              <td className="px-4 py-3 text-right">{formatRate(m.validation_failure_rate)}</td>
-                              <td className="px-4 py-3 text-right">{formatRate(m.auto_correction_rate)}</td>
-                              <td className="px-4 py-3 text-right">{formatDuration(m.average_duration)}</td>
+                              <td className="px-4 py-3 text-right">
+                                {formatRate(m.validation_failure_rate)}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                {formatRate(m.auto_correction_rate)}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                {formatDuration(m.average_duration)}
+                              </td>
                             </tr>
                           ))}
                         </tbody>

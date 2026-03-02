@@ -73,20 +73,65 @@ export type Theme = "spatial" | ... | "nouveau";
 const valid: Theme[] = ["spatial", ..., "nouveau"];
 ```
 
-### 2. globals.css
+### 2. globals.css — variables requises
 
 ```css
 [data-theme="nouveau"] {
+  /* Couleurs de base */
   --background: #ffffff;
   --foreground: #000000;
-  --primary: #...;
-  /* ... toutes les variables (voir THEMES_INDUSTRIALIZATION) */
+  --card: #f5f5f5;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+
+  /* Couleurs primaires */
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --primary-light: #333333;          /* Variante claire */
+  --primary-text-on-dark: #cccccc;   /* Primary sur fond sombre */
+
+  /* Couleurs secondaires et accent */
+  --secondary: #666666;
+  --secondary-foreground: #ffffff;
+  --accent: #000000;
+  --accent-foreground: #ffffff;
+
+  /* Couleurs muettes */
+  --muted: #f5f5f5;
+  --muted-foreground: #4a4a4a;   /* WCAG AAA : >= 7:1 avec --background */
+
+  /* États */
+  --destructive: #ef4444;
+  --success: #22c55e;     /* optionnel */
+  --warning: #f59e0b;     /* optionnel */
+  --info: #3b82f6;        /* optionnel */
+
+  /* Bordures, inputs, focus */
+  --border: #000000;
+  --input: #f5f5f5;
+  --ring: #000000;         /* couleur du focus ring */
+
+  --radius: 0.625rem;
 }
 
+/* Variante dark — obligatoire */
 .dark[data-theme="nouveau"] {
-  /* Variante dark obligatoire */
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #1a1a1a;
+  --muted-foreground: #cccccc;           /* plus clair pour contraste */
+  --border: rgba(255, 255, 255, 0.3);    /* plus visible */
+  /* ... autres modifications nécessaires */
 }
 ```
+
+**Checklist avant merge :**
+- [ ] Toutes les variables CSS définies
+- [ ] Variante `.dark[data-theme="..."]` créée
+- [ ] `--muted-foreground` ≥ 7:1 avec `--background` (WCAG AAA)
+- [ ] `--primary` ≥ 4.5:1 avec `--primary-foreground` (WCAG AA)
+- [ ] Test visuel via `/test-sentry` ou Storybook sur tous les composants
 
 ### 3. Composants spécifiques (optionnel)
 
@@ -117,7 +162,7 @@ Les utilisateurs avec l'ancien thème `neutral` (obsolète) sont migrés automat
 
 ## Documents complémentaires
 
-| Document | Rôle |
-|----------|------|
-| [THEMES_INDUSTRIALIZATION.md](../../frontend/docs/THEMES_INDUSTRIALIZATION.md) | Standard création, checklist, variables CSS |
-| [SPATIAL_ANIMATIONS.md](../../frontend/docs/SPATIAL_ANIMATIONS.md) | Planet, Starfield, DinoFloating, couleurs par thème |
+| Document | R�le |
+|---|---|
+| [ANIMATIONS.md](../04-FRONTEND/ANIMATIONS.md) | Planet, Starfield, DinoFloating � couleurs par th�me et personnalisation |
+| [ARCHITECTURE.md](../04-FRONTEND/ARCHITECTURE.md) | Stack et structure frontend compl�te |

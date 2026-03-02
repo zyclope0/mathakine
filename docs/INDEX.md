@@ -108,6 +108,13 @@ docs/
 │           ├── *_MIGRATION_ALEMBIC*.md  # Migration DDL → Alembic
 │           └── CONTEXTE_PROJET_REEL.md
 │
+├── 04-FRONTEND/           # 🖥️ Documentation frontend (22/02/2026)
+│   ├── ARCHITECTURE.md         # Structure, stack, patterns Next.js
+│   ├── DESIGN_SYSTEM.md        # Composants layout standardisés (PageLayout, PageHeader…)
+│   ├── ACCESSIBILITY.md        # WCAG 2.1 AAA, 5 modes (Focus TSA/TDAH, contraste…)
+│   ├── PWA.md                  # Progressive Web App (manifest, SW, offline)
+│   └── ANIMATIONS.md           # Composants spatiaux (Starfield, Planet, Particles…)
+│
 └── 06-WIDGETS/            # 🎨 Widgets Dashboard (Nouveau 06/02/2026)
     ├── INTEGRATION_PROGRESSION_WIDGETS.md  # Guide d'intégration
     ├── ENDPOINTS_PROGRESSION.md            # API endpoints utilisés
@@ -123,6 +130,13 @@ docs/
 1. [README.md](../README.md) - Installation rapide
 2. [GETTING_STARTED.md](00-REFERENCE/GETTING_STARTED.md) - Pas-à-pas détaillé
 3. [DEVELOPMENT.md](01-GUIDES/DEVELOPMENT.md) - Workflow dev
+
+### Je veux travailler sur le frontend
+1. [ARCHITECTURE.md](04-FRONTEND/ARCHITECTURE.md) - Stack, routes, composants, hooks
+2. [DESIGN_SYSTEM.md](04-FRONTEND/DESIGN_SYSTEM.md) - Composants standardisés, patterns de page
+3. [ACCESSIBILITY.md](04-FRONTEND/ACCESSIBILITY.md) - WCAG AAA, modes accessibilité
+4. [PWA.md](04-FRONTEND/PWA.md) - Progressive Web App
+5. [ANIMATIONS.md](04-FRONTEND/ANIMATIONS.md) - Composants spatiaux
 
 ### Je veux comprendre l'architecture
 1. **[README_TECH.md](../README_TECH.md)** ⭐ - **Document de référence unique**
