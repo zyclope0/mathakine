@@ -902,6 +902,11 @@
   "toasts": {
     "auth": {
       "loginSuccess": "Login successful!",
+      "loginWelcome": "Welcome {username}!",
+      "loginForbidden": "Access denied.",
+      "loginInvalidCredentials": "Invalid username or password",
+      "loginInvalidRequest": "Invalid request format",
+      "loginServerError": "Server error. Please try again later.",
       "loginError": "Login error",
       "registerSuccess": "Registration successful!",
       "registerError": "Registration error",

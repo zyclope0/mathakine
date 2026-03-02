@@ -899,6 +899,11 @@
   "toasts": {
     "auth": {
       "loginSuccess": "Connexion réussie !",
+      "loginWelcome": "Bienvenue {username} !",
+      "loginForbidden": "Accès refusé.",
+      "loginInvalidCredentials": "Nom d'utilisateur ou mot de passe incorrect",
+      "loginInvalidRequest": "Format de requête invalide",
+      "loginServerError": "Erreur serveur. Veuillez réessayer plus tard.",
       "loginError": "Erreur de connexion",
       "registerSuccess": "Inscription réussie !",
       "registerError": "Erreur d'inscription",

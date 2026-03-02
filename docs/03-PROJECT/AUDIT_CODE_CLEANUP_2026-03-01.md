@@ -301,11 +301,11 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | M10 | `challenge_handlers.py:784` | `get_challenge_hint` sans auth decorator (protection middleware seule) | ✅ Corrigé 01/03 |
 | M11 | `user_handlers.py:664-665` | `delete_cookie` sans flags `SameSite`/`Secure`/`path` → cookies non supprimés en prod | ✅ Corrigé 01/03 |
 | M12 | `frontend/lib/utils/format.ts:13` | `rate <= 0` traite 0% de succès comme invalide (devrait être `rate < 0`) | ✅ Corrigé 01/03 |
-| M13 | `frontend/hooks/useAuth.ts:90-107` | Strings françaises hardcodées au milieu du i18n | INCONSISTENCY |
+| M13 | `frontend/hooks/useAuth.ts:90-107` | Strings françaises hardcodées au milieu du i18n | ✅ Corrigé 22/02 |
 | M14 | `frontend/components/challenges/ChallengeSolver.tsx:86` | `console.warn` non gated fuit les hints dans la console en prod | ✅ Corrigé 01/03 |
 | M15 | `frontend/lib/utils.ts` vs `frontend/lib/utils/cn.ts` | Fichier dupliqué identique — `cn()` existe en double | ✅ Corrigé 02/03 |
 | M16 | `frontend/components/challenges/ChallengeModal.tsx:28` | `onChallengeCompleted` prop acceptée mais ignorée (underscore-prefixed) | DEAD_CODE |
-| M17 | `frontend/components/exercises/AIGenerator.tsx:308+371` | Double bouton cancel pendant la génération | INCONSISTENCY |
+| M17 | `frontend/components/exercises/AIGenerator.tsx:308+371` | Double bouton cancel pendant la génération | ✅ Corrigé 22/02 |
 
 ---
 

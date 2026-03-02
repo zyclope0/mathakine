@@ -296,24 +296,13 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
 
         {/* Affichage du streaming - Indicateur simple */}
         {isGenerating && (
-          <div className="p-3 rounded-lg bg-card border border-primary/20 relative flex items-center gap-2">
+          <div className="p-3 rounded-lg bg-card border border-primary/20 flex items-center gap-2">
             <div className="flex-shrink-0">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
             </div>
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground">
-                {streamedText || t("aiGenerator.generating")}
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCancel}
-              className="h-6 w-6 p-0 flex-shrink-0"
-              aria-label={t("aiGenerator.cancelGeneration")}
-            >
-              <X className="h-3 w-3" />
-            </Button>
+            <p className="flex-1 text-xs text-muted-foreground">
+              {streamedText || t("aiGenerator.generating")}
+            </p>
           </div>
         )}
 

@@ -96,7 +96,7 @@ export function useAuth() {
       // Cela évite que ProtectedRoute redirige vers /login pendant le rechargement
       queryClient.setQueryData(["auth", "me"], data.user);
       toast.success(t("loginSuccess"), {
-        description: `Bienvenue ${data.user.username} !`,
+        description: t("loginWelcome", { username: data.user.username }),
       });
       // Rediriger : onboarding si pas encore fait, sinon /dashboard (post-inscription) ou /exercises
       const needsOnboarding = !data.user.onboarding_completed_at;
@@ -107,13 +107,13 @@ export function useAuth() {
     onError: (error: ApiClientError) => {
       let message: string;
       if (error.status === 403) {
-        message = error.message || "Accès refusé.";
+        message = error.message || t("loginForbidden");
       } else if (error.status === 401) {
-        message = "Nom d'utilisateur ou mot de passe incorrect";
+        message = t("loginInvalidCredentials");
       } else if (error.status === 400) {
-        message = error.message || "Format de requête invalide";
+        message = error.message || t("loginInvalidRequest");
       } else if (error.status === 500) {
-        message = error.message || "Erreur serveur. Veuillez réessayer plus tard.";
+        message = error.message || t("loginServerError");
       } else {
         message = error.message || t("loginError");
       }
