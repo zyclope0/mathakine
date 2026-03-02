@@ -348,3 +348,34 @@ def test_safe_archive_without_auto_commit():
     assert mock_obj.is_archived is True
     mock_session.commit.assert_not_called()
     assert result is True
+
+
+# =============================================================================
+# Test de régression M7 — condition morte `if not savepoint.is_active`
+# =============================================================================
+
+
+def test_transaction_commit_called_regardless_of_savepoint_is_active():
+    """Régression M7 : db_session.commit() doit être appelé même si is_active=True.
+
+    Avant la correction, la condition `if not savepoint.is_active` était
+    évaluée APRÈS savepoint.commit(), moment où is_active est TOUJOURS False
+    en production. Mais si is_active était True (ex : mock ou comportement
+    driver différent), db_session.commit() était silencieusement ignoré.
+
+    Après correction : db_session.commit() est toujours appelé sans condition.
+    """
+    mock_session = MagicMock(spec=Session)
+
+    # is_active = True : cas qui, avec l'ancienne condition `if not is_active`,
+    # aurait empêché db_session.commit() d'être appelé.
+    mock_savepoint = MagicMock()
+    mock_savepoint.is_active = True
+    mock_session.begin_nested.return_value = mock_savepoint
+
+    with TransactionManager.transaction(mock_session, auto_commit=True):
+        pass
+
+    # db_session.commit() DOIT être appelé quoi que soit is_active
+    mock_session.commit.assert_called_once()
+    mock_savepoint.commit.assert_called_once()
