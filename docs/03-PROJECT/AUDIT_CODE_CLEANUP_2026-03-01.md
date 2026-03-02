@@ -291,7 +291,7 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 |---|---------|----------|-----------|
 | M1 | `exercise_service.py:448-459` | `valid_types`/`valid_difficulties` calculés mais jamais utilisés (filter commenté) | ✅ Corrigé 01/03 |
 | M2 | `challenge_service.py:582-601` | `stats.total` peut être `None` → `TypeError` dans le calcul de success_rate | ✅ Corrigé 01/03 |
-| M3 | `user_service.py:384-395` | Calcul de niveau fragile à la borne max (`xp >= 5500`) | BUG |
+| M3 | `user_service.py:384-395` | Calcul de niveau fragile à la borne max (`xp >= 5500`) | ✅ Corrigé 02/03 |
 | M4 | `rate_limit.py:22` | `_rate_limit_store` grossit indéfiniment — fuite mémoire lente | ✅ Corrigé 01/03 |
 | M5 | `token_tracker.py:168-179` | `key.split("_")[0]` tronque les types contenant `_` | ✅ Corrigé 02/03 |
 | M6 | `simple_ttl_cache.py:17-22` | TOCTOU race sur init du lock asyncio | BUG |
@@ -382,6 +382,7 @@ async def get_setting_bool(key: str, default: bool = False) -> bool:
 | 02/03/2026 | H6 | CSRF centralisé via `CsrfMiddleware` — couvre tous les endpoints state-changing |
 | 02/03/2026 | M5 | `token_tracker.py` : `key[: -len(date_suffix)]` remplace `key.split("_")[0]` — types avec `_` plus tronqués. 6 tests unitaires. |
 | 02/03/2026 | H9 | Analyse complète : 2 suppressions nettes (`render_template/render_error` dans `template_handler.py`, `generate_contextual_question` dans `exercise_generator_helpers.py`). 5 modules conservés (infrastructure active ou câblage futur documenté). |
+| 02/03/2026 | M3 | `_calculate_user_level` : `is_max_level` ajouté, `current_xp`/`next_level_xp` = 0 au niveau max (était next_level_xp=100 hardcodé → texte "4500/100 XP pour le niveau 12"). Thresholds extraits en constantes de classe. Frontend `LevelIndicator` affiche "Niveau maximum atteint". 7 tests de régression. |
 
 ---
 

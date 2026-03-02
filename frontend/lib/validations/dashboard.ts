@@ -15,6 +15,7 @@ export interface UserStats {
     title: string;
     current_xp: number;
     next_level_xp: number;
+    is_max_level?: boolean;
   };
   xp?: number;
   next_level_xp?: number;
@@ -99,6 +100,7 @@ export function safeValidateUserStats(data: unknown): UserStats | null {
         title?: string;
         current_xp?: number;
         next_level_xp?: number;
+        is_max_level?: boolean;
       };
       if (typeof lev.current === "number") {
         validated.level = {
@@ -106,6 +108,7 @@ export function safeValidateUserStats(data: unknown): UserStats | null {
           title: typeof lev.title === "string" ? lev.title : "",
           current_xp: typeof lev.current_xp === "number" ? lev.current_xp : 0,
           next_level_xp: typeof lev.next_level_xp === "number" ? lev.next_level_xp : 0,
+          is_max_level: typeof lev.is_max_level === "boolean" ? lev.is_max_level : false,
         };
       }
     } else if (typeof level === "number") {

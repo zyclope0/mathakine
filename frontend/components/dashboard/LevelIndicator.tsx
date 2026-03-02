@@ -11,14 +11,17 @@ interface LevelIndicatorProps {
     title: string;
     current_xp: number;
     next_level_xp: number;
+    is_max_level?: boolean;
   };
 }
 
 export function LevelIndicator({ level }: LevelIndicatorProps) {
   const t = useTranslations("dashboard.levelIndicator");
 
-  const progressPercent =
-    level.next_level_xp > 0 ? Math.min((level.current_xp / level.next_level_xp) * 100, 100) : 0;
+  const isMax = level.is_max_level === true || level.next_level_xp === 0;
+  const progressPercent = isMax
+    ? 100
+    : Math.min((level.current_xp / level.next_level_xp) * 100, 100);
 
   return (
     <Card className="bg-card border-primary/20">
@@ -45,13 +48,19 @@ export function LevelIndicator({ level }: LevelIndicatorProps) {
                 className="h-2"
                 aria-label={`${progressPercent.toFixed(0)}% ${t("xp", { default: "XP" })}`}
               />
-              <div className="text-sm text-muted-foreground">
-                {level.current_xp}/{level.next_level_xp} {t("xp", { default: "XP" })}{" "}
-                {t("xpForNextLevel", {
-                  level: level.current + 1,
-                  default: `pour le niveau ${level.current + 1}`,
-                })}
-              </div>
+              {isMax ? (
+                <div className="text-sm text-primary font-medium">
+                  {t("maxLevel", { default: "Niveau maximum atteint ✨" })}
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  {level.current_xp}/{level.next_level_xp} {t("xp", { default: "XP" })}{" "}
+                  {t("xpForNextLevel", {
+                    level: level.current + 1,
+                    default: `pour le niveau ${level.current + 1}`,
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

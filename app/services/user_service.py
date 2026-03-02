@@ -357,61 +357,64 @@ class UserService:
             )
             return {"stats_error": "Erreur lors de la récupération des statistiques"}
 
+    # Seuils XP pour chaque niveau (index = niveau - 1).
+    # Modifier ici pour ajouter/ajuster des niveaux — MAX_LEVEL se déduit automatiquement.
+    _LEVEL_THRESHOLDS = [0, 100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500]
+    _LEVEL_TITLES = {
+        1: "Jeune Padawan",
+        2: "Padawan",
+        3: "Chevalier Jedi",
+        4: "Maître Jedi",
+        5: "Grand Maître",
+        6: "Maître du Conseil",
+        7: "Légende Jedi",
+        8: "Gardien de la Force",
+        9: "Seigneur Jedi",
+        10: "Archiviste Jedi",
+        11: "Grand Archiviste",
+    }
+
     @staticmethod
     def _calculate_user_level(xp: int) -> dict:
         """
         Calcule le niveau utilisateur basé sur les points d'expérience.
 
         Args:
-            xp: Points d'expérience totaux
+            xp: Points d'expérience totaux (>= 0)
 
         Returns:
-            Dictionnaire avec current, title, current_xp, next_level_xp
+            Dictionnaire avec :
+              - current       : niveau actuel (1 à MAX_LEVEL)
+              - title         : titre du niveau
+              - current_xp    : XP accumulés dans le niveau en cours (0 si max)
+              - next_level_xp : XP nécessaires pour le niveau suivant (0 si max atteint)
+              - is_max_level  : True si le niveau maximum est atteint
         """
-        level_thresholds = [
-            0,
-            100,
-            300,
-            600,
-            1000,
-            1500,
-            2100,
-            2800,
-            3600,
-            4500,
-            5500,
-        ]
+        thresholds = UserService._LEVEL_THRESHOLDS
+        max_level = len(thresholds)
+
         current_level = 1
-        for i, threshold in enumerate(level_thresholds):
+        for i, threshold in enumerate(thresholds):
             if xp >= threshold:
                 current_level = i + 1
-        current_xp = (
-            xp - level_thresholds[current_level - 1] if current_level > 1 else xp
-        )
-        next_level_xp = (
-            level_thresholds[current_level] - level_thresholds[current_level - 1]
-            if current_level < len(level_thresholds)
-            else 100
-        )
-        level_titles = {
-            1: "Jeune Padawan",
-            2: "Padawan",
-            3: "Chevalier Jedi",
-            4: "Maître Jedi",
-            5: "Grand Maître",
-            6: "Maître du Conseil",
-            7: "Légende Jedi",
-            8: "Gardien de la Force",
-            9: "Seigneur Jedi",
-            10: "Archiviste Jedi",
-            11: "Grand Archiviste",
-        }
-        title = level_titles.get(current_level, f"Niveau {current_level}")
+
+        is_max_level = current_level >= max_level
+
+        if is_max_level:
+            current_level = max_level
+            current_xp = 0
+            next_level_xp = 0
+        else:
+            current_xp = xp - thresholds[current_level - 1]
+            next_level_xp = thresholds[current_level] - thresholds[current_level - 1]
+
+        title = UserService._LEVEL_TITLES.get(current_level, f"Niveau {current_level}")
         return {
             "current": current_level,
             "title": title,
             "current_xp": current_xp,
             "next_level_xp": next_level_xp,
+            "is_max_level": is_max_level,
         }
 
     @staticmethod
