@@ -527,9 +527,6 @@ function ChallengesPageContent() {
             setIsModalOpen(open);
             if (!open) setSelectedChallengeId(null);
           }}
-          onChallengeCompleted={() => {
-            queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });
-          }}
         />
       </PageLayout>
     </ProtectedRoute>

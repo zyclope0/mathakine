@@ -25,14 +25,12 @@ interface ChallengeModalProps {
   challengeId: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onChallengeCompleted?: () => void;
 }
 
 export function ChallengeModal({
   challengeId,
   open,
   onOpenChange,
-  onChallengeCompleted: _onChallengeCompleted,
 }: ChallengeModalProps) {
   const { challenge, isLoading, error } = useChallenge(challengeId || 0);
   const { theme } = useThemeStore();

@@ -228,9 +228,9 @@ export function RiddleRenderer({ visualData, className = "" }: RiddleRendererPro
             <h4 className="font-semibold text-foreground">Pots</h4>
           </div>
           <div className="space-y-2">
-            {pots.map((pot: any, index: number) => {
-              const label = pot.label ?? `Pot ${index + 1}`;
-              const cluesList = Array.isArray(pot.visible_clues) ? pot.visible_clues : [];
+            {pots.map((pot: Record<string, unknown>, index: number) => {
+              const label = (pot.label as string | number | undefined) ?? `Pot ${index + 1}`;
+              const cluesList = Array.isArray(pot.visible_clues) ? (pot.visible_clues as string[]) : [];
               return (
                 <div
                   key={index}

@@ -109,7 +109,8 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
     }
   }, [submitResult, onChallengeCompleted]);
 
-  // Réinitialiser l'état quand le défi change
+  // Réinitialiser l'état quand le défi change (dépendance sur l'id pour éviter
+  // un reset si l'objet challenge est recréé sans changement de contenu)
   useEffect(() => {
     if (challenge) {
       setUserAnswer("");
@@ -120,6 +121,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
       setVisualSelections({});
       startTimeRef.current = Date.now();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [challenge?.id]);
 
   // Syncer visualSelections multi-position vers userAnswer (doit être avant tout early return)
@@ -214,9 +216,8 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
         time_spent: timeSpent,
         hints_used: hintsUsed,
       });
-    } catch (error) {
+    } catch {
       // L'erreur est déjà gérée par le hook useChallenges
-      // Ne pas logger en production pour éviter les fuites d'information
     }
   };
 

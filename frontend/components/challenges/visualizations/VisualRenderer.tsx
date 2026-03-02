@@ -509,7 +509,7 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                             (shapeData as Record<string, unknown>).value ??
                             index + 1
                         );
-                  const { shape, color, isQuestion } = parseShapeWithColor(shapeText);
+                  const { color, isQuestion } = parseShapeWithColor(shapeText);
                   const icon = getShapeIcon(shapeText);
 
                   return (

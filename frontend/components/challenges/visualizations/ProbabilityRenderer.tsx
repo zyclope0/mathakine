@@ -111,7 +111,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
     }
 
     return items.length > 0 ? { items, total, itemType } : null;
-  }, [visualData]);
+  }, [visualData, t]);
 
   if (!mounted || !visualData) {
     return null;

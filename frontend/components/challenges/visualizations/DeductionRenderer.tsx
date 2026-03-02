@@ -84,7 +84,10 @@ export function DeductionRenderer({
 
   // Catégorie principale (première) et catégories à associer (reste)
   const primaryCategory = gridCategories?.[0];
-  const secondaryCategories = gridCategories?.slice(1) || [];
+  const secondaryCategories = useMemo(
+    () => gridCategories?.slice(1) ?? [],
+    [gridCategories]
+  );
 
   // Initialiser les sélections
   useEffect(() => {
