@@ -60,6 +60,7 @@ docs/
 │   ├── REFACTOR_STATUS_2026-02.md  # État refactor Clean Code + Architecture (28/02)
 │   ├── EVALUATION_PROJET_2026-02-07.md  # Référence actuelle (évaluation factuelle)
 │   ├── AUDIT_DASHBOARD_2026-02.md  # Audit dashboard (recos partielles)
+│   ├── AUDIT_ARCHITECTURE_BACKEND_2026-03.md  # Audit architecture SOLID/Clean Code/Industrialisation (22/02)
 │   ├── AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md  # Audit backend + plan itérations Dev/Test/Prod
 │   ├── AUDIT_SENTRY_2026-02.md  # Configuration Sentry (référence)
 │   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~90% traité, vérité terrain 28/02)
@@ -168,7 +169,8 @@ docs/
 3. [ENV_CHECK.md](01-GUIDES/ENV_CHECK.md) - Checklist .env et Render (dev local)
 
 ### Je veux consulter l'état du refactor
-1. [REFACTOR_STATUS_2026-02.md](03-PROJECT/REFACTOR_STATUS_2026-02.md) — État Clean Code P1–P3 + Architecture Ph1–Ph3
+1. [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](03-PROJECT/AUDIT_ARCHITECTURE_BACKEND_2026-03.md) — Audit SOLID/Clean Code 5 phases (22/02)
+2. [REFACTOR_STATUS_2026-02.md](03-PROJECT/REFACTOR_STATUS_2026-02.md) — État Clean Code P1–P3 + Architecture Ph1–Ph3
 2. [PLAN_CLEAN_CODE_ET_DTO](03-PROJECT/PLAN_CLEAN_CODE_ET_DTO_2026-02.md) — Détail DTO, exceptions, typage
 3. [PLAN_REFACTO_ARCHITECTURE](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/PLAN_REFACTO_ARCHITECTURE_2026-02.md) — Phases routes, handlers, services
 
@@ -240,6 +242,9 @@ docs/
 ---
 
 ## 🔄 Dernières mises à jour
+
+### 03/03/2026 — Audit architecture backend
+- 📐 **[AUDIT_ARCHITECTURE_BACKEND_2026-03.md](03-PROJECT/AUDIT_ARCHITECTURE_BACKEND_2026-03.md)** — Audit complet SOLID, Clean Code, performances, sécurité, industrialisation. 36 constats (4 critiques, 10 high). Plan 5 phases priorisé (~15 jours). Complémentaire à l'audit Cleanup du 01/03.
 
 ### 28/02/2026 — Refactor + documentation alignée
 - 📐 **Refactor terminé** : Clean Code P1–P3, Architecture Ph1–Ph3. Voir [REFACTOR_STATUS_2026-02.md](03-PROJECT/REFACTOR_STATUS_2026-02.md).
