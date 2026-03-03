@@ -47,24 +47,22 @@ export function ExerciseGenerator() {
   };
 
   return (
-    <Card className="h-full border-primary/20">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm md:text-base">
-          <Zap className="h-4 w-4 text-primary" />
+    <Card className="border-primary/20">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+          <Zap className="h-5 w-5 text-primary" />
           {t("generator.title")}
         </CardTitle>
-        <CardDescription className="text-xs hidden sm:block">
-          {t("generator.description")}
-        </CardDescription>
+        <CardDescription className="text-sm">{t("generator.description")}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2 pt-0">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1">
-            <label htmlFor="exercise-type-select" className="text-xs font-medium">
+      <CardContent className="space-y-4 pt-0">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label htmlFor="exercise-type-select" className="text-sm font-medium">
               {t("generator.exerciseType")}
             </label>
             <Select value={exerciseType} onValueChange={setExerciseType}>
-              <SelectTrigger id="exercise-type-select" className="h-8 text-xs">
+              <SelectTrigger id="exercise-type-select">
                 <SelectValue placeholder={t("generator.selectType")} />
               </SelectTrigger>
               <SelectContent>
@@ -77,12 +75,12 @@ export function ExerciseGenerator() {
             </Select>
           </div>
 
-          <div className="space-y-1">
-            <label htmlFor="exercise-age-group-select" className="text-xs font-medium">
+          <div className="space-y-2">
+            <label htmlFor="exercise-age-group-select" className="text-sm font-medium">
               {t("generator.ageGroup")}
             </label>
             <Select value={ageGroup} onValueChange={setAgeGroup}>
-              <SelectTrigger id="exercise-age-group-select" className="h-8 text-xs">
+              <SelectTrigger id="exercise-age-group-select">
                 <SelectValue placeholder={t("generator.selectAgeGroup")} />
               </SelectTrigger>
               <SelectContent>
@@ -99,16 +97,17 @@ export function ExerciseGenerator() {
         <Button
           onClick={handleGenerate}
           disabled={isGenerating}
-          className="btn-cta-primary w-full h-8 text-xs"
+          size="lg"
+          className="btn-cta-primary w-full"
         >
           {isGenerating ? (
             <>
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               {t("generator.generating")}
             </>
           ) : (
             <>
-              <Zap className="mr-1.5 h-3.5 w-3.5" />
+              <Zap className="mr-2 h-4 w-4" />
               {t("generator.generate")}
             </>
           )}

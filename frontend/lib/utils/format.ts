@@ -9,7 +9,13 @@
 export function hasAiTag(tags: string | string[] | null | undefined): boolean {
   if (!tags) return false;
   if (Array.isArray(tags)) return tags.includes("ai");
-  return tags === "ai" || tags.split(",").map((t) => t.trim()).includes("ai");
+  return (
+    tags === "ai" ||
+    tags
+      .split(",")
+      .map((t) => t.trim())
+      .includes("ai")
+  );
 }
 
 /**

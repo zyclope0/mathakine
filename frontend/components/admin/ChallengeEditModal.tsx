@@ -46,7 +46,6 @@ export interface ChallengeDetail {
   [key: string]: unknown;
 }
 
-
 interface ChallengeEditModalProps {
   challengeId: number | null;
   open: boolean;

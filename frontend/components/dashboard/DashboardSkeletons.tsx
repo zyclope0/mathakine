@@ -20,9 +20,7 @@ export function DashboardWidgetSkeleton({
   className?: string;
 }) {
   return (
-    <Card
-      className={cn("bg-card border-primary/20 animate-pulse h-full flex flex-col", className)}
-    >
+    <Card className={cn("bg-card border-primary/20 animate-pulse h-full flex flex-col", className)}>
       <CardHeader className="flex-shrink-0">
         <Skeleton className={cn("h-6", titleWidth)} />
       </CardHeader>

@@ -15,14 +15,19 @@ function renderValue(value: unknown): React.ReactNode {
   if (value === null) return <span className="text-muted-foreground italic">null</span>;
   if (typeof value === "boolean")
     return <span className="text-info font-mono">{String(value)}</span>;
-  if (typeof value === "number")
-    return <span className="text-success font-mono">{value}</span>;
-  if (typeof value === "string")
-    return <span className="text-warning">&quot;{value}&quot;</span>;
+  if (typeof value === "number") return <span className="text-success font-mono">{value}</span>;
+  if (typeof value === "string") return <span className="text-warning">&quot;{value}&quot;</span>;
   if (Array.isArray(value))
     return (
       <span className="text-muted-foreground">
-        [{value.map((v, i) => <span key={i}>{i > 0 && ", "}{renderValue(v)}</span>)}]
+        [
+        {value.map((v, i) => (
+          <span key={i}>
+            {i > 0 && ", "}
+            {renderValue(v)}
+          </span>
+        ))}
+        ]
       </span>
     );
   return <span className="text-muted-foreground font-mono">{JSON.stringify(value)}</span>;
@@ -44,7 +49,11 @@ export function DefaultRenderer({ visualData, className }: DefaultRendererProps)
     <Card className={`bg-card border-primary/20 ${className || ""}`}>
       <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          {isString ? <Type className="h-4 w-4 text-primary" /> : <FileJson className="h-4 w-4 text-primary" />}
+          {isString ? (
+            <Type className="h-4 w-4 text-primary" />
+          ) : (
+            <FileJson className="h-4 w-4 text-primary" />
+          )}
           Données visuelles
           <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">
             {dataType}

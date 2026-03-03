@@ -46,8 +46,8 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               className="text-lg mb-2 flex items-center gap-2"
             >
               {hasAiTag(challenge.tags) && (
-                  <Sparkles className="h-4 w-4 text-primary-on-dark" aria-hidden="true" />
-                )}
+                <Sparkles className="h-4 w-4 text-primary-on-dark" aria-hidden="true" />
+              )}
               {challenge.title}
             </CardTitle>
             <CardDescription id={`challenge-description-${challenge.id}`} className="line-clamp-2">
@@ -76,16 +76,16 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
             </Badge>
           )}
           {hasAiTag(challenge.tags) && (
-              <Badge
-                variant="outline"
-                className="badge-ai-pulse bg-primary/10 text-primary-on-dark border-primary/30"
-                aria-label={t("card.aiGenerated", {
-                  default: "Généré par intelligence artificielle",
-                })}
-              >
-                IA
-              </Badge>
-            )}
+            <Badge
+              variant="outline"
+              className="badge-ai-pulse bg-primary/10 text-primary-on-dark border-primary/30"
+              aria-label={t("card.aiGenerated", {
+                default: "Généré par intelligence artificielle",
+              })}
+            >
+              IA
+            </Badge>
+          )}
         </div>
       </CardHeader>
       <CardContent>

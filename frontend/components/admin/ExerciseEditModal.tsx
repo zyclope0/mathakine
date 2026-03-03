@@ -39,7 +39,6 @@ export interface ExerciseDetail {
   [key: string]: unknown;
 }
 
-
 interface ExerciseEditModalProps {
   exerciseId: number | null;
   open: boolean;

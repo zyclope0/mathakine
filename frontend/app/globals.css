@@ -480,7 +480,8 @@ select:focus {
 /* Thème Spatial (Priorité 1) - Par défaut */
 :root,
 [data-theme="spatial"] {
-  --radius: 0.625rem;
+  --radius: 1rem;
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.07);
   --background: #0a0a0f;
   --foreground: #ffffff;
   --card: #12121a;
@@ -608,6 +609,7 @@ select:focus {
 
 /* Thème Dune (Sable) — clair + chaud, réduction fatigue visuelle */
 [data-theme="dune"] {
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.09);
   --background: #fef7ed;
   --foreground: #431407;
   --card: #fffbeb;
@@ -650,6 +652,7 @@ select:focus {
 
 /* Thème Forêt (Nature) — verts doux, calme et focus */
 [data-theme="forest"] {
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.09);
   --background: #f0fdf4;
   --foreground: #14532d;
   --card: #ecfdf5;
@@ -692,6 +695,7 @@ select:focus {
 
 /* Thème Lumière (Pêche) — tons chauds, énergie douce */
 [data-theme="peach"] {
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.09);
   --background: #fff7ed;
   --foreground: #431407;
   --card: #ffedd5;
@@ -734,6 +738,7 @@ select:focus {
 
 /* Thème Dinosaures 🦖 — jungle préhistorique, verts lime + ambre fossil */
 [data-theme="dino"] {
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.09);
   --background: #fef9c3;
   --foreground: #422006;
   --card: #fef08a;

@@ -185,7 +185,10 @@ export default function HomePage() {
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
-              <Card key={feature.titleKey} className="card-spatial-depth text-center py-4 cursor-default">
+              <Card
+                key={feature.titleKey}
+                className="card-spatial-depth text-center py-4 cursor-default"
+              >
                 <CardHeader className="pb-2 pt-0 px-3">
                   <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                     <Icon className="h-5 w-5 text-primary" aria-hidden="true" />

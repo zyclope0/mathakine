@@ -262,6 +262,8 @@
       "exerciseInfo": "Exercise information"
     },
     "generator": {
+      "tabClassic": "Quick",
+      "tabAI": "AI Generation",
       "title": "Generate an exercise",
       "description": "Create a new mathematical exercise",
       "exerciseType": "Exercise type",

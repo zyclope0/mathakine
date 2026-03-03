@@ -131,11 +131,7 @@ export function AIGeneratorBase({
             >
               {typeLabel}
             </label>
-            <Select
-              value={selectedType}
-              onValueChange={setSelectedType}
-              disabled={isGenerating}
-            >
+            <Select value={selectedType} onValueChange={setSelectedType} disabled={isGenerating}>
               <SelectTrigger
                 id={typeSelectId}
                 className="w-full h-8 text-xs bg-background text-foreground border-primary/30"
@@ -163,11 +159,7 @@ export function AIGeneratorBase({
             >
               {ageLabel}
             </label>
-            <Select
-              value={selectedAge}
-              onValueChange={setSelectedAge}
-              disabled={isGenerating}
-            >
+            <Select value={selectedAge} onValueChange={setSelectedAge} disabled={isGenerating}>
               <SelectTrigger
                 id="ai-age-group"
                 className="w-full h-8 text-xs bg-background text-foreground border-primary/30"

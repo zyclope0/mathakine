@@ -20,7 +20,18 @@ import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import { EXERCISE_TYPE_STYLES, AGE_GROUPS } from "@/lib/constants/exercises";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
-import { Filter, X, Search, LayoutGrid, List, Sparkles, CheckCircle2, EyeOff } from "lucide-react";
+import {
+  Filter,
+  X,
+  Search,
+  LayoutGrid,
+  List,
+  Sparkles,
+  CheckCircle2,
+  EyeOff,
+  Zap,
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
@@ -330,12 +341,32 @@ function ExercisesPageContent() {
           </div>
         </PageSection>
 
-        {/* Générateurs - Horizontal avec fond accentué */}
-        <PageSection className="section-generator space-y-3 animate-fade-in-up-delay-1">
-          <div className="grid gap-3 md:grid-cols-2">
-            <ExerciseGenerator />
-            <AIGenerator />
-          </div>
+        {/* Générateurs — onglets Rapide / IA */}
+        <PageSection className="section-generator animate-fade-in-up-delay-1">
+          <Tabs defaultValue="classic" className="w-full">
+            <TabsList className="w-full h-auto p-1.5 bg-card border border-border/50 rounded-xl justify-start gap-1">
+              <TabsTrigger
+                value="classic"
+                className="px-5 py-2.5 gap-2 text-sm font-semibold flex-none data-[state=active]:border data-[state=active]:border-border/40"
+              >
+                <Zap className="h-4 w-4" />
+                {t("generator.tabClassic")}
+              </TabsTrigger>
+              <TabsTrigger
+                value="ai"
+                className="px-5 py-2.5 gap-2 text-sm font-semibold flex-none data-[state=active]:border data-[state=active]:border-border/40"
+              >
+                <Sparkles className="h-4 w-4" />
+                {t("generator.tabAI")}
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="classic" className="mt-0 pt-5">
+              <ExerciseGenerator />
+            </TabsContent>
+            <TabsContent value="ai" className="mt-0 pt-5">
+              <AIGenerator />
+            </TabsContent>
+          </Tabs>
         </PageSection>
 
         {/* Liste des exercices */}

@@ -31,7 +31,7 @@ const maxWidthClasses = {
 export function PageLayout({ children, className, maxWidth = "xl" }: PageLayoutProps) {
   return (
     <div className={cn("py-4 px-3 sm:px-4 md:px-6 lg:px-8", className)}>
-      <div className={cn("mx-auto space-y-4 md:space-y-6", maxWidthClasses[maxWidth])}>
+      <div className={cn("mx-auto space-y-6 md:space-y-8", maxWidthClasses[maxWidth])}>
         {children}
       </div>
     </div>
