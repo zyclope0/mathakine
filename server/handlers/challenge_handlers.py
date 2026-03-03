@@ -446,7 +446,9 @@ async def generate_ai_challenge_stream(request: Request) -> Response:
             )
             challenge_type = "sequence"
 
-        age_group = age_group_exercise_from_api(age_group_raw) or constants.AgeGroups.GROUP_6_8
+        age_group = (
+            age_group_exercise_from_api(age_group_raw) or constants.AgeGroups.GROUP_6_8
+        )
 
         user_id = current_user.get("id")
         if user_id:

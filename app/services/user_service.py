@@ -752,7 +752,9 @@ class UserService:
         }
 
     @staticmethod
-    def get_challenges_progress_for_api(db: Session, user_id: int) -> ChallengesProgressDict:
+    def get_challenges_progress_for_api(
+        db: Session, user_id: int
+    ) -> ChallengesProgressDict:
         """
         Récupère la progression des défis logiques pour l'API.
         """

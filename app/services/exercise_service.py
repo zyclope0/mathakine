@@ -589,7 +589,9 @@ class ExerciseService:
             for row in rows
         ]
 
-        return ExerciseListResponse(**format_paginated_response(items, total, skip, limit))
+        return ExerciseListResponse(
+            **format_paginated_response(items, total, skip, limit)
+        )
 
     @staticmethod
     def create_exercise(
