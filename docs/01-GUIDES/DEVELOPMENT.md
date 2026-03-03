@@ -173,41 +173,45 @@ def get_my_model(db: Session, id: int) -> MyModel | None:
 
 **Creer un handler** (`server/handlers/`)
 
-> **Depuis le 09/02/2026** : Utiliser les decorateurs d'authentification de `server/auth.py` au lieu de verifier manuellement le token.
+> **Depuis le 09/02/2026** : Utiliser les décorateurs d'authentification de `server/auth.py` au lieu de vérifier manuellement le token.
+> **Depuis le 03/03/2026 (Phase 1 audit)** : Utiliser `parse_json_body_any` (au lieu de `request.json()` brut), `api_error_response` + `get_safe_error_message` en top-level, typer `request: Request` et `-> JSONResponse`.
 
 ```python
 # server/handlers/my_model_handlers.py
+from starlette.requests import Request
 from starlette.responses import JSONResponse
-from server.auth import require_auth, optional_auth
-from app.services import my_model_service
+
 from app.schemas.my_model import MyModelCreate
+from app.services import my_model_service
+from app.utils.db_utils import db_session
+from app.utils.error_handler import api_error_response, get_safe_error_message
+from app.utils.request_utils import parse_json_body_any
+from server.auth import optional_auth, require_auth
+
 
 @require_auth  # Authentification obligatoire - injecte request.state.user
-async def create_my_model_handler(request):
+async def create_my_model_handler(request: Request) -> JSONResponse:
     """POST /api/my-models"""
     try:
         current_user = request.state.user  # Injecte par @require_auth
-        data = await request.json()
-        db = request.state.db
-        
-        # Validation
-        model_data = MyModelCreate(**data)
-        
-        # Creation
-        result = my_model_service.create_my_model(db, model_data)
-        
+        data = await parse_json_body_any(request)  # parse + gestion erreurs JSON
+
+        async with db_session() as db:
+            model_data = MyModelCreate(**data)
+            result = my_model_service.create_my_model(db, model_data)
+
         return JSONResponse({
             "id": result.id,
             "name": result.name,
             "description": result.description
         }, status_code=201)
-        
+
     except Exception as creation_error:
-        from app.utils.error_handler import api_error_response
-        return api_error_response(500, str(creation_error))
+        return api_error_response(500, get_safe_error_message(creation_error))
+
 
 @optional_auth  # Auth optionnelle - request.state.user = None si non connecte
-async def list_my_models_handler(request):
+async def list_my_models_handler(request: Request) -> JSONResponse:
     """GET /api/my-models"""
     current_user = request.state.user  # Peut etre None
     # ...

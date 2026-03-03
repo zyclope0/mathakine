@@ -42,7 +42,7 @@ Normaliser les niveaux de difficulté pour sortir de la logique Star Wars et pro
 | Modèle Exercise      | `app/models/exercise.py` — enum DifficultyLevel | Migration enum + données |
 | Constantes           | `app/core/constants.py` — DifficultyLevels | Mapping, aliases |
 | Schémas              | `app/schemas/exercise.py` — validateurs   | Validation |
-| Admin                | `app/services/admin_service.py`, handlers | Création / édition |
+| Admin                | `app/services/admin_content_service.py`, `app/services/admin_stats_service.py`, handlers | Création / édition |
 | Recommandations      | `app/services/recommendation_service.py` | Filtres, progression |
 | Générateur exercices  | `server/exercise_generator*.py`            | Génération IA |
 | Frontend             | Composants admin, exercices, badges       | Affichage, sélecteurs |

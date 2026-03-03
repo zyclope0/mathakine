@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique — Mise à jour au 28/02/2026  
+> Point d'entrée unique — Mise à jour au 03/03/2026  
 > **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md) — inclut la **revue trimestrielle** (vérité terrain) §7
 
 ---
@@ -304,8 +304,16 @@ docs/
 - ✅ **Auth production (cross-domain)** : await sync au login, `ensureFrontendAuthCookie()` avant génération IA, routes `/api/auth/sync-cookie` et `/api/auth/check-cookie` pour diagnostic
 - 📝 **TROUBLESHOOTING.md** : Section « Cookie manquant » en production enrichie
 
+### 03/03/2026 — Audit Architecture Backend (Phases 0→4)
+- 🛡️ **Phase 0 — Sécurité** : Bypass CSRF `TESTING` supprimé, injection SQL `safe_delete` bloquée, validation `POSTGRES_PASSWORD` prod, credentials DB masquées dans les logs, `except` inatteignables corrigés.
+- 📐 **Phase 1 — Standardisation** : Parsing body unifié (`parse_json_body`), réponses erreur unifiées (`api_error_response`), 26 `traceback.print_exc()` → `logger.error(exc_info=True)`, CORS source unique, CSRF frozenset pré-calculé, `_ROUTE_REGISTRY` central.
+- 🔧 **Phase 2 — Services légers** : User lookups centralisés dans `UserService`, `auth_service.py` sans `HTTPException`, `_apply_challenge_filters()` extrait, `queries.py` supprimé (403 lignes dead code), `TypedDict` introduits (`app/core/types.py`).
+- 🏗️ **Phase 3 — God objects** : `ChallengeAnswerService` extrait, `ChatService` extrait, `AdminService` → 4 services (`AdminConfigService`, `AdminStatsService`, `AdminUserService`, `AdminContentService`) + façade, `exercise_generator_helpers.py` enrichi.
+- 🏭 **Phase 4 — Industrialisation** : TypedDict complets, `constants_challenge.py` extrait, `format_paginated_response` adopté, `enum_mapping.py` adopté, `safe_delete`/`safe_archive` → exceptions (`DatabaseOperationError`).
+- 📋 **Référence** : [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](03-PROJECT/AUDIT_ARCHITECTURE_BACKEND_2026-03.md) — 472 tests, 0 failures.
+
 ### 27/02/2026
-- ✅ **Refactor admin_handlers — AdminService complet** : Toute la logique DB déplacée dans `app/services/admin_service.py` (users, badges, exercises, challenges, export CSV). Handlers minces sans requêtes directes. Voir [INVENTAIRE_HANDLERS_DB_DIRECTE](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INVENTAIRE_HANDLERS_DB_DIRECTE.md), [REFACTO_ADMIN_HANDLERS](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/REFACTO_ADMIN_HANDLERS.md).
+- ✅ **Refactor admin_handlers — AdminService (étape 1)** *(décomposé en 4 services le 03/03/2026 — voir ci-dessus)* : Toute la logique DB déplacée dans `app/services/admin_service.py` (users, badges, exercises, challenges, export CSV). Handlers minces sans requêtes directes. Voir [INVENTAIRE_HANDLERS_DB_DIRECTE](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INVENTAIRE_HANDLERS_DB_DIRECTE.md), [REFACTO_ADMIN_HANDLERS](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/REFACTO_ADMIN_HANDLERS.md).
 - ✅ **Fix admin modération** : Bouton « Éditer » ouvre la modal d’édition in-place au lieu de rediriger vers la page Contenu.
 
 ### 21/02/2026
@@ -354,7 +362,7 @@ docs/
 
 - **Documents actifs** : ~55 docs (guides, features, projet, widgets)
 - **Cohérence** : Validée vs code réel — revue trimestrielle (CONVENTION §7)
-- **Dernière vérification** : 28/02/2026 (refactor P1–P3, routes/, exceptions)
+- **Dernière vérification** : 03/03/2026 (Audit Architecture Phases 0→4, 472 tests)
 
 ---
 
