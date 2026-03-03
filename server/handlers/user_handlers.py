@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.core.constants import VALID_LEARNING_STYLES, VALID_THEMES
 from app.core.logging_config import get_logger
 from app.core.security import get_cookie_config, validate_password_strength
+from app.exceptions import UserNotFoundError
 from app.schemas.user import UserCreate
 from app.services.auth_service import (
     create_user,
@@ -609,9 +610,7 @@ async def delete_user_me(request: Request) -> JSONResponse:
         username = current_user.get("username")
 
         async with db_session() as db:
-            deleted = UserService.delete_user(db, user_id)
-            if not deleted:
-                return api_error_response(404, "Utilisateur introuvable.")
+            UserService.delete_user(db, user_id)
 
             logger.info(f"Compte utilisateur supprimé : {username} (ID: {user_id})")
 
@@ -634,6 +633,8 @@ async def delete_user_me(request: Request) -> JSONResponse:
             )
             return response
 
+    except UserNotFoundError:
+        return api_error_response(404, "Utilisateur introuvable.")
     except Exception as e:
         logger.error(f"Erreur lors de la suppression du compte: {e}", exc_info=True)
         return api_error_response(500, get_safe_error_message(e))

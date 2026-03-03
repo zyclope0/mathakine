@@ -20,8 +20,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter
-from app.exceptions import UserNotFoundError
 from app.db.transaction import TransactionManager
+from app.exceptions import UserNotFoundError
 from app.models.achievement import UserAchievement
 from app.models.attempt import Attempt
 from app.models.exercise import Exercise
@@ -190,8 +190,6 @@ class UserService:
             UserNotFoundError: Si l'utilisateur n'existe pas
             DatabaseOperationError: Si la suppression échoue en base de données
         """
-        from app.exceptions import DatabaseOperationError  # noqa: F401 (re-exported)
-
         user = UserService.get_user(db, user_id)
         if not user:
             logger.error(f"Utilisateur avec ID {user_id} non trouvé pour suppression")

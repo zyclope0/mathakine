@@ -5,10 +5,12 @@ This module provides consistent transaction management across the application.
 
 from contextlib import contextmanager
 
+from sqlalchemy.orm import Session
+
 from app.core.logging_config import get_logger
+from app.exceptions import DatabaseOperationError
 
 logger = get_logger(__name__)
-from sqlalchemy.orm import Session
 
 
 class TransactionManager:
@@ -89,7 +91,9 @@ class TransactionManager:
             return False
 
     @staticmethod
-    def safe_delete(db_session: Session, obj, *, auto_commit=True, log_prefix="DB") -> None:
+    def safe_delete(
+        db_session: Session, obj, *, auto_commit=True, log_prefix="DB"
+    ) -> None:
         """
         Supprime un objet de la base de données en toute sécurité.
         Les suppressions en cascade sont gérées automatiquement grâce aux relations SQLAlchemy.
@@ -103,8 +107,6 @@ class TransactionManager:
         Raises:
             DatabaseOperationError: Si la suppression échoue (objet introuvable ou erreur DB)
         """
-        from app.exceptions import DatabaseOperationError
-
         try:
             obj_id = getattr(obj, "id", None)
             if obj not in db_session:
@@ -115,7 +117,10 @@ class TransactionManager:
                         .first()
                     )
                     if not obj_from_db:
-                        msg = f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données"
+                        msg = (
+                            f"{log_prefix}: Objet {obj.__class__.__name__}"
+                            f"(id={obj_id}) non trouvé dans la base de données"
+                        )
                         logger.error(msg)
                         raise DatabaseOperationError(msg)
                     obj = obj_from_db
@@ -126,7 +131,8 @@ class TransactionManager:
 
             db_session.delete(obj)
             logger.debug(
-                f"{log_prefix}: Objet {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}) marqué pour suppression"
+                f"{log_prefix}: Objet {obj.__class__.__name__}"
+                f"(id={getattr(obj, 'id', 'N/A')}) marqué pour suppression"
             )
 
             if auto_commit:
@@ -136,7 +142,8 @@ class TransactionManager:
                 except Exception as delete_commit_error:
                     db_session.rollback()
                     logger.error(
-                        f"{log_prefix}: Échec de la suppression lors du commit: {delete_commit_error}"
+                        f"{log_prefix}: Échec de la suppression lors du commit:"
+                        f" {delete_commit_error}"
                     )
 
                     # Fallback : suppression directe par ID via SQL brut.
@@ -154,7 +161,8 @@ class TransactionManager:
                         db_session.execute(text(stmt), {"id": obj.id})
                         db_session.commit()
                         logger.info(
-                            f"{log_prefix}: Suppression alternative réussie pour {obj.__class__.__name__}(id={obj.id})"
+                            f"{log_prefix}: Suppression alternative réussie pour"
+                            f" {obj.__class__.__name__}(id={obj.id})"
                         )
                     except DatabaseOperationError:
                         raise
@@ -173,7 +181,9 @@ class TransactionManager:
             raise DatabaseOperationError(msg) from delete_error
 
     @staticmethod
-    def safe_archive(db_session: Session, obj, *, auto_commit=True, log_prefix="DB") -> None:
+    def safe_archive(
+        db_session: Session, obj, *, auto_commit=True, log_prefix="DB"
+    ) -> None:
         """
         Archive un objet au lieu de le supprimer physiquement.
 
@@ -184,13 +194,15 @@ class TransactionManager:
             log_prefix: Préfixe pour les messages de journalisation
 
         Raises:
-            DatabaseOperationError: Si l'archivage échoue (attribut manquant, objet introuvable ou erreur DB)
+            DatabaseOperationError: Si l'archivage échoue (attribut manquant,
+                objet introuvable ou erreur DB)
         """
-        from app.exceptions import DatabaseOperationError
-
         try:
             if not hasattr(obj, "is_archived"):
-                msg = f"{log_prefix}: L'objet {obj.__class__.__name__} n'a pas d'attribut is_archived"
+                msg = (
+                    f"{log_prefix}: L'objet {obj.__class__.__name__}"
+                    " n'a pas d'attribut is_archived"
+                )
                 logger.error(msg)
                 raise DatabaseOperationError(msg)
 
@@ -203,7 +215,10 @@ class TransactionManager:
                         .first()
                     )
                     if not obj_from_db:
-                        msg = f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données"
+                        msg = (
+                            f"{log_prefix}: Objet {obj.__class__.__name__}"
+                            f"(id={obj_id}) non trouvé dans la base de données"
+                        )
                         logger.error(msg)
                         raise DatabaseOperationError(msg)
                     obj = obj_from_db
@@ -212,7 +227,8 @@ class TransactionManager:
 
             obj.is_archived = True
             logger.debug(
-                f"{log_prefix}: Objet {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}) marqué comme archivé"
+                f"{log_prefix}: Objet {obj.__class__.__name__}"
+                f"(id={getattr(obj, 'id', 'N/A')}) marqué comme archivé"
             )
 
             if auto_commit:
