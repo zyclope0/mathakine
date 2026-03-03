@@ -8,12 +8,11 @@ Phase 3, item 3.3b — audit architecture 03/2026.
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple, cast
 
-from app.core.types import AdminUserItemDict, AdminUserListDict
-
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.types import AdminUserItemDict, AdminUserListDict
 from app.models.user import User, UserRole
 from app.services.admin_helpers import log_admin_action
 from app.services.email_service import EmailService

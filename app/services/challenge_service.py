@@ -12,6 +12,9 @@ import random
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+from sqlalchemy import case, func, or_
+from sqlalchemy.orm import Session
+
 from app.core.logging_config import get_logger
 from app.core.types import ChallengeStatsDict
 from app.models.logic_challenge import (
@@ -20,8 +23,6 @@ from app.models.logic_challenge import (
     LogicChallengeAttempt,
 )
 from app.utils.db_helpers import adapt_enum_for_db
-from sqlalchemy import case, func, or_
-from sqlalchemy.orm import Session
 
 logger = get_logger(__name__)
 

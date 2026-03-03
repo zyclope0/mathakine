@@ -19,11 +19,11 @@ from app.models.achievement import Achievement, UserAchievement
 from app.models.attempt import Attempt
 from app.models.progress import Progress
 from app.models.user import User
-from app.services.user_service import UserService
 from app.services.badge_requirement_engine import (
     check_requirements,
     get_requirement_progress,
 )
+from app.services.user_service import UserService
 
 logger = get_logger(__name__)
 

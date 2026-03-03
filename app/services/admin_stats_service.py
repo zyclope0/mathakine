@@ -8,16 +8,15 @@ Phase 3, item 3.3c — audit architecture 03/2026.
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, cast
 
+from sqlalchemy import case, func, union
+from sqlalchemy.orm import Session, joinedload
+
 from app.core.types import (
     AdminReportDict,
     AuditLogItemDict,
     AuditLogPageDict,
     ModerationDict,
 )
-
-from sqlalchemy import case, func, union
-from sqlalchemy.orm import Session, joinedload
-
 from app.models.admin_audit_log import AdminAuditLog
 from app.models.attempt import Attempt
 from app.models.exercise import Exercise

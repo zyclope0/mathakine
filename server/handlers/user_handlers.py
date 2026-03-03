@@ -6,6 +6,9 @@ import json
 import re
 import traceback
 
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+
 from app.core.config import settings
 from app.core.constants import VALID_LEARNING_STYLES, VALID_THEMES
 from app.core.logging_config import get_logger
@@ -25,8 +28,6 @@ from app.utils.rate_limit import rate_limit_register
 from app.utils.request_utils import parse_json_body_any
 from app.utils.settings_reader import get_setting_bool
 from server.auth import require_auth, require_full_access
-from starlette.requests import Request
-from starlette.responses import JSONResponse
 
 logger = get_logger(__name__)
 

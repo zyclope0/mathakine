@@ -15,9 +15,6 @@ from starlette.responses import JSONResponse, Response, StreamingResponse
 
 import app.core.constants as constants
 from app.core.config import settings
-
-# Importer les constantes et fonctions centralisées
-from app.utils.enum_mapping import age_group_exercise_from_api
 from app.core.messages import SystemMessages
 from app.exceptions import ChallengeNotFoundError
 
@@ -26,6 +23,9 @@ from app.services import challenge_service
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.logic_challenge_service import LogicChallengeService
 from app.utils.db_utils import db_session
+
+# Importer les constantes et fonctions centralisées
+from app.utils.enum_mapping import age_group_exercise_from_api
 from app.utils.error_handler import (
     ErrorHandler,
     api_error_response,

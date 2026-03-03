@@ -33,8 +33,8 @@ from app.services.auth_service import (
 from app.services.email_service import EmailService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response
-from app.utils.request_utils import parse_json_body, parse_json_body_any
 from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
+from app.utils.request_utils import parse_json_body, parse_json_body_any
 from server.auth import require_auth
 
 

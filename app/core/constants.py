@@ -6,10 +6,6 @@ Architecture (Phase 4, item 4.2) :
 - constants.py          : hub re-exportant tout + domaines exercise/age/user/config
 """
 
-from app.core.logging_config import get_logger
-from app.models.exercise import DifficultyLevel, ExerciseType
-from app.models.logic_challenge import AgeGroup
-
 # Re-export du domaine challenge depuis son module dédié
 from app.core.constants_challenge import (  # noqa: F401
     AGE_GROUPS_DB,
@@ -18,6 +14,9 @@ from app.core.constants_challenge import (  # noqa: F401
     CHALLENGE_TYPES_DB,
     normalize_challenge_type,
 )
+from app.core.logging_config import get_logger
+from app.models.exercise import DifficultyLevel, ExerciseType
+from app.models.logic_challenge import AgeGroup
 
 logger = get_logger(__name__)
 

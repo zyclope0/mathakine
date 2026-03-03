@@ -9,14 +9,15 @@ import re
 import uuid
 from typing import Callable, List, Set, Tuple
 
-from app.core.config import settings
-from app.core.logging_config import get_logger
-from app.utils.error_handler import api_error_response
-from app.utils.settings_reader import get_setting_bool
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
+
+from app.core.config import settings
+from app.core.logging_config import get_logger
+from app.utils.error_handler import api_error_response
+from app.utils.settings_reader import get_setting_bool
 
 logger = get_logger(__name__)
 

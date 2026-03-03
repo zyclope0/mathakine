@@ -5,15 +5,14 @@ Implémente les opérations métier liées aux utilisateurs et utilise le transa
 
 from typing import Any, Dict, List, Optional, Tuple
 
+from app.core.logging_config import get_logger
 from app.core.types import (
-    ChartData,
     ChallengesProgressDict,
+    ChartData,
     DashboardStats,
     PerformanceByType,
     UserProgressDict,
 )
-
-from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 from sqlalchemy import func, text

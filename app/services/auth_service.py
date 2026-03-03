@@ -5,7 +5,6 @@ Service d'authentification pour gérer les utilisateurs et les connexions
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 
-from app.core.types import TokenRefreshResponse, TokenResponse
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
@@ -17,6 +16,7 @@ from app.core.security import (
     get_password_hash,
     verify_password,
 )
+from app.core.types import TokenRefreshResponse, TokenResponse
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
 from app.schemas.user import TokenData, UserCreate, UserUpdate
