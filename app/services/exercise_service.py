@@ -22,6 +22,7 @@ from app.schemas.exercise import (
     SubmitAnswerResponse,
 )
 from app.utils.json_utils import safe_parse_json
+from app.utils.response_formatters import format_paginated_response
 
 logger = get_logger(__name__)
 
@@ -588,16 +589,7 @@ class ExerciseService:
             for row in rows
         ]
 
-        page = (skip // limit) + 1 if limit > 0 else 1
-        has_more = (skip + len(items)) < total
-
-        return ExerciseListResponse(
-            items=items,
-            total=total,
-            page=page,
-            limit=limit,
-            hasMore=has_more,
-        )
+        return ExerciseListResponse(**format_paginated_response(items, total, skip, limit))
 
     @staticmethod
     def create_exercise(

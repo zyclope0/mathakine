@@ -8,6 +8,8 @@ Phase 3, item 3.3b — audit architecture 03/2026.
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Tuple
 
+from app.core.types import AdminUserListDict
+
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -38,7 +40,7 @@ class AdminUserService:
         is_active: Optional[bool] = None,
         skip: int = 0,
         limit: int = 20,
-    ) -> Dict[str, Any]:
+    ) -> AdminUserListDict:
         limit = min(100, max(1, limit))
         skip = max(0, skip)
         q = db.query(User)

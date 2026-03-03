@@ -4,6 +4,21 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [2.3.0-alpha.2] - 2026-03-03
+
+### Refactored — Phase 4 : Industrialisation (4.1-4.4)
+
+- **4.1 TypedDict complétés** : 8 nouveaux TypedDict dans `app/core/types.py` — `UserProgressDict`, `ChallengesProgressDict`, `ChallengeStatsDict`, `AuditLogPageDict`, `ModerationDict`, `AdminReportDict`, `AdminUserItemDict`, `AdminUserListDict`. Appliqués à `admin_stats_service`, `challenge_service`, `user_service`, `admin_user_service`.
+- **4.2 `constants.py` découpé** : `app/core/constants_challenge.py` extrait (challenge types, aliases, `normalize_challenge_type`, `AGE_GROUPS_DB`). `constants.py` devient un hub re-exportant pour la compatibilité ascendante.
+- **4.3 `format_paginated_response` adopté** : `exercise_service.py` et `challenge_handlers.py` utilisent l'utilitaire centralisé. Duplication page/has_more éliminée.
+- **4.4 `enum_mapping.py` adopté** : `challenge_handlers.py` → `age_group_exercise_from_api`. `challenge_list_params.py` → `challenge_type_from_api` + `age_group_challenge_from_api`. Import différé `normalize_age_group_for_db` éliminé.
+
+### Note
+
+- **4.5 `safe_delete`/`safe_archive` → exceptions** : différé (touche 10+ fichiers de tests, rapport risque/bénéfice défavorable à ce stade).
+
+---
+
 ## [2.3.0-alpha.1] - 2026-03-03
 
 Audit architecture backend complet — Phases 0 à 3.

@@ -12,6 +12,8 @@ import random
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+from app.core.types import ChallengeStatsDict
+
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -602,7 +604,7 @@ def record_attempt(
     return attempt
 
 
-def get_challenge_stats(db: Session, challenge_id: int) -> Dict[str, Any]:
+def get_challenge_stats(db: Session, challenge_id: int) -> ChallengeStatsDict:
     """
     Récupérer les statistiques d'un challenge.
 

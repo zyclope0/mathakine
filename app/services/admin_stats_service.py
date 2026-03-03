@@ -8,6 +8,8 @@ Phase 3, item 3.3c — audit architecture 03/2026.
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
+from app.core.types import AdminReportDict, AuditLogPageDict, ModerationDict
+
 from sqlalchemy import case, func, union
 from sqlalchemy.orm import Session, joinedload
 
@@ -53,7 +55,7 @@ class AdminStatsService:
         limit: int = 50,
         action_filter: Optional[str] = None,
         resource_filter: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> AuditLogPageDict:
         q = (
             db.query(AdminAuditLog)
             .options(joinedload(AdminAuditLog.admin_user))
@@ -91,7 +93,7 @@ class AdminStatsService:
         mod_type: str = "all",
         skip: int = 0,
         limit: int = 50,
-    ) -> Dict[str, Any]:
+    ) -> ModerationDict:
         result: Dict[str, Any] = {
             "exercises": [],
             "challenges": [],
@@ -159,7 +161,7 @@ class AdminStatsService:
         db: Session,
         *,
         period: str = "7d",
-    ) -> Dict[str, Any]:
+    ) -> AdminReportDict:
         days = 7 if period == "7d" else 30
         since = datetime.now(timezone.utc) - timedelta(days=days)
 

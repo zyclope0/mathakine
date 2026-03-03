@@ -5,7 +5,13 @@ Implémente les opérations métier liées aux utilisateurs et utilise le transa
 
 from typing import Any, Dict, List, Optional, Tuple
 
-from app.core.types import ChartData, DashboardStats, PerformanceByType
+from app.core.types import (
+    ChartData,
+    ChallengesProgressDict,
+    DashboardStats,
+    PerformanceByType,
+    UserProgressDict,
+)
 
 from app.core.logging_config import get_logger
 
@@ -667,7 +673,7 @@ class UserService:
         return leaderboard
 
     @staticmethod
-    def get_user_progress_for_api(db: Session, user_id: int) -> Dict[str, Any]:
+    def get_user_progress_for_api(db: Session, user_id: int) -> UserProgressDict:
         """
         Récupère la progression globale de l'utilisateur (exercices) pour l'API.
         """
@@ -746,7 +752,7 @@ class UserService:
         }
 
     @staticmethod
-    def get_challenges_progress_for_api(db: Session, user_id: int) -> Dict[str, Any]:
+    def get_challenges_progress_for_api(db: Session, user_id: int) -> ChallengesProgressDict:
         """
         Récupère la progression des défis logiques pour l'API.
         """

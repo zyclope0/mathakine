@@ -601,19 +601,19 @@ Sécurité    Standards    Services légers      God files    Industrialisation
 
 ---
 
-### Phase 4 — Industrialisation (2-3 jours)
+### Phase 4 — Industrialisation ✅ PARTIELLEMENT TERMINÉE (03/03/2026)
 
 **Justification :** Dernière couche de polish — finit les TypedDict, découpe les constantes, nettoie les derniers anti-patterns. Faible risque, bénéfice de maintenabilité long terme.
 
 **Prérequis :** Phase 3 (les services découpés ont besoin de DTOs finalisés).
 
-| # | Action | Constat | Difficulté | Test |
-|---|--------|---------|------------|------|
-| 4.1 | Compléter les `TypedDict`/`dataclass` sur tous les retours services | I1 | Moyen | `mypy --strict` |
-| 4.2 | Découper `constants.py` en modules par domaine | A10 | Facile | Imports vérifiés |
-| 4.3 | Adopter `format_paginated_response` dans les handlers | H9 câblage (audit cleanup) | Facile | Tests API existants |
-| 4.4 | Adopter `enum_mapping.py` dans les handlers | H9 câblage (audit cleanup) | Facile | Tests API existants |
-| 4.5 | Repenser `safe_delete`/`safe_archive` → exceptions | I5 | Moyen | Tests transaction existants |
+| # | Action | Constat | Difficulté | Statut | Détail |
+|---|--------|---------|------------|--------|--------|
+| 4.1 | Compléter les `TypedDict`/`dataclass` sur tous les retours services | I1 | Moyen | ✅ Corrigé | `UserProgressDict`, `ChallengesProgressDict`, `ChallengeStatsDict`, `AuditLogPageDict`, `ModerationDict`, `AdminReportDict`, `AdminUserListDict`, `AdminUserItemDict` dans `app/core/types.py`. Appliqués à `admin_stats_service`, `challenge_service`, `user_service`, `admin_user_service`. |
+| 4.2 | Découper `constants.py` en modules par domaine | A10 | Facile | ✅ Corrigé | `app/core/constants_challenge.py` extrait (challenge types, aliases, `normalize_challenge_type`, `AGE_GROUPS_DB`). `constants.py` re-exporte via hub pour compat. Extensible (exercise, user…). |
+| 4.3 | Adopter `format_paginated_response` dans les handlers | H9 câblage | Facile | ✅ Corrigé | Appliqué dans `exercise_service.py` (service) et `challenge_handlers.py`. `user_handlers.py` — aucune pagination inline trouvée. |
+| 4.4 | Adopter `enum_mapping.py` dans les handlers | H9 câblage | Facile | ✅ Corrigé | `challenge_handlers.py` → `age_group_exercise_from_api`. `challenge_list_params.py` → `challenge_type_from_api` + `age_group_challenge_from_api`. `exercise_list_params.py` déjà propre (via `normalize_and_validate_exercise_params`). |
+| 4.5 | Repenser `safe_delete`/`safe_archive` → exceptions | I5 | Moyen | ⏳ Différé | Touche 10+ fichiers dont 5 fichiers de tests avec assertions `result is False`. Rapport risque/bénéfice défavorable à ce stade. À traiter dans une prochaine itération dédiée. |
 
 ---
 
@@ -625,7 +625,7 @@ Sécurité    Standards    Services légers      God files    Industrialisation
 | **Phase 1** Standards | ⬛⬛⬛ 3/5 | ⬛⬛⬛⬛ 4/5 | ⬛⬛ 2/5 | **Élevé** (débloque P2+P3) | 2-3 jours | **Très élevé** |
 | **Phase 2** Services légers ✅ | ⬛⬛ 2/5 | ⬛⬛⬛ 3/5 | ⬛⬛ 2/5 | Moyen (débloque P3) | 2-3 jours | Élevé |
 | **Phase 3** God objects ✅ | ⬛⬛⬛ 3/5 | ⬛⬛⬛⬛⬛ 5/5 | ⬛⬛⬛⬛ 4/5 | Faible | 5-7 jours | Élevé (long terme) |
-| **Phase 4** Industrialisation | ⬛ 1/5 | ⬛⬛⬛ 3/5 | ⬛⬛ 2/5 | Faible | 2-3 jours | Moyen |
+| **Phase 4** Industrialisation ✅ | ⬛ 1/5 | ⬛⬛⬛ 3/5 | ⬛⬛ 2/5 | Faible | 2-3 jours | Moyen |
 
 **Recommandation :** Phases 0 et 1 ont le meilleur ROI — faible effort, haut impact, débloquent la suite. Phase 3 est le gros investissement à planifier sur un sprint dédié.
 

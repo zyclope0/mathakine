@@ -17,12 +17,7 @@ import app.core.constants as constants
 from app.core.config import settings
 
 # Importer les constantes et fonctions centralisées
-from app.core.constants import (
-    CHALLENGE_TYPES_API,
-    CHALLENGE_TYPES_DB,
-    calculate_difficulty_for_age_group,
-    normalize_age_group,
-)
+from app.utils.enum_mapping import age_group_exercise_from_api
 from app.core.messages import SystemMessages
 from app.exceptions import ChallengeNotFoundError
 
@@ -37,6 +32,7 @@ from app.utils.error_handler import (
     get_safe_error_message,
 )
 from app.utils.request_utils import parse_json_body_any
+from app.utils.response_formatters import format_paginated_response
 from app.utils.translation import parse_accept_language
 from server.auth import (
     optional_auth,
@@ -103,14 +99,8 @@ async def get_challenges_list(request: Request) -> JSONResponse:
                 for c in challenges
             ]
 
-        page = (p.skip // p.limit) + 1 if p.limit > 0 else 1
-        has_more = (p.skip + len(challenges_list)) < total
         response_data = ChallengeListResponse(
-            items=challenges_list,
-            total=total,
-            page=page,
-            limit=p.limit,
-            hasMore=has_more,
+            **format_paginated_response(challenges_list, total, p.skip, p.limit)
         )
         logger.info(
             f"Récupération réussie de {len(challenges_list)} défis sur {total} total (locale: {locale})"
@@ -456,12 +446,7 @@ async def generate_ai_challenge_stream(request: Request) -> Response:
             )
             challenge_type = "sequence"
 
-        normalized_age_group = normalize_age_group(age_group_raw)
-        age_group = (
-            normalized_age_group
-            if normalized_age_group
-            else constants.AgeGroups.GROUP_6_8
-        )
+        age_group = age_group_exercise_from_api(age_group_raw) or constants.AgeGroups.GROUP_6_8
 
         user_id = current_user.get("id")
         if user_id:

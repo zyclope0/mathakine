@@ -8,11 +8,8 @@ from typing import Optional
 
 from starlette.requests import Request
 
-import app.core.constants as constants
+from app.utils.enum_mapping import age_group_challenge_from_api, challenge_type_from_api
 from app.utils.pagination import parse_pagination_params
-
-# Import différé pour éviter cycles
-# from app.services.challenge_service import normalize_age_group_for_db
 
 
 @dataclass
@@ -51,15 +48,8 @@ def parse_challenge_list_params(request: Request) -> ListChallengesQuery:
     order = (params.get("order") or "random").strip().lower()
     hide_completed = (params.get("hide_completed") or "false").lower() == "true"
 
-    challenge_type = (
-        constants.normalize_challenge_type(challenge_type_raw)
-        if challenge_type_raw
-        else None
-    )
-
-    from app.services.challenge_service import normalize_age_group_for_db
-
-    age_group_db = normalize_age_group_for_db(age_group_raw) if age_group_raw else None
+    challenge_type = challenge_type_from_api(challenge_type_raw)
+    age_group_db = age_group_challenge_from_api(age_group_raw)
 
     return ListChallengesQuery(
         challenge_type=challenge_type,

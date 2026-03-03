@@ -1,11 +1,23 @@
 """
-Constants centralisées pour l'application Mathakine
-Ce fichier contient toutes les constantes utilisées dans l'application.
+Constants centralisées pour l'application Mathakine.
+
+Architecture (Phase 4, item 4.2) :
+- constants_challenge.py : constantes domaine LogicChallenge (types, aliases, normalize)
+- constants.py          : hub re-exportant tout + domaines exercise/age/user/config
 """
 
 from app.core.logging_config import get_logger
 from app.models.exercise import DifficultyLevel, ExerciseType
 from app.models.logic_challenge import AgeGroup
+
+# Re-export du domaine challenge depuis son module dédié
+from app.core.constants_challenge import (  # noqa: F401
+    AGE_GROUPS_DB,
+    CHALLENGE_TYPE_ALIASES,
+    CHALLENGE_TYPES_API,
+    CHALLENGE_TYPES_DB,
+    normalize_challenge_type,
+)
 
 logger = get_logger(__name__)
 
@@ -458,105 +470,8 @@ class SecurityConfig:
     ALGORITHM = "HS256"
 
 
-# ============================================================================
-# CHALLENGES - Constantes centralisées (Phase 3, Nov 2025)
-# ============================================================================
-
-# Types de challenges (PostgreSQL ENUM)
-CHALLENGE_TYPES_DB = [
-    "SEQUENCE",
-    "PATTERN",
-    "VISUAL",
-    "PUZZLE",
-    "GRAPH",
-    "RIDDLE",
-    "DEDUCTION",
-    "CHESS",
-    "CODING",
-    "PROBABILITY",
-]
-
-CHALLENGE_TYPES_API = [
-    "sequence",
-    "pattern",
-    "visual",
-    "puzzle",
-    "graph",
-    "riddle",
-    "deduction",
-    "chess",
-    "coding",
-    "probability",
-]
-
-# Mapping pour la normalisation des types de challenge
-CHALLENGE_TYPE_ALIASES = {
-    "SEQUENCE": ["sequence", "seq", "suite", "séquence"],
-    "PATTERN": ["pattern", "motif", "grille"],
-    "VISUAL": ["visual", "visuel", "spatial", "forme", "formes"],
-    "PUZZLE": ["puzzle", "casse-tete", "casse-tête"],
-    "GRAPH": ["graph", "graphe", "reseau", "réseau", "chemin"],
-    "RIDDLE": ["riddle", "enigme", "énigme"],
-    "DEDUCTION": ["deduction", "déduction", "logique", "logic"],
-    "CHESS": ["chess", "echecs", "échecs", "echiquier", "échiquier"],
-    "CODING": ["coding", "codage", "crypto", "cryptographie", "labyrinthe", "maze"],
-    "PROBABILITY": ["probability", "probabilite", "probabilité", "proba", "chance"],
-}
-
-
-def normalize_challenge_type(challenge_type):
-    """
-    Normalise le type de challenge vers le format DB (MAJUSCULE).
-
-    Args:
-        challenge_type: Le type de challenge en entrée (peut être dans différents formats)
-
-    Returns:
-        Le type de challenge normalisé en majuscule (ex: "SEQUENCE", "PATTERN", etc.)
-        ou None si le type n'est pas reconnu
-    """
-    if not challenge_type:
-        return None
-
-    challenge_type_str = str(challenge_type).lower().strip()
-
-    # Vérifier correspondance directe avec les types API
-    if challenge_type_str in CHALLENGE_TYPES_API:
-        return challenge_type_str.upper()
-
-    # Vérifier correspondance directe avec les types DB
-    if challenge_type_str.upper() in CHALLENGE_TYPES_DB:
-        return challenge_type_str.upper()
-
-    # Parcourir tous les alias
-    for type_key, aliases in CHALLENGE_TYPE_ALIASES.items():
-        for alias in aliases:
-            if challenge_type_str == alias.lower():
-                return type_key
-
-    # Type non reconnu
-    logger.warning(f"Type de challenge non reconnu: '{challenge_type}'")
-    return None
-
-
-# Groupes d'âge pour les challenges (valeurs ENUM PostgreSQL, alignées avec app.models.logic_challenge.AgeGroup)
-AGE_GROUPS_DB = [e.value for e in AgeGroup]
-
-# AGE_GROUP_MAPPING (These are effectively replicated now in AgeGroups.AGE_ALIASES)
-# AGE_GROUP_MAPPING = {
-#     'age_6_8': 'GROUP_6_8', 'age_9_11': 'GROUP_9_11', 'age_9_12': 'GROUP_9_12', 'age_10_12': 'GROUP_10_12',
-#     'age_12_15': 'GROUP_13_15', 'age_13_15': 'GROUP_13_15', 'age_16_18': 'GROUP_16_18', 'all_ages': 'ALL_AGES',
-#     '6-8': 'GROUP_6_8', '9-11': 'GROUP_9_11', '9-12': 'GROUP_9_12', '10-12': 'GROUP_10_12',
-#     '12-15': 'GROUP_13_15', '13-15': 'GROUP_13_15', '16-18': 'GROUP_16_18',
-#     'GROUP_6_8': 'GROUP_6_8', 'GROUP_9_11': 'GROUP_9_11', 'GROUP_9_12': 'GROUP_9_12',
-#     'GROUP_10_12': 'GROUP_10_12', 'GROUP_13_15': 'GROUP_13_15', 'GROUP_16_18': 'GROUP_16_18', 'ALL_AGES': 'ALL_AGES',
-# }
-
-# Difficultés par âge (challenges) - This can be renamed to AGE_GROUP_DIFFICULTY_MAPPING_FOR_CHALLENGES if needed
-# For now, it's distinct from AGE_GROUP_LIMITS
-# DIFFICULTY_BY_AGE_GROUP is still used in generate_ai_challenge_stream in challenge_handlers.py
-# So I should keep it as is, or clarify its role.
-
-# Les fonctions normalize_challenge_type et normalize_age_group sont définies ci-dessus et utilisées pour les challenges
+# ── Domaine challenges — voir app/core/constants_challenge.py ────────────────
+# Les imports en tête du fichier re-exportent : CHALLENGE_TYPES_DB, CHALLENGE_TYPES_API,
+# CHALLENGE_TYPE_ALIASES, normalize_challenge_type, AGE_GROUPS_DB.
 
 # Remove the import of DifficultyLevel, as it's no longer used here.

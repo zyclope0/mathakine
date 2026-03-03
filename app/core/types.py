@@ -3,9 +3,10 @@ TypedDict centralisés pour les retours de services.
 
 Remplace les Dict[str, Any] génériques par des types vérifiables statiquement.
 Phase 2, item 2.9 — audit architecture 03/2026.
+Phase 4, item 4.1 — complétion TypedDict services (03/2026).
 """
 
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict
 
 
 class TokenResponse(TypedDict):
@@ -58,3 +59,93 @@ class ChartDataset(TypedDict, total=False):
 class ChartData(TypedDict):
     labels: List[str]
     datasets: List[ChartDataset]
+
+
+# ── Progression utilisateur ──────────────────────────────────────────────────
+
+
+class UserProgressDict(TypedDict):
+    total_attempts: int
+    correct_attempts: int
+    accuracy: float
+    average_time: float
+    exercises_completed: int
+    highest_streak: int
+    current_streak: int
+    by_category: Dict[str, Any]
+
+
+class ChallengesProgressDict(TypedDict):
+    completed_challenges: int
+    total_challenges: int
+    success_rate: float
+    average_time: float
+    challenges: List[Dict[str, Any]]
+
+
+# ── Statistiques challenges ──────────────────────────────────────────────────
+
+
+class ChallengeStatsDict(TypedDict):
+    challenge_id: int
+    title: str
+    total_attempts: int
+    correct_attempts: int
+    success_rate: float
+    unique_users: int
+
+
+# ── Administration — stats / logs / modération ───────────────────────────────
+
+
+class AuditLogItemDict(TypedDict):
+    id: int
+    admin_user_id: Optional[int]
+    admin_username: Optional[str]
+    action: str
+    resource_type: str
+    resource_id: Optional[int]
+    details: Optional[Dict[str, Any]]
+    created_at: Optional[str]
+
+
+class AuditLogPageDict(TypedDict):
+    items: List[AuditLogItemDict]
+    total: int
+
+
+class ModerationDict(TypedDict):
+    exercises: List[Dict[str, Any]]
+    challenges: List[Dict[str, Any]]
+    total_exercises: int
+    total_challenges: int
+
+
+class AdminReportDict(TypedDict):
+    period: str
+    days: int
+    new_users: int
+    attempts_exercises: int
+    attempts_challenges: int
+    total_attempts: int
+    success_rate: float
+    active_users: int
+
+
+# ── Administration — listes utilisateurs ─────────────────────────────────────
+
+
+class AdminUserItemDict(TypedDict):
+    id: int
+    username: str
+    email: str
+    full_name: Optional[str]
+    role: str
+    is_active: bool
+    is_email_verified: bool
+    created_at: Optional[str]
+
+
+class AdminUserListDict(TypedDict):
+    items: List[AdminUserItemDict]
+    total: int
