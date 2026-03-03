@@ -4,6 +4,29 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [2.3.0] - 2026-02-22
+
+### Audit Architecture Backend — Clôture (Phases 0→4 complètes)
+
+Audit architecture backend lancé le 03/03/2026, challengé et finalisé le 22/02/2026.
+**Résultat final : 472 tests, 0 failures. black + isort + flake8 clean. mypy 0 erreurs.**
+
+#### Challenge Phase 4.5 — Corrections post-audit
+
+- **Imports top-level** : `DatabaseOperationError` déplacé de inline vers top-level dans `transaction.py`. `logger` réordonné après imports (E402) dans `transaction.py` et `adapter.py`.
+- **Signatures black** : `safe_delete`/`safe_archive` reformatées (lignes > 88 chars).
+- **isort** : tri corrigé sur `user_service.py`, `user_handlers.py`, `adapter.py`.
+- **`enhanced_server_adapter`** : `archive_exercise` signature corrigée (`return bool` → `None`, docstring `Returns` → `Raises`).
+- **Imports inline résiduels** supprimés dans `exercise_service.py` et `logic_challenge_service.py`.
+
+#### Dette technique documentée
+
+Points non finalisés documentés dans `docs/03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/PLACEHOLDERS_ET_TODO.md` :
+- `constants.py` découpage partiel (challenge extrait, exercise/user restent)
+- Couverture test intégration `DELETE /api/users/me` erreur DB
+
+---
+
 ## [2.3.0-alpha.3] - 2026-02-22
 
 ### Refactored — Phase 4.5 : safe_delete/safe_archive → exceptions

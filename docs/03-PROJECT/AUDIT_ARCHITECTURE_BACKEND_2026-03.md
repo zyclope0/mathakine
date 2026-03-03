@@ -4,7 +4,7 @@
 **Type :** Audit architecture (SOLID, Clean Code, performances, sécurité, industrialisation)
 **Périmètre :** `app/` (81 fichiers .py) + `server/` (33 fichiers .py)
 **Méthode :** Inspection systématique, analyse des dépendances croisées, audit des patterns
-**Statut :** En cours — document vivant, mis à jour au fil des corrections
+**Statut :** ✅ TERMINÉ — Phases 0→4 complètes (22/02/2026). Dette résiduelle documentée dans `PLACEHOLDERS_ET_TODO.md`.
 
 **Complémentaire à :** [AUDIT_CODE_CLEANUP_2026-03-01.md](./AUDIT_CODE_CLEANUP_2026-03-01.md) (bugs, dead code, incohérences — corrigé)
 
@@ -204,7 +204,7 @@ if settings.TESTING:
 |---|---|
 | **Fichiers** | `app/services/auth_service.py` + `app/services/user_service.py` |
 | **Sévérité** | HIGH |
-| **Statut** | ⬜ À fusionner |
+| **Statut** | ✅ Corrigé (Phase 2.1, 03/03/2026) |
 
 **Problème :** `get_user_by_username`, `get_user_by_email`, `get_user_by_id` existent dans les 2 fichiers avec des implémentations quasi-identiques.
 
@@ -232,7 +232,7 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `app/services/auth_service.py` |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À aligner |
+| **Statut** | ✅ Corrigé (Phase 2.2+2.8, 03/03/2026) |
 
 **Problème :** Fonctions module-level alors que tous les autres services sont des classes. `HTTPException` (FastAPI) levée dans la couche service — couple au framework.
 
@@ -246,7 +246,7 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `app/services/challenge_service.py` |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À factoriser |
+| **Statut** | ✅ Corrigé (Phase 2.3, 03/03/2026) |
 
 **Correction recommandée :** Extraire `_apply_challenge_filters(query, ...)` réutilisé par les 2 fonctions + par `admin_service`.
 
@@ -258,7 +258,7 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `app/services/user_service.py:420-619` |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À décomposer |
+| **Statut** | ✅ Corrigé (Phase 2.4, 03/03/2026) |
 
 **Correction recommandée :** Découper en 7 méthodes privées. La méthode principale orchestre les appels.
 
@@ -270,7 +270,7 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `app/core/constants.py` (563 lignes) |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À découper |
+| **Statut** | ⚠️ Partiel (Phase 4.2) — challenge extrait, exercise/user restants (voir PLACEHOLDERS_ET_TODO.md) |
 
 **Correction recommandée :** Découper en `exercise_constants.py`, `challenge_constants.py`, `user_constants.py`, `normalization.py`.
 
@@ -421,7 +421,7 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `app/db/queries.py` |
 | **Sévérité** | LOW (dead code) |
-| **Statut** | ⬜ Supprimer le fichier |
+| **Statut** | ✅ Corrigé (Phase 2.5, 03/03/2026) |
 
 ---
 
@@ -433,7 +433,7 @@ if settings.TESTING:
 |---|---|
 | **Fichiers** | Tous les services |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À typer |
+| **Statut** | ✅ Corrigé (Phase 4.1, 22/02/2026) |
 
 **Problème :** Services retournent des `Dict[str, Any]` ou des tuples opaques `(Optional[Dict], Optional[str], int)`. Aucun contrat typé — mypy ne détecte rien.
 
@@ -447,7 +447,7 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `server/handlers/admin_handlers.py` — 14 occurrences |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À protéger |
+| **Statut** | ✅ Corrigé (Phase 0 / I2, 03/03/2026) |
 
 **Correction recommandée :** Helper `safe_int_path_param(request, name) -> int` avec retour 400 si invalide.
 
@@ -471,7 +471,7 @@ if settings.TESTING:
 |---|---|
 | **Fichiers** | `queries.py` (402 lignes), `LoggingLevels`/`ExerciseStatus` dans constants |
 | **Sévérité** | LOW |
-| **Statut** | ⬜ À supprimer |
+| **Statut** | ✅ Corrigé (Phase 2.5+2.6, 03/03/2026) |
 
 ---
 
@@ -512,7 +512,7 @@ Sécurité    Standards    Services légers      God files    Industrialisation
 
 ## 4. Détail des phases {#4-détail-des-phases}
 
-### Phase 0 — Sécurité (1 jour)
+### Phase 0 — Sécurité ✅ TERMINÉE (03/03/2026)
 
 **Justification :** Aucune autre phase ne réduit le risque production. Ces corrections sont isolées (pas de cascade), rapides, et sans régression possible.
 

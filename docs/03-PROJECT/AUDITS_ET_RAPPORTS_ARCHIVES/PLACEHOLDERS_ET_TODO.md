@@ -188,6 +188,38 @@ Les handlers placeholders `start_challenge`, `get_challenge_progress`, `get_chal
 
 ---
 
+## 🔧 Dette technique résiduelle — Audit Architecture 2026-03 (22/02/2026)
+
+> Audit complet Phases 0→4 terminé. Les items ci-dessous sont les points non finalisés, classés par priorité. Référence : [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](../AUDIT_ARCHITECTURE_BACKEND_2026-03.md)
+
+### Priorité BASSE — Découpage `constants.py` partiel (A10)
+
+| Item | Détail | Effort |
+|------|--------|--------|
+| `constants.py` 12 concerns → modules | Seul le domaine challenge a été extrait (`constants_challenge.py`). Il reste à extraire `exercise_constants.py`, `user_constants.py`, `normalization.py` | ~2h |
+
+**Contexte :** Fonctionnel tel quel — `constants.py` est un hub de re-export stable. L'extraction complète améliorerait la lisibilité mais n'est pas bloquante.
+
+---
+
+### Priorité BASSE — Tests d'intégration sur les handlers delete/archive
+
+| Item | Détail | Effort |
+|------|--------|--------|
+| Pas de test API pour `DELETE /api/users/me` avec erreur DB simulée | Le handler catch `UserNotFoundError` → 404, mais le path `DatabaseOperationError` → 500 n'est pas couvert par un test d'intégration | ~1h |
+
+---
+
+### Pour mémoire — Items délibérément non traités
+
+| Item | Raison |
+|------|--------|
+| `auth_service.py` → classe `AuthService` (A7) | Remplacer pattern fonctions module-level. Risque élevé (33 tests + handlers), bénéfice faible à court terme. À faire lors d'une refonte auth. |
+| `get_user_stats_for_dashboard` résiduel (A9) | 4 sous-méthodes extraites. Une 5e extraction (streak) possible mais rendement décroissant. |
+| mypy strict mode | Le projet passe mypy standard. Mode strict (`--strict`) génère ~40 erreurs sur les duck-typing SQLAlchemy. À activer progressivement. |
+
+---
+
 ## 🚀 Pour aller plus loin
 
 ### Normalisation des niveaux de difficulté (souhait produit — 27/02/2026)
