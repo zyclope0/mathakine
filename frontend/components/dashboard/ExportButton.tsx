@@ -55,9 +55,8 @@ export function ExportButton({ timeRange = "30" }: ExportButtonProps) {
       toast.success(t("pdfSuccess", { default: "Export PDF réussi !" }), {
         description: t("pdfSuccessDescription", { default: "Votre rapport a été téléchargé." }),
       });
-    } catch (error) {
+    } catch {
       // En production, les erreurs sont gérées par le toast
-      // Ne pas logger en console pour éviter les fuites d'information
       toast.error(t("pdfError", { default: "Erreur lors de l'export PDF" }), {
         description: t("pdfErrorDescription", {
           default: "Une erreur est survenue lors de la génération du PDF.",
@@ -103,9 +102,8 @@ export function ExportButton({ timeRange = "30" }: ExportButtonProps) {
           default: "Votre fichier Excel a été téléchargé.",
         }),
       });
-    } catch (error) {
+    } catch {
       // En production, les erreurs sont gérées par le toast
-      // Ne pas logger en console pour éviter les fuites d'information
       toast.error(t("excelError", { default: "Erreur lors de l'export Excel" }), {
         description: t("excelErrorDescription", {
           default: "Une erreur est survenue lors de la génération du fichier Excel.",

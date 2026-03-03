@@ -21,7 +21,7 @@ import { trackDashboardView, trackQuickStartClick } from "@/lib/analytics/edtech
  * Instrumentation EdTech : data-quick-start-* pour CTR, temps vers 1er attempt.
  */
 export function QuickStartActions() {
-  const { recommendations, isLoading } = useRecommendations();
+  const { recommendations } = useRecommendations();
   const t = useTranslations("dashboard.quickStart");
 
   // Priorisation : priority desc, puis premier exercice et premier défi

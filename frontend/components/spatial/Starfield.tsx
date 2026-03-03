@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
 import { useThemeStore } from "@/lib/stores/themeStore";
-import { cn } from "@/lib/utils";
 
 /**
  * Composant Starfield - Système d'étoiles multi-couches
@@ -78,7 +77,7 @@ export function Starfield() {
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      stars.forEach((layerStars, layerIndex) => {
+      stars.forEach((layerStars) => {
         layerStars.forEach((star) => {
           // Déplacer l'étoile avec mouvement diagonal
           star.x += star.speedX;

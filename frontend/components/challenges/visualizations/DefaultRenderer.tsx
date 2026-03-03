@@ -18,7 +18,7 @@ function renderValue(value: unknown): React.ReactNode {
   if (typeof value === "number")
     return <span className="text-success font-mono">{value}</span>;
   if (typeof value === "string")
-    return <span className="text-warning">"{value}"</span>;
+    return <span className="text-warning">&quot;{value}&quot;</span>;
   if (Array.isArray(value))
     return (
       <span className="text-muted-foreground">

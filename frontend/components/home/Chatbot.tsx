@@ -6,8 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
-import { useChat, Message } from "@/hooks/useChat";
+import { useChat } from "@/hooks/useChat";
 import { useTranslations } from "next-intl";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -46,8 +45,6 @@ export function Chatbot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { shouldReduceMotion } = useAccessibleAnimation();
-
   // Scroll vers le bas quand de nouveaux messages arrivent (dans le conteneur, pas la page)
   useEffect(() => {
     if (isOpen && messagesContainerRef.current) {
@@ -59,14 +56,6 @@ export function Chatbot() {
       setTimeout(scrollToBottom, 100);
     }
   }, [messages, isOpen]);
-
-  const [hasUserInteracted, setHasUserInteracted] = useState(false);
-
-  useEffect(() => {
-    if (isOpen && inputRef.current && hasUserInteracted) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-  }, [isOpen, hasUserInteracted]);
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-3 md:space-y-4">

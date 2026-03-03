@@ -2,12 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import {
-  CHALLENGE_TYPES,
-  AGE_GROUPS,
-  type ChallengeType,
-  type AgeGroup,
-} from "@/lib/constants/challenges";
+import { CHALLENGE_TYPES, AGE_GROUPS } from "@/lib/constants/challenges";
 import { useChallengeTranslations } from "@/hooks/useChallengeTranslations";
 import type { Challenge } from "@/types/api";
 import { useQueryClient } from "@tanstack/react-query";

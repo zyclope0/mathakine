@@ -1,606 +1,535 @@
-# Roadmap Fonctionnalités - Analyse Globale
+# Backlog & Priorisation des Features — Mathakine
 
-> **Date** : 06/02/2026 — **Dernière MAJ** : 03/03/2026  
-> **Objectif** : Identifier les pages et fonctionnalités à ajouter pour maximiser l'engagement et la rétention  
-> **Cible** : Enfants 5-20 ans + Parents
+> **Document vivant** — Dernière MAJ : 03/03/2026  
+> **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
+> **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
 ---
 
 ## Table des matières
 
-1. [État actuel du projet](#1-état-actuel-du-projet)
-2. [Analyse des manques critiques](#2-analyse-des-manques-critiques)
-3. [Fonctionnalités prioritaires](#3-fonctionnalités-prioritaires)
-4. [Fonctionnalités secondaires](#4-fonctionnalités-secondaires)
-5. [Fonctionnalités innovantes](#5-fonctionnalités-innovantes)
-6. [Matrice de priorisation](#6-matrice-de-priorisation)
-7. [Roadmap suggérée](#7-roadmap-suggérée)
+1. [Méthodologie de priorisation](#1-méthodologie-de-priorisation)
+2. [Matrice synthèse — Toutes les features](#2-matrice-synthèse)
+3. [P0 — Impact fort, fondements pédagogiques solides](#3-p0)
+4. [P1 — Haute priorité](#4-p1)
+5. [P2 — Priorité moyenne](#5-p2)
+6. [P3 — Investissement long terme](#6-p3)
+7. [P4 — Backlog distant](#7-p4)
+8. [Features implémentées (historique)](#8-features-implémentées)
+9. [Références scientifiques](#9-références-scientifiques)
 
 ---
 
-## ℹ️ Admin — Implémenté (16/02/2026)
+## 1. Méthodologie de priorisation
 
-L'espace admin est opérationnel (rôle `archiviste`). Voir [ADMIN_ESPACE_PROPOSITION.md](ADMIN_ESPACE_PROPOSITION.md) et [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md).
+### 1.1 Axes d'évaluation (1–5)
 
-## ℹ️ Monitoring IA Admin — Implémenté (22/02/2026)
+| Axe | Description | 1 | 5 |
+|-----|-------------|---|---|
+| **D** — Difficulté | Effort d'implémentation estimé | ½ jour | 2+ semaines |
+| **G** — Gain utilisateur | Impact direct sur l'engagement et la satisfaction | Négligeable | Transformateur |
+| **E** — EdTech | Valeur pédagogique scientifiquement documentée (voir §1.2) | Cosmétique | Effet fort > 0.6d |
+| **R** — Risque | Risque technique ou de régression | Aucun | Critique |
+| **B** — Business | Rétention / acquisition / différenciation marché | Nul | Décisif |
 
-Page `/admin/ai-monitoring` opérationnelle :
-- KPIs tokens OpenAI (total, coût estimé, moyenne par génération)
-- Qualité des générations (taux de succès, échecs validation, auto-corrections, durée)
-- Breakdown par type de défi et par modèle IA (o3, o3-mini, gpt-4o-mini…)
-- Sélecteur de période (1j / 7j / 30j)
-- Endpoints : `GET /api/admin/ai-stats` et `GET /api/admin/generation-metrics`
+### 1.2 Échelle EdTech — Base scientifique
 
-**Limitation actuelle** : données **in-memory** — perdues à chaque redémarrage serveur.
-**Évolution prévue** : persistance DB (voir section 4.6 ci-dessous et `AUDIT_CODE_CLEANUP_2026-03-01.md § 8`).
+L'axe EdTech est **le seul à être évalué à partir de données factuelles**, pas d'intuitions produit.
 
----
+| Score | Signification | Critère |
+|-------|--------------|---------|
+| **5** | Preuve très forte | Méta-analyse, effet mesuré d ≥ 0.6 (Cohen), répliqué dans plusieurs populations |
+| **4** | Preuve forte | Effet mesuré d = 0.4–0.6, ou consensus dans la littérature EdTech peer-reviewed |
+| **3** | Preuve modérée | Bénéfice documenté mais conditionnel, population spécifique ou effet indirect |
+| **2** | Preuve faible | Engagement documenté, mais impact sur l'apprentissage mixte ou non mesuré |
+| **1** | Pas de preuve | Principalement cosmétique, spéculatif ou motivation extrinsèque non corroborée |
 
-## 1. État actuel du projet
+**Références de base utilisées pour le scoring** :
+- Hattie (2009) — *Visible Learning* : méta-analyse de 800+ méta-analyses (>50 000 études)
+- Cepeda et al. (2006) — Pratique distribuée et espacée — *Psychological Bulletin*
+- Hattie & Timperley (2007) — Pouvoir du feedback — *Review of Educational Research*
+- VanLehn (2011) — Tuteurs IA vs tuteurs humains — *Educational Psychologist*
+- Bjork (1994) — Desirable difficulties in learning
+- Sweller (1988) — Théorie de la charge cognitive — *Cognitive Science*
+- Deci & Ryan (2000) — Théorie de l'autodétermination (SDT)
+- Mayer (2001) — Multimedia learning theory
+- Kivetz et al. (2006) — Goal-gradient hypothesis — *Journal of Marketing Research*
 
-### Pages existantes
+> **Convention** : `[PROPOSITION]` = feature suggérée par l'IA, non issue des docs existants. À valider produit avant implémentation.
 
-| Page | Route | État | Évaluation |
-|------|-------|------|------------|
-| Accueil | `/` | ✅ Fonctionnel | Bon |
-| Dashboard | `/dashboard` | ✅ Fonctionnel | Réorganisé (4 onglets, widget classement) |
-| Classement | `/leaderboard` | ✅ Fonctionnel | Nouveau 15/02/2026 |
-| Exercices | `/exercises` | ✅ Fonctionnel | Bon |
-| Défis logiques | `/challenges` | ✅ Fonctionnel | Bon |
-| Badges | `/badges` | ✅ Fonctionnel | À améliorer (voir BADGES_AMELIORATIONS.md) |
-| Profil | `/profile` | ✅ Fonctionnel | Modification profil + mot de passe OK |
-| Paramètres | `/settings` | ✅ Fonctionnel | Basique |
-| Auth | `/login`, `/register` | ✅ Fonctionnel | OK |
+### 1.3 Formule de score composite
 
-### Endpoints implémentés (mise à jour 16/02/2026)
-
-- ✅ `POST /api/auth/forgot-password` - Réinitialisation mot de passe
-- ✅ `PUT /api/users/me` - Modification profil
-- ✅ `PUT /api/users/me/password` - Changement mot de passe
-- ✅ `GET /api/users/leaderboard` - Classement par total_points
-- ✅ `GET /api/users/me/sessions` - Sessions actives (is_current, révocation)
-- ✅ `GET /api/challenges/badges/progress` - Progression vers badges verrouillés
-- ✅ `POST /api/recommendations/complete` - Marquer recommandation comme faite
-- ✅ Mode maintenance + registration_enabled (admin config)
-
----
-
-## 2. Analyse des manques critiques
-
-### 2.1 Comparaison avec les leaders du marché
-
-| Fonctionnalité | Duolingo | Khan Academy | DreamBox | **Mathakine** |
-|----------------|----------|--------------|----------|---------------|
-| Dashboard enfant | ✅ | ✅ | ✅ | ✅ |
-| **Dashboard parent** | ✅ | ✅ | ✅ | ❌ |
-| Streak/Série | ✅ | ❌ | ❌ | ✅ |
-| **Leaderboard** | ✅ | ❌ | ❌ | ✅ |
-| **Défis quotidiens** | ✅ | ✅ | ✅ | ❌ |
-| **Révisions espacées** | ✅ | ✅ | ✅ | ❌ |
-| **Test diagnostic** | ✅ | ✅ | ✅ | ❌ |
-| Parcours adaptatif | ✅ | ✅ | ✅ | Partiel |
-| **Objectifs personnalisés** | ✅ | ✅ | ✅ | ❌ |
-| Rapports détaillés | ✅ | ✅ | ✅ | Basique |
-| Mode hors-ligne | ✅ | ✅ | ❌ | Partiel (PWA) |
-| Notifications push | ✅ | ✅ | ✅ | ❌ |
-
-### 2.2 Manques identifiés par catégorie
-
-**Engagement quotidien** (Impact rétention : TRÈS ÉLEVÉ)
-- ❌ Défis quotidiens
-- ❌ Système de streak
-- ❌ Objectifs quotidiens/hebdomadaires
-
-**Implication parentale** (Impact confiance : TRÈS ÉLEVÉ)
-- ❌ Dashboard parent
-- ❌ Rapports par email
-- ❌ Contrôle parental (temps, contenu)
-
-**Personnalisation** (Impact apprentissage : ÉLEVÉ)
-- ❌ Test de diagnostic initial
-- ❌ Parcours adaptatif intelligent
-- ❌ Recommandations personnalisées
-
-**Rétention long terme** (Impact fidélisation : ÉLEVÉ)
-- ❌ Révisions espacées
-- ❌ Notifications de rappel
-- ❌ Récapitulatifs hebdomadaires
-
----
-
-## 3. Fonctionnalités prioritaires
-
-### 3.1 🔥 Dashboard Parent (P0)
-
-**Pourquoi c'est critique** :
-- 73% des parents veulent suivre la progression de leur enfant (source: Common Sense Media)
-- DreamBox, Khan Academy, Mathletics ont tous un dashboard parent
-- Différenciateur clé pour les décisions d'adoption
-
-**Fonctionnalités du dashboard parent** :
-
-| Fonctionnalité | Description | Priorité |
-|----------------|-------------|----------|
-| Vue d'ensemble | Temps passé, exercices complétés, progression | P0 |
-| Progression par compétence | Graphique radar par type de math | P0 |
-| Alertes | Notification si inactivité > 3 jours | P1 |
-| Rapport hebdomadaire | Email automatique le dimanche | P1 |
-| Objectifs | Définir des objectifs pour l'enfant | P2 |
-| Contrôle temps | Limiter le temps d'utilisation quotidien | P2 |
-
-**Architecture suggérée** :
 ```
-/parent
-  /dashboard      → Vue d'ensemble enfants
-  /child/[id]     → Détail progression enfant
-  /settings       → Alertes, contrôles parentaux
-  /reports        → Historique des rapports
+Score = (G × 1.5) + (E × 2) + B − (D × 0.8) − (R × 0.7)
 ```
 
-**Modèle de données** :
-```
-Table: parent_child_links
-- parent_user_id (FK users)
-- child_user_id (FK users)
-- created_at
-- permissions (JSON: {view_progress, set_goals, set_limits})
-```
+Un score élevé indique une feature à haute valeur et faible coût/risque. Le score **ne remplace pas** le jugement — il oriente la discussion.
 
 ---
 
-### 3.2 📅 Défis quotidiens (P0)
+## 2. Matrice synthèse
 
-**Recherche** :
-- Les défis quotidiens augmentent la rétention de **40%** (source: Gamification research)
-- Attention : mal conçus, ils peuvent créer du FOMO et de l'obligation négative
+*Toutes les features en backlog. Légende : D=Difficulté, G=Gain, E=EdTech, R=Risque, B=Business.*
+
+| # | Feature | D | G | E | R | B | Score | Priorité |
+|---|---------|---|---|---|---|---|-------|----------|
+| F01 | Rendu Markdown/KaTeX explications | 2 | 4 | 5 | 1 | 3 | **16.8** | P0 |
+| F02 | Défis quotidiens (défi du jour) | 3 | 5 | 4 | 2 | 5 | **16.9** | P0 |
+| F03 | Test de diagnostic initial | 3 | 4 | 5 | 2 | 4 | **16.0** | P0 |
+| F04 | Révisions espacées (SM-2) | 4 | 4 | 5 | 2 | 4 | **14.8** | P0 |
+| F05 | Adaptation dynamique de difficulté | 4 | 4 | 5 | 3 | 4 | **13.9** | P1 |
+| F06 | Conditions d'obtention badges visibles | 2 | 4 | 3 | 1 | 3 | **13.5** | P1 |
+| F07 | Courbe d'évolution temporelle | 3 | 4 | 3 | 2 | 3 | **11.2** | P1 |
+| F08 | Objectifs personnalisés | 3 | 3 | 3 | 1 | 3 | **11.1** | P1 |
+| F09 | Dashboard parent | 4 | 4 | 3 | 2 | 5 | **11.4** | P1 |
+| F10 | [PROP] Mode focus / session ciblée | 2 | 4 | 3 | 1 | 3 | **13.5** | P1 |
+| F11 | [PROP] Partage progression → parents (lien) | 2 | 3 | 3 | 1 | 4 | **12.5** | P1 |
+| F12 | Radar chart par discipline | 2 | 3 | 3 | 1 | 2 | **10.9** | P1 |
+| F13 | Déblocage automatique badges temps réel | 2 | 3 | 3 | 1 | 3 | **11.5** | P1 |
+| F14 | Monitoring IA — persistance DB | 2 | 2 | 1 | 1 | 3 | **6.9** | P2 |
+| F15 | Préférence page d'accueil (connexion) | 1 | 2 | 1 | 1 | 1 | **5.7** | P2 |
+| F16 | Heatmap d'activité | 3 | 3 | 2 | 1 | 3 | **9.1** | P2 |
+| F17 | Célébrations visuelles améliorées | 2 | 3 | 2 | 1 | 2 | **9.0** | P2 |
+| F18 | Ligues hebdomadaires (upgrade leaderboard) | 4 | 4 | 1 | 2 | 4 | **8.9** | P2 |
+| F19 | Notifications push + email | 4 | 3 | 2 | 2 | 4 | **8.1** | P2 |
+| F20 | Normalisation niveaux de difficulté | 4 | 3 | 2 | 3 | 3 | **6.9** | P2 |
+| F21 | Badges secrets | 2 | 3 | 2 | 1 | 2 | **9.0** | P2 |
+| F22 | Suppression utilisateur admin (RGPD) | 2 | 1 | 1 | 2 | 3 | **4.7** | P2 |
+| F23 | [PROP] Exercices adaptatifs SR+IA | 4 | 5 | 5 | 3 | 5 | **17.1** | P2* |
+| F24 | Tuteur IA contextuel | 5 | 5 | 5 | 3 | 5 | **16.1** | P3 |
+| F25 | Mode classe / enseignant | 5 | 4 | 4 | 3 | 5 | **14.9** | P3 |
+| F26 | Filtres et tri badges | 2 | 2 | 1 | 1 | 2 | **6.4** | P3 |
+| F27 | Optimisation re-renders exercices/défis | 3 | 2 | 1 | 2 | 2 | **4.8** | P3 |
+| F28 | Mode aventure / histoire narrative | 5 | 5 | 3 | 3 | 5 | **13.1** | P4 |
+| F29 | Personnalisation avatar / profil | 3 | 3 | 1 | 1 | 2 | **7.1** | P4 |
+
+> *F23 a un score élevé mais dépend de F04 (révisions espacées) — débloqué après F04.*
+
+---
+
+## 3. P0 — Impact fort, fondements pédagogiques solides {#3-p0}
+
+Ces quatre features combinent un score composite élevé ET un bénéfice pédagogique scientifiquement robuste. Elles constituent le cœur de la valeur éducative de Mathakine.
+
+---
+
+### F01 — Rendu Markdown/KaTeX dans les explications
+
+**Source** : [ROADMAP §4.7](ROADMAP_FONCTIONNALITES.md)  
+**Score** : 16.8 | D=2, G=4, E=5, R=1, B=3
+
+**Problème** : Les explications post-réponse (exercices et défis) sont du texte brut. Les formules mathématiques (`a³+b³`) et les étapes structurées sont illisibles.
+
+**Valeur pédagogique (E=5)** :
+- Mayer (2001) — *Multimedia Learning* : la segmentation et la mise en forme du texte réduit la charge cognitive extrinsèque et améliore la compréhension (effet mesuré).
+- Sweller (1988) — Cognitive Load Theory : l'organisation visuelle de l'information réduit la charge cognitive irrélevante.
+- La lisibilité de l'explication est un vecteur direct du transfert d'apprentissage.
+
+**Ce qu'il faut faire** :
+- Intégrer `react-markdown` + `remark-math` + `rehype-katex` (ou `react-katex`) dans `ExerciseSolver` et `ChallengeSolver`
+- Appliquer le rendu dans le bloc "Explication" de la réponse
+- Style CSS pour les formules math (KaTeX CSS)
+- Optionnel : accordéon "voir plus" si explication > 300 mots
+
+**Effort estimé** : 1-2 jours
+
+---
+
+### F02 — Défis quotidiens (défi du jour)
+
+**Source** : [ROADMAP §3.2](ROADMAP_FONCTIONNALITES.md)  
+**Score** : 16.9 | D=3, G=5, E=4, R=2, B=5
+
+**Problème** : Aucun mécanisme de retour quotidien motivé. L'utilisateur n'a pas de raison intrinsèque de revenir chaque jour.
+
+**Valeur pédagogique (E=4)** :
+- Cepeda et al. (2006) — La pratique distribuée (daily sessions) produit une meilleure rétention que la pratique massée, indépendamment du temps total (d = 0.46-0.71).
+- Deci & Ryan (2000) — SDT : les défis quotidiens optionnels, adaptés au niveau, soutiennent le besoin de compétence sans pression externe (contrairement aux streaks punitifs).
+- **Attention** : Un défi quotidien obligatoire ou punitif peut créer du FOMO négatif. La conception doit préserver l'autonomie (pas de punition si manqué).
 
 **Conception recommandée** :
 
 | Élément | Recommandation |
 |---------|----------------|
-| Nombre | 3 défis/jour (pas plus) |
-| Difficulté | Adaptée au niveau de l'utilisateur |
+| Nombre | 3 défis par jour (pas plus) |
+| Difficulté | Adaptée au profil utilisateur (onboarding + historique) |
 | Récompense | Points bonus + progression vers badge |
-| Expiration | Fin de journée (pas de pression multi-jours) |
-| Optionnel | Jamais obligatoire, pas de punition si manqué |
+| Expiration | Fin de journée (minuit), pas de pression multi-jours |
+| Comportement si manqué | Aucune perte, aucun streak cassé — simple reset |
 
-**Types de défis** :
-1. "Résous 5 exercices" (quantité)
-2. "Obtiens 80% de réussite" (qualité)
-3. "Essaie un nouveau type d'exercice" (exploration)
-4. "Bats ton meilleur temps" (amélioration personnelle)
+**Modèle de données** :
+```sql
+daily_challenges (
+  id, user_id, date DATE, challenge_type,
+  target_count INT, completed_count INT,
+  status ENUM('pending', 'completed', 'expired'),
+  bonus_points INT, created_at, completed_at
+)
+```
 
-**UI suggérée** :
-```
-┌─────────────────────────────────────────┐
-│ 🎯 Défis du jour           2/3 complétés│
-├─────────────────────────────────────────┤
-│ ✅ Résoudre 5 additions      +50 pts    │
-│ ⏳ 80% de réussite (60%)     +75 pts    │
-│ ⬜ Essayer une division      +100 pts   │
-├─────────────────────────────────────────┤
-│ Bonus tous défis : 🏆 +200 pts          │
-└─────────────────────────────────────────┘
-```
+**Effort estimé** : 3-5 jours (backend + frontend)
 
 ---
 
-### 3.3 🔄 Système de révisions espacées (P0)
+### F03 — Test de diagnostic initial
 
-**Recherche** :
-- Effet moyen d = 0.54 pour l'apprentissage espacé vs massé
-- Particulièrement efficace pour les maths (g = 0.43)
-- Améliore la rétention long terme de **200%+**
+**Source** : [ROADMAP §3.5](ROADMAP_FONCTIONNALITES.md)  
+**Score** : 16.0 | D=3, G=4, E=5, R=2, B=4
 
-**Implémentation suggérée** :
+**Problème** : L'onboarding collecte les préférences (classe, âge, rythme) mais pas le niveau réel. Les premières recommandations peuvent être inadaptées, dégradant le moment critique des 5 premières minutes.
 
-**Algorithme SM-2 simplifié** :
+**Valeur pédagogique (E=5)** :
+- Hattie (2009) — *Formative assessment* : d = 0.90 (un des effets les plus élevés en éducation). Identifier le niveau réel avant l'enseignement est la condition préalable à toute personnalisation efficace.
+- Sweller (1988) — L'alignement entre difficulté et compétence prévient la surcharge cognitive (exercices trop faciles = ennui, trop difficiles = anxiété).
+- *Assessment for learning* (Black & Wiliam, 1998) : le diagnostic préalable est la fondation de l'apprentissage adaptatif.
+
+**Algorithme adaptatif (Item Response Theory simplifié)** :
+```
+1. Commencer au niveau médian
+2. Correct → question plus difficile (niveau +1)
+3. Incorrect → question plus facile (niveau -1)
+4. Arrêt : 2 erreurs consécutives au même niveau → niveau établi
+5. Durée max : 10 questions, ~5 minutes
+```
+
+**Output** :
+- `initial_level` par type d'exercice (addition, soustraction, multiplication, division, logique)
+- Stocké dans `users.initial_assessment_score` (champ prévu dans `ANALYTICS_PROGRESSION.md`)
+- Alimente immédiatement les recommandations
+
+**Effort estimé** : 3-5 jours
+
+---
+
+### F04 — Révisions espacées (algorithme SM-2)
+
+**Source** : [ROADMAP §3.3](ROADMAP_FONCTIONNALITES.md)  
+**Score** : 14.8 | D=4, G=4, E=5, R=2, B=4
+
+**Valeur pédagogique (E=5) — La preuve la plus robuste en éducation** :
+- Ebbinghaus (1885, répliqué 100+ fois) — Courbe de l'oubli : sans révision, 70% d'une connaissance est oubliée en 24h, 90% en une semaine.
+- Cepeda et al. (2006) — *Psychological Bulletin* : méta-analyse de 317 études. La pratique espacée améliore la rétention de 200%+ sur le long terme vs pratique massée.
+- Kornell & Bjork (2008) — Spacing + interleaving : effet particulièrement fort en mathématiques (g = 0.43).
+- *L'algorithme SM-2 (Wozniak, 1987) est le fondement de SuperMemo, Anki et DuoLingo.*
+
+**Algorithme SM-2 adapté** :
 ```
 Intervalles de révision :
-- 1ère révision : 1 jour après
-- 2ème révision : 3 jours
-- 3ème révision : 7 jours
-- 4ème révision : 14 jours
-- 5ème révision : 30 jours
-- Ensuite : intervalles doublés
+- 1ère révision : J+1
+- 2ème révision : J+3
+- 3ème révision : J+7
+- Suivantes : intervalle × ease_factor
 
-Ajustement selon performance :
-- Correct sans hésitation : intervalle x 2.5
-- Correct avec hésitation : intervalle x 1.5
-- Incorrect : retour à 1 jour
+Ajustement ease_factor (EF, init 2.5) :
+- Réponse correcte rapide (qualité 4-5) : EF + 0.1
+- Réponse correcte lente (qualité 3) : EF inchangé
+- Réponse incorrecte (qualité 0-2) : EF − 0.2, retour J+1
 ```
 
 **Modèle de données** :
-```
-Table: spaced_repetition_items
-- user_id (FK users)
-- exercise_id (FK exercises)
-- ease_factor (float, default 2.5)
-- interval_days (int)
-- next_review_date (date)
-- repetition_count (int)
-- last_quality (0-5)
+```sql
+spaced_repetition_items (
+  id, user_id, exercise_id,
+  ease_factor FLOAT DEFAULT 2.5,
+  interval_days INT DEFAULT 1,
+  next_review_date DATE,
+  repetition_count INT DEFAULT 0,
+  last_quality INT -- 0-5
+)
 ```
 
-**UI suggérée** :
-```
-┌─────────────────────────────────────────┐
-│ 📚 Révisions du jour                    │
-├─────────────────────────────────────────┤
-│ 🔴 3 exercices à revoir (en retard)     │
-│ 🟡 5 exercices prévus aujourd'hui       │
-│ 🟢 12 exercices maîtrisés               │
-├─────────────────────────────────────────┤
-│ [Commencer les révisions]               │
-└─────────────────────────────────────────┘
-```
+**Intégration** : Après chaque tentative d'exercice, mise à jour de l'item SR. Widget "Révisions du jour" sur le dashboard.
+
+**Effort estimé** : 1-2 semaines (migration + service + UI)
 
 ---
 
-### 3.4 🏆 Leaderboard / Classement (P1)
-
-**Recherche** :
-- +40% de leçons/semaine chez Duolingo avec les ligues
-- Les classements **relatifs** (vs 10 personnes proches) sont plus efficaces que globaux
-- Risque : démotivation des moins performants
-
-**Conception recommandée** :
-
-| Type | Description | Cible |
-|------|-------------|-------|
-| **Ligue hebdomadaire** | Groupes de 30 personnes, reset chaque lundi | Tous |
-| **Classement amis** | Entre amis ajoutés | Social |
-| **Top école/classe** | Si intégration scolaire | Écoles |
-| **Record personnel** | Comparaison avec soi-même | Non-compétitifs |
-
-**Paramètre utilisateur** :
-```
-☐ Participer aux classements (opt-in, pas opt-out)
-```
-
-**Système de ligues** :
-```
-Ligue Bronze → Argent → Or → Diamant → Maître
-- Top 10 : Promotion
-- Bottom 5 : Relégation
-- Reset chaque lundi
-```
+## 4. P1 — Haute priorité {#4-p1}
 
 ---
 
-### 3.5 🧪 Test de diagnostic initial (P1)
+### F05 — Adaptation dynamique de difficulté
 
-**Pourquoi c'est important** :
-- Permet de personnaliser le parcours dès le départ
-- Évite la frustration (exercices trop faciles ou difficiles)
-- Donne une baseline pour mesurer la progression
+**Source** : [WORKFLOW_EDUCATION §2.2](WORKFLOW_EDUCATION_REFACTORING.md)  
+**Score** : 13.9 | D=4, G=4, E=5, R=3, B=4
 
-**Conception** :
+**Valeur pédagogique (E=5)** :
+- Vygotsky (1978) — Zone proximale de développement : l'apprentissage optimal se situe juste au-delà de la compétence actuelle. Trop facile → ennui. Trop difficile → anxiété.
+- Bjork (1994) — *Desirable difficulties* : un niveau de défi optimal crée une résistance productive (retrieval effort) qui renforce la mémorisation à long terme.
+- Csikszentmihalyi (1990) — État de *flow* : atteint quand difficulté ≈ compétence.
 
-| Phase | Contenu | Durée |
-|-------|---------|-------|
-| Niveau | 5 questions adaptatives | 3 min |
-| Points faibles | 10 questions par domaine | 5-10 min |
-| Style | Préférences d'apprentissage (optionnel) | 2 min |
+**Implémentation** : Basée sur le taux de réussite glissant (7 derniers jours) par type d'exercice. Seuils : > 85% → augmenter difficulté, < 50% → diminuer.
 
-**Algorithme adaptatif** :
-- Commencer au niveau moyen
-- Si correct : question plus difficile
-- Si incorrect : question plus facile
-- Arrêter après 2 erreurs consécutives par niveau
+**Dépendance** : Profite du diagnostic initial (F03) et prépare les révisions espacées (F04).
 
-**Résultat** :
-```
-┌─────────────────────────────────────────┐
-│ 🎓 Ton profil d'apprentissage           │
-├─────────────────────────────────────────┤
-│ Niveau global : Padawan (intermédiaire) │
-│                                         │
-│ Points forts :                          │
-│ ████████████ Addition (95%)             │
-│ ██████████░░ Multiplication (80%)       │
-│                                         │
-│ À travailler :                          │
-│ ██████░░░░░░ Division (55%)             │
-│ ████░░░░░░░░ Fractions (35%)            │
-│                                         │
-│ [Commencer mon parcours personnalisé]   │
-└─────────────────────────────────────────┘
-```
+**Effort estimé** : 1-2 semaines
 
 ---
 
-## 4. Fonctionnalités secondaires
+### F06 — Conditions d'obtention badges visibles
 
-### 4.1 📧 Notifications et rappels (P2)
+**Source** : [BADGES_AMELIORATIONS §4.2](BADGES_AMELIORATIONS.md)  
+**Score** : 13.5 | D=2, G=4, E=3, R=1, B=3
 
-| Type | Canal | Fréquence |
-|------|-------|-----------|
-| Rappel inactivité | Push + Email | Après 2 jours |
-| Streak en danger | Push | 20h si pas d'activité |
-| Badge proche | Push | Quand à 90% |
-| Rapport hebdo (parent) | Email | Dimanche 18h |
-| Nouveau contenu | Push | Max 1x/semaine |
+**Valeur pédagogique (E=3)** :
+- Kivetz et al. (2006) — *Goal-gradient effect* : la motivation augmente à mesure que l'objectif est visible et proche. Effet mesuré +40-60% d'engagement.
+- Zimmerman (2002) — Transparence des critères améliore la régulation autonome de l'apprentissage (self-regulation).
 
-**Paramètres utilisateur** :
+**Ce qu'il faut faire** : Afficher les critères (`criteria_description`) sur les badges verrouillés dans `BadgeCard.tsx`. Déjà partiellement préparé dans le backend (`PLAN_REFONTE_BADGES` archivé).
+
+**Effort estimé** : ½-1 jour
+
+---
+
+### F07 — Courbe d'évolution temporelle
+
+**Source** : [ANALYTICS_PROGRESSION §1.1](ANALYTICS_PROGRESSION.md)  
+**Score** : 11.2 | D=3, G=4, E=3, R=2, B=3
+
+**Valeur pédagogique (E=3)** :
+- Zimmerman & Schunk (2001) — *Self-monitoring* : voir sa progression concrète dans le temps active la métacognition et renforce la motivation intrinsèque.
+- Hattie (2009) — *Self-reported grades / metacognitive monitoring* : d = 1.33 (attention : effet de la conscience de sa propre progression, pas du graphique lui-même).
+
+**Endpoint à créer** : `GET /api/users/me/progress/timeline?period=week|month`  
+**Données sources** : `Attempt.created_at` + `Attempt.is_correct`
+
+**Effort estimé** : 3-5 jours
+
+---
+
+### F08 — Objectifs personnalisés
+
+**Source** : [ROADMAP §4.2](ROADMAP_FONCTIONNALITES.md)  
+**Score** : 11.1 | D=3, G=3, E=3, R=1, B=3
+
+**Valeur pédagogique (E=3)** :
+- Deci & Ryan (2000) — SDT : les objectifs auto-déterminés (choisis par l'utilisateur, pas imposés) renforcent la motivation intrinsèque et le besoin d'autonomie.
+- Locke & Latham (1990) — *Goal-setting theory* : des objectifs spécifiques et mesurables améliorent la performance. Effet plus fort quand l'objectif est choisi par l'individu.
+
+**Types** : Quotidien (ex: 5 exercices/jour), hebdomadaire, de maîtrise (ex: "atteindre 80% en division").
+
+**Effort estimé** : 3-5 jours
+
+---
+
+### F09 — Dashboard parent
+
+**Source** : [ROADMAP §3.1](ROADMAP_FONCTIONNALITES.md)  
+**Score** : 11.4 | D=4, G=4, E=3, R=2, B=5
+
+**Valeur pédagogique (E=3)** :
+- Hattie (2009) — *Parental involvement* : d = 0.49. L'implication parentale dans le suivi scolaire a un effet positif mesurable sur les résultats.
+- Bryk & Schneider (2002) — La confiance famille-institution est un prédicteur de l'engagement à long terme.
+
+**Architecture minimale (MVP)** :
 ```
-Notifications :
-☑ Rappels d'entraînement
-☑ Alertes de streak
-☑ Nouveaux badges
-☐ Nouveaux défis disponibles
-☐ Classement hebdomadaire
+Table: parent_child_links (parent_user_id, child_user_id, created_at, permissions JSON)
+Route: /parent/dashboard → vue enfants
+Route: /parent/child/[id] → progression détaillée
 ```
 
----
-
-### 4.2 🎯 Objectifs personnalisés (P2)
-
-**Types d'objectifs** :
-- Quotidien : "5 exercices/jour"
-- Hebdomadaire : "30 exercices/semaine"
-- Mensuel : "Maîtriser les fractions"
-- Long terme : "Atteindre le niveau Maître"
-
-**UI** :
-```
-┌─────────────────────────────────────────┐
-│ 🎯 Mes objectifs                        │
-├─────────────────────────────────────────┤
-│ Aujourd'hui : 3/5 exercices ██████░░░░  │
-│ Cette semaine : 18/30      ██████████░░ │
-│ Objectif fractions : 60%   ████████░░░░ │
-└─────────────────────────────────────────┘
-```
+**Effort estimé** : 1-2 semaines
 
 ---
 
-### 4.3 📊 Rapports détaillés (P2)
+### F10 — [PROPOSITION] Mode focus / session ciblée
 
-**Page /reports ou /progress**
+**Source** : Proposition IA — non issue des docs existants  
+**Score** : 13.5 | D=2, G=4, E=3, R=1, B=3
 
-| Section | Contenu |
-|---------|---------|
-| Vue d'ensemble | Graphique progression globale |
-| Par compétence | Radar chart + évolution temporelle |
-| Comparaison | Vs soi-même il y a 1 mois |
-| Temps | Heures passées, meilleurs jours |
-| Erreurs fréquentes | Patterns d'erreurs à corriger |
+**Concept** : Permettre de lancer une session ciblée en 2 clics : "5 multiplications niveau PADAWAN". L'utilisateur choisit type + difficulté + nombre, et est guidé directement dans une suite d'exercices sans navigation.
 
----
+**Valeur pédagogique (E=3)** :
+- Bjork (1994) — *Desirable difficulties* : l'interleaving (mélange de types) est bénéfique, mais la pratique ciblée sur un type spécifique est nécessaire pour la construction de compétences (blocked practice pour la phase d'acquisition).
+- Deci & Ryan — Le choix du type de pratique renforce l'autonomie (SDT).
 
-### 4.4 🏠 Préférence page d'accueil après connexion (P2)
-
-**Objectif** : Permettre à l'utilisateur de choisir où il est redirigé après login.
-
-| Valeur | Redirection |
-|--------|-------------|
-| `exercises` (défaut) | `/exercises` |
-| `dashboard` | `/dashboard` |
-
-**Implémentation** :
-- Champ `login_redirect_preference` (ou équivalent) en base (modèle `User` ou `accessibility_settings`)
-- Option dans la page Profil / Paramètres : « Page d'accueil après connexion » [Exercices | Tableau de bord]
-- Réponse `GET /api/users/me` et `PUT /api/users/me` incluent ce champ
-- `useAuth.ts` : après onboarding OK, utiliser `data.user.login_redirect_preference` pour la cible
-
-**Effort estimé** : Faible (1 colonne, 1 champ formulaire, 1 branche dans useAuth).
+**Effort estimé** : 1-2 jours (frontend principalement — filtres déjà disponibles en backend)
 
 ---
 
-### 4.6 🤖 Monitoring IA — Persistance historique (P2)
+### F11 — [PROPOSITION] Partage de progression vers les parents (lien simple)
 
-**Contexte** : `token_tracker` et `generation_metrics` sont en mémoire. Un redémarrage Render efface tout. La page `/admin/ai-monitoring` est souvent à zéro en prod.
+**Source** : Proposition IA — alternative légère au Dashboard Parent complet (F09)  
+**Score** : 12.5 | D=2, G=3, E=3, R=1, B=4
 
-**Objectif** : Persister chaque génération en DB pour des stats fiables sur 7/30/90 jours.
+**Concept** : Générer un lien de partage de progression (lecture seule, sans compte requis) permettant au parent de voir les stats de l'enfant sans créer un espace parent dédié. Quick win avant l'implémentation complète de F09.
 
-**Valeur** :
-- Suivre les coûts OpenAI réels sur la durée (budgétisation)
-- Détecter les dérives de qualité IA (hausse des échecs de validation)
-- Identifier les types de défis les plus coûteux / lents
+**Valeur pédagogique (E=3)** : Même base que F09 (engagement parental), avec une friction d'adoption beaucoup plus faible.
 
-**Effort estimé** : ~1 jour — complexité moyenne, faible risque.
-
-**Ce qu'il faut faire** :
-
-| # | Action |
-|---|--------|
-| 1 | 2 nouveaux modèles SQLAlchemy : `AiTokenUsage`, `AiGenerationMetric` |
-| 2 | 1 migration Alembic (pattern identique à `edtech_events`) |
-| 3 | `token_tracker.track_usage()` → INSERT en DB |
-| 4 | `generation_metrics.record_generation()` → INSERT en DB |
-| 5 | `get_stats()` / `get_summary()` → requêtes SQL avec filtre `created_at` |
-| 6 | Passer la session DB depuis `challenge_ai_service.py` (point délicat) |
-| 7 | Mise à jour tests admin |
-
-**Pattern de référence** : `edtech_events` (table JSONB + migration + handler admin).
-**Doc technique** : `docs/03-PROJECT/AUDIT_CODE_CLEANUP_2026-03-01.md § 8`.
+**Effort estimé** : 1-2 jours
 
 ---
 
-### 4.7 🎨 Mise en forme des explications exercices/défis (P1)
+### F12 — Radar chart par discipline
 
-**Contexte** : Les explications affichées après une réponse (correcte ou incorrecte) sont un bloc de texte brut sans structure. Les formules mathématiques, les étapes numérotées et les conditions sont illisibles quand le contenu est dense (ex: défi logique multi-critères).
+**Source** : [ANALYTICS_PROGRESSION §1.3](ANALYTICS_PROGRESSION.md)  
+**Score** : 10.9 | D=2, G=3, E=3, R=1, B=2
 
-**Objectif** : Rendre les explications pédagogiques claires et agréables à lire.
+**Valeur pédagogique (E=3)** : Auto-évaluation et métacognition. Données déjà disponibles dans `/api/exercises/stats` (`by_discipline`). Implémentation rapide avec Recharts `RadarChart`.
 
-**Améliorations envisagées** :
-
-| Élément | Actuel | Cible |
-|---------|--------|-------|
-| Structure | Texte brut en bloc | Paragraphes séparés, numérotation visible |
-| Formules math | Inline texte (`a³+b³`) | Rendu LaTeX/KaTeX (`$a^3 + b^3$`) |
-| Points clés | Noyés dans le texte | Mise en avant (gras, couleur, encadré) |
-| Longueur | Parfois très long | Accordéon ou "voir plus" si > N lignes |
-
-**Effort estimé** : Faible — composant frontend de rendu Markdown/KaTeX + CSS.
+**Effort estimé** : ½-1 jour
 
 ---
 
-### 4.8 ⚡ Optimisation re-renders exercices/défis (P2)
+### F13 — Déblocage automatique badges (temps réel)
 
-**Contexte** : Les pages exercices et défis ont un flash visible (2-3 re-renders rapides) avant de se stabiliser. Lié au pattern React : `ProtectedRoute` check → queries lancées → données reçues → re-render final.
+**Source** : [BADGES_AMELIORATIONS §4.4](BADGES_AMELIORATIONS.md)  
+**Score** : 11.5 | D=2, G=3, E=3, R=1, B=3
 
-**Pistes d'optimisation** :
-- Stabiliser les states avec `useMemo`/`useCallback` sur les paramètres de query
-- Utiliser `placeholderData` (TanStack Query) pour éviter le flash loading→data
-- Dédupliquer les fetches simultanés (ex: `usePaginatedContent` + `useCompletedExercises`)
-- Skeleton loader au lieu de contenu qui "saute"
+**Valeur pédagogique (E=3)** :
+- Kulik & Kulik (1988) — Feedback immédiat améliore l'apprentissage. S'applique aux récompenses : un badge débloqué 2 jours après l'effort perd son effet de renforcement.
 
-**Effort estimé** : Moyen — investigation profiling React DevTools + corrections ciblées.
+**Ce qu'il faut faire** : Appeler `check_and_award_badges` après chaque tentative (déjà fait pour les défis — étendre aux exercices) et afficher un toast avec l'animation de badge.
 
----
-
-### 4.5 🏫 Mode classe/école (P3)
-
-**Pour les enseignants** :
-- Créer une classe
-- Inviter des élèves
-- Assigner des exercices
-- Voir la progression collective
-- Exporter des rapports
-
-**Architecture** :
-```
-/teacher
-  /dashboard      → Vue classes
-  /class/[id]     → Détail classe
-  /assignments    → Devoirs assignés
-  /reports        → Rapports exportables
-```
+**Effort estimé** : ½-1 jour
 
 ---
 
-## 5. Fonctionnalités innovantes
+## 5. P2 — Priorité moyenne {#5-p2}
 
-### 5.1 🤖 Tuteur IA contextuel (P3)
-
-**Concept** : Un chatbot qui aide quand l'enfant est bloqué
-
-| Trigger | Action |
-|---------|--------|
-| 3 erreurs consécutives | Proposer de l'aide |
-| Temps > 2x moyenne | Suggérer un indice |
-| Demande explicite | Expliquer pas à pas |
-
-**Différenciateur** vs chatbot actuel :
-- Contextuel (sait quel exercice est en cours)
-- Pédagogique (ne donne pas la réponse, guide)
-- Adapté à l'âge
+| Feature | Note |
+|---------|------|
+| **F14 — Monitoring IA persistance DB** | Voir [ROADMAP §4.6](ROADMAP_FONCTIONNALITES.md). Table `AiTokenUsage` + `AiGenerationMetric`. Pattern : `edtech_events`. ~1 jour. |
+| **F15 — Préférence page d'accueil** | Champ `login_redirect_preference` sur `User`. Option dans Paramètres. ~½ jour. |
+| **F16 — Heatmap d'activité** | Calendrier GitHub-style sur Dashboard/Profil. `react-calendar-heatmap`. Endpoint : `GET /api/users/me/activity/heatmap`. |
+| **F17 — Célébrations visuelles améliorées** | Confettis au déblocage badge, modal avec partage. Désactivable (accessibilité). |
+| **F18 — Ligues hebdomadaires** | Upgrade du leaderboard : groupes de 30, promotion/relégation, reset chaque lundi. Voir [ROADMAP §3.4](ROADMAP_FONCTIONNALITES.md). Score EdTech=1 : engagement, pas d'apprentissage direct. |
+| **F19 — Notifications push + email** | Rappel inactivité, streak en danger, badge proche. Voir [ROADMAP §4.1](ROADMAP_FONCTIONNALITES.md). Infrastructure à définir (service push web + SMTP). |
+| **F20 — Normalisation niveaux de difficulté** | Remplacer nomenclature Star Wars par libellés universels. Voir [NIVEAUX_DIFFICULTE_NORMALISATION.md](NIVEAUX_DIFFICULTE_NORMALISATION.md). Migration enum risquée — à planifier soigneusement. |
+| **F21 — Badges secrets** | Badges cachés débloqués pour comportements inattendus (ex: "Noctambule" après minuit). Variable reward (Skinner) — engagement élevé. |
+| **F22 — Suppression utilisateur admin (RGPD)** | `DELETE /api/admin/users/{id}` avec soft delete. Voir PLACEHOLDERS_ET_TODO. Compliance obligatoire avant scale. |
+| **F23 — [PROP] Exercices adaptatifs SR+IA** | Générer des exercices IA ciblés sur les concepts à réviser selon la courbe SR (F04). Score composite très élevé (17.1) mais **dépend de F04**. Débloqué après F04. |
 
 ---
 
-### 5.2 🎮 Mode aventure/histoire (P3)
+## 6. P3 — Investissement long terme {#6-p3}
 
-**Concept** : Progression narrative où les maths servent l'histoire
+### F24 — Tuteur IA contextuel
 
-**Exemple** :
-> "Le vaisseau spatial a besoin de 150 unités de carburant. Tu as 3 réservoirs de 45 unités chacun. Combien manque-t-il ?"
+**Score** : 16.1 | D=5, G=5, E=5, R=3, B=5
 
-**Avantages** :
-- Contextualise les maths
-- Engagement narratif
-- Récompenses débloquent la suite de l'histoire
+**Valeur pédagogique (E=5) — parmi les plus fortes en EdTech** :
+- VanLehn (2011) — *Educational Psychologist* : Les systèmes de tutoriels intelligents (ITS) atteignent d = 0.55–0.66 par rapport aux classes classiques. Seul le tutorat humain individuel fait mieux (d ≈ 2.0).
+- *Scaffolding* cognitif (Wood et al., 1976) : l'aide contextuelle qui s'adapte aux erreurs est plus efficace que les explications génériques.
+- Règle critique : **ne pas donner la réponse directement** — guider par questions socratiques.
 
----
+**Différence vs chatbot actuel** : Le chatbot actuel est générique. Un tuteur IA contextuel connaît l'exercice en cours, le niveau de l'utilisateur et l'historique d'erreurs sur ce type de problème.
 
-### 5.3 🎨 Personnalisation avatar/profil (P3)
-
-**Éléments à débloquer avec les points** :
-- Avatars
-- Thèmes de couleur
-- Titres ("Maître des fractions")
-- Cadres de profil
-
-**Impact** : Donne de la valeur aux points gagnés
+**Effort estimé** : 2-4 semaines (intégration LLM contextuel + design pédagogique)
 
 ---
 
-## 6. Matrice de priorisation
+### F25 — Mode classe / enseignant
 
-| Fonctionnalité | Impact rétention | Effort dev | Priorité |
-|----------------|------------------|------------|----------|
-| Dashboard parent | ⭐⭐⭐⭐⭐ | Moyen | **P0** |
-| Défis quotidiens | ⭐⭐⭐⭐⭐ | Faible | **P0** |
-| Révisions espacées | ⭐⭐⭐⭐⭐ | Moyen | **P0** |
-| Leaderboard | ⭐⭐⭐⭐ | Faible | **P1** |
-| Test diagnostic | ⭐⭐⭐⭐ | Moyen | **P1** |
-| Système streak | ⭐⭐⭐⭐⭐ | Faible | **P1** |
-| Notifications | ⭐⭐⭐ | Moyen | **P2** |
-| Objectifs perso | ⭐⭐⭐ | Faible | **P2** |
-| Préférence page d'accueil (profil) | ⭐⭐ | Faible | **P2** |
-| Rapports détaillés | ⭐⭐⭐ | Moyen | **P2** |
-| Monitoring IA — persistance DB | ⭐⭐ | Faible | **P2** |
-| Mise en forme explications (Markdown/KaTeX) | ⭐⭐⭐⭐ | Faible | **P1** |
-| Optimisation re-renders exercices/défis | ⭐⭐⭐ | Moyen | **P2** |
-| Mode classe | ⭐⭐⭐ | Élevé | **P3** |
-| Tuteur IA | ⭐⭐⭐⭐ | Élevé | **P3** |
-| Mode aventure | ⭐⭐⭐ | Très élevé | **P4** |
-| Personnalisation avatar | ⭐⭐ | Faible | **P4** |
+**Score** : 14.9 | D=5, G=4, E=4, R=3, B=5
+
+**Valeur pédagogique (E=4)** : L'enseignant médiateur amplifie les effets de la plateforme (Hattie, d = 0.45 pour *teacher-student relationships*). L'assignation ciblée d'exercices + les rapports par classe sont des outils pédagogiques à fort impact.
+
+**Architecture requise** : Table `classes`, `class_memberships`, `assignments`, routes `/teacher/`. Intégration d'export CSV (déjà partiellement disponible).
+
+**Effort estimé** : 3-6 semaines
 
 ---
 
-## 7. Roadmap suggérée
+### F26 — Filtres et tri badges
 
-### Phase 1 - Fondations engagement (2-3 sprints)
-
-| Tâche | Complexité |
-|-------|------------|
-| Système de streak | Faible |
-| Défis quotidiens (3/jour) | Moyenne |
-| Améliorations badges (voir doc dédié) | Moyenne |
-| Endpoint leaderboard | Faible |
-| Page leaderboard | Faible |
-
-### Phase 2 - Personnalisation (2-3 sprints)
-
-| Tâche | Complexité |
-|-------|------------|
-| Test de diagnostic | Moyenne |
-| Système de révisions espacées | Moyenne |
-| Recommandations personnalisées | Moyenne |
-| Objectifs utilisateur | Faible |
-| Préférence page d'accueil après connexion (profil) | Faible |
-
-### Phase 2b - Infrastructure IA (1 sprint)
-
-| Tâche | Complexité |
-|-------|------------|
-| Monitoring IA — persistance DB (`AiTokenUsage`, `AiGenerationMetric`) | Moyenne |
-
-### Phase 3 - Parents (2-3 sprints)
-
-| Tâche | Complexité |
-|-------|------------|
-| Modèle parent-enfant | Moyenne |
-| Dashboard parent | Moyenne |
-| Rapports email | Moyenne |
-| Contrôles parentaux | Moyenne |
-
-### Phase 4 - Expansion (3+ sprints)
-
-| Tâche | Complexité |
-|-------|------------|
-| Notifications push | Moyenne |
-| Mode classe/enseignant | Élevée |
-| Tuteur IA contextuel | Élevée |
-| Mode aventure | Très élevée |
+Amélioration ergonomique de la page `/badges`. Par statut, catégorie, difficulté. ~1 jour. Déprioritisé car la page badges est déjà bien structurée (onglets En cours / À débloquer).
 
 ---
 
-## Références
+### F27 — Optimisation re-renders exercices/défis
 
-1. [Education Insights 2025-2026: Engagement Fuels Learning](https://www.discoveryeducation.com/education-insights/)
-2. [DreamBox Parent Dashboard](https://www.dreambox.com/family/parent-dashboard)
-3. [Khan Academy Parent Dashboard](https://support.khanacademy.org/hc/en-us/articles/360039664491)
-4. [Meta-analysis: Spaced Repetition for Mathematics](https://link.springer.com/article/10.1007/s10648-025-10035-1)
-5. [Daily Quests: Benefits and Pitfalls](https://dl.acm.org/doi/abs/10.1145/3549489)
-6. [Gamification Mobile App Retention](https://www.arvisus.com/how-to-build-a-high-retention-mobile-app-ux-psychology-habits-gamification/)
+Flash visible avant stabilisation des pages. Pistes : `placeholderData` TanStack Query, `useMemo` sur les params de query. ~3-5 jours (profiling + corrections).
+
+---
+
+## 7. P4 — Backlog distant {#7-p4}
+
+### F28 — Mode aventure / histoire narrative
+
+**Score** : 13.1 | D=5, G=5, E=3, R=3, B=5
+
+**Valeur pédagogique (E=3)** :
+- Situated learning (Lave & Wenger, 1991) : les maths contextualisées dans une narration réelle améliorent le transfert des connaissances.
+- Mais : l'effet de la gamification narrative sur les résultats académiques est modéré et conditionnel (Mayer, 2019 — *Computer games don't improve learning*).
+
+**Concept** : Progression narrative où les maths servent l'histoire ("Le vaisseau a besoin de 150 unités de carburant, tu as 3 réservoirs de 45 chacun..."). Récompenses débloquant la suite.
+
+**Effort estimé** : 4-8 semaines (design narratif + nouveau type de contenu)
+
+---
+
+### F29 — Personnalisation avatar / profil
+
+**Score** : 7.1 | D=3, G=3, E=1, R=1, B=2
+
+Avatars, titres, cadres de profil débloquables avec les points. Donne de la valeur aux points gagnés. Score EdTech=1 : pas de bénéfice pédagogique documenté.
+
+---
+
+## 8. Features implémentées (historique) {#8-features-implémentées}
+
+| Feature | Date | Référence |
+|---------|------|-----------|
+| Espace admin complet (rôle archiviste) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
+| Auth complet (inscription, email, login, reset) | Jan-Fév 2026 | [AUTH_FLOW](AUTH_FLOW.md) |
+| Sessions actives + révocation | 16/02/2026 | SITUATION_FEATURES (archivé) |
+| Leaderboard (top 50, filtre âge) | 15/02/2026 | [API_QUICK_REFERENCE](API_QUICK_REFERENCE.md) |
+| Badges — refonte UX (onglets, cartes compactes) | 17/02/2026 | [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) |
+| Badges — barres de progression (goal-gradient) | 16/02/2026 | [BADGES_AMELIORATIONS](BADGES_AMELIORATIONS.md) |
+| Badges — B4 reformulation (17 badges) | 17/02/2026 | Archivé : AUDITS_IMPLEMENTES/B4_REFORMULATION_BADGES |
+| Badges — moteur générique Lot C (défis, mixte) | 17/02/2026 | Archivé : AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES |
+| Quick Win #1 — First Exercise < 90s | Fév 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
+| Quick Win #2 — Onboarding pédagogique | Fév 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
+| Calibration à l'inscription (classe, âge, objectif) | Fév 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
+| Parcours guidé (QuickStartActions dashboard) | Fév 2026 | [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md) |
+| Recommandations personnalisées (marquer fait) | 16/02/2026 | SITUATION_FEATURES (archivé) |
+| Ordre aléatoire + masquer réussis | 19/02/2026 | SITUATION_FEATURES (archivé) |
+| Analytics EdTech (CTR Quick Start, 1er attempt) | 25/02/2026 | [EDTECH_ANALYTICS](EDTECH_ANALYTICS.md) |
+| Monitoring IA (in-memory) | 22/02/2026 | [ROADMAP §4.6](ROADMAP_FONCTIONNALITES.md) |
+| Mode maintenance + inscriptions (admin config) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
+| Streak (basique) | Fév 2026 | Intégré dans stats utilisateur |
+| 7 thèmes visuels | Fév 2026 | [THEMES](THEMES.md) |
+| PWA (mode hors-ligne partiel) | Fév 2026 | — |
+| Internationalisation FR/EN | Jan 2026 | [I18N](I18N.md) |
+| Accessibilité (5 modes WCAG AAA) | Fév-Mars 2026 | [ACCESSIBILITY](../04-FRONTEND/ACCESSIBILITY.md) |
+
+---
+
+## 9. Références scientifiques {#9-références-scientifiques}
+
+| # | Référence | Pertinence |
+|---|-----------|------------|
+| 1 | Hattie, J. (2009). *Visible Learning*. Routledge. | Méta-analyse de référence — effets sur l'apprentissage |
+| 2 | Cepeda, N.J. et al. (2006). Distributed practice in verbal recall tasks. *Psychological Bulletin*, 132(3). | Fondement révisions espacées (F04) |
+| 3 | Hattie, J. & Timperley, H. (2007). The power of feedback. *Review of Educational Research*, 77(1). | Fondement feedback enrichi (F01) |
+| 4 | VanLehn, K. (2011). The relative effectiveness of human tutoring, intelligent tutoring systems, and other tutoring systems. *Educational Psychologist*, 46(4). | Fondement tuteur IA (F24) |
+| 5 | Sweller, J. (1988). Cognitive load during problem solving. *Cognitive Science*, 12(2). | Fondement charge cognitive, mise en forme (F01, F03) |
+| 6 | Vygotsky, L.S. (1978). *Mind in Society*. Harvard University Press. | Fondement ZPD, adaptation difficulté (F05) |
+| 7 | Bjork, R.A. (1994). Memory and metamemory considerations in the training of human beings. In J. Metcalfe & A. Shimamura (Eds.), *Metacognition*. | Fondement desirable difficulties, mode focus (F05, F10) |
+| 8 | Mayer, R.E. (2001). *Multimedia Learning*. Cambridge University Press. | Fondement rendu Markdown/KaTeX (F01) |
+| 9 | Deci, E.L. & Ryan, R.M. (2000). The 'what' and 'why' of goal pursuits. *Psychological Inquiry*, 11(4). | Fondement SDT, défis optionnels (F02, F08) |
+| 10 | Kivetz, R. et al. (2006). The goal-gradient hypothesis resurrected. *Journal of Marketing Research*, 43(1). | Fondement conditions badges visibles (F06) |
+| 11 | Black, P. & Wiliam, D. (1998). Assessment and classroom learning. *Assessment in Education*, 5(1). | Fondement diagnostic initial (F03) |
+| 12 | Locke, E.A. & Latham, G.P. (1990). *A Theory of Goal Setting and Task Performance*. Prentice Hall. | Fondement objectifs personnalisés (F08) |
+| 13 | Lave, J. & Wenger, E. (1991). *Situated Learning*. Cambridge University Press. | Fondement mode aventure (F28) |
+| 14 | Zimmerman, B.J. (2002). Becoming a self-regulated learner. *Theory into Practice*, 41(2). | Fondement métacognition, graphiques progression (F07, F12) |
+| 15 | Kornell, N. & Bjork, R.A. (2008). Learning concepts and categories. *Psychological Science*, 19(6). | Fondement révisions espacées + interleaving (F04) |
 
 ---
 
 ## Documents liés
 
-- [BADGES_AMELIORATIONS.md](BADGES_AMELIORATIONS.md) - Détail améliorations page badges
-- [ANALYTICS_PROGRESSION.md](ANALYTICS_PROGRESSION.md) - Graphiques de progression
-- [PLACEHOLDERS_ET_TODO.md](../03-PROJECT/PLACEHOLDERS_ET_TODO.md) - Endpoints à implémenter
+| Sujet | Document |
+|-------|----------|
+| Spécifications graphiques analytics | [ANALYTICS_PROGRESSION.md](ANALYTICS_PROGRESSION.md) |
+| Fondements psychologiques badges | [BADGES_AMELIORATIONS.md](BADGES_AMELIORATIONS.md) |
+| Workflow utilisateur complet | [WORKFLOW_EDUCATION_REFACTORING.md](WORKFLOW_EDUCATION_REFACTORING.md) |
+| Normalisation difficulté | [NIVEAUX_DIFFICULTE_NORMALISATION.md](NIVEAUX_DIFFICULTE_NORMALISATION.md) |
+| Auth flow | [AUTH_FLOW.md](AUTH_FLOW.md) |
+| Admin (périmètre, sécurité) | [ADMIN_ESPACE_PROPOSITION.md](ADMIN_ESPACE_PROPOSITION.md), [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md) |
+| Analytics EdTech (implémenté) | [EDTECH_ANALYTICS.md](EDTECH_ANALYTICS.md) |
+| Endpoints API | [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md) |
+| Thèmes visuels | [THEMES.md](THEMES.md) |
+| Internationalisation | [I18N.md](I18N.md) |
+| Badges implémentés (archive) | [AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md) |

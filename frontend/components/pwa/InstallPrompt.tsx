@@ -18,6 +18,7 @@ export function InstallPrompt() {
   useEffect(() => {
     // Vérifier si l'app est déjà installée
     if (window.matchMedia("(display-mode: standalone)").matches) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsInstalled(true);
       return;
     }

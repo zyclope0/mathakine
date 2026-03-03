@@ -43,6 +43,7 @@ export function ProtectedRoute({
       return () => clearTimeout(timer);
     } else if (user !== null || !isLoading) {
       // Si on a des données utilisateur ou que le chargement est terminé, afficher immédiatement
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowContent(true);
       if (!hasCheckedAuth) {
         setHasCheckedAuth(true);
@@ -63,6 +64,7 @@ export function ProtectedRoute({
       if (process.env.NODE_ENV === "development") {
         console.log("[ProtectedRoute] Onboarding non complété → redirection vers /onboarding");
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShouldRedirect(true);
       router.push("/onboarding");
       return;

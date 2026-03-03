@@ -246,6 +246,19 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             payload = decode_token(access_token)
             request.state.auth_payload = payload
 
+            # Contexte utilisateur Sentry — permet de corréler erreurs + "User Impact"
+            try:
+                import sentry_sdk
+
+                sentry_sdk.set_user(
+                    {
+                        "username": payload.get("sub"),
+                        "id": str(payload.get("user_id", payload.get("sub", ""))),
+                    }
+                )
+            except Exception:
+                pass
+
             # Continue with the request if token is valid
             response = await call_next(request)
             return response

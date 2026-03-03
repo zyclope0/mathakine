@@ -26,6 +26,7 @@ function ResetPasswordContent() {
   useEffect(() => {
     const tokenParam = searchParams.get("token");
     if (!tokenParam) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus("error");
       setMessage(t("noToken"));
     } else {

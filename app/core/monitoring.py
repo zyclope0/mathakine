@@ -75,9 +75,16 @@ def init_monitoring() -> bool:
         try:
             import sentry_sdk
             from sentry_sdk.integrations.logging import LoggingIntegration
+            from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+            from sentry_sdk.integrations.starlette import StarletteIntegration
 
             # Désactiver le logging integration par défaut (on a déjà loguru)
             logging_integration = LoggingIntegration(level=None, event_level=None)
+
+            # StarletteIntegration : transactions HTTP automatiques dans Sentry Performance
+            # SqlalchemyIntegration : spans DB automatiques + détection N+1
+            starlette_integration = StarletteIntegration(transaction_style="url")
+            sqlalchemy_integration = SqlalchemyIntegration()
 
             # Release : Render expose RENDER_GIT_COMMIT ; sinon SENTRY_RELEASE ou version
             release = (
@@ -96,7 +103,11 @@ def init_monitoring() -> bool:
                 profiles_sample_rate=float(
                     os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0")
                 ),
-                integrations=[logging_integration],
+                integrations=[
+                    logging_integration,
+                    starlette_integration,
+                    sqlalchemy_integration,
+                ],
                 before_send=_sentry_before_send,
             )
             logger.info(f"Sentry initialisé (DSN, release={release or 'auto'})")

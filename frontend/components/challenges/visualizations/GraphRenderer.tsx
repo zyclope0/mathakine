@@ -35,6 +35,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   useEffect(() => {
     if (svgRef.current) {
       const rect = svgRef.current.getBoundingClientRect();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDimensions({ width: rect.width || 400, height: rect.height || 300 });
     }
   }, []);

@@ -40,20 +40,22 @@ docs/
 │   └── SENTRY_MONITORING.md  # Monitoring Sentry
 │
 ├── 02-FEATURES/           # 📙 Fonctionnalités
-│   ├── SITUATION_FEATURES.md     # ⭐ Point de situation + priorités implémentation
-│   ├── I18N.md                 # Internationalisation (next-intl)
-│   ├── API_QUICK_REFERENCE.md   # Cheat sheet endpoints API
-│   ├── AUTH_FLOW.md            # Flux inscription → login → reset password
-│   ├── THEMES.md               # 7 thèmes visuels, themeStore, ajout thème
-│   ├── ANALYTICS_PROGRESSION.md  # Graphiques progression
-│   ├── EDTECH_ANALYTICS.md      # Analytics EdTech (Quick Start, conversion) — Implémenté
-│   ├── BADGES_AMELIORATIONS.md   # Roadmap badges (P0 progression implémentée)
-│   ├── PLAN_REFONTE_BADGES.md   # Plan refonte + Admin CRUD + Lot C (C-1 fait)
-│   ├── B4_REFORMULATION_BADGES.md  # Specs reformulation 17 badges
-│   ├── ADMIN_FEATURE_SECURITE.md  # RBAC admin (require_admin)
-│   ├── ADMIN_ESPACE_PROPOSITION.md # Proposition espace admin (benchmark, périmètre, plan)
-│   ├── ROADMAP_FONCTIONNALITES.md # Roadmap globale fonctionnalités
-│   └── WORKFLOW_EDUCATION_REFACTORING.md # Workflow utilisateur + éducation, priorisation refactoring
+│   ├── ROADMAP_FONCTIONNALITES.md  # ⭐ BACKLOG & PRIORISATION (document vivant — source de vérité)
+│   ├── BADGES_AMELIORATIONS.md    # Fondements psychologiques badges + backlog améliorations
+│   ├── ANALYTICS_PROGRESSION.md  # Spécifications graphiques de progression (futures)
+│   ├── WORKFLOW_EDUCATION_REFACTORING.md # Workflow utilisateur + éducation (référence)
+│   ├── NIVEAUX_DIFFICULTE_NORMALISATION.md # Feature : sortir de la nomenclature Star Wars
+│   ├── AUTH_FLOW.md              # Référence : flux auth complet
+│   ├── ADMIN_ESPACE_PROPOSITION.md # Référence : périmètre et benchmark admin
+│   ├── ADMIN_FEATURE_SECURITE.md  # Référence : RBAC (require_admin, rôles)
+│   ├── API_QUICK_REFERENCE.md    # Référence : cheat sheet endpoints API
+│   ├── EDTECH_ANALYTICS.md       # Référence : analytics EdTech (implémenté)
+│   ├── THEMES.md                 # Référence : 7 thèmes visuels, themeStore
+│   └── I18N.md                   # Référence : internationalisation next-intl
+│   (archivés → 03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/)
+│   ├── PLAN_REFONTE_BADGES.md    # Archivé — Lots A-B-C ✅ tous implémentés
+│   ├── B4_REFORMULATION_BADGES.md  # Archivé — B4 ✅ implémenté
+│   └── SITUATION_FEATURES.md    # Archivé — supersédé par ROADMAP_FONCTIONNALITES.md
 │
 ├── 03-PROJECT/            # 📕 Gestion projet
 │   ├── README.md          # ⭐ Index maître audits/rapports

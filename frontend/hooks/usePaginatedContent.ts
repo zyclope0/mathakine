@@ -24,7 +24,7 @@ export type PaginatedContentFiltersInput = Partial<
   Record<string, string | number | null | undefined>
 >;
 
-export interface UsePaginatedContentConfig<T> {
+export interface UsePaginatedContentConfig {
   /** Base endpoint (ex: "/api/exercises", "/api/challenges") */
   endpoint: string;
   /** Query key prefix pour cache (ex: "exercises", "challenges") */
@@ -42,7 +42,7 @@ export interface UsePaginatedContentConfig<T> {
  */
 export function usePaginatedContent<T>(
   filters: PaginatedContentFiltersInput = {},
-  config: UsePaginatedContentConfig<T>
+  config: UsePaginatedContentConfig
 ) {
   const queryClient = useQueryClient();
   const { locale } = useLocaleStore();

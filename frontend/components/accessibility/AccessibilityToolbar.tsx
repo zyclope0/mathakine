@@ -112,6 +112,7 @@ export function AccessibilityToolbar() {
       document.body.appendChild(container);
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
 
     return () => {

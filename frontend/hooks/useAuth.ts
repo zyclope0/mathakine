@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -95,6 +96,13 @@ export function useAuth() {
       // Mettre à jour le cache directement avec les données utilisateur reçues
       // Cela évite que ProtectedRoute redirige vers /login pendant le rechargement
       queryClient.setQueryData(["auth", "me"], data.user);
+
+      // Contexte utilisateur Sentry — corréler les erreurs avec un utilisateur réel
+      Sentry.setUser({
+        id: String(data.user.id),
+        username: data.user.username,
+      });
+
       toast.success(t("loginSuccess"), {
         description: t("loginWelcome", { username: data.user.username }),
       });
@@ -182,6 +190,9 @@ export function useAuth() {
           /* ignore */
         }
       }
+      // Effacer le contexte utilisateur Sentry à la déconnexion
+      Sentry.setUser(null);
+
       toast.success(t("logoutSuccess"));
       // Nettoyer le cache
       queryClient.clear();

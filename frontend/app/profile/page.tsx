@@ -124,6 +124,7 @@ function ProfilePageContent() {
   // Synchroniser les états locaux avec les données utilisateur
   useEffect(() => {
     if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPersonalInfo({
         email: user.email || "",
         full_name: user.full_name || "",

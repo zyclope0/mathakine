@@ -104,7 +104,7 @@ export function FeedbackFab({ context: contextProp, className }: FeedbackFabProp
       setModalOpen(false);
       setSelectedType(null);
       setDescription("");
-    } catch (err) {
+    } catch {
       toast.error(t("errorMessage", { default: "Erreur lors de l'envoi." }));
       // Fallback mailto si l'API échoue
       const subjects: Record<string, string> = {

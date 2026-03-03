@@ -34,6 +34,7 @@ export function DeductionRenderer({
   const [selections, setSelections] = useState<Record<string, Record<string, string>>>({});
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -48,7 +49,7 @@ export function DeductionRenderer({
       !Array.isArray(visualData.entities)
         ? visualData.entities
         : {}) as Record<string, unknown>,
-    [visualData?.entities]
+    [visualData]
   );
   const attributes = (
     visualData?.attributes != null &&
@@ -99,6 +100,7 @@ export function DeductionRenderer({
           initialSelections[entity]![cat.name] = "";
         });
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelections(initialSelections);
     }
   }, [primaryCategory, secondaryCategories, selections]);

@@ -16,6 +16,7 @@ export function DarkModeToggle() {
   const { theme } = useThemeStore();
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     // Vérifier la préférence stockée ou système
     const stored = localStorage.getItem("dark-mode");

@@ -27,6 +27,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Scripts i18n et utilitaires Node (CommonJS, exécutés hors bundle)
     "scripts/**",
+    // Rapports de couverture auto-générés (vitest/istanbul)
+    "coverage/**",
   ]),
 ]);
 

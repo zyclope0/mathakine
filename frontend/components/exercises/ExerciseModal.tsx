@@ -14,7 +14,7 @@ import { useExercise } from "@/hooks/useExercise";
 import { useSubmitAnswer } from "@/hooks/useSubmitAnswer";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useTranslations } from "next-intl";
-import { Loader2, CheckCircle2, XCircle, Lightbulb, X } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -45,6 +45,7 @@ export function ExerciseModal({
   // Réinitialiser l'état quand la modal s'ouvre ou l'exercice change
   useEffect(() => {
     if (open && exerciseId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedAnswer(null);
       setHasSubmitted(false);
       setShowExplanation(false);
@@ -56,6 +57,7 @@ export function ExerciseModal({
   // Mettre à jour l'état quand le résultat arrive
   useEffect(() => {
     if (submitResult) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasSubmitted(true);
       setShowExplanation(true);
 
@@ -96,9 +98,8 @@ export function ExerciseModal({
         answer: selectedAnswer,
         time_spent: timeSpent,
       });
-    } catch (error) {
+    } catch {
       // L'erreur est déjà gérée par le hook useSubmitAnswer
-      // Ne pas logger en production pour éviter les fuites d'information
     }
   };
 

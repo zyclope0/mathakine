@@ -48,6 +48,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
       setShowExplanation(false);
       startTimeRef.current = Date.now();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exercise?.id]);
 
   const handleSelectAnswer = (answer: string) => {
@@ -67,9 +68,8 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
         time_spent: timeSpent,
       });
       // L'état sera mis à jour via useEffect quand submitResult change
-    } catch (error) {
+    } catch {
       // L'erreur est déjà gérée par le hook useSubmitAnswer
-      // Ne pas logger en production pour éviter les fuites d'information
     }
   };
 

@@ -11,7 +11,7 @@ Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js
 | **Frontend (client)** | `instrumentation-client.ts` | Erreurs, traces, Replay, tunnel /monitoring |
 | **Frontend (serveur)** | `sentry.server.config.ts` | Erreurs SSR, API routes |
 | **Frontend (edge)** | `sentry.edge.config.ts` | Middleware Edge |
-| **Backend Python** | `app/core/monitoring.py` | Erreurs, traces, métriques HTTP, SQLAlchemy auto |
+| **Backend Python** | `app/core/monitoring.py` | Erreurs, traces HTTP (StarletteIntegration), spans DB (SqlalchemyIntegration), métriques |
 
 ---
 
@@ -88,7 +88,9 @@ Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js
 - **Métriques** : `http.requests`, `http.request.duration` (Sentry + Prometheus)
 - **Tunnel** : `/monitoring` pour contourner les ad blockers
 - **Replay** : 10 % des sessions, 100 % des sessions avec erreur
-- **SQLAlchemy** : spans DB automatiques (détection N+1)
+- **StarletteIntegration** : transactions HTTP automatiques dans Sentry Performance (backend)
+- **SqlalchemyIntegration** : spans DB automatiques + détection requêtes N+1 (backend)
+- **User context** : `set_user(username)` côté backend (middleware auth) + `Sentry.setUser()` côté frontend (post-login/logout)
 - **before_send** : filtrage health/metrics côté backend
 
 ---

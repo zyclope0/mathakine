@@ -13,7 +13,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EXERCISE_TYPES, AGE_GROUPS } from "@/lib/constants/exercises";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
-import { Loader2, Sparkles, Zap } from "lucide-react";
+import { Loader2, Zap } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { validateExerciseParams } from "@/lib/validation/exercise";
 import { toast } from "sonner";

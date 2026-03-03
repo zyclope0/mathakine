@@ -17,6 +17,7 @@ export function AlphaBanner() {
     // Vérifier si l'utilisateur a déjà fermé la bannière
     const dismissed = localStorage.getItem(STORAGE_KEY);
     if (!dismissed) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsVisible(true);
     }
   }, []);
