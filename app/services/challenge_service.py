@@ -12,21 +12,18 @@ import random
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from app.core.types import ChallengeStatsDict
-
 from app.core.logging_config import get_logger
-
-logger = get_logger(__name__)
-from sqlalchemy import and_, case, func, or_
-from sqlalchemy.orm import Session
-
-from app.utils.db_helpers import adapt_enum_for_db
+from app.core.types import ChallengeStatsDict
 from app.models.logic_challenge import (
     AgeGroup,
     LogicChallenge,
     LogicChallengeAttempt,
-    LogicChallengeType,
 )
+from app.utils.db_helpers import adapt_enum_for_db
+from sqlalchemy import case, func, or_
+from sqlalchemy.orm import Session
+
+logger = get_logger(__name__)
 
 # ============================================================================
 # MAPPING DES GROUPES D'ÂGE (après migration ENUM)
@@ -604,7 +601,7 @@ def record_attempt(
     return attempt
 
 
-def get_challenge_stats(db: Session, challenge_id: int) -> ChallengeStatsDict:
+def get_challenge_stats(db: Session, challenge_id: int) -> Optional[ChallengeStatsDict]:
     """
     Récupérer les statistiques d'un challenge.
 
@@ -618,7 +615,7 @@ def get_challenge_stats(db: Session, challenge_id: int) -> ChallengeStatsDict:
     challenge = get_challenge(db, challenge_id)
 
     if not challenge:
-        return {}
+        return None
 
     total_attempts = (
         db.query(LogicChallengeAttempt)

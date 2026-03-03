@@ -6,9 +6,9 @@ Phase 3, item 3.3b — audit architecture 03/2026.
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
-from app.core.types import AdminUserListDict
+from app.core.types import AdminUserItemDict, AdminUserListDict
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -78,7 +78,7 @@ class AdminUserService:
             }
             for u in users
         ]
-        return {"items": items, "total": total}
+        return {"items": cast(List[AdminUserItemDict], items), "total": total}
 
     @classmethod
     def validate_and_patch_user(

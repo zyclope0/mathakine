@@ -5,23 +5,14 @@ Handlers pour la gestion des utilisateurs et statistiques (API)
 import json
 import re
 import traceback
-from datetime import datetime, timedelta, timezone
-
 
 from app.core.config import settings
 from app.core.constants import VALID_LEARNING_STYLES, VALID_THEMES
 from app.core.logging_config import get_logger
 from app.core.security import get_cookie_config, validate_password_strength
-
-logger = get_logger(__name__)
-from starlette.requests import Request
-from starlette.responses import JSONResponse
-
-from app.core.messages import SystemMessages
 from app.schemas.user import UserCreate
 from app.services.auth_service import (
     create_user,
-    get_user_by_email,
     set_verification_token_for_new_user,
 )
 from app.services.email_service import EmailService
@@ -34,6 +25,10 @@ from app.utils.rate_limit import rate_limit_register
 from app.utils.request_utils import parse_json_body_any
 from app.utils.settings_reader import get_setting_bool
 from server.auth import require_auth, require_full_access
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+
+logger = get_logger(__name__)
 
 
 @require_auth
@@ -181,7 +176,7 @@ async def create_user_account(request: Request) -> JSONResponse:
                             f"⚠️ Échec de l'envoi de l'email de vérification à {user.email}"
                         )
                         logger.warning(
-                            f"Vérifiez la configuration SMTP dans les variables d'environnement"
+                            "Vérifiez la configuration SMTP dans les variables d'environnement"
                         )
                 except Exception as email_error:
                     # Ne pas faire échouer l'inscription si l'email échoue

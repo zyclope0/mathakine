@@ -38,8 +38,8 @@ class DashboardStats(TypedDict):
     performance_by_type: Dict[str, Any]
     recent_activity: List[Dict[str, Any]]
     level: Dict[str, Any]
-    progress_over_time: Dict[str, Any]
-    exercises_by_day: Dict[str, Any]
+    progress_over_time: "ChartData"
+    exercises_by_day: "ChartData"
     lastUpdated: str
 
 
@@ -86,13 +86,14 @@ class ChallengesProgressDict(TypedDict):
 # ── Statistiques challenges ──────────────────────────────────────────────────
 
 
-class ChallengeStatsDict(TypedDict):
+class ChallengeStatsDict(TypedDict, total=False):
     challenge_id: int
     title: str
     total_attempts: int
     correct_attempts: int
     success_rate: float
     unique_users: int
+    difficulty_rating: Optional[float]
 
 
 # ── Administration — stats / logs / modération ───────────────────────────────
