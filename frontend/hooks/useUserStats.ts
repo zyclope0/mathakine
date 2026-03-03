@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
-import { safeValidateUserStats, type UserStats } from "@/lib/validations/dashboard";
+import { safeValidateUserStats, type UserStats } from "@/lib/validation/dashboard";
 
 export type { UserStats };
 

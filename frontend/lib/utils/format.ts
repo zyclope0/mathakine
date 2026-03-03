@@ -3,6 +3,16 @@
  */
 
 /**
+ * Vérifie si un champ `tags` contient le tag "ai".
+ * Gère les deux formats possibles : tableau ou chaîne séparée par virgules.
+ */
+export function hasAiTag(tags: string | string[] | null | undefined): boolean {
+  if (!tags) return false;
+  if (Array.isArray(tags)) return tags.includes("ai");
+  return tags === "ai" || tags.split(",").map((t) => t.trim()).includes("ai");
+}
+
+/**
  * Formate un taux de réussite pour l'affichage.
  * Gère les deux formats possibles : ratio (0-1) ou pourcentage (0-100).
  *

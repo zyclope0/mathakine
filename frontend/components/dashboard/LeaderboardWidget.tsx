@@ -1,10 +1,12 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DashboardWidgetSkeleton } from "@/components/dashboard/DashboardSkeletons";
 import { Trophy, ChevronRight, User } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { useLeaderboard, type LeaderboardEntry } from "@/hooks/useLeaderboard";
@@ -22,18 +24,13 @@ export function LeaderboardWidget() {
 
   if (isLoading) {
     return (
-      <Card className="bg-card border-primary/20 animate-pulse h-full flex flex-col">
-        <CardHeader className="flex-shrink-0">
-          <div className="h-6 w-36 bg-muted rounded" />
-        </CardHeader>
-        <CardContent className="flex-grow">
-          <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-8 w-full bg-muted rounded" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <DashboardWidgetSkeleton titleWidth="w-36">
+        <div className="space-y-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-8 w-full" />
+          ))}
+        </div>
+      </DashboardWidgetSkeleton>
     );
   }
 

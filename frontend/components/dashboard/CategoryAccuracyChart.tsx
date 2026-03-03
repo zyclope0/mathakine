@@ -1,11 +1,13 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DashboardWidgetSkeleton } from "@/components/dashboard/DashboardSkeletons";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
@@ -26,21 +28,16 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
 
   if (isLoading) {
     return (
-      <Card className="bg-card border-primary/20 animate-pulse h-full flex flex-col">
-        <CardHeader className="flex-shrink-0">
-          <div className="h-6 w-48 bg-muted rounded"></div>
-        </CardHeader>
-        <CardContent className="flex-grow">
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="space-y-2">
-                <div className="h-4 w-32 bg-muted rounded"></div>
-                <div className="h-3 w-full bg-muted rounded"></div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <DashboardWidgetSkeleton titleWidth="w-48">
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-full" />
+            </div>
+          ))}
+        </div>
+      </DashboardWidgetSkeleton>
     );
   }
 

@@ -1,6 +1,6 @@
 # Accessibilité Frontend — Mathakine
 
-> Dernière mise à jour : 22/02/2026  
+> Dernière mise à jour : 03/03/2026  
 > Standards : WCAG 2.1 AAA — Cible : enfants 5-20 ans, TSA/TDAH
 
 ---
@@ -13,7 +13,9 @@ Tous accessibles via `AccessibilityToolbar` (bouton flottant bas-droit) et persi
 
 - Contraste minimum 7:1 (vs 4.5:1 standard)
 - Bordures renforcées, couleurs plus distinctes
-- CSS : classe `.high-contrast` sur `<html>`
+- CSS : classe `.high-contrast` sur `<html>` — définie dans `globals.css` (tokens shadcn/ui complets)
+- `@media (prefers-contrast: high)` — défini dans `globals.css` avec les mêmes tokens (background, foreground, border, primary…)
+- **Note** : `accessibility.css` ne redéfinit plus ces variables pour éviter les conflits (nettoyage P4.3 — 03/03/2026)
 
 ### 2. Texte agrandi — `Alt+T`
 
@@ -132,6 +134,21 @@ function MyComponent() {
 
 **Règles animations** : max 250ms, easing doux, pas de boucles infinies.
 
+**Composants qui utilisent `useAccessibleAnimation`** :
+- `GraphRenderer.tsx` — animations d'entrée Framer Motion (nœuds SVG + arêtes), désactivées si `shouldReduceMotion`
+- `DeductionRenderer.tsx` — transitions CSS hover (via `transition-colors`), désactivées si `shouldReduceMotion`
+- `ProgressChart.tsx` + `DailyExercisesChart.tsx` — `isAnimationActive` Recharts, désactivé si `shouldReduceMotion`
+- `ProgressChart.tsx` + `DailyExercisesChart.tsx` — `isAnimationActive` Recharts
+
+**Recharts** : utiliser `isAnimationActive={!shouldReduceMotion}` sur `<Line>`, `<Bar>`, `<Area>`.
+
+**CSS transitions** : préférer une variable conditionnelle plutôt qu'une classe Tailwind fixe :
+```tsx
+const hoverTransition = shouldReduceMotion ? "" : "transition-colors";
+// Puis dans le JSX :
+className={`... ${hoverTransition}`}
+```
+
 ### Formulaires
 
 ```tsx
@@ -197,13 +214,13 @@ test('keyboard accessible', async ({ page }) => {
 
 ### Checklist manuelle par composant
 
-- [ ] ARIA labels présents sur boutons icône
+- [ ] ARIA labels présents sur boutons icône (y compris `aria-label` i18n — pas de strings hardcodées)
 - [ ] Navigation clavier fonctionnelle
 - [ ] Focus visible en tout point
 - [ ] Contraste suffisant (WebAIM Contrast Checker)
-- [ ] Animations respectent `reducedMotion`
-- [ ] Images ont texte alternatif (`alt`)
-- [ ] Formulaires ont labels associés
+- [ ] Animations respectent `shouldReduceMotion` (hook) **et** `prefers-reduced-motion` (CSS)
+- [ ] Images ont texte alternatif descriptif (`alt` non vide — utiliser nom/code si icône)
+- [ ] Formulaires ont labels associés — utiliser `<Input>` shadcn/ui, pas `<input>` raw
 - [ ] Messages d'erreur avec `role="alert"`
 
 ### Checklist par page

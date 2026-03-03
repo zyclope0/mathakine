@@ -211,6 +211,8 @@
     "generate": "Generate an exercise",
     "generateAI": "Generate with AI",
     "solve": "Solve",
+    "viewGrid": "Grid view",
+    "viewList": "List view",
     "filters": {
       "title": "Filters",
       "reset": "Reset",
@@ -381,6 +383,8 @@
     "description": "Test your logic with mathematical challenges",
     "pageDescription": "Test your logic and reasoning with our mathematical logic challenges",
     "solve": "Solve",
+    "viewGrid": "Grid view",
+    "viewList": "List view",
     "filters": {
       "title": "Filters",
       "reset": "Reset",
@@ -753,6 +757,11 @@
     "title": "Badges and Rewards",
     "description": "Collect badges by progressing in your learning",
     "loading": "Loading badges...",
+    "error": {
+      "title": "Loading error",
+      "description": "Unable to load badges. Please try again.",
+      "retry": "Retry"
+    },
     "earned": "Earned",
     "locked": "Locked",
     "checkBadges": "Check badges",
@@ -1445,8 +1454,19 @@
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
     "latestBadge": "Latest",
     "latestLabel": "Most recent version",
+    "v230": {
+      "version": "2.3.0 — alpha 2",
+      "date": "March 3, 2026",
+      "items": [
+        "Dashboard charts now follow your chosen theme — no more fixed colors disconnected from the rest of the interface",
+        "Home page feature cards now have a depth effect on hover",
+        "Chart and visualization animations now respect your accessibility preferences (reduced motion)",
+        "Badge icons now have descriptive text for screen readers",
+        "Input fields are more consistent across all pages (same components, same style)"
+      ]
+    },
     "v221a2": {
-      "version": "2.2.1-alpha.2",
+      "version": "2.2.1 — alpha 2",
       "date": "February 25, 2026",
       "items": [
         "First Exercise < 90s: immediate access after signup, 45‑min grace period, then exercises-only mode until email verification",
@@ -1457,7 +1477,7 @@
       ]
     },
     "v222": {
-      "version": "2.2.0-alpha.1",
+      "version": "2.2.0 — alpha 1",
       "date": "February 22, 2026",
       "items": [
         "New pages: About, Contact and Privacy Policy",

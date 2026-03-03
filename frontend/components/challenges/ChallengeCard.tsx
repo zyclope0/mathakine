@@ -10,7 +10,7 @@ import {
   getAgeGroupColor,
 } from "@/lib/constants/challenges";
 import { useThemeStore } from "@/lib/stores/themeStore";
-import { formatSuccessRate } from "@/lib/utils/format";
+import { formatSuccessRate, hasAiTag } from "@/lib/utils/format";
 import type { Challenge } from "@/types/api";
 import { Clock, Eye, TrendingUp, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -45,14 +45,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               id={`challenge-title-${challenge.id}`}
               className="text-lg mb-2 flex items-center gap-2"
             >
-              {challenge.tags &&
-                (Array.isArray(challenge.tags)
-                  ? challenge.tags.includes("ai")
-                  : challenge.tags === "ai" ||
-                    challenge.tags
-                      .split(",")
-                      .map((t) => t.trim())
-                      .includes("ai")) && (
+              {hasAiTag(challenge.tags) && (
                   <Sparkles className="h-4 w-4 text-primary-on-dark" aria-hidden="true" />
                 )}
               {challenge.title}
@@ -82,14 +75,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               ⭐ {challenge.difficulty_rating.toFixed(1)}/5
             </Badge>
           )}
-          {challenge.tags &&
-            (Array.isArray(challenge.tags)
-              ? challenge.tags.includes("ai")
-              : challenge.tags === "ai" ||
-                challenge.tags
-                  .split(",")
-                  .map((t) => t.trim())
-                  .includes("ai")) && (
+          {hasAiTag(challenge.tags) && (
               <Badge
                 variant="outline"
                 className="badge-ai-pulse bg-primary/10 text-primary-on-dark border-primary/30"

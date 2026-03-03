@@ -1,9 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DashboardWidgetSkeleton } from "@/components/dashboard/DashboardSkeletons";
 import { Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 interface AverageTimeWidgetProps {
   averageTimeSeconds: number;
@@ -27,14 +29,9 @@ export function AverageTimeWidget({
 
   if (isLoading) {
     return (
-      <Card className="bg-card border-primary/20 animate-pulse h-full flex flex-col">
-        <CardHeader className="flex-shrink-0">
-          <div className="h-6 w-48 bg-muted rounded" />
-        </CardHeader>
-        <CardContent className="flex-grow">
-          <div className="h-12 w-32 bg-muted rounded" />
-        </CardContent>
-      </Card>
+      <DashboardWidgetSkeleton titleWidth="w-48">
+        <Skeleton className="h-12 w-32" />
+      </DashboardWidgetSkeleton>
     );
   }
 

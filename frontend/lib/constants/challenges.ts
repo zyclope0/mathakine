@@ -86,6 +86,31 @@ export function getChallengeTypeDisplay(value: string | null | undefined): strin
   return CHALLENGE_TYPE_DISPLAY[normalized] || value;
 }
 
+/** Options de type de défi pour les modales admin ({value, label}, inclut "custom") */
+export const ADMIN_CHALLENGE_TYPE_OPTIONS = [
+  { value: "sequence", label: "Suite logique" },
+  { value: "pattern", label: "Motif" },
+  { value: "visual", label: "Visuel" },
+  { value: "puzzle", label: "Puzzle" },
+  { value: "riddle", label: "Énigme" },
+  { value: "deduction", label: "Déduction" },
+  { value: "probability", label: "Probabilité" },
+  { value: "graph", label: "Graphe" },
+  { value: "coding", label: "Codage" },
+  { value: "chess", label: "Échecs" },
+  { value: "custom", label: "Personnalisé" },
+] as const;
+
+/** Options de groupe d'âge pour les modales admin défis (format backend majuscules) */
+export const ADMIN_CHALLENGE_AGE_GROUP_OPTIONS = [
+  { value: "GROUP_6_8", label: "6-8 ans" },
+  { value: "GROUP_10_12", label: "9-11 ans" },
+  { value: "GROUP_13_15", label: "12-14 ans" },
+  { value: "GROUP_15_17", label: "15-17 ans" },
+  { value: "ADULT", label: "Adulte" },
+  { value: "ALL_AGES", label: "Tous âges" },
+] as const;
+
 /** Mapping pour affichage admin (ex. GROUP_10_12 → "9-11 ans", ADULT → "Adulte") */
 export const ADMIN_AGE_GROUP_LABELS: Record<string, string> = {
   ...AGE_GROUP_DISPLAY,

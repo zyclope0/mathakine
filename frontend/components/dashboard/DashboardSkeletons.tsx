@@ -1,7 +1,42 @@
 "use client";
 
+import { ReactNode } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+
+/**
+ * Skeleton générique pour les widgets dashboard.
+ * Fournit la coquille Card + animate-pulse ; le contenu est personnalisable via `children`.
+ * Fallback : 2 lignes de placeholder si aucun enfant fourni.
+ */
+export function DashboardWidgetSkeleton({
+  titleWidth = "w-40",
+  children,
+  className,
+}: {
+  titleWidth?: string;
+  children?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Card
+      className={cn("bg-card border-primary/20 animate-pulse h-full flex flex-col", className)}
+    >
+      <CardHeader className="flex-shrink-0">
+        <Skeleton className={cn("h-6", titleWidth)} />
+      </CardHeader>
+      <CardContent className="flex-grow">
+        {children ?? (
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 /**
  * Skeleton pour les StatsCards (KPIs)

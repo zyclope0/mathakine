@@ -16,7 +16,7 @@ import {
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 const FEEDBACK_EMAIL = process.env.NEXT_PUBLIC_FEEDBACK_EMAIL || "webmaster@mathakine.fun";
 

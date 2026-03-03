@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { BookOpen, Sparkles, Target, Users, Puzzle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { useTranslations } from "next-intl";
 

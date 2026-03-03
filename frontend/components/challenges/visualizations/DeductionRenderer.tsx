@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 interface DeductionRendererProps {
   visualData: Record<string, unknown> | null;
@@ -27,6 +28,8 @@ export function DeductionRenderer({
   onAnswerChange,
 }: DeductionRendererProps) {
   const t = useTranslations("challenges.visualizations.deduction");
+  const { shouldReduceMotion } = useAccessibleAnimation();
+  const hoverTransition = shouldReduceMotion ? "" : "transition-colors";
   const [mounted, setMounted] = useState(false);
   const [selections, setSelections] = useState<Record<string, Record<string, string>>>({});
 
@@ -196,7 +199,7 @@ export function DeductionRenderer({
               {clues.map((clue: string, index: number) => (
                 <span
                   key={index}
-                  className="bg-background/50 border border-border rounded-md px-3 py-2 text-sm text-foreground hover:border-primary/50 transition-colors"
+                  className={`bg-background/50 border border-border rounded-md px-3 py-2 text-sm text-foreground hover:border-primary/50 ${hoverTransition}`}
                 >
                   {clue}
                 </span>
@@ -297,7 +300,7 @@ export function DeductionRenderer({
             {friends.map((friend: string, index: number) => (
               <div
                 key={index}
-                className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
+                className={`bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 ${hoverTransition}`}
               >
                 <div className="font-medium text-foreground">{friend}</div>
                 {ages[index] && (
@@ -324,7 +327,7 @@ export function DeductionRenderer({
               {relationships.map((rel: Record<string, unknown>, index: number) => (
                 <div
                   key={index}
-                  className="bg-background/50 border border-border rounded-md p-3 flex items-center gap-2 hover:border-primary/50 transition-colors"
+                  className={`bg-background/50 border border-border rounded-md p-3 flex items-center gap-2 hover:border-primary/50 ${hoverTransition}`}
                 >
                   <span className="font-medium text-primary">
                     {String(rel.name ?? rel.subject ?? "")}
@@ -357,7 +360,7 @@ export function DeductionRenderer({
             {entities.map((entity: string, index: number) => (
               <div
                 key={index}
-                className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
+                className={`bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 ${hoverTransition}`}
               >
                 <div className="font-medium text-foreground">{entity}</div>
                 {Boolean(attributes[entity]) && (
@@ -389,7 +392,7 @@ export function DeductionRenderer({
               {rules.map((rule: string | Record<string, unknown>, index: number) => (
                 <div
                   key={index}
-                  className="bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 transition-colors"
+                  className={`bg-background/50 border border-border rounded-md p-3 hover:border-primary/50 ${hoverTransition}`}
                 >
                   {typeof rule === "string" ? (
                     <span className="text-foreground">{rule}</span>

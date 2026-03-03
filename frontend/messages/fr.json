@@ -211,6 +211,8 @@
     "generate": "Générer un exercice",
     "generateAI": "Générer avec l'IA",
     "solve": "Résoudre",
+    "viewGrid": "Vue grille",
+    "viewList": "Vue liste",
     "filters": {
       "title": "Filtres",
       "reset": "Réinitialiser",
@@ -381,6 +383,8 @@
     "description": "Teste ta logique avec des défis mathématiques",
     "pageDescription": "Testez votre logique et votre raisonnement avec nos défis mathélogiques",
     "solve": "Résoudre",
+    "viewGrid": "Vue grille",
+    "viewList": "Vue liste",
     "filters": {
       "title": "Filtres",
       "reset": "Réinitialiser",
@@ -750,6 +754,11 @@
     "title": "Badges et Récompenses",
     "description": "Collectionnez des badges en progressant dans votre apprentissage",
     "loading": "Chargement des badges...",
+    "error": {
+      "title": "Erreur de chargement",
+      "description": "Impossible de charger les badges. Veuillez réessayer.",
+      "retry": "Réessayer"
+    },
     "earned": "Obtenu",
     "locked": "Verrouillé",
     "checkBadges": "Vérifier les badges",
@@ -1442,8 +1451,19 @@
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir régulièrement.",
     "latestBadge": "Dernière version",
     "latestLabel": "Version la plus récente",
+    "v230": {
+      "version": "2.3.0 — alpha 2",
+      "date": "3 mars 2026",
+      "items": [
+        "Les graphiques de votre tableau de bord suivent désormais votre thème — plus de couleurs fixes déconnectées du reste de l'interface",
+        "La page d'accueil affiche un effet de profondeur au survol des fonctionnalités",
+        "Les animations des graphiques et visualisations respectent maintenant vos préférences d'accessibilité (réduction de mouvement)",
+        "Les icônes de badges ont un texte descriptif pour les lecteurs d'écran",
+        "Interface de saisie plus cohérente sur toutes les pages (mêmes composants, même style)"
+      ]
+    },
     "v221a2": {
-      "version": "2.2.1-alpha.2",
+      "version": "2.2.1 — alpha 2",
       "date": "25 février 2026",
       "items": [
         "First Exercise < 90s : accès immédiat après inscription, 45 min de grâce, puis mode exercices uniquement jusqu'à vérification email",
@@ -1454,7 +1474,7 @@
       ]
     },
     "v222": {
-      "version": "2.2.0-alpha.1",
+      "version": "2.2.0 — alpha 1",
       "date": "22 février 2026",
       "items": [
         "Nouvelles pages : À propos, Contact et Politique de confidentialité",

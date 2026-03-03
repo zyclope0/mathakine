@@ -1,27 +1,17 @@
 /**
  * Validation des paramètres d'exercices
+ * Les valeurs valides sont dérivées depuis lib/constants/exercises.ts (source unique).
  */
+
+import { EXERCISE_TYPES, AGE_GROUPS } from "@/lib/constants/exercises";
 
 export interface ExerciseParams {
   exercise_type?: string;
-  age_group?: string; // Changed from difficulty
+  age_group?: string;
 }
 
-// Types d'exercices valides (alignés avec le backend)
-const VALID_EXERCISE_TYPES = [
-  "addition",
-  "soustraction",
-  "multiplication",
-  "division",
-  "mixte",
-  "fractions",
-  "geometrie",
-  "texte",
-  "divers",
-];
-
-// Groupes d'âge valides (alignés avec le backend)
-const VALID_AGE_GROUPS = ["6-8", "9-11", "12-14", "15-17", "adulte", "tous-ages"];
+const VALID_EXERCISE_TYPES: readonly string[] = Object.values(EXERCISE_TYPES);
+const VALID_AGE_GROUPS: readonly string[] = Object.values(AGE_GROUPS);
 
 /**
  * Valide les paramètres d'exercice

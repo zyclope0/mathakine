@@ -1,10 +1,12 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DashboardWidgetSkeleton } from "@/components/dashboard/DashboardSkeletons";
 import { Badge } from "@/components/ui/badge";
 import { Flame, TrendingUp } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
@@ -22,15 +24,12 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
 
   if (isLoading) {
     return (
-      <Card className="bg-card border-primary/20 animate-pulse h-full flex flex-col">
-        <CardHeader className="flex-shrink-0">
-          <div className="h-6 w-32 bg-muted rounded"></div>
-        </CardHeader>
-        <CardContent className="flex-grow">
-          <div className="h-12 w-20 bg-muted rounded mb-2"></div>
-          <div className="h-4 w-40 bg-muted rounded"></div>
-        </CardContent>
-      </Card>
+      <DashboardWidgetSkeleton titleWidth="w-32">
+        <div className="space-y-2">
+          <Skeleton className="h-12 w-20" />
+          <Skeleton className="h-4 w-40" />
+        </div>
+      </DashboardWidgetSkeleton>
     );
   }
 

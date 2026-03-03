@@ -1,6 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DashboardWidgetSkeleton } from "@/components/dashboard/DashboardSkeletons";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Target, Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -27,17 +29,12 @@ export function ChallengesProgressWidget({
 
   if (isLoading) {
     return (
-      <Card className="bg-card border-primary/20 animate-pulse h-full flex flex-col">
-        <CardHeader className="flex-shrink-0">
-          <div className="h-6 w-48 bg-muted rounded"></div>
-        </CardHeader>
-        <CardContent className="flex-grow">
-          <div className="space-y-3">
-            <div className="h-4 w-full bg-muted rounded"></div>
-            <div className="h-4 w-3/4 bg-muted rounded"></div>
-          </div>
-        </CardContent>
-      </Card>
+      <DashboardWidgetSkeleton titleWidth="w-48">
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+      </DashboardWidgetSkeleton>
     );
   }
 

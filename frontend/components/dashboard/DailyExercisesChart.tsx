@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useTranslations } from "next-intl";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 interface DailyExercisesChartProps {
   data: {
@@ -28,6 +29,7 @@ interface DailyExercisesChartProps {
 
 export function DailyExercisesChart({ data }: DailyExercisesChartProps) {
   const t = useTranslations("dashboard.charts.dailyExercises");
+  const { shouldReduceMotion } = useAccessibleAnimation();
 
   // Memoization de la transformation des données pour éviter les recalculs
   const chartData = useMemo(() => {
@@ -37,16 +39,9 @@ export function DailyExercisesChart({ data }: DailyExercisesChartProps) {
     }));
   }, [data.labels, data.datasets]);
 
-  // Memoization des couleurs pour éviter les recalculs
-  const barColor = useMemo(
-    () => data.datasets[0]?.backgroundColor || "rgba(255, 206, 86, 0.8)",
-    [data.datasets]
-  );
-
-  const borderColor = useMemo(
-    () => data.datasets[0]?.borderColor || "rgba(255, 206, 86, 1)",
-    [data.datasets]
-  );
+  // Couleurs issues des tokens thème — ignore les couleurs fixes du backend
+  const barColor = "var(--color-chart-2)";
+  const borderColor = "var(--color-chart-2)";
 
   // Memoization de la description textuelle pour l'accessibilité
   const chartDescription = useMemo(() => {
@@ -80,22 +75,30 @@ export function DailyExercisesChart({ data }: DailyExercisesChartProps) {
           </div>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--color-border)"
+                strokeOpacity={0.5}
+              />
               <XAxis
                 dataKey="name"
-                stroke="#a0a0a0"
+                stroke="var(--color-muted-foreground)"
                 style={{ fontSize: "11px" }}
                 angle={-45}
                 textAnchor="end"
                 height={80}
               />
-              <YAxis stroke="#a0a0a0" style={{ fontSize: "12px" }} allowDecimals={false} />
+              <YAxis
+                stroke="var(--color-muted-foreground)"
+                style={{ fontSize: "12px" }}
+                allowDecimals={false}
+              />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "rgba(18, 18, 26, 0.95)",
-                  border: "1px solid rgba(124, 58, 237, 0.3)",
+                  backgroundColor: "var(--color-popover)",
+                  border: "1px solid var(--color-border)",
                   borderRadius: "8px",
-                  color: "#ffffff",
+                  color: "var(--color-popover-foreground)",
                 }}
               />
               <Legend />
@@ -104,7 +107,11 @@ export function DailyExercisesChart({ data }: DailyExercisesChartProps) {
                 fill={barColor}
                 stroke={borderColor}
                 strokeWidth={1}
+                strokeOpacity={0.6}
                 radius={[4, 4, 0, 0]}
+                isAnimationActive={!shouldReduceMotion}
+                animationDuration={600}
+                animationEasing="ease-out"
               />
             </BarChart>
           </ResponsiveContainer>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, RotateCw, ZoomIn, ZoomOut, ScanSearch } from "lucide-react";
+import { Eye, FlipHorizontal, RotateCw, ZoomIn, ZoomOut, ScanSearch } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
@@ -319,7 +319,7 @@ export function VisualRenderer({ visualData, className }: VisualRendererProps) {
                 title="Retourner"
                 aria-label="Retourner"
               >
-                <span className="text-xs">↔</span>
+                <FlipHorizontal className="h-4 w-4" />
               </button>
             </div>
           </div>

@@ -23,8 +23,17 @@ import {
 import { useAdminExercises } from "@/hooks/useAdminExercises";
 import { useAdminChallenges } from "@/hooks/useAdminChallenges";
 import { useAdminBadges } from "@/hooks/useAdminBadges";
-import { getChallengeTypeDisplay, getAdminAgeDisplay } from "@/lib/constants/challenges";
-import { getAgeGroupDisplay, EXERCISE_TYPE_DISPLAY } from "@/lib/constants/exercises";
+import {
+  getChallengeTypeDisplay,
+  getAdminAgeDisplay,
+  ADMIN_CHALLENGE_TYPE_OPTIONS,
+} from "@/lib/constants/challenges";
+import {
+  getAgeGroupDisplay,
+  EXERCISE_TYPE_DISPLAY,
+  ADMIN_EXERCISE_TYPES,
+} from "@/lib/constants/exercises";
+import { BADGE_CATEGORIES } from "@/lib/constants/badges";
 import {
   Archive,
   ChevronDown,
@@ -39,38 +48,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-const EXERCISE_TYPES = [
+const EXERCISE_TYPE_FILTER_OPTIONS = [
   { value: "all", label: "Tous les types" },
-  { value: "ADDITION", label: "Addition" },
-  { value: "SOUSTRACTION", label: "Soustraction" },
-  { value: "MULTIPLICATION", label: "Multiplication" },
-  { value: "DIVISION", label: "Division" },
-  { value: "MIXTE", label: "Mixte" },
-  { value: "FRACTIONS", label: "Fractions" },
-  { value: "GEOMETRIE", label: "Géométrie" },
-  { value: "TEXTE", label: "Texte" },
-  { value: "DIVERS", label: "Divers" },
+  ...ADMIN_EXERCISE_TYPES.map((t) => ({
+    value: t,
+    label: EXERCISE_TYPE_DISPLAY[t.toLowerCase() as keyof typeof EXERCISE_TYPE_DISPLAY] ?? t,
+  })),
 ];
 
-const CHALLENGE_TYPES = [
+const CHALLENGE_TYPE_FILTER_OPTIONS = [
   { value: "all", label: "Tous les types" },
-  { value: "sequence", label: "Suite logique" },
-  { value: "pattern", label: "Motif" },
-  { value: "visual", label: "Visuel" },
-  { value: "puzzle", label: "Puzzle" },
-  { value: "riddle", label: "Énigme" },
-  { value: "deduction", label: "Déduction" },
-  { value: "graph", label: "Graphe" },
+  ...ADMIN_CHALLENGE_TYPE_OPTIONS.filter((t) => t.value !== "custom"),
 ];
 
-const BADGE_CATEGORIES = [
+const BADGE_CATEGORY_FILTER_OPTIONS = [
   { value: "all", label: "Toutes les catégories" },
-  { value: "progression", label: "Progression" },
-  { value: "mastery", label: "Maîtrise" },
-  { value: "special", label: "Special" },
-  { value: "performance", label: "Performance" },
-  { value: "regularity", label: "Régularité" },
-  { value: "discovery", label: "Découverte" },
+  ...BADGE_CATEGORIES.map((c) => ({
+    value: c,
+    label: c.charAt(0).toUpperCase() + c.slice(1),
+  })),
 ];
 
 const PAGE_SIZE = 20;
@@ -166,7 +162,7 @@ function ExercisesTab({ initialEditId }: { initialEditId?: number | null }) {
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
-              {EXERCISE_TYPES.map((t) => (
+              {EXERCISE_TYPE_FILTER_OPTIONS.map((t) => (
                 <SelectItem key={t.value} value={t.value}>
                   {t.label}
                 </SelectItem>
@@ -445,7 +441,7 @@ function ChallengesTab({ initialEditId }: { initialEditId?: number | null }) {
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
-              {CHALLENGE_TYPES.map((t) => (
+              {CHALLENGE_TYPE_FILTER_OPTIONS.map((t) => (
                 <SelectItem key={t.value} value={t.value}>
                   {t.label}
                 </SelectItem>
@@ -653,7 +649,7 @@ function BadgesTab({ initialEditId }: { initialEditId?: number | null }) {
             <SelectValue placeholder="Catégorie" />
           </SelectTrigger>
           <SelectContent>
-            {BADGE_CATEGORIES.map((c) => (
+            {BADGE_CATEGORY_FILTER_OPTIONS.map((c) => (
               <SelectItem key={c.value} value={c.value}>
                 {c.label}
               </SelectItem>

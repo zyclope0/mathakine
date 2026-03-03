@@ -7,7 +7,7 @@ import { Trophy, Lock, CheckCircle, Pin, PinOff } from "lucide-react";
 import type { Badge, UserBadge } from "@/types/api";
 
 type BadgeWithCriteria = Badge & { criteria_text?: string | null };
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { motion, type Variants, type Transition } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
@@ -164,7 +164,7 @@ export function BadgeCard({
                     /* eslint-disable-next-line @next/next/no-img-element -- URLs dynamiques badges */
                     <img
                       src={displayIcon}
-                      alt=""
+                      alt={badge.name || badge.code || "Badge"}
                       className={cn("object-contain", isEarned ? "w-6 h-6" : "w-8 h-8")}
                     />
                   ) : (

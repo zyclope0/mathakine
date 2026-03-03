@@ -42,6 +42,12 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -768,6 +774,138 @@ select:focus {
   --border: #2d4a0f;
   --input: #1a2e0a;
   --ring: #65a30d;
+}
+
+/* ─── Tokens sidebar — miroir des variables du thème actif ─────────────────── */
+[data-theme],
+.dark[data-theme] {
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--card-foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+/* ─── Tokens sémantiques (warning / success / info) — défauts clairs ────────── */
+[data-theme] {
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --success: #059669;
+  --success-foreground: #ffffff;
+  --info: #0284c7;
+  --info-foreground: #ffffff;
+}
+
+/* Surcharges dark mode — couleurs plus lumineuses pour lisibilité sur fond sombre */
+.dark[data-theme] {
+  --warning: #fbbf24;
+  --warning-foreground: #1a1208;
+  --success: #34d399;
+  --success-foreground: #052e16;
+  --info: #38bdf8;
+  --info-foreground: #082f49;
+}
+
+/* ─── Tokens chart — couleurs de datavisualisation par thème ────────────────── */
+[data-theme="spatial"],
+.dark[data-theme="spatial"] {
+  --chart-1: #7c3aed;
+  --chart-2: #6366f1;
+  --chart-3: #ec4899;
+  --chart-4: #a78bfa;
+  --chart-5: #f472b6;
+}
+
+[data-theme="minimalist"] {
+  --chart-1: #000000;
+  --chart-2: #444444;
+  --chart-3: #888888;
+  --chart-4: #aaaaaa;
+  --chart-5: #cccccc;
+}
+
+.dark[data-theme="minimalist"] {
+  --chart-1: #ffffff;
+  --chart-2: #cccccc;
+  --chart-3: #999999;
+  --chart-4: #666666;
+  --chart-5: #444444;
+}
+
+[data-theme="ocean"],
+.dark[data-theme="ocean"] {
+  --chart-1: #0369a1;
+  --chart-2: #0891b2;
+  --chart-3: #0d9488;
+  --chart-4: #38bdf8;
+  --chart-5: #22d3ee;
+}
+
+[data-theme="dune"] {
+  --chart-1: #b45309;
+  --chart-2: #d97706;
+  --chart-3: #f59e0b;
+  --chart-4: #fbbf24;
+  --chart-5: #fcd34d;
+}
+
+.dark[data-theme="dune"] {
+  --chart-1: #fbbf24;
+  --chart-2: #f59e0b;
+  --chart-3: #d97706;
+  --chart-4: #b45309;
+  --chart-5: #92400e;
+}
+
+[data-theme="forest"] {
+  --chart-1: #047857;
+  --chart-2: #059669;
+  --chart-3: #10b981;
+  --chart-4: #34d399;
+  --chart-5: #6ee7b7;
+}
+
+.dark[data-theme="forest"] {
+  --chart-1: #34d399;
+  --chart-2: #10b981;
+  --chart-3: #059669;
+  --chart-4: #047857;
+  --chart-5: #065f46;
+}
+
+[data-theme="peach"] {
+  --chart-1: #ea580c;
+  --chart-2: #f97316;
+  --chart-3: #fb923c;
+  --chart-4: #fdba74;
+  --chart-5: #fed7aa;
+}
+
+.dark[data-theme="peach"] {
+  --chart-1: #fb923c;
+  --chart-2: #f97316;
+  --chart-3: #ea580c;
+  --chart-4: #c2410c;
+  --chart-5: #9a3412;
+}
+
+[data-theme="dino"] {
+  --chart-1: #65a30d;
+  --chart-2: #84cc16;
+  --chart-3: #ca8a04;
+  --chart-4: #a3e635;
+  --chart-5: #fbbf24;
+}
+
+.dark[data-theme="dino"] {
+  --chart-1: #84cc16;
+  --chart-2: #65a30d;
+  --chart-3: #ca8a04;
+  --chart-4: #4d7c0f;
+  --chart-5: #713f12;
 }
 
 @layer base {

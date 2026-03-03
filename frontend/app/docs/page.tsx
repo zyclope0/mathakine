@@ -22,7 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 /**
  * Page Documentation — Guide utilisateur intégré

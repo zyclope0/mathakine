@@ -1,7 +1,7 @@
 # Architecture Frontend — Mathakine
 
-> Dernière mise à jour : 22/02/2026  
-> Validé contre le code source réel
+> Dernière mise à jour : 03/03/2026  
+> Validé contre le code source réel (post-audit industrialisation)
 
 ---
 
@@ -82,6 +82,7 @@ frontend/
 │   ├── providers/                # QueryProvider, ThemeProvider, IntlProvider
 │   ├── pwa/                      # InstallPrompt
 │   ├── shared/                   # Composants partagés cross-domaine
+│   │   └── AIGeneratorBase.tsx   # Base UI partagée (exercises + challenges AIGenerator)
 │   ├── spatial/                  # SpatialBackground, Starfield, Planet, Particles, DinoFloating
 │   ├── theme/                    # ThemeSelector, ThemeSelectorCompact
 │   └── ui/                       # shadcn/ui (Button, Card, Dialog, Input, Select…)
@@ -107,11 +108,14 @@ frontend/
 │
 ├── lib/
 │   ├── api/client.ts             # Client HTTP (fetch + CSRF + auth)
+│   ├── constants/                # Constantes centralisées (exercises, challenges, badges)
 │   ├── stores/                   # Zustand stores (accessibilityStore, themeStore, localeStore)
 │   ├── hooks/                    # Hooks utilitaires (useAccessibleAnimation, useKeyboardNavigation)
-│   ├── utils/cn.ts               # clsx + tailwind-merge (source de vérité)
-│   ├── utils.ts                  # Re-export de cn (compatibilité)
-│   └── validations/              # Schémas de validation (dashboard, exercises…)
+│   ├── utils/
+│   │   ├── cn.ts                 # clsx + tailwind-merge (source de vérité interne)
+│   │   └── format.ts             # Utilitaires formatage (hasAiTag, formatSuccessRate)
+│   ├── utils.ts                  # Re-export de cn — TOUJOURS importer depuis @/lib/utils
+│   └── validation/               # Schémas de validation (dashboard, exercise…)
 │
 ├── messages/
 │   ├── fr.json                   # Traductions françaises

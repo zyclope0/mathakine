@@ -21,28 +21,11 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
-
-const EXERCISE_TYPES = [
-  "ADDITION",
-  "SOUSTRACTION",
-  "MULTIPLICATION",
-  "DIVISION",
-  "FRACTIONS",
-  "GEOMETRIE",
-  "TEXTE",
-  "MIXTE",
-  "DIVERS",
-];
-
-const DIFFICULTIES = ["INITIE", "PADAWAN", "CHEVALIER", "MAITRE", "GRAND_MAITRE"];
-
-const AGE_GROUPS = [
-  { value: "6-8", label: "6-8 ans" },
-  { value: "9-11", label: "9-11 ans" },
-  { value: "12-14", label: "12-14 ans" },
-  { value: "15-17", label: "15-17 ans" },
-  { value: "adulte", label: "Adulte" },
-];
+import {
+  ADMIN_EXERCISE_TYPES,
+  ADMIN_DIFFICULTIES,
+  ADMIN_EXERCISE_AGE_GROUP_OPTIONS,
+} from "@/lib/constants/exercises";
 
 interface ExerciseCreateModalProps {
   open: boolean;
@@ -159,7 +142,7 @@ export function ExerciseCreateModal({ open, onOpenChange, onCreated }: ExerciseC
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {EXERCISE_TYPES.map((t) => (
+                  {ADMIN_EXERCISE_TYPES.map((t) => (
                     <SelectItem key={t} value={t}>
                       {t}
                     </SelectItem>
@@ -174,7 +157,7 @@ export function ExerciseCreateModal({ open, onOpenChange, onCreated }: ExerciseC
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {DIFFICULTIES.map((d) => (
+                  {ADMIN_DIFFICULTIES.map((d) => (
                     <SelectItem key={d} value={d}>
                       {d}
                     </SelectItem>
@@ -189,7 +172,7 @@ export function ExerciseCreateModal({ open, onOpenChange, onCreated }: ExerciseC
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {AGE_GROUPS.map((a) => (
+                  {ADMIN_EXERCISE_AGE_GROUP_OPTIONS.map((a) => (
                     <SelectItem key={a.value} value={a.value}>
                       {a.label}
                     </SelectItem>

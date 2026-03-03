@@ -3,7 +3,7 @@
  */
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import type { UserStats } from "@/lib/validations/dashboard";
+import type { UserStats } from "@/lib/validation/dashboard";
 
 export interface PDFExportLabels {
   title: string;

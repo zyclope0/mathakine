@@ -1,7 +1,7 @@
 # Système de Design Frontend — Mathakine
 
-> Dernière mise à jour : 22/02/2026  
-> Validé contre le code source réel
+> Dernière mise à jour : 03/03/2026  
+> Validé contre le code source réel (post-audit industrialisation)
 
 Le système de design garantit cohérence UI/UX sur toutes les pages, via des composants de layout standardisés. Toute nouvelle page **doit** utiliser ces composants.
 
@@ -160,6 +160,11 @@ export default function MyPage() {
 | `<div>Chargement...</div>` | `<LoadingState />` |
 | `<div>Aucun résultat</div>` | `<EmptyState title="..." />` |
 | `<div className="grid grid-cols-1 md:grid-cols-3 gap-4">` | `<PageGrid>` |
+| `<input className="...">` raw | `<Input>` (shadcn/ui) |
+| `<textarea className="...">` raw | `<Textarea>` (shadcn/ui) |
+| `import { cn } from "@/lib/utils/cn"` | `import { cn } from "@/lib/utils"` |
+| Couleur hardcodée ex: `stroke="#7c3aed"` | `stroke="var(--color-chart-1)"` |
+| Dupliquer `hasAiTag` inline | `import { hasAiTag } from "@/lib/utils/format"` |
 
 ---
 
@@ -168,15 +173,44 @@ export default function MyPage() {
 Les tokens de design sont définis comme variables CSS dans `app/globals.css` (pas via un fichier TypeScript). Ils suivent les conventions shadcn/ui :
 
 ```css
-/* Couleurs sémantiques */
+/* Couleurs sémantiques (shadcn/ui) */
 --background, --foreground
 --primary, --primary-foreground
 --secondary, --muted, --accent
 --destructive, --border, --ring
+--card, --card-foreground, --popover, --popover-foreground
 
-/* Utilisés par Tailwind via le système de variables */
-bg-primary, text-foreground, border-border, ring-ring...
+/* Tokens sémantiques additionnels (à utiliser à la place des couleurs Tailwind hardcodées) */
+--warning, --warning-foreground   /* Ex : alertes, messages d'avertissement */
+--success, --success-foreground   /* Ex : feedback positif */
+--info, --info-foreground         /* Ex : messages informatifs */
+
+/* Tokens charts — 7 thèmes × light/dark */
+--chart-1 à --chart-5            /* Lignes/barres/séries dans Recharts */
+
+/* Tokens sidebar */
+--sidebar-background, --sidebar-foreground, --sidebar-primary, etc.
+
+/* Utilisés par Tailwind via @theme inline */
+bg-primary, text-foreground, bg-warning, text-chart-1...
 ```
+
+> **Règle** : Ne jamais utiliser `dark:text-yellow-*`, `bg-blue-600` hardcodés dans les composants applicatifs. Utiliser `bg-warning`, `bg-primary`, `text-muted-foreground`, etc.
+
+---
+
+## Classe utilitaire `card-spatial-depth`
+
+Définie dans `globals.css`. Ajoute profondeur et effet de survol (sweep + élévation) aux cartes.
+
+```tsx
+<Card className="card-spatial-depth">...</Card>
+```
+
+- Élévation `translateY(-4px)` au hover
+- Sweep de lumière via `::before`
+- Ombre `primary/30` adaptative au thème
+- Reduced-motion déjà géré (désactivé si `prefers-reduced-motion`)
 
 ---
 
@@ -189,10 +223,28 @@ Tous dans `components/ui/`. Basés sur Radix UI — accessibilité WCAG incluse.
 | `Button` | Variants: `default`, `outline`, `ghost`, `destructive`, `secondary`, `link` |
 | `Card` + `CardHeader/Content/Footer` | Conteneurs avec séparation visuelle |
 | `Dialog` + `DialogTrigger/Content/Title` | Modales accessibles |
-| `Input` | Champs de saisie (ARIA natif) |
+| `Input` | **Obligatoire** pour tous les `<input type="text/email/…">` — jamais `<input>` raw |
+| `Textarea` | **Obligatoire** pour tous les `<textarea>` — jamais `<textarea>` raw |
 | `Select` + `SelectTrigger/Content/Item` | Sélecteurs |
 | `Badge` | Étiquettes visuelles |
 | `Progress` | Barres de progression |
+| `Skeleton` | Placeholder de chargement — intégré dans `DashboardWidgetSkeleton` |
+
+### DashboardWidgetSkeleton
+
+Squelette générique pour les widgets du dashboard — évite les implémentations ad-hoc.
+
+```tsx
+import { DashboardWidgetSkeleton } from "@/components/dashboard/DashboardSkeletons";
+
+// Squelette par défaut (2 lignes de texte)
+<DashboardWidgetSkeleton />
+
+// Avec contenu personnalisé
+<DashboardWidgetSkeleton titleWidth="w-32">
+  <Skeleton className="h-32 w-full" />
+</DashboardWidgetSkeleton>
+```
 
 ---
 

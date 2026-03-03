@@ -16,7 +16,7 @@ import { useAgeGroupDisplay } from "@/hooks/useChallengeTranslations";
 import { Trophy, Medal, User } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { PageLayout, PageHeader, PageSection, LoadingState } from "@/components/layout";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import type { LeaderboardEntry } from "@/hooks/useLeaderboard";
 import { AGE_GROUPS } from "@/lib/constants/exercises";
 

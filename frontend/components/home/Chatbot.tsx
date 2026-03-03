@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { MessageCircle, X, Send, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { useChat, Message } from "@/hooks/useChat";
 import { useTranslations } from "next-intl";
@@ -157,15 +158,14 @@ export function Chatbot() {
 
             <div className="p-4 border-t bg-background">
               <div className="flex gap-2">
-                <input
+                <Input
                   ref={inputRef}
-                  type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder={t("inputPlaceholder")}
                   disabled={isLoading}
-                  className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                  className="flex-1"
                   aria-label={t("inputLabel")}
                 />
                 <Button

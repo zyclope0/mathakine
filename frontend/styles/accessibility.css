@@ -1,31 +1,10 @@
 /* Styles d'accessibilité pour Mathakine */
 
-/* Mode Contraste Élevé */
-.high-contrast {
-  --background: #000000;
-  --surface: #1a1a1a;
-  --surface-elevated: #2a2a2a;
-  --text-primary: #ffffff;
-  --text-secondary: #ffffff;
-  --text-muted: #cccccc;
-  --primary: #ffffff;
-  --primary-dark: #ffffff;
-  --primary-light: #ffffff;
-  --border: #ffffff;
-  --border-width: 2px;
-}
-
-.high-contrast * {
-  border-color: var(--border) !important;
-}
-
-.high-contrast button,
-.high-contrast a,
-.high-contrast input,
-.high-contrast select,
-.high-contrast textarea {
-  border: 2px solid var(--border) !important;
-}
+/*
+ * Mode Contraste Élevé — défini dans globals.css (.high-contrast)
+ * avec les tokens shadcn/ui complets (--foreground, --card, --border, --ring…).
+ * Ce fichier ne redéfinit pas ces variables pour éviter les conflits.
+ */
 
 /* Mode Texte Plus Grand */
 .large-text {
@@ -97,9 +76,12 @@
 @media (prefers-contrast: high) {
   :root {
     --background: #000000;
-    --surface: #1a1a1a;
-    --text-primary: #ffffff;
+    --foreground: #ffffff;
+    --card: #000000;
+    --card-foreground: #ffffff;
     --border: #ffffff;
-    --border-width: 2px;
+    --muted-foreground: #cccccc;
+    --primary: #ffffff;
+    --primary-foreground: #000000;
   }
 }

@@ -9,6 +9,7 @@ import re
 import uuid
 from typing import Callable, List, Set, Tuple
 
+from fastapi import HTTPException
 from starlette.middleware import Middleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
@@ -249,8 +250,17 @@ class AuthenticationMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
 
+        except HTTPException as http_exc:
+            # 401 attendu : token expiré ou invalide — pas une erreur applicative
+            logger.warning(
+                f"Unauthorized request to {request.url.path}: {http_exc.detail}"
+            )
+            return api_error_response(http_exc.status_code, http_exc.detail)
         except Exception as auth_error:
-            logger.error(f"Invalid token for {request.url.path}: {str(auth_error)}")
+            # Erreur inattendue lors du décodage (ex. clé corrompue, librairie)
+            logger.error(
+                f"Unexpected auth error for {request.url.path}: {str(auth_error)}"
+            )
             return api_error_response(401, "Invalid or expired token")
 
 

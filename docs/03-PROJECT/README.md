@@ -1,7 +1,7 @@
 # 📕 Gestion projet Mathakine
 
 > Index maître — Audits, recommandations, rapports situationnels  
-> **Dernière mise à jour :** 28/02/2026 (clôture Audit Backend Alpha 2)
+> **Dernière mise à jour :** 03/03/2026 (clôture Audit Frontend Industrialisation)
 
 ---
 
@@ -41,6 +41,7 @@
 
 | Document | Date | Sujet | État |
 |----------|------|-------|------|
+| **[AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md](./AUDIT_FRONTEND_INDUSTRIALISATION_2026-03.md)** | 03/03/2026 | Audit frontend exhaustif (Architecture, DRY, Design System, UX, Visuel, A11Y) — 5 axes + plan 5 phases (Phases 0–4) | ✅ **Terminé** (P3.2 en backlog) |
 | **[AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md](./AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md)** | 28/02/2026 | Audit backend (5 piliers) + plan itérations Dev/Test/Prod | It1–4 ✅, It5.2 mypy + types critiques ✅ |
 | [AUDIT_DASHBOARD_2026-02.md](./AUDIT_DASHBOARD_2026-02.md) | Fév. 2026 | Dashboard — imports, i18n, handleRefresh | Recos partielles |
 | [AUDIT_SENTRY_2026-02.md](./AUDIT_SENTRY_2026-02.md) | Fév. 2026 | Configuration Sentry, monitoring | Référence config |

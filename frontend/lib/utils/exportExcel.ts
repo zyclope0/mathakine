@@ -3,7 +3,7 @@
  */
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import type { UserStats } from "@/lib/validations/dashboard";
+import type { UserStats } from "@/lib/validation/dashboard";
 
 export interface ExportLabels {
   metric: string;

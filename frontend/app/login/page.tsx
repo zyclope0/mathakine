@@ -80,7 +80,7 @@ function LoginForm() {
             <div
               className={`mb-4 p-3 rounded-lg border text-sm ${
                 verify
-                  ? "bg-yellow-500/10 border-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+                  ? "bg-warning/10 border-warning/20 text-warning"
                   : "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400"
               }`}
             >

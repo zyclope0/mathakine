@@ -83,4 +83,28 @@ describe("BadgeCard", () => {
     expect(dateElements.length).toBeGreaterThanOrEqual(1);
     expect(dateElements[0]).toBeInTheDocument();
   });
+
+  it("utilise le nom du badge comme texte alt quand l'icône est une URL HTTP", () => {
+    const badgeWithUrl: Badge = {
+      ...mockBadge,
+      icon_url: "https://cdn.example.com/badges/first-steps.png",
+    };
+    render(<BadgeCard badge={badgeWithUrl} isEarned={false} />, { wrapper: TestWrapper });
+    // L'img est dans aria-hidden, on cherche via l'attribut alt dans le DOM
+    const img = screen.getByAltText("Premiers Pas");
+    expect(img).toBeInTheDocument();
+    expect(img.tagName).toBe("IMG");
+  });
+
+  it("utilise le code du badge comme alt de secours si le nom est absent", () => {
+    const badgeNoName: Badge = {
+      ...mockBadge,
+      name: "",
+      icon_url: "https://cdn.example.com/badges/first-steps.png",
+    };
+    render(<BadgeCard badge={badgeNoName} isEarned={false} />, { wrapper: TestWrapper });
+    const img = screen.getByAltText("first_steps");
+    expect(img).toBeInTheDocument();
+    expect(img.tagName).toBe("IMG");
+  });
 });

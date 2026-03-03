@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Home, LogOut, User, Menu, X, Settings, ChevronDown, Shield } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";

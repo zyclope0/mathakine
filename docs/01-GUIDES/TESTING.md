@@ -51,7 +51,7 @@
 
 ### Tests actuels (03/03/2026)
 - ✅ **Backend** : 472 tests passent (dont 23 CSRF), 0 failures, ~30% couverture (app + server)
-- ✅ **Frontend** : 37 tests (Vitest), utils/lib validations + composants + hooks (dont QuickStartActions analytics)
+- ✅ **Frontend** : 61 tests (Vitest) — utils/lib/format (`hasAiTag`, `formatSuccessRate`), validations dashboard/exercise, composants (BadgeCard — alt descriptif), hooks
 - ✅ **CI** : Tests + couverture backend et frontend, upload Codecov (flags backend/frontend)
 - ✅ **Tests critiques** : auth, challenges, exercises, user_exercise_flow, admin analytics EdTech
 - ✅ **Base de test separee** : `TEST_DATABASE_URL` obligatoire (protection production)

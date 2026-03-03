@@ -361,7 +361,7 @@ function ExercisesPageContent() {
                 size="sm"
                 onClick={() => setViewMode("grid")}
                 className="h-8 w-8 p-0"
-                aria-label="Vue grille"
+                aria-label={t("viewGrid")}
               >
                 <LayoutGrid className="h-4 w-4" />
               </Button>
@@ -370,7 +370,7 @@ function ExercisesPageContent() {
                 size="sm"
                 onClick={() => setViewMode("list")}
                 className="h-8 w-8 p-0"
-                aria-label="Vue liste"
+                aria-label={t("viewList")}
               >
                 <List className="h-4 w-4" />
               </Button>

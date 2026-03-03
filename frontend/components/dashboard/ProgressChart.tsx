@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useTranslations } from "next-intl";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 interface ProgressChartProps {
   data: {
@@ -26,6 +27,7 @@ interface ProgressChartProps {
 
 export function ProgressChart({ data }: ProgressChartProps) {
   const t = useTranslations("dashboard.charts.progressByType");
+  const { shouldReduceMotion } = useAccessibleAnimation();
 
   // Memoization de la transformation des données pour éviter les recalculs
   const chartData = useMemo(() => {
@@ -66,26 +68,42 @@ export function ProgressChart({ data }: ProgressChartProps) {
           </div>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
-              <XAxis dataKey="name" stroke="#a0a0a0" style={{ fontSize: "12px" }} />
-              <YAxis stroke="#a0a0a0" style={{ fontSize: "12px" }} allowDecimals={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--color-border)"
+                strokeOpacity={0.5}
+              />
+              <XAxis
+                dataKey="name"
+                stroke="var(--color-muted-foreground)"
+                style={{ fontSize: "12px" }}
+              />
+              <YAxis
+                stroke="var(--color-muted-foreground)"
+                style={{ fontSize: "12px" }}
+                allowDecimals={false}
+              />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "rgba(18, 18, 26, 0.95)",
-                  border: "1px solid rgba(124, 58, 237, 0.3)",
+                  backgroundColor: "var(--color-popover)",
+                  border: "1px solid var(--color-border)",
                   borderRadius: "8px",
-                  color: "#ffffff",
+                  color: "var(--color-popover-foreground)",
                 }}
               />
               <Legend />
               <Line
                 type="monotone"
                 dataKey={data.datasets[0]?.label || "Exercices résolus"}
-                stroke="#7c3aed"
+                stroke="var(--color-chart-1)"
                 strokeWidth={2}
-                fill="rgba(124, 58, 237, 0.2)"
-                dot={{ fill: "#7c3aed", r: 4 }}
-                activeDot={{ r: 6 }}
+                fill="var(--color-chart-1)"
+                fillOpacity={0.15}
+                dot={{ fill: "var(--color-chart-1)", r: 4 }}
+                activeDot={{ r: 6, fill: "var(--color-chart-1)" }}
+                isAnimationActive={!shouldReduceMotion}
+                animationDuration={800}
+                animationEasing="ease-out"
               />
             </LineChart>
           </ResponsiveContainer>

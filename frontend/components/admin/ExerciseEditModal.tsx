@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import { Copy, Plus, Trash2 } from "lucide-react";
+import { ADMIN_EXERCISE_TYPES, ADMIN_DIFFICULTIES } from "@/lib/constants/exercises";
 
 export interface ExerciseDetail {
   id: number;
@@ -38,19 +39,6 @@ export interface ExerciseDetail {
   [key: string]: unknown;
 }
 
-const EXERCISE_TYPES = [
-  "ADDITION",
-  "SOUSTRACTION",
-  "MULTIPLICATION",
-  "DIVISION",
-  "FRACTIONS",
-  "GEOMETRIE",
-  "TEXTE",
-  "MIXTE",
-  "DIVERS",
-];
-
-const DIFFICULTIES = ["INITIE", "PADAWAN", "CHEVALIER", "MAITRE", "GRAND_MAITRE"];
 
 interface ExerciseEditModalProps {
   exerciseId: number | null;
@@ -201,7 +189,7 @@ export function ExerciseEditModal({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {EXERCISE_TYPES.map((t) => (
+                    {ADMIN_EXERCISE_TYPES.map((t) => (
                       <SelectItem key={t} value={t}>
                         {t}
                       </SelectItem>
@@ -216,7 +204,7 @@ export function ExerciseEditModal({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {DIFFICULTIES.map((d) => (
+                    {ADMIN_DIFFICULTIES.map((d) => (
                       <SelectItem key={d} value={d}>
                         {d}
                       </SelectItem>

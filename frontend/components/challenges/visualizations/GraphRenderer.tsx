@@ -3,6 +3,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Network } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 interface GraphRendererProps {
   visualData: Record<string, unknown> | null;
@@ -16,6 +18,7 @@ interface GraphRendererProps {
 export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 400, height: 300 });
+  const { shouldReduceMotion } = useAccessibleAnimation();
 
   // Parser les données de graphe
   const nodes = Array.isArray(visualData?.nodes)
@@ -201,7 +204,12 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                 const offsetY = len > 0 ? (dx / len) * 12 : 0;
 
                 return (
-                  <g key={index}>
+                  <motion.g
+                    key={index}
+                    initial={shouldReduceMotion ? false : { opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
                     <line
                       x1={from.x}
                       y1={from.y}
@@ -214,23 +222,22 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                     {/* Afficher le poids de l'arête */}
                     {weight !== undefined && (
                       <>
-                        {/* Fond jaune/orange pour contraste optimal */}
                         <rect
                           x={midX + offsetX - 14}
                           y={midY + offsetY - 11}
                           width="28"
                           height="22"
                           rx="4"
-                          fill="#fbbf24"
-                          stroke="#f59e0b"
-                          strokeWidth="2"
+                          fill="var(--color-chart-2)"
+                          stroke="var(--color-warning)"
+                          strokeWidth="1.5"
                         />
                         <text
                           x={midX + offsetX}
                           y={midY + offsetY}
                           textAnchor="middle"
                           dominantBaseline="middle"
-                          fill="#1e293b"
+                          fill="var(--color-popover-foreground)"
                           fontSize="12"
                           fontWeight="bold"
                         >
@@ -238,7 +245,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                         </text>
                       </>
                     )}
-                  </g>
+                  </motion.g>
                 );
               })}
 
@@ -254,7 +261,13 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                 );
 
                 return (
-                  <g key={index}>
+                  <motion.g
+                    key={index}
+                    initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.08, duration: 0.3, ease: "easeOut" }}
+                    style={{ transformOrigin: `${pos.x}px ${pos.y}px` }}
+                  >
                     <circle
                       cx={pos.x}
                       cy={pos.y}
@@ -267,13 +280,13 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                       y={pos.y}
                       textAnchor="middle"
                       dominantBaseline="middle"
-                      fill="white"
+                      fill="var(--color-primary-foreground)"
                       fontSize="12"
                       fontWeight="bold"
                     >
                       {label}
                     </text>
-                  </g>
+                  </motion.g>
                 );
               })}
             </svg>

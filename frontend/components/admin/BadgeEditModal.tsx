@@ -23,9 +23,7 @@ import { ChevronDown, ChevronUp, Info, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import type { AdminBadge } from "@/hooks/useAdminBadges";
-
-const CATEGORIES = ["progression", "mastery", "special", "performance", "regularity", "discovery"];
-const DIFFICULTIES = ["bronze", "silver", "gold", "legendary"];
+import { BADGE_CATEGORIES, BADGE_DIFFICULTIES } from "@/lib/constants/badges";
 
 const REQUIREMENT_EXAMPLES = [
   { label: "Tentatives", value: '{"attempts_count": 10}' },
@@ -296,7 +294,7 @@ export function BadgeEditModal({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((c) => (
+                  {BADGE_CATEGORIES.map((c) => (
                     <SelectItem key={c} value={c}>
                       {c}
                     </SelectItem>
@@ -314,7 +312,7 @@ export function BadgeEditModal({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {DIFFICULTIES.map((d) => (
+                  {BADGE_DIFFICULTIES.map((d) => (
                     <SelectItem key={d} value={d}>
                       {d}
                     </SelectItem>

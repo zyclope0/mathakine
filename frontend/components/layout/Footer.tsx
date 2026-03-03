@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Github, Mail, Heart, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 export function Footer() {
   const t = useTranslations("navigation");

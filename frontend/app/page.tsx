@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { BookOpen, Zap, Trophy, Users, ArrowRight, MessageCircle } from "lucide-react";
 import { PageLayout } from "@/components/layout";
 import { useTranslations } from "next-intl";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 
 // Lazy loading des composants non-critiques
@@ -18,13 +19,38 @@ const AcademyStatsWidgetLazy = dynamic(
     import("@/components/home/AcademyStatsWidget").then((mod) => ({
       default: mod.AcademyStatsWidget,
     })),
-  { loading: () => null, ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <Card className="bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 border-primary/10">
+        <CardContent className="py-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="text-center space-y-2">
+                <Skeleton className="h-8 w-8 mx-auto rounded-full" />
+                <Skeleton className="h-6 w-12 mx-auto" />
+                <Skeleton className="h-4 w-20 mx-auto" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    ),
+  }
 );
 
 const ChatbotFloatingLazy = dynamic(
   () =>
     import("@/components/home/ChatbotFloating").then((mod) => ({ default: mod.ChatbotFloating })),
-  { loading: () => null, ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="fixed bottom-6 right-24 z-[9998] h-14 w-14 rounded-full bg-muted animate-pulse"
+        aria-hidden="true"
+      />
+    ),
+  }
 );
 
 // Types
@@ -159,7 +185,7 @@ export default function HomePage() {
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
-              <Card key={feature.titleKey} className="text-center py-4">
+              <Card key={feature.titleKey} className="card-spatial-depth text-center py-4 cursor-default">
                 <CardHeader className="pb-2 pt-0 px-3">
                   <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                     <Icon className="h-5 w-5 text-primary" aria-hidden="true" />

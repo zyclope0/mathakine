@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { TrendingUp, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -127,8 +128,7 @@ export function SequenceRenderer({
               <label className="text-sm font-medium text-foreground">
                 Quel est le prochain élément ?
               </label>
-              <input
-                type="text"
+              <Input
                 value={nextValue}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -138,7 +138,7 @@ export function SequenceRenderer({
                   }
                 }}
                 placeholder="Entrez le prochain nombre..."
-                className="w-full px-3 py-2 rounded-lg border-2 border-primary/30 bg-card text-foreground focus:border-primary focus:outline-none"
+                className="border-2 border-primary/30 bg-card focus:border-primary"
               />
             </div>
           )}

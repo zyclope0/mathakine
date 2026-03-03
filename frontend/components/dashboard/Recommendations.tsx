@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles, RefreshCw, Swords, Check } from "lucide-react";
 import Link from "next/link";
 import { useRecommendations, type Recommendation } from "@/hooks/useRecommendations";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useTranslations } from "next-intl";
 

@@ -22,9 +22,7 @@ import {
 import { ChevronDown, ChevronUp, Info } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
-
-const CATEGORIES = ["progression", "mastery", "special", "performance", "regularity", "discovery"];
-const DIFFICULTIES = ["bronze", "silver", "gold", "legendary"];
+import { BADGE_CATEGORIES, BADGE_DIFFICULTIES } from "@/lib/constants/badges";
 
 const REQUIREMENT_EXAMPLES = [
   { label: "Tentatives (ex: 10)", value: '{"attempts_count": 10}' },
@@ -241,7 +239,7 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((c) => (
+                  {BADGE_CATEGORIES.map((c) => (
                     <SelectItem key={c} value={c}>
                       {c}
                     </SelectItem>
@@ -256,7 +254,7 @@ export function BadgeCreateModal({ open, onOpenChange, onCreated }: BadgeCreateM
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {DIFFICULTIES.map((d) => (
+                  {BADGE_DIFFICULTIES.map((d) => (
                     <SelectItem key={d} value={d}>
                       {d}
                     </SelectItem>

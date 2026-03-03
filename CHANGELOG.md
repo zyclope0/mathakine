@@ -4,6 +4,55 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [2.3.0] - 2026-03-03
+
+### Audit Frontend Industrialisation — Clôture (Phases 0→4 complètes)
+
+Audit frontend lancé le 22/02/2026, finalisé le 03/03/2026.
+**Résultat final : 61 tests Vitest, 0 failures. tsc 0 erreurs. ESLint clean.**
+
+#### Phase 0 — DRY & Design System (constantes + inputs)
+
+- **Centralisation constantes** : `lib/constants/exercises.ts`, `challenges.ts`, `badges.ts` — plus de hardcoding dans les modales admin et filtres de page
+- **Variables CSS sidebar/charts** : `--sidebar-*`, `--chart-1..5` mappés dans `globals.css` (cohérence light/dark)
+- **Inputs shadcn/ui** : remplacement de tous les `<input>` raw par `<Input>` dans les renderers de défis visuels (`PatternRenderer`, etc.)
+- **EmptyState badges** : gestion d'erreur standardisée + clés i18n FR/EN sur la page `/badges`
+
+#### Phase 1 — Skeleton loaders & tokens sémantiques
+
+- **DashboardWidgetSkeleton** : composant générique dans `DashboardSkeletons.tsx` — tous les widgets dashboard migrent vers ce squelette
+- **Tokens sémantiques** : `--warning`, `--success`, `--info` ajoutés à `globals.css`, composants `feedback.tsx`, `ChatbotFloating.tsx` mis à jour
+- **Dossier renommé** : `lib/validations/` → `lib/validation/` (nomenclature singulier)
+
+#### Phase 2 — Import cn standardisé + lazy loading + AIGeneratorBase
+
+- **Import cn unifié** : `import { cn } from "@/lib/utils"` partout (~37 fichiers) — `@/lib/utils/cn` n'est plus importé directement
+- **Validation dérivée** : `lib/validation/exercise.ts` dérive ses arrays depuis `lib/constants/exercises.ts` via `Object.values()`
+- **Skeleton lazy loading** : `app/page.tsx` — les composants `dynamic()` ont désormais des skeletons dimensionnés (plus de `loading: () => null`)
+- **AIGeneratorBase** : composant UI partagé `components/shared/AIGeneratorBase.tsx` — les `AIGenerator.tsx` exercises + challenges en sont des wrappers fins
+
+#### Phase 3 — Polish visual + i18n
+
+- **Flip icon** : `VisualRenderer.tsx` — icône Lucide `FlipHorizontal` à la place du caractère `↔`
+- **aria-label i18n** : boutons vue grille/liste dans `/exercises` et `/challenges` utilisent `t("viewGrid")` / `t("viewList")`
+- **DefaultRenderer** : type badge + coloration syntaxique légère pour les données structurées
+- **Animations charts** : `ProgressChart.tsx` + `DailyExercisesChart.tsx` — `isAnimationActive={!shouldReduceMotion}` (Recharts, contrôlé par `useAccessibleAnimation`)
+- **Feature cards** : classe `card-spatial-depth` sur les cartes de fonctionnalités de la page d'accueil
+
+#### Phase 3.5 — Thématisation charts
+
+- **ProgressChart.tsx** : toutes les couleurs hardcodées (`#7c3aed`, `rgba(18,18,26,0.95)`…) remplacées par CSS variables (`var(--color-chart-1)`, `var(--color-border)`, `var(--color-popover)`, `var(--color-muted-foreground)`)
+- **DailyExercisesChart.tsx** : idem — couleurs backend ignorées, chart 100% thématisé
+
+#### Phase 4 — Accessibilité
+
+- **Alt badges** : `BadgeCard.tsx` + `app/badges/page.tsx` — `alt=""` → `alt={badge.name || badge.code || "Badge"}` (texte descriptif)
+- **DeductionRenderer.tsx** : `useAccessibleAnimation` intégré — `transition-colors` conditionnel
+- **GraphRenderer.tsx** : animations Framer Motion entrée (nœuds/arêtes SVG) + stagger, contrôlées par `shouldReduceMotion` ; couleurs CSS variables
+- **CSS contraste élevé** : `accessibility.css` nettoyé — bloc `.high-contrast` et doublons supprimés ; `@media (prefers-contrast: high)` aligné sur les tokens shadcn/ui dans `globals.css`
+
+---
+
 ## [2.3.0] - 2026-02-22
 
 ### Audit Architecture Backend — Clôture (Phases 0→4 complètes)

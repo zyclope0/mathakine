@@ -26,10 +26,11 @@ import {
   ChevronUp,
   Filter,
   X,
+  AlertCircle,
 } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-import { PageLayout, PageHeader, PageSection, LoadingState } from "@/components/layout";
+import { PageLayout, PageHeader, PageSection, LoadingState, EmptyState } from "@/components/layout";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -69,6 +70,7 @@ export default function BadgesPage() {
     pinnedBadgeIds,
     pinBadges,
     isLoading,
+    error,
     checkBadges,
     isChecking,
   } = useBadges();
@@ -380,7 +382,19 @@ export default function BadgesPage() {
               total: filteredEarned.length + filteredLocked.length || totalCount,
             })}
           </h2>
-          {isLoading ? (
+          {error ? (
+            <EmptyState
+              title={t("error.title")}
+              description={error instanceof Error ? error.message : t("error.description")}
+              icon={AlertCircle}
+              action={
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  {t("error.retry")}
+                </Button>
+              }
+            />
+          ) : isLoading ? (
             <LoadingState message={t("loading")} />
           ) : filteredEarned.length > 0 ? (
             <BadgeGrid
@@ -491,7 +505,7 @@ export default function BadgesPage() {
                                           // eslint-disable-next-line @next/next/no-img-element -- URLs dynamiques (CDN/API)
                                           <img
                                             src={fullBadge.icon_url}
-                                            alt=""
+                                            alt={fullBadge.name || badge.name || "Badge"}
                                             className="w-7 h-7 object-contain"
                                           />
                                         ) : (

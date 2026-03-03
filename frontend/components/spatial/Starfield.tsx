@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
 import { useThemeStore } from "@/lib/stores/themeStore";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 /**
  * Composant Starfield - Système d'étoiles multi-couches

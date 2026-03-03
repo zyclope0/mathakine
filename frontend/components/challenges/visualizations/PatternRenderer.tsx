@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Circle, Grid3x3, Square, Triangle } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -169,8 +170,7 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
                     ? "Quelle forme remplace le « ? » ?"
                     : "Quel symbole remplace le « ? » ?"}
               </label>
-              <input
-                type="text"
+              <Input
                 value={patternAnswer}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -180,7 +180,7 @@ export function PatternRenderer({ visualData, className, onAnswerChange }: Patte
                   }
                 }}
                 placeholder={placeholder}
-                className="w-full px-3 py-2 rounded-lg border-2 border-primary/30 bg-card text-foreground focus:border-primary focus:outline-none"
+                className="border-2 border-primary/30 bg-card focus:border-primary"
               />
             </div>
           )}

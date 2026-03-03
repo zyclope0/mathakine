@@ -21,29 +21,10 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
-
-const CHALLENGE_TYPES = [
-  { value: "sequence", label: "Suite logique" },
-  { value: "pattern", label: "Motif" },
-  { value: "visual", label: "Visuel" },
-  { value: "puzzle", label: "Puzzle" },
-  { value: "riddle", label: "Énigme" },
-  { value: "deduction", label: "Déduction" },
-  { value: "probability", label: "Probabilité" },
-  { value: "graph", label: "Graphe" },
-  { value: "coding", label: "Codage" },
-  { value: "chess", label: "Échecs" },
-  { value: "custom", label: "Personnalisé" },
-];
-
-const AGE_GROUPS = [
-  { value: "GROUP_6_8", label: "6-8 ans" },
-  { value: "GROUP_10_12", label: "9-11 ans" },
-  { value: "GROUP_13_15", label: "12-14 ans" },
-  { value: "GROUP_15_17", label: "15-17 ans" },
-  { value: "ADULT", label: "Adulte" },
-  { value: "ALL_AGES", label: "Tous âges" },
-];
+import {
+  ADMIN_CHALLENGE_TYPE_OPTIONS,
+  ADMIN_CHALLENGE_AGE_GROUP_OPTIONS,
+} from "@/lib/constants/challenges";
 
 interface ChallengeCreateModalProps {
   open: boolean;
@@ -149,7 +130,7 @@ export function ChallengeCreateModal({ open, onOpenChange, onCreated }: Challeng
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CHALLENGE_TYPES.map((t) => (
+                  {ADMIN_CHALLENGE_TYPE_OPTIONS.map((t) => (
                     <SelectItem key={t.value} value={t.value}>
                       {t.label}
                     </SelectItem>
@@ -164,7 +145,7 @@ export function ChallengeCreateModal({ open, onOpenChange, onCreated }: Challeng
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {AGE_GROUPS.map((a) => (
+                  {ADMIN_CHALLENGE_AGE_GROUP_OPTIONS.map((a) => (
                     <SelectItem key={a.value} value={a.value}>
                       {a.label}
                     </SelectItem>

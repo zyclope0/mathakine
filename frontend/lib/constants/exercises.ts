@@ -121,6 +121,41 @@ export function getAgeGroupDisplay(ageGroup: string | null | undefined): string 
   return AGE_GROUP_DISPLAY[ageGroup as AgeGroup] ?? AGE_GROUP_DISPLAY[AGE_GROUPS.ALL_AGES];
 }
 
+/** Types d'exercices au format API admin (majuscules) */
+export const ADMIN_EXERCISE_TYPES = [
+  "ADDITION",
+  "SOUSTRACTION",
+  "MULTIPLICATION",
+  "DIVISION",
+  "FRACTIONS",
+  "GEOMETRIE",
+  "TEXTE",
+  "MIXTE",
+  "DIVERS",
+] as const;
+
+export type AdminExerciseType = (typeof ADMIN_EXERCISE_TYPES)[number];
+
+/** Niveaux de difficulté des exercices (valeurs API admin) */
+export const ADMIN_DIFFICULTIES = [
+  "INITIE",
+  "PADAWAN",
+  "CHEVALIER",
+  "MAITRE",
+  "GRAND_MAITRE",
+] as const;
+
+export type AdminDifficulty = (typeof ADMIN_DIFFICULTIES)[number];
+
+/** Options de groupe d'âge pour les modales admin exercices ({value, label}) */
+export const ADMIN_EXERCISE_AGE_GROUP_OPTIONS = [
+  { value: "6-8", label: "6-8 ans" },
+  { value: "9-11", label: "9-11 ans" },
+  { value: "12-14", label: "12-14 ans" },
+  { value: "15-17", label: "15-17 ans" },
+  { value: "adulte", label: "Adulte" },
+] as const;
+
 /**
  * Constantes pour les types de défis logiques
  */

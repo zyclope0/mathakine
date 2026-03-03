@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Settings2, Contrast, Type, Move, BookOpen, Focus, X, Check } from "lucide-react";
 import { useAccessibilityStore } from "@/lib/stores/accessibilityStore";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 /**
  * Toolbar d'accessibilité - Version robuste avec Portal dédié

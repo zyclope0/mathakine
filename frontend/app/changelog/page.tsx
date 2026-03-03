@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 type VersionBlock = {
   version: string;
@@ -16,13 +16,13 @@ type VersionBlock = {
   items: string[];
 };
 
-const LATEST_KEY = "v221a2";
+const LATEST_KEY = "v230";
 
 export default function ChangelogPage() {
   const t = useTranslations("changelog");
   const { shouldReduceMotion, createVariants, createTransition } = useAccessibleAnimation();
 
-  const versionKeys = ["v221a2", "v222", "v221", "v220"] as const;
+  const versionKeys = ["v230", "v221a2", "v222", "v221", "v220"] as const;
 
   const itemIcon = (idx: number, isLatest: boolean) => {
     if (!isLatest)

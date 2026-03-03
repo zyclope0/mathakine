@@ -42,7 +42,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { LevelIndicator } from "@/components/dashboard/LevelIndicator";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { AGE_GROUPS, type AgeGroup } from "@/lib/constants/exercises";
 import { useAgeGroupDisplay } from "@/hooks/useChallengeTranslations";

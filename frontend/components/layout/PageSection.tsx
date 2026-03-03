@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
+import { cn } from "@/lib/utils";
 
 interface PageSectionProps {
   title?: string;
