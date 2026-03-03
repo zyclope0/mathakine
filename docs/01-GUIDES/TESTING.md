@@ -49,8 +49,8 @@
 
 > **Strategie actuelle** : Augmenter progressivement plutot qu'en bloc. Pour chaque nouvelle feature importante, ajouter 1-2 tests. Passer a une phase de montée en couverture quand les features sont stabilisees.
 
-### Tests actuels (02/03/2026)
-- ✅ **Backend** : ~526 tests passent (dont 23 CSRF), skippes réduits, ~48% couverture (app + server)
+### Tests actuels (03/03/2026)
+- ✅ **Backend** : 472 tests passent (dont 23 CSRF), 0 failures, ~30% couverture (app + server)
 - ✅ **Frontend** : 37 tests (Vitest), utils/lib validations + composants + hooks (dont QuickStartActions analytics)
 - ✅ **CI** : Tests + couverture backend et frontend, upload Codecov (flags backend/frontend)
 - ✅ **Tests critiques** : auth, challenges, exercises, user_exercise_flow, admin analytics EdTech
@@ -929,6 +929,16 @@ Ce script protege les memes utilisateurs permanents et respecte le meme ordre FK
 ---
 
 ## 📝 MODIFICATIONS RECENTES {#modifications-recentes}
+
+### 03/03/2026 – Audit Architecture Backend Phases 0→4
+
+| Domaine | Modification |
+|---------|---------------|
+| **Phase 2** | `test_queries.py` supprimé (13 tests obsolètes, `queries.py` dead code supprimé). `test_auth_service.py` : 33 tests adaptés (retour tuple, plus d'HTTPException). |
+| **Phase 3** | Nouveaux fichiers de test : `test_challenge_answer_service.py` (47 tests caractérisation), `test_chat_service.py` (19 tests), `test_admin_*.py` (services décomposés). |
+| **Phase 4.5** | `test_transaction.py`, `test_db_adapter.py`, `test_exercise_service.py`, `test_logic_challenge_service.py`, `test_user_service.py` : API booléenne → exceptions (`pytest.raises(DatabaseOperationError/UserNotFoundError/…)`). |
+| **Résultat** | 472 tests, 0 failures (vs ~526 avant, dont 13 obsolètes supprimés). |
+| **Référence** | [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](../03-PROJECT/AUDIT_ARCHITECTURE_BACKEND_2026-03.md) |
 
 ### 02/03/2026 – CSRF centralisé (audit H6), nettoyage code (audit cleanup)
 
