@@ -84,12 +84,11 @@ class UserCreate(UserBase):
     @classmethod
     def password_strength(cls, v):
         """Vérifie que le mot de passe est suffisamment fort"""
-        if len(v) < 8:
-            raise ValueError("Le mot de passe doit faire au moins 8 caractères")
-        if not any(char.isdigit() for char in v):
-            raise ValueError("Le mot de passe doit contenir au moins un chiffre")
-        if not any(char.isupper() for char in v):
-            raise ValueError("Le mot de passe doit contenir au moins une majuscule")
+        from app.core.security import validate_password_strength
+
+        err = validate_password_strength(v)
+        if err:
+            raise ValueError(err)
         return v
 
 

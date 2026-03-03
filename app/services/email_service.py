@@ -232,9 +232,7 @@ class EmailService:
         Template thème Jedi, ergonomique et accessible.
         """
         if not frontend_url:
-            frontend_url = os.getenv(
-                "FRONTEND_URL", "https://mathakine-frontend.onrender.com"
-            )
+            frontend_url = settings.FRONTEND_URL
         verification_link = f"{frontend_url}/verify-email?token={verification_token}"
         subject = "Bienvenue ! Active ton compte Mathakine"
         html_content = verification_email_html(username, verification_link)
@@ -253,9 +251,7 @@ class EmailService:
         Template thème Jedi, ergonomique et accessible.
         """
         if not frontend_url:
-            frontend_url = os.getenv(
-                "FRONTEND_URL", "https://mathakine-frontend.onrender.com"
-            )
+            frontend_url = settings.FRONTEND_URL
         reset_link = f"{frontend_url}/reset-password?token={reset_token}"
         subject = "Réinitialisation de ton mot de passe — Mathakine"
         html_content = password_reset_email_html(username, reset_link)

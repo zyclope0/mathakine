@@ -2,18 +2,22 @@
 Handlers pour l'authentification et la vérification d'email
 """
 
-import os
 import secrets
 import traceback
 from datetime import datetime, timedelta, timezone
 
+from app.core.config import settings
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from app.core.security import decode_token
+from app.core.security import (
+    decode_token,
+    get_cookie_config,
+    validate_password_strength,
+)
 from app.services.auth_service import (
     authenticate_user,
     create_session,
@@ -29,11 +33,12 @@ from app.services.auth_service import (
 from app.services.email_service import EmailService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response
+from app.utils.request_utils import parse_json_body, parse_json_body_any
 from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
 from server.auth import require_auth
 
 
-async def api_get_csrf_token(request: Request):
+async def api_get_csrf_token(request: Request) -> JSONResponse:
     """
     Récupère un token CSRF (pattern double-submit).
     Route: GET /api/auth/csrf
@@ -43,26 +48,20 @@ async def api_get_csrf_token(request: Request):
 
     token = secrets.token_urlsafe(32)
     response = JSONResponse({"csrf_token": token})
-    is_production = (
-        os.getenv("ENVIRONMENT") == "production"
-        or os.getenv("NODE_ENV") == "production"
-    )
-    cookie_opts = (
-        "Path=/; SameSite=None; Secure" if is_production else "Path=/; SameSite=Lax"
-    )
+    cookie_samesite, cookie_secure = get_cookie_config()
     response.set_cookie(
         "csrf_token",
         token,
         path="/",
-        samesite="none" if is_production else "lax",
-        secure=is_production,
+        samesite=cookie_samesite,
+        secure=cookie_secure,
         httponly=False,  # Le client doit pouvoir lire pour l'envoyer dans le header (double-submit)
         max_age=3600,  # 1 heure
     )
     return response
 
 
-async def verify_email(request: Request):
+async def verify_email(request: Request) -> JSONResponse:
     """
     Vérifie l'adresse email d'un utilisateur avec un token.
     Route: GET /api/auth/verify-email?token=...
@@ -123,7 +122,7 @@ async def verify_email(request: Request):
 
 
 @rate_limit_resend_verification
-async def resend_verification_email(request: Request):
+async def resend_verification_email(request: Request) -> JSONResponse:
     """
     Renvoie l'email de vérification.
     Route: POST /api/auth/resend-verification
@@ -131,8 +130,6 @@ async def resend_verification_email(request: Request):
     Rate limit: 2 req/min par IP (protection abus).
     """
     try:
-        from app.utils.request_utils import parse_json_body
-
         data_or_err = await parse_json_body(
             request, required={"email": "Adresse email requise"}
         )
@@ -175,22 +172,17 @@ async def resend_verification_email(request: Request):
             verification_token = resend_verification_token(db, user)
 
             # Envoyer l'email
-            frontend_url = os.getenv(
-                "FRONTEND_URL", "https://mathakine-frontend.onrender.com"
-            )
             email_sent = EmailService.send_verification_email(
                 to_email=user.email,
                 username=user.username,
                 verification_token=verification_token,
-                frontend_url=frontend_url,
+                frontend_url=settings.FRONTEND_URL,
             )
 
             if email_sent:
                 logger.info(f"Email de vérification renvoyé à {user.email}")
-                if "localhost" in frontend_url:
-                    verify_link = (
-                        f"{frontend_url}/verify-email?token={verification_token}"
-                    )
+                if "localhost" in settings.FRONTEND_URL:
+                    verify_link = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
                     logger.info(
                         f"[DEV] Si l'email n'arrive pas, copie ce lien : {verify_link}"
                     )
@@ -220,7 +212,7 @@ async def resend_verification_email(request: Request):
 
 
 @rate_limit_auth("login")
-async def api_login(request: Request):
+async def api_login(request: Request) -> JSONResponse:
     """
     Connexion avec nom d'utilisateur et mot de passe.
     Route: POST /api/auth/login
@@ -228,8 +220,6 @@ async def api_login(request: Request):
     Returns: Token + user info
     """
     try:
-        from app.utils.request_utils import parse_json_body
-
         data_or_err = await parse_json_body(
             request,
             required={
@@ -262,8 +252,6 @@ async def api_login(request: Request):
             # Créer les tokens d'accès
             token_data = create_user_token(user)
             logger.info(f"Connexion réussie pour l'utilisateur: {user.username}")
-
-            from app.core.config import settings
 
             ip = request.client.host if request.client else None
             user_agent = request.headers.get("user-agent") or ""
@@ -316,15 +304,7 @@ async def api_login(request: Request):
 
             # Déterminer la configuration des cookies selon l'environnement
             # En production (cross-domain), utiliser SameSite=None et Secure=True
-            import os
-
-            is_production = (
-                os.getenv("NODE_ENV") == "production"
-                or os.getenv("ENVIRONMENT") == "production"
-                or os.getenv("MATH_TRAINER_PROFILE") == "prod"
-            )
-            cookie_samesite = "none" if is_production else "lax"
-            cookie_secure = is_production  # Secure=True obligatoire avec SameSite=None
+            cookie_samesite, cookie_secure = get_cookie_config()
 
             # Définir le cookie access_token (pour compatibilité avec l'ancien système)
             response.set_cookie(
@@ -375,7 +355,7 @@ async def api_login(request: Request):
 
 
 @rate_limit_auth("validate-token")
-async def api_validate_token(request: Request):
+async def api_validate_token(request: Request) -> JSONResponse:
     """
     Valide un token JWT sans l'utiliser pour une action.
     Utilisé par la route sync-cookie du frontend pour s'assurer qu'un token
@@ -385,8 +365,6 @@ async def api_validate_token(request: Request):
     Rate limit: 5 req/min par IP (protection brute-force).
     """
     try:
-        from app.utils.request_utils import parse_json_body
-
         data_or_err = await parse_json_body(
             request, required={"token": "Token manquant"}, no_strip_fields={"token"}
         )
@@ -401,7 +379,7 @@ async def api_validate_token(request: Request):
         return api_error_response(401, "Token invalide ou expiré")
 
 
-async def api_refresh_token(request: Request):
+async def api_refresh_token(request: Request) -> JSONResponse:
     """
     Rafraîchit le token d'accès avec un refresh token.
     Route: POST /api/auth/refresh
@@ -454,8 +432,6 @@ async def api_refresh_token(request: Request):
                 # Essayer de décoder l'access_token pour vérifier s'il est valide
                 try:
                     import jwt
-
-                    from app.core.config import settings
 
                     payload = jwt.decode(
                         access_token_fallback,
@@ -514,7 +490,11 @@ async def api_refresh_token(request: Request):
 
         async with db_session() as db:
             # Rafraîchir le token
-            new_token_data = refresh_access_token(db, refresh_token)
+            new_token_data, refresh_err, refresh_status = refresh_access_token(
+                db, refresh_token
+            )
+            if refresh_err:
+                return api_error_response(refresh_status, refresh_err)
 
             logger.info("Token rafraîchi avec succès")
 
@@ -532,19 +512,9 @@ async def api_refresh_token(request: Request):
 
             # Déterminer la configuration des cookies selon l'environnement
             # En production (cross-domain), utiliser SameSite=None et Secure=True
-            import os
-
-            is_production = (
-                os.getenv("NODE_ENV") == "production"
-                or os.getenv("ENVIRONMENT") == "production"
-                or os.getenv("MATH_TRAINER_PROFILE") == "prod"
-            )
-            cookie_samesite = "none" if is_production else "lax"
-            cookie_secure = is_production  # Secure=True obligatoire avec SameSite=None
+            cookie_samesite, cookie_secure = get_cookie_config()
 
             # Mettre à jour le cookie access_token si présent dans la réponse
-            from app.core.config import settings
-
             if "access_token" in new_token_data:
                 access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
                 response.set_cookie(
@@ -607,7 +577,7 @@ async def api_refresh_token(request: Request):
 
 
 @require_auth
-async def api_get_current_user(request: Request):
+async def api_get_current_user(request: Request) -> JSONResponse:
     """
     Récupère les informations de l'utilisateur actuellement connecté.
     Route: GET /api/users/me
@@ -628,7 +598,7 @@ async def api_get_current_user(request: Request):
 
 
 @rate_limit_auth("forgot-password")
-async def api_forgot_password(request: Request):
+async def api_forgot_password(request: Request) -> JSONResponse:
     """
     Demande de réinitialisation de mot de passe.
     Génère un token, le stocke en DB, et envoie un email avec le lien.
@@ -636,8 +606,10 @@ async def api_forgot_password(request: Request):
     Body: {"email": "user@example.com"}
     """
     try:
-        data = await request.json()
-        email = data.get("email", "").strip().lower()
+        data_or_err = await parse_json_body_any(request)
+        if isinstance(data_or_err, JSONResponse):
+            return data_or_err
+        email = data_or_err.get("email", "").strip().lower()
 
         if not email:
             return api_error_response(400, "Adresse email requise")
@@ -661,14 +633,11 @@ async def api_forgot_password(request: Request):
 
             reset_token = initiate_password_reset(db, user)
 
-            frontend_url = os.getenv(
-                "FRONTEND_URL", "https://mathakine-frontend.onrender.com"
-            )
             email_sent = EmailService.send_password_reset_email(
                 to_email=user.email,
                 username=user.username,
                 reset_token=reset_token,
-                frontend_url=frontend_url,
+                frontend_url=settings.FRONTEND_URL,
             )
 
             if not email_sent:
@@ -679,9 +648,8 @@ async def api_forgot_password(request: Request):
                 )
 
             logger.info(f"Email de réinitialisation envoyé à {user.email}")
-            # En dev avec localhost : Gmail filtre souvent ces emails. Afficher le lien en console pour tester.
-            if "localhost" in frontend_url:
-                reset_link = f"{frontend_url}/reset-password?token={reset_token}"
+            if "localhost" in settings.FRONTEND_URL:
+                reset_link = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
                 logger.info(
                     f"[DEV] Si l'email n'arrive pas (filtre Gmail), copie ce lien : {reset_link}"
                 )
@@ -693,7 +661,7 @@ async def api_forgot_password(request: Request):
         return api_error_response(500, "Erreur lors du traitement de la demande")
 
 
-async def api_reset_password(request: Request):
+async def api_reset_password(request: Request) -> JSONResponse:
     """
     Réinitialise le mot de passe avec un token valide.
     Route: POST /api/auth/reset-password
@@ -701,26 +669,19 @@ async def api_reset_password(request: Request):
     Protégé CSRF via CsrfMiddleware (audit H6).
     """
     try:
-        data = await request.json()
-        token = (data.get("token") or "").strip()
-        password = data.get("password", "")
-        password_confirm = data.get("password_confirm", "")
+        data_or_err = await parse_json_body_any(request)
+        if isinstance(data_or_err, JSONResponse):
+            return data_or_err
+        token = (data_or_err.get("token") or "").strip()
+        password = data_or_err.get("password", "")
+        password_confirm = data_or_err.get("password_confirm", "")
 
         if not token:
             return api_error_response(400, "Token de réinitialisation manquant")
 
-        if not password or len(password) < 8:
-            return api_error_response(
-                400, "Le mot de passe doit contenir au moins 8 caractères"
-            )
-        if not any(char.isdigit() for char in password):
-            return api_error_response(
-                400, "Le mot de passe doit contenir au moins un chiffre"
-            )
-        if not any(char.isupper() for char in password):
-            return api_error_response(
-                400, "Le mot de passe doit contenir au moins une majuscule"
-            )
+        pwd_err = validate_password_strength(password)
+        if pwd_err:
+            return api_error_response(400, pwd_err)
 
         if password != password_confirm:
             return api_error_response(400, "Les mots de passe ne correspondent pas")
@@ -752,7 +713,7 @@ async def api_reset_password(request: Request):
         )
 
 
-async def api_logout(request: Request):
+async def api_logout(request: Request) -> JSONResponse:
     """
     Déconnexion de l'utilisateur en effaçant les cookies d'authentification.
     Route: POST /api/auth/logout
@@ -763,13 +724,7 @@ async def api_logout(request: Request):
     try:
         response = JSONResponse({"message": "Déconnexion réussie"}, status_code=200)
 
-        is_production = (
-            os.getenv("NODE_ENV") == "production"
-            or os.getenv("ENVIRONMENT") == "production"
-            or os.getenv("MATH_TRAINER_PROFILE") == "prod"
-        )
-        cookie_samesite = "none" if is_production else "lax"
-        cookie_secure = is_production
+        cookie_samesite, cookie_secure = get_cookie_config()
 
         response.delete_cookie(
             "access_token",

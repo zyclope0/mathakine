@@ -144,12 +144,19 @@ class TransactionManager:
                         f"{log_prefix}: Échec de la suppression lors du commit: {delete_commit_error}"
                     )
 
-                    # Alternative: tenter une suppression sans cascade si la première méthode échoue
+                    # Fallback : suppression directe par ID via SQL brut.
+                    # Garde : __tablename__ doit être un identifiant Python valide
+                    # (alphanumérique + underscore) pour éviter toute injection.
                     try:
                         from sqlalchemy import text
 
-                        # Suppression directe par ID pour éviter de charger les relations
-                        stmt = f"DELETE FROM {obj.__tablename__} WHERE id = :id"
+                        table_name = obj.__tablename__
+                        if not table_name.replace("_", "").isalnum():
+                            logger.error(
+                                f"{log_prefix}: Nom de table suspect refusé: '{table_name}'"
+                            )
+                            return False
+                        stmt = f"DELETE FROM {table_name} WHERE id = :id"
                         db_session.execute(text(stmt), {"id": obj.id})
                         db_session.commit()
                         logger.info(

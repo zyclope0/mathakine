@@ -5,7 +5,7 @@ Service d'authentification pour gérer les utilisateurs et les connexions
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 
-from fastapi import HTTPException, status
+from app.core.types import TokenRefreshResponse, TokenResponse
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
@@ -30,49 +30,24 @@ logger = get_logger(__name__)
 
 
 def get_user_by_username(db: Session, username: str) -> Optional[User]:
-    """
-    Récupère un utilisateur par son nom d'utilisateur.
+    """Délègue à UserService.get_user_by_username (source unique)."""
+    from app.services.user_service import UserService
 
-    Args:
-        db: Session de base de données
-        username: Nom d'utilisateur à rechercher
-
-    Returns:
-        Instance de User ou None si l'utilisateur n'existe pas
-    """
-    user = db.query(User).filter(User.username == username).first()
-    logger.debug(
-        f"Recherche utilisateur {username}: {'trouvé' if user else 'non trouvé'}"
-    )
-    return user
+    return UserService.get_user_by_username(db, username)
 
 
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
-    """
-    Récupère un utilisateur par son email.
+    """Délègue à UserService.get_user_by_email (source unique)."""
+    from app.services.user_service import UserService
 
-    Args:
-        db: Session de base de données
-        email: Email à rechercher
-
-    Returns:
-        Instance de User ou None si l'utilisateur n'existe pas
-    """
-    return db.query(User).filter(User.email == email).first()
+    return UserService.get_user_by_email(db, email)
 
 
 def get_user_by_id(db: Session, user_id: int) -> Optional[User]:
-    """
-    Récupère un utilisateur par son ID.
+    """Délègue à UserService.get_user (source unique)."""
+    from app.services.user_service import UserService
 
-    Args:
-        db: Session de base de données
-        user_id: ID de l'utilisateur à rechercher
-
-    Returns:
-        Instance de User ou None si l'utilisateur n'existe pas
-    """
-    return db.query(User).filter(User.id == user_id).first()
+    return UserService.get_user(db, user_id)
 
 
 def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
@@ -117,39 +92,27 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
         return None
 
 
-def create_user(db: Session, user_in: UserCreate) -> User:
+def create_user(
+    db: Session, user_in: UserCreate
+) -> Tuple[Optional[User], Optional[str], int]:
     """
     Crée un nouvel utilisateur.
 
-    Args:
-        db: Session de base de données
-        user_in: Données pour la création de l'utilisateur
-
     Returns:
-        Instance du nouvel utilisateur créé
-
-    Raises:
-        HTTPException: Si un utilisateur avec le même nom ou email existe déjà
+        (user, error_message, status_code)
+        user si succès, sinon None + message + code HTTP.
     """
-    # Vérifier si un utilisateur avec le même nom ou email existe déjà
-    # Message uniforme (anti-énumération) : ne pas révéler si c'est le username ou l'email qui existe
     if get_user_by_username(db, user_in.username):
         logger.warning(
             f"Tentative de création avec nom déjà utilisé: {user_in.username}"
         )
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Un compte avec ces informations existe déjà",
-        )
+        return None, "Un compte avec ces informations existe déjà", 409
 
     if get_user_by_email(db, user_in.email):
         logger.warning(
             f"Tentative de création avec email déjà utilisé: {user_in.email}"
         )
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Un compte avec ces informations existe déjà",
-        )
+        return None, "Un compte avec ces informations existe déjà", 409
 
     # Par défaut, les nouveaux utilisateurs sont des Padawans sauf spécification contraire
     if user_in.role:
@@ -183,10 +146,10 @@ def create_user(db: Session, user_in: UserCreate) -> User:
     db.refresh(user)
 
     logger.info(f"Nouvel utilisateur créé: {user.username} (ID: {user.id})")
-    return user
+    return user, None, 201
 
 
-def create_user_token(user: User) -> dict:
+def create_user_token(user: User) -> TokenResponse:
     """
     Crée un token d'accès et un refresh token pour un utilisateur.
 
@@ -239,29 +202,20 @@ def create_user_token(user: User) -> dict:
     }
 
 
-def refresh_access_token(db: Session, refresh_token: str) -> dict:
+def refresh_access_token(
+    db: Session, refresh_token: str
+) -> Tuple[Optional[TokenRefreshResponse], Optional[str], int]:
     """
     Rafraîchit un token d'accès JWT en utilisant un token de rafraîchissement valide.
 
-    Args:
-        db: Session de base de données
-        refresh_token: Token de rafraîchissement à valider
-
     Returns:
-        Dictionnaire contenant le nouveau token d'accès JWT et le type de token
-
-    Raises:
-        HTTPException: Si le token est invalide, expiré, ou si l'utilisateur n'existe plus
-        RuntimeError: Si une erreur inattendue se produit
+        (token_data, error_message, status_code)
     """
     try:
-        # Log pour diagnostic
         logger.debug(
             f"Tentative de décodage du refresh_token (longueur: {len(refresh_token)})"
         )
 
-        # Décoder le token avec vérification de l'expiration
-        # Si le token est expiré, jwt.ExpiredSignatureError sera levée
         try:
             payload = jwt.decode(
                 refresh_token,
@@ -269,101 +223,58 @@ def refresh_access_token(db: Session, refresh_token: str) -> dict:
                 algorithms=[settings.ALGORITHM],
                 options={"verify_exp": True},
             )
+        except jwt.ExpiredSignatureError:
+            logger.warning("Tentative de rafraîchissement avec un token expiré")
+            return None, "Token de rafraîchissement expiré", 401
         except JWTError as decode_error:
             logger.error(f"Erreur de décodage JWT: {str(decode_error)}")
-            logger.debug(
-                f"Token reçu (premiers 50 caractères): {refresh_token[:50] if len(refresh_token) > 50 else refresh_token}"
-            )
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token JWT invalide ou malformé",
-            )
-        except jwt.InvalidSignatureError as sig_error:
-            logger.error(f"Signature JWT invalide: {str(sig_error)}")
-            logger.warning(
-                "Le SECRET_KEY utilisé pour décoder ne correspond pas à celui utilisé pour encoder"
-            )
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token invalide (signature incorrecte)",
-            )
+            return None, "Token JWT invalide ou malformé", 401
 
-        # Vérifier que c'est bien un token de rafraîchissement
         token_type = payload.get("type")
         logger.debug(f"Type de token décodé: {token_type}")
         if token_type != "refresh":
             logger.warning(
-                f"Tentative de rafraîchissement avec un token non-refresh: {token_type}. Payload: {payload}"
+                f"Tentative de rafraîchissement avec un token non-refresh: {token_type}"
             )
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Token de rafraîchissement invalide (type: {token_type})",
-            )
+            return None, f"Token de rafraîchissement invalide (type: {token_type})", 401
 
-        # Extraire les informations utilisateur
         username = payload.get("sub")
         if not username:
             logger.warning("Tentative de rafraîchissement avec un token sans sujet")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalide"
-            )
+            return None, "Token invalide", 401
 
-        # Vérifier que l'utilisateur existe toujours
         user = get_user_by_username(db, username)
         if not user:
             logger.warning(
                 f"Tentative de rafraîchissement pour un utilisateur qui n'existe pas: {username}"
             )
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Utilisateur non trouvé",
-            )
+            return None, "Utilisateur non trouvé", 401
 
-        # Vérifier que l'utilisateur est toujours actif
         if not user.is_active:
             logger.warning(
                 f"Tentative de rafraîchissement pour un utilisateur inactif: {username}"
             )
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Compte utilisateur désactivé",
-            )
+            return None, "Compte utilisateur désactivé", 401
 
         new_token_data = create_user_token(user)
-        return {
-            "access_token": new_token_data.get("access_token"),
-            "refresh_token": new_token_data.get("refresh_token"),
-            "token_type": "bearer",
-        }
+        return (
+            {
+                "access_token": new_token_data.get("access_token"),
+                "refresh_token": new_token_data.get("refresh_token"),
+                "token_type": "bearer",
+            },
+            None,
+            200,
+        )
 
-    except jwt.ExpiredSignatureError:
-        logger.warning("Tentative de rafraîchissement avec un token expiré")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token de rafraîchissement expiré",
-        )
-    except JWTError as jwt_err:
-        logger.warning(
-            f"Tentative de rafraîchissement avec un token JWT invalide: {type(jwt_err).__name__}: {str(jwt_err)}"
-        )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalide"
-        )
-    except HTTPException:
-        # Re-lancer les HTTPException sans les modifier (elles ont déjà le bon code de statut)
-        raise
     except RuntimeError:
-        # Ne pas intercepter les RuntimeError pour permettre aux tests de les attraper
         logger.error("Erreur RuntimeError lors du rafraîchissement du token")
         raise
     except Exception as token_refresh_error:
         logger.error(
             f"Erreur lors du rafraîchissement du token: {str(token_refresh_error)}"
         )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erreur interne du serveur",
-        )
+        return None, "Erreur interne du serveur", 500
 
 
 def update_user(db: Session, user: User, user_in: UserUpdate) -> User:
@@ -398,33 +309,19 @@ def update_user(db: Session, user: User, user_in: UserUpdate) -> User:
 
 def update_user_password(
     db: Session, user: User, current_password: str, new_password: str
-) -> bool:
+) -> Tuple[bool, Optional[str]]:
     """
     Met à jour le mot de passe d'un utilisateur après vérification du mot de passe actuel.
 
-    Args:
-        db: Session de base de données
-        user: Instance de l'utilisateur
-        current_password: Mot de passe actuel (pour vérification)
-        new_password: Nouveau mot de passe
-
     Returns:
-        True si la mise à jour a réussi, False sinon
-
-    Raises:
-        HTTPException: Si le mot de passe actuel est incorrect
+        (True, None) si succès, (False, error_message) sinon.
     """
-    # Vérifier le mot de passe actuel
     if not verify_password(current_password, user.hashed_password):
         logger.warning(
             f"Tentative de changement de mot de passe avec mot de passe actuel incorrect pour {user.username}"
         )
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Mot de passe actuel incorrect",
-        )
+        return False, "Mot de passe actuel incorrect"
 
-    # Mettre à jour avec le nouveau mot de passe
     user.hashed_password = get_password_hash(new_password)
     user.updated_at = datetime.now(timezone.utc)
 
@@ -433,7 +330,7 @@ def update_user_password(
     db.refresh(user)
 
     logger.info(f"Mot de passe mis à jour pour l'utilisateur: {user.username}")
-    return True
+    return True, None
 
 
 def verify_email_token(db: Session, token: str) -> Tuple[Optional[User], Optional[str]]:

@@ -176,38 +176,45 @@ class AgeGroups:
     }
 
 
+# P2 — pré-calcul : dict plat {alias_normalisé: groupe} pour lookup O(1)
+_AGE_GROUP_LOOKUP: dict = {}
+for _group_key, _aliases in AgeGroups.AGE_ALIASES.items():
+    for _alias in _aliases:
+        _AGE_GROUP_LOOKUP[_alias.lower().replace(" ", "").replace("_", "-")] = (
+            _group_key
+        )
+        _AGE_GROUP_LOOKUP[_alias.lower()] = _group_key
+
+# Pré-calcul correspondance partielle (premier chiffre → groupe)
+_AGE_GROUP_PREFIX: dict = {}
+for _group_key in AgeGroups.ALL_GROUPS:
+    _prefix = _group_key.split("-")[0]
+    _AGE_GROUP_PREFIX[_prefix] = _group_key
+
+
 def normalize_age_group(age_group):
     """
     Normalise le groupe d'âge vers le format standard (6-8, 9-11, etc.)
-
-    Args:
-        age_group: Le groupe d'âge en entrée (peut être dans différents formats)
-
-    Returns:
-        Le groupe d'âge normalisé (ex: "6-8", "9-11", etc.)
+    Utilise un dict pré-calculé pour un lookup O(1) au lieu de O(n*m).
     """
     if not age_group:
-        return AgeGroups.GROUP_9_11  # Défaut : 9-11 ans (milieu de gamme)
+        return AgeGroups.GROUP_9_11
 
     age_group_str = str(age_group).lower().strip()
-
-    # Nettoyer les espaces et caractères spéciaux
     age_group_clean = age_group_str.replace(" ", "").replace("_", "-")
 
-    # Parcourir tous les groupes d'âge et leurs alias
-    for group_key, aliases in AgeGroups.AGE_ALIASES.items():
-        # Vérifier correspondance exacte ou nettoyée
-        for alias in aliases:
-            alias_clean = alias.lower().replace(" ", "").replace("_", "-")
-            if age_group_clean == alias_clean or age_group_str == alias.lower():
-                return group_key
+    result = _AGE_GROUP_LOOKUP.get(age_group_clean) or _AGE_GROUP_LOOKUP.get(
+        age_group_str
+    )
+    if result:
+        return result
 
-    # Tentative de correspondance partielle (ex: "9" → "9-11")
-    for group_key in AgeGroups.ALL_GROUPS:
-        if group_key.startswith(age_group_clean.split("-")[0] + "-"):
-            return group_key
+    # Correspondance partielle (ex: "9" → "9-11")
+    prefix = age_group_clean.split("-")[0]
+    result = _AGE_GROUP_PREFIX.get(prefix)
+    if result:
+        return result
 
-    # Si aucune correspondance trouvée, retourner le groupe par défaut
     logger.warning(
         f"Groupe d'âge non reconnu: '{age_group}', utilisation de {AgeGroups.GROUP_9_11} par défaut"
     )
@@ -436,27 +443,19 @@ class PaginationConfig:
     DEFAULT_PAGE = 1
 
 
-# Paramètres de journalisation
-class LoggingLevels:
-    DEBUG = "DEBUG"
-    INFO = "INFO"
-    WARNING = "WARNING"
-    ERROR = "ERROR"
-    CRITICAL = "CRITICAL"
+# Préférences utilisateur — valeurs acceptées
+VALID_THEMES: frozenset = frozenset(
+    {"spatial", "minimalist", "ocean", "dune", "forest", "peach", "dino", "neutral"}
+)
+VALID_LEARNING_STYLES: frozenset = frozenset(
+    {"visuel", "auditif", "kinesthésique", "lecture"}
+)
 
 
 # Configuration de sécurité
 class SecurityConfig:
     TOKEN_EXPIRY_MINUTES = 60 * 24 * 7  # 7 jours (pour compatibilité)
     ALGORITHM = "HS256"
-
-
-# Statut des exercices
-class ExerciseStatus:
-    ACTIVE = True
-    INACTIVE = False
-    ARCHIVED = True
-    NOT_ARCHIVED = False
 
 
 # ============================================================================

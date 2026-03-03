@@ -6,7 +6,6 @@ Tests des endpoints admin IA :
 
 import pytest
 
-
 # ─── /api/admin/ai-stats ──────────────────────────────────────────────────────
 
 

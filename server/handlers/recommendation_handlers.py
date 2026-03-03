@@ -2,8 +2,6 @@
 Handlers pour les recommandations personnalisées.
 """
 
-import traceback
-
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -19,7 +17,7 @@ logger = get_logger(__name__)
 
 @require_auth
 @require_full_access
-async def get_recommendations(request):
+async def get_recommendations(request: Request) -> JSONResponse:
     """
     Récupère les recommandations personnalisées pour l'utilisateur connecté.
     Route: GET /api/recommendations
@@ -37,9 +35,9 @@ async def get_recommendations(request):
             return JSONResponse(recommendations_data)
     except Exception as recommendations_retrieval_error:
         logger.error(
-            f"Erreur lors de la récupération des recommandations: {recommendations_retrieval_error}"
+            f"Erreur lors de la récupération des recommandations: {recommendations_retrieval_error}",
+            exc_info=True,
         )
-        traceback.print_exc()
         return api_error_response(
             500, get_safe_error_message(recommendations_retrieval_error)
         )
@@ -47,7 +45,7 @@ async def get_recommendations(request):
 
 @require_auth
 @require_full_access
-async def generate_recommendations(request):
+async def generate_recommendations(request: Request) -> JSONResponse:
     """
     Génère de nouvelles recommandations pour l'utilisateur connecté.
     Route: POST /api/recommendations/generate
@@ -70,9 +68,9 @@ async def generate_recommendations(request):
             )
     except Exception as recommendations_generation_error:
         logger.error(
-            f"Erreur lors de la génération des recommandations: {recommendations_generation_error}"
+            f"Erreur lors de la génération des recommandations: {recommendations_generation_error}",
+            exc_info=True,
         )
-        traceback.print_exc()
         return api_error_response(
             500, get_safe_error_message(recommendations_generation_error)
         )
@@ -80,7 +78,7 @@ async def generate_recommendations(request):
 
 @require_auth
 @require_full_access
-async def handle_recommendation_complete(request):
+async def handle_recommendation_complete(request: Request) -> JSONResponse:
     """
     Marquer une recommandation comme complétée.
     Route: POST /api/recommendations/complete
@@ -116,6 +114,8 @@ async def handle_recommendation_complete(request):
             status_code=200,
         )
     except Exception as e:
-        logger.error(f"Erreur lors de la gestion de la recommandation complétée: {e}")
-        traceback.print_exc()
+        logger.error(
+            f"Erreur lors de la gestion de la recommandation complétée: {e}",
+            exc_info=True,
+        )
         return api_error_response(500, get_safe_error_message(e))

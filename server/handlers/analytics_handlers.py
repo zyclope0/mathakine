@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 
 
 @require_auth
-async def analytics_event(request: Request):
+async def analytics_event(request: Request) -> JSONResponse:
     """
     Enregistrer un événement analytics EdTech.
     Route: POST /api/analytics/event
@@ -72,7 +72,7 @@ from server.auth import require_admin
 
 @require_auth
 @require_admin
-async def admin_analytics_edtech(request: Request):
+async def admin_analytics_edtech(request: Request) -> JSONResponse:
     """
     GET /api/admin/analytics/edtech
     Agrégats et liste des événements EdTech (period=7d|30d, event=optional).

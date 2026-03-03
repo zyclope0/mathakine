@@ -108,11 +108,11 @@ async def test_submit_correct_answer(db_session):
             return_value=attempt_obj,
         ):
             with _patch_auth(mock_user):
-                with patch(
-                    "app.services.badge_service.BadgeService"
-                ) as mock_badge_cls:
+                with patch("app.services.badge_service.BadgeService") as mock_badge_cls:
                     mock_badge_cls.return_value.check_and_award_badges.return_value = []
-                    mock_badge_cls.return_value.get_closest_progress_notification.return_value = None
+                    mock_badge_cls.return_value.get_closest_progress_notification.return_value = (
+                        None
+                    )
                     response = await submit_answer(mock_request)
 
     result = json.loads(response.body.decode("utf-8"))
@@ -150,11 +150,11 @@ async def test_submit_incorrect_answer(db_session):
             return_value=attempt_obj,
         ):
             with _patch_auth(mock_user):
-                with patch(
-                    "app.services.badge_service.BadgeService"
-                ) as mock_badge_cls:
+                with patch("app.services.badge_service.BadgeService") as mock_badge_cls:
                     mock_badge_cls.return_value.check_and_award_badges.return_value = []
-                    mock_badge_cls.return_value.get_closest_progress_notification.return_value = None
+                    mock_badge_cls.return_value.get_closest_progress_notification.return_value = (
+                        None
+                    )
                     response = await submit_answer(mock_request)
 
     result = json.loads(response.body.decode("utf-8"))

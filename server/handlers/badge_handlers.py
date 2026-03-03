@@ -22,7 +22,7 @@ from server.auth import require_auth, require_full_access
 
 
 @require_auth
-async def get_user_badges(request):
+async def get_user_badges(request: Request) -> JSONResponse:
     """Récupérer tous les badges d'un utilisateur"""
     try:
         current_user = request.state.user
@@ -35,13 +35,13 @@ async def get_user_badges(request):
 
     except Exception as user_badges_error:
         logger.error(
-            f"Erreur lors de la récupération des badges utilisateur: {user_badges_error}"
+            f"Erreur lors de la récupération des badges utilisateur: {user_badges_error}",
+            exc_info=True,
         )
-        traceback.print_exc()
         return api_error_response(500, get_safe_error_message(user_badges_error))
 
 
-async def get_available_badges(request: Request):
+async def get_available_badges(request: Request) -> JSONResponse:
     """Récupérer tous les badges disponibles avec traductions"""
     try:
         accept_language = request.headers.get("Accept-Language", "fr")
@@ -63,7 +63,7 @@ async def get_available_badges(request: Request):
 
 @require_auth
 @require_full_access
-async def check_user_badges(request):
+async def check_user_badges(request: Request) -> JSONResponse:
     """Forcer la vérification des badges pour un utilisateur (utile pour les tests)"""
     try:
         current_user = request.state.user
@@ -87,14 +87,14 @@ async def check_user_badges(request):
 
     except Exception as badge_verification_error:
         logger.error(
-            f"Erreur lors de la vérification forcée des badges: {badge_verification_error}"
+            f"Erreur lors de la vérification forcée des badges: {badge_verification_error}",
+            exc_info=True,
         )
-        traceback.print_exc()
         return api_error_response(500, get_safe_error_message(badge_verification_error))
 
 
 @require_auth
-async def get_user_gamification_stats(request):
+async def get_user_gamification_stats(request: Request) -> JSONResponse:
     """Récupérer les statistiques de gamification d'un utilisateur (cache TTL 60s)."""
     try:
         current_user = request.state.user
@@ -110,15 +110,15 @@ async def get_user_gamification_stats(request):
 
     except Exception as gamification_stats_error:
         logger.error(
-            f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}"
+            f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}",
+            exc_info=True,
         )
-        traceback.print_exc()
         return api_error_response(500, get_safe_error_message(gamification_stats_error))
 
 
 @require_auth
 @require_full_access
-async def patch_pinned_badges(request: Request):
+async def patch_pinned_badges(request: Request) -> JSONResponse:
     """A-4 : Épingler 1-3 badges. Body: { "badge_ids": [1, 2, 3] }"""
     body_or_err = await parse_json_body_any(request)
     if isinstance(body_or_err, JSONResponse):
@@ -137,12 +137,11 @@ async def patch_pinned_badges(request: Request):
             pinned = badge_service.set_pinned_badges(user_id, badge_ids)
         return JSONResponse({"success": True, "data": {"pinned_badge_ids": pinned}})
     except Exception as e:
-        logger.error(f"Erreur patch_pinned_badges: {e}")
-        traceback.print_exc()
+        logger.error(f"Erreur patch_pinned_badges: {e}", exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 
-async def get_badges_rarity(request: Request):
+async def get_badges_rarity(request: Request) -> JSONResponse:
     """
     Stats rareté par badge (unlock_percent, rarity).
     GET /api/badges/rarity — public (pas de données sensibles). Cache TTL 90s.
@@ -157,14 +156,13 @@ async def get_badges_rarity(request: Request):
         data = await get_or_set("badges_rarity", 90.0, _fetch)
         return JSONResponse({"success": True, "data": data})
     except Exception as e:
-        logger.error(f"Erreur get_badges_rarity: {e}")
-        traceback.print_exc()
+        logger.error(f"Erreur get_badges_rarity: {e}", exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
 @require_full_access
-async def get_user_badges_progress(request: Request):
+async def get_user_badges_progress(request: Request) -> JSONResponse:
     """
     Progression vers les badges (débloqués + en cours).
     Route: GET /api/challenges/badges/progress
@@ -182,7 +180,7 @@ async def get_user_badges_progress(request: Request):
         return JSONResponse({"success": True, "data": data})
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération de la progression des badges: {e}"
+            f"Erreur lors de la récupération de la progression des badges: {e}",
+            exc_info=True,
         )
-        traceback.print_exc()
         return api_error_response(500, get_safe_error_message(e))

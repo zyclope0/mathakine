@@ -6,6 +6,7 @@ Charge les variables depuis l'environnement (.env en dev, vars injectées en pro
 import os
 import secrets
 from typing import List
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 from pydantic import Field, model_validator
@@ -66,6 +67,8 @@ class Settings(BaseSettings):
     DEFAULT_ADMIN_EMAIL: str = Field(default="")
     DEFAULT_ADMIN_PASSWORD: str = Field(default="")
 
+    FRONTEND_URL: str = Field(default="https://mathakine-frontend.onrender.com")
+
     # CORS : liste de base + FRONTEND_URL si défini
     BACKEND_CORS_ORIGINS: List[str] = Field(default_factory=list)
 
@@ -107,7 +110,7 @@ class Settings(BaseSettings):
 
         # BACKEND_CORS_ORIGINS : valeur par défaut si vide
         if not self.BACKEND_CORS_ORIGINS:
-            self.BACKEND_CORS_ORIGINS = [
+            origins: list = [
                 "http://localhost:8000",
                 "http://localhost:3000",
                 "http://localhost:5173",
@@ -115,8 +118,30 @@ class Settings(BaseSettings):
                 "http://127.0.0.1:3000",
                 "http://127.0.0.1:5173",
             ]
-            if os.getenv("FRONTEND_URL"):
-                self.BACKEND_CORS_ORIGINS.append(os.getenv("FRONTEND_URL", ""))
+            frontend_url = self.FRONTEND_URL
+            if frontend_url:
+                origins.append(frontend_url)
+                try:
+                    from urllib.parse import urlparse
+
+                    parsed = urlparse(frontend_url)
+                    if parsed.netloc and "." in parsed.netloc:
+                        if not parsed.netloc.startswith("www."):
+                            origins.append(f"{parsed.scheme}://www.{parsed.netloc}")
+                        else:
+                            origins.append(f"{parsed.scheme}://{parsed.netloc[4:]}")
+                except Exception:
+                    pass
+                if (
+                    "mathakine" in frontend_url.lower()
+                    and "render.com" not in frontend_url
+                ):
+                    origins.append("https://mathakine-frontend.onrender.com")
+            object.__setattr__(
+                self,
+                "BACKEND_CORS_ORIGINS",
+                list(dict.fromkeys(o for o in origins if o)),
+            )
 
         # SECRET_KEY : prod = obligatoire ; dev = génération auto si vide
         is_prod = _is_production()
@@ -164,10 +189,27 @@ def _validate_production_settings():
             "(éviter admin, password, 123456). Définir dans les variables Render."
         )
 
+    # S3 — audit 03/03/2026 : rejeter les credentials DB par défaut en production
+    if (
+        os.getenv("ENVIRONMENT") == "production"
+        and not settings.TESTING
+        and settings.POSTGRES_PASSWORD in ("", "postgres", "password")
+    ):
+        raise ValueError(
+            "POSTGRES_PASSWORD utilise une valeur par défaut non sécurisée en production. "
+            "Définir une valeur forte dans les variables d'environnement Render."
+        )
+
 
 _validate_production_settings()
 
 if settings.TESTING:
-    logger.info(
-        f"Mode test détecté, utilisation de l'URL: {settings.SQLALCHEMY_DATABASE_URL}"
-    )
+    # S4 — audit 03/03/2026 : ne jamais logger une URL contenant des credentials
+    try:
+        _parsed = urlparse(settings.SQLALCHEMY_DATABASE_URL)
+        _safe_url = _parsed._replace(
+            netloc=f"{_parsed.hostname}:{_parsed.port or 5432}"
+        ).geturl()
+    except Exception:
+        _safe_url = "<url non parsable>"
+    logger.info(f"Mode test détecté, utilisation de la base: {_safe_url}")

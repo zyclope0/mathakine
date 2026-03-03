@@ -176,13 +176,19 @@ class TestCheckRequirementsMinPerType:
         for _ in range(3):
             db_session.add(
                 Attempt(
-                    user_id=user.id, exercise_id=ex1.id, user_answer="2", is_correct=True
+                    user_id=user.id,
+                    exercise_id=ex1.id,
+                    user_answer="2",
+                    is_correct=True,
                 )
             )
         for _ in range(2):
             db_session.add(
                 Attempt(
-                    user_id=user.id, exercise_id=ex2.id, user_answer="1", is_correct=True
+                    user_id=user.id,
+                    exercise_id=ex2.id,
+                    user_answer="1",
+                    is_correct=True,
                 )
             )
         db_session.commit()

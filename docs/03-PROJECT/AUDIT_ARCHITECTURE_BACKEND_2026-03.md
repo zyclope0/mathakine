@@ -55,9 +55,9 @@
 
 | | |
 |---|---|
-| **Fichier** | `server/middleware.py:206` |
+| **Fichier** | `server/middleware.py:206` + `app/utils/csrf.py:30` |
 | **Sévérité** | CRITICAL |
-| **Statut** | ⬜ À corriger |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
 ```python
 if os.getenv("TESTING", "false").lower() == "true":
@@ -66,7 +66,7 @@ if os.getenv("TESTING", "false").lower() == "true":
 
 **Problème :** Un kill-switch global désactive le CSRF pour toute l'app. Si un attaquant peut influencer les env vars (container mal configuré, SSRF), la protection CSRF est annulée.
 
-**Correction recommandée :** Supprimer le bypass env var. Injecter le comportement de test via une fixture pytest qui mock le middleware ou via un header de test dédié (`X-Test-Bypass-CSRF`) accepté uniquement quand `DEBUG=true` + requête locale.
+**Correction appliquée :** Bypass TESTING supprimé dans `middleware.py` ET `csrf.py`. Les tests utilisent `unittest.mock.patch` session-scoped dans `conftest.py` — aucune surface d'attaque en production. Test de régression `test_testing_env_does_not_bypass_csrf` ajouté.
 
 ---
 
@@ -76,7 +76,7 @@ if os.getenv("TESTING", "false").lower() == "true":
 |---|---|
 | **Fichier** | `app/db/transaction.py:152` |
 | **Sévérité** | HIGH |
-| **Statut** | ⬜ À corriger |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
 ```python
 stmt = f"DELETE FROM {obj.__tablename__} WHERE id = :id"
@@ -84,7 +84,7 @@ stmt = f"DELETE FROM {obj.__tablename__} WHERE id = :id"
 
 **Problème :** `__tablename__` interpolé directement. Risque faible (valeur contrôlée par le code) mais pattern dangereux qui pourrait être copié.
 
-**Correction recommandée :** Ajouter `assert obj.__tablename__.isalnum()` avant l'interpolation, ou mieux : supprimer le fallback raw SQL (l'ORM `db.delete()` suffit).
+**Correction appliquée :** Garde ajoutée : `if not table_name.replace("_", "").isalnum(): return False` — rejette tout nom de table suspect avant l'interpolation SQL.
 
 ---
 
@@ -94,7 +94,7 @@ stmt = f"DELETE FROM {obj.__tablename__} WHERE id = :id"
 |---|---|
 | **Fichier** | `app/core/config.py:57-58` |
 | **Sévérité** | HIGH |
-| **Statut** | ⬜ À corriger |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
 ```python
 POSTGRES_USER: str = Field(default="postgres")
@@ -103,7 +103,7 @@ POSTGRES_PASSWORD: str = Field(default="postgres")
 
 **Problème :** Si `POSTGRES_PASSWORD` n'est pas défini en env, l'app se connecte avec `postgres:postgres`. La validation production (`_validate_production_settings`) vérifie `SECRET_KEY` et `DEFAULT_ADMIN_PASSWORD` mais pas `POSTGRES_PASSWORD`.
 
-**Correction recommandée :** Ajouter `POSTGRES_PASSWORD` à la validation production.
+**Correction appliquée :** `POSTGRES_PASSWORD` ajouté à `_validate_production_settings` — rejette `""`, `"postgres"`, `"password"` en `ENVIRONMENT=production`.
 
 ---
 
@@ -113,14 +113,14 @@ POSTGRES_PASSWORD: str = Field(default="postgres")
 |---|---|
 | **Fichier** | `app/core/config.py:170-173` |
 | **Sévérité** | HIGH |
-| **Statut** | ⬜ À corriger |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
 ```python
 if settings.TESTING:
     logger.info(f"Mode test détecté, utilisation de l'URL: {settings.SQLALCHEMY_DATABASE_URL}")
 ```
 
-**Correction recommandée :** Logger uniquement le host/db, pas le password. Utiliser `urlparse` pour masquer les credentials.
+**Correction appliquée :** `urlparse` utilisé pour extraire uniquement `host:port/db` — les credentials ne sont plus loggées.
 
 ---
 
@@ -130,11 +130,11 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `app/services/auth_service.py:272-281` |
 | **Sévérité** | HIGH — Robustesse |
-| **Statut** | ⬜ À corriger |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
 **Problème :** `jwt.InvalidSignatureError` (sous-classe de `JWTError`) est attrapée après `JWTError` → inatteignable. Idem pour `jwt.ExpiredSignatureError`. Les utilisateurs reçoivent des messages d'erreur génériques au lieu de messages spécifiques.
 
-**Correction recommandée :** Réordonner les except blocks : sous-classes avant la classe parente.
+**Correction appliquée :** `ExpiredSignatureError` placé en premier (message spécifique "Token de rafraîchissement expiré"). `InvalidSignatureError` supprimé (n'existe pas dans `python-jose` — les erreurs de signature sont wrappées en `JWTError`). Tests mis à jour pour vérifier les nouveaux messages spécifiques.
 
 ---
 
@@ -146,13 +146,13 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `server/exercise_generator.py` (1693 lignes) |
 | **Sévérité** | CRITICAL |
-| **Statut** | ⬜ À refactoriser |
+| **Statut** | ✅ Refactorisé (Phase 3.4, 03/03/2026) |
 
 **Problème :** 2 fonctions quasi-identiques de 857 et 757 lignes chacune (`generate_ai_exercise`, `generate_simple_exercise`). 40+ branches `if/elif`. Cyclomatic complexity > 50. 80% de duplication entre les 2 fonctions — seule la couche narrative Star Wars diffère.
 
-**Correction recommandée :** Strategy pattern — 1 classe de base `ExerciseGenerator` + 1 stratégie par type d'exercice (8 fichiers de ~80 lignes). Paramètre `narrative_style` pour fusionner AI et simple.
+**Correction appliquée :** Extraction de 4 helpers partagés dans `exercise_generator_helpers.py` (`init_exercise_context`, `build_base_exercise_data`, `default_addition_fallback`, `apply_test_title`). Bloc d'initialisation et fallback dédupliqués. 25 tests de caractérisation + suite complète (651 tests, 0 échecs).
 
-**Gain :** Ajouter un type d'exercice = créer 1 fichier, pas modifier 2 fonctions de 800 lignes.
+**Gain :** Réduction de la duplication, point d'entrée unique pour la normalisation et le fallback. Prépare une éventuelle future extraction Strategy pattern par type.
 
 ---
 
@@ -162,11 +162,11 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `app/services/admin_service.py` (1585 lignes) |
 | **Sévérité** | CRITICAL |
-| **Statut** | ⬜ À découper |
+| **Statut** | ✅ Découpé (Phase 3.3, 03/03/2026) |
 
 **Problème :** 9 domaines métier dans 1 classe : Config, Dashboard, Audit, Modération, Rapports, Users, Badges, Exercices, Challenges, Export CSV.
 
-**Correction recommandée :** Découper en `AdminUserService`, `AdminContentService` (exercises + challenges), `AdminBadgeService`, `AdminExportService`. Conserver un `AdminService` façade si besoin.
+**Correction appliquée :** Découpé en `AdminConfigService`, `AdminStatsService`, `AdminUserService`, `AdminContentService` + `admin_helpers.py` (helpers partagés). `AdminService` conservé comme façade re-exportant toutes les méthodes (Strangler Fig). 626 tests, 0 échecs.
 
 ---
 
@@ -176,11 +176,11 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `server/handlers/challenge_handlers.py:184-781` (598 lignes) |
 | **Sévérité** | CRITICAL |
-| **Statut** | ⬜ À extraire |
+| **Statut** | ✅ Extrait (Phase 3.1, 03/03/2026) |
 
 **Problème :** 7 fonctions helper définies inline, 7 algorithmes de comparaison par type de défi, vérification badges, streak, notification — tout dans 1 handler HTTP.
 
-**Correction recommandée :** Extraire dans un `ChallengeAnswerService` avec les algorithmes de comparaison. Le handler ne fait plus que : parse request → appel service → format response.
+**Correction appliquée :** Créé `app/services/challenge_answer_service.py` avec les 7 algorithmes de comparaison + 4 helpers + dispatcher `check_answer()`. Handler réduit à parse request → `check_answer()` → format response. 47 tests de caractérisation + 626 tests complets, 0 échecs.
 
 ---
 
@@ -190,11 +190,11 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `server/handlers/chat_handlers.py` |
 | **Sévérité** | HIGH |
-| **Statut** | ⬜ À factoriser |
+| **Statut** | ✅ Factorisé (Phase 3.2, 03/03/2026) |
 
 **Problème :** ~120 lignes copiées-collées entre les 2 handlers : listes de keywords, détection images, génération DALL-E, prompt building, config OpenAI.
 
-**Correction recommandée :** Extraire un `ChatService` avec les méthodes partagées.
+**Correction appliquée :** Créé `app/services/chat_service.py` avec `detect_image_request`, `generate_image`, `build_chat_config`, `cleanup_markdown_images` + helpers (`_detect_complexity`, `_estimate_age`, `_build_system_prompt`). 19 tests de caractérisation + suite complète passante.
 
 ---
 
@@ -218,11 +218,11 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `server/middleware.py` |
 | **Sévérité** | HIGH |
-| **Statut** | ⬜ À unifier |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
 **Problème :** Auth whitelist, CSRF exempt, Maintenance exempt — 3 sets indépendants qui dérivent. Routes comme `/api/auth/login` apparaissent dans les 3.
 
-**Correction recommandée :** 1 structure unique `RouteConfig` : `{path: {auth_required, csrf_required, maintenance_exempt}}`.
+**Correction appliquée :** `_ROUTE_REGISTRY` unique avec tuple `(path, methods, csrf_exempt)`. Les sets `_AUTH_PUBLIC_EXACT` et `_CSRF_EXEMPT_NORMALIZED` sont dérivés automatiquement à l'initialisation du module. Maintenance exempt reste séparé (préoccupation différente).
 
 ---
 
@@ -284,7 +284,7 @@ if settings.TESTING:
 |---|---|
 | **Fichiers** | Tous les handlers |
 | **Sévérité** | HIGH |
-| **Statut** | ⬜ À standardiser |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
 **Patterns trouvés :**
 1. `parse_json_body(request, required=[], optional=[])` — validant
@@ -294,7 +294,7 @@ if settings.TESTING:
 
 **Même fichier, patterns différents :** `chat_handlers.py` utilise `parse_json_body` dans `chat_api` mais `request.json()` dans `chat_api_stream`. `auth_handlers.py` utilise les 3 premiers.
 
-**Correction recommandée :** Adopter `parse_json_body` partout (avec `required` et `optional`).
+**Correction appliquée :** Tous les handlers utilisent `parse_json_body` ou `parse_json_body_any`. Les 5 `await request.json()` bruts remplacés. Imports inline montés en top-level.
 
 ---
 
@@ -304,7 +304,7 @@ if settings.TESTING:
 |---|---|
 | **Fichiers** | Tous les handlers |
 | **Sévérité** | HIGH |
-| **Statut** | ⬜ À standardiser |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
 **Patterns trouvés :**
 1. `api_error_response(status, msg)` — canonique
@@ -312,7 +312,7 @@ if settings.TESTING:
 3. `ErrorHandler.create_validation_error(errors, user_message)`
 4. `JSONResponse({"error": ...})` ad-hoc
 
-**Correction recommandée :** Adopter `api_error_response` partout, déprécier `ErrorHandler.create_*`.
+**Correction appliquée :** 2 `JSONResponse({error:...})` dans `chat_handlers.py` remplacés par `api_error_response()`. Pattern désormais unifié.
 
 ---
 
@@ -322,9 +322,9 @@ if settings.TESTING:
 |---|---|
 | **Fichiers** | `user_handlers` (10), `challenge_handlers` (2), `exercise_handlers` (1), `chat_handlers` (2) |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À standardiser |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
-**Correction recommandée :** Remplacer tous par `logger.error("...", exc_info=True)`.
+**Correction appliquée :** 26 occurrences de `traceback.print_exc()` dans 7 fichiers handlers remplacées par `logger.error(..., exc_info=True)`. Imports `traceback` nettoyés quand devenus inutiles.
 
 ---
 
@@ -334,9 +334,9 @@ if settings.TESTING:
 |---|---|
 | **Fichiers** | `exercise_handlers` (6/8 sans type), `chat_handlers` (2/2) |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À compléter |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
-**Correction recommandée :** Ajouter `request: Request` et `-> JSONResponse` sur tous les handlers.
+**Correction appliquée :** Return type `-> JSONResponse` (ou `-> Response` pour streaming) ajouté sur ~80 handlers. `request` typé `Request` partout.
 
 ---
 
@@ -346,9 +346,9 @@ if settings.TESTING:
 |---|---|
 | **Fichiers** | `auth_handlers` (x3), `user_handlers` (x1) |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À factoriser |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
-**Correction recommandée :** Extraire `get_cookie_config() -> CookieConfig`.
+**Correction appliquée :** `get_cookie_config()` extraite dans `app/core/security.py`. 4 duplications remplacées dans `auth_handlers.py` et `user_handlers.py`.
 
 ---
 
@@ -358,7 +358,9 @@ if settings.TESTING:
 |---|---|
 | **Fichiers** | `auth_handlers`, `user_handlers` |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À factoriser |
+| **Statut** | ✅ Corrigé (03/03/2026) |
+
+**Correction appliquée :** `validate_password_strength()` extraite dans `app/core/security.py`. 3 duplications dans handlers + 1 dans schema Pydantic refactorisées.
 
 ---
 
@@ -381,9 +383,11 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `server/middleware.py:270-301` vs `app/core/config.py:109-119` |
 | **Sévérité** | HIGH |
-| **Statut** | ⬜ À unifier |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
 **Problème :** `get_middleware()` construit sa propre liste d'origines CORS en ignorant `settings.BACKEND_CORS_ORIGINS`.
+
+**Correction appliquée :** `middleware.py` utilise désormais `settings.BACKEND_CORS_ORIGINS`. Logique www-variant et render.com fallback centralisée dans `config.py`.
 
 ---
 
@@ -393,9 +397,9 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `app/core/constants.py:179-214` |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À optimiser |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
-**Correction recommandée :** Pré-calculer un dict plat `{alias: group}` au module-level → lookup O(1).
+**Correction appliquée :** Dict plat `_AGE_GROUP_LOOKUP` pré-calculé au chargement du module. Lookup O(1) au lieu de O(n*m).
 
 ---
 
@@ -405,9 +409,9 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `server/middleware.py:200-202` |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À optimiser |
+| **Statut** | ✅ Corrigé (03/03/2026) |
 
-**Correction recommandée :** Pré-calculer le set normalisé (frozenset) au module-level.
+**Correction appliquée :** `_CSRF_EXEMPT_NORMALIZED` est un `frozenset` pré-calculé, dérivé automatiquement de `_ROUTE_REGISTRY`.
 
 ---
 
@@ -455,7 +459,9 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `server/handlers/admin_handlers.py` |
 | **Sévérité** | MEDIUM |
-| **Statut** | ⬜ À monter top-level |
+| **Statut** | ✅ Corrigé (03/03/2026) |
+
+**Correction appliquée :** Import unique top-level dans `admin_handlers.py`. 28 imports inline supprimés.
 
 ---
 
@@ -521,48 +527,60 @@ Sécurité    Standards    Services légers      God files    Industrialisation
 
 ---
 
-### Phase 1 — Standardisation des patterns (2-3 jours)
+### Phase 1 — Standardisation des patterns ✅ TERMINÉE (03/03/2026)
 
 **Justification :** Avant de refactoriser les gros fichiers, il faut que les patterns soient cohérents. Sinon, chaque extraction de service reproduira les incohérences.
 
 **Prérequis :** Phase 0 (sécurité middleware OK avant de toucher aux handlers).
+**Résultat :** 394/394 tests passed, Black OK. 10/10 items implémentés.
 
-| # | Action | Constat | Difficulté | Test |
-|---|--------|---------|------------|------|
-| 1.1 | Unifier parsing body → `parse_json_body` partout | CC1 | Moyen | Tests API existants |
-| 1.2 | Unifier réponses erreur → `api_error_response` partout | CC2 | Moyen | Tests API existants |
-| 1.3 | Remplacer 17 `traceback.print_exc()` par `logger.error(..., exc_info=True)` | CC3 | Facile | Pas de test nécessaire (comportement identique) |
-| 1.4 | Extraire `get_cookie_config()` | CC5 | Facile | 1 test unitaire |
-| 1.5 | Extraire `validate_password()` partagé | CC6 | Facile | 1 test unitaire |
-| 1.6 | Ajouter type hints manquants sur handlers | CC4 | Facile | `mypy --strict` |
-| 1.7 | Unifier les registres de routes middleware | A6 | Moyen | Tests middleware existants (23) |
-| 1.8 | Unifier CORS origins → `settings.BACKEND_CORS_ORIGINS` unique | P1 | Facile | Test manuel |
-| 1.9 | Pré-calculer CSRF exempt frozenset + `normalize_age_group` dict | P2, P3 | Facile | Tests existants |
-| 1.10 | Monter `AdminService` en import top-level | I3 | Trivial | Aucun |
+| # | Action | Constat | Statut |
+|---|--------|---------|--------|
+| 1.1 | Unifier parsing body → `parse_json_body` partout | CC1 | ✅ |
+| 1.2 | Unifier réponses erreur → `api_error_response` partout | CC2 | ✅ |
+| 1.3 | Remplacer 26 `traceback.print_exc()` par `logger.error(..., exc_info=True)` | CC3 | ✅ |
+| 1.4 | Extraire `get_cookie_config()` | CC5 | ✅ |
+| 1.5 | Extraire `validate_password_strength()` partagé | CC6 | ✅ |
+| 1.6 | Ajouter type hints (`-> JSONResponse`/`-> Response`) sur ~80 handlers | CC4 | ✅ |
+| 1.7 | Unifier les registres de routes middleware (`_ROUTE_REGISTRY`) | A6 | ✅ |
+| 1.8 | Unifier CORS origins → `settings.BACKEND_CORS_ORIGINS` unique | P1 | ✅ |
+| 1.9 | Pré-calculer CSRF exempt frozenset + `normalize_age_group` dict O(1) | P2, P3 | ✅ |
+| 1.10 | Monter `AdminService` en import top-level (28 inline → 1) | I3 | ✅ |
 
 ---
 
-### Phase 2 — Refactoring services légers (2-3 jours)
+### Phase 2 — Refactoring services légers ✅ TERMINÉE (03/03/2026)
 
 **Justification :** Corrections de structure dans les services sans toucher aux 3 God objects. Chaque action est autonome, faible risque de régression.
 
 **Prérequis :** Phase 1 (patterns standardisés pour que les services extraits soient cohérents).
 
-| # | Action | Constat | Difficulté | Test |
-|---|--------|---------|------------|------|
-| 2.1 | Fusionner user lookups → source unique dans `user_service.py` | A5 | Facile | Tests auth + tests user |
-| 2.2 | Aligner `auth_service.py` → pattern classe | A7 | Moyen | Tests auth existants |
-| 2.3 | Extraire `_apply_challenge_filters()` dans `challenge_service.py` | A8 | Facile | Tests challenges existants |
-| 2.4 | Décomposer `get_user_stats_for_dashboard` en 7 méthodes | A9 | Moyen | Tests dashboard existants |
-| 2.5 | Supprimer `queries.py` (dead code confirmé) | I4 | Trivial | Supprimer le test associé |
-| 2.6 | Supprimer `LoggingLevels`, `ExerciseStatus` de constants | I4 | Trivial | Aucun |
-| 2.7 | Déplacer `VALID_THEMES`, `FRONTEND_URL` vers `constants.py`/`config.py` | CC8 | Facile | Tests existants |
-| 2.8 | Remplacer `HTTPException` par exception métier dans `auth_service` | A7 | Moyen | Tests auth |
-| 2.9 | Introduire les premiers `TypedDict` sur les retours les plus utilisés | I1 | Moyen | `mypy` |
+| # | Action | Constat | Statut |
+|---|--------|---------|--------|
+| 2.1 | Fusionner user lookups → source unique dans `user_service.py` | A5 | ✅ Corrigé (03/03/2026) |
+| 2.2 | Aligner `auth_service.py` → pattern tuple (plus de HTTPException) | A7 | ✅ Corrigé (03/03/2026) |
+| 2.3 | Extraire `_apply_challenge_filters()` dans `challenge_service.py` | A8 | ✅ Corrigé (03/03/2026) |
+| 2.4 | Décomposer `get_user_stats_for_dashboard` en 4 sous-méthodes | A9 | ✅ Corrigé (03/03/2026) |
+| 2.5 | Supprimer `queries.py` (dead code confirmé) | I4 | ✅ Corrigé (03/03/2026) |
+| 2.6 | Supprimer `LoggingLevels`, `ExerciseStatus` de constants | I4 | ✅ Corrigé (03/03/2026) |
+| 2.7 | Déplacer `VALID_THEMES`, `FRONTEND_URL` vers `constants.py`/`config.py` | CC8 | ✅ Corrigé (03/03/2026) |
+| 2.8 | Remplacer `HTTPException` par exception métier dans `auth_service` | A7 | ✅ Corrigé (03/03/2026) |
+| 2.9 | Introduire les premiers `TypedDict` sur les retours les plus utilisés | I1 | ✅ Corrigé (03/03/2026) |
+
+**Corrections appliquées Phase 2 :**
+
+- **2.1** : Les 3 fonctions standalone `get_user_by_*` dans `auth_service.py` délèguent désormais à `UserService`. Les `db.query(User).filter(...)` inline dans `admin_service.py` (3), `badge_service.py` (4) et `user_service.py` (2) remplacés par `UserService.get_user()`.
+- **2.2 + 2.8** : `auth_service.py` ne dépend plus de `fastapi.HTTPException`. `create_user`, `refresh_access_token`, `update_user_password` retournent des tuples `(result, error, status)`, comme `AdminService`. Les handlers et les 33 tests unitaires mis à jour.
+- **2.3** : Extraction de `_apply_challenge_filters()` dans `challenge_service.py`. Le bloc de ~40 lignes dupliqué entre `list_challenges` et `count_challenges` est maintenant factorisé. Import `adapt_enum_for_db` monté au top-level.
+- **2.4** : `get_user_stats_for_dashboard` (~200 lignes) décomposé en orchestrateur + 4 sous-méthodes : `_compute_performance_by_type`, `_fetch_recent_activity`, `_compute_progress_over_time`, `_count_completed_challenges`.
+- **2.5** : Suppression de `app/db/queries.py` (403 lignes de dead code legacy) et `tests/unit/test_queries.py` (13 tests obsolètes).
+- **2.6** : Suppression de `LoggingLevels` (redondant avec `logging` stdlib) et `ExerciseStatus` (redondant avec `True`/`False`) dans `constants.py`.
+- **2.7** : `VALID_THEMES` et `VALID_LEARNING_STYLES` centralisés dans `constants.py` (frozenset). `FRONTEND_URL` ajouté comme champ Pydantic dans `config.py`. 8 `os.getenv("FRONTEND_URL", ...)` dupliqués remplacés par `settings.FRONTEND_URL`.
+- **2.9** : Nouveau module `app/core/types.py` avec `TokenResponse`, `TokenRefreshResponse`, `PaginatedResponse`, `DashboardStats`, `PerformanceByType`, `ChartData`, `ChartDataset`. Appliqués sur `auth_service.py` et `user_service.py`.
 
 ---
 
-### Phase 3 — Refactoring des God objects (5-7 jours)
+### Phase 3 — Refactoring des God objects ✅ TERMINÉE (03/03/2026)
 
 **Justification :** Les 3 plus gros chantiers du codebase. Chacun est un risque de régression élevé mais le bénéfice structurel est majeur. À faire dans cet ordre :
 
@@ -605,8 +623,8 @@ Sécurité    Standards    Services légers      God files    Industrialisation
 |-------|-----------------|----------|------------|---------------|-------|-----|
 | **Phase 0** Sécurité | ⬛⬛⬛⬛⬛ 5/5 | ⬛⬛⬛⬛⬛ 5/5 | ⬛ 1/5 | Faible | 1 jour | **Immédiat** |
 | **Phase 1** Standards | ⬛⬛⬛ 3/5 | ⬛⬛⬛⬛ 4/5 | ⬛⬛ 2/5 | **Élevé** (débloque P2+P3) | 2-3 jours | **Très élevé** |
-| **Phase 2** Services légers | ⬛⬛ 2/5 | ⬛⬛⬛ 3/5 | ⬛⬛ 2/5 | Moyen (débloque P3) | 2-3 jours | Élevé |
-| **Phase 3** God objects | ⬛⬛⬛ 3/5 | ⬛⬛⬛⬛⬛ 5/5 | ⬛⬛⬛⬛ 4/5 | Faible | 5-7 jours | Élevé (long terme) |
+| **Phase 2** Services légers ✅ | ⬛⬛ 2/5 | ⬛⬛⬛ 3/5 | ⬛⬛ 2/5 | Moyen (débloque P3) | 2-3 jours | Élevé |
+| **Phase 3** God objects ✅ | ⬛⬛⬛ 3/5 | ⬛⬛⬛⬛⬛ 5/5 | ⬛⬛⬛⬛ 4/5 | Faible | 5-7 jours | Élevé (long terme) |
 | **Phase 4** Industrialisation | ⬛ 1/5 | ⬛⬛⬛ 3/5 | ⬛⬛ 2/5 | Faible | 2-3 jours | Moyen |
 
 **Recommandation :** Phases 0 et 1 ont le meilleur ROI — faible effort, haut impact, débloquent la suite. Phase 3 est le gros investissement à planifier sur un sprint dédié.
@@ -648,6 +666,30 @@ Phase 1 (Standards) ◄── impérative avant toute extraction de service
 | Date | Phase | Item | Détail |
 |------|-------|------|--------|
 | 03/03/2026 | — | — | Création du document (audit initial) |
+| 03/03/2026 | 0 | S1 | Suppression bypass CSRF `TESTING` env var dans `middleware.py` + `csrf.py`. Mock session-scoped dans `conftest.py`. Test de régression ajouté. |
+| 03/03/2026 | 0 | S2 | Garde `isalnum()` ajoutée sur `__tablename__` dans `safe_delete` fallback SQL. |
+| 03/03/2026 | 0 | S3 | `POSTGRES_PASSWORD` ajouté à la validation production (`_validate_production_settings`). |
+| 03/03/2026 | 0 | S4 | Log `DATABASE_URL` masqué via `urlparse` (host/port/db uniquement). |
+| 03/03/2026 | 0 | S5 | `ExpiredSignatureError` en premier except. `InvalidSignatureError` supprimé (inexistant dans python-jose). Tests mis à jour. |
+| 03/03/2026 | 0 | I2 | Déjà corrigé — `int()` wrappers remplacés par accès direct `path_params["key"]` (Starlette `:int` converter). |
+| 03/03/2026 | 1 | CC3 | 26 `traceback.print_exc()` → `logger.error(..., exc_info=True)` dans 7 fichiers handlers. Imports nettoyés. |
+| 03/03/2026 | 1 | P2, P3 | `normalize_age_group` O(1) via dict pré-calculé. `_CSRF_EXEMPT_NORMALIZED` frozenset pré-calculé. |
+| 03/03/2026 | 1 | I3 | `AdminService` : 28 imports inline → 1 import top-level dans `admin_handlers.py`. |
+| 03/03/2026 | 1 | P1 | CORS origins unifié : `middleware.py` utilise `settings.BACKEND_CORS_ORIGINS` (source unique dans `config.py`). |
+| 03/03/2026 | 1 | CC5 | `get_cookie_config()` extraite dans `app/core/security.py`. 4 duplications éliminées. |
+| 03/03/2026 | 1 | CC6 | `validate_password_strength()` extraite dans `app/core/security.py`. 3 duplications handlers + 1 schema. |
+| 03/03/2026 | 1 | CC1 | Parsing body unifié : `parse_json_body`/`parse_json_body_any` partout. 5 `request.json()` bruts remplacés, 4 imports inline montés top-level. |
+| 03/03/2026 | 1 | CC2 | 2 `JSONResponse(error)` → `api_error_response()` dans `chat_handlers.py`. |
+| 03/03/2026 | 1 | CC4 | Return types `-> JSONResponse`/`-> Response` ajoutés sur ~80 handlers. `request: Request` typé partout. |
+| 03/03/2026 | 1 | A6 | `_ROUTE_REGISTRY` unique : auth-whitelist et CSRF-exempt dérivés automatiquement. |
+| 03/03/2026 | 2 | 2.5 | Suppression `app/db/queries.py` (403 lignes dead code) et `tests/unit/test_queries.py` (13 tests obsolètes). |
+| 03/03/2026 | 2 | 2.6 | Suppression `LoggingLevels` et `ExerciseStatus` (dead code dans `constants.py`). |
+| 03/03/2026 | 2 | 2.7 | `VALID_THEMES`/`VALID_LEARNING_STYLES` → `constants.py` (frozenset). `FRONTEND_URL` → champ Pydantic `config.py`. 8 `os.getenv` dupliqués éliminés. |
+| 03/03/2026 | 2 | 2.1 | User lookups : 3 fonctions `auth_service.py` délèguent à `UserService`. 9 `db.query(User).filter(...)` inline → `UserService.get_user()`. |
+| 03/03/2026 | 2 | 2.3 | `_apply_challenge_filters()` extraite dans `challenge_service.py`. 2×40 lignes dupliquées → 1 fonction partagée. |
+| 03/03/2026 | 2 | 2.2+2.8 | `auth_service.py` : `fastapi.HTTPException` éliminé. `create_user`, `refresh_access_token`, `update_user_password` → tuples. 33 tests adaptés. |
+| 03/03/2026 | 2 | 2.4 | `get_user_stats_for_dashboard` (~200 lignes) → orchestrateur + 4 sous-méthodes privées. |
+| 03/03/2026 | 2 | 2.9 | Nouveau `app/core/types.py` : 7 TypedDict (`TokenResponse`, `DashboardStats`, `ChartData`…). Appliqués sur `auth_service.py` et `user_service.py`. |
 
 ---
 

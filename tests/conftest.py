@@ -52,6 +52,7 @@ import json
 import sys
 import uuid
 from contextlib import asynccontextmanager
+from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict
@@ -97,6 +98,25 @@ from tests.utils.test_helpers import (
     unique_username,
     verify_user_email_for_tests,
 )
+
+# ================================================================
+# SECTION 0: CSRF — bypass via mock (jamais via env var en prod)
+# ================================================================
+# Le code de production ne contient aucun bypass TESTING.
+# Les tests désactivent la validation CSRF via mock — la seule
+# approche qui ne crée pas de surface d'attaque en production.
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _bypass_csrf_in_tests():
+    """Désactive la validation CSRF pour toute la session de tests.
+
+    Utilise unittest.mock.patch sur validate_csrf_token — la production
+    n'a aucun bypass basé sur TESTING ou variables d'environnement.
+    """
+    with patch("app.utils.csrf.validate_csrf_token", return_value=None):
+        yield
+
 
 # ================================================================
 # SECTION 1: SECURITE - Protection de la base de production
@@ -188,7 +208,9 @@ def get_test_engine():
     if _test_engine is None:
         test_db_url = settings.SQLALCHEMY_DATABASE_URL
         if not test_db_url or test_db_url == settings.DATABASE_URL:
-            if "test" not in (test_db_url or "").lower() and "localhost" not in (test_db_url or ""):
+            if "test" not in (test_db_url or "").lower() and "localhost" not in (
+                test_db_url or ""
+            ):
                 raise RuntimeError(
                     f"SECURITE: Tentative d'utiliser la base de production dans les tests!\n"
                     f"   Assurez-vous que TEST_DATABASE_URL est defini."

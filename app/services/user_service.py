@@ -5,6 +5,8 @@ Implémente les opérations métier liées aux utilisateurs et utilise le transa
 
 from typing import Any, Dict, List, Optional, Tuple
 
+from app.core.types import ChartData, DashboardStats, PerformanceByType
+
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -420,23 +422,14 @@ class UserService:
     @staticmethod
     def get_user_stats_for_dashboard(
         db: Session, user_id: int, time_range: str = "30"
-    ) -> Dict[str, Any]:
+    ) -> DashboardStats:
         """
         Récupère les statistiques complètes pour le tableau de bord utilisateur.
 
         Agrège XP, niveau, activité récente, progression dans le temps.
         Route: GET /api/users/stats
-
-        Args:
-            db: Session de base de données
-            user_id: ID de l'utilisateur
-            time_range: "7", "30", "90" ou "all"
-
-        Returns:
-            Dictionnaire prêt pour JSONResponse
         """
-        from collections import defaultdict
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timezone
 
         stats = UserService.get_user_stats(db, user_id, time_range=time_range)
         if not stats:
@@ -448,161 +441,13 @@ class UserService:
             }
 
         experience_points = stats.get("total_attempts", 0) * 10
-        performance_by_type = {}
-        for exercise_type, type_stats in stats.get("by_exercise_type", {}).items():
-            type_key = str(exercise_type).lower() if exercise_type else "unknown"
-            total_t = type_stats.get("total", 0)
-            correct_t = type_stats.get("correct", 0)
-            performance_by_type[type_key] = {
-                "completed": total_t,
-                "correct": correct_t,
-                "success_rate": (correct_t / total_t * 100) if total_t > 0 else 0,
-            }
-
-        # Activité récente
-        recent_activity = []
-        try:
-            if time_range != "all":
-                days = int(time_range)
-                cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
-            else:
-                cutoff_date = None
-
-            exercise_attempts_query = db.query(Attempt).filter(
-                Attempt.user_id == user_id
-            )
-            if cutoff_date:
-                exercise_attempts_query = exercise_attempts_query.filter(
-                    Attempt.created_at >= cutoff_date
-                )
-            exercise_attempts = (
-                exercise_attempts_query.order_by(Attempt.created_at.desc())
-                .limit(5)
-                .all()
-            )
-            for attempt in exercise_attempts:
-                recent_activity.append(
-                    {
-                        "type": "exercise",
-                        "description": "Exercice complété",
-                        "time": (
-                            attempt.created_at.isoformat()
-                            if attempt.created_at
-                            else datetime.now(timezone.utc).isoformat()
-                        ),
-                        "is_correct": attempt.is_correct,
-                    }
-                )
-
-            challenge_attempts_query = db.query(LogicChallengeAttempt).filter(
-                LogicChallengeAttempt.user_id == user_id
-            )
-            if cutoff_date:
-                challenge_attempts_query = challenge_attempts_query.filter(
-                    LogicChallengeAttempt.created_at >= cutoff_date
-                )
-            challenge_attempts = (
-                challenge_attempts_query.order_by(
-                    LogicChallengeAttempt.created_at.desc()
-                )
-                .limit(5)
-                .all()
-            )
-            for attempt in challenge_attempts:
-                recent_activity.append(
-                    {
-                        "type": "challenge",
-                        "description": "Défi logique complété",
-                        "time": (
-                            attempt.created_at.isoformat()
-                            if attempt.created_at
-                            else datetime.now(timezone.utc).isoformat()
-                        ),
-                        "is_correct": attempt.is_correct,
-                    }
-                )
-
-            recent_activity.sort(key=lambda x: x.get("time", ""), reverse=True)
-            recent_activity = recent_activity[:10]
-        except SQLAlchemyError as activity_error:
-            logger.error(f"Erreur activité récente: {activity_error}")
-            recent_activity = []
-
+        performance_by_type = UserService._compute_performance_by_type(stats)
+        recent_activity = UserService._fetch_recent_activity(db, user_id, time_range)
         level_data = UserService._calculate_user_level(experience_points)
-
-        # Progression dans le temps
-        progress_over_time = {"labels": [], "datasets": []}
-        exercises_by_day = {"labels": [], "datasets": []}
-        try:
-            if time_range == "all":
-                start_date = datetime.now(timezone.utc) - timedelta(days=90)
-            else:
-                start_date = datetime.now(timezone.utc) - timedelta(
-                    days=int(time_range)
-                )
-            daily_stats = defaultdict(lambda: {"total": 0, "correct": 0})
-            attempts_query = (
-                db.query(Attempt)
-                .filter(
-                    Attempt.user_id == user_id,
-                    Attempt.created_at >= start_date,
-                )
-                .all()
-            )
-            for attempt in attempts_query:
-                if attempt.created_at:
-                    day_key = attempt.created_at.date().isoformat()
-                    daily_stats[day_key]["total"] += 1
-                    if attempt.is_correct:
-                        daily_stats[day_key]["correct"] += 1
-
-            sorted_days = sorted(daily_stats.keys())
-            progress_over_time = {
-                "labels": sorted_days,
-                "datasets": [
-                    {
-                        "label": "Taux de réussite (%)",
-                        "data": [
-                            (
-                                (
-                                    daily_stats[day]["correct"]
-                                    / daily_stats[day]["total"]
-                                    * 100
-                                )
-                                if daily_stats[day]["total"] > 0
-                                else 0
-                            )
-                            for day in sorted_days
-                        ],
-                    }
-                ],
-            }
-            exercises_by_day = {
-                "labels": sorted_days,
-                "datasets": [
-                    {
-                        "label": "Exercices complétés",
-                        "data": [daily_stats[day]["total"] for day in sorted_days],
-                        "borderColor": "rgb(139, 92, 246)",
-                        "backgroundColor": "rgba(139, 92, 246, 0.1)",
-                    }
-                ],
-            }
-        except Exception as progress_err:
-            logger.error(f"Erreur progression: {progress_err}")
-
-        # Challenges complétés
-        try:
-            total_challenges = (
-                db.query(LogicChallengeAttempt)
-                .filter(
-                    LogicChallengeAttempt.user_id == user_id,
-                    LogicChallengeAttempt.is_correct == True,
-                )
-                .count()
-            )
-        except SQLAlchemyError:
-            total_challenges = 0
+        progress_over_time, exercises_by_day = UserService._compute_progress_over_time(
+            db, user_id, time_range
+        )
+        total_challenges = UserService._count_completed_challenges(db, user_id)
 
         return {
             "total_exercises": stats.get("total_attempts", 0),
@@ -617,6 +462,170 @@ class UserService:
             "exercises_by_day": exercises_by_day,
             "lastUpdated": datetime.now(timezone.utc).isoformat(),
         }
+
+    @staticmethod
+    def _compute_performance_by_type(
+        stats: Dict[str, Any],
+    ) -> Dict[str, PerformanceByType]:
+        """Calcule les performances par type d'exercice à partir des stats brutes."""
+        performance_by_type: Dict[str, Any] = {}
+        for exercise_type, type_stats in stats.get("by_exercise_type", {}).items():
+            type_key = str(exercise_type).lower() if exercise_type else "unknown"
+            total_t = type_stats.get("total", 0)
+            correct_t = type_stats.get("correct", 0)
+            performance_by_type[type_key] = {
+                "completed": total_t,
+                "correct": correct_t,
+                "success_rate": (correct_t / total_t * 100) if total_t > 0 else 0,
+            }
+        return performance_by_type
+
+    @staticmethod
+    def _fetch_recent_activity(
+        db: Session, user_id: int, time_range: str
+    ) -> List[Dict[str, Any]]:
+        """Récupère les 10 dernières activités (exercices + challenges)."""
+        from datetime import datetime, timedelta, timezone
+
+        recent_activity: List[Dict[str, Any]] = []
+        try:
+            cutoff_date = None
+            if time_range != "all":
+                cutoff_date = datetime.now(timezone.utc) - timedelta(
+                    days=int(time_range)
+                )
+
+            exercise_q = db.query(Attempt).filter(Attempt.user_id == user_id)
+            if cutoff_date:
+                exercise_q = exercise_q.filter(Attempt.created_at >= cutoff_date)
+            for attempt in exercise_q.order_by(Attempt.created_at.desc()).limit(5):
+                recent_activity.append(
+                    {
+                        "type": "exercise",
+                        "description": "Exercice complété",
+                        "time": (
+                            attempt.created_at.isoformat()
+                            if attempt.created_at
+                            else datetime.now(timezone.utc).isoformat()
+                        ),
+                        "is_correct": attempt.is_correct,
+                    }
+                )
+
+            challenge_q = db.query(LogicChallengeAttempt).filter(
+                LogicChallengeAttempt.user_id == user_id
+            )
+            if cutoff_date:
+                challenge_q = challenge_q.filter(
+                    LogicChallengeAttempt.created_at >= cutoff_date
+                )
+            for attempt in challenge_q.order_by(
+                LogicChallengeAttempt.created_at.desc()
+            ).limit(5):
+                recent_activity.append(
+                    {
+                        "type": "challenge",
+                        "description": "Défi logique complété",
+                        "time": (
+                            attempt.created_at.isoformat()
+                            if attempt.created_at
+                            else datetime.now(timezone.utc).isoformat()
+                        ),
+                        "is_correct": attempt.is_correct,
+                    }
+                )
+
+            recent_activity.sort(key=lambda x: x.get("time", ""), reverse=True)
+            return recent_activity[:10]
+        except SQLAlchemyError as activity_error:
+            logger.error(f"Erreur activité récente: {activity_error}")
+            return []
+
+    @staticmethod
+    def _compute_progress_over_time(
+        db: Session, user_id: int, time_range: str
+    ) -> Tuple[ChartData, ChartData]:
+        """Calcule la progression (taux de réussite + exercices/jour).
+
+        Returns:
+            (progress_over_time, exercises_by_day) — deux dicts Chart.js-ready.
+        """
+        from collections import defaultdict
+        from datetime import datetime, timedelta, timezone
+
+        progress_over_time: Dict[str, Any] = {"labels": [], "datasets": []}
+        exercises_by_day: Dict[str, Any] = {"labels": [], "datasets": []}
+        try:
+            if time_range == "all":
+                start_date = datetime.now(timezone.utc) - timedelta(days=90)
+            else:
+                start_date = datetime.now(timezone.utc) - timedelta(
+                    days=int(time_range)
+                )
+            daily_stats = defaultdict(lambda: {"total": 0, "correct": 0})
+            for attempt in (
+                db.query(Attempt)
+                .filter(
+                    Attempt.user_id == user_id,
+                    Attempt.created_at >= start_date,
+                )
+                .all()
+            ):
+                if attempt.created_at:
+                    day_key = attempt.created_at.date().isoformat()
+                    daily_stats[day_key]["total"] += 1
+                    if attempt.is_correct:
+                        daily_stats[day_key]["correct"] += 1
+
+            sorted_days = sorted(daily_stats.keys())
+            progress_over_time = {
+                "labels": sorted_days,
+                "datasets": [
+                    {
+                        "label": "Taux de réussite (%)",
+                        "data": [
+                            (
+                                daily_stats[d]["correct"]
+                                / daily_stats[d]["total"]
+                                * 100
+                                if daily_stats[d]["total"] > 0
+                                else 0
+                            )
+                            for d in sorted_days
+                        ],
+                    }
+                ],
+            }
+            exercises_by_day = {
+                "labels": sorted_days,
+                "datasets": [
+                    {
+                        "label": "Exercices complétés",
+                        "data": [daily_stats[d]["total"] for d in sorted_days],
+                        "borderColor": "rgb(139, 92, 246)",
+                        "backgroundColor": "rgba(139, 92, 246, 0.1)",
+                    }
+                ],
+            }
+        except Exception as progress_err:
+            logger.error(f"Erreur progression: {progress_err}")
+
+        return progress_over_time, exercises_by_day
+
+    @staticmethod
+    def _count_completed_challenges(db: Session, user_id: int) -> int:
+        """Compte les challenges réussis par l'utilisateur."""
+        try:
+            return (
+                db.query(LogicChallengeAttempt)
+                .filter(
+                    LogicChallengeAttempt.user_id == user_id,
+                    LogicChallengeAttempt.is_correct == True,
+                )
+                .count()
+            )
+        except SQLAlchemyError:
+            return 0
 
     @staticmethod
     def get_leaderboard_for_api(
@@ -670,7 +679,7 @@ class UserService:
             .all()
         )
 
-        user_row = db.query(User).filter(User.id == user_id).first()
+        user_row = UserService.get_user(db, user_id)
         current_streak = getattr(user_row, "current_streak", None) or 0
         best_streak = getattr(user_row, "best_streak", None) or 0
 
@@ -978,7 +987,7 @@ class UserService:
         """
         from datetime import datetime, timezone
 
-        user = db.query(User).filter(User.id == user_id).first()
+        user = UserService.get_user(db, user_id)
         if not user:
             return None
 

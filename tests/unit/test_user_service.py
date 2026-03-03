@@ -1372,7 +1372,7 @@ class TestCalculateUserLevel:
     def test_level_mid_progression(self):
         result = UserService._calculate_user_level(150)
         assert result["current"] == 2
-        assert result["current_xp"] == 50   # 150 - 100
+        assert result["current_xp"] == 50  # 150 - 100
         assert result["next_level_xp"] == 200
         assert result["is_max_level"] is False
 
@@ -1407,7 +1407,7 @@ class TestCalculateUserLevel:
         for i in range(len(thresholds) - 1):
             xp = thresholds[i]
             result = UserService._calculate_user_level(xp)
-            assert result["next_level_xp"] > 0, (
-                f"next_level_xp devrait être > 0 pour xp={xp} (niveau {result['current']})"
-            )
+            assert (
+                result["next_level_xp"] > 0
+            ), f"next_level_xp devrait être > 0 pour xp={xp} (niveau {result['current']})"
             assert result["is_max_level"] is False

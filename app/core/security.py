@@ -2,8 +2,9 @@
 Utilitaires de sécurité pour l'authentification
 """
 
+import os
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, Tuple
 
 import bcrypt
 from fastapi import HTTPException
@@ -157,3 +158,32 @@ def get_password_hash(password: str) -> str:
             f"Erreur lors de la génération du hash: {str(password_hashing_error)}"
         )
         raise
+
+
+def get_cookie_config() -> Tuple[str, bool]:
+    """Source unique pour la politique SameSite/Secure des cookies auth.
+
+    Returns:
+        (samesite, secure) — "none"/True en prod, "lax"/False en dev.
+    """
+    is_production = (
+        os.getenv("NODE_ENV") == "production"
+        or os.getenv("ENVIRONMENT") == "production"
+        or os.getenv("MATH_TRAINER_PROFILE") == "prod"
+    )
+    return ("none" if is_production else "lax", is_production)
+
+
+def validate_password_strength(password: str) -> Optional[str]:
+    """Valide la force d'un mot de passe. Source unique pour handlers et schemas.
+
+    Returns:
+        None si valide, sinon le message d'erreur (str).
+    """
+    if not password or len(password) < 8:
+        return "Le mot de passe doit contenir au moins 8 caractères"
+    if not any(c.isdigit() for c in password):
+        return "Le mot de passe doit contenir au moins un chiffre"
+    if not any(c.isupper() for c in password):
+        return "Le mot de passe doit contenir au moins une majuscule"
+    return None

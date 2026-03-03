@@ -2,8 +2,6 @@
 Handlers pour les retours utilisateur (signalements).
 """
 
-import traceback
-
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
@@ -18,7 +16,7 @@ logger = get_logger(__name__)
 
 
 @require_auth
-async def submit_feedback(request: Request):
+async def submit_feedback(request: Request) -> JSONResponse:
     """
     Soumettre un retour (signalement).
     Route: POST /api/feedback
@@ -73,14 +71,13 @@ async def submit_feedback(request: Request):
             status_code=201,
         )
     except Exception as e:
-        logger.error(f"Erreur submit_feedback: {e}")
-        traceback.print_exc()
+        logger.error(f"Erreur submit_feedback: {e}", exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
 @require_admin
-async def admin_list_feedback(request: Request):
+async def admin_list_feedback(request: Request) -> JSONResponse:
     """
     Liste des retours pour l'admin.
     Route: GET /api/admin/feedback
@@ -90,6 +87,5 @@ async def admin_list_feedback(request: Request):
             items = FeedbackService.list_feedback_for_admin(db, limit=500)
             return JSONResponse({"feedback": items})
     except Exception as e:
-        logger.error(f"Erreur admin_list_feedback: {e}")
-        traceback.print_exc()
+        logger.error(f"Erreur admin_list_feedback: {e}", exc_info=True)
         return api_error_response(500, get_safe_error_message(e))

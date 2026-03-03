@@ -7,7 +7,12 @@ import traceback
 
 from pydantic import ValidationError
 from starlette.requests import Request
-from starlette.responses import JSONResponse, RedirectResponse, StreamingResponse
+from starlette.responses import (
+    JSONResponse,
+    RedirectResponse,
+    Response,
+    StreamingResponse,
+)
 
 from app.core.config import settings
 from app.core.logging_config import get_logger
@@ -18,6 +23,7 @@ from app.services.exercise_service import ExerciseService
 from app.services.exercise_stats_service import ExerciseStatsService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import ErrorHandler, api_error_response
+from app.utils.request_utils import parse_json_body_any
 from server.auth import optional_auth, require_auth, require_auth_sse
 from server.exercise_generator import (
     ensure_explanation,
@@ -29,7 +35,7 @@ from server.exercise_generator import (
 logger = get_logger(__name__)
 
 
-async def generate_exercise(request):
+async def generate_exercise(request: Request) -> Response:
     """Génère un nouvel exercice en utilisant le groupe d'âge."""
     params = request.query_params
     exercise_type_raw = params.get("type") or params.get("exercise_type")
@@ -108,7 +114,7 @@ async def generate_exercise(request):
         )
 
 
-async def get_exercise(request):
+async def get_exercise(request: Request) -> JSONResponse:
     """Récupère un exercice par son ID (format API, sans correct_answer)."""
     exercise_id = request.path_params.get("exercise_id")
     try:
@@ -135,7 +141,7 @@ async def get_exercise(request):
 
 
 @require_auth
-async def submit_answer(request):
+async def submit_answer(request: Request) -> JSONResponse:
     """Orchestration HTTP : parse, valide, délègue à ExerciseService.submit_answer_result."""
     try:
         current_user = request.state.user
@@ -195,7 +201,7 @@ async def submit_answer(request):
 
 
 @optional_auth
-async def get_exercises_list(request):
+async def get_exercises_list(request: Request) -> JSONResponse:
     """Retourne la liste des exercices avec pagination. Ordre aléatoire par défaut pour varier l'entraînement."""
     from server.handlers.exercise_list_params import (
         parse_exercise_list_params,
@@ -237,13 +243,15 @@ async def get_exercises_list(request):
         )
 
 
-async def generate_exercise_api(request):
+async def generate_exercise_api(request: Request) -> JSONResponse:
     """Génère un nouvel exercice via API JSON (POST) en utilisant le groupe d'âge."""
     try:
-        data = await request.json()
-        exercise_type_raw = data.get("exercise_type")
-        age_group_raw = data.get("age_group")
-        use_ai = data.get("ai", False)
+        data_or_err = await parse_json_body_any(request)
+        if isinstance(data_or_err, JSONResponse):
+            return data_or_err
+        exercise_type_raw = data_or_err.get("exercise_type")
+        age_group_raw = data_or_err.get("age_group")
+        use_ai = data_or_err.get("ai", False)
 
         if not exercise_type_raw or not age_group_raw:
             return api_error_response(
@@ -271,7 +279,7 @@ async def generate_exercise_api(request):
         exercise_dict = ensure_explanation(exercise_dict)
 
         # Optionnellement sauvegarder en base de données
-        save_to_db = data.get("save", True)
+        save_to_db = data_or_err.get("save", True)
         if save_to_db:
             try:
                 # Extraire la locale
@@ -324,7 +332,7 @@ async def generate_exercise_api(request):
 
 
 @require_auth_sse
-async def generate_ai_exercise_stream(request):
+async def generate_ai_exercise_stream(request: Request) -> Response:
     """
     Génère un exercice avec OpenAI en streaming SSE.
     Délègue la logique au service exercise_ai_service.
@@ -396,7 +404,7 @@ async def generate_ai_exercise_stream(request):
 
 
 @optional_auth
-async def get_completed_exercises_ids(request: Request):
+async def get_completed_exercises_ids(request: Request) -> JSONResponse:
     """
     Récupère la liste des IDs d'exercices complétés par l'utilisateur actuel.
     Route: GET /api/exercises/completed-ids
@@ -430,7 +438,7 @@ async def get_completed_exercises_ids(request: Request):
         )
 
 
-async def get_exercises_stats(request: Request):
+async def get_exercises_stats(request: Request) -> JSONResponse:
     """
     Statistiques globales des Épreuves de l'Académie (exercices).
 
@@ -460,9 +468,9 @@ async def get_exercises_stats(request: Request):
 
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération des statistiques d'exercices: {e}"
+            f"Erreur lors de la récupération des statistiques d'exercices: {e}",
+            exc_info=True,
         )
-        traceback.print_exc()
         return api_error_response(
             500, "Une perturbation empêche l'accès aux archives. Réessayez plus tard."
         )

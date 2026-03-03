@@ -18,6 +18,7 @@ logger = get_logger(__name__)
 from sqlalchemy import and_, case, func, or_
 from sqlalchemy.orm import Session
 
+from app.utils.db_helpers import adapt_enum_for_db
 from app.models.logic_challenge import (
     AgeGroup,
     LogicChallenge,
@@ -293,6 +294,58 @@ def get_challenge_for_api(db: Session, challenge_id: int) -> Optional[Dict[str, 
     }
 
 
+def _apply_challenge_filters(
+    query,
+    *,
+    challenge_type: Optional[str] = None,
+    age_group: Optional[str] = None,
+    difficulty_min: Optional[float] = None,
+    difficulty_max: Optional[float] = None,
+    tags: Optional[str] = None,
+    search: Optional[str] = None,
+    exclude_ids: Optional[List[int]] = None,
+    active_only: bool = True,
+):
+    """Applique les filtres communs à list_challenges et count_challenges."""
+    if active_only:
+        query = query.filter(LogicChallenge.is_archived == False)
+
+    challenge_type_db = (
+        adapt_enum_for_db("LogicChallengeType", challenge_type)
+        if challenge_type
+        else None
+    )
+    if challenge_type_db:
+        query = query.filter(LogicChallenge.challenge_type == challenge_type_db)
+
+    if age_group:
+        query = query.filter(LogicChallenge.age_group == age_group)
+
+    if difficulty_min is not None:
+        query = query.filter(LogicChallenge.difficulty_rating >= difficulty_min)
+
+    if difficulty_max is not None:
+        query = query.filter(LogicChallenge.difficulty_rating <= difficulty_max)
+
+    if tags:
+        query = query.filter(LogicChallenge.tags.contains(tags))
+
+    if search and search.strip():
+        pattern = f"%{search.strip()}%"
+        query = query.filter(
+            or_(
+                LogicChallenge.title.ilike(pattern),
+                LogicChallenge.description.ilike(pattern),
+                LogicChallenge.tags.ilike(pattern),
+            )
+        )
+
+    if exclude_ids:
+        query = query.filter(LogicChallenge.id.notin_(exclude_ids))
+
+    return query
+
+
 def list_challenges(
     db: Session,
     challenge_type: Optional[str] = None,
@@ -324,50 +377,18 @@ def list_challenges(
     Returns:
         Liste de LogicChallenge
     """
-    # Normaliser challenge_type pour cohérence enum (API "SEQUENCE" → DB)
-    from app.utils.db_helpers import adapt_enum_for_db
-
-    challenge_type_db = (
-        adapt_enum_for_db("LogicChallengeType", challenge_type)
-        if challenge_type
-        else None
-    )
-
     query = db.query(LogicChallenge).filter(LogicChallenge.is_active == True)
-
-    if active_only:
-        query = query.filter(LogicChallenge.is_archived == False)
-
-    # Filtres
-    if challenge_type_db:
-        query = query.filter(LogicChallenge.challenge_type == challenge_type_db)
-
-    if age_group:
-        query = query.filter(LogicChallenge.age_group == age_group)
-
-    if difficulty_min is not None:
-        query = query.filter(LogicChallenge.difficulty_rating >= difficulty_min)
-
-    if difficulty_max is not None:
-        query = query.filter(LogicChallenge.difficulty_rating <= difficulty_max)
-
-    if tags:
-        query = query.filter(LogicChallenge.tags.contains(tags))
-
-    # Recherche texte : title, description, tags (comme AdminService)
-    if search and search.strip():
-        pattern = f"%{search.strip()}%"
-        query = query.filter(
-            or_(
-                LogicChallenge.title.ilike(pattern),
-                LogicChallenge.description.ilike(pattern),
-                LogicChallenge.tags.ilike(pattern),
-            )
-        )
-
-    # Exclure les défis déjà réussis si demandé
-    if exclude_ids:
-        query = query.filter(LogicChallenge.id.notin_(exclude_ids))
+    query = _apply_challenge_filters(
+        query,
+        challenge_type=challenge_type,
+        age_group=age_group,
+        difficulty_min=difficulty_min,
+        difficulty_max=difficulty_max,
+        tags=tags,
+        search=search,
+        exclude_ids=exclude_ids,
+        active_only=active_only,
+    )
 
     # Ordre : aléatoire par défaut (varier l'entraînement), ou récent
     if order == "recent":
@@ -425,46 +446,18 @@ def count_challenges(
     Returns:
         Nombre de challenges correspondant aux filtres
     """
-    from app.utils.db_helpers import adapt_enum_for_db
-
-    challenge_type_db = (
-        adapt_enum_for_db("LogicChallengeType", challenge_type)
-        if challenge_type
-        else None
-    )
-
     query = db.query(LogicChallenge).filter(LogicChallenge.is_active == True)
-
-    if active_only:
-        query = query.filter(LogicChallenge.is_archived == False)
-
-    if challenge_type_db:
-        query = query.filter(LogicChallenge.challenge_type == challenge_type_db)
-
-    if age_group:
-        query = query.filter(LogicChallenge.age_group == age_group)
-
-    if difficulty_min is not None:
-        query = query.filter(LogicChallenge.difficulty_rating >= difficulty_min)
-
-    if difficulty_max is not None:
-        query = query.filter(LogicChallenge.difficulty_rating <= difficulty_max)
-
-    if tags:
-        query = query.filter(LogicChallenge.tags.contains(tags))
-
-    if search and search.strip():
-        pattern = f"%{search.strip()}%"
-        query = query.filter(
-            or_(
-                LogicChallenge.title.ilike(pattern),
-                LogicChallenge.description.ilike(pattern),
-                LogicChallenge.tags.ilike(pattern),
-            )
-        )
-
-    if exclude_ids:
-        query = query.filter(LogicChallenge.id.notin_(exclude_ids))
+    query = _apply_challenge_filters(
+        query,
+        challenge_type=challenge_type,
+        age_group=age_group,
+        difficulty_min=difficulty_min,
+        difficulty_max=difficulty_max,
+        tags=tags,
+        search=search,
+        exclude_ids=exclude_ids,
+        active_only=active_only,
+    )
 
     return query.count()
 

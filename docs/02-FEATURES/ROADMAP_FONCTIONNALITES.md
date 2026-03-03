@@ -1,6 +1,6 @@
 # Roadmap Fonctionnalités - Analyse Globale
 
-> **Date** : 06/02/2026 — **Dernière MAJ** : 26/02/2026  
+> **Date** : 06/02/2026 — **Dernière MAJ** : 03/03/2026  
 > **Objectif** : Identifier les pages et fonctionnalités à ajouter pour maximiser l'engagement et la rétention  
 > **Cible** : Enfants 5-20 ans + Parents
 
@@ -418,6 +418,39 @@ Notifications :
 
 ---
 
+### 4.7 🎨 Mise en forme des explications exercices/défis (P1)
+
+**Contexte** : Les explications affichées après une réponse (correcte ou incorrecte) sont un bloc de texte brut sans structure. Les formules mathématiques, les étapes numérotées et les conditions sont illisibles quand le contenu est dense (ex: défi logique multi-critères).
+
+**Objectif** : Rendre les explications pédagogiques claires et agréables à lire.
+
+**Améliorations envisagées** :
+
+| Élément | Actuel | Cible |
+|---------|--------|-------|
+| Structure | Texte brut en bloc | Paragraphes séparés, numérotation visible |
+| Formules math | Inline texte (`a³+b³`) | Rendu LaTeX/KaTeX (`$a^3 + b^3$`) |
+| Points clés | Noyés dans le texte | Mise en avant (gras, couleur, encadré) |
+| Longueur | Parfois très long | Accordéon ou "voir plus" si > N lignes |
+
+**Effort estimé** : Faible — composant frontend de rendu Markdown/KaTeX + CSS.
+
+---
+
+### 4.8 ⚡ Optimisation re-renders exercices/défis (P2)
+
+**Contexte** : Les pages exercices et défis ont un flash visible (2-3 re-renders rapides) avant de se stabiliser. Lié au pattern React : `ProtectedRoute` check → queries lancées → données reçues → re-render final.
+
+**Pistes d'optimisation** :
+- Stabiliser les states avec `useMemo`/`useCallback` sur les paramètres de query
+- Utiliser `placeholderData` (TanStack Query) pour éviter le flash loading→data
+- Dédupliquer les fetches simultanés (ex: `usePaginatedContent` + `useCompletedExercises`)
+- Skeleton loader au lieu de contenu qui "saute"
+
+**Effort estimé** : Moyen — investigation profiling React DevTools + corrections ciblées.
+
+---
+
 ### 4.5 🏫 Mode classe/école (P3)
 
 **Pour les enseignants** :
@@ -498,6 +531,8 @@ Notifications :
 | Préférence page d'accueil (profil) | ⭐⭐ | Faible | **P2** |
 | Rapports détaillés | ⭐⭐⭐ | Moyen | **P2** |
 | Monitoring IA — persistance DB | ⭐⭐ | Faible | **P2** |
+| Mise en forme explications (Markdown/KaTeX) | ⭐⭐⭐⭐ | Faible | **P1** |
+| Optimisation re-renders exercices/défis | ⭐⭐⭐ | Moyen | **P2** |
 | Mode classe | ⭐⭐⭐ | Élevé | **P3** |
 | Tuteur IA | ⭐⭐⭐⭐ | Élevé | **P3** |
 | Mode aventure | ⭐⭐⭐ | Très élevé | **P4** |

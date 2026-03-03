@@ -30,9 +30,9 @@ class TestGetDailySummary:
 
         summary = tracker.get_daily_summary()
 
-        assert "LOGIC_SEQUENCE" in summary, (
-            "Bug M5 : 'LOGIC_SEQUENCE' tronqué en 'LOGIC' avec key.split('_')[0]"
-        )
+        assert (
+            "LOGIC_SEQUENCE" in summary
+        ), "Bug M5 : 'LOGIC_SEQUENCE' tronqué en 'LOGIC' avec key.split('_')[0]"
         assert "LOGIC" not in summary
 
     def test_type_with_multiple_underscores(self):

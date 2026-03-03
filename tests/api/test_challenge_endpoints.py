@@ -352,9 +352,7 @@ async def test_search_challenges_by_title(logic_challenge_db, padawan_client):
     """Recherche par titre — doit trouver les défis dont le titre contient la chaîne."""
     client = padawan_client["client"]
     # logic_challenge_db crée un défi avec titre "Test Challenge {uuid}"
-    response = await client.get(
-        "/api/challenges", params={"search": "Test Challenge"}
-    )
+    response = await client.get("/api/challenges", params={"search": "Test Challenge"})
     assert response.status_code == 200
     data = response.json()
     items = _get_challenges_list(data)
@@ -369,9 +367,7 @@ async def test_search_challenges_by_description(logic_challenge_db, padawan_clie
     """Recherche par description — doit trouver les défis dont la description contient la chaîne."""
     client = padawan_client["client"]
     # logic_challenge_db crée un défi avec description "Description du défi de test"
-    response = await client.get(
-        "/api/challenges", params={"search": "défi de test"}
-    )
+    response = await client.get("/api/challenges", params={"search": "défi de test"})
     assert response.status_code == 200
     data = response.json()
     items = _get_challenges_list(data)

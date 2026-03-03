@@ -6,7 +6,6 @@ et le retourne. Le client renvoie le token dans le header X-CSRF-Token.
 Un attaquant cross-site ne peut pas lire le cookie ni forger le header.
 """
 
-import os
 import secrets
 
 from starlette.requests import Request
@@ -26,10 +25,10 @@ def validate_csrf_token(request: Request) -> JSONResponse | None:
     """
     Valide que le header X-CSRF-Token correspond au cookie csrf_token.
     Retourne None si valide, sinon une JSONResponse d'erreur 403.
-    """
-    if os.getenv("TESTING", "false").lower() == "true":
-        return None  # Skip en mode test
 
+    Le bypass de test ne se fait PAS ici — utiliser unittest.mock.patch
+    dans les fixtures de test (conftest.py) pour désactiver la validation.
+    """
     cookie_token = get_csrf_token_from_request(request)
     header_token = request.headers.get("X-CSRF-Token", "").strip()
 

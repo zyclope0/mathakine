@@ -4,6 +4,64 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [2.3.0-alpha.1] - 2026-03-03
+
+Audit architecture backend complet — Phases 0 à 3.
+Résultat : 651 tests, 0 failures. Black OK. Aucune régression fonctionnelle.
+
+### Security (Phase 0)
+
+- **S1 — CSRF bypass supprimé** : suppression du kill-switch `TESTING` env var dans `middleware.py` et `csrf.py`. Les tests utilisent désormais `unittest.mock.patch` session-scoped dans `conftest.py`. Test de régression `test_testing_env_does_not_bypass_csrf` ajouté.
+- **S2 — Injection SQL neutralisée** : garde `isalnum()` ajoutée sur `__tablename__` dans `safe_delete` fallback SQL de `app/db/transaction.py`.
+- **S3 — Credentials DB par défaut bloquées** : `POSTGRES_PASSWORD` ajouté à `_validate_production_settings` — valeurs `""`, `"postgres"`, `"password"` rejetées en production.
+- **S4 — DATABASE_URL masquée dans les logs** : `urlparse` utilisé pour logger uniquement `host:port/db`, credentials jamais exposées.
+- **S5 — Except handlers auth réordonnés** : `ExpiredSignatureError` en premier (message précis). `InvalidSignatureError` supprimé (inexistant dans python-jose). Messages d'erreur spécifiques à l'expiration.
+
+### Refactored — Phase 1 : Standardisation des patterns
+
+- **CC1** : Parsing body unifié — `parse_json_body`/`parse_json_body_any` partout. 5 `await request.json()` bruts remplacés.
+- **CC2** : Réponses erreur unifiées — `api_error_response()` partout. 2 `JSONResponse({error:...})` ad-hoc éliminés.
+- **CC3** : 26 `traceback.print_exc()` → `logger.error(..., exc_info=True)` dans 7 fichiers handlers.
+- **CC4** : Type hints `-> JSONResponse`/`-> Response` ajoutés sur ~80 handlers.
+- **CC5** : `get_cookie_config()` extraite dans `app/core/security.py` — 4 duplications éliminées.
+- **CC6** : `validate_password_strength()` extraite dans `app/core/security.py` — 4 duplications éliminées.
+- **A6** : `_ROUTE_REGISTRY` unique dans `middleware.py` — auth-whitelist et CSRF-exempt dérivés automatiquement, plus de dérive entre registres.
+- **P1** : CORS origins unifié → `settings.BACKEND_CORS_ORIGINS` comme source unique.
+- **P2+P3** : `normalize_age_group` O(n×m) → O(1) via dict pré-calculé. `_CSRF_EXEMPT_NORMALIZED` frozenset constant.
+- **I3** : `AdminService` — 28 imports inline → 1 import top-level dans `admin_handlers.py`.
+
+### Refactored — Phase 2 : Services légers
+
+- **2.1** : User lookups consolidés — 3 fonctions `auth_service.py` délèguent à `UserService`. 9 `db.query(User).filter(...)` inline → `UserService.get_user()`.
+- **2.2+2.8** : `auth_service.py` découplé de FastAPI — `fastapi.HTTPException` éliminé, retours en tuples `(result, error, status)`. 33 tests adaptés.
+- **2.3** : `_apply_challenge_filters()` extraite dans `challenge_service.py` — 2×40 lignes dupliquées → 1 fonction partagée.
+- **2.4** : `get_user_stats_for_dashboard` (~200 lignes) → orchestrateur + 4 sous-méthodes privées.
+- **2.5** : Suppression `app/db/queries.py` (403 lignes dead code legacy) et `tests/unit/test_queries.py` (13 tests obsolètes).
+- **2.6** : Suppression `LoggingLevels` et `ExerciseStatus` (dead code dans `constants.py`).
+- **2.7** : `VALID_THEMES`/`VALID_LEARNING_STYLES` → `constants.py` (frozenset). `FRONTEND_URL` → champ Pydantic `config.py`. 8 `os.getenv` dupliqués éliminés.
+- **2.9** : Nouveau module `app/core/types.py` avec 7 TypedDict (`TokenResponse`, `DashboardStats`, `ChartData`, `PaginatedResponse`, etc.).
+
+### Refactored — Phase 3 : Refactoring des God Objects
+
+- **3.1 — ChallengeAnswerService** : 7 algorithmes de comparaison (SEQUENCE, DEDUCTION, PROBABILITY, CHESS, GRAPH, VISUAL, PATTERN) + 4 helpers extraits de `challenge_handlers.py` vers `app/services/challenge_answer_service.py`. Handler réduit à délégateur. +47 tests de caractérisation.
+- **3.2 — ChatService** : 120 lignes dupliquées entre `chat_api` et `chat_api_stream` extraites dans `app/services/chat_service.py` (`detect_image_request`, `generate_image`, `build_chat_config`, `cleanup_markdown_images`). Import `AsyncOpenAI`/`OPENAI_AVAILABLE` sécurisé via `try/except ImportError`. +19 tests de caractérisation.
+- **3.3 — AdminService** : God class 1585 lignes → façade ~65 lignes + 4 sous-services spécialisés (`AdminConfigService`, `AdminStatsService`, `AdminUserService`, `AdminContentService`) + `admin_helpers.py`. Compatibilité `admin_handlers.py` préservée (Strangler Fig).
+- **3.4 — exercise_generator** : 4 helpers partagés extraits dans `exercise_generator_helpers.py` (`init_exercise_context`, `build_base_exercise_data`, `default_addition_fallback`, `apply_test_title`). Duplication blocs d'initialisation et fallbacks éliminée. +25 tests de caractérisation.
+
+### Tests
+
+- +91 tests ajoutés (47 challenge, 25 exercise generator, 19 chat service)
+- Total : 651 tests, 0 failures, 2 skips
+- Suppression 13 tests obsolètes (`test_queries.py`)
+
+### Removed
+
+- `app/db/queries.py` — 403 lignes de dead code legacy non référencées
+- `server/handlers/admin_handlers_utils.py` — fichier fantôme déjà remplacé par `admin_helpers.py`
+- `tests/unit/test_queries.py` — 13 tests sur code supprimé
+
+---
+
 ## [2.2.2-alpha.1] - 2026-02-26
 
 ### Fixed

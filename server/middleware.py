@@ -5,7 +5,6 @@ This module centralizes Starlette middleware logic for consistent
 request processing across the application.
 """
 
-import os
 import re
 import uuid
 from typing import Callable, List, Set, Tuple
@@ -128,35 +127,51 @@ class MaintenanceMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
-# Whitelist deny-by-default : seules ces routes sont accessibles sans token.
-# Format : (path_exact ou path_prefix, méthodes autorisées, None=exact, True=prefix)
-# Les routes /api/* non listées exigent l'auth au niveau middleware.
+# ============================================================================
+# A6 — Registre unique de routes publiques / exemptées
+# Source unique pour auth-whitelist et CSRF-exempt. Chaque entrée :
+#   (path, méthodes_autorisées_sans_auth, csrf_exempt?)
+# csrf_exempt = True → POST/PUT/PATCH/DELETE ne vérifient pas le CSRF token
+#   (routes où l'utilisateur n'a pas encore de session → pas de cookie CSRF).
+# ============================================================================
+_ROUTE_REGISTRY: List[Tuple[str, Set[str], bool]] = [
+    # Infra
+    ("/health", {"GET"}, False),
+    ("/robots.txt", {"GET"}, False),
+    ("/metrics", {"GET"}, False),
+    # Auth — pré-session (pas de cookie CSRF dispo)
+    ("/api/auth/login", {"POST"}, True),
+    ("/api/auth/logout", {"POST"}, True),
+    ("/api/auth/validate-token", {"POST"}, True),
+    ("/api/auth/csrf", {"GET"}, False),
+    ("/api/auth/refresh", {"POST"}, True),
+    ("/api/auth/forgot-password", {"POST"}, True),
+    ("/api/auth/reset-password", {"POST"}, False),  # formulaire = CSRF requis
+    ("/api/auth/verify-email", {"GET"}, False),
+    ("/api/auth/resend-verification", {"POST"}, True),
+    # Inscription
+    ("/api/users/", {"POST"}, True),
+    # Lecture publique
+    ("/api/exercises", {"GET"}, False),
+    ("/api/exercises/stats", {"GET"}, False),
+    ("/api/exercises/completed-ids", {"GET"}, False),
+    ("/api/challenges/completed-ids", {"GET"}, False),
+    ("/api/badges/available", {"GET"}, False),
+    ("/api/badges/rarity", {"GET"}, False),
+]
+
+# Dérivations — calculées une seule fois au chargement du module
 _AUTH_PUBLIC_EXACT: List[Tuple[str, Set[str]]] = [
-    ("/health", {"GET"}),
-    ("/robots.txt", {"GET"}),
-    ("/metrics", {"GET"}),
-    ("/api/auth/login", {"POST"}),
-    ("/api/auth/logout", {"POST"}),
-    ("/api/auth/validate-token", {"POST"}),
-    ("/api/auth/csrf", {"GET"}),
-    ("/api/auth/refresh", {"POST"}),
-    ("/api/auth/forgot-password", {"POST"}),
-    ("/api/auth/reset-password", {"POST"}),
-    ("/api/auth/verify-email", {"GET"}),
-    ("/api/auth/resend-verification", {"POST"}),
-    ("/api/users/", {"POST"}),  # Inscription uniquement ; GET = admin (auth)
-    ("/api/exercises", {"GET"}),
-    ("/api/exercises/stats", {"GET"}),
-    ("/api/exercises/completed-ids", {"GET"}),
-    ("/api/challenges/completed-ids", {"GET"}),
-    ("/api/badges/available", {"GET"}),
-    ("/api/badges/rarity", {"GET"}),
-    # leaderboard : protégé par @require_auth dans le handler
+    (path, methods) for path, methods, _ in _ROUTE_REGISTRY
 ]
 _AUTH_PUBLIC_PATTERNS: List[Tuple[re.Pattern, Set[str]]] = [
-    # Détail exercice (get_exercise sans décorateur = public)
     (re.compile(r"^/api/exercises/\d+$"), {"GET"}),
 ]
+
+_CSRF_EXEMPT_NORMALIZED: frozenset = frozenset(
+    path.rstrip("/") for path, _, csrf in _ROUTE_REGISTRY if csrf
+)
+_CSRF_MUTATING_METHODS: Set[str] = {"POST", "PUT", "PATCH", "DELETE"}
 
 
 def _is_auth_public(path: str, method: str) -> bool:
@@ -171,20 +186,6 @@ def _is_auth_public(path: str, method: str) -> bool:
     return False
 
 
-_CSRF_EXEMPT_ROUTES: Set[str] = {
-    "/api/auth/login",
-    "/api/auth/logout",
-    "/api/auth/refresh",
-    "/api/auth/validate-token",
-    "/api/auth/forgot-password",
-    "/api/auth/resend-verification",
-    "/api/auth/verify-email",
-    "/api/users/",
-}
-
-_CSRF_MUTATING_METHODS: Set[str] = {"POST", "PUT", "PATCH", "DELETE"}
-
-
 class CsrfMiddleware(BaseHTTPMiddleware):
     """
     Protection CSRF centralisée (audit H6).
@@ -197,13 +198,9 @@ class CsrfMiddleware(BaseHTTPMiddleware):
         if request.method not in _CSRF_MUTATING_METHODS:
             return await call_next(request)
         path = request.url.path.rstrip("/") or "/"
-        if path in _CSRF_EXEMPT_ROUTES or path.rstrip("/") in {
-            r.rstrip("/") for r in _CSRF_EXEMPT_ROUTES
-        }:
+        if path in _CSRF_EXEMPT_NORMALIZED:
             return await call_next(request)
         if not path.startswith("/api/"):
-            return await call_next(request)
-        if os.getenv("TESTING", "false").lower() == "true":
             return await call_next(request)
 
         from app.utils.csrf import validate_csrf_token
@@ -265,40 +262,8 @@ def get_middleware() -> List[Middleware]:
     Returns:
         List of Middleware instances
     """
-    # Liste des origines autorisées pour CORS
-    # IMPORTANT: Ne pas utiliser "*" quand credentials='include' est utilisé côté client
-    allowed_origins = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173",
-    ]
-
-    # Ajouter FRONTEND_URL + variantes www/non-www pour éviter OPTIONS 400
-    frontend_url = os.getenv("FRONTEND_URL", "").strip()
-    if frontend_url:
-        allowed_origins.append(frontend_url)
-        # Si https://mathakine.fun, ajouter https://www.mathakine.fun et inversement
-        try:
-            from urllib.parse import urlparse
-
-            parsed = urlparse(frontend_url)
-            if (
-                parsed.netloc
-                and "." in parsed.netloc
-                and not parsed.netloc.startswith("www.")
-            ):
-                allowed_origins.append(f"{parsed.scheme}://www.{parsed.netloc}")
-            elif parsed.netloc.startswith("www."):
-                allowed_origins.append(f"{parsed.scheme}://{parsed.netloc[4:]}")
-        except Exception:
-            pass
-        # Fallback Render frontend si déployé sur Render
-        if "mathakine" in frontend_url.lower() and "render.com" not in frontend_url:
-            allowed_origins.append("https://mathakine-frontend.onrender.com")
-
-    # Filtrer les chaînes vides et doublons
-    allowed_origins = list(dict.fromkeys(o for o in allowed_origins if o))
+    # P1 — source unique : settings.BACKEND_CORS_ORIGINS (config.py)
+    allowed_origins = settings.BACKEND_CORS_ORIGINS
 
     middleware_list = []
 

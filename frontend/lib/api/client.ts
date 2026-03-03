@@ -63,7 +63,7 @@ let refreshPromise: Promise<boolean> | null = null;
  * Lit le cookie csrf_token (httponly=false, pattern double-submit).
  * Utilisé automatiquement par apiRequest() sur les requêtes mutantes.
  */
-function getCsrfTokenFromCookie(): string | null {
+export function getCsrfTokenFromCookie(): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(/(?:^|; )csrf_token=([^;]*)/);
   return match ? decodeURIComponent(match[1]!) : null;

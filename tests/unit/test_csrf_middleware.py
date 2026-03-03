@@ -4,25 +4,29 @@ Tests unitaires pour le middleware CSRF centralisé (audit H6).
 Couvre :
 - Configuration (exemptions, méthodes mutantes)
 - Comportement fonctionnel (bypass GET, bypass exempt, blocage 403, validation)
+
+Note : conftest.py mock validate_csrf_token (session-scoped, autouse) pour les
+tests d'intégration. Ici on restaure la vraie fonction pour tester le middleware
+en isolation — la référence est capturée à l'import (avant le patch session).
 """
 
-import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from app.utils.csrf import validate_csrf_token as _real_validate_csrf_token
 from server.middleware import (
     CsrfMiddleware,
-    _CSRF_EXEMPT_ROUTES,
+    _CSRF_EXEMPT_NORMALIZED,
     _CSRF_MUTATING_METHODS,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_request(method: str, path: str, cookies=None, headers=None) -> Request:
     """Construit un faux objet Request Starlette pour tester le middleware."""
@@ -32,7 +36,9 @@ def _make_request(method: str, path: str, cookies=None, headers=None) -> Request
         "path": path,
         "query_string": b"",
         "root_path": "",
-        "headers": [(k.lower().encode(), v.encode()) for k, v in (headers or {}).items()],
+        "headers": [
+            (k.lower().encode(), v.encode()) for k, v in (headers or {}).items()
+        ],
     }
     if cookies:
         cookie_str = "; ".join(f"{k}={v}" for k, v in cookies.items())
@@ -48,32 +54,33 @@ async def _ok_handler(request):
 # 1. Configuration tests
 # ---------------------------------------------------------------------------
 
+
 class TestCsrfExemptRoutes:
     """Vérifie la cohérence de la configuration des exemptions."""
 
     def test_login_is_exempt(self):
-        assert "/api/auth/login" in _CSRF_EXEMPT_ROUTES
+        assert "/api/auth/login" in _CSRF_EXEMPT_NORMALIZED
 
     def test_register_is_exempt(self):
-        assert "/api/users/" in _CSRF_EXEMPT_ROUTES
+        assert "/api/users" in _CSRF_EXEMPT_NORMALIZED
 
     def test_refresh_is_exempt(self):
-        assert "/api/auth/refresh" in _CSRF_EXEMPT_ROUTES
+        assert "/api/auth/refresh" in _CSRF_EXEMPT_NORMALIZED
 
     def test_logout_is_exempt(self):
-        assert "/api/auth/logout" in _CSRF_EXEMPT_ROUTES
+        assert "/api/auth/logout" in _CSRF_EXEMPT_NORMALIZED
 
     def test_forgot_password_is_exempt(self):
-        assert "/api/auth/forgot-password" in _CSRF_EXEMPT_ROUTES
+        assert "/api/auth/forgot-password" in _CSRF_EXEMPT_NORMALIZED
 
     def test_reset_password_is_not_exempt(self):
-        assert "/api/auth/reset-password" not in _CSRF_EXEMPT_ROUTES
+        assert "/api/auth/reset-password" not in _CSRF_EXEMPT_NORMALIZED
 
     def test_submit_attempt_is_not_exempt(self):
-        assert "/api/exercises/1/attempt" not in _CSRF_EXEMPT_ROUTES
+        assert "/api/exercises/1/attempt" not in _CSRF_EXEMPT_NORMALIZED
 
     def test_update_profile_is_not_exempt(self):
-        assert "/api/users/me" not in _CSRF_EXEMPT_ROUTES
+        assert "/api/users/me" not in _CSRF_EXEMPT_NORMALIZED
 
 
 class TestCsrfMutatingMethods:
@@ -102,13 +109,19 @@ class TestCsrfMutatingMethods:
 # 2. Functional tests (middleware dispatch logic)
 # ---------------------------------------------------------------------------
 
+
 class TestCsrfMiddlewareDispatch:
-    """Teste le comportement réel du middleware CSRF."""
+    """Teste le comportement réel du middleware CSRF.
+
+    Restaure la vraie validate_csrf_token pour cette classe — le conftest.py
+    session fixture la mock globalement pour les tests d'intégration.
+    """
 
     @pytest.fixture(autouse=True)
-    def _disable_testing_env(self, monkeypatch):
-        """Force TESTING=false pour que le middleware s'exécute réellement."""
-        monkeypatch.setenv("TESTING", "false")
+    def _restore_real_csrf(self):
+        """Annule le mock global et utilise la vraie validation CSRF."""
+        with patch("app.utils.csrf.validate_csrf_token", _real_validate_csrf_token):
+            yield
 
     @pytest.mark.asyncio
     async def test_get_request_passes_without_csrf(self):
@@ -198,11 +211,18 @@ class TestCsrfMiddlewareDispatch:
         call_next.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_testing_env_bypasses_csrf(self, monkeypatch):
-        """En mode TESTING=true, le middleware laisse passer sans CSRF."""
+    async def test_testing_env_does_not_bypass_csrf(self, monkeypatch):
+        """TESTING=true ne bypass PAS le CSRF (S1 — audit 03/03/2026).
+
+        Le bypass par variable d'environnement a été supprimé pour éviter
+        qu'un attaquant qui contrôle l'env puisse désactiver la protection CSRF.
+        Les tests utilisent unittest.mock.patch sur validate_csrf_token.
+        """
         monkeypatch.setenv("TESTING", "true")
         mw = CsrfMiddleware(app=None)
         req = _make_request("POST", "/api/exercises/1/attempt")
         call_next = AsyncMock(return_value=JSONResponse({"ok": True}))
         resp = await mw.dispatch(req, call_next)
-        call_next.assert_awaited_once()
+        # Le middleware doit bloquer la requête malgré TESTING=true
+        assert resp.status_code == 403
+        call_next.assert_not_awaited()

@@ -1,3 +1,5 @@
+import { getCsrfTokenFromCookie } from "./client";
+
 interface ChatStreamPayload {
   message: string;
   conversation_history: Array<{ role: "user" | "assistant"; content: string }>;
@@ -39,12 +41,18 @@ export async function streamChat(
     (process.env.NODE_ENV === "development" ? "http://localhost:10000" : "");
 
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+    };
+    const csrfToken = getCsrfTokenFromCookie();
+    if (csrfToken) {
+      headers["X-CSRF-Token"] = csrfToken;
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "text/event-stream",
-      },
+      headers,
       credentials: "include",
       body: JSON.stringify(payload),
     });

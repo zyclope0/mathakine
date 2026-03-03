@@ -6,6 +6,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from app.core.config import settings
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -68,11 +69,7 @@ def create_verification_link(token: str, frontend_url: Optional[str] = None) -> 
     Returns:
         Lien de vérification complet
     """
-    import os
-
     if not frontend_url:
-        frontend_url = os.getenv(
-            "FRONTEND_URL", "https://mathakine-frontend.onrender.com"
-        )
+        frontend_url = settings.FRONTEND_URL
 
     return f"{frontend_url}/verify-email?token={token}"

@@ -7,9 +7,11 @@ import re
 import traceback
 from datetime import datetime, timedelta, timezone
 
-from fastapi import HTTPException, status
 
+from app.core.config import settings
+from app.core.constants import VALID_LEARNING_STYLES, VALID_THEMES
 from app.core.logging_config import get_logger
+from app.core.security import get_cookie_config, validate_password_strength
 
 logger = get_logger(__name__)
 from starlette.requests import Request
@@ -22,6 +24,7 @@ from app.services.auth_service import (
     get_user_by_email,
     set_verification_token_for_new_user,
 )
+from app.services.email_service import EmailService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.user_service import UserService
 from app.utils.db_utils import db_session
@@ -34,7 +37,7 @@ from server.auth import require_auth, require_full_access
 
 
 @require_auth
-async def get_user_stats(request):
+async def get_user_stats(request: Request) -> JSONResponse:
     """
     Endpoint pour obtenir les statistiques utilisateur pour le tableau de bord.
     Route: /api/users/stats
@@ -75,7 +78,7 @@ async def get_user_stats(request):
 
 
 @rate_limit_register
-async def create_user_account(request: Request):
+async def create_user_account(request: Request) -> JSONResponse:
     """
     Endpoint pour créer un nouveau compte utilisateur.
     Route: POST /api/users/
@@ -118,24 +121,9 @@ async def create_user_account(request: Request):
         if not re.match(email_pattern, email):
             return api_error_response(400, "Format d'email invalide")
 
-        if not password:
-            return api_error_response(400, "Le mot de passe est requis")
-
-        # Validation mot de passe selon le schéma UserCreate
-        if len(password) < 8:
-            return api_error_response(
-                400, "Le mot de passe doit contenir au moins 8 caractères"
-            )
-
-        if not any(char.isdigit() for char in password):
-            return api_error_response(
-                400, "Le mot de passe doit contenir au moins un chiffre"
-            )
-
-        if not any(char.isupper() for char in password):
-            return api_error_response(
-                400, "Le mot de passe doit contenir au moins une majuscule"
-            )
+        pwd_err = validate_password_strength(password)
+        if pwd_err:
+            return api_error_response(400, pwd_err)
 
         # Créer l'utilisateur via le service
         try:
@@ -154,7 +142,9 @@ async def create_user_account(request: Request):
                 )
 
                 # Créer l'utilisateur
-                user = create_user(db, user_create)
+                user, create_err, create_status = create_user(db, user_create)
+                if create_err:
+                    return api_error_response(create_status, create_err)
 
                 from app.utils.email_verification import generate_verification_token
 
@@ -166,31 +156,23 @@ async def create_user_account(request: Request):
                     logger.info(
                         f"Préparation envoi email de vérification à {user.email}"
                     )
-                    import os
-
-                    from app.services.email_service import EmailService
-
-                    frontend_url = os.getenv(
-                        "FRONTEND_URL", "https://mathakine-frontend.onrender.com"
-                    )
-
                     logger.debug(
-                        f"Frontend URL: {frontend_url}, Token: {verification_token[:10]}..."
+                        f"Frontend URL: {settings.FRONTEND_URL}, Token: {verification_token[:10]}..."
                     )
 
                     email_sent = EmailService.send_verification_email(
                         to_email=user.email,
                         username=user.username,
                         verification_token=verification_token,
-                        frontend_url=frontend_url,
+                        frontend_url=settings.FRONTEND_URL,
                     )
 
                     if email_sent:
                         logger.info(
                             f"✅ Email de vérification envoyé avec succès à {user.email}"
                         )
-                        if "localhost" in frontend_url:
-                            verify_link = f"{frontend_url}/verify-email?token={verification_token}"
+                        if "localhost" in settings.FRONTEND_URL:
+                            verify_link = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
                             logger.info(
                                 f"[DEV] Si l'email n'arrive pas, copie ce lien : {verify_link}"
                             )
@@ -229,12 +211,6 @@ async def create_user_account(request: Request):
                 logger.info(f"Nouvel utilisateur créé: {username} ({email})")
 
                 return JSONResponse(user_data, status_code=201)
-        except HTTPException as http_error:
-            # Gérer les erreurs HTTP (ex: utilisateur déjà existant)
-            logger.warning(
-                f"Erreur HTTP lors de la création de l'utilisateur: {http_error.detail}"
-            )
-            return api_error_response(http_error.status_code, http_error.detail)
         except Exception as user_creation_error:
             logger.error(
                 f"Erreur lors de la création de l'utilisateur: {user_creation_error}"
@@ -251,7 +227,7 @@ async def create_user_account(request: Request):
 
 
 @require_auth
-async def get_all_users(request: Request):
+async def get_all_users(request: Request) -> JSONResponse:
     """
     Handler pour récupérer tous les utilisateurs (placeholder).
     Route: GET /api/users/
@@ -270,14 +246,16 @@ async def get_all_users(request: Request):
             status_code=200,
         )
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération de tous les utilisateurs: {e}")
-        traceback.print_exc()
+        logger.error(
+            f"Erreur lors de la récupération de tous les utilisateurs: {e}",
+            exc_info=True,
+        )
         return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
 @require_full_access
-async def get_users_leaderboard(request: Request):
+async def get_users_leaderboard(request: Request) -> JSONResponse:
     """
     Handler pour récupérer le classement des utilisateurs par points.
     Route: GET /api/users/leaderboard
@@ -306,14 +284,15 @@ async def get_users_leaderboard(request: Request):
             return JSONResponse({"leaderboard": leaderboard}, status_code=200)
 
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération du classement: {e}")
-        traceback.print_exc()
+        logger.error(
+            f"Erreur lors de la récupération du classement: {e}", exc_info=True
+        )
         return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
 @require_full_access
-async def get_all_user_progress(request: Request):
+async def get_all_user_progress(request: Request) -> JSONResponse:
     """
     Handler pour récupérer la progression globale de l'utilisateur avec vraies données.
     Route: GET /api/users/me/progress
@@ -331,15 +310,15 @@ async def get_all_user_progress(request: Request):
 
     except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération de la progression globale de l'utilisateur: {e}"
+            f"Erreur lors de la récupération de la progression globale de l'utilisateur: {e}",
+            exc_info=True,
         )
-        traceback.print_exc()
         return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
 @require_full_access
-async def get_challenges_progress(request: Request):
+async def get_challenges_progress(request: Request) -> JSONResponse:
     """
     Handler pour récupérer la progression des défis logiques de l'utilisateur.
     Route: GET /api/users/me/challenges/progress
@@ -356,13 +335,15 @@ async def get_challenges_progress(request: Request):
             return JSONResponse(response_data, status_code=200)
 
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération de la progression des défis: {e}")
-        traceback.print_exc()
+        logger.error(
+            f"Erreur lors de la récupération de la progression des défis: {e}",
+            exc_info=True,
+        )
         return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
-async def update_user_me(request: Request):
+async def update_user_me(request: Request) -> JSONResponse:
     """
     Handler pour mettre à jour les informations de l'utilisateur actuel.
     Route: PUT /api/users/me
@@ -487,32 +468,21 @@ async def update_user_me(request: Request):
                     )
 
         # Validation learning_style
-        VALID_STYLES = {"visuel", "auditif", "kinesthésique", "lecture"}
         if "learning_style" in update_data:
             style = update_data["learning_style"]
-            if style and style not in VALID_STYLES:
+            if style and style not in VALID_LEARNING_STYLES:
                 return api_error_response(
                     400,
-                    f"Style d'apprentissage invalide. Valeurs acceptées : {', '.join(VALID_STYLES)}",
+                    f"Style d'apprentissage invalide. Valeurs acceptées : {', '.join(sorted(VALID_LEARNING_STYLES))}",
                 )
 
         # Validation preferred_theme
-        VALID_THEMES = {
-            "spatial",
-            "minimalist",
-            "ocean",
-            "dune",
-            "forest",
-            "peach",
-            "dino",
-            "neutral",
-        }
         if "preferred_theme" in update_data:
             theme = update_data["preferred_theme"]
             if theme and theme not in VALID_THEMES:
                 return api_error_response(
                     400,
-                    f"Thème invalide. Valeurs acceptées : {', '.join(VALID_THEMES)}",
+                    f"Thème invalide. Valeurs acceptées : {', '.join(sorted(VALID_THEMES))}",
                 )
 
         # Mise à jour en base via le service
@@ -561,14 +531,15 @@ async def update_user_me(request: Request):
     except json.JSONDecodeError:
         return api_error_response(400, "Données JSON invalides.")
     except Exception as e:
-        logger.error(f"Erreur lors de la mise à jour de l'utilisateur: {e}")
-        traceback.print_exc()
+        logger.error(
+            f"Erreur lors de la mise à jour de l'utilisateur: {e}", exc_info=True
+        )
         return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
 @require_full_access
-async def update_user_password_me(request: Request):
+async def update_user_password_me(request: Request) -> JSONResponse:
     """
     Handler pour mettre à jour le mot de passe de l'utilisateur actuel.
     Route: PUT /api/users/me/password
@@ -592,12 +563,9 @@ async def update_user_password_me(request: Request):
         # Validation
         if not current_password:
             return api_error_response(400, "Le mot de passe actuel est requis.")
-        if not new_password:
-            return api_error_response(400, "Le nouveau mot de passe est requis.")
-        if len(new_password) < 8:
-            return api_error_response(
-                400, "Le nouveau mot de passe doit contenir au moins 8 caractères."
-            )
+        pwd_err = validate_password_strength(new_password)
+        if pwd_err:
+            return api_error_response(400, pwd_err)
         if current_password == new_password:
             return api_error_response(
                 400, "Le nouveau mot de passe doit être différent de l'ancien."
@@ -623,13 +591,14 @@ async def update_user_password_me(request: Request):
             )
 
     except Exception as e:
-        logger.error(f"Erreur lors de la mise à jour du mot de passe: {e}")
-        traceback.print_exc()
+        logger.error(
+            f"Erreur lors de la mise à jour du mot de passe: {e}", exc_info=True
+        )
         return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
-async def delete_user_me(request: Request):
+async def delete_user_me(request: Request) -> JSONResponse:
     """
     Handler pour supprimer le compte de l'utilisateur connecté.
     Route: DELETE /api/users/me
@@ -654,15 +623,7 @@ async def delete_user_me(request: Request):
             response = JSONResponse(
                 {"success": True, "message": "Votre compte a été supprimé avec succès."}
             )
-            import os
-
-            is_production = (
-                os.getenv("NODE_ENV") == "production"
-                or os.getenv("ENVIRONMENT") == "production"
-                or os.getenv("MATH_TRAINER_PROFILE") == "prod"
-            )
-            cookie_samesite = "none" if is_production else "lax"
-            cookie_secure = is_production
+            cookie_samesite, cookie_secure = get_cookie_config()
             response.delete_cookie(
                 "access_token",
                 path="/",
@@ -678,13 +639,12 @@ async def delete_user_me(request: Request):
             return response
 
     except Exception as e:
-        logger.error(f"Erreur lors de la suppression du compte: {e}")
-        traceback.print_exc()
+        logger.error(f"Erreur lors de la suppression du compte: {e}", exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
-async def delete_user(request: Request):
+async def delete_user(request: Request) -> JSONResponse:
     """
     Handler pour supprimer un utilisateur par ID (admin).
     Route: DELETE /api/users/{user_id}
@@ -707,14 +667,15 @@ async def delete_user(request: Request):
     except ValueError:
         return api_error_response(400, "ID utilisateur invalide")
     except Exception as e:
-        logger.error(f"Erreur lors de la suppression de l'utilisateur: {e}")
-        traceback.print_exc()
+        logger.error(
+            f"Erreur lors de la suppression de l'utilisateur: {e}", exc_info=True
+        )
         return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
 @require_full_access
-async def export_user_data(request: Request):
+async def export_user_data(request: Request) -> JSONResponse:
     """
     Exporte toutes les données de l'utilisateur connecté (RGPD).
     Route: GET /api/users/me/export
@@ -740,14 +701,13 @@ async def export_user_data(request: Request):
             return JSONResponse(export)
 
     except Exception as e:
-        logger.error(f"Erreur lors de l'export des données: {e}")
-        traceback.print_exc()
+        logger.error(f"Erreur lors de l'export des données: {e}", exc_info=True)
         return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
 @require_full_access
-async def get_user_sessions(request: Request):
+async def get_user_sessions(request: Request) -> JSONResponse:
     """
     Handler pour récupérer les sessions actives de l'utilisateur.
     Route: GET /api/users/me/sessions
@@ -766,14 +726,13 @@ async def get_user_sessions(request: Request):
             return JSONResponse(session_list, status_code=200)
 
     except Exception as e:
-        logger.error(f"Erreur lors de la récupération des sessions: {e}")
-        traceback.print_exc()
+        logger.error(f"Erreur lors de la récupération des sessions: {e}", exc_info=True)
         return api_error_response(500, "Erreur lors de la récupération des sessions")
 
 
 @require_auth
 @require_full_access
-async def revoke_user_session(request: Request):
+async def revoke_user_session(request: Request) -> JSONResponse:
     """
     Handler pour révoquer une session utilisateur spécifique.
     Route: DELETE /api/users/me/sessions/{session_id}
@@ -805,6 +764,5 @@ async def revoke_user_session(request: Request):
     except ValueError:
         return api_error_response(400, "ID de session invalide")
     except Exception as e:
-        logger.error(f"Erreur lors de la révocation de la session: {e}")
-        traceback.print_exc()
+        logger.error(f"Erreur lors de la révocation de la session: {e}", exc_info=True)
         return api_error_response(500, "Erreur lors de la révocation de la session")

@@ -19,6 +19,7 @@ from app.models.achievement import Achievement, UserAchievement
 from app.models.attempt import Attempt
 from app.models.progress import Progress
 from app.models.user import User
+from app.services.user_service import UserService
 from app.services.badge_requirement_engine import (
     check_requirements,
     get_requirement_progress,
@@ -47,7 +48,7 @@ class BadgeService:
             Liste des nouveaux badges obtenus
         """
         try:
-            user = self.db.query(User).filter(User.id == user_id).first()
+            user = UserService.get_user(self.db, user_id)
             if not user:
                 logger.error(f"Utilisateur {user_id} non trouvé")
                 return []
@@ -637,7 +638,7 @@ class BadgeService:
             total_points_gained = sum(badge["points_reward"] for badge in new_badges)
 
             # Mettre à jour l'utilisateur
-            user = self.db.query(User).filter(User.id == user_id).first()
+            user = UserService.get_user(self.db, user_id)
             if user:
                 # Ajouter les points
                 current_points = getattr(user, "total_points", 0) or 0
@@ -724,7 +725,7 @@ class BadgeService:
 
             pinned: List[int] = []
             try:
-                user = self.db.query(User).filter(User.id == user_id).first()
+                user = UserService.get_user(self.db, user_id)
                 if user and hasattr(user, "pinned_badge_ids") and user.pinned_badge_ids:
                     pinned = [
                         int(x)
@@ -1074,7 +1075,7 @@ class BadgeService:
         valid = [bid for bid in badge_ids[:MAX_PINNED] if bid in earned_ids]
         valid = list(dict.fromkeys(valid))[:MAX_PINNED]
         try:
-            user = self.db.query(User).filter(User.id == user_id).first()
+            user = UserService.get_user(self.db, user_id)
             if user:
                 user.pinned_badge_ids = valid
                 self.db.commit()

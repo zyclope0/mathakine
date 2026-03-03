@@ -11,8 +11,6 @@ import pytest
 from jose import jwt
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-from starlette.exceptions import HTTPException
-
 from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.user import User, UserRole
@@ -350,9 +348,11 @@ def test_create_user_success(db_session):
     )
 
     # Créer l'utilisateur
-    created_user = create_user(db_session, user_data)
+    created_user, err, status_code = create_user(db_session, user_data)
 
     # Vérifier que l'utilisateur a été créé correctement
+    assert err is None
+    assert status_code == 201
     assert created_user is not None
     assert created_user.username == username
     assert created_user.email == email
@@ -388,13 +388,12 @@ def test_create_user_duplicate_username(db_session, mock_user):
         role="padawan",
     )
 
-    # Vérifier que la création échoue avec une erreur HTTP 409 (CONFLICT)
-    with pytest.raises(HTTPException) as excinfo:
-        create_user(db_session, new_user_data)
+    # Vérifier que la création échoue avec 409 (CONFLICT)
+    result, err, status_code = create_user(db_session, new_user_data)
 
-    # Vérifier l'erreur
-    assert excinfo.value.status_code == 409  # ✅ 409 CONFLICT au lieu de 400
-    assert "Un compte avec ces informations existe déjà" in str(excinfo.value.detail)
+    assert result is None
+    assert status_code == 409
+    assert "Un compte avec ces informations existe déjà" in err
 
 
 def test_create_user_duplicate_email(db_session, mock_user):
@@ -417,13 +416,12 @@ def test_create_user_duplicate_email(db_session, mock_user):
         role="padawan",
     )
 
-    # Vérifier que la création échoue avec une erreur HTTP 409 (CONFLICT)
-    with pytest.raises(HTTPException) as excinfo:
-        create_user(db_session, new_user_data)
+    # Vérifier que la création échoue avec 409 (CONFLICT)
+    result, err, status_code = create_user(db_session, new_user_data)
 
-    # Vérifier l'erreur
-    assert excinfo.value.status_code == 409  # ✅ 409 CONFLICT au lieu de 400
-    assert "Un compte avec ces informations existe déjà" in str(excinfo.value.detail)
+    assert result is None
+    assert status_code == 409
+    assert "Un compte avec ces informations existe déjà" in err
 
 
 # Tests pour create_user_token
@@ -512,9 +510,11 @@ def test_refresh_access_token_valid(db_session, mock_user):
     )
 
     # Rafraîchir le token
-    result = refresh_access_token(db_session, refresh_token)
+    result, err, status_code = refresh_access_token(db_session, refresh_token)
 
     # Vérifier la structure de la réponse
+    assert err is None
+    assert status_code == 200
     assert "access_token" in result
     assert "token_type" in result
     assert result["token_type"] == "bearer"
@@ -524,24 +524,17 @@ def test_refresh_access_token_valid(db_session, mock_user):
         result["access_token"], settings.SECRET_KEY, algorithms=["HS256"]
     )
     assert new_payload["sub"] == user.username
-    # Comparer avec la valeur string du rôle
     assert new_payload["role"] == role_value
     assert new_payload["type"] == "access"
 
 
 def test_refresh_access_token_invalid_token(db_session):
     """Teste le rafraîchissement avec un token invalide."""
-    # Tenter de rafraîchir avec un token invalide
-    with pytest.raises(HTTPException) as exc_info:
-        refresh_access_token(db_session, "invalid_token")
+    result, err, status_code = refresh_access_token(db_session, "invalid_token")
 
-    # Vérifier les détails de l'exception
-    assert exc_info.value.status_code == 401
-    assert (
-        "Token JWT invalide" in exc_info.value.detail
-        or "Token invalide" in exc_info.value.detail
-        or "Token invalid" in exc_info.value.detail
-    )
+    assert result is None
+    assert status_code == 401
+    assert "Token JWT invalide" in err or "Token invalide" in err
 
 
 def test_refresh_access_token_wrong_type(db_session, mock_user):
@@ -568,12 +561,11 @@ def test_refresh_access_token_wrong_type(db_session, mock_user):
     )
 
     # Tenter de rafraîchir avec un token du mauvais type
-    with pytest.raises(HTTPException) as exc_info:
-        refresh_access_token(db_session, access_token)
+    result, err, status_code = refresh_access_token(db_session, access_token)
 
-    # ✅ CORRECTION : Vérifier les détails de l'exception (401 UNAUTHORIZED)
-    assert exc_info.value.status_code == 401  # ✅ 401 UNAUTHORIZED au lieu de 500
-    assert "Token de rafraîchissement invalide" in exc_info.value.detail
+    assert result is None
+    assert status_code == 401
+    assert "Token de rafraîchissement invalide" in err
 
 
 def test_refresh_access_token_user_not_found(db_session):
@@ -591,13 +583,11 @@ def test_refresh_access_token_user_not_found(db_session):
     # Encoder le token avec la clé secrète
     token = jwt.encode(token_data, settings.SECRET_KEY, algorithm="HS256")
 
-    # ✅ CORRECTION : Vérifier que le rafraîchissement échoue avec une erreur HTTP 401 (UNAUTHORIZED)
-    with pytest.raises(HTTPException) as excinfo:
-        refresh_access_token(db_session, token)
+    result, err, status_code = refresh_access_token(db_session, token)
 
-    # Vérifier l'erreur
-    assert excinfo.value.status_code == 401  # ✅ 401 UNAUTHORIZED au lieu de 500
-    assert "Utilisateur non trouvé" in excinfo.value.detail
+    assert result is None
+    assert status_code == 401
+    assert "Utilisateur non trouvé" in err
 
 
 def test_refresh_access_token_expired_token(db_session, mock_user):
@@ -628,12 +618,11 @@ def test_refresh_access_token_expired_token(db_session, mock_user):
     )
 
     # Tenter de rafraîchir le token expiré
-    with pytest.raises(HTTPException) as excinfo:
-        refresh_access_token(db_session, expired_token)
+    result, err, status_code = refresh_access_token(db_session, expired_token)
 
-    # Vérifier que l'exception levée est bien celle attendue (401 Unauthorized)
-    assert excinfo.value.status_code == 401
-    assert "Token JWT invalide ou malformé" in excinfo.value.detail
+    assert result is None
+    assert status_code == 401
+    assert "expiré" in err
 
 
 def test_refresh_access_token_tampered_token(db_session, mock_user):
@@ -665,12 +654,11 @@ def test_refresh_access_token_tampered_token(db_session, mock_user):
     tampered_token = valid_token + "abc"
 
     # Tenter de rafraîchir le token falsifié
-    with pytest.raises(HTTPException) as excinfo:
-        refresh_access_token(db_session, tampered_token)
+    result, err, status_code = refresh_access_token(db_session, tampered_token)
 
-    # Vérifier que l'exception levée est bien celle attendue
-    assert excinfo.value.status_code == 401
-    assert "Token JWT invalide ou malformé" in excinfo.value.detail
+    assert result is None
+    assert status_code == 401
+    assert "Token JWT invalide ou malformé" in err
 
 
 def test_refresh_access_token_valid_token_but_deleted_user(db_session, mock_user):
@@ -705,12 +693,11 @@ def test_refresh_access_token_valid_token_but_deleted_user(db_session, mock_user
     db_session.commit()
 
     # Tenter de rafraîchir le token (pour un utilisateur qui n'existe plus)
-    with pytest.raises(HTTPException) as excinfo:
-        refresh_access_token(db_session, valid_token)
+    result, err, status_code = refresh_access_token(db_session, valid_token)
 
-    # ✅ CORRECTION : Vérifier que l'exception levée correspond à 401 UNAUTHORIZED
-    assert excinfo.value.status_code == 401  # ✅ 401 UNAUTHORIZED au lieu de 500
-    assert "Utilisateur non trouvé" in excinfo.value.detail
+    assert result is None
+    assert status_code == 401
+    assert "Utilisateur non trouvé" in err
 
 
 def test_create_user_with_full_profile_data(db_session):
@@ -730,9 +717,11 @@ def test_create_user_with_full_profile_data(db_session):
     )
 
     # Créer l'utilisateur via le service
-    user = create_user(db_session, user_data)
+    user, err, status_code = create_user(db_session, user_data)
 
     # Vérifications
+    assert err is None
+    assert status_code == 201
     assert user is not None
     assert user.id is not None
     assert user.username == user_data.username
@@ -882,13 +871,11 @@ def test_refresh_access_token_generic_exception(db_session, mock_user):
         "app.services.auth_service.jwt.decode",
         side_effect=Exception("Test unexpected error"),
     ):
-        # Vérifier que refresh_access_token lève HTTPException 500 pour les exceptions génériques
-        with pytest.raises(HTTPException) as excinfo:
-            refresh_access_token(db_session, refresh_token)
+        result, err, status_code = refresh_access_token(db_session, refresh_token)
 
-        # Vérifier les détails de l'exception (500 Erreur interne du serveur)
-        assert excinfo.value.status_code == 500
-        assert "Erreur interne du serveur" in excinfo.value.detail
+        assert result is None
+        assert status_code == 500
+        assert "Erreur interne du serveur" in err
 
 
 # --- Tests verify_email_token (service, refactoré 26/02) ---
