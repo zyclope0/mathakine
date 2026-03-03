@@ -1,7 +1,7 @@
 # Serveur et API REST
 fastapi==0.133.1  # Version compatible Pydantic 2.x et Python 3.12+
 starlette==0.52.1  # Compatible FastAPI 0.133.1
-uvicorn==0.23.2
+uvicorn==0.41.0
 
 # Moteur de templates et fichiers statiques
 jinja2==3.1.6
