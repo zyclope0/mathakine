@@ -201,8 +201,6 @@ class LogicChallengeService:
             ChallengeNotFoundError: Si le défi n'existe pas
             DatabaseOperationError: Si l'archivage échoue en base de données
         """
-        from app.exceptions import DatabaseOperationError  # noqa: F401 (re-exported)
-
         challenge = LogicChallengeService.get_challenge(db, challenge_id)
         if not challenge:
             logger.error(f"Défi avec ID {challenge_id} non trouvé pour archivage")
@@ -224,8 +222,6 @@ class LogicChallengeService:
             ChallengeNotFoundError: Si le défi n'existe pas
             DatabaseOperationError: Si la suppression échoue en base de données
         """
-        from app.exceptions import DatabaseOperationError  # noqa: F401 (re-exported)
-
         challenge = LogicChallengeService.get_challenge(db, challenge_id)
         if not challenge:
             logger.error(f"Défi avec ID {challenge_id} non trouvé pour suppression")

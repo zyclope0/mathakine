@@ -644,8 +644,6 @@ class ExerciseService:
             ExerciseNotFoundError: Si l'exercice n'existe pas
             DatabaseOperationError: Si l'archivage échoue en base de données
         """
-        from app.exceptions import DatabaseOperationError  # noqa: F401 (re-exported)
-
         exercise = ExerciseService.get_exercise(db, exercise_id)
         if not exercise:
             logger.error(f"Exercice avec ID {exercise_id} non trouvé pour archivage")
@@ -667,8 +665,6 @@ class ExerciseService:
             ExerciseNotFoundError: Si l'exercice n'existe pas
             DatabaseOperationError: Si la suppression échoue en base de données
         """
-        from app.exceptions import DatabaseOperationError  # noqa: F401 (re-exported)
-
         exercise = ExerciseService.get_exercise(db, exercise_id)
         if not exercise:
             logger.error(f"Exercice avec ID {exercise_id} non trouvé pour suppression")

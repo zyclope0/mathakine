@@ -255,7 +255,7 @@ class EnhancedServerAdapter:
         return ExerciseService.update_exercise(db, exercise_id, exercise_data)
 
     @staticmethod
-    def archive_exercise(db: Session, exercise_id: int) -> bool:
+    def archive_exercise(db: Session, exercise_id: int) -> None:
         """
         Archive un exercice (marque comme supprimé sans suppression physique).
 
@@ -263,10 +263,11 @@ class EnhancedServerAdapter:
             db: Session de base de données
             exercise_id: ID de l'exercice à archiver
 
-        Returns:
-            True si l'archivage a réussi, False sinon
+        Raises:
+            ExerciseNotFoundError: Si l'exercice n'existe pas
+            DatabaseOperationError: Si l'archivage échoue en base de données
         """
-        return ExerciseService.archive_exercise(db, exercise_id)
+        ExerciseService.archive_exercise(db, exercise_id)
 
     @staticmethod
     def record_attempt(
