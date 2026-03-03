@@ -185,7 +185,7 @@ class DatabaseAdapter:
                 return False
 
     @staticmethod
-    def archive(db: Session, obj: Base) -> bool:
+    def archive(db: Session, obj: Base) -> None:
         """
         Archive un objet (marque comme supprimé sans suppression physique).
 
@@ -193,13 +193,13 @@ class DatabaseAdapter:
             db: Session de base de données
             obj: Objet à archiver
 
-        Returns:
-            True si l'archivage a réussi, False sinon
+        Raises:
+            DatabaseOperationError: Si l'archivage échoue
         """
-        return TransactionManager.safe_archive(db, obj)
+        TransactionManager.safe_archive(db, obj)
 
     @staticmethod
-    def delete(db: Session, obj: Base) -> bool:
+    def delete(db: Session, obj: Base) -> None:
         """
         Supprime physiquement un objet de la base de données.
         Les suppressions en cascade sont gérées automatiquement.
@@ -208,10 +208,10 @@ class DatabaseAdapter:
             db: Session de base de données
             obj: Objet à supprimer
 
-        Returns:
-            True si la suppression a réussi, False sinon
+        Raises:
+            DatabaseOperationError: Si la suppression échoue
         """
-        return TransactionManager.safe_delete(db, obj)
+        TransactionManager.safe_delete(db, obj)
 
     @staticmethod
     def execute_query(

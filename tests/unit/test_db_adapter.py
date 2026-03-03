@@ -311,14 +311,13 @@ def test_archive():
 
     # Configurer le mock pour TransactionManager.safe_archive
     with patch(
-        "app.db.adapter.TransactionManager.safe_archive", return_value=True
+        "app.db.adapter.TransactionManager.safe_archive", return_value=None
     ) as mock_safe_archive:
-        # Appeler la méthode
-        result = DatabaseAdapter.archive(mock_session, mock_obj)
+        # Appeler la méthode — retourne None, raise DatabaseOperationError si erreur
+        DatabaseAdapter.archive(mock_session, mock_obj)
 
-        # Vérifier les appels et le résultat
+        # Vérifier que safe_archive a bien été appelé
         mock_safe_archive.assert_called_once_with(mock_session, mock_obj)
-        assert result is True
 
 
 def test_delete():
@@ -331,14 +330,13 @@ def test_delete():
 
     # Configurer le mock pour TransactionManager.safe_delete
     with patch(
-        "app.db.adapter.TransactionManager.safe_delete", return_value=True
+        "app.db.adapter.TransactionManager.safe_delete", return_value=None
     ) as mock_safe_delete:
-        # Appeler la méthode
-        result = DatabaseAdapter.delete(mock_session, mock_obj)
+        # Appeler la méthode — retourne None, raise DatabaseOperationError si erreur
+        DatabaseAdapter.delete(mock_session, mock_obj)
 
-        # Vérifier les appels et le résultat
+        # Vérifier que safe_delete a bien été appelé
         mock_safe_delete.assert_called_once_with(mock_session, mock_obj)
-        assert result is True
 
 
 def test_execute_query_success():

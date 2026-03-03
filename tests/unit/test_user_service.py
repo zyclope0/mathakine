@@ -419,10 +419,7 @@ def test_delete_user(db_session):
     user_id = user.id
 
     # Supprimer l'utilisateur via le service
-    result = UserService.delete_user(db_session, user_id)
-
-    # Vérifier que la suppression a réussi
-    assert result is True
+    UserService.delete_user(db_session, user_id)
 
     # Vérifier que l'utilisateur n'existe plus
     deleted_user = db_session.query(User).filter_by(id=user_id).first()
@@ -431,14 +428,12 @@ def test_delete_user(db_session):
 
 def test_delete_nonexistent_user(db_session):
     """Teste la suppression d'un utilisateur qui n'existe pas."""
-    # Utiliser un ID qui n'existe pas
+    from app.exceptions import UserNotFoundError
+
     nonexistent_id = 9999
 
-    # Tenter de supprimer l'utilisateur
-    result = UserService.delete_user(db_session, nonexistent_id)
-
-    # Vérifier que la suppression a échoué
-    assert result is False
+    with pytest.raises(UserNotFoundError):
+        UserService.delete_user(db_session, nonexistent_id)
 
 
 def test_disable_user(db_session):
@@ -843,11 +838,8 @@ def test_cascade_delete_user_with_relationships(db_session):
     challenge_id = challenge.id
     challenge_attempt_id = challenge_attempt.id
 
-    # Supprimer l'utilisateur
-    result = UserService.delete_user(db_session, user_id)
-
-    # Vérifier que la suppression a réussi
-    assert result is True
+    # Supprimer l'utilisateur (exception-based : None si OK, raise si erreur)
+    UserService.delete_user(db_session, user_id)
 
     # Vérifier que toutes les entités associées ont été supprimées
     assert db_session.query(User).filter_by(id=user_id).first() is None

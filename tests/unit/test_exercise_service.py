@@ -16,6 +16,7 @@ from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import LogicChallenge
 from app.models.progress import Progress
 from app.models.user import User, UserRole
+from app.exceptions import ExerciseNotFoundError
 from app.services.exercise_service import ExerciseService
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
@@ -293,11 +294,8 @@ def test_archive_exercise(db_session):
     db_session.add(exercise)
     db_session.commit()
 
-    # Archiver l'exercice via le service
-    result = ExerciseService.archive_exercise(db_session, exercise.id)
-
-    # Vérifier que l'archivage a réussi
-    assert result is True
+    # Archiver l'exercice via le service — retourne None, raise si erreur
+    ExerciseService.archive_exercise(db_session, exercise.id)
 
     # Récupérer l'exercice et vérifier qu'il est archivé
     archived_exercise = db_session.query(Exercise).filter_by(id=exercise.id).first()
@@ -310,14 +308,11 @@ def test_archive_exercise(db_session):
 
 def test_archive_nonexistent_exercise(db_session):
     """Teste l'archivage d'un exercice qui n'existe pas."""
-    # Utiliser un ID qui n'existe pas
     nonexistent_id = 9999
 
-    # Tenter d'archiver l'exercice
-    result = ExerciseService.archive_exercise(db_session, nonexistent_id)
-
-    # Vérifier que l'archivage a échoué
-    assert result is False
+    # L'exercice introuvable → ExerciseNotFoundError
+    with pytest.raises(ExerciseNotFoundError):
+        ExerciseService.archive_exercise(db_session, nonexistent_id)
 
 
 def test_delete_exercise(db_session):
@@ -338,11 +333,8 @@ def test_delete_exercise(db_session):
     db_session.add(exercise)
     db_session.commit()
 
-    # Supprimer l'exercice via le service
-    result = ExerciseService.delete_exercise(db_session, exercise.id)
-
-    # Vérifier que la suppression a réussi
-    assert result is True
+    # Supprimer l'exercice via le service — retourne None, raise si erreur
+    ExerciseService.delete_exercise(db_session, exercise.id)
 
     # Vérifier que l'exercice n'existe plus
     deleted_exercise = db_session.query(Exercise).filter_by(id=exercise.id).first()
@@ -351,14 +343,11 @@ def test_delete_exercise(db_session):
 
 def test_delete_nonexistent_exercise(db_session):
     """Teste la suppression d'un exercice qui n'existe pas."""
-    # Utiliser un ID qui n'existe pas
     nonexistent_id = 9999
 
-    # Tenter de supprimer l'exercice
-    result = ExerciseService.delete_exercise(db_session, nonexistent_id)
-
-    # Vérifier que la suppression a échoué
-    assert result is False
+    # L'exercice introuvable → ExerciseNotFoundError
+    with pytest.raises(ExerciseNotFoundError):
+        ExerciseService.delete_exercise(db_session, nonexistent_id)
 
 
 def test_delete_exercise_cascade(db_session):
@@ -415,11 +404,8 @@ def test_delete_exercise_cascade(db_session):
     attempt_count = db_session.query(Attempt).filter_by(exercise_id=exercise.id).count()
     assert attempt_count == 2
 
-    # Supprimer l'exercice via le service
-    result = ExerciseService.delete_exercise(db_session, exercise.id)
-
-    # Vérifier que la suppression a réussi
-    assert result is True
+    # Supprimer l'exercice via le service — retourne None, raise si erreur
+    ExerciseService.delete_exercise(db_session, exercise.id)
 
     # Vérifier que l'exercice n'existe plus
     deleted_exercise = db_session.query(Exercise).filter_by(id=exercise.id).first()

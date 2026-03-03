@@ -89,7 +89,7 @@ class TransactionManager:
             return False
 
     @staticmethod
-    def safe_delete(db_session: Session, obj, *, auto_commit=True, log_prefix="DB"):
+    def safe_delete(db_session: Session, obj, *, auto_commit=True, log_prefix="DB") -> None:
         """
         Supprime un objet de la base de données en toute sécurité.
         Les suppressions en cascade sont gérées automatiquement grâce aux relations SQLAlchemy.
@@ -100,14 +100,14 @@ class TransactionManager:
             auto_commit: Si True, commit après la suppression
             log_prefix: Préfixe pour les messages de journalisation
 
-        Returns:
-            bool: True si la suppression a réussi, False sinon
+        Raises:
+            DatabaseOperationError: Si la suppression échoue (objet introuvable ou erreur DB)
         """
+        from app.exceptions import DatabaseOperationError
+
         try:
-            # Vérifier que l'objet est attaché à la session
             obj_id = getattr(obj, "id", None)
             if obj not in db_session:
-                # Essayer de récupérer l'objet depuis la session
                 if obj_id:
                     obj_from_db = (
                         db_session.query(obj.__class__)
@@ -115,29 +115,24 @@ class TransactionManager:
                         .first()
                     )
                     if not obj_from_db:
-                        logger.error(
-                            f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données"
-                        )
-                        return False
+                        msg = f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données"
+                        logger.error(msg)
+                        raise DatabaseOperationError(msg)
                     obj = obj_from_db
                 else:
-                    logger.error(
-                        f"{log_prefix}: L'objet {obj.__class__.__name__} n'a pas d'attribut id"
-                    )
-                    return False
+                    msg = f"{log_prefix}: L'objet {obj.__class__.__name__} n'a pas d'attribut id"
+                    logger.error(msg)
+                    raise DatabaseOperationError(msg)
 
-            # Supprimer directement l'objet
             db_session.delete(obj)
             logger.debug(
                 f"{log_prefix}: Objet {obj.__class__.__name__}(id={getattr(obj, 'id', 'N/A')}) marqué pour suppression"
             )
 
             if auto_commit:
-                # Utiliser un savepoint pour pouvoir faire un rollback partiel en cas d'erreur
                 try:
                     db_session.commit()
                     logger.debug(f"{log_prefix}: Suppression confirmée avec succès")
-                    return True
                 except Exception as delete_commit_error:
                     db_session.rollback()
                     logger.error(
@@ -152,32 +147,33 @@ class TransactionManager:
 
                         table_name = obj.__tablename__
                         if not table_name.replace("_", "").isalnum():
-                            logger.error(
-                                f"{log_prefix}: Nom de table suspect refusé: '{table_name}'"
-                            )
-                            return False
+                            msg = f"{log_prefix}: Nom de table suspect refusé: '{table_name}'"
+                            logger.error(msg)
+                            raise DatabaseOperationError(msg)
                         stmt = f"DELETE FROM {table_name} WHERE id = :id"
                         db_session.execute(text(stmt), {"id": obj.id})
                         db_session.commit()
                         logger.info(
                             f"{log_prefix}: Suppression alternative réussie pour {obj.__class__.__name__}(id={obj.id})"
                         )
-                        return True
+                    except DatabaseOperationError:
+                        raise
                     except Exception as e2:
                         db_session.rollback()
-                        logger.error(
-                            f"{log_prefix}: Échec de la suppression alternative: {e2}"
-                        )
-                        return False
+                        msg = f"{log_prefix}: Échec de la suppression alternative: {e2}"
+                        logger.error(msg)
+                        raise DatabaseOperationError(msg) from e2
 
-            return True
+        except DatabaseOperationError:
+            raise
         except Exception as delete_error:
             db_session.rollback()
-            logger.error(f"{log_prefix}: Échec de la suppression: {delete_error}")
-            return False
+            msg = f"{log_prefix}: Échec de la suppression: {delete_error}"
+            logger.error(msg)
+            raise DatabaseOperationError(msg) from delete_error
 
     @staticmethod
-    def safe_archive(db_session: Session, obj, *, auto_commit=True, log_prefix="DB"):
+    def safe_archive(db_session: Session, obj, *, auto_commit=True, log_prefix="DB") -> None:
         """
         Archive un objet au lieu de le supprimer physiquement.
 
@@ -187,20 +183,19 @@ class TransactionManager:
             auto_commit: Si True, commit après l'archivage
             log_prefix: Préfixe pour les messages de journalisation
 
-        Returns:
-            bool: True si l'archivage a réussi, False sinon
+        Raises:
+            DatabaseOperationError: Si l'archivage échoue (attribut manquant, objet introuvable ou erreur DB)
         """
+        from app.exceptions import DatabaseOperationError
+
         try:
             if not hasattr(obj, "is_archived"):
-                logger.error(
-                    f"{log_prefix}: L'objet {obj.__class__.__name__} n'a pas d'attribut is_archived"
-                )
-                return False
+                msg = f"{log_prefix}: L'objet {obj.__class__.__name__} n'a pas d'attribut is_archived"
+                logger.error(msg)
+                raise DatabaseOperationError(msg)
 
-            # Vérifier que l'objet est attaché à la session
             obj_id = getattr(obj, "id", None)
             if obj not in db_session:
-                # Essayer de récupérer l'objet depuis la session
                 if obj_id:
                     obj_from_db = (
                         db_session.query(obj.__class__)
@@ -208,13 +203,11 @@ class TransactionManager:
                         .first()
                     )
                     if not obj_from_db:
-                        logger.error(
-                            f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données"
-                        )
-                        return False
+                        msg = f"{log_prefix}: Objet {obj.__class__.__name__}(id={obj_id}) non trouvé dans la base de données"
+                        logger.error(msg)
+                        raise DatabaseOperationError(msg)
                     obj = obj_from_db
                 else:
-                    # Si pas d'ID, merger l'objet
                     obj = db_session.merge(obj)
 
             obj.is_archived = True
@@ -226,8 +219,10 @@ class TransactionManager:
                 db_session.commit()
                 logger.debug(f"{log_prefix}: Archivage confirmé avec succès")
 
-            return True
+        except DatabaseOperationError:
+            raise
         except Exception as e:
             db_session.rollback()
-            logger.error(f"{log_prefix}: Échec de l'archivage: {e}")
-            return False
+            msg = f"{log_prefix}: Échec de l'archivage: {e}"
+            logger.error(msg)
+            raise DatabaseOperationError(msg) from e

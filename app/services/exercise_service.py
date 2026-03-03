@@ -632,7 +632,7 @@ class ExerciseService:
         return DatabaseAdapter.update(db, exercise, exercise_data)
 
     @staticmethod
-    def archive_exercise(db: Session, exercise_id: int) -> bool:
+    def archive_exercise(db: Session, exercise_id: int) -> None:
         """
         Archive un exercice (marque comme supprimé sans suppression physique).
 
@@ -640,18 +640,21 @@ class ExerciseService:
             db: Session de base de données
             exercise_id: ID de l'exercice à archiver
 
-        Returns:
-            True si l'archivage a réussi, False sinon
+        Raises:
+            ExerciseNotFoundError: Si l'exercice n'existe pas
+            DatabaseOperationError: Si l'archivage échoue en base de données
         """
+        from app.exceptions import DatabaseOperationError  # noqa: F401 (re-exported)
+
         exercise = ExerciseService.get_exercise(db, exercise_id)
         if not exercise:
             logger.error(f"Exercice avec ID {exercise_id} non trouvé pour archivage")
-            return False
+            raise ExerciseNotFoundError(f"Exercice avec ID {exercise_id} non trouvé")
 
-        return DatabaseAdapter.archive(db, exercise)
+        DatabaseAdapter.archive(db, exercise)
 
     @staticmethod
-    def delete_exercise(db: Session, exercise_id: int) -> bool:
+    def delete_exercise(db: Session, exercise_id: int) -> None:
         """
         Supprime physiquement un exercice de la base de données.
         Les tentatives associées sont supprimées en cascade.
@@ -660,15 +663,18 @@ class ExerciseService:
             db: Session de base de données
             exercise_id: ID de l'exercice à supprimer
 
-        Returns:
-            True si la suppression a réussi, False sinon
+        Raises:
+            ExerciseNotFoundError: Si l'exercice n'existe pas
+            DatabaseOperationError: Si la suppression échoue en base de données
         """
+        from app.exceptions import DatabaseOperationError  # noqa: F401 (re-exported)
+
         exercise = ExerciseService.get_exercise(db, exercise_id)
         if not exercise:
             logger.error(f"Exercice avec ID {exercise_id} non trouvé pour suppression")
-            return False
+            raise ExerciseNotFoundError(f"Exercice avec ID {exercise_id} non trouvé")
 
-        return DatabaseAdapter.delete(db, exercise)
+        DatabaseAdapter.delete(db, exercise)
 
     @staticmethod
     def get_user_completed_exercise_ids(db: Session, user_id: int) -> List[int]:

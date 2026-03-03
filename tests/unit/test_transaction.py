@@ -10,6 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.transaction import TransactionManager
+from app.exceptions import DatabaseOperationError
 from app.models.exercise import Exercise
 from app.models.user import User
 from app.utils.db_helpers import get_enum_value
@@ -167,12 +168,11 @@ def test_safe_delete_success():
     mock_session.__contains__ = MagicMock(return_value=True)
 
     # Appeler la méthode
-    result = TransactionManager.safe_delete(mock_session, mock_obj)
+    TransactionManager.safe_delete(mock_session, mock_obj)
 
-    # Vérifier que delete a été appelé et que le résultat est True
+    # Vérifier que delete et commit ont été appelés
     mock_session.delete.assert_called_once_with(mock_obj)
     mock_session.commit.assert_called_once()
-    assert result is True
 
 
 def test_safe_delete_with_commit_error():
@@ -195,15 +195,12 @@ def test_safe_delete_with_commit_error():
     # Patcher la méthode execute pour simuler une suppression directe
     with patch.object(mock_session, "execute") as mock_execute:
         # Appeler la méthode
-        result = TransactionManager.safe_delete(mock_session, mock_obj)
+        TransactionManager.safe_delete(mock_session, mock_obj)
 
         # Vérifier que delete a été appelé, puis un rollback, puis execute pour la suppression alternative
         mock_session.delete.assert_called_once_with(mock_obj)
-        # Vérifier que rollback a été appelé au moins une fois (peut être appelé plusieurs fois selon l'implémentation)
         assert mock_session.rollback.call_count >= 1
         mock_execute.assert_called_once()
-        # La méthode doit retourner True car la suppression alternative a réussi
-        assert result is True
 
 
 def test_safe_delete_with_alternative_error():
@@ -224,11 +221,10 @@ def test_safe_delete_with_alternative_error():
     with patch.object(
         mock_session, "execute", side_effect=SQLAlchemyError("Another exception")
     ):
-        # Appeler la méthode
-        result = TransactionManager.safe_delete(mock_session, mock_obj)
+        # Les deux tentatives échouent → DatabaseOperationError
+        with pytest.raises(DatabaseOperationError):
+            TransactionManager.safe_delete(mock_session, mock_obj)
 
-        # La méthode doit retourner False car les deux tentatives de suppression ont échoué
-        assert result is False
         # Vérifier que rollback a été appelé deux fois
         assert mock_session.rollback.call_count == 2
 
@@ -247,12 +243,11 @@ def test_safe_delete_without_auto_commit():
     mock_session.__contains__ = MagicMock(return_value=True)
 
     # Appeler la méthode sans auto_commit
-    result = TransactionManager.safe_delete(mock_session, mock_obj, auto_commit=False)
+    TransactionManager.safe_delete(mock_session, mock_obj, auto_commit=False)
 
     # Vérifier que delete a été appelé mais pas commit
     mock_session.delete.assert_called_once_with(mock_obj)
     mock_session.commit.assert_not_called()
-    assert result is True
 
 
 def test_safe_archive_success():
@@ -270,12 +265,11 @@ def test_safe_archive_success():
     mock_session.__contains__ = MagicMock(return_value=True)
 
     # Appeler la méthode
-    result = TransactionManager.safe_archive(mock_session, mock_obj)
+    TransactionManager.safe_archive(mock_session, mock_obj)
 
     # Vérifier que is_archived a été mis à True et commit a été appelé
     assert mock_obj.is_archived is True
     mock_session.commit.assert_called_once()
-    assert result is True
 
 
 def test_safe_archive_with_error():
@@ -295,14 +289,14 @@ def test_safe_archive_with_error():
     # L'objet doit être considéré comme attaché à la session (sinon safe_archive requête la DB)
     mock_session.__contains__ = MagicMock(return_value=True)
 
-    # Appeler la méthode
-    result = TransactionManager.safe_archive(mock_session, mock_obj)
+    # Le commit échoue → DatabaseOperationError
+    with pytest.raises(DatabaseOperationError):
+        TransactionManager.safe_archive(mock_session, mock_obj)
 
     # Vérifier que is_archived a été mis à True, mais le commit a échoué
     assert mock_obj.is_archived is True
     mock_session.commit.assert_called_once()
     mock_session.rollback.assert_called_once()
-    assert result is False
 
 
 def test_safe_archive_without_is_archived():
@@ -319,12 +313,11 @@ def test_safe_archive_without_is_archived():
     if hasattr(mock_obj, "is_archived"):
         delattr(mock_obj, "is_archived")
 
-    # Appeler la méthode
-    result = TransactionManager.safe_archive(mock_session, mock_obj)
+    # L'objet sans is_archived → DatabaseOperationError
+    with pytest.raises(DatabaseOperationError):
+        TransactionManager.safe_archive(mock_session, mock_obj)
 
-    # Vérifier que le résultat est False et commit n'a pas été appelé
     mock_session.commit.assert_not_called()
-    assert result is False
 
 
 def test_safe_archive_without_auto_commit():
@@ -341,13 +334,12 @@ def test_safe_archive_without_auto_commit():
     # L'objet doit être considéré comme attaché à la session (sinon safe_archive requête la DB)
     mock_session.__contains__ = MagicMock(return_value=True)
 
-    # Appeler la méthode sans auto_commit
-    result = TransactionManager.safe_archive(mock_session, mock_obj, auto_commit=False)
+    # Appeler la méthode sans auto_commit — retourne None (raise si erreur)
+    TransactionManager.safe_archive(mock_session, mock_obj, auto_commit=False)
 
     # Vérifier que is_archived a été mis à True mais commit n'a pas été appelé
     assert mock_obj.is_archived is True
     mock_session.commit.assert_not_called()
-    assert result is True
 
 
 # =============================================================================

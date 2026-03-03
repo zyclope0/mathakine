@@ -26,3 +26,19 @@ class ChallengeNotFoundError(ExerciseSubmitError):
 
     def __init__(self, message: str = "Défi logique non trouvé"):
         super().__init__(404, message)
+
+
+class UserNotFoundError(Exception):
+    """Utilisateur non trouvé."""
+
+    def __init__(self, message: str = "Utilisateur non trouvé"):
+        self.message = message
+        super().__init__(message)
+
+
+class DatabaseOperationError(Exception):
+    """Échec d'une opération base de données (suppression ou archivage)."""
+
+    def __init__(self, message: str = "Échec de l'opération base de données"):
+        self.message = message
+        super().__init__(message)

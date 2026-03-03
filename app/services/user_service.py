@@ -20,6 +20,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter
+from app.exceptions import UserNotFoundError
 from app.db.transaction import TransactionManager
 from app.models.achievement import UserAchievement
 from app.models.attempt import Attempt
@@ -176,7 +177,7 @@ class UserService:
         return DatabaseAdapter.update(db, user, user_data)
 
     @staticmethod
-    def delete_user(db: Session, user_id: int) -> bool:
+    def delete_user(db: Session, user_id: int) -> None:
         """
         Supprime physiquement un utilisateur de la base de données.
         Les entités associées sont supprimées en cascade.
@@ -185,15 +186,18 @@ class UserService:
             db: Session de base de données
             user_id: ID de l'utilisateur à supprimer
 
-        Returns:
-            True si la suppression a réussi, False sinon
+        Raises:
+            UserNotFoundError: Si l'utilisateur n'existe pas
+            DatabaseOperationError: Si la suppression échoue en base de données
         """
+        from app.exceptions import DatabaseOperationError  # noqa: F401 (re-exported)
+
         user = UserService.get_user(db, user_id)
         if not user:
             logger.error(f"Utilisateur avec ID {user_id} non trouvé pour suppression")
-            return False
+            raise UserNotFoundError(f"Utilisateur avec ID {user_id} non trouvé")
 
-        return DatabaseAdapter.delete(db, user)
+        DatabaseAdapter.delete(db, user)
 
     @staticmethod
     def disable_user(db: Session, user_id: int) -> bool:

@@ -189,7 +189,7 @@ class LogicChallengeService:
         return DatabaseAdapter.update(db, challenge, challenge_data)
 
     @staticmethod
-    def archive_challenge(db: Session, challenge_id: int) -> bool:
+    def archive_challenge(db: Session, challenge_id: int) -> None:
         """
         Archive un défi (marque comme supprimé sans suppression physique).
 
@@ -197,18 +197,21 @@ class LogicChallengeService:
             db: Session de base de données
             challenge_id: ID du défi à archiver
 
-        Returns:
-            True si l'archivage a réussi, False sinon
+        Raises:
+            ChallengeNotFoundError: Si le défi n'existe pas
+            DatabaseOperationError: Si l'archivage échoue en base de données
         """
+        from app.exceptions import DatabaseOperationError  # noqa: F401 (re-exported)
+
         challenge = LogicChallengeService.get_challenge(db, challenge_id)
         if not challenge:
             logger.error(f"Défi avec ID {challenge_id} non trouvé pour archivage")
-            return False
+            raise ChallengeNotFoundError(f"Défi avec ID {challenge_id} non trouvé")
 
-        return DatabaseAdapter.archive(db, challenge)
+        DatabaseAdapter.archive(db, challenge)
 
     @staticmethod
-    def delete_challenge(db: Session, challenge_id: int) -> bool:
+    def delete_challenge(db: Session, challenge_id: int) -> None:
         """
         Supprime physiquement un défi de la base de données.
         Les tentatives associées sont supprimées en cascade.
@@ -217,15 +220,18 @@ class LogicChallengeService:
             db: Session de base de données
             challenge_id: ID du défi à supprimer
 
-        Returns:
-            True si la suppression a réussi, False sinon
+        Raises:
+            ChallengeNotFoundError: Si le défi n'existe pas
+            DatabaseOperationError: Si la suppression échoue en base de données
         """
+        from app.exceptions import DatabaseOperationError  # noqa: F401 (re-exported)
+
         challenge = LogicChallengeService.get_challenge(db, challenge_id)
         if not challenge:
             logger.error(f"Défi avec ID {challenge_id} non trouvé pour suppression")
-            return False
+            raise ChallengeNotFoundError(f"Défi avec ID {challenge_id} non trouvé")
 
-        return DatabaseAdapter.delete(db, challenge)
+        DatabaseAdapter.delete(db, challenge)
 
     @staticmethod
     def get_challenge_attempts(
