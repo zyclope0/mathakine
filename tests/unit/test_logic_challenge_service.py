@@ -13,6 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.security import get_password_hash
+from app.exceptions import ChallengeNotFoundError, DatabaseOperationError
 from app.models.logic_challenge import (
     AgeGroup,
     LogicChallenge,
@@ -471,11 +472,8 @@ def test_archive_challenge(db_session):
     # Vérifier que le défi n'est pas archivé initialement
     assert challenge.is_archived is False
 
-    # Archiver le défi via le service
-    result = LogicChallengeService.archive_challenge(db_session, challenge.id)
-
-    # Vérifier que l'archivage a réussi
-    assert result is True
+    # Archiver le défi via le service — retourne None, raise si erreur
+    LogicChallengeService.archive_challenge(db_session, challenge.id)
 
     # Récupérer le défi mis à jour
     archived_challenge = LogicChallengeService.get_challenge(db_session, challenge.id)
@@ -486,14 +484,11 @@ def test_archive_challenge(db_session):
 
 def test_archive_nonexistent_challenge(db_session):
     """Teste l'archivage d'un défi qui n'existe pas."""
-    # Utiliser un ID qui n'existe pas
     nonexistent_id = 9999
 
-    # Tenter d'archiver le défi
-    result = LogicChallengeService.archive_challenge(db_session, nonexistent_id)
-
-    # Vérifier que l'archivage a échoué
-    assert result is False
+    # Défi introuvable → ChallengeNotFoundError
+    with pytest.raises(ChallengeNotFoundError):
+        LogicChallengeService.archive_challenge(db_session, nonexistent_id)
 
 
 def test_archive_challenge_with_error_handling(db_session):
@@ -515,14 +510,11 @@ def test_archive_challenge_with_error_handling(db_session):
 
     # Cas 1: Tenter d'archiver avec une transaction en échec
     with patch("app.db.adapter.DatabaseAdapter.archive") as mock_archive:
-        # Simuler un échec de base de données
-        mock_archive.return_value = False
+        # Simuler un échec de base de données → DatabaseOperationError
+        mock_archive.side_effect = DatabaseOperationError("Échec archivage simulé")
 
-        # Tentative d'archivage
-        result = LogicChallengeService.archive_challenge(db_session, challenge_id)
-
-        # Vérifier que le service retourne False en cas d'échec
-        assert result is False
+        with pytest.raises(DatabaseOperationError):
+            LogicChallengeService.archive_challenge(db_session, challenge_id)
 
     # Vérifier que le défi n'a pas été archivé malgré la tentative
     db_session.refresh(challenge)
@@ -554,11 +546,8 @@ def test_delete_challenge(db_session):
     # Vérifier que le défi existe
     assert LogicChallengeService.get_challenge(db_session, challenge_id) is not None
 
-    # Supprimer le défi via le service
-    result = LogicChallengeService.delete_challenge(db_session, challenge_id)
-
-    # Vérifier que la suppression a réussi
-    assert result is True
+    # Supprimer le défi via le service — retourne None, raise si erreur
+    LogicChallengeService.delete_challenge(db_session, challenge_id)
 
     # Vérifier que le défi n'existe plus
     assert LogicChallengeService.get_challenge(db_session, challenge_id) is None
@@ -566,14 +555,11 @@ def test_delete_challenge(db_session):
 
 def test_delete_nonexistent_challenge(db_session):
     """Teste la suppression d'un défi qui n'existe pas."""
-    # Utiliser un ID qui n'existe pas
     nonexistent_id = 9999
 
-    # Tenter de supprimer le défi
-    result = LogicChallengeService.delete_challenge(db_session, nonexistent_id)
-
-    # Vérifier que la suppression a échoué
-    assert result is False
+    # Défi introuvable → ChallengeNotFoundError
+    with pytest.raises(ChallengeNotFoundError):
+        LogicChallengeService.delete_challenge(db_session, nonexistent_id)
 
 
 def test_delete_challenge_cascade(db_session):
@@ -637,9 +623,8 @@ def test_delete_challenge_cascade(db_session):
     )
     assert attempt_count == 2
 
-    # Supprimer le défi
-    result = LogicChallengeService.delete_challenge(db_session, challenge_id)
-    assert result is True
+    # Supprimer le défi — retourne None, raise si erreur
+    LogicChallengeService.delete_challenge(db_session, challenge_id)
 
     # Vérifier que le défi a été supprimé
     assert LogicChallengeService.get_challenge(db_session, challenge_id) is None
