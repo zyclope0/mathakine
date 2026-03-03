@@ -1,6 +1,6 @@
 # README_TECH.md - Mathakine
 
-> Documentation technique de référence — Mise à jour le 28/02/2026
+> Documentation technique de référence — Mise à jour le 03/03/2026
 
 ---
 
@@ -33,9 +33,12 @@ Mathakine/
 │   ├── api/                #   [Archive] Anciens routers FastAPI
 │   │   ├── deps.py         #   Dependencies injection (DB session, auth)
 │   │   └── endpoints/      #   Logique metier reutilisable (reference)
-│   ├── core/               #   Configuration, securite, logging, constantes
+│   ├── core/               #   Configuration, sécurité, logging, constantes, types
+│   │   ├── types.py        #   TypedDict centralisés (DashboardStats, TokenResponse, AuditLogPageDict…)
+│   │   ├── constants.py    #   Hub de re-export constantes (domaines exercise, user, config)
+│   │   └── constants_challenge.py  #   Constantes domaine challenges (types, aliases, normalize)
 │   ├── db/                 #   Base SQLAlchemy, adapter, queries
-│   ├── exceptions.py      #   Exceptions metier (ExerciseNotFoundError, ExerciseSubmitError)
+│   ├── exceptions.py      #   Exceptions métier (ExerciseNotFoundError, ChallengeNotFoundError, UserNotFoundError, DatabaseOperationError)
 │   ├── models/             #   Modeles SQLAlchemy (User, Exercise, Attempt, LogicChallenge, etc.)
 │   ├── schemas/            #   Schemas Pydantic (validation API)
 │   ├── services/           #   Logique metier (exercise_service, challenge_service, challenge_ai_service, etc.)
@@ -133,15 +136,23 @@ Le backend est unifie sur **Starlette** (FastAPI archive le 06/02/2026).
 Couche independante du framework HTTP :
 - **Models** : SQLAlchemy ORM (`app/models/`)
 - **Schemas** : Pydantic validation (`app/schemas/`)
-- **Services** : Logique metier (`app/services/`)
-  - `exercise_service.py` - CRUD exercices
-  - `exercise_stats_service.py` - Statistiques Académie (extrait 28/02)
-  - `challenge_service.py` - CRUD defis
-  - `user_service.py` - Gestion utilisateurs
-  - `auth_service.py` - Authentification, JWT
-  - `badge_service.py` - Systeme de badges
-  - `recommendation_service.py` - Recommandations adaptatives
-  - `logic_challenge_service.py` - Defis logiques
+- **Services** : Logique métier (`app/services/`)
+  - `exercise_service.py` — CRUD exercices
+  - `exercise_stats_service.py` — Statistiques (extrait 28/02)
+  - `challenge_service.py` — CRUD défis (quiz)
+  - `challenge_answer_service.py` — 7 algorithmes de comparaison réponses (Phase 3.1)
+  - `logic_challenge_service.py` — Défis logiques
+  - `user_service.py` — Gestion utilisateurs
+  - `auth_service.py` — Authentification, JWT
+  - `badge_service.py` — Système de badges
+  - `recommendation_service.py` — Recommandations adaptatives
+  - `chat_service.py` — Config et helpers chatbot IA (Phase 3.2)
+  - `admin_service.py` — Façade re-exportant les 4 services admin spécialisés
+  - `admin_config_service.py` — Config, maintenance, paramètres globaux (Phase 3.3)
+  - `admin_stats_service.py` — Dashboard, audit logs, modération, rapports (Phase 3.3)
+  - `admin_user_service.py` — Gestion utilisateurs admin (Phase 3.3)
+  - `admin_content_service.py` — Exercices, défis, export CSV (Phase 3.3)
+  - `enhanced_server_adapter.py` — Adaptateur couche HTTP → services
 - **Utils** : Utilitaires (`app/utils/`)
   - `rate_limiter.py` - Limitation taux API
   - `prompt_sanitizer.py` - Securite prompts IA
