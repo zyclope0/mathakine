@@ -189,10 +189,13 @@ def _validate_production_settings():
             "(éviter admin, password, 123456). Définir dans les variables Render."
         )
 
-    # S3 — audit 03/03/2026 : rejeter les credentials DB par défaut en production
+    # S3 — audit 03/03/2026 : rejeter les credentials DB par défaut en production.
+    # Guard : seulement si DATABASE_URL n'est pas fourni directement (Render l'injecte
+    # comme URL complète sans passer par POSTGRES_PASSWORD).
     if (
         os.getenv("ENVIRONMENT") == "production"
         and not settings.TESTING
+        and not os.getenv("DATABASE_URL")
         and settings.POSTGRES_PASSWORD in ("", "postgres", "password")
     ):
         raise ValueError(

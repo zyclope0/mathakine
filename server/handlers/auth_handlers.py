@@ -649,7 +649,9 @@ async def api_forgot_password(request: Request) -> JSONResponse:
 
             logger.info(f"Email de réinitialisation envoyé à {user.email}")
             if "localhost" in settings.FRONTEND_URL:
-                reset_link = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
+                reset_link = (
+                    f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
+                )
                 logger.info(
                     f"[DEV] Si l'email n'arrive pas (filtre Gmail), copie ce lien : {reset_link}"
                 )
