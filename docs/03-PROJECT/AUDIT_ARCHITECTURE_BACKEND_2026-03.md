@@ -481,7 +481,7 @@ if settings.TESTING:
 |---|---|
 | **Fichier** | `app/db/transaction.py` |
 | **Sévérité** | LOW |
-| **Statut** | ⬜ À repenser |
+| **Statut** | ✅ Corrigé (22/02/2026) |
 
 ---
 
@@ -601,7 +601,7 @@ Sécurité    Standards    Services légers      God files    Industrialisation
 
 ---
 
-### Phase 4 — Industrialisation ✅ PARTIELLEMENT TERMINÉE (03/03/2026)
+### Phase 4 — Industrialisation ✅ TERMINÉE (22/02/2026)
 
 **Justification :** Dernière couche de polish — finit les TypedDict, découpe les constantes, nettoie les derniers anti-patterns. Faible risque, bénéfice de maintenabilité long terme.
 
@@ -613,7 +613,7 @@ Sécurité    Standards    Services légers      God files    Industrialisation
 | 4.2 | Découper `constants.py` en modules par domaine | A10 | Facile | ✅ Corrigé | `app/core/constants_challenge.py` extrait (challenge types, aliases, `normalize_challenge_type`, `AGE_GROUPS_DB`). `constants.py` re-exporte via hub pour compat. Extensible (exercise, user…). |
 | 4.3 | Adopter `format_paginated_response` dans les handlers | H9 câblage | Facile | ✅ Corrigé | Appliqué dans `exercise_service.py` (service) et `challenge_handlers.py`. `user_handlers.py` — aucune pagination inline trouvée. |
 | 4.4 | Adopter `enum_mapping.py` dans les handlers | H9 câblage | Facile | ✅ Corrigé | `challenge_handlers.py` → `age_group_exercise_from_api`. `challenge_list_params.py` → `challenge_type_from_api` + `age_group_challenge_from_api`. `exercise_list_params.py` déjà propre (via `normalize_and_validate_exercise_params`). |
-| 4.5 | Repenser `safe_delete`/`safe_archive` → exceptions | I5 | Moyen | ⏳ Différé | Touche 10+ fichiers dont 5 fichiers de tests avec assertions `result is False`. Rapport risque/bénéfice défavorable à ce stade. À traiter dans une prochaine itération dédiée. |
+| 4.5 | Repenser `safe_delete`/`safe_archive` → exceptions | I5 | Moyen | ✅ Corrigé | `transaction.py`, `adapter.py`, `exercise_service.py`, `logic_challenge_service.py` → `raise DatabaseOperationError/ExerciseNotFoundError/ChallengeNotFoundError`. `test_logic_challenge_service.py` migré vers `pytest.raises`. 82 tests unitaires verts. |
 
 ---
 
