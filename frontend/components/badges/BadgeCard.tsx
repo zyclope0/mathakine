@@ -3,12 +3,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTranslations, useLocale } from "next-intl";
 import { Badge as BadgeComponent } from "@/components/ui/badge";
-import { Trophy, Lock, CheckCircle, Pin, PinOff } from "lucide-react";
+import { Trophy, Lock, CheckCircle, Heart } from "lucide-react";
 import type { Badge, UserBadge } from "@/types/api";
 
 type BadgeWithCriteria = Badge & { criteria_text?: string | null };
 import { cn } from "@/lib/utils";
 import { motion, type Variants, type Transition } from "framer-motion";
+import { BadgeIcon } from "./BadgeIcon";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
 interface BadgeProgress {
@@ -33,6 +34,7 @@ interface BadgeCardProps {
   isPinned?: boolean;
   onTogglePin?: (badgeId: number) => void;
   canPin?: boolean;
+  compact?: boolean;
 }
 
 const defaultDifficultyColor = {
@@ -60,11 +62,21 @@ const difficultyColors: Record<string, { bg: string; text: string; border: strin
   },
 };
 
-const categoryIcons: Record<string, string> = {
-  progression: "📈",
-  mastery: "⭐",
-  special: "✨",
+const MEDAL_SRCS: Record<string, string> = {
+  bronze: "/badges/svg/medal-bronze.svg",
+  silver: "/badges/svg/medal-silver.svg",
+  gold: "/badges/svg/medal.svg",
+  legendary: "/badges/svg/medal-diamond.svg",
 };
+
+function DifficultyMedal({ difficulty, size = "sm" }: { difficulty?: string | null | undefined; size?: "xs" | "sm" }) {
+  if (!difficulty || !MEDAL_SRCS[difficulty]) return null;
+  const cls = size === "xs" ? "h-4 w-4" : "h-3.5 w-3.5";
+  return (
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img src={MEDAL_SRCS[difficulty]} alt="" className={`${cls} object-contain inline-block shrink-0`} aria-hidden="true" />
+  );
+}
 
 export function BadgeCard({
   badge,
@@ -76,6 +88,7 @@ export function BadgeCard({
   isPinned,
   onTogglePin,
   canPin,
+  compact = false,
 }: BadgeCardProps) {
   const t = useTranslations("badges");
   const locale = useLocale();
@@ -92,19 +105,7 @@ export function BadgeCard({
     return defaultDifficultyColor;
   };
 
-  const getCategoryIcon = (category: string | null | undefined): string => {
-    if (!category) return "🏆";
-    const icon = categoryIcons[category];
-    return icon ?? "🏆";
-  };
-
   const difficultyColor = getDifficultyColor(badge.difficulty);
-  // B5 : icon_url prioritaire (emoji ou URL), fallback catégorie
-  const displayIcon = badge.icon_url?.trim()
-    ? badge.icon_url.trim().startsWith("http")
-      ? badge.icon_url
-      : badge.icon_url.trim()
-    : getCategoryIcon(badge.category);
 
   // Variantes d'animation avec garde-fous
   const variants = createVariants({
@@ -144,6 +145,56 @@ export function BadgeCard({
         tabIndex={isEarned ? 0 : undefined}
         title={isEarned ? t("expandHint") : undefined}
       >
+        {/* Layout compact "list-item" pour cartes earned miniatures */}
+        {compact && isEarned ? (
+          <CardHeader className="p-3">
+            <div className="flex items-center gap-2.5">
+              {/* Icône badge */}
+              <BadgeIcon
+                code={badge.code}
+                iconUrl={badge.icon_url}
+                category={badge.category}
+                difficulty={badge.difficulty}
+                size="sm"
+                isEarned
+              />
+              {/* Nom + pts — flex-1, nom tronqué sur 1 ligne */}
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-sm font-semibold leading-tight truncate"
+                  title={badge.name || badge.code || ""}
+                >
+                  {badge.name || badge.code || "Badge sans nom"}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground">
+                  <DifficultyMedal difficulty={badge.difficulty} size="xs" />
+                  <Trophy className="h-3 w-3 text-yellow-500 shrink-0" aria-hidden="true" />
+                  <span className="tabular-nums">{badge.points_reward} pts</span>
+                </div>
+              </div>
+              {/* Actions + check — centrés verticalement */}
+              <div className="flex items-center gap-1 shrink-0">
+                {canPin && onTogglePin && (
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); onTogglePin(badge.id); }}
+                    className={cn(
+                      "p-1 rounded-full transition-all",
+                      isPinned
+                        ? "bg-rose-500/20 text-rose-400 opacity-100"
+                        : "text-muted-foreground hover:text-rose-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+                    )}
+                    aria-label={isPinned ? t("unpin") : t("pin")}
+                    title={isPinned ? t("unpin") : t("pin")}
+                  >
+                    <Heart className={cn("h-3.5 w-3.5", isPinned && "fill-rose-400")} aria-hidden="true" />
+                  </button>
+                )}
+                <CheckCircle className="h-4 w-4 text-green-400 shrink-0" aria-hidden="true" />
+              </div>
+            </div>
+          </CardHeader>
+        ) : (
         <CardHeader className={cn("pb-4", isEarned && "pb-2")}>
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
@@ -153,24 +204,14 @@ export function BadgeCard({
                   isEarned ? "text-base md:text-lg" : "text-lg md:text-xl"
                 )}
               >
-                <span
-                  className={cn(
-                    "shrink-0 flex items-center justify-center",
-                    isEarned ? "text-2xl w-7" : "text-3xl w-9"
-                  )}
-                  aria-hidden="true"
-                >
-                  {displayIcon.startsWith("http") ? (
-                    /* eslint-disable-next-line @next/next/no-img-element -- URLs dynamiques badges */
-                    <img
-                      src={displayIcon}
-                      alt={badge.name || badge.code || "Badge"}
-                      className={cn("object-contain", isEarned ? "w-6 h-6" : "w-8 h-8")}
-                    />
-                  ) : (
-                    displayIcon
-                  )}
-                </span>
+                <BadgeIcon
+                  code={badge.code}
+                  iconUrl={badge.icon_url}
+                  category={badge.category}
+                  difficulty={badge.difficulty}
+                  size={isEarned ? "sm" : "md"}
+                  isEarned={isEarned}
+                />
                 <span className="break-words">{badge.name || badge.code || "Badge sans nom"}</span>
               </CardTitle>
               {!isEarned && badge.star_wars_title && (
@@ -178,29 +219,14 @@ export function BadgeCard({
                   {badge.star_wars_title}
                 </CardDescription>
               )}
-              {/* Compact: 1-2 infos (difficulté, pts, date) toujours visibles */}
+              {/* Compact: difficulté + pts toujours visibles */}
               {isEarned && (
-                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <span className={cn("font-medium", difficultyColor.text)}>
-                    {badge.difficulty === "bronze" && "🥉"}
-                    {badge.difficulty === "silver" && "🥈"}
-                    {badge.difficulty === "gold" && "🥇"}
-                    {badge.difficulty === "legendary" && "💎"}
-                  </span>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                  <DifficultyMedal difficulty={badge.difficulty} size="sm" />
                   <span>
-                    <Trophy
-                      className="inline h-3.5 w-3.5 text-yellow-500 mr-0.5"
-                      aria-hidden="true"
-                    />
+                    <Trophy className="inline h-3.5 w-3.5 text-yellow-500 mr-0.5" aria-hidden="true" />
                     {badge.points_reward} pts
                   </span>
-                  {userBadge?.earned_at && (
-                    <span>
-                      {t("earnedOn", {
-                        date: new Date(userBadge.earned_at as string).toLocaleDateString(locale),
-                      })}
-                    </span>
-                  )}
                 </div>
               )}
             </div>
@@ -216,22 +242,21 @@ export function BadgeCard({
                         onTogglePin(badge.id);
                       }}
                       className={cn(
-                        "p-1.5 rounded-md transition-colors shrink-0",
+                        "p-1.5 rounded-full transition-all shrink-0",
                         isPinned
-                          ? "bg-amber-500/30 text-amber-400"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          ? "bg-rose-500/20 text-rose-400 opacity-100"
+                          : "text-muted-foreground hover:text-rose-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
                       )}
                       aria-label={isPinned ? t("unpin") : t("pin")}
                       title={isPinned ? t("unpin") : t("pin")}
                     >
-                      {isPinned ? (
-                        <PinOff className="h-4 w-4" aria-hidden="true" />
-                      ) : (
-                        <Pin className="h-4 w-4" aria-hidden="true" />
-                      )}
+                      <Heart
+                        className={cn("h-4.5 w-4.5", isPinned && "fill-rose-400")}
+                        aria-hidden="true"
+                      />
                     </button>
                   )}
-                  <CheckCircle className="h-5 w-5 text-green-500 shrink-0" aria-hidden="true" />
+                  <CheckCircle className="h-5 w-5 text-green-400 shrink-0" aria-hidden="true" />
                 </>
               ) : (
                 <Lock
@@ -252,24 +277,22 @@ export function BadgeCard({
                 <BadgeComponent
                   variant="outline"
                   className={cn(
-                    "badge-sweep shrink-0 text-sm",
+                    "badge-sweep shrink-0 text-sm inline-flex items-center gap-1",
                     difficultyColor.bg,
                     difficultyColor.text,
                     difficultyColor.border
                   )}
                   aria-label={`Difficulté: ${badge.difficulty}`}
                 >
-                  {badge.difficulty === "bronze" && "🥉"}
-                  {badge.difficulty === "silver" && "🥈"}
-                  {badge.difficulty === "gold" && "🥇"}
-                  {badge.difficulty === "legendary" && "💎"}
+                  <DifficultyMedal difficulty={badge.difficulty} />
                 </BadgeComponent>
               )}
             </div>
           </div>
         </CardHeader>
+        )} {/* end of non-compact CardHeader branch */}
 
-        <CardContent className="space-y-4 flex-1 flex flex-col min-h-0">
+        <CardContent className={cn("space-y-4", compact ? "flex-1 px-3 pb-0 pt-0" : "flex-1 flex flex-col min-h-0")}>
           {/* Zone dépliable au survol (obtenus) : tout le détail */}
           {isEarned ? (
             <div className="badge-card-expandable space-y-4">

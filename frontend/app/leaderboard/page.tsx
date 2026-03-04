@@ -15,7 +15,7 @@ import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { useAgeGroupDisplay } from "@/hooks/useChallengeTranslations";
 import { Trophy, Medal, User } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { PageLayout, PageHeader, PageSection, LoadingState } from "@/components/layout";
+import { PageLayout, PageHeader, PageSection, LoadingState, EmptyState } from "@/components/layout";
 import { cn } from "@/lib/utils";
 import type { LeaderboardEntry } from "@/hooks/useLeaderboard";
 import { AGE_GROUPS } from "@/lib/constants/exercises";
@@ -52,21 +52,15 @@ export default function LeaderboardPage() {
 
         <PageSection>
           {error ? (
-            <Card className="card-spatial-depth">
-              <CardContent className="py-12">
-                <p className="text-center text-destructive">
-                  {t("error") ?? "Erreur de chargement"}
-                </p>
-              </CardContent>
-            </Card>
+            <EmptyState
+              title={t("error") ?? "Erreur de chargement"}
+              description=""
+              icon={Trophy}
+            />
           ) : isLoading ? (
             <LoadingState message={t("loading")} />
           ) : leaderboard.length === 0 ? (
-            <Card className="card-spatial-depth">
-              <CardContent className="py-12">
-                <p className="text-center text-muted-foreground">{t("empty")}</p>
-              </CardContent>
-            </Card>
+            <EmptyState title={t("empty")} description="" icon={Medal} />
           ) : (
             <Card className="card-spatial-depth">
               <CardHeader>

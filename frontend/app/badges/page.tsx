@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { BadgeGrid } from "@/components/badges/BadgeGrid";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,12 +27,15 @@ import {
   Filter,
   X,
   AlertCircle,
+  Sparkles,
+  Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { PageLayout, PageHeader, PageSection, LoadingState, EmptyState } from "@/components/layout";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BadgeIcon } from "@/components/badges/BadgeIcon";
 
 function getJediRankInfo(
   rank: string,
@@ -50,7 +53,7 @@ function getJediRankInfo(
     padawan: "text-blue-400",
     knight: "text-green-400",
     master: "text-purple-400",
-    grand_master: "text-gold-400",
+    grand_master: "text-amber-400",
   };
   return {
     title: t(`jediRanks.${rank}`) || t("jediRanks.youngling"),
@@ -193,6 +196,41 @@ export default function BadgesPage() {
     setActiveTab(defaultTab);
   }, [defaultTab]);
 
+  // Célébration : confetti si de nouveaux badges depuis la dernière visite
+  const confettiRef = useRef(false);
+  useEffect(() => {
+    if (confettiRef.current || isLoading || earnedCount === 0) return;
+    const storageKey = "mathakine_badges_last_count";
+    const lastCount = parseInt(localStorage.getItem(storageKey) ?? "0", 10);
+    if (earnedCount > lastCount) {
+      confettiRef.current = true;
+      localStorage.setItem(storageKey, String(earnedCount));
+      import("canvas-confetti").then(({ default: confetti }) => {
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.4 }, colors: ["#facc15", "#a78bfa", "#34d399", "#60a5fa"] });
+      });
+    }
+  }, [earnedCount, isLoading]);
+
+  // Message motivationnel selon progression
+  const motivationInfo = useMemo(() => {
+    if (earnedCount === 0) return null;
+    if (progressPercent >= 100) return { key: "complete", color: "from-yellow-500/20 to-amber-500/10 border-yellow-500/30 text-yellow-400" };
+    if (progressPercent >= 75) return { key: "legendary", color: "from-purple-500/20 to-violet-500/10 border-purple-500/30 text-purple-400" };
+    if (progressPercent >= 50) return { key: "great", color: "from-primary/20 to-cyan-500/10 border-primary/30 text-primary" };
+    if (progressPercent >= 25) return { key: "good", color: "from-green-500/20 to-emerald-500/10 border-green-500/30 text-green-400" };
+    return { key: "start", color: "from-blue-500/20 to-sky-500/10 border-blue-500/30 text-blue-400" };
+  }, [earnedCount, progressPercent]);
+
+  // Widget "À portée de main" : badges en cours >= 50%, triés par progression desc
+  const closestBadges = useMemo(
+    () =>
+      inProgressWithTarget
+        .filter((b) => (b.progress ?? 0) >= 0.5)
+        .sort((a, b) => (b.progress ?? 0) - (a.progress ?? 0))
+        .slice(0, 3),
+    [inProgressWithTarget]
+  );
+
   return (
     <ProtectedRoute requireFullAccess>
       <PageLayout maxWidth="2xl">
@@ -264,6 +302,25 @@ export default function BadgesPage() {
             </div>
           )}
         </div>
+
+        {/* Bandeau motivationnel de célébration */}
+        {motivationInfo && !isLoading && (
+          <div
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl border bg-gradient-to-r ${motivationInfo.color} animate-fade-in-up`}
+            role="status"
+            aria-live="polite"
+          >
+            <Sparkles className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <span className="text-sm font-semibold">
+              <span className="mr-1.5" aria-hidden="true">
+                {t(`motivationIcon.${motivationInfo.key}`)}
+              </span>
+              {earnedCount > 1
+                ? t("badgesUnlockedPlural", { count: earnedCount, msg: t(`motivation.${motivationInfo.key}`) })
+                : t("badgesUnlocked", { count: earnedCount, msg: t(`motivation.${motivationInfo.key}`) })}
+            </span>
+          </div>
+        )}
 
         {/* A-3 : barre filtres et tri — Proches séparé des dropdowns pour éviter chevauchement */}
         <PageSection className="space-y-4 animate-fade-in-up">
@@ -415,6 +472,7 @@ export default function BadgesPage() {
               sortBy={sortBy}
               rarityMap={rarityMap}
               pinnedBadgeIds={pinnedBadgeIds}
+              compactEarned
               onTogglePin={async (badgeId) => {
                 const isPinned = pinnedBadgeIds.includes(badgeId);
                 const next = isPinned
@@ -431,6 +489,64 @@ export default function BadgesPage() {
             </p>
           )}
         </PageSection>
+
+        {/* Widget "À portée de main" — top 3 badges proches de 100% */}
+        {closestBadges.length > 0 && !isLoading && (
+          <PageSection className="space-y-3 animate-fade-in-up-delay-1">
+            <div className="flex items-center gap-2">
+              <Flame className="h-4 w-4 text-orange-400" aria-hidden="true" />
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                {t("closestTitle")}
+              </h2>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {closestBadges.map((badge) => {
+                const fullBadge = availableBadges.find((b) => b.id === badge.id);
+                const remaining = (badge.target ?? 0) - (badge.current ?? 0);
+                const pct = Math.round((badge.progress ?? 0) * 100);
+                return (
+                  <div
+                    key={badge.id}
+                    className="flex items-center gap-3 rounded-lg border border-orange-500/20 bg-orange-500/5 px-3 py-2.5"
+                  >
+                    <BadgeIcon
+                      code={fullBadge?.code}
+                      iconUrl={fullBadge?.icon_url}
+                      category={fullBadge?.category}
+                      size="sm"
+                      isEarned={false}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{badge.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div
+                          className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden"
+                          role="progressbar"
+                          aria-valuenow={pct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`${badge.name}: ${pct}%`}
+                        >
+                          <div
+                            className="bg-orange-400 h-1.5 rounded-full transition-all duration-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-orange-400 font-semibold tabular-nums shrink-0">
+                          {remaining > 0
+                            ? remaining > 1
+                              ? t("remainingPlural", { count: remaining })
+                              : t("remaining", { count: remaining })
+                            : t("almostThere")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </PageSection>
+        )}
 
         {/* 2) Onglets : Badges en cours | À débloquer */}
         {(inProgressWithTarget.length > 0 || filteredLocked.length > 0) && (
@@ -473,22 +589,14 @@ export default function BadgesPage() {
                       ]
                         .filter(Boolean)
                         .join("\n");
-                      const catIcon =
-                        fullBadge?.category === "progression"
-                          ? "📈"
-                          : fullBadge?.category === "mastery"
-                            ? "⭐"
-                            : fullBadge?.category === "special"
-                              ? "✨"
-                              : "🏆";
-                      const diffIcon =
+                      const difficultyMedalSrc =
                         fullBadge?.difficulty === "gold"
-                          ? "🥇"
+                          ? "/badges/svg/medal.svg"
                           : fullBadge?.difficulty === "silver"
-                            ? "🥈"
+                            ? "/badges/svg/medal-silver.svg"
                             : fullBadge?.difficulty === "legendary"
-                              ? "💎"
-                              : "🥉";
+                              ? "/badges/svg/medal-diamond.svg"
+                              : "/badges/svg/medal-bronze.svg";
                       return (
                         <TooltipProvider key={badge.id}>
                           <Tooltip>
@@ -496,30 +604,20 @@ export default function BadgesPage() {
                               <Card className="card-spatial-depth cursor-help transition-shadow hover:shadow-md">
                                 <CardContent className="pt-4">
                                   <div className="flex items-center gap-2 mb-2">
-                                    <span
-                                      className="text-2xl shrink-0 flex items-center justify-center w-8"
-                                      aria-hidden="true"
-                                    >
-                                      {fullBadge?.icon_url?.trim() ? (
-                                        fullBadge.icon_url.trim().startsWith("http") ? (
-                                          // eslint-disable-next-line @next/next/no-img-element -- URLs dynamiques (CDN/API)
-                                          <img
-                                            src={fullBadge.icon_url}
-                                            alt={fullBadge.name || badge.name || "Badge"}
-                                            className="w-7 h-7 object-contain"
-                                          />
-                                        ) : (
-                                          fullBadge.icon_url.trim()
-                                        )
-                                      ) : (
-                                        catIcon
-                                      )}
-                                    </span>
-                                    <span
-                                      className="text-lg shrink-0 opacity-75"
-                                      aria-hidden="true"
-                                    >
-                                      {diffIcon}
+                                    <BadgeIcon
+                                      code={fullBadge?.code}
+                                      iconUrl={fullBadge?.icon_url}
+                                      category={fullBadge?.category}
+                                      size="sm"
+                                      isEarned={false}
+                                    />
+                                    <span className="shrink-0 flex items-center" aria-hidden="true">
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img
+                                        src={difficultyMedalSrc}
+                                        alt=""
+                                        className="h-5 w-5 object-contain"
+                                      />
                                     </span>
                                     <span className="font-medium flex-1 min-w-0">{badge.name}</span>
                                     <span className="text-sm font-semibold text-foreground tabular-nums shrink-0">

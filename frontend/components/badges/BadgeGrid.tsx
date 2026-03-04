@@ -5,6 +5,7 @@ import type { Badge, UserBadge } from "@/types/api";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
+import { cn } from "@/lib/utils";
 
 interface BadgeProgress {
   current: number;
@@ -29,6 +30,7 @@ interface BadgeGridProps {
   rarityMap?: Record<string, RarityInfo>;
   pinnedBadgeIds?: number[];
   onTogglePin?: (badgeId: number) => void;
+  compactEarned?: boolean;
 }
 
 export function BadgeGrid({
@@ -40,6 +42,7 @@ export function BadgeGrid({
   rarityMap,
   pinnedBadgeIds,
   onTogglePin,
+  compactEarned = false,
 }: BadgeGridProps) {
   const { shouldReduceMotion } = useAccessibleAnimation();
 
@@ -122,7 +125,10 @@ export function BadgeGrid({
 
   return (
     <motion.div
-      className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[1600px]:grid-cols-6 items-stretch"
+      className={cn(
+        "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 min-[1600px]:grid-cols-6 items-stretch",
+        compactEarned ? "gap-3" : "gap-4"
+      )}
       variants={containerVariants}
       initial="hidden"
       animate="show"
@@ -142,6 +148,7 @@ export function BadgeGrid({
             index={index}
             rarity={rarityMap?.[String(badge.id)] ?? null}
             isPinned={pinnedBadgeIds?.includes(badge.id) ?? false}
+            compact={compactEarned && !!userBadge}
             {...(onTogglePin != null && { onTogglePin })}
             canPin={
               pinnedBadgeIds != null &&

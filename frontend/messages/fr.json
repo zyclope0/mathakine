@@ -825,6 +825,26 @@
     "expandHint": "Survoler ou activer pour voir les détails",
     "pin": "Épingler",
     "unpin": "Désépingler",
+    "closestTitle": "À portée de main",
+    "remaining": "{count} restant",
+    "remainingPlural": "{count} restants",
+    "almostThere": "Presque !",
+    "badgesUnlocked": "{count} badge débloqué — {msg}",
+    "badgesUnlockedPlural": "{count} badges débloqués — {msg}",
+    "motivation": {
+      "start": "L'aventure commence !",
+      "good": "Belle progression, continue !",
+      "great": "Impressionnant, tu y es presque !",
+      "legendary": "Tu es presque légendaire !",
+      "complete": "Collection complète — tu es une légende !"
+    },
+    "motivationIcon": {
+      "start": "✨",
+      "good": "💪",
+      "great": "🚀",
+      "legendary": "👑",
+      "complete": "🌟"
+    },
     "rarity": {
       "rare": "Rare",
       "uncommon": "Peu commun",
@@ -1453,6 +1473,18 @@
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir régulièrement.",
     "latestBadge": "Dernière version",
     "latestLabel": "Version la plus récente",
+    "v230a3": {
+      "version": "2.3.0 — alpha 3",
+      "date": "4 mars 2026",
+      "items": [
+        "La page des badges affiche désormais un message d'encouragement selon votre progression dans la collection",
+        "Un feu d'artifice apparaît la première fois que vous revenez après avoir débloqué un nouveau badge",
+        "Un encadré \"À portée de main\" vous montre les badges les plus proches d'être débloqués",
+        "Les cartes de badges sont plus compactes : nom, difficulté et points en un coup d'œil",
+        "L'icône d'épingle est remplacée par un cœur — plus intuitif pour marquer vos badges favoris",
+        "La date d'obtention est masquée par défaut et apparaît au survol pour alléger l'affichage"
+      ]
+    },
     "v230": {
       "version": "2.3.0 — alpha 2",
       "date": "3 mars 2026",

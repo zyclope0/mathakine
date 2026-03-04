@@ -4,6 +4,27 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [2.3.0-alpha.3] - 2026-03-04
+
+### Added
+- Bandeau motivationnel sur la page badges (message adapté au % de progression, 5 niveaux)
+- Confetti au premier chargement après obtention d'un nouveau badge (canvas-confetti, localStorage)
+- Widget "À portée de main" : top 3 badges en cours à ≥50% de progression, visible sans naviguer
+- Composant `DifficultyMedal` extrait de `BadgeCard` — élimine la répétition `if bronze/silver/gold`
+
+### Changed
+- Cartes "Ma collection" : layout "list-item" compact (icône | nom+pts | actions) — alignement vertical, nom tronqué sur 1 ligne
+- Icône Pin remplacée par Cœur (rempli si épinglé, disparaît au survol sinon)
+- Date "obtenu le" déplacée en zone dépliable (survol uniquement, plus dans la vue miniature)
+- Grille badges earned : `gap-3` au lieu de `gap-4`
+- `BadgeGrid` : prop `compactEarned` pour activer le mode liste
+- Médaille difficulté dans la vue compacte : taille `h-4 w-4` pour meilleure lisibilité
+
+### Fixed
+- `leaderboard/page.tsx` : état vide/erreur migré vers `EmptyState` (cohérence design system)
+- `challenges/page.tsx` : badge compteur filtres actifs incluait `orderFilter` + `hideCompleted`
+- `globals.css` : animations `animate-fade-in-up-delay-4` et `-delay-5` manquantes ajoutées
+
 ## [2.3.0] - 2026-03-03
 
 ### Audit Frontend Industrialisation — Clôture (Phases 0→4 complètes)

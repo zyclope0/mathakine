@@ -1443,6 +1443,16 @@ select:focus {
   animation-fill-mode: both;
 }
 
+.animate-fade-in-up-delay-4 {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+  animation-fill-mode: both;
+}
+
+.animate-fade-in-up-delay-5 {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards;
+  animation-fill-mode: both;
+}
+
 /* Badge IA avec animation pulse subtile */
 /* rgba pour compatibilité max (color-mix dans keyframes mal supporté sur Safari/iOS) */
 .badge-ai-pulse {
@@ -1470,7 +1480,9 @@ select:focus {
   .animate-fade-in-up,
   .animate-fade-in-up-delay-1,
   .animate-fade-in-up-delay-2,
-  .animate-fade-in-up-delay-3 {
+  .animate-fade-in-up-delay-3,
+  .animate-fade-in-up-delay-4,
+  .animate-fade-in-up-delay-5 {
     animation: none !important;
     transition: none !important;
     /* CRITIQUE : Forcer l'opacité à 1 si l'animation est désactivée */

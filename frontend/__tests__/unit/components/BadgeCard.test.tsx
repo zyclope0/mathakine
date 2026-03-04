@@ -60,8 +60,10 @@ describe("BadgeCard", () => {
     render(<BadgeCard badge={mockBadge} userBadge={userBadge} isEarned={true} />, {
       wrapper: TestWrapper,
     });
-    // L'icône CheckCircle devrait être présente
-    const checkIcon = document.querySelector('[class*="text-green-500"]');
+    // La carte a l'aria-label "obtenu" et le CheckCircle vert est présent
+    const card = screen.getByRole("article", { name: /obtenu/i });
+    expect(card).toBeInTheDocument();
+    const checkIcon = document.querySelector('[class*="text-green-400"]');
     expect(checkIcon).toBeInTheDocument();
   });
 
@@ -84,27 +86,28 @@ describe("BadgeCard", () => {
     expect(dateElements[0]).toBeInTheDocument();
   });
 
-  it("utilise le nom du badge comme texte alt quand l'icône est une URL HTTP", () => {
+  it("rend l'icône de badge HTTP comme élément décoratif (aria-hidden)", () => {
     const badgeWithUrl: Badge = {
       ...mockBadge,
       icon_url: "https://cdn.example.com/badges/first-steps.png",
     };
     render(<BadgeCard badge={badgeWithUrl} isEarned={false} />, { wrapper: TestWrapper });
-    // L'img est dans aria-hidden, on cherche via l'attribut alt dans le DOM
-    const img = screen.getByAltText("Premiers Pas");
-    expect(img).toBeInTheDocument();
-    expect(img.tagName).toBe("IMG");
+    // BadgeIcon est aria-hidden : l'image est décorative, alt="" intentionnel
+    // L'accessibilité est portée par l'aria-label de la carte parente
+    const card = screen.getByRole("article", { name: /Premiers Pas/i });
+    expect(card).toBeInTheDocument();
+    // Le conteneur de l'icône est masqué des lecteurs d'écran
+    const iconContainer = document.querySelector('[aria-hidden="true"]');
+    expect(iconContainer).toBeInTheDocument();
   });
 
-  it("utilise le code du badge comme alt de secours si le nom est absent", () => {
+  it("affiche le nom du badge même si le nom est absent (fallback sur le code)", () => {
     const badgeNoName: Badge = {
       ...mockBadge,
       name: "",
-      icon_url: "https://cdn.example.com/badges/first-steps.png",
     };
     render(<BadgeCard badge={badgeNoName} isEarned={false} />, { wrapper: TestWrapper });
-    const img = screen.getByAltText("first_steps");
-    expect(img).toBeInTheDocument();
-    expect(img.tagName).toBe("IMG");
+    // Le code est affiché comme texte de secours
+    expect(screen.getByText("first_steps")).toBeInTheDocument();
   });
 });

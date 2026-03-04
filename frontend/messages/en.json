@@ -828,6 +828,26 @@
     "expandHint": "Hover or focus to see details",
     "pin": "Pin",
     "unpin": "Unpin",
+    "closestTitle": "Within reach",
+    "remaining": "{count} remaining",
+    "remainingPlural": "{count} remaining",
+    "almostThere": "Almost there!",
+    "badgesUnlocked": "{count} badge unlocked — {msg}",
+    "badgesUnlockedPlural": "{count} badges unlocked — {msg}",
+    "motivation": {
+      "start": "The adventure begins!",
+      "good": "Great progress, keep going!",
+      "great": "Impressive, you're almost there!",
+      "legendary": "You're almost legendary!",
+      "complete": "Complete collection — you're a legend!"
+    },
+    "motivationIcon": {
+      "start": "✨",
+      "good": "💪",
+      "great": "🚀",
+      "legendary": "👑",
+      "complete": "🌟"
+    },
     "rarity": {
       "rare": "Rare",
       "uncommon": "Uncommon",
@@ -1456,6 +1476,18 @@
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
     "latestBadge": "Latest",
     "latestLabel": "Most recent version",
+    "v230a3": {
+      "version": "2.3.0 — alpha 3",
+      "date": "March 4, 2026",
+      "items": [
+        "The badges page now shows an encouraging message based on your collection progress",
+        "A confetti burst appears the first time you return after unlocking a new badge",
+        "A \"Within reach\" panel shows the badges closest to being unlocked",
+        "Badge cards are now more compact: name, difficulty and points at a glance",
+        "The pin icon is replaced by a heart — more intuitive for marking your favourite badges",
+        "The earned date is hidden by default and appears on hover to keep the view clean"
+      ]
+    },
     "v230": {
       "version": "2.3.0 — alpha 2",
       "date": "March 3, 2026",

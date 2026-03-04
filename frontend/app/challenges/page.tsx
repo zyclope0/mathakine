@@ -163,7 +163,9 @@ function ChallengesPageContent() {
                 <Badge variant="secondary" className="ml-1">
                   {(challengeTypeFilter !== "all" ? 1 : 0) +
                     (ageGroupFilter !== "all" ? 1 : 0) +
-                    (searchQuery.trim() ? 1 : 0)}
+                    (searchQuery.trim() ? 1 : 0) +
+                    (orderFilter !== "random" ? 1 : 0) +
+                    (hideCompleted ? 1 : 0)}
                 </Badge>
               )}
             </div>
