@@ -1474,7 +1474,7 @@
     "latestBadge": "Dernière version",
     "latestLabel": "Version la plus récente",
     "v230a4": {
-      "version": "2.3.0 — alpha 4",
+      "version": "2.4.0 — alpha 2",
       "date": "4 mars 2026",
       "items": [
         "Le logo Mathakine est maintenant affiché dans la barre de navigation en haut de chaque page",
@@ -1486,7 +1486,7 @@
       ]
     },
     "v230a3": {
-      "version": "2.3.0 — alpha 3",
+      "version": "2.4.0 — alpha 1",
       "date": "4 mars 2026",
       "items": [
         "La page des badges affiche désormais un message d'encouragement selon votre progression dans la collection",

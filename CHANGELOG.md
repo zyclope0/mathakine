@@ -4,7 +4,7 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
-## [2.3.0-alpha.4] - 2026-03-04
+## [2.4.0-alpha.2] - 2026-03-04
 
 ### Added
 - `LogoMathakine` : composant React inline SVG — thémisation complète via CSS vars (`--logo-text`, `--logo-highlight`, `--logo-glow`, `--logo-accents`) définies dans `globals.css` pour chaque thème (light, dark, dune, forêt, dino…)
@@ -23,7 +23,7 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ---
 
-## [2.3.0-alpha.3] - 2026-03-04
+## [2.4.0-alpha.1] - 2026-03-04
 
 ### Added
 - Bandeau motivationnel sur la page badges (message adapté au % de progression, 5 niveaux)
