@@ -153,6 +153,56 @@
     },
     "logout": "Déconnexion"
   },
+  "diagnostic": {
+    "title": "Évaluation de départ",
+    "subtitle": "Quelques questions pour calibrer ton niveau. Pas de pression — il n'y a pas de mauvaise réponse !",
+    "startButton": "Commencer l'évaluation",
+    "progressLabel": "Question {current} sur {max}",
+    "typesRemaining": "{count} type(s) restant(s)",
+    "question": {
+      "difficultyLabel": "Niveau actuel",
+      "chooseAnswer": "Choisis une réponse"
+    },
+    "answer": {
+      "validate": "Valider",
+      "validateDisabled": "Sélectionne une réponse",
+      "next": "Question suivante",
+      "correct": "Bonne réponse !",
+      "incorrect": "Pas tout à fait..."
+    },
+    "explanation": {
+      "title": "Explication"
+    },
+    "results": {
+      "title": "Évaluation terminée !",
+      "subtitle": "Voici ton niveau de départ. Tes exercices seront adaptés en conséquence.",
+      "questionsAnswered": "{count} question(s) posée(s)",
+      "duration": "en {seconds}s",
+      "typeLabel": {
+        "addition": "Addition",
+        "soustraction": "Soustraction",
+        "multiplication": "Multiplication",
+        "division": "Division"
+      },
+      "levelLabel": {
+        "INITIE": "Initié",
+        "PADAWAN": "Padawan",
+        "CHEVALIER": "Chevalier",
+        "MAITRE": "Maître",
+        "GRAND_MAITRE": "Grand Maître"
+      },
+      "scoreDetail": "{correct} / {total} correct(s)",
+      "ctaDashboard": "Voir mon tableau de bord",
+      "ctaExercises": "Commencer à pratiquer"
+    },
+    "error": {
+      "title": "Une erreur est survenue",
+      "retry": "Réessayer",
+      "backHome": "Retour à l'accueil"
+    },
+    "settingsEntry": "Refaire l'évaluation",
+    "settingsDescription": "Réinitialise ton niveau de départ pour que les exercices soient recalibrés."
+  },
   "onboarding": {
     "title": "Personnalise ton apprentissage",
     "description": "Quelques questions pour adapter les exercices et défis à ton profil.",
@@ -1252,7 +1302,18 @@
       "lastActivity": "Dernière activité",
       "revoke": "Révoquer",
       "revokeAll": "Révoquer toutes les autres sessions",
-      "noSessions": "Aucune autre session active"
+      "noSessions": "Aucune autre session active",
+      "showMore": "Voir plus ({count} restante(s))",
+      "showLess": "Réduire"
+    },
+    "diagnostic": {
+      "title": "Évaluation de niveau",
+      "description": "Calibre les exercices en évaluant ton niveau réel en arithmétique.",
+      "notDone": "Pas encore effectuée",
+      "lastDone": "Dernière évaluation : {date}",
+      "start": "Faire l'évaluation",
+      "redo": "Refaire l'évaluation",
+      "scores": "Résultats : {summary}"
     },
     "data": {
       "title": "Données et compte",
@@ -1482,6 +1543,18 @@
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir régulièrement.",
     "latestBadge": "Dernière version",
     "latestLabel": "Version la plus récente",
+    "v250a3": {
+      "version": "2.5.0 — alpha 3",
+      "date": "4 mars 2026",
+      "items": [
+        "Test de niveau adaptatif disponible : 10 questions, 4 opérations, pour personnaliser vos exercices dès le départ",
+        "Le test est accessible depuis les Paramètres pour être repassé à tout moment",
+        "Les recommandations tiennent maintenant compte de votre niveau réel mesuré lors du test",
+        "Les pages d'exercice, de défi et le diagnostic s'affichent correctement sur tous les thèmes (clair, dino, ocean…), plus seulement le thème spatial",
+        "Les explications d'exercices ne montrent plus le préfixe technique [TEST-ZAXXON]",
+        "Correction des choix de réponses en double dans certains exercices de division"
+      ]
+    },
     "v250": {
       "version": "2.5.0 — alpha 2",
       "date": "4 mars 2026",

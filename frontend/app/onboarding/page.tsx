@@ -76,7 +76,8 @@ function OnboardingContent() {
         practice_rhythm: practiceRhythm || undefined,
       });
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      router.replace("/dashboard");
+      // Rediriger vers le diagnostic initial pour calibrer le niveau (F03)
+      router.replace("/diagnostic?from=onboarding");
     } catch (err: unknown) {
       setError(
         err && typeof err === "object" && "message" in err

@@ -44,7 +44,7 @@ class ExerciseMessages:
     TITLE_GEOMETRIE = "Géométrie des constellations"
     TITLE_DIVERS = "Défi mathématique"
     TITLE_DEFAULT = "Exercice mathématique"
-    TITLE_AI_PREFIX = "TEST-ZAXXON"
+    TITLE_AI_PREFIX = ""  # Vide = pas d'affichage utilisateur (aligné avec constants.Messages)
 
     # Messages de résultats
     RESULT_CORRECT = "Excellent travail ! Ta réponse est correcte."

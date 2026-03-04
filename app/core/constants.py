@@ -438,7 +438,7 @@ class Tags:
 
 # Messages et préfixes spécifiques
 class Messages:
-    AI_EXERCISE_PREFIX = "TEST-ZAXXON"
+    AI_EXERCISE_PREFIX = ""  # Préfixe technique (ex: marquage tests). Vide = pas d'affichage utilisateur.
     DEFAULT_ERROR = "Une erreur est survenue."
     DEFAULT_SUCCESS = "Opération réussie."
 

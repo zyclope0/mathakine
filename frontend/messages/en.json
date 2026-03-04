@@ -153,6 +153,56 @@
     },
     "logout": "Logout"
   },
+  "diagnostic": {
+    "title": "Initial Assessment",
+    "subtitle": "A few questions to calibrate your level. No pressure — there are no wrong answers!",
+    "startButton": "Start assessment",
+    "progressLabel": "Question {current} of {max}",
+    "typesRemaining": "{count} type(s) remaining",
+    "question": {
+      "difficultyLabel": "Current level",
+      "chooseAnswer": "Choose an answer"
+    },
+    "answer": {
+      "validate": "Submit",
+      "validateDisabled": "Select an answer",
+      "next": "Next question",
+      "correct": "Correct!",
+      "incorrect": "Not quite..."
+    },
+    "explanation": {
+      "title": "Explanation"
+    },
+    "results": {
+      "title": "Assessment complete!",
+      "subtitle": "Here is your starting level. Your exercises will be adapted accordingly.",
+      "questionsAnswered": "{count} question(s) answered",
+      "duration": "in {seconds}s",
+      "typeLabel": {
+        "addition": "Addition",
+        "soustraction": "Subtraction",
+        "multiplication": "Multiplication",
+        "division": "Division"
+      },
+      "levelLabel": {
+        "INITIE": "Beginner",
+        "PADAWAN": "Padawan",
+        "CHEVALIER": "Knight",
+        "MAITRE": "Master",
+        "GRAND_MAITRE": "Grand Master"
+      },
+      "scoreDetail": "{correct} / {total} correct",
+      "ctaDashboard": "Go to my dashboard",
+      "ctaExercises": "Start practising"
+    },
+    "error": {
+      "title": "Something went wrong",
+      "retry": "Retry",
+      "backHome": "Back to home"
+    },
+    "settingsEntry": "Redo assessment",
+    "settingsDescription": "Reset your starting level so that exercises are recalibrated."
+  },
   "onboarding": {
     "title": "Personalize your learning",
     "description": "A few questions to adapt exercises and challenges to your profile.",
@@ -1162,7 +1212,18 @@
       "lastActivity": "Last activity",
       "revoke": "Revoke",
       "revokeAll": "Revoke all other sessions",
-      "noSessions": "No other active sessions"
+      "noSessions": "No other active sessions",
+      "showMore": "Show more ({count} remaining)",
+      "showLess": "Show less"
+    },
+    "diagnostic": {
+      "title": "Level assessment",
+      "description": "Calibrate exercises by evaluating your real arithmetic level.",
+      "notDone": "Not yet completed",
+      "lastDone": "Last assessment: {date}",
+      "start": "Start assessment",
+      "redo": "Redo assessment",
+      "scores": "Results: {summary}"
     },
     "data": {
       "title": "Data and account",
@@ -1485,6 +1546,18 @@
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
     "latestBadge": "Latest",
     "latestLabel": "Most recent version",
+    "v250a3": {
+      "version": "2.5.0 — alpha 3",
+      "date": "March 4, 2026",
+      "items": [
+        "Adaptive level test now available: 10 questions across 4 operations to personalise your exercises from the start",
+        "The test can be retaken at any time from the Settings page",
+        "Recommendations now take your measured level into account after completing the test",
+        "Exercise, challenge and diagnostic pages now display correctly on all themes (light, dino, ocean…), not just the spatial theme",
+        "Exercise explanations no longer show the technical prefix [TEST-ZAXXON]",
+        "Fixed duplicate answer choices in some division exercises"
+      ]
+    },
     "v250": {
       "version": "2.5.0 — alpha 2",
       "date": "March 4, 2026",

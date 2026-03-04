@@ -128,7 +128,7 @@ export function ExerciseModal({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && !isSubmitting && handleClose()}>
       <DialogContent
         showCloseButton={false}
-        className="max-w-3xl max-h-[90vh] p-0 gap-0 bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl overflow-hidden"
+        className="max-w-3xl max-h-[90vh] p-0 gap-0 bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl overflow-hidden"
         onPointerDownOutside={() => !isSubmitting && handleClose()}
       >
         {/* Contenu : stopPropagation pour éviter fermeture au clic dedans */}
@@ -160,7 +160,7 @@ export function ExerciseModal({
                 e.preventDefault();
                 handleClose();
               }}
-              className="flex-shrink-0 p-2 rounded-full hover:bg-white/10 text-muted-foreground hover:text-white transition-colors z-50"
+              className="flex-shrink-0 p-2 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors z-50"
               aria-label={t("close", { default: "Fermer" })}
             >
               <X className="h-5 w-5" aria-hidden="true" />
@@ -200,8 +200,8 @@ export function ExerciseModal({
                     <p
                       className={cn(
                         isLongText
-                          ? "text-lg md:text-xl font-normal text-left leading-relaxed text-slate-200"
-                          : "text-3xl md:text-4xl font-bold text-center text-white leading-tight"
+                          ? "text-lg md:text-xl font-normal text-left leading-relaxed text-muted-foreground"
+                          : "text-3xl md:text-4xl font-bold text-center text-foreground leading-tight"
                       )}
                     >
                       {question}
@@ -237,8 +237,8 @@ export function ExerciseModal({
                               !showCorrect &&
                               !showIncorrect &&
                               (isSelected
-                                ? "border-primary bg-primary/20 text-white shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
-                                : "bg-white/5 border-transparent hover:bg-white/10 hover:border-white/20 hover:-translate-y-1"),
+                                ? "border-primary bg-primary/20 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
+                                : "bg-secondary/50 border-border hover:bg-secondary hover:border-primary/50 hover:-translate-y-1"),
                             showCorrect &&
                               "bg-green-500/20 border-green-500 text-green-400 hover:bg-green-500/20",
                             showIncorrect &&

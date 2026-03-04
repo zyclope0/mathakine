@@ -112,6 +112,31 @@ def apply_test_title(exercise_data: Dict[str, Any]) -> Dict[str, Any]:
     return exercise_data
 
 
+def _is_plausible_wrong(correct: int, wrong: int) -> bool:
+    """
+    Un choix erroné est plausible s'il est dans une fourchette réaliste.
+    Évite les réponses absurdes (ex: 16M pour une addition dont le résultat est 10k).
+    """
+    if wrong <= 0:
+        return False
+    if correct <= 0:
+        return True
+    ratio = wrong / correct
+    return 0.2 <= ratio <= 5.0
+
+
+def _plausible_offset(correct: int) -> int:
+    """Génère un décalage plausible pour une erreur typique (carry, etc.)."""
+    if correct <= 10:
+        return random.choice([-2, -1, 1, 2])
+    if correct <= 100:
+        return random.choice([-5, -2, -1, 1, 2, 5])
+    # Grands nombres : erreurs de retenue (1, 10, 100)
+    magnitude = 10 ** min(3, len(str(correct)) - 1)
+    offset = random.choice([-magnitude, -magnitude // 10, -1, 1, magnitude // 10, magnitude])
+    return max(1 - correct, offset)  # Éviter les négatifs si possible
+
+
 def generate_smart_choices(
     operation_type: str,
     num1: int,
@@ -119,48 +144,71 @@ def generate_smart_choices(
     correct_result: int,
     age_group_or_difficulty: str,
 ) -> list[str]:
-    """Génère des choix de réponses avec des erreurs typiques selon l'opération."""
+    """
+    Génère des choix de réponses avec des erreurs typiques selon l'opération.
+    Garde-fou : aucun choix absurde (ex: num1*num2 pour une addition de grands nombres).
+    """
     choices = [str(correct_result)]
 
     op = operation_type.upper()
     if op == "ADDITION":
-        choices.extend(
-            [
-                str(correct_result + random.randint(1, 3)),
-                str(correct_result - random.randint(1, 2)),
-                (
-                    str(num1 * num2)
-                    if num1 * num2 != correct_result
-                    else str(correct_result + 5)
-                ),
-            ]
+        # Ne JAMAIS utiliser num1*num2 pour l'addition : absurde dès que result > 100
+        cand1 = correct_result + random.randint(1, 3)
+        cand2 = max(1, correct_result - random.randint(1, 2))
+        cand3 = (
+            str(num1 * num2)
+            if num1 * num2 != correct_result
+            and _is_plausible_wrong(correct_result, num1 * num2)
+            else str(correct_result + _plausible_offset(correct_result))
         )
+        choices.extend([str(cand1), str(cand2), cand3])
     elif op == "SUBTRACTION":
+        # num1+num2 est absurde pour une soustraction (trop grand)
+        cand_sub = num2 - num1 if num2 != num1 else correct_result + 3
+        cand_add = num1 + num2
+        cand3 = (
+            str(cand_add)
+            if cand_add != correct_result and _is_plausible_wrong(correct_result, cand_add)
+            else str(correct_result + _plausible_offset(correct_result))
+        )
         choices.extend(
             [
-                str(num2 - num1) if num2 != num1 else str(correct_result + 3),
+                str(cand_sub) if cand_sub > 0 else str(correct_result + 2),
                 str(correct_result + random.randint(1, 3)),
-                (
-                    str(num1 + num2)
-                    if num1 + num2 != correct_result
-                    else str(correct_result - 2)
-                ),
+                cand3,
             ]
         )
     elif op == "MULTIPLICATION":
+        # num1+num2 est absurde pour une multiplication de grands nombres
+        cand_add = num1 + num2
+        cand3 = (
+            str(cand_add)
+            if cand_add != correct_result and _is_plausible_wrong(correct_result, cand_add)
+            else str(correct_result + _plausible_offset(correct_result))
+        )
         choices.extend(
             [
-                str(num1 + num2),
-                str(correct_result + num1),
-                str(max(1, correct_result - num2)),
+                cand3,
+                str(correct_result + num1)
+                if _is_plausible_wrong(correct_result, correct_result + num1)
+                else str(correct_result + _plausible_offset(correct_result)),
+                str(max(1, correct_result - num2))
+                if _is_plausible_wrong(correct_result, max(1, correct_result - num2))
+                else str(max(1, correct_result + _plausible_offset(correct_result))),
             ]
         )
     elif op == "DIVISION":
+        cand_sub = num1 - num2 if num1 > num2 else correct_result + 2
+        cand3 = (
+            str(cand_sub)
+            if cand_sub != correct_result and cand_sub > 0 and _is_plausible_wrong(correct_result, cand_sub)
+            else str(correct_result + _plausible_offset(correct_result))
+        )
         choices.extend(
             [
                 str(correct_result + 1),
                 str(max(1, correct_result - 1)),
-                str(num1 - num2) if num1 > num2 else str(correct_result + 2),
+                cand3,
             ]
         )
 
@@ -172,19 +220,25 @@ def generate_smart_choices(
         if len(choices) > 2:
             choices[2] = str(max(1, correct_result - margin))
 
-    unique = []
+    # Sanitization : garder uniquement les choix plausibles (jamais de 16M pour 10k)
+    unique = [str(correct_result)]
     for c in choices:
+        if c == str(correct_result):
+            continue
         try:
-            if c not in unique and int(c) > 0:
+            val = int(c)
+            if val > 0 and _is_plausible_wrong(correct_result, val) and c not in unique:
                 unique.append(c)
         except (ValueError, TypeError):
             pass
 
+    # Compléter avec des erreurs plausibles si besoin (uniquement des mauvaises réponses)
     while len(unique) < 4:
-        new = str(correct_result + random.randint(-3, 5))
-        if new not in unique:
+        offset = _plausible_offset(correct_result)
+        new = str(max(1, correct_result + offset))
+        if new not in unique and new != str(correct_result):
             try:
-                if int(new) > 0:
+                if int(new) > 0 and _is_plausible_wrong(correct_result, int(new)):
                     unique.append(new)
             except (ValueError, TypeError):
                 pass

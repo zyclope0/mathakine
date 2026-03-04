@@ -82,7 +82,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   }) => (
     <div
       className={cn(
-        "bg-slate-900/60 backdrop-blur-xl border border-white/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] rounded-3xl p-8 md:p-12 w-full max-w-4xl mx-auto mt-8 md:mt-12",
+        "bg-card/90 backdrop-blur-xl border border-border shadow-[0_0_40px_rgba(0,0,0,0.15)] rounded-3xl p-8 md:p-12 w-full max-w-4xl mx-auto mt-8 md:mt-12",
         className
       )}
     >
@@ -141,7 +141,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
       {/* Bouton Retour — en haut à gauche, discret */}
       <Link
         href="/exercises"
-        className="text-muted-foreground hover:text-white transition-colors mb-6 inline-flex items-center gap-2"
+        className="text-muted-foreground hover:text-foreground transition-colors mb-6 inline-flex items-center gap-2"
       >
         <ArrowLeft className="h-4 w-4" />
         {t("back")}
@@ -154,12 +154,12 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
       </div>
 
       {/* Titre centré */}
-      <h1 className="text-2xl md:text-3xl font-bold text-white mb-8 text-center">
+      <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
         {exercise.title}
       </h1>
 
       {/* Énoncé — la star de la page */}
-      <div className="text-xl md:text-2xl font-medium text-slate-200 text-center mb-12 leading-relaxed">
+      <div className="text-xl md:text-2xl font-medium text-foreground text-center mb-12 leading-relaxed">
         <MathText size="xl">{exercise.question}</MathText>
       </div>
 
@@ -180,13 +180,13 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
                 key={index}
                 type="button"
                 className={cn(
-                  "rounded-2xl py-6 md:py-8 text-2xl font-medium text-white cursor-pointer transition-all text-center border-2",
+                  "rounded-2xl py-6 md:py-8 text-2xl font-medium text-foreground cursor-pointer transition-all text-center border-2",
                   !hasSubmitted &&
                     !showCorrect &&
                     !showIncorrect &&
                     (isSelected
                       ? "border-primary bg-primary/20 shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
-                      : "bg-white/10 border-white/20 hover:bg-white/20 hover:border-white/40 hover:-translate-y-1"),
+                      : "bg-secondary/50 border-border hover:bg-secondary hover:border-primary/50 hover:-translate-y-1"),
                   showCorrect &&
                     "bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-500/20",
                   showIncorrect && "bg-red-500/20 border-red-500 text-red-400 hover:bg-red-500/20",
@@ -237,7 +237,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
           className={cn(
             "w-full size-lg transition-all",
             !selectedAnswer &&
-              "bg-slate-800 text-slate-400 opacity-60 cursor-not-allowed border border-white/5",
+              "bg-muted text-muted-foreground opacity-60 cursor-not-allowed border border-border",
             selectedAnswer &&
               "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.35)] hover:shadow-[0_0_20px_hsl(var(--primary)/0.5)]"
           )}
@@ -291,7 +291,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             <Lightbulb className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
             <div className="flex-1">
               <h4 className="font-semibold text-primary mb-2">{t("explanation")}</h4>
-              <MathText size="lg" className="text-slate-200">
+              <MathText size="lg" className="text-foreground">
                 {submitResult?.explanation || exercise.explanation || ""}
               </MathText>
             </div>
@@ -328,11 +328,11 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
 
       {/* Actions après soumission */}
       {hasSubmitted && (
-        <div className="flex gap-3 pt-8 mt-8 border-t border-white/10">
+        <div className="flex gap-3 pt-8 mt-8 border-t border-border">
           <Button
             variant="outline"
             asChild
-            className="flex-1 bg-transparent border border-white/10 text-muted-foreground hover:bg-white/5 hover:text-white px-6 py-3 rounded-xl transition-colors"
+            className="flex-1 bg-transparent border border-border text-muted-foreground hover:bg-accent hover:text-foreground px-6 py-3 rounded-xl transition-colors"
           >
             <Link href="/exercises">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -341,7 +341,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
           </Button>
           <Button
             onClick={() => router.push("/exercises")}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
             aria-label={t("newExercise")}
           >
             <ArrowRight className="mr-2 h-4 w-4" />

@@ -4,6 +4,25 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [2.5.0-alpha.3] - 2026-03-04
+
+### Added
+- F03 — Test de diagnostic initial adaptatif (IRT) : 10 questions sur 4 types, algo adaptatif, résultats par type, page `/diagnostic`, section dans les Paramètres
+- Intégration diagnostic → recommandations (difficulté médiane calculée après évaluation)
+
+### Fixed
+- `[TEST-ZAXXON]` affiché dans les titres et explications d'exercices (préfixe technique supprimé)
+- Choix dupliqués dans les exercices de division (ex: deux "11") — déduplication via `generate_smart_choices`
+- Erreur 500 à la fin du diagnostic (`DetachedInstanceError` SQLAlchemy) — données extraites dans le contexte de session
+- Table `diagnostic_results` absente en base de données — migration `20260304_diagnostic` appliquée
+- `chat_service.py` — `NameError: name 'x' is not defined` dans la f-string du prompt LaTeX (accolades et backslashes échappés)
+
+### Changed
+- Environnements de résolution (ExerciseSolver, ChallengeSolver, DiagnosticSolver, ExerciseModal) : couleurs hardcodées (`bg-slate-900`, `text-white`, `bg-white/5`…) remplacées par variables sémantiques (`bg-card`, `text-foreground`, `bg-secondary/50`…) — compatibilité avec tous les thèmes
+- `MathText.tsx` : `prose-invert` → `prose-neutral dark:prose-invert` + `text-inherit` — le texte hérite la couleur du thème courant
+
+---
+
 ## [2.5.0-alpha.2] - 2026-03-04
 
 ### Mission Anti-Cheap — Refonte UI Premium EdTech (Pages Exercice, Défi & Modal)

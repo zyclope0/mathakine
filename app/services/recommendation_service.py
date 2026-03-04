@@ -35,9 +35,16 @@ class RecommendationService:
     """Service analysant les performances et générant des recommandations personnalisées"""
 
     @staticmethod
-    def _get_user_context(user) -> Tuple[str, str, str, str]:
+    def _get_user_context(user, db=None) -> Tuple[str, str, str, str]:
         """
-        Extrait le contexte utilisateur (onboarding + profil) pour les recommandations.
+        Extrait le contexte utilisateur (onboarding + profil + diagnostic F03) pour les
+        recommandations.
+
+        Priorité de résolution de la difficulté par défaut :
+          1. Diagnostic initial (F03) — niveau réel mesuré par exercice type
+          2. preferred_difficulty (onboarding)
+          3. grade_level (déduit)
+          4. ALL_AGES (fallback large)
 
         Returns:
             (age_group, default_difficulty, learning_goal, practice_rhythm)
@@ -72,6 +79,31 @@ class RecommendationService:
         # Sans onboarding/profil : ne pas filtrer par âge (tous-ages = large)
         age_group = age_group or AgeGroups.ALL_AGES
         default_difficulty = get_difficulty_from_age_group(age_group)
+
+        # Affiner la difficulté par défaut avec le diagnostic initial (F03) si disponible.
+        # On calcule la difficulté médiane sur les types évalués pour obtenir une valeur globale.
+        if db is not None:
+            try:
+                from app.services.diagnostic_service import get_latest_score, _DIFFICULTY_TO_ORDINAL, _ORDINAL_TO_DIFFICULTY
+                latest = get_latest_score(db, user.id)
+                if latest and latest.get("scores"):
+                    ordinals = [
+                        _DIFFICULTY_TO_ORDINAL.get(s.get("difficulty", ""), 1)
+                        for s in latest["scores"].values()
+                    ]
+                    if ordinals:
+                        median_ordinal = sorted(ordinals)[len(ordinals) // 2]
+                        default_difficulty = _ORDINAL_TO_DIFFICULTY.get(
+                            median_ordinal, default_difficulty
+                        )
+                        logger.debug(
+                            f"Recommandations user={user.id}: difficulté affinée par "
+                            f"diagnostic → {default_difficulty} (médiane ordinal {median_ordinal})"
+                        )
+            except Exception as diag_err:
+                # Non bloquant : les recommandations continuent avec le fallback
+                logger.debug(f"Impossible de lire le diagnostic pour user={user.id}: {diag_err}")
+
         learning_goal = getattr(user, "learning_goal", None) or ""
         practice_rhythm = getattr(user, "practice_rhythm", None) or ""
         return age_group, default_difficulty, learning_goal, practice_rhythm
@@ -101,9 +133,9 @@ class RecommendationService:
                 logger.error(f"Utilisateur {user_id} non trouvé")
                 return []
 
-            # Contexte onboarding/profil pour personnalisation
+            # Contexte onboarding/profil + diagnostic (F03) pour personnalisation
             user_age_group, user_default_difficulty, learning_goal, practice_rhythm = (
-                RecommendationService._get_user_context(user)
+                RecommendationService._get_user_context(user, db=db)
             )
             logger.debug(
                 f"Recommandations user {user_id}: age_group={user_age_group}, "

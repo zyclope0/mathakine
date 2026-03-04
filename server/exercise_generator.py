@@ -19,6 +19,12 @@ from server.exercise_generator_validators import normalize_and_validate_exercise
 logger = get_logger(__name__)
 
 
+def _ai_prefix() -> str:
+    """Préfixe optionnel pour titres/explications (vide = pas d'affichage utilisateur)."""
+    p = Messages.AI_EXERCISE_PREFIX
+    return f"[{p}] " if p else ""
+
+
 # Fonctions de génération d'exercices
 def generate_ai_exercise(exercise_type, age_group):
     """
@@ -75,13 +81,13 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"[{Messages.AI_EXERCISE_PREFIX}] Alliance Rebelle - Addition pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Alliance Rebelle - Addition pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
                 "num1": num1,
                 "num2": num2,
-                "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}",
+                "explanation": f"{_ai_prefix()}{explanation_prefix} {explanation_template} {explanation_suffix}",
             }
         )
         return apply_test_title(exercise_data)
@@ -133,13 +139,13 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"[{Messages.AI_EXERCISE_PREFIX}] Conflit galactique - Soustraction pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Conflit galactique - Soustraction pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
                 "num1": num1,
                 "num2": num2,
-                "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}",
+                "explanation": f"{_ai_prefix()}{explanation_prefix} {explanation_template} {explanation_suffix}",
             }
         )
         return apply_test_title(exercise_data)
@@ -185,13 +191,13 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"[{Messages.AI_EXERCISE_PREFIX}] Forces galactiques - Multiplication pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Forces galactiques - Multiplication pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
                 "num1": num1,
                 "num2": num2,
-                "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}",
+                "explanation": f"{_ai_prefix()}{explanation_prefix} {explanation_template} {explanation_suffix}",
             }
         )
         return apply_test_title(exercise_data)
@@ -229,24 +235,18 @@ def generate_ai_exercise(exercise_type, age_group):
                 f"Pour calculer le résultat, on divise: {num1} ÷ {num2} = {result}."
             )
 
-        # Générer des choix proches mais différents
-        choices = [
-            str(result),
-            str(result + random.randint(1, min(5, result))),
-            str(result - random.randint(1, min(3, result - 1) if result > 1 else 1)),
-            str(num1 // (num2 + random.randint(1, 3))),  # Diviseur légèrement différent
-        ]
-        random.shuffle(choices)
+        # Générer des choix proches mais différents (avec déduplication)
+        choices = generate_smart_choices("DIVISION", num1, num2, result, derived_difficulty)
 
         exercise_data.update(
             {
-                "title": f"[{Messages.AI_EXERCISE_PREFIX}] Stratégie galactique - Division pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Stratégie galactique - Division pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
                 "num1": num1,
                 "num2": num2,
-                "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}",
+                "explanation": f"{_ai_prefix()}{explanation_prefix} {explanation_template} {explanation_suffix}",
             }
         )
         return apply_test_title(exercise_data)
@@ -327,11 +327,11 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"[{Messages.AI_EXERCISE_PREFIX}] Fractions Jedi - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Fractions Jedi - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
                 "question": f"Problème galactique: {question_template.replace(f'{num1}/{denom1} {operation} {num2}/{denom2}', f'{num1}/{denom1} {operation} {num2}/{denom2}')}",
                 "correct_answer": formatted_result,
                 "choices": choices,
-                "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} Pour {op_word} les fractions {num1}/{denom1} et {num2}/{denom2}, le résultat est {formatted_result}. {explanation_suffix}",
+                "explanation": f"{_ai_prefix()}{explanation_prefix} Pour {op_word} les fractions {num1}/{denom1} et {num2}/{denom2}, le résultat est {formatted_result}. {explanation_suffix}",
             }
         )
         return apply_test_title(exercise_data)
@@ -442,11 +442,11 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"[{Messages.AI_EXERCISE_PREFIX}] Géométrie Galactique - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Géométrie Galactique - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
-                "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} Pour calculer le {property} d'un {shape}, on utilise : $${formula} = {result}$$. {explanation_suffix}",
+                "explanation": f"{_ai_prefix()}{explanation_prefix} Pour calculer le {property} d'un {shape}, on utilise : $${formula} = {result}$$. {explanation_suffix}",
             }
         )
         return apply_test_title(exercise_data)
@@ -591,11 +591,11 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"[{Messages.AI_EXERCISE_PREFIX}] Défis Galactiques - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Défis Galactiques - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
-                "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}",
+                "explanation": f"{_ai_prefix()}{explanation_prefix} {explanation_template} {explanation_suffix}",
             }
         )
         return apply_test_title(exercise_data)
@@ -697,12 +697,12 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"[{Messages.AI_EXERCISE_PREFIX}] Opération Mixte Galactique (Niveau: {derived_difficulty})",
+                "title": f"{_ai_prefix()}Opération Mixte Galactique (Niveau: {derived_difficulty})",
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
                 "formula": formula,
-                "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} {explanation_template} {explanation_suffix}",
+                "explanation": f"{_ai_prefix()}{explanation_prefix} {explanation_template} {explanation_suffix}",
             }
         )
         return apply_test_title(exercise_data)
@@ -834,11 +834,11 @@ def generate_ai_exercise(exercise_type, age_group):
 
         exercise_data.update(
             {
-                "title": f"[{Messages.AI_EXERCISE_PREFIX}] Énigme Jedi - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
+                "title": f"{_ai_prefix()}Énigme Jedi - pour les {age_group} (Niveau: {derived_difficulty})",  # Update title
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
-                "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} Pour résoudre ce problème, il faut analyser les données et appliquer les bonnes opérations mathématiques. {explanation_suffix}",
+                "explanation": f"{_ai_prefix()}{explanation_prefix} Pour résoudre ce problème, il faut analyser les données et appliquer les bonnes opérations mathématiques. {explanation_suffix}",
             }
         )
         return apply_test_title(exercise_data)

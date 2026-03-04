@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useSettings, type UserSession } from "@/hooks/useSettings";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { SaveButton } from "@/components/settings/SaveButton";
 import {
   Globe,
   Bell,
@@ -24,14 +26,18 @@ import {
   Monitor,
   Download,
   Trash2,
-  Save,
   Loader2,
   AlertTriangle,
   Settings,
+  BarChart2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+// Note: Save icon est encapsulé dans SaveButton
 import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { api } from "@/lib/api/client";
 
 function SettingsPageContent() {
   const { user } = useAuth();
@@ -53,6 +59,7 @@ function SettingsPageContent() {
   const tNotifications = useTranslations("settings.notifications");
   const tPrivacy = useTranslations("settings.privacy");
   const tSessions = useTranslations("settings.sessions");
+  const tDiagnostic = useTranslations("settings.diagnostic");
   const tData = useTranslations("settings.data");
   const tActions = useTranslations("settings.actions");
 
@@ -95,9 +102,18 @@ function SettingsPageContent() {
     marketing_consent: getPrivacyPref("marketing_consent", false),
   });
 
+  const router = useRouter();
   const [sessions, setSessions] = useState<UserSession[]>([]);
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // Pagination sessions : nb de sessions visibles
+  const SESSIONS_PAGE_SIZE = 3;
+  const [visibleSessionCount, setVisibleSessionCount] = useState(SESSIONS_PAGE_SIZE);
+  // Diagnostic status
+  const [diagnosticStatus, setDiagnosticStatus] = useState<{
+    has_completed: boolean;
+    latest: { completed_at: string; scores: Record<string, { difficulty: string }> } | null;
+  } | null>(null);
 
   // Refs pour éviter les boucles infinies
   const isUpdatingFromServer = useRef(false);
@@ -160,7 +176,7 @@ function SettingsPageContent() {
     });
   }, [setOnUpdateSuccess]);
 
-  // Charger les sessions
+  // Charger sessions + statut diagnostic au montage
   useEffect(() => {
     const loadSessions = async () => {
       setIsLoadingSessions(true);
@@ -173,9 +189,18 @@ function SettingsPageContent() {
         setIsLoadingSessions(false);
       }
     };
+    const loadDiagnosticStatus = async () => {
+      try {
+        const status = await api.get<typeof diagnosticStatus>("/api/diagnostic/status");
+        setDiagnosticStatus(status);
+      } catch {
+        // Non bloquant — la section s'affiche quand même sans statut
+      }
+    };
     loadSessions();
+    loadDiagnosticStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Charger une seule fois au montage
+  }, []);
 
   // Sauvegarder les paramètres de langue
   const handleSaveLanguage = useCallback(() => {
@@ -309,19 +334,7 @@ function SettingsPageContent() {
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button onClick={handleSaveLanguage} disabled={isUpdatingSettings} size="sm">
-                  {isUpdatingSettings ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {tActions("saving")}
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      {tActions("save")}
-                    </>
-                  )}
-                </Button>
+                <SaveButton onClick={handleSaveLanguage} isLoading={isUpdatingSettings} />
               </div>
             </CardContent>
           </Card>
@@ -415,19 +428,7 @@ function SettingsPageContent() {
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button onClick={handleSaveNotifications} disabled={isUpdatingSettings} size="sm">
-                  {isUpdatingSettings ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {tActions("saving")}
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      {tActions("save")}
-                    </>
-                  )}
-                </Button>
+                <SaveButton onClick={handleSaveNotifications} isLoading={isUpdatingSettings} />
               </div>
             </CardContent>
           </Card>
@@ -535,18 +536,55 @@ function SettingsPageContent() {
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button onClick={handleSavePrivacy} disabled={isUpdatingSettings} size="sm">
-                  {isUpdatingSettings ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {tActions("saving")}
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      {tActions("save")}
-                    </>
+                <SaveButton onClick={handleSavePrivacy} isLoading={isUpdatingSettings} />
+              </div>
+            </CardContent>
+          </Card>
+        </PageSection>
+
+        {/* Section Évaluation de niveau (Diagnostic F03) */}
+        <PageSection
+          title={tDiagnostic("title")}
+          description={tDiagnostic("description")}
+          icon={BarChart2}
+          className="animate-fade-in-up-delay-4"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>{tDiagnostic("title")}</CardTitle>
+              <CardDescription>{tDiagnostic("description")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Statut actuel */}
+              <div className="flex items-center justify-between p-4 bg-muted/40 rounded-lg">
+                <div>
+                  <p className="font-medium text-sm">
+                    {diagnosticStatus?.has_completed
+                      ? tDiagnostic("lastDone", {
+                          date: format(
+                            new Date(diagnosticStatus.latest!.completed_at),
+                            "dd/MM/yyyy",
+                            { locale: fr }
+                          ),
+                        })
+                      : tDiagnostic("notDone")}
+                  </p>
+                  {diagnosticStatus?.has_completed && diagnosticStatus.latest?.scores && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {tDiagnostic("scores", {
+                        summary: Object.entries(diagnosticStatus.latest.scores)
+                          .map(([type, s]) => `${type}: ${s.difficulty}`)
+                          .join(" · "),
+                      })}
+                    </p>
                   )}
+                </div>
+                <Button
+                  size="sm"
+                  variant={diagnosticStatus?.has_completed ? "outline" : "default"}
+                  onClick={() => router.push("/diagnostic")}
+                >
+                  {diagnosticStatus?.has_completed ? tDiagnostic("redo") : tDiagnostic("start")}
                 </Button>
               </div>
             </CardContent>
@@ -558,7 +596,7 @@ function SettingsPageContent() {
           title={tSessions("title")}
           description={tSessions("description")}
           icon={Monitor}
-          className="animate-fade-in-up-delay-4"
+          className="animate-fade-in-up-delay-5"
         >
           <Card>
             <CardHeader>
@@ -576,7 +614,7 @@ function SettingsPageContent() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {sessions.map((session) => (
+                  {sessions.slice(0, visibleSessionCount).map((session) => (
                     <div
                       key={session.id}
                       className="flex items-center justify-between p-4 border rounded-lg"
@@ -630,6 +668,37 @@ function SettingsPageContent() {
                         ))}
                     </div>
                   ))}
+
+                  {/* Pagination "Voir plus / Réduire" */}
+                  {sessions.length > SESSIONS_PAGE_SIZE && (
+                    <div className="flex justify-center pt-2">
+                      {visibleSessionCount < sessions.length ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setVisibleSessionCount((n) =>
+                              Math.min(n + SESSIONS_PAGE_SIZE, sessions.length)
+                            )
+                          }
+                        >
+                          <ChevronDown className="mr-2 h-4 w-4" />
+                          {tSessions("showMore", {
+                            count: sessions.length - visibleSessionCount,
+                          })}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setVisibleSessionCount(SESSIONS_PAGE_SIZE)}
+                        >
+                          <ChevronUp className="mr-2 h-4 w-4" />
+                          {tSessions("showLess")}
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -641,7 +710,7 @@ function SettingsPageContent() {
           title={tData("title")}
           description={tData("description")}
           icon={Download}
-          className="animate-fade-in-up-delay-5"
+          className="animate-fade-in-up-delay-6"
         >
           <div className="space-y-4">
             <Card>

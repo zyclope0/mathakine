@@ -6,6 +6,7 @@ Module regroupant tous les modèles de données pour Mathakine.
 from app.models.achievement import Achievement, UserAchievement
 from app.models.admin_audit_log import AdminAuditLog
 from app.models.attempt import Attempt
+from app.models.diagnostic_result import DiagnosticResult
 from app.models.edtech_event import EdTechEvent
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.feedback_report import FeedbackReport
@@ -25,6 +26,7 @@ from app.models.user_session import UserSession
 # Export all models
 __all__ = [
     "AdminAuditLog",
+    "DiagnosticResult",
     "EdTechEvent",
     "User",
     "UserRole",

@@ -1,6 +1,6 @@
 # Backlog & Priorisation des Features — Mathakine
 
-> **Document vivant** — Dernière MAJ : 04/03/2026  
+> **Document vivant** — Dernière MAJ : 04/03/2026 (F01 ✅ + F03 ✅ confirmés)  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -73,9 +73,9 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 
 | # | Feature | D | G | E | R | B | Score | Priorité |
 |---|---------|---|---|---|---|---|-------|----------|
-| F01 | Rendu Markdown/KaTeX explications | 2 | 4 | 5 | 1 | 3 | **16.8** | P0 |
+| F01 | Rendu Markdown/KaTeX explications ✅ | 2 | 4 | 5 | 1 | 3 | **16.8** | P0 |
 | F02 | Défis quotidiens (défi du jour) | 3 | 5 | 4 | 2 | 5 | **16.9** | P0 |
-| F03 | Test de diagnostic initial | 3 | 4 | 5 | 2 | 4 | **16.0** | P0 |
+| F03 | Test de diagnostic initial ✅ | 3 | 4 | 5 | 2 | 4 | **16.0** | P0 |
 | F04 | Révisions espacées (SM-2) | 4 | 4 | 5 | 2 | 4 | **14.8** | P0 |
 | F30 | [PROP] Effet Protégé (corriger erreur IA) | 4 | 4 | 5 | 2 | 4 | **15.4** | P1 |
 | F31 | [PROP] Exemples résolus progressifs (Fading) | 3 | 4 | 5 | 2 | 3 | **15.2** | P1 |
@@ -136,6 +136,8 @@ Ces quatre features combinent un score composite élevé ET un bénéfice pédag
 - Optionnel : accordéon "voir plus" si explication > 300 mots
 
 **Effort estimé** : 1-2 jours
+
+**Statut** : ✅ Implémenté — composant `frontend/components/ui/MathText.tsx` (react-markdown + remark-math + rehype-katex), intégré dans `ExerciseSolver`, `ChallengeSolver` et `DiagnosticSolver`
 
 ---
 
@@ -198,10 +200,28 @@ daily_challenges (
 
 **Output** :
 - `initial_level` par type d'exercice (addition, soustraction, multiplication, division, logique)
-- Stocké dans `users.initial_assessment_score` (champ prévu dans `ANALYTICS_PROGRESSION.md`)
+- Stocké dans `diagnostic_results` (table dédiée, scores JSONB par type)
 - Alimente immédiatement les recommandations
 
 **Effort estimé** : 3-5 jours
+
+**Statut** : ✅ Implémenté le 04/03/2026
+
+**Ce qui est branché** :
+- Table `diagnostic_results` (migration `20260304_diagnostic`)
+- Service IRT (`app/services/diagnostic_service.py`) : algo adaptatif, 10 questions, 4 types
+- Endpoints `/api/diagnostic/status|start|question|answer|complete`
+- Page `/diagnostic` (accessible depuis onboarding et Settings)
+- Section "Évaluation de niveau" dans Settings (affiche date + niveaux par type)
+- Recommandations : `RecommendationService` lit le diagnostic via `get_latest_score()` et affine la difficulté médiane
+
+**Ce qui reste à câbler (backlog F03-suite)** :
+
+| Lacune | Impact | Priorité |
+|--------|--------|----------|
+| `/api/exercises/generate` ignore le niveau diagnostic | Un utilisateur scorant Initié reçoit des exercices selon `age_group`, pas son niveau réel | Moyen |
+| Dashboard (`/`) ne lit pas `has_completed` | Pas de message de confirmation "ton niveau a été établi" | Faible |
+| Génération IA (`/api/ai/generate`) ignore le diagnostic | Même problème que le générateur interne | Moyen |
 
 ---
 
@@ -589,6 +609,8 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 
 | Feature | Date | Référence |
 |---------|------|-----------|
+| F01 — Rendu Markdown/KaTeX dans les explications | 2026 | Composant `MathText.tsx` — intégré dans `ExerciseSolver`, `ChallengeSolver`, `DiagnosticSolver` |
+| F03 — Test de diagnostic initial (IRT adaptatif) | 04/03/2026 | [ROADMAP_FONCTIONNALITES §F03](ROADMAP_FONCTIONNALITES.md) |
 | Espace admin complet (rôle archiviste) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
 | Auth complet (inscription, email, login, reset) | Jan-Fév 2026 | [AUTH_FLOW](AUTH_FLOW.md) |
 | Sessions actives + révocation | 16/02/2026 | SITUATION_FEATURES (archivé) |
