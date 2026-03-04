@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { debugLog } from "@/lib/utils/debug";
 import { ChallengeVisualRenderer } from "./visualizations/ChallengeVisualRenderer";
 import { useTranslations } from "next-intl";
+import { MathText } from "@/components/ui/MathText";
 import {
   extractShapeChoicesFromVisualData,
   parsePositionsFromCorrectAnswer,
@@ -385,12 +386,12 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
         <div className="space-y-4">
           {challenge.description && (
             <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-              <p className="text-slate-200 text-lg">{challenge.description}</p>
+              <MathText size="lg" className="text-slate-200">{challenge.description}</MathText>
             </div>
           )}
           {challenge.question && challenge.question !== challenge.description && (
             <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-              <p className="text-slate-200 text-lg font-medium">{challenge.question}</p>
+              <MathText size="lg" className="text-slate-200 font-medium">{challenge.question}</MathText>
             </div>
           )}
 
@@ -473,7 +474,9 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                 {isCorrect && challenge.solution_explanation && (
                   <div className="mt-4">
                     <p className="font-medium text-slate-200 mb-2">{t("explanationLabel")}</p>
-                    <p className="text-slate-300">{challenge.solution_explanation}</p>
+                    <MathText size="base" className="text-slate-300">
+                      {challenge.solution_explanation}
+                    </MathText>
                   </div>
                 )}
                 {!isCorrect && (

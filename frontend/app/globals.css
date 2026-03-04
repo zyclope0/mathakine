@@ -2,6 +2,7 @@
 @plugin "@tailwindcss/typography";
 @import "tw-animate-css";
 @import "../styles/accessibility.css";
+@import "katex/dist/katex.min.css";
 
 /* Empêcher le scroll horizontal causé par les drawers/modals */
 @layer base {

@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { MathText } from "@/components/ui/MathText";
 
 interface ExerciseSolverProps {
   exerciseId: number;
@@ -158,9 +159,9 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
       </h1>
 
       {/* Énoncé — la star de la page */}
-      <p className="text-xl md:text-2xl font-medium text-slate-200 text-center mb-12 leading-relaxed">
-        {exercise.question}
-      </p>
+      <div className="text-xl md:text-2xl font-medium text-slate-200 text-center mb-12 leading-relaxed">
+        <MathText size="xl">{exercise.question}</MathText>
+      </div>
 
       {/* Grille de réponses — style Modal (gamification) */}
       {choices.length > 0 ? (
@@ -290,9 +291,9 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             <Lightbulb className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
             <div className="flex-1">
               <h4 className="font-semibold text-primary mb-2">{t("explanation")}</h4>
-              <p className="text-slate-200 text-lg">
-                {submitResult?.explanation || exercise.explanation}
-              </p>
+              <MathText size="lg" className="text-slate-200">
+                {submitResult?.explanation || exercise.explanation || ""}
+              </MathText>
             </div>
           </div>
         </div>
@@ -317,7 +318,9 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             <Lightbulb className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
             <div className="flex-1">
               <h4 className="font-semibold text-yellow-400 mb-1">{t("hint")}</h4>
-              <p className="text-sm text-muted-foreground">{exercise.hint}</p>
+              <MathText size="sm" className="text-muted-foreground">
+                {exercise.hint || ""}
+              </MathText>
             </div>
           </div>
         </div>

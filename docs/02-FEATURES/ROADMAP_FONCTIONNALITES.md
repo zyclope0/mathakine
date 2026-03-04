@@ -1,6 +1,6 @@
 # Backlog & Priorisation des Features — Mathakine
 
-> **Document vivant** — Dernière MAJ : 03/03/2026  
+> **Document vivant** — Dernière MAJ : 04/03/2026  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -11,7 +11,7 @@
 1. [Méthodologie de priorisation](#1-méthodologie-de-priorisation)
 2. [Matrice synthèse — Toutes les features](#2-matrice-synthèse)
 3. [P0 — Impact fort, fondements pédagogiques solides](#3-p0)
-4. [P1 — Haute priorité](#4-p1)
+4. [P1 — Haute priorité](#4-p1) *(dont F30, F31, F32, F33 — nouvelles)*
 5. [P2 — Priorité moyenne](#5-p2)
 6. [P3 — Investissement long terme](#6-p3)
 7. [P4 — Backlog distant](#7-p4)
@@ -77,6 +77,9 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 | F02 | Défis quotidiens (défi du jour) | 3 | 5 | 4 | 2 | 5 | **16.9** | P0 |
 | F03 | Test de diagnostic initial | 3 | 4 | 5 | 2 | 4 | **16.0** | P0 |
 | F04 | Révisions espacées (SM-2) | 4 | 4 | 5 | 2 | 4 | **14.8** | P0 |
+| F30 | [PROP] Effet Protégé (corriger erreur IA) | 4 | 4 | 5 | 2 | 4 | **15.4** | P1 |
+| F31 | [PROP] Exemples résolus progressifs (Fading) | 3 | 4 | 5 | 2 | 3 | **15.2** | P1 |
+| F32 | [PROP] Mode Pratique Entrelacée (Interleaving) | 2 | 3 | 5 | 2 | 3 | **14.5** | P1 |
 | F05 | Adaptation dynamique de difficulté | 4 | 4 | 5 | 3 | 4 | **13.9** | P1 |
 | F06 | Conditions d'obtention badges visibles | 2 | 4 | 3 | 1 | 3 | **13.5** | P1 |
 | F07 | Courbe d'évolution temporelle | 3 | 4 | 3 | 2 | 3 | **11.2** | P1 |
@@ -86,6 +89,7 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 | F11 | [PROP] Partage progression → parents (lien) | 2 | 3 | 3 | 1 | 4 | **12.5** | P1 |
 | F12 | Radar chart par discipline | 2 | 3 | 3 | 1 | 2 | **10.9** | P1 |
 | F13 | Déblocage automatique badges temps réel | 2 | 3 | 3 | 1 | 3 | **11.5** | P1 |
+| F33 | [PROP] Feedback Growth Mindset (copywriting) | 1 | 3 | 3 | 1 | 2 | **11.4** | P1 |
 | F14 | Monitoring IA — persistance DB | 2 | 2 | 1 | 1 | 3 | **6.9** | P2 |
 | F15 | Préférence page d'accueil (connexion) | 1 | 2 | 1 | 1 | 1 | **5.7** | P2 |
 | F16 | Heatmap d'activité | 3 | 3 | 2 | 1 | 3 | **9.1** | P2 |
@@ -385,6 +389,120 @@ Route: /parent/child/[id] → progression détaillée
 
 ---
 
+---
+
+### F30 — [PROPOSITION] L'Effet Protégé ("Corrige l'erreur de l'IA")
+
+**Source** : Proposition IA — non issue des docs existants  
+**Score** : 15.4 | D=4, G=4, E=5, R=2, B=4
+
+> *Score initial proposé : 16.2 (D=3). Difficulté révisée à D=4 : génération IA d'erreurs intentionnelles + composant UI "correction de copie" + vérification de la justification = périmètre backend + frontend non négligeable.*
+
+**Problème** : Résoudre un problème mathématique est un apprentissage actif classique. Mais le niveau ultime de maîtrise s'atteint lorsqu'on doit enseigner à quelqu'un d'autre — ou corriger ses erreurs.
+
+**Valeur pédagogique (E=5)** :
+- Chase et al. (2009) — *The Protégé Effect* : Les étudiants font plus d'efforts et apprennent plus profondément quand ils doivent enseigner à un agent virtuel (effet mesuré très fort).
+- Hattie (2009) — *Peer Tutoring* : d = 0.55. L'évaluation des erreurs des autres active une métacognition supérieure à la simple résolution.
+- La détection d'une erreur de logique (et non de calcul) est un exercice de compréhension conceptuelle profonde, non mémorisable par substitution de pattern.
+
+**Ce qu'il faut faire** : Créer un type de défi inversé. L'IA présente un problème et une résolution étape par étape contenant **une seule erreur de logique intentionnelle**. L'élève doit agir comme le professeur : identifier à quelle étape l'IA s'est trompée et expliquer pourquoi.
+
+**Architecture cible** :
+- Nouveau `challenge_type` : `error_correction`
+- Champ backend : `steps: [{content, is_error: bool, error_explanation}]`
+- UI : composant "Correction de copie" — affichage des étapes numérotées, sélection de l'étape erronée, champ justification
+- Validation : l'élève doit identifier la bonne étape ET soumettre une explication (même courte)
+
+**Effort estimé** : 3-5 jours (nouveau type de défi + composant UI + prompt IA pour génération d'erreurs intentionnelles)  
+**Priorité** : P1 — score fort, différenciateur pédagogique unique sur le marché
+
+---
+
+### F31 — [PROPOSITION] Exemples résolus progressifs (Fading Effect)
+
+**Source** : Proposition IA — non issue des docs existants  
+**Score** : 15.2 | D=3, G=4, E=5, R=2, B=3
+
+**Problème** : Face à un concept totalement nouveau, faire faire des exercices et sanctionner l'erreur (même avec correction ensuite) génère de l'anxiété et une surcharge cognitive pour les novices.
+
+**Valeur pédagogique (E=5)** :
+- Sweller & Cooper (1985) — *Worked Example Effect* : Étudier des problèmes déjà résolus est **plus efficace pour les novices** que de résoudre des problèmes (d = 0.57). Répliqué extensivement.
+- Renkl (1997) — *Fading steps* : La transition optimale de novice à expert se fait en retirant progressivement les étapes guidées — l'autonomie croît naturellement.
+- Complémentaire avec F05 (adaptation difficulté) : le fading s'active automatiquement quand l'algorithme détecte un concept nouveau (0 tentatives sur ce type).
+
+**Ce qu'il faut faire** : Intégrer une mécanique de "Fading" dans l'onboarding d'un nouveau concept (déclenchée quand l'utilisateur rencontre un sous-type d'exercice pour la première fois) :
+
+| Exercice | Mode | Description |
+|----------|------|-------------|
+| 1 | **Fully worked** | Entièrement résolu par l'IA, l'élève lit et clique "J'ai compris" |
+| 2 | **Last step missing** | Résolu, mais la dernière étape est à compléter |
+| 3 | **Half faded** | Seule la première étape est donnée, l'élève finit |
+| 4 | **Autonome** | L'élève fait tout — régime normal |
+
+**Contrainte de conception** : Ne pas pénaliser l'exercice "fully worked" (pas de score de réussite/échec) — c'est un mode observation, pas évaluation.
+
+**Effort estimé** : 3-5 jours (déclinaison du moteur d'exercices + détection "première fois sur ce sous-type")  
+**Priorité** : P1 — particulièrement critique pour la rétention des utilisateurs en onboarding
+
+---
+
+### F32 — [PROPOSITION] Mode "Pratique Entrelacée" (Interleaving)
+
+**Source** : Proposition IA — non issue des docs existants  
+**Score** : 14.5 | D=2, G=3, E=5, R=2, B=3
+
+> *Score initial proposé : 15.2 (R=1). Risque révisé à R=2 : le mélange de types d'exercices interagit avec F05 (adaptation dynamique par type) — il faut s'assurer que les niveaux par type sont suffisamment calibrés avant activation.*
+
+**Problème** : Les élèves ont tendance à enchaîner un seul type d'exercice (ex : 10 additions d'affilée — *Blocked Practice*). Le cerveau se met en pilote automatique et n'apprend pas à **choisir la bonne stratégie**, compétence clé en évaluation.
+
+**Valeur pédagogique (E=5)** :
+- Rohrer & Taylor (2007) — *Interleaved Practice* : Mélanger les types de problèmes force le cerveau à identifier la stratégie avant de l'appliquer. **Rétention à long terme améliorée de +43%** par rapport à la pratique bloquée.
+- Kornell & Bjork (2008) — Effet particulièrement fort en mathématiques : spacing + interleaving combinés produisent les meilleures performances (g = 0.43).
+- **Attention** : L'interleaving est contre-intuitif — les élèves ont l'impression d'apprendre moins bien pendant la session (mais retiennent mieux). À accompagner d'une explication pédagogique dans l'UI.
+
+**Ce qu'il faut faire** : Ajouter une Quick Action sur le Dashboard : **"Session Entrelacée (10 min)"**. Le backend sélectionne délibérément des exercices de catégories différentes et de niveaux validés (≥ 60% de réussite sur les 7 derniers jours), forçant le *context switching* cérébral.
+
+**Paramètres de sélection** :
+- 3-4 types différents dans une session de 10 exercices
+- Seulement les types où l'utilisateur a un historique (pas d'interleaving sur concepts non vus)
+- Tooltip dans l'UI : *"Ton cerveau travaille plus fort — c'est normal ! C'est exactement ce qui aide à mémoriser."*
+
+**Effort estimé** : 1-2 jours (endpoint backend avec logique de sélection + bouton frontend)  
+**Dépendance faible** : Fonctionne mieux après F05 (niveaux calibrés), mais utilisable dès maintenant sur les niveaux par défaut  
+**Priorité** : P1 — quick win fort, effort minimal, impact pédagogique maximal
+
+---
+
+### F33 — [PROPOSITION] Feedback "Growth Mindset"
+
+**Source** : Proposition IA — non issue des docs existants  
+**Score** : 11.4 | D=1, G=3, E=3, R=1, B=2
+
+> *Score initial proposé : 13.0 (E=4). EdTech révisé à E=3 : les études Dweck sont robustes mais les interventions de Growth Mindset par texte seul ont des effets faibles sans accompagnement long terme. Yeager et al. (2019) mesure des effets sur populations défavorisées spécifiques — le transfert à une plateforme généraliste est conditionnel.*
+
+**Problème** : Un message "Faux" ou un feedback négatif brutal lors d'un échec peut renforcer un *Fixed Mindset* ("Je suis nul en maths"). Ce biais est particulièrement fort chez les enfants 8-14 ans.
+
+**Valeur pédagogique (E=3)** :
+- Dweck (2006) — *Mindset Theory* : Valoriser l'effort et la stratégie plutôt que l'intelligence innée ou le résultat brut améliore la résilience face à l'échec.
+- Yeager et al. (2019) : Une simple intervention Growth Mindset a des effets mesurables sur les résultats en maths chez les élèves défavorisés.
+- **Nuance** : L'effet est conditionnel et nécessite de la cohérence dans tout le parcours utilisateur — un seul message ne suffit pas.
+
+**Ce qu'il faut faire** (modifications de texte + micro-UI) :
+
+| Avant | Après |
+|-------|-------|
+| "Mauvaise réponse" | "Pas encore ! La prochaine sera la bonne." |
+| "Incorrect" | "Ton cerveau est en train d'apprendre !" |
+| Score affiché seulement | Valoriser aussi le **temps passé** sur un défi difficile |
+| — | Tooltips de chargement : *"Savais-tu que ton cerveau crée de nouvelles connexions exactement au moment où tu fais une erreur ?"* |
+
+**Contrainte** : Cohérence avec les textes de feedback existants dans `fr.json` / `en.json`. Ne pas sur-positiver au point de perdre la valeur informative du feedback (Hattie & Timperley, 2007 — le feedback doit rester précis).
+
+**Effort estimé** : ½ jour (modifications de texte dans les fichiers i18n + micro-ajustements UI)  
+**Priorité** : P1 — quick win absolu, aucun risque technique, impact psychologique documenté
+
+---
+
 ## 5. P2 — Priorité moyenne {#5-p2}
 
 | Feature | Note |
@@ -514,7 +632,13 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 | 12 | Locke, E.A. & Latham, G.P. (1990). *A Theory of Goal Setting and Task Performance*. Prentice Hall. | Fondement objectifs personnalisés (F08) |
 | 13 | Lave, J. & Wenger, E. (1991). *Situated Learning*. Cambridge University Press. | Fondement mode aventure (F28) |
 | 14 | Zimmerman, B.J. (2002). Becoming a self-regulated learner. *Theory into Practice*, 41(2). | Fondement métacognition, graphiques progression (F07, F12) |
-| 15 | Kornell, N. & Bjork, R.A. (2008). Learning concepts and categories. *Psychological Science*, 19(6). | Fondement révisions espacées + interleaving (F04) |
+| 15 | Kornell, N. & Bjork, R.A. (2008). Learning concepts and categories. *Psychological Science*, 19(6). | Fondement révisions espacées + interleaving (F04, F32) |
+| 16 | Chase, C. et al. (2009). Teachable agents and the protégé effect. *Journal of Science Education and Technology*, 18(4). | Fondement Effet Protégé (F30) |
+| 17 | Rohrer, D. & Taylor, K. (2007). The shuffling of mathematics problems improves learning. *Instructional Science*, 35(6). | Fondement Pratique Entrelacée (F32) |
+| 18 | Sweller, J. & Cooper, G.A. (1985). The use of worked examples as a substitute for problem solving. *Cognition and Instruction*, 2(1). | Fondement Fading Effect, exemples résolus (F31) |
+| 19 | Renkl, A. (1997). Learning from worked-out examples. *American Educational Research Journal*, 34(3). | Fondement fading progressif (F31) |
+| 20 | Dweck, C.S. (2006). *Mindset: The New Psychology of Success*. Random House. | Fondement Growth Mindset, feedback d'erreur (F33) |
+| 21 | Yeager, D.S. et al. (2019). A national experiment reveals where a growth mindset improves achievement. *Nature*, 573. | Fondement Growth Mindset appliqué aux maths (F33) |
 
 ---
 

@@ -93,6 +93,17 @@ def build_exercise_system_prompt(
 5. CRITIQUE: Vérifie que correct_answer correspond EXACTEMENT aux calculs dans l'explication. Pas de contradiction.
 6. FRACTIONS (moitié/tiers/etc.) : formule A = total×frac1, B = total×frac2, puis (total - A - B). L'explication doit suivre EXACTEMENT ces calculs et conclure par correct_answer. INTERDIT : inventer une "erreur", une "correction" ou un recalcul contradictoire. Exemple : 120 cristaux, 1/2 rouges (60) + 1/3 bleus (40) = 100 → ni rouges ni bleus = 20. Jamais 30.
 
+## FORMATAGE MATHÉMATIQUE (OBLIGATOIRE)
+Toutes les expressions mathématiques DOIVENT être écrites en LaTeX dans les champs `question`, `explanation` et `hint`.
+- Formule inline : $a + b = c$ (délimiteurs $ ... $)
+- Formule bloc centrée : $$\\frac{{a}}{{b}} = c$$ (pour les étapes clés de l'explication)
+- Opérateurs : $\\times$ (×), $\\div$ (÷), $\\frac{{a}}{{b}}$ (fraction), $a^2$ (exposant), $\\sqrt{{x}}$ (racine)
+- Exemples corrects :
+  - "Calcule $3 \\times 4$" ✅ — "Calcule 3 × 4" ❌
+  - "Explication : $\\frac{{1}}{{2}} + \\frac{{1}}{{3}} = \\frac{{5}}{{6}}$" ✅
+  - "L'aire est $\\pi \\times r^2$" ✅ — "L'aire est π × r²" ❌
+- Le texte narratif (contexte Star Wars, etc.) reste en prose normale, seules les maths sont en LaTeX.
+
 ## FORMAT JSON STRICT
 {{
   "title": "Titre court et engageant",

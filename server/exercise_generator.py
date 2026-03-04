@@ -358,10 +358,10 @@ def generate_ai_exercise(exercise_type, age_group):
             side = random.randint(type_limits.get("min", 3), type_limits.get("max", 15))
             if property == "périmètre":
                 result = 4 * side
-                formula = f"4 × {side}"
+                formula = f"4 \\times {side}"
             else:  # aire
                 result = side * side
-                formula = f"{side}²"
+                formula = f"{side}^2"
 
             question_template = random.choice(
                 [
@@ -378,10 +378,10 @@ def generate_ai_exercise(exercise_type, age_group):
             width = random.randint(type_limits.get("min", 3), length - 1)
             if property == "périmètre":
                 result = 2 * (length + width)
-                formula = f"2 × ({length} + {width})"
+                formula = f"2 \\times ({length} + {width})"
             else:  # aire
                 result = length * width
-                formula = f"{length} × {width}"
+                formula = f"{length} \\times {width}"
 
             question_template = random.choice(
                 [
@@ -398,7 +398,7 @@ def generate_ai_exercise(exercise_type, age_group):
             )
             if property == "aire":
                 result = (base * height) / 2
-                formula = f"({base} × {height}) ÷ 2"
+                formula = f"\\frac{{{base} \\times {height}}}{{2}}"
             else:  # périmètre approximatif
                 hypotenuse = round(math.sqrt(base * base + height * height), 1)
                 result = base + height + hypotenuse
@@ -418,10 +418,10 @@ def generate_ai_exercise(exercise_type, age_group):
             )
             if property == "périmètre":
                 result = round(2 * math.pi * radius, 2)
-                formula = f"2 × π × {radius}"
+                formula = f"2 \\times \\pi \\times {radius}"
             else:  # aire
                 result = round(math.pi * radius * radius, 2)
-                formula = f"π × {radius}²"
+                formula = f"\\pi \\times {radius}^2"
 
             question_template = random.choice(
                 [
@@ -446,7 +446,7 @@ def generate_ai_exercise(exercise_type, age_group):
                 "question": question_template,
                 "correct_answer": str(result),
                 "choices": choices,
-                "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} Pour calculer le {property} d'un {shape}, on utilise: {formula} = {result}. {explanation_suffix}",
+                "explanation": f"[{Messages.AI_EXERCISE_PREFIX}] {explanation_prefix} Pour calculer le {property} d'un {shape}, on utilise : $${formula} = {result}$$. {explanation_suffix}",
             }
         )
         return apply_test_title(exercise_data)
@@ -1340,22 +1340,22 @@ def generate_simple_exercise(exercise_type, age_group):
                 if property_type == "aire":
                     result = (base * height) / 2
                     question = f"Un triangle a une base de {base} cm et une hauteur de {height} cm. Quelle est son aire ?"
-                    explanation = f"L'aire d'un triangle = (base × hauteur) ÷ 2 = ({base} × {height}) ÷ 2 = {result} cm²."
+                    explanation = f"L'aire d'un triangle $= \\frac{{base \\times hauteur}}{{2}} = \\frac{{{base} \\times {height}}}{{2}} = {result}$ cm²."
                 else:
                     hypotenuse = round(math.sqrt(base * base + height * height), 1)
                     result = round(base + height + hypotenuse, 1)
                     question = f"Un triangle rectangle a une base de {base} cm et une hauteur de {height} cm. Quel est son périmètre approximatif ?"
-                    explanation = f"Le périmètre ≈ base + hauteur + hypoténuse ≈ {base} + {height} + {hypotenuse} ≈ {result} cm."
+                    explanation = f"Le périmètre $\\approx {base} + {height} + {hypotenuse} \\approx {result}$ cm."
             else:  # cercle
                 radius = random.randint(3, 10)
                 if property_type == "périmètre":
                     result = round(2 * math.pi * radius, 2)
-                    question = f"Un cercle a un rayon de {radius} cm. Quel est son périmètre ? (Utilise π ≈ 3.14)"
-                    explanation = f"Le périmètre d'un cercle = 2 × π × rayon = 2 × 3.14 × {radius} ≈ {result} cm."
+                    question = f"Un cercle a un rayon de {radius} cm. Quel est son périmètre ? (Utilise $\\pi \\approx 3.14$)"
+                    explanation = f"Le périmètre d'un cercle $= 2 \\times \\pi \\times {radius} \\approx {result}$ cm."
                 else:
                     result = round(math.pi * radius * radius, 2)
-                    question = f"Un cercle a un rayon de {radius} cm. Quelle est son aire ? (Utilise π ≈ 3.14)"
-                    explanation = f"L'aire d'un cercle = π × rayon² = 3.14 × {radius}² ≈ {result} cm²."
+                    question = f"Un cercle a un rayon de {radius} cm. Quelle est son aire ? (Utilise $\\pi \\approx 3.14$)"
+                    explanation = f"L'aire d'un cercle $= \\pi \\times {radius}^2 \\approx {result}$ cm²."
 
         choices = [
             str(result),

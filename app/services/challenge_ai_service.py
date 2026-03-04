@@ -370,6 +370,18 @@ visual_data: {{"grid": [["X", "O", "X"], ["O", "X", "O"], ["X", "O", "?"]]}}
 correct_answer: "X" ✅
 solution_explanation: "En observant la colonne de droite et la ligne du bas, le pattern X-O-X se répète. Donc ? = X."
 
+FORMATAGE MATHÉMATIQUE (OBLIGATOIRE) :
+Toutes les expressions mathématiques DOIVENT être écrites en LaTeX dans les champs `description`, `question` et `solution_explanation`.
+- Formule inline : $a + b = c$ (délimiteurs $ ... $)
+- Formule bloc centrée : $$\\frac{{a}}{{b}} = c$$ (pour les étapes clés de l'explication)
+- Opérateurs : $\\times$ (×), $\\div$ (÷), $\\frac{{a}}{{b}}$ (fraction), $a^2$ (exposant), $\\sqrt{{x}}$ (racine)
+- Exemples corrects :
+  - "Vérifie que $A + B + C = 15$" ✅ — "Vérifie que A + B + C = 15" ❌
+  - "Étape 2 : $\\frac{{120}}{{3}} = 40$" ✅ — "Étape 2 : 120 ÷ 3 = 40" ❌
+  - "Probabilité = $\\frac{{favorables}}{{total}}$" ✅
+- Le texte narratif (contexte, titre, thème) reste en prose normale, seules les maths sont en LaTeX.
+- Ne pas utiliser LaTeX dans `title`, `correct_answer`, ni dans `visual_data`.
+
 Retourne uniquement le défi au format JSON valide avec ces champs:
 {{
   "title": "Titre du défi mathélogique (accrocheur, adapté à {age_display})",
