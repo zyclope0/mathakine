@@ -50,11 +50,7 @@ function DashboardLastUpdate({ time, locale }: { time: string; locale?: string }
   } catch {
     displayTime = time;
   }
-  return (
-    <p className="text-xs text-muted-foreground">
-      {t("lastUpdate", { time: displayTime })}
-    </p>
-  );
+  return <p className="text-xs text-muted-foreground">{t("lastUpdate", { time: displayTime })}</p>;
 }
 
 export default function DashboardPage() {

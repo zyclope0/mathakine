@@ -86,9 +86,7 @@ export function StatsCard({
                 ) : (
                   <TrendingDown className="h-3 w-3" />
                 )}
-                {trend !== undefined && trend !== null
-                  ? (trend > 0 ? "+" : "") + trend + "%"
-                  : ""}
+                {trend !== undefined && trend !== null ? (trend > 0 ? "+" : "") + trend + "%" : ""}
               </Badge>
             )}
           </div>
