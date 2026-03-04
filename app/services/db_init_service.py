@@ -44,7 +44,7 @@ def create_tables():
         logger.warning(
             f"Alembic non disponible ou échec ({alembic_error}), fallback create_all"
         )
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=engine, checkfirst=True)
         logger.success("Tables créées avec succès (create_all)")
 
 

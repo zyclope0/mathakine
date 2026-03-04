@@ -38,7 +38,9 @@ def upgrade() -> None:
             nullable=False,
             index=True,
         ),
-        sa.Column("triggered_from", sa.String(20), nullable=False, server_default="onboarding"),
+        sa.Column(
+            "triggered_from", sa.String(20), nullable=False, server_default="onboarding"
+        ),
         sa.Column("scores", JSONB, nullable=False, server_default="{}"),
         sa.Column("questions_asked", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("duration_seconds", sa.Integer(), nullable=True),

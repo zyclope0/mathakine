@@ -25,34 +25,42 @@ def upgrade() -> None:
     Pour LogicChallengeType, ajoute :
     - VISUAL (défis visuels et spatiaux)
     - RIDDLE (énigmes et puzzles)
-    """
-    # Vérifier si les valeurs existent déjà avant de les ajouter
-    # Note: PostgreSQL ne permet pas d'ajouter une valeur si elle existe déjà
 
+    Utilise pg_type (OID) au lieu de ::regtype pour éviter une erreur
+    si le type n'existe pas encore (base fraîche en CI).
+    """
     # Ajouter VISUAL à logicchallengetype
     op.execute("""
-        DO $$ 
+        DO $$
+        DECLARE
+            type_oid oid;
         BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM pg_enum 
-                WHERE enumlabel = 'VISUAL' 
-                AND enumtypid = 'logicchallengetype'::regtype
-            ) THEN
-                ALTER TYPE logicchallengetype ADD VALUE 'VISUAL';
+            SELECT oid INTO type_oid FROM pg_type WHERE typname = 'logicchallengetype';
+            IF type_oid IS NOT NULL THEN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_enum
+                    WHERE enumlabel = 'VISUAL' AND enumtypid = type_oid
+                ) THEN
+                    ALTER TYPE logicchallengetype ADD VALUE 'VISUAL';
+                END IF;
             END IF;
         END $$;
     """)
 
     # Ajouter RIDDLE à logicchallengetype
     op.execute("""
-        DO $$ 
+        DO $$
+        DECLARE
+            type_oid oid;
         BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM pg_enum 
-                WHERE enumlabel = 'RIDDLE' 
-                AND enumtypid = 'logicchallengetype'::regtype
-            ) THEN
-                ALTER TYPE logicchallengetype ADD VALUE 'RIDDLE';
+            SELECT oid INTO type_oid FROM pg_type WHERE typname = 'logicchallengetype';
+            IF type_oid IS NOT NULL THEN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_enum
+                    WHERE enumlabel = 'RIDDLE' AND enumtypid = type_oid
+                ) THEN
+                    ALTER TYPE logicchallengetype ADD VALUE 'RIDDLE';
+                END IF;
             END IF;
         END $$;
     """)
