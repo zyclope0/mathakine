@@ -377,7 +377,8 @@
       "correctAnswerWas": "The correct answer was:",
       "explanation": "Explanation",
       "showHint": "Show a hint",
-      "hint": "Hint"
+      "hint": "Hint",
+      "close": "Close"
     }
   },
   "challenges": {

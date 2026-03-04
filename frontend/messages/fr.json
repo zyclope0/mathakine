@@ -377,7 +377,8 @@
       "correctAnswerWas": "La bonne réponse était :",
       "explanation": "Explication",
       "showHint": "Voir un indice",
-      "hint": "Indice"
+      "hint": "Indice",
+      "close": "Fermer"
     }
   },
   "challenges": {

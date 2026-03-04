@@ -43,7 +43,7 @@ export default function ChallengePage({ params }: ChallengePageProps) {
   return (
     <ProtectedRoute requireFullAccess>
       <PageLayout>
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <ChallengeSolver challengeId={challengeId} />
         </div>
       </PageLayout>

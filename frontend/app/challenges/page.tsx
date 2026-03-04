@@ -28,17 +28,10 @@ import {
 } from "@/lib/constants/challenges";
 import { useChallengeTranslations } from "@/hooks/useChallengeTranslations";
 import type { ChallengeFilters } from "@/hooks/useChallenges";
-import {
-  Filter,
-  X,
-  Puzzle,
-  Search,
-  LayoutGrid,
-  List,
-  Sparkles,
-  CheckCircle2,
-  EyeOff,
-} from "lucide-react";
+import { Filter, X, Puzzle, Search, LayoutGrid, List, EyeOff } from "lucide-react";
+import { CompactListItem } from "@/components/shared/CompactListItem";
+import { getStaggerDelay } from "@/lib/utils/animation";
+import { isAiGenerated } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import {
@@ -421,21 +414,11 @@ function ChallengesPageContent() {
                   gap="sm"
                   className="md:gap-4"
                 >
-                  {challenges.map((challenge, index) => {
-                    const delayClass =
-                      index === 0
-                        ? "animate-fade-in-up-delay-1"
-                        : index === 1
-                          ? "animate-fade-in-up-delay-2"
-                          : index === 2
-                            ? "animate-fade-in-up-delay-3"
-                            : "animate-fade-in-up-delay-3";
-                    return (
-                      <div key={challenge.id} className={delayClass}>
-                        <ChallengeCard challenge={challenge} />
-                      </div>
-                    );
-                  })}
+                  {challenges.map((challenge, index) => (
+                    <div key={challenge.id} className={`${getStaggerDelay(index)} h-full`}>
+                      <ChallengeCard challenge={challenge} />
+                    </div>
+                  ))}
                 </PageGrid>
               ) : (
                 /* Vue Liste Compacte */
@@ -444,62 +427,21 @@ function ChallengesPageContent() {
                     const typeKey =
                       challenge.challenge_type?.toLowerCase() as keyof typeof CHALLENGE_TYPE_STYLES;
                     const { icon: TypeIcon } = CHALLENGE_TYPE_STYLES[typeKey] || { icon: Puzzle };
-                    const typeDisplay = getTypeDisplay(challenge.challenge_type);
-                    const ageDisplay = getAgeDisplay(challenge.age_group);
-                    const completed = isCompleted(challenge.id);
-
                     return (
-                      <div
+                      <CompactListItem
                         key={challenge.id}
+                        title={challenge.title}
+                        subtitle={challenge.description || challenge.question || ""}
+                        TypeIcon={TypeIcon}
+                        aiGenerated={isAiGenerated(challenge)}
+                        completed={isCompleted(challenge.id)}
+                        typeDisplay={getTypeDisplay(challenge.challenge_type)}
+                        ageDisplay={getAgeDisplay(challenge.age_group)}
                         onClick={() => {
                           setSelectedChallengeId(challenge.id);
                           setIsModalOpen(true);
                         }}
-                        className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
-                          "bg-card/80 backdrop-blur-sm border-border/60",
-                          "hover:bg-accent hover:border-primary/50 hover:shadow-md",
-                          completed && "bg-green-500/10 border-green-500/40"
-                        )}
-                      >
-                        {/* Icône du type */}
-                        <div
-                          className={cn(
-                            "flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center",
-                            "bg-primary/10 border border-primary/20"
-                          )}
-                        >
-                          <TypeIcon className="h-5 w-5 text-primary" />
-                        </div>
-
-                        {/* Infos principales */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium truncate">{challenge.title}</h3>
-                            {challenge.ai_generated && (
-                              <Sparkles className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
-                            )}
-                            {completed && (
-                              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {challenge.description || challenge.question}
-                          </p>
-                        </div>
-
-                        {/* Badges */}
-                        <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
-                          <Badge variant="outline" className="text-xs">
-                            {typeDisplay}
-                          </Badge>
-                          {ageDisplay && (
-                            <Badge variant="outline" className="text-xs">
-                              {ageDisplay}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
+                      />
                     );
                   })}
                 </div>

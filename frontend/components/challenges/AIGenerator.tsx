@@ -2,7 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import { CHALLENGE_TYPES, AGE_GROUPS } from "@/lib/constants/challenges";
+import {
+  CHALLENGE_TYPES,
+  AGE_GROUPS,
+  CHALLENGE_PROMPT_SUGGESTIONS,
+} from "@/lib/constants/challenges";
 import { useChallengeTranslations } from "@/hooks/useChallengeTranslations";
 import type { Challenge } from "@/types/api";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { ensureFrontendAuthCookie } from "@/lib/api/client";
+import { debugLog, debugError } from "@/lib/utils/debug";
 import {
   AIGeneratorBase,
   type AIGeneratedItem,
@@ -32,8 +37,6 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
   const { getTypeDisplay, getAgeDisplay } = useChallengeTranslations();
   const { user, isLoading: isAuthLoading } = useAuth();
 
-  const isDev = process.env.NODE_ENV === "development";
-
   useEffect(() => {
     return () => {
       abortControllerRef.current?.abort();
@@ -44,7 +47,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
     if (isGenerating) return;
 
     if (!user) {
-      if (isDev) console.error("[AIGenerator] User not authenticated");
+      debugError("[AIGenerator challenges] User not authenticated");
       toast.error(t("aiGenerator.authRequired"), {
         description: t("aiGenerator.authRequiredDescription"),
         action: { label: t("aiGenerator.login"), onClick: () => router.push("/login") },
@@ -52,7 +55,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
       return;
     }
 
-    if (isDev) console.log("[AIGenerator] User authenticated, starting generation");
+    debugLog("[AIGenerator challenges] Starting generation");
     setIsGenerating(true);
     setStreamedText("");
     setGeneratedChallenge(null);
@@ -91,7 +94,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
         const newChunk = decoder.decode(value, { stream: true });
         buffer += newChunk;
 
-        if (newChunk && isDev) console.log("[AIGenerator] chunk:", newChunk.substring(0, 100));
+        if (newChunk) debugLog("[AIGenerator challenges] chunk:", newChunk.substring(0, 100));
 
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
@@ -102,14 +105,14 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
 
           try {
             const data = JSON.parse(trimmed.slice(6));
-            if (isDev) console.log("[AIGenerator] SSE:", data.type);
+            debugLog("[AIGenerator challenges] SSE:", data.type);
 
             if (data.type === "status") {
               setStreamedText(data.message);
             } else if (data.type === "challenge") {
               const challenge = data.challenge as Challenge;
               if (!challenge?.title) {
-                if (isDev) console.error("Challenge invalide:", challenge);
+                debugError("[AIGenerator challenges] Challenge invalide:", challenge);
                 toast.error(t("aiGenerator.error"), {
                   description: t("aiGenerator.errorDescription"),
                 });
@@ -140,17 +143,17 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
               return;
             }
           } catch (parseError) {
-            if (isDev) console.error("[AIGenerator] parse error:", parseError, "line:", trimmed);
+            debugError(`[AIGenerator challenges] parse error on line "${trimmed}":`, parseError);
           }
         }
       }
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
-        if (isDev) console.log("[AIGenerator] Annulé par l'utilisateur");
+        debugLog("[AIGenerator challenges] Annulé par l'utilisateur");
         setIsGenerating(false);
         return;
       }
-      if (isDev) console.error("Erreur génération:", error);
+      debugError("[AIGenerator challenges] Erreur génération:", error);
       setIsGenerating(false);
       toast.error(t("aiGenerator.connectionError"), {
         description: t("aiGenerator.connectionErrorDescription"),
@@ -189,6 +192,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
       description={t("aiGenerator.description")}
       typeLabel={t("aiGenerator.challengeType")}
       typeSelectId="ai-challenge-type"
+      ageSelectId="ai-challenge-age-group"
       ageLabel={t("aiGenerator.ageGroup")}
       promptLabel={t("aiGenerator.customPrompt")}
       promptPlaceholder={t("aiGenerator.customPromptPlaceholder")}
@@ -197,7 +201,8 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
       cancelLabel={t("aiGenerator.cancel")}
       viewItemLabel={t("aiGenerator.viewChallenge")}
       successLabel={t("aiGenerator.success")}
-      closeAriaLabel={t("aiGenerator.cancel")}
+      closeAriaLabel={t("aiGenerator.close", { default: "Fermer" })}
+      promptSuggestions={[...CHALLENGE_PROMPT_SUGGESTIONS]}
       typeOptions={typeOptions}
       defaultType={CHALLENGE_TYPES.SEQUENCE}
       ageOptions={ageOptions}

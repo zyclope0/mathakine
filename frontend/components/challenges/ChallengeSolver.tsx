@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,6 +23,7 @@ import { useThemeStore } from "@/lib/stores/themeStore";
 import { useChallenges } from "@/hooks/useChallenges";
 import { useChallenge } from "@/hooks/useChallenge";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { debugLog } from "@/lib/utils/debug";
 import { ChallengeVisualRenderer } from "./visualizations/ChallengeVisualRenderer";
 import { useTranslations } from "next-intl";
@@ -37,6 +37,25 @@ import {
 interface ChallengeSolverProps {
   challengeId: number;
   onChallengeCompleted?: () => void;
+}
+
+function FocusBoard({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "bg-slate-900/60 backdrop-blur-xl border border-white/20 shadow-2xl rounded-t-3xl p-6 md:p-10 w-full max-w-5xl mx-auto mt-6",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function ChallengeSolver({ challengeId, onChallengeCompleted }: ChallengeSolverProps) {
@@ -223,73 +242,71 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">{t("loading")}</p>
+      <FocusBoard>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+            <p className="text-muted-foreground">{t("loading")}</p>
+          </div>
         </div>
-      </div>
+      </FocusBoard>
     );
   }
 
   if (error) {
     return (
-      <Card className="border-destructive">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-4" role="alert" aria-live="assertive">
-            <XCircle className="h-12 w-12 text-destructive mx-auto" />
-            <div>
-              <h3 className="text-lg font-semibold text-destructive">{t("error.title")}</h3>
-              <p className="text-muted-foreground mt-2">
-                {error.status === 404 ? t("error.notFound") : error.message || t("error.generic")}
-              </p>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/challenges">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t("back")}
-              </Link>
-            </Button>
+      <FocusBoard>
+        <div className="text-center space-y-4" role="alert" aria-live="assertive">
+          <XCircle className="h-12 w-12 text-destructive mx-auto" />
+          <div>
+            <h3 className="text-lg font-semibold text-destructive">{t("error.title")}</h3>
+            <p className="text-muted-foreground mt-2">
+              {error.status === 404 ? t("error.notFound") : error.message || t("error.generic")}
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          <Button asChild variant="outline">
+            <Link href="/challenges">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("back")}
+            </Link>
+          </Button>
+        </div>
+      </FocusBoard>
     );
   }
 
   if (!challenge && !isLoading && !error) {
-    // Cas où la requête a réussi mais n'a pas retourné de données
     return (
-      <Card className="border-warning">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-4" role="alert" aria-live="assertive">
-            <AlertCircle className="h-12 w-12 text-warning mx-auto" />
-            <div>
-              <h3 className="text-lg font-semibold text-warning">{t("notFound.title")}</h3>
-              <p className="text-muted-foreground mt-2">
-                {t("notFound.message", { id: challengeId })}
-              </p>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/challenges">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t("back")}
-              </Link>
-            </Button>
+      <FocusBoard>
+        <div className="text-center space-y-4" role="alert" aria-live="assertive">
+          <AlertCircle className="h-12 w-12 text-warning mx-auto" />
+          <div>
+            <h3 className="text-lg font-semibold text-warning">{t("notFound.title")}</h3>
+            <p className="text-muted-foreground mt-2">
+              {t("notFound.message", { id: challengeId })}
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          <Button asChild variant="outline">
+            <Link href="/challenges">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("back")}
+            </Link>
+          </Button>
+        </div>
+      </FocusBoard>
     );
   }
 
   if (!challenge) {
-    // Pendant le chargement initial, afficher un loader
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">{t("loading")}</p>
+      <FocusBoard>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+            <p className="text-muted-foreground">{t("loading")}</p>
+          </div>
         </div>
-      </div>
+      </FocusBoard>
     );
   }
 
@@ -331,15 +348,25 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
     visualPositions.length <= 1 || visualPositions.every((p) => visualSelections[p]);
 
   return (
-    <div className="space-y-6">
-      {/* En-tête avec badges */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-bold text-foreground">
-            {t("challengeNumber", { id: challenge.id })}
-          </h2>
-        </div>
-        <div className="flex flex-wrap gap-2">
+    <>
+      <FocusBoard>
+        {/* Bouton Retour */}
+        <Link
+          href="/challenges"
+          className="text-muted-foreground hover:text-white transition-colors mb-6 inline-flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t("back")}
+        </Link>
+
+        {/* En-tête : Défi #XXXX discret, titre star, tags */}
+        <p className="text-sm text-muted-foreground font-mono">
+          {t("challengeNumber", { id: challenge.id })}
+        </p>
+        <h1 className="text-3xl md:text-4xl font-bold text-white mt-2 mb-6">
+          {challenge.title || t("noTitle")}
+        </h1>
+        <div className="flex flex-wrap gap-2 mb-6">
           <Badge variant="outline" className={ageGroupColor}>
             {ageGroupDisplay}
           </Badge>
@@ -353,33 +380,28 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
             </Badge>
           )}
         </div>
-      </div>
 
-      {/* Titre et description du défi */}
-      <Card className="bg-card border-primary/20 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-3xl font-extrabold text-foreground">
-            {challenge.title || t("noTitle")}
-          </CardTitle>
-          <CardDescription className="text-lg mt-2">
-            {challenge.description || t("noDescription")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        {/* Description et contenu */}
+        <div className="space-y-4">
+          {challenge.description && (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <p className="text-slate-200 text-lg">{challenge.description}</p>
+            </div>
+          )}
           {challenge.question && challenge.question !== challenge.description && (
-            <div className="mb-4">
-              <p className="text-foreground text-lg font-medium">{challenge.question}</p>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <p className="text-slate-200 text-lg font-medium">{challenge.question}</p>
             </div>
           )}
 
           {challenge.image_url && (
-            <div className="mb-4 flex justify-center">
-              <div className="relative w-full max-w-2xl aspect-video rounded-lg overflow-hidden">
+            <div className="flex justify-center">
+              <div className="relative w-full max-w-2xl aspect-video rounded-xl overflow-hidden border border-white/10">
                 <Image
                   src={challenge.image_url}
                   alt={t("challengeImage")}
                   fill
-                  className="object-contain rounded-lg"
+                  className="object-contain rounded-xl"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
                   loading="lazy"
                 />
@@ -388,7 +410,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
           )}
 
           {challenge.visual_data && (
-            <div className="mb-4" key={`visual-${challenge.id}-${retryKey}`}>
+            <div key={`visual-${challenge.id}-${retryKey}`}>
               <ChallengeVisualRenderer
                 challenge={challenge}
                 onPuzzleOrderChange={handlePuzzleOrderChange}
@@ -396,16 +418,127 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
               />
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Zone de réponse */}
+        {/* Indices affichés */}
+        {hintsUsed.length > 0 && (
+          <div className="mt-6 bg-white/5 border border-white/10 rounded-xl p-4">
+            <h3 className="flex items-center gap-2 text-amber-400 font-semibold mb-3">
+              <Lightbulb className="h-5 w-5" />
+              {t("hintsUsed")}
+            </h3>
+            <ul className="space-y-2">
+              {hintsUsed.map((hintIndex) => {
+                const hintText =
+                  hintIndex > 0 && hintIndex <= availableHints.length
+                    ? availableHints[hintIndex - 1]
+                    : null;
+                if (!hintText) return null;
+                return (
+                  <li key={hintIndex} className="flex items-start gap-2">
+                    <span className="text-amber-400 font-bold">{hintIndex}.</span>
+                    <span className="text-slate-200">{hintText}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        {/* Feedback après soumission */}
+        {hasSubmitted && (
+          <div
+            className={cn(
+              "mt-6 rounded-xl p-4 border",
+              isCorrect
+                ? "bg-emerald-500/10 border-emerald-500/30"
+                : "bg-red-500/10 border-red-500/30"
+            )}
+          >
+            <div className="flex items-start gap-4">
+              {isCorrect ? (
+                <CheckCircle className="h-8 w-8 text-emerald-400 flex-shrink-0 mt-1" />
+              ) : (
+                <XCircle className="h-8 w-8 text-red-400 flex-shrink-0 mt-1" />
+              )}
+              <div className="flex-1 space-y-2">
+                <h3
+                  className={cn(
+                    "text-lg font-semibold",
+                    isCorrect ? "text-emerald-400" : "text-red-400"
+                  )}
+                >
+                  {isCorrect ? t("correctTitle") : t("incorrectTitle")}
+                </h3>
+                {isCorrect && challenge.solution_explanation && (
+                  <div className="mt-4">
+                    <p className="font-medium text-slate-200 mb-2">{t("explanationLabel")}</p>
+                    <p className="text-slate-300">{challenge.solution_explanation}</p>
+                  </div>
+                )}
+                {!isCorrect && (
+                  <div className="mt-4">
+                    <p className="text-slate-300 mb-2">{t("tryAgain")}</p>
+                    {availableHints.length > hintsUsed.length && (
+                      <Button
+                        onClick={handleRequestHint}
+                        variant="outline"
+                        size="sm"
+                        className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                        aria-label={t("requestHint", {
+                          current: hintsUsed.length + 1,
+                          total: availableHints.length,
+                        })}
+                      >
+                        <Lightbulb className="mr-2 h-4 w-4" aria-hidden="true" />
+                        {t("seeNextHint")}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-3 pt-8 mt-8 border-t border-white/10">
+          <Button
+            asChild
+            variant="outline"
+            className="flex-1 bg-transparent border border-white/10 text-muted-foreground hover:bg-white/5 hover:text-white px-6 py-3 rounded-xl transition-colors"
+          >
+            <Link href="/challenges">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("back")}
+            </Link>
+          </Button>
+          {hasSubmitted && !isCorrect && (
+            <Button
+              onClick={handleRetry}
+              className="flex-1 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
+              aria-label={t("retryLabel")}
+            >
+              <RotateCcw className="mr-2 h-4 w-4" aria-hidden="true" />
+              {t("retry")}
+            </Button>
+          )}
+          {hasSubmitted && isCorrect && (
+            <Button
+              asChild
+              className="flex-1 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
+            >
+              <Link href="/challenges">{t("nextChallenge")}</Link>
+            </Button>
+          )}
+        </div>
+      </FocusBoard>
+
+      {/* Command Bar — Zone de réponse et d'action */}
       {!hasSubmitted && (
-        <Card className="bg-card border-primary/20">
-          <CardHeader>
-            <CardTitle>{t("yourAnswer")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <div className="bg-slate-950/80 border border-white/10 border-t-0 p-6 rounded-b-3xl max-w-5xl mx-auto">
+          <h3 className="text-lg font-semibold text-white mb-4">{t("yourAnswer")}</h3>
+          <div className="space-y-4">
             {hasChoices ? (
               <div
                 className="grid grid-cols-1 sm:grid-cols-2 gap-3"
@@ -504,7 +637,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
               </div>
             ) : challenge.challenge_type?.toLowerCase() === "puzzle" && puzzleOrder.length > 0 ? (
               <div className="space-y-3">
-                <div className="p-4 bg-muted/30 rounded-lg border border-primary/20">
+                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                   <p className="text-sm font-medium text-foreground mb-2">{t("currentOrder")}</p>
                   <div className="flex flex-wrap gap-2">
                     {puzzleOrder.map((item, index) => (
@@ -529,7 +662,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
               userAnswer &&
               challenge.visual_data ? (
               <div className="space-y-3">
-                <div className="p-4 bg-muted/30 rounded-lg border border-primary/20">
+                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                   <p className="text-sm font-medium text-foreground mb-2">{t("yourAnswerLabel")}</p>
                   <Badge variant="outline" className="text-lg px-4 py-2">
                     {userAnswer}
@@ -550,7 +683,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
               userAnswer &&
               challenge.visual_data ? (
               <div className="space-y-3">
-                <div className="p-4 bg-muted/30 rounded-lg border border-primary/20">
+                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                   <p className="text-sm font-medium text-foreground mb-2">{t("yourAnswerLabel")}</p>
                   <Badge variant="outline" className="text-lg px-4 py-2">
                     {userAnswer}
@@ -570,7 +703,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
             ) : challenge.challenge_type?.toLowerCase() === "deduction" && challenge.visual_data ? (
               <div className="space-y-3">
                 {userAnswer ? (
-                  <div className="p-4 bg-success/10 rounded-lg border border-success/30">
+                  <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                     <p className="text-sm font-medium text-foreground mb-2">
                       {t("yourAssociations") || "Vos associations"}
                     </p>
@@ -594,8 +727,8 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                     </div>
                   </div>
                 ) : (
-                  <div className="p-4 bg-muted/30 rounded-lg border border-primary/20">
-                    <p className="text-sm text-muted-foreground">
+                  <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                    <p className="text-sm text-slate-300">
                       {t("completeAssociationsAbove") ||
                         "Complétez vos associations dans la grille ci-dessus"}
                     </p>
@@ -634,7 +767,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
               </div>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button
                 onClick={handleSubmit}
                 disabled={
@@ -646,7 +779,16 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                       : !userAnswer.trim()
                     : !userAnswer.trim())
                 }
-                className="flex-1"
+                className={cn(
+                  "flex-1 px-6 py-3 rounded-xl font-medium transition-all",
+                  (hasVisualButtons
+                    ? visualPositions.length > 1
+                      ? !isVisualMultiComplete
+                      : !userAnswer.trim()
+                    : !userAnswer.trim()) && !isSubmitting
+                    ? "opacity-50 cursor-not-allowed bg-slate-800 text-slate-400 border border-white/5"
+                    : "bg-primary text-white shadow-[0_0_15px_hsl(var(--primary)/0.35)] hover:shadow-[0_0_20px_hsl(var(--primary)/0.5)] hover:-translate-y-0.5"
+                )}
                 aria-label={isSubmitting ? t("validating") : t("validateAnswer")}
                 aria-busy={isSubmitting}
               >
@@ -660,7 +802,6 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                 )}
               </Button>
 
-              {/* Bouton d'indice - affiché si le challenge a des hints ou si on peut en demander */}
               {(availableHints.length > 0 || challenge?.hints) && (
                 <Button
                   onClick={handleRequestHint}
@@ -669,6 +810,7 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                     hasSubmitted ||
                     (availableHints.length > 0 && hintsUsed.length >= availableHints.length)
                   }
+                  className="border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors px-6 py-3 rounded-xl"
                   aria-label={
                     availableHints.length > 0
                       ? t("requestHint", {
@@ -688,113 +830,9 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
-
-      {/* Indices affichés */}
-      {hintsUsed.length > 0 && (
-        <Card className="bg-yellow-500/10 border-yellow-500/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-yellow-400">
-              <Lightbulb className="h-5 w-5" />
-              {t("hintsUsed")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {hintsUsed.map((hintIndex) => {
-                const hintText =
-                  hintIndex > 0 && hintIndex <= availableHints.length
-                    ? availableHints[hintIndex - 1]
-                    : null;
-                if (!hintText) return null;
-                return (
-                  <li key={hintIndex} className="flex items-start gap-2">
-                    <span className="text-yellow-400 font-bold">{hintIndex}.</span>
-                    <span className="text-foreground">{hintText}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Feedback après soumission */}
-      {hasSubmitted && (
-        <Card
-          className={isCorrect ? "bg-success/10 border-success/30" : "bg-error/10 border-error/30"}
-        >
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              {isCorrect ? (
-                <CheckCircle className="h-8 w-8 text-success flex-shrink-0 mt-1" />
-              ) : (
-                <XCircle className="h-8 w-8 text-error flex-shrink-0 mt-1" />
-              )}
-              <div className="flex-1 space-y-2">
-                <h3
-                  className={`text-lg font-semibold ${isCorrect ? "text-success" : "text-error"}`}
-                >
-                  {isCorrect ? t("correctTitle") : t("incorrectTitle")}
-                </h3>
-                {isCorrect && challenge.solution_explanation && (
-                  <div className="mt-4">
-                    <p className="font-medium text-foreground mb-2">{t("explanationLabel")}</p>
-                    <p className="text-muted-foreground">{challenge.solution_explanation}</p>
-                  </div>
-                )}
-                {!isCorrect && (
-                  <div className="mt-4">
-                    <p className="text-muted-foreground mb-2">{t("tryAgain")}</p>
-                    {availableHints.length > hintsUsed.length && (
-                      <Button
-                        onClick={handleRequestHint}
-                        variant="outline"
-                        size="sm"
-                        aria-label={t("requestHint", {
-                          current: hintsUsed.length + 1,
-                          total: availableHints.length,
-                        })}
-                      >
-                        <Lightbulb className="mr-2 h-4 w-4" aria-hidden="true" />
-                        {t("seeNextHint")}
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        <Button asChild variant="outline" className="flex-1">
-          <Link href="/challenges">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {t("back")}
-          </Link>
-        </Button>
-        {hasSubmitted && !isCorrect && (
-          <Button
-            onClick={handleRetry}
-            variant="default"
-            className="flex-1"
-            aria-label={t("retryLabel")}
-          >
-            <RotateCcw className="mr-2 h-4 w-4" aria-hidden="true" />
-            {t("retry")}
-          </Button>
-        )}
-        {hasSubmitted && isCorrect && (
-          <Button asChild className="flex-1">
-            <Link href="/challenges">{t("nextChallenge")}</Link>
-          </Button>
-        )}
-      </div>
-    </div>
+    </>
   );
 }

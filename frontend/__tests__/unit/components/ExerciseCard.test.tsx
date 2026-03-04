@@ -66,9 +66,14 @@ describe("ExerciseCard", () => {
     expect(screen.getByText("IA")).toBeInTheDocument();
   });
 
-  it("affiche le bouton Résoudre", () => {
+  it("affiche le CTA Résoudre (pill discret, carte entière cliquable)", () => {
     render(<ExerciseCard exercise={mockExercise} />, { wrapper: TestWrapper });
-    expect(screen.getByRole("button", { name: /résoudre/i })).toBeInTheDocument();
+    // Le CTA est un <span aria-hidden> — la carte entière est l'élément cliquable
+    const cta = screen.getAllByText(/résoudre/i)[0];
+    expect(cta).toBeInTheDocument();
+    // La carte est accessible via son article
+    const card = screen.getByRole("article");
+    expect(card).toBeInTheDocument();
   });
 
   it("a des attributs ARIA corrects", () => {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useExercise } from "@/hooks/useExercise";
@@ -67,44 +66,61 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
         answer: selectedAnswer,
         time_spent: timeSpent,
       });
-      // L'état sera mis à jour via useEffect quand submitResult change
     } catch {
       // L'erreur est déjà gérée par le hook useSubmitAnswer
     }
   };
 
+  // Conteneur Focus Board (glassmorphism) — utilisé pour loading, error et contenu
+  const FocusBoard = ({
+    children,
+    className = "",
+  }: {
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <div
+      className={cn(
+        "bg-slate-900/60 backdrop-blur-xl border border-white/20 shadow-[0_0_40px_rgba(0,0,0,0.5)] rounded-3xl p-8 md:p-12 w-full max-w-4xl mx-auto mt-8 md:mt-12",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">{t("loading")}</p>
+      <FocusBoard>
+        <div className="flex items-center justify-center min-h-[300px]">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+            <p className="text-muted-foreground">{t("loading")}</p>
+          </div>
         </div>
-      </div>
+      </FocusBoard>
     );
   }
 
   if (error) {
     return (
-      <Card className="border-destructive">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-4" role="alert" aria-live="assertive">
-            <XCircle className="h-12 w-12 text-destructive mx-auto" />
-            <div>
-              <h3 className="text-lg font-semibold text-destructive">{t("error.title")}</h3>
-              <p className="text-muted-foreground mt-2">
-                {error.status === 404 ? t("error.notFound") : error.message || t("error.generic")}
-              </p>
-            </div>
-            <Button asChild variant="outline">
-              <Link href="/exercises">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t("backToExercises")}
-              </Link>
-            </Button>
+      <FocusBoard>
+        <div className="text-center space-y-4" role="alert" aria-live="assertive">
+          <XCircle className="h-12 w-12 text-destructive mx-auto" />
+          <div>
+            <h3 className="text-lg font-semibold text-destructive">{t("error.title")}</h3>
+            <p className="text-muted-foreground mt-2">
+              {error.status === 404 ? t("error.notFound") : error.message || t("error.generic")}
+            </p>
           </div>
-        </CardContent>
-      </Card>
+          <Button asChild variant="outline">
+            <Link href="/exercises">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("backToExercises")}
+            </Link>
+          </Button>
+        </div>
+      </FocusBoard>
     );
   }
 
@@ -116,216 +132,220 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   const ageGroupDisplay = getAgeDisplay(exercise.age_group);
   const isCorrect = submitResult?.is_correct ?? false;
   const choices = exercise.choices && exercise.choices.length > 0 ? exercise.choices : [];
+  const isCorrectChoice = (choice: string) =>
+    hasSubmitted && submitResult?.correct_answer ? choice === submitResult.correct_answer : false;
 
   return (
-    <div className="space-y-6">
-      {/* En-tête avec badges */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/exercises">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t("back")}
-            </Link>
-          </Button>
-          <div className="flex gap-2">
-            <Badge variant="outline">{ageGroupDisplay}</Badge>
-            <Badge variant="outline">{typeDisplay}</Badge>
-          </div>
-        </div>
+    <FocusBoard>
+      {/* Bouton Retour — en haut à gauche, discret */}
+      <Link
+        href="/exercises"
+        className="text-muted-foreground hover:text-white transition-colors mb-6 inline-flex items-center gap-2"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        {t("back")}
+      </Link>
+
+      {/* Tags centrés au-dessus du titre */}
+      <div className="flex justify-center gap-2 mb-4">
+        {ageGroupDisplay && <Badge variant="outline">{ageGroupDisplay}</Badge>}
+        <Badge variant="outline">{typeDisplay}</Badge>
       </div>
 
-      {/* Carte principale de l'exercice */}
-      <Card className="bg-surface-elevated border-primary/20 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl">{exercise.title}</CardTitle>
-          <CardDescription className="text-base mt-2">{exercise.question}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Choix de réponses */}
-          {choices.length > 0 ? (
-            <div
-              className="grid grid-cols-2 gap-3"
-              role="radiogroup"
-              aria-label="Choix de réponses pour l'exercice"
-            >
-              {choices.map((choice, index) => {
-                const isSelected = selectedAnswer === choice;
-                const isCorrectChoice = choice === exercise.correct_answer;
-                const showCorrect = hasSubmitted && isCorrectChoice;
-                const showIncorrect = hasSubmitted && isSelected && !isCorrectChoice;
+      {/* Titre centré */}
+      <h1 className="text-2xl md:text-3xl font-bold text-white mb-8 text-center">
+        {exercise.title}
+      </h1>
 
-                return (
-                  <Button
-                    key={index}
-                    variant={isSelected ? "default" : "outline"}
-                    size="lg"
-                    className={cn(
-                      "h-auto py-4 px-6 text-lg font-medium transition-all",
-                      !hasSubmitted && "hover:bg-primary/10 hover:border-primary/50",
-                      showCorrect &&
-                        "bg-green-500/20 border-green-500 text-green-400 hover:bg-green-500/20",
-                      showIncorrect &&
-                        "bg-red-500/20 border-red-500 text-red-400 hover:bg-red-500/20",
-                      hasSubmitted && !isSelected && !isCorrectChoice && "opacity-50"
-                    )}
-                    onClick={() => handleSelectAnswer(choice)}
-                    disabled={hasSubmitted}
-                    role="radio"
-                    aria-checked={isSelected}
-                    aria-label={`${t("option", { index: index + 1 })}: ${choice}${hasSubmitted ? (isCorrectChoice ? ` - ${t("answerCorrect")}` : showIncorrect ? ` - ${t("answerIncorrect")}` : "") : ""}`}
-                    tabIndex={isSelected ? 0 : -1}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        handleSelectAnswer(choice);
-                      }
-                      // Navigation par flèches
-                      if (e.key === "ArrowRight" && index < choices.length - 1) {
-                        e.preventDefault();
-                        const nextButton = e.currentTarget.parentElement?.children[
-                          index + 1
-                        ] as HTMLElement;
-                        nextButton?.focus();
-                      }
-                      if (e.key === "ArrowLeft" && index > 0) {
-                        e.preventDefault();
-                        const prevButton = e.currentTarget.parentElement?.children[
-                          index - 1
-                        ] as HTMLElement;
-                        prevButton?.focus();
-                      }
-                    }}
-                  >
-                    {choice}
-                  </Button>
-                );
-              })}
-            </div>
+      {/* Énoncé — la star de la page */}
+      <p className="text-xl md:text-2xl font-medium text-slate-200 text-center mb-12 leading-relaxed">
+        {exercise.question}
+      </p>
+
+      {/* Grille de réponses — style Modal (gamification) */}
+      {choices.length > 0 ? (
+        <div
+          className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8"
+          role="radiogroup"
+          aria-label="Choix de réponses pour l'exercice"
+        >
+          {choices.map((choice, index) => {
+            const isSelected = selectedAnswer === choice;
+            const showCorrect = hasSubmitted && isCorrectChoice(choice);
+            const showIncorrect = hasSubmitted && isSelected && !isCorrectChoice(choice);
+
+            return (
+              <button
+                key={index}
+                type="button"
+                className={cn(
+                  "rounded-2xl py-6 md:py-8 text-2xl font-medium text-white cursor-pointer transition-all text-center border-2",
+                  !hasSubmitted &&
+                    !showCorrect &&
+                    !showIncorrect &&
+                    (isSelected
+                      ? "border-primary bg-primary/20 shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
+                      : "bg-white/10 border-white/20 hover:bg-white/20 hover:border-white/40 hover:-translate-y-1"),
+                  showCorrect &&
+                    "bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-500/20",
+                  showIncorrect && "bg-red-500/20 border-red-500 text-red-400 hover:bg-red-500/20",
+                  hasSubmitted && !isSelected && !isCorrectChoice(choice) && "opacity-50"
+                )}
+                onClick={() => handleSelectAnswer(choice)}
+                disabled={hasSubmitted}
+                role="radio"
+                aria-checked={isSelected ? "true" : "false"}
+                aria-label={`${t("option", { index: index + 1 })}: ${choice}${hasSubmitted ? (isCorrectChoice(choice) ? ` - ${t("answerCorrect")}` : showIncorrect ? ` - ${t("answerIncorrect")}` : "") : ""}`}
+                tabIndex={hasSubmitted ? -1 : isSelected ? 0 : -1}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleSelectAnswer(choice);
+                  }
+                  if (e.key === "ArrowRight" && index < choices.length - 1) {
+                    e.preventDefault();
+                    const next = e.currentTarget.parentElement?.children[index + 1] as HTMLElement;
+                    next?.focus();
+                  }
+                  if (e.key === "ArrowLeft" && index > 0) {
+                    e.preventDefault();
+                    const prev = e.currentTarget.parentElement?.children[index - 1] as HTMLElement;
+                    prev?.focus();
+                  }
+                }}
+              >
+                {choice}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="p-4 border rounded-lg bg-muted/50 mb-8">
+          <p className="text-muted-foreground text-sm">
+            {t("noChoices")}{" "}
+            <strong>{submitResult?.correct_answer ?? exercise.correct_answer}</strong>
+          </p>
+        </div>
+      )}
+
+      {/* Bouton Valider — dynamique (grisé si aucune réponse, primaire si activé) */}
+      {!hasSubmitted && (
+        <Button
+          onClick={handleSubmit}
+          disabled={!selectedAnswer || isSubmitting}
+          className={cn(
+            "w-full size-lg transition-all",
+            !selectedAnswer &&
+              "bg-slate-800 text-slate-400 opacity-60 cursor-not-allowed border border-white/5",
+            selectedAnswer &&
+              "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.35)] hover:shadow-[0_0_20px_hsl(var(--primary)/0.5)]"
+          )}
+          size="lg"
+          aria-label={isSubmitting ? t("validating") : t("validateAnswer")}
+          aria-busy={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              {t("saving")}
+            </>
           ) : (
-            <div className="p-4 border rounded-lg bg-muted/50">
-              <p className="text-muted-foreground text-sm">
-                {t("noChoices")} <strong>{exercise.correct_answer}</strong>
+            t("validateMyAnswer")
+          )}
+        </Button>
+      )}
+
+      {/* Feedback après soumission */}
+      {hasSubmitted && submitResult && (
+        <div
+          className={cn(
+            "rounded-xl p-4 font-semibold text-lg flex items-center gap-3 transition-all mt-8",
+            isCorrect
+              ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
+              : "bg-red-500/10 border-2 border-red-500/30 text-red-400"
+          )}
+        >
+          {isCorrect ? (
+            <CheckCircle2 className="h-6 w-6 flex-shrink-0" />
+          ) : (
+            <XCircle className="h-6 w-6 flex-shrink-0" />
+          )}
+          <div className="flex-1">
+            <p className={isCorrect ? "mb-0" : "mb-1"}>
+              {isCorrect ? t("correctTitle") : t("incorrectTitle")}
+            </p>
+            {!isCorrect && (
+              <p className="text-sm opacity-90">
+                {t("correctAnswerWas")} <strong>{submitResult.correct_answer}</strong>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Explication — Fiche de savoir */}
+      {showExplanation && (exercise.explanation || submitResult?.explanation) && (
+        <div className="bg-primary/5 border-l-4 border-primary rounded-r-xl p-5 mt-6">
+          <div className="flex items-start gap-3">
+            <Lightbulb className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="font-semibold text-primary mb-2">{t("explanation")}</h4>
+              <p className="text-slate-200 text-lg">
+                {submitResult?.explanation || exercise.explanation}
               </p>
             </div>
-          )}
+          </div>
+        </div>
+      )}
 
-          {/* Bouton de soumission */}
-          {!hasSubmitted && (
-            <Button
-              onClick={handleSubmit}
-              disabled={!selectedAnswer || isSubmitting}
-              className="w-full"
-              size="lg"
-              aria-label={isSubmitting ? t("validating") : t("validateAnswer")}
-              aria-busy={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  {t("saving")}
-                </>
-              ) : (
-                t("validateMyAnswer")
-              )}
-            </Button>
-          )}
-
-          {/* Feedback après soumission */}
-          {hasSubmitted && submitResult && (
-            <div
-              className={cn(
-                "p-4 rounded-lg border-2 transition-all",
-                isCorrect
-                  ? "bg-green-500/10 border-green-500/30 text-green-400"
-                  : "bg-red-500/10 border-red-500/30 text-red-400"
-              )}
-            >
-              <div className="flex items-start gap-3">
-                {isCorrect ? (
-                  <CheckCircle2 className="h-6 w-6 mt-0.5 flex-shrink-0" />
-                ) : (
-                  <XCircle className="h-6 w-6 mt-0.5 flex-shrink-0" />
-                )}
-                <div className="flex-1">
-                  <p className="font-semibold mb-1">
-                    {isCorrect ? t("correctTitle") : t("incorrectTitle")}
-                  </p>
-                  {!isCorrect && (
-                    <p className="text-sm opacity-90">
-                      {t("correctAnswerWas")} <strong>{submitResult.correct_answer}</strong>
-                    </p>
-                  )}
-                </div>
-              </div>
+      {/* Indice (si disponible et pas encore soumis) */}
+      {!hasSubmitted && exercise.hint && !showHint && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowHint(true)}
+          className="w-full mt-6"
+          aria-label={t("hint")}
+        >
+          <Lightbulb className="mr-2 h-4 w-4" />
+          {t("hint")}
+        </Button>
+      )}
+      {showHint && exercise.hint && (
+        <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 mt-6">
+          <div className="flex items-start gap-3">
+            <Lightbulb className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="font-semibold text-yellow-400 mb-1">{t("hint")}</h4>
+              <p className="text-sm text-muted-foreground">{exercise.hint}</p>
             </div>
-          )}
+          </div>
+        </div>
+      )}
 
-          {/* Explication */}
-          {showExplanation && (exercise.explanation || submitResult?.explanation) && (
-            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-              <div className="flex items-start gap-3">
-                <Lightbulb className="h-5 w-5 text-primary-on-dark mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-primary-on-dark mb-2">{t("explanation")}</h4>
-                  <p className="text-sm text-text-secondary">
-                    {submitResult?.explanation || exercise.explanation}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Indice (si disponible et pas encore soumis) */}
-          {!hasSubmitted && exercise.hint && !showHint && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowHint(true)}
-              className="w-full"
-              aria-label={t("hint")}
-            >
-              <Lightbulb className="mr-2 h-4 w-4" />
-              {t("hint")}
-            </Button>
-          )}
-          {showHint && exercise.hint && (
-            <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-              <div className="flex items-start gap-3">
-                <Lightbulb className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-yellow-400 mb-1">{t("hint")}</h4>
-                  <p className="text-sm text-muted-foreground">{exercise.hint}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Actions après soumission */}
-          {hasSubmitted && (
-            <div className="flex gap-3 pt-4 border-t">
-              <Button variant="outline" asChild className="flex-1">
-                <Link href="/exercises">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  {t("backToExercises")}
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  // Rediriger vers la liste des exercices pour choisir un nouvel exercice
-                  router.push("/exercises");
-                }}
-                className="flex-1"
-                aria-label={t("newExercise")}
-              >
-                <ArrowRight className="mr-2 h-4 w-4" />
-                {t("newExercise")}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+      {/* Actions après soumission */}
+      {hasSubmitted && (
+        <div className="flex gap-3 pt-8 mt-8 border-t border-white/10">
+          <Button
+            variant="outline"
+            asChild
+            className="flex-1 bg-transparent border border-white/10 text-muted-foreground hover:bg-white/5 hover:text-white px-6 py-3 rounded-xl transition-colors"
+          >
+            <Link href="/exercises">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("backToExercises")}
+            </Link>
+          </Button>
+          <Button
+            onClick={() => router.push("/exercises")}
+            className="flex-1 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
+            aria-label={t("newExercise")}
+          >
+            <ArrowRight className="mr-2 h-4 w-4" />
+            {t("newExercise")}
+          </Button>
+        </div>
+      )}
+    </FocusBoard>
   );
 }

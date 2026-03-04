@@ -3,13 +3,12 @@
 import { useState } from "react";
 import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ContentCardBase } from "@/components/shared/ContentCardBase";
 import { getAgeGroupColor, EXERCISE_TYPE_STYLES } from "@/lib/constants/exercises";
 import { useThemeStore } from "@/lib/stores/themeStore";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import type { Exercise } from "@/types/api";
-import { Sparkles, Eye, Calendar } from "lucide-react";
+import { Sparkles, Eye, Calendar, ArrowRight } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useCompletedExercises } from "@/hooks/useCompletedItems";
@@ -53,13 +52,14 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
         descriptionId={`exercise-description-${exercise.id}`}
         completedLabel={t("card.completed", { default: "Résolu" })}
         completedAriaLabel={t("card.completed", { default: "Exercice résolu" })}
+        onClick={() => setIsModalOpen(true)}
       >
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <CardTitle
                 id={`exercise-title-${exercise.id}`}
-                className="text-lg mb-2 flex items-center gap-2"
+                className="text-lg font-semibold mb-2 flex items-center gap-2"
               >
                 {exercise.ai_generated && (
                   <Sparkles className="h-4 w-4 text-primary-on-dark" aria-hidden="true" />
@@ -101,8 +101,8 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
             )}
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+        <CardContent className="flex flex-col flex-1">
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-4 flex-1">
             <div
               className="flex items-center gap-4"
               role="group"
@@ -134,14 +134,15 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
               )}
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setIsModalOpen(true)}
-              className="btn-cta-primary flex-1"
-              aria-label={t("card.solveExercise", { title: exercise.title })}
+          {/* CTA pill discret — toujours en bas grâce à mt-auto */}
+          <div className="flex justify-end pt-2 mt-auto border-t border-border/30">
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition-colors group-hover:bg-primary/20"
+              aria-hidden="true"
             >
               {t("solve")}
-            </Button>
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </span>
           </div>
         </CardContent>
         <ExerciseModal

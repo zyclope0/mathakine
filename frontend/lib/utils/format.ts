@@ -18,6 +18,18 @@ export function formatShortDate(value: string): string {
 }
 
 /**
+ * Détermine si un exercice ou un défi a été généré par l'IA.
+ * Source unique de vérité : préférer `ai_generated` (bool), sinon se rabattre sur les tags.
+ */
+export function isAiGenerated(item: {
+  ai_generated?: boolean | null;
+  tags?: string | string[] | null;
+}): boolean {
+  if (item.ai_generated != null) return Boolean(item.ai_generated);
+  return hasAiTag(item.tags);
+}
+
+/**
  * Vérifie si un champ `tags` contient le tag "ai".
  * Gère les deux formats possibles : tableau ou chaîne séparée par virgules.
  */

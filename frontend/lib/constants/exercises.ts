@@ -11,6 +11,16 @@ import {
 } from "lucide-react";
 
 /**
+ * Suggestions d'inspiration pour les générateurs IA d'exercices.
+ */
+export const EXERCISE_PROMPT_SUGGESTIONS = [
+  "Pirates de l'espace 🏴‍☠️",
+  "Château fort 🏰",
+  "Détective 🕵️",
+  "Voyage sur Mars 🚀",
+] as const;
+
+/**
  * Constantes pour les types d'exercices
  */
 export const EXERCISE_TYPES = {
@@ -155,22 +165,3 @@ export const ADMIN_EXERCISE_AGE_GROUP_OPTIONS = [
   { value: "15-17", label: "15-17 ans" },
   { value: "adulte", label: "Adulte" },
 ] as const;
-
-/**
- * Constantes pour les types de défis logiques
- */
-export const CHALLENGE_TYPES = {
-  SEQUENCE: "sequence",
-  PATTERN: "pattern",
-  VISUAL: "visual",
-  PUZZLE: "puzzle",
-  DEDUCTION: "deduction",
-  SPATIAL: "spatial",
-  PROBABILITY: "probability",
-  GRAPH: "graph",
-  CODING: "coding",
-  CHESS: "chess",
-  CUSTOM: "custom",
-} as const;
-
-export type ChallengeType = (typeof CHALLENGE_TYPES)[keyof typeof CHALLENGE_TYPES];

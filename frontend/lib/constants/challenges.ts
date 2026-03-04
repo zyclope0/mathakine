@@ -13,6 +13,16 @@ import {
 import { AGE_GROUP_DISPLAY } from "./exercises";
 
 /**
+ * Suggestions d'inspiration pour le générateur IA de défis.
+ */
+export const CHALLENGE_PROMPT_SUGGESTIONS = [
+  "Labyrinthe temporel ⏳",
+  "Marché intergalactique 🛸",
+  "Mystère au musée 🏛️",
+  "Robot jardinier 🤖",
+] as const;
+
+/**
  * Constantes pour les types de défis logiques
  * Note: SPATIAL a été fusionné dans VISUAL (même renderer, mêmes paramètres)
  */

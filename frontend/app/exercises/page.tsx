@@ -6,8 +6,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useExercises } from "@/hooks/useExercises";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ExerciseCard } from "@/components/exercises/ExerciseCard";
-import { ExerciseGenerator } from "@/components/exercises/ExerciseGenerator";
-import { AIGenerator } from "@/components/exercises/AIGenerator";
+import { UnifiedExerciseGenerator } from "@/components/exercises/UnifiedExerciseGenerator";
+import { CompactListItem } from "@/components/shared/CompactListItem";
+import { getStaggerDelay } from "@/lib/utils/animation";
+import { isAiGenerated } from "@/lib/utils/format";
 import {
   Select,
   SelectContent,
@@ -20,18 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import { EXERCISE_TYPE_STYLES, AGE_GROUPS } from "@/lib/constants/exercises";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
-import {
-  Filter,
-  X,
-  Search,
-  LayoutGrid,
-  List,
-  Sparkles,
-  CheckCircle2,
-  EyeOff,
-  Zap,
-} from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Filter, X, Search, LayoutGrid, List, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
@@ -341,32 +332,14 @@ function ExercisesPageContent() {
           </div>
         </PageSection>
 
-        {/* Générateurs — onglets Rapide / IA */}
+        {/* Générateur unifié (Rapide + IA avec switch) */}
         <PageSection className="section-generator animate-fade-in-up-delay-1">
-          <Tabs defaultValue="classic" className="w-full">
-            <TabsList className="w-full h-auto p-1.5 bg-card border border-border/50 rounded-xl justify-start gap-1">
-              <TabsTrigger
-                value="classic"
-                className="px-5 py-2.5 gap-2 text-sm font-semibold flex-none data-[state=active]:border data-[state=active]:border-border/40"
-              >
-                <Zap className="h-4 w-4" />
-                {t("generator.tabClassic")}
-              </TabsTrigger>
-              <TabsTrigger
-                value="ai"
-                className="px-5 py-2.5 gap-2 text-sm font-semibold flex-none data-[state=active]:border data-[state=active]:border-border/40"
-              >
-                <Sparkles className="h-4 w-4" />
-                {t("generator.tabAI")}
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="classic" className="mt-0 pt-5">
-              <ExerciseGenerator />
-            </TabsContent>
-            <TabsContent value="ai" className="mt-0 pt-5">
-              <AIGenerator />
-            </TabsContent>
-          </Tabs>
+          <UnifiedExerciseGenerator
+            onExerciseGenerated={() => {
+              queryClient.invalidateQueries({ queryKey: ["exercises"] });
+              queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
+            }}
+          />
         </PageSection>
 
         {/* Liste des exercices */}
@@ -434,21 +407,11 @@ function ExercisesPageContent() {
                   gap="sm"
                   className="md:gap-4"
                 >
-                  {exercises.map((exercise, index) => {
-                    const delayClass =
-                      index === 0
-                        ? "animate-fade-in-up-delay-1"
-                        : index === 1
-                          ? "animate-fade-in-up-delay-2"
-                          : index === 2
-                            ? "animate-fade-in-up-delay-3"
-                            : "animate-fade-in-up-delay-3";
-                    return (
-                      <div key={exercise.id} className={delayClass}>
-                        <ExerciseCard exercise={exercise} />
-                      </div>
-                    );
-                  })}
+                  {exercises.map((exercise, index) => (
+                    <div key={exercise.id} className={`${getStaggerDelay(index)} h-full`}>
+                      <ExerciseCard exercise={exercise} />
+                    </div>
+                  ))}
                 </PageGrid>
               ) : (
                 /* Vue Liste Compacte */
@@ -458,62 +421,21 @@ function ExercisesPageContent() {
                       exercise.exercise_type?.toLowerCase() as keyof typeof EXERCISE_TYPE_STYLES;
                     const { icon: TypeIcon } =
                       EXERCISE_TYPE_STYLES[typeKey] || EXERCISE_TYPE_STYLES.divers;
-                    const typeDisplay = getTypeDisplay(exercise.exercise_type);
-                    const ageDisplay = getAgeDisplay(exercise.age_group);
-                    const completed = isCompleted(exercise.id);
-
                     return (
-                      <div
+                      <CompactListItem
                         key={exercise.id}
+                        title={exercise.title}
+                        subtitle={exercise.question}
+                        TypeIcon={TypeIcon}
+                        aiGenerated={isAiGenerated(exercise)}
+                        completed={isCompleted(exercise.id)}
+                        typeDisplay={getTypeDisplay(exercise.exercise_type)}
+                        ageDisplay={getAgeDisplay(exercise.age_group)}
                         onClick={() => {
                           setSelectedExerciseId(exercise.id);
                           setIsModalOpen(true);
                         }}
-                        className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
-                          "bg-card/80 backdrop-blur-sm border-border/60",
-                          "hover:bg-accent hover:border-primary/50 hover:shadow-md",
-                          completed && "bg-green-500/10 border-green-500/40"
-                        )}
-                      >
-                        {/* Icône du type */}
-                        <div
-                          className={cn(
-                            "flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center",
-                            "bg-primary/10 border border-primary/20"
-                          )}
-                        >
-                          <TypeIcon className="h-5 w-5 text-primary" />
-                        </div>
-
-                        {/* Infos principales */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium truncate">{exercise.title}</h3>
-                            {exercise.ai_generated && (
-                              <Sparkles className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
-                            )}
-                            {completed && (
-                              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {exercise.question}
-                          </p>
-                        </div>
-
-                        {/* Badges */}
-                        <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
-                          <Badge variant="outline" className="text-xs">
-                            {typeDisplay}
-                          </Badge>
-                          {ageDisplay && (
-                            <Badge variant="outline" className="text-xs">
-                              {ageDisplay}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
+                      />
                     );
                   })}
                 </div>
