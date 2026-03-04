@@ -183,12 +183,12 @@ export function BadgeCard({
                   title={isPinned ? t("unpin") : t("pin")}
                 >
                   <Heart
-                    className={cn("h-3 w-3", isPinned && "fill-rose-400")}
+                    className={cn("h-3.5 w-3.5", isPinned && "fill-rose-400")}
                     aria-hidden="true"
                   />
                 </button>
               )}
-              <CheckCircle className="h-3 w-3 text-green-400 shrink-0" aria-hidden="true" />
+              <CheckCircle className="h-3.5 w-3.5 text-green-400 shrink-0" aria-hidden="true" />
             </div>
 
             {/* Icône centrale avec glow */}
