@@ -1476,6 +1476,18 @@
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
     "latestBadge": "Latest",
     "latestLabel": "Most recent version",
+    "v230a4": {
+      "version": "2.3.0 — alpha 4",
+      "date": "March 4, 2026",
+      "items": [
+        "The Mathakine logo now appears in the navigation bar at the top of every page",
+        "The home page displays the illustrated logo in place of the plain text title",
+        "The app icon in your browser tab and when installing on mobile now uses the official logo",
+        "Badge cards have a new look: semi-transparent frosted glass background and a larger centred icon",
+        "A glowing halo surrounds the icon of badges you have already earned",
+        "Locked badges now show a padlock in the centre to clearly indicate what still needs to be achieved"
+      ]
+    },
     "v230a3": {
       "version": "2.3.0 — alpha 3",
       "date": "March 4, 2026",

@@ -4,6 +4,25 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [2.3.0-alpha.4] - 2026-03-04
+
+### Added
+- `LogoMathakine` : composant React inline SVG — thémisation complète via CSS vars (`--logo-text`, `--logo-highlight`, `--logo-glow`, `--logo-accents`) définies dans `globals.css` pour chaque thème (light, dark, dune, forêt, dino…)
+- `public/logo-m.svg` : icône M autonome (viewBox 100×100) — fond sombre, gradient violet (`#c4b5fd` → `#7c3aed`), point doré lumineux, reflet blanc — compatible format maskable PWA
+- `manifest.json` : entrée SVG en tête (`"sizes": "any"`, `"purpose": "any maskable"`) — les navigateurs modernes (Chrome 93+, Firefox, Safari 16+) l'utilisent en priorité pour icône PWA et onglets
+- Favicon SVG prioritaire dans `app/layout.tsx` (avant les fallbacks PNG 192/512)
+- `.badge-card-glass` dans `globals.css` : glassmorphism sur les cartes badges — `bg-card/60`, `backdrop-blur-md`, bordure `white/8`, override `card-spatial-depth` background
+- `.badge-icon-glow` dans `globals.css` : halo radial derrière l'icône des badges obtenus (gradient violet/amber)
+
+### Changed
+- `Header.tsx` : texte gradient "Mathakine" remplacé par `<LogoMathakine className="h-8 w-auto" />` — logo complet thémisé dans la navbar
+- `app/page.tsx` (hero) : `<h1>Mathakine</h1>` remplacé par `<LogoMathakine>` responsive (`w-72` mobile → `w-[480px]` desktop)
+- `BadgeCard.tsx` (earned compact) : layout refactorisé en `flex-col` centré — grande icône `size="md"`, nom tronqué sur 1 ligne, médaille + points en dessous, cœur/coche en overlay `absolute top-right`
+- `BadgeCard.tsx` (locked) : overlay `<Lock>` Lucide centré en `absolute inset-0` sur `BadgeIcon` pour signaler visuellement les badges verrouillés
+- `BadgeCard.tsx` : taille des icônes cœur et coche portée à `h-3.5 w-3.5` pour meilleure lisibilité
+
+---
+
 ## [2.3.0-alpha.3] - 2026-03-04
 
 ### Added
