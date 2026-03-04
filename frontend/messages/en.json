@@ -1485,28 +1485,31 @@
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
     "latestBadge": "Latest",
     "latestLabel": "Most recent version",
-    "v230a4": {
+    "v250": {
+      "version": "2.5.0 — alpha 2",
+      "date": "March 4, 2026",
+      "items": [
+        "The exercise page has been fully redesigned: content is centred in a large frosted-glass panel for a more immersive experience",
+        "Answer tiles have a new look with a hover lift effect and a purple glow when you select an answer",
+        "The 'Validate' button is greyed out until you choose an answer, then lights up in the primary colour",
+        "The success state is more celebratory: vivid green with a glowing halo on the correct answer, explanation shown as a knowledge card",
+        "The challenge page has also been redesigned: clearer header hierarchy, answer bar docked at the bottom of the panel",
+        "The 'Hint' button has a distinctive amber style to make it stand out as a lifeline",
+        "Clicking outside the exercise window now correctly closes it"
+      ]
+    },
+    "v240": {
       "version": "2.4.0 — alpha 2",
       "date": "March 4, 2026",
       "items": [
         "The Mathakine logo now appears in the navigation bar at the top of every page",
         "The home page displays the illustrated logo in place of the plain text title",
         "The app icon in your browser tab and when installing on mobile now uses the official logo",
-        "Badge cards have a new look: semi-transparent frosted glass background and a larger centred icon",
-        "A glowing halo surrounds the icon of badges you have already earned",
-        "Locked badges now show a padlock in the centre to clearly indicate what still needs to be achieved"
-      ]
-    },
-    "v230a3": {
-      "version": "2.4.0 — alpha 1",
-      "date": "March 4, 2026",
-      "items": [
         "The badges page now shows an encouraging message based on your collection progress",
         "A confetti burst appears the first time you return after unlocking a new badge",
-        "A \"Within reach\" panel shows the badges closest to being unlocked",
-        "Badge cards are now more compact: name, difficulty and points at a glance",
-        "The pin icon is replaced by a heart — more intuitive for marking your favourite badges",
-        "The earned date is hidden by default and appears on hover to keep the view clean"
+        "A 'Within reach' panel shows the badges closest to being unlocked",
+        "Badge cards have a new look: frosted glass background, larger centred icon, glowing halo on earned badges",
+        "Locked badges show a padlock and the heart icon replaces the pin for favourites"
       ]
     },
     "v230": {

@@ -1,7 +1,7 @@
 # Système de Design Frontend — Mathakine
 
-> Dernière mise à jour : 03/03/2026  
-> Validé contre le code source réel (post-audit industrialisation)
+> Dernière mise à jour : 04/03/2026  
+> Validé contre le code source réel (post-audit industrialisation + refonte Premium EdTech)
 
 Le système de design garantit cohérence UI/UX sur toutes les pages, via des composants de layout standardisés. Toute nouvelle page **doit** utiliser ces composants.
 
@@ -196,6 +196,154 @@ bg-primary, text-foreground, bg-warning, text-chart-1...
 ```
 
 > **Règle** : Ne jamais utiliser `dark:text-yellow-*`, `bg-blue-600` hardcodés dans les composants applicatifs. Utiliser `bg-warning`, `bg-primary`, `text-muted-foreground`, etc.
+
+---
+
+## Pattern « Focus Board » (Premium EdTech Glassmorphism)
+
+Introduit en v2.5.0. Standard pour les pages de résolution full-page (exercice, défi). Remplace les `<Card>` flottantes sur fond spatial.
+
+### Définition
+
+```tsx
+// Déclaré AU NIVEAU MODULE (jamais inline dans une fonction composant — cf. règle DnD ci-dessous)
+function FocusBoard({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "bg-slate-900/60 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl p-8 md:p-12 w-full max-w-4xl mx-auto mt-8 md:mt-12",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+```
+
+**Variante Challenge** (avec Command Bar collée) :
+- FocusBoard : `rounded-t-3xl` (pas `rounded-3xl`)
+- Command Bar : `bg-slate-950/80 border border-white/10 border-t-0 p-6 rounded-b-3xl max-w-5xl mx-auto`
+
+### Structure interne standard
+
+```tsx
+<FocusBoard>
+  {/* 1. Bouton retour discret */}
+  <Link href="..." className="text-muted-foreground hover:text-white transition-colors mb-6 inline-flex items-center gap-2">
+    <ArrowLeft className="h-4 w-4" /> Retour
+  </Link>
+
+  {/* 2. Titre (petite étiquette + titre star) */}
+  <p className="text-sm text-muted-foreground font-mono">Défi #1234</p>
+  <h1 className="text-3xl md:text-4xl font-bold text-white mt-2 mb-6">Titre principal</h1>
+
+  {/* 3. Tags */}
+  <div className="flex flex-wrap gap-2 mb-6">
+    <Badge variant="outline">Tag</Badge>
+  </div>
+
+  {/* 4. Contenu principal */}
+  {/* 5. Boîtes internes */}
+  <div className="bg-white/5 border border-white/10 rounded-xl p-4">...</div>
+</FocusBoard>
+```
+
+### ⚠️ Règle critique — DnD et composants définis inline
+
+**Ne jamais définir `FocusBoard` (ou tout composant wrapper) à l'intérieur d'une fonction composant React** si des enfants utilisent des bibliothèques de drag & drop (`@dnd-kit/core`, etc.).
+
+**Pourquoi** : un composant défini inline obtient une nouvelle référence à chaque render. React démonte et remonte l'arbre entier, détruisant le `DndContext` et cassant le drag.
+
+```tsx
+// ❌ Interdit — crée un nouveau type à chaque render
+export function MyPage() {
+  const FocusBoard = ({ children }) => <div>{children}</div>; // ← BUG dnd-kit
+  return <FocusBoard><PuzzleRenderer /></FocusBoard>;
+}
+
+// ✅ Correct — type stable entre les renders
+function FocusBoard({ children }) { return <div>{children}</div>; }
+export function MyPage() {
+  return <FocusBoard><PuzzleRenderer /></FocusBoard>;
+}
+```
+
+---
+
+## Pattern tuiles de réponse (Glassmorphism Gamifié)
+
+Pour les pages exercice et défi. Styles selon l'état :
+
+```tsx
+className={cn(
+  // Base
+  "rounded-2xl py-6 md:py-8 text-2xl font-medium text-white cursor-pointer transition-all text-center border-2",
+  // Repos
+  !hasSubmitted && !isSelected && "bg-white/10 border-white/20 hover:bg-white/20 hover:border-white/40 hover:-translate-y-1",
+  // Sélectionné
+  !hasSubmitted && isSelected && "border-primary bg-primary/20 shadow-[0_0_20px_hsl(var(--primary)/0.3)]",
+  // Correct après validation
+  showCorrect && "bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]",
+  // Incorrect après validation
+  showIncorrect && "bg-red-500/20 border-red-500 text-red-400",
+)}
+```
+
+---
+
+## Pattern Bouton Valider dynamique
+
+```tsx
+className={cn(
+  "w-full transition-all",
+  !hasAnswer && "opacity-50 cursor-not-allowed bg-slate-800 text-slate-400 border border-white/5",
+  hasAnswer  && "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.35)] hover:shadow-[0_0_20px_hsl(var(--primary)/0.5)]"
+)}
+```
+
+---
+
+## Pattern Success State (Juicy Design)
+
+```tsx
+{/* Bandeau résultat */}
+<div className="rounded-xl p-4 font-semibold text-lg flex items-center gap-3
+                bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+
+{/* Explication — Fiche de savoir */}
+<div className="bg-primary/5 border-l-4 border-primary rounded-r-xl p-5 mt-6">
+  <Lightbulb className="text-primary" />
+  <h4 className="font-semibold text-primary mb-2">Explication</h4>
+  <p className="text-slate-200 text-lg">...</p>
+</div>
+
+{/* Boutons d'action — hiérarchie claire */}
+{/* Primaire (continuer) */}
+<Button className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 rounded-xl hover:-translate-y-0.5">
+{/* Secondaire (retour) */}
+<Button className="bg-transparent border border-white/10 text-muted-foreground hover:bg-white/5 hover:text-white rounded-xl">
+```
+
+---
+
+## Bouton Indice (style « bouée de sauvetage »)
+
+```tsx
+<Button
+  variant="outline"
+  className="border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors px-6 py-3 rounded-xl"
+>
+  <Lightbulb className="mr-2 h-4 w-4" />
+  Indice
+</Button>
+```
 
 ---
 

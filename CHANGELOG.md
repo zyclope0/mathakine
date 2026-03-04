@@ -4,6 +4,47 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [2.5.0-alpha.2] - 2026-03-04
+
+### Mission Anti-Cheap — Refonte UI Premium EdTech (Pages Exercice, Défi & Modal)
+
+#### Nouveaux composants
+- `UnifiedExerciseGenerator` : générateur Rapide/IA unifié avec switch « Mode IA ✨ » (Progressive Disclosure) — remplace les deux générateurs séparés
+- `CompactListItem` : composant partagé pour la vue liste exercices/défis — élimine la duplication
+- `useAIExerciseGenerator` : hook SSE encapsulant toute la logique de génération IA streaming
+- `lib/utils/animation.ts` : utilitaire `getStaggerDelay()` pour les animations en cascade
+- `lib/utils/format.ts` : helper `isAiGenerated()` — détection unifiée des contenus IA
+
+#### ExerciseSolver — Page Exercice pleine page
+- **Focus Board** : conteneur glassmorphism central (`bg-slate-900/60 backdrop-blur-xl border-white/20 rounded-3xl`) qui sort le contenu du fond spatial
+- **Header** : bouton retour discret en haut à gauche, tags centrés, titre `text-3xl` centré
+- **Tuiles de réponse** : `bg-white/10 border-white/20`, hover avec élévation, glow violet sur la sélection
+- **Bouton Valider** : état désactivé smart (`bg-slate-800 text-slate-400`) / état actif primary avec glow
+- **Success state** : vert emerald vibrant (`bg-emerald-500/20 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]`), explication en « fiche de savoir » (`border-l-4 border-primary`), boutons hiérarchisés (primaire / secondaire discret)
+
+#### ChallengeSolver — Page Défi pleine page
+- **Focus Board** : même style glassmorphism, `rounded-t-3xl` (collé à la Command Bar)
+- **Header** : `Défi #XXXX` discret (`text-sm font-mono`), titre star `text-3xl md:text-4xl font-bold text-white`
+- **Boîtes internes** : description, question, visualisations dans `bg-white/5 border-white/10 rounded-xl`
+- **Command Bar** : zone de réponse collée au Focus Board (`bg-slate-950/80 rounded-b-3xl border-t-0`) — plus de flottement
+- **Bouton Valider** : même logique disabled/primary que ExerciseSolver
+- **Bouton Indice** : style « bouée de sauvetage » (`border-amber-500/30 text-amber-400 hover:bg-amber-500/10`)
+
+#### ExerciseModal
+- Fermeture au clic sur le backdrop (`onPointerDownOutside`) — comportement natif Dialog Radix restauré
+- Bouton X intégré dans le flex header (suppression de `absolute`)
+
+#### Fix critique DnD — `FocusBoard` hors composant
+- `FocusBoard` déclaré au niveau module (pas inline dans la fonction) dans `ChallengeSolver`
+- Corrige un bug de remontage React qui détruisait le `DndContext` dnd-kit à chaque re-render, cassant le drag & drop des puzzles
+
+#### Nettoyage DRY
+- Suppression `ExerciseGenerator.tsx` (code mort remplacé par `UnifiedExerciseGenerator`)
+- Suppression `CHALLENGE_TYPES` obsolète dans `exercises.ts`
+- `debugLog`/`debugError` uniformisés dans les générateurs IA
+
+---
+
 ## [2.4.0-alpha.2] - 2026-03-04
 
 ### Added

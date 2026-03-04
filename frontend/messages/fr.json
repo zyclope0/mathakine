@@ -1482,28 +1482,31 @@
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir régulièrement.",
     "latestBadge": "Dernière version",
     "latestLabel": "Version la plus récente",
-    "v230a4": {
+    "v250": {
+      "version": "2.5.0 — alpha 2",
+      "date": "4 mars 2026",
+      "items": [
+        "La page d'un exercice a été entièrement redessinée : le contenu est centré dans un grand panneau vitré semi-transparent, plus immersif",
+        "Les tuiles de réponse ont un nouveau look avec effet de survol en élévation et un éclat violet quand vous sélectionnez une réponse",
+        "Le bouton 'Valider' est grisé jusqu'à ce que vous choisissiez une réponse, puis s'illumine en couleur principale",
+        "L'état de succès est plus festif : vert vif avec halo lumineux sur la bonne réponse, explication en fiche de savoir",
+        "La page d'un défi a également été redessinée : header hiérarchisé, zone de réponse collée en bas du panneau",
+        "Le bouton 'Indice' a un style distinctif doré pour le faire ressortir comme une bouée de sauvetage",
+        "Cliquer en dehors de la fenêtre d'exercice la ferme maintenant correctement"
+      ]
+    },
+    "v240": {
       "version": "2.4.0 — alpha 2",
       "date": "4 mars 2026",
       "items": [
         "Le logo Mathakine est maintenant affiché dans la barre de navigation en haut de chaque page",
         "La page d'accueil affiche le logo illustré en grand à la place du titre texte",
         "L'icône de l'application dans votre navigateur et lors de l'installation sur mobile utilise désormais le logo officiel",
-        "Les cartes de badges ont un nouveau look : fond vitré semi-transparent et icône centrale agrandie",
-        "Un halo lumineux entoure l'icône des badges que vous avez déjà obtenus",
-        "Les badges non encore débloqués affichent un cadenas au centre pour indiquer clairement ce qu'il reste à accomplir"
-      ]
-    },
-    "v230a3": {
-      "version": "2.4.0 — alpha 1",
-      "date": "4 mars 2026",
-      "items": [
         "La page des badges affiche désormais un message d'encouragement selon votre progression dans la collection",
         "Un feu d'artifice apparaît la première fois que vous revenez après avoir débloqué un nouveau badge",
-        "Un encadré \"À portée de main\" vous montre les badges les plus proches d'être débloqués",
-        "Les cartes de badges sont plus compactes : nom, difficulté et points en un coup d'œil",
-        "L'icône d'épingle est remplacée par un cœur — plus intuitif pour marquer vos badges favoris",
-        "La date d'obtention est masquée par défaut et apparaît au survol pour alléger l'affichage"
+        "Un encadré 'À portée de main' vous montre les badges les plus proches d'être débloqués",
+        "Les cartes de badges ont un nouveau look : fond vitré semi-transparent, icône centrale agrandie, halo lumineux sur les badges obtenus",
+        "Les badges non encore débloqués affichent un cadenas et l'icône de cœur remplace l'épingle pour les favoris"
       ]
     },
     "v230": {
