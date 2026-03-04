@@ -88,8 +88,8 @@ export function QuickStartActions() {
               )}
             </div>
           </div>
-          <span className="flex items-center gap-1.5 text-sm font-medium text-primary group-hover:gap-2.5 transition-all duration-200">
-            {t("startCta")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          <span className="self-start inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium transition-colors duration-200 group-hover:bg-primary/20 group-hover:gap-3">
+            {t("startCta")} <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
           </span>
         </Link>
 
@@ -118,8 +118,8 @@ export function QuickStartActions() {
               )}
             </div>
           </div>
-          <span className="flex items-center gap-1.5 text-sm font-medium text-primary group-hover:gap-2.5 transition-all duration-200">
-            {t("startCta")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          <span className="self-start inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium transition-colors duration-200 group-hover:bg-primary/20 group-hover:gap-3">
+            {t("startCta")} <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
           </span>
         </Link>
       </div>

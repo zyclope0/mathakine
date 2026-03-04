@@ -114,7 +114,7 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
           </div>
 
           {currentStreak > 0 && (
-            <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground">
+            <div className="mt-4 pt-4 pb-2 border-t border-border text-xs text-muted-foreground">
               {t("keepGoing")}
             </div>
           )}
