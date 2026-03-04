@@ -608,7 +608,9 @@
       "title": "Que veux-tu faire ?",
       "exerciseCta": "Un exercice",
       "challengeCta": "Un défi",
-      "challengeDefault": "Défi logique"
+      "challengeDefault": "Défi logique",
+      "startCta": "Commencer",
+      "browseAll": "Explorer la liste"
     },
     "stats": {
       "totalExercises": "Total exercices",

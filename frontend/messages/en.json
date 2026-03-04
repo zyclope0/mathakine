@@ -619,7 +619,9 @@
       "title": "What do you want to do?",
       "exerciseCta": "An exercise",
       "challengeCta": "A challenge",
-      "challengeDefault": "Logic challenge"
+      "challengeDefault": "Logic challenge",
+      "startCta": "Start",
+      "browseAll": "Browse all"
     },
     "stats": {
       "totalExercises": "Total exercises",

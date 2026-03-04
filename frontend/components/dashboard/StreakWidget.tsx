@@ -51,8 +51,10 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
     >
       <Card
         className={cn(
-          "bg-card border-2 h-full flex flex-col",
-          currentStreak > 0 ? "border-orange-500/40 bg-orange-500/5" : "border-primary/20"
+          "border-2 h-full flex flex-col backdrop-blur-md",
+          currentStreak > 0
+            ? "border-orange-500/40 bg-orange-500/5"
+            : "border-primary/20 bg-white/5"
         )}
       >
         <CardHeader className="pb-3 flex-shrink-0">
@@ -91,8 +93,10 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
           <div className="flex items-baseline gap-3 mb-3">
             <div
               className={cn(
-                "text-5xl font-bold",
-                currentStreak > 0 ? "text-orange-400" : "text-muted-foreground"
+                "text-7xl font-black tabular-nums leading-none",
+                currentStreak > 0
+                  ? "bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent"
+                  : "text-muted-foreground"
               )}
             >
               {currentStreak}

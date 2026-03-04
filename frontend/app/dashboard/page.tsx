@@ -51,7 +51,7 @@ function DashboardLastUpdate({ time, locale }: { time: string; locale?: string }
     displayTime = time;
   }
   return (
-    <p className="text-xs text-muted-foreground text-center">
+    <p className="text-xs text-muted-foreground">
       {t("lastUpdate", { time: displayTime })}
     </p>
   );
@@ -146,10 +146,10 @@ export default function DashboardPage() {
               <TimeRangeSelector value={timeRange} onValueChange={setTimeRange} />
               <ExportButton timeRange={timeRange} />
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={handleRefresh}
                 disabled={isRefreshing || isLoading}
-                className="btn-cta-primary flex items-center gap-2"
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
                 aria-label={t("refresh")}
               >
                 <RefreshCw
@@ -209,7 +209,12 @@ export default function DashboardPage() {
               <PageSection>
                 <QuickStartActions />
               </PageSection>
-              <PageSection className="space-y-3">
+              <PageSection className="space-y-2">
+                {stats.recent_activity?.[0]?.time && (
+                  <div className="flex justify-end">
+                    <DashboardLastUpdate time={stats.recent_activity[0].time} locale={locale} />
+                  </div>
+                )}
                 <div className="grid gap-4 md:grid-cols-3">
                   <StatsCard
                     icon={CheckCircle}
@@ -227,9 +232,6 @@ export default function DashboardPage() {
                     label={t("stats.challengesCompleted")}
                   />
                 </div>
-                {stats.recent_activity?.[0]?.time && (
-                  <DashboardLastUpdate time={stats.recent_activity[0].time} locale={locale} />
-                )}
               </PageSection>
 
               <PageSection className="space-y-3">
