@@ -18,49 +18,49 @@ export function LogoMathakine({ className = "", alt = "Mathakine" }: LogoMathaki
       aria-label={alt}
     >
       <defs>
-        <linearGradient id="lm-layer-back" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--logo-base, #6366f1)" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="var(--logo-base, #6366f1)" stopOpacity="0.2" />
+        <linearGradient id="lm-glass-base" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--logo-highlight, #ffffff)" stopOpacity="0.8" />
+          <stop offset="100%" stopColor="var(--logo-base, #8b5cf6)" stopOpacity="0.2" />
         </linearGradient>
 
-        <linearGradient id="lm-layer-front" x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0%" stopColor="var(--logo-highlight, #22d3ee)" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="var(--logo-base, #6366f1)" stopOpacity="0.4" />
-        </linearGradient>
-
-        <radialGradient id="lm-glow" cx="0.5" cy="0.5" r="0.5">
+        <radialGradient id="lm-glow-grad" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0%" stopColor="var(--logo-glow, #fbbf24)" stopOpacity="0.8" />
           <stop offset="100%" stopColor="var(--logo-glow, #fbbf24)" stopOpacity="0" />
         </radialGradient>
+
+        <filter id="lm-glow-filter" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
       </defs>
 
       {/* Lignes géométriques décoratives */}
-      <g stroke="var(--logo-accents, #94a3b8)" strokeWidth="1.5" opacity="0.6">
-        <line x1="50" y1="12" x2="30" y2="35" strokeDasharray="2 2" />
-        <line x1="50" y1="12" x2="70" y2="35" strokeDasharray="2 2" />
-        <line x1="30" y1="35" x2="50" y2="52" strokeDasharray="2 2" />
-        <line x1="70" y1="35" x2="50" y2="52" strokeDasharray="2 2" />
+      <g stroke="var(--logo-accents, #cbd5e1)" strokeWidth="1.5" fill="none" opacity="0.6">
+        <path d="M 50 15 L 30 40 L 70 45 L 50 15" strokeDasharray="2 2" />
+        <path d="M 70 45 L 90 30" strokeDasharray="2 2" />
       </g>
-      <circle cx="30" cy="35" r="2.5" fill="var(--logo-accents, #94a3b8)" />
-      <circle cx="70" cy="35" r="2.5" fill="var(--logo-accents, #94a3b8)" />
-      <circle cx="50" cy="52" r="2.5" fill="var(--logo-accents, #94a3b8)" />
+      <circle cx="30" cy="40" r="3" fill="var(--logo-accents, #cbd5e1)" />
+      <circle cx="70" cy="45" r="3" fill="var(--logo-accents, #cbd5e1)" />
+      <circle cx="90" cy="30" r="2.5" fill="var(--logo-accents, #cbd5e1)" />
 
       {/* Point lumineux au sommet du M */}
-      <circle cx="50" cy="12" r="9" fill="url(#lm-glow)" />
-      <circle cx="50" cy="12" r="3" fill="var(--logo-highlight, #ffffff)" />
+      <circle cx="50" cy="15" r="8" fill="url(#lm-glow-grad)" filter="url(#lm-glow-filter)" />
+      <circle cx="50" cy="15" r="4" fill="var(--logo-highlight, #ffffff)" />
 
-      {/* M — jambes gauche et droite */}
-      <path d="M 10 90 L 35 25 L 50 60 L 25 90 Z" fill="url(#lm-layer-back)" />
-      <path d="M 90 90 L 65 25 L 50 60 L 75 90 Z" fill="url(#lm-layer-back)" />
-
-      {/* M — face avant centrale */}
-      <path d="M 18 90 L 50 28 L 82 90 L 67 90 L 50 55 L 33 90 Z" fill="url(#lm-layer-front)" />
+      {/* M — stroke épais en forme de W */}
       <path
-        d="M 18 90 L 50 28 L 82 90 L 67 90 L 50 55 L 33 90 Z"
+        d="M 10 90 L 30 25 L 50 85 L 70 25 L 90 90"
+        stroke="url(#lm-glass-base)"
+        strokeWidth="14"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M 10 90 L 30 25 L 50 85 L 70 25 L 90 90"
         stroke="var(--logo-highlight, #ffffff)"
-        strokeWidth="0.5"
-        strokeOpacity="0.6"
+        strokeWidth="1"
         fill="none"
+        opacity="0.5"
       />
 
       {/* Texte "athakine" */}
