@@ -12,7 +12,9 @@ from sqlalchemy.orm import Session
 
 from app.db.base import Base, engine, get_db
 from app.models.attempt import Attempt
-from app.models.diagnostic_result import DiagnosticResult  # noqa: F401 — requis pour Base.metadata.create_all
+from app.models.diagnostic_result import (  # noqa: F401 — requis pour Base.metadata.create_all
+    DiagnosticResult,
+)
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import AgeGroup, LogicChallenge, LogicChallengeType
 from app.models.user import User, UserRole

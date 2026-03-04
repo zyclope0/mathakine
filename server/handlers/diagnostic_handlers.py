@@ -32,6 +32,7 @@ logger = get_logger(__name__)
 # Helpers internes                                                              #
 # --------------------------------------------------------------------------- #
 
+
 async def _parse_json(request: Request) -> Optional[Dict[str, Any]]:
     """Parse le corps JSON de la requête avec gestion d'erreur."""
     try:
@@ -51,6 +52,7 @@ def _session_error(msg: str, status_code: int = 400) -> JSONResponse:
 # --------------------------------------------------------------------------- #
 # GET /api/diagnostic/status                                                   #
 # --------------------------------------------------------------------------- #
+
 
 @require_auth
 async def get_diagnostic_status(request: Request) -> JSONResponse:
@@ -73,15 +75,18 @@ async def get_diagnostic_status(request: Request) -> JSONResponse:
     user = request.state.user
     async with db_session() as db:
         latest = diagnostic_svc.get_latest_score(db, user["id"])
-    return JSONResponse({
-        "has_completed": latest is not None,
-        "latest": latest,
-    })
+    return JSONResponse(
+        {
+            "has_completed": latest is not None,
+            "latest": latest,
+        }
+    )
 
 
 # --------------------------------------------------------------------------- #
 # POST /api/diagnostic/start                                                   #
 # --------------------------------------------------------------------------- #
+
 
 @require_auth
 async def start_diagnostic(request: Request) -> JSONResponse:
@@ -106,15 +111,18 @@ async def start_diagnostic(request: Request) -> JSONResponse:
         triggered_from = "onboarding"
 
     session = diagnostic_svc.create_session(triggered_from)
-    return JSONResponse({
-        "session": session,
-        "started_at_ts": time.time(),
-    })
+    return JSONResponse(
+        {
+            "session": session,
+            "started_at_ts": time.time(),
+        }
+    )
 
 
 # --------------------------------------------------------------------------- #
 # POST /api/diagnostic/question                                                #
 # --------------------------------------------------------------------------- #
+
 
 @require_auth
 async def get_next_question(request: Request) -> JSONResponse:
@@ -167,6 +175,7 @@ async def get_next_question(request: Request) -> JSONResponse:
 # POST /api/diagnostic/answer                                                  #
 # --------------------------------------------------------------------------- #
 
+
 @require_auth
 async def submit_diagnostic_answer(request: Request) -> JSONResponse:
     """
@@ -210,16 +219,19 @@ async def submit_diagnostic_answer(request: Request) -> JSONResponse:
     # Mettre à jour l'état IRT
     diagnostic_svc._apply_answer(session, exercise_type, is_correct)
 
-    return JSONResponse({
-        "is_correct": is_correct,
-        "session": session,
-        "session_complete": diagnostic_svc.is_session_complete(session),
-    })
+    return JSONResponse(
+        {
+            "is_correct": is_correct,
+            "session": session,
+            "session_complete": diagnostic_svc.is_session_complete(session),
+        }
+    )
 
 
 # --------------------------------------------------------------------------- #
 # POST /api/diagnostic/complete                                                #
 # --------------------------------------------------------------------------- #
+
 
 @require_auth
 async def complete_diagnostic(request: Request) -> JSONResponse:

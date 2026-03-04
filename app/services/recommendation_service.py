@@ -84,7 +84,12 @@ class RecommendationService:
         # On calcule la difficulté médiane sur les types évalués pour obtenir une valeur globale.
         if db is not None:
             try:
-                from app.services.diagnostic_service import get_latest_score, _DIFFICULTY_TO_ORDINAL, _ORDINAL_TO_DIFFICULTY
+                from app.services.diagnostic_service import (
+                    _DIFFICULTY_TO_ORDINAL,
+                    _ORDINAL_TO_DIFFICULTY,
+                    get_latest_score,
+                )
+
                 latest = get_latest_score(db, user.id)
                 if latest and latest.get("scores"):
                     ordinals = [
@@ -102,7 +107,9 @@ class RecommendationService:
                         )
             except Exception as diag_err:
                 # Non bloquant : les recommandations continuent avec le fallback
-                logger.debug(f"Impossible de lire le diagnostic pour user={user.id}: {diag_err}")
+                logger.debug(
+                    f"Impossible de lire le diagnostic pour user={user.id}: {diag_err}"
+                )
 
         learning_goal = getattr(user, "learning_goal", None) or ""
         practice_rhythm = getattr(user, "practice_rhythm", None) or ""

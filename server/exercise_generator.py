@@ -236,7 +236,9 @@ def generate_ai_exercise(exercise_type, age_group):
             )
 
         # Générer des choix proches mais différents (avec déduplication)
-        choices = generate_smart_choices("DIVISION", num1, num2, result, derived_difficulty)
+        choices = generate_smart_choices(
+            "DIVISION", num1, num2, result, derived_difficulty
+        )
 
         exercise_data.update(
             {

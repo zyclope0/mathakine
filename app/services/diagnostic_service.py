@@ -67,7 +67,9 @@ _ORDINAL_TO_DIFFICULTY: Dict[int, str] = {
     3: DifficultyLevels.MAITRE,
     4: DifficultyLevels.GRAND_MAITRE,
 }
-_DIFFICULTY_TO_ORDINAL: Dict[str, int] = {v: k for k, v in _ORDINAL_TO_DIFFICULTY.items()}
+_DIFFICULTY_TO_ORDINAL: Dict[str, int] = {
+    v: k for k, v in _ORDINAL_TO_DIFFICULTY.items()
+}
 
 # Mapping difficulté → age_group pour le générateur interne
 _DIFFICULTY_TO_AGE_GROUP: Dict[str, str] = {
@@ -83,15 +85,16 @@ _DIFFICULTY_TO_AGE_GROUP: Dict[str, str] = {
 # Structures de données de session                                             #
 # --------------------------------------------------------------------------- #
 
+
 def _initial_type_state(level_ordinal: int = STARTING_LEVEL_ORDINAL) -> Dict[str, Any]:
     """État initial pour un type d'exercice dans la session."""
     return {
-        "level_ordinal": level_ordinal,          # niveau courant (0-4)
-        "correct": 0,                             # bonnes réponses pour ce type
-        "total": 0,                               # questions posées pour ce type
-        "consecutive_errors": 0,                  # erreurs consécutives au niveau courant
-        "done": False,                            # type finalisé (2 erreurs ou session max)
-        "last_error_level": None,                 # niveau où les 2 erreurs ont été commises
+        "level_ordinal": level_ordinal,  # niveau courant (0-4)
+        "correct": 0,  # bonnes réponses pour ce type
+        "total": 0,  # questions posées pour ce type
+        "consecutive_errors": 0,  # erreurs consécutives au niveau courant
+        "done": False,  # type finalisé (2 erreurs ou session max)
+        "last_error_level": None,  # niveau où les 2 erreurs ont été commises
     }
 
 
@@ -115,6 +118,7 @@ def create_session(triggered_from: str = "onboarding") -> Dict[str, Any]:
 # Logique IRT                                                                  #
 # --------------------------------------------------------------------------- #
 
+
 def _next_type(session: Dict[str, Any]) -> Optional[str]:
     """
     Retourne le prochain type à évaluer (round-robin sur les types non terminés).
@@ -136,10 +140,14 @@ def _advance_rotation(session: Dict[str, Any]) -> None:
     """Avance l'index de rotation après avoir posé une question."""
     active = [t for t in DIAGNOSTIC_TYPES if not session["types"][t]["done"]]
     if active:
-        session["type_rotation_index"] = (session["type_rotation_index"] + 1) % len(active)
+        session["type_rotation_index"] = (session["type_rotation_index"] + 1) % len(
+            active
+        )
 
 
-def _apply_answer(session: Dict[str, Any], exercise_type: str, is_correct: bool) -> None:
+def _apply_answer(
+    session: Dict[str, Any], exercise_type: str, is_correct: bool
+) -> None:
     """
     Met à jour l'état IRT pour un type après une réponse.
 
@@ -157,7 +165,9 @@ def _apply_answer(session: Dict[str, Any], exercise_type: str, is_correct: bool)
         ts["correct"] += 1
         ts["consecutive_errors"] = 0
         # Monter d'un niveau si possible
-        ts["level_ordinal"] = min(ts["level_ordinal"] + 1, max(_ORDINAL_TO_DIFFICULTY.keys()))
+        ts["level_ordinal"] = min(
+            ts["level_ordinal"] + 1, max(_ORDINAL_TO_DIFFICULTY.keys())
+        )
     else:
         ts["consecutive_errors"] += 1
         current_level = ts["level_ordinal"]
@@ -186,6 +196,7 @@ def is_session_complete(session: Dict[str, Any]) -> bool:
 # --------------------------------------------------------------------------- #
 # Génération de questions                                                      #
 # --------------------------------------------------------------------------- #
+
 
 def generate_question(session: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
@@ -238,6 +249,7 @@ def generate_question(session: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 # --------------------------------------------------------------------------- #
 # Persistence                                                                  #
 # --------------------------------------------------------------------------- #
+
 
 def _compute_final_scores(session: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -314,6 +326,7 @@ def _refresh_recommendations(db: Session, user_id: int) -> None:
     """
     try:
         from app.services.recommendation_service import RecommendationService
+
         RecommendationService.generate_recommendations(db, user_id)
     except Exception as exc:
         logger.warning(
@@ -325,6 +338,7 @@ def _refresh_recommendations(db: Session, user_id: int) -> None:
 # --------------------------------------------------------------------------- #
 # Point d'entrée public pour les autres services                               #
 # --------------------------------------------------------------------------- #
+
 
 def get_latest_score(db: Session, user_id: int) -> Optional[Dict[str, Any]]:
     """

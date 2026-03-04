@@ -133,7 +133,9 @@ def _plausible_offset(correct: int) -> int:
         return random.choice([-5, -2, -1, 1, 2, 5])
     # Grands nombres : erreurs de retenue (1, 10, 100)
     magnitude = 10 ** min(3, len(str(correct)) - 1)
-    offset = random.choice([-magnitude, -magnitude // 10, -1, 1, magnitude // 10, magnitude])
+    offset = random.choice(
+        [-magnitude, -magnitude // 10, -1, 1, magnitude // 10, magnitude]
+    )
     return max(1 - correct, offset)  # Éviter les négatifs si possible
 
 
@@ -168,7 +170,8 @@ def generate_smart_choices(
         cand_add = num1 + num2
         cand3 = (
             str(cand_add)
-            if cand_add != correct_result and _is_plausible_wrong(correct_result, cand_add)
+            if cand_add != correct_result
+            and _is_plausible_wrong(correct_result, cand_add)
             else str(correct_result + _plausible_offset(correct_result))
         )
         choices.extend(
@@ -183,25 +186,34 @@ def generate_smart_choices(
         cand_add = num1 + num2
         cand3 = (
             str(cand_add)
-            if cand_add != correct_result and _is_plausible_wrong(correct_result, cand_add)
+            if cand_add != correct_result
+            and _is_plausible_wrong(correct_result, cand_add)
             else str(correct_result + _plausible_offset(correct_result))
         )
         choices.extend(
             [
                 cand3,
-                str(correct_result + num1)
-                if _is_plausible_wrong(correct_result, correct_result + num1)
-                else str(correct_result + _plausible_offset(correct_result)),
-                str(max(1, correct_result - num2))
-                if _is_plausible_wrong(correct_result, max(1, correct_result - num2))
-                else str(max(1, correct_result + _plausible_offset(correct_result))),
+                (
+                    str(correct_result + num1)
+                    if _is_plausible_wrong(correct_result, correct_result + num1)
+                    else str(correct_result + _plausible_offset(correct_result))
+                ),
+                (
+                    str(max(1, correct_result - num2))
+                    if _is_plausible_wrong(
+                        correct_result, max(1, correct_result - num2)
+                    )
+                    else str(max(1, correct_result + _plausible_offset(correct_result)))
+                ),
             ]
         )
     elif op == "DIVISION":
         cand_sub = num1 - num2 if num1 > num2 else correct_result + 2
         cand3 = (
             str(cand_sub)
-            if cand_sub != correct_result and cand_sub > 0 and _is_plausible_wrong(correct_result, cand_sub)
+            if cand_sub != correct_result
+            and cand_sub > 0
+            and _is_plausible_wrong(correct_result, cand_sub)
             else str(correct_result + _plausible_offset(correct_result))
         )
         choices.extend(
