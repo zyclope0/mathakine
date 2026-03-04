@@ -206,7 +206,12 @@ export default function BadgesPage() {
       confettiRef.current = true;
       localStorage.setItem(storageKey, String(earnedCount));
       import("canvas-confetti").then(({ default: confetti }) => {
-        confetti({ particleCount: 100, spread: 80, origin: { y: 0.4 }, colors: ["#facc15", "#a78bfa", "#34d399", "#60a5fa"] });
+        confetti({
+          particleCount: 100,
+          spread: 80,
+          origin: { y: 0.4 },
+          colors: ["#facc15", "#a78bfa", "#34d399", "#60a5fa"],
+        });
       });
     }
   }, [earnedCount, isLoading]);
@@ -214,11 +219,30 @@ export default function BadgesPage() {
   // Message motivationnel selon progression
   const motivationInfo = useMemo(() => {
     if (earnedCount === 0) return null;
-    if (progressPercent >= 100) return { key: "complete", color: "from-yellow-500/20 to-amber-500/10 border-yellow-500/30 text-yellow-400" };
-    if (progressPercent >= 75) return { key: "legendary", color: "from-purple-500/20 to-violet-500/10 border-purple-500/30 text-purple-400" };
-    if (progressPercent >= 50) return { key: "great", color: "from-primary/20 to-cyan-500/10 border-primary/30 text-primary" };
-    if (progressPercent >= 25) return { key: "good", color: "from-green-500/20 to-emerald-500/10 border-green-500/30 text-green-400" };
-    return { key: "start", color: "from-blue-500/20 to-sky-500/10 border-blue-500/30 text-blue-400" };
+    if (progressPercent >= 100)
+      return {
+        key: "complete",
+        color: "from-yellow-500/20 to-amber-500/10 border-yellow-500/30 text-yellow-400",
+      };
+    if (progressPercent >= 75)
+      return {
+        key: "legendary",
+        color: "from-purple-500/20 to-violet-500/10 border-purple-500/30 text-purple-400",
+      };
+    if (progressPercent >= 50)
+      return {
+        key: "great",
+        color: "from-primary/20 to-cyan-500/10 border-primary/30 text-primary",
+      };
+    if (progressPercent >= 25)
+      return {
+        key: "good",
+        color: "from-green-500/20 to-emerald-500/10 border-green-500/30 text-green-400",
+      };
+    return {
+      key: "start",
+      color: "from-blue-500/20 to-sky-500/10 border-blue-500/30 text-blue-400",
+    };
   }, [earnedCount, progressPercent]);
 
   // Widget "À portée de main" : badges en cours >= 50%, triés par progression desc
@@ -316,8 +340,14 @@ export default function BadgesPage() {
                 {t(`motivationIcon.${motivationInfo.key}`)}
               </span>
               {earnedCount > 1
-                ? t("badgesUnlockedPlural", { count: earnedCount, msg: t(`motivation.${motivationInfo.key}`) })
-                : t("badgesUnlocked", { count: earnedCount, msg: t(`motivation.${motivationInfo.key}`) })}
+                ? t("badgesUnlockedPlural", {
+                    count: earnedCount,
+                    msg: t(`motivation.${motivationInfo.key}`),
+                  })
+                : t("badgesUnlocked", {
+                    count: earnedCount,
+                    msg: t(`motivation.${motivationInfo.key}`),
+                  })}
             </span>
           </div>
         )}

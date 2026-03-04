@@ -52,11 +52,7 @@ export default function LeaderboardPage() {
 
         <PageSection>
           {error ? (
-            <EmptyState
-              title={t("error") ?? "Erreur de chargement"}
-              description=""
-              icon={Trophy}
-            />
+            <EmptyState title={t("error") ?? "Erreur de chargement"} description="" icon={Trophy} />
           ) : isLoading ? (
             <LoadingState message={t("loading")} />
           ) : leaderboard.length === 0 ? (

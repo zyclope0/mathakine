@@ -26,10 +26,7 @@ interface BadgeIconProps {
 }
 
 /** Teintes du conteneur par difficulté — restent lisibles en dark/light */
-const DIFFICULTY_CONTAINER: Record<
-  Difficulty,
-  { gradient: string; ring: string; icon: string }
-> = {
+const DIFFICULTY_CONTAINER: Record<Difficulty, { gradient: string; ring: string; icon: string }> = {
   bronze: {
     gradient: "from-orange-800/35 to-orange-700/15",
     ring: "ring-orange-700/50",
