@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, RefreshCw, Swords, Check } from "lucide-react";
+import { Sparkles, RefreshCw, Swords, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRecommendations, type Recommendation } from "@/hooks/useRecommendations";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,7 @@ export function Recommendations() {
   };
 
   return (
-    <Card className="bg-card border-primary/20">
+    <Card className="border-primary/20 bg-card/40 backdrop-blur-md">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl text-foreground flex items-center gap-2">
@@ -34,6 +34,7 @@ export function Recommendations() {
             size="sm"
             onClick={handleRefresh}
             disabled={isGenerating || isLoading}
+            className="text-muted-foreground hover:text-foreground"
           >
             <RefreshCw
               className={cn("h-4 w-4 mr-2", (isGenerating || isLoading) && "animate-spin")}
@@ -42,18 +43,20 @@ export function Recommendations() {
           </Button>
         </div>
       </CardHeader>
+
       <CardContent>
+        {/* Skeleton */}
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 2 }).map((_, index) => (
-              <div key={index} className="p-4 rounded-lg bg-muted border animate-pulse">
-                <div className="flex gap-2 mb-3">
-                  <div className="h-5 w-20 bg-muted-foreground/20 rounded"></div>
-                  <div className="h-5 w-16 bg-muted-foreground/20 rounded"></div>
+              <div key={index} className="p-5 rounded-xl border border-border/50 animate-pulse">
+                <div className="flex gap-2 mb-4">
+                  <div className="h-5 w-20 bg-muted-foreground/20 rounded-full" />
+                  <div className="h-5 w-16 bg-muted-foreground/20 rounded-full" />
                 </div>
-                <div className="h-4 w-3/4 bg-muted-foreground/20 rounded mb-2"></div>
-                <div className="h-3 w-full bg-muted-foreground/20 rounded mb-2"></div>
-                <div className="h-8 w-full bg-muted-foreground/20 rounded"></div>
+                <div className="h-4 w-3/4 bg-muted-foreground/20 rounded mb-3" />
+                <div className="h-3 w-full bg-muted-foreground/20 rounded mb-2" />
+                <div className="h-12 w-full bg-muted-foreground/10 rounded-lg" />
               </div>
             ))}
           </div>
@@ -69,99 +72,110 @@ export function Recommendations() {
               const priority = recommendation.priority ?? 5;
               const isHighPriority = priority >= 8;
               const title = recommendation.challenge_title || recommendation.exercise_title;
+              const href = recommendation.challenge_id
+                ? `/challenge/${recommendation.challenge_id}`
+                : recommendation.exercise_id
+                  ? `/exercises/${recommendation.exercise_id}`
+                  : null;
+              const ctaLabel = isChallenge
+                ? t("startChallenge", { default: "Relever le défi" })
+                : t("trainNow", { default: "S'entraîner" });
 
               return (
                 <div
                   key={recommendation.id || index}
                   className={cn(
-                    "p-4 rounded-lg bg-muted border transition-all hover:shadow-lg",
+                    "group rounded-xl border p-5 backdrop-blur-md",
+                    "transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
                     isHighPriority
-                      ? "border-primary/30 hover:border-primary/50 shadow-md shadow-primary/10"
-                      : "border-primary/10 hover:border-primary/30"
+                      ? "border-primary/30 bg-primary/5 hover:border-primary/50 hover:shadow-primary/10"
+                      : "border-border/50 bg-card/40 hover:border-primary/30"
                   )}
                   role="article"
                   aria-label={`Recommandation: ${exerciseTypeDisplay} - ${ageGroupDisplay}`}
                 >
+                  {/* Ligne 1 — Tags + bouton marquer comme fait */}
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex gap-2 flex-wrap flex-1">
                       <Badge
                         variant="outline"
                         className={cn(
-                          "bg-primary/10 text-primary-on-dark border-primary/30",
-                          isHighPriority && "bg-primary/20 border-primary/50",
+                          "border-primary/30 bg-primary/10 text-primary-on-dark",
                           isChallenge && "flex items-center gap-1"
                         )}
                       >
-                        {isChallenge && <Swords className="h-3 w-3" />}
+                        {isChallenge && <Swords className="h-3 w-3" aria-hidden="true" />}
                         {exerciseTypeDisplay}
                       </Badge>
                       <Badge
                         variant="outline"
-                        className="bg-secondary/10 text-secondary border-secondary/30"
+                        className="border-border/50 bg-muted/40 text-muted-foreground"
                       >
                         {ageGroupDisplay}
                       </Badge>
                       {isHighPriority && (
-                        <Badge className="bg-primary/20 text-primary-on-dark text-xs">
+                        <Badge className="bg-amber-500/10 text-amber-500 border border-amber-500/30 text-xs">
                           {t("priority", { default: "Prioritaire" })}
                         </Badge>
                       )}
                     </div>
+
+                    {/* Marquer comme fait — discret, coin haut-droit */}
                     <Button
                       variant="ghost"
-                      size="sm"
-                      className="shrink-0"
+                      size="icon"
+                      className="h-7 w-7 shrink-0 rounded-full text-muted-foreground/50 hover:text-success hover:bg-success/10 transition-colors"
                       onClick={() => recommendation.id && complete(recommendation.id)}
                       disabled={isCompleting || !recommendation.id}
                       aria-label={tCommon("markAsDone")}
                     >
-                      <Check className="h-4 w-4" />
+                      <CheckCircle2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  {title && <h4 className="font-semibold text-foreground mb-2">{title}</h4>}
-                  <p className="text-sm text-muted-foreground italic mb-2">
+
+                  {/* Titre */}
+                  {title && (
+                    <h4 className="font-semibold text-foreground mb-1.5 leading-snug">{title}</h4>
+                  )}
+
+                  {/* Raison — en italique discret */}
+                  <p className="text-sm text-muted-foreground italic mb-3">
                     {recommendation.reason}
                   </p>
+
+                  {/* Aperçu de l'exercice — style citation */}
                   {!isChallenge && recommendation.exercise_question && (
-                    <p className="text-xs text-muted-foreground bg-card p-2 rounded mb-3 line-clamp-2">
-                      {recommendation.exercise_question.length > 100
-                        ? `${recommendation.exercise_question.substring(0, 100)}...`
-                        : recommendation.exercise_question}
-                    </p>
+                    <blockquote className="border-l-4 border-primary/60 bg-primary/5 rounded-r-md px-4 py-3 mb-4">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {recommendation.exercise_question.length > 120
+                          ? `${recommendation.exercise_question.substring(0, 120)}…`
+                          : recommendation.exercise_question}
+                      </p>
+                    </blockquote>
                   )}
-                  {recommendation.challenge_id && (
-                    <Button
-                      asChild
-                      size="sm"
-                      variant={isChallenge ? "default" : "default"}
-                      className="w-full"
-                      aria-label={t("startChallenge", { default: "Relever le défi" })}
-                    >
-                      <Link href={`/challenge/${recommendation.challenge_id}`}>
-                        {t("startChallenge", { default: "Relever le défi" })}
+
+                  {/* CTA — pill discret aligné à droite */}
+                  {href && (
+                    <div className="flex justify-end">
+                      <Link
+                        href={href}
+                        className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20 group-hover:gap-3"
+                        aria-label={`${ctaLabel}${title ? ` : ${title}` : ""}`}
+                      >
+                        {ctaLabel}
+                        <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       </Link>
-                    </Button>
-                  )}
-                  {!recommendation.challenge_id && recommendation.exercise_id && (
-                    <Button
-                      asChild
-                      size="sm"
-                      className="w-full"
-                      aria-label={`Commencer l'exercice ${title || exerciseTypeDisplay}`}
-                    >
-                      <Link href={`/exercises/${recommendation.exercise_id}`}>
-                        {t("trainNow", { default: "S'entraîner maintenant" })}
-                      </Link>
-                    </Button>
+                    </div>
                   )}
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-10 text-muted-foreground">
+            <Sparkles className="h-8 w-8 mx-auto mb-3 opacity-30" aria-hidden="true" />
             <p>{t("empty", { default: "Aucune recommandation pour le moment." })}</p>
-            <p className="text-sm mt-2">
+            <p className="text-sm mt-1">
               {t("emptyHint", { default: "Continuez votre entraînement !" })}
             </p>
           </div>
