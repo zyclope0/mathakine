@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Home, LogOut, User, Menu, X, Settings, ChevronDown, Shield } from "lucide-react";
+import { LogoMathakine } from "@/components/LogoMathakine";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
@@ -75,12 +76,10 @@ export function Header() {
             <div className="flex items-center">
               <Link
                 href="/"
-                className="flex items-center space-x-2 text-xl font-bold text-foreground hover:text-primary-on-dark transition-colors"
-                aria-label="Retour à l'accueil"
+                className="flex items-center transition-opacity hover:opacity-80"
+                aria-label="Retour à l'accueil — Mathakine"
               >
-                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  Mathakine
-                </span>
+                <LogoMathakine className="h-8 w-auto" alt="" />
               </Link>
             </div>
 
