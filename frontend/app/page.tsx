@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { BookOpen, Zap, Trophy, Users, ArrowRight, MessageCircle } from "lucide-react";
 import { PageLayout } from "@/components/layout";
+import { LogoMathakine } from "@/components/LogoMathakine";
 import { useTranslations } from "next-intl";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { cn } from "@/lib/utils";
@@ -104,14 +105,7 @@ export default function HomePage() {
             !shouldReduceMotion && "animate-in fade-in slide-in-from-bottom-4"
           )}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo-mathakine.svg"
-            alt={t("hero.title")}
-            className="w-72 sm:w-96 md:w-[480px] h-auto object-contain"
-            width={480}
-            height={120}
-          />
+          <LogoMathakine alt={t("hero.title")} className="w-72 sm:w-96 md:w-[480px] h-auto" />
         </div>
         <p
           className={cn(

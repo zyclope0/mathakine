@@ -1318,43 +1318,66 @@ select:focus {
   left: 100%;
 }
 
-/* Logo Mathakine SVG — variables CSS pour adaptation thème */
+/* Logo Mathakine — variables CSS par thème (SVG inline, var() hérités) */
+
+/* Thèmes clairs (défaut) */
 :root {
   --logo-text: #1e293b;
-  --logo-highlight: #ffffff;
-  --logo-base: #7c3aed;
+  --logo-highlight: #6366f1;
+  --logo-base: #4f46e5;
   --logo-glow: #fbbf24;
   --logo-accents: #94a3b8;
 }
-.dark,
+/* Spatial / Ocean (fonds sombres) */
 [data-theme="spatial"],
-[data-theme="ocean"] {
+.dark[data-theme="spatial"],
+[data-theme="ocean"],
+.dark[data-theme="ocean"] {
   --logo-text: #e2e8f0;
-  --logo-highlight: #ffffff;
+  --logo-highlight: #22d3ee;
   --logo-base: #a78bfa;
   --logo-glow: #fbbf24;
+  --logo-accents: #475569;
+}
+/* Minimalist (fond blanc pur) */
+[data-theme="minimalist"] {
+  --logo-text: #0f172a;
+  --logo-highlight: #6366f1;
+  --logo-base: #4338ca;
+  --logo-glow: #f59e0b;
   --logo-accents: #64748b;
 }
+/* Dune (fond sable/ambre) */
 [data-theme="dune"] {
   --logo-text: #78350f;
-  --logo-highlight: #fffbeb;
+  --logo-highlight: #f59e0b;
   --logo-base: #d97706;
   --logo-glow: #fcd34d;
-  --logo-accents: #a16207;
+  --logo-accents: #92400e;
 }
+/* Forest (fond vert clair) */
 [data-theme="forest"] {
   --logo-text: #14532d;
-  --logo-highlight: #f0fdf4;
+  --logo-highlight: #22c55e;
   --logo-base: #16a34a;
   --logo-glow: #86efac;
-  --logo-accents: #4ade80;
+  --logo-accents: #166534;
 }
+/* Peach (fond rose/crème) */
 [data-theme="peach"] {
   --logo-text: #9f1239;
-  --logo-highlight: #fff1f2;
+  --logo-highlight: #f43f5e;
   --logo-base: #e11d48;
   --logo-glow: #fda4af;
-  --logo-accents: #fb7185;
+  --logo-accents: #be123c;
+}
+/* Dino (fond jaune-vert) */
+[data-theme="dino"] {
+  --logo-text: #3f6212;
+  --logo-highlight: #84cc16;
+  --logo-base: #65a30d;
+  --logo-glow: #bef264;
+  --logo-accents: #4d7c0f;
 }
 
 /* Badge card : glassmorphism premium — override du fond opaque de card-spatial-depth */
