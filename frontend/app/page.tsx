@@ -97,15 +97,22 @@ export default function HomePage() {
     <PageLayout>
       {/* Hero Section */}
       <section className="text-center py-8 md:py-12 space-y-4" aria-labelledby="hero-title">
-        <h1
+        <div
           id="hero-title"
           className={cn(
-            "text-4xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent",
+            "flex justify-center",
             !shouldReduceMotion && "animate-in fade-in slide-in-from-bottom-4"
           )}
         >
-          {t("hero.title")}
-        </h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-mathakine.svg"
+            alt={t("hero.title")}
+            className="w-72 sm:w-96 md:w-[480px] h-auto object-contain"
+            width={480}
+            height={120}
+          />
+        </div>
         <p
           className={cn(
             "text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto",

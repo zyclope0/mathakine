@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="glass-base" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--logo-highlight, #ffffff)" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="var(--logo-base, #8b5cf6)" stop-opacity="0.2" />
+    </linearGradient>
+
+    <radialGradient id="glow-grad" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="var(--logo-glow, #fbbf24)" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="var(--logo-glow, #fbbf24)" stop-opacity="0" />
+    </radialGradient>
+
+    <filter id="glow-filter" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <g stroke="var(--logo-accents, #cbd5e1)" stroke-width="1.5" fill="none" opacity="0.6">
+    <path d="M 50 15 L 30 40 L 70 45 L 50 15" stroke-dasharray="2 2" />
+    <path d="M 70 45 L 90 30" stroke-dasharray="2 2" />
+  </g>
+  <circle cx="30" cy="40" r="3" fill="var(--logo-accents, #cbd5e1)" />
+  <circle cx="70" cy="45" r="3" fill="var(--logo-accents, #cbd5e1)" />
+  <circle cx="90" cy="30" r="2.5" fill="var(--logo-accents, #cbd5e1)" />
+
+  <circle cx="50" cy="15" r="8" fill="url(#glow-grad)" filter="url(#glow-filter)" />
+  <circle cx="50" cy="15" r="4" fill="var(--logo-highlight, #ffffff)" />
+
+  <path
+    d="M 10 90 L 30 25 L 50 85 L 70 25 L 90 90"
+    stroke="url(#glass-base)"
+    stroke-width="14"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M 10 90 L 30 25 L 50 85 L 70 25 L 90 90"
+    stroke="var(--logo-highlight, #ffffff)"
+    stroke-width="1"
+    fill="none"
+    opacity="0.5"
+  />
+
+  <text
+    x="110"
+    y="85"
+    font-family="system-ui, sans-serif"
+    font-size="65"
+    font-weight="800"
+    fill="var(--logo-text, #e2e8f0)"
+    letter-spacing="-0.03em"
+  >
+    athakine
+  </text>
+</svg>

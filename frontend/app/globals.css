@@ -1318,6 +1318,45 @@ select:focus {
   left: 100%;
 }
 
+/* Logo Mathakine SVG — variables CSS pour adaptation thème */
+:root {
+  --logo-text: #1e293b;
+  --logo-highlight: #ffffff;
+  --logo-base: #7c3aed;
+  --logo-glow: #fbbf24;
+  --logo-accents: #94a3b8;
+}
+.dark,
+[data-theme="spatial"],
+[data-theme="ocean"] {
+  --logo-text: #e2e8f0;
+  --logo-highlight: #ffffff;
+  --logo-base: #a78bfa;
+  --logo-glow: #fbbf24;
+  --logo-accents: #64748b;
+}
+[data-theme="dune"] {
+  --logo-text: #78350f;
+  --logo-highlight: #fffbeb;
+  --logo-base: #d97706;
+  --logo-glow: #fcd34d;
+  --logo-accents: #a16207;
+}
+[data-theme="forest"] {
+  --logo-text: #14532d;
+  --logo-highlight: #f0fdf4;
+  --logo-base: #16a34a;
+  --logo-glow: #86efac;
+  --logo-accents: #4ade80;
+}
+[data-theme="peach"] {
+  --logo-text: #9f1239;
+  --logo-highlight: #fff1f2;
+  --logo-base: #e11d48;
+  --logo-glow: #fda4af;
+  --logo-accents: #fb7185;
+}
+
 /* Badge card : glassmorphism premium — override du fond opaque de card-spatial-depth */
 .badge-card-glass {
   background: rgba(255, 255, 255, 0.03) !important;
