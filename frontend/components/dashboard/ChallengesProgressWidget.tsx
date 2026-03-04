@@ -57,7 +57,7 @@ export function ChallengesProgressWidget({
       whileHover={!shouldReduceMotion ? { scale: 1.02 } : {}}
       className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
     >
-      <Card className="bg-card border-primary/20 h-full flex flex-col">
+      <Card className="border-white/10 bg-card/40 backdrop-blur-md h-full flex flex-col">
         <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
             <motion.div
@@ -84,7 +84,7 @@ export function ChallengesProgressWidget({
 
           {/* Statistiques */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-lg p-3 bg-green-500/10 border border-green-500/20">
+            <div className="rounded-lg p-3 bg-green-500/5 border border-green-500/15">
               <div className="flex items-center gap-2 mb-1">
                 <Target className="w-4 h-4 text-green-400" />
                 <div className="text-xs text-muted-foreground">{t("successRate")}</div>
@@ -94,7 +94,7 @@ export function ChallengesProgressWidget({
               </div>
             </div>
 
-            <div className="rounded-lg p-3 bg-blue-500/10 border border-blue-500/20">
+            <div className="rounded-lg p-3 bg-blue-500/5 border border-blue-500/15">
               <div className="flex items-center gap-2 mb-1">
                 <Clock className="w-4 h-4 text-blue-400" />
                 <div className="text-xs text-muted-foreground">{t("avgTime")}</div>

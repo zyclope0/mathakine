@@ -646,7 +646,7 @@
       "excellent": "Excellent!"
     },
     "recommendations": {
-      "title": "Jedi Master Advice",
+      "title": "Spatial Guide Advice",
       "generate": "Generate recommendations",
       "generating": "Generating...",
       "noRecommendations": "No recommendations at the moment",
@@ -661,7 +661,8 @@
       "markDone": "Mark as done"
     },
     "recentActivity": {
-      "title": "Recent activity",
+      "title": "Activity log",
+      "showMore": "Load {count} more",
       "noActivity": "No recent activity",
       "empty": "No recent activity.",
       "emptyHint": "Start solving exercises to see your progress!"
@@ -690,7 +691,12 @@
       "title": "Avg. tempo",
       "description": "Average time per exercise",
       "noData": "—",
-      "emptyHint": "Complete exercises to see your tempo."
+      "emptyHint": "Complete exercises to see your tempo.",
+      "exercises": "exercises analysed",
+      "hintExcellent": "Excellent pace",
+      "hintGood": "Good pace",
+      "hintSteady": "Steady pace",
+      "hintSlow": "Taking your time"
     },
     "categoryAccuracy": {
       "title": "Accuracy by Category",
@@ -804,7 +810,7 @@
       "youngling": "Youngling",
       "padawan": "Padawan",
       "knight": "Jedi Knight",
-      "master": "Jedi Master",
+      "master": "Spatial Guide",
       "grand_master": "Grand Master"
     },
     "stats": {

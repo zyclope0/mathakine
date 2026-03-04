@@ -14,6 +14,8 @@ import {
 } from "recharts";
 import { useTranslations } from "next-intl";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
+import { formatShortDate } from "@/lib/utils/format";
+import { RECHARTS_TOOLTIP_STYLE } from "@/lib/utils/chart";
 
 interface DailyExercisesChartProps {
   data: {
@@ -54,7 +56,7 @@ export function DailyExercisesChart({ data }: DailyExercisesChartProps) {
   }, [data.labels, data.datasets]);
 
   return (
-    <Card className="bg-card border-primary/20">
+    <Card className="border-white/10 bg-card/40 backdrop-blur-md">
       <CardHeader>
         <CardTitle className="text-xl text-foreground">
           {t("title", { default: "Exercices par jour (30 derniers jours)" })}
@@ -74,19 +76,22 @@ export function DailyExercisesChart({ data }: DailyExercisesChartProps) {
             {chartDescription}
           </div>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
+            <BarChart data={chartData} margin={{ bottom: 8 }}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="var(--color-border)"
-                strokeOpacity={0.5}
+                strokeOpacity={0.4}
               />
               <XAxis
                 dataKey="name"
                 stroke="var(--color-muted-foreground)"
                 style={{ fontSize: "11px" }}
-                angle={-45}
+                angle={-35}
                 textAnchor="end"
-                height={80}
+                height={56}
+                tickFormatter={formatShortDate}
+                minTickGap={28}
+                interval="preserveStartEnd"
               />
               <YAxis
                 stroke="var(--color-muted-foreground)"
@@ -94,12 +99,11 @@ export function DailyExercisesChart({ data }: DailyExercisesChartProps) {
                 allowDecimals={false}
               />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "var(--color-popover)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "8px",
-                  color: "var(--color-popover-foreground)",
-                }}
+                contentStyle={RECHARTS_TOOLTIP_STYLE}
+                labelFormatter={(label) =>
+                  typeof label === "string" ? formatShortDate(label) : label
+                }
+                formatter={(value) => [typeof value === "number" ? Math.round(value) : value, ""]}
               />
               <Legend />
               <Bar

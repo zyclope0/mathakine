@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, XCircle, ArrowUp, Clock } from "lucide-react";
+import { CheckCircle2, XCircle, Zap, Activity, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { useLocaleStore } from "@/lib/stores/localeStore";
+import { formatDistanceToNow, isToday, isYesterday, format } from "date-fns";
+import { fr, enUS } from "date-fns/locale";
 
 interface ActivityItem {
   type: string;
@@ -16,59 +20,147 @@ interface RecentActivityProps {
   activities: ActivityItem[];
 }
 
-const getActivityIcon = (type: string, isCorrect?: boolean) => {
-  if (type === "exercise_completed") {
-    return isCorrect ? CheckCircle : XCircle;
-  } else if (type === "level_up") {
-    return ArrowUp;
-  }
-  return Clock;
-};
+const INITIAL_COUNT = 5;
 
-const getActivityIconColor = (type: string, isCorrect?: boolean) => {
-  if (type === "exercise_completed") {
-    return isCorrect ? "text-success" : "text-destructive";
-  } else if (type === "level_up") {
-    return "text-primary-on-dark";
+function formatActivityTime(time: string, locale: string): string {
+  try {
+    const date = new Date(time);
+    if (isNaN(date.getTime())) return time;
+
+    const diffMs = Date.now() - date.getTime();
+    const diffMins = diffMs / 60_000;
+
+    if (diffMins < 1) return locale === "en" ? "Just now" : "À l'instant";
+    if (diffMins < 60) {
+      const mins = Math.round(diffMins);
+      return locale === "en" ? `${mins} min ago` : `Il y a ${mins} min`;
+    }
+    if (isToday(date)) {
+      const t = format(date, "HH:mm");
+      return locale === "en" ? `Today at ${t}` : `Aujourd'hui à ${t}`;
+    }
+    if (isYesterday(date)) {
+      const t = format(date, "HH:mm");
+      return locale === "en" ? `Yesterday at ${t}` : `Hier à ${t}`;
+    }
+    return formatDistanceToNow(date, { addSuffix: true, locale: locale === "en" ? enUS : fr });
+  } catch {
+    return time;
   }
-  return "text-muted-foreground";
-};
+}
+
+interface ItemStyle {
+  border: string;
+  iconBg: string;
+  iconColor: string;
+  Icon: typeof Activity;
+}
+
+function getItemStyle(type: string, isCorrect?: boolean): ItemStyle {
+  if (type === "exercise_completed") {
+    return isCorrect
+      ? {
+          border: "border-l-[3px] border-green-500/60",
+          iconBg: "bg-green-500/10",
+          iconColor: "text-green-400",
+          Icon: CheckCircle2,
+        }
+      : {
+          border: "border-l-[3px] border-red-500/60",
+          iconBg: "bg-red-500/10",
+          iconColor: "text-red-400",
+          Icon: XCircle,
+        };
+  }
+  if (type === "level_up") {
+    return {
+      border: "border-l-[3px] border-primary/60",
+      iconBg: "bg-primary/10",
+      iconColor: "text-primary",
+      Icon: Zap,
+    };
+  }
+  return {
+    border: "border-l-[3px] border-border/40",
+    iconBg: "bg-muted/50",
+    iconColor: "text-muted-foreground",
+    Icon: Activity,
+  };
+}
 
 export function RecentActivity({ activities }: RecentActivityProps) {
   const t = useTranslations("dashboard.recentActivity");
+  const { locale } = useLocaleStore();
+  const [showAll, setShowAll] = useState(false);
+
+  const visible = showAll ? activities : activities.slice(0, INITIAL_COUNT);
+  const remaining = activities.length - INITIAL_COUNT;
+  const hasMore = remaining > 0;
 
   return (
-    <Card className="bg-card border-primary/20">
-      <CardHeader>
-        <CardTitle className="text-xl text-foreground">
-          {t("title", { default: "Activité récente" })}
+    <Card className="border-white/10 bg-card/40 backdrop-blur-md">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
+          <Activity className="w-5 h-5 text-primary-on-dark" />
+          {t("title", { default: "Journal d'activité" })}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {activities && activities.length > 0 ? (
-          <div className="space-y-3">
-            {activities.map((activity, index) => {
-              const Icon = getActivityIcon(activity.type, activity.is_correct);
-              const iconColor = getActivityIconColor(activity.type, activity.is_correct);
-
-              // Générer une clé unique basée sur le contenu pour éviter les problèmes de ré-render
-              const activityKey = `${activity.type}-${activity.time}-${activity.description}-${index}`;
+          <div className="space-y-1.5">
+            {visible.map((activity, index) => {
+              const { border, iconBg, iconColor, Icon } = getItemStyle(
+                activity.type,
+                activity.is_correct
+              );
+              const key = `${activity.type}-${activity.time}-${index}`;
 
               return (
                 <div
-                  key={activityKey}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-muted border border-primary/10 hover:border-primary/20 transition-colors"
+                  key={key}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-r-md",
+                    "bg-muted/20 hover:bg-muted/35 transition-colors duration-150",
+                    border
+                  )}
                 >
-                  <div className={cn("flex-shrink-0 p-2 rounded-full bg-card", iconColor)}>
-                    <Icon className="h-4 w-4" />
+                  <div
+                    className={cn(
+                      "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center",
+                      iconBg
+                    )}
+                  >
+                    <Icon className={cn("h-4 w-4", iconColor)} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-foreground">{activity.description}</div>
-                    <div className="text-xs text-muted-foreground mt-1">{activity.time}</div>
-                  </div>
+
+                  <p className="flex-1 min-w-0 text-sm font-medium text-foreground truncate">
+                    {activity.description}
+                  </p>
+
+                  <span className="flex-shrink-0 text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                    {formatActivityTime(activity.time, locale)}
+                  </span>
                 </div>
               );
             })}
+
+            {/* Bouton "Voir plus" avec gradient de fondu */}
+            {hasMore && !showAll && (
+              <div className="relative pt-1">
+                {/* Gradient fade pour suggérer le scroll */}
+                <div className="absolute -top-8 left-0 right-0 h-8 bg-gradient-to-t from-card/70 to-transparent pointer-events-none" />
+                <button
+                  onClick={() => setShowAll(true)}
+                  className="mt-1 w-full inline-flex items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                  {t("showMore", {
+                    count: remaining,
+                    default: `Voir ${remaining} entrée(s) de plus`,
+                  })}
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">

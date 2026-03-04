@@ -635,7 +635,7 @@
       "excellent": "Excellent !"
     },
     "recommendations": {
-      "title": "Conseils du Maître Jedi",
+      "title": "Conseils du Guide Spatial",
       "generate": "Générer des recommandations",
       "loading": "Chargement des recommandations...",
       "empty": "Aucune recommandation pour le moment.",
@@ -648,7 +648,8 @@
       "markDone": "Marquer comme fait"
     },
     "recentActivity": {
-      "title": "Activité récente",
+      "title": "Journal d'activité",
+      "showMore": "Voir {count} entrée(s) de plus",
       "empty": "Aucune activité récente.",
       "emptyHint": "Commencez à résoudre des exercices pour voir votre progression !"
     },
@@ -676,7 +677,12 @@
       "title": "Tempo moyen",
       "description": "Temps moyen par exercice",
       "noData": "—",
-      "emptyHint": "Fais des exercices pour voir ton tempo."
+      "emptyHint": "Fais des exercices pour voir ton tempo.",
+      "exercises": "exercices analysés",
+      "hintExcellent": "Rythme excellent",
+      "hintGood": "Bon rythme",
+      "hintSteady": "Rythme régulier",
+      "hintSlow": "Tu prends ton temps"
     },
     "categoryAccuracy": {
       "title": "Précision par catégorie",
@@ -801,7 +807,7 @@
       "youngling": "Youngling",
       "padawan": "Padawan",
       "knight": "Chevalier Jedi",
-      "master": "Maître Jedi",
+      "master": "Guide Spatial",
       "grand_master": "Grand Maître"
     },
     "stats": {

@@ -13,29 +13,97 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { useAgeGroupDisplay } from "@/hooks/useChallengeTranslations";
-import { Trophy, Medal, User } from "lucide-react";
+import { Trophy, Medal } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { PageLayout, PageHeader, PageSection, LoadingState, EmptyState } from "@/components/layout";
 import { cn } from "@/lib/utils";
 import type { LeaderboardEntry } from "@/hooks/useLeaderboard";
 import { AGE_GROUPS } from "@/lib/constants/exercises";
+import { RANK_MEDALS, JEDI_RANK_ICONS } from "@/lib/constants/leaderboard";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
-const RANK_ICONS: Record<number, string> = {
-  1: "🥇",
-  2: "🥈",
-  3: "🥉",
-};
+// ─── Sous-composants ──────────────────────────────────────────────────────────
 
-function getJediRankIcon(rank: string): string {
-  const icons: Record<string, string> = {
-    youngling: "🌟",
-    padawan: "⚔️",
-    knight: "🗡️",
-    master: "👑",
-    grand_master: "✨",
-  };
-  return icons[rank] ?? "🌟";
+function RankBadge({ rank, label }: { rank: number; label: string }) {
+  if (RANK_MEDALS[rank]) {
+    return (
+      <span className="flex-shrink-0 w-10 text-center text-2xl leading-none" aria-label={label}>
+        {RANK_MEDALS[rank]}
+      </span>
+    );
+  }
+  return (
+    <span className="flex-shrink-0 w-10 flex items-center justify-center" aria-label={label}>
+      <span className="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center font-mono text-sm text-muted-foreground">
+        {rank}
+      </span>
+    </span>
+  );
 }
+
+interface LeaderboardRowProps {
+  entry: LeaderboardEntry;
+  isLast: boolean;
+  tLevel: string;
+  tYou: string;
+  tRank: string;
+}
+
+function LeaderboardRow({ entry, isLast, tLevel, tYou, tRank }: LeaderboardRowProps) {
+  return (
+    <li
+      className={cn(
+        "flex items-center gap-4 px-4 py-3",
+        "hover:bg-white/5 transition-colors duration-150 cursor-pointer",
+        !isLast && "border-b border-white/5",
+        entry.is_current_user
+          ? "bg-primary/10 border-l-4 border-l-primary"
+          : "border-l-4 border-l-transparent"
+      )}
+    >
+      <RankBadge rank={entry.rank} label={`${tRank} ${entry.rank}`} />
+
+      <UserAvatar username={entry.username} size="md" />
+
+      <div className="flex-1 min-w-0 flex items-center gap-2">
+        <span
+          className={cn(
+            "font-semibold truncate",
+            entry.is_current_user ? "text-foreground" : "text-foreground/90"
+          )}
+        >
+          {entry.username}
+        </span>
+        <span
+          className="flex-shrink-0 text-base leading-none"
+          title={entry.jedi_rank}
+          aria-label={entry.jedi_rank}
+        >
+          {JEDI_RANK_ICONS[entry.jedi_rank] ?? "🌟"}
+        </span>
+        {entry.is_current_user && (
+          <span
+            className="flex-shrink-0 text-xs bg-primary text-primary-foreground font-bold px-2 py-0.5 rounded-full"
+            aria-label={tYou}
+          >
+            {tYou}
+          </span>
+        )}
+      </div>
+
+      <span className="hidden sm:block flex-shrink-0 text-sm text-muted-foreground">
+        {tLevel} {entry.current_level}
+      </span>
+
+      <span className="flex-shrink-0 text-base font-bold text-amber-400 tabular-nums">
+        {entry.total_points.toLocaleString()}
+        <span className="text-xs font-normal text-amber-400/70 ml-0.5">pts</span>
+      </span>
+    </li>
+  );
+}
+
+// ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function LeaderboardPage() {
   const t = useTranslations("leaderboard");
@@ -58,11 +126,11 @@ export default function LeaderboardPage() {
           ) : leaderboard.length === 0 ? (
             <EmptyState title={t("empty")} description="" icon={Medal} />
           ) : (
-            <Card className="card-spatial-depth">
+            <Card className="card-spatial-depth overflow-hidden">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <CardTitle className="flex items-center gap-2">
-                    <Medal className="h-5 w-5" aria-hidden />
+                    <Medal className="h-5 w-5 text-amber-400" aria-hidden />
                     {t("ranking")}
                   </CardTitle>
                   <Select
@@ -88,36 +156,18 @@ export default function LeaderboardPage() {
                   </Select>
                 </div>
               </CardHeader>
-              <CardContent>
-                <ul className="space-y-2" role="list">
-                  {leaderboard.map((entry: LeaderboardEntry) => (
-                    <li
-                      key={entry.username}
-                      className={cn(
-                        "flex items-center gap-4 rounded-lg px-4 py-3",
-                        entry.is_current_user && "bg-primary/10 ring-1 ring-primary/30"
-                      )}
-                    >
-                      <span className="w-10 text-2xl">
-                        {RANK_ICONS[entry.rank] ?? `#${entry.rank}`}
-                      </span>
-                      <span className="w-8 text-sm text-muted-foreground">#{entry.rank}</span>
-                      <User className="h-4 w-4 text-muted-foreground" aria-hidden />
-                      <span className="flex-1 font-medium">{entry.username}</span>
-                      <span>{getJediRankIcon(entry.jedi_rank)}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {t("level")} {entry.current_level}
-                      </span>
-                      <span className="font-semibold text-primary">{entry.total_points} pts</span>
-                      {entry.is_current_user && (
-                        <span
-                          className="text-xs bg-primary/20 px-2 py-0.5 rounded"
-                          aria-label={t("you")}
-                        >
-                          {t("you")}
-                        </span>
-                      )}
-                    </li>
+
+              <CardContent className="p-0">
+                <ul role="list" aria-label={t("ranking")}>
+                  {leaderboard.map((entry: LeaderboardEntry, idx: number) => (
+                    <LeaderboardRow
+                      key={`${entry.rank}-${entry.username}`}
+                      entry={entry}
+                      isLast={idx === leaderboard.length - 1}
+                      tLevel={t("level")}
+                      tYou={t("you")}
+                      tRank={t("rank", { default: "Rang" })}
+                    />
                   ))}
                 </ul>
               </CardContent>

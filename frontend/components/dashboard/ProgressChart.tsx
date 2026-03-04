@@ -3,8 +3,8 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -14,6 +14,8 @@ import {
 } from "recharts";
 import { useTranslations } from "next-intl";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
+import { formatShortDate } from "@/lib/utils/format";
+import { RECHARTS_TOOLTIP_STYLE } from "@/lib/utils/chart";
 
 interface ProgressChartProps {
   data: {
@@ -48,7 +50,7 @@ export function ProgressChart({ data }: ProgressChartProps) {
   }, [data.labels, data.datasets]);
 
   return (
-    <Card className="bg-card border-primary/20">
+    <Card className="border-white/10 bg-card/40 backdrop-blur-md">
       <CardHeader>
         <CardTitle className="text-xl text-foreground">
           {t("title", { default: "Progression par type d'exercice" })}
@@ -67,16 +69,25 @@ export function ProgressChart({ data }: ProgressChartProps) {
             {chartDescription}
           </div>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="progressGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="var(--color-border)"
-                strokeOpacity={0.5}
+                strokeOpacity={0.4}
               />
               <XAxis
                 dataKey="name"
                 stroke="var(--color-muted-foreground)"
-                style={{ fontSize: "12px" }}
+                style={{ fontSize: "11px" }}
+                tickFormatter={formatShortDate}
+                minTickGap={28}
+                interval="preserveStartEnd"
               />
               <YAxis
                 stroke="var(--color-muted-foreground)"
@@ -84,28 +95,23 @@ export function ProgressChart({ data }: ProgressChartProps) {
                 allowDecimals={false}
               />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "var(--color-popover)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "8px",
-                  color: "var(--color-popover-foreground)",
-                }}
+                contentStyle={RECHARTS_TOOLTIP_STYLE}
+                formatter={(value) => [typeof value === "number" ? Math.round(value) : value, ""]}
               />
               <Legend />
-              <Line
+              <Area
                 type="monotone"
                 dataKey={data.datasets[0]?.label || "Exercices résolus"}
                 stroke="var(--color-chart-1)"
                 strokeWidth={2}
-                fill="var(--color-chart-1)"
-                fillOpacity={0.15}
+                fill="url(#progressGradient)"
                 dot={{ fill: "var(--color-chart-1)", r: 4 }}
                 activeDot={{ r: 6, fill: "var(--color-chart-1)" }}
                 isAnimationActive={!shouldReduceMotion}
                 animationDuration={800}
                 animationEasing="ease-out"
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </CardContent>

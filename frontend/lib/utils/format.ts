@@ -3,6 +3,21 @@
  */
 
 /**
+ * Formate une date ISO en format court localisé : "2026-02-15" → "15 fév".
+ * Utilisé dans les axes X des graphiques Recharts (ProgressChart, DailyExercisesChart).
+ * Retourne la valeur brute si la date est invalide.
+ */
+export function formatShortDate(value: string): string {
+  try {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return value;
+    return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }).replace(".", "");
+  } catch {
+    return value;
+  }
+}
+
+/**
  * Vérifie si un champ `tags` contient le tag "ai".
  * Gère les deux formats possibles : tableau ou chaîne séparée par virgules.
  */

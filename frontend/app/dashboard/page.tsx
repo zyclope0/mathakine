@@ -249,8 +249,15 @@ export default function DashboardPage() {
               </PageSection>
             </TabsContent>
 
-            {/* Onglet Progression — graphiques + défis + précision par catégorie */}
+            {/* Onglet Progression — hero niveau + graphiques + défis + radar */}
             <TabsContent value="progress" className="space-y-6">
+              {/* Hero Card — Niveau actuel (pleine largeur, en tête de page) */}
+              {stats.level && (
+                <PageSection>
+                  <LevelIndicator level={stats.level} />
+                </PageSection>
+              )}
+
               <PageSection>
                 <div className="grid gap-6 md:grid-cols-2 items-stretch">
                   <ChallengesProgressWidget
@@ -266,20 +273,14 @@ export default function DashboardPage() {
                   />
                 </div>
               </PageSection>
+
               {stats.progress_over_time && stats.exercises_by_day ? (
-                <>
-                  <PageSection>
-                    <div className="grid gap-6 md:grid-cols-2">
-                      <ProgressChartLazy data={stats.progress_over_time} />
-                      <DailyExercisesChartLazy data={stats.exercises_by_day} />
-                    </div>
-                  </PageSection>
-                  {stats.level && (
-                    <PageSection>
-                      <LevelIndicator level={stats.level} />
-                    </PageSection>
-                  )}
-                </>
+                <PageSection>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <ProgressChartLazy data={stats.progress_over_time} />
+                    <DailyExercisesChartLazy data={stats.exercises_by_day} />
+                  </div>
+                </PageSection>
               ) : (
                 <PageSection>
                   <p className="text-muted-foreground text-center py-8">

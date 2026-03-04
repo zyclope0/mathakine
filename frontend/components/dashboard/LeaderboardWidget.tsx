@@ -3,19 +3,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardWidgetSkeleton } from "@/components/dashboard/DashboardSkeletons";
-import { Trophy, ChevronRight, User } from "lucide-react";
+import { Trophy, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { useLeaderboard, type LeaderboardEntry } from "@/hooks/useLeaderboard";
-
-const RANK_ICONS: Record<number, string> = {
-  1: "🥇",
-  2: "🥈",
-  3: "🥉",
-};
+import { RANK_MEDALS } from "@/lib/constants/leaderboard";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export function LeaderboardWidget() {
   const t = useTranslations("dashboard.leaderboardWidget");
@@ -50,7 +46,7 @@ export function LeaderboardWidget() {
       whileHover={!shouldReduceMotion ? { scale: 1.01 } : {}}
       className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
     >
-      <Card className="bg-card border-primary/20 h-full flex flex-col">
+      <Card className="border-white/10 bg-card/40 backdrop-blur-md h-full flex flex-col overflow-hidden">
         <CardHeader className="pb-2 flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
@@ -68,30 +64,49 @@ export function LeaderboardWidget() {
           </div>
         </CardHeader>
 
-        <CardContent className="flex-grow pt-0">
+        <CardContent className="flex-grow pt-0 px-0 pb-0">
           {leaderboard.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("empty")}</p>
+            <p className="text-sm text-muted-foreground px-4 pb-4">{t("empty")}</p>
           ) : (
-            <ul className="space-y-1.5" role="list">
-              {leaderboard.map((entry: LeaderboardEntry) => (
+            <ul role="list">
+              {leaderboard.map((entry: LeaderboardEntry, idx: number) => (
                 <li
                   key={`${entry.rank}-${entry.username}`}
                   className={cn(
-                    "flex items-center gap-2 rounded px-2 py-1.5 text-sm",
-                    entry.is_current_user && "bg-primary/10 ring-1 ring-primary/20"
+                    "flex items-center gap-2.5 px-4 py-2",
+                    "hover:bg-white/5 transition-colors duration-150",
+                    idx < leaderboard.length - 1 && "border-b border-white/5",
+                    entry.is_current_user
+                      ? "bg-primary/10 border-l-[3px] border-l-primary"
+                      : "border-l-[3px] border-l-transparent"
                   )}
                 >
-                  <span className="w-6 text-base">
-                    {RANK_ICONS[entry.rank] ?? `#${entry.rank}`}
+                  <span className="flex-shrink-0 w-6 text-center text-base leading-none">
+                    {RANK_MEDALS[entry.rank] ?? (
+                      <span className="text-xs font-mono text-muted-foreground">{entry.rank}</span>
+                    )}
                   </span>
-                  <User className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                  <span className="flex-1 truncate font-medium">{entry.username}</span>
-                  <span className="text-muted-foreground font-semibold text-primary">
-                    {entry.total_points}
+
+                  <UserAvatar username={entry.username} size="sm" />
+
+                  <span
+                    className={cn(
+                      "flex-1 min-w-0 truncate text-sm font-medium",
+                      entry.is_current_user ? "text-foreground" : "text-foreground/90"
+                    )}
+                  >
+                    {entry.username}
                   </span>
+
                   {entry.is_current_user && (
-                    <span className="text-xs bg-primary/20 px-1.5 py-0.5 rounded">{t("you")}</span>
+                    <span className="flex-shrink-0 text-xs bg-primary text-primary-foreground font-bold px-1.5 py-0.5 rounded-full">
+                      {t("you")}
+                    </span>
                   )}
+
+                  <span className="flex-shrink-0 text-sm font-bold text-amber-400 tabular-nums">
+                    {entry.total_points.toLocaleString()}
+                  </span>
                 </li>
               ))}
             </ul>

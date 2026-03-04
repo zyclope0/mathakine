@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardWidgetSkeleton } from "@/components/dashboard/DashboardSkeletons";
-import { Clock } from "lucide-react";
+import { Clock, TrendingUp } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,20 @@ function formatAverageTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.round(seconds % 60);
   return secs > 0 ? `${mins} min ${secs} s` : `${mins} min`;
+}
+
+function getPerformanceHintKey(seconds: number): string {
+  if (seconds <= 30) return "hintExcellent";
+  if (seconds <= 60) return "hintGood";
+  if (seconds <= 120) return "hintSteady";
+  return "hintSlow";
+}
+
+function getPerformanceColor(seconds: number): string {
+  if (seconds <= 30) return "text-green-400";
+  if (seconds <= 60) return "text-blue-400";
+  if (seconds <= 120) return "text-yellow-400";
+  return "text-orange-400";
 }
 
 export function AverageTimeWidget({
@@ -36,31 +50,56 @@ export function AverageTimeWidget({
   }
 
   const hasData = totalAttempts > 0 && averageTimeSeconds > 0;
+  const hintKey = hasData ? getPerformanceHintKey(averageTimeSeconds) : null;
+  const hintColor = hasData ? getPerformanceColor(averageTimeSeconds) : "text-muted-foreground";
 
   return (
-    <Card className="bg-card border-primary/20 h-full flex flex-col">
-      <CardHeader className="pb-3 flex-shrink-0">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
-          <Clock className="w-5 h-5 text-primary-on-dark" />
-          {t("title", { default: "Tempo moyen" })}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow">
-        <div className="space-y-2">
-          <div
-            className={cn("text-2xl font-bold", hasData ? "text-primary" : "text-muted-foreground")}
-          >
-            {hasData ? formatAverageTime(averageTimeSeconds) : t("noData", { default: "—" })}
+    <Card className="border-white/10 bg-card/40 backdrop-blur-md">
+      <CardContent className="p-5">
+        <div className="flex items-center gap-5">
+          {/* Icône dans un cercle coloré */}
+          <div className="flex-shrink-0 h-14 w-14 rounded-xl bg-primary/15 flex items-center justify-center shadow-sm shadow-primary/10">
+            <Clock className="h-7 w-7 text-primary" />
           </div>
-          <p className="text-sm text-muted-foreground">
-            {hasData
-              ? t("description", {
-                  default: "Temps moyen par exercice",
-                })
-              : t("emptyHint", {
-                  default: "Fais des exercices pour voir ton tempo.",
-                })}
-          </p>
+
+          {/* Valeur principale + meta */}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-0.5">
+              {t("title", { default: "Tempo moyen" })}
+            </p>
+            <div
+              className={cn(
+                "text-3xl font-black tabular-nums leading-none",
+                hasData ? "text-foreground" : "text-muted-foreground"
+              )}
+            >
+              {hasData ? formatAverageTime(averageTimeSeconds) : t("noData", { default: "—" })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {t("description", { default: "Temps moyen par exercice" })}
+            </p>
+          </div>
+
+          {/* Badge performance */}
+          {hasData && hintKey && (
+            <div className="flex-shrink-0 flex flex-col items-end gap-1 text-right">
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className={cn("h-3.5 w-3.5", hintColor)} />
+                <span className={cn("text-xs font-semibold", hintColor)}>
+                  {t(hintKey as Parameters<typeof t>[0])}
+                </span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {totalAttempts.toLocaleString()} {t("exercises", { default: "exercices analysés" })}
+              </span>
+            </div>
+          )}
+
+          {!hasData && (
+            <p className="flex-shrink-0 text-sm text-muted-foreground max-w-[140px] text-right">
+              {t("emptyHint", { default: "Fais des exercices pour voir ton tempo." })}
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

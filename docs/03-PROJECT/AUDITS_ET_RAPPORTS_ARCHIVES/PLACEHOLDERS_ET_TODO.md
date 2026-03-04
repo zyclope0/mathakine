@@ -222,6 +222,97 @@ Les handlers placeholders `start_challenge`, `get_challenge_progress`, `get_chal
 
 ## 🚀 Pour aller plus loin
 
+### Avatars utilisateurs — banque + upload (UI ready — 03/03/2026)
+
+**Contexte :** Le classement (`/leaderboard`) et le widget dashboard affichent actuellement un avatar généré dynamiquement (initiale du pseudo + dégradé de couleur déterministe). C'est un fallback fonctionnel et élégant, mais l'utilisateur devrait pouvoir choisir ou uploader son propre avatar.
+
+**Fonctionnalités à implémenter (backend + frontend) :**
+
+#### 1. Banque d'avatars prédéfinis
+- Proposer une sélection d'avatars thématiques (ex : icônes spatiales, personnages Mathakine) côté frontend
+- Stocker le choix comme `avatar_preset: string` sur le modèle `User`
+- Endpoint : `PUT /api/users/me` — étendre avec le champ `avatar_preset`
+
+#### 2. Upload d'image personnalisée
+- Formulaire d'upload dans la page Profil (`/profile` ou `/settings`)
+- Formats acceptés : `image/jpeg`, `image/png`, `image/webp` — taille max recommandée : 2 Mo
+- Redimensionnement serveur : générer au minimum 3 tailles — `40×40` (widget, classement compact), `80×80` (carte profil), `160×160` (page profil)
+- Stockage : fichier local `public/avatars/{user_id}.webp` ou bucket S3/objet cloud selon l'infrastructure
+- Endpoint à créer : `POST /api/users/me/avatar` (multipart/form-data) → retourne `{ avatar_url: string }`
+- Endpoint à créer : `DELETE /api/users/me/avatar` → supprime et repasse au fallback initiale
+
+#### 3. Modèle User (backend)
+| Champ | Type | Description |
+|---|---|---|
+| `avatar_url` | `string \| null` | URL absolue ou chemin relatif vers l'image uploadée |
+| `avatar_preset` | `string \| null` | Identifiant d'un avatar prédéfini de la banque |
+
+Priorité : `avatar_url` > `avatar_preset` > fallback initiale+dégradé.
+
+#### 4. Composant frontend `UserAvatar` (à créer)
+Centraliser la logique dans un composant réutilisable :
+```tsx
+// frontend/components/ui/UserAvatar.tsx
+<UserAvatar username={entry.username} avatarUrl={entry.avatar_url} size="sm" | "md" | "lg" />
+```
+- `size="sm"` → `h-7 w-7` (widget leaderboard)
+- `size="md"` → `h-10 w-10` (page leaderboard, journal d'activité)
+- `size="lg"` → `h-16 w-16` (page profil)
+- Fallback automatique si `avatarUrl` est `null` : initiale + dégradé (déjà implémenté)
+
+#### 5. Intégration classement (déjà prête)
+- `LeaderboardEntry` dans `hooks/useLeaderboard.ts` → ajouter `avatar_url?: string | null`
+- `LeaderboardPage` et `LeaderboardWidget` → remplacer `PlayerAvatar` / `MiniAvatar` par `<UserAvatar>`
+- Aucune modification structurelle de layout nécessaire — les composants sont déjà dimensionnés
+
+**Fichiers frontend à modifier lors de l'implémentation :**
+- `frontend/hooks/useLeaderboard.ts` — ajouter `avatar_url` à `LeaderboardEntry`
+- `frontend/app/leaderboard/page.tsx` — remplacer `PlayerAvatar` par `<UserAvatar>`
+- `frontend/components/dashboard/LeaderboardWidget.tsx` — remplacer `MiniAvatar` par `<UserAvatar>`
+- `frontend/components/ui/UserAvatar.tsx` — **à créer** (composant centralisé)
+- `frontend/app/profile/page.tsx` (ou settings) — ajouter section upload/sélection avatar
+
+**Fichiers backend à modifier :**
+- `app/models/user.py` — ajouter `avatar_url`, `avatar_preset`
+- `server/handlers/user_handlers.py` — `PUT /api/users/me` + nouveau `POST /api/users/me/avatar`
+- Migration Alembic — nouvelle migration pour les colonnes avatar
+
+**Priorité : 🟠 Moyenne** — Amélioration UX identitaire, non bloquant fonctionnellement.
+
+---
+
+### Journal d'activité — enrichissement des données backend (UI ready — 03/03/2026)
+
+**Contexte :** La page Tableau de bord → onglet Détails affiche un journal d'activité (`RecentActivity`).  
+L'interface est **prête à accueillir des données enrichies** ; c'est le backend (`GET /api/users/me/stats` → champ `recent_activity`) qui doit remonter des informations plus précises.
+
+**État actuel du backend :** Chaque entrée retourne `type: "exercise_completed"` + `description: "Exercice complété"` (libellé générique), sans catégorie, sans score, sans XP.
+
+**Améliorations backend souhaitées :**
+
+| Champ actuel | Amélioration souhaitée | Exemple de valeur |
+|---|---|---|
+| `description: "Exercice complété"` | Nom de la catégorie ou titre de l'exercice | `"Exercice : Fractions"` |
+| `type: "exercise_completed"` | Type étendu : `"exercise"`, `"challenge"`, `"badge"` | `"challenge"` → icône Trophée |
+| *(absent)* | Score ou gain XP | `"score": 100` ou `"xp_gained": 15` |
+| `is_correct: bool` | Conserver — déjà utilisé pour la couleur de la bordure | — |
+
+**Ce que l'UI affichera automatiquement sans modification :**
+
+- Icône variée selon `type` (`CheckCircle2` exercice, `Trophy` défi, `Medal` badge) — il suffira d'étendre `getItemStyle()` dans `RecentActivity.tsx`
+- Score en badge (`+15 XP`, `100%`) — ajouter un `<Badge>` conditionnel si `activity.xp_gained` ou `activity.score` est présent
+- Titre de l'exercice en gras à la place de "Exercice complété"
+
+**Fichiers frontend prêts (aucune modification structurelle nécessaire) :**
+- `frontend/components/dashboard/RecentActivity.tsx` — interface `ActivityItem` à étendre avec `xp_gained?: number`, `score?: number`
+
+**Fichier backend à mettre à jour :**
+- `app/services/user_stats_service.py` — méthode qui construit `recent_activity` : enrichir avec le vrai nom de l'exercice/défi/badge, le type précis, et le XP gagné.
+
+**Priorité : 🟡 Basse** — Purement cosmétique, aucun impact fonctionnel. À inclure lors d'une prochaine itération backend sur les stats utilisateur.
+
+---
+
 ### Normalisation des niveaux de difficulté (souhait produit — 27/02/2026)
 
 Sortir de la logique Star Wars (INITIE, PADAWAN, CHEVALIER, MAITRE, GRAND_MAITRE) pour des libellés plus universels. Voir **[docs/02-FEATURES/NIVEAUX_DIFFICULTE_NORMALISATION.md](../02-FEATURES/NIVEAUX_DIFFICULTE_NORMALISATION.md)**.
