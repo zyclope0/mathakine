@@ -4,7 +4,7 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
-## [2.5.0-alpha.3] - 2026-03-04
+## [3.0.0-alpha.3] - 2026-03-04
 
 ### Added
 - F03 — Test de diagnostic initial adaptatif (IRT) : 10 questions sur 4 types, algo adaptatif, résultats par type, page `/diagnostic`, section dans les Paramètres
