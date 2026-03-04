@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,11 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleOpenChange = (open: boolean) => {
     onOpenChange?.(open);
@@ -66,7 +72,11 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
     }
   }, [isOpen]);
 
-  return (
+  // Portail vers document.body pour échapper au stacking context z-10 du <main>
+  // Sans ça, le header fixed z-40 passe au-dessus du chatbot z-[9991]
+  if (!mounted) return null;
+
+  return createPortal(
     <>
       {/* Overlay sombre quand ouvert - z-[9990] au-dessus du footer et du contenu */}
       {isOpen && (
@@ -88,7 +98,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
           "transition-all duration-300 ease-out",
           isOpen ? "translate-x-0 visible opacity-100" : "translate-x-full invisible opacity-0"
         )}
-        aria-hidden={!isOpen}
+        aria-hidden={!isOpen ? "true" : undefined}
       >
         <Card className="flex flex-col h-full rounded-none border-0">
           {/* Header */}
@@ -220,6 +230,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
       >
         <MessageCircle className="h-7 w-7" />
       </Button>
-    </>
+    </>,
+    document.body
   );
 }

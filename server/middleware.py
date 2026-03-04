@@ -158,6 +158,9 @@ _ROUTE_REGISTRY: List[Tuple[str, Set[str], bool]] = [
     ("/api/challenges/completed-ids", {"GET"}, False),
     ("/api/badges/available", {"GET"}, False),
     ("/api/badges/rarity", {"GET"}, False),
+    # Chatbot — accessible sans session (page d'accueil publique, pas de cookie CSRF)
+    ("/api/chat", {"POST"}, True),
+    ("/api/chat/stream", {"POST"}, True),
 ]
 
 # Dérivations — calculées une seule fois au chargement du module
