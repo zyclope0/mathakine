@@ -2,7 +2,7 @@
 @plugin "@tailwindcss/typography";
 @import "tw-animate-css";
 @import "../styles/accessibility.css";
-@import "katex/dist/katex.min.css";
+/* katex.min.css est importé directement dans MathText.tsx pour que Next.js bundle les fonts correctement */
 
 /* Empêcher le scroll horizontal causé par les drawers/modals */
 @layer base {
