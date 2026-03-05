@@ -86,6 +86,12 @@ export async function getCsrfToken(): Promise<string> {
   if (!data?.csrf_token) {
     throw new ApiClientError("Token CSRF invalide", 0);
   }
+  // En cross-domain prod, le cookie backend n'est pas lisible côté frontend.
+  // On le pose manuellement sur le domaine frontend pour que getCsrfTokenFromCookie() fonctionne.
+  if (typeof document !== "undefined") {
+    const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+    document.cookie = `csrf_token=${data.csrf_token}; Path=/; SameSite=Strict; Max-Age=3600${isSecure ? "; Secure" : ""}`;
+  }
   return data.csrf_token;
 }
 
@@ -260,16 +266,29 @@ export async function apiRequest<T>(
       endpoint !== "/api/auth/refresh" &&
       endpoint !== "/api/auth/login"
     ) {
-      // Attendre que le refresh soit terminé
       const refreshSuccess = await refreshAccessToken();
 
       if (refreshSuccess) {
-        // Réessayer la requête originale avec le nouveau token
-        return apiRequest<T>(endpoint, options, false); // Ne pas retry à nouveau pour éviter les boucles
+        return apiRequest<T>(endpoint, options, false);
       } else {
-        // Refresh échoué, l'utilisateur doit se reconnecter
-        // Ne pas déclencher de déconnexion automatique ici, laisser le composant gérer
         throw new ApiClientError("Session expirée. Veuillez vous reconnecter.", 401);
+      }
+    }
+
+    // Si 403 CSRF expiré : refetch un nouveau token CSRF et retry une fois
+    if (response.status === 403 && retryOn401 && endpoint !== "/api/auth/csrf") {
+      try {
+        const errorData = await response.clone().json();
+        const isCsrfError =
+          errorData?.error?.toLowerCase().includes("csrf") ||
+          errorData?.message?.toLowerCase().includes("csrf");
+
+        if (isCsrfError) {
+          await getCsrfToken();
+          return apiRequest<T>(endpoint, options, false);
+        }
+      } catch {
+        // Si on ne peut pas lire le body JSON, laisser handleResponse gérer
       }
     }
 
