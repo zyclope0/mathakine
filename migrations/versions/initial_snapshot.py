@@ -165,13 +165,14 @@ def upgrade() -> None:
     op.execute("""
         CREATE TABLE IF NOT EXISTS attempts (
             id SERIAL PRIMARY KEY,
-            user_id INTEGER REFERENCES users(id),
-            exercise_id INTEGER REFERENCES exercises(id),
-            user_answer VARCHAR(255),
-            is_correct BOOLEAN,
+            user_id INTEGER NOT NULL REFERENCES users(id),
+            exercise_id INTEGER NOT NULL REFERENCES exercises(id),
+            user_answer VARCHAR NOT NULL,
+            is_correct BOOLEAN NOT NULL,
             time_spent FLOAT,
             attempt_number INTEGER DEFAULT 1,
             hints_used INTEGER DEFAULT 0,
+            device_info VARCHAR,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )
     """)
@@ -196,13 +197,16 @@ def upgrade() -> None:
     op.execute("""
         CREATE TABLE IF NOT EXISTS achievements (
             id SERIAL PRIMARY KEY,
-            name VARCHAR(100) UNIQUE NOT NULL,
+            code VARCHAR(100) UNIQUE NOT NULL,
+            name VARCHAR(255) NOT NULL,
             description TEXT,
+            icon_url VARCHAR(255),
             category VARCHAR(50),
-            icon VARCHAR(100),
-            points INTEGER DEFAULT 0,
-            condition_type VARCHAR(50),
-            condition_value INTEGER,
+            difficulty VARCHAR(50),
+            points_reward INTEGER DEFAULT 0,
+            is_secret BOOLEAN DEFAULT FALSE,
+            requirements JSON,
+            star_wars_title VARCHAR(255),
             is_active BOOLEAN DEFAULT TRUE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )
@@ -212,10 +216,11 @@ def upgrade() -> None:
     op.execute("""
         CREATE TABLE IF NOT EXISTS user_achievements (
             id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL REFERENCES users(id),
-            achievement_id INTEGER NOT NULL REFERENCES achievements(id),
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            achievement_id INTEGER NOT NULL REFERENCES achievements(id) ON DELETE CASCADE,
             earned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-            UNIQUE (user_id, achievement_id)
+            progress_data JSON,
+            is_displayed BOOLEAN DEFAULT TRUE
         )
     """)
 
@@ -223,14 +228,24 @@ def upgrade() -> None:
     op.execute("""
         CREATE TABLE IF NOT EXISTS progress (
             id SERIAL PRIMARY KEY,
-            user_id INTEGER REFERENCES users(id),
-            exercise_type VARCHAR(50),
-            difficulty VARCHAR(50),
+            user_id INTEGER NOT NULL REFERENCES users(id),
+            exercise_type VARCHAR NOT NULL,
+            difficulty VARCHAR NOT NULL,
             total_attempts INTEGER DEFAULT 0,
             correct_attempts INTEGER DEFAULT 0,
-            last_attempt_at TIMESTAMP WITH TIME ZONE,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-            updated_at TIMESTAMP WITH TIME ZONE
+            average_time FLOAT,
+            completion_rate FLOAT,
+            streak INTEGER DEFAULT 0,
+            highest_streak INTEGER DEFAULT 0,
+            concept_mastery JSON,
+            learning_curve JSON,
+            last_active_date TIMESTAMP WITH TIME ZONE,
+            mastery_level INTEGER DEFAULT 1,
+            awards JSON,
+            strengths VARCHAR,
+            areas_to_improve VARCHAR,
+            recommendations VARCHAR,
+            last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )
     """)
 
@@ -238,15 +253,21 @@ def upgrade() -> None:
     op.execute("""
         CREATE TABLE IF NOT EXISTS recommendations (
             id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL REFERENCES users(id),
-            exercise_id INTEGER REFERENCES exercises(id),
-            challenge_id INTEGER REFERENCES logic_challenges(id),
-            recommendation_type VARCHAR(50),
-            reason TEXT,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            exercise_id INTEGER REFERENCES exercises(id) ON DELETE SET NULL,
+            challenge_id INTEGER REFERENCES logic_challenges(id) ON DELETE SET NULL,
+            recommendation_type VARCHAR(20) DEFAULT 'exercise' NOT NULL,
+            exercise_type VARCHAR NOT NULL,
+            difficulty VARCHAR NOT NULL,
             priority INTEGER DEFAULT 5,
-            is_active BOOLEAN DEFAULT TRUE,
+            reason TEXT,
+            is_completed BOOLEAN DEFAULT FALSE,
+            shown_count INTEGER DEFAULT 0,
+            clicked_count INTEGER DEFAULT 0,
+            last_clicked_at TIMESTAMP WITH TIME ZONE,
+            completed_at TIMESTAMP WITH TIME ZONE,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-            updated_at TIMESTAMP WITH TIME ZONE
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         )
     """)
 
