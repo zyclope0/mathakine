@@ -17,6 +17,7 @@ import { useTranslations } from "next-intl";
 import { Loader2, CheckCircle2, XCircle, Lightbulb, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { MathText } from "@/components/ui/MathText";
 
 interface ExerciseModalProps {
   exerciseId: number | null;
@@ -197,15 +198,16 @@ export function ExerciseModal({
                       isVeryLongText && "max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar"
                     )}
                   >
-                    <p
+                    <MathText
+                      size={isLongText ? "lg" : "xl"}
                       className={cn(
                         isLongText
-                          ? "text-lg md:text-xl font-normal text-left leading-relaxed text-muted-foreground"
-                          : "text-3xl md:text-4xl font-bold text-center text-foreground leading-tight"
+                          ? "font-normal text-left text-muted-foreground"
+                          : "font-bold text-center text-foreground"
                       )}
                     >
                       {question}
-                    </p>
+                    </MathText>
                   </div>
                 );
               })()}
@@ -272,7 +274,7 @@ export function ExerciseModal({
                             }
                           }}
                         >
-                          {choice}
+                          <MathText size="base">{choice}</MathText>
                         </button>
                       );
                     })}
@@ -346,9 +348,9 @@ export function ExerciseModal({
                         <h4 className="font-semibold text-primary-on-dark mb-2">
                           {t("explanation")}
                         </h4>
-                        <p className="text-sm text-text-secondary">
-                          {submitResult?.explanation || exercise.explanation}
-                        </p>
+                        <MathText size="sm" className="text-text-secondary">
+                          {submitResult?.explanation || exercise.explanation || ""}
+                        </MathText>
                       </div>
                     </div>
                   </div>
@@ -372,7 +374,9 @@ export function ExerciseModal({
                       <Lightbulb className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
                       <div className="flex-1">
                         <h4 className="font-semibold text-yellow-400 mb-1">{t("hint")}</h4>
-                        <p className="text-sm text-text-secondary">{exercise.hint}</p>
+                        <MathText size="sm" className="text-text-secondary">
+                          {exercise.hint}
+                        </MathText>
                       </div>
                     </div>
                   </div>
