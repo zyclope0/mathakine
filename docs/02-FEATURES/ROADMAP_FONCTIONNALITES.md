@@ -1,6 +1,6 @@
 # Backlog & Priorisation des Features — Mathakine
 
-> **Document vivant** — Dernière MAJ : 06/03/2026 (F03 backlog câblé : IRT→difficulté, proxy MIXTE/FRACTIONS, QCM par niveau IRT)  
+> **Document vivant** — Dernière MAJ : 06/03/2026 (F34 Module Sciences ajouté au backlog P4)  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -106,6 +106,7 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 | F27 | Optimisation re-renders exercices/défis | 3 | 2 | 1 | 2 | 2 | **4.8** | P3 |
 | F28 | Mode aventure / histoire narrative | 5 | 5 | 3 | 3 | 5 | **13.1** | P4 |
 | F29 | Personnalisation avatar / profil | 3 | 3 | 1 | 1 | 2 | **7.1** | P4 |
+| F34 | Module Sciences — Curiosités (Vrai/Faux, format court) | 3 | 4 | 2 | 2 | 4 | **10.4** | P4 |
 
 > *F23 a un score élevé mais dépend de F04 (révisions espacées) — débloqué après F04.*
 
@@ -604,6 +605,34 @@ Flash visible avant stabilisation des pages. Pistes : `placeholderData` TanStack
 **Score** : 7.1 | D=3, G=3, E=1, R=1, B=2
 
 Avatars, titres, cadres de profil débloquables avec les points. Donne de la valeur aux points gagnés. Score EdTech=1 : pas de bénéfice pédagogique documenté.
+
+---
+
+### F34 — Module Sciences — Curiosités scientifiques (Labo des Sciences)
+
+**Score** : 10.4 | D=3, G=4, E=2, R=2, B=4
+
+**Philosophie** :
+1. **Zéro punition** : Si l'élève clique sur "Faux" (alors que c'est Vrai), pas de croix rouge agressive. Icône ampoule bleue douce + texte « Et non, c'est pourtant vrai ! ». Objectif : apprendre un fait amusant, pas évaluer.
+2. **Explication gratifiante** : L'explication apparaît dans un encart en dessous, sans quitter la page (pas de pop-up ou changement d'écran brutal).
+3. **Format rapide** : Format "TikTok/Shorts" appliqué à l'éducation. L'élève enchaîne ~10 anecdotes scientifiques en 3 minutes, gagne de l'XP sans impression de "travailler".
+
+**Contenu** :
+- Affirmation scientifique (ex. « Le Soleil pourrait contenir environ un million de Terres »)
+- Boutons Vrai / Faux
+- Réponse correcte : icône check verte, « Exactement ! +X XP »
+- Réponse incorrecte : icône ampoule bleue, « Et non, c'est pourtant vrai ! » (ou « Et oui, c'est bien faux ! » selon le cas)
+- Encart explicatif avec fait détaillé + bouton « Fait suivant »
+
+**Technique** :
+- Nouveau type de contenu (table `science_facts` ou extension `challenges` avec `challenge_type=science`)
+- Catégories : Astronomie, Biologie, Physique, Chimie, etc.
+- Badge catégorie, compteur série, XP par fait
+- Design : glassmorphism, thème sombre cohérent Mathakine
+
+**Prototype** : [F34_SCIENCES_PROTOTYPE.html](F34_SCIENCES_PROTOTYPE.html) — HTML statique (Tailwind, Font Awesome, JS vanilla). À intégrer en Next.js + API.
+
+**Effort estimé** : 1–2 semaines (modèle + API + page `/sciences` + intégration design system)
 
 ---
 

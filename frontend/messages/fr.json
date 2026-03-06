@@ -1284,6 +1284,12 @@
   "settings": {
     "title": "Paramètres",
     "description": "Configurez votre compte et vos préférences",
+    "menu": {
+      "general": "Général",
+      "notifications": "Notifications",
+      "security": "Sécurité & Sessions",
+      "data": "Données & Compte"
+    },
     "language": {
       "title": "Langue et région",
       "description": "Personnalisez la langue et le fuseau horaire",

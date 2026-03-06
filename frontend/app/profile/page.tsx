@@ -6,7 +6,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useUserStats } from "@/hooks/useUserStats";
 import { useBadges } from "@/hooks/useBadges";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { PageLayout, PageHeader, PageSection, EmptyState } from "@/components/layout";
+import { PageLayout, PageHeader, EmptyState } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,8 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { Badge as UIBadge } from "@/components/ui/badge";
 import type { UserBadge } from "@/types/api";
 import {
@@ -37,6 +35,7 @@ import {
   Loader2,
   BarChart3,
   Palette,
+  Pencil,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -320,8 +319,17 @@ function ProfilePageContent() {
     );
   }
 
+  type ProfileSection = "profile" | "preferences" | "statistics";
+  const [activeSection, setActiveSection] = useState<ProfileSection>("profile");
+
+  const menuItems: { id: ProfileSection; label: string; icon: typeof User }[] = [
+    { id: "profile", label: tPersonal("title"), icon: User },
+    { id: "preferences", label: tAccessibility("title"), icon: Palette },
+    { id: "statistics", label: tStatistics("title"), icon: BarChart3 },
+  ];
+
   return (
-    <PageLayout maxWidth="2xl">
+    <PageLayout maxWidth="lg">
       <PageHeader
         title={t("title")}
         description={t("description")}
@@ -337,114 +345,161 @@ function ProfilePageContent() {
         }
       />
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 h-auto" aria-label="Sections du profil">
-          <TabsTrigger value="profile" className="flex items-center gap-2 py-2.5 text-sm">
-            <User className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">{tPersonal("title")}</span>
-            <span className="sm:hidden">Profil</span>
-          </TabsTrigger>
-          <TabsTrigger value="preferences" className="flex items-center gap-2 py-2.5 text-sm">
-            <Palette className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">{tAccessibility("title")}</span>
-            <span className="sm:hidden">Prefs</span>
-          </TabsTrigger>
-          <TabsTrigger value="statistics" className="flex items-center gap-2 py-2.5 text-sm">
-            <BarChart3 className="h-4 w-4" aria-hidden="true" />
-            <span className="hidden sm:inline">{tStatistics("title")}</span>
-            <span className="sm:hidden">Stats</span>
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-12 max-w-6xl mx-auto">
+        {/* Mobile: Select */}
+        <div className="md:hidden">
+          <Select value={activeSection} onValueChange={(v) => setActiveSection(v as ProfileSection)}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {menuItems.map((item) => (
+                <SelectItem key={item.id} value={item.id}>
+                  <span className="flex items-center gap-2">
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        {/* ═══════════ ONGLET PROFIL ═══════════ */}
-        <TabsContent value="profile" className="space-y-6">
+        {/* Sidebar (desktop) */}
+        <nav className="hidden md:flex md:col-span-3 flex-col gap-1">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setActiveSection(item.id)}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                activeSection === item.id
+                  ? "text-foreground bg-muted/80"
+                  : "text-muted-foreground hover:bg-muted/50"
+              )}
+            >
+              <item.icon className="h-4 w-4 shrink-0" />
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Contenu dynamique */}
+        <div className="md:col-span-9 space-y-8">
+          {/* ═══════════ SECTION PROFIL ═══════════ */}
+          {activeSection === "profile" && (
+          <div className="space-y-6">
           {/* Informations personnelles */}
-          <PageSection className="animate-fade-in-up">
-            <Card className="transition-all duration-300 hover:shadow-lg hover:border-primary/20">
-              <CardHeader>
+          <div className="animate-fade-in-up">
+            <Card className="bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl p-6 md:p-8">
+              <CardHeader className="border-b border-border/50 pb-4 mb-6 p-0 space-y-0">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-xl">
                     <User className="h-5 w-5 text-primary" />
                     {tPersonal("title")}
                   </CardTitle>
                   {!isEditingPersonalInfo && (
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => setIsEditingPersonalInfo(true)}
                       aria-label={tActions("edit")}
+                      className="inline-flex items-center gap-2 border-border hover:bg-accent hover:text-accent-foreground rounded-lg h-9 px-3"
                     >
+                      <Pencil className="h-3.5 w-3.5" />
                       {tActions("edit")}
                     </Button>
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">{tPersonal("username")}</Label>
-                  <Input
-                    id="username"
-                    value={user.username}
-                    disabled
-                    aria-label={tPersonal("username")}
-                    aria-describedby="username-description"
-                  />
-                  <p id="username-description" className="text-xs text-muted-foreground">
-                    {tPersonal("usernameDescription")}
-                  </p>
-                </div>
-
+              <CardContent className="p-0">
                 {isEditingPersonalInfo ? (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">{tPersonal("email")} *</Label>
+                  <div className="flex flex-col">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="username" className="text-sm font-medium text-foreground">{tPersonal("username")}</Label>
+                        <p id="username-description" className="text-xs text-muted-foreground">{tPersonal("usernameDescription")}</p>
+                      </div>
                       <Input
-                        id="email"
-                        type="email"
-                        value={personalInfo.email}
-                        onChange={(e) => {
-                          setPersonalInfo((prev) => ({ ...prev, email: e.target.value }));
-                          if (errors.email) {
-                            setErrors((prev) => {
-                              const newErrors = { ...prev };
-                              delete newErrors.email;
-                              return newErrors;
-                            });
-                          }
-                        }}
-                        onBlur={() => validateEmail(personalInfo.email)}
-                        placeholder={tPersonal("emailPlaceholder")}
-                        aria-invalid={!!errors.email}
-                        aria-describedby={errors.email ? "email-error" : undefined}
-                        disabled={isUpdatingProfile}
+                        id="username"
+                        value={user.username}
+                        disabled
+                        aria-label={tPersonal("username")}
+                        aria-describedby="username-description"
+                        className="bg-muted/30 border-border/50 w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0"
                       />
-                      {errors.email && (
-                        <p
-                          id="email-error"
-                          className="text-sm text-destructive"
-                          role="alert"
-                          aria-live="polite"
-                        >
-                          {errors.email}
-                        </p>
-                      )}
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="full_name">{tPersonal("fullName")}</Label>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="email" className="text-sm font-medium text-foreground">{tPersonal("email")} *</Label>
+                      </div>
+                      <div className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0">
+                        <Input
+                          id="email"
+                          type="email"
+                          value={personalInfo.email}
+                          onChange={(e) => {
+                            setPersonalInfo((prev) => ({ ...prev, email: e.target.value }));
+                            if (errors.email) {
+                              setErrors((prev) => {
+                                const newErrors = { ...prev };
+                                delete newErrors.email;
+                                return newErrors;
+                              });
+                            }
+                          }}
+                          onBlur={() => validateEmail(personalInfo.email)}
+                          placeholder={tPersonal("emailPlaceholder")}
+                          aria-invalid={!!errors.email}
+                          aria-describedby={errors.email ? "email-error" : undefined}
+                          disabled={isUpdatingProfile}
+                        />
+                        {errors.email && (
+                          <p
+                            id="email-error"
+                            className="text-sm text-destructive mt-1"
+                            role="alert"
+                            aria-live="polite"
+                          >
+                            {errors.email}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="full_name" className="text-sm font-medium text-foreground">{tPersonal("fullName")}</Label>
+                      </div>
                       <Input
                         id="full_name"
-                        type="text"
-                        value={personalInfo.full_name}
-                        onChange={(e) =>
-                          setPersonalInfo((prev) => ({ ...prev, full_name: e.target.value }))
-                        }
-                        placeholder={tPersonal("fullNamePlaceholder")}
-                        disabled={isUpdatingProfile}
-                      />
+                          type="text"
+                          value={personalInfo.full_name}
+                          onChange={(e) =>
+                            setPersonalInfo((prev) => ({ ...prev, full_name: e.target.value }))
+                          }
+                          placeholder={tPersonal("fullNamePlaceholder")}
+                          disabled={isUpdatingProfile}
+                          className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0"
+                        />
                     </div>
-
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 justify-end pt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditingPersonalInfo(false);
+                          setPersonalInfo({
+                            email: user.email || "",
+                            full_name: user.full_name || "",
+                          });
+                          setErrors({});
+                        }}
+                        disabled={isUpdatingProfile}
+                        aria-label={tActions("cancel")}
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        {tActions("cancel")}
+                      </Button>
                       <Button
                         onClick={handleSavePersonalInfo}
                         disabled={isUpdatingProfile}
@@ -463,249 +518,236 @@ function ProfilePageContent() {
                           </>
                         )}
                       </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setIsEditingPersonalInfo(false);
-                          setPersonalInfo({
-                            email: user.email || "",
-                            full_name: user.full_name || "",
-                          });
-                          setErrors({});
-                        }}
-                        disabled={isUpdatingProfile}
-                        aria-label={tActions("cancel")}
-                      >
-                        <X className="mr-2 h-4 w-4" />
-                        {tActions("cancel")}
-                      </Button>
                     </div>
-                  </>
+                  </div>
                 ) : (
-                  <>
-                    <div className="space-y-2">
-                      <Label>{tPersonal("email")}</Label>
-                      <p className="text-sm text-foreground">{user.email || "-"}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{tPersonal("fullName")}</Label>
-                      <p className="text-sm text-foreground">{user.full_name || "-"}</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 pt-2">
-                      <div>
-                        <Label className="text-xs text-muted-foreground">{tPersonal("role")}</Label>
-                        <p className="text-sm font-medium capitalize">{user.role || "-"}</p>
+                  <div className="flex flex-col">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <p className="text-sm font-medium text-foreground">{tPersonal("username")}</p>
                       </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">
-                          {tPersonal("memberSince")}
-                        </Label>
-                        <p className="text-sm font-medium">{formatDate(user.created_at)}</p>
-                      </div>
+                      <p className="text-base font-medium text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">{user.username || "-"}</p>
                     </div>
-                  </>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <p className="text-sm font-medium text-foreground">{tPersonal("email")}</p>
+                      </div>
+                      <p className="text-base font-medium text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">{user.email || "-"}</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <p className="text-sm font-medium text-foreground">{tPersonal("fullName")}</p>
+                      </div>
+                      <p className="text-base font-medium text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">{user.full_name || "-"}</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <p className="text-sm font-medium text-foreground">{tPersonal("role")}</p>
+                      </div>
+                      <p className="text-base font-medium text-foreground sm:text-right capitalize mt-3 sm:mt-0 shrink-0">{user.role || "-"}</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <p className="text-sm font-medium text-foreground">{tPersonal("memberSince")}</p>
+                      </div>
+                      <p className="text-base font-medium text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">{formatDate(user.created_at)}</p>
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
-          </PageSection>
+          </div>
 
           {/* Préférences d'apprentissage */}
-          <PageSection className="animate-fade-in-up-delay-1">
-            <Card className="transition-all duration-300 hover:shadow-lg hover:border-primary/20">
-              <CardHeader>
+          <div className="animate-fade-in-up-delay-1">
+            <Card className="bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl p-6 md:p-8">
+              <CardHeader className="border-b border-border/50 pb-4 mb-6 p-0 space-y-0">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-xl">
                     <Settings className="h-5 w-5 text-primary" />
                     {tLearning("title")}
                   </CardTitle>
                   {!isEditingLearningPrefs && (
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => setIsEditingLearningPrefs(true)}
                       aria-label={tActions("edit")}
+                      className="inline-flex items-center gap-2 border-border hover:bg-accent hover:text-accent-foreground rounded-lg h-9 px-3"
                     >
+                      <Pencil className="h-3.5 w-3.5" />
                       {tActions("edit")}
                     </Button>
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-0">
                 {isEditingLearningPrefs ? (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="grade_system">{tOnboarding("gradeSystem")}</Label>
+                  <div className="flex flex-col">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="grade_system" className="text-sm font-medium text-foreground">{tOnboarding("gradeSystem")}</Label>
+                      </div>
                       <Select
-                        value={learningPrefs.grade_system}
-                        onValueChange={(v) => {
-                          const next = v as "suisse" | "unifie";
-                          const max = next === "suisse" ? 11 : 12;
-                          setLearningPrefs((prev) => ({
-                            ...prev,
-                            grade_system: next,
-                            grade_level:
-                              prev.grade_level && parseInt(prev.grade_level, 10) > max
-                                ? ""
-                                : prev.grade_level,
-                          }));
-                        }}
-                        disabled={isUpdatingProfile}
-                      >
-                        <SelectTrigger id="grade_system">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {GRADE_SYSTEMS.map((sys) => (
-                            <SelectItem key={sys} value={sys}>
-                              {tOnboarding(`gradeSystems.${sys}`)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="grade_level">{tLearning("gradeLevel")}</Label>
-                      <Select
-                        value={learningPrefs.grade_level}
-                        onValueChange={(value) =>
-                          setLearningPrefs((prev) => ({ ...prev, grade_level: value }))
-                        }
-                        disabled={isUpdatingProfile}
-                      >
-                        <SelectTrigger id="grade_level" aria-label={tLearning("gradeLevel")}>
-                          <SelectValue placeholder={tLearning("gradeLevelPlaceholder")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from(
-                            { length: learningPrefs.grade_system === "suisse" ? 11 : 12 },
-                            (_, i) => i + 1
-                          ).map((level) => (
-                            <SelectItem key={level} value={level.toString()}>
-                              {learningPrefs.grade_system === "suisse" ? `${level}H` : level}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="learning_style">{tLearning("learningStyle")}</Label>
-                      <Select
-                        value={learningPrefs.learning_style}
-                        onValueChange={(value) =>
-                          setLearningPrefs((prev) => ({ ...prev, learning_style: value }))
-                        }
-                        disabled={isUpdatingProfile}
-                      >
-                        <SelectTrigger id="learning_style" aria-label={tLearning("learningStyle")}>
-                          <SelectValue placeholder={tLearning("learningStylePlaceholder")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="visuel">{t("learningStyles.visuel")}</SelectItem>
-                          <SelectItem value="auditif">{t("learningStyles.auditif")}</SelectItem>
-                          <SelectItem value="kinesthésique">
-                            {t("learningStyles.kinesthésique")}
-                          </SelectItem>
-                          <SelectItem value="lecture">{t("learningStyles.lecture")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="preferred_age_group">{tLearning("preferredAgeGroup")}</Label>
-                      <Select
-                        value={learningPrefs.preferred_difficulty}
-                        onValueChange={(value) =>
-                          setLearningPrefs((prev) => ({ ...prev, preferred_difficulty: value }))
-                        }
-                        disabled={isUpdatingProfile}
-                      >
-                        <SelectTrigger
-                          id="preferred_age_group"
-                          aria-label={tLearning("preferredAgeGroup")}
+                          value={learningPrefs.grade_system}
+                          onValueChange={(v) => {
+                            const next = v as "suisse" | "unifie";
+                            const max = next === "suisse" ? 11 : 12;
+                            setLearningPrefs((prev) => ({
+                              ...prev,
+                              grade_system: next,
+                              grade_level:
+                                prev.grade_level && parseInt(prev.grade_level, 10) > max
+                                  ? ""
+                                  : prev.grade_level,
+                            }));
+                          }}
+                          disabled={isUpdatingProfile}
                         >
-                          <SelectValue placeholder={tLearning("preferredAgeGroupPlaceholder")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.values(AGE_GROUPS).map((group) => (
-                            <SelectItem key={group} value={group}>
-                              {getAgeDisplay(group)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                          <SelectTrigger id="grade_system" className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {GRADE_SYSTEMS.map((sys) => (
+                              <SelectItem key={sys} value={sys}>
+                                {tOnboarding(`gradeSystems.${sys}`)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="learning_goal">{tOnboarding("learningGoal")}</Label>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="grade_level" className="text-sm font-medium text-foreground">{tLearning("gradeLevel")}</Label>
+                      </div>
                       <Select
-                        value={learningPrefs.learning_goal || "none"}
-                        onValueChange={(v) =>
-                          setLearningPrefs((prev) => ({
-                            ...prev,
-                            learning_goal: v === "none" ? "" : v,
-                          }))
-                        }
-                        disabled={isUpdatingProfile}
-                      >
-                        <SelectTrigger id="learning_goal">
-                          <SelectValue placeholder={tOnboarding("learningGoalPlaceholder")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">—</SelectItem>
-                          {LEARNING_GOALS.map((g) => (
-                            <SelectItem key={g} value={g}>
-                              {tOnboarding(`goals.${g}`)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                          value={learningPrefs.grade_level}
+                          onValueChange={(value) =>
+                            setLearningPrefs((prev) => ({ ...prev, grade_level: value }))
+                          }
+                          disabled={isUpdatingProfile}
+                        >
+                          <SelectTrigger id="grade_level" aria-label={tLearning("gradeLevel")} className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0">
+                            <SelectValue placeholder={tLearning("gradeLevelPlaceholder")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from(
+                              { length: learningPrefs.grade_system === "suisse" ? 11 : 12 },
+                              (_, i) => i + 1
+                            ).map((level) => (
+                              <SelectItem key={level} value={level.toString()}>
+                                {learningPrefs.grade_system === "suisse" ? `${level}H` : level}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="practice_rhythm">{tOnboarding("practiceRhythm")}</Label>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="learning_style" className="text-sm font-medium text-foreground">{tLearning("learningStyle")}</Label>
+                      </div>
                       <Select
-                        value={learningPrefs.practice_rhythm || "none"}
-                        onValueChange={(v) =>
-                          setLearningPrefs((prev) => ({
-                            ...prev,
-                            practice_rhythm: v === "none" ? "" : v,
-                          }))
-                        }
-                        disabled={isUpdatingProfile}
-                      >
-                        <SelectTrigger id="practice_rhythm">
-                          <SelectValue placeholder={tOnboarding("practiceRhythmPlaceholder")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">—</SelectItem>
-                          {PRACTICE_RHYTHMS.map((r) => (
-                            <SelectItem key={r} value={r}>
-                              {tOnboarding(`rhythms.${r}`)}
+                          value={learningPrefs.learning_style}
+                          onValueChange={(value) =>
+                            setLearningPrefs((prev) => ({ ...prev, learning_style: value }))
+                          }
+                          disabled={isUpdatingProfile}
+                        >
+                          <SelectTrigger id="learning_style" aria-label={tLearning("learningStyle")} className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0">
+                            <SelectValue placeholder={tLearning("learningStylePlaceholder")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="visuel">{t("learningStyles.visuel")}</SelectItem>
+                            <SelectItem value="auditif">{t("learningStyles.auditif")}</SelectItem>
+                            <SelectItem value="kinesthésique">
+                              {t("learningStyles.kinesthésique")}
                             </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                            <SelectItem value="lecture">{t("learningStyles.lecture")}                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                     </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleSaveLearningPrefs}
-                        disabled={isUpdatingProfile}
-                        aria-label={tActions("save")}
-                        aria-busy={isUpdatingProfile}
-                      >
-                        {isUpdatingProfile ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {tActions("saving")}
-                          </>
-                        ) : (
-                          <>
-                            <Save className="mr-2 h-4 w-4" />
-                            {tActions("save")}
-                          </>
-                        )}
-                      </Button>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="preferred_age_group" className="text-sm font-medium text-foreground">{tLearning("preferredAgeGroup")}</Label>
+                      </div>
+                      <Select
+                          value={learningPrefs.preferred_difficulty}
+                          onValueChange={(value) =>
+                            setLearningPrefs((prev) => ({ ...prev, preferred_difficulty: value }))
+                          }
+                          disabled={isUpdatingProfile}
+                        >
+                          <SelectTrigger
+                            id="preferred_age_group"
+                            aria-label={tLearning("preferredAgeGroup")}
+                            className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0"
+                          >
+                            <SelectValue placeholder={tLearning("preferredAgeGroupPlaceholder")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.values(AGE_GROUPS).map((group) => (
+                              <SelectItem key={group} value={group}>
+                                {getAgeDisplay(group)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="learning_goal" className="text-sm font-medium text-foreground">{tOnboarding("learningGoal")}</Label>
+                      </div>
+                      <Select
+                          value={learningPrefs.learning_goal || "none"}
+                          onValueChange={(v) =>
+                            setLearningPrefs((prev) => ({
+                              ...prev,
+                              learning_goal: v === "none" ? "" : v,
+                            }))
+                          }
+                          disabled={isUpdatingProfile}
+                        >
+                          <SelectTrigger id="learning_goal" className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0">
+                            <SelectValue placeholder={tOnboarding("learningGoalPlaceholder")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">—</SelectItem>
+                            {LEARNING_GOALS.map((g) => (
+                              <SelectItem key={g} value={g}>
+                                {tOnboarding(`goals.${g}`)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="practice_rhythm" className="text-sm font-medium text-foreground">{tOnboarding("practiceRhythm")}</Label>
+                      </div>
+                      <Select
+                          value={learningPrefs.practice_rhythm || "none"}
+                          onValueChange={(v) =>
+                            setLearningPrefs((prev) => ({
+                              ...prev,
+                              practice_rhythm: v === "none" ? "" : v,
+                            }))
+                          }
+                          disabled={isUpdatingProfile}
+                        >
+                          <SelectTrigger id="practice_rhythm" className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0">
+                            <SelectValue placeholder={tOnboarding("practiceRhythmPlaceholder")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">—</SelectItem>
+                            {PRACTICE_RHYTHMS.map((r) => (
+                              <SelectItem key={r} value={r}>
+                                {tOnboarding(`rhythms.${r}`)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex gap-2 justify-end pt-6">
                       <Button
                         variant="outline"
                         onClick={() => {
@@ -725,25 +767,43 @@ function ProfilePageContent() {
                         <X className="mr-2 h-4 w-4" />
                         {tActions("cancel")}
                       </Button>
+                      <Button
+                        onClick={handleSaveLearningPrefs}
+                        disabled={isUpdatingProfile}
+                        aria-label={tActions("save")}
+                        aria-busy={isUpdatingProfile}
+                      >
+                        {isUpdatingProfile ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {tActions("saving")}
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            {tActions("save")}
+                          </>
+                        )}
+                      </Button>
                     </div>
-                  </>
+                  </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="flex flex-col">
                     {user.grade_system && (
-                      <div>
-                        <Label className="text-xs text-muted-foreground">
-                          {tOnboarding("gradeSystem")}
-                        </Label>
-                        <p className="text-sm font-medium">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                        <div className="flex flex-col gap-1 pr-4">
+                          <p className="text-sm font-medium text-foreground">{tOnboarding("gradeSystem")}</p>
+                        </div>
+                        <p className="text-base font-medium text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">
                           {tOnboarding(`gradeSystems.${user.grade_system}`)}
                         </p>
                       </div>
                     )}
-                    <div>
-                      <Label className="text-xs text-muted-foreground">
-                        {tLearning("gradeLevel")}
-                      </Label>
-                      <p className="text-sm font-medium">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <p className="text-sm font-medium text-foreground">{tLearning("gradeLevel")}</p>
+                      </div>
+                      <p className="text-base font-medium text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">
                         {user.grade_level
                           ? user.grade_system === "suisse"
                             ? `${user.grade_level}H`
@@ -751,17 +811,17 @@ function ProfilePageContent() {
                           : "-"}
                       </p>
                     </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">
-                        {tLearning("learningStyle")}
-                      </Label>
-                      <p className="text-sm font-medium capitalize">{user.learning_style || "-"}</p>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <p className="text-sm font-medium text-foreground">{tLearning("learningStyle")}</p>
+                      </div>
+                      <p className="text-base font-medium text-foreground sm:text-right capitalize mt-3 sm:mt-0 shrink-0">{user.learning_style || "-"}</p>
                     </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">
-                        {tLearning("preferredAgeGroup")}
-                      </Label>
-                      <p className="text-sm font-medium">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <p className="text-sm font-medium text-foreground">{tLearning("preferredAgeGroup")}</p>
+                      </div>
+                      <p className="text-base font-medium text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">
                         {user.preferred_difficulty
                           ? Object.values(AGE_GROUPS).includes(
                               user.preferred_difficulty as AgeGroup
@@ -772,11 +832,11 @@ function ProfilePageContent() {
                       </p>
                     </div>
                     {user.learning_goal && (
-                      <div>
-                        <Label className="text-xs text-muted-foreground">
-                          {tOnboarding("learningGoal")}
-                        </Label>
-                        <p className="text-sm font-medium">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                        <div className="flex flex-col gap-1 pr-4">
+                          <p className="text-sm font-medium text-foreground">{tOnboarding("learningGoal")}</p>
+                        </div>
+                        <p className="text-base font-medium text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">
                           {LEARNING_GOALS.includes(
                             user.learning_goal as (typeof LEARNING_GOALS)[number]
                           )
@@ -786,11 +846,11 @@ function ProfilePageContent() {
                       </div>
                     )}
                     {user.practice_rhythm && (
-                      <div>
-                        <Label className="text-xs text-muted-foreground">
-                          {tOnboarding("practiceRhythm")}
-                        </Label>
-                        <p className="text-sm font-medium">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                        <div className="flex flex-col gap-1 pr-4">
+                          <p className="text-sm font-medium text-foreground">{tOnboarding("practiceRhythm")}</p>
+                        </div>
+                        <p className="text-base font-medium text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">
                           {PRACTICE_RHYTHMS.includes(
                             user.practice_rhythm as (typeof PRACTICE_RHYTHMS)[number]
                           )
@@ -803,31 +863,40 @@ function ProfilePageContent() {
                 )}
               </CardContent>
             </Card>
-          </PageSection>
+          </div>
 
           {/* Sécurité */}
-          <PageSection className="animate-fade-in-up-delay-2">
-            <Card className="transition-all duration-300 hover:shadow-lg hover:border-primary/20">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+          <div className="animate-fade-in-up-delay-2">
+            <Card className="bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl p-6 md:p-8">
+              <CardHeader className="border-b border-border/50 pb-4 mb-6 p-0 space-y-0">
+                <CardTitle className="flex items-center gap-2 text-xl">
                   <Lock className="h-5 w-5 text-primary" />
                   {tSecurity("title")}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 {!showPasswordForm ? (
-                  <Button
-                    onClick={() => setShowPasswordForm(true)}
-                    variant="outline"
-                    aria-label={tSecurity("changePassword")}
-                  >
-                    {tSecurity("changePassword")}
-                  </Button>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                    <div className="flex flex-col gap-1 pr-4">
+                      <p className="text-sm font-medium text-foreground">{tSecurity("changePassword")}</p>
+                      <p className="text-xs text-muted-foreground">{tSecurity("description")}</p>
+                    </div>
+                    <Button
+                      onClick={() => setShowPasswordForm(true)}
+                      variant="outline"
+                      aria-label={tSecurity("changePassword")}
+                      className="mt-3 sm:mt-0 shrink-0"
+                    >
+                      {tSecurity("changePassword")}
+                    </Button>
+                  </div>
                 ) : (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="current_password">{tSecurity("currentPassword")} *</Label>
-                      <div className="relative">
+                  <div className="flex flex-col">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="current_password" className="text-sm font-medium text-foreground">{tSecurity("currentPassword")} *</Label>
+                      </div>
+                      <div className="relative w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0">
                         <Input
                           id="current_password"
                           type={showCurrentPassword ? "text" : "password"}
@@ -882,10 +951,11 @@ function ProfilePageContent() {
                         </p>
                       )}
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="new_password">{tSecurity("newPassword")} *</Label>
-                      <div className="relative">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="new_password" className="text-sm font-medium text-foreground">{tSecurity("newPassword")} *</Label>
+                      </div>
+                      <div className="relative w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0">
                         <Input
                           id="new_password"
                           type={showNewPassword ? "text" : "password"}
@@ -933,10 +1003,11 @@ function ProfilePageContent() {
                         </p>
                       )}
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm_password">{tSecurity("confirmPassword")} *</Label>
-                      <div className="relative">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                      <div className="flex flex-col gap-1 pr-4">
+                        <Label htmlFor="confirm_password" className="text-sm font-medium text-foreground">{tSecurity("confirmPassword")} *</Label>
+                      </div>
+                      <div className="relative w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0">
                         <Input
                           id="confirm_password"
                           type={showConfirmPassword ? "text" : "password"}
@@ -991,8 +1062,7 @@ function ProfilePageContent() {
                         </p>
                       )}
                     </div>
-
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 pt-6">
                       <Button
                         onClick={handleChangePassword}
                         disabled={isChangingPassword}
@@ -1033,48 +1103,49 @@ function ProfilePageContent() {
                 )}
               </CardContent>
             </Card>
-          </PageSection>
-        </TabsContent>
+          </div>
+          </div>
+          )}
 
-        {/* ═══════════ ONGLET PRÉFÉRENCES ═══════════ */}
-        <TabsContent value="preferences" className="space-y-6">
+          {/* ═══════════ SECTION ACCESSIBILITÉ ═══════════ */}
+          {activeSection === "preferences" && (
+          <div className="space-y-6">
           {/* Accessibilité */}
-          <PageSection className="animate-fade-in-up">
-            <Card className="transition-all duration-300 hover:shadow-lg hover:border-primary/20">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+          <div className="animate-fade-in-up">
+            <Card className="bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl p-6 md:p-8">
+              <CardHeader className="border-b border-border/50 pb-4 mb-6 p-0 space-y-0">
+                <CardTitle className="flex items-center gap-2 text-xl">
                   <Settings className="h-5 w-5 text-primary" />
                   {tAccessibility("title")}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="theme">{tAccessibility("theme")}</Label>
-                    <p className="text-xs text-muted-foreground">
-                      {tAccessibility("themeDescription")}
-                    </p>
-                  </div>
-                  <Select
-                    value={accessibilitySettings.preferred_theme}
-                    onValueChange={(value) => {
-                      const theme = value as
-                        | "spatial"
-                        | "minimalist"
-                        | "ocean"
-                        | "dune"
-                        | "forest"
-                        | "peach"
-                        | "dino";
-                      setAccessibilitySettings((prev) => ({ ...prev, preferred_theme: theme }));
-                      handleSaveAccessibility({ preferred_theme: theme });
-                    }}
-                  >
-                    <SelectTrigger
-                      id="theme"
-                      className="w-[200px]"
-                      aria-label={tAccessibility("theme")}
+              <CardContent className="p-0">
+                <div className="flex flex-col">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                    <div className="flex flex-col gap-1 pr-4">
+                      <Label htmlFor="theme" className="text-sm font-medium text-foreground">{tAccessibility("theme")}</Label>
+                      <p className="text-xs text-muted-foreground">{tAccessibility("themeDescription")}</p>
+                    </div>
+                    <Select
+                      value={accessibilitySettings.preferred_theme}
+                      onValueChange={(value) => {
+                        const theme = value as
+                          | "spatial"
+                          | "minimalist"
+                          | "ocean"
+                          | "dune"
+                          | "forest"
+                          | "peach"
+                          | "dino";
+                        setAccessibilitySettings((prev) => ({ ...prev, preferred_theme: theme }));
+                        handleSaveAccessibility({ preferred_theme: theme });
+                      }}
                     >
+                      <SelectTrigger
+                        id="theme"
+                        className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0"
+                        aria-label={tAccessibility("theme")}
+                      >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1122,79 +1193,74 @@ function ProfilePageContent() {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="high_contrast">{tAccessibility("highContrast")}</Label>
-                    <p className="text-xs text-muted-foreground">
-                      {tAccessibility("highContrastDescription")}
-                    </p>
                   </div>
-                  <Switch
-                    id="high_contrast"
-                    checked={accessibilitySettings.high_contrast}
-                    onCheckedChange={(checked) => {
-                      setAccessibilitySettings((prev) => ({ ...prev, high_contrast: checked }));
-                      handleSaveAccessibility({ high_contrast: checked });
-                    }}
-                    aria-label={tAccessibility("highContrast")}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="large_text">{tAccessibility("largeText")}</Label>
-                    <p className="text-xs text-muted-foreground">
-                      {tAccessibility("largeTextDescription")}
-                    </p>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                    <div className="flex flex-col gap-1 pr-4">
+                      <Label htmlFor="high_contrast" className="text-sm font-medium text-foreground">{tAccessibility("highContrast")}</Label>
+                      <p className="text-xs text-muted-foreground">{tAccessibility("highContrastDescription")}</p>
+                    </div>
+                    <Switch
+                      id="high_contrast"
+                      checked={accessibilitySettings.high_contrast}
+                      onCheckedChange={(checked) => {
+                        setAccessibilitySettings((prev) => ({ ...prev, high_contrast: checked }));
+                        handleSaveAccessibility({ high_contrast: checked });
+                      }}
+                      aria-label={tAccessibility("highContrast")}
+                      className="mt-3 sm:mt-0 shrink-0"
+                    />
                   </div>
-                  <Switch
-                    id="large_text"
-                    checked={accessibilitySettings.large_text}
-                    onCheckedChange={(checked) => {
-                      setAccessibilitySettings((prev) => ({ ...prev, large_text: checked }));
-                      handleSaveAccessibility({ large_text: checked });
-                    }}
-                    aria-label={tAccessibility("largeText")}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="reduce_motion">{tAccessibility("reduceMotion")}</Label>
-                    <p className="text-xs text-muted-foreground">
-                      {tAccessibility("reduceMotionDescription")}
-                    </p>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                    <div className="flex flex-col gap-1 pr-4">
+                      <Label htmlFor="large_text" className="text-sm font-medium text-foreground">{tAccessibility("largeText")}</Label>
+                      <p className="text-xs text-muted-foreground">{tAccessibility("largeTextDescription")}</p>
+                    </div>
+                    <Switch
+                      id="large_text"
+                      checked={accessibilitySettings.large_text}
+                      onCheckedChange={(checked) => {
+                        setAccessibilitySettings((prev) => ({ ...prev, large_text: checked }));
+                        handleSaveAccessibility({ large_text: checked });
+                      }}
+                      aria-label={tAccessibility("largeText")}
+                      className="mt-3 sm:mt-0 shrink-0"
+                    />
                   </div>
-                  <Switch
-                    id="reduce_motion"
-                    checked={accessibilitySettings.reduce_motion}
-                    onCheckedChange={(checked) => {
-                      setAccessibilitySettings((prev) => ({ ...prev, reduce_motion: checked }));
-                      handleSaveAccessibility({ reduce_motion: checked });
-                    }}
-                    aria-label={tAccessibility("reduceMotion")}
-                  />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                    <div className="flex flex-col gap-1 pr-4">
+                      <Label htmlFor="reduce_motion" className="text-sm font-medium text-foreground">{tAccessibility("reduceMotion")}</Label>
+                      <p className="text-xs text-muted-foreground">{tAccessibility("reduceMotionDescription")}</p>
+                    </div>
+                    <Switch
+                      id="reduce_motion"
+                      checked={accessibilitySettings.reduce_motion}
+                      onCheckedChange={(checked) => {
+                        setAccessibilitySettings((prev) => ({ ...prev, reduce_motion: checked }));
+                        handleSaveAccessibility({ reduce_motion: checked });
+                      }}
+                      aria-label={tAccessibility("reduceMotion")}
+                      className="mt-3 sm:mt-0 shrink-0"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          </PageSection>
-        </TabsContent>
+          </div>
+          </div>
+          )}
 
-        {/* ═══════════ ONGLET STATISTIQUES ═══════════ */}
-        <TabsContent value="statistics" className="space-y-6">
+          {/* ═══════════ SECTION STATISTIQUES ═══════════ */}
+          {activeSection === "statistics" && (
+          <div className="space-y-8">
           {/* Statistiques */}
           {statsError ? (
-            <PageSection className="animate-fade-in-up">
+            <div className="animate-fade-in-up">
               <EmptyState title={t("error.title")} description={t("error.description")} />
-            </PageSection>
+            </div>
           ) : isLoadingStats ? (
-            <PageSection className="animate-fade-in-up">
+            <div className="animate-fade-in-up">
               <div className="grid gap-4 md:grid-cols-2">
-                <Card className="animate-pulse">
+                <Card className="animate-pulse bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl h-[200px]">
                   <CardHeader>
                     <div className="h-6 w-32 bg-muted rounded" />
                   </CardHeader>
@@ -1205,7 +1271,7 @@ function ProfilePageContent() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="animate-pulse">
+                <Card className="animate-pulse bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl h-[200px]">
                   <CardHeader>
                     <div className="h-6 w-40 bg-muted rounded" />
                   </CardHeader>
@@ -1217,83 +1283,83 @@ function ProfilePageContent() {
                   </CardContent>
                 </Card>
               </div>
-            </PageSection>
+            </div>
           ) : stats ? (
-            <PageSection className="animate-fade-in-up">
-              <div className="grid gap-4 md:grid-cols-2">
+            <div className="animate-fade-in-up space-y-8">
+              <div className="grid gap-6 md:grid-cols-2">
                 {stats.level && <LevelIndicator level={stats.level} />}
-                <Card className="transition-all duration-300 hover:shadow-lg hover:border-primary/20">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                <Card className="bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl p-6 md:p-8 flex flex-col justify-center">
+                  <CardHeader className="border-b border-border/50 pb-4 mb-6 p-0 space-y-0">
+                    <CardTitle className="flex items-center gap-2 text-xl">
                       <TrendingUp className="h-5 w-5 text-primary" />
                       {tStatistics("overallPerformance")}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
-                          {tStatistics("totalAttempts")}
-                        </span>
-                        <span className="text-lg font-semibold">{stats.total_exercises || 0}</span>
+                  <CardContent className="p-0">
+                    <div className="flex flex-col">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                        <div className="flex flex-col gap-1 pr-4">
+                          <p className="text-sm font-medium text-foreground">{tStatistics("totalAttempts")}</p>
+                        </div>
+                        <p className="text-base font-semibold text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">{stats.total_exercises || 0}</p>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">
-                          {tStatistics("successRate")}
-                        </span>
-                        <span className="text-lg font-semibold text-primary">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                        <div className="flex flex-col gap-1 pr-4">
+                          <p className="text-sm font-medium text-foreground">{tStatistics("successRate")}</p>
+                        </div>
+                        <p className="text-base font-semibold text-primary sm:text-right mt-3 sm:mt-0 shrink-0">
                           {Math.round((stats.success_rate || 0) * 10) / 10}%
-                        </span>
+                        </p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-            </PageSection>
-          ) : null}
 
-          {/* Activité récente */}
-          {stats?.recent_activity && stats.recent_activity.length > 0 && (
-            <PageSection className="animate-fade-in-up-delay-1">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-primary" aria-hidden="true" />
-                {t("recentActivity.title")}
-              </h3>
-              <RecentActivity activities={stats.recent_activity} />
-            </PageSection>
-          )}
+              {/* Activité récente */}
+              {stats?.recent_activity && stats.recent_activity.length > 0 && (
+                <div className="animate-fade-in-up-delay-1">
+                   {/* RecentActivity has its own internal card style, just rendering it */}
+                  <RecentActivity activities={stats.recent_activity} />
+                </div>
+              )}
+            </div>
+          ) : null}
 
           {/* Badges récents */}
           {recentBadges.length > 0 && (
-            <PageSection className="animate-fade-in-up-delay-2">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <div className="animate-fade-in-up-delay-2">
+              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2 px-1">
                 <Award className="h-5 w-5 text-primary" aria-hidden="true" />
                 {tBadges("title")}
               </h3>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-3">
                 {recentBadges.map((badge: UserBadge & { earned_at: string }, index: number) => (
                   <Card
                     key={badge.id}
                     className={cn(
+                      "bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl p-6",
                       "relative overflow-hidden transition-all duration-300",
-                      "hover:shadow-lg hover:border-primary/20 hover:scale-[1.02]",
+                      "hover:shadow-md hover:border-primary/20 hover:scale-[1.02]",
                       `animate-fade-in-up-delay-${Math.min(index + 1, 3)}`
                     )}
                   >
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <Award className="h-8 w-8 text-primary" />
-                        <UIBadge variant="secondary" className="font-semibold">
+                    <CardHeader className="p-0 mb-4 space-y-0">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="p-2 rounded-full bg-primary/10 text-primary">
+                             <Award className="h-6 w-6" />
+                        </div>
+                        <UIBadge variant="secondary" className="font-semibold bg-secondary/50">
                           {badge.points} pts
                         </UIBadge>
                       </div>
-                      <CardTitle className="text-lg mt-2">{badge.name}</CardTitle>
-                      <CardDescription className="mt-1">{badge.description}</CardDescription>
+                      <CardTitle className="text-lg font-bold">{badge.name}</CardTitle>
+                      <CardDescription className="mt-1 text-sm text-muted-foreground leading-relaxed">{badge.description}</CardDescription>
                     </CardHeader>
                     {badge.earned_at && (
-                      <CardContent>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
+                      <CardContent className="p-0 mt-auto">
+                        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground pt-4 border-t border-border/50">
+                          <Calendar className="h-3.5 w-3.5" />
                           {formatDate(badge.earned_at)}
                         </div>
                       </CardContent>
@@ -1301,20 +1367,22 @@ function ProfilePageContent() {
                   </Card>
                 ))}
               </div>
-              <div className="mt-6 text-center">
+              <div className="mt-8 text-center">
                 <Button
                   variant="outline"
                   onClick={() => router.push("/badges")}
                   aria-label={tBadges("viewAll")}
-                  className="transition-all duration-300 hover:scale-105"
+                  className="transition-all duration-300 hover:scale-105 rounded-full px-6"
                 >
                   {tBadges("viewAll")}
                 </Button>
               </div>
-            </PageSection>
+            </div>
           )}
-        </TabsContent>
-      </Tabs>
+          </div>
+          )}
+        </div>
+      </div>
     </PageLayout>
   );
 }

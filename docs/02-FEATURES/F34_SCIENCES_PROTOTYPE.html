@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathakine - Labo des Sciences</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#09090b',
+                        card: 'rgba(24, 24, 27, 0.6)',
+                        primary: '#0ea5e9',
+                        success: '#10b981',
+                        destructive: '#ef4444',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #000;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .explanation-reveal {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .explanation-reveal.active {
+            max-height: 500px;
+            opacity: 1;
+            margin-top: 1.5rem;
+        }
+
+        /* Confetti effect simplified */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .icon-float {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-200 flex items-center justify-center p-6">
+
+    <!-- Container Global -->
+    <div class="max-w-2xl w-full">
+        
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 text-primary mb-4 icon-float">
+                <i class="fa-solid fa-flask text-3xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Curiosités Scientifiques</h1>
+            <p class="text-slate-400">Explore l'univers, une question à la fois.</p>
+        </div>
+
+        <!-- Fun Fact Card -->
+        <div class="glass-panel rounded-3xl p-8 relative overflow-hidden">
+            
+            <!-- Category Badge -->
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-emerald-500"></div>
+            <div class="mb-6 flex items-center justify-between">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                    <i class="fa-solid fa-meteor"></i> Astronomie
+                </span>
+                <span class="text-sm text-slate-500">Fait #42</span>
+            </div>
+
+            <!-- Question -->
+            <h2 class="text-2xl font-medium text-white mb-8 leading-relaxed">
+                Le Soleil est si grand qu'il pourrait contenir environ un million de fois la planète Terre à l'intérieur de lui.
+            </h2>
+
+            <!-- Actions (Vrai / Faux) -->
+            <div id="action-buttons" class="grid grid-cols-2 gap-4">
+                <button onclick="handleAnswer(true)" class="group relative py-4 px-6 rounded-2xl bg-slate-800/50 hover:bg-success/10 border border-slate-700 hover:border-success/50 transition-all duration-300 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-check text-2xl text-slate-400 group-hover:text-success transition-colors"></i>
+                    <span class="font-medium text-slate-300 group-hover:text-success">C'est vrai</span>
+                </button>
+                
+                <button onclick="handleAnswer(false)" class="group relative py-4 px-6 rounded-2xl bg-slate-800/50 hover:bg-destructive/10 border border-slate-700 hover:border-destructive/50 transition-all duration-300 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-xmark text-2xl text-slate-400 group-hover:text-destructive transition-colors"></i>
+                    <span class="font-medium text-slate-300 group-hover:text-destructive">C'est faux</span>
+                </button>
+            </div>
+
+            <!-- Explanation Area (Hidden by default) -->
+            <div id="explanation-area" class="explanation-reveal">
+                <div class="p-6 rounded-2xl bg-slate-800/50 border border-slate-700">
+                    <div class="flex items-start gap-4">
+                        <div id="result-icon" class="mt-1 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center">
+                            <!-- Icon injected via JS -->
+                        </div>
+                        <div>
+                            <h3 id="result-title" class="text-lg font-bold text-white mb-2">
+                                <!-- Title injected via JS -->
+                            </h3>
+                            <p class="text-slate-300 leading-relaxed mb-4">
+                                Le volume du Soleil est si gigantesque qu'il représente 99,86 % de la masse totale de notre système solaire. Il faudrait environ <strong>1,3 million de Terres</strong> pour remplir complètement le Soleil !
+                            </p>
+                            
+                            <!-- Next Button -->
+                            <button onclick="resetCard()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-medium transition-colors">
+                                Fait suivant <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- Progress / Stats mini -->
+        <div class="mt-6 flex justify-center gap-6 text-sm text-slate-500 font-medium">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-fire text-amber-500"></i> Série : 3</span>
+            <span class="flex items-center gap-2"><i class="fa-solid fa-star text-primary"></i> +5 XP</span>
+        </div>
+    </div>
+
+    <script>
+        const correctAnswer = true;
+
+        function handleAnswer(userChoice) {
+            const buttons = document.getElementById('action-buttons');
+            const explanation = document.getElementById('explanation-area');
+            const iconContainer = document.getElementById('result-icon');
+            const resultTitle = document.getElementById('result-title');
+
+            // Hide buttons with a slight fade
+            buttons.style.opacity = '0.5';
+            buttons.style.pointerEvents = 'none';
+
+            // Determine if correct
+            const isCorrect = userChoice === correctAnswer;
+
+            if (isCorrect) {
+                iconContainer.className = "mt-1 flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-success/20 text-success";
+                iconContainer.innerHTML = '<i class="fa-solid fa-check text-xl"></i>';
+                resultTitle.innerHTML = "Exactement ! <span class='text-sm font-normal text-success ml-2'>+5 XP</span>";
+            } else {
+                // Notice we don't say "WRONG!". We say "Presque !" to be gentle.
+                iconContainer.className = "mt-1 flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-primary/20 text-primary";
+                iconContainer.innerHTML = '<i class="fa-solid fa-lightbulb text-xl"></i>';
+                resultTitle.innerHTML = "Et non, c'est pourtant vrai !";
+            }
+
+            // Show explanation
+            explanation.classList.add('active');
+        }
+
+        function resetCard() {
+            // In a real app, this would load the next question from the database.
+            // For the prototype, we just reset the UI.
+            const buttons = document.getElementById('action-buttons');
+            const explanation = document.getElementById('explanation-area');
+            
+            explanation.classList.remove('active');
+            
+            setTimeout(() => {
+                buttons.style.opacity = '1';
+                buttons.style.pointerEvents = 'auto';
+            }, 300);
+        }
+    </script>
+</body>
+</html>

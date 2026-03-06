@@ -1194,6 +1194,12 @@
   "settings": {
     "title": "Settings",
     "description": "Configure your account and preferences",
+    "menu": {
+      "general": "General",
+      "notifications": "Notifications",
+      "security": "Security & Sessions",
+      "data": "Data & Account"
+    },
     "language": {
       "title": "Language and region",
       "description": "Customize language and timezone",
