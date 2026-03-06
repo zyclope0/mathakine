@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -48,11 +48,6 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleOpenChange = (open: boolean) => {
     onOpenChange?.(open);
@@ -74,7 +69,7 @@ export function ChatbotFloating({ isOpen = false, onOpenChange }: ChatbotFloatin
 
   // Portail vers document.body pour échapper au stacking context z-10 du <main>
   // Sans ça, le header fixed z-40 passe au-dessus du chatbot z-[9991]
-  if (!mounted) return null;
+  if (typeof document === "undefined") return null;
 
   return createPortal(
     <>

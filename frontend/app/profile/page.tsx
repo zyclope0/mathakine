@@ -49,6 +49,8 @@ import { fr } from "date-fns/locale";
 import { useThemeStore } from "@/lib/stores/themeStore";
 
 function ProfilePageContent() {
+  type ProfileSection = "profile" | "preferences" | "statistics";
+
   const { user } = useAuth();
   const { updateProfile, isUpdatingProfile, changePassword, isChangingPassword } = useProfile();
   const { stats, isLoading: isLoadingStats, error: statsError } = useUserStats("30");
@@ -119,46 +121,60 @@ function ProfilePageContent() {
 
   // Erreurs de validation
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [activeSection, setActiveSection] = useState<ProfileSection>("profile");
 
   // Synchroniser les états locaux avec les données utilisateur
   useEffect(() => {
-    if (user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPersonalInfo({
-        email: user.email || "",
-        full_name: user.full_name || "",
-      });
-      setLearningPrefs({
-        grade_system: (user.grade_system as "suisse" | "unifie") || "unifie",
-        grade_level: user.grade_level?.toString() || "",
-        learning_style: user.learning_style || "",
-        preferred_difficulty: user.preferred_difficulty || "",
-        learning_goal: user.learning_goal || "",
-        practice_rhythm: user.practice_rhythm || "",
-      });
-      // Migration: neutral → dune
-      const userThemeRaw = user.preferred_theme || "spatial";
-      const userTheme = userThemeRaw === "neutral" ? "dune" : userThemeRaw;
-      const validThemes = [
-        "spatial",
-        "minimalist",
-        "ocean",
-        "dune",
-        "forest",
-        "peach",
-        "dino",
-      ] as const;
-      setAccessibilitySettings({
-        preferred_theme: userTheme,
-        high_contrast: user.accessibility_settings?.high_contrast || false,
-        large_text: user.accessibility_settings?.large_text || false,
-        reduce_motion: user.accessibility_settings?.reduce_motion || false,
-      });
-      const safeTheme = validThemes.includes(userTheme as (typeof validThemes)[number])
-        ? (userTheme as (typeof validThemes)[number])
-        : "spatial";
+    if (!user) return;
+
+    const nextPersonalInfo = {
+      email: user.email || "",
+      full_name: user.full_name || "",
+    };
+    const nextLearningPrefs = {
+      grade_system: (user.grade_system as "suisse" | "unifie") || "unifie",
+      grade_level: user.grade_level?.toString() || "",
+      learning_style: user.learning_style || "",
+      preferred_difficulty: user.preferred_difficulty || "",
+      learning_goal: user.learning_goal || "",
+      practice_rhythm: user.practice_rhythm || "",
+    };
+
+    // Migration: neutral -> dune
+    const userThemeRaw = user.preferred_theme || "spatial";
+    const userTheme = userThemeRaw === "neutral" ? "dune" : userThemeRaw;
+    const validThemes = [
+      "spatial",
+      "minimalist",
+      "ocean",
+      "dune",
+      "forest",
+      "peach",
+      "dino",
+    ] as const;
+    const nextAccessibilitySettings = {
+      preferred_theme: userTheme,
+      high_contrast: user.accessibility_settings?.high_contrast || false,
+      large_text: user.accessibility_settings?.large_text || false,
+      reduce_motion: user.accessibility_settings?.reduce_motion || false,
+    };
+    const safeTheme = validThemes.includes(userTheme as (typeof validThemes)[number])
+      ? (userTheme as (typeof validThemes)[number])
+      : "spatial";
+
+    let cancelled = false;
+
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setPersonalInfo(nextPersonalInfo);
+      setLearningPrefs(nextLearningPrefs);
+      setAccessibilitySettings(nextAccessibilitySettings);
       setTheme(safeTheme);
-    }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [user, setTheme]);
 
   // Validation email
@@ -318,9 +334,6 @@ function ProfilePageContent() {
       </PageLayout>
     );
   }
-
-  type ProfileSection = "profile" | "preferences" | "statistics";
-  const [activeSection, setActiveSection] = useState<ProfileSection>("profile");
 
   const menuItems: { id: ProfileSection; label: string; icon: typeof User }[] = [
     { id: "profile", label: tPersonal("title"), icon: User },

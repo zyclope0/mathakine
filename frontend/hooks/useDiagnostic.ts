@@ -86,34 +86,6 @@ export function useDiagnostic(triggeredFrom: "onboarding" | "settings" = "onboar
     setPhase("error");
   }, []);
 
-  // ---- fetchNextQuestion -------------------------------------------------- //
-
-  const fetchNextQuestion = useCallback(async (currentSession: SessionState) => {
-    setPhase("loading");
-    try {
-      const res = await api.post<{ done: boolean; question?: DiagnosticQuestion }>(
-        "/api/diagnostic/question",
-        { session: currentSession }
-      );
-      if (res.done) {
-        // Session terminée côté backend — on finalise
-        await finalizeSession(currentSession);
-      } else if (res.question) {
-        setCurrentQuestion(res.question);
-        setSelectedAnswer(null);
-        setIsCorrect(null);
-        setPhase("question");
-      } else {
-        setErr("Aucune question retournée par le serveur.");
-      }
-    } catch (e) {
-      setErr(
-        e instanceof Error ? e.message : "Erreur réseau lors de la génération de la question."
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // ---- finalizeSession ---------------------------------------------------- //
 
   const finalizeSession = useCallback(async (currentSession: SessionState) => {
@@ -133,7 +105,37 @@ export function useDiagnostic(triggeredFrom: "onboarding" | "settings" = "onboar
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Erreur réseau lors de la finalisation.");
     }
-  }, []);
+  }, [setErr]);
+
+  // ---- fetchNextQuestion -------------------------------------------------- //
+
+  const fetchNextQuestion = useCallback(
+    async (currentSession: SessionState) => {
+      setPhase("loading");
+      try {
+        const res = await api.post<{ done: boolean; question?: DiagnosticQuestion }>(
+          "/api/diagnostic/question",
+          { session: currentSession }
+        );
+        if (res.done) {
+          // Session terminée côté backend — on finalise
+          await finalizeSession(currentSession);
+        } else if (res.question) {
+          setCurrentQuestion(res.question);
+          setSelectedAnswer(null);
+          setIsCorrect(null);
+          setPhase("question");
+        } else {
+          setErr("Aucune question retournée par le serveur.");
+        }
+      } catch (e) {
+        setErr(
+          e instanceof Error ? e.message : "Erreur réseau lors de la génération de la question."
+        );
+      }
+    },
+    [finalizeSession, setErr]
+  );
 
   // ---- start -------------------------------------------------------------- //
 
