@@ -88,24 +88,27 @@ export function useDiagnostic(triggeredFrom: "onboarding" | "settings" = "onboar
 
   // ---- finalizeSession ---------------------------------------------------- //
 
-  const finalizeSession = useCallback(async (currentSession: SessionState) => {
-    setPhase("loading");
-    const durationSeconds = Math.round((Date.now() - startTsRef.current) / 1000);
-    try {
-      const res = await api.post<{ success: boolean; result?: DiagnosticResult; error?: string }>(
-        "/api/diagnostic/complete",
-        { session: currentSession, duration_seconds: durationSeconds }
-      );
-      if (res.success && res.result) {
-        setResult(res.result);
-        setPhase("results");
-      } else {
-        setErr(res.error ?? "Erreur lors de la finalisation du diagnostic.");
+  const finalizeSession = useCallback(
+    async (currentSession: SessionState) => {
+      setPhase("loading");
+      const durationSeconds = Math.round((Date.now() - startTsRef.current) / 1000);
+      try {
+        const res = await api.post<{ success: boolean; result?: DiagnosticResult; error?: string }>(
+          "/api/diagnostic/complete",
+          { session: currentSession, duration_seconds: durationSeconds }
+        );
+        if (res.success && res.result) {
+          setResult(res.result);
+          setPhase("results");
+        } else {
+          setErr(res.error ?? "Erreur lors de la finalisation du diagnostic.");
+        }
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : "Erreur réseau lors de la finalisation.");
       }
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Erreur réseau lors de la finalisation.");
-    }
-  }, [setErr]);
+    },
+    [setErr]
+  );
 
   // ---- fetchNextQuestion -------------------------------------------------- //
 

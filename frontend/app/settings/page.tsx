@@ -257,7 +257,10 @@ function SettingsPageContent() {
       <div className="flex flex-col md:grid md:grid-cols-12 gap-8 md:gap-12 max-w-6xl mx-auto">
         {/* Mobile: Select ou Tabs scrollables */}
         <div className="md:hidden">
-          <Select value={activeSection} onValueChange={(v) => setActiveSection(v as SettingsSection)}>
+          <Select
+            value={activeSection}
+            onValueChange={(v) => setActiveSection(v as SettingsSection)}
+          >
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -323,7 +326,10 @@ function SettingsPageContent() {
                         setLanguageSettings((prev) => ({ ...prev, language_preference: value }))
                       }
                     >
-                      <SelectTrigger id="language" className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0">
+                      <SelectTrigger
+                        id="language"
+                        className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0"
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -350,7 +356,10 @@ function SettingsPageContent() {
                         setLanguageSettings((prev) => ({ ...prev, timezone: value }))
                       }
                     >
-                      <SelectTrigger id="timezone" className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0">
+                      <SelectTrigger
+                        id="timezone"
+                        className="w-full sm:w-[250px] mt-3 sm:mt-0 shrink-0"
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -746,7 +755,9 @@ function SettingsPageContent() {
                   {showDeleteConfirm ? (
                     <div className="space-y-4">
                       <div className="py-4 border-b border-border/50">
-                        <p className="text-sm text-destructive font-medium">{tData("deleteWarning")}</p>
+                        <p className="text-sm text-destructive font-medium">
+                          {tData("deleteWarning")}
+                        </p>
                       </div>
                       <div className="flex gap-2 pt-4">
                         <Button
@@ -780,7 +791,9 @@ function SettingsPageContent() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
                       <div className="flex flex-col gap-1 pr-4">
                         <p className="text-sm font-medium text-foreground">{tData("delete")}</p>
-                        <p className="text-xs text-muted-foreground">{tData("deleteDescription")}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {tData("deleteDescription")}
+                        </p>
                       </div>
                       <Button
                         onClick={handleDeleteAccount}
