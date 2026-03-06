@@ -1,6 +1,6 @@
 # Backlog & Priorisation des Features — Mathakine
 
-> **Document vivant** — Dernière MAJ : 04/03/2026 (F01 ✅ + F03 ✅ confirmés)  
+> **Document vivant** — Dernière MAJ : 06/03/2026 (F03 backlog câblé : IRT→difficulté, proxy MIXTE/FRACTIONS, QCM par niveau IRT)  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -80,7 +80,7 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 | F30 | [PROP] Effet Protégé (corriger erreur IA) | 4 | 4 | 5 | 2 | 4 | **15.4** | P1 |
 | F31 | [PROP] Exemples résolus progressifs (Fading) | 3 | 4 | 5 | 2 | 3 | **15.2** | P1 |
 | F32 | [PROP] Mode Pratique Entrelacée (Interleaving) | 2 | 3 | 5 | 2 | 3 | **14.5** | P1 |
-| F05 | Adaptation dynamique de difficulté | 4 | 4 | 5 | 3 | 4 | **13.9** | P1 |
+| F05 | Adaptation dynamique de difficulté ✅ | 4 | 4 | 5 | 3 | 4 | **13.9** | P1 |
 | F06 | Conditions d'obtention badges visibles | 2 | 4 | 3 | 1 | 3 | **13.5** | P1 |
 | F07 | Courbe d'évolution temporelle | 3 | 4 | 3 | 2 | 3 | **11.2** | P1 |
 | F08 | Objectifs personnalisés | 3 | 3 | 3 | 1 | 3 | **11.1** | P1 |
@@ -137,7 +137,7 @@ Ces quatre features combinent un score composite élevé ET un bénéfice pédag
 
 **Effort estimé** : 1-2 jours
 
-**Statut** : ✅ Implémenté — composant `frontend/components/ui/MathText.tsx` (react-markdown + remark-math + rehype-katex), intégré dans `ExerciseSolver`, `ChallengeSolver` et `DiagnosticSolver`
+**Statut** : ✅ Implémenté — composant `frontend/components/ui/MathText.tsx` (react-markdown + remark-math + rehype-katex), intégré dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver` et `DiagnosticSolver`
 
 ---
 
@@ -207,6 +207,8 @@ daily_challenges (
 
 **Statut** : ✅ Implémenté le 04/03/2026
 
+**Référence technique complète** : [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md)
+
 **Ce qui est branché** :
 - Table `diagnostic_results` (migration `20260304_diagnostic`)
 - Service IRT (`app/services/diagnostic_service.py`) : algo adaptatif, 10 questions, 4 types
@@ -217,11 +219,14 @@ daily_challenges (
 
 **Ce qui reste à câbler (backlog F03-suite)** :
 
-| Lacune | Impact | Priorité |
-|--------|--------|----------|
-| `/api/exercises/generate` ignore le niveau diagnostic | Un utilisateur scorant Initié reçoit des exercices selon `age_group`, pas son niveau réel | Moyen |
-| Dashboard (`/`) ne lit pas `has_completed` | Pas de message de confirmation "ton niveau a été établi" | Faible |
-| Génération IA (`/api/ai/generate`) ignore le diagnostic | Même problème que le générateur interne | Moyen |
+| Lacune | Impact | Priorité | Statut |
+|--------|--------|----------|--------|
+| `/api/exercises/generate` ignore le niveau diagnostic | Un utilisateur scorant Initié reçoit des exercices selon `age_group`, pas son niveau réel | Moyen | ✅ Résolu 06/03/2026 — `adaptive_difficulty_service` câblé en étape 1 de la cascade |
+| `preferred_difficulty` stocke des age_group (`"adulte"`) mais le service attendait des DifficultyLevels | Zyclope (adulte) tombait en fallback PADAWAN malgré son profil | Moyen | ✅ Résolu 06/03/2026 — `_PREF_DIFFICULTY_TO_ORDINAL` élargi aux deux formes |
+| Mode de réponse QCM/saisie libre calculé sur la difficulté de l'exercice, pas le niveau réel utilisateur | Un utilisateur INITIE pouvait se voir forcer la saisie libre si l'exercice était GRAND_MAITRE | Moyen | ✅ Résolu 06/03/2026 — Frontend lit les scores IRT via `useIrtScores()`, décide par type |
+| Types non couverts IRT (MIXTE, FRACTIONS) sans proxy de niveau | Pas d'adaptation pour ces types | Moyen | ✅ Résolu 06/03/2026 — Proxys MIXTE (min des 4 bases) et FRACTIONS (niveau division) |
+| Dashboard (`/`) ne lit pas `has_completed` | Pas de message de confirmation "ton niveau a été établi" | Faible | ⏳ Backlog |
+| Génération IA (`/api/ai/generate`) ignore le diagnostic | Même problème que le générateur interne | Moyen | ⏳ Backlog |
 
 ---
 
@@ -266,13 +271,15 @@ spaced_repetition_items (
 
 **Effort estimé** : 1-2 semaines (migration + service + UI)
 
+**Référence technique (spec)** : [F04_REVISIONS_ESPACEES.md](F04_REVISIONS_ESPACEES.md)
+
 ---
 
 ## 4. P1 — Haute priorité {#4-p1}
 
 ---
 
-### F05 — Adaptation dynamique de difficulté
+### F05 — Adaptation dynamique de difficulté ✅
 
 **Source** : [WORKFLOW_EDUCATION §2.2](WORKFLOW_EDUCATION_REFACTORING.md)  
 **Score** : 13.9 | D=4, G=4, E=5, R=3, B=4
@@ -282,11 +289,24 @@ spaced_repetition_items (
 - Bjork (1994) — *Desirable difficulties* : un niveau de défi optimal crée une résistance productive (retrieval effort) qui renforce la mémorisation à long terme.
 - Csikszentmihalyi (1990) — État de *flow* : atteint quand difficulté ≈ compétence.
 
-**Implémentation** : Basée sur le taux de réussite glissant (7 derniers jours) par type d'exercice. Seuils : > 85% → augmenter difficulté, < 50% → diminuer.
+**Implémentation (v3.0.0-alpha.3+, MAJ 06/03/2026)** :
+- `app/services/adaptive_difficulty_service.py` — résolution par cascade (IRT > progression > profil > fallback), proxys MIXTE (min des 4 bases) et FRACTIONS (niveau division)
+- `server/handlers/exercise_handlers.py` — branchement adaptatif (`?adaptive=true` par défaut, désactivable par `?adaptive=false` ou `age_group` explicite)
+- `server/exercise_generator_helpers.py` — distracteurs QCM calibrés par niveau (INITIE: erreurs ±1 + inversion, PADAWAN: retenue ±10, CHEVALIER/MAITRE/GRAND_MAITRE: magnitude %)
+- **Mode QCM vs saisie libre** : décidé côté frontend par `useIrtScores().resolveIsOpenAnswer(exercise_type)` — saisie libre uniquement si niveau IRT = GRAND_MAITRE pour ce type. Le backend génère toujours les `choices`.
+
+**Référence technique complète** : [F05_ADAPTATION_DYNAMIQUE.md](F05_ADAPTATION_DYNAMIQUE.md)
+
+**Seuils adaptation temps réel** : `completion_rate > 85% ET streak >= 3` → boost (+1 niveau) ; `completion_rate < 50% ET streak = 0` → descente (-1 niveau).
+
+**Hors scope F05-suite (backlog)** :
+- `/api/ai/generate` — même adaptation pour la génération IA (SSE, complexité séparée)
+- Dashboard widget 'ton niveau s'est ajusté' — ✅ Implémenté 06/03/2026 (`LevelEstablishedWidget` dans l'onglet Vue d'ensemble)
+- Seuils boost/descente configurables via admin
+- **[F05-B1] Saisie libre déclenchée par taux de réussite réel, pas uniquement par niveau IRT** : plutôt que le seuil fixe GRAND_MAITRE, déclencher la saisie libre quand `completion_rate >= 90 % sur les 5 dernières tentatives` pour un type donné — indépendamment du niveau IRT. Fondement : Roediger & Karpicke (2006) Testing Effect + VanLehn (2011) méta-analyse tutoring adaptatif. Éviter d'encoder des erreurs en forçant le recall avant que la récupération soit automatique.
 
 **Dépendance** : Profite du diagnostic initial (F03) et prépare les révisions espacées (F04).
 
-**Effort estimé** : 1-2 semaines
 
 ---
 
@@ -609,7 +629,7 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 
 | Feature | Date | Référence |
 |---------|------|-----------|
-| F01 — Rendu Markdown/KaTeX dans les explications | 2026 | Composant `MathText.tsx` — intégré dans `ExerciseSolver`, `ChallengeSolver`, `DiagnosticSolver` |
+| F01 — Rendu Markdown/KaTeX dans les explications | 2026 | Composant `MathText.tsx` — intégré dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver` |
 | F03 — Test de diagnostic initial (IRT adaptatif) | 04/03/2026 | [ROADMAP_FONCTIONNALITES §F03](ROADMAP_FONCTIONNALITES.md) |
 | Espace admin complet (rôle archiviste) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
 | Auth complet (inscription, email, login, reset) | Jan-Fév 2026 | [AUTH_FLOW](AUTH_FLOW.md) |

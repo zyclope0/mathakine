@@ -1,6 +1,6 @@
 # Endpoints et leur intégration Frontend
 
-> État au 06/02/2026 — **MAJ 16/02/2026**
+> État au 06/02/2026 — **MAJ 06/03/2026**
 
 ## Vue d'ensemble
 
@@ -118,7 +118,7 @@ Retourne le top 50 des utilisateurs par `total_points`. Respecte `show_in_leader
 
 ---
 
-## 3. `PUT /api/users/me` et `PUT /api/users/me/password`
+## 4. `PUT /api/users/me` et `PUT /api/users/me/password`
 
 ### Statut
 - **Backend** : ✅ Implémentés
@@ -139,10 +139,11 @@ Retourne le top 50 des utilisateurs par `total_points`. Respecte `show_in_leader
 | `DELETE /api/users/me/sessions/{id}` | ✅ | ✅ /settings | Révocation session |
 | `GET /api/challenges/badges/progress` | ✅ | ✅ /badges | Barres progression badges (16/02) |
 | `POST /api/recommendations/complete` | ✅ | ✅ Dashboard | Bouton « Marquer comme fait » (16/02) |
+| Diagnostic (5 endpoints) | ✅ | ✅ Page /diagnostic, LevelEstablishedWidget, Settings | F03 (04/03) |
 
 ---
 
-## 4. Admin — Endpoints intégrés (16/02/2026)
+## 5. Admin — Endpoints intégrés (16/02/2026)
 
 L'espace admin est pleinement opérationnel. Tous les endpoints suivants sont implémentés et intégrés :
 
@@ -161,7 +162,7 @@ L'espace admin est pleinement opérationnel. Tous les endpoints suivants sont im
 
 ---
 
-## 5. Implémentations 16/02 — Sessions, badges, recommandations, maintenance
+## 6. Implémentations 16/02 — Sessions, badges, recommandations, maintenance
 
 ### Sessions actives (`/api/users/me/sessions`)
 - **Backend** : UserSession créée à chaque login (IP, User-Agent, expires_at). `is_current: true` sur la session la plus récente.
@@ -181,4 +182,4 @@ L'espace admin est pleinement opérationnel. Tous les endpoints suivants sont im
 
 ---
 
-**Dernière mise à jour** : 16/02/2026 - Admin complet, sessions, badges progress, recommendations complete, maintenance
+**Dernière mise à jour** : 06/03/2026 — Diagnostic (F03) intégré, admin complet, sessions, badges progress, recommendations complete, maintenance

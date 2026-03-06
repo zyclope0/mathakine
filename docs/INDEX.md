@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique — Mise à jour au 03/03/2026  
+> Point d'entrée unique — Mise à jour au 06/03/2026  
 > **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md) — inclut la **revue trimestrielle** (vérité terrain) §7
 
 ---
@@ -51,7 +51,10 @@ docs/
 │   ├── API_QUICK_REFERENCE.md    # Référence : cheat sheet endpoints API
 │   ├── EDTECH_ANALYTICS.md       # Référence : analytics EdTech (implémenté)
 │   ├── THEMES.md                 # Référence : 7 thèmes visuels, themeStore
-│   └── I18N.md                   # Référence : internationalisation next-intl
+│   ├── I18N.md                   # Référence : internationalisation next-intl
+│   ├── F03_DIAGNOSTIC_INITIAL.md # Référence F03 : test IRT adaptatif
+│   ├── F04_REVISIONS_ESPACEES.md # Spécification F04 (SM-2, non implémenté)
+│   └── F05_ADAPTATION_DYNAMIQUE.md # Référence F05 : adaptation difficulté
 │   (archivés → 03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/)
 │   ├── PLAN_REFONTE_BADGES.md    # Archivé — Lots A-B-C ✅ tous implémentés
 │   ├── B4_REFORMULATION_BADGES.md  # Archivé — B4 ✅ implémenté
@@ -69,8 +72,8 @@ docs/
 │   ├── CICD_DEPLOY.md  # CI/CD, smoke test, migrations, rollback
 │   ├── POLITIQUE_REDACTION_LOGS_PII.md  # Règles PII/secrets dans les logs
 │   ├── ENDPOINTS_NON_INTEGRES.md  # Endpoints à intégrer
-│   ├── PLACEHOLDERS_ET_TODO.md  # Endpoints à implémenter
 │   └── AUDITS_ET_RAPPORTS_ARCHIVES/  # 📦 Audits implémentés + rapports temporaires
+│       ├── PLACEHOLDERS_ET_TODO.md  # Endpoints à implémenter (archivé avec rapports)
 │       ├── README.md  # Index du dossier
 │       ├── AUDITS_IMPLEMENTES/  # Recos toutes appliquées (Backend Alpha2, Dette qual., etc.)
 │       │   ├── INDEX.md  # Index des audits complétés
@@ -153,8 +156,11 @@ docs/
 ### Je veux développer une fonctionnalité
 1. [DEVELOPMENT.md](01-GUIDES/DEVELOPMENT.md) - Conventions et workflow
 2. [README_TECH.md](../README_TECH.md) - API et patterns
-3. [SITUATION_FEATURES.md](02-FEATURES/SITUATION_FEATURES.md) - Point de situation + priorités
+3. [ROADMAP_FONCTIONNALITES.md](02-FEATURES/ROADMAP_FONCTIONNALITES.md) - Backlog & priorités (source de vérité)
 4. [02-FEATURES/](02-FEATURES/) - Docs fonctionnalités existantes
+5. [F03_DIAGNOSTIC_INITIAL.md](02-FEATURES/F03_DIAGNOSTIC_INITIAL.md) - Référence F03 (test IRT adaptatif, diagnostic_results)
+6. [F04_REVISIONS_ESPACEES.md](02-FEATURES/F04_REVISIONS_ESPACEES.md) - Spécification F04 (SM-2, non implémenté)
+7. [F05_ADAPTATION_DYNAMIQUE.md](02-FEATURES/F05_ADAPTATION_DYNAMIQUE.md) - Référence F05 (adaptation difficulté, IRT, QCM vs saisie libre)
 
 ### Je veux créer un nouveau widget dashboard
 1. [DESIGN_SYSTEM_WIDGETS.md](06-WIDGETS/DESIGN_SYSTEM_WIDGETS.md) - Template et patterns
@@ -173,8 +179,8 @@ docs/
 ### Je veux consulter l'état du refactor
 1. [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](03-PROJECT/AUDIT_ARCHITECTURE_BACKEND_2026-03.md) — Audit SOLID/Clean Code 5 phases (22/02)
 2. [REFACTOR_STATUS_2026-02.md](03-PROJECT/REFACTOR_STATUS_2026-02.md) — État Clean Code P1–P3 + Architecture Ph1–Ph3
-2. [PLAN_CLEAN_CODE_ET_DTO](03-PROJECT/PLAN_CLEAN_CODE_ET_DTO_2026-02.md) — Détail DTO, exceptions, typage
-3. [PLAN_REFACTO_ARCHITECTURE](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/PLAN_REFACTO_ARCHITECTURE_2026-02.md) — Phases routes, handlers, services
+3. [PLAN_CLEAN_CODE_ET_DTO](03-PROJECT/PLAN_CLEAN_CODE_ET_DTO_2026-02.md) — Détail DTO, exceptions, typage
+4. [PLAN_REFACTO_ARCHITECTURE](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/PLAN_REFACTO_ARCHITECTURE_2026-02.md) — Phases routes, handlers, services
 
 ### Je veux consulter des audits/rapports
 1. [03-PROJECT — Index maître](03-PROJECT/README.md) - Taxonomie audits, recommandations, rapports
@@ -245,6 +251,17 @@ docs/
 
 ## 🔄 Dernières mises à jour
 
+### 06/03/2026 — Documentation F03, F04, F05 + audit cohérence docs
+- 📙 **[F03_DIAGNOSTIC_INITIAL.md](02-FEATURES/F03_DIAGNOSTIC_INITIAL.md)** — Référence F03 : algorithme IRT adaptatif, table `diagnostic_results`, endpoints, intégration F05
+- 📙 **[F04_REVISIONS_ESPACEES.md](02-FEATURES/F04_REVISIONS_ESPACEES.md)** — Spécification F04 (SM-2, non implémenté) : modèle de données, intégration prévue
+- 📙 **[F05_ADAPTATION_DYNAMIQUE.md](02-FEATURES/F05_ADAPTATION_DYNAMIQUE.md)** — Référence F05 : cascade IRT, proxys MIXTE/FRACTIONS, mode QCM vs saisie libre
+- 📝 **ROADMAP_FONCTIONNALITES** — Liens vers F03, F04, F05 ; F05 corrigé (is_open_answer côté frontend)
+- 📝 **WORKFLOW_EDUCATION** — F03 et F05 marqués implémentés
+- 📝 **06-WIDGETS** — LevelEstablishedWidget documenté
+- 📝 **API_QUICK_REFERENCE** — Section Diagnostic (F03), lien PLACEHOLDERS corrigé
+- 📝 **INDEX** — Numérotation refactor corrigée (1–4), structure 02-FEATURES (F03/F04/F05), PLACEHOLDERS dans arborescence, lien AUDIT_DETTE_QUALITE
+- 📝 **ENDPOINTS_NON_INTEGRES** — Section Diagnostic intégré, date 06/03
+
 ### 03/03/2026 — Audit architecture backend
 - 📐 **[AUDIT_ARCHITECTURE_BACKEND_2026-03.md](03-PROJECT/AUDIT_ARCHITECTURE_BACKEND_2026-03.md)** — Audit complet SOLID, Clean Code, performances, sécurité, industrialisation. 36 constats (4 critiques, 10 high). Plan 5 phases priorisé (~15 jours). Complémentaire à l'audit Cleanup du 01/03.
 
@@ -261,7 +278,7 @@ docs/
 - ✅ **Refactor qualité** : Typage TypeScript strict sur tous les renderers de visualisation (ChessRenderer, CodingRenderer, DeductionRenderer, GraphRenderer, etc.), useAccessibleAnimation (Variants/Transition), validation dashboard, vitest.setup. Exclusion `scripts/` du lint.
 - ✅ **Build + tests unitaires** : 31 tests Vitest OK (dont 11 sur safeValidateUserStats). E2E : `npx playwright install` requis.
 - 📝 **TESTING.md** : Section « Priorités de couverture frontend » + tests régression dashboard. [Lire →](01-GUIDES/TESTING.md#priorites-couverture)
-- 📝 **AUDIT_DETTE_QUALITE_FRONTEND** : Section « Corrections appliquées » documentée. [Lire →](03-PROJECT/AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md)
+- 📝 **AUDIT_DETTE_QUALITE_FRONTEND** : Section « Corrections appliquées » documentée. [Lire →](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/AUDIT_DETTE_QUALITE_FRONTEND_2026-02-20.md)
 
 ### 18/02/2026
 - 📄 **POINT_SITUATION_2026-02-18.md** — Bilan projet (fonctionnalités, priorités, références). [Lire →](03-PROJECT/POINT_SITUATION_2026-02-18.md)
@@ -356,7 +373,7 @@ docs/
 | Fichier | Description | Statut |
 |---------|-------------|--------|
 | **README.md** | Point d'entrée projet (français) | ✅ À mettre à jour |
-| **README_TECH.md** | Documentation technique complète | ✅ À jour (06/02/2026) |
+| **README_TECH.md** | Documentation technique complète | ✅ À jour (06/03/2026) |
 
 ---
 

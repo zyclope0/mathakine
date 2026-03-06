@@ -57,7 +57,7 @@
 | Document | Sujet |
 |----------|-------|
 | [ENDPOINTS_NON_INTEGRES.md](./ENDPOINTS_NON_INTEGRES.md) | Endpoints API — section Admin intégrée (16/02) |
-| [PLACEHOLDERS_ET_TODO.md](./PLACEHOLDERS_ET_TODO.md) | Placeholders restants (4 routes supprimées 22/02 : start_challenge, get_challenge_progress, get_challenge_rewards, get_user_progress_by_exercise_type) |
+| [PLACEHOLDERS_ET_TODO.md](./AUDITS_ET_RAPPORTS_ARCHIVES/PLACEHOLDERS_ET_TODO.md) | Placeholders restants (4 routes supprimées 22/02 : start_challenge, get_challenge_progress, get_challenge_rewards, get_user_progress_by_exercise_type) |
 
 ### Historique (archivé, consultable)
 

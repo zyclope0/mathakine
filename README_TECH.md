@@ -146,6 +146,8 @@ Couche independante du framework HTTP :
   - `auth_service.py` — Authentification, JWT
   - `badge_service.py` — Système de badges
   - `recommendation_service.py` — Recommandations adaptatives
+  - `adaptive_difficulty_service.py` — F05 : cascade IRT → progression → profil → fallback (voir [F05_ADAPTATION_DYNAMIQUE](docs/02-FEATURES/F05_ADAPTATION_DYNAMIQUE.md))
+  - `diagnostic_service.py` — F03 : test IRT adaptatif, `get_latest_score()` pour recommandations et F05
   - `chat_service.py` — Config et helpers chatbot IA (Phase 3.2)
   - `admin_service.py` — Façade re-exportant les 4 services admin spécialisés
   - `admin_config_service.py` — Config, maintenance, paramètres globaux (Phase 3.3)

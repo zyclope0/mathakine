@@ -405,7 +405,9 @@
       "newExercise": "New exercise",
       "answerCorrect": "Correct answer",
       "answerIncorrect": "Incorrect answer",
-      "option": "Option {index}"
+      "option": "Option {index}",
+      "openAnswerLabel": "Your answer",
+      "openAnswerPlaceholder": "Enter your answer…"
     },
     "error": {
       "invalidId": "Invalid exercise ID",
@@ -428,7 +430,9 @@
       "explanation": "Explanation",
       "showHint": "Show a hint",
       "hint": "Hint",
-      "close": "Close"
+      "close": "Close",
+      "openAnswerLabel": "Your answer",
+      "openAnswerPlaceholder": "Enter your answer…"
     }
   },
   "challenges": {
@@ -673,6 +677,12 @@
       "challengeDefault": "Logic challenge",
       "startCta": "Start",
       "browseAll": "Browse all"
+    },
+    "levelWidget": {
+      "title": "Your Mathematical Profile",
+      "notDone": "Establish your level for exercises adapted to your skills",
+      "cta": "Take the assessment",
+      "ctaRedo": "Retake the assessment"
     },
     "stats": {
       "totalExercises": "Total exercises",
@@ -1544,6 +1554,16 @@
     "title": "What's new",
     "subtitle": "Latest improvements to Mathakine, explained simply.",
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
+    "v310a3": {
+      "version": "v3.1.0-alpha.3",
+      "date": "March 6th, 2026",
+      "items": [
+        "Better skill tracking for a 100% tailor-made difficulty",
+        "Improved support during difficult exercises",
+        "Added clear progression widgets in your dashboard",
+        "Complete overhaul of documentation to ease future updates"
+      ]
+    },
     "latestBadge": "Latest",
     "latestLabel": "Most recent version",
     "v250a3": {

@@ -1,8 +1,8 @@
 # API Quick Reference — Mathakine
 
 > Référence condensée des endpoints — Frontend/Backend  
-> **Date :** 19/02/2026  
-> **Détails :** [ENDPOINTS_NON_INTEGRES](../03-PROJECT/ENDPOINTS_NON_INTEGRES.md), [PLACEHOLDERS_ET_TODO](../03-PROJECT/PLACEHOLDERS_ET_TODO.md)
+> **Date :** 06/03/2026  
+> **Détails :** [ENDPOINTS_NON_INTEGRES](../03-PROJECT/ENDPOINTS_NON_INTEGRES.md), [PLACEHOLDERS_ET_TODO](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/PLACEHOLDERS_ET_TODO.md)
 
 ---
 
@@ -12,6 +12,7 @@
 |---------|--------|--------------|
 | Auth | 9 | Variable |
 | Users | 14 | Sauf register |
+| **Diagnostic** (F03) | **5** | **Oui** |
 | **Admin** | **25** | **Archiviste** |
 | Exercises | 9 | Variable |
 | Challenges | 10 | Variable |
@@ -55,6 +56,20 @@
 | GET | `/api/users/leaderboard` | Oui | `?limit=50` | OK |
 | GET | `/api/users/` | Admin | — | Placeholder |
 | DELETE | `/api/users/{id}` | Admin | — | Placeholder |
+
+---
+
+## Diagnostic (F03 — Test IRT)
+
+| Méthode | Endpoint | Auth | Body / Params | Statut |
+|---------|----------|------|---------------|--------|
+| GET | `/api/diagnostic/status` | Oui | — | OK — `{has_completed, latest: {scores, completed_at, ...}}` |
+| POST | `/api/diagnostic/start` | Oui | `{triggered_from?: "onboarding"\|"settings"}` | OK |
+| POST | `/api/diagnostic/question` | Oui | `{session}` | OK |
+| POST | `/api/diagnostic/answer` | Oui | `{session, exercise_type, user_answer, correct_answer}` | OK |
+| POST | `/api/diagnostic/complete` | Oui | `{session, duration_seconds?}` | OK |
+
+**Consommé par :** `useIrtScores`, `LevelEstablishedWidget`, Settings (section Évaluation de niveau)
 
 ---
 

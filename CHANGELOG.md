@@ -4,6 +4,22 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [3.1.0-alpha.3] - 2026-03-06
+
+### Added
+- Documentation technique de référence complète pour les modules F03 (Test de diagnostic initial), F04 (Révisions espacées) et F05 (Adaptation dynamique de difficulté).
+- Audit complet de la documentation (`INDEX.md`, `ROADMAP_FONCTIONNALITES`, etc.) pour refléter l'état réel du code et archiver les anciens documents dans `03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/`.
+
+### Fixed
+- L'adaptation dynamique de la génération d'exercices (F05) prend désormais correctement en compte les proxies pour les opérations `MIXTE` et `FRACTIONS`.
+- Le mode de réponse "QCM" ou "Saisie Libre" est maintenant déterminé par le Frontend en fonction du niveau IRT prouvé de l'utilisateur (`useIrtScores()`), et non plus par la difficulté théorique de l'exercice, garantissant un "scaffolding" pédagogique correct.
+- Les endpoints manquants dans la documentation ont été ajoutés et validés (Endpoints Diagnostic, Admin, Sessions).
+
+### Changed
+- Refactor des règles de documentation : La vérité terrain est le code. Centralisation des documentations d'architecture dans `README_TECH.md`.
+
+---
+
 ## [3.0.0-alpha.3] - 2026-03-04
 
 ### Added
