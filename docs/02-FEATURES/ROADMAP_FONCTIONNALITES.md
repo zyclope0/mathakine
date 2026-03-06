@@ -74,7 +74,7 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 | # | Feature | D | G | E | R | B | Score | Priorité |
 |---|---------|---|---|---|---|---|-------|----------|
 | F01 | Rendu Markdown/KaTeX explications ✅ | 2 | 4 | 5 | 1 | 3 | **16.8** | P0 |
-| F02 | Défis quotidiens (défi du jour) | 3 | 5 | 4 | 2 | 5 | **16.9** | P0 |
+| F02 | Défis quotidiens (défi du jour) ✅ | 3 | 5 | 4 | 2 | 5 | **16.9** | P0 |
 | F03 | Test de diagnostic initial ✅ | 3 | 4 | 5 | 2 | 4 | **16.0** | P0 |
 | F04 | Révisions espacées (SM-2) | 4 | 4 | 5 | 2 | 4 | **14.8** | P0 |
 | F30 | [PROP] Effet Protégé (corriger erreur IA) | 4 | 4 | 5 | 2 | 4 | **15.4** | P1 |
@@ -141,41 +141,23 @@ Ces quatre features combinent un score composite élevé ET un bénéfice pédag
 
 ---
 
-### F02 — Défis quotidiens (défi du jour)
+### F02 — Défis quotidiens (défi du jour) ✅
 
 **Source** : [ROADMAP §3.2](ROADMAP_FONCTIONNALITES.md)  
 **Score** : 16.9 | D=3, G=5, E=4, R=2, B=5
 
-**Problème** : Aucun mécanisme de retour quotidien motivé. L'utilisateur n'a pas de raison intrinsèque de revenir chaque jour.
+**Statut** : ✅ Implémenté (Mars 2026)
 
 **Valeur pédagogique (E=4)** :
 - Cepeda et al. (2006) — La pratique distribuée (daily sessions) produit une meilleure rétention que la pratique massée, indépendamment du temps total (d = 0.46-0.71).
 - Deci & Ryan (2000) — SDT : les défis quotidiens optionnels, adaptés au niveau, soutiennent le besoin de compétence sans pression externe (contrairement aux streaks punitifs).
-- **Attention** : Un défi quotidien obligatoire ou punitif peut créer du FOMO négatif. La conception doit préserver l'autonomie (pas de punition si manqué).
 
-**Conception recommandée** :
+**Conception implémentée** : 3 défis par jour (volume_exercises, specific_type, logic_challenge), bonus XP, expiration minuit, pas de punition si manqué.
 
-| Élément | Recommandation |
-|---------|----------------|
-| Nombre | 3 défis par jour (pas plus) |
-| Difficulté | Adaptée au profil utilisateur (onboarding + historique) |
-| Récompense | Points bonus + progression vers badge |
-| Expiration | Fin de journée (minuit), pas de pression multi-jours |
-| Comportement si manqué | Aucune perte, aucun streak cassé — simple reset |
-
-**Modèle de données** :
-```sql
-daily_challenges (
-  id, user_id, date DATE, challenge_type,
-  target_count INT, completed_count INT,
-  status ENUM('pending', 'completed', 'expired'),
-  bonus_points INT, created_at, completed_at
-)
-```
-
-**Effort estimé** : 3-5 jours (backend + frontend)
+**Référence technique complète** : [F02_DEFIS_QUOTIDIENS.md](F02_DEFIS_QUOTIDIENS.md)
 
 ---
+
 
 ### F03 — Test de diagnostic initial
 

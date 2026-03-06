@@ -3,6 +3,7 @@
 from starlette.routing import Route
 
 from server.handlers.auth_handlers import api_get_current_user
+from server.handlers.daily_challenge_handlers import get_daily_challenges
 from server.handlers.user_handlers import (
     create_user_account,
     delete_user,
@@ -51,6 +52,11 @@ def get_users_routes():
         Route(
             "/api/users/me/challenges/progress",
             endpoint=get_challenges_progress,
+            methods=["GET"],
+        ),
+        Route(
+            "/api/daily-challenges",
+            endpoint=get_daily_challenges,
             methods=["GET"],
         ),
         Route("/api/users/stats", endpoint=get_user_stats, methods=["GET"]),

@@ -36,11 +36,41 @@ logger = get_logger(__name__)
 
 
 async def generate_exercise(request: Request) -> Response:
-    """Génère un nouvel exercice en utilisant le groupe d'âge."""
+    """Génère un nouvel exercice en utilisant le groupe d'âge.
+
+    Paramètre ?adaptive=true (défaut) : si l'utilisateur est authentifié et
+    qu'aucun age_group n'est fourni explicitement, la difficulté est résolue
+    de façon adaptative (IRT → progression → profil → fallback).
+    Passer ?adaptive=false ou fournir age_group pour forcer le mode statique.
+    """
     params = request.query_params
     exercise_type_raw = params.get("type") or params.get("exercise_type")
     age_group_raw = params.get("age_group")  # Changed from difficulty
     use_ai = params.get("ai", False)
+    adaptive = params.get("adaptive", "true").lower() not in ("false", "0", "no")
+
+    # Résolution adaptative si authentifié et aucun age_group forcé
+    current_user = getattr(request.state, "user", None)
+    if adaptive and current_user and not age_group_raw:
+        try:
+            from app.models.user import User
+            from app.services.adaptive_difficulty_service import (
+                resolve_adaptive_difficulty,
+            )
+            from app.utils.db_utils import db_session
+            from server.exercise_generator_validators import normalize_exercise_type
+
+            resolved_type = normalize_exercise_type(exercise_type_raw or "ADDITION")
+            async with db_session() as db:
+                user_obj = db.query(User).filter(User.id == current_user["id"]).first()
+                if user_obj:
+                    age_group_raw = resolve_adaptive_difficulty(
+                        db, user_obj, resolved_type
+                    )
+        except Exception as adaptive_err:
+            logger.warning(
+                f"[AdaptiveDifficulty] Résolution échouée, fallback statique: {adaptive_err}"
+            )
 
     # Normaliser et valider les paramètres
     exercise_type, age_group, derived_difficulty = (
@@ -171,6 +201,7 @@ async def submit_answer(request: Request) -> JSONResponse:
                 response_data = ExerciseService.submit_answer_result(
                     db, exercise_id, user_id, payload.answer, payload.time_spent
                 )
+                db.commit()
                 return JSONResponse(response_data.model_dump())
             except (ExerciseNotFoundError, ExerciseSubmitError) as e:
                 return api_error_response(e.status_code, e.message)
@@ -244,7 +275,11 @@ async def get_exercises_list(request: Request) -> JSONResponse:
 
 
 async def generate_exercise_api(request: Request) -> JSONResponse:
-    """Génère un nouvel exercice via API JSON (POST) en utilisant le groupe d'âge."""
+    """Génère un nouvel exercice via API JSON (POST) en utilisant le groupe d'âge.
+
+    Paramètre "adaptive": true (défaut) : si l'utilisateur est authentifié et
+    qu'aucun age_group n'est fourni, la difficulté est résolue de façon adaptative.
+    """
     try:
         data_or_err = await parse_json_body_any(request)
         if isinstance(data_or_err, JSONResponse):
@@ -252,11 +287,37 @@ async def generate_exercise_api(request: Request) -> JSONResponse:
         exercise_type_raw = data_or_err.get("exercise_type")
         age_group_raw = data_or_err.get("age_group")
         use_ai = data_or_err.get("ai", False)
+        adaptive = data_or_err.get("adaptive", True)
 
-        if not exercise_type_raw or not age_group_raw:
-            return api_error_response(
-                400, "Les paramètres 'exercise_type' et 'age_group' sont requis"
-            )
+        if not exercise_type_raw:
+            return api_error_response(400, "Le paramètre 'exercise_type' est requis")
+
+        # Résolution adaptative si authentifié et aucun age_group fourni
+        current_user = getattr(request.state, "user", None)
+        if adaptive and current_user and not age_group_raw:
+            try:
+                from app.models.user import User
+                from app.services.adaptive_difficulty_service import (
+                    resolve_adaptive_difficulty,
+                )
+                from server.exercise_generator_validators import normalize_exercise_type
+
+                resolved_type = normalize_exercise_type(exercise_type_raw)
+                async with db_session() as db:
+                    user_obj = (
+                        db.query(User).filter(User.id == current_user["id"]).first()
+                    )
+                    if user_obj:
+                        age_group_raw = resolve_adaptive_difficulty(
+                            db, user_obj, resolved_type
+                        )
+            except Exception as adaptive_err:
+                logger.warning(
+                    f"[AdaptiveDifficulty] Résolution échouée, fallback statique: {adaptive_err}"
+                )
+
+        if not age_group_raw:
+            return api_error_response(400, "Le paramètre 'age_group' est requis")
 
         from server.exercise_generator import normalize_and_validate_exercise_params
 

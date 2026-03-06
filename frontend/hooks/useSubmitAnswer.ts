@@ -48,13 +48,14 @@ export function useSubmitAnswer() {
       // Le badge "Résolu" vient de completed-exercises, pas de la liste.
       queryClient.invalidateQueries({ queryKey: ["user", "stats"] });
 
-      // Si la réponse est correcte, invalider et refetch la progression + badges + recommandations
+      // Si la réponse est correcte, invalider et refetch la progression + badges + recommandations + défis quotidiens
       if (data.is_correct) {
         queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
         queryClient.refetchQueries({ queryKey: ["completed-exercises"] });
         queryClient.invalidateQueries({ queryKey: ["badges"] });
         queryClient.invalidateQueries({ queryKey: ["user", "progress"] });
         queryClient.invalidateQueries({ queryKey: ["recommendations"] });
+        queryClient.invalidateQueries({ queryKey: ["daily-challenges"] });
       }
 
       // Afficher les badges gagnés si présents

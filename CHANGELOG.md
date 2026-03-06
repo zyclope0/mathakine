@@ -4,6 +4,25 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [3.1.0-alpha.4] - 2026-03-07
+
+### Added
+- F02 — Défis quotidiens : 3 objectifs par jour (volume, type spécifique, défis logiques), widget sur le dashboard, bonus XP à la complétion
+- Documentation technique F02 (F02_DEFIS_QUOTIDIENS.md, F02_DAILY_CHALLENGES_WIDGET.md)
+
+### Changed
+- Refactor dashboard : Vue d'ensemble allégée (Défis du jour + Série en cours côte à côte), Progression (4 graphiques uniquement), nouvel onglet Mon Profil (Niveau, badges, stats, tempo, journal)
+- Onglet Détails renommé en Mon Profil
+- DailyChallengesWidget : design Anti-Cheap (fonds neutres, accent sur icônes, pluralisation correcte, badges XP stylisés)
+- Uniformisation hauteur des widgets Défis du jour et Série en cours (grille flex)
+
+### Removed
+- LeaderboardWidget retiré de la Vue d'ensemble (déjà accessible via navbar)
+- LevelEstablishedWidget et bloc Stats déplacés vers l'onglet Mon Profil
+- LevelIndicator déplacé de Progression vers Mon Profil
+
+---
+
 ## [3.1.0-alpha.3] - 2026-03-06
 
 ### Added

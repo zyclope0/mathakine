@@ -1,78 +1,147 @@
 "use client";
 
-import { Info, Target, Sparkles } from "lucide-react";
+import {
+  Moon,
+  Sigma,
+  Heart,
+  RefreshCcw,
+  Mail,
+} from "lucide-react";
 import Link from "next/link";
-import { PageLayout, PageSection } from "@/components/layout";
-import { Card, CardContent } from "@/components/ui/card";
+import { PageLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 
 export default function AboutPage() {
   const t = useTranslations("about");
 
+  const philosophyItems = [
+    { key: "philosophy1", icon: Moon },
+    { key: "philosophy2", icon: Sigma },
+    { key: "philosophy3", icon: Heart },
+    { key: "philosophy4", icon: RefreshCcw },
+  ] as const;
+
   return (
     <PageLayout maxWidth="2xl">
-      <header className="text-center py-8 md:py-12 space-y-4">
-        <div className="flex justify-center">
-          <div className="rounded-full bg-primary/10 p-4">
-            <Info className="h-12 w-12 text-primary" aria-hidden="true" />
-          </div>
-        </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground">{t("title")}</h1>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{t("subtitle")}</p>
+      {/* 1. En-tête (Hero Section) */}
+      <header className="text-center py-12 md:py-16 space-y-4">
+        <h1 className="text-3xl md:text-5xl font-bold text-foreground">
+          {t("title")}
+        </h1>
+        <p className="text-lg md:text-xl text-primary font-medium">
+          {t("subtitle")}
+        </p>
       </header>
 
-      <PageSection title={t("what.title")} description={t("what.intro")}>
-        <Card>
-          <CardContent className="pt-6 space-y-4">
-            <p className="text-muted-foreground">{t("what.desc")}</p>
-            <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-              <li>{t("what.bullet1")}</li>
-              <li>{t("what.bullet2")}</li>
-              <li>{t("what.bullet3")}</li>
-            </ul>
-          </CardContent>
-        </Card>
-      </PageSection>
-
-      <PageSection title={t("origin.title")} description={t("origin.intro")}>
-        <div className="space-y-4">
-          <Card className="border-l-4 border-l-primary/50">
-            <CardContent className="pt-6 flex gap-4">
-              <div className="shrink-0 rounded-lg bg-primary/10 p-3 h-fit">
-                <Target className="h-6 w-6 text-primary" aria-hidden="true" />
-              </div>
-              <div className="space-y-3">
-                <p className="text-muted-foreground">{t("origin.p1")}</p>
-                <p className="text-muted-foreground">{t("origin.p2")}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6 space-y-3">
-              <p className="text-muted-foreground">{t("origin.p3")}</p>
-              <p className="text-muted-foreground">{t("origin.p4")}</p>
-            </CardContent>
-          </Card>
-
-          <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
-            <Sparkles className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-            <p className="text-sm font-medium text-foreground italic">{t("origin.tagline")}</p>
+      <div className="space-y-12 md:space-y-16">
+        {/* 2. Section 1 : Une histoire née de la nécessité */}
+        <section>
+          <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-6">
+            {t("story.title")}
+          </h2>
+          <div className="bg-card/80 border border-border backdrop-blur-md p-6 md:p-8 rounded-2xl space-y-6">
+            <p className="text-muted-foreground leading-relaxed">
+              {t("story.p1")}
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              {t.rich("story.p2", {
+                bold: (chunks) => (
+                  <span className="font-semibold text-foreground">{chunks}</span>
+                ),
+              })}
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              {t("story.p3")}
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              {t("story.p4")}
+            </p>
           </div>
-        </div>
-      </PageSection>
+        </section>
 
-      <PageSection title={t("who.title")} description={t("who.intro")}>
-        <Card>
-          <CardContent className="pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <p className="text-muted-foreground">{t("who.desc")}</p>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/contact">{t("contactCta")}</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </PageSection>
+        {/* 3. Section 2 : La philosophie "Zéro Bruit" (Grille Bento) */}
+        <section>
+          <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-2">
+            {t("philosophy.title")}
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            {t("philosophy.intro")}
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            {philosophyItems.map(({ key, icon: Icon }) => (
+              <div
+                key={key}
+                className="bg-muted/30 border border-border/50 p-5 rounded-xl flex flex-col gap-2 transition-all hover:bg-muted/50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">
+                    {t(`philosophy.${key}.title`)}
+                  </h3>
+                </div>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  {t(`philosophy.${key}.desc`)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 4. Section 3 : L'effet "Bateau de trottoir" */}
+        <section>
+          <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-6">
+            {t("curb.title")}
+          </h2>
+          <div className="border-l-4 border-l-primary bg-primary/5 p-6 md:p-8 rounded-r-2xl space-y-6">
+            <p className="text-muted-foreground leading-relaxed">
+              {t("curb.p1")}
+            </p>
+            <p className="text-muted-foreground leading-relaxed font-medium">
+              {t("curb.p2")}
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              {t("curb.p3")}
+            </p>
+          </div>
+        </section>
+
+        {/* 5. Section 4 : Une démarche transparente (Footer de la page) */}
+        <section>
+          <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-6">
+            {t("transparency.title")}
+          </h2>
+          <div className="bg-card/80 border border-border backdrop-blur-md p-6 md:p-8 rounded-2xl space-y-6">
+            <p className="text-muted-foreground leading-relaxed">
+              {t("transparency.p1")}
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              {t("transparency.p2")}
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              {t("transparency.p3")}
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              {t("transparency.p4")}
+            </p>
+
+            {/* Footer auteur */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-6 border-t border-border">
+              <p className="text-sm font-medium text-foreground">
+                {t("transparency.signature")}
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/contact" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" aria-hidden="true" />
+                  {t("contactCta")}
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      </div>
     </PageLayout>
   );
 }

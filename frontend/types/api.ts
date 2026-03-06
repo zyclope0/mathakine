@@ -128,6 +128,27 @@ export interface Challenge {
 export type ChallengesPaginatedResponse = PaginatedResponse<Challenge>;
 
 /**
+ * Défi quotidien (F02).
+ */
+export interface DailyChallenge {
+  id: number;
+  date: string;
+  challenge_type: "volume_exercises" | "specific_type" | "logic_challenge";
+  metadata: Record<string, string>;
+  target_count: number;
+  completed_count: number;
+  status: "pending" | "completed" | "expired";
+  bonus_points: number;
+}
+
+/**
+ * Réponse GET /api/daily-challenges.
+ */
+export interface DailyChallengesResponse {
+  challenges: DailyChallenge[];
+}
+
+/**
  * Filtres pour les défis avec recherche.
  */
 export interface ChallengeFiltersWithSearch {

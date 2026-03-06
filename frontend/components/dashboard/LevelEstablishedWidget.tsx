@@ -47,7 +47,7 @@ export function LevelEstablishedWidget() {
 
   return (
     <div
-      className="mt-8 bg-card border border-primary/20 shadow-sm rounded-xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+      className="bg-card border border-primary/20 shadow-sm rounded-xl p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
       role="region"
       aria-label={hasCompletedDiagnostic ? t("title") : t("notDone")}
     >

@@ -423,6 +423,6 @@ Préférences de gamification :
 
 ---
 
-**Avancements 17/02** : B4 reformulation 17 badges, C-1 moteur générique (badges défis/mixte), terrain B5. **UX** : onglets En cours / À débloquer ; cartes obtenus compactes (dépliable au survol). [B4_REFORMULATION_BADGES](B4_REFORMULATION_BADGES.md), [PLAN_REFONTE_BADGES](PLAN_REFONTE_BADGES.md).
+**Avancements 17/02** : B4 reformulation 17 badges, C-1 moteur générique (badges défis/mixte), terrain B5. **UX** : onglets En cours / À débloquer ; cartes obtenus compactes (dépliable au survol). [B4_REFORMULATION_BADGES](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/B4_REFORMULATION_BADGES.md), [PLAN_REFONTE_BADGES](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md).
 
-**Voir aussi** : [SITUATION_FEATURES.md](SITUATION_FEATURES.md). **[PLAN_REFONTE_BADGES.md](PLAN_REFONTE_BADGES.md)** — Plan refonte + Admin CRUD + moteur. pour le point de situation global et les priorités d’implémentation.
+**Voir aussi** : [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md). **[PLAN_REFONTE_BADGES.md](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/PLAN_REFONTE_BADGES.md)** — Plan refonte + Admin CRUD + moteur (backlog & priorités)..

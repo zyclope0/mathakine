@@ -41,6 +41,7 @@ docs/
 │
 ├── 02-FEATURES/           # 📙 Fonctionnalités
 │   ├── ROADMAP_FONCTIONNALITES.md  # ⭐ BACKLOG & PRIORISATION (document vivant — source de vérité)
+│   ├── F02_DEFIS_QUOTIDIENS.md     # Référence F02 : défis quotidiens (implémenté)
 │   ├── BADGES_AMELIORATIONS.md    # Fondements psychologiques badges + backlog améliorations
 │   ├── ANALYTICS_PROGRESSION.md  # Spécifications graphiques de progression (futures)
 │   ├── WORKFLOW_EDUCATION_REFACTORING.md # Workflow utilisateur + éducation (référence)
@@ -65,6 +66,7 @@ docs/
 │   ├── REFACTOR_STATUS_2026-02.md  # État refactor Clean Code + Architecture (28/02)
 │   ├── EVALUATION_PROJET_2026-02-07.md  # Référence actuelle (évaluation factuelle)
 │   ├── AUDIT_DASHBOARD_2026-02.md  # Audit dashboard (recos partielles)
+│   ├── REFACTOR_DASHBOARD_2026-03.md  # Refactor onglets (Vue d'ensemble, Progression, Mon Profil)
 │   ├── AUDIT_ARCHITECTURE_BACKEND_2026-03.md  # Audit architecture SOLID/Clean Code/Industrialisation (22/02)
 │   ├── AUDIT_BACKEND_INDUSTRIALISATION_2026-02.md  # Audit backend + plan itérations Dev/Test/Prod
 │   ├── AUDIT_SENTRY_2026-02.md  # Configuration Sentry (référence)
@@ -250,6 +252,16 @@ docs/
 ---
 
 ## 🔄 Dernières mises à jour
+
+### 06/03/2026 — F02 Défis quotidiens + Refactor Dashboard + Documentation
+- 📙 **[F02_DEFIS_QUOTIDIENS.md](02-FEATURES/F02_DEFIS_QUOTIDIENS.md)** — Référence F02 : modèle, API, service, câblage progression
+- 📙 **[F02_DAILY_CHALLENGES_WIDGET.md](06-WIDGETS/F02_DAILY_CHALLENGES_WIDGET.md)** — Widget DailyChallengesWidget, design Anti-Cheap
+- 📕 **[REFACTOR_DASHBOARD_2026-03.md](03-PROJECT/REFACTOR_DASHBOARD_2026-03.md)** — Réorganisation onglets : Vue d'ensemble (Défis+Série), Progression (4 graphiques), Mon Profil (Niveau, badges, stats, tempo, journal)
+- 📝 **INTEGRATION_PROGRESSION_WIDGETS** — Structure actuelle, DailyChallengesWidget, Leaderboard retiré
+- 📝 **ROADMAP_FONCTIONNALITES** — F02 marqué implémenté
+- 📝 **API_QUICK_REFERENCE** — Section Daily Challenges (F02)
+- 📝 **ENDPOINTS_PROGRESSION** — GET /api/daily-challenges
+- 📝 **INDEX** — F02, REFACTOR_DASHBOARD, F02_DAILY_CHALLENGES_WIDGET
 
 ### 06/03/2026 — Documentation F03, F04, F05 + audit cohérence docs
 - 📙 **[F03_DIAGNOSTIC_INITIAL.md](02-FEATURES/F03_DIAGNOSTIC_INITIAL.md)** — Référence F03 : algorithme IRT adaptatif, table `diagnostic_results`, endpoints, intégration F05

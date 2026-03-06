@@ -270,6 +270,19 @@ async def submit_challenge_answer(request: Request) -> JSONResponse:
                         "Streak update skipped (data/type error)", exc_info=True
                     )
 
+            # F02 : mise à jour des défis quotidiens (logic_challenge)
+            if is_correct:
+                try:
+                    from app.services.daily_challenge_service import (
+                        record_logic_challenge_completed,
+                    )
+
+                    record_logic_challenge_completed(db, user_id, is_correct)
+                except Exception:
+                    logger.debug(
+                        "Daily challenge update skipped (logic)", exc_info=True
+                    )
+
             # Notification « Tu approches » si pas de nouveau badge mais un proche
             progress_notif = None
             if not new_badges:
@@ -299,6 +312,7 @@ async def submit_challenge_answer(request: Request) -> JSONResponse:
                 )
                 response_data["hints_remaining"] = len(hints_list) - hints_used_count
 
+            db.commit()
             return JSONResponse(response_data)
     except ChallengeNotFoundError:
         return api_error_response(404, "Défi logique non trouvé")

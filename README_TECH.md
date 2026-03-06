@@ -206,6 +206,7 @@ Couche independante du framework HTTP :
 | GET | `/api/users/stats` | user_handlers | Statistiques utilisateur |
 | GET | `/api/users/me/progress` | user_handlers | ✨ Progression exercices (streaks, accuracy) |
 | GET | `/api/users/me/challenges/progress` | user_handlers | ✨ Progression defis |
+| GET | `/api/daily-challenges` | daily_challenge_handlers | F02 Défis quotidiens (06/03) |
 | GET | `/api/users/me/sessions` | user_handlers | ✨ Sessions actives (RGPD) |
 | DELETE | `/api/users/me/sessions/{id}` | user_handlers | ✨ Revoquer session |
 | GET | `/api/exercises` | exercise_handlers | Liste exercices (filtres, pagination, `order=random`, `hide_completed`) |
@@ -272,6 +273,7 @@ Chaque domaine a son hook dedie base sur React Query :
 - `useProfile` / `useUserStats` - Donnees utilisateur
 - `useProgressStats` - ✨ Progression exercices (streaks, accuracy)
 - `useChallengesProgress` - ✨ Progression defis
+- `useDailyChallenges` - F02 Défis quotidiens (06/03)
 - `useSettings` - ✨ Sessions utilisateur (RGPD)
 - `useRecommendations` - Recommandations adaptatives (avec mutation `complete`)
 - `useSubmitAnswer` - Soumission de reponses
@@ -342,9 +344,10 @@ Le systeme utilise l'API OpenAI pour generer des exercices et defis :
 | Info | INC-F2 | Streaming hors client API (normal pour SSE, documente) | `AIGenerator.tsx`, `chat.ts` |
 | Info | PLACEHOLDERS | 13 endpoints placeholders (non-bloquants, doc disponible) | Voir `docs/PLACEHOLDERS_ET_TODO.md` |
 
-### Endpoints progression integres (06/02/2026, MAJ 16/02)
+### Endpoints progression integres (06/02/2026, MAJ 06/03)
 | Endpoint | Description | Utilisation frontend |
 |---|---|---|
+| `GET /api/daily-challenges` | F02 Défis quotidiens (3 par jour) | ✅ `useDailyChallenges` → DailyChallengesWidget |
 | `GET /api/users/me/progress` | Stats exercices : streaks, accuracy, par categorie | ✅ `useProgressStats` → StreakWidget, CategoryAccuracyChart |
 | `GET /api/users/me/challenges/progress` | Stats defis : completes, temps, liste detaillee | ✅ `useChallengesProgress` → ChallengesProgressWidget |
 | `GET /api/users/me/sessions` | Sessions actives (is_current sur session courante) | ✅ `useSettings` → page /settings |
@@ -353,7 +356,7 @@ Le systeme utilise l'API OpenAI pour generer des exercices et defis :
 
 **Plateforme** : `maintenance_mode` (overlay frontend + 503 sauf /login, /admin, health), `registration_enabled` (403 sur POST /api/users/ si false). UserSession creee a chaque login.
 
-**Doc complete** : `docs/06-WIDGETS/INTEGRATION_PROGRESSION_WIDGETS.md`, `docs/02-FEATURES/SITUATION_FEATURES.md`
+**Doc complete** : `docs/06-WIDGETS/INTEGRATION_PROGRESSION_WIDGETS.md`, `docs/02-FEATURES/F02_DEFIS_QUOTIDIENS.md`, `docs/03-PROJECT/REFACTOR_DASHBOARD_2026-03.md`
 
 ### Plan d'alignement futur
 1. **P1** : Remonter les imports lazy en haut des fichiers `server/handlers/` (amelioration perfs)

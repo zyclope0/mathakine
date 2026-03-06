@@ -139,6 +139,101 @@ def _plausible_offset(correct: int) -> int:
     return max(1 - correct, offset)  # Éviter les négatifs si possible
 
 
+def _invert_digits(n: int) -> int:
+    """Inverse les chiffres d'un entier (ex: 48 → 84). Utile pour INITIE."""
+    s = str(n)
+    if len(s) >= 2:
+        return int(s[::-1])
+    return n + 1
+
+
+def _magnitude_offset(correct: int, pct: float) -> int:
+    """
+    Génère un offset en % du résultat, arrondi à l'entier non nul.
+    Ex: _magnitude_offset(48, 0.10) → 5 (±10 %)
+    """
+    val = max(1, round(abs(correct) * pct))
+    return val
+
+
+def _calibrated_distractors(
+    correct: int,
+    num1: int,
+    num2: int,
+    op: str,
+    difficulty: str,
+) -> list[int]:
+    """
+    Génère 3 distracteurs calibrés selon la difficulté et l'opération.
+
+    Fondements scientifiques :
+    - INITIE  : Hattie & Timperley (2007) — erreurs de comptage (±1/±2) + inversion
+                chiffres → misconceptions réelles des débutants (Butler 2010).
+    - PADAWAN : Sweller (1988) CLT — erreurs de retenue (+10/-10) + confusion
+                d'opération (ex: additionner au lieu de multiplier).
+    - CHEVALIER: ±10% du résultat → l'élève doit discriminer des voisins proches,
+                 activant la mémoire de travail (Haladyna & Downing 1993).
+    - MAITRE   : ±5% du résultat + off-by-one sur facteurs → erreurs subtiles.
+    - GRAND_MAITRE: ±2-3% → discrimination quasi-syntaxique (voisins très proches).
+    """
+    c = correct
+
+    if difficulty == DifficultyLevels.INITIE:
+        inv = _invert_digits(c)
+        d1 = c + 1
+        d2 = max(1, c - 1)
+        d3 = inv if inv != c else c + 2
+        return [d1, d2, d3]
+
+    if difficulty == DifficultyLevels.PADAWAN:
+        # Erreur de retenue (+10/-10) + confusion d'opération
+        d1 = c + 10
+        d2 = max(1, c - 10)
+        if op == "MULTIPLICATION":
+            # Confusion addition (num1+num2 au lieu de num1×num2)
+            d3 = num1 + num2 if num1 + num2 != c else c + random.randint(3, 7)
+        elif op == "DIVISION":
+            # Confusion soustraction (num1-num2 au lieu de num1÷num2)
+            d3 = max(1, num1 - num2) if num1 - num2 != c else c + 3
+        else:
+            d3 = c + random.choice([-2, 2])
+        return [d1, d2, max(1, d3)]
+
+    if difficulty == DifficultyLevels.CHEVALIER:
+        margin = _magnitude_offset(c, 0.10)
+        d1 = c + margin
+        d2 = max(1, c - margin)
+        # Propriété inverse (ex: num2/num1 pour division)
+        if op == "DIVISION" and num1 != 0:
+            d3 = max(1, num2 // num1) if num1 > 0 and num2 // num1 != c else c + margin + 1
+        else:
+            d3 = c + random.choice([margin + 1, -(margin + 1)])
+            d3 = max(1, d3)
+        return [d1, d2, d3]
+
+    if difficulty == DifficultyLevels.MAITRE:
+        margin = _magnitude_offset(c, 0.05)
+        margin = max(1, margin)
+        d1 = c + margin
+        d2 = max(1, c - margin)
+        # Off-by-one sur facteur (ex: (num1±1)*num2 ou num1*(num2±1))
+        if op == "MULTIPLICATION":
+            d3 = (num1 + 1) * num2 if (num1 + 1) * num2 != c else (num1 - 1) * num2
+            d3 = max(1, d3)
+        elif op == "DIVISION":
+            d3 = max(1, c + 1) if c + 1 != d1 else max(1, c - 2)
+        else:
+            d3 = c + margin + 1
+        return [d1, d2, max(1, d3)]
+
+    # GRAND_MAITRE — ±2-3 %, voisins très proches
+    margin = max(1, _magnitude_offset(c, 0.025))
+    d1 = c + margin
+    d2 = max(1, c - margin)
+    d3 = c + margin + 1
+    return [d1, d2, d3]
+
+
 def generate_smart_choices(
     operation_type: str,
     num1: int,
@@ -147,113 +242,101 @@ def generate_smart_choices(
     age_group_or_difficulty: str,
 ) -> list[str]:
     """
-    Génère des choix de réponses avec des erreurs typiques selon l'opération.
-    Garde-fou : aucun choix absurde (ex: num1*num2 pour une addition de grands nombres).
-    """
-    choices = [str(correct_result)]
+    Génère 4 choix de réponses (1 correct + 3 distracteurs) calibrés selon le niveau.
 
+    Les distracteurs représentent des erreurs typiques de raisonnement
+    (misconceptions-based distractors) adaptées à chaque niveau de difficulté.
+
+    Fondements :
+    - Butler (2010) Testing effect : seuls les distracteurs fondés sur des
+      misconceptions réelles renforcent la rétention.
+    - Haladyna & Downing (1993) : 3 distracteurs homogènes en plausibilité
+      sont plus efficaces que 4 distracteurs hétérogènes.
+    - Sweller (1988) CLT : à bas niveau, les distracteurs trop proches
+      surchargent ; à haut niveau, trop éloignés ne challengent pas.
+    """
     op = operation_type.upper()
+    derived = get_difficulty_from_age_group(age_group_or_difficulty)
+
+    # Obtenir les 3 distracteurs calibrés
+    raw_distractors = _calibrated_distractors(correct_result, num1, num2, op, derived)
+
+    # Fallback opération-spécifique si calibrated_distractors retourne des valeurs
+    # identiques ou non plausibles (pour les cas edge comme correct_result=1)
+    op_fallback = []
     if op == "ADDITION":
-        # Ne JAMAIS utiliser num1*num2 pour l'addition : absurde dès que result > 100
-        cand1 = correct_result + random.randint(1, 3)
-        cand2 = max(1, correct_result - random.randint(1, 2))
-        cand3 = (
-            str(num1 * num2)
-            if num1 * num2 != correct_result
-            and _is_plausible_wrong(correct_result, num1 * num2)
-            else str(correct_result + _plausible_offset(correct_result))
-        )
-        choices.extend([str(cand1), str(cand2), cand3])
+        op_fallback = [
+            correct_result + random.randint(1, 3),
+            max(1, correct_result - random.randint(1, 2)),
+            correct_result + _plausible_offset(correct_result),
+        ]
     elif op == "SUBTRACTION":
-        # num1+num2 est absurde pour une soustraction (trop grand)
         cand_sub = num2 - num1 if num2 != num1 else correct_result + 3
         cand_add = num1 + num2
-        cand3 = (
-            str(cand_add)
-            if cand_add != correct_result
-            and _is_plausible_wrong(correct_result, cand_add)
-            else str(correct_result + _plausible_offset(correct_result))
-        )
-        choices.extend(
-            [
-                str(cand_sub) if cand_sub > 0 else str(correct_result + 2),
-                str(correct_result + random.randint(1, 3)),
-                cand3,
-            ]
-        )
+        op_fallback = [
+            cand_sub if cand_sub > 0 else correct_result + 2,
+            correct_result + random.randint(1, 3),
+            (
+                cand_add
+                if cand_add != correct_result
+                and _is_plausible_wrong(correct_result, cand_add)
+                else correct_result + _plausible_offset(correct_result)
+            ),
+        ]
     elif op == "MULTIPLICATION":
-        # num1+num2 est absurde pour une multiplication de grands nombres
         cand_add = num1 + num2
-        cand3 = (
-            str(cand_add)
-            if cand_add != correct_result
-            and _is_plausible_wrong(correct_result, cand_add)
-            else str(correct_result + _plausible_offset(correct_result))
-        )
-        choices.extend(
-            [
-                cand3,
-                (
-                    str(correct_result + num1)
-                    if _is_plausible_wrong(correct_result, correct_result + num1)
-                    else str(correct_result + _plausible_offset(correct_result))
-                ),
-                (
-                    str(max(1, correct_result - num2))
-                    if _is_plausible_wrong(
-                        correct_result, max(1, correct_result - num2)
-                    )
-                    else str(max(1, correct_result + _plausible_offset(correct_result)))
-                ),
-            ]
-        )
+        op_fallback = [
+            (
+                cand_add
+                if cand_add != correct_result
+                and _is_plausible_wrong(correct_result, cand_add)
+                else correct_result + _plausible_offset(correct_result)
+            ),
+            (
+                correct_result + num1
+                if _is_plausible_wrong(correct_result, correct_result + num1)
+                else correct_result + _plausible_offset(correct_result)
+            ),
+            max(1, correct_result + _plausible_offset(correct_result)),
+        ]
     elif op == "DIVISION":
         cand_sub = num1 - num2 if num1 > num2 else correct_result + 2
-        cand3 = (
-            str(cand_sub)
-            if cand_sub != correct_result
-            and cand_sub > 0
-            and _is_plausible_wrong(correct_result, cand_sub)
-            else str(correct_result + _plausible_offset(correct_result))
-        )
-        choices.extend(
-            [
-                str(correct_result + 1),
-                str(max(1, correct_result - 1)),
-                cand3,
-            ]
-        )
+        op_fallback = [
+            correct_result + 1,
+            max(1, correct_result - 1),
+            (
+                cand_sub
+                if cand_sub != correct_result
+                and cand_sub > 0
+                and _is_plausible_wrong(correct_result, cand_sub)
+                else correct_result + _plausible_offset(correct_result)
+            ),
+        ]
 
-    derived = get_difficulty_from_age_group(age_group_or_difficulty)
-    if derived in [DifficultyLevels.CHEVALIER, DifficultyLevels.MAITRE]:
-        margin = max(1, int(correct_result * 0.1))
-        if len(choices) > 1:
-            choices[1] = str(correct_result + margin)
-        if len(choices) > 2:
-            choices[2] = str(max(1, correct_result - margin))
-
-    # Sanitization : garder uniquement les choix plausibles (jamais de 16M pour 10k)
-    unique = [str(correct_result)]
-    for c in choices:
-        if c == str(correct_result):
+    # Sanitization : partir du résultat correct + distracteurs calibrés + fallbacks
+    unique: list[str] = [str(correct_result)]
+    for candidate in raw_distractors + op_fallback:
+        c_str = str(candidate)
+        if c_str == str(correct_result) or c_str in unique:
             continue
         try:
-            val = int(c)
-            if val > 0 and _is_plausible_wrong(correct_result, val) and c not in unique:
-                unique.append(c)
+            val = int(c_str)
+            if val > 0 and _is_plausible_wrong(correct_result, val):
+                unique.append(c_str)
+                if len(unique) == 4:
+                    break
         except (ValueError, TypeError):
             pass
 
-    # Compléter avec des erreurs plausibles si besoin (uniquement des mauvaises réponses)
-    while len(unique) < 4:
+    # Compléter avec des offsets plausibles génériques si toujours < 4
+    attempts = 0
+    while len(unique) < 4 and attempts < 20:
+        attempts += 1
         offset = _plausible_offset(correct_result)
-        new = str(max(1, correct_result + offset))
-        if new not in unique and new != str(correct_result):
-            try:
-                if int(new) > 0 and _is_plausible_wrong(correct_result, int(new)):
-                    unique.append(new)
-            except (ValueError, TypeError):
-                pass
+        new_val = max(1, correct_result + offset)
+        new_str = str(new_val)
+        if new_str not in unique and _is_plausible_wrong(correct_result, new_val):
+            unique.append(new_str)
 
     random.shuffle(unique)
     return unique[:4]

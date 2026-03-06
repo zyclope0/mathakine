@@ -34,6 +34,7 @@
 | Document | Date | Sujet |
 |----------|------|-------|
 | **[REFACTOR_STATUS_2026-02.md](./REFACTOR_STATUS_2026-02.md)** | 28/02/2026 | **État refactor** — Clean Code P1–P3, Architecture Ph1–Ph3, synthèse |
+| **[REFACTOR_DASHBOARD_2026-03.md](./REFACTOR_DASHBOARD_2026-03.md)** | 06/03/2026 | **Dashboard** — Réorganisation onglets (Vue d'ensemble, Progression, Mon Profil) |
 | [PLAN_CLEAN_CODE_ET_DTO_2026-02.md](./PLAN_CLEAN_CODE_ET_DTO_2026-02.md) | 28/02/2026 | DTO, exceptions, typage — P4 (admin, OpenAPI) restant ; mypy ✅ fait |
 | [PLAN_REFACTO_ARCHITECTURE_2026-02.md](./AUDITS_ET_RAPPORTS_ARCHIVES/PLAN_REFACTO_ARCHITECTURE_2026-02.md) | 28/02/2026 | Routes découpées, handlers, ExerciseStatsService — Ph4 reporté |
 

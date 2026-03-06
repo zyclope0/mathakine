@@ -105,6 +105,36 @@ export function PerformanceByTypeSkeleton() {
 }
 
 /**
+ * Skeleton pour DailyChallengesWidget (F02)
+ */
+export function DailyChallengesSkeleton() {
+  return (
+    <div className="rounded-xl border border-primary/20 bg-card shadow-sm p-4 md:p-5 animate-pulse">
+      <div className="flex items-center gap-3 mb-4">
+        <Skeleton variant="circular" width={40} height={40} />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-3 w-48" />
+        </div>
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3 rounded-lg border border-border p-3">
+            <Skeleton variant="circular" width={36} height={36} />
+            <div className="flex-1 space-y-1">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <Skeleton className="h-4 w-12" />
+          </div>
+        ))}
+      </div>
+      <Skeleton className="mt-4 h-9 w-full rounded-lg" />
+    </div>
+  );
+}
+
+/**
  * Skeleton pour RecentActivity
  */
 export function RecentActivitySkeleton() {

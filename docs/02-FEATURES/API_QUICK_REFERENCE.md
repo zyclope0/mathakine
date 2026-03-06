@@ -12,6 +12,7 @@
 |---------|--------|--------------|
 | Auth | 9 | Variable |
 | Users | 14 | Sauf register |
+| **Daily Challenges** (F02) | **1** | **Oui** |
 | **Diagnostic** (F03) | **5** | **Oui** |
 | **Admin** | **25** | **Archiviste** |
 | Exercises | 9 | Variable |
@@ -56,6 +57,18 @@
 | GET | `/api/users/leaderboard` | Oui | `?limit=50` | OK |
 | GET | `/api/users/` | Admin | — | Placeholder |
 | DELETE | `/api/users/{id}` | Admin | — | Placeholder |
+
+---
+
+## Daily Challenges (F02)
+
+| Méthode | Endpoint | Auth | Body / Params | Statut |
+|---------|----------|------|---------------|--------|
+| GET | `/api/daily-challenges` | Oui (full_access) | — | OK — Retourne `{challenges: [...]}`, 3 défis par jour (volume, specific, logic) |
+
+**Consommé par :** `useDailyChallenges`, `DailyChallengesWidget`
+
+**Référence :** [F02_DEFIS_QUOTIDIENS.md](F02_DEFIS_QUOTIDIENS.md)
 
 ---
 

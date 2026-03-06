@@ -4,7 +4,36 @@ Ce document liste les endpoints de progression **déjà implémentés** en Starl
 
 ## 📊 Endpoints actuellement actifs
 
-### 1. GET /api/users/stats
+### 1. GET /api/daily-challenges (F02)
+**Utilisé par :** `frontend/hooks/useDailyChallenges.ts`
+
+**Authentification :** Oui (full_access)
+
+**Réponse :**
+```json
+{
+  "challenges": [
+    {
+      "id": 1,
+      "date": "2026-03-06",
+      "challenge_type": "volume_exercises",
+      "metadata": {},
+      "target_count": 3,
+      "completed_count": 1,
+      "status": "pending",
+      "bonus_points": 10
+    }
+  ]
+}
+```
+
+**Comportement :** Crée automatiquement les 3 défis du jour s'ils n'existent pas.
+
+**Référence :** [F02_DEFIS_QUOTIDIENS.md](../02-FEATURES/F02_DEFIS_QUOTIDIENS.md)
+
+---
+
+### 2. GET /api/users/stats
 **Utilisé par :** `frontend/hooks/useUserStats.ts`
 
 **Paramètres :**
@@ -36,7 +65,7 @@ Ce document liste les endpoints de progression **déjà implémentés** en Starl
 
 ## 🎯 Endpoints disponibles mais non utilisés (prêts pour intégration)
 
-### 2. GET /api/users/me/progress
+### 3. GET /api/users/me/progress
 **Disponible :** ✅ Starlette handler (`server/handlers/user_handlers.py`)
 
 **Route :** `/api/users/me/progress`
@@ -73,7 +102,7 @@ Ce document liste les endpoints de progression **déjà implémentés** en Starl
 
 ---
 
-### 3. GET /api/users/me/challenges/progress
+### 4. GET /api/users/me/challenges/progress
 **Disponible :** ✅ Starlette handler (`server/handlers/user_handlers.py`)
 
 **Route :** `/api/users/me/challenges/progress`

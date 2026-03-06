@@ -1,16 +1,31 @@
 # Intégration des widgets de progression dans le dashboard
 
-> Complété le 06/02/2026 — **MAJ 16/02/2026**
+> Complété le 06/02/2026 — **MAJ 06/03/2026** (refactor onglets + F02)
 
 ## 📋 Résumé
 
-Les endpoints de progression (`/api/users/me/progress`, `/api/users/me/challenges/progress`, `GET /api/users/leaderboard`) ont été intégrés dans le dashboard frontend.
+Les endpoints de progression (`/api/users/me/progress`, `/api/users/me/challenges/progress`, `GET /api/daily-challenges`, `GET /api/diagnostic/status`) ont été intégrés dans le dashboard frontend.
 
-**4 widgets** dans la Vue d'ensemble :
-1. **StreakWidget** - Affiche la série de jours consécutifs
-2. **ChallengesProgressWidget** - Affiche la progression des défis logiques (onglet Progression)
-3. **CategoryAccuracyChart** - Affiche la précision par catégorie (onglet Progression)
-4. **LeaderboardWidget** - Top 5 du classement avec lien vers `/leaderboard` (15/02/2026)
+**Structure actuelle (06/03/2026)** — Voir [REFACTOR_DASHBOARD_2026-03.md](../03-PROJECT/REFACTOR_DASHBOARD_2026-03.md) :
+
+**Onglet Vue d'ensemble :**
+1. **QuickStartActions** — Parcours guidé "Que veux-tu faire ?"
+2. **DailyChallengesWidget** (F02) — 3 défis du jour — col-span-8
+3. **StreakWidget** — Série en cours — col-span-4 (à côté des défis)
+
+**Onglet Progression :**
+- **ChallengesProgressWidget** — Progression des défis logiques
+- **CategoryAccuracyChart** — Précision par catégorie
+- **ProgressChartLazy**, **DailyExercisesChartLazy** — Graphiques
+
+**Onglet Mon Profil** (ex-Détails) :
+- **LevelIndicator** — Niveau actuel (barre XP)
+- **LevelEstablishedWidget** — Profil mathématique (badges IRT)
+- **StatsCard** × 3 — Exercices, Taux, Défis
+- **AverageTimeWidget** — Tempo moyen
+- **RecentActivity** — Journal d'activité
+
+**Retirés de la Vue d'ensemble :** LeaderboardWidget (déjà dans navbar), LevelEstablishedWidget, bloc Stats
 
 **Composants liés (16/02)** :
 - **Recommendations** (onglet Recommandations) — bouton ✓ « Marquer comme fait » via `POST /api/recommendations/complete`, hook `useRecommendations` (mutation `complete`)
@@ -96,6 +111,37 @@ interface StreakWidgetProps {
 
 ---
 
+#### `frontend/components/dashboard/DailyChallengesWidget.tsx` (06/03/2026)
+Widget F02 — Affiche les 3 défis quotidiens (volume, type spécifique, défis logiques).
+
+**Hook :** `useDailyChallenges()` — lit `GET /api/daily-challenges`
+
+**Fonctionnalités :**
+- 3 cartes par défi avec icônes (Calculator, Target, Swords, CheckCircle2)
+- Progression X/Y, badge XP bonus, CTA "S'entraîner maintenant"
+- Design Anti-Cheap : fonds neutres, accent uniquement sur icônes, pluralisation ICU
+
+**Référence :** [F02_DAILY_CHALLENGES_WIDGET.md](F02_DAILY_CHALLENGES_WIDGET.md), [F02_DEFIS_QUOTIDIENS.md](../02-FEATURES/F02_DEFIS_QUOTIDIENS.md)
+
+---
+
+#### `frontend/components/dashboard/LevelEstablishedWidget.tsx` (06/03/2026)
+Widget F05 — Affiche le statut du niveau IRT établi (diagnostic F03).
+
+**Hook :** `useIrtScores()` — lit `GET /api/diagnostic/status`
+
+**Fonctionnalités :**
+- Si diagnostic complété : « Ton Profil Mathématique » + badges par type (Addition · Grand Maître, etc.)
+- Si non : CTA « Faire l'évaluation »
+- Badges : icônes Lucide (Plus, Minus, X, Divide), niveau en gras + fond `bg-primary/5`
+- Design : `bg-card border-primary/20 shadow-sm rounded-xl`, bouton secondaire « Refaire l'évaluation »
+
+**Emplacement :** Onglet Mon Profil (ex-Détails)
+
+**Référence :** [F05_ADAPTATION_DYNAMIQUE.md](../02-FEATURES/F05_ADAPTATION_DYNAMIQUE.md)
+
+---
+
 #### `frontend/components/dashboard/ChallengesProgressWidget.tsx`
 Widget affichant la progression des défis logiques.
 
@@ -156,7 +202,7 @@ Widget affichant le top 5 du classement par points.
 - Lien "Voir tout" vers page `/leaderboard`
 - États loading et vide
 
-**Emplacement :** Onglet Vue d'ensemble du dashboard (grille 2 colonnes avec StreakWidget)
+**Emplacement :** Retiré du dashboard (06/03/2026) — classement accessible via navbar `/leaderboard`
 
 ---
 
@@ -218,38 +264,24 @@ const { data: progressStats, isLoading: isLoadingProgress } = useProgressStats()
 const { data: challengesProgress, isLoading: isLoadingChallenges } = useChallengesProgress();
 ```
 
-**Placement des widgets :**
-Les widgets sont affichés dans une nouvelle section **entre** les statistiques générales et les graphiques existants :
+**Placement des widgets (06/03/2026) :**
+Voir [REFACTOR_DASHBOARD_2026-03.md](../03-PROJECT/REFACTOR_DASHBOARD_2026-03.md) pour la structure complète.
 
+**Vue d'ensemble — grille Défis + Série :**
 ```tsx
-<PageSection className="space-y-3 animate-fade-in-up-delay-2">
-  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-    <StreakWidget
-      currentStreak={progressStats?.current_streak || 0}
-      highestStreak={progressStats?.highest_streak || 0}
-      isLoading={isLoadingProgress}
-    />
-    <ChallengesProgressWidget
-      completedChallenges={challengesProgress?.completed_challenges || 0}
-      totalChallenges={challengesProgress?.total_challenges || 0}
-      successRate={challengesProgress?.success_rate || 0}
-      averageTime={challengesProgress?.average_time || 0}
-      isLoading={isLoadingChallenges}
-    />
-    <div className="md:col-span-2 lg:col-span-1">
-      <CategoryAccuracyChart
-        categoryData={progressStats?.by_category || {}}
-        isLoading={isLoadingProgress}
-      />
-    </div>
+<div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
+  <div className="md:col-span-8 flex flex-col min-h-0">
+    <DailyChallengesWidget />
   </div>
-</PageSection>
+  <div className="md:col-span-4 flex flex-col min-h-0">
+    <StreakWidget ... />
+  </div>
+</div>
 ```
 
 **Layout responsive :**
-- Mobile (< 768px) : 1 colonne (widgets empilés)
-- Tablet (768px-1024px) : 2 colonnes
-- Desktop (>= 1024px) : 3 colonnes
+- Mobile : 1 colonne (empilés)
+- Desktop (md+) : Défis 8/12, Série 4/12, hauteur uniforme
 
 ---
 

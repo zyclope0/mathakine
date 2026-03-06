@@ -70,11 +70,11 @@ Le formulaire d'inscription collecte seulement l'identité de compte (username, 
 |--------------|------------|--------|----------|
 | **Calibration pédagogique à l'inscription** (classe, niveau, difficulté, rythme) | Moyenne | Élevé | P1 |
 | **Révisions espacées** (spaced repetition) | Élevée | Élevé | P2 |
-| **Test diagnostic initial** | Élevée | Élevé | P2 |
+| **Test diagnostic initial** | Élevée | Élevé | ✅ F03 implémenté 04/03/2026 |
 | **Défis quotidiens** (objectif du jour) | Moyenne | Élevé | P1 |
 | **Objectifs personnalisés** (ex: "3 exercices/jour") | Moyenne | Moyen | P2 |
 | **Feedback pédagogique enrichi** (explication des erreurs) | Moyenne | Moyen | P1 |
-| **Adaptation difficulté** (basée sur succès/échecs) | Élevée | Élevé | P2 |
+| **Adaptation difficulté** (basée sur succès/échecs) | Élevée | Élevé | ✅ F05 implémenté 06/03/2026 |
 
 ### 2.3 Audit activation (EdTech 2026)
 
@@ -182,7 +182,7 @@ Le modèle `User` expose : `grade_level`, `grade_system` (suisse/unifié), `pref
 ## 6. Références
 
 - [GUIDE_UTILISATEUR_MVP.md](../01-GUIDES/GUIDE_UTILISATEUR_MVP.md) — Cible, personas, parcours
-- [SITUATION_FEATURES.md](SITUATION_FEATURES.md) — État des fonctionnalités
+- [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md) — Backlog & état des fonctionnalités
 - [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md) — Priorités produit
 - [AUDIT_DASHBOARD_2026-02.md](../03-PROJECT/AUDIT_DASHBOARD_2026-02.md) — Corrections restantes dashboard
 - [06-WIDGETS/](../06-WIDGETS/) — Design system widgets

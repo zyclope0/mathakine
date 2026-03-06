@@ -30,9 +30,9 @@ import { Recommendations } from "@/components/dashboard/Recommendations";
 import { QuickStartActions } from "@/components/dashboard/QuickStartActions";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { StreakWidget } from "@/components/dashboard/StreakWidget";
+import { DailyChallengesWidget } from "@/components/dashboard/DailyChallengesWidget";
 import { LevelEstablishedWidget } from "@/components/dashboard/LevelEstablishedWidget";
 import { ChallengesProgressWidget } from "@/components/dashboard/ChallengesProgressWidget";
-import { LeaderboardWidget } from "@/components/dashboard/LeaderboardWidget";
 import { CategoryAccuracyChart } from "@/components/dashboard/CategoryAccuracyChart";
 import { ExportButton } from "@/components/dashboard/ExportButton";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
@@ -74,11 +74,12 @@ export default function DashboardPage() {
     setIsRefreshing(true);
     try {
       await refetch();
-      // Invalider progress et challenges pour un rafraîchissement complet
+      // Invalider progress, challenges et défis quotidiens pour un rafraîchissement complet
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["user", "progress"] }),
         queryClient.invalidateQueries({ queryKey: ["user", "challenges", "progress"] }),
         queryClient.invalidateQueries({ queryKey: ["leaderboard"] }),
+        queryClient.invalidateQueries({ queryKey: ["daily-challenges"] }),
       ]);
       toast.success(tToasts("statsUpdated"));
     } catch {
@@ -192,54 +193,32 @@ export default function DashboardPage() {
                 </span>
                 <span className="sm:hidden">{t("tabs.progressShort", { default: "Stats" })}</span>
               </TabsTrigger>
-              <TabsTrigger value="details" className="flex items-center gap-2 py-2.5 text-sm">
+              <TabsTrigger value="profile" className="flex items-center gap-2 py-2.5 text-sm">
                 <BarChart3 className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">
-                  {t("tabs.details", { default: "Détails" })}
+                  {t("tabs.profile", { default: "Mon Profil" })}
                 </span>
-                <span className="sm:hidden">{t("tabs.detailsShort", { default: "Détails" })}</span>
+                <span className="sm:hidden">{t("tabs.profileShort", { default: "Profil" })}</span>
               </TabsTrigger>
             </TabsList>
 
-            {/* Onglet Vue d'ensemble — Parcours guidé + KPIs + streak + classement */}
+            {/* Onglet Vue d'ensemble — Parcours guidé + Défis du jour + Série en cours */}
             <TabsContent value="overview" className="space-y-6">
-              <PageSection className="space-y-4">
-                <QuickStartActions />
-                <LevelEstablishedWidget />
-              </PageSection>
-              <PageSection className="space-y-2">
-                {stats.recent_activity?.[0]?.time && (
-                  <div className="flex justify-end">
-                    <DashboardLastUpdate time={stats.recent_activity[0].time} locale={locale} />
+              <PageSection>
+                <div className="space-y-3">
+                  <QuickStartActions />
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
+                    <div className="md:col-span-8 flex flex-col min-h-0">
+                      <DailyChallengesWidget />
+                    </div>
+                    <div className="md:col-span-4 flex flex-col min-h-0">
+                      <StreakWidget
+                        currentStreak={progressStats?.current_streak || 0}
+                        highestStreak={progressStats?.highest_streak || 0}
+                        isLoading={isLoadingProgress}
+                      />
+                    </div>
                   </div>
-                )}
-                <div className="grid gap-4 md:grid-cols-3">
-                  <StatsCard
-                    icon={CheckCircle}
-                    value={stats.total_exercises || 0}
-                    label={t("stats.exercisesSolved")}
-                  />
-                  <StatsCard
-                    icon={Zap}
-                    value={`${Math.round(stats.success_rate || 0)}%`}
-                    label={t("stats.successRate")}
-                  />
-                  <StatsCard
-                    icon={Trophy}
-                    value={stats.total_challenges || 0}
-                    label={t("stats.challengesCompleted")}
-                  />
-                </div>
-              </PageSection>
-
-              <PageSection className="space-y-3">
-                <div className="grid gap-6 md:grid-cols-2 items-stretch">
-                  <StreakWidget
-                    currentStreak={progressStats?.current_streak || 0}
-                    highestStreak={progressStats?.highest_streak || 0}
-                    isLoading={isLoadingProgress}
-                  />
-                  <LeaderboardWidget />
                 </div>
               </PageSection>
             </TabsContent>
@@ -251,15 +230,8 @@ export default function DashboardPage() {
               </PageSection>
             </TabsContent>
 
-            {/* Onglet Progression — hero niveau + graphiques + défis + radar */}
+            {/* Onglet Progression — graphiques uniquement */}
             <TabsContent value="progress" className="space-y-6">
-              {/* Hero Card — Niveau actuel (pleine largeur, en tête de page) */}
-              {stats.level && (
-                <PageSection>
-                  <LevelIndicator level={stats.level} />
-                </PageSection>
-              )}
-
               <PageSection>
                 <div className="grid gap-6 md:grid-cols-2 items-stretch">
                   <ChallengesProgressWidget
@@ -295,8 +267,40 @@ export default function DashboardPage() {
               )}
             </TabsContent>
 
-            {/* Onglet Détails — tempo moyen + activité récente (remplace performance par type, doublon avec précision par catégorie) */}
-            <TabsContent value="details" className="space-y-6">
+            {/* Onglet Mon Profil — Niveau, badges, stats, tempo, journal */}
+            <TabsContent value="profile" className="space-y-6">
+              {stats.level && (
+                <PageSection>
+                  <LevelIndicator level={stats.level} />
+                </PageSection>
+              )}
+              <PageSection>
+                <LevelEstablishedWidget />
+              </PageSection>
+              <PageSection className="space-y-2">
+                {stats.recent_activity?.[0]?.time && (
+                  <div className="flex justify-end">
+                    <DashboardLastUpdate time={stats.recent_activity[0].time} locale={locale} />
+                  </div>
+                )}
+                <div className="grid gap-4 md:grid-cols-3">
+                  <StatsCard
+                    icon={CheckCircle}
+                    value={stats.total_exercises || 0}
+                    label={t("stats.exercisesSolved")}
+                  />
+                  <StatsCard
+                    icon={Zap}
+                    value={`${Math.round(stats.success_rate || 0)}%`}
+                    label={t("stats.successRate")}
+                  />
+                  <StatsCard
+                    icon={Trophy}
+                    value={stats.total_challenges || 0}
+                    label={t("stats.challengesCompleted")}
+                  />
+                </div>
+              </PageSection>
               <PageSection>
                 <AverageTimeWidget
                   averageTimeSeconds={progressStats?.average_time ?? 0}

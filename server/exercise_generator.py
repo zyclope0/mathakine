@@ -848,7 +848,7 @@ def generate_ai_exercise(exercise_type, age_group):
 
 
 def ensure_explanation(exercise_dict):
-    """S'assure qu'un exercice a une explication valide"""
+    """S'assure qu'un exercice a une explication valide et enrichit le dict."""
     # S'assurer que l'explication est définie et n'est pas None
     if (
         "explanation" not in exercise_dict
@@ -876,6 +876,15 @@ def ensure_explanation(exercise_dict):
             exercise_dict["explanation"] = (
                 f"La réponse correcte est {exercise_dict['correct_answer']}"
             )
+
+    # Flag is_open_answer : les niveaux MAITRE et GRAND_MAITRE utilisent
+    # une saisie libre plutôt que des choix QCM (réduction de l'aide QCM).
+    if "is_open_answer" not in exercise_dict:
+        difficulty = exercise_dict.get("difficulty", "")
+        exercise_dict["is_open_answer"] = difficulty in (
+            DifficultyLevels.MAITRE,
+            DifficultyLevels.GRAND_MAITRE,
+        )
 
     return exercise_dict
 

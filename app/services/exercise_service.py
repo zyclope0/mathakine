@@ -378,6 +378,18 @@ class ExerciseService:
             except (TypeError, ValueError):
                 logger.debug("Streak update skipped (data/type error)", exc_info=True)
 
+        try:
+            from app.services.daily_challenge_service import record_exercise_completed
+
+            record_exercise_completed(
+                db,
+                user_id,
+                exercise.get("exercise_type") or "",
+                is_correct,
+            )
+        except Exception:
+            logger.debug("Daily challenge update skipped", exc_info=True)
+
         progress_notif = None
         if not new_badges:
             try:

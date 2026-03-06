@@ -47,11 +47,11 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
       animate="animate"
       transition={transition}
       whileHover={!shouldReduceMotion ? { scale: 1.02 } : {}}
-      className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
+      className="flex-1 min-h-0 flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
     >
       <Card
         className={cn(
-          "border-2 h-full flex flex-col backdrop-blur-md",
+          "border-2 flex-1 min-h-0 flex flex-col backdrop-blur-md",
           currentStreak > 0
             ? "border-orange-500/40 bg-orange-500/5"
             : "border-primary/20 bg-white/5"

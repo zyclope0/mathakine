@@ -673,6 +673,19 @@
       "cta": "Faire l'évaluation",
       "ctaRedo": "Refaire l'évaluation"
     },
+    "dailyChallenges": {
+      "title": "Défis du jour",
+      "subtitle": "3 objectifs pour garder le rythme",
+      "volume": "{count, plural, one {# exercice} other {# exercices}}",
+      "specific": "{count, plural, one {# exercice de {type}} other {# exercices de {type}}}",
+      "logic": "{count, plural, one {# défi logique} other {# défis logiques}}",
+      "fallback": "{count, plural, one {# objectif} other {# objectifs}}",
+      "completed": "Terminé",
+      "pending": "{current}/{target}",
+      "bonus": "+{points} XP",
+      "expiresAt": "Expire à minuit",
+      "cta": "S'entraîner maintenant"
+    },
     "stats": {
       "totalExercises": "Total exercices",
       "totalAttempts": "Total tentatives",
@@ -769,7 +782,9 @@
       "progress": "Progression",
       "progressShort": "Stats",
       "details": "Détails",
-      "detailsShort": "Détails"
+      "detailsShort": "Détails",
+      "profile": "Mon Profil",
+      "profileShort": "Profil"
     },
     "export": {
       "pdf": "Exporter PDF",
@@ -1363,33 +1378,33 @@
     "subtitle": "Tout ce qu'il faut savoir pour bien démarrer",
     "why": {
       "title": "Pourquoi Mathakine ?",
-      "intro": "Mathakine est conçu pour que chacun progresse à son rythme, sans pression ni note.",
+      "intro": "Mathakine est conçu pour que chacun progresse à son rythme, sans pression ni surcharge cognitive. C'est l'outil idéal pour reprendre confiance en soi.",
       "safe": "Un espace bienveillant",
-      "safeDesc": "Pas de note, pas de jugement. Chaque erreur est une étape vers la compréhension.",
-      "pace": "À ton rythme",
-      "paceDesc": "Choisis tes exercices, ton niveau, et combien de temps tu veux t'entraîner.",
-      "progress": "Vois ta progression",
-      "progressDesc": "Badges, graphiques et statistiques pour célébrer chaque progrès."
+      "safeDesc": "Pas de note punitive, pas de chronomètre stressant. L'interface \"Zéro Bruit\" aide à se concentrer sans agresser l'œil.",
+      "pace": "Difficulté adaptative",
+      "paceDesc": "Fini les exercices trop durs ou trop faciles. L'algorithme analyse tes réponses et s'adapte à ton vrai niveau en temps réel.",
+      "progress": "Motivation positive",
+      "progressDesc": "Séries en cours, défis du jour et badges à collectionner : tout est fait pour valoriser la régularité et célébrer chaque petit pas."
     },
     "getStarted": {
       "title": "Démarrer",
       "step1": "Créer un compte",
-      "step1Desc": "Inscris-toi avec un nom d'utilisateur, ton email et un mot de passe. Pense à vérifier ton email.",
-      "step2": "Se connecter",
-      "step2Desc": "Une fois ton email vérifié, connecte-toi et explore !",
-      "step3": "Premier exercice",
-      "step3Desc": "Va dans Exercices ou Défis, choisis ce qui te plaît et lance-toi."
+      "step1Desc": "Inscris-toi avec ton email. Pense à le vérifier pour débloquer toutes les fonctionnalités (badges, tableau de bord).",
+      "step2": "L'évaluation initiale",
+      "step2Desc": "Passe un court test de diagnostic (10 questions) pour que Mathakine comprenne ton profil et calibre tes premiers exercices.",
+      "step3": "Laisse-toi guider",
+      "step3Desc": "Sur ton tableau de bord, utilise les boutons d'action rapide pour lancer immédiatement l'exercice ou le défi recommandé pour toi, ou bien lance une session personnalisée avec tes filtres préférés."
     },
     "using": {
-      "title": "Utiliser Mathakine",
-      "exercises": "Exercices",
-      "exercisesDesc": "Addition, soustraction, multiplication, division. Choisis une catégorie et un niveau (Padawan, Jedi, Maître), lance l'exercice, réponds et valide pour un feedback immédiat.",
+      "title": "Au cœur de l'apprentissage",
+      "exercises": "Exercices sur mesure",
+      "exercisesDesc": "Addition, fractions, géométrie... L'Intelligence Artificielle génère des exercices à l'infini. L'algorithme ajuste la difficulté (Padawan, Jedi, Maître) pour toi (mode QCM ou saisie libre selon tes besoins).",
       "challenges": "Défis logiques",
-      "challengesDesc": "Séquences, motifs, énigmes, graphes, puzzles, déduction, échecs, probabilités… Choisis un type et un groupe d'âge, résous le défi et valide pour voir le feedback. Certains sont générés par l'IA.",
-      "dashboard": "Tableau de bord",
-      "dashboardDesc": "Vois ta précision, ton activité et tes statistiques. Exporte en PDF ou Excel pour garder une trace de ta progression.",
-      "badges": "Badges",
-      "badgesDesc": "Débloque des badges en progressant. Chaque petit pas compte !"
+      "challengesDesc": "Séquences, motifs visuels, énigmes, probabilités… Entraîne ton esprit critique. Certains défis sont générés par IA pour offrir une rejouabilité infinie.",
+      "dashboard": "Tableau de bord & Défis du jour",
+      "dashboardDesc": "Retrouve chaque jour 3 objectifs à accomplir pour gagner de l'XP bonus et maintenir ta série. Suis ta précision par catégorie et exporte ton journal en PDF.",
+      "badges": "Badges & Rangs Jedi",
+      "badgesDesc": "Gagne de l'XP à chaque réussite pour monter en niveau. Débloque des dizaines de badges uniques illustrant tes progrès mathématiques."
     },
     "accessibility": {
       "title": "Accessibilité",
@@ -1408,26 +1423,26 @@
     },
     "faq": {
       "title": "Questions fréquentes",
-      "q1": "Comment créer un compte ?",
-      "a1": "Clique sur S'inscrire, remplis le formulaire, vérifie ton email puis connecte-toi.",
-      "q2": "Pas reçu l'email de vérification ?",
-      "a2": "Vérifie tes spams. Sinon, sur la page de vérification, clique sur « Pas reçu ? » pour en renvoyer un.",
-      "q3": "J'ai oublié mon mot de passe.",
-      "a3": "Sur la page Connexion, clique sur « Mot de passe oublié ? », indique ton email et tu recevras un lien de réinitialisation.",
+      "q1": "Le site est-il adapté aux enfants avec TSA/TDAH/DYS ?",
+      "a1": "Oui. Mathakine propose un mode \"Focus\", réduit les animations, intègre un filtre de dyslexie et supprime le bruit visuel (Glassmorphism).",
+      "q2": "Comment se déroule l'évaluation initiale ?",
+      "a2": "Elle s'active automatiquement pour cibler le niveau. 10 questions suffisent pour configurer ton espace et adapter la difficulté.",
+      "q3": "Les exercices s'adaptent-ils tous seuls ?",
+      "a3": "Oui ! L'Intelligence Artificielle de Mathakine modifie la difficulté en fonction de tes réponses. Si tu as du mal, elle proposera même des réponses à choix multiples.",
       "q4": "Où voir ma progression ?",
-      "a4": "Dans le Tableau de bord : graphiques, précision par catégorie et activité récente.",
-      "q5": "Comment choisir la difficulté ?",
-      "a5": "Lors du choix d'un exercice : Padawan (facile), Jedi (moyen), Maître (difficile).",
-      "q6": "Les défis sont-ils notés ?",
-      "a6": "Non. L'objectif est de s'entraîner et de progresser, pas d'être noté.",
-      "q7": "L'interface est trop chargée.",
-      "a7": "Paramètres ou Alt+F : active le Mode Focus (TSA/TDAH) ou réduis les animations (Alt+M).",
-      "q8": "Je préfère un thème sombre.",
-      "a8": "Paramètres → Thème : Clair / Sombre / Système.",
-      "q9": "L'app fonctionne hors ligne ?",
-      "a9": "Oui, en partie : installe Mathakine comme application (PWA) depuis ton navigateur pour l'utiliser hors ligne.",
+      "a4": "Dans le menu \"Tableau de bord\". Tu y trouveras tes défis quotidiens, ta précision globale, ta série de jours consécutifs et tous tes badges.",
+      "q5": "C'est quoi les Défis du Jour ?",
+      "a5": "Chaque jour, Mathakine génère 3 objectifs personnalisés pour te pousser à t'entraîner dans différentes catégories. Cela rapporte des points d'expérience bonus.",
+      "q6": "Dois-je choisir la difficulté manuellement ?",
+      "a6": "Non, c'est optionnel. L'algorithme ajuste la difficulté en arrière-plan (Padawan, Jedi, Maître) selon tes résultats et ton évaluation initiale. Si aucune donnée n'est disponible, il utilise le \"Groupe d'âge préféré\" (6-8 ans, 9-11 ans, etc.) défini dans tes Paramètres comme point de départ.",
+      "q7": "L'interface est trop chargée pour moi.",
+      "a7": "Ouvre les Paramètres (ou fais Alt+F) pour activer le Mode Focus. Tu peux aussi réduire les animations (Alt+M) et changer le thème (Dune, Forêt...).",
+      "q8": "Les résultats sont-ils notés (sur 20) ?",
+      "a8": "Non. Le système récompense l'expérience accumulée (XP). Le but est de s'entraîner sans avoir peur de l'échec et d'apprendre des explications détaillées (LaTeX).",
+      "q9": "Est-ce que ça fonctionne hors ligne ?",
+      "a9": "Oui ! Installe l'application Web Progressive (PWA) depuis ton navigateur pour l'utiliser sans internet (mode restreint aux exercices).",
       "q10": "Un exercice ou un défi semble incorrect ?",
-      "a10": "Utilise le bouton de signalement (drapeau rouge) en bas à droite pour nous le faire savoir. Ton retour nous aide à améliorer Mathakine."
+      "a10": "Utilise le bouton de signalement (drapeau rouge) présent en bas de chaque page d'exercice. L'erreur sera corrigée très vite."
     },
     "cta": "Prêt à commencer ?",
     "ctaExercises": "Voir les exercices",
@@ -1437,27 +1452,46 @@
   "about": {
     "title": "À propos de Mathakine",
     "subtitle": "Une plateforme née d'une histoire de famille",
-    "what": {
-      "title": "Qu'est-ce que Mathakine ?",
-      "intro": "Mathakine est une plateforme d'apprentissage des mathématiques conçue pour les enfants et adolescents (5 à 20 ans).",
-      "desc": "L'objectif est de permettre à chacun de progresser à son rythme, sans pression ni note. L'accent est mis sur la bienveillance, l'accessibilité et la valorisation des progrès.",
-      "bullet1": "Exercices adaptés (addition, soustraction, multiplication, division) et défis logiques variés",
-      "bullet2": "Tableau de bord et badges pour suivre sa progression",
-      "bullet3": "Options d'accessibilité (contraste, texte, animations, mode Focus TSA/TDAH)"
+    "story": {
+      "title": "Une histoire née de la nécessité",
+      "p1": "Mathakine n'est pas née dans les bureaux d'une grande entreprise de la Tech, ni d'une volonté de révolutionner l'éducation mondiale. Mathakine est née d'un besoin très personnel : celui d'un père cherchant à aider son fils autiste à faire la paix avec les mathématiques.",
+      "p2": "Face aux plateformes d'apprentissage traditionnelles, un constat s'est imposé : elles sont souvent inadaptées aux enfants neuroatypiques (TSA, TDAH, DYS). Les couleurs criardes, les interfaces surchargées, les chronomètres stressants et les gros « FAUX » rouges clignotants ne testaient pas les compétences en calcul de mon fils. Ils mesuraient sa capacité à résister à la <bold>surcharge sensorielle et cognitive</bold>.",
+      "p3": "L'énergie qu'il aurait dû utiliser pour comprendre une fraction était gaspillée à trier le « bruit visuel » de l'écran.",
+      "p4": "J'ai alors décidé de lui construire un espace sur-mesure."
     },
-    "origin": {
-      "title": "D'où vient Mathakine ?",
-      "intro": "Une histoire personnelle devenue projet.",
-      "p1": "Mathakine est né d'un besoin très concret : aider mon fils, Anakyn, à se préparer à un concours de mathématiques avec un outil simple, efficace et motivant.",
-      "p2": "Comme il a des besoins spécifiques, je cherchais un contenu vraiment adapté à sa manière d'apprendre. Je n'ai pas trouvé de solution qui réunissait à la fois les mathématiques, les défis logiques, l'accessibilité et le côté ludique.",
-      "p3": "Étant issu du domaine informatique et passionné par l'intelligence artificielle, j'ai décidé de créer cet outil moi-même.",
-      "p4": "En le partageant autour de moi, j'ai rapidement vu qu'il répondait aussi aux besoins d'autres enfants, parents et enseignants. Le projet a donc grandi, avec une idée simple : proposer au plus grand nombre une plateforme de mathématiques plus accessible, plus engageante, et toujours fun.",
-      "tagline": "C'est ça, l'esprit Mathakine : apprendre sérieusement, sans perdre le plaisir."
+    "philosophy": {
+      "title": "La philosophie « Zéro Bruit »",
+      "intro": "Pour concevoir Mathakine, j'ai mis de côté les animations superflues pour me concentrer sur ce que les sciences cognitives nous apprennent : l'attention est une ressource limitée.",
+      "philosophy1": {
+        "title": "Un environnement apaisé",
+        "desc": "L'interface (basée sur le Glassmorphism) encadre doucement le problème. Les couleurs sont pensées pour ne pas agresser l'œil, avec des thèmes adaptatifs (Espace, Dune, Dino) pour que l'enfant choisisse l'univers dans lequel il se sent en sécurité."
+      },
+      "philosophy2": {
+        "title": "La clarté absolue",
+        "desc": "Les mathématiques doivent se lire sans effort. C'est pourquoi chaque calcul, chaque fraction et chaque racine carrée utilise le standard typographique scientifique (LaTeX). L'œil glisse sur l'explication."
+      },
+      "philosophy3": {
+        "title": "Le droit à l'erreur",
+        "desc": "L'erreur n'est plus punitive. Elle est une étape normale qui déclenche une explication détaillée pas à pas, valorisant l'effort plutôt que la réponse immédiate."
+      },
+      "philosophy4": {
+        "title": "L'ancrage en douceur",
+        "desc": "L'algorithme de répétition espacée (SM-2) ramène les concepts au bon moment pour consolider la mémoire sans épuiser l'élève par des répétitions en bloc inutiles."
+      }
     },
-    "who": {
-      "title": "Qui est derrière Mathakine ?",
-      "intro": "Mathakine est un projet porté par une seule personne.",
-      "desc": "Créé par Zyclope, le papa d'Anakyn. Pas de partenaire ni de financeur — juste la volonté de proposer un outil utile et accessible au plus grand nombre."
+    "curb": {
+      "title": "L'effet « Bateau de trottoir »",
+      "p1": "En urbanisme, l'abaissement des trottoirs a été pensé initialement pour les personnes en fauteuil roulant. Mais très vite, on a réalisé que cela aidait aussi les parents avec des poussettes, les voyageurs avec des valises ou les cyclistes.",
+      "p2": "C'est ce qui s'est passé avec Mathakine.",
+      "p3": "Ce qui était indispensable pour mon fils — un environnement sans distraction visuelle, un apprentissage structuré, des polices lisibles — s'est avéré être un confort absolu et un accélérateur d'apprentissage pour tous les élèves, neurotypiques comme atypiques, enfants comme adultes. C'est pourquoi j'ai décidé d'ouvrir cette plateforme au public."
+    },
+    "transparency": {
+      "title": "Une démarche transparente",
+      "p1": "Je ne suis pas développeur de métier. Pour construire cette plateforme, j'ai utilisé l'Intelligence Artificielle comme un « ouvrier spécialisé », tandis que je gardais la casquette d'architecte et de papa attentif.",
+      "p2": "Mathakine est le fruit de mes soirées et de mes week-ends. La plateforme est aujourd'hui en version Bêta. Il y a probablement encore quelques bugs ou des ajustements à faire. Mais elle est faite avec le cœur, l'exigence d'un parent, et une volonté sincère d'aider.",
+      "p3": "Vos retours, vos idées et vos remarques sont les bienvenus. N'hésitez pas à utiliser le bouton « Signaler un problème » si vous croisez une erreur.",
+      "p4": "Merci de faire partie de cette aventure.",
+      "signature": "Créé par Zyclope, le papa d'Anakyn — Un papa presque développeur"
     },
     "contactCta": "Nous contacter"
   },
@@ -1551,6 +1585,16 @@
     "title": "Nouveautés",
     "subtitle": "Les dernières améliorations de Mathakine, expliquées simplement.",
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir régulièrement.",
+    "v310a4": {
+      "version": "v3.1.0-alpha.4",
+      "date": "07 mars 2026",
+      "items": [
+        "Nouveaux défis du jour : 3 objectifs quotidiens pour garder le rythme (exercices, type spécifique, défis logiques)",
+        "Tableau de bord réorganisé : Vue d'ensemble simplifiée, onglet Mon Profil pour votre niveau et vos badges",
+        "Les défis du jour et la série en cours sont maintenant côte à côte pour une vue plus claire",
+        "Amélioration visuelle des défis : badges XP mis en valeur, libellés au pluriel correct"
+      ]
+    },
     "v310a3": {
       "version": "v3.1.0-alpha.3",
       "date": "06 mars 2026",

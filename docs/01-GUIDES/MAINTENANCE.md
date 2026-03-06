@@ -137,9 +137,8 @@ done
 ```
 
 **Actions si échec** :
-1. Consulter le rapport d'audit : `docs/03-PROJECT/AUDIT_SECURITE_PERFORMANCE_2025-11-30.md`
-2. Vérifier le suivi d'implémentation : `docs/03-PROJECT/SUIVI_IMPLEMENTATION_SECURITE.md`
-3. Corriger les vulnérabilités identifiées
+1. Consulter l'audit sécurité : [AUDIT_SECURITE_APPLICATIVE_2026-02](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/AUDIT_SECURITE_APPLICATIVE_2026-02.md)
+2. Corriger les vulnérabilités identifiées
 4. Réexécuter les vérifications
 
 ---
@@ -307,8 +306,7 @@ python scripts/performance/benchmark_challenges_list.py
 
 - [Guide de déploiement](DEPLOYMENT.md)
 - [Architecture](../00-REFERENCE/ARCHITECTURE.md)
-- [Audit sécurité](../03-PROJECT/AUDIT_SECURITE_PERFORMANCE_2025-11-30.md)
-- [Suivi implémentation](../03-PROJECT/SUIVI_IMPLEMENTATION_SECURITE.md)
+- [Audit sécurité applicative](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/AUDITS_IMPLEMENTES/AUDIT_SECURITE_APPLICATIVE_2026-02.md)
 
 ### Scripts
 
