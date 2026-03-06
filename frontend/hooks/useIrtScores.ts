@@ -80,8 +80,15 @@ function toOrdinal(difficulty: string | undefined): number | null {
   return o !== undefined ? o : null;
 }
 
-function ordinalToDifficulty(ordinal: number): "INITIE" | "PADAWAN" | "CHEVALIER" | "MAITRE" | "GRAND_MAITRE" {
-  return DIFFICULTY_ORDER[Math.max(0, Math.min(4, ordinal))] as "INITIE" | "PADAWAN" | "CHEVALIER" | "MAITRE" | "GRAND_MAITRE";
+function ordinalToDifficulty(
+  ordinal: number
+): "INITIE" | "PADAWAN" | "CHEVALIER" | "MAITRE" | "GRAND_MAITRE" {
+  return DIFFICULTY_ORDER[Math.max(0, Math.min(4, ordinal))] as
+    | "INITIE"
+    | "PADAWAN"
+    | "CHEVALIER"
+    | "MAITRE"
+    | "GRAND_MAITRE";
 }
 
 /**

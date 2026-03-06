@@ -30,17 +30,19 @@ export function LevelEstablishedWidget() {
 
   const skillBadges =
     hasCompletedDiagnostic && irtScores && Object.keys(irtScores).length > 0
-      ? TYPE_ORDER.filter((type) => type in irtScores && irtScores[type] !== undefined).map((type) => {
-          const score = irtScores[type]!;
-          const Icon = TYPE_ICON[type];
-          const typeLabel = tType(
-            type as "addition" | "soustraction" | "multiplication" | "division"
-          );
-          const levelLabel = tLevel(
-            score.difficulty as "INITIE" | "PADAWAN" | "CHEVALIER" | "MAITRE" | "GRAND_MAITRE"
-          );
-          return { type, Icon, typeLabel, levelLabel };
-        })
+      ? TYPE_ORDER.filter((type) => type in irtScores && irtScores[type] !== undefined).map(
+          (type) => {
+            const score = irtScores[type]!;
+            const Icon = TYPE_ICON[type];
+            const typeLabel = tType(
+              type as "addition" | "soustraction" | "multiplication" | "division"
+            );
+            const levelLabel = tLevel(
+              score.difficulty as "INITIE" | "PADAWAN" | "CHEVALIER" | "MAITRE" | "GRAND_MAITRE"
+            );
+            return { type, Icon, typeLabel, levelLabel };
+          }
+        )
       : [];
 
   return (
