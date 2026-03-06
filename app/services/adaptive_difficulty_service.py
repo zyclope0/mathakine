@@ -79,11 +79,11 @@ _PREF_DIFFICULTY_TO_ORDINAL: Dict[str, int] = {
     DifficultyLevels.MAITRE: 3,
     DifficultyLevels.GRAND_MAITRE: 4,
     # AgeGroups (valeurs stockées par l'onboarding frontend)
-    AgeGroups.GROUP_6_8: 0,    # "6-8"   → INITIE
-    AgeGroups.GROUP_9_11: 1,   # "9-11"  → PADAWAN
+    AgeGroups.GROUP_6_8: 0,  # "6-8"   → INITIE
+    AgeGroups.GROUP_9_11: 1,  # "9-11"  → PADAWAN
     AgeGroups.GROUP_12_14: 2,  # "12-14" → CHEVALIER
     AgeGroups.GROUP_15_17: 3,  # "15-17" → MAITRE
-    AgeGroups.ADULT: 4,        # "adulte" → GRAND_MAITRE
+    AgeGroups.ADULT: 4,  # "adulte" → GRAND_MAITRE
 }
 
 # ---------------------------------------------------------------------------
@@ -91,21 +91,25 @@ _PREF_DIFFICULTY_TO_ORDINAL: Dict[str, int] = {
 # ---------------------------------------------------------------------------
 
 # Types évalués directement par le diagnostic IRT (F03) — clés en minuscules
-IRT_DIRECT_TYPES = frozenset({
-    ExerciseTypes.ADDITION.lower(),
-    ExerciseTypes.SUBTRACTION.lower(),
-    ExerciseTypes.SOUSTRACTION.lower(),   # alias
-    ExerciseTypes.MULTIPLICATION.lower(),
-    ExerciseTypes.DIVISION.lower(),
-})
+IRT_DIRECT_TYPES = frozenset(
+    {
+        ExerciseTypes.ADDITION.lower(),
+        ExerciseTypes.SUBTRACTION.lower(),
+        ExerciseTypes.SOUSTRACTION.lower(),  # alias
+        ExerciseTypes.MULTIPLICATION.lower(),
+        ExerciseTypes.DIVISION.lower(),
+    }
+)
 
 # Types non couverts par IRT mais qui ont un proxy calculé.
 # Clés en minuscules (type_key normalisé dans _irt_ordinal_for_type).
 # "min"  → minimum des scores IRT des 4 types de base
 # list   → moyenne des scores IRT des types listés
 IRT_PROXY_TYPES: Dict[str, object] = {
-    ExerciseTypes.MIXTE.lower(): "min",                                           # mixte = niveau le plus faible
-    ExerciseTypes.FRACTIONS.lower(): [ExerciseTypes.DIVISION.lower()],            # fractions → niveau division (plus conservateur)
+    ExerciseTypes.MIXTE.lower(): "min",  # mixte = niveau le plus faible
+    ExerciseTypes.FRACTIONS.lower(): [
+        ExerciseTypes.DIVISION.lower()
+    ],  # fractions → niveau division (plus conservateur)
 }
 # GEOMETRIE, TEXTE, DIVERS → pas de proxy → cascade profil/fallback
 
@@ -126,8 +130,8 @@ _GRADE_TO_ORDINAL = {
 }
 
 # Seuils d'ajustement temps réel (Sweller 1988 / Csikszentmihalyi flow zone)
-_BOOST_RATE_THRESHOLD = 85.0   # % → monter d'un niveau
-_BOOST_STREAK_THRESHOLD = 3    # tentatives réussies consécutives minimum
+_BOOST_RATE_THRESHOLD = 85.0  # % → monter d'un niveau
+_BOOST_STREAK_THRESHOLD = 3  # tentatives réussies consécutives minimum
 _DESCENT_RATE_THRESHOLD = 50.0  # % → descendre d'un niveau
 # streak = 0 signifie que la dernière tentative était incorrecte
 
@@ -182,7 +186,9 @@ def _adjust_for_realtime_progress(
     Renvoie l'ordinal ajusté (toujours entre 0 et 4).
     """
     try:
-        window_start = datetime.now(timezone.utc) - timedelta(days=_REALTIME_WINDOW_DAYS)
+        window_start = datetime.now(timezone.utc) - timedelta(
+            days=_REALTIME_WINDOW_DAYS
+        )
         progress = (
             db.query(Progress)
             .filter(
@@ -287,7 +293,8 @@ def _irt_ordinal_for_type(scores: Dict, type_key: str) -> Optional[int]:
         ordinals = [
             _DIFFICULTY_TO_ORDINAL[scores[k.lower()]["difficulty"]]
             for k in proxy
-            if k.lower() in scores and scores[k.lower()].get("difficulty") in _DIFFICULTY_TO_ORDINAL
+            if k.lower() in scores
+            and scores[k.lower()].get("difficulty") in _DIFFICULTY_TO_ORDINAL
         ]
         if ordinals:
             return int(sum(ordinals) / len(ordinals))
@@ -384,7 +391,9 @@ def resolve_adaptive_difficulty(
     # 2. Progression temps réel
     # ------------------------------------------------------------------
     try:
-        window_start = datetime.now(timezone.utc) - timedelta(days=_REALTIME_WINDOW_DAYS)
+        window_start = datetime.now(timezone.utc) - timedelta(
+            days=_REALTIME_WINDOW_DAYS
+        )
         progress = (
             db.query(Progress)
             .filter(

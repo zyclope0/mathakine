@@ -205,7 +205,11 @@ def _calibrated_distractors(
         d2 = max(1, c - margin)
         # Propriété inverse (ex: num2/num1 pour division)
         if op == "DIVISION" and num1 != 0:
-            d3 = max(1, num2 // num1) if num1 > 0 and num2 // num1 != c else c + margin + 1
+            d3 = (
+                max(1, num2 // num1)
+                if num1 > 0 and num2 // num1 != c
+                else c + margin + 1
+            )
         else:
             d3 = c + random.choice([margin + 1, -(margin + 1)])
             d3 = max(1, d3)

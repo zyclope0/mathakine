@@ -19,9 +19,7 @@ class DailyChallenge(Base):
 
     __tablename__ = "daily_challenges"
 
-    __table_args__ = (
-        Index("ix_daily_challenges_user_date", "user_id", "date"),
-    )
+    __table_args__ = (Index("ix_daily_challenges_user_date", "user_id", "date"),)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 

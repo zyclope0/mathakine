@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Moon,
-  Sigma,
-  Heart,
-  RefreshCcw,
-  Mail,
-} from "lucide-react";
+import { Moon, Sigma, Heart, RefreshCcw, Mail } from "lucide-react";
 import Link from "next/link";
 import { PageLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
@@ -26,12 +20,8 @@ export default function AboutPage() {
     <PageLayout maxWidth="2xl">
       {/* 1. En-tête (Hero Section) */}
       <header className="text-center py-12 md:py-16 space-y-4">
-        <h1 className="text-3xl md:text-5xl font-bold text-foreground">
-          {t("title")}
-        </h1>
-        <p className="text-lg md:text-xl text-primary font-medium">
-          {t("subtitle")}
-        </p>
+        <h1 className="text-3xl md:text-5xl font-bold text-foreground">{t("title")}</h1>
+        <p className="text-lg md:text-xl text-primary font-medium">{t("subtitle")}</p>
       </header>
 
       <div className="space-y-12 md:space-y-16">
@@ -41,22 +31,14 @@ export default function AboutPage() {
             {t("story.title")}
           </h2>
           <div className="bg-card/80 border border-border backdrop-blur-md p-6 md:p-8 rounded-2xl space-y-6">
-            <p className="text-muted-foreground leading-relaxed">
-              {t("story.p1")}
-            </p>
+            <p className="text-muted-foreground leading-relaxed">{t("story.p1")}</p>
             <p className="text-muted-foreground leading-relaxed">
               {t.rich("story.p2", {
-                bold: (chunks) => (
-                  <span className="font-semibold text-foreground">{chunks}</span>
-                ),
+                bold: (chunks) => <span className="font-semibold text-foreground">{chunks}</span>,
               })}
             </p>
-            <p className="text-muted-foreground leading-relaxed">
-              {t("story.p3")}
-            </p>
-            <p className="text-muted-foreground leading-relaxed">
-              {t("story.p4")}
-            </p>
+            <p className="text-muted-foreground leading-relaxed">{t("story.p3")}</p>
+            <p className="text-muted-foreground leading-relaxed">{t("story.p4")}</p>
           </div>
         </section>
 
@@ -65,9 +47,7 @@ export default function AboutPage() {
           <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-2">
             {t("philosophy.title")}
           </h2>
-          <p className="text-muted-foreground mb-6">
-            {t("philosophy.intro")}
-          </p>
+          <p className="text-muted-foreground mb-6">{t("philosophy.intro")}</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
             {philosophyItems.map(({ key, icon: Icon }) => (
               <div
@@ -78,9 +58,7 @@ export default function AboutPage() {
                   <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                     <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
                   </div>
-                  <h3 className="font-semibold text-foreground">
-                    {t(`philosophy.${key}.title`)}
-                  </h3>
+                  <h3 className="font-semibold text-foreground">{t(`philosophy.${key}.title`)}</h3>
                 </div>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {t(`philosophy.${key}.desc`)}
@@ -96,15 +74,9 @@ export default function AboutPage() {
             {t("curb.title")}
           </h2>
           <div className="border-l-4 border-l-primary bg-primary/5 p-6 md:p-8 rounded-r-2xl space-y-6">
-            <p className="text-muted-foreground leading-relaxed">
-              {t("curb.p1")}
-            </p>
-            <p className="text-muted-foreground leading-relaxed font-medium">
-              {t("curb.p2")}
-            </p>
-            <p className="text-muted-foreground leading-relaxed">
-              {t("curb.p3")}
-            </p>
+            <p className="text-muted-foreground leading-relaxed">{t("curb.p1")}</p>
+            <p className="text-muted-foreground leading-relaxed font-medium">{t("curb.p2")}</p>
+            <p className="text-muted-foreground leading-relaxed">{t("curb.p3")}</p>
           </div>
         </section>
 
@@ -114,24 +86,14 @@ export default function AboutPage() {
             {t("transparency.title")}
           </h2>
           <div className="bg-card/80 border border-border backdrop-blur-md p-6 md:p-8 rounded-2xl space-y-6">
-            <p className="text-muted-foreground leading-relaxed">
-              {t("transparency.p1")}
-            </p>
-            <p className="text-muted-foreground leading-relaxed">
-              {t("transparency.p2")}
-            </p>
-            <p className="text-muted-foreground leading-relaxed">
-              {t("transparency.p3")}
-            </p>
-            <p className="text-muted-foreground leading-relaxed">
-              {t("transparency.p4")}
-            </p>
+            <p className="text-muted-foreground leading-relaxed">{t("transparency.p1")}</p>
+            <p className="text-muted-foreground leading-relaxed">{t("transparency.p2")}</p>
+            <p className="text-muted-foreground leading-relaxed">{t("transparency.p3")}</p>
+            <p className="text-muted-foreground leading-relaxed">{t("transparency.p4")}</p>
 
             {/* Footer auteur */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-6 border-t border-border">
-              <p className="text-sm font-medium text-foreground">
-                {t("transparency.signature")}
-              </p>
+              <p className="text-sm font-medium text-foreground">{t("transparency.signature")}</p>
               <Button asChild variant="outline" size="sm">
                 <Link href="/contact" className="flex items-center gap-2">
                   <Mail className="h-4 w-4" aria-hidden="true" />

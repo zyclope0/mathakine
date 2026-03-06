@@ -20,7 +20,7 @@ import {
   ListTodo,
   ChevronRight,
   MessageCircleQuestion,
-  Heart
+  Heart,
 } from "lucide-react";
 import { PageLayout, PageSection } from "@/components/layout";
 import { Button } from "@/components/ui/button";
@@ -87,21 +87,13 @@ export default function DocsPage() {
             </div>
           </div>
         </div>
-        <h1 className="text-3xl md:text-5xl font-bold text-foreground">
-          {t("title")}
-        </h1>
-        <p className="text-lg md:text-xl text-primary font-medium">
-          {t("subtitle")}
-        </p>
+        <h1 className="text-3xl md:text-5xl font-bold text-foreground">{t("title")}</h1>
+        <p className="text-lg md:text-xl text-primary font-medium">{t("subtitle")}</p>
       </header>
 
       <div className="space-y-12 md:space-y-16">
         {/* 2. Pourquoi Mathakine */}
-        <PageSection
-          title={t("why.title")}
-          description={t("why.intro")}
-          icon={Sparkles}
-        >
+        <PageSection title={t("why.title")} description={t("why.intro")} icon={Sparkles}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {whyItems.map(({ key, icon: Icon }) => (
               <div
@@ -111,9 +103,7 @@ export default function DocsPage() {
                 <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
                 </div>
-                <h3 className="font-semibold text-foreground">
-                  {t(`why.${key}`)}
-                </h3>
+                <h3 className="font-semibold text-foreground">{t(`why.${key}`)}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {t(`why.${key}Desc`)}
                 </p>
@@ -123,14 +113,11 @@ export default function DocsPage() {
         </PageSection>
 
         {/* 3. Démarrer - Parcours simple */}
-        <PageSection
-          title={t("getStarted.title")}
-          icon={UserPlus}
-        >
+        <PageSection title={t("getStarted.title")} icon={UserPlus}>
           <div className="bg-card/80 border border-border backdrop-blur-md p-6 md:p-8 rounded-2xl space-y-8 relative overflow-hidden">
             {/* Design d'accentuation subtil */}
             <div className="absolute top-0 right-0 -mt-16 -mr-16 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
               {[1, 2, 3].map((step) => (
                 <div key={step} className="flex flex-col gap-3">
@@ -138,9 +125,7 @@ export default function DocsPage() {
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-bold ring-1 ring-primary/20">
                       {step}
                     </span>
-                    <h3 className="font-semibold text-foreground">
-                      {t(`getStarted.step${step}`)}
-                    </h3>
+                    <h3 className="font-semibold text-foreground">{t(`getStarted.step${step}`)}</h3>
                   </div>
                   <p className="text-muted-foreground text-sm leading-relaxed pl-11">
                     {t(`getStarted.step${step}Desc`)}
@@ -152,10 +137,7 @@ export default function DocsPage() {
         </PageSection>
 
         {/* 4. Utiliser Mathakine */}
-        <PageSection
-          title={t("using.title")}
-          icon={ListTodo}
-        >
+        <PageSection title={t("using.title")} icon={ListTodo}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {usingItems.map(({ key, icon: Icon }) => (
               <div
@@ -166,9 +148,7 @@ export default function DocsPage() {
                   <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
                 </div>
                 <div className="space-y-1.5 flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground">
-                    {t(`using.${key}`)}
-                  </h3>
+                  <h3 className="font-semibold text-foreground">{t(`using.${key}`)}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     {t(`using.${key}Desc`)}
                   </p>
@@ -179,10 +159,7 @@ export default function DocsPage() {
         </PageSection>
 
         {/* 5. Accessibilité */}
-        <PageSection
-          title={t("accessibility.title")}
-          icon={Accessibility}
-        >
+        <PageSection title={t("accessibility.title")} icon={Accessibility}>
           <div className="border-l-4 border-l-primary bg-primary/5 p-6 md:p-8 rounded-r-2xl space-y-4 shadow-sm">
             <p className="text-foreground font-medium leading-relaxed">
               {t("accessibility.intro")}
@@ -200,10 +177,7 @@ export default function DocsPage() {
         </PageSection>
 
         {/* 6. Rétention / Motivation */}
-        <PageSection
-          title={t("retention.title")}
-          icon={Heart}
-        >
+        <PageSection title={t("retention.title")} icon={Heart}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {retentionItems.map(({ key, icon: Icon }) => (
               <div
@@ -212,9 +186,7 @@ export default function DocsPage() {
               >
                 <div className="flex items-center gap-3">
                   <Icon className="h-5 w-5 text-primary shrink-0" aria-hidden="true" />
-                  <h3 className="font-semibold text-foreground">
-                    {t(`retention.${key}`)}
-                  </h3>
+                  <h3 className="font-semibold text-foreground">{t(`retention.${key}`)}</h3>
                 </div>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {t(`retention.${key}Desc`)}
@@ -225,16 +197,10 @@ export default function DocsPage() {
         </PageSection>
 
         {/* 7. FAQ */}
-        <PageSection
-          title={t("faq.title")}
-          icon={MessageCircleQuestion}
-        >
+        <PageSection title={t("faq.title")} icon={MessageCircleQuestion}>
           <div className="bg-card/50 border border-border rounded-2xl overflow-hidden divide-y divide-border">
             {faqItems.map((item) => (
-              <details
-                key={item.id}
-                className="group [&_summary::-webkit-details-marker]:hidden"
-              >
+              <details key={item.id} className="group [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex cursor-pointer list-none items-center justify-between p-5 text-sm md:text-base font-medium text-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset">
                   <span>{t(`faq.${item.q}`)}</span>
                   <div className="ml-4 flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full border border-border/50 group-open:bg-primary/10 group-open:border-primary/20 transition-all">
@@ -254,15 +220,16 @@ export default function DocsPage() {
 
         {/* 8. CTA */}
         <section className="py-8 md:py-12 text-center space-y-8 border-t border-border">
-          <h2 className="text-xl md:text-2xl font-semibold text-foreground">
-            {t("cta")}
-          </h2>
+          <h2 className="text-xl md:text-2xl font-semibold text-foreground">{t("cta")}</h2>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <Button asChild size="lg" className="w-full sm:w-auto gap-2 group">
               <Link href="/exercises">
                 <Dumbbell className="h-5 w-5" aria-hidden="true" />
                 {t("ctaExercises")}
-                <ChevronRight className="h-4 w-4 -mr-1 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                <ChevronRight
+                  className="h-4 w-4 -mr-1 group-hover:translate-x-1 transition-transform"
+                  aria-hidden="true"
+                />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="w-full sm:w-auto gap-2">
