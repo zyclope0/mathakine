@@ -30,8 +30,8 @@ export function LevelEstablishedWidget() {
 
   const skillBadges =
     hasCompletedDiagnostic && irtScores && Object.keys(irtScores).length > 0
-      ? TYPE_ORDER.filter((type) => type in irtScores).map((type) => {
-          const score = irtScores[type];
+      ? TYPE_ORDER.filter((type) => type in irtScores && irtScores[type] !== undefined).map((type) => {
+          const score = irtScores[type]!;
           const Icon = TYPE_ICON[type];
           const typeLabel = tType(
             type as "addition" | "soustraction" | "multiplication" | "division"

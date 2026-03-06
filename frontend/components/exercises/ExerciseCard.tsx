@@ -145,16 +145,16 @@ export function ExerciseCard({ exercise }: ExerciseCardProps) {
             </span>
           </div>
         </CardContent>
-        <ExerciseModal
-          exerciseId={exercise.id}
-          open={isModalOpen}
-          onOpenChange={setIsModalOpen}
-          onExerciseCompleted={() => {
-            // Invalider les queries pour rafraîchir les badges de progression
-            // Le hook useCompletedExercises se mettra à jour automatiquement
-          }}
-        />
       </ContentCardBase>
+      <ExerciseModal
+        exerciseId={exercise.id}
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onExerciseCompleted={() => {
+          // Invalider les queries pour rafraîchir les badges de progression
+          // Le hook useCompletedExercises se mettra à jour automatiquement
+        }}
+      />
     </>
   );
 }
