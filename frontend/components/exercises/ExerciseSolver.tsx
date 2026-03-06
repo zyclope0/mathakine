@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useExercise } from "@/hooks/useExercise";
 import { useSubmitAnswer } from "@/hooks/useSubmitAnswer";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
+import { useIrtScores } from "@/hooks/useIrtScores";
 import { Loader2, CheckCircle2, XCircle, Lightbulb, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,6 +24,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
   const { exercise, isLoading, error } = useExercise(exerciseId);
   const { submitAnswer, isSubmitting, submitResult } = useSubmitAnswer();
+  const { resolveIsOpenAnswer } = useIrtScores();
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
@@ -50,6 +52,12 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exercise?.id]);
+
+  // Le mode de réponse est résolu depuis les scores IRT de l'utilisateur (F03+F05),
+  // pas depuis le flag is_open_answer du générateur. Cela permet au backend de
+  // toujours générer les choices, et au frontend de décider selon le niveau réel
+  // par type (QCM pour les niveaux inférieurs, saisie libre à GRAND_MAITRE IRT).
+  const isOpenAnswer = exercise ? resolveIsOpenAnswer(exercise.exercise_type) : false;
 
   const handleSelectAnswer = (answer: string) => {
     if (hasSubmitted) return;
@@ -163,8 +171,41 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
         <MathText size="xl">{exercise.question}</MathText>
       </div>
 
-      {/* Grille de réponses — style Modal (gamification) */}
-      {choices.length > 0 ? (
+      {/* Zone de réponse — QCM ou saisie libre selon is_open_answer */}
+      {isOpenAnswer ? (
+        <div className="mb-8 space-y-3">
+          <label
+            htmlFor="open-answer-input"
+            className="block text-sm font-medium text-muted-foreground"
+          >
+            {t("openAnswerLabel", { default: "Votre réponse" })}
+          </label>
+          <input
+            id="open-answer-input"
+            type="text"
+            value={selectedAnswer ?? ""}
+            onChange={(e) => !hasSubmitted && setSelectedAnswer(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && selectedAnswer && !hasSubmitted) handleSubmit();
+            }}
+            disabled={hasSubmitted}
+            autoFocus
+            className={cn(
+              "w-full rounded-2xl py-5 px-6 text-2xl font-medium text-foreground bg-secondary/50 border-2 border-border",
+              "focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all",
+              hasSubmitted && "opacity-70 cursor-not-allowed",
+              hasSubmitted &&
+                submitResult?.is_correct &&
+                "border-emerald-500 bg-emerald-500/10 text-emerald-400",
+              hasSubmitted &&
+                !submitResult?.is_correct &&
+                "border-red-500 bg-red-500/10 text-red-400"
+            )}
+            placeholder={t("openAnswerPlaceholder", { default: "Entrez votre réponse…" })}
+            aria-label={t("openAnswerLabel", { default: "Votre réponse" })}
+          />
+        </div>
+      ) : choices.length > 0 ? (
         <div
           className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8"
           role="radiogroup"

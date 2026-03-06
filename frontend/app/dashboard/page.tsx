@@ -30,6 +30,7 @@ import { Recommendations } from "@/components/dashboard/Recommendations";
 import { QuickStartActions } from "@/components/dashboard/QuickStartActions";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { StreakWidget } from "@/components/dashboard/StreakWidget";
+import { LevelEstablishedWidget } from "@/components/dashboard/LevelEstablishedWidget";
 import { ChallengesProgressWidget } from "@/components/dashboard/ChallengesProgressWidget";
 import { LeaderboardWidget } from "@/components/dashboard/LeaderboardWidget";
 import { CategoryAccuracyChart } from "@/components/dashboard/CategoryAccuracyChart";
@@ -202,8 +203,9 @@ export default function DashboardPage() {
 
             {/* Onglet Vue d'ensemble — Parcours guidé + KPIs + streak + classement */}
             <TabsContent value="overview" className="space-y-6">
-              <PageSection>
+              <PageSection className="space-y-4">
                 <QuickStartActions />
+                <LevelEstablishedWidget />
               </PageSection>
               <PageSection className="space-y-2">
                 {stats.recent_activity?.[0]?.time && (

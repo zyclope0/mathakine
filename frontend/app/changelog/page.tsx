@@ -22,7 +22,17 @@ export default function ChangelogPage() {
   const t = useTranslations("changelog");
   const { shouldReduceMotion, createVariants, createTransition } = useAccessibleAnimation();
 
-  const versionKeys = ["v310a3", "v250a3", "v250", "v240", "v230", "v221a2", "v222", "v221", "v220"] as const;
+  const versionKeys = [
+    "v310a3",
+    "v250a3",
+    "v250",
+    "v240",
+    "v230",
+    "v221a2",
+    "v222",
+    "v221",
+    "v220",
+  ] as const;
 
   const itemIcon = (idx: number, isLatest: boolean) => {
     if (!isLatest)

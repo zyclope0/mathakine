@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useExercise } from "@/hooks/useExercise";
 import { useSubmitAnswer } from "@/hooks/useSubmitAnswer";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
+import { useIrtScores } from "@/hooks/useIrtScores";
 import { useTranslations } from "next-intl";
 import { Loader2, CheckCircle2, XCircle, Lightbulb, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,7 @@ export function ExerciseModal({
   const { exercise, isLoading, error } = useExercise(exerciseId || 0);
   const { submitAnswer, isSubmitting, submitResult } = useSubmitAnswer();
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
+  const { resolveIsOpenAnswer } = useIrtScores();
   const t = useTranslations("exercises.modal");
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -82,6 +84,10 @@ export function ExerciseModal({
       return () => clearTimeout(timer);
     }
   }, [hasSubmitted, submitResult, onExerciseCompleted]);
+
+  // Mode de réponse résolu depuis les scores IRT par type (F03+F05) — pas depuis
+  // le flag is_open_answer du générateur. QCM conservé pour les niveaux < GRAND_MAITRE.
+  const isOpenAnswer = exercise ? resolveIsOpenAnswer(exercise.exercise_type) : false;
 
   const handleSelectAnswer = (answer: string) => {
     if (hasSubmitted) return;
@@ -212,8 +218,41 @@ export function ExerciseModal({
                 );
               })()}
               <div className="space-y-6 pt-6 pb-4">
-                {/* Choix de réponses */}
-                {choices.length > 0 ? (
+                {/* Zone de réponse — QCM ou saisie libre selon is_open_answer */}
+                {isOpenAnswer ? (
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="modal-open-answer-input"
+                      className="block text-sm font-medium text-muted-foreground"
+                    >
+                      {t("openAnswerLabel", { default: "Votre réponse" })}
+                    </label>
+                    <input
+                      id="modal-open-answer-input"
+                      type="text"
+                      value={selectedAnswer ?? ""}
+                      onChange={(e) => !hasSubmitted && setSelectedAnswer(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && selectedAnswer && !hasSubmitted) handleSubmit();
+                      }}
+                      disabled={hasSubmitted}
+                      autoFocus
+                      className={cn(
+                        "w-full rounded-xl py-4 px-5 text-xl font-medium text-foreground bg-secondary/50 border-2 border-border",
+                        "focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all",
+                        hasSubmitted && "opacity-70 cursor-not-allowed",
+                        hasSubmitted &&
+                          submitResult?.is_correct &&
+                          "border-green-500 bg-green-500/10 text-green-400",
+                        hasSubmitted &&
+                          !submitResult?.is_correct &&
+                          "border-red-500 bg-red-500/10 text-red-400"
+                      )}
+                      placeholder={t("openAnswerPlaceholder", { default: "Entrez votre réponse…" })}
+                      aria-label={t("openAnswerLabel", { default: "Votre réponse" })}
+                    />
+                  </div>
+                ) : choices.length > 0 ? (
                   <div
                     className="grid grid-cols-2 gap-3"
                     role="radiogroup"

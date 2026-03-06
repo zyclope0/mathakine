@@ -62,6 +62,7 @@ export interface Exercise {
   created_at?: string;
   updated_at?: string;
   creator_id?: number | null;
+  is_open_answer?: boolean;
 }
 
 /**
