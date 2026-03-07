@@ -31,8 +31,19 @@ logger = get_logger(__name__)
 class BadgeService:
     """Service pour la gestion des badges et achievements"""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, *, auto_commit: bool = True):
         self.db = db
+        self.auto_commit = auto_commit
+
+    def _flush_or_commit(self) -> None:
+        if self.auto_commit:
+            self.db.commit()
+        else:
+            self.db.flush()
+
+    def _rollback_if_needed(self) -> None:
+        if self.auto_commit:
+            self.db.rollback()
 
     def check_and_award_badges(
         self, user_id: int, attempt_data: Dict[str, Any] = None
@@ -47,6 +58,7 @@ class BadgeService:
         Returns:
             Liste des nouveaux badges obtenus
         """
+        savepoint = self.db.begin_nested() if not self.auto_commit else None
         try:
             user = UserService.get_user(self.db, user_id)
             if not user:
@@ -87,14 +99,24 @@ class BadgeService:
             if new_badges:
                 self._update_user_gamification(user_id, new_badges)
 
+            if savepoint and savepoint.is_active:
+                savepoint.commit()
             return new_badges
 
         except SQLAlchemyError as badge_check_error:
+            if savepoint and savepoint.is_active:
+                savepoint.rollback()
+            else:
+                self._rollback_if_needed()
             logger.error(
                 f"Erreur DB lors de la vérification des badges pour l'utilisateur {user_id}: {badge_check_error}"
             )
             return []
         except (TypeError, ValueError) as badge_check_error:
+            if savepoint and savepoint.is_active:
+                savepoint.rollback()
+            else:
+                self._rollback_if_needed()
             logger.error(
                 f"Erreur de données lors de la vérification des badges pour l'utilisateur {user_id}: {badge_check_error}"
             )
@@ -610,7 +632,7 @@ class BadgeService:
             )
 
             self.db.add(user_achievement)
-            self.db.commit()
+            self._flush_or_commit()
 
             return {
                 "id": badge.id,
@@ -624,7 +646,9 @@ class BadgeService:
             }
 
         except SQLAlchemyError as badge_award_error:
-            self.db.rollback()
+            if not self.auto_commit:
+                raise
+            self._rollback_if_needed()
             logger.error(
                 f"Erreur lors de l'attribution du badge {badge.code}: {badge_award_error}"
             )
@@ -669,13 +693,15 @@ class BadgeService:
                     },
                 )
 
-                self.db.commit()
+                self._flush_or_commit()
                 logger.info(
                     f"Gamification mise à jour pour l'utilisateur {user_id}: {total_points_gained} points, niveau {new_level}, rang {jedi_rank}"
                 )
 
         except Exception as gamification_update_error:
-            self.db.rollback()
+            if not self.auto_commit:
+                raise
+            self._rollback_if_needed()
             logger.error(
                 f"Erreur mise à jour gamification pour l'utilisateur {user_id}: {gamification_update_error}"
             )
@@ -1078,9 +1104,9 @@ class BadgeService:
             user = UserService.get_user(self.db, user_id)
             if user:
                 user.pinned_badge_ids = valid
-                self.db.commit()
+                self._flush_or_commit()
         except SQLAlchemyError as e:
-            self.db.rollback()
+            self._rollback_if_needed()
             logger.error(f"Erreur set_pinned_badges: {e}")
             return []
         return valid

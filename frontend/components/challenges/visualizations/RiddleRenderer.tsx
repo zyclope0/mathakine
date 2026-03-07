@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useHydrated } from "@/lib/hooks/useHydrated";
 import { Lightbulb, Key, HelpCircle, Grid3x3, Info } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -14,14 +14,9 @@ interface RiddleRendererProps {
  * Affiche les indices, clés de résolution, grilles mathématiques ou éléments visuels.
  */
 export function RiddleRenderer({ visualData, className = "" }: RiddleRendererProps) {
-  const [mounted, setMounted] = useState(false);
+  const isHydrated = useHydrated();
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
-
-  if (!mounted || !visualData) {
+  if (!isHydrated || !visualData) {
     return null;
   }
 

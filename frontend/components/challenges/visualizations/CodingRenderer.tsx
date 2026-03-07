@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useHydrated } from "@/lib/hooks/useHydrated";
 import {
   Code,
   Terminal,
@@ -26,14 +26,9 @@ interface CodingRendererProps {
  * Gère : code César, substitution, binaire, symboles, algorithmes.
  */
 export function CodingRenderer({ visualData, className = "" }: CodingRendererProps) {
-  const [mounted, setMounted] = useState(false);
+  const isHydrated = useHydrated();
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
-
-  if (!mounted || !visualData) {
+  if (!isHydrated || !visualData) {
     return null;
   }
 

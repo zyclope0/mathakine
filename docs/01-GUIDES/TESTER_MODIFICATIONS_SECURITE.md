@@ -110,9 +110,13 @@ python scripts/security/check_sensitive_logs.py
 
 ---
 
-### ✅ Test 2 : Vérifier le Fallback Refresh Token (SEC-1.2)
+### ✅ Test 2 : Vérifier le Fallback Refresh Token Legacy (SEC-1.2)
 
-**Objectif** : Vérifier que le fallback avec `verify_exp=False` n'existe plus
+**Objectif** : Vérifier que le fallback legacy reste strictement borné :
+
+- aucun refresh token ne doit être recréé à partir d'un access token invalide
+- aucun refresh token ne doit être recréé à partir d'un access token trop ancien
+- seul un access token legacy encore exploitable peut servir de compatibilité transitoire
 
 **Actions** :
 1. Lancer le serveur
@@ -122,15 +126,11 @@ python scripts/security/check_sensitive_logs.py
 
 **Résultat attendu** :
 ```
-✅ Retour 401 immédiat :
-   {"detail": "Refresh token manquant ou invalide. Veuillez vous reconnecter."}
+✅ Sans refresh_token et sans access_token legacy exploitable :
+   retour 401
 
-❌ Ne doit PAS créer un nouveau refresh_token à partir d'un access_token expiré
-```
-
-**Commande de vérification** :
-```bash
-python scripts/security/check_fallback_refresh.py
+❌ Ne doit PAS créer un nouveau refresh_token à partir d'un access_token invalide
+❌ Ne doit PAS créer un nouveau refresh_token à partir d'un access_token expiré depuis trop longtemps
 ```
 
 **Test manuel** :
@@ -140,10 +140,15 @@ curl -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"ObiWan","password":"HelloThere123!"}'
 
-# 2. Essayer de refresh SANS refresh_token (doit retourner 401)
+# 2. Essayer de refresh SANS refresh_token
 curl -X POST http://localhost:8000/api/auth/refresh \
   -H "Content-Type: application/json"
 ```
+
+**Lecture attendue** :
+
+- si aucun cookie/access token legacy valable n'est présent, le backend renvoie `401`
+- le fallback ne doit pas contourner l'expiration réelle ni recréer un token pour un utilisateur introuvable/inactif
 
 ---
 
@@ -333,6 +338,8 @@ if __name__ == "__main__":
 
 ## 🚀 Commandes Rapides
 
+> Si vous n'avez pas de dossier local `scripts/security/`, utilisez les procédures manuelles décrites plus haut. Les commandes ci-dessous correspondent à une automatisation optionnelle.
+
 ### Windows PowerShell
 
 ```powershell
@@ -385,7 +392,7 @@ python scripts/security/check_startup_migrations.py
 ### Pendant le Test
 - [ ] Serveur démarre sans erreur
 - [ ] Logs ne contiennent pas de mots de passe/hash
-- [ ] Fallback refresh token supprimé (401 si refresh_token manquant)
+- [ ] Fallback refresh token legacy borné et sans contournement d'expiration
 - [ ] localStorage ne contient pas refresh_token
 - [ ] Credentials démo conditionnés par DEMO_MODE
 - [ ] Mot de passe admin validé si REQUIRE_STRONG_DEFAULT_ADMIN=true

@@ -111,6 +111,77 @@ def test_get_nonexistent_user_by_username(db_session):
     assert user is None
 
 
+def test_normalize_profile_update_data_merges_nested_settings():
+    normalized_data, error_message = UserService.normalize_profile_update_data(
+        {
+            "email": " TestUser@Example.com ",
+            "grade_system": "suisse",
+            "grade_level": "6",
+            "learning_style": "visuel",
+            "preferred_theme": "spatial",
+            "accessibility_settings": {"high_contrast": True},
+            "language_preference": "fr",
+            "timezone": "Europe/Zurich",
+            "is_public_profile": True,
+            "show_in_leaderboards": False,
+        }
+    )
+
+    assert error_message is None
+    assert normalized_data["email"] == "testuser@example.com"
+    assert normalized_data["grade_level"] == 6
+    assert normalized_data["grade_system"] == "suisse"
+    assert normalized_data["accessibility_settings"]["high_contrast"] is True
+    assert normalized_data["accessibility_settings"]["language_preference"] == "fr"
+    assert normalized_data["accessibility_settings"]["timezone"] == "Europe/Zurich"
+    assert normalized_data["accessibility_settings"]["privacy_settings"] == {
+        "is_public_profile": True,
+        "show_in_leaderboards": False,
+    }
+
+
+def test_normalize_profile_update_data_rejects_invalid_email():
+    normalized_data, error_message = UserService.normalize_profile_update_data(
+        {"email": "not-an-email"}
+    )
+
+    assert normalized_data is None
+    assert error_message == "Adresse email invalide."
+
+
+def test_serialize_user_profile_for_api():
+    user = MagicMock(spec=User)
+    user.id = 1
+    user.username = "serialize_user"
+    user.email = "serialize@example.com"
+    user.full_name = "Serialize User"
+    user.role = UserRole.PADAWAN
+    user.is_email_verified = True
+    user.grade_level = 6
+    user.grade_system = "suisse"
+    user.learning_style = "visuel"
+    user.preferred_difficulty = "initie"
+    user.onboarding_completed_at = datetime(2026, 3, 6, 12, 0, 0)
+    user.learning_goal = "progresser"
+    user.practice_rhythm = "10min/jour"
+    user.preferred_theme = "spatial"
+    user.accessibility_settings = {"high_contrast": True}
+    user.is_active = True
+    user.created_at = datetime(2026, 3, 6, 10, 0, 0)
+    user.updated_at = datetime(2026, 3, 6, 11, 0, 0)
+    user.total_points = 120
+    user.current_level = 3
+    user.jedi_rank = "padawan"
+
+    response_data = UserService.serialize_user_profile_for_api(user)
+
+    assert response_data["username"] == "serialize_user"
+    assert response_data["role"] == UserRole.PADAWAN.value
+    assert response_data["grade_system"] == "suisse"
+    assert response_data["accessibility_settings"] == {"high_contrast": True}
+    assert response_data["onboarding_completed_at"] == "2026-03-06T12:00:00"
+
+
 def test_get_user_by_email():
     """Teste la récupération d'un utilisateur par son adresse email."""
     # Utiliser un mock pour la session et l'adaptateur

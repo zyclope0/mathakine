@@ -30,7 +30,7 @@ export function DailyChallengesWidget() {
   if (isLoading) {
     return (
       <div
-        className="rounded-xl border border-primary/20 bg-card shadow-sm p-4 md:p-5"
+        className="rounded-xl border border-border/50 bg-card/40 backdrop-blur-md shadow-sm p-4 md:p-5"
         role="region"
         aria-busy="true"
         aria-label={t("title")}
@@ -63,7 +63,7 @@ export function DailyChallengesWidget() {
 
   return (
     <div
-      className="flex-1 min-h-0 flex flex-col rounded-xl border border-primary/20 bg-card shadow-sm p-4 md:p-5"
+      className="flex-1 min-h-0 flex flex-col rounded-xl border border-border/50 bg-card/40 backdrop-blur-md shadow-sm p-4 md:p-5"
       role="region"
       aria-label={t("title")}
     >
@@ -163,10 +163,8 @@ function ChallengeItem({
       </div>
       <span
         className={cn(
-          "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shrink-0 border",
-          isCompleted
-            ? "bg-success/10 text-success border-success/20"
-            : "bg-primary/10 text-primary border-primary/20"
+          "inline-flex items-center px-2 py-1 rounded-md text-xs font-bold shrink-0",
+          isCompleted ? "bg-success/10 text-success" : "bg-primary/10 text-primary"
         )}
       >
         {t("bonus", { points: challenge.bonus_points })}

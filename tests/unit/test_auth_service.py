@@ -17,11 +17,14 @@ from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserUpdate
 from app.services.auth_service import (
     authenticate_user,
+    authenticate_user_with_session,
     create_user,
+    create_registered_user_with_verification,
     create_user_token,
     get_user_by_email,
     get_user_by_id,
     get_user_by_username,
+    recover_refresh_token_from_access_token,
     refresh_access_token,
     reset_password_with_token,
     update_user,
@@ -700,6 +703,36 @@ def test_refresh_access_token_valid_token_but_deleted_user(db_session, mock_user
     assert "Utilisateur non trouvé" in err
 
 
+def test_recover_refresh_token_from_access_token_valid_user(db_session, mock_user):
+    user_data = mock_user()
+    user = adapted_dict_to_user(user_data, db_session)
+    db_session.add(user)
+    db_session.commit()
+
+    access_token = create_access_token({"sub": user.username})
+
+    refresh_token = recover_refresh_token_from_access_token(db_session, access_token)
+
+    assert isinstance(refresh_token, str)
+    assert len(refresh_token) > 20
+
+
+def test_recover_refresh_token_from_access_token_too_old(db_session):
+    stale_token = jwt.encode(
+        {
+            "sub": "stale_user",
+            "type": "access",
+            "exp": int((datetime.now(timezone.utc) - timedelta(days=8)).timestamp()),
+        },
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM,
+    )
+
+    refresh_token = recover_refresh_token_from_access_token(db_session, stale_token)
+
+    assert refresh_token is None
+
+
 def test_create_user_with_full_profile_data(db_session):
     """Teste la création d'un utilisateur avec toutes les données de profil optionnelles."""
     # Créer un utilisateur complet avec toutes les données optionnelles
@@ -735,6 +768,56 @@ def test_create_user_with_full_profile_data(db_session):
     assert user.preferred_theme == "dark"
     assert user.accessibility_settings == {"high_contrast": True, "large_text": True}
     assert user.is_active is True
+
+
+def test_create_registered_user_with_verification_single_commit(db_session):
+    """Le helper register doit persister user + token dans un seul commit final."""
+    user_data = UserCreate(
+        username=unique_username(),
+        email=unique_email(),
+        password="TestPassword123",
+        role="padawan",
+    )
+
+    with patch.object(db_session, "commit", wraps=db_session.commit) as commit_spy:
+        user, err, status_code = create_registered_user_with_verification(
+            db_session,
+            user_data,
+            "verification_token_test",
+        )
+
+    assert err is None
+    assert status_code == 201
+    assert user is not None
+    assert user.email_verification_token == "verification_token_test"
+    assert user.is_email_verified is False
+    assert commit_spy.call_count == 1
+
+
+def test_authenticate_user_with_session_single_commit(db_session, mock_user):
+    """Le login avec session doit créer la session et commit une seule fois."""
+    user_data = mock_user()
+    clear_password = user_data["password"]
+    user = adapted_dict_to_user(user_data, db_session)
+    db_session.add(user)
+    db_session.commit()
+
+    expires_at = datetime.now(timezone.utc) + timedelta(days=1)
+    with patch.object(db_session, "commit", wraps=db_session.commit) as commit_spy:
+        auth_user, token_data = authenticate_user_with_session(
+            db_session,
+            user.username,
+            clear_password,
+            ip="127.0.0.1",
+            user_agent="pytest",
+            expires_at=expires_at,
+        )
+
+    assert auth_user is not None
+    assert token_data is not None
+    assert token_data["access_token"]
+    assert token_data["refresh_token"]
+    assert commit_spy.call_count == 1
 
 
 def test_update_user_without_password_change(db_session, mock_user):

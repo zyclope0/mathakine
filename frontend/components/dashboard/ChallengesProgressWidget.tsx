@@ -57,14 +57,14 @@ export function ChallengesProgressWidget({
       whileHover={!shouldReduceMotion ? { scale: 1.02 } : {}}
       className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
     >
-      <Card className="border-white/10 bg-card/40 backdrop-blur-md h-full flex flex-col">
+      <Card className="border-border/50 bg-card/40 backdrop-blur-md h-full flex flex-col">
         <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
             <motion.div
               animate={!shouldReduceMotion ? { rotate: [0, -10, 10, -10, 0] } : {}}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <Trophy className="w-5 h-5 text-yellow-400" />
+              <Trophy className="w-5 h-5 text-warning" />
             </motion.div>
             {t("title")}
           </CardTitle>
@@ -89,17 +89,15 @@ export function ChallengesProgressWidget({
                 <Target className="w-4 h-4 text-green-400" />
                 <div className="text-xs text-muted-foreground">{t("successRate")}</div>
               </div>
-              <div className="text-lg font-bold text-green-400">
-                {Math.round(successRate * 100)}%
-              </div>
+              <div className="text-lg font-bold text-success">{Math.round(successRate * 100)}%</div>
             </div>
 
-            <div className="rounded-lg p-3 bg-blue-500/5 border border-blue-500/15">
+            <div className="rounded-lg p-3 bg-primary/10 border border-primary/20">
               <div className="flex items-center gap-2 mb-1">
-                <Clock className="w-4 h-4 text-blue-400" />
+                <Clock className="w-4 h-4 text-primary" />
                 <div className="text-xs text-muted-foreground">{t("avgTime")}</div>
               </div>
-              <div className="text-lg font-bold text-blue-400">
+              <div className="text-lg font-bold text-primary">
                 {averageTime > 0 ? `${Math.round(averageTime)}s` : "-"}
               </div>
             </div>

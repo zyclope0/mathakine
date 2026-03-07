@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique — Mise à jour au 06/03/2026  
+> Point d'entrée unique — Mise à jour au 07/03/2026  
 > **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md) — inclut la **revue trimestrielle** (vérité terrain) §7
 
 ---
@@ -41,7 +41,7 @@ docs/
 │
 ├── 02-FEATURES/           # 📙 Fonctionnalités
 │   ├── ROADMAP_FONCTIONNALITES.md  # ⭐ BACKLOG & PRIORISATION (document vivant — source de vérité)
-│   ├── F02_DEFIS_QUOTIDIENS.md     # Référence F02 : défis quotidiens (implémenté)
+│   ├── F02_DEFIS_QUOTIDIENS.md     # Référence F02 : défis quotidiens, flux transactionnels clarifiés
 │   ├── BADGES_AMELIORATIONS.md    # Fondements psychologiques badges + backlog améliorations
 │   ├── ANALYTICS_PROGRESSION.md  # Spécifications graphiques de progression (futures)
 │   ├── WORKFLOW_EDUCATION_REFACTORING.md # Workflow utilisateur + éducation (référence)
@@ -63,7 +63,8 @@ docs/
 │
 ├── 03-PROJECT/            # 📕 Gestion projet
 │   ├── README.md          # ⭐ Index maître audits/rapports
-│   ├── REFACTOR_STATUS_2026-02.md  # État refactor Clean Code + Architecture (28/02)
+│   ├── REFACTOR_STATUS_2026-02.md  # État refactor + stabilisation pré-backlog (B1/B2/F2 + F1.1/F1.2 traités, F1.3/F1.4 restants)
+│   ├── PLAN_STABILISATION_PRE_BACKLOG_2026-03-06.md  # Stabilisation pré-backlog, B1/B2/F2 traités, F1.1/F1.2 faits, validation ciblée verte
 │   ├── EVALUATION_PROJET_2026-02-07.md  # Référence actuelle (évaluation factuelle)
 │   ├── AUDIT_DASHBOARD_2026-02.md  # Audit dashboard (recos partielles)
 │   ├── REFACTOR_DASHBOARD_2026-03.md  # Refactor onglets (Vue d'ensemble, Progression, Mon Profil)

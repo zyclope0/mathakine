@@ -50,7 +50,7 @@ export function ProgressChart({ data }: ProgressChartProps) {
   }, [data.labels, data.datasets]);
 
   return (
-    <Card className="border-white/10 bg-card/40 backdrop-blur-md">
+    <Card className="border-border/50 bg-card/40 backdrop-blur-md">
       <CardHeader>
         <CardTitle className="text-xl text-foreground">
           {t("title", { default: "Progression par type d'exercice" })}
@@ -98,7 +98,7 @@ export function ProgressChart({ data }: ProgressChartProps) {
                 contentStyle={RECHARTS_TOOLTIP_STYLE}
                 formatter={(value) => [typeof value === "number" ? Math.round(value) : value, ""]}
               />
-              <Legend />
+              <Legend wrapperStyle={{ color: "var(--color-muted-foreground)" }} />
               <Area
                 type="monotone"
                 dataKey={data.datasets[0]?.label || "Exercices résolus"}

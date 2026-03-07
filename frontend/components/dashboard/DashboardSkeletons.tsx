@@ -20,7 +20,7 @@ export function DashboardWidgetSkeleton({
   className?: string;
 }) {
   return (
-    <Card className={cn("bg-card border-primary/20 animate-pulse h-full flex flex-col", className)}>
+    <Card className={cn("dashboard-card-surface animate-pulse h-full flex flex-col", className)}>
       <CardHeader className="flex-shrink-0">
         <Skeleton className={cn("h-6", titleWidth)} />
       </CardHeader>
@@ -41,7 +41,7 @@ export function DashboardWidgetSkeleton({
  */
 export function StatsCardSkeleton() {
   return (
-    <Card className="bg-card border-primary/20">
+    <Card className="dashboard-card-surface">
       <CardContent className="pt-6">
         <div className="text-center space-y-2">
           <div className="flex justify-center">
@@ -60,7 +60,7 @@ export function StatsCardSkeleton() {
  */
 export function ChartSkeleton() {
   return (
-    <Card className="bg-card border-primary/20">
+    <Card className="dashboard-card-surface">
       <CardHeader>
         <Skeleton className="h-6 w-48" />
       </CardHeader>
@@ -84,7 +84,7 @@ export function ChartSkeleton() {
  */
 export function PerformanceByTypeSkeleton() {
   return (
-    <Card className="bg-card border-primary/20">
+    <Card className="dashboard-card-surface">
       <CardHeader>
         <Skeleton className="h-6 w-48" />
       </CardHeader>
@@ -109,7 +109,7 @@ export function PerformanceByTypeSkeleton() {
  */
 export function DailyChallengesSkeleton() {
   return (
-    <div className="rounded-xl border border-primary/20 bg-card shadow-sm p-4 md:p-5 animate-pulse">
+    <div className="rounded-xl border border-border/50 bg-card/40 backdrop-blur-md shadow-sm p-4 md:p-5 animate-pulse">
       <div className="flex items-center gap-3 mb-4">
         <Skeleton variant="circular" width={40} height={40} />
         <div className="space-y-2">
@@ -139,7 +139,7 @@ export function DailyChallengesSkeleton() {
  */
 export function RecentActivitySkeleton() {
   return (
-    <Card className="bg-card border-primary/20">
+    <Card className="dashboard-card-surface">
       <CardHeader>
         <Skeleton className="h-6 w-40" />
       </CardHeader>

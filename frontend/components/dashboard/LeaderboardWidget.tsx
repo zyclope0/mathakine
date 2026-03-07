@@ -46,11 +46,11 @@ export function LeaderboardWidget() {
       whileHover={!shouldReduceMotion ? { scale: 1.01 } : {}}
       className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
     >
-      <Card className="border-white/10 bg-card/40 backdrop-blur-md h-full flex flex-col overflow-hidden">
+      <Card className="dashboard-card-surface h-full flex flex-col overflow-hidden">
         <CardHeader className="pb-2 flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
-              <Trophy className="w-5 h-5 text-yellow-400" />
+              <Trophy className="w-5 h-5 text-warning" />
               {t("title")}
             </CardTitle>
             <Link
@@ -74,10 +74,10 @@ export function LeaderboardWidget() {
                   key={`${entry.rank}-${entry.username}`}
                   className={cn(
                     "flex items-center gap-2.5 px-4 py-2",
-                    "hover:bg-white/5 transition-colors duration-150",
-                    idx < leaderboard.length - 1 && "border-b border-white/5",
+                    "transition-colors duration-150 hover:bg-muted/35",
+                    idx < leaderboard.length - 1 && "border-b border-border/50",
                     entry.is_current_user
-                      ? "bg-primary/10 border-l-[3px] border-l-primary"
+                      ? "bg-primary/5 border-l-[3px] border-l-primary"
                       : "border-l-[3px] border-l-transparent"
                   )}
                 >
@@ -104,7 +104,7 @@ export function LeaderboardWidget() {
                     </span>
                   )}
 
-                  <span className="flex-shrink-0 text-sm font-bold text-amber-400 tabular-nums">
+                  <span className="flex-shrink-0 text-sm font-bold text-warning tabular-nums">
                     {entry.total_points.toLocaleString()}
                   </span>
                 </li>

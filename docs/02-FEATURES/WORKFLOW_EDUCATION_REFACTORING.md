@@ -107,7 +107,7 @@ En EdTech 2026, la métrique clé d'activation est l'accès à la valeur pédago
 
 **Détail par axe :**
 
-- **Axe 1** : Lever le 403 au login pour les utilisateurs non vérifiés ; ajouter un claim `email_verified` dans le JWT ; adapter les handlers (ex. `require_auth`) pour restreindre certains accès ; bandeau frontend ; redirection post-register vers `/exercises` au lieu de `/verify-email`.
+- **Axe 1** : backend désormais partiellement livré : le login n'impose plus de `403` pour les utilisateurs non vérifiés, une session est créée avec accès limité, et les handlers/services portent cette restriction côté backend. Restent les ajustements UX/frontend éventuels (bandeau, redirection post-register, parcours exact).
 - **Axe 2** : Mode invité = `user_id` nullable ou session anonyme ; `ExerciseResult` optionnel ou stockage temporaire ; fusion des données à la création de compte.
 - **Axe 3** : Endpoint `POST /api/auth/activate-session` (token → cookies) ou extension de la réponse register ; frontend lit le token et appelle l’API ; même logique de session limitée qu’axe 1.
 

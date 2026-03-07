@@ -72,6 +72,7 @@ from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash
 from app.db.base import Base, engine
 from app.models.attempt import Attempt
+from app.models.daily_challenge import DailyChallenge
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import (
     AgeGroup,
@@ -139,6 +140,10 @@ def setup_test_environment():
     from app.db.base import engine as imported_engine
 
     engine_url = str(imported_engine.url)
+
+    # F02/B1: certaines bases de test locales n'ont pas encore la table daily_challenges.
+    # On la crée à la volée en test pour éviter les erreurs de cascade User -> DailyChallenge.
+    DailyChallenge.__table__.create(bind=imported_engine, checkfirst=True)
 
     engine_db_match = re.search(r"/([^/?]+)(?:\?|$)", engine_url)
     if engine_db_match:

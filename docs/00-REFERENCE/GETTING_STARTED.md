@@ -53,7 +53,7 @@ alembic upgrade head
 python enhanced_server.py
 ```
 
-✅ **Backend accessible** : http://localhost:10000
+✅ **Backend accessible** : http://localhost:8000
 
 ### 3. Frontend (Next.js)
 ```bash
@@ -96,7 +96,7 @@ OPENAI_API_KEY=sk-...
 ### Variables d'environnement Frontend (.env.local)
 ```bash
 # Backend API
-NEXT_PUBLIC_API_BASE_URL=http://localhost:10000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 # Feature flags
@@ -110,7 +110,7 @@ NEXT_PUBLIC_ENABLE_AI_GENERATION=true
 ### 1. Créer un compte
 ```bash
 # Via API
-curl -X POST http://localhost:10000/api/users/ \
+curl -X POST http://localhost:8000/api/users/ \
   -H "Content-Type: application/json" \
   -d '{"username":"test","email":"test@example.com","password":"test123","role":"student"}'
 
@@ -121,7 +121,7 @@ curl -X POST http://localhost:10000/api/users/ \
 ### 2. Se connecter
 ```bash
 # Via API
-curl -X POST http://localhost:10000/api/auth/login \
+curl -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"test","password":"test123"}'
 
@@ -203,23 +203,23 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 
-**Problème** : `Error: ECONNREFUSED 127.0.0.1:10000`
+**Problème** : `Error: ECONNREFUSED 127.0.0.1:8000`
 ```bash
-# Solution : Vérifier que le backend est lancé sur le port 10000
+# Solution : Vérifier que le backend est lancé sur le port 8000
 # Dans un autre terminal :
 python enhanced_server.py
 ```
 
 ### Port déjà utilisé
 
-**Backend (10000)**
+**Backend (8000)**
 ```bash
 # Windows
-netstat -ano | findstr :10000
+netstat -ano | findstr :8000
 taskkill /PID <PID> /F
 
 # Mac/Linux
-lsof -ti:10000 | xargs kill -9
+lsof -ti:8000 | xargs kill -9
 ```
 
 **Frontend (3000)**
@@ -308,7 +308,7 @@ Avant de commencer à développer, vérifier :
 - [ ] Node.js 18+ installé
 - [ ] Python 3.11+ installé
 - [ ] PostgreSQL installé (ou SQLite pour dev)
-- [ ] Backend démarré (http://localhost:10000)
+- [ ] Backend démarré (http://localhost:8000)
 - [ ] Frontend démarré (http://localhost:3000)
 - [ ] Compte créé et connexion fonctionnelle
 - [ ] Tests passent (`pytest tests/`)

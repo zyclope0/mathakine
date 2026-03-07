@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,24 +15,13 @@ function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const t = useTranslations("auth.resetPassword");
+  const token = searchParams.get("token");
 
-  const [token, setToken] = useState<string | null>(null);
   const [status, setStatus] = useState<"form" | "loading" | "success" | "error">("form");
   const [message, setMessage] = useState<string>("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [passwordError, setPasswordError] = useState<string>("");
-
-  useEffect(() => {
-    const tokenParam = searchParams.get("token");
-    if (!tokenParam) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setStatus("error");
-      setMessage(t("noToken"));
-    } else {
-      setToken(tokenParam);
-    }
-  }, [searchParams, t]);
 
   const validateForm = (): boolean => {
     if (password.length < 6) {
@@ -76,14 +65,14 @@ function ResetPasswordContent() {
     }
   };
 
-  if (!token && status === "error") {
+  if (!token) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center">
             <XCircle className="h-12 w-12 text-red-500 mx-auto" />
             <CardTitle className="text-2xl font-bold text-red-600">{t("errorTitle")}</CardTitle>
-            <CardDescription>{message}</CardDescription>
+            <CardDescription>{t("noToken")}</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             <Link href="/forgot-password">

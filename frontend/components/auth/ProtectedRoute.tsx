@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
@@ -24,87 +24,72 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
-  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-  const [showContent, setShowContent] = useState(false);
+  const [hasTimedOut, setHasTimedOut] = useState(false);
+  const lastRedirectRef = useRef<string | null>(null);
 
-  // Timeout de sécurité : après 1.5 secondes, afficher quand même le contenu
   useEffect(() => {
-    if (isLoading && user === null && !hasCheckedAuth) {
-      const timer = setTimeout(() => {
-        // Log uniquement en développement
-        if (process.env.NODE_ENV === "development") {
-          console.log("[ProtectedRoute] Timeout sécurité - affichage du contenu");
-        }
-        setShowContent(true);
-        setHasCheckedAuth(true);
-      }, 1500);
-
-      return () => clearTimeout(timer);
-    } else if (user !== null || !isLoading) {
-      // Si on a des données utilisateur ou que le chargement est terminé, afficher immédiatement
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShowContent(true);
-      if (!hasCheckedAuth) {
-        setHasCheckedAuth(true);
-      }
+    if (!(isLoading && user === null) || hasTimedOut) {
+      return;
     }
-  }, [isLoading, user, hasCheckedAuth]);
 
-  // Vérifier l'authentification, l'accès complet et l'onboarding
-  useEffect(() => {
-    if (!hasCheckedAuth) return;
-    // Onboarding non complété sur une route qui l'exige
-    if (
-      requireOnboardingCompleted &&
-      user &&
-      !user.onboarding_completed_at &&
-      user.access_scope !== "exercises_only"
-    ) {
+    const timer = window.setTimeout(() => {
       if (process.env.NODE_ENV === "development") {
+        console.log("[ProtectedRoute] Timeout sécurité - affichage du contenu");
+      }
+      setHasTimedOut(true);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [isLoading, user, hasTimedOut]);
+
+  const hasCheckedAuth = hasTimedOut || user !== null || !isLoading;
+  const mustRedirectToOnboarding =
+    hasCheckedAuth &&
+    requireOnboardingCompleted &&
+    user &&
+    !user.onboarding_completed_at &&
+    user.access_scope !== "exercises_only";
+  const mustRedirectToExercises =
+    hasCheckedAuth && requireFullAccess && user && user.access_scope === "exercises_only";
+  const mustRedirectToLogin = hasCheckedAuth && requireAuth && !isAuthenticated && user === null;
+
+  const redirectTarget = mustRedirectToOnboarding
+    ? "/onboarding"
+    : mustRedirectToExercises
+      ? "/exercises"
+      : mustRedirectToLogin
+        ? redirectTo
+        : null;
+
+  useEffect(() => {
+    if (!redirectTarget) {
+      lastRedirectRef.current = null;
+      return;
+    }
+
+    if (lastRedirectRef.current === redirectTarget) {
+      return;
+    }
+
+    if (process.env.NODE_ENV === "development") {
+      if (redirectTarget === "/onboarding") {
         console.log("[ProtectedRoute] Onboarding non complété → redirection vers /onboarding");
-      }
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShouldRedirect(true);
-      router.push("/onboarding");
-      return;
-    }
-    // Accès limité (exercises_only) sur une route qui exige full
-    if (requireFullAccess && user && user.access_scope === "exercises_only") {
-      if (process.env.NODE_ENV === "development") {
+      } else if (redirectTarget === "/exercises") {
         console.log("[ProtectedRoute] Accès limité → redirection vers /exercises");
+      } else {
+        console.log("[ProtectedRoute] Redirection vers", redirectTarget);
       }
-      setShouldRedirect(true);
-      router.push("/exercises");
-      return;
     }
-    // Non authentifié
-    if (requireAuth && !isAuthenticated && user === null) {
-      if (process.env.NODE_ENV === "development") {
-        console.log("[ProtectedRoute] Redirection vers", redirectTo);
-      }
-      setShouldRedirect(true);
-      router.push(redirectTo);
-    }
-  }, [
-    hasCheckedAuth,
-    requireAuth,
-    requireFullAccess,
-    requireOnboardingCompleted,
-    isAuthenticated,
-    router,
-    redirectTo,
-    user,
-  ]);
 
-  // Si on est en chargement initial ET qu'on n'a pas encore de données utilisateur en cache
-  // ET qu'on n'a pas encore dépassé le timeout de sécurité
-  // MAIS seulement lors du premier chargement (pas navigation côté client)
-  if (isLoading && user === null && !hasCheckedAuth && !showContent) {
-    // Log uniquement en développement
+    lastRedirectRef.current = redirectTarget;
+    router.push(redirectTarget);
+  }, [redirectTarget, router]);
+
+  if (isLoading && user === null && !hasCheckedAuth) {
     if (process.env.NODE_ENV === "development") {
       console.log("[ProtectedRoute] Affichage du loader");
     }
+
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -115,27 +100,9 @@ export function ProtectedRoute({
     );
   }
 
-  // Si on doit rediriger
-  const mustRedirectToLogin = hasCheckedAuth && requireAuth && !isAuthenticated;
-  const mustRedirectToExercises =
-    hasCheckedAuth && requireFullAccess && user && user.access_scope === "exercises_only";
-  const mustRedirectToOnboarding =
-    hasCheckedAuth &&
-    requireOnboardingCompleted &&
-    user &&
-    !user.onboarding_completed_at &&
-    user.access_scope !== "exercises_only";
-  if (
-    shouldRedirect ||
-    mustRedirectToLogin ||
-    mustRedirectToExercises ||
-    mustRedirectToOnboarding
-  ) {
+  if (redirectTarget) {
     return null;
   }
 
-  // Si on a des données utilisateur en cache (même si isLoading est true lors de la navigation),
-  // ou si on a fini de charger, afficher le contenu immédiatement
-  // Cela permet la navigation côté client fluide sans attendre le rechargement
   return <>{children}</>;
 }

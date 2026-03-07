@@ -51,10 +51,8 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
     >
       <Card
         className={cn(
-          "border-2 flex-1 min-h-0 flex flex-col backdrop-blur-md",
-          currentStreak > 0
-            ? "border-orange-500/40 bg-orange-500/5"
-            : "border-primary/20 bg-white/5"
+          "border flex-1 min-h-0 flex flex-col backdrop-blur-md",
+          currentStreak > 0 ? "border-warning/40 bg-warning/10" : "border-border/50 bg-card/40"
         )}
       >
         <CardHeader className="pb-3 flex-shrink-0">
@@ -74,14 +72,14 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
                 <Flame
                   className={cn(
                     "w-5 h-5",
-                    currentStreak > 0 ? "text-orange-400" : "text-muted-foreground"
+                    currentStreak > 0 ? "text-warning" : "text-muted-foreground"
                   )}
                 />
               </motion.div>
               {t("title")}
             </CardTitle>
             {isNewRecord && (
-              <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 flex items-center gap-1">
+              <Badge className="bg-warning/20 text-warning border-warning/30 flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" />
                 {t("record")}
               </Badge>
@@ -94,9 +92,7 @@ export function StreakWidget({ currentStreak, highestStreak, isLoading }: Streak
             <div
               className={cn(
                 "text-7xl font-black tabular-nums leading-none",
-                currentStreak > 0
-                  ? "bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent"
-                  : "text-muted-foreground"
+                currentStreak > 0 ? "text-warning" : "text-muted-foreground"
               )}
             >
               {currentStreak}

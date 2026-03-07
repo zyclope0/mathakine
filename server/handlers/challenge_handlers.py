@@ -9,7 +9,6 @@ from datetime import datetime
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
-from sqlalchemy.exc import SQLAlchemyError
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, StreamingResponse
 
@@ -40,6 +39,23 @@ from server.auth import (
     require_auth_sse,
     require_full_access,
 )
+
+
+def _parse_challenge_submission_payload(data: dict) -> tuple[str, object, int]:
+    """Normalise la payload de tentative de défi sans dépendre du transport HTTP."""
+    user_solution = data.get("user_solution") or data.get("answer")
+    if not user_solution:
+        raise ValueError("Réponse requise")
+
+    hints_used_raw = data.get("hints_used", [])
+    if isinstance(hints_used_raw, list):
+        hints_used_count = len(hints_used_raw)
+    elif isinstance(hints_used_raw, int):
+        hints_used_count = hints_used_raw
+    else:
+        hints_used_count = 0
+
+    return user_solution, data.get("time_spent"), hints_used_count
 
 
 @require_auth
@@ -189,130 +205,22 @@ async def submit_challenge_answer(request: Request) -> JSONResponse:
             return data_or_err
         data = data_or_err
 
-        user_solution = data.get("user_solution") or data.get("answer")
-        time_spent = data.get("time_spent")
-        hints_used_raw = data.get("hints_used", [])
-
-        # Convertir hints_used de liste à entier (nombre d'indices utilisés)
-        # Le modèle attend un Integer, pas une liste
-        if isinstance(hints_used_raw, list):
-            hints_used_count = len(hints_used_raw)
-        elif isinstance(hints_used_raw, int):
-            hints_used_count = hints_used_raw
-        else:
-            hints_used_count = 0
-
-        if not user_solution:
-            return api_error_response(400, "Réponse requise")
+        try:
+            user_solution, time_spent, hints_used_count = (
+                _parse_challenge_submission_payload(data)
+            )
+        except ValueError as submission_payload_error:
+            return api_error_response(400, str(submission_payload_error))
 
         async with db_session() as db:
-            challenge = LogicChallengeService.get_challenge_or_raise(db, challenge_id)
-
-            from app.services.challenge_answer_service import check_answer
-
-            challenge_type = (
-                str(challenge.challenge_type).lower()
-                if challenge.challenge_type
-                else ""
+            response_data = LogicChallengeService.submit_answer_result(
+                db,
+                challenge_id,
+                user_id,
+                user_solution,
+                time_spent=time_spent,
+                hints_used_count=hints_used_count,
             )
-            is_correct = check_answer(
-                challenge_type=challenge_type,
-                user_answer=user_solution,
-                correct_answer=challenge.correct_answer or "",
-                visual_data=getattr(challenge, "visual_data", None),
-            )
-
-            attempt_data = {
-                "user_id": user_id,
-                "challenge_id": challenge_id,
-                "user_solution": user_solution,
-                "is_correct": is_correct,
-                "time_spent": time_spent,
-                "hints_used": hints_used_count,
-            }
-            logger.debug(
-                f"Tentative d'enregistrement de challenge avec attempt_data: {attempt_data}"
-            )
-            attempt = LogicChallengeService.record_attempt(db, attempt_data)
-            if not attempt:
-                return api_error_response(500, "Impossible d'enregistrer la tentative.")
-            logger.debug(f"Tentative challenge créée: {attempt.id}")
-
-            # Lot C / B5 : vérifier les badges (défis logiques, mixte) après une tentative correcte
-            new_badges = []
-            if is_correct:
-                try:
-                    from app.services.badge_service import BadgeService
-
-                    badge_service = BadgeService(db)
-                    new_badges = badge_service.check_and_award_badges(user_id)
-                except (SQLAlchemyError, TypeError, ValueError) as badge_err:
-                    logger.warning(
-                        "Badge check après défi (best effort): %s",
-                        badge_err,
-                        exc_info=True,
-                    )
-
-            # Mettre à jour la série d'entraînement (streak) — toute tentative compte
-            try:
-                from app.services.streak_service import update_user_streak
-            except ImportError:
-                logger.warning(
-                    "Streak service indisponible (ImportError)", exc_info=True
-                )
-            else:
-                try:
-                    update_user_streak(db, user_id)
-                except SQLAlchemyError:
-                    logger.debug("Streak update skipped (DB error)", exc_info=True)
-                except (TypeError, ValueError):
-                    logger.debug(
-                        "Streak update skipped (data/type error)", exc_info=True
-                    )
-
-            # F02 : mise à jour des défis quotidiens (logic_challenge)
-            if is_correct:
-                try:
-                    from app.services.daily_challenge_service import (
-                        record_logic_challenge_completed,
-                    )
-
-                    record_logic_challenge_completed(db, user_id, is_correct)
-                except Exception:
-                    logger.debug(
-                        "Daily challenge update skipped (logic)", exc_info=True
-                    )
-
-            # Notification « Tu approches » si pas de nouveau badge mais un proche
-            progress_notif = None
-            if not new_badges:
-                try:
-                    from app.services.badge_service import BadgeService
-
-                    svc = BadgeService(db)
-                    progress_notif = svc.get_closest_progress_notification(user_id)
-                except (SQLAlchemyError, TypeError, ValueError):
-                    logger.debug(
-                        "Progress notification skipped (best effort)",
-                        exc_info=True,
-                    )
-
-            response_data = {
-                "is_correct": is_correct,
-                "explanation": challenge.solution_explanation if is_correct else None,
-                "new_badges": new_badges,
-            }
-            if progress_notif:
-                response_data["progress_notification"] = progress_notif
-
-            if not is_correct:
-                # Ne pas révéler la bonne réponse immédiatement, mais la donner dans l'explication après plusieurs tentatives
-                hints_list = (
-                    challenge.hints if isinstance(challenge.hints, list) else []
-                )
-                response_data["hints_remaining"] = len(hints_list) - hints_used_count
-
-            db.commit()
             return JSONResponse(response_data)
     except ChallengeNotFoundError:
         return api_error_response(404, "Défi logique non trouvé")

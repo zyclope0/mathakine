@@ -479,6 +479,7 @@
       "startError": "Erreur de démarrage",
       "startErrorDescription": "Impossible de démarrer la génération",
       "cancel": "Annuler",
+      "close": "Fermer",
       "viewChallenge": "Voir le défi",
       "authRequired": "Connexion requise",
       "authRequiredDescription": "Vous devez être connecté pour générer des défis avec l'IA",
@@ -711,6 +712,8 @@
     "recommendations": {
       "title": "Conseils du Guide Spatial",
       "generate": "Générer des recommandations",
+      "generating": "Génération...",
+      "noRecommendations": "Aucune recommandation pour le moment",
       "loading": "Chargement des recommandations...",
       "empty": "Aucune recommandation pour le moment.",
       "emptyHint": "Continuez votre entraînement !",
@@ -724,6 +727,7 @@
     "recentActivity": {
       "title": "Journal d'activité",
       "showMore": "Voir {count} entrée(s) de plus",
+      "noActivity": "Aucune activité récente",
       "empty": "Aucune activité récente.",
       "emptyHint": "Commencez à résoudre des exercices pour voir votre progression !"
     },

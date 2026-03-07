@@ -4,11 +4,13 @@ Migre de FastAPI TestClient vers httpx.AsyncClient (Starlette).
 """
 
 import uuid
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
 from app.core.security import get_password_hash, verify_password
 from app.models.user import User, UserRole
+from app.services.auth_service import create_session
 from app.utils.db_helpers import get_enum_value
 from tests.utils.test_helpers import verify_user_email_for_tests
 
@@ -237,6 +239,49 @@ async def test_update_user_password_wrong_current(padawan_client):
 
     response = await client.put("/api/users/me/password", json=update_data)
     assert response.status_code in (400, 401)
+
+
+async def test_get_user_sessions_returns_current_session(padawan_client):
+    """GET /api/users/me/sessions doit retourner au moins la session active courante."""
+    client = padawan_client["client"]
+
+    response = await client.get("/api/users/me/sessions")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) >= 1
+    assert any(session.get("is_current") is True for session in data)
+    for session in data:
+        assert "id" in session
+        assert "is_active" in session
+        assert "is_current" in session
+
+
+async def test_revoke_user_session_marks_session_inactive(padawan_client, db_session):
+    """DELETE /api/users/me/sessions/{id} doit désactiver la session ciblée."""
+    client = padawan_client["client"]
+    user_id = padawan_client["user_id"]
+
+    extra_session = create_session(
+        db_session,
+        user_id=user_id,
+        ip="127.0.0.1",
+        user_agent="pytest-secondary-session",
+        expires_at=datetime.now(timezone.utc) + timedelta(days=1),
+    )
+
+    response = await client.delete(f"/api/users/me/sessions/{extra_session.id}")
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+
+    db_session.refresh(extra_session)
+    assert extra_session.is_active is False
+
+    remaining_response = await client.get("/api/users/me/sessions")
+    assert remaining_response.status_code == 200
+    remaining_ids = {session["id"] for session in remaining_response.json()}
+    assert extra_session.id not in remaining_ids
 
 
 async def test_delete_user_as_gardien(gardien_client, db_session, mock_user):

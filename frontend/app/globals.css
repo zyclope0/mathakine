@@ -914,6 +914,84 @@ select:focus {
   --chart-5: #713f12;
 }
 
+/* ─── Tokens visuels spatiaux (canvas + planète) ───────────────────────────── */
+[data-theme="spatial"],
+.dark[data-theme="spatial"] {
+  --spatial-particle-rgb: 139 92 246;
+  --spatial-star-rgb: 255 255 255;
+  --spatial-planet-glow-rgb: 139 92 246;
+  --spatial-planet-color-1-rgb: 139 92 246;
+  --spatial-planet-color-2-rgb: 124 58 237;
+  --spatial-planet-color-3-rgb: 79 70 229;
+  --spatial-dino-symbol-rgb: 132 204 22;
+}
+
+[data-theme="minimalist"],
+.dark[data-theme="minimalist"] {
+  --spatial-particle-rgb: 0 0 0;
+  --spatial-star-rgb: 0 0 0;
+  --spatial-planet-glow-rgb: 0 0 0;
+  --spatial-planet-color-1-rgb: 0 0 0;
+  --spatial-planet-color-2-rgb: 0 0 0;
+  --spatial-planet-color-3-rgb: 0 0 0;
+  --spatial-dino-symbol-rgb: 132 204 22;
+}
+
+[data-theme="ocean"],
+.dark[data-theme="ocean"] {
+  --spatial-particle-rgb: 14 165 233;
+  --spatial-star-rgb: 255 255 255;
+  --spatial-planet-glow-rgb: 14 165 233;
+  --spatial-planet-color-1-rgb: 14 165 233;
+  --spatial-planet-color-2-rgb: 3 105 161;
+  --spatial-planet-color-3-rgb: 2 132 199;
+  --spatial-dino-symbol-rgb: 132 204 22;
+}
+
+[data-theme="dune"],
+.dark[data-theme="dune"] {
+  --spatial-particle-rgb: 251 191 36;
+  --spatial-star-rgb: 251 191 36;
+  --spatial-planet-glow-rgb: 251 191 36;
+  --spatial-planet-color-1-rgb: 251 191 36;
+  --spatial-planet-color-2-rgb: 217 119 6;
+  --spatial-planet-color-3-rgb: 180 83 9;
+  --spatial-dino-symbol-rgb: 132 204 22;
+}
+
+[data-theme="forest"],
+.dark[data-theme="forest"] {
+  --spatial-particle-rgb: 52 211 153;
+  --spatial-star-rgb: 52 211 153;
+  --spatial-planet-glow-rgb: 52 211 153;
+  --spatial-planet-color-1-rgb: 52 211 153;
+  --spatial-planet-color-2-rgb: 16 185 129;
+  --spatial-planet-color-3-rgb: 5 150 105;
+  --spatial-dino-symbol-rgb: 132 204 22;
+}
+
+[data-theme="peach"],
+.dark[data-theme="peach"] {
+  --spatial-particle-rgb: 251 146 60;
+  --spatial-star-rgb: 251 146 60;
+  --spatial-planet-glow-rgb: 251 146 60;
+  --spatial-planet-color-1-rgb: 251 146 60;
+  --spatial-planet-color-2-rgb: 249 115 22;
+  --spatial-planet-color-3-rgb: 234 88 12;
+  --spatial-dino-symbol-rgb: 132 204 22;
+}
+
+[data-theme="dino"],
+.dark[data-theme="dino"] {
+  --spatial-particle-rgb: 134 239 172;
+  --spatial-star-rgb: 134 239 172;
+  --spatial-planet-glow-rgb: 132 204 22;
+  --spatial-planet-color-1-rgb: 132 204 22;
+  --spatial-planet-color-2-rgb: 101 163 13;
+  --spatial-planet-color-3-rgb: 77 124 15;
+  --spatial-dino-symbol-rgb: 132 204 22;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -1426,6 +1504,23 @@ select:focus {
 .badge-sweep {
   position: relative;
   overflow: hidden;
+}
+
+@layer components {
+  /* Glassmorphism : transparence + flou pour profondeur spatiale (override Card bg-card opaque) */
+  .dashboard-card-surface {
+    @apply rounded-2xl border border-border/50 shadow-sm backdrop-blur-md;
+    background-color: color-mix(in oklab, var(--card) 40%, transparent) !important;
+  }
+
+  .dashboard-card-surface-interactive {
+    @apply rounded-2xl border border-border/50 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10;
+    background-color: color-mix(in oklab, var(--card) 40%, transparent) !important;
+  }
+
+  .dashboard-card-icon-chip {
+    @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-sm shadow-primary/10;
+  }
 }
 
 .badge-sweep::before {

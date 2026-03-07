@@ -59,7 +59,7 @@ INFO:     Mathakine server started successfully
 INFO:     Uvicorn running on http://0.0.0.0:8000
 ```
 
-**Accéder au serveur** : `http://localhost:8000`
+**Accéder au backend** : `http://localhost:8000`
 
 ---
 
@@ -73,9 +73,10 @@ python scripts/security/check_sensitive_logs.py
 
 ### 2. Tester le Login
 
-1. Ouvrir `http://localhost:8000/login`
-2. Se connecter avec `ObiWan` / `HelloThere123!`
-3. Vérifier dans la console qu'aucun mot de passe n'apparaît dans les logs
+1. Si le frontend est lancé, ouvrir `http://localhost:3000/login`
+2. Sinon, tester l'API via `POST http://localhost:8000/api/auth/login`
+3. Se connecter avec `ObiWan` / `HelloThere123!`
+4. Vérifier dans la console backend qu'aucun mot de passe n'apparaît dans les logs
 
 ### 3. Vérifier les Cookies
 

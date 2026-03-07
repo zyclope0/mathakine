@@ -738,8 +738,7 @@ def test_create_exercise_with_mock(mock_db_create, mock_adapt_enum):
 
 @patch("app.utils.db_helpers.adapt_enum_for_db")
 @patch("app.services.exercise_service.ExerciseService.get_exercise")
-@patch("app.services.exercise_service.TransactionManager.transaction")
-def test_record_attempt_with_mock(mock_transaction, mock_get_exercise, mock_adapt_enum):
+def test_record_attempt_with_mock(mock_get_exercise, mock_adapt_enum):
     """
     Teste l'enregistrement d'une tentative avec des mocks pour éviter les problèmes
     de compatibilité entre SQLite et PostgreSQL.
@@ -749,9 +748,6 @@ def test_record_attempt_with_mock(mock_transaction, mock_get_exercise, mock_adap
 
     # Créer un mock pour la session
     mock_session = MagicMock()
-    mock_transaction_ctx = MagicMock()
-    mock_transaction.return_value = mock_transaction_ctx
-    mock_transaction_ctx.__enter__.return_value = mock_session
 
     # Créer un mock pour l'exercice
     mock_exercise = MagicMock()
@@ -964,3 +960,68 @@ def test_submit_answer_result_exercise_not_found(db_session):
         )
     assert exc_info.value.status_code == 404
     assert "non trouvé" in exc_info.value.message.lower()
+
+
+def test_submit_answer_result_uses_orchestrator_owned_transaction():
+    mock_db = MagicMock()
+    streak_savepoint = MagicMock()
+    streak_savepoint.is_active = True
+    daily_savepoint = MagicMock()
+    daily_savepoint.is_active = True
+    mock_db.begin_nested.side_effect = [streak_savepoint, daily_savepoint]
+
+    mock_attempt = MagicMock(id=321, created_at=datetime(2026, 3, 6, 12, 0, 0))
+    mock_badge_service = MagicMock()
+    mock_badge_service.check_and_award_badges.return_value = []
+    mock_badge_service.get_closest_progress_notification.return_value = None
+
+    exercise_payload = {
+        "correct_answer": "4",
+        "exercise_type": ExerciseType.ADDITION.value,
+        "explanation": "2+2=4",
+    }
+
+    with patch.object(
+        ExerciseService,
+        "get_exercise_for_submit_validation",
+        return_value=exercise_payload,
+    ), patch.object(
+        ExerciseService,
+        "record_attempt",
+        return_value=mock_attempt,
+    ) as record_attempt_mock, patch(
+        "app.services.badge_service.BadgeService",
+        return_value=mock_badge_service,
+    ) as badge_service_cls, patch(
+        "app.services.streak_service.update_user_streak"
+    ) as streak_mock, patch(
+        "app.services.daily_challenge_service.record_exercise_completed"
+    ) as daily_mock:
+        result = ExerciseService.submit_answer_result(
+            mock_db,
+            exercise_id=42,
+            user_id=7,
+            selected_answer="4",
+            time_spent=3.5,
+        )
+
+    record_attempt_mock.assert_called_once_with(
+        mock_db,
+        {
+            "user_id": 7,
+            "exercise_id": 42,
+            "user_answer": "4",
+            "is_correct": True,
+            "time_spent": 3.5,
+        },
+        auto_commit=False,
+    )
+    badge_service_cls.assert_called_once_with(mock_db, auto_commit=False)
+    streak_mock.assert_called_once_with(mock_db, 7, auto_commit=False)
+    daily_mock.assert_called_once_with(mock_db, 7, ExerciseType.ADDITION.value, True)
+    streak_savepoint.commit.assert_called_once()
+    daily_savepoint.commit.assert_called_once()
+    mock_db.commit.assert_called_once()
+    mock_db.refresh.assert_called_once_with(mock_attempt)
+    assert result.is_correct is True
+    assert result.attempt_id == 321

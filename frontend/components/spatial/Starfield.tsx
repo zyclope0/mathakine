@@ -35,18 +35,9 @@ export function Starfield() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // Couleur des étoiles selon le thème
-    const starColors: Record<string, string> = {
-      spatial: "rgba(255, 255, 255, ",
-      minimalist: "rgba(0, 0, 0, ",
-      ocean: "rgba(255, 255, 255, ",
-      dune: "rgba(251, 191, 36, ", // Ambre
-      forest: "rgba(52, 211, 153, ", // Vert menthe
-      peach: "rgba(251, 146, 60, ", // Pêche
-      dino: "rgba(134, 239, 172, ", // Vert menthe (moins jaune que lime en dark)
-    };
-
-    const starColorBase = starColors[theme] || starColors.spatial;
+    // Couleur des étoiles pilotée par token CSS thème-aware
+    const rootStyles = getComputedStyle(document.documentElement);
+    const starRgb = rootStyles.getPropertyValue("--spatial-star-rgb").trim() || "255 255 255";
 
     // Configuration des 3 couches d'étoiles avec vitesses réduites
     const layers = [
@@ -96,7 +87,7 @@ export function Starfield() {
           // Dessiner l'étoile
           ctx.beginPath();
           ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-          ctx.fillStyle = `${starColorBase}${star.opacity})`;
+          ctx.fillStyle = `rgb(${starRgb} / ${star.opacity})`;
           ctx.fill();
         });
       });

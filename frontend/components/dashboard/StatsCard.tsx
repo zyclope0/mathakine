@@ -54,25 +54,22 @@ export function StatsCard({
       transition={transition}
       whileHover={!shouldReduceMotion ? { y: -4 } : {}}
       className={cn(
-        "group rounded-xl border border-white/10 bg-white/5 backdrop-blur-md",
-        "shadow-sm transition-all duration-300",
-        "hover:shadow-xl hover:shadow-primary/10 hover:border-white/20",
+        "dashboard-card-surface group",
+        "transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
         className
       )}
       tabIndex={0}
     >
       <div className="flex items-center gap-4 px-5 py-4">
-        {/* Icône dans un cercle coloré */}
         <motion.div
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary"
+          className="dashboard-card-icon-chip"
           animate={!shouldReduceMotion ? { rotate: [0, -10, 10, -10, 0] } : {}}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <Icon className="h-6 w-6" aria-hidden="true" />
         </motion.div>
 
-        {/* Data à droite */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="text-3xl font-bold text-foreground tabular-nums">{value}</span>

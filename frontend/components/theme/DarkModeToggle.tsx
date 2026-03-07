@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useHydrated } from "@/lib/hooks/useHydrated";
 import { Sun, Moon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useThemeStore } from "@/lib/stores/themeStore";
@@ -11,54 +12,35 @@ import { useThemeStore } from "@/lib/stores/themeStore";
  * pour activer les variantes dark: spécifiques à chaque thème
  */
 export function DarkModeToggle() {
-  const [isDark, setIsDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const isHydrated = useHydrated();
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    const stored = window.localStorage.getItem("dark-mode");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return stored !== null ? stored === "true" : prefersDark;
+  });
   const { theme } = useThemeStore();
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-    // Vérifier la préférence stockée ou système
-    const stored = localStorage.getItem("dark-mode");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const shouldBeDark = stored !== null ? stored === "true" : prefersDark;
-
-    setIsDark(shouldBeDark);
-    if (shouldBeDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+    if (!isHydrated) {
+      return;
     }
-  }, []);
 
-  // Réappliquer le dark mode quand le thème change
-  useEffect(() => {
-    if (mounted) {
-      const stored = localStorage.getItem("dark-mode");
-      const isDarkMode = stored === "true";
-
-      if (isDarkMode) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    }
-  }, [theme, mounted]);
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [theme, isDark, isHydrated]);
 
   const toggleDarkMode = () => {
     const newIsDark = !isDark;
     setIsDark(newIsDark);
-    localStorage.setItem("dark-mode", String(newIsDark));
-
-    if (newIsDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    window.localStorage.setItem("dark-mode", String(newIsDark));
+    document.documentElement.classList.toggle("dark", newIsDark);
   };
 
   // Éviter le flash de contenu non stylé (hydration mismatch)
-  if (!mounted) {
+  if (!isHydrated) {
     return (
       <Button
         variant="ghost"

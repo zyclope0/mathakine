@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, AlertTriangle, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useHydrated } from "@/lib/hooks/useHydrated";
 
 const STORAGE_KEY = "mathakine-alpha-banner-dismissed";
 
@@ -11,23 +12,21 @@ const FEEDBACK_URL =
   "mailto:webmaster@mathakine.fun?subject=[Alpha] Signaler un bug ou feedback";
 
 export function AlphaBanner() {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    // Vérifier si l'utilisateur a déjà fermé la bannière
-    const dismissed = localStorage.getItem(STORAGE_KEY);
-    if (!dismissed) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsVisible(true);
+  const isHydrated = useHydrated();
+  const [isVisible, setIsVisible] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
     }
-  }, []);
+
+    return window.localStorage.getItem(STORAGE_KEY) === null;
+  });
 
   const handleDismiss = () => {
     setIsVisible(false);
-    localStorage.setItem(STORAGE_KEY, "true");
+    window.localStorage.setItem(STORAGE_KEY, "true");
   };
 
-  if (!isVisible) return null;
+  if (!isHydrated || !isVisible) return null;
 
   return (
     <div

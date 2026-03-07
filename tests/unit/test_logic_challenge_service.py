@@ -1188,9 +1188,8 @@ def test_create_challenge_with_mock(mock_db_adapter):
     assert result.age_group == "GROUP_10_12"
 
 
-@patch("app.services.logic_challenge_service.TransactionManager.transaction")
 @patch("app.services.logic_challenge_service.LogicChallengeService.get_challenge")
-def test_record_attempt_with_mock(mock_get_challenge, mock_transaction):
+def test_record_attempt_with_mock(mock_get_challenge):
     """
     Teste l'enregistrement d'une tentative de défi avec des mocks pour éviter
     les problèmes de compatibilité entre SQLite et PostgreSQL.
@@ -1204,11 +1203,6 @@ def test_record_attempt_with_mock(mock_get_challenge, mock_transaction):
         correct_answer="42",
     )
     mock_get_challenge.return_value = mock_challenge
-
-    # Mock pour la session dans le context manager
-    mock_session = MagicMock()
-    mock_transaction.return_value.__enter__.return_value = mock_session
-    mock_transaction.return_value.__exit__.return_value = None
 
     # Mock pour l'objet LogicChallengeAttempt créé
     mock_attempt = MagicMock(
@@ -1226,8 +1220,7 @@ def test_record_attempt_with_mock(mock_get_challenge, mock_transaction):
     ) as mock_attempt_class:
         mock_attempt_class.return_value = mock_attempt
 
-        # Mock session principale
-        main_mock_session = MagicMock()
+        mock_session = MagicMock()
 
         # ✅ CORRECTION : Données pour la tentative avec is_correct calculé automatiquement
         attempt_data = {
@@ -1239,7 +1232,7 @@ def test_record_attempt_with_mock(mock_get_challenge, mock_transaction):
         }
 
         # Appeler la méthode à tester
-        result = LogicChallengeService.record_attempt(main_mock_session, attempt_data)
+        result = LogicChallengeService.record_attempt(mock_session, attempt_data)
 
         # Vérifier que get_challenge a été appelé avec le bon ID
         mock_get_challenge.assert_called_once_with(mock_session, 1)
@@ -1261,3 +1254,76 @@ def test_record_attempt_with_mock(mock_get_challenge, mock_transaction):
         assert result.user_solution == "42"
         assert result.is_correct is True
         assert result.time_spent == 30.5
+
+
+def test_submit_answer_result_uses_orchestrator_owned_transaction():
+    mock_db = MagicMock()
+    streak_savepoint = MagicMock()
+    streak_savepoint.is_active = True
+    daily_savepoint = MagicMock()
+    daily_savepoint.is_active = True
+    mock_db.begin_nested.side_effect = [streak_savepoint, daily_savepoint]
+
+    mock_challenge = MagicMock(
+        challenge_type=LogicChallengeType.SEQUENCE.value,
+        correct_answer="42",
+        solution_explanation="Toujours 42",
+        hints=["Indice 1", "Indice 2"],
+    )
+    mock_attempt = MagicMock(id=654)
+    mock_badge_service = MagicMock()
+    mock_badge_service.check_and_award_badges.return_value = []
+    mock_badge_service.get_closest_progress_notification.return_value = None
+
+    with patch.object(
+        LogicChallengeService,
+        "get_challenge_or_raise",
+        return_value=mock_challenge,
+    ), patch.object(
+        LogicChallengeService,
+        "record_attempt",
+        return_value=mock_attempt,
+    ) as record_attempt_mock, patch(
+        "app.services.challenge_answer_service.check_answer",
+        return_value=True,
+    ), patch(
+        "app.services.badge_service.BadgeService",
+        return_value=mock_badge_service,
+    ) as badge_service_cls, patch(
+        "app.services.streak_service.update_user_streak"
+    ) as streak_mock, patch(
+        "app.services.daily_challenge_service.record_logic_challenge_completed"
+    ) as daily_mock:
+        result = LogicChallengeService.submit_answer_result(
+            mock_db,
+            challenge_id=77,
+            user_id=9,
+            user_solution="42",
+            time_spent=8.0,
+            hints_used_count=0,
+        )
+
+    record_attempt_mock.assert_called_once_with(
+        mock_db,
+        {
+            "user_id": 9,
+            "challenge_id": 77,
+            "user_solution": "42",
+            "is_correct": True,
+            "time_spent": 8.0,
+            "hints_used": 0,
+        },
+        auto_commit=False,
+    )
+    assert badge_service_cls.call_count == 2
+    for call_args in badge_service_cls.call_args_list:
+        assert call_args.args == (mock_db,)
+        assert call_args.kwargs == {"auto_commit": False}
+    streak_mock.assert_called_once_with(mock_db, 9, auto_commit=False)
+    daily_mock.assert_called_once_with(mock_db, 9, True)
+    streak_savepoint.commit.assert_called_once()
+    daily_savepoint.commit.assert_called_once()
+    mock_db.commit.assert_called_once()
+    mock_db.refresh.assert_called_once_with(mock_attempt)
+    assert result["is_correct"] is True
+    assert result["new_badges"] == []

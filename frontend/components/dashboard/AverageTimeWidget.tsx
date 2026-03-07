@@ -28,10 +28,10 @@ function getPerformanceHintKey(seconds: number): string {
 }
 
 function getPerformanceColor(seconds: number): string {
-  if (seconds <= 30) return "text-green-400";
-  if (seconds <= 60) return "text-blue-400";
-  if (seconds <= 120) return "text-yellow-400";
-  return "text-orange-400";
+  if (seconds <= 30) return "text-success";
+  if (seconds <= 60) return "text-primary";
+  if (seconds <= 120) return "text-warning";
+  return "text-destructive";
 }
 
 export function AverageTimeWidget({
@@ -54,15 +54,13 @@ export function AverageTimeWidget({
   const hintColor = hasData ? getPerformanceColor(averageTimeSeconds) : "text-muted-foreground";
 
   return (
-    <Card className="border-white/10 bg-card/40 backdrop-blur-md">
+    <Card className="dashboard-card-surface">
       <CardContent className="p-5">
         <div className="flex items-center gap-5">
-          {/* Icône dans un cercle coloré */}
-          <div className="flex-shrink-0 h-14 w-14 rounded-xl bg-primary/15 flex items-center justify-center shadow-sm shadow-primary/10">
+          <div className="dashboard-card-icon-chip h-14 w-14 rounded-2xl">
             <Clock className="h-7 w-7 text-primary" />
           </div>
 
-          {/* Valeur principale + meta */}
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-0.5">
               {t("title", { default: "Tempo moyen" })}
@@ -80,7 +78,6 @@ export function AverageTimeWidget({
             </p>
           </div>
 
-          {/* Badge performance */}
           {hasData && hintKey && (
             <div className="flex-shrink-0 flex flex-col items-end gap-1 text-right">
               <div className="flex items-center gap-1.5">
@@ -96,7 +93,7 @@ export function AverageTimeWidget({
           )}
 
           {!hasData && (
-            <p className="flex-shrink-0 text-sm text-muted-foreground max-w-[140px] text-right">
+            <p className="flex-shrink-0 max-w-[140px] text-right text-sm text-muted-foreground">
               {t("emptyHint", { default: "Fais des exercices pour voir ton tempo." })}
             </p>
           )}

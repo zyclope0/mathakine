@@ -5,6 +5,7 @@ Handlers pour l'authentification et la vérification d'email
 import secrets
 import traceback
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 from app.core.config import settings
 from app.core.logging_config import get_logger
@@ -19,15 +20,13 @@ from app.core.security import (
     validate_password_strength,
 )
 from app.services.auth_service import (
-    authenticate_user,
-    create_session,
-    create_user_token,
+    authenticate_user_with_session,
     get_user_by_email,
     initiate_password_reset,
+    recover_refresh_token_from_access_token,
     refresh_access_token,
     resend_verification_token,
     reset_password_with_token,
-    set_verification_token_for_new_user,
     verify_email_token,
 )
 from app.services.email_service import EmailService
@@ -36,6 +35,165 @@ from app.utils.error_handler import api_error_response
 from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
 from app.utils.request_utils import parse_json_body, parse_json_body_any
 from server.auth import require_auth
+
+
+def _set_auth_cookie(
+    response: JSONResponse, key: str, value: str, *, max_age: int
+) -> None:
+    cookie_samesite, cookie_secure = get_cookie_config()
+    response.set_cookie(
+        key=key,
+        value=value,
+        httponly=True,
+        max_age=max_age,
+        samesite=cookie_samesite,
+        secure=cookie_secure,
+    )
+
+
+def _set_csrf_cookie(response: JSONResponse, csrf_token: str) -> None:
+    cookie_samesite, cookie_secure = get_cookie_config()
+    response.set_cookie(
+        "csrf_token",
+        csrf_token,
+        path="/",
+        samesite=cookie_samesite,
+        secure=cookie_secure,
+        httponly=False,
+        max_age=3600,
+    )
+
+
+def _build_authenticated_user_payload(user) -> dict:
+    from app.utils.unverified_access import get_unverified_access_scope
+
+    access_scope = get_unverified_access_scope(user)
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email if hasattr(user, "email") else None,
+        "full_name": user.full_name if hasattr(user, "full_name") else None,
+        "role": user.role.value if hasattr(user, "role") else None,
+        "is_email_verified": (
+            user.is_email_verified if hasattr(user, "is_email_verified") else False
+        ),
+        "access_scope": access_scope,
+        "onboarding_completed_at": (
+            user.onboarding_completed_at.isoformat()
+            if getattr(user, "onboarding_completed_at", None)
+            else None
+        ),
+        "grade_level": getattr(user, "grade_level", None),
+        "grade_system": getattr(user, "grade_system", None),
+        "preferred_difficulty": getattr(user, "preferred_difficulty", None),
+        "learning_goal": getattr(user, "learning_goal", None),
+        "practice_rhythm": getattr(user, "practice_rhythm", None),
+    }
+
+
+def _build_login_response(user, token_data: dict) -> JSONResponse:
+    access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    refresh_token_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+    csrf_token = secrets.token_urlsafe(32)
+    response = JSONResponse(
+        {
+            "access_token": token_data.get("access_token"),
+            "token_type": token_data.get("token_type", "bearer"),
+            "expires_in": access_token_max_age,
+            "csrf_token": csrf_token,
+            "user": _build_authenticated_user_payload(user),
+        },
+        status_code=200,
+    )
+
+    if token_data.get("access_token"):
+        _set_auth_cookie(
+            response,
+            "access_token",
+            token_data["access_token"],
+            max_age=access_token_max_age,
+        )
+    if token_data.get("refresh_token"):
+        _set_auth_cookie(
+            response,
+            "refresh_token",
+            token_data["refresh_token"],
+            max_age=refresh_token_max_age,
+        )
+    _set_csrf_cookie(response, csrf_token)
+    return response
+
+
+async def _extract_refresh_token_from_request(request: Request) -> Optional[str]:
+    try:
+        body_content = await request.body()
+    except Exception:
+        body_content = b""
+
+    if body_content:
+        import json
+
+        try:
+            data = json.loads(body_content.decode("utf-8"))
+            if data:
+                refresh_token = data.get("refresh_token", "").strip()
+                if refresh_token:
+                    return refresh_token
+        except (ValueError, json.JSONDecodeError):
+            pass
+
+    return request.cookies.get("refresh_token", "").strip() or None
+
+
+async def _recover_refresh_token_fallback(request: Request) -> Optional[str]:
+    access_token = request.cookies.get("access_token", "").strip()
+    if not access_token:
+        return None
+
+    async with db_session() as db:
+        return recover_refresh_token_from_access_token(db, access_token)
+
+
+def _build_refresh_response(
+    new_token_data: dict,
+    *,
+    fallback_refresh_token: Optional[str],
+    had_refresh_cookie: bool,
+) -> JSONResponse:
+    access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    refresh_token_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+    csrf_token = secrets.token_urlsafe(32)
+    response = JSONResponse(
+        {
+            "access_token": new_token_data.get("access_token"),
+            "token_type": new_token_data.get("token_type", "bearer"),
+            "csrf_token": csrf_token,
+        },
+        status_code=200,
+    )
+
+    if new_token_data.get("access_token"):
+        _set_auth_cookie(
+            response,
+            "access_token",
+            new_token_data["access_token"],
+            max_age=access_token_max_age,
+        )
+
+    refresh_token_to_set = new_token_data.get("refresh_token")
+    if not refresh_token_to_set and fallback_refresh_token and not had_refresh_cookie:
+        refresh_token_to_set = fallback_refresh_token
+
+    if refresh_token_to_set:
+        _set_auth_cookie(
+            response,
+            "refresh_token",
+            refresh_token_to_set,
+            max_age=refresh_token_max_age,
+        )
+
+    _set_csrf_cookie(response, csrf_token)
+    return response
 
 
 async def api_get_csrf_token(request: Request) -> JSONResponse:
@@ -237,7 +395,15 @@ async def api_login(request: Request) -> JSONResponse:
         from app.utils.db_utils import db_session
 
         async with db_session() as db:
-            user = authenticate_user(db, username, password)
+            user, token_data = authenticate_user_with_session(
+                db,
+                username,
+                password,
+                ip=request.client.host if request.client else None,
+                user_agent=request.headers.get("user-agent") or "",
+                expires_at=datetime.now(timezone.utc)
+                + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+            )
 
             if not user:
                 logger.warning(f"Échec de connexion pour l'utilisateur: {username}")
@@ -249,104 +415,8 @@ async def api_login(request: Request) -> JSONResponse:
             # Accès limité après 45 min : exercices uniquement jusqu'à vérification
             # if not getattr(user, "is_email_verified", True): return 403 — supprimé
 
-            # Créer les tokens d'accès
-            token_data = create_user_token(user)
             logger.info(f"Connexion réussie pour l'utilisateur: {user.username}")
-
-            ip = request.client.host if request.client else None
-            user_agent = request.headers.get("user-agent") or ""
-            expires_at = datetime.now(timezone.utc) + timedelta(
-                days=settings.REFRESH_TOKEN_EXPIRE_DAYS
-            )
-            create_session(db, user.id, ip, user_agent, expires_at)
-
-            # Ajouter les informations utilisateur à la réponse
-            access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
-            # refresh_token uniquement en cookie (HttpOnly) — pas dans le body (sécurité XSS)
-            from app.utils.unverified_access import get_unverified_access_scope
-
-            access_scope = get_unverified_access_scope(user)
-            import secrets as _secrets
-
-            csrf_token_value = _secrets.token_urlsafe(32)
-            response_data = {
-                "access_token": token_data.get("access_token"),
-                "token_type": token_data.get("token_type", "bearer"),
-                "expires_in": access_token_max_age,
-                "csrf_token": csrf_token_value,
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email if hasattr(user, "email") else None,
-                    "full_name": user.full_name if hasattr(user, "full_name") else None,
-                    "role": user.role.value if hasattr(user, "role") else None,
-                    "is_email_verified": (
-                        user.is_email_verified
-                        if hasattr(user, "is_email_verified")
-                        else False
-                    ),
-                    "access_scope": access_scope,
-                    "onboarding_completed_at": (
-                        user.onboarding_completed_at.isoformat()
-                        if getattr(user, "onboarding_completed_at", None)
-                        else None
-                    ),
-                    "grade_level": getattr(user, "grade_level", None),
-                    "grade_system": getattr(user, "grade_system", None),
-                    "preferred_difficulty": getattr(user, "preferred_difficulty", None),
-                    "learning_goal": getattr(user, "learning_goal", None),
-                    "practice_rhythm": getattr(user, "practice_rhythm", None),
-                },
-            }
-
-            # Créer la réponse avec le cookie
-            response = JSONResponse(response_data, status_code=200)
-
-            # Déterminer la configuration des cookies selon l'environnement
-            # En production (cross-domain), utiliser SameSite=None et Secure=True
-            cookie_samesite, cookie_secure = get_cookie_config()
-
-            # Définir le cookie access_token (pour compatibilité avec l'ancien système)
-            response.set_cookie(
-                key="access_token",
-                value=token_data.get("access_token"),
-                httponly=True,
-                max_age=access_token_max_age,
-                samesite=cookie_samesite,
-                secure=cookie_secure,
-            )
-
-            # Définir le cookie refresh_token (nécessaire pour le refresh automatique)
-            refresh_token_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
-            refresh_token_value = token_data.get("refresh_token")
-            if refresh_token_value:
-                response.set_cookie(
-                    key="refresh_token",
-                    value=refresh_token_value,
-                    httponly=True,
-                    max_age=refresh_token_max_age,
-                    samesite=cookie_samesite,
-                    secure=cookie_secure,
-                )
-                logger.info(
-                    f"Cookie refresh_token défini pour l'utilisateur: {user.username} (SameSite={cookie_samesite}, Secure={cookie_secure})"
-                )
-            else:
-                logger.error(
-                    f"ERREUR: refresh_token non créé pour l'utilisateur: {user.username}"
-                )
-
-            response.set_cookie(
-                "csrf_token",
-                csrf_token_value,
-                path="/",
-                samesite=cookie_samesite,
-                secure=cookie_secure,
-                httponly=False,
-                max_age=3600,
-            )
-
-            return response
+            return _build_login_response(user, token_data)
 
     except Exception as login_error:
         logger.error(f"Erreur lors de la connexion: {login_error}")
@@ -388,29 +458,7 @@ async def api_refresh_token(request: Request) -> JSONResponse:
     Returns: New access token
     """
     try:
-        refresh_token = None
-
-        # Essayer de récupérer le refresh token depuis le body JSON (pour compatibilité)
-        try:
-            body_content = await request.body()
-            if body_content:
-                import json
-
-                try:
-                    data = json.loads(body_content.decode("utf-8"))
-                    refresh_token = (
-                        data.get("refresh_token", "").strip() if data else None
-                    )
-                except (ValueError, json.JSONDecodeError):
-                    # JSON invalide, ce n'est pas grave, on essaiera les cookies
-                    pass
-        except Exception:
-            # Erreur lors de la lecture du body, ce n'est pas grave, on essaiera les cookies
-            pass
-
-        # Si pas de token dans le body, essayer de le récupérer depuis les cookies
-        if not refresh_token:
-            refresh_token = request.cookies.get("refresh_token", "").strip()
+        refresh_token = await _extract_refresh_token_from_request(request)
 
         # Log pour diagnostic
         all_cookies = list(request.cookies.keys())
@@ -422,65 +470,7 @@ async def api_refresh_token(request: Request) -> JSONResponse:
             )
         else:
             logger.warning("Aucun refresh_token trouvé dans les cookies ou le body")
-            # FALLBACK: Pour les utilisateurs existants qui n'ont pas de refresh_token,
-            # essayer d'utiliser l'access_token comme fallback temporaire
-            access_token_fallback = request.cookies.get("access_token", "").strip()
-            if access_token_fallback:
-                logger.warning(
-                    "Tentative de fallback avec access_token (utilisateur existant sans refresh_token)"
-                )
-                # Essayer de décoder l'access_token pour vérifier s'il est valide
-                try:
-                    import jwt
-
-                    payload = jwt.decode(
-                        access_token_fallback,
-                        settings.SECRET_KEY,
-                        algorithms=[settings.ALGORITHM],
-                        options={"verify_exp": False},
-                    )
-                    exp = payload.get("exp")
-                    if exp is None:
-                        logger.warning("Fallback refusé: access_token sans claim exp")
-                        payload = None
-                    else:
-                        max_age_sec = 7 * 24 * 3600
-                        if datetime.now(timezone.utc).timestamp() - exp > max_age_sec:
-                            logger.warning(
-                                "Fallback refusé: access_token expiré depuis plus de 7 jours"
-                            )
-                            payload = None
-                    if payload:
-                        username = payload.get("sub")
-                        if username:
-                            logger.info(
-                                f"Fallback: Création d'un nouveau refresh_token pour l'utilisateur existant: {username}"
-                            )
-                            async with db_session() as db_fallback:
-                                from app.services.auth_service import (
-                                    create_user_token,
-                                    get_user_by_username,
-                                )
-
-                                user_fallback = get_user_by_username(
-                                    db_fallback, username
-                                )
-                                if user_fallback:
-                                    new_token_data_fallback = create_user_token(
-                                        user_fallback
-                                    )
-                                    refresh_token = new_token_data_fallback.get(
-                                        "refresh_token"
-                                    )
-                                    logger.info(
-                                        f"Fallback: Nouveau refresh_token créé pour {username}"
-                                    )
-                                else:
-                                    logger.warning(
-                                        f"Fallback: Utilisateur {username} non trouvé"
-                                    )
-                except Exception as fallback_error:
-                    logger.debug(f"Fallback échoué: {fallback_error}")
+            refresh_token = await _recover_refresh_token_fallback(request)
 
         if not refresh_token:
             return api_error_response(
@@ -497,78 +487,11 @@ async def api_refresh_token(request: Request) -> JSONResponse:
                 return api_error_response(refresh_status, refresh_err)
 
             logger.info("Token rafraîchi avec succès")
-
-            import secrets as _secrets
-
-            new_csrf_token = _secrets.token_urlsafe(32)
-            # refresh_token UNIQUEMENT en cookie (HttpOnly) — jamais dans le body (sécurité XSS)
-            # csrf_token inclus dans le body pour permettre la sync cross-domain côté frontend
-            response_data = {
-                "access_token": new_token_data.get("access_token"),
-                "token_type": new_token_data.get("token_type", "bearer"),
-                "csrf_token": new_csrf_token,
-            }
-            response = JSONResponse(response_data, status_code=200)
-
-            # Déterminer la configuration des cookies selon l'environnement
-            # En production (cross-domain), utiliser SameSite=None et Secure=True
-            cookie_samesite, cookie_secure = get_cookie_config()
-
-            # Mettre à jour le cookie access_token si présent dans la réponse
-            if "access_token" in new_token_data:
-                access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
-                response.set_cookie(
-                    key="access_token",
-                    value=new_token_data.get("access_token"),
-                    httponly=True,
-                    max_age=access_token_max_age,
-                    samesite=cookie_samesite,
-                    secure=cookie_secure,
-                )
-
-            # Si le refresh_token a été créé via fallback, l'ajouter au cookie
-            # Sinon, s'assurer que le refresh_token existe toujours dans les cookies
-            refresh_token_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
-            if refresh_token and "refresh_token" not in request.cookies:
-                # Refresh_token créé via fallback, l'ajouter au cookie
-                response.set_cookie(
-                    key="refresh_token",
-                    value=refresh_token,
-                    httponly=True,
-                    max_age=refresh_token_max_age,
-                    samesite=cookie_samesite,
-                    secure=cookie_secure,
-                )
-                logger.info(
-                    f"Cookie refresh_token créé via fallback et ajouté à la réponse (SameSite={cookie_samesite}, Secure={cookie_secure})"
-                )
-
-            # Rotation: nouveau refresh_token à chaque refresh — cookie HttpOnly uniquement
-            if "refresh_token" in new_token_data:
-                response.set_cookie(
-                    key="refresh_token",
-                    value=new_token_data.get("refresh_token"),
-                    httponly=True,
-                    max_age=refresh_token_max_age,
-                    samesite=cookie_samesite,
-                    secure=cookie_secure,
-                )
-                logger.debug(
-                    f"Cookie refresh_token roté (SameSite={cookie_samesite}, Secure={cookie_secure})"
-                )
-
-            # Renouveler le csrf_token — cookie sur domaine backend + valeur dans body pour sync cross-domain
-            response.set_cookie(
-                "csrf_token",
-                new_csrf_token,
-                path="/",
-                samesite=cookie_samesite,
-                secure=cookie_secure,
-                httponly=False,
-                max_age=3600,
+            return _build_refresh_response(
+                new_token_data,
+                fallback_refresh_token=refresh_token,
+                had_refresh_cookie="refresh_token" in request.cookies,
             )
-
-            return response
 
     except Exception as token_refresh_error:
         logger.error(f"Erreur lors du rafraîchissement du token: {token_refresh_error}")

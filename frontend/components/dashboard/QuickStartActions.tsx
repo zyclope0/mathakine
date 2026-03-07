@@ -57,24 +57,22 @@ export function QuickStartActions() {
 
   return (
     <section
-      className="rounded-xl border border-primary/20 bg-primary/5 backdrop-blur-md p-4 sm:p-5"
+      className="dashboard-card-surface p-4 sm:p-5"
       aria-label={t("title")}
       data-quick-start-block="true"
     >
       <h2 className="text-base font-semibold text-foreground mb-4">{t("title")}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        {/* Carte Exercice */}
         <Link
           href={exerciseHref}
           onClick={handleExerciseClick}
-          className="group flex flex-col gap-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5
-            transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10
-            hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          className="dashboard-card-surface-interactive group flex flex-col gap-4 p-5
+            focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           data-quick-start="exercise"
           data-quick-start-guided={!!bestExercise?.exercise_id}
         >
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary">
+            <div className="dashboard-card-icon-chip">
               <Calculator className="h-6 w-6" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
@@ -93,18 +91,16 @@ export function QuickStartActions() {
           </span>
         </Link>
 
-        {/* Carte Défi */}
         <Link
           href={challengeHref}
           onClick={handleChallengeClick}
-          className="group flex flex-col gap-4 rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5
-            transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10
-            hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          className="dashboard-card-surface-interactive group flex flex-col gap-4 p-5
+            focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           data-quick-start="challenge"
           data-quick-start-guided={!!bestChallenge?.challenge_id}
         >
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent/20 text-accent-foreground">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent-foreground shadow-sm">
               <Swords className="h-6 w-6" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">

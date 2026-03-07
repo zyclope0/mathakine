@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useHydrated } from "@/lib/hooks/useHydrated";
 import { Download, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -11,15 +12,21 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function InstallPrompt() {
+  const isHydrated = useHydrated();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(display-mode: standalone)").matches
+  );
+  const [isDismissed, setIsDismissed] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem("pwa-install-dismissed") === "true"
+  );
+  const promptTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Vérifier si l'app est déjà installée
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsInstalled(true);
+    if (isInstalled) {
       return;
     }
 
@@ -27,14 +34,21 @@ export function InstallPrompt() {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      // Afficher le prompt après un délai (par exemple, après 30 secondes d'utilisation)
-      setTimeout(() => {
+
+      if (promptTimeoutRef.current) {
+        clearTimeout(promptTimeoutRef.current);
+      }
+
+      promptTimeoutRef.current = window.setTimeout(() => {
         setShowPrompt(true);
-      }, 30000); // 30 secondes
+      }, 30000);
     };
 
     // Écouter l'événement appinstalled
     const handleAppInstalled = () => {
+      if (promptTimeoutRef.current) {
+        clearTimeout(promptTimeoutRef.current);
+      }
       setIsInstalled(true);
       setShowPrompt(false);
       setDeferredPrompt(null);
@@ -44,10 +58,13 @@ export function InstallPrompt() {
     window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
+      if (promptTimeoutRef.current) {
+        clearTimeout(promptTimeoutRef.current);
+      }
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
-  }, []);
+  }, [isInstalled]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -66,17 +83,13 @@ export function InstallPrompt() {
 
   const handleDismiss = () => {
     setShowPrompt(false);
+    setIsDismissed(true);
     // Ne pas réafficher pendant cette session
-    sessionStorage.setItem("pwa-install-dismissed", "true");
+    window.sessionStorage.setItem("pwa-install-dismissed", "true");
   };
 
   // Ne pas afficher si déjà installé ou si dismissé dans cette session
-  if (
-    isInstalled ||
-    !showPrompt ||
-    !deferredPrompt ||
-    sessionStorage.getItem("pwa-install-dismissed")
-  ) {
+  if (!isHydrated || isInstalled || !showPrompt || !deferredPrompt || isDismissed) {
     return null;
   }
 

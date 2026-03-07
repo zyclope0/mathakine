@@ -33,16 +33,37 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
       : [];
 
   useEffect(() => {
-    if (svgRef.current) {
-      const rect = svgRef.current.getBoundingClientRect();
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setDimensions({ width: rect.width || 400, height: rect.height || 300 });
+    const element = svgRef.current;
+    if (!element) {
+      return;
     }
+
+    const updateDimensions = () => {
+      const rect = element.getBoundingClientRect();
+      const nextDimensions = { width: rect.width || 400, height: rect.height || 300 };
+
+      setDimensions((prev) =>
+        prev.width === nextDimensions.width && prev.height === nextDimensions.height
+          ? prev
+          : nextDimensions
+      );
+    };
+
+    const frameId = window.requestAnimationFrame(updateDimensions);
+    const observer =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateDimensions) : null;
+
+    observer?.observe(element);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      observer?.disconnect();
+    };
   }, []);
 
   if (!nodes || nodes.length === 0) {
     return (
-      <Card className={`bg-card border-primary/20 ${className || ""}`}>
+      <Card className={`bg-card border-border/50 ${className || ""}`}>
         <CardContent className="p-4 text-center text-muted-foreground">
           Aucun graphe disponible
         </CardContent>
@@ -110,7 +131,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
   });
 
   return (
-    <Card className={`bg-card border-primary/20 ${className || ""}`}>
+    <Card className={`bg-card border-border/50 ${className || ""}`}>
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
@@ -123,7 +144,7 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
               ref={svgRef}
               width={dimensions.width}
               height={dimensions.height}
-              className="border border-primary/20 rounded"
+              className="border border-border/50 rounded"
             >
               {/* Dessiner les arêtes */}
               {edges.map((edge: Record<string, unknown>, index: number) => {
@@ -216,9 +237,9 @@ export function GraphRenderer({ visualData, className }: GraphRendererProps) {
                       y1={from.y}
                       x2={to.x}
                       y2={to.y}
-                      stroke="currentColor"
+                      stroke="var(--color-primary)"
+                      strokeOpacity={0.5}
                       strokeWidth="2"
-                      className="text-primary/50"
                     />
                     {/* Afficher le poids de l'arête */}
                     {weight !== undefined && (

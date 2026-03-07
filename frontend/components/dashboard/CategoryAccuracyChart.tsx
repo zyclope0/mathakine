@@ -62,10 +62,10 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
 
   if (categories.length === 0) {
     return (
-      <Card className="border-white/10 bg-card/40 backdrop-blur-md h-full flex flex-col">
+      <Card className="dashboard-card-surface h-full flex flex-col">
         <CardHeader className="flex-shrink-0">
           <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
-            <Activity className="w-5 h-5 text-primary-on-dark" />
+            <Activity className="w-5 h-5 text-primary" />
             {t("title")}
           </CardTitle>
         </CardHeader>
@@ -92,10 +92,10 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
       whileHover={!shouldReduceMotion ? { scale: 1.02 } : {}}
       className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
     >
-      <Card className="border-white/10 bg-card/40 backdrop-blur-md h-full flex flex-col">
+      <Card className="dashboard-card-surface h-full flex flex-col">
         <CardHeader className="pb-2 flex-shrink-0">
           <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
-            <Activity className="w-5 h-5 text-primary-on-dark" />
+            <Activity className="w-5 h-5 text-primary" />
             {t("title")}
           </CardTitle>
         </CardHeader>

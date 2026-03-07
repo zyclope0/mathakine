@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useHydrated } from "@/lib/hooks/useHydrated";
 import { Crown, Target } from "lucide-react";
 
 interface ChessRendererProps {
@@ -13,14 +13,9 @@ interface ChessRendererProps {
  * Affiche un échiquier visuel avec les pièces et les positions atteignables.
  */
 export function ChessRenderer({ visualData, className = "" }: ChessRendererProps) {
-  const [mounted, setMounted] = useState(false);
+  const isHydrated = useHydrated();
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
-
-  if (!mounted || !visualData) {
+  if (!isHydrated || !visualData) {
     return null;
   }
 
@@ -266,7 +261,7 @@ export function ChessRenderer({ visualData, className = "" }: ChessRendererProps
             </span>
           )}
           {objectiveLabel && (
-            <span className="bg-amber-500/20 text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-lg font-medium">
+            <span className="bg-warning/20 text-warning px-3 py-1.5 rounded-lg font-medium">
               {objectiveLabel}
             </span>
           )}
@@ -285,11 +280,7 @@ export function ChessRenderer({ visualData, className = "" }: ChessRendererProps
         <div className="flex items-center gap-2">
           <span className="font-medium text-muted-foreground">Blancs</span>
           <span
-            className="text-xl leading-none px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700"
-            style={{
-              color: "#1e3a5f",
-              textShadow: "0 0 2px rgba(255,255,255,0.8)",
-            }}
+            className="text-xl leading-none px-1.5 py-0.5 rounded border border-border/60 bg-primary-foreground text-primary shadow-sm"
             aria-label="Exemple pièce blanche"
           >
             ♔
@@ -298,11 +289,7 @@ export function ChessRenderer({ visualData, className = "" }: ChessRendererProps
         <div className="flex items-center gap-2">
           <span className="font-medium text-muted-foreground">Noirs</span>
           <span
-            className="text-xl leading-none px-1.5 py-0.5 rounded bg-slate-800 dark:bg-slate-900"
-            style={{
-              color: "#e8e8e8",
-              textShadow: "0 0 2px rgba(0,0,0,0.5)",
-            }}
+            className="text-xl leading-none px-1.5 py-0.5 rounded border border-border/40 bg-foreground text-background shadow-sm"
             aria-label="Exemple pièce noire"
           >
             ♚
@@ -384,20 +371,11 @@ export function ChessRenderer({ visualData, className = "" }: ChessRendererProps
                           {/* Contenu de la case (pièce ou marqueur) */}
                           {pieceInfo ? (
                             <span
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-full text-2xl select-none shrink-0"
-                              style={{
-                                // Fond circulaire pour distinguer blancs vs noirs
-                                backgroundColor: pieceInfo.isWhite
-                                  ? "rgba(255, 255, 255, 0.95)"
-                                  : "rgba(30, 30, 30, 0.95)",
-                                color: pieceInfo.isWhite ? "#1e3a5f" : "#e8e8e8",
-                                boxShadow: pieceInfo.isWhite
-                                  ? "0 1px 3px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(0,0,0,0.15)"
-                                  : "0 1px 3px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.2)",
-                                textShadow: pieceInfo.isWhite
-                                  ? "0 0 1px rgba(255,255,255,0.9)"
-                                  : "0 0 1px rgba(0,0,0,0.5)",
-                              }}
+                              className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-2xl select-none shrink-0 border shadow-sm ${
+                                pieceInfo.isWhite
+                                  ? "border-border/70 bg-primary-foreground text-primary"
+                                  : "border-border/40 bg-foreground text-background"
+                              }`}
                               title={pieceInfo.isWhite ? "Blancs" : "Noirs"}
                             >
                               {pieceInfo.symbol}
@@ -408,7 +386,7 @@ export function ChessRenderer({ visualData, className = "" }: ChessRendererProps
 
                           {/* Coordonnées au survol : tooltip lisible */}
                           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                            <span className="text-lg font-mono font-bold text-white bg-primary/95 px-3 py-2 rounded-lg shadow-lg border-2 border-primary">
+                            <span className="text-lg font-mono font-bold text-primary-foreground bg-primary/95 px-3 py-2 rounded-lg shadow-lg border-2 border-primary">
                               {posLabel}
                             </span>
                           </div>
@@ -454,7 +432,7 @@ export function ChessRenderer({ visualData, className = "" }: ChessRendererProps
                     return (
                       <code
                         key={index}
-                        className="bg-green-500/20 border border-green-500/30 px-2 py-1 rounded text-foreground text-xs"
+                        className="bg-success/20 border border-success/30 px-2 py-1 rounded text-foreground text-xs"
                       >
                         {getPositionLabel(pos[0], pos[1])}
                       </code>

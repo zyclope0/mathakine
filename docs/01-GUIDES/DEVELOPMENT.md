@@ -158,11 +158,20 @@ from sqlalchemy.orm import Session
 from app.models.my_model import MyModel
 from app.schemas.my_model import MyModelCreate
 
-def create_my_model(db: Session, data: MyModelCreate) -> MyModel:
+def _flush_or_commit(db: Session, *, auto_commit: bool) -> None:
+    if auto_commit:
+        db.commit()
+    else:
+        db.flush()
+
+
+def create_my_model(
+    db: Session, data: MyModelCreate, *, auto_commit: bool = True
+) -> MyModel:
     """Créer un nouveau MyModel"""
     db_obj = MyModel(**data.model_dump())
     db.add(db_obj)
-    db.commit()
+    _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(db_obj)
     return db_obj
 
@@ -175,6 +184,7 @@ def get_my_model(db: Session, id: int) -> MyModel | None:
 
 > **Depuis le 09/02/2026** : Utiliser les décorateurs d'authentification de `server/auth.py` au lieu de vérifier manuellement le token.
 > **Depuis le 03/03/2026 (Phase 1 audit)** : Utiliser `parse_json_body_any` (au lieu de `request.json()` brut), `api_error_response` + `get_safe_error_message` en top-level, typer `request: Request` et `-> JSONResponse`.
+> **Depuis le 06/03/2026 (stabilisation B1/B2)** : Garder les handlers minces. Le handler parse et délègue ; le service d'orchestration reste propriétaire du commit final sur les flux mutateurs.
 
 ```python
 # server/handlers/my_model_handlers.py

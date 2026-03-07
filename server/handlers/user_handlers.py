@@ -10,15 +10,11 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.config import settings
-from app.core.constants import VALID_LEARNING_STYLES, VALID_THEMES
 from app.core.logging_config import get_logger
 from app.core.security import get_cookie_config, validate_password_strength
 from app.exceptions import UserNotFoundError
 from app.schemas.user import UserCreate
-from app.services.auth_service import (
-    create_user,
-    set_verification_token_for_new_user,
-)
+from app.services.auth_service import create_registered_user_with_verification
 from app.services.email_service import EmailService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.user_service import UserService
@@ -137,16 +133,20 @@ async def create_user_account(request: Request) -> JSONResponse:
                     preferred_theme=None,
                     accessibility_settings=None,
                 )
-
-                # Créer l'utilisateur
-                user, create_err, create_status = create_user(db, user_create)
-                if create_err:
-                    return api_error_response(create_status, create_err)
-
                 from app.utils.email_verification import generate_verification_token
 
                 verification_token = generate_verification_token()
-                set_verification_token_for_new_user(db, user, verification_token)
+
+                # Créer l'utilisateur et son token de vérification dans un seul commit.
+                user, create_err, create_status = (
+                    create_registered_user_with_verification(
+                        db,
+                        user_create,
+                        verification_token,
+                    )
+                )
+                if create_err:
+                    return api_error_response(create_status, create_err)
 
                 # Envoyer l'email de vérification
                 try:
@@ -187,27 +187,11 @@ async def create_user_account(request: Request) -> JSONResponse:
                     )
                     logger.debug(traceback.format_exc())
 
-                # Retourner les données de l'utilisateur créé (sans le mot de passe)
-                user_data = {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "full_name": user.full_name,
-                    "role": (
-                        user.role.value
-                        if hasattr(user.role, "value")
-                        else str(user.role)
-                    ),
-                    "is_active": user.is_active,
-                    "is_email_verified": user.is_email_verified,
-                    "created_at": (
-                        user.created_at.isoformat() if user.created_at else None
-                    ),
-                }
-
                 logger.info(f"Nouvel utilisateur créé: {username} ({email})")
-
-                return JSONResponse(user_data, status_code=201)
+                return JSONResponse(
+                    UserService.serialize_registered_user_for_api(user),
+                    status_code=201,
+                )
         except Exception as user_creation_error:
             logger.error(
                 f"Erreur lors de la création de l'utilisateur: {user_creation_error}"
@@ -363,124 +347,9 @@ async def update_user_me(request: Request) -> JSONResponse:
         user_id = current_user.get("id")
         logger.info(f"Mise à jour profil utilisateur {user_id}")
 
-        # Champs autorisés à modifier
-        ALLOWED_FIELDS = {
-            "email",
-            "full_name",
-            "grade_level",
-            "grade_system",
-            "learning_style",
-            "preferred_difficulty",
-            "preferred_theme",
-            "accessibility_settings",
-            "learning_goal",
-            "practice_rhythm",
-        }
-
-        # Gérer les champs de confidentialité : regrouper sous privacy_settings
-        privacy_fields = [
-            "is_public_profile",
-            "allow_friend_requests",
-            "show_in_leaderboards",
-            "data_retention_consent",
-            "marketing_consent",
-        ]
-        privacy_data = {}
-        for field in privacy_fields:
-            if field in data:
-                privacy_data[field] = data.pop(field)
-        if privacy_data:
-            data["privacy_settings"] = privacy_data
-
-        # Gérer les champs stockés dans accessibility_settings (JSON)
-        # notification_preferences, language_preference, timezone, privacy_settings
-        json_fields = [
-            "notification_preferences",
-            "language_preference",
-            "timezone",
-            "privacy_settings",
-        ]
-        json_overrides = {}
-        for field in json_fields:
-            if field in data:
-                json_overrides[field] = data.pop(field)
-
-        if json_overrides:
-            if "accessibility_settings" not in data:
-                data["accessibility_settings"] = {}
-            if isinstance(data["accessibility_settings"], dict):
-                data["accessibility_settings"].update(json_overrides)
-            else:
-                data["accessibility_settings"] = json_overrides
-
-        # Filtrer les champs non autorisés
-        update_data = {k: v for k, v in data.items() if k in ALLOWED_FIELDS}
-
-        if not update_data:
-            return api_error_response(400, "Aucun champ valide à mettre à jour.")
-
-        # Validation email si fourni
-        if "email" in update_data:
-            email = update_data["email"].strip().lower()
-            if not email or not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
-                return api_error_response(400, "Adresse email invalide.")
-            update_data["email"] = email
-
-        # Validation full_name
-        if "full_name" in update_data:
-            full_name = (
-                update_data["full_name"].strip() if update_data["full_name"] else None
-            )
-            if full_name and len(full_name) > 100:
-                return api_error_response(
-                    400, "Le nom complet ne peut pas dépasser 100 caractères."
-                )
-            update_data["full_name"] = full_name
-
-        # Validation grade_system
-        VALID_GRADE_SYSTEMS = {"suisse", "unifie"}
-        if "grade_system" in update_data:
-            gs = update_data["grade_system"]
-            if gs is not None and gs not in VALID_GRADE_SYSTEMS:
-                return api_error_response(
-                    400, "Système scolaire invalide. Valeurs : suisse ou unifie."
-                )
-
-        # Validation grade_level (max 11 pour suisse, 12 pour unifie)
-        if "grade_level" in update_data:
-            grade = update_data["grade_level"]
-            if grade is not None:
-                try:
-                    grade = int(grade)
-                    grade_sys = update_data.get("grade_system")
-                    max_grade = 11 if grade_sys == "suisse" else 12
-                    if grade < 1 or grade > max_grade:
-                        return api_error_response(
-                            400, f"Le niveau scolaire doit être entre 1 et {max_grade}."
-                        )
-                    update_data["grade_level"] = grade
-                except (ValueError, TypeError):
-                    return api_error_response(
-                        400, "Le niveau scolaire doit être un nombre."
-                    )
-
-        # Validation learning_style
-        if "learning_style" in update_data:
-            style = update_data["learning_style"]
-            if style and style not in VALID_LEARNING_STYLES:
-                return api_error_response(
-                    400,
-                    f"Style d'apprentissage invalide. Valeurs acceptées : {', '.join(sorted(VALID_LEARNING_STYLES))}",
-                )
-
-        # Validation preferred_theme
-        if "preferred_theme" in update_data:
-            theme = update_data["preferred_theme"]
-            if theme and theme not in VALID_THEMES:
-                return api_error_response(
-                    400,
-                    f"Thème invalide. Valeurs acceptées : {', '.join(sorted(VALID_THEMES))}",
-                )
+        update_data, validation_error = UserService.normalize_profile_update_data(data)
+        if validation_error:
+            return api_error_response(400, validation_error)
 
         # Mise à jour en base via le service
         async with db_session() as db:
@@ -489,41 +358,11 @@ async def update_user_me(request: Request) -> JSONResponse:
                 return api_error_response(404, "Utilisateur introuvable.")
             if err == "email_taken":
                 return api_error_response(400, "Cette adresse email est déjà utilisée.")
-            # user is not None
-
-            # Construire la réponse
-            response_data = {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "full_name": user.full_name,
-                "role": user.role.value if user.role else None,
-                "is_email_verified": getattr(user, "is_email_verified", True),
-                "grade_level": user.grade_level,
-                "grade_system": getattr(user, "grade_system", None),
-                "learning_style": user.learning_style,
-                "preferred_difficulty": user.preferred_difficulty,
-                "onboarding_completed_at": (
-                    user.onboarding_completed_at.isoformat()
-                    if getattr(user, "onboarding_completed_at", None)
-                    else None
-                ),
-                "learning_goal": getattr(user, "learning_goal", None),
-                "practice_rhythm": getattr(user, "practice_rhythm", None),
-                "preferred_theme": user.preferred_theme,
-                "accessibility_settings": user.accessibility_settings,
-                "is_active": user.is_active,
-                "created_at": user.created_at.isoformat() if user.created_at else None,
-                "updated_at": user.updated_at.isoformat() if user.updated_at else None,
-                "total_points": user.total_points,
-                "current_level": user.current_level,
-                "jedi_rank": user.jedi_rank,
-            }
 
             logger.info(
                 f"Profil utilisateur {user_id} mis à jour : {list(update_data.keys())}"
             )
-            return JSONResponse(response_data)
+            return JSONResponse(UserService.serialize_user_profile_for_api(user))
 
     except json.JSONDecodeError:
         return api_error_response(400, "Données JSON invalides.")

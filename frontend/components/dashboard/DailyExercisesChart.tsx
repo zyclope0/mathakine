@@ -56,7 +56,7 @@ export function DailyExercisesChart({ data }: DailyExercisesChartProps) {
   }, [data.labels, data.datasets]);
 
   return (
-    <Card className="border-white/10 bg-card/40 backdrop-blur-md">
+    <Card className="border-border/50 bg-card/40 backdrop-blur-md">
       <CardHeader>
         <CardTitle className="text-xl text-foreground">
           {t("title", { default: "Exercices par jour (30 derniers jours)" })}
@@ -105,7 +105,7 @@ export function DailyExercisesChart({ data }: DailyExercisesChartProps) {
                 }
                 formatter={(value) => [typeof value === "number" ? Math.round(value) : value, ""]}
               />
-              <Legend />
+              <Legend wrapperStyle={{ color: "var(--color-muted-foreground)" }} />
               <Bar
                 dataKey={data.datasets[0]?.label || "Exercices par jour"}
                 fill={barColor}

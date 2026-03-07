@@ -1,6 +1,6 @@
 # README_TECH.md - Mathakine
 
-> Documentation technique de référence — Mise à jour le 03/03/2026
+> Documentation technique de référence — Mise à jour le 06/03/2026
 
 ---
 
@@ -91,7 +91,7 @@ pip install -r requirements.txt
 cp .env.example .env
 # Editer .env avec DATABASE_URL, OPENAI_API_KEY, SECRET_KEY
 
-# Lancer le serveur backend (port 10000)
+# Lancer le serveur backend (port 8000 par défaut)
 python enhanced_server.py
 ```
 
@@ -104,7 +104,7 @@ npm install
 
 # Configurer l'environnement
 cp .env.example .env.local
-# Editer .env.local avec NEXT_PUBLIC_API_URL=http://localhost:10000
+# Editer .env.local avec NEXT_PUBLIC_API_URL=http://localhost:8000
 
 # Lancer le dev server (port 3000)
 npm run dev
@@ -123,14 +123,15 @@ alembic upgrade head
 Le backend est unifie sur **Starlette** (FastAPI archive le 06/02/2026).
 
 ### Couche HTTP - Starlette (`server/`)
-- **Point d'entree** : `enhanced_server.py` (port 10000)
+- **Point d'entree** : `enhanced_server.py` (port `8000` par defaut via `PORT`)
 - **Handlers** : `server/handlers/` (admin, admin_handlers_utils, auth, badge, challenge, chat, exercise, recommendation, user)
-- **Gestion DB** : Manuelle via `EnhancedServerAdapter.get_db_session()` / `close_db_session()`
+- **Gestion DB** : context manager `db_session()` dans les handlers, puis delegation au service d'orchestration
 - **Responses** : `JSONResponse` (Starlette)
 - **Authentification** : `server/auth.py` (Cookie + Bearer token)
 - **Streaming** : SSE pour generation IA (exercices + challenges)
 - **Exercise generator** : `exercise_generator.py` + `exercise_generator_validators.py` + `exercise_generator_helpers.py` (choix MCQ, questions contextualisees)
 - **Routes** : ~85 routes dans `server/routes/` — agrégées via `get_routes()` (dont bloc admin)
+- **Convention B1/B2** : handler = adaptateur HTTP (parse, validation transport, appel service, format response) ; commit final porte par le service proprietaire du flux critique
 
 ### Couche logique metier (`app/`)
 Couche independante du framework HTTP :
@@ -197,8 +198,10 @@ Couche independante du framework HTTP :
 | Methode | Route | Handler | Description |
 |---|---|---|---|
 | POST | `/api/auth/login` | auth_handlers | Connexion utilisateur |
-| POST | `/api/auth/register` | auth_handlers | Inscription |
+| POST | `/api/auth/refresh` | auth_handlers | Rotation access token / refresh token |
+| GET | `/api/auth/verify-email` | auth_handlers | Verification email par token |
 | POST | `/api/auth/logout` | auth_handlers | Deconnexion |
+| POST | `/api/users/` | user_handlers | Inscription utilisateur + token de verification |
 | GET | `/api/users/me` | user_handlers | Profil utilisateur actuel |
 | PUT | `/api/users/me` | user_handlers | Modifier profil (email, full_name, preferences) |
 | PUT | `/api/users/me/password` | user_handlers | Changer mot de passe (CSRF) |
@@ -390,7 +393,7 @@ Le dossier `_ARCHIVE_2026/` contient les fichiers archives :
 
 ```bash
 # Backend
-python enhanced_server.py                    # Demarrer le serveur (port 10000)
+python enhanced_server.py                    # Demarrer le serveur (port 8000 par defaut)
 alembic upgrade head                         # Appliquer les migrations
 alembic revision --autogenerate -m "desc"    # Generer une migration
 
@@ -408,4 +411,4 @@ black app/ server/ && isort app/ server/    # Formatage (pre-commit)
 
 ---
 
-*Derniere mise a jour : 16/02/2026 - Maintenance, sessions, badges progress, recommendations complete*
+*Derniere mise a jour : 06/03/2026 - Stabilisation B1/B2 backend, auth/session, daily challenges, handlers critiques alleges*

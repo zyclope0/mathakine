@@ -79,18 +79,22 @@ F02 propose 3 objectifs quotidiens à l'utilisateur pour encourager la pratique 
 
 ## 5. Mise à jour de la progression
 
-La progression n'est **pas** mise à jour par le endpoint GET. Elle est **câblée** dans les handlers :
+La progression n'est **pas** mise à jour par le endpoint GET. Elle est déclenchée par les flux de soumission métier, puis persistée par leur point d'orchestration transactionnel :
 
 | Point d'entrée | Service | Défis mis à jour |
 |----------------|---------|------------------|
-| `submit_answer` (exercices) | `exercise_service` | volume_exercises, specific_type |
-| `submit_challenge_answer` (défis logiques) | `challenge_handlers` | logic_challenge |
+| `submit_answer` (exercices) | `app/services/exercise_service.py` | volume_exercises, specific_type |
+| `submit_challenge_answer` (défis logiques) | `app/services/logic_challenge_service.py` | logic_challenge |
 
 **Fichiers :**
 - `app/services/exercise_service.py` → `record_exercise_completed()`
-- `server/handlers/challenge_handlers.py` → appelle `record_logic_challenge_completed()`
+- `app/services/logic_challenge_service.py` → `record_logic_challenge_completed()`
 
-**Important :** Les handlers doivent appeler `db.commit()` après la mise à jour pour persister.
+**Important :**
+
+- les handlers HTTP restent des adaptateurs de transport
+- la soumission d'exercice et la soumission de défi logique portent chacune leur commit final dans le service d'orchestration
+- les mises à jour `daily challenges` sont appelées en side effect best effort depuis ces services, sans reprendre la main sur le commit global
 
 ---
 

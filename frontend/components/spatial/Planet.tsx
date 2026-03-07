@@ -47,43 +47,8 @@ export function Planet() {
     };
   }, [focusMode, reducedMotion]);
 
-  // Couleurs de la planète selon le thème
-  const planetColors: Record<string, { bg: string; glow: string }> = {
-    spatial: {
-      bg: "radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.8), rgba(124, 58, 237, 0.6), rgba(79, 70, 229, 0.4))",
-      glow: "rgba(139, 92, 246, 0.3)",
-    },
-    minimalist: {
-      bg: "radial-gradient(circle at 30% 30%, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5))",
-      glow: "rgba(0, 0, 0, 0.2)",
-    },
-    ocean: {
-      bg: "radial-gradient(circle at 30% 30%, rgba(14, 165, 233, 0.8), rgba(3, 105, 161, 0.6), rgba(2, 132, 199, 0.4))",
-      glow: "rgba(14, 165, 233, 0.3)",
-    },
-    dune: {
-      bg: "radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.8), rgba(217, 119, 6, 0.6), rgba(180, 83, 9, 0.4))",
-      glow: "rgba(251, 191, 36, 0.3)",
-    },
-    forest: {
-      bg: "radial-gradient(circle at 30% 30%, rgba(52, 211, 153, 0.8), rgba(16, 185, 129, 0.6), rgba(5, 150, 105, 0.4))",
-      glow: "rgba(52, 211, 153, 0.3)",
-    },
-    peach: {
-      bg: "radial-gradient(circle at 30% 30%, rgba(251, 146, 60, 0.8), rgba(249, 115, 22, 0.6), rgba(234, 88, 12, 0.4))",
-      glow: "rgba(251, 146, 60, 0.3)",
-    },
-    dino: {
-      bg: "radial-gradient(circle at 30% 30%, rgba(132, 204, 22, 0.8), rgba(101, 163, 13, 0.6), rgba(77, 124, 15, 0.4))",
-      glow: "rgba(132, 204, 22, 0.3)",
-    },
-  };
-
-  const colors = planetColors[theme] ||
-    planetColors.spatial || {
-      bg: "radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.8), rgba(124, 58, 237, 0.6), rgba(79, 70, 229, 0.4))",
-      glow: "rgba(139, 92, 246, 0.3)",
-    };
+  const planetGradient =
+    "radial-gradient(circle at 30% 30%, rgb(var(--spatial-planet-color-1-rgb) / 0.8), rgb(var(--spatial-planet-color-2-rgb) / 0.6), rgb(var(--spatial-planet-color-3-rgb) / 0.4))";
 
   // Ne pas rendre si mode Focus ou reduced motion
   if (focusMode || reducedMotion) {
@@ -101,7 +66,7 @@ export function Planet() {
         <div
           className="relative w-32 h-32 flex items-center justify-center"
           style={{
-            filter: `drop-shadow(0 0 30px ${colors.glow})`,
+            filter: "drop-shadow(0 0 30px rgb(var(--spatial-planet-glow-rgb) / 0.3))",
             animation: "dino-bob 4s ease-in-out infinite",
           }}
         >
@@ -118,7 +83,7 @@ export function Planet() {
               key={index}
               className="absolute text-xl font-bold"
               style={{
-                color: "rgba(132, 204, 22, 0.9)",
+                color: "rgb(var(--spatial-dino-symbol-rgb) / 0.9)",
                 top: "50%",
                 left: "50%",
                 transform: `
@@ -148,11 +113,11 @@ export function Planet() {
       <div
         className="relative w-32 h-32 rounded-full"
         style={{
-          background: colors.bg,
+          background: planetGradient,
           boxShadow: `
-            inset -20px -20px 40px rgba(0, 0, 0, 0.5),
-            inset 10px 10px 20px rgba(255, 255, 255, 0.1),
-            0 0 60px ${colors.glow}
+            inset -20px -20px 40px rgb(0 0 0 / 0.5),
+            inset 10px 10px 20px rgb(255 255 255 / 0.1),
+            0 0 60px rgb(var(--spatial-planet-glow-rgb) / 0.3)
           `,
           transform: "rotate(var(--rotation, 0deg))",
         }}
@@ -161,25 +126,22 @@ export function Planet() {
         <div
           className="absolute w-8 h-8 rounded-full top-4 left-6"
           style={{
-            background:
-              "radial-gradient(circle at 30% 30%, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6))",
-            boxShadow: "inset 2px 2px 4px rgba(0, 0, 0, 0.8)",
+            background: "radial-gradient(circle at 30% 30%, rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.6))",
+            boxShadow: "inset 2px 2px 4px rgb(0 0 0 / 0.8)",
           }}
         />
         <div
           className="absolute w-6 h-6 rounded-full bottom-8 right-8"
           style={{
-            background:
-              "radial-gradient(circle at 30% 30%, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5))",
-            boxShadow: "inset 2px 2px 4px rgba(0, 0, 0, 0.7)",
+            background: "radial-gradient(circle at 30% 30%, rgb(0 0 0 / 0.3), rgb(0 0 0 / 0.5))",
+            boxShadow: "inset 2px 2px 4px rgb(0 0 0 / 0.7)",
           }}
         />
         <div
           className="absolute w-10 h-10 rounded-full top-12 right-4"
           style={{
-            background:
-              "radial-gradient(circle at 30% 30%, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7))",
-            boxShadow: "inset 2px 2px 4px rgba(0, 0, 0, 0.9)",
+            background: "radial-gradient(circle at 30% 30%, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.7))",
+            boxShadow: "inset 2px 2px 4px rgb(0 0 0 / 0.9)",
           }}
         />
 

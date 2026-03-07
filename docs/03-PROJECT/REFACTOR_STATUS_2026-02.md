@@ -1,6 +1,6 @@
 # État du refactoring — Mathakine
 
-**Date :** 28/02/2026  
+**Date :** 07/03/2026  
 **Référence :** [PLAN_CLEAN_CODE_ET_DTO_2026-02.md](./PLAN_CLEAN_CODE_ET_DTO_2026-02.md), [PLAN_REFACTO_ARCHITECTURE_2026-02.md](./AUDITS_ET_RAPPORTS_ARCHIVES/PLAN_REFACTO_ARCHITECTURE_2026-02.md)
 
 ---
@@ -11,6 +11,54 @@
 |------|-----------------|---------|
 | **Clean Code & DTO** | ✅ Terminé | P4 (admin DTO, OpenAPI) — mypy ✅ fait |
 | **Architecture** | ✅ Terminé | Ph4 (dépendances inversées, reporté) |
+| **Stabilisation pré-backlog** | ✅ B1 flux critiques clarifiés, ✅ B2 handlers critiques allégés, ✅ F2 anti-patterns React nettoyés, ✅ F1.1/F1.2 dashboard alignés | `F1.3` / `F1.4` design-system restant avant backlog |
+
+---
+
+## Stabilisation pré-backlog — Mars 2026
+
+### B1 — Transactions backend
+
+- `daily_challenge` : commit unique clarifié dans `app/services/daily_challenge_service.py`
+- `auth/register` : création user + token regroupée via `create_registered_user_with_verification()`
+- `auth/login` : login + session regroupés via `authenticate_user_with_session()`
+- `exercise attempt` : `ExerciseService.submit_answer_result()` reste le propriétaire du commit final
+- `challenge attempt` : `LogicChallengeService.submit_answer_result()` reste le propriétaire du commit final
+- `profile/session` : mutations profil et sessions laissées aux services sans logique transactionnelle métier complexe côté handler
+
+### Vérification B1
+
+- suites unitaires et API ciblées vertes sur `daily`, `auth`, `user`, `exercise`, `challenge`
+- passe finale B1 : `163` tests ciblés OK
+- réserve conservée hors flux critiques : zones `admin_*`, `feedback`, `analytics`, `enhanced_server_adapter`, `challenge_service` legacy
+
+### B2 — Handler -> service boundary
+
+- `auth_handlers.py` : login/refresh recentrés sur appel service + helpers de réponse/cookies
+- `user_handlers.py` : normalisation profil et sérialisation utilisateur sorties du handler principal
+- `exercise_handlers.py` : validation de payload de soumission isolée
+- `challenge_handlers.py` : normalisation de payload de soumission isolée
+- lot B2 validé par suites ciblées `auth/user` puis `exercise/challenge`
+
+### F2 — Anti-patterns React
+
+- `F2.1` : `DarkModeToggle`, `InstallPrompt`, `AlphaBanner`, `reset-password/page.tsx`
+- `F2.2` : `ProtectedRoute`, `AccessibilityToolbar`, `ExerciseModal`
+- `F2.3` : `CodingRenderer`, `DeductionRenderer`, `ProbabilityRenderer`, `RiddleRenderer`, `GraphRenderer`, `ChessRenderer`
+- `0` occurrence restante de `eslint-disable-next-line react-hooks/set-state-in-effect` sur le périmètre identifié
+
+### F1 — Design system frontend
+
+- `F1.1` : `LeaderboardWidget`, `AverageTimeWidget`, `RecentActivity`, `CategoryAccuracyChart`, `LevelIndicator`
+- `F1.2` : `QuickStartActions`, `StatsCard`, `DashboardSkeletons`
+- surfaces dashboard unifiées autour de classes partagées dans `frontend/app/globals.css`
+- restent avant backlog : `F1.3` (générateurs) et `F1.4` (renderers visuels, surtout `CodingRenderer`)
+
+### Validation locale complète
+
+- backend : `flake8` critique, `black --check`, `isort --check`, `mypy`, `pytest tests/ -m "not slow"`, smoke `/health`
+- frontend : `tsc --noEmit`, `eslint`, `prettier --check`, `i18n:check`, `i18n:validate`, `vitest --run`, `next build`
+- résultat : validation locale verte au 07/03/2026 ; lot `F1.1` / `F1.2` revalidé avec `eslint`, `tsc --noEmit`, `next build`
 
 ---
 

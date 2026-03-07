@@ -35,6 +35,11 @@ from server.exercise_generator import (
 logger = get_logger(__name__)
 
 
+def _parse_submit_answer_payload(raw_data: dict) -> SubmitAnswerRequest:
+    """Valide la payload de soumission d'exercice hors contexte HTTP."""
+    return SubmitAnswerRequest.model_validate(raw_data)
+
+
 async def generate_exercise(request: Request) -> Response:
     """Génère un nouvel exercice en utilisant le groupe d'âge.
 
@@ -181,7 +186,7 @@ async def submit_answer(request: Request) -> JSONResponse:
             return api_error_response(400, "Corps JSON invalide.")
 
         try:
-            payload = SubmitAnswerRequest.model_validate(raw_data)
+            payload = _parse_submit_answer_payload(raw_data)
         except ValidationError as e:
             return JSONResponse(
                 {"detail": e.errors()},
@@ -197,23 +202,10 @@ async def submit_answer(request: Request) -> JSONResponse:
         )
 
         async with db_session() as db:
-            try:
-                response_data = ExerciseService.submit_answer_result(
-                    db, exercise_id, user_id, payload.answer, payload.time_spent
-                )
-                db.commit()
-                return JSONResponse(response_data.model_dump())
-            except (ExerciseNotFoundError, ExerciseSubmitError) as e:
-                return api_error_response(e.status_code, e.message)
-            except Exception as db_error:
-                logger.error(
-                    f"❌ ERREUR lors de l'enregistrement: "
-                    f"{type(db_error).__name__}: {db_error}"
-                )
-                logger.debug(traceback.format_exc())
-                return api_error_response(
-                    500, "Erreur lors de l'enregistrement de la tentative"
-                )
+            response_data = ExerciseService.submit_answer_result(
+                db, exercise_id, user_id, payload.answer, payload.time_spent
+            )
+            return JSONResponse(response_data.model_dump())
 
     except (ExerciseNotFoundError, ExerciseSubmitError) as e:
         return api_error_response(e.status_code, e.message)

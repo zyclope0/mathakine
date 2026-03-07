@@ -29,6 +29,14 @@ from app.utils.email_verification import (
 logger = get_logger(__name__)
 
 
+def _flush_or_commit(db: Session, *, auto_commit: bool) -> None:
+    """Persiste la transaction courante sans imposer un commit global."""
+    if auto_commit:
+        db.commit()
+    else:
+        db.flush()
+
+
 def get_user_by_username(db: Session, username: str) -> Optional[User]:
     """Délègue à UserService.get_user_by_username (source unique)."""
     from app.services.user_service import UserService
@@ -93,7 +101,7 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
 
 
 def create_user(
-    db: Session, user_in: UserCreate
+    db: Session, user_in: UserCreate, *, auto_commit: bool = True
 ) -> Tuple[Optional[User], Optional[str], int]:
     """
     Crée un nouvel utilisateur.
@@ -142,7 +150,7 @@ def create_user(
 
     # Ajouter l'utilisateur à la base de données
     db.add(user)
-    db.commit()
+    _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
 
     logger.info(f"Nouvel utilisateur créé: {user.username} (ID: {user.id})")
@@ -198,7 +206,7 @@ def create_user_token(user: User) -> TokenResponse:
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
-        "user_id": user.id,
+        "user_id": int(user.id),
     }
 
 
@@ -300,7 +308,7 @@ def update_user(db: Session, user: User, user_in: UserUpdate) -> User:
             setattr(user, field, value)
 
     db.add(user)
-    db.commit()
+    _flush_or_commit(db, auto_commit=True)
     db.refresh(user)
 
     logger.info(f"Utilisateur mis à jour: {user.username} (ID: {user.id})")
@@ -308,7 +316,12 @@ def update_user(db: Session, user: User, user_in: UserUpdate) -> User:
 
 
 def update_user_password(
-    db: Session, user: User, current_password: str, new_password: str
+    db: Session,
+    user: User,
+    current_password: str,
+    new_password: str,
+    *,
+    auto_commit: bool = True,
 ) -> Tuple[bool, Optional[str]]:
     """
     Met à jour le mot de passe d'un utilisateur après vérification du mot de passe actuel.
@@ -326,14 +339,16 @@ def update_user_password(
     user.updated_at = datetime.now(timezone.utc)
 
     db.add(user)
-    db.commit()
+    _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
 
     logger.info(f"Mot de passe mis à jour pour l'utilisateur: {user.username}")
     return True, None
 
 
-def verify_email_token(db: Session, token: str) -> Tuple[Optional[User], Optional[str]]:
+def verify_email_token(
+    db: Session, token: str, *, auto_commit: bool = True
+) -> Tuple[Optional[User], Optional[str]]:
     """
     Vérifie un token d'email et marque l'utilisateur comme vérifié si valide.
 
@@ -356,13 +371,15 @@ def verify_email_token(db: Session, token: str) -> Tuple[Optional[User], Optiona
 
     user.is_email_verified = True
     user.updated_at = datetime.now(timezone.utc)
-    db.commit()
+    _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
     logger.info(f"Email vérifié pour l'utilisateur {user.username} ({user.email})")
     return user, None
 
 
-def resend_verification_token(db: Session, user: User) -> str:
+def resend_verification_token(
+    db: Session, user: User, *, auto_commit: bool = True
+) -> str:
     """
     Génère et enregistre un nouveau token de vérification pour l'utilisateur.
     Returns: le token généré.
@@ -372,7 +389,7 @@ def resend_verification_token(db: Session, user: User) -> str:
     token = generate_verification_token()
     user.email_verification_token = token
     user.email_verification_sent_at = datetime.now(timezone.utc)
-    db.commit()
+    _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
     return token
 
@@ -383,6 +400,8 @@ def create_session(
     ip: Optional[str],
     user_agent: Optional[str],
     expires_at: datetime,
+    *,
+    auto_commit: bool = True,
 ) -> UserSession:
     """Crée une entrée UserSession pour le suivi des sessions actives."""
     import secrets
@@ -397,11 +416,14 @@ def create_session(
         expires_at=expires_at,
     )
     db.add(session_row)
-    db.commit()
+    _flush_or_commit(db, auto_commit=auto_commit)
+    db.refresh(session_row)
     return session_row
 
 
-def initiate_password_reset(db: Session, user: User) -> str:
+def initiate_password_reset(
+    db: Session, user: User, *, auto_commit: bool = True
+) -> str:
     """
     Initialise la réinitialisation mot de passe : token + expiration.
     Returns: le token de réinitialisation.
@@ -412,22 +434,24 @@ def initiate_password_reset(db: Session, user: User) -> str:
     user.password_reset_token = token
     user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
     user.updated_at = datetime.now(timezone.utc)
-    db.commit()
+    _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
     return token
 
 
-def set_verification_token_for_new_user(db: Session, user: User, token: str) -> None:
+def set_verification_token_for_new_user(
+    db: Session, user: User, token: str, *, auto_commit: bool = True
+) -> None:
     """Enregistre le token de vérification pour un nouvel utilisateur (register)."""
     user.email_verification_token = token
     user.email_verification_sent_at = datetime.now(timezone.utc)
     user.is_email_verified = False
-    db.commit()
+    _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
 
 
 def reset_password_with_token(
-    db: Session, token: str, new_password: str
+    db: Session, token: str, new_password: str, *, auto_commit: bool = True
 ) -> Tuple[Optional[User], Optional[str]]:
     """
     Réinitialise le mot de passe avec un token valide.
@@ -451,7 +475,106 @@ def reset_password_with_token(
     user.password_reset_token = None
     user.password_reset_expires_at = None
     user.updated_at = datetime.now(timezone.utc)
-    db.commit()
+    _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
     logger.info(f"Mot de passe réinitialisé pour {user.username}")
     return user, None
+
+
+def create_registered_user_with_verification(
+    db: Session, user_in: UserCreate, verification_token: str
+) -> Tuple[Optional[User], Optional[str], int]:
+    """
+    Crée un utilisateur et son token de vérification en un seul commit.
+    """
+    user, error_message, status_code = create_user(db, user_in, auto_commit=False)
+    if error_message:
+        return user, error_message, status_code
+
+    set_verification_token_for_new_user(
+        db,
+        user,
+        verification_token,
+        auto_commit=False,
+    )
+    db.commit()
+    db.refresh(user)
+    return user, None, 201
+
+
+def authenticate_user_with_session(
+    db: Session,
+    username: str,
+    password: str,
+    *,
+    ip: Optional[str],
+    user_agent: Optional[str],
+    expires_at: datetime,
+) -> Tuple[Optional[User], Optional[TokenResponse]]:
+    """
+    Authentifie un utilisateur, crée sa session et commit une seule fois.
+    """
+    user = authenticate_user(db, username, password)
+    if not user:
+        return None, None
+
+    token_data = create_user_token(user)
+    create_session(
+        db,
+        user.id,
+        ip,
+        user_agent,
+        expires_at,
+        auto_commit=False,
+    )
+    db.commit()
+    return user, token_data
+
+
+def recover_refresh_token_from_access_token(
+    db: Session,
+    access_token: str,
+    *,
+    max_age_seconds: int = 7 * 24 * 3600,
+) -> Optional[str]:
+    """
+    Récupère un refresh token pour un utilisateur existant à partir d'un access token.
+
+    Utilisé comme chemin de compatibilité quand seul l'access_token historique est
+    encore présent côté client.
+    """
+    try:
+        payload = jwt.decode(
+            access_token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+            options={"verify_exp": False},
+        )
+    except JWTError:
+        logger.debug("Fallback refresh refusé: access_token invalide", exc_info=True)
+        return None
+
+    exp = payload.get("exp")
+    username = payload.get("sub")
+    if exp is None or not username:
+        logger.warning("Fallback refresh refusé: claims exp/sub manquants")
+        return None
+
+    age_seconds = datetime.now(timezone.utc).timestamp() - exp
+    if age_seconds > max_age_seconds:
+        logger.warning(
+            "Fallback refresh refusé: access_token expiré depuis plus de %s secondes",
+            max_age_seconds,
+        )
+        return None
+
+    user = get_user_by_username(db, username)
+    if not user or not user.is_active:
+        logger.warning(
+            "Fallback refresh refusé: utilisateur introuvable ou inactif (%s)",
+            username,
+        )
+        return None
+
+    token_data = create_user_token(user)
+    return token_data.get("refresh_token")

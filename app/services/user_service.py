@@ -41,6 +41,13 @@ class UserService:
     """
 
     @staticmethod
+    def _flush_or_commit(db: Session, *, auto_commit: bool) -> None:
+        if auto_commit:
+            db.commit()
+        else:
+            db.flush()
+
+    @staticmethod
     def get_user(db: Session, user_id: int) -> Optional[User]:
         """
         Récupère un utilisateur par son ID.
@@ -177,7 +184,7 @@ class UserService:
         return DatabaseAdapter.update(db, user, user_data)
 
     @staticmethod
-    def delete_user(db: Session, user_id: int) -> None:
+    def delete_user(db: Session, user_id: int, *, auto_commit: bool = True) -> None:
         """
         Supprime physiquement un utilisateur de la base de données.
         Les entités associées sont supprimées en cascade.
@@ -195,7 +202,7 @@ class UserService:
             logger.error(f"Utilisateur avec ID {user_id} non trouvé pour suppression")
             raise UserNotFoundError(f"Utilisateur avec ID {user_id} non trouvé")
 
-        DatabaseAdapter.delete(db, user)
+        TransactionManager.safe_delete(db, user, auto_commit=auto_commit)
 
     @staticmethod
     def disable_user(db: Session, user_id: int) -> bool:
@@ -850,7 +857,11 @@ class UserService:
 
     @staticmethod
     def update_user_profile(
-        db: Session, user_id: int, update_data: Dict[str, Any]
+        db: Session,
+        user_id: int,
+        update_data: Dict[str, Any],
+        *,
+        auto_commit: bool = True,
     ) -> Tuple[Optional[User], Optional[str]]:
         """
         Met à jour le profil utilisateur.
@@ -898,13 +909,188 @@ class UserService:
             else:
                 setattr(user, field, value)
 
-        db.commit()
+        UserService._flush_or_commit(db, auto_commit=auto_commit)
         db.refresh(user)
         return user, None
 
     @staticmethod
+    def normalize_profile_update_data(
+        raw_data: Dict[str, Any],
+    ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+        """
+        Normalise et valide la payload de mise à jour profil indépendamment du transport.
+        Retourne (payload_normalisée, None) ou (None, message_erreur).
+        """
+        import re
+
+        from app.core.constants import VALID_LEARNING_STYLES, VALID_THEMES
+
+        allowed_fields = {
+            "email",
+            "full_name",
+            "grade_level",
+            "grade_system",
+            "learning_style",
+            "preferred_difficulty",
+            "preferred_theme",
+            "accessibility_settings",
+            "learning_goal",
+            "practice_rhythm",
+        }
+
+        data = dict(raw_data)
+
+        privacy_fields = [
+            "is_public_profile",
+            "allow_friend_requests",
+            "show_in_leaderboards",
+            "data_retention_consent",
+            "marketing_consent",
+        ]
+        privacy_data = {}
+        for field in privacy_fields:
+            if field in data:
+                privacy_data[field] = data.pop(field)
+        if privacy_data:
+            data["privacy_settings"] = privacy_data
+
+        json_fields = [
+            "notification_preferences",
+            "language_preference",
+            "timezone",
+            "privacy_settings",
+        ]
+        json_overrides = {}
+        for field in json_fields:
+            if field in data:
+                json_overrides[field] = data.pop(field)
+
+        if json_overrides:
+            if "accessibility_settings" not in data:
+                data["accessibility_settings"] = {}
+            if isinstance(data["accessibility_settings"], dict):
+                data["accessibility_settings"].update(json_overrides)
+            else:
+                data["accessibility_settings"] = json_overrides
+
+        update_data = {
+            key: value for key, value in data.items() if key in allowed_fields
+        }
+        if not update_data:
+            return None, "Aucun champ valide à mettre à jour."
+
+        if "email" in update_data:
+            email = str(update_data["email"]).strip().lower()
+            if not email or not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
+                return None, "Adresse email invalide."
+            update_data["email"] = email
+
+        if "full_name" in update_data:
+            full_name = (
+                str(update_data["full_name"]).strip()
+                if update_data["full_name"]
+                else None
+            )
+            if full_name and len(full_name) > 100:
+                return None, "Le nom complet ne peut pas dépasser 100 caractères."
+            update_data["full_name"] = full_name
+
+        valid_grade_systems = {"suisse", "unifie"}
+        if "grade_system" in update_data:
+            grade_system = update_data["grade_system"]
+            if grade_system is not None and grade_system not in valid_grade_systems:
+                return None, "Système scolaire invalide. Valeurs : suisse ou unifie."
+
+        if "grade_level" in update_data:
+            grade_level = update_data["grade_level"]
+            if grade_level is not None:
+                try:
+                    grade_level = int(grade_level)
+                except (ValueError, TypeError):
+                    return None, "Le niveau scolaire doit être un nombre."
+
+                grade_system = update_data.get("grade_system")
+                max_grade = 11 if grade_system == "suisse" else 12
+                if grade_level < 1 or grade_level > max_grade:
+                    return (
+                        None,
+                        f"Le niveau scolaire doit être entre 1 et {max_grade}.",
+                    )
+                update_data["grade_level"] = grade_level
+
+        if "learning_style" in update_data:
+            learning_style = update_data["learning_style"]
+            if learning_style and learning_style not in VALID_LEARNING_STYLES:
+                return (
+                    None,
+                    "Style d'apprentissage invalide. Valeurs acceptées : "
+                    + ", ".join(sorted(VALID_LEARNING_STYLES)),
+                )
+
+        if "preferred_theme" in update_data:
+            preferred_theme = update_data["preferred_theme"]
+            if preferred_theme and preferred_theme not in VALID_THEMES:
+                return (
+                    None,
+                    "Thème invalide. Valeurs acceptées : "
+                    + ", ".join(sorted(VALID_THEMES)),
+                )
+
+        return update_data, None
+
+    @staticmethod
+    def serialize_user_profile_for_api(user: User) -> Dict[str, Any]:
+        """Construit la réponse API standard pour le profil utilisateur."""
+        return {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "full_name": user.full_name,
+            "role": user.role.value if user.role else None,
+            "is_email_verified": getattr(user, "is_email_verified", True),
+            "grade_level": user.grade_level,
+            "grade_system": getattr(user, "grade_system", None),
+            "learning_style": user.learning_style,
+            "preferred_difficulty": user.preferred_difficulty,
+            "onboarding_completed_at": (
+                user.onboarding_completed_at.isoformat()
+                if getattr(user, "onboarding_completed_at", None)
+                else None
+            ),
+            "learning_goal": getattr(user, "learning_goal", None),
+            "practice_rhythm": getattr(user, "practice_rhythm", None),
+            "preferred_theme": user.preferred_theme,
+            "accessibility_settings": user.accessibility_settings,
+            "is_active": user.is_active,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+            "total_points": user.total_points,
+            "current_level": user.current_level,
+            "jedi_rank": user.jedi_rank,
+        }
+
+    @staticmethod
+    def serialize_registered_user_for_api(user: User) -> Dict[str, Any]:
+        """Construit la réponse API standard après création de compte."""
+        return {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "full_name": user.full_name,
+            "role": user.role.value if hasattr(user.role, "value") else str(user.role),
+            "is_active": user.is_active,
+            "is_email_verified": user.is_email_verified,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+        }
+
+    @staticmethod
     def update_user_password(
-        db: Session, user_id: int, current_password: str, new_password: str
+        db: Session,
+        user_id: int,
+        current_password: str,
+        new_password: str,
+        *,
+        auto_commit: bool = True,
     ) -> Tuple[bool, Optional[str]]:
         """
         Met à jour le mot de passe de l'utilisateur.
@@ -920,7 +1106,7 @@ class UserService:
             return False, "Le mot de passe actuel est incorrect."
 
         user.hashed_password = get_password_hash(new_password)
-        db.commit()
+        UserService._flush_or_commit(db, auto_commit=auto_commit)
         return True, None
 
     @staticmethod
@@ -968,7 +1154,11 @@ class UserService:
 
     @staticmethod
     def revoke_user_session(
-        db: Session, session_id: int, user_id: int
+        db: Session,
+        session_id: int,
+        user_id: int,
+        *,
+        auto_commit: bool = True,
     ) -> Tuple[bool, Optional[str]]:
         """
         Révoque une session utilisateur (la marque inactive).
@@ -983,7 +1173,7 @@ class UserService:
             return False, "Session non trouvée ou non autorisée"
 
         session.is_active = False
-        db.commit()
+        UserService._flush_or_commit(db, auto_commit=auto_commit)
         return True, None
 
     @staticmethod

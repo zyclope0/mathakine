@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useHydrated } from "@/lib/hooks/useHydrated";
+import { useMemo } from "react";
 import { Dices, Percent, TrendingUp, Circle, Package } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
@@ -41,12 +42,7 @@ const COLOR_MAP: Record<string, string> = {
  */
 export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityRendererProps) {
   const t = useTranslations("challenges.visualizations.probability");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
+  const isHydrated = useHydrated();
 
   // Détecter et extraire les items avec quantités (bonbons, billes, cartes, etc.)
   const itemsData = useMemo(() => {
@@ -114,7 +110,7 @@ export function ProbabilityRenderer({ visualData, className = "" }: ProbabilityR
     return items.length > 0 ? { items, total, itemType } : null;
   }, [visualData, t]);
 
-  if (!mounted || !visualData) {
+  if (!isHydrated || !visualData) {
     return null;
   }
 

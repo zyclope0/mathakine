@@ -1,7 +1,7 @@
 # Flux d'authentification — Mathakine
 
 > Parcours utilisateur et pages associées  
-> **Date :** 15/02/2026 — **MAJ 16/02** (sessions, maintenance, inscriptions)
+> **Date :** 15/02/2026 — **MAJ 06/03/2026** (sessions, flux auth clarifié, login non vérifié, B1/B2 backend)
 
 ---
 
@@ -78,10 +78,18 @@
 - `registered=true` — Affiche message "Inscription réussie, vérifiez votre email"
 - `verify=true` — Affiche message "Email vérifié, connectez-vous"
 
-**En cas d'échec 403 (email non vérifié) :**  
-Bannière affichée avec formulaire pour renvoyer l'email de vérification via `POST /api/auth/resend-verification`.
+**Compte non vérifié :**
 
-**Succès :** Cookie `access_token` + sync vers frontend, création d'une `UserSession` en base (IP, User-Agent, expires_at), redirection vers `/dashboard`.
+- le login reste autorisé
+- l'utilisateur reçoit un `access_scope` limité tant que l'email n'est pas vérifié
+- l'UX peut toujours proposer le renvoi via `POST /api/auth/resend-verification`
+
+**Succès :**
+
+- `access_token` renvoyé dans le body et posé en cookie HttpOnly de compatibilité
+- `refresh_token` posé en cookie HttpOnly
+- création d'une `UserSession` en base via `authenticate_user_with_session()`
+- redirection frontend vers `/dashboard`
 
 ---
 
@@ -135,8 +143,8 @@ Bannière affichée avec formulaire pour renvoyer l'email de vérification via `
 | Client API | `frontend/lib/api/client.ts` |
 | Route protégée | `frontend/components/auth/ProtectedRoute.tsx` |
 | Pages | `frontend/app/{login,register,verify-email,forgot-password,reset-password}/page.tsx` |
-| Backend handlers | `server/handlers/auth_handlers.py` |
-| Logique métier | `app/services/auth_service.py` (verify_email_token, reset_password_with_token depuis 26/02) |
+| Backend handlers | `server/handlers/auth_handlers.py`, `server/handlers/user_handlers.py` |
+| Logique métier | `app/services/auth_service.py` (verify_email_token, reset_password_with_token, authenticate_user_with_session, create_registered_user_with_verification) |
 
 **Note Next.js (15/02)** : Les pages `reset-password` et `verify-email` utilisent `useSearchParams()` pour lire le token dans l'URL. Elles sont enveloppées dans un boundary `<Suspense>` afin de respecter les exigences de l'App Router (prerender).
 
@@ -146,7 +154,7 @@ Bannière affichée avec formulaire pour renvoyer l'email de vérification via `
 
 | Symptôme | Cause possible |
 |----------|----------------|
-| 403 au login | Email non vérifié → utiliser resend verification |
+| Compte non vérifié après login | Accès limité tant que l'email n'est pas vérifié ; proposer le renvoi de verification |
 | Cookie non envoyé | Domaine différent (prod) → sync via `sync-cookie` |
 | Token expiré (verify/reset) | Lien trop ancien → renvoyer l'email |
 | 401 après login | Refresh token manquant ou expiré → se reconnecter |
@@ -167,7 +175,7 @@ Bannière affichée avec formulaire pour renvoyer l'email de vérification via `
 ### Sessions actives
 - **Page** : `/settings` — section « Sessions actives »
 - **API** : `GET /api/users/me/sessions` (liste avec `is_current: true` sur la session courante)
-- **Révocation** : `DELETE /api/users/me/sessions/{id}` — supprime une session
+- **Révocation** : `DELETE /api/users/me/sessions/{id}` — marque la session inactive
 - **Création** : Une `UserSession` est créée à chaque login réussi
 
 ### Inscriptions désactivées

@@ -61,6 +61,16 @@ def get_or_create_today(db: Session, user_id: int) -> list[DailyChallenge]:
     return _generate_today(db, user_id, today)
 
 
+def get_or_create_today_for_user(db: Session, user_id: int) -> list[DailyChallenge]:
+    """
+    Orchestrateur transactionnel du flux daily challenge.
+    Le handler HTTP ne commit plus directement ce flux.
+    """
+    challenges = get_or_create_today(db, user_id)
+    db.commit()
+    return challenges
+
+
 def _generate_today(db: Session, user_id: int, day: date) -> list[DailyChallenge]:
     """Génère 3 défis adaptés au profil utilisateur."""
     user = db.query(User).filter(User.id == user_id).first()

@@ -60,15 +60,15 @@ function getItemStyle(type: string, isCorrect?: boolean): ItemStyle {
   if (type === "exercise_completed") {
     return isCorrect
       ? {
-          border: "border-l-[3px] border-green-500/60",
-          iconBg: "bg-green-500/10",
-          iconColor: "text-green-400",
+          border: "border-l-[3px] border-success/60",
+          iconBg: "bg-success/10",
+          iconColor: "text-success",
           Icon: CheckCircle2,
         }
       : {
-          border: "border-l-[3px] border-red-500/60",
-          iconBg: "bg-red-500/10",
-          iconColor: "text-red-400",
+          border: "border-l-[3px] border-destructive/60",
+          iconBg: "bg-destructive/10",
+          iconColor: "text-destructive",
           Icon: XCircle,
         };
   }
@@ -98,10 +98,10 @@ export function RecentActivity({ activities }: RecentActivityProps) {
   const hasMore = remaining > 0;
 
   return (
-    <Card className="border-white/10 bg-card/40 backdrop-blur-md">
+    <Card className="dashboard-card-surface">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
-          <Activity className="w-5 h-5 text-primary-on-dark" />
+          <Activity className="w-5 h-5 text-primary" />
           {t("title", { default: "Journal d'activité" })}
         </CardTitle>
       </CardHeader>
@@ -119,8 +119,8 @@ export function RecentActivity({ activities }: RecentActivityProps) {
                 <div
                   key={key}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-r-md",
-                    "bg-muted/20 hover:bg-muted/35 transition-colors duration-150",
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5",
+                    "bg-muted/30 transition-colors duration-150 hover:bg-muted/45",
                     border
                   )}
                 >
@@ -144,11 +144,9 @@ export function RecentActivity({ activities }: RecentActivityProps) {
               );
             })}
 
-            {/* Bouton "Voir plus" avec gradient de fondu */}
             {hasMore && !showAll && (
               <div className="relative pt-1">
-                {/* Gradient fade pour suggérer le scroll */}
-                <div className="absolute -top-8 left-0 right-0 h-8 bg-gradient-to-t from-card/70 to-transparent pointer-events-none" />
+                <div className="pointer-events-none absolute -top-8 left-0 right-0 h-8 bg-gradient-to-t from-card/90 to-transparent" />
                 <button
                   onClick={() => setShowAll(true)}
                   className="mt-1 w-full inline-flex items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"

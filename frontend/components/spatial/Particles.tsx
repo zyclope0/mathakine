@@ -35,18 +35,10 @@ export function Particles() {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // Couleurs selon le thème
-    const themeColors: Record<string, string> = {
-      spatial: "rgba(139, 92, 246, 0.3)",
-      minimalist: "rgba(0, 0, 0, 0.2)",
-      ocean: "rgba(14, 165, 233, 0.3)",
-      dune: "rgba(251, 191, 36, 0.25)",
-      forest: "rgba(52, 211, 153, 0.25)",
-      peach: "rgba(251, 146, 60, 0.25)",
-      dino: "rgba(134, 239, 172, 0.18)",
-    };
-
-    const particleColor = themeColors[theme] || themeColors.spatial || "rgba(139, 92, 246, 0.3)";
+    // Couleur pilotée par token CSS thème-aware
+    const rootStyles = getComputedStyle(document.documentElement);
+    const particleRgb =
+      rootStyles.getPropertyValue("--spatial-particle-rgb").trim() || "139 92 246";
 
     // Créer les particules
     const particleCount = 50;
@@ -80,7 +72,7 @@ export function Particles() {
         // Dessiner la particule
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = particleColor.replace("0.3", particle.opacity.toString());
+        ctx.fillStyle = `rgb(${particleRgb} / ${particle.opacity})`;
         ctx.fill();
       });
 

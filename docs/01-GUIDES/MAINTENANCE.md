@@ -47,10 +47,10 @@ Détecter les régressions de performance et valider la capacité de charge de l
 
 ```bash
 # Vérifier que le backend est démarré
-curl http://localhost:10000/health
+curl http://localhost:8000/health
 
 # Configurer les variables d'environnement
-export BACKEND_URL=http://localhost:10000
+export BACKEND_URL=http://localhost:8000
 export TEST_USERNAME=ObiWan
 export TEST_PASSWORD=HelloThere123!
 ```
@@ -243,7 +243,7 @@ Si échec :
 **Diagnostic** :
 ```bash
 # 1. Vérifier que le backend est démarré
-curl http://localhost:10000/health
+curl http://localhost:8000/health
 
 # 2. Vérifier les logs du backend
 tail -f logs/app.log

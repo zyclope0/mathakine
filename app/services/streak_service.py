@@ -60,7 +60,9 @@ def compute_streak(activity_dates: set[date], reference_date: date) -> int:
     return count
 
 
-def update_user_streak(db: Session, user_id: int) -> tuple[int, int]:
+def update_user_streak(
+    db: Session, user_id: int, *, auto_commit: bool = True
+) -> tuple[int, int]:
     """
     Recalcule et met à jour le streak de l'utilisateur.
     Retourne (current_streak, best_streak).
@@ -81,6 +83,9 @@ def update_user_streak(db: Session, user_id: int) -> tuple[int, int]:
     user.last_activity_date = (
         today if today in activity_dates else user.last_activity_date
     )
-    db.commit()
+    if auto_commit:
+        db.commit()
+    else:
+        db.flush()
 
     return (current, best)

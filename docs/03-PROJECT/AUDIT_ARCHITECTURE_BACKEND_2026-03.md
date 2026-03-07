@@ -6,6 +6,8 @@
 **Méthode :** Inspection systématique, analyse des dépendances croisées, audit des patterns
 **Statut :** ✅ TERMINÉ — Phases 0→4 complètes (22/02/2026). Dette résiduelle documentée dans `PLACEHOLDERS_ET_TODO.md`.
 
+> **Mise à jour 06/03/2026 :** les travaux de stabilisation pré-backlog `B1/B2` ont depuis clarifié l'ownership transactionnel sur les flux critiques (`daily`, `auth`, `profile/session`, `exercise`, `challenge`) et allégé les handlers `auth`, `user`, `exercise`, `challenge`. Pour l'état courant, croiser avec `PLAN_STABILISATION_PRE_BACKLOG_2026-03-06.md` et `REFACTOR_STATUS_2026-02.md`.
+
 **Complémentaire à :** [AUDIT_CODE_CLEANUP_2026-03-01.md](./AUDIT_CODE_CLEANUP_2026-03-01.md) (bugs, dead code, incohérences — corrigé)
 
 ---

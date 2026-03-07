@@ -8,7 +8,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
-from app.services.daily_challenge_service import get_or_create_today
+from app.services.daily_challenge_service import get_or_create_today_for_user
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response
 from server.auth import require_auth, require_full_access
@@ -45,8 +45,7 @@ async def get_daily_challenges(request: Request) -> JSONResponse:
             return api_error_response(400, "ID utilisateur manquant")
 
         async with db_session() as db:
-            challenges = get_or_create_today(db, user_id)
-            db.commit()
+            challenges = get_or_create_today_for_user(db, user_id)
             data = [_daily_challenge_to_dict(c) for c in challenges]
             return JSONResponse({"challenges": data})
 

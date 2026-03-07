@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useHydrated } from "@/lib/hooks/useHydrated";
+import { useEffect, useMemo, useState } from "react";
 import { Users, ArrowRight, Calendar, CheckSquare, Grid3x3 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
@@ -28,15 +29,10 @@ export function DeductionRenderer({
   onAnswerChange,
 }: DeductionRendererProps) {
   const t = useTranslations("challenges.visualizations.deduction");
+  const isHydrated = useHydrated();
   const { shouldReduceMotion } = useAccessibleAnimation();
   const hoverTransition = shouldReduceMotion ? "" : "transition-colors";
-  const [mounted, setMounted] = useState(false);
   const [selections, setSelections] = useState<Record<string, Record<string, string>>>({});
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
 
   // Extraire les données structurées
   const friends = Array.isArray(visualData?.friends) ? visualData.friends : [];
@@ -90,48 +86,77 @@ export function DeductionRenderer({
   const primaryCategory = gridCategories?.[0];
   const secondaryCategories = useMemo(() => gridCategories?.slice(1) ?? [], [gridCategories]);
 
-  // Initialiser les sélections
-  useEffect(() => {
-    if (primaryCategory && secondaryCategories.length > 0 && Object.keys(selections).length === 0) {
-      const initialSelections: Record<string, Record<string, string>> = {};
-      primaryCategory.values.forEach((entity) => {
-        initialSelections[entity] = {};
-        secondaryCategories.forEach((cat) => {
-          initialSelections[entity]![cat.name] = "";
-        });
-      });
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelections(initialSelections);
+  const defaultSelections = useMemo(() => {
+    if (!primaryCategory || secondaryCategories.length === 0) {
+      return {};
     }
-  }, [primaryCategory, secondaryCategories, selections]);
+
+    const initialSelections: Record<string, Record<string, string>> = {};
+    primaryCategory.values.forEach((entity) => {
+      initialSelections[entity] = {};
+      secondaryCategories.forEach((cat) => {
+        initialSelections[entity]![cat.name] = "";
+      });
+    });
+
+    return initialSelections;
+  }, [primaryCategory, secondaryCategories]);
+
+  const hasSameSelectionShape = (
+    candidate: Record<string, Record<string, string>>,
+    template: Record<string, Record<string, string>>
+  ) => {
+    const candidateEntities = Object.keys(candidate);
+    const templateEntities = Object.keys(template);
+
+    if (candidateEntities.length !== templateEntities.length) {
+      return false;
+    }
+
+    return templateEntities.every((entity) => {
+      const candidateCategories = Object.keys(candidate[entity] ?? {});
+      const templateCategories = Object.keys(template[entity] ?? {});
+
+      return (
+        candidateCategories.length === templateCategories.length &&
+        templateCategories.every((category) => category in (candidate[entity] ?? {}))
+      );
+    });
+  };
+
+  const effectiveSelections = hasSameSelectionShape(selections, defaultSelections)
+    ? selections
+    : defaultSelections;
 
   // Mettre à jour la réponse formatée quand les sélections changent
   useEffect(() => {
-    if (onAnswerChange && primaryCategory && Object.keys(selections).length > 0) {
+    if (onAnswerChange && primaryCategory && Object.keys(effectiveSelections).length > 0) {
       // Vérifier si toutes les sélections sont faites
       const allFilled = primaryCategory.values.every((entity) =>
-        secondaryCategories.every((cat) => selections[entity]?.[cat.name])
+        secondaryCategories.every((cat) => effectiveSelections[entity]?.[cat.name])
       );
 
       if (allFilled) {
         // Formater la réponse : "Emma:Chimie:700,Lucas:Informatique:600,..."
         const answerParts = primaryCategory.values.map((entity) => {
           const entitySelections = secondaryCategories.map(
-            (cat) => selections[entity]?.[cat.name] || ""
+            (cat) => effectiveSelections[entity]?.[cat.name] || ""
           );
           return `${entity}:${entitySelections.join(":")}`;
         });
         onAnswerChange(answerParts.join(","));
       }
     }
-  }, [selections, onAnswerChange, primaryCategory, secondaryCategories]);
+  }, [effectiveSelections, onAnswerChange, primaryCategory, secondaryCategories]);
 
   // Handler pour les changements de sélection
   const handleSelectionChange = (entity: string, category: string, value: string) => {
     setSelections((prev) => ({
-      ...prev,
+      ...(hasSameSelectionShape(prev, defaultSelections) ? prev : defaultSelections),
       [entity]: {
-        ...prev[entity],
+        ...(hasSameSelectionShape(prev, defaultSelections)
+          ? prev[entity]
+          : defaultSelections[entity]),
         [category]: value,
       },
     }));
@@ -139,13 +164,13 @@ export function DeductionRenderer({
 
   // Obtenir les valeurs déjà utilisées pour une catégorie (éviter les doublons)
   const getUsedValues = (category: string, excludeEntity: string): string[] => {
-    return Object.entries(selections)
+    return Object.entries(effectiveSelections)
       .filter(([entity]) => entity !== excludeEntity)
       .map(([, cats]) => cats[category])
       .filter((v): v is string => Boolean(v));
   };
 
-  if (!mounted || !visualData) {
+  if (!isHydrated || !visualData) {
     return null;
   }
 
@@ -231,7 +256,7 @@ export function DeductionRenderer({
                     {/* Sélecteurs pour chaque catégorie secondaire */}
                     {secondaryCategories.map((category) => {
                       const usedValues = getUsedValues(category.name, entity);
-                      const currentValue = selections[entity]?.[category.name] || "";
+                      const currentValue = effectiveSelections[entity]?.[category.name] || "";
 
                       return (
                         <div key={category.name} className="flex-1 min-w-[120px]">
@@ -272,7 +297,7 @@ export function DeductionRenderer({
             <div className="mt-4 text-xs text-muted-foreground text-center">
               {(() => {
                 const totalSelections = primaryCategory.values.length * secondaryCategories.length;
-                const madeSelections = Object.values(selections).reduce(
+                const madeSelections = Object.values(effectiveSelections).reduce(
                   (acc, cats) => acc + Object.values(cats).filter(Boolean).length,
                   0
                 );

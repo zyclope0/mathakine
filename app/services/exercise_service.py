@@ -12,7 +12,6 @@ from sqlalchemy.orm import Session
 
 from app.core.logging_config import get_logger
 from app.db.adapter import DatabaseAdapter
-from app.db.transaction import TransactionManager
 from app.exceptions import ExerciseNotFoundError, ExerciseSubmitError
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
@@ -324,7 +323,9 @@ class ExerciseService:
             "is_correct": is_correct,
             "time_spent": time_spent,
         }
-        attempt_obj = ExerciseService.record_attempt(db, attempt_data)
+        attempt_obj = ExerciseService.record_attempt(
+            db, attempt_data, auto_commit=False
+        )
         if not attempt_obj:
             logger.error("ERREUR: La tentative n'a pas été enregistrée correctement")
             raise ExerciseSubmitError(
@@ -335,7 +336,7 @@ class ExerciseService:
 
         new_badges = []
         try:
-            badge_service = BadgeService(db)
+            badge_service = BadgeService(db, auto_commit=False)
             attempt_for_badges = {
                 "exercise_type": exercise.get("exercise_type"),
                 "is_correct": is_correct,
@@ -372,22 +373,32 @@ class ExerciseService:
             logger.warning("Streak service indisponible (ImportError)", exc_info=True)
         else:
             try:
-                update_user_streak(db, user_id)
+                streak_savepoint = db.begin_nested()
+                update_user_streak(db, user_id, auto_commit=False)
+                streak_savepoint.commit()
             except SQLAlchemyError:
+                if "streak_savepoint" in locals() and streak_savepoint.is_active:
+                    streak_savepoint.rollback()
                 logger.debug("Streak update skipped (DB error)", exc_info=True)
             except (TypeError, ValueError):
+                if "streak_savepoint" in locals() and streak_savepoint.is_active:
+                    streak_savepoint.rollback()
                 logger.debug("Streak update skipped (data/type error)", exc_info=True)
 
         try:
             from app.services.daily_challenge_service import record_exercise_completed
 
+            daily_savepoint = db.begin_nested()
             record_exercise_completed(
                 db,
                 user_id,
                 exercise.get("exercise_type") or "",
                 is_correct,
             )
+            daily_savepoint.commit()
         except Exception:
+            if "daily_savepoint" in locals() and daily_savepoint.is_active:
+                daily_savepoint.rollback()
             logger.debug("Daily challenge update skipped", exc_info=True)
 
         progress_notif = None
@@ -398,6 +409,9 @@ class ExerciseService:
                 )
             except (SQLAlchemyError, TypeError, ValueError):
                 logger.debug("Badge progress notification skipped", exc_info=True)
+
+        db.commit()
+        db.refresh(attempt_obj)
         return SubmitAnswerResponse(
             is_correct=is_correct,
             correct_answer=correct_answer,
@@ -722,7 +736,9 @@ class ExerciseService:
         return DatabaseAdapter.get_by_field(db, Attempt, "exercise_id", exercise_id)
 
     @staticmethod
-    def record_attempt(db: Session, attempt_data: Dict[str, Any]) -> Optional[Attempt]:
+    def record_attempt(
+        db: Session, attempt_data: Dict[str, Any], *, auto_commit: bool = True
+    ) -> Optional[Attempt]:
         """
         Enregistre une nouvelle tentative pour un exercice.
 
@@ -733,67 +749,67 @@ class ExerciseService:
         Returns:
             La tentative créée ou None en cas d'erreur
         """
-        with TransactionManager.transaction(db) as session:
-            try:
-                # Vérifier que l'exercice existe
-                exercise_id = attempt_data.get("exercise_id")
-                logger.info(f"Tentative d'enregistrement pour l'exercice {exercise_id}")
+        try:
+            # Vérifier que l'exercice existe
+            exercise_id = attempt_data.get("exercise_id")
+            logger.info(f"Tentative d'enregistrement pour l'exercice {exercise_id}")
 
-                exercise = ExerciseService.get_exercise(session, exercise_id)
+            exercise = ExerciseService.get_exercise(db, exercise_id)
 
-                if not exercise:
-                    logger.error(
-                        f"Exercice {exercise_id} introuvable — tentative non enregistrée"
-                    )
-                    return None
-
-                logger.info(f"Exercice {exercise_id} trouvé: {exercise.title}")
-
-                # Créer la tentative
-                logger.info(
-                    f"Création de la tentative avec attempt_data: {attempt_data}"
-                )
-                attempt = Attempt(**attempt_data)
-                session.add(attempt)
-                session.flush()
-                logger.info(f"Tentative créée avec ID: {attempt.id}")
-
-                # Log de l'action
-                is_correct = attempt_data.get("is_correct", False)
-                logger.info(
-                    f"Tentative enregistrée pour l'exercice {exercise_id}: {'Correcte' if is_correct else 'Incorrecte'}"
-                )
-
-                # 🔥 CORRECTION CRITIQUE : Mettre à jour les statistiques utilisateur
-                try:
-                    ExerciseService._update_user_statistics(
-                        session, attempt_data, exercise
-                    )
-                    logger.info(
-                        f"Statistiques mises à jour pour l'utilisateur {attempt_data.get('user_id')}"
-                    )
-                except SQLAlchemyError as stats_error:
-                    logger.error(
-                        f"Erreur DB lors de la mise à jour des statistiques: {stats_error}"
-                    )
-                    # Ne pas faire échouer la tentative pour une erreur de stats
-                except (TypeError, ValueError) as stats_error:
-                    logger.error(
-                        f"Erreur de données lors de la mise à jour des statistiques: {stats_error}"
-                    )
-                    # Ne pas faire échouer la tentative pour une erreur de stats
-
-                return attempt
-            except SQLAlchemyError as attempt_record_error:
-                error_type = type(attempt_record_error).__name__
-                error_msg = str(attempt_record_error)
-                import traceback
-
+            if not exercise:
                 logger.error(
-                    f"❌ ERREUR lors de l'enregistrement de la tentative: {error_type}: {error_msg}"
+                    f"Exercice {exercise_id} introuvable — tentative non enregistrée"
                 )
-                logger.error(f"Traceback complet:\n{traceback.format_exc()}")
                 return None
+
+            logger.info(f"Exercice {exercise_id} trouvé: {exercise.title}")
+
+            # Créer la tentative
+            logger.info(f"Création de la tentative avec attempt_data: {attempt_data}")
+            attempt = Attempt(**attempt_data)
+            db.add(attempt)
+            db.flush()
+            logger.info(f"Tentative créée avec ID: {attempt.id}")
+
+            # Log de l'action
+            is_correct = attempt_data.get("is_correct", False)
+            logger.info(
+                f"Tentative enregistrée pour l'exercice {exercise_id}: {'Correcte' if is_correct else 'Incorrecte'}"
+            )
+
+            # 🔥 CORRECTION CRITIQUE : Mettre à jour les statistiques utilisateur
+            try:
+                ExerciseService._update_user_statistics(db, attempt_data, exercise)
+                logger.info(
+                    f"Statistiques mises à jour pour l'utilisateur {attempt_data.get('user_id')}"
+                )
+            except SQLAlchemyError as stats_error:
+                logger.error(
+                    f"Erreur DB lors de la mise à jour des statistiques: {stats_error}"
+                )
+                # Ne pas faire échouer la tentative pour une erreur de stats
+            except (TypeError, ValueError) as stats_error:
+                logger.error(
+                    f"Erreur de données lors de la mise à jour des statistiques: {stats_error}"
+                )
+                # Ne pas faire échouer la tentative pour une erreur de stats
+
+            if auto_commit:
+                db.commit()
+                db.refresh(attempt)
+            return attempt
+        except SQLAlchemyError as attempt_record_error:
+            error_type = type(attempt_record_error).__name__
+            error_msg = str(attempt_record_error)
+            import traceback
+
+            if auto_commit:
+                db.rollback()
+            logger.error(
+                f"❌ ERREUR lors de l'enregistrement de la tentative: {error_type}: {error_msg}"
+            )
+            logger.error(f"Traceback complet:\n{traceback.format_exc()}")
+            return None
 
     @staticmethod
     def _update_user_statistics(
