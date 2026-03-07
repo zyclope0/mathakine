@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { Loader2, CheckCircle2, XCircle, Lightbulb, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MathText } from "@/components/ui/MathText";
+import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
 
 interface ExerciseModalProps {
   exerciseId: number | null;
@@ -332,9 +333,11 @@ function ExerciseModalContent({
                         {isCorrect ? t("correctTitle") : t("incorrectTitle")}
                       </p>
                       {!isCorrect && (
-                        <p className="text-sm opacity-90">
-                          {t("correctAnswerWas")} <strong>{submitResult.correct_answer}</strong>
-                        </p>
+                        <GrowthMindsetHint
+                          supportText={t("incorrectSupport")}
+                          correctAnswerLabel={t("correctAnswerWas")}
+                          correctAnswer={submitResult.correct_answer}
+                        />
                       )}
                     </div>
                   </div>

@@ -28,6 +28,7 @@ import { debugLog } from "@/lib/utils/debug";
 import { ChallengeVisualRenderer } from "./visualizations/ChallengeVisualRenderer";
 import { useTranslations } from "next-intl";
 import { MathText } from "@/components/ui/MathText";
+import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
 import {
   extractShapeChoicesFromVisualData,
   parsePositionsFromCorrectAnswer,
@@ -485,7 +486,11 @@ export function ChallengeSolver({ challengeId, onChallengeCompleted }: Challenge
                 )}
                 {!isCorrect && (
                   <div className="mt-4">
-                    <p className="text-muted-foreground mb-2">{t("tryAgain")}</p>
+                    <GrowthMindsetHint
+                      className="text-muted-foreground mb-3"
+                      supportText={t("tryAgain")}
+                      strategyText={t("tryAgainStrategy")}
+                    />
                     {availableHints.length > hintsUsed.length && (
                       <Button
                         onClick={handleRequestHint}

@@ -1,6 +1,6 @@
 # Backlog & Priorisation des Features — Mathakine
 
-> **Document vivant** — Dernière MAJ : 06/03/2026 (F34 Module Sciences ajouté au backlog P4)  
+> **Document vivant** — Dernière MAJ : 07/03/2026 (F33 implémenté, F35 Sécurité logs DB ajouté au backlog P2)  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -11,7 +11,7 @@
 1. [Méthodologie de priorisation](#1-méthodologie-de-priorisation)
 2. [Matrice synthèse — Toutes les features](#2-matrice-synthèse)
 3. [P0 — Impact fort, fondements pédagogiques solides](#3-p0)
-4. [P1 — Haute priorité](#4-p1) *(dont F30, F31, F32, F33 — nouvelles)*
+4. [P1 — Haute priorité](#4-p1) *(dont F30, F31, F32 — nouvelles)*
 5. [P2 — Priorité moyenne](#5-p2)
 6. [P3 — Investissement long terme](#6-p3)
 7. [P4 — Backlog distant](#7-p4)
@@ -89,7 +89,7 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 | F11 | [PROP] Partage progression → parents (lien) | 2 | 3 | 3 | 1 | 4 | **12.5** | P1 |
 | F12 | Radar chart par discipline | 2 | 3 | 3 | 1 | 2 | **10.9** | P1 |
 | F13 | Déblocage automatique badges temps réel | 2 | 3 | 3 | 1 | 3 | **11.5** | P1 |
-| F33 | [PROP] Feedback Growth Mindset (copywriting) | 1 | 3 | 3 | 1 | 2 | **11.4** | P1 |
+| F33 | Feedback Growth Mindset (copywriting) ✅ | 1 | 3 | 3 | 1 | 2 | **11.4** | P1 |
 | F14 | Monitoring IA — persistance DB | 2 | 2 | 1 | 1 | 3 | **6.9** | P2 |
 | F15 | Préférence page d'accueil (connexion) | 1 | 2 | 1 | 1 | 1 | **5.7** | P2 |
 | F16 | Heatmap d'activité | 3 | 3 | 2 | 1 | 3 | **9.1** | P2 |
@@ -99,6 +99,7 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 | F20 | Normalisation niveaux de difficulté | 4 | 3 | 2 | 3 | 3 | **6.9** | P2 |
 | F21 | Badges secrets | 2 | 3 | 2 | 1 | 2 | **9.0** | P2 |
 | F22 | Suppression utilisateur admin (RGPD) | 2 | 1 | 1 | 2 | 3 | **4.7** | P2 |
+| F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy) | 1 | 2 | 1 | 1 | 4 | **7.5** | P2 |
 | F23 | [PROP] Exercices adaptatifs SR+IA | 4 | 5 | 5 | 3 | 5 | **17.1** | P2* |
 | F24 | Tuteur IA contextuel | 5 | 5 | 5 | 3 | 5 | **16.1** | P3 |
 | F25 | Mode classe / enseignant | 5 | 4 | 4 | 3 | 5 | **14.9** | P3 |
@@ -496,12 +497,14 @@ Route: /parent/child/[id] → progression détaillée
 
 ---
 
-### F33 — [PROPOSITION] Feedback "Growth Mindset"
+### F33 — Feedback "Growth Mindset" ✅
 
 **Source** : Proposition IA — non issue des docs existants  
 **Score** : 11.4 | D=1, G=3, E=3, R=1, B=2
 
 > *Score initial proposé : 13.0 (E=4). EdTech révisé à E=3 : les études Dweck sont robustes mais les interventions de Growth Mindset par texte seul ont des effets faibles sans accompagnement long terme. Yeager et al. (2019) mesure des effets sur populations défavorisées spécifiques — le transfert à une plateforme généraliste est conditionnel.*
+
+**Statut** : ✅ Implémenté le 07/03/2026
 
 **Problème** : Un message "Faux" ou un feedback négatif brutal lors d'un échec peut renforcer un *Fixed Mindset* ("Je suis nul en maths"). Ce biais est particulièrement fort chez les enfants 8-14 ans.
 
@@ -510,7 +513,7 @@ Route: /parent/child/[id] → progression détaillée
 - Yeager et al. (2019) : Une simple intervention Growth Mindset a des effets mesurables sur les résultats en maths chez les élèves défavorisés.
 - **Nuance** : L'effet est conditionnel et nécessite de la cohérence dans tout le parcours utilisateur — un seul message ne suffit pas.
 
-**Ce qu'il faut faire** (modifications de texte + micro-UI) :
+**Ce qui a été fait** (modifications de texte + micro-UI) :
 
 | Avant | Après |
 |-------|-------|
@@ -521,8 +524,13 @@ Route: /parent/child/[id] → progression détaillée
 
 **Contrainte** : Cohérence avec les textes de feedback existants dans `fr.json` / `en.json`. Ne pas sur-positiver au point de perdre la valeur informative du feedback (Hattie & Timperley, 2007 — le feedback doit rester précis).
 
-**Effort estimé** : ½ jour (modifications de texte dans les fichiers i18n + micro-ajustements UI)  
-**Priorité** : P1 — quick win absolu, aucun risque technique, impact psychologique documenté
+**Implémentation** :
+- Messages FR/EN alignés Growth Mindset (`frontend/messages/fr.json`, `frontend/messages/en.json`)
+- Feedback d'échec harmonisé dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver`
+- Bloc partagé factorisé : `frontend/components/ui/GrowthMindsetHint.tsx` (industrialisation, no-DRY)
+
+**Effort réalisé** : ~½ jour  
+**Priorité** : P1 — quick win absolu, risque technique faible, impact psychologique documenté
 
 ---
 
@@ -539,6 +547,7 @@ Route: /parent/child/[id] → progression détaillée
 | **F20 — Normalisation niveaux de difficulté** | Remplacer nomenclature Star Wars par libellés universels. Voir [NIVEAUX_DIFFICULTE_NORMALISATION.md](NIVEAUX_DIFFICULTE_NORMALISATION.md). Migration enum risquée — à planifier soigneusement. |
 | **F21 — Badges secrets** | Badges cachés débloqués pour comportements inattendus (ex: "Noctambule" après minuit). Variable reward (Skinner) — engagement élevé. |
 | **F22 — Suppression utilisateur admin (RGPD)** | `DELETE /api/admin/users/{id}` avec soft delete. Voir PLACEHOLDERS_ET_TODO. Compliance obligatoire avant scale. |
+| **F35 — [TECH] Redaction secrets logs DB** | Corriger le log d'initialisation DB qui affiche l'URL SQLAlchemy complète (credentials exposables). Cible: [app/db/base.py](../../app/db/base.py), aligné avec [POLITIQUE_REDACTION_LOGS_PII.md](../03-PROJECT/POLITIQUE_REDACTION_LOGS_PII.md). Action: masquer user/password (ou ne logger que host+db). Effort ~30-60 min + test de non-régression logs. |
 | **F23 — [PROP] Exercices adaptatifs SR+IA** | Générer des exercices IA ciblés sur les concepts à réviser selon la courbe SR (F04). Score composite très élevé (17.1) mais **dépend de F04**. Débloqué après F04. |
 
 ---
@@ -642,6 +651,7 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 |---------|------|-----------|
 | F01 — Rendu Markdown/KaTeX dans les explications | 2026 | Composant `MathText.tsx` — intégré dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver` |
 | F03 — Test de diagnostic initial (IRT adaptatif) | 04/03/2026 | [ROADMAP_FONCTIONNALITES §F03](ROADMAP_FONCTIONNALITES.md) |
+| F33 — Feedback Growth Mindset (copywriting + micro-UI) | 07/03/2026 | [ROADMAP_FONCTIONNALITES §F33](ROADMAP_FONCTIONNALITES.md) |
 | Espace admin complet (rôle archiviste) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
 | Auth complet (inscription, email, login, reset) | Jan-Fév 2026 | [AUTH_FLOW](AUTH_FLOW.md) |
 | Sessions actives + révocation | 16/02/2026 | SITUATION_FEATURES (archivé) |

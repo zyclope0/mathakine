@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { MathText } from "@/components/ui/MathText";
+import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
 
 interface ExerciseSolverProps {
   exerciseId: number;
@@ -317,9 +318,11 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
               {isCorrect ? t("correctTitle") : t("incorrectTitle")}
             </p>
             {!isCorrect && (
-              <p className="text-sm opacity-90">
-                {t("correctAnswerWas")} <strong>{submitResult.correct_answer}</strong>
-              </p>
+              <GrowthMindsetHint
+                supportText={t("incorrectSupport")}
+                correctAnswerLabel={t("correctAnswerWas")}
+                correctAnswer={submitResult.correct_answer}
+              />
             )}
           </div>
         </div>

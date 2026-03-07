@@ -17,6 +17,8 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 - Pages Exercices et Défis : toolbars compactes pour filtres et générateur
 - Modal exercice : hiérarchie visuelle, contraste bouton Valider, scrollbar et espacement
 - Sanitisation LaTeX : correction `\frac{1}{8}81` → `\frac{1}{8} 81` (espace manquant)
+- F33 Growth Mindset : copywriting feedback d'échec harmonisé FR/EN (effort + stratégie) sur ExerciseSolver, ExerciseModal, ChallengeSolver, DiagnosticSolver
+- F33 Growth Mindset : factorisation UI avec composant partagé `GrowthMindsetHint` (réduction duplication/no-DRY)
 
 ---
 

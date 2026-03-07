@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MathText } from "@/components/ui/MathText";
+import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
 import { useDiagnostic, DiagnosticScores, DiagnosticTypeScore } from "@/hooks/useDiagnostic";
 
 // -------------------------------------------------------------------------- //
@@ -402,6 +403,14 @@ export function DiagnosticSolver({
               {isCorrect ? t("answer.correct") : t("answer.incorrect")}
             </p>
           </div>
+          {!isCorrect && (
+            <GrowthMindsetHint
+              className="text-muted-foreground mb-3"
+              supportText={t("answer.incorrectSupport")}
+              correctAnswerLabel={t("answer.correctAnswerWas")}
+              correctAnswer={currentQuestion.correct_answer}
+            />
+          )}
           {currentQuestion.explanation && (
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-1">
