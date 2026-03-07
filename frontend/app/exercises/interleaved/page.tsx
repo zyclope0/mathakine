@@ -30,9 +30,7 @@ export default function InterleavedPage() {
 
     async function run() {
       try {
-        const plan = await api.get<InterleavedPlan>(
-          "/api/exercises/interleaved-plan?length=10"
-        );
+        const plan = await api.get<InterleavedPlan>("/api/exercises/interleaved-plan?length=10");
 
         if (cancelled) return;
 

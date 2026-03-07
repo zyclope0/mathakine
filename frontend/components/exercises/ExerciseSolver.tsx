@@ -465,9 +465,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
         <>
           {sessionData.completedCount + 1 >= sessionData.plan.length ? (
             <div className="pt-8 mt-8 border-t border-border space-y-4">
-              <h3 className="text-xl font-semibold text-foreground">
-                {t("sessionEndTitle")}
-              </h3>
+              <h3 className="text-xl font-semibold text-foreground">{t("sessionEndTitle")}</h3>
               <p className="text-muted-foreground">{t("sessionEndDescription")}</p>
               <Button asChild variant="outline">
                 <Link href="/exercises">
