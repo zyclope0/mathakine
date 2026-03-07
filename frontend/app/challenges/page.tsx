@@ -237,17 +237,20 @@ function ChallengesPageContent() {
               handleFilterChange();
             }}
           >
-            <SelectTrigger id="filter-age-group" className="h-9 w-[100px] md:w-[110px] flex-shrink-0">
+            <SelectTrigger
+              id="filter-age-group"
+              className="h-9 w-[100px] md:w-[110px] flex-shrink-0"
+            >
               <SelectValue placeholder={t("filters.allGroups")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("filters.allGroups")}</SelectItem>
-                {Object.values(AGE_GROUPS).map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {getAgeDisplay(value)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("filters.allGroups")}</SelectItem>
+              {Object.values(AGE_GROUPS).map((value) => (
+                <SelectItem key={value} value={value}>
+                  {getAgeDisplay(value)}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
 
           <Select
@@ -258,16 +261,16 @@ function ChallengesPageContent() {
             }}
           >
             <SelectTrigger id="filter-order" className="h-9 w-[100px] flex-shrink-0">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="random">
-                  {t("filters.orderRandom", { default: "Aléatoire" })}
-                </SelectItem>
-                <SelectItem value="recent">
-                  {t("filters.orderRecent", { default: "Plus récents" })}
-                </SelectItem>
-              </SelectContent>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="random">
+                {t("filters.orderRandom", { default: "Aléatoire" })}
+              </SelectItem>
+              <SelectItem value="recent">
+                {t("filters.orderRecent", { default: "Plus récents" })}
+              </SelectItem>
+            </SelectContent>
           </Select>
 
           <div className="flex items-center gap-2 flex-shrink-0">

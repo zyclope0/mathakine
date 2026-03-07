@@ -428,25 +428,13 @@ def test_create_user_duplicate_email(db_session, mock_user):
 
 
 # Tests pour create_user_token
-def test_create_user_token(mock_user):
+def test_create_user_token(db_session, mock_user):
     """Teste la création des tokens pour un utilisateur."""
-    # Créer un utilisateur pour le test
+    # Créer un utilisateur persisté (create_user_token attend user.id)
     user_data = mock_user(role="maitre")
-
-    # Convertir en instance de User
-    user = User(
-        username=user_data["username"],
-        email=user_data["email"],
-        hashed_password=user_data.get(
-            "hashed_password", get_password_hash(user_data["password"])
-        ),
-        full_name=user_data.get("full_name"),
-        role=user_data.get("role", "padawan"),
-        is_active=user_data.get("is_active", True),
-        grade_level=user_data.get("grade_level"),
-        learning_style=user_data.get("learning_style"),
-        preferred_difficulty=user_data.get("preferred_difficulty"),
-    )
+    user = adapted_dict_to_user(user_data, db_session)
+    db_session.add(user)
+    db_session.commit()
 
     # Créer les tokens
     tokens = create_user_token(user)

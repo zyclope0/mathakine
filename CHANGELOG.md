@@ -4,6 +4,22 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [3.1.0-alpha.5] - 2026-03-07
+
+### Fixed
+- `test_create_user_token` : TypeError `int(None)` — test utilise désormais un utilisateur persisté via `db_session`
+- `create_user_token` : garde défensive si `user.id` est None
+- CI : black (latex_utils.py), prettier (10 fichiers frontend)
+
+### Changed
+- Hero page d'accueil : LogoBadge, slogan « Apprendre sérieusement, sans perdre le plaisir », 2 CTAs, cartes glassmorphism
+- Header : bouton Assistant dans la navigation
+- Pages Exercices et Défis : toolbars compactes pour filtres et générateur
+- Modal exercice : hiérarchie visuelle, contraste bouton Valider, scrollbar et espacement
+- Sanitisation LaTeX : correction `\frac{1}{8}81` → `\frac{1}{8} 81` (espace manquant)
+
+---
+
 ## [3.1.0-alpha.4] - 2026-03-07
 
 ### Added

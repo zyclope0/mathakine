@@ -39,7 +39,13 @@ export function LogoBadge({ className = "", alt = "Mathakine" }: LogoBadgeProps)
         <circle cx="30" cy="40" r="3" fill="var(--logo-accents, var(--primary))" />
         <circle cx="70" cy="45" r="3" fill="var(--logo-accents, var(--primary))" />
         {/* Point lumineux au sommet du M */}
-        <circle cx="50" cy="15" r="8" fill="url(#badge-glow-grad)" filter="url(#badge-glow-filter)" />
+        <circle
+          cx="50"
+          cy="15"
+          r="8"
+          fill="url(#badge-glow-grad)"
+          filter="url(#badge-glow-filter)"
+        />
         <circle cx="50" cy="15" r="4" fill="var(--logo-highlight, #ffffff)" />
         {/* M — stroke épais */}
         <path

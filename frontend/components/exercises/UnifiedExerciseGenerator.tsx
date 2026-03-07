@@ -162,8 +162,7 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
             size="sm"
             className={cn(
               "h-9 transition-all",
-              isIAEnabled &&
-                "shadow-[0_0_12px_color-mix(in_srgb,var(--primary)_20%,transparent)]"
+              isIAEnabled && "shadow-[0_0_12px_color-mix(in_srgb,var(--primary)_20%,transparent)]"
             )}
           >
             {isGenerating ? (
@@ -199,7 +198,10 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
           >
             <div className="space-y-3 pt-2 border-t border-border/50">
               <div>
-                <label htmlFor="unified-ai-prompt" className="text-xs text-muted-foreground mb-1 block">
+                <label
+                  htmlFor="unified-ai-prompt"
+                  className="text-xs text-muted-foreground mb-1 block"
+                >
                   {t("aiGenerator.customPrompt")}
                 </label>
                 <Textarea

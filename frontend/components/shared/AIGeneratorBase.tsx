@@ -177,12 +177,7 @@ export function AIGeneratorBase({
                 ))}
               </SelectContent>
             </Select>
-            <Button
-              onClick={handleGenerate}
-              disabled={isDisabled}
-              size="sm"
-              className="h-9"
-            >
+            <Button onClick={handleGenerate} disabled={isDisabled} size="sm" className="h-9">
               {isGenerating ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
@@ -291,7 +286,10 @@ export function AIGeneratorBase({
         <div className="max-w-4xl mx-auto space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label htmlFor={typeSelectId} className="block text-xs font-medium text-muted-foreground">
+              <label
+                htmlFor={typeSelectId}
+                className="block text-xs font-medium text-muted-foreground"
+              >
                 {typeLabel}
               </label>
               <Select value={selectedType} onValueChange={setSelectedType} disabled={isGenerating}>
@@ -308,7 +306,10 @@ export function AIGeneratorBase({
               </Select>
             </div>
             <div className="space-y-1">
-              <label htmlFor={ageSelectId} className="block text-xs font-medium text-muted-foreground">
+              <label
+                htmlFor={ageSelectId}
+                className="block text-xs font-medium text-muted-foreground"
+              >
                 {ageLabel}
               </label>
               <Select value={selectedAge} onValueChange={setSelectedAge} disabled={isGenerating}>
@@ -361,8 +362,16 @@ export function AIGeneratorBase({
           {isGenerating && (
             <div className="p-3 rounded-lg bg-card/60 border border-border/50 flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
-              <p className="flex-1 text-xs text-muted-foreground">{streamedText || generatingLabel}</p>
-              <Button variant="ghost" size="sm" onClick={onCancel} className="h-6 w-6 p-0" aria-label={cancelLabel}>
+              <p className="flex-1 text-xs text-muted-foreground">
+                {streamedText || generatingLabel}
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onCancel}
+                className="h-6 w-6 p-0"
+                aria-label={cancelLabel}
+              >
                 <X className="h-3 w-3" />
               </Button>
             </div>
@@ -372,13 +381,21 @@ export function AIGeneratorBase({
             <div className="p-2 rounded-lg bg-success/10 border border-success/20">
               <div className="flex items-start justify-between mb-1">
                 <p className="font-semibold text-success text-xs">{successLabel}</p>
-                <Button variant="ghost" size="sm" onClick={onDismissResult} className="h-6 w-6 p-0" aria-label={closeAriaLabel}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onDismissResult}
+                  className="h-6 w-6 p-0"
+                  aria-label={closeAriaLabel}
+                >
                   <X className="h-3 w-3" />
                 </Button>
               </div>
               <p className="text-foreground font-medium text-xs mb-0.5">{generatedItem.title}</p>
               {generatedItem.subtitle && (
-                <p className="text-muted-foreground text-xs mb-1.5 line-clamp-2">{generatedItem.subtitle}</p>
+                <p className="text-muted-foreground text-xs mb-1.5 line-clamp-2">
+                  {generatedItem.subtitle}
+                </p>
               )}
               {generatedItem.id && (
                 <Button onClick={onViewItem} size="sm" className="w-full h-7 text-xs">
@@ -390,7 +407,10 @@ export function AIGeneratorBase({
 
           {showAuthBanner && !isAuthenticated && !isAuthLoading && authBannerTitle && (
             <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <AlertCircle
+                className="h-4 w-4 text-warning mt-0.5 flex-shrink-0"
+                aria-hidden="true"
+              />
               <div className="text-xs text-warning">
                 <p className="font-medium mb-1">{authBannerTitle}</p>
                 {authBannerDescription && <p className="opacity-80">{authBannerDescription}</p>}
@@ -399,7 +419,11 @@ export function AIGeneratorBase({
           )}
 
           <div className="flex justify-center">
-            <Button onClick={handleGenerate} disabled={isDisabled} className="btn-cta-primary h-8 text-xs px-8">
+            <Button
+              onClick={handleGenerate}
+              disabled={isDisabled}
+              className="btn-cta-primary h-8 text-xs px-8"
+            >
               {isGenerating ? (
                 <>
                   <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" aria-hidden="true" />

@@ -20,7 +20,9 @@ def sanitize_latex_fractions(text: str) -> str:
     return re.sub(r"(\\frac\{\d+\}\{\d+\})(\d+)", r"\1 \2", text)
 
 
-def sanitize_exercise_text_fields(question: str, explanation: str = "", hint: str = "") -> tuple[str, str, str]:
+def sanitize_exercise_text_fields(
+    question: str, explanation: str = "", hint: str = ""
+) -> tuple[str, str, str]:
     """
     Applique la sanitization LaTeX aux champs texte d'un exercice.
     Retourne (question, explanation, hint) sanitizés.

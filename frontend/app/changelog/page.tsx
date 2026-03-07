@@ -16,13 +16,14 @@ type VersionBlock = {
   items: string[];
 };
 
-const LATEST_KEY = "v310a4";
+const LATEST_KEY = "v310a5";
 
 export default function ChangelogPage() {
   const t = useTranslations("changelog");
   const { shouldReduceMotion, createVariants, createTransition } = useAccessibleAnimation();
 
   const versionKeys = [
+    "v310a5",
     "v310a4",
     "v310a3",
     "v250a3",

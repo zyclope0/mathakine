@@ -1598,6 +1598,16 @@
     "title": "What's new",
     "subtitle": "Latest improvements to Mathakine, explained simply.",
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
+    "v310a5": {
+      "version": "v3.1.0-alpha.5",
+      "date": "March 7th, 2026",
+      "items": [
+        "Internal stability fixes (invisible to you)",
+        "Home page: new hero with highlighted logo, tagline and Assistant accessible from the navigation",
+        "Exercises and Challenges pages: more compact filters and generator to save space",
+        "Exercise modal: improved readability and more visible Validate button"
+      ]
+    },
     "v310a4": {
       "version": "v3.1.0-alpha.4",
       "date": "March 7th, 2026",

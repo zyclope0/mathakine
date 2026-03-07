@@ -307,11 +307,11 @@ function ExercisesPageContent() {
 
         {/* Générateur unifié — Toolbar compacte */}
         <UnifiedExerciseGenerator
-            onExerciseGenerated={() => {
-              queryClient.invalidateQueries({ queryKey: ["exercises"] });
-              queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
-            }}
-          />
+          onExerciseGenerated={() => {
+            queryClient.invalidateQueries({ queryKey: ["exercises"] });
+            queryClient.invalidateQueries({ queryKey: ["completed-exercises"] });
+          }}
+        />
 
         {/* Liste des exercices */}
         <PageSection className="space-y-3 animate-fade-in-up-delay-2">

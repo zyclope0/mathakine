@@ -297,8 +297,7 @@ function ExerciseModalContent({
                   className={cn(
                     "w-full size-lg font-semibold transition-all",
                     !selectedAnswer && "opacity-50 cursor-not-allowed",
-                    selectedAnswer &&
-                      "bg-primary text-primary-foreground hover:bg-primary/90"
+                    selectedAnswer && "bg-primary text-primary-foreground hover:bg-primary/90"
                   )}
                   size="lg"
                 >

@@ -202,11 +202,12 @@ def create_user_token(user: User) -> TokenResponse:
         )
 
     logger.info(f"Tokens créés pour l'utilisateur: {user.username}")
+    user_id = int(user.id) if user.id is not None else None
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
-        "user_id": int(user.id),
+        "user_id": user_id,
     }
 
 
