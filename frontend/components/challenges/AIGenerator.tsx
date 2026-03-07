@@ -23,9 +23,11 @@ import {
 
 interface AIGeneratorProps {
   onChallengeGenerated?: (challenge: Challenge) => void;
+  /** Mode toolbar compact (comme page Exercices) */
+  compact?: boolean;
 }
 
-export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
+export function AIGenerator({ onChallengeGenerated, compact = false }: AIGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamedText, setStreamedText] = useState("");
   const [generatedChallenge, setGeneratedChallenge] = useState<Challenge | null>(null);
@@ -188,6 +190,7 @@ export function AIGenerator({ onChallengeGenerated }: AIGeneratorProps) {
 
   return (
     <AIGeneratorBase
+      compact={compact}
       title={t("aiGenerator.title")}
       description={t("aiGenerator.description")}
       typeLabel={t("aiGenerator.challengeType")}

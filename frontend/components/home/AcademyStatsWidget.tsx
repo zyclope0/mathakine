@@ -33,7 +33,7 @@ export function AcademyStatsWidget() {
   // Skeleton loader
   if (isLoading) {
     return (
-      <Card className="bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 border-primary/10">
+      <Card className="border border-border/50 bg-card/40 backdrop-blur-md">
         <CardContent className="py-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -57,47 +57,47 @@ export function AcademyStatsWidget() {
       value: academy_statistics.total_exercises,
       label: t("exercises.label"),
       tooltip: t("exercises.tooltip"),
-      color: "text-blue-500",
-      bgColor: "bg-blue-500/10",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
     },
     {
       icon: Puzzle,
       value: academy_statistics.total_challenges,
       label: t("challenges.label"),
       tooltip: t("challenges.tooltip"),
-      color: "text-indigo-500",
-      bgColor: "bg-indigo-500/10",
+      color: "text-accent",
+      bgColor: "bg-accent/10",
     },
     {
       icon: Target,
       value: `${Math.round(global_performance.mastery_rate)}%`,
       label: t("mastery.label"),
       tooltip: t("mastery.tooltip"),
-      color: "text-green-500",
-      bgColor: "bg-green-500/10",
+      color: "text-success",
+      bgColor: "bg-success/10",
     },
     {
       icon: Sparkles,
       value: academy_statistics.ai_generated,
       label: t("aiGenerated.label"),
       tooltip: t("aiGenerated.tooltip"),
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/10",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
     },
     {
       icon: Users,
       value: global_performance.total_attempts,
       label: t("attempts.label"),
       tooltip: t("attempts.tooltip"),
-      color: "text-orange-500",
-      bgColor: "bg-orange-500/10",
+      color: "text-muted-foreground",
+      bgColor: "bg-muted/50",
     },
   ];
 
   return (
     <Card
       className={cn(
-        "bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 border-primary/10",
+        "border border-border/50 bg-card/40 backdrop-blur-md",
         !shouldReduceMotion && "animate-in fade-in slide-in-from-bottom-4"
       )}
     >
@@ -142,7 +142,7 @@ export function AcademyStatsWidget() {
 
         {/* Citation de sagesse */}
         {sage_wisdom && (
-          <div className="text-center pt-2 border-t border-primary/10">
+          <div className="text-center pt-2 border-t border-border/50">
             <p className="text-sm italic text-muted-foreground">&quot;{sage_wisdom}&quot;</p>
           </div>
         )}

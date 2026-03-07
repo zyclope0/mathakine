@@ -1094,11 +1094,14 @@
   "home": {
     "hero": {
       "title": "Mathakine",
-      "subtitle": "Plateforme éducative mathématique adaptative",
+      "titleTagline1": "Apprendre sérieusement,",
+      "titleTagline2": "sans perdre le plaisir.",
+      "subtitle": "La première plateforme éducative mathématique qui s'adapte à la vitesse et à la sensibilité de chaque élève.",
       "ctaStart": "Commencer gratuitement",
       "ctaLogin": "Se connecter",
       "ctaDashboard": "Accéder au tableau de bord",
       "ctaExercises": "Voir les exercices",
+      "ctaDiscoverExercises": "Découvrir les exercices",
       "ctaChallenges": "Défis logiques",
       "ctaAssistant": "Assistant"
     },

@@ -141,43 +141,42 @@ function ChallengesPageContent() {
 
   return (
     <ProtectedRoute requireFullAccess>
-      <PageLayout>
+      <PageLayout compact>
         {/* En-tête */}
         <PageHeader title={t("title")} description={t("pageDescription")} icon={Puzzle} />
 
-        {/* Filtres - Section avec fond distinct */}
-        <PageSection className="section-filter space-y-4 animate-fade-in-up">
-          {/* En-tête des filtres */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-semibold">{t("filters.title")}</h2>
-              {hasActiveFilters && (
-                <Badge variant="secondary" className="ml-1">
-                  {(challengeTypeFilter !== "all" ? 1 : 0) +
-                    (ageGroupFilter !== "all" ? 1 : 0) +
-                    (searchQuery.trim() ? 1 : 0) +
-                    (orderFilter !== "random" ? 1 : 0) +
-                    (hideCompleted ? 1 : 0)}
-                </Badge>
-              )}
-            </div>
+        {/* Filtres — Toolbar ultra-compacte */}
+        <div className="p-4 rounded-xl border border-border/50 bg-card/40 backdrop-blur-md flex flex-col md:flex-row md:items-center gap-3 animate-fade-in-up">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Filter className="h-4 w-4 text-primary" aria-hidden="true" />
+            <span className="text-sm font-medium">{t("filters.title")}</span>
+            {hasActiveFilters && (
+              <Badge variant="secondary" className="text-xs">
+                {(challengeTypeFilter !== "all" ? 1 : 0) +
+                  (ageGroupFilter !== "all" ? 1 : 0) +
+                  (searchQuery.trim() ? 1 : 0) +
+                  (orderFilter !== "random" ? 1 : 0) +
+                  (hideCompleted ? 1 : 0)}
+              </Badge>
+            )}
             {hasActiveFilters && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={clearFilters}
-                className="text-muted-foreground hover:text-foreground"
+                className="h-8 text-muted-foreground hover:text-foreground"
               >
-                <X className="h-4 w-4 mr-1" />
+                <X className="h-3.5 w-3.5 mr-1" />
                 {t("filters.reset")}
               </Button>
             )}
           </div>
 
-          {/* Barre de recherche */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative flex-1 min-w-0">
+            <Search
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+              aria-hidden="true"
+            />
             <Input
               type="text"
               placeholder={t("search.placeholder", { default: "Rechercher un défi..." })}
@@ -186,168 +185,122 @@ function ChallengesPageContent() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-10 h-11"
+              className="pl-9 h-9"
               aria-label={t("search.placeholder", { default: "Rechercher un défi..." })}
             />
           </div>
 
-          {/* Filtres principaux - Layout responsive */}
-          <div className="flex flex-col lg:flex-row lg:items-end gap-4">
-            {/* Types de défis - Sélecteur par icônes */}
-            <div className="flex-1 space-y-2">
-              <label className="text-sm font-medium text-muted-foreground">
-                {t("filters.challengeType")}
-              </label>
-              <TooltipProvider delayDuration={300}>
-                <div className="flex flex-wrap gap-1.5">
-                  {/* Bouton "Tous" */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={challengeTypeFilter === "all" ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          setChallengeTypeFilter("all");
-                          handleFilterChange();
-                        }}
-                        className={cn(
-                          "h-10 w-10 p-0 transition-all",
-                          challengeTypeFilter === "all"
-                            ? "ring-2 ring-primary/50 ring-offset-2 ring-offset-background shadow-md"
-                            : "hover:bg-accent hover:border-primary/30"
-                        )}
-                      >
-                        <Filter className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="font-medium">
-                      {t("filters.allTypes")}
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {/* Séparateur visuel */}
-                  <div className="w-px h-10 bg-border mx-1 hidden sm:block" />
-
-                  {/* Boutons pour chaque type */}
-                  {Object.entries(CHALLENGE_TYPE_STYLES).map(([type, { icon: Icon }]) => (
-                    <Tooltip key={type}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={challengeTypeFilter === type ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => {
-                            setChallengeTypeFilter(type);
-                            handleFilterChange();
-                          }}
-                          className={cn(
-                            "h-10 w-10 p-0 transition-all",
-                            challengeTypeFilter === type
-                              ? "ring-2 ring-primary/50 ring-offset-2 ring-offset-background shadow-md"
-                              : "hover:bg-accent hover:border-primary/30"
-                          )}
-                        >
-                          <Icon className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" className="font-medium">
-                        {getTypeDisplay(type)}
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
-                </div>
-              </TooltipProvider>
+          <TooltipProvider delayDuration={300}>
+            <div className="flex flex-wrap items-center gap-1.5 flex-shrink-0">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={challengeTypeFilter === "all" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      setChallengeTypeFilter("all");
+                      handleFilterChange();
+                    }}
+                    className="h-9 w-9 p-0"
+                  >
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{t("filters.allTypes")}</TooltipContent>
+              </Tooltip>
+              <div className="w-px h-9 bg-border mx-0.5 hidden sm:block" aria-hidden="true" />
+              {Object.entries(CHALLENGE_TYPE_STYLES).map(([type, { icon: Icon }]) => (
+                <Tooltip key={type}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={challengeTypeFilter === type ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setChallengeTypeFilter(type);
+                        handleFilterChange();
+                      }}
+                      className="h-9 w-9 p-0"
+                    >
+                      <Icon className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">{getTypeDisplay(type)}</TooltipContent>
+                </Tooltip>
+              ))}
             </div>
+          </TooltipProvider>
 
-            {/* Groupe d'âge - Compact sur la même ligne en desktop */}
-            <div className="lg:w-48 space-y-2">
-              <label
-                htmlFor="filter-age-group"
-                className="text-sm font-medium text-muted-foreground"
-              >
-                {t("filters.ageGroup")}
-              </label>
-              <Select
-                value={ageGroupFilter}
-                onValueChange={(value) => {
-                  setAgeGroupFilter(value);
-                  handleFilterChange();
-                }}
-              >
-                <SelectTrigger id="filter-age-group" className="h-10">
-                  <SelectValue placeholder={t("filters.allGroups")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("filters.allGroups")}</SelectItem>
-                  {Object.values(AGE_GROUPS).map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {getAgeDisplay(value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Tri (ordre) */}
-            <div className="lg:w-40 space-y-2">
-              <label htmlFor="filter-order" className="text-sm font-medium text-muted-foreground">
-                {t("filters.order", { default: "Tri" })}
-              </label>
-              <Select
-                value={orderFilter}
-                onValueChange={(value: "random" | "recent") => {
-                  setOrderFilter(value);
-                  handleFilterChange();
-                }}
-              >
-                <SelectTrigger id="filter-order" className="h-10">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="random">
-                    {t("filters.orderRandom", { default: "Aléatoire" })}
-                  </SelectItem>
-                  <SelectItem value="recent">
-                    {t("filters.orderRecent", { default: "Plus récents" })}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Masquer les réussis */}
-            <div className="flex items-center gap-2">
-              <Switch
-                id="hide-completed-challenges"
-                checked={hideCompleted}
-                onCheckedChange={(checked) => {
-                  setHideCompleted(checked);
-                  handleFilterChange();
-                }}
-              />
-              <label
-                htmlFor="hide-completed-challenges"
-                className="text-sm font-medium text-muted-foreground cursor-pointer flex items-center gap-1.5"
-              >
-                <EyeOff className="h-4 w-4" />
-                {t("filters.hideCompleted")}
-              </label>
-            </div>
-          </div>
-        </PageSection>
-
-        {/* Générateur IA */}
-        <PageSection className="section-generator animate-fade-in-up-delay-1">
-          <AIGenerator
-            onChallengeGenerated={() => {
-              // Invalider le cache pour recharger la liste
-              queryClient.invalidateQueries({ queryKey: ["challenges"] });
-              queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });
+          <Select
+            value={ageGroupFilter}
+            onValueChange={(value) => {
+              setAgeGroupFilter(value);
+              handleFilterChange();
             }}
-          />
-        </PageSection>
+          >
+            <SelectTrigger id="filter-age-group" className="h-9 w-[100px] md:w-[110px] flex-shrink-0">
+              <SelectValue placeholder={t("filters.allGroups")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("filters.allGroups")}</SelectItem>
+                {Object.values(AGE_GROUPS).map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {getAgeDisplay(value)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+          </Select>
+
+          <Select
+            value={orderFilter}
+            onValueChange={(value: "random" | "recent") => {
+              setOrderFilter(value);
+              handleFilterChange();
+            }}
+          >
+            <SelectTrigger id="filter-order" className="h-9 w-[100px] flex-shrink-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="random">
+                  {t("filters.orderRandom", { default: "Aléatoire" })}
+                </SelectItem>
+                <SelectItem value="recent">
+                  {t("filters.orderRecent", { default: "Plus récents" })}
+                </SelectItem>
+              </SelectContent>
+          </Select>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Switch
+              id="hide-completed-challenges"
+              checked={hideCompleted}
+              onCheckedChange={(checked) => {
+                setHideCompleted(checked);
+                handleFilterChange();
+              }}
+            />
+            <label
+              htmlFor="hide-completed-challenges"
+              className="text-xs text-muted-foreground cursor-pointer flex items-center gap-1.5"
+            >
+              <EyeOff className="h-3.5 w-3.5" />
+              {t("filters.hideCompleted")}
+            </label>
+          </div>
+        </div>
+
+        {/* Générateur IA — Toolbar compacte */}
+        <AIGenerator
+          compact
+          onChallengeGenerated={() => {
+            queryClient.invalidateQueries({ queryKey: ["challenges"] });
+            queryClient.invalidateQueries({ queryKey: ["completed-challenges"] });
+          }}
+        />
 
         {/* Liste des défis */}
         <PageSection className="space-y-3 animate-fade-in-up-delay-2">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg md:text-xl font-semibold">
               {isLoading
                 ? t("list.loading")

@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
-import { BookOpen, Zap, Trophy, Users, ArrowRight, MessageCircle } from "lucide-react";
+import { BookOpen, Zap, Trophy, Users, ArrowRight } from "lucide-react";
 import { PageLayout } from "@/components/layout";
-import { LogoMathakine } from "@/components/LogoMathakine";
+import { LogoBadge } from "@/components/LogoBadge";
 import { useTranslations } from "next-intl";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { cn } from "@/lib/utils";
@@ -23,7 +22,7 @@ const AcademyStatsWidgetLazy = dynamic(
   {
     ssr: false,
     loading: () => (
-      <Card className="bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 border-primary/10">
+      <Card className="border border-border/50 bg-card/40 backdrop-blur-md">
         <CardContent className="py-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -36,20 +35,6 @@ const AcademyStatsWidgetLazy = dynamic(
           </div>
         </CardContent>
       </Card>
-    ),
-  }
-);
-
-const ChatbotFloatingLazy = dynamic(
-  () =>
-    import("@/components/home/ChatbotFloating").then((mod) => ({ default: mod.ChatbotFloating })),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        className="fixed bottom-6 right-24 z-[9998] h-14 w-14 rounded-full bg-muted animate-pulse"
-        aria-hidden="true"
-      />
     ),
   }
 );
@@ -67,9 +52,7 @@ interface Feature {
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
   const t = useTranslations("home");
-  const tNav = useTranslations("navigation");
   const { shouldReduceMotion } = useAccessibleAnimation();
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const features: Feature[] = [
     {
@@ -101,68 +84,55 @@ export default function HomePage() {
         <div
           id="hero-title"
           className={cn(
-            "flex justify-center",
+            "flex flex-col items-center",
             !shouldReduceMotion && "animate-in fade-in slide-in-from-bottom-4"
           )}
         >
-          <LogoMathakine alt={t("hero.title")} className="w-72 sm:w-96 md:w-[480px] h-auto" />
+          <LogoBadge alt={t("hero.title")} className="mb-6" />
+          <h1
+            className={cn(
+              "text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 tracking-tight",
+              !shouldReduceMotion && "animate-in fade-in slide-in-from-bottom-4 animation-delay-100"
+            )}
+          >
+            {t("hero.titleTagline1")}
+            <br />
+            {t("hero.titleTagline2")}
+          </h1>
         </div>
         <p
           className={cn(
-            "text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto",
+            "text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto",
             !shouldReduceMotion && "animate-in fade-in slide-in-from-bottom-4 animation-delay-200"
           )}
         >
           {t("hero.subtitle")}
         </p>
 
-        {/* Boutons principaux */}
+        {/* CTAs — 2 boutons centrés */}
         <div
           className={cn(
-            "flex flex-col sm:flex-row gap-3 justify-center items-center pt-2",
+            "flex flex-wrap gap-4 justify-center",
             !shouldReduceMotion && "animate-in fade-in slide-in-from-bottom-4 animation-delay-400"
           )}
         >
           {isAuthenticated ? (
-            <>
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <Link href="/dashboard">
-                  {t("hero.ctaDashboard")}
-                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                <Link href="/exercises">{t("hero.ctaExercises")}</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                <Link href="/challenges">{tNav("challenges")}</Link>
-              </Button>
-            </>
+            <Button asChild size="lg" className="w-full sm:w-auto">
+              <Link href="/dashboard">
+                {t("hero.ctaDashboard")}
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
           ) : (
-            <>
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <Link href="/register">
-                  {t("hero.ctaStart")}
-                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                <Link href="/login">{t("hero.ctaLogin")}</Link>
-              </Button>
-            </>
+            <Button asChild size="lg" className="w-full sm:w-auto">
+              <Link href="/register">
+                {t("hero.ctaStart")}
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
           )}
-
-          {/* Bouton Assistant - Toujours visible */}
-          <Button
-            variant="secondary"
-            size="lg"
-            className="w-full sm:w-auto gap-2"
-            onClick={() => setIsChatOpen(true)}
-            aria-expanded={isChatOpen}
-            aria-haspopup="dialog"
-          >
-            <MessageCircle className="h-4 w-4" aria-hidden="true" />
-            {t("hero.ctaAssistant")}
+          <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+            <Link href="/exercises">{t("hero.ctaDiscoverExercises")}</Link>
           </Button>
         </div>
       </section>
@@ -188,15 +158,15 @@ export default function HomePage() {
             return (
               <Card
                 key={feature.titleKey}
-                className="card-spatial-depth text-center py-4 cursor-default"
+                className="bg-card/40 border border-border/50 backdrop-blur-md text-center p-6 md:p-8 cursor-default"
               >
-                <CardHeader className="pb-2 pt-0 px-3">
+                <CardHeader className="pb-2 pt-0 px-0">
                   <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                     <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
                   </div>
                   <CardTitle className="text-sm md:text-base">{t(feature.titleKey)}</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-0 px-3">
+                <CardContent className="pt-0 px-0">
                   <CardDescription className="text-xs md:text-sm">
                     {t(feature.descriptionKey)}
                   </CardDescription>
@@ -207,8 +177,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Chatbot Flottant */}
-      <ChatbotFloatingLazy isOpen={isChatOpen} onOpenChange={setIsChatOpen} />
     </PageLayout>
   );
 }

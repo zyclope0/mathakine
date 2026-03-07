@@ -379,6 +379,8 @@ Toutes les expressions mathématiques DOIVENT être écrites en LaTeX dans les c
   - "Vérifie que $A + B + C = 15$" ✅ — "Vérifie que A + B + C = 15" ❌
   - "Étape 2 : $\\frac{{120}}{{3}} = 40$" ✅ — "Étape 2 : 120 ÷ 3 = 40" ❌
   - "Probabilité = $\\frac{{favorables}}{{total}}$" ✅
+- CRITIQUE LaTeX : Après une fraction $\\frac{{a}}{{b}}$, TOUJOURS un espace avant le mot/nombre suivant.
+  Ex: "$\\frac{{1}}{{8}}$ du total" ✅ — "$\\frac{{1}}{{8}}81$" ❌ (chiffres collés = rendu cassé)
 - Le texte narratif (contexte, titre, thème) reste en prose normale, seules les maths sont en LaTeX.
 - Ne pas utiliser LaTeX dans `title`, `correct_answer`, ni dans `visual_data`.
 

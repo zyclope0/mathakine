@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useExercise } from "@/hooks/useExercise";
 import { useSubmitAnswer } from "@/hooks/useSubmitAnswer";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
@@ -97,7 +96,7 @@ function ExerciseModalContent({
     <DialogContent
       showCloseButton={false}
       aria-describedby={undefined}
-      className="max-w-3xl max-h-[90vh] p-0 gap-0 bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl overflow-hidden"
+      className="w-full max-w-[calc(100%-2rem)] md:max-w-3xl lg:max-w-4xl max-h-[90vh] p-0 gap-0 bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl overflow-hidden"
       onPointerDownOutside={() => !isSubmitting && handleClose()}
     >
       {/* Contenu : stopPropagation pour éviter fermeture au clic dedans */}
@@ -114,10 +113,18 @@ function ExerciseModalContent({
             ) : error ? (
               <DialogTitle>{t("errorTitle")}</DialogTitle>
             ) : exercise ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <DialogTitle className="text-xl">{exercise.title}</DialogTitle>
-                {ageGroupDisplay && <Badge variant="outline">{ageGroupDisplay}</Badge>}
-                <Badge variant="outline">{typeDisplay}</Badge>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <DialogTitle className="text-xl md:text-2xl font-bold text-foreground">
+                  {exercise.title}
+                </DialogTitle>
+                {ageGroupDisplay && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted/50 text-muted-foreground border border-border/50">
+                    {ageGroupDisplay}
+                  </span>
+                )}
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted/50 text-muted-foreground border border-border/50">
+                  {typeDisplay}
+                </span>
               </div>
             ) : (
               <DialogTitle>Exercice</DialogTitle>
@@ -162,15 +169,14 @@ function ExerciseModalContent({
                 <div
                   className={cn(
                     "py-6 md:py-8 mb-8",
-                    isVeryLongText && "max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar"
+                    isVeryLongText && "max-h-[40vh] overflow-y-auto pr-2 modal-scrollbar"
                   )}
                 >
                   <MathText
-                    size={isLongText ? "lg" : "xl"}
+                    size="lg"
                     className={cn(
-                      isLongText
-                        ? "font-normal text-left text-muted-foreground"
-                        : "font-bold text-center text-foreground"
+                      "font-normal text-lg text-foreground/85 leading-relaxed",
+                      isLongText ? "text-left" : "text-center"
                     )}
                   >
                     {question}
@@ -178,12 +184,12 @@ function ExerciseModalContent({
                 </div>
               );
             })()}
-            <div className="space-y-6 pt-6 pb-4">
+            <div className="space-y-3 pt-6 pb-4">
               {isOpenAnswer ? (
                 <div className="space-y-2">
                   <label
                     htmlFor="modal-open-answer-input"
-                    className="block text-sm font-medium text-muted-foreground"
+                    className="block text-sm font-medium text-muted-foreground mb-2"
                   >
                     {t("openAnswerLabel", { default: "Votre réponse" })}
                   </label>
@@ -198,15 +204,15 @@ function ExerciseModalContent({
                     disabled={hasSubmitted}
                     autoFocus
                     className={cn(
-                      "w-full rounded-xl py-4 px-5 text-xl font-medium text-foreground bg-secondary/50 border-2 border-border",
-                      "focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all",
+                      "w-full bg-background/50 border border-border/50 text-foreground text-lg px-4 py-4 rounded-xl transition-all",
+                      "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary placeholder:text-muted-foreground",
                       hasSubmitted && "opacity-70 cursor-not-allowed",
                       hasSubmitted &&
                         submitResult?.is_correct &&
-                        "border-green-500 bg-green-500/10 text-green-400",
+                        "border-success bg-success/10 text-success",
                       hasSubmitted &&
                         !submitResult?.is_correct &&
-                        "border-red-500 bg-red-500/10 text-red-400"
+                        "border-destructive bg-destructive/10 text-destructive"
                     )}
                     placeholder={t("openAnswerPlaceholder", { default: "Entrez votre réponse…" })}
                     aria-label={t("openAnswerLabel", { default: "Votre réponse" })}
@@ -241,15 +247,15 @@ function ExerciseModalContent({
                               ? "border-primary bg-primary/20 text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
                               : "bg-secondary/50 border-border hover:bg-secondary hover:border-primary/50 hover:-translate-y-1"),
                           showCorrect &&
-                            "bg-green-500/20 border-green-500 text-green-400 hover:bg-green-500/20",
+                            "bg-success/20 border-success text-success hover:bg-success/20",
                           showIncorrect &&
-                            "bg-red-500/20 border-red-500 text-red-400 hover:bg-red-500/20",
+                            "bg-destructive/20 border-destructive text-destructive hover:bg-destructive/20",
                           hasSubmitted && !isSelected && !isCorrectChoice && "opacity-50"
                         )}
                         onClick={() => handleSelectAnswer(choice)}
                         disabled={hasSubmitted}
                         role="radio"
-                        aria-checked={isSelected}
+                        aria-checked={isSelected ? "true" : "false"}
                         aria-label={`Option ${index + 1}: ${choice}${hasSubmitted ? (isCorrectChoice ? ` - ${t("correctAnswer")}` : showIncorrect ? ` - ${t("incorrectAnswer")}` : "") : ""}`}
                         tabIndex={hasSubmitted ? -1 : isSelected ? 0 : -1}
                         onKeyDown={(e) => {
@@ -289,10 +295,10 @@ function ExerciseModalContent({
                   onClick={handleSubmit}
                   disabled={!selectedAnswer || isSubmitting}
                   className={cn(
-                    "w-full size-lg transition-all",
+                    "w-full size-lg font-semibold transition-all",
                     !selectedAnswer && "opacity-50 cursor-not-allowed",
                     selectedAnswer &&
-                      "bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.35)] hover:shadow-[0_0_20px_hsl(var(--primary)/0.5)]"
+                      "bg-primary text-primary-foreground hover:bg-primary/90"
                   )}
                   size="lg"
                 >
@@ -310,10 +316,10 @@ function ExerciseModalContent({
               {hasSubmitted && submitResult && (
                 <div
                   className={cn(
-                    "p-4 rounded-lg border-2 transition-all",
+                    "p-4 rounded-lg border transition-all",
                     isCorrect
-                      ? "bg-green-500/10 border-green-500/30 text-green-400"
-                      : "bg-red-500/10 border-red-500/30 text-red-400"
+                      ? "bg-success/10 border-success/20 text-success"
+                      : "bg-destructive/10 border-destructive/20 text-destructive"
                   )}
                 >
                   <div className="flex items-start gap-3">
@@ -337,12 +343,12 @@ function ExerciseModalContent({
               )}
 
               {showExplanation && (exercise.explanation || submitResult?.explanation) && (
-                <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
                   <div className="flex items-start gap-3">
-                    <Lightbulb className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <Lightbulb className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
-                      <h4 className="font-semibold text-primary mb-2">{t("explanation")}</h4>
-                      <MathText size="sm" className="text-foreground">
+                      <h4 className="font-semibold text-foreground mb-2">{t("explanation")}</h4>
+                      <MathText size="sm" className="text-foreground leading-relaxed">
                         {submitResult?.explanation || exercise.explanation || ""}
                       </MathText>
                     </div>
@@ -362,7 +368,7 @@ function ExerciseModalContent({
                 </Button>
               )}
               {showHint && exercise.hint && (
-                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                <div className="p-4 rounded-lg bg-warning/10 border border-warning/20">
                   <div className="flex items-start gap-3">
                     <Lightbulb className="h-5 w-5 text-warning mt-0.5 flex-shrink-0" />
                     <div className="flex-1">

@@ -15,17 +15,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Home, LogOut, User, Menu, X, Settings, ChevronDown, Shield } from "lucide-react";
+import { Home, LogOut, User, Menu, X, Settings, ChevronDown, Shield, MessageCircle } from "lucide-react";
 import { LogoMathakine } from "@/components/LogoMathakine";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
+import { useChatStore } from "@/lib/stores/chatStore";
 
 export function Header() {
   const pathname = usePathname();
   const { user, logout, isAuthenticated } = useAuth();
+  const { setOpen: setChatOpen } = useChatStore();
+  const tHome = useTranslations("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const t = useTranslations("navigation");
   const tAuth = useTranslations("auth");
@@ -47,6 +50,7 @@ export function Header() {
           ...(hasFullAccess ? [{ name: t("leaderboard"), href: "/leaderboard" }] : []),
         ]
       : []),
+    { name: tHome("hero.ctaAssistant"), href: "#", icon: MessageCircle, isAssistant: true },
   ];
 
   const isActive = (href: string) => {
@@ -87,6 +91,23 @@ export function Header() {
             <div className="hidden md:flex md:items-center md:space-x-4">
               {navigation.map((item) => {
                 const Icon = "icon" in item ? item.icon : undefined;
+                const isAssistant = "isAssistant" in item && item.isAssistant;
+                if (isAssistant) {
+                  return (
+                    <Button
+                      key="assistant"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 text-foreground font-medium"
+                      onClick={() => setChatOpen(true)}
+                      aria-haspopup="dialog"
+                      aria-label={item.name}
+                    >
+                      {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
+                      {item.name}
+                    </Button>
+                  );
+                }
                 return (
                   <Link
                     key={item.href}
@@ -222,7 +243,34 @@ export function Header() {
                 <div className="space-y-2 py-4">
                   {navigation.map((item, index) => {
                     const Icon = "icon" in item ? item.icon : undefined;
+                    const isAssistant = "isAssistant" in item && item.isAssistant;
                     const transition = createTransition({ duration: 0.15, delay: index * 0.05 });
+
+                    if (isAssistant) {
+                      return (
+                        <motion.div
+                          key="assistant"
+                          initial={!shouldReduceMotion ? { opacity: 0, x: -10 } : false}
+                          animate={!shouldReduceMotion ? { opacity: 1, x: 0 } : false}
+                          transition={transition}
+                        >
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-start gap-2 border-primary/30 bg-primary/5 hover:bg-primary/10"
+                            onClick={() => {
+                              setChatOpen(true);
+                              setMobileMenuOpen(false);
+                            }}
+                            aria-haspopup="dialog"
+                            role="menuitem"
+                          >
+                            {Icon && <Icon className="h-4 w-4" aria-hidden="true" />}
+                            {item.name}
+                          </Button>
+                        </motion.div>
+                      );
+                    }
 
                     return (
                       <motion.div

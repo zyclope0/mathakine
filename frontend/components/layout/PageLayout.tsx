@@ -7,6 +7,8 @@ interface PageLayoutProps {
   children: ReactNode;
   className?: string;
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
+  /** Espacement vertical réduit (ex: page Exercices) */
+  compact?: boolean;
 }
 
 const maxWidthClasses = {
@@ -28,10 +30,21 @@ const maxWidthClasses = {
  *
  * NOTE: Ne pas ajouter min-h-screen ici, c'est géré par layout.tsx
  */
-export function PageLayout({ children, className, maxWidth = "xl" }: PageLayoutProps) {
+export function PageLayout({
+  children,
+  className,
+  maxWidth = "xl",
+  compact = false,
+}: PageLayoutProps) {
   return (
     <div className={cn("py-4 px-3 sm:px-4 md:px-6 lg:px-8", className)}>
-      <div className={cn("mx-auto space-y-6 md:space-y-8", maxWidthClasses[maxWidth])}>
+      <div
+        className={cn(
+          "mx-auto",
+          compact ? "space-y-4" : "space-y-6 md:space-y-8",
+          maxWidthClasses[maxWidth]
+        )}
+      >
         {children}
       </div>
     </div>

@@ -13,6 +13,7 @@ from app.core.logging_config import get_logger
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.utils.db_utils import db_session
 from app.utils.json_utils import extract_json_from_text
+from app.utils.latex_utils import sanitize_exercise_text_fields
 
 logger = get_logger(__name__)
 
@@ -102,6 +103,9 @@ Toutes les expressions mathématiques DOIVENT être écrites en LaTeX dans les c
   - "Calcule $3 \\times 4$" ✅ — "Calcule 3 × 4" ❌
   - "Explication : $\\frac{{1}}{{2}} + \\frac{{1}}{{3}} = \\frac{{5}}{{6}}$" ✅
   - "L'aire est $\\pi \\times r^2$" ✅ — "L'aire est π × r²" ❌
+- CRITIQUE LaTeX : Après une fraction $\\frac{{a}}{{b}}$, TOUJOURS mettre un espace avant le mot ou nombre suivant.
+  Ex: "$\\frac{{1}}{{8}}$ du total" ✅ — "$\\frac{{1}}{{8}}81$ du total" ❌ (le 81 collé casse le rendu)
+  Ex: "$\\frac{{2}}{{7}}$ de 72" ✅ — "$\\frac{{2}}{{7}}72$" ❌
 - Le texte narratif (contexte Star Wars, etc.) reste en prose normale, seules les maths sont en LaTeX.
 
 ## FORMAT JSON STRICT
@@ -207,6 +211,11 @@ async def generate_exercise_stream(
             yield f"data: {json.dumps({'type': 'error', 'message': f'Erreur de parsing JSON: {str(json_error)}'})}\n\n"
             return
 
+        q, expl, h = sanitize_exercise_text_fields(
+            exercise_data.get("question", ""),
+            exercise_data.get("explanation", ""),
+            exercise_data.get("hint", ""),
+        )
         normalized_exercise = {
             "exercise_type": exercise_type,
             "age_group": age_group,
@@ -214,11 +223,11 @@ async def generate_exercise_stream(
             "title": exercise_data.get(
                 "title", f"Exercice {exercise_type} {age_group}"
             ),
-            "question": exercise_data.get("question", ""),
+            "question": q,
             "correct_answer": str(exercise_data.get("correct_answer", "")),
             "choices": exercise_data.get("choices", []),
-            "explanation": exercise_data.get("explanation", ""),
-            "hint": exercise_data.get("hint", ""),
+            "explanation": expl,
+            "hint": h,
             "ai_generated": True,
             "tags": "ai,generated",
         }

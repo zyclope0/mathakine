@@ -6,6 +6,15 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { cn } from "@/lib/utils";
 
+/**
+ * Corrige le bug classique : \frac{1}{8}81 → \frac{1}{8} 81
+ * Quand une fraction LaTeX est immédiatement suivie de chiffres (sans espace),
+ * le parseur les fusionne et casse le rendu. On injecte un espace.
+ */
+function sanitizeLatexFractions(text: string): string {
+  return text.replace(/(\\frac\{\d+\}\{\d+\})(\d+)/g, "$1 $2");
+}
+
 interface MathTextProps {
   /** Texte à rendre — supporte Markdown et LaTeX ($...$ inline, $$...$$ bloc) */
   children: string;
@@ -36,6 +45,8 @@ const sizeClasses = {
 export function MathText({ children, className, size = "base" }: MathTextProps) {
   if (!children) return null;
 
+  const sanitized = sanitizeLatexFractions(children);
+
   return (
     <div
       className={cn(
@@ -53,7 +64,7 @@ export function MathText({ children, className, size = "base" }: MathTextProps) 
       )}
     >
       <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-        {children}
+        {sanitized}
       </ReactMarkdown>
     </div>
   );

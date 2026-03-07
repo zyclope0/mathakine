@@ -1293,11 +1293,14 @@
   "home": {
     "hero": {
       "title": "Mathakine",
-      "subtitle": "Adaptive Math Learning Platform",
+      "titleTagline1": "Learn seriously,",
+      "titleTagline2": "without losing the fun.",
+      "subtitle": "The first adaptive math education platform that adapts to each student's pace and sensitivity.",
       "ctaStart": "Start for Free",
       "ctaLogin": "Log In",
       "ctaDashboard": "Go to Dashboard",
       "ctaExercises": "View Exercises",
+      "ctaDiscoverExercises": "Discover Exercises",
       "ctaChallenges": "Logic Challenges",
       "ctaAssistant": "Assistant"
     },
