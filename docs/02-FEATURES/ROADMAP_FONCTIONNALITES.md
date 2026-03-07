@@ -1,6 +1,6 @@
 # Backlog & Priorisation des Features — Mathakine
 
-> **Document vivant** — Dernière MAJ : 07/03/2026 (F33 implémenté, F35 Sécurité logs DB ajouté au backlog P2)  
+> **Document vivant** — Dernière MAJ : 07/03/2026 (F07 & F33 implémentés, F35 Sécurité logs DB ajouté au backlog P2)  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -82,7 +82,7 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 | F32 | [PROP] Mode Pratique Entrelacée (Interleaving) | 2 | 3 | 5 | 2 | 3 | **14.5** | P1 |
 | F05 | Adaptation dynamique de difficulté ✅ | 4 | 4 | 5 | 3 | 4 | **13.9** | P1 |
 | F06 | Conditions d'obtention badges visibles | 2 | 4 | 3 | 1 | 3 | **13.5** | P1 |
-| F07 | Courbe d'évolution temporelle | 3 | 4 | 3 | 2 | 3 | **11.2** | P1 |
+| F07 | Courbe d'évolution temporelle ✅ | 3 | 4 | 3 | 2 | 3 | **11.2** | P1 |
 | F08 | Objectifs personnalisés | 3 | 3 | 3 | 1 | 3 | **11.1** | P1 |
 | F09 | Dashboard parent | 4 | 4 | 3 | 2 | 5 | **11.4** | P1 |
 | F10 | [PROP] Mode focus / session ciblée | 2 | 4 | 3 | 1 | 3 | **13.5** | P1 |
@@ -314,12 +314,22 @@ spaced_repetition_items (
 **Source** : [ANALYTICS_PROGRESSION §1.1](ANALYTICS_PROGRESSION.md)  
 **Score** : 11.2 | D=3, G=4, E=3, R=2, B=3
 
+**Statut** : ✅ Implémenté le 07/03/2026
+
 **Valeur pédagogique (E=3)** :
 - Zimmerman & Schunk (2001) — *Self-monitoring* : voir sa progression concrète dans le temps active la métacognition et renforce la motivation intrinsèque.
 - Hattie (2009) — *Self-reported grades / metacognitive monitoring* : d = 1.33 (attention : effet de la conscience de sa propre progression, pas du graphique lui-même).
 
-**Endpoint à créer** : `GET /api/users/me/progress/timeline?period=week|month`  
-**Données sources** : `Attempt.created_at` + `Attempt.is_correct`
+**Endpoint implémenté** : `GET /api/users/me/progress/timeline?period=7d|30d`  
+**Données sources** : `Attempt.created_at`, `Attempt.is_correct`, `Attempt.time_spent`  
+
+**Ce qui a été fait** :
+- Service d’agrégation dédié : `app/services/progress_timeline_service.py` (jours continus, résumé global, `by_type`)
+- Handler + route : `server/handlers/user_handlers.py`, `server/routes/users.py`
+- Hook + widget frontend : `frontend/hooks/useProgressTimeline.ts`, `frontend/components/dashboard/ProgressTimelineWidget.tsx`
+- Intégration dashboard : onglet Progression (`frontend/app/dashboard/page.tsx`)
+- Tests : `tests/unit/test_progress_timeline_service.py`, `tests/api/test_progress_endpoints.py`, `frontend/__tests__/unit/hooks/useProgressTimeline.test.tsx`
+- Référence d’implémentation : [IMPLEMENTATION_F07_TIMELINE](../03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md)
 
 **Effort estimé** : 3-5 jours
 
@@ -652,6 +662,7 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 | F01 — Rendu Markdown/KaTeX dans les explications | 2026 | Composant `MathText.tsx` — intégré dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver` |
 | F03 — Test de diagnostic initial (IRT adaptatif) | 04/03/2026 | [ROADMAP_FONCTIONNALITES §F03](ROADMAP_FONCTIONNALITES.md) |
 | F33 — Feedback Growth Mindset (copywriting + micro-UI) | 07/03/2026 | [ROADMAP_FONCTIONNALITES §F33](ROADMAP_FONCTIONNALITES.md) |
+| F07 — Courbe d'évolution temporelle (7j/30j) | 07/03/2026 | [IMPLEMENTATION_F07_TIMELINE](../03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md) |
 | Espace admin complet (rôle archiviste) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |
 | Auth complet (inscription, email, login, reset) | Jan-Fév 2026 | [AUTH_FLOW](AUTH_FLOW.md) |
 | Sessions actives + révocation | 16/02/2026 | SITUATION_FEATURES (archivé) |

@@ -12,6 +12,7 @@ from server.handlers.user_handlers import (
     get_all_user_progress,
     get_all_users,
     get_challenges_progress,
+    get_progress_timeline_handler,
     get_user_sessions,
     get_user_stats,
     get_users_leaderboard,
@@ -43,6 +44,11 @@ def get_users_routes():
             "/api/users/me/sessions/{session_id:int}",
             endpoint=revoke_user_session,
             methods=["DELETE"],
+        ),
+        Route(
+            "/api/users/me/progress/timeline",
+            endpoint=get_progress_timeline_handler,
+            methods=["GET"],
         ),
         Route(
             "/api/users/me/progress",

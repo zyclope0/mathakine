@@ -166,6 +166,58 @@ async def test_get_user_progress_unauthorized(client):
     assert response.status_code == 401
 
 
+async def test_get_progress_timeline_unauthorized(client):
+    """F07: Timeline non accessible sans authentification."""
+    response = await client.get("/api/users/me/progress/timeline?period=7d")
+    assert response.status_code == 401
+
+
+async def test_get_progress_timeline_ok(padawan_client):
+    """F07: Timeline retourne period, from, to, points, summary."""
+    client = padawan_client["client"]
+    response = await client.get("/api/users/me/progress/timeline?period=7d")
+    assert response.status_code == 200
+    data = response.json()
+    assert "period" in data
+    assert data["period"] == "7d"
+    assert "from" in data
+    assert "to" in data
+    assert "points" in data
+    assert isinstance(data["points"], list)
+    assert "summary" in data
+    assert "total_attempts" in data["summary"]
+    assert "total_correct" in data["summary"]
+    assert "overall_success_rate_pct" in data["summary"]
+    # Points continus sans trou
+    assert len(data["points"]) == 7
+    for p in data["points"]:
+        assert "date" in p
+        assert "attempts" in p
+        assert "correct" in p
+        assert "success_rate_pct" in p
+        assert "avg_time_spent_s" in p
+        assert "by_type" in p
+
+
+async def test_get_progress_timeline_period_30d(padawan_client):
+    """F07: Timeline 30d retourne 30 points."""
+    client = padawan_client["client"]
+    response = await client.get("/api/users/me/progress/timeline?period=30d")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["period"] == "30d"
+    assert len(data["points"]) == 30
+
+
+async def test_get_progress_timeline_invalid_period_fallback(padawan_client):
+    """F07: Période invalide → fallback 7d."""
+    client = padawan_client["client"]
+    response = await client.get("/api/users/me/progress/timeline?period=invalid")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["period"] == "7d"
+
+
 async def test_get_user_progress_nonexistent_type(padawan_client):
     """Test pour récupérer les progrès d'un type d'exercice inexistant."""
     client = padawan_client["client"]

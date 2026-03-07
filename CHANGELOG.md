@@ -4,6 +4,13 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [3.1.0-alpha.6] - 2026-03-07
+
+### Added
+- F07 — Courbe d'évolution temporelle : endpoint `GET /api/users/me/progress/timeline?period=7d|30d`, widget « Évolution temporelle » dans l'onglet Progression du dashboard (tendance succès %, volume tentatives, sélecteur 7j/30j)
+
+---
+
 ## [3.1.0-alpha.5] - 2026-03-07
 
 ### Fixed

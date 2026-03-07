@@ -836,6 +836,17 @@
         "title": "Exercices par jour (30 derniers jours)",
         "ariaLabel": "Graphique en barres montrant le nombre d'exercices résolus chaque jour sur les 30 derniers jours",
         "loading": "Chargement du graphique..."
+      },
+      "timeline": {
+        "title": "Évolution temporelle",
+        "ariaLabel": "Graphique d'évolution : tendance de réussite et volume de tentatives par jour",
+        "period7d": "7j",
+        "period30d": "30j",
+        "attemptsLabel": "Tentatives",
+        "successRateLabel": "Taux de réussite",
+        "empty": "Aucune tentative sur cette période.",
+        "emptyHint": "Entraînez-vous pour voir votre évolution.",
+        "error": "Impossible de charger les données."
       }
     },
     "timeRange": {

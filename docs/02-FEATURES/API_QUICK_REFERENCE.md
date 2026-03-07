@@ -1,7 +1,7 @@
 # API Quick Reference — Mathakine
 
 > Référence condensée des endpoints — Frontend/Backend  
-> **Date :** 06/03/2026  
+> **Date :** 07/03/2026  
 > **Détails :** [ENDPOINTS_NON_INTEGRES](../03-PROJECT/ENDPOINTS_NON_INTEGRES.md), [PLACEHOLDERS_ET_TODO](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/PLACEHOLDERS_ET_TODO.md)
 
 ---
@@ -11,7 +11,7 @@
 | Domaine | Routes | Auth requise |
 |---------|--------|--------------|
 | Auth | 9 | Variable |
-| Users | 14 | Sauf register |
+| Users | 15 | Sauf register |
 | **Daily Challenges** (F02) | **1** | **Oui** |
 | **Diagnostic** (F03) | **5** | **Oui** |
 | **Admin** | **25** | **Archiviste** |
@@ -49,6 +49,7 @@
 | PUT | `/api/users/me/password` | Oui | `{current_password, new_password}` | OK |
 | DELETE | `/api/users/me` | Oui | — | OK |
 | GET | `/api/users/me/progress` | Oui | — | OK |
+| GET | `/api/users/me/progress/timeline` | Oui | `?period=7d\|30d` | OK — F07 : `{period, from, to, points[], summary}` |
 | GET | `/api/users/me/challenges/progress` | Oui | — | OK |
 | GET | `/api/users/me/sessions` | Oui | — | OK |
 | DELETE | `/api/users/me/sessions/{id}` | Oui | — | OK |

@@ -34,6 +34,7 @@ import { DailyChallengesWidget } from "@/components/dashboard/DailyChallengesWid
 import { LevelEstablishedWidget } from "@/components/dashboard/LevelEstablishedWidget";
 import { ChallengesProgressWidget } from "@/components/dashboard/ChallengesProgressWidget";
 import { CategoryAccuracyChart } from "@/components/dashboard/CategoryAccuracyChart";
+import { ProgressTimelineWidget } from "@/components/dashboard/ProgressTimelineWidget";
 import { ExportButton } from "@/components/dashboard/ExportButton";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
 import { toast } from "sonner";
@@ -77,6 +78,7 @@ export default function DashboardPage() {
       // Invalider progress, challenges et défis quotidiens pour un rafraîchissement complet
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["user", "progress"] }),
+        queryClient.invalidateQueries({ queryKey: ["user", "progress", "timeline"] }),
         queryClient.invalidateQueries({ queryKey: ["user", "challenges", "progress"] }),
         queryClient.invalidateQueries({ queryKey: ["leaderboard"] }),
         queryClient.invalidateQueries({ queryKey: ["daily-challenges"] }),
@@ -232,6 +234,9 @@ export default function DashboardPage() {
 
             {/* Onglet Progression — graphiques uniquement */}
             <TabsContent value="progress" className="space-y-6">
+              <PageSection>
+                <ProgressTimelineWidget />
+              </PageSection>
               <PageSection>
                 <div className="grid gap-6 md:grid-cols-2 items-stretch">
                   <ChallengesProgressWidget

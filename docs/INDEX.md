@@ -254,9 +254,10 @@ docs/
 
 ## 🔄 Dernières mises à jour
 
-### 07/03/2026 — F33 Growth Mindset implémenté + backlog mis à jour
-- 📝 **[ROADMAP_FONCTIONNALITES.md](02-FEATURES/ROADMAP_FONCTIONNALITES.md)** — F33 marqué ✅ implémenté (matrice, section F33, historique des features)
-- 🧩 **Implémentation frontend** — feedback d’échec harmonisé (Exercise/Modal/Challenge/Diagnostic) + composant partagé `GrowthMindsetHint` (industrialisation/no-DRY)
+### 07/03/2026 — F07 Timeline + F33 Growth Mindset + backlog mis à jour
+- 📝 **[ROADMAP_FONCTIONNALITES.md](02-FEATURES/ROADMAP_FONCTIONNALITES.md)** — F07 et F33 marqués ✅ implémentés (matrice, sections dédiées, historique)
+- 🧩 **Implémentation frontend** — widget `ProgressTimelineWidget` (7j/30j) + feedback d’échec harmonisé (Exercise/Modal/Challenge/Diagnostic)
+- 📝 **[API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md)** — endpoint F07 `/api/users/me/progress/timeline?period=7d|30d`
 - 📝 **Backlog sécurité** — F35 conservé en P2 (redaction secrets logs DB, non implémenté)
 
 ### 06/03/2026 — F02 Défis quotidiens + Refactor Dashboard + Documentation

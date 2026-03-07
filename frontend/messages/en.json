@@ -836,6 +836,17 @@
         "title": "Daily exercises (last 30 days)",
         "ariaLabel": "Bar chart showing the number of exercises solved each day over the last 30 days",
         "loading": "Loading chart..."
+      },
+      "timeline": {
+        "title": "Time evolution",
+        "ariaLabel": "Evolution chart: success rate trend and attempt volume per day",
+        "period7d": "7d",
+        "period30d": "30d",
+        "attemptsLabel": "Attempts",
+        "successRateLabel": "Success rate",
+        "empty": "No attempts in this period.",
+        "emptyHint": "Practice to see your evolution.",
+        "error": "Unable to load data."
       }
     },
     "timeRange": {

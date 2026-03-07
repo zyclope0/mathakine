@@ -17,6 +17,7 @@ from app.schemas.user import UserCreate
 from app.services.auth_service import create_registered_user_with_verification
 from app.services.email_service import EmailService
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
+from app.services.progress_timeline_service import get_progress_timeline
 from app.services.user_service import UserService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response, get_safe_error_message
@@ -267,6 +268,30 @@ async def get_users_leaderboard(request: Request) -> JSONResponse:
     except Exception as e:
         logger.error(
             f"Erreur lors de la récupération du classement: {e}", exc_info=True
+        )
+        return api_error_response(500, get_safe_error_message(e))
+
+
+@require_auth
+@require_full_access
+async def get_progress_timeline_handler(request: Request) -> JSONResponse:
+    """
+    Handler pour la courbe d'évolution temporelle (F07).
+    Route: GET /api/users/me/progress/timeline?period=7d|30d
+    """
+    try:
+        current_user = request.state.user
+        user_id = current_user.get("id")
+        period = request.query_params.get("period", "7d")
+
+        async with db_session() as db:
+            response_data = get_progress_timeline(db, user_id, period=period)
+            return JSONResponse(response_data, status_code=200)
+
+    except Exception as e:
+        logger.error(
+            f"Erreur lors de la récupération de la timeline de progression: {e}",
+            exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))
 
