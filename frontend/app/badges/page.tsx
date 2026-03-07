@@ -404,9 +404,7 @@ export default function BadgesPage() {
                   <TooltipProvider key={badge.id}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div
-                          className="rounded-xl border border-primary/30 bg-card/60 backdrop-blur-md p-4 flex flex-col items-center gap-2 transition-shadow hover:shadow-lg cursor-help"
-                        >
+                        <div className="rounded-xl border border-primary/30 bg-card/60 backdrop-blur-md p-4 flex flex-col items-center gap-2 transition-shadow hover:shadow-lg cursor-help">
                           <BadgeIcon
                             code={badge.code}
                             iconUrl={badge.icon_url}
@@ -414,11 +412,11 @@ export default function BadgesPage() {
                             size="lg"
                             isEarned={true}
                           />
-                          <p className="text-sm font-medium text-center line-clamp-2">{badge.name}</p>
+                          <p className="text-sm font-medium text-center line-clamp-2">
+                            {badge.name}
+                          </p>
                           {earnedDateShort && (
-                            <span className="text-xs text-muted-foreground">
-                              {earnedDateShort}
-                            </span>
+                            <span className="text-xs text-muted-foreground">{earnedDateShort}</span>
                           )}
                         </div>
                       </TooltipTrigger>
@@ -662,13 +660,12 @@ export default function BadgesPage() {
                     await pinBadges(next);
                   }}
                 />
-                {!collectionExpanded &&
-                  filteredEarned.length > COLLECTION_PREVIEW_COUNT && (
-                    <div
-                      className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none"
-                      aria-hidden="true"
-                    />
-                  )}
+                {!collectionExpanded && filteredEarned.length > COLLECTION_PREVIEW_COUNT && (
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none"
+                    aria-hidden="true"
+                  />
+                )}
               </div>
               {filteredEarned.length > COLLECTION_PREVIEW_COUNT && (
                 <div className="flex justify-center">
