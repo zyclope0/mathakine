@@ -832,6 +832,12 @@
         "ariaLabel": "Graphique de progression montrant le nombre d'exercices résolus par type",
         "loading": "Chargement du graphique..."
       },
+      "volumeByType": {
+        "title": "Volume par type d'exercice",
+        "ariaLabel": "Graphique en barres horizontales montrant le volume de tentatives par type d'exercice",
+        "attemptsLabel": "tentatives",
+        "noData": "Aucune tentative enregistrée par type."
+      },
       "dailyExercises": {
         "title": "Exercices par jour (30 derniers jours)",
         "ariaLabel": "Graphique en barres montrant le nombre d'exercices résolus chaque jour sur les 30 derniers jours",

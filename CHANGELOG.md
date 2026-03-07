@@ -8,6 +8,11 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 
 ### Added
 - F07 — Courbe d'évolution temporelle : endpoint `GET /api/users/me/progress/timeline?period=7d|30d`, widget « Évolution temporelle » dans l'onglet Progression du dashboard (tendance succès %, volume tentatives, sélecteur 7j/30j)
+- API `by_category` : champs `attempts` et `correct` pour le graphique volume
+
+### Changed
+- Dashboard Progression : « Progression par type » remplacé par « Volume par type d'exercice » (bar chart horizontal, tentatives par type)
+- Évolution temporelle : dates lisibles sans chevauchement (labels horizontaux, interval adaptatif 7j/30j, tooltip date complète)
 
 ---
 

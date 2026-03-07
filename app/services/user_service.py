@@ -745,6 +745,8 @@ class UserService:
             correct = stats["correct"]
             by_category[exercise_type] = {
                 "completed": len(stats["completed_ids"]),
+                "attempts": total,
+                "correct": correct,
                 "accuracy": round(correct / total, 2) if total > 0 else 0.0,
             }
 

@@ -7,10 +7,14 @@
  * Utilisé dans les axes X des graphiques Recharts (ProgressChart, DailyExercisesChart).
  * Retourne la valeur brute si la date est invalide.
  */
-export function formatShortDate(value: string, locale: string = "fr-FR"): string {
+export function formatShortDate(
+  value: string,
+  localeOrIndex: string | number = "fr-FR"
+): string {
   try {
     const d = new Date(value);
     if (isNaN(d.getTime())) return value;
+    const locale = typeof localeOrIndex === "string" ? localeOrIndex : "fr-FR";
     return d.toLocaleDateString(locale, { day: "numeric", month: "short" }).replace(".", "");
   } catch {
     return value;

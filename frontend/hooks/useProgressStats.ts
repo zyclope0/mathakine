@@ -4,6 +4,9 @@ import { api } from "@/lib/api/client";
 export interface ProgressByCategory {
   completed: number;
   accuracy: number;
+  /** Total attempts (for volume chart). Optional for backward compatibility. */
+  attempts?: number;
+  correct?: number;
 }
 
 export interface ProgressStats {

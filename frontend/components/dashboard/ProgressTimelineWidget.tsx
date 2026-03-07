@@ -132,20 +132,23 @@ export function ProgressTimelineWidget() {
             {chartDescription}
           </div>
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ bottom: 8 }}>
+            <ComposedChart
+              data={chartData}
+              margin={{ bottom: period === "30d" ? 4 : 8, left: 4, right: 4, top: 4 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.4} />
               <XAxis
                 dataKey="name"
                 stroke="var(--color-muted-foreground)"
                 style={{ fontSize: "11px" }}
-                angle={-35}
-                textAnchor="end"
-                height={56}
+                angle={0}
+                textAnchor="middle"
+                height={period === "30d" ? 72 : 48}
                 tickFormatter={(value) =>
                   typeof value === "string" ? formatShortDate(value, dateLocale) : String(value)
                 }
-                minTickGap={28}
-                interval="preserveStartEnd"
+                minTickGap={period === "30d" ? 36 : 24}
+                interval={period === "30d" ? 2 : 0}
               />
               <YAxis
                 yAxisId="left"
@@ -163,9 +166,21 @@ export function ProgressTimelineWidget() {
               />
               <Tooltip
                 contentStyle={RECHARTS_TOOLTIP_STYLE}
-                labelFormatter={(label) =>
-                  typeof label === "string" ? formatShortDate(label, dateLocale) : String(label)
-                }
+                labelFormatter={(label) => {
+                  if (typeof label !== "string") return String(label);
+                  try {
+                    const d = new Date(label);
+                    if (isNaN(d.getTime())) return label;
+                    return d.toLocaleDateString(dateLocale, {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    });
+                  } catch {
+                    return label;
+                  }
+                }}
                 formatter={(value, name) => {
                   if (name === "attempts") {
                     return [value, t("attemptsLabel", { default: "Attempts" })];

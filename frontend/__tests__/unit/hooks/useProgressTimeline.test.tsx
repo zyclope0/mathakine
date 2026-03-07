@@ -82,7 +82,7 @@ describe("useProgressTimeline", () => {
     expect(result.current.data).toEqual(mockTimelineResponse);
     expect(result.current.data?.period).toBe("7d");
     expect(result.current.data?.points).toHaveLength(1);
-    expect(result.current.data?.points[0].success_rate_pct).toBe(71.4);
+    expect(result.current.data?.points?.[0]?.success_rate_pct).toBe(71.4);
     expect(result.current.data?.summary.overall_success_rate_pct).toBe(71.4);
   });
 

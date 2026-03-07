@@ -12,7 +12,6 @@ from typing import Any, Callable, Dict, List, Optional
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-
 VALID_PERIODS = frozenset({"7d", "30d"})
 DEFAULT_PERIOD = "7d"
 
@@ -61,7 +60,9 @@ def get_progress_timeline(
         """),
         {
             "user_id": user_id,
-            "from_ts": datetime.combine(from_date, datetime.min.time(), tzinfo=timezone.utc),
+            "from_ts": datetime.combine(
+                from_date, datetime.min.time(), tzinfo=timezone.utc
+            ),
             "to_ts_plus_one": datetime.combine(
                 to_date + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc
             ),
@@ -95,7 +96,9 @@ def get_progress_timeline(
         """),
         {
             "user_id": user_id,
-            "from_ts": datetime.combine(from_date, datetime.min.time(), tzinfo=timezone.utc),
+            "from_ts": datetime.combine(
+                from_date, datetime.min.time(), tzinfo=timezone.utc
+            ),
             "to_ts_plus_one": datetime.combine(
                 to_date + timedelta(days=1), datetime.min.time(), tzinfo=timezone.utc
             ),
@@ -121,7 +124,9 @@ def get_progress_timeline(
 
     current = from_date
     while current <= to_date:
-        day_data = rows_by_day.get(current, {"attempts": 0, "correct": 0, "avg_time": None})
+        day_data = rows_by_day.get(
+            current, {"attempts": 0, "correct": 0, "avg_time": None}
+        )
         attempts = day_data["attempts"]
         correct = day_data["correct"]
         avg_time = day_data.get("avg_time")

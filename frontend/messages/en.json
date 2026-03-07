@@ -832,6 +832,12 @@
         "ariaLabel": "Progress chart showing the number of exercises solved by type",
         "loading": "Loading chart..."
       },
+      "volumeByType": {
+        "title": "Practice volume by exercise type",
+        "ariaLabel": "Horizontal bar chart showing attempt volume per exercise type",
+        "attemptsLabel": "attempts",
+        "noData": "No attempts recorded by type."
+      },
       "dailyExercises": {
         "title": "Daily exercises (last 30 days)",
         "ariaLabel": "Bar chart showing the number of exercises solved each day over the last 30 days",

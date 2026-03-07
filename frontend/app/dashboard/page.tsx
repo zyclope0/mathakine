@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { ProgressChartLazy } from "@/components/dashboard/ProgressChartLazy";
+import { VolumeByTypeChartLazy } from "@/components/dashboard/VolumeByTypeChartLazy";
 import { DailyExercisesChartLazy } from "@/components/dashboard/DailyExercisesChartLazy";
 import { AverageTimeWidget } from "@/components/dashboard/AverageTimeWidget";
 import { LevelIndicator } from "@/components/dashboard/LevelIndicator";
@@ -253,10 +253,10 @@ export default function DashboardPage() {
                 </div>
               </PageSection>
 
-              {stats.progress_over_time && stats.exercises_by_day ? (
+              {stats.exercises_by_day ? (
                 <PageSection>
                   <div className="grid gap-6 md:grid-cols-2">
-                    <ProgressChartLazy data={stats.progress_over_time} />
+                    <VolumeByTypeChartLazy categoryData={progressStats?.by_category ?? {}} />
                     <DailyExercisesChartLazy data={stats.exercises_by_day} />
                   </div>
                 </PageSection>
