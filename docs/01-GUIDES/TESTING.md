@@ -1021,7 +1021,7 @@ Ce script protege les memes utilisateurs permanents et respecte le meme ordre FK
 
 | Endpoint | Methode | Note |
 |----------|---------|------|
-| `/api/exercises/generate` | POST | Creer un exercice (exercise_type, age_group requis) |
+| `/api/exercises/generate` | POST | Creer un exercice (`exercise_type` requis ; `age_group` optionnel, resolu automatiquement si `adaptive=true` + utilisateur authentifie) |
 | `/api/exercises/{id}/attempt` | POST | Soumettre une tentative (parametre `answer` ou `selected_answer`) |
 | `/api/users/stats` | GET | Stats du user connecte (pas /api/users/{id}/stats) |
 

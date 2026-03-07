@@ -42,3 +42,11 @@ class DatabaseOperationError(Exception):
     def __init__(self, message: str = "Échec de l'opération base de données"):
         self.message = message
         super().__init__(message)
+
+
+class InterleavedNotEnoughVariety(Exception):
+    """Pas assez de types éligibles pour une session entrelacée (F32)."""
+
+    def __init__(self, message: str = "Pas assez de types pratiques récemment"):
+        self.message = message
+        super().__init__(message)

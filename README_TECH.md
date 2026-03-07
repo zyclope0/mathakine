@@ -1,6 +1,6 @@
 # README_TECH.md - Mathakine
 
-> Documentation technique de référence — Mise à jour le 06/03/2026
+> Documentation technique de référence — Mise à jour le 07/03/2026 (F32 + F35)
 
 ---
 
@@ -8,6 +8,11 @@
 
 **Mathakine** est une plateforme educative de mathematiques gamifiee avec un theme aventure spatiale.
 Elle propose des exercices, des defis logiques, des badges, un chatbot IA et un systeme de recommandations adaptatives.
+
+Mises a jour recentes:
+- F07: timeline progression 7j/30j (`/api/users/me/progress/timeline`)
+- F32: session entrelacee (interleaving) via plan dedie (`/api/exercises/interleaved-plan`)
+- F35: redaction des secrets URL DB au demarrage (`redact_database_url_for_log`)
 
 | Composant | Technologie | Version |
 |---|---|---|
@@ -149,6 +154,8 @@ Couche independante du framework HTTP :
   - `recommendation_service.py` — Recommandations adaptatives
   - `adaptive_difficulty_service.py` — F05 : cascade IRT → progression → profil → fallback (voir [F05_ADAPTATION_DYNAMIQUE](docs/02-FEATURES/F05_ADAPTATION_DYNAMIQUE.md))
   - `diagnostic_service.py` — F03 : test IRT adaptatif, `get_latest_score()` pour recommandations et F05
+  - `progress_timeline_service.py` — F07 : aggregation temporelle UTC, serie continue 7j/30j
+  - `interleaved_practice_service.py` — F32 : calcul du plan interleave (eligibilite + round-robin)
   - `chat_service.py` — Config et helpers chatbot IA (Phase 3.2)
   - `admin_service.py` — Façade re-exportant les 4 services admin spécialisés
   - `admin_config_service.py` — Config, maintenance, paramètres globaux (Phase 3.3)
@@ -208,14 +215,17 @@ Couche independante du framework HTTP :
 | GET | `/api/users/leaderboard` | user_handlers | Classement par total_points (15/02/2026) |
 | GET | `/api/users/stats` | user_handlers | Statistiques utilisateur |
 | GET | `/api/users/me/progress` | user_handlers | ✨ Progression exercices (streaks, accuracy) |
+| GET | `/api/users/me/progress/timeline` | user_handlers | F07 Evolution temporelle (7d/30d) |
 | GET | `/api/users/me/challenges/progress` | user_handlers | ✨ Progression defis |
 | GET | `/api/daily-challenges` | daily_challenge_handlers | F02 Défis quotidiens (06/03) |
 | GET | `/api/users/me/sessions` | user_handlers | ✨ Sessions actives (RGPD) |
 | DELETE | `/api/users/me/sessions/{id}` | user_handlers | ✨ Revoquer session |
 | GET | `/api/exercises` | exercise_handlers | Liste exercices (filtres, pagination, `order=random`, `hide_completed`) |
 | GET | `/api/exercises/stats` | exercise_handlers | ✨ Statistiques Académie (thème gamifié) |
+| GET | `/api/exercises/interleaved-plan` | exercise_handlers | F32 Plan session entrelacee (`409 not_enough_variety`) |
 | GET | `/api/exercises/{id}` | exercise_handlers | Detail exercice |
 | POST | `/api/exercises/{id}/attempt` | exercise_handlers | Soumettre reponse |
+| POST | `/api/exercises/generate` | exercise_handlers | Generation exercice (auth optionnelle, `age_group?`, `adaptive?`) |
 | GET | `/api/challenges` | challenge_handlers | Liste défis (filtres, `order=random`, `hide_completed`) |
 | GET | `/api/challenges/{id}` | challenge_handlers | Detail defi |
 | POST | `/api/challenges/{id}/attempt` | challenge_handlers | Tenter defi |
@@ -277,6 +287,7 @@ Chaque domaine a son hook dedie base sur React Query :
 - `useProgressStats` - ✨ Progression exercices (streaks, accuracy)
 - `useChallengesProgress` - ✨ Progression defis
 - `useDailyChallenges` - F02 Défis quotidiens (06/03)
+- `useProgressTimeline` - F07 Timeline progression (7j/30j)
 - `useSettings` - ✨ Sessions utilisateur (RGPD)
 - `useRecommendations` - Recommandations adaptatives (avec mutation `complete`)
 - `useSubmitAnswer` - Soumission de reponses
@@ -347,6 +358,12 @@ Le systeme utilise l'API OpenAI pour generer des exercices et defis :
 | Info | INC-F2 | Streaming hors client API (normal pour SSE, documente) | `AIGenerator.tsx`, `chat.ts` |
 | Info | PLACEHOLDERS | 13 endpoints placeholders (non-bloquants, doc disponible) | Voir `docs/PLACEHOLDERS_ET_TODO.md` |
 
+### Resolues (07/03/2026)
+| ID | Description | Resolution |
+|---|---|---|
+| ~~F32~~ | ~~Pas de mode session entrelacee guidee~~ | Endpoint `GET /api/exercises/interleaved-plan`, CTA Quick Start, flux `session=interleaved` cote frontend |
+| ~~F35~~ | ~~URL DB complete loggee au demarrage~~ | Redaction via `redact_database_url_for_log()` + tests unitaires dedies |
+
 ### Endpoints progression integres (06/02/2026, MAJ 06/03)
 | Endpoint | Description | Utilisation frontend |
 |---|---|---|
@@ -411,4 +428,4 @@ black app/ server/ && isort app/ server/    # Formatage (pre-commit)
 
 ---
 
-*Derniere mise a jour : 06/03/2026 - Stabilisation B1/B2 backend, auth/session, daily challenges, handlers critiques alleges*
+*Derniere mise a jour : 07/03/2026 - F32 session entrelacee, F35 redaction logs DB, F07 timeline et contrat generate aligne*

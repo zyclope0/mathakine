@@ -2,15 +2,7 @@
 
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useTranslations } from "next-intl";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { RECHARTS_TOOLTIP_STYLE } from "@/lib/utils/chart";
@@ -36,9 +28,7 @@ export function VolumeByTypeChart({ categoryData }: VolumeByTypeChartProps) {
           attempts,
           correct:
             data.correct ??
-            Math.round(
-              (data.accuracy ?? 0) * (data.attempts ?? data.completed ?? 0)
-            ),
+            Math.round((data.accuracy ?? 0) * (data.attempts ?? data.completed ?? 0)),
           accuracy: data.accuracy ?? 0,
         };
       })
@@ -47,9 +37,7 @@ export function VolumeByTypeChart({ categoryData }: VolumeByTypeChartProps) {
   }, [categoryData, tExercises]);
 
   const chartDescription = useMemo(() => {
-    return chartData
-      .map((d) => `${d.name}: ${d.attempts} ${t("attemptsLabel")}`)
-      .join(", ");
+    return chartData.map((d) => `${d.name}: ${d.attempts} ${t("attemptsLabel")}`).join(", ");
   }, [chartData, t]);
 
   if (chartData.length === 0) {
@@ -121,8 +109,7 @@ export function VolumeByTypeChart({ categoryData }: VolumeByTypeChartProps) {
                         };
                       }
                     )?.payload ?? {};
-                  const numericValue =
-                    typeof value === "number" ? value : Number(value ?? 0);
+                  const numericValue = typeof value === "number" ? value : Number(value ?? 0);
                   const attempts = payload.attempts ?? numericValue;
                   const correct = payload.correct ?? 0;
                   const accuracy = payload.accuracy ?? 0;

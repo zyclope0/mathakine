@@ -1,6 +1,6 @@
 # Backlog & Priorisation des Features — Mathakine
 
-> **Document vivant** — Dernière MAJ : 07/03/2026 (F07 & F33 implémentés, F35 Sécurité logs DB ajouté au backlog P2)  
+> **Document vivant** — Dernière MAJ : 07/03/2026 (F07, F33, F32 et F35 implémentés)  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -79,7 +79,7 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 | F04 | Révisions espacées (SM-2) | 4 | 4 | 5 | 2 | 4 | **14.8** | P0 |
 | F30 | [PROP] Effet Protégé (corriger erreur IA) | 4 | 4 | 5 | 2 | 4 | **15.4** | P1 |
 | F31 | [PROP] Exemples résolus progressifs (Fading) | 3 | 4 | 5 | 2 | 3 | **15.2** | P1 |
-| F32 | [PROP] Mode Pratique Entrelacée (Interleaving) | 2 | 3 | 5 | 2 | 3 | **14.5** | P1 |
+| F32 | [PROP] Mode Pratique Entrelacée (Interleaving) ✅ | 2 | 3 | 5 | 2 | 3 | **14.5** | P1 |
 | F05 | Adaptation dynamique de difficulté ✅ | 4 | 4 | 5 | 3 | 4 | **13.9** | P1 |
 | F06 | Conditions d'obtention badges visibles | 2 | 4 | 3 | 1 | 3 | **13.5** | P1 |
 | F07 | Courbe d'évolution temporelle ✅ | 3 | 4 | 3 | 2 | 3 | **11.2** | P1 |
@@ -99,7 +99,7 @@ Un score élevé indique une feature à haute valeur et faible coût/risque. Le 
 | F20 | Normalisation niveaux de difficulté | 4 | 3 | 2 | 3 | 3 | **6.9** | P2 |
 | F21 | Badges secrets | 2 | 3 | 2 | 1 | 2 | **9.0** | P2 |
 | F22 | Suppression utilisateur admin (RGPD) | 2 | 1 | 1 | 2 | 3 | **4.7** | P2 |
-| F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy) | 1 | 2 | 1 | 1 | 4 | **7.5** | P2 |
+| F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy) ✅ | 1 | 2 | 1 | 1 | 4 | **7.5** | P2 |
 | F23 | [PROP] Exercices adaptatifs SR+IA | 4 | 5 | 5 | 3 | 5 | **17.1** | P2* |
 | F24 | Tuteur IA contextuel | 5 | 5 | 5 | 3 | 5 | **16.1** | P3 |
 | F25 | Mode classe / enseignant | 5 | 4 | 4 | 3 | 5 | **14.9** | P3 |
@@ -480,10 +480,12 @@ Route: /parent/child/[id] → progression détaillée
 
 ---
 
-### F32 — [PROPOSITION] Mode "Pratique Entrelacée" (Interleaving)
+### F32 — [PROPOSITION] Mode "Pratique Entrelacée" (Interleaving) ✅
 
 **Source** : Proposition IA — non issue des docs existants  
 **Score** : 14.5 | D=2, G=3, E=5, R=2, B=3
+
+**Statut** : ✅ Implémenté le 07/03/2026
 
 > *Score initial proposé : 15.2 (R=1). Risque révisé à R=2 : le mélange de types d'exercices interagit avec F05 (adaptation dynamique par type) — il faut s'assurer que les niveaux par type sont suffisamment calibrés avant activation.*
 
@@ -494,16 +496,23 @@ Route: /parent/child/[id] → progression détaillée
 - Kornell & Bjork (2008) — Effet particulièrement fort en mathématiques : spacing + interleaving combinés produisent les meilleures performances (g = 0.43).
 - **Attention** : L'interleaving est contre-intuitif — les élèves ont l'impression d'apprendre moins bien pendant la session (mais retiennent mieux). À accompagner d'une explication pédagogique dans l'UI.
 
-**Ce qu'il faut faire** : Ajouter une Quick Action sur le Dashboard : **"Session Entrelacée (10 min)"**. Le backend sélectionne délibérément des exercices de catégories différentes et de niveaux validés (≥ 60% de réussite sur les 7 derniers jours), forçant le *context switching* cérébral.
+**Ce qui a été fait** :
+- Endpoint dédié : `GET /api/exercises/interleaved-plan?length=10` (`server/handlers/exercise_handlers.py`, `server/routes/exercises.py`)
+- Service d'agrégation : `app/services/interleaved_practice_service.py` (fenêtre 7 jours, éligibilité `>=2 tentatives` et `>=60%`, plan round-robin sans doublons consécutifs)
+- Gestion métier explicite : `InterleavedNotEnoughVariety` -> `409` avec code `not_enough_variety`
+- Quick Action dashboard : 3e CTA dans `QuickStartActions` + instrumentation analytics `quick_start_click` type `interleaved`
+- Entrée session : page `frontend/app/exercises/interleaved/page.tsx` (plan, fallback 409, génération 1er exercice, redirection)
+- Progression session : `ExerciseSolver` en mode `session=interleaved` (progression, bouton "Exercice suivant", écran de fin)
+- i18n FR/EN : clés `dashboard.quickStart.interleaved*` et `exercises.solver.session*`
+- Correctif critique F05/F32 : `POST /api/exercises/generate` passe en `@optional_auth`, ce qui active correctement la résolution adaptative `age_group` quand `adaptive=true`
 
-**Paramètres de sélection** :
-- 3-4 types différents dans une session de 10 exercices
-- Seulement les types où l'utilisateur a un historique (pas d'interleaving sur concepts non vus)
-- Tooltip dans l'UI : *"Ton cerveau travaille plus fort — c'est normal ! C'est exactement ce qui aide à mémoriser."*
+**Tests** :
+- `tests/unit/test_interleaved_practice_service.py`
+- `tests/api/test_exercise_endpoints.py` (auth, `409 not_enough_variety`, succès `200`, non-régression `adaptive=true` sans `age_group` explicite)
 
-**Effort estimé** : 1-2 jours (endpoint backend avec logique de sélection + bouton frontend)  
-**Dépendance faible** : Fonctionne mieux après F05 (niveaux calibrés), mais utilisable dès maintenant sur les niveaux par défaut  
-**Priorité** : P1 — quick win fort, effort minimal, impact pédagogique maximal
+**Effort réalisé** : ~1-2 jours  
+**Dépendance** : F05 exploité (difficulté adaptative conservée)  
+**Priorité** : P1 — quick win fort, effort modéré, impact pédagogique élevé
 
 ---
 
@@ -557,7 +566,7 @@ Route: /parent/child/[id] → progression détaillée
 | **F20 — Normalisation niveaux de difficulté** | Remplacer nomenclature Star Wars par libellés universels. Voir [NIVEAUX_DIFFICULTE_NORMALISATION.md](NIVEAUX_DIFFICULTE_NORMALISATION.md). Migration enum risquée — à planifier soigneusement. |
 | **F21 — Badges secrets** | Badges cachés débloqués pour comportements inattendus (ex: "Noctambule" après minuit). Variable reward (Skinner) — engagement élevé. |
 | **F22 — Suppression utilisateur admin (RGPD)** | `DELETE /api/admin/users/{id}` avec soft delete. Voir PLACEHOLDERS_ET_TODO. Compliance obligatoire avant scale. |
-| **F35 — [TECH] Redaction secrets logs DB** | Corriger le log d'initialisation DB qui affiche l'URL SQLAlchemy complète (credentials exposables). Cible: [app/db/base.py](../../app/db/base.py), aligné avec [POLITIQUE_REDACTION_LOGS_PII.md](../03-PROJECT/POLITIQUE_REDACTION_LOGS_PII.md). Action: masquer user/password (ou ne logger que host+db). Effort ~30-60 min + test de non-régression logs. |
+| **F35 — [TECH] Redaction secrets logs DB ✅** | Implémenté le 07/03/2026. `app/db/base.py` loggue désormais une URL redigée via `redact_database_url_for_log()` (credentials et query params masqués). Couvert par `tests/unit/test_db_log_redaction.py` (7 tests). |
 | **F23 — [PROP] Exercices adaptatifs SR+IA** | Générer des exercices IA ciblés sur les concepts à réviser selon la courbe SR (F04). Score composite très élevé (17.1) mais **dépend de F04**. Débloqué après F04. |
 
 ---
@@ -661,6 +670,8 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 |---------|------|-----------|
 | F01 — Rendu Markdown/KaTeX dans les explications | 2026 | Composant `MathText.tsx` — intégré dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver` |
 | F03 — Test de diagnostic initial (IRT adaptatif) | 04/03/2026 | [ROADMAP_FONCTIONNALITES §F03](ROADMAP_FONCTIONNALITES.md) |
+| F35 — Redaction secrets logs DB (sécurité) | 07/03/2026 | [IMPLEMENTATION_F35_REDACTION_LOGS_DB](../03-PROJECT/IMPLEMENTATION_F35_REDACTION_LOGS_DB.md) |
+| F32 — Session entrelacée (interleaving) | 07/03/2026 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE](../03-PROJECT/IMPLEMENTATION_F32_SESSION_ENTRELACEE.md) |
 | F33 — Feedback Growth Mindset (copywriting + micro-UI) | 07/03/2026 | [ROADMAP_FONCTIONNALITES §F33](ROADMAP_FONCTIONNALITES.md) |
 | F07 — Courbe d'évolution temporelle (7j/30j) | 07/03/2026 | [IMPLEMENTATION_F07_TIMELINE](../03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md) |
 | Espace admin complet (rôle archiviste) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |

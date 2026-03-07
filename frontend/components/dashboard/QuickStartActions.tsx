@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { Calculator, Swords, ArrowRight } from "lucide-react";
+import { Calculator, Swords, Layers, ArrowRight } from "lucide-react";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useTranslations } from "next-intl";
 import { trackDashboardView, trackQuickStartClick } from "@/lib/analytics/edtech";
@@ -54,6 +54,12 @@ export function QuickStartActions() {
       ...(bestChallenge?.challenge_id != null && { targetId: bestChallenge.challenge_id }),
     });
   };
+  const handleInterleavedClick = () => {
+    trackQuickStartClick({
+      type: "interleaved",
+      guided: false,
+    });
+  };
 
   return (
     <section
@@ -62,7 +68,7 @@ export function QuickStartActions() {
       data-quick-start-block="true"
     >
       <h2 className="text-base font-semibold text-foreground mb-4">{t("title")}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <Link
           href={exerciseHref}
           onClick={handleExerciseClick}
@@ -112,6 +118,27 @@ export function QuickStartActions() {
               ) : (
                 <p className="text-xs text-muted-foreground mt-0.5">{t("browseAll")}</p>
               )}
+            </div>
+          </div>
+          <span className="self-start inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium transition-colors duration-200 group-hover:bg-primary/20 group-hover:gap-3">
+            {t("startCta")} <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+          </span>
+        </Link>
+
+        <Link
+          href="/exercises/interleaved"
+          onClick={handleInterleavedClick}
+          className="dashboard-card-surface-interactive group flex flex-col gap-4 p-5
+            focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          data-quick-start="interleaved"
+        >
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-sm">
+              <Layers className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-foreground">{t("interleavedCta")}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t("interleavedSubtext")}</p>
             </div>
           </div>
           <span className="self-start inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium transition-colors duration-200 group-hover:bg-primary/20 group-hover:gap-3">

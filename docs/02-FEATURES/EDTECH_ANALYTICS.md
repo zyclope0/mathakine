@@ -1,15 +1,15 @@
 # Analytics EdTech — Parcours guidé et conversion
 
 > **Statut** : Implémenté  
-> **Date** : 25/02/2026  
+> **Date** : 07/03/2026 (MAJ F32 interleaved)  
 > **Cible** : Admins (rôle archiviste)
 
 ## Objectif
 
 Mesurer l'efficacité du bloc Quick Start (parcours guidé) :
-- **CTR Quick Start** : clics exercice vs défi, guidé vs libre
+- **CTR Quick Start** : clics exercice vs défi vs session entrelacée, guidé vs libre
 - **Temps vers 1er attempt** : délai entre clic Quick Start et première soumission (référence = clic, pas vue dashboard, pour éviter temps négatifs)
-- **Conversion** : exercice vs défi, parcours guidé ou non
+- **Conversion** : exercice vs défi vs session entrelacée
 
 ---
 
@@ -19,8 +19,8 @@ Mesurer l'efficacité du bloc Quick Start (parcours guidé) :
 
 | Événement | Déclencheur | Payload |
 |-----------|-------------|---------|
-| `quick_start_click` | Clic sur un CTA Quick Start (exercice ou défi) | type, guided, targetId |
-| `first_attempt` | Soumission (exercice ou défi) | type, targetId, timeToFirstAttemptMs (si flux Quick Start) |
+| `quick_start_click` | Clic sur un CTA Quick Start (exercice, défi, session entrelacée) | type, guided, targetId |
+| `first_attempt` | Soumission (exercice, défi, session entrelacée) | type, targetId, timeToFirstAttemptMs (si flux Quick Start) |
 
 ### 1.2 Module `lib/analytics/edtech.ts`
 
@@ -44,7 +44,7 @@ Mesurer l'efficacité du bloc Quick Start (parcours guidé) :
 | id | INTEGER | Clé primaire |
 | user_id | INTEGER | Utilisateur (FK users, SET NULL) |
 | event | VARCHAR(50) | quick_start_click, first_attempt |
-| payload | JSONB | type, guided, targetId, timeToFirstAttemptMs |
+| payload | JSONB | type (exercise/challenge/interleaved), guided, targetId, timeToFirstAttemptMs |
 | created_at | TIMESTAMPTZ | Horodatage |
 
 **Migration** : `20260225_add_edtech_events.py`

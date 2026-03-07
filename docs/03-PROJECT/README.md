@@ -1,7 +1,7 @@
 # 📕 Gestion projet Mathakine
 
 > Index maître — Audits, recommandations, rapports situationnels  
-> **Dernière mise à jour :** 07/03/2026 (B1/B2/F2 traités, validation locale complète verte)
+> **Dernière mise à jour :** 07/03/2026 (F32 + F35 documentés, B1/B2/F2 traités)
 
 ---
 
@@ -28,6 +28,13 @@
 | **[POINT_SITUATION_2026-02-18.md](./POINT_SITUATION_2026-02-18.md)** | 18/02/2026 | **Point de situation** — Bilan fonctionnalités livrées, priorités P1-P2, références rapides. |
 | **[CICD_DEPLOY.md](./CICD_DEPLOY.md)** | Fév. 2026 | **CI/CD opérationnel** — CI automatique, smoke test /health, migrations Alembic, rollback manuel. |
 | **[POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md)** | 22/02/2026 | **Politique** — Règles PII et secrets dans les logs. |
+
+### Implémentations backlog (récentes)
+
+| Document | Date | Sujet |
+|----------|------|-------|
+| **[IMPLEMENTATION_F32_SESSION_ENTRELACEE.md](./IMPLEMENTATION_F32_SESSION_ENTRELACEE.md)** | 07/03/2026 | **F32** — Session entrelacée (plan interleaved, CTA Quick Start, flux session côté frontend) |
+| **[IMPLEMENTATION_F35_REDACTION_LOGS_DB.md](./IMPLEMENTATION_F35_REDACTION_LOGS_DB.md)** | 07/03/2026 | **F35** — Redaction des secrets dans les logs DB (`app/db/base.py`, tests unitaires) |
 
 ### Refactoring (terminé P1–P3 / Ph1–Ph3)
 

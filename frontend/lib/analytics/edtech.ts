@@ -55,7 +55,7 @@ export function trackDashboardView(): void {
 }
 
 export interface QuickStartClickPayload {
-  type: "exercise" | "challenge";
+  type: "exercise" | "challenge" | "interleaved";
   guided: boolean;
   targetId?: number;
 }
@@ -78,7 +78,7 @@ export function trackQuickStartClick(payload: QuickStartClickPayload): void {
 }
 
 export interface FirstAttemptPayload {
-  type: "exercise" | "challenge";
+  type: "exercise" | "challenge" | "interleaved";
   targetId: number;
   timeToFirstAttemptMs: number | null;
 }
@@ -88,7 +88,10 @@ export interface FirstAttemptPayload {
  * Calcule timeToFirstAttemptMs si l'utilisateur est passé par un clic Quick Start.
  * Référence = clic Quick Start (pas dashboard view) pour éviter temps négatifs et décalages.
  */
-export function trackFirstAttempt(type: "exercise" | "challenge", targetId: number): void {
+export function trackFirstAttempt(
+  type: "exercise" | "challenge" | "interleaved",
+  targetId: number
+): void {
   let timeToFirstAttemptMs: number | null = null;
   if (isClient()) {
     try {

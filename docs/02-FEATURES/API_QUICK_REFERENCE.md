@@ -1,7 +1,7 @@
 # API Quick Reference — Mathakine
 
 > Référence condensée des endpoints — Frontend/Backend  
-> **Date :** 07/03/2026  
+> **Date :** 07/03/2026 (MAJ F32 + F35)  
 > **Détails :** [ENDPOINTS_NON_INTEGRES](../03-PROJECT/ENDPOINTS_NON_INTEGRES.md), [PLACEHOLDERS_ET_TODO](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/PLACEHOLDERS_ET_TODO.md)
 
 ---
@@ -15,7 +15,7 @@
 | **Daily Challenges** (F02) | **1** | **Oui** |
 | **Diagnostic** (F03) | **5** | **Oui** |
 | **Admin** | **25** | **Archiviste** |
-| Exercises | 9 | Variable |
+| Exercises | 10 | Variable |
 | Challenges | 10 | Variable |
 | Badges | 5 | Oui |
 | Recommendations | 3 | Oui |
@@ -93,11 +93,12 @@
 |---------|----------|------|---------------|--------|
 | GET | `/api/exercises` | Optionnel | `?skip=&limit=&exercise_type=&age_group=&search=&order=random\|recent&hide_completed=true\|false` | OK — Ordre aléatoire par défaut, `hide_completed` exclut les réussis (auth optionnelle) |
 | GET | `/api/exercises/stats` | Non | — | OK (widget accueil) |
+| GET | `/api/exercises/interleaved-plan` | Oui | `?length=10` | OK — F32 : plan de session entrelacée (`409 code=not_enough_variety` si variété insuffisante) |
 | GET | `/api/exercises/{id}` | Non | — | OK |
 | POST | `/api/exercises/{id}/attempt` | Oui | `{answer}` | OK |
 | GET | `/api/exercises/completed-ids` | Oui | — | OK |
 | ~~GET~~ | ~~`/api/exercises/generate`~~ | — | — | Supprimé (audit H2, 01/03/2026) |
-| POST | `/api/exercises/generate` | Non | `{type, rank, ...}` | OK |
+| POST | `/api/exercises/generate` | Optionnel | `{exercise_type, age_group?, adaptive?, save?, ai?}` | OK — `adaptive=true` + utilisateur auth : résout `age_group` automatiquement (F05/F32) |
 | GET | `/api/exercises/generate-ai-stream` | Non | — | OK (SSE) |
 | ~~DELETE~~ | ~~`/api/exercises/{id}`~~ | — | — | Supprimé — archivage prévu dans l’admin |
 

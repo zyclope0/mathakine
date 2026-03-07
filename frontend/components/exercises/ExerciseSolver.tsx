@@ -9,18 +9,23 @@ import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useIrtScores } from "@/hooks/useIrtScores";
 import { Loader2, CheckCircle2, XCircle, Lightbulb, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { MathText } from "@/components/ui/MathText";
 import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
+import { api } from "@/lib/api/client";
 
 interface ExerciseSolverProps {
   exerciseId: number;
 }
 
+const INTERLEAVED_STORAGE_KEY = "interleaved_session";
+
 export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionMode = searchParams.get("session") === "interleaved" ? "interleaved" : null;
   const t = useTranslations("exercises.solver");
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
   const { exercise, isLoading, error } = useExercise(exerciseId);
@@ -30,7 +35,49 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [sessionData, setSessionData] = useState<{
+    plan: string[];
+    completedCount: number;
+    length: number;
+  } | null>(null);
+  const [isGeneratingNext, setIsGeneratingNext] = useState(false);
   const startTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (sessionMode === "interleaved" && typeof window !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem(INTERLEAVED_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as {
+            plan?: string[];
+            completedCount?: number;
+            length?: number;
+          };
+          if (parsed.plan && Array.isArray(parsed.plan)) {
+            setSessionData({
+              plan: parsed.plan,
+              completedCount: parsed.completedCount ?? 0,
+              length: parsed.length ?? parsed.plan.length,
+            });
+          }
+        }
+      } catch {
+        // Ignore invalid storage
+      }
+    }
+  }, [sessionMode]);
+
+  // Clear session storage when we show the end screen
+  const isSessionEnd =
+    sessionMode === "interleaved" &&
+    sessionData &&
+    hasSubmitted &&
+    sessionData.completedCount + 1 >= sessionData.plan.length;
+  useEffect(() => {
+    if (isSessionEnd && typeof window !== "undefined") {
+      sessionStorage.removeItem(INTERLEAVED_STORAGE_KEY);
+    }
+  }, [isSessionEnd]);
   useEffect(() => {
     startTimeRef.current = Date.now();
   }, []);
@@ -75,9 +122,42 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
         exercise_id: exercise.id,
         answer: selectedAnswer,
         time_spent: timeSpent,
+        analytics_type: sessionMode === "interleaved" ? "interleaved" : "exercise",
       });
     } catch {
       // L'erreur est déjà gérée par le hook useSubmitAnswer
+    }
+  };
+
+  const handleNextExercise = async () => {
+    if (!sessionData || isGeneratingNext) return;
+    const nextIndex = sessionData.completedCount + 1;
+    if (nextIndex >= sessionData.plan.length) {
+      sessionStorage.removeItem(INTERLEAVED_STORAGE_KEY);
+      setSessionData(null);
+      return;
+    }
+    setIsGeneratingNext(true);
+    try {
+      const nextType = sessionData.plan[nextIndex];
+      const exercise = await api.post<{ id: number }>("/api/exercises/generate", {
+        exercise_type: nextType,
+        adaptive: true,
+        save: true,
+      });
+      if (exercise?.id) {
+        sessionStorage.setItem(
+          INTERLEAVED_STORAGE_KEY,
+          JSON.stringify({
+            plan: sessionData.plan,
+            completedCount: nextIndex,
+            length: sessionData.length,
+          })
+        );
+        router.push(`/exercises/${exercise.id}?session=interleaved`);
+      }
+    } finally {
+      setIsGeneratingNext(false);
     }
   };
 
@@ -147,6 +227,16 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
 
   return (
     <FocusBoard>
+      {/* Progression session entrelacée */}
+      {sessionMode === "interleaved" && sessionData && (
+        <p className="text-sm text-muted-foreground mb-4" aria-live="polite">
+          {t("sessionProgress", {
+            current: sessionData.completedCount + 1,
+            total: sessionData.length,
+          })}
+        </p>
+      )}
+
       {/* Bouton Retour — en haut à gauche, discret */}
       <Link
         href="/exercises"
@@ -371,7 +461,51 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
       )}
 
       {/* Actions après soumission */}
-      {hasSubmitted && (
+      {hasSubmitted && sessionMode === "interleaved" && sessionData && (
+        <>
+          {sessionData.completedCount + 1 >= sessionData.plan.length ? (
+            <div className="pt-8 mt-8 border-t border-border space-y-4">
+              <h3 className="text-xl font-semibold text-foreground">
+                {t("sessionEndTitle")}
+              </h3>
+              <p className="text-muted-foreground">{t("sessionEndDescription")}</p>
+              <Button asChild variant="outline">
+                <Link href="/exercises">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  {t("backToExercises")}
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-3 pt-8 mt-8 border-t border-border">
+              <Button
+                variant="outline"
+                asChild
+                className="flex-1 bg-transparent border border-border text-muted-foreground hover:bg-accent hover:text-foreground px-6 py-3 rounded-xl transition-colors"
+              >
+                <Link href="/exercises">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  {t("backToExercises")}
+                </Link>
+              </Button>
+              <Button
+                onClick={handleNextExercise}
+                disabled={isGeneratingNext}
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 border-none px-6 py-3 rounded-xl font-medium transition-all hover:-translate-y-0.5"
+                aria-label={t("nextExercise")}
+              >
+                {isGeneratingNext ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                )}
+                {t("nextExercise")}
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+      {hasSubmitted && !(sessionMode === "interleaved" && sessionData) && (
         <div className="flex gap-3 pt-8 mt-8 border-t border-border">
           <Button
             variant="outline"

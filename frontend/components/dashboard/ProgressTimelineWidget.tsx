@@ -97,7 +97,9 @@ export function ProgressTimelineWidget() {
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <p className="text-sm">{t("empty", { default: "No attempts in this period." })}</p>
-            <p className="text-xs mt-1">{t("emptyHint", { default: "Practice to see your evolution." })}</p>
+            <p className="text-xs mt-1">
+              {t("emptyHint", { default: "Practice to see your evolution." })}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -108,7 +110,11 @@ export function ProgressTimelineWidget() {
     <Card className="border-border/50 bg-card/40 backdrop-blur-md">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xl text-foreground">{t("title")}</CardTitle>
-        <Tabs value={period} onValueChange={(v) => setPeriod(v as TimelinePeriod)} className="w-auto">
+        <Tabs
+          value={period}
+          onValueChange={(v) => setPeriod(v as TimelinePeriod)}
+          className="w-auto"
+        >
           <TabsList className="h-8">
             <TabsTrigger value="7d" className="text-xs px-3">
               {t("period7d", { default: "7d" })}
@@ -136,7 +142,11 @@ export function ProgressTimelineWidget() {
               data={chartData}
               margin={{ bottom: period === "30d" ? 4 : 8, left: 4, right: 4, top: 4 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.4} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--color-border)"
+                strokeOpacity={0.4}
+              />
               <XAxis
                 dataKey="name"
                 stroke="var(--color-muted-foreground)"

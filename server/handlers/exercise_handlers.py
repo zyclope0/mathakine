@@ -16,7 +16,11 @@ from starlette.responses import (
 
 from app.core.config import settings
 from app.core.logging_config import get_logger
-from app.exceptions import ExerciseNotFoundError, ExerciseSubmitError
+from app.exceptions import (
+    ExerciseNotFoundError,
+    ExerciseSubmitError,
+    InterleavedNotEnoughVariety,
+)
 from app.schemas.exercise import SubmitAnswerRequest
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
 from app.services.exercise_service import ExerciseService
@@ -266,6 +270,49 @@ async def get_exercises_list(request: Request) -> JSONResponse:
         )
 
 
+@require_auth
+async def get_interleaved_plan_api(request: Request) -> JSONResponse:
+    """F32 — Retourne un plan entrelacé de types d'exercices pour l'utilisateur."""
+    try:
+        length_raw = request.query_params.get("length", "10")
+        try:
+            length = int(length_raw)
+        except ValueError:
+            length = 10
+        if length < 1:
+            length = 10
+
+        current_user = request.state.user
+        user_id = current_user["id"]
+
+        from app.services.interleaved_practice_service import get_interleaved_plan
+
+        async with db_session() as db:
+            plan = get_interleaved_plan(db, user_id, length=length)
+
+        return JSONResponse(plan)
+
+    except InterleavedNotEnoughVariety as e:
+        return JSONResponse(
+            {
+                "detail": {
+                    "code": "not_enough_variety",
+                    "message": e.message,
+                }
+            },
+            status_code=409,
+        )
+    except Exception as plan_err:
+        logger.error(f"Erreur plan entrelacé: {plan_err}")
+        logger.debug(traceback.format_exc())
+        return ErrorHandler.create_error_response(
+            plan_err,
+            status_code=500,
+            user_message="Erreur lors du calcul du plan",
+        )
+
+
+@optional_auth
 async def generate_exercise_api(request: Request) -> JSONResponse:
     """Génère un nouvel exercice via API JSON (POST) en utilisant le groupe d'âge.
 

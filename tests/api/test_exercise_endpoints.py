@@ -120,6 +120,114 @@ async def test_get_nonexistent_exercise(padawan_client):
     assert response.status_code in (404, 500)
 
 
+async def test_interleaved_plan_requires_auth(client):
+    """F32 — GET /api/exercises/interleaved-plan sans auth → 401."""
+    response = await client.get("/api/exercises/interleaved-plan?length=10")
+    assert response.status_code == 401
+
+
+async def test_interleaved_plan_409_not_enough_variety(padawan_client):
+    """F32 — Utilisateur sans assez de types éligibles → 409 not_enough_variety."""
+    client = padawan_client["client"]
+    response = await client.get("/api/exercises/interleaved-plan?length=10")
+    assert response.status_code == 409
+    data = response.json()
+    assert "detail" in data
+    assert data["detail"].get("code") == "not_enough_variety"
+
+
+async def test_interleaved_plan_200(padawan_client, db_session):
+    """F32 — Utilisateur avec 2+ types éligibles → 200 avec plan valide."""
+    from app.models.attempt import Attempt
+    from app.models.exercise import Exercise
+    from app.models.user import User
+
+    client = padawan_client["client"]
+    user_data = padawan_client["user_data"]
+    user = db_session.query(User).filter(User.username == user_data["username"]).first()
+    if not user:
+        pytest.skip("User not found in DB")
+    user_id = user.id
+
+    ex_add = Exercise(
+        title="Test Add",
+        exercise_type="ADDITION",
+        difficulty="INITIE",
+        age_group="6-8",
+        question="1+1?",
+        correct_answer="2",
+        is_active=True,
+        is_archived=False,
+    )
+    ex_mul = Exercise(
+        title="Test Mul",
+        exercise_type="MULTIPLICATION",
+        difficulty="INITIE",
+        age_group="6-8",
+        question="2*3?",
+        correct_answer="6",
+        is_active=True,
+        is_archived=False,
+    )
+    db_session.add(ex_add)
+    db_session.add(ex_mul)
+    db_session.commit()
+    db_session.refresh(ex_add)
+    db_session.refresh(ex_mul)
+
+    for _ in range(3):
+        db_session.add(
+            Attempt(
+                user_id=user_id,
+                exercise_id=ex_add.id,
+                user_answer="2",
+                is_correct=True,
+            )
+        )
+    for _ in range(3):
+        db_session.add(
+            Attempt(
+                user_id=user_id,
+                exercise_id=ex_mul.id,
+                user_answer="6",
+                is_correct=True,
+            )
+        )
+    db_session.commit()
+
+    response = await client.get("/api/exercises/interleaved-plan?length=10")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["session_kind"] == "interleaved"
+    assert data["length"] == 10
+    assert "plan" in data
+    assert len(data["plan"]) == 10
+    assert "eligible_types" in data
+    assert len(data["eligible_types"]) >= 2
+
+
+async def test_generate_exercise_api_adaptive_authenticated_without_age_group(
+    padawan_client,
+):
+    """POST /api/exercises/generate avec adaptive=true et user auth fonctionne sans age_group."""
+    client = padawan_client["client"]
+
+    response = await client.post(
+        "/api/exercises/generate",
+        json={
+            "exercise_type": "addition",
+            "adaptive": True,
+            "save": False,
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["exercise_type"].upper() == "ADDITION"
+    assert data.get("age_group")
+    assert data.get("question")
+
+
 # Ces deux tests sont susceptibles d'échouer à cause du middleware de logging qui capture toutes les erreurs
 # Nous les laissons commentés car ils ne sont pas cruciaux pour vérifier la structure du code
 """

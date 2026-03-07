@@ -13,10 +13,7 @@ export interface TimelinePoint {
   correct: number;
   success_rate_pct: number;
   avg_time_spent_s: number | null;
-  by_type: Record<
-    string,
-    { attempts: number; correct: number; success_rate_pct: number }
-  >;
+  by_type: Record<string, { attempts: number; correct: number; success_rate_pct: number }>;
 }
 
 /** Résumé global de la période */

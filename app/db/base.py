@@ -1,12 +1,45 @@
-from app.core.logging_config import get_logger
+from urllib.parse import urlparse
 
-logger = get_logger(__name__)
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.core.config import settings
+from app.core.logging_config import get_logger
 
-logger.info(f"Initialisation de la base de données: {settings.SQLALCHEMY_DATABASE_URL}")
+logger = get_logger(__name__)
+
+REDACTED_PLACEHOLDER = "[redacted-db-url]"
+
+
+def redact_database_url_for_log(raw_url: str) -> str:
+    """
+    Retourne une version sûre de l'URL DB pour les logs.
+    Ne jamais exposer : password, username complet, query params.
+    """
+    if not raw_url or not isinstance(raw_url, str):
+        return REDACTED_PLACEHOLDER
+    raw_url = raw_url.strip()
+    if not raw_url:
+        return REDACTED_PLACEHOLDER
+    try:
+        parsed = urlparse(raw_url)
+        scheme = (parsed.scheme or "").lower()
+        if not scheme or scheme not in ("postgresql", "postgres", "mysql"):
+            if scheme == "sqlite":
+                return "sqlite://[redacted]"
+            return REDACTED_PLACEHOLDER
+        netloc = parsed.hostname or "unknown"
+        port = f":{parsed.port}" if parsed.port else ""
+        path = parsed.path or "/"
+        safe_netloc = f"<redacted>@{netloc}{port}" if netloc else "<redacted>"
+        return f"{scheme}://{safe_netloc}{path}"
+    except Exception:
+        return REDACTED_PLACEHOLDER
+
+
+logger.info(
+    f"Initialisation de la base de données: {redact_database_url_for_log(settings.SQLALCHEMY_DATABASE_URL)}"
+)
 
 try:
     # Configuration pour PostgreSQL avec pool de connexions optimisé

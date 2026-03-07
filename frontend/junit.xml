@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="71" failures="0" errors="0" time="3.9448469">
+    <testsuite name="__tests__/accessibility/accessibility.test.tsx" timestamp="2026-03-07T13:18:44.593Z" hostname="DESKTOP-UQ8GTG2" tests="2" failures="0" errors="0" skipped="0" time="0.6890855">
+        <testcase classname="__tests__/accessibility/accessibility.test.tsx" name="AccessibilityToolbar &gt; affiche tous les boutons d&apos;accessibilité" time="0.5015662">
+        </testcase>
+        <testcase classname="__tests__/accessibility/accessibility.test.tsx" name="AccessibilityToolbar &gt; a des labels ARIA corrects" time="0.1845932">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/app/ResetPasswordPage.test.tsx" timestamp="2026-03-07T13:18:44.594Z" hostname="DESKTOP-UQ8GTG2" tests="1" failures="0" errors="0" skipped="0" time="0.3489816">
+        <testcase classname="__tests__/unit/app/ResetPasswordPage.test.tsx" name="ResetPasswordPage &gt; affiche une erreur explicite quand aucun token n&apos;est fourni" time="0.3463581">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/components/AlphaBanner.test.tsx" timestamp="2026-03-07T13:18:44.595Z" hostname="DESKTOP-UQ8GTG2" tests="2" failures="0" errors="0" skipped="0" time="0.3373302">
+        <testcase classname="__tests__/unit/components/AlphaBanner.test.tsx" name="AlphaBanner &gt; affiche la bannière si elle n&apos;a pas été fermée" time="0.3230315">
+        </testcase>
+        <testcase classname="__tests__/unit/components/AlphaBanner.test.tsx" name="AlphaBanner &gt; masque la bannière si elle a déjà été fermée" time="0.0113964">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/components/BadgeCard.test.tsx" timestamp="2026-03-07T13:18:44.595Z" hostname="DESKTOP-UQ8GTG2" tests="8" failures="0" errors="0" skipped="0" time="0.3759241">
+        <testcase classname="__tests__/unit/components/BadgeCard.test.tsx" name="BadgeCard &gt; affiche le nom du badge" time="0.0823001">
+        </testcase>
+        <testcase classname="__tests__/unit/components/BadgeCard.test.tsx" name="BadgeCard &gt; affiche le titre Star Wars si disponible" time="0.0098518">
+        </testcase>
+        <testcase classname="__tests__/unit/components/BadgeCard.test.tsx" name="BadgeCard &gt; affiche l&apos;icône de verrouillage si le badge n&apos;est pas obtenu" time="0.0159439">
+        </testcase>
+        <testcase classname="__tests__/unit/components/BadgeCard.test.tsx" name="BadgeCard &gt; affiche l&apos;icône de succès si le badge est obtenu" time="0.1882791">
+        </testcase>
+        <testcase classname="__tests__/unit/components/BadgeCard.test.tsx" name="BadgeCard &gt; affiche les points de récompense" time="0.0112152">
+        </testcase>
+        <testcase classname="__tests__/unit/components/BadgeCard.test.tsx" name="BadgeCard &gt; affiche la date d&apos;obtention si le badge est obtenu" time="0.010909">
+        </testcase>
+        <testcase classname="__tests__/unit/components/BadgeCard.test.tsx" name="BadgeCard &gt; rend l&apos;icône de badge HTTP comme élément décoratif (aria-hidden)" time="0.0424778">
+        </testcase>
+        <testcase classname="__tests__/unit/components/BadgeCard.test.tsx" name="BadgeCard &gt; affiche le nom du badge même si le nom est absent (fallback sur le code)" time="0.0113759">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/components/ExerciseCard.test.tsx" timestamp="2026-03-07T13:18:44.597Z" hostname="DESKTOP-UQ8GTG2" tests="6" failures="0" errors="0" skipped="0" time="0.3617464">
+        <testcase classname="__tests__/unit/components/ExerciseCard.test.tsx" name="ExerciseCard &gt; affiche le titre de l&apos;exercice" time="0.1069791">
+        </testcase>
+        <testcase classname="__tests__/unit/components/ExerciseCard.test.tsx" name="ExerciseCard &gt; affiche la question de l&apos;exercice" time="0.0140434">
+        </testcase>
+        <testcase classname="__tests__/unit/components/ExerciseCard.test.tsx" name="ExerciseCard &gt; affiche le badge de type d&apos;exercice" time="0.0155466">
+        </testcase>
+        <testcase classname="__tests__/unit/components/ExerciseCard.test.tsx" name="ExerciseCard &gt; affiche le badge IA si l&apos;exercice est généré par IA" time="0.0116292">
+        </testcase>
+        <testcase classname="__tests__/unit/components/ExerciseCard.test.tsx" name="ExerciseCard &gt; affiche le CTA Résoudre (pill discret, carte entière cliquable)" time="0.1736253">
+        </testcase>
+        <testcase classname="__tests__/unit/components/ExerciseCard.test.tsx" name="ExerciseCard &gt; a des attributs ARIA corrects" time="0.0372698">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/components/ExerciseModal.test.tsx" timestamp="2026-03-07T13:18:44.598Z" hostname="DESKTOP-UQ8GTG2" tests="2" failures="0" errors="0" skipped="0" time="0.6447349">
+        <testcase classname="__tests__/unit/components/ExerciseModal.test.tsx" name="ExerciseModal &gt; réinitialise la réponse sélectionnée quand la modal est fermée puis rouverte" time="0.5540484">
+        </testcase>
+        <testcase classname="__tests__/unit/components/ExerciseModal.test.tsx" name="ExerciseModal &gt; affiche une explication lisible quand la réponse est correcte" time="0.0885743">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/components/ProtectedRoute.test.tsx" timestamp="2026-03-07T13:18:44.599Z" hostname="DESKTOP-UQ8GTG2" tests="2" failures="0" errors="0" skipped="0" time="0.0780172">
+        <testcase classname="__tests__/unit/components/ProtectedRoute.test.tsx" name="ProtectedRoute &gt; affiche immédiatement le contenu si un utilisateur est déjà en cache" time="0.0474074">
+        </testcase>
+        <testcase classname="__tests__/unit/components/ProtectedRoute.test.tsx" name="ProtectedRoute &gt; redirige vers /login après le timeout de sécurité si l&apos;auth reste indéterminée" time="0.0277795">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/components/QuickStartActions.test.tsx" timestamp="2026-03-07T13:18:44.599Z" hostname="DESKTOP-UQ8GTG2" tests="6" failures="0" errors="0" skipped="0" time="0.8816245">
+        <testcase classname="__tests__/unit/components/QuickStartActions.test.tsx" name="QuickStartActions &gt; affiche le titre et les 2 CTA" time="0.0761789">
+        </testcase>
+        <testcase classname="__tests__/unit/components/QuickStartActions.test.tsx" name="QuickStartActions &gt; liens vers /exercises et /challenges quand aucune recommandation" time="0.4023841">
+        </testcase>
+        <testcase classname="__tests__/unit/components/QuickStartActions.test.tsx" name="QuickStartActions &gt; liens vers recommandations si dispo (exercise_id, challenge_id)" time="0.1786435">
+        </testcase>
+        <testcase classname="__tests__/unit/components/QuickStartActions.test.tsx" name="QuickStartActions &gt; a les attributs data-quick-start pour instrumentation" time="0.0130601">
+        </testcase>
+        <testcase classname="__tests__/unit/components/QuickStartActions.test.tsx" name="QuickStartActions &gt; appelle trackDashboardView au montage" time="0.0120981">
+        </testcase>
+        <testcase classname="__tests__/unit/components/QuickStartActions.test.tsx" name="QuickStartActions &gt; appelle trackQuickStartClick au clic sur un CTA" time="0.1967154">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/components/VisualizationRenderers.test.tsx" timestamp="2026-03-07T13:18:44.600Z" hostname="DESKTOP-UQ8GTG2" tests="2" failures="0" errors="0" skipped="0" time="0.155071">
+        <testcase classname="__tests__/unit/components/VisualizationRenderers.test.tsx" name="Visualization renderers &gt; affiche le plateau d&apos;échecs avec des données valides" time="0.0952155">
+        </testcase>
+        <testcase classname="__tests__/unit/components/VisualizationRenderers.test.tsx" name="Visualization renderers &gt; affiche le graphe même sans ResizeObserver" time="0.0578118">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/hooks/useAccessibleAnimation.test.ts" timestamp="2026-03-07T13:18:44.601Z" hostname="DESKTOP-UQ8GTG2" tests="6" failures="0" errors="0" skipped="0" time="0.0454343">
+        <testcase classname="__tests__/unit/hooks/useAccessibleAnimation.test.ts" name="useAccessibleAnimation &gt; retourne shouldReduceMotion false par défaut" time="0.0275275">
+        </testcase>
+        <testcase classname="__tests__/unit/hooks/useAccessibleAnimation.test.ts" name="useAccessibleAnimation &gt; retourne shouldReduceMotion true si reducedMotion activé" time="0.0023476">
+        </testcase>
+        <testcase classname="__tests__/unit/hooks/useAccessibleAnimation.test.ts" name="useAccessibleAnimation &gt; retourne shouldReduceMotion true si focusMode activé" time="0.0029046">
+        </testcase>
+        <testcase classname="__tests__/unit/hooks/useAccessibleAnimation.test.ts" name="useAccessibleAnimation &gt; retourne shouldReduceMotion true si prefers-reduced-motion activé" time="0.0027079">
+        </testcase>
+        <testcase classname="__tests__/unit/hooks/useAccessibleAnimation.test.ts" name="useAccessibleAnimation &gt; crée des variantes simplifiées si shouldReduceMotion est true" time="0.0043745">
+        </testcase>
+        <testcase classname="__tests__/unit/hooks/useAccessibleAnimation.test.ts" name="useAccessibleAnimation &gt; crée des transitions avec durée réduite si shouldReduceMotion est true" time="0.0022055">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/i18n/aiGeneratorMessages.test.ts" timestamp="2026-03-07T13:18:44.602Z" hostname="DESKTOP-UQ8GTG2" tests="1" failures="0" errors="0" skipped="0" time="0.0060173">
+        <testcase classname="__tests__/unit/i18n/aiGeneratorMessages.test.ts" name="AI generator messages &gt; expose la clé close pour le générateur IA des défis en français et en anglais" time="0.0024684">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/lib/utils/format.test.ts" timestamp="2026-03-07T13:18:44.602Z" hostname="DESKTOP-UQ8GTG2" tests="22" failures="0" errors="0" skipped="0" time="0.010852">
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; valeurs nulles / vides &gt; retourne false pour null" time="0.0024336">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; valeurs nulles / vides &gt; retourne false pour undefined" time="0.0004962">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; valeurs nulles / vides &gt; retourne false pour chaîne vide" time="0.0003655">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; valeurs nulles / vides &gt; retourne false pour tableau vide" time="0.0002228">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; format tableau &gt; retourne true si le tableau contient &apos;ai&apos;" time="0.0003611">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; format tableau &gt; retourne false si le tableau ne contient pas &apos;ai&apos;" time="0.0002966">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; format tableau &gt; est sensible à la casse — &apos;AI&apos; ne compte pas" time="0.0002604">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; format chaîne &gt; retourne true pour la chaîne exacte &apos;ai&apos;" time="0.0001919">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; format chaîne &gt; retourne true si &apos;ai&apos; est dans une chaîne CSV" time="0.0003104">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; format chaîne &gt; gère les espaces autour des virgules" time="0.0002168">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; format chaîne &gt; retourne false si &apos;ai&apos; absent de la chaîne CSV" time="0.0001921">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="hasAiTag &gt; format chaîne &gt; est sensible à la casse — &apos;AI&apos; ne compte pas" time="0.0002079">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="formatSuccessRate &gt; valeurs invalides &gt; retourne null pour null" time="0.000222">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="formatSuccessRate &gt; valeurs invalides &gt; retourne null pour undefined" time="0.0001494">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="formatSuccessRate &gt; valeurs invalides &gt; retourne null pour valeur négative" time="0.0001552">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="formatSuccessRate &gt; format ratio (0-1) &gt; convertit 0 en &apos;0%&apos;" time="0.0001592">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="formatSuccessRate &gt; format ratio (0-1) &gt; convertit 0.75 en &apos;75%&apos;" time="0.0001432">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="formatSuccessRate &gt; format ratio (0-1) &gt; arrondit correctement (0.756 → &apos;76%&apos;)" time="0.0001346">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="formatSuccessRate &gt; format ratio (0-1) &gt; convertit 1 en &apos;100%&apos;" time="0.0001313">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="formatSuccessRate &gt; format pourcentage (&gt; 1) &gt; retourne &apos;75%&apos; pour 75" time="0.000133">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="formatSuccessRate &gt; format pourcentage (&gt; 1) &gt; retourne &apos;100%&apos; pour 100" time="0.000129">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/utils/format.test.ts" name="formatSuccessRate &gt; format pourcentage (&gt; 1) &gt; arrondit correctement (75.6 → &apos;76%&apos;)" time="0.0001286">
+        </testcase>
+    </testsuite>
+    <testsuite name="__tests__/unit/lib/validations/dashboard.test.ts" timestamp="2026-03-07T13:18:44.606Z" hostname="DESKTOP-UQ8GTG2" tests="11" failures="0" errors="0" skipped="0" time="0.0100279">
+        <testcase classname="__tests__/unit/lib/validations/dashboard.test.ts" name="safeValidateUserStats &gt; retourne null pour data null ou undefined" time="0.0021103">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/validations/dashboard.test.ts" name="safeValidateUserStats &gt; retourne null pour data non-objet" time="0.0005653">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/validations/dashboard.test.ts" name="safeValidateUserStats &gt; retourne des valeurs par défaut pour champs obligatoires manquants" time="0.0019344">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/validations/dashboard.test.ts" name="safeValidateUserStats &gt; préserve total_exercises et correct_answers quand fournis" time="0.0003839">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/validations/dashboard.test.ts" name="safeValidateUserStats &gt; valide level comme objet avec current" time="0.0005221">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/validations/dashboard.test.ts" name="safeValidateUserStats &gt; valide level objet avec champs partiels (valeurs par défaut)" time="0.0002728">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/validations/dashboard.test.ts" name="safeValidateUserStats &gt; valide level comme number → xp" time="0.0002773">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/validations/dashboard.test.ts" name="safeValidateUserStats &gt; valide progress_over_time si labels et datasets sont des tableaux" time="0.0002159">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/validations/dashboard.test.ts" name="safeValidateUserStats &gt; ignore progress_over_time si structure invalide" time="0.0001977">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/validations/dashboard.test.ts" name="safeValidateUserStats &gt; valide exercises_by_day si labels et datasets sont des tableaux" time="0.000223">
+        </testcase>
+        <testcase classname="__tests__/unit/lib/validations/dashboard.test.ts" name="safeValidateUserStats &gt; préserve exercises_by_type et exercises_by_difficulty comme Record" time="0.0003344">
+        </testcase>
+    </testsuite>
+</testsuites>

@@ -1,6 +1,6 @@
 # 📚 Documentation Mathakine
 
-> Point d'entrée unique — Mise à jour au 07/03/2026  
+> Point d'entrée unique — Mise à jour au 07/03/2026 (F32 + F35)  
 > **Convention :** [CONVENTION_DOCUMENTATION.md](CONVENTION_DOCUMENTATION.md) — inclut la **revue trimestrielle** (vérité terrain) §7
 
 ---
@@ -20,7 +20,8 @@
 ```
 docs/
 ├── 00-REFERENCE/          # 📘 Référence technique
-│   └── GETTING_STARTED.md      # Installation et premiers pas
+│   ├── GETTING_STARTED.md      # Installation et premiers pas
+│   └── ARCHITECTURE.md         # Architecture globale (frontend + backend)
 │
 ├── 01-GUIDES/             # 📗 Guides pratiques
 │   ├── DEVELOPMENT.md          # Workflow développement
@@ -74,6 +75,8 @@ docs/
 │   ├── ANALYSE_DUPLICATION_DRY_2026-02.md  # DRY (~90% traité, vérité terrain 28/02)
 │   ├── CICD_DEPLOY.md  # CI/CD, smoke test, migrations, rollback
 │   ├── POLITIQUE_REDACTION_LOGS_PII.md  # Règles PII/secrets dans les logs
+│   ├── IMPLEMENTATION_F32_SESSION_ENTRELACEE.md  # Dossier d'implémentation F32 (session entrelacée)
+│   ├── IMPLEMENTATION_F35_REDACTION_LOGS_DB.md  # Dossier d'implémentation F35 (redaction logs DB)
 │   ├── ENDPOINTS_NON_INTEGRES.md  # Endpoints à intégrer
 │   └── AUDITS_ET_RAPPORTS_ARCHIVES/  # 📦 Audits implémentés + rapports temporaires
 │       ├── PLACEHOLDERS_ET_TODO.md  # Endpoints à implémenter (archivé avec rapports)
@@ -254,11 +257,12 @@ docs/
 
 ## 🔄 Dernières mises à jour
 
-### 07/03/2026 — F07 Timeline + F33 Growth Mindset + backlog mis à jour
-- 📝 **[ROADMAP_FONCTIONNALITES.md](02-FEATURES/ROADMAP_FONCTIONNALITES.md)** — F07 et F33 marqués ✅ implémentés (matrice, sections dédiées, historique)
-- 🧩 **Implémentation frontend** — widget `ProgressTimelineWidget` (7j/30j) + feedback d’échec harmonisé (Exercise/Modal/Challenge/Diagnostic)
-- 📝 **[API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md)** — endpoint F07 `/api/users/me/progress/timeline?period=7d|30d`
-- 📝 **Backlog sécurité** — F35 conservé en P2 (redaction secrets logs DB, non implémenté)
+### 07/03/2026 — F32 Session entrelacee + F35 securite logs DB
+- 📝 **[ROADMAP_FONCTIONNALITES.md](02-FEATURES/ROADMAP_FONCTIONNALITES.md)** — F32 et F35 marqués ✅ implémentés (matrice, sections, historique)
+- 📝 **[API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md)** — endpoint F32 `GET /api/exercises/interleaved-plan?length=10` + contrat `POST /api/exercises/generate` clarifié (`adaptive`, `age_group?`)
+- 📝 **[EDTECH_ANALYTICS.md](02-FEATURES/EDTECH_ANALYTICS.md)** — analytics Quick Start étendue au type `interleaved`
+- 📙 **[IMPLEMENTATION_F32_SESSION_ENTRELACEE.md](03-PROJECT/IMPLEMENTATION_F32_SESSION_ENTRELACEE.md)** — cadrage et choix MVP implémentés
+- 📙 **[IMPLEMENTATION_F35_REDACTION_LOGS_DB.md](03-PROJECT/IMPLEMENTATION_F35_REDACTION_LOGS_DB.md)** — hardening sécurité logs DB implémenté
 
 ### 06/03/2026 — F02 Défis quotidiens + Refactor Dashboard + Documentation
 - 📙 **[F02_DEFIS_QUOTIDIENS.md](02-FEATURES/F02_DEFIS_QUOTIDIENS.md)** — Référence F02 : modèle, API, service, câblage progression
@@ -392,7 +396,7 @@ docs/
 | Fichier | Description | Statut |
 |---------|-------------|--------|
 | **README.md** | Point d'entrée projet (français) | ✅ À mettre à jour |
-| **README_TECH.md** | Documentation technique complète | ✅ À jour (06/03/2026) |
+| **README_TECH.md** | Documentation technique complète | ✅ À jour (07/03/2026) |
 
 ---
 
@@ -400,7 +404,7 @@ docs/
 
 - **Documents actifs** : ~55 docs (guides, features, projet, widgets)
 - **Cohérence** : Validée vs code réel — revue trimestrielle (CONVENTION §7)
-- **Dernière vérification** : 03/03/2026 (Audit Architecture Phases 0→4, 472 tests)
+- **Dernière vérification** : 07/03/2026 (synchronisation documentaire F32/F35 + README_TECH)
 
 ---
 

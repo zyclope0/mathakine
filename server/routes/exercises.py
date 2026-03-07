@@ -9,6 +9,7 @@ from server.handlers.exercise_handlers import (
     get_exercise,
     get_exercises_list,
     get_exercises_stats,
+    get_interleaved_plan_api,
     submit_answer,
 )
 
@@ -19,6 +20,11 @@ def get_exercises_routes():
         Route(
             "/api/exercises/stats",
             endpoint=get_exercises_stats,
+            methods=["GET"],
+        ),
+        Route(
+            "/api/exercises/interleaved-plan",
+            endpoint=get_interleaved_plan_api,
             methods=["GET"],
         ),
         Route(

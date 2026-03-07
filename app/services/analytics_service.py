@@ -74,8 +74,8 @@ class AnalyticsService:
         ctr_guided = 0
         ctr_total = 0
         unique_user_ids = set()
-        clicks_by_type = {"exercise": 0, "challenge": 0}
-        attempts_by_type = {"exercise": 0, "challenge": 0}
+        clicks_by_type = {"exercise": 0, "challenge": 0, "interleaved": 0}
+        attempts_by_type = {"exercise": 0, "challenge": 0, "interleaved": 0}
 
         for e in events_all:
             if e.user_id:

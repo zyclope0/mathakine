@@ -37,12 +37,13 @@ describe("QuickStartActions", () => {
     } as ReturnType<typeof useRecommendations>);
   });
 
-  it("affiche le titre et les 2 CTA", () => {
+  it("affiche le titre et les 3 CTA", () => {
     render(<QuickStartActions />, { wrapper: TestWrapper });
 
     expect(screen.getByText("Que veux-tu faire ?")).toBeInTheDocument();
     expect(screen.getByText("Un exercice")).toBeInTheDocument();
     expect(screen.getByText("Un défi")).toBeInTheDocument();
+    expect(screen.getByText("Session entrelacée")).toBeInTheDocument();
   });
 
   it("liens vers /exercises et /challenges quand aucune recommandation", () => {
@@ -102,8 +103,17 @@ describe("QuickStartActions", () => {
 
     const exerciseCta = document.querySelector('[data-quick-start="exercise"]');
     const challengeCta = document.querySelector('[data-quick-start="challenge"]');
+    const interleavedCta = document.querySelector('[data-quick-start="interleaved"]');
     expect(exerciseCta).toBeInTheDocument();
     expect(challengeCta).toBeInTheDocument();
+    expect(interleavedCta).toBeInTheDocument();
+  });
+
+  it("lien Session entrelacée vers /exercises/interleaved", () => {
+    render(<QuickStartActions />, { wrapper: TestWrapper });
+
+    const interleavedLink = screen.getByRole("link", { name: /Session entrelacée/i });
+    expect(interleavedLink).toHaveAttribute("href", "/exercises/interleaved");
   });
 
   it("appelle trackDashboardView au montage", () => {

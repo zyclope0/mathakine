@@ -10,6 +10,7 @@ export interface SubmitAnswerPayload {
   exercise_id: number;
   answer: string;
   time_spent?: number;
+  analytics_type?: "exercise" | "challenge" | "interleaved";
 }
 
 export interface SubmitAnswerResponse {
@@ -40,7 +41,7 @@ export function useSubmitAnswer() {
       return api.post<SubmitAnswerResponse>(`/api/exercises/${exerciseId}/attempt`, dataToSend);
     },
     onSuccess: (data, variables) => {
-      trackFirstAttempt("exercise", variables.exercise_id);
+      trackFirstAttempt(variables.analytics_type ?? "exercise", variables.exercise_id);
 
       // Invalider le cache de l'exercice pour recharger les stats
       queryClient.invalidateQueries({ queryKey: ["exercise", variables.exercise_id] });

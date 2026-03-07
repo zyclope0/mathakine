@@ -9,10 +9,13 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/)
 ### Added
 - F07 — Courbe d'évolution temporelle : endpoint `GET /api/users/me/progress/timeline?period=7d|30d`, widget « Évolution temporelle » dans l'onglet Progression du dashboard (tendance succès %, volume tentatives, sélecteur 7j/30j)
 - API `by_category` : champs `attempts` et `correct` pour le graphique volume
+- F32 — Session entrelacée (interleaving) : endpoint `GET /api/exercises/interleaved-plan`, service dédié, CTA Quick Start, flux session (`/exercises/interleaved` puis `/exercises/{id}?session=interleaved`)
+- F35 — Sécurité logs DB : redaction des secrets sur l'URL SQLAlchemy loggée au démarrage (`redact_database_url_for_log()`), couverture unitaire dédiée
 
 ### Changed
 - Dashboard Progression : « Progression par type » remplacé par « Volume par type d'exercice » (bar chart horizontal, tentatives par type)
 - Évolution temporelle : dates lisibles sans chevauchement (labels horizontaux, interval adaptatif 7j/30j, tooltip date complète)
+- `POST /api/exercises/generate` : auth optionnelle pour permettre la résolution adaptative de `age_group` quand `adaptive=true` (correctif de non-régression F05/F32)
 
 ---
 
