@@ -85,7 +85,10 @@ class AnalyticsService:
                 t = e.payload.get("timeToFirstAttemptMs")
                 if t is not None:
                     try:
-                        aggregates[e.event]["time_to_first_attempt_ms"].append(float(t))
+                        val = float(t)
+                        # Ignorer les valeurs négatives (décalage horaire, données de test)
+                        if val >= 0:
+                            aggregates[e.event]["time_to_first_attempt_ms"].append(val)
                     except (TypeError, ValueError):
                         pass
                 typ = (e.payload.get("type") or "").lower()

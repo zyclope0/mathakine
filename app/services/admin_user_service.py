@@ -221,3 +221,25 @@ class AdminUserService:
                 500,
             )
         return True, False, None, 200
+
+    @staticmethod
+    def delete_user_for_admin(
+        db: Session, user_id: int, admin_user_id: int
+    ) -> Tuple[bool, Optional[str], int]:
+        """
+        Supprime définitivement un utilisateur (cascade sur toutes les données liées).
+        Un admin ne peut pas supprimer son propre compte.
+
+        Returns:
+            (success, error_message, status_code)
+        """
+        if user_id == admin_user_id:
+            return False, "Vous ne pouvez pas supprimer votre propre compte.", 400
+
+        user = UserService.get_user(db, user_id)
+        if not user:
+            return False, "Utilisateur non trouvé.", 404
+
+        log_admin_action(db, admin_user_id, "user_delete", "user", user_id, {"username": user.username})
+        UserService.delete_user(db, user_id, auto_commit=True)
+        return True, None, 200

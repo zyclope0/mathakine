@@ -4,6 +4,8 @@ Tests de l'endpoint admin GET /api/admin/analytics/edtech.
 
 import pytest
 
+from app.models.edtech_event import EdTechEvent
+
 
 @pytest.mark.asyncio
 async def test_admin_analytics_edtech_archiviste(archiviste_client):
@@ -63,3 +65,39 @@ async def test_analytics_event_post_and_visible(padawan_client, archiviste_clien
         and (m.get("payload") or {}).get("targetId") == 42
         for m in matching
     )
+
+
+@pytest.mark.asyncio
+async def test_admin_analytics_edtech_excludes_negative_times(
+    archiviste_client, db_session, padawan_client
+):
+    """Les temps négatifs (timeToFirstAttemptMs) sont exclus des agrégats."""
+    from datetime import datetime, timedelta, timezone
+
+    user_id = padawan_client["user_id"]
+    since = datetime.now(timezone.utc) - timedelta(days=1)
+
+    # Insérer des first_attempt avec temps négatif (données de test aberrantes)
+    db_session.add(
+        EdTechEvent(
+            user_id=user_id,
+            event="first_attempt",
+            payload={"type": "exercise", "targetId": 1, "timeToFirstAttemptMs": -25000},
+        )
+    )
+    db_session.add(
+        EdTechEvent(
+            user_id=user_id,
+            event="first_attempt",
+            payload={"type": "exercise", "targetId": 2, "timeToFirstAttemptMs": 5000},
+        )
+    )
+    db_session.commit()
+
+    client = archiviste_client["client"]
+    response = await client.get("/api/admin/analytics/edtech?period=30d")
+    assert response.status_code == 200
+    data = response.json()
+    fa = data.get("aggregates", {}).get("first_attempt", {})
+    # Seul le temps positif (5000 ms) doit être inclus → moyenne = 5000
+    assert fa.get("avg_time_to_first_attempt_ms") == 5000

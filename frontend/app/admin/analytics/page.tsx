@@ -125,7 +125,8 @@ export default function AdminAnalyticsPage() {
                   <CardContent>
                     <p className="text-2xl font-bold">{data.aggregates.first_attempt.count}</p>
                     <p className="text-xs text-muted-foreground">
-                      {data.aggregates.first_attempt.avg_time_to_first_attempt_ms != null
+                      {data.aggregates.first_attempt.avg_time_to_first_attempt_ms != null &&
+                      data.aggregates.first_attempt.avg_time_to_first_attempt_ms >= 0
                         ? `~${Math.round(
                             data.aggregates.first_attempt.avg_time_to_first_attempt_ms / 1000
                           )}s en moyenne`
@@ -145,7 +146,9 @@ export default function AdminAnalyticsPage() {
               {data.aggregates?.first_attempt?.avg_time_to_first_attempt_ms != null && (
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">Temps moyen → 1er attempt</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Temps moyen clic Quick Start → 1er attempt
+                    </CardTitle>
                     <Clock className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
@@ -155,7 +158,7 @@ export default function AdminAnalyticsPage() {
                       )}
                       s
                     </p>
-                    <p className="text-xs text-muted-foreground">depuis la vue du dashboard</p>
+                    <p className="text-xs text-muted-foreground">depuis le clic Quick Start</p>
                   </CardContent>
                 </Card>
               )}
@@ -259,7 +262,7 @@ export default function AdminAnalyticsPage() {
                                       {guided ? "Guidé" : "Libre"}
                                     </Badge>
                                   )}
-                                  {timeMs != null && (
+                                  {timeMs != null && timeMs >= 0 && (
                                     <span className="text-muted-foreground text-xs">
                                       ~{Math.round(timeMs / 1000)}s
                                     </span>

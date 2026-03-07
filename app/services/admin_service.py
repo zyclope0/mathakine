@@ -34,6 +34,7 @@ class AdminService:
     patch_user_for_admin = AdminUserService.patch_user_for_admin
     send_reset_password_for_admin = AdminUserService.send_reset_password_for_admin
     resend_verification_for_admin = AdminUserService.resend_verification_for_admin
+    delete_user_for_admin = AdminUserService.delete_user_for_admin
 
     # ── Content (badges, exercises, challenges, export) ───────────────────
     _achievement_to_detail = AdminContentService._achievement_to_detail

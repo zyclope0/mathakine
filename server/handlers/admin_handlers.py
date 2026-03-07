@@ -164,6 +164,28 @@ async def admin_users_resend_verification(request: Request) -> JSONResponse:
 
 @require_auth
 @require_admin
+async def admin_users_delete(request: Request) -> JSONResponse:
+    """
+    DELETE /api/admin/users/{user_id}
+    Supprime définitivement un utilisateur et toutes ses données (cascade).
+    Un admin ne peut pas supprimer son propre compte.
+    """
+    user_id = int(request.path_params["user_id"])
+    admin_user_id = getattr(request.state, "user", {}).get("id")
+    if not admin_user_id:
+        return api_error_response(401, "Non authentifié.")
+
+    async with db_session() as db:
+        success, err, code = AdminService.delete_user_for_admin(
+            db, user_id=user_id, admin_user_id=admin_user_id
+        )
+    if not success:
+        return api_error_response(code, err or "Erreur lors de la suppression.")
+    return JSONResponse({"message": "Utilisateur supprimé."})
+
+
+@require_auth
+@require_admin
 async def admin_exercises(request: Request) -> JSONResponse:
     """
     GET /api/admin/exercises

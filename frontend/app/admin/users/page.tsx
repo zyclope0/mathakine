@@ -27,6 +27,7 @@ import {
   Shield,
   Mail,
   MailCheck,
+  Trash2,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import {
@@ -67,6 +68,7 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(0);
   const [roleEditUser, setRoleEditUser] = useState<AdminUser | null>(null);
   const [roleEditValue, setRoleEditValue] = useState<string>("");
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<AdminUser | null>(null);
 
   const isActive = isActiveFilter === "all" ? undefined : isActiveFilter === "true";
 
@@ -80,9 +82,11 @@ export default function AdminUsersPage() {
     updateUserRole,
     sendResetPassword,
     resendVerification,
+    deleteUser,
     isUpdating,
     isSendingReset,
     isResendingVerification,
+    isDeleting,
   } = useAdminUsers({
     ...(search && { search }),
     ...(role !== "all" && { role }),
@@ -134,6 +138,19 @@ export default function AdminUsersPage() {
       toast.success("Email envoyé", { description: `Email de vérification envoyé à ${u.email}` });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Échec de l'envoi";
+      toast.error("Erreur", { description: msg });
+    }
+  };
+
+  const handleDeleteUser = async (u: AdminUser) => {
+    try {
+      await deleteUser(u.id);
+      toast.success("Utilisateur supprimé", {
+        description: `${u.username} et toutes ses données ont été supprimés définitivement.`,
+      });
+      setDeleteConfirmUser(null);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erreur lors de la suppression";
       toast.error("Erreur", { description: msg });
     }
   };
@@ -264,7 +281,11 @@ export default function AdminUsersPage() {
                               {currentUser?.id !== u.id ? (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" disabled={isUpdating}>
+                                    <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={isUpdating || isDeleting}
+                                  >
                                       <MoreHorizontal className="h-4 w-4" />
                                       <span className="sr-only">Actions</span>
                                     </Button>
@@ -308,6 +329,13 @@ export default function AdminUsersPage() {
                                           <UserCheck className="h-4 w-4" /> Activer
                                         </>
                                       )}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => setDeleteConfirmUser(u)}
+                                      className="text-destructive focus:text-destructive"
+                                      disabled={isDeleting}
+                                    >
+                                      <Trash2 className="h-4 w-4" /> Supprimer définitivement
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
@@ -398,6 +426,36 @@ export default function AdminUsersPage() {
                 }
               >
                 Enregistrer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={!!deleteConfirmUser}
+          onOpenChange={(open) => {
+            if (!open) setDeleteConfirmUser(null);
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Supprimer définitivement l&apos;utilisateur ?</DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                {deleteConfirmUser
+                  ? `${deleteConfirmUser.username} (${deleteConfirmUser.email}) — Cette action est irréversible. Toutes les données liées (tentatives, progression, badges, etc.) seront supprimées en cascade.`
+                  : ""}
+              </p>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteConfirmUser(null)}>
+                Annuler
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => deleteConfirmUser && handleDeleteUser(deleteConfirmUser)}
+                disabled={!deleteConfirmUser || isDeleting}
+              >
+                {isDeleting ? "Suppression..." : "Supprimer"}
               </Button>
             </DialogFooter>
           </DialogContent>

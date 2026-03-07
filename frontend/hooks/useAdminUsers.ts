@@ -82,6 +82,12 @@ export function useAdminUsers(params: AdminUsersParams = {}) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: number) =>
+      api.delete<{ message: string }>(`/api/admin/users/${userId}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
+  });
+
   return {
     users: data?.items ?? [],
     total: data?.total ?? 0,
@@ -94,9 +100,11 @@ export function useAdminUsers(params: AdminUsersParams = {}) {
       patchMutation.mutateAsync({ userId: params.userId, role: params.role }),
     sendResetPassword: sendResetMutation.mutateAsync,
     resendVerification: resendVerificationMutation.mutateAsync,
+    deleteUser: deleteUserMutation.mutateAsync,
     isUpdating: patchMutation.isPending,
     isSendingReset: sendResetMutation.isPending,
     isResendingVerification: resendVerificationMutation.isPending,
+    isDeleting: deleteUserMutation.isPending,
     updateError: patchMutation.error,
   };
 }

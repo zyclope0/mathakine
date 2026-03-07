@@ -8,7 +8,7 @@
 
 Mesurer l'efficacité du bloc Quick Start (parcours guidé) :
 - **CTR Quick Start** : clics exercice vs défi, guidé vs libre
-- **Temps vers 1er attempt** : délai entre vue du dashboard et première soumission
+- **Temps vers 1er attempt** : délai entre clic Quick Start et première soumission (référence = clic, pas vue dashboard, pour éviter temps négatifs)
 - **Conversion** : exercice vs défi, parcours guidé ou non
 
 ---
@@ -20,13 +20,13 @@ Mesurer l'efficacité du bloc Quick Start (parcours guidé) :
 | Événement | Déclencheur | Payload |
 |-----------|-------------|---------|
 | `quick_start_click` | Clic sur un CTA Quick Start (exercice ou défi) | type, guided, targetId |
-| `first_attempt` | Première soumission (exercice ou défi) après visite dashboard | type, targetId, timeToFirstAttemptMs |
+| `first_attempt` | Soumission (exercice ou défi) | type, targetId, timeToFirstAttemptMs (si flux Quick Start) |
 
 ### 1.2 Module `lib/analytics/edtech.ts`
 
-- `trackDashboardView()` — enregistre le timestamp (sessionStorage) quand le bloc Quick Start est affiché
-- `trackQuickStartClick(payload)` — appelé au clic sur un lien exercice/défi
-- `trackFirstAttempt(type, targetId)` — appelé lors de la soumission d'une tentative (useSubmitAnswer, useChallenges)
+- `trackDashboardView()` — conservé pour compat ; le temps utilise le clic Quick Start
+- `trackQuickStartClick(payload)` — stocke le timestamp au clic, envoie l'événement
+- `trackFirstAttempt(type, targetId)` — calcule timeToFirstAttemptMs = submit - clic Quick Start (plafond 24h, valeurs négatives ignorées)
 
 ### 1.3 Envoi des données
 
