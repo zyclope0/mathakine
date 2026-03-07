@@ -282,10 +282,10 @@ export default function AdminUsersPage() {
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={isUpdating || isDeleting}
-                                  >
+                                      variant="outline"
+                                      size="sm"
+                                      disabled={isUpdating || isDeleting}
+                                    >
                                       <MoreHorizontal className="h-4 w-4" />
                                       <span className="sr-only">Actions</span>
                                     </Button>

@@ -83,8 +83,7 @@ export function useAdminUsers(params: AdminUsersParams = {}) {
   });
 
   const deleteUserMutation = useMutation({
-    mutationFn: (userId: number) =>
-      api.delete<{ message: string }>(`/api/admin/users/${userId}`),
+    mutationFn: (userId: number) => api.delete<{ message: string }>(`/api/admin/users/${userId}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
   });
 

@@ -240,6 +240,13 @@ class AdminUserService:
         if not user:
             return False, "Utilisateur non trouvé.", 404
 
-        log_admin_action(db, admin_user_id, "user_delete", "user", user_id, {"username": user.username})
+        log_admin_action(
+            db,
+            admin_user_id,
+            "user_delete",
+            "user",
+            user_id,
+            {"username": user.username},
+        )
         UserService.delete_user(db, user_id, auto_commit=True)
         return True, None, 200
