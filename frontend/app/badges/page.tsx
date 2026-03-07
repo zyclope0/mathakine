@@ -29,6 +29,7 @@ import {
   AlertCircle,
   Sparkles,
   Flame,
+  Award,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
@@ -80,7 +81,9 @@ export default function BadgesPage() {
   const { inProgress } = useBadgesProgress();
   const [statsExpanded, setStatsExpanded] = useState(false);
   const [toUnlockExpanded, setToUnlockExpanded] = useState(false);
+  const [collectionExpanded, setCollectionExpanded] = useState(false);
   const TO_UNLOCK_PREVIEW = 12;
+  const COLLECTION_PREVIEW_COUNT = 12;
 
   // A-3 : filtres et tri
   const [filterStatus, setFilterStatus] = useState<"all" | "earned" | "locked" | "close">("all");
@@ -255,6 +258,20 @@ export default function BadgesPage() {
     [inProgressWithTarget]
   );
 
+  // Derniers Exploits : 3–4 badges les plus récents (ou rares si peu de récents)
+  const lastExploits = useMemo(() => {
+    const withEarnedAt = earnedBadgesList
+      .map((b) => {
+        const ub = earnedBadges.find((eb) => eb.id === b.id);
+        return { badge: b, earned_at: ub?.earned_at ?? "" };
+      })
+      .filter((x) => x.earned_at);
+    return withEarnedAt
+      .sort((a, b) => new Date(b.earned_at).getTime() - new Date(a.earned_at).getTime())
+      .slice(0, 4)
+      .map((x) => x.badge);
+  }, [earnedBadgesList, earnedBadges]);
+
   return (
     <ProtectedRoute requireFullAccess>
       <PageLayout maxWidth="2xl">
@@ -352,7 +369,136 @@ export default function BadgesPage() {
           </div>
         )}
 
-        {/* A-3 : barre filtres et tri — Proches séparé des dropdowns pour éviter chevauchement */}
+        {/* 1) Derniers Exploits — La Vitrine (3–4 derniers badges obtenus) */}
+        {lastExploits.length > 0 && !isLoading && (
+          <PageSection className="space-y-3 animate-fade-in-up">
+            <div className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary" aria-hidden="true" />
+              <h2 className="text-lg font-semibold text-foreground">{t("lastExploits")}</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {lastExploits.map((badge) => {
+                const userBadge = earnedBadges.find((ub) => ub.id === badge.id);
+                const earnedDateLong = userBadge?.earned_at
+                  ? new Date(userBadge.earned_at).toLocaleDateString(undefined, {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : null;
+                const earnedDateShort = userBadge?.earned_at
+                  ? new Date(userBadge.earned_at).toLocaleDateString(undefined, {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : null;
+                const tooltipLines = [
+                  earnedDateLong && t("earnedOn", { date: earnedDateLong }),
+                  badge.description || badge.criteria_text || null,
+                  badge.points_reward != null &&
+                    badge.points_reward > 0 &&
+                    t("exploitPoints", { count: badge.points_reward }),
+                ].filter(Boolean) as string[];
+                return (
+                  <TooltipProvider key={badge.id}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="rounded-xl border border-primary/30 bg-card/60 backdrop-blur-md p-4 flex flex-col items-center gap-2 transition-shadow hover:shadow-lg cursor-help"
+                        >
+                          <BadgeIcon
+                            code={badge.code}
+                            iconUrl={badge.icon_url}
+                            category={badge.category}
+                            size="lg"
+                            isEarned={true}
+                          />
+                          <p className="text-sm font-medium text-center line-clamp-2">{badge.name}</p>
+                          {earnedDateShort && (
+                            <span className="text-xs text-muted-foreground">
+                              {earnedDateShort}
+                            </span>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="top"
+                        className="max-w-[260px] py-2.5 px-3 text-sm space-y-1.5"
+                      >
+                        {tooltipLines.map((line, i) => (
+                          <p key={i} className="text-background">
+                            {line}
+                          </p>
+                        ))}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
+            </div>
+          </PageSection>
+        )}
+
+        {/* 2) À portée de main — Le Moteur de motivation (sans scroller) */}
+        {closestBadges.length > 0 && !isLoading && (
+          <PageSection className="space-y-3 animate-fade-in-up">
+            <div className="flex items-center gap-2">
+              <Flame className="h-4 w-4 text-accent" aria-hidden="true" />
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                {t("closestTitle")}
+              </h2>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {closestBadges.map((badge) => {
+                const fullBadge = availableBadges.find((b) => b.id === badge.id);
+                const remaining = (badge.target ?? 0) - (badge.current ?? 0);
+                const pct = Math.round((badge.progress ?? 0) * 100);
+                return (
+                  <div
+                    key={badge.id}
+                    className="flex items-center gap-3 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2.5"
+                  >
+                    <BadgeIcon
+                      code={fullBadge?.code}
+                      iconUrl={fullBadge?.icon_url}
+                      category={fullBadge?.category}
+                      size="sm"
+                      isEarned={false}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{badge.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div
+                          className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden"
+                          role="progressbar"
+                          aria-valuenow={pct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`${badge.name}: ${pct}%`}
+                        >
+                          <div
+                            className="bg-accent h-1.5 rounded-full transition-all duration-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-accent font-semibold tabular-nums shrink-0">
+                          {remaining > 0
+                            ? remaining > 1
+                              ? t("remainingPlural", { count: remaining })
+                              : t("remaining", { count: remaining })
+                            : t("almostThere")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </PageSection>
+        )}
+
+        {/* A-3 : barre filtres et tri */}
         <PageSection className="space-y-4 animate-fade-in-up">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex items-center gap-3 flex-wrap">
@@ -460,7 +606,7 @@ export default function BadgesPage() {
           </div>
         </PageSection>
 
-        {/* 1) Ma collection — badges obtenus (endowment, A-1) */}
+        {/* 3) Toute ma collection — Le Tiroir rétractable */}
         <PageSection className="space-y-4 animate-fade-in-up-delay-1">
           <h2 className="text-lg md:text-xl font-semibold">
             {t("collection.title")}{" "}
@@ -484,33 +630,70 @@ export default function BadgesPage() {
           ) : isLoading ? (
             <LoadingState message={t("loading")} />
           ) : filteredEarned.length > 0 ? (
-            <BadgeGrid
-              badges={(() => {
-                type BadgeItem = (typeof filteredEarned)[number];
-                const pinned = pinnedBadgeIds
-                  .map((id: number) => filteredEarned.find((b: BadgeItem) => b.id === id))
-                  .filter((b: BadgeItem | undefined): b is BadgeItem => !!b);
-                const rest = filteredEarned.filter(
-                  (b: BadgeItem) => !pinnedBadgeIds.includes(b.id)
-                );
-                return [...pinned, ...rest];
-              })()}
-              earnedBadges={earnedBadges.filter((ub) =>
-                filteredEarned.some((b: (typeof filteredEarned)[number]) => b.id === ub.id)
+            <div className="relative space-y-4">
+              <div className="relative">
+                <BadgeGrid
+                  badges={(() => {
+                    type BadgeItem = (typeof filteredEarned)[number];
+                    const pinned = pinnedBadgeIds
+                      .map((id: number) => filteredEarned.find((b: BadgeItem) => b.id === id))
+                      .filter((b: BadgeItem | undefined): b is BadgeItem => !!b);
+                    const rest = filteredEarned.filter(
+                      (b: BadgeItem) => !pinnedBadgeIds.includes(b.id)
+                    );
+                    return [...pinned, ...rest];
+                  })()}
+                  earnedBadges={earnedBadges.filter((ub) =>
+                    filteredEarned.some((b: (typeof filteredEarned)[number]) => b.id === ub.id)
+                  )}
+                  isLoading={false}
+                  sortBy={sortBy}
+                  rarityMap={rarityMap}
+                  pinnedBadgeIds={pinnedBadgeIds}
+                  compactEarned
+                  {...(!collectionExpanded && {
+                    limit: COLLECTION_PREVIEW_COUNT,
+                  })}
+                  onTogglePin={async (badgeId) => {
+                    const isPinned = pinnedBadgeIds.includes(badgeId);
+                    const next = isPinned
+                      ? pinnedBadgeIds.filter((id: number) => id !== badgeId)
+                      : [...pinnedBadgeIds, badgeId].slice(0, 3);
+                    await pinBadges(next);
+                  }}
+                />
+                {!collectionExpanded &&
+                  filteredEarned.length > COLLECTION_PREVIEW_COUNT && (
+                    <div
+                      className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent pointer-events-none"
+                      aria-hidden="true"
+                    />
+                  )}
+              </div>
+              {filteredEarned.length > COLLECTION_PREVIEW_COUNT && (
+                <div className="flex justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCollectionExpanded(!collectionExpanded)}
+                    aria-expanded={collectionExpanded}
+                  >
+                    {collectionExpanded ? (
+                      <>
+                        <ChevronUp className="h-4 w-4 mr-2" aria-hidden="true" />
+                        {t("collection.collapseCollection")}
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4 mr-2" aria-hidden="true" />
+                        {t("collection.viewFullCollection", {
+                          count: filteredEarned.length,
+                        })}
+                      </>
+                    )}
+                  </Button>
+                </div>
               )}
-              isLoading={false}
-              sortBy={sortBy}
-              rarityMap={rarityMap}
-              pinnedBadgeIds={pinnedBadgeIds}
-              compactEarned
-              onTogglePin={async (badgeId) => {
-                const isPinned = pinnedBadgeIds.includes(badgeId);
-                const next = isPinned
-                  ? pinnedBadgeIds.filter((id: number) => id !== badgeId)
-                  : [...pinnedBadgeIds, badgeId].slice(0, 3);
-                await pinBadges(next);
-              }}
-            />
+            </div>
           ) : (
             <p className="text-muted-foreground py-6" role="status">
               {hasActiveFilters && earnedBadgesList.length > 0
@@ -519,64 +702,6 @@ export default function BadgesPage() {
             </p>
           )}
         </PageSection>
-
-        {/* Widget "À portée de main" — top 3 badges proches de 100% */}
-        {closestBadges.length > 0 && !isLoading && (
-          <PageSection className="space-y-3 animate-fade-in-up-delay-1">
-            <div className="flex items-center gap-2">
-              <Flame className="h-4 w-4 text-orange-400" aria-hidden="true" />
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                {t("closestTitle")}
-              </h2>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {closestBadges.map((badge) => {
-                const fullBadge = availableBadges.find((b) => b.id === badge.id);
-                const remaining = (badge.target ?? 0) - (badge.current ?? 0);
-                const pct = Math.round((badge.progress ?? 0) * 100);
-                return (
-                  <div
-                    key={badge.id}
-                    className="flex items-center gap-3 rounded-lg border border-orange-500/20 bg-orange-500/5 px-3 py-2.5"
-                  >
-                    <BadgeIcon
-                      code={fullBadge?.code}
-                      iconUrl={fullBadge?.icon_url}
-                      category={fullBadge?.category}
-                      size="sm"
-                      isEarned={false}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{badge.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div
-                          className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden"
-                          role="progressbar"
-                          aria-valuenow={pct}
-                          aria-valuemin={0}
-                          aria-valuemax={100}
-                          aria-label={`${badge.name}: ${pct}%`}
-                        >
-                          <div
-                            className="bg-orange-400 h-1.5 rounded-full transition-all duration-500"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-orange-400 font-semibold tabular-nums shrink-0">
-                          {remaining > 0
-                            ? remaining > 1
-                              ? t("remainingPlural", { count: remaining })
-                              : t("remaining", { count: remaining })
-                            : t("almostThere")}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </PageSection>
-        )}
 
         {/* 2) Onglets : Badges en cours | À débloquer */}
         {(inProgressWithTarget.length > 0 || filteredLocked.length > 0) && (

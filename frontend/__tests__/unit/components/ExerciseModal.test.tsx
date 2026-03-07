@@ -104,7 +104,7 @@ describe("ExerciseModal", () => {
     });
 
     const title = await screen.findByText("Explication");
-    expect(title).toHaveClass("text-primary");
+    expect(title).toHaveClass("text-foreground");
 
     const explanation = screen.getByText(
       "Pour soustraire 4 de 11, il faut calculer leur différence."

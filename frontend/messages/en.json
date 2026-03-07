@@ -861,8 +861,12 @@
       "noResults": "No badges match the selected filters.",
       "toUnlock": "To unlock",
       "showMore": "View {count} more",
-      "showLess": "Show less"
+      "showLess": "Show less",
+      "viewFullCollection": "View full collection ({count})",
+      "collapseCollection": "Collapse"
     },
+    "lastExploits": "Recent Achievements",
+    "exploitPoints": "{count} pts",
     "tabs": {
       "ariaLabel": "Badges in progress and to unlock",
       "inProgressWithCount": "In progress ({count})",

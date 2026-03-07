@@ -13,7 +13,7 @@ class TokenResponse(TypedDict):
     access_token: str
     refresh_token: str
     token_type: str
-    user_id: int
+    user_id: Optional[int]
 
 
 class TokenRefreshResponse(TypedDict):

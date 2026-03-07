@@ -31,6 +31,8 @@ interface BadgeGridProps {
   pinnedBadgeIds?: number[];
   onTogglePin?: (badgeId: number) => void;
   compactEarned?: boolean;
+  /** Limite le nombre de badges affichés (pour tiroir replié) */
+  limit?: number;
 }
 
 export function BadgeGrid({
@@ -43,6 +45,7 @@ export function BadgeGrid({
   pinnedBadgeIds,
   onTogglePin,
   compactEarned = false,
+  limit,
 }: BadgeGridProps) {
   const { shouldReduceMotion } = useAccessibleAnimation();
 
@@ -111,6 +114,8 @@ export function BadgeGrid({
     return (difficultyOrder[aDifficulty] ?? 999) - (difficultyOrder[bDifficulty] ?? 999);
   });
 
+  const displayBadges = limit != null ? sortedBadges.slice(0, limit) : sortedBadges;
+
   // Variantes pour le conteneur avec staggerChildren
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -135,7 +140,7 @@ export function BadgeGrid({
       role="list"
       aria-label="Collection de badges"
     >
-      {sortedBadges.map((badge, index) => {
+      {displayBadges.map((badge, index) => {
         const userBadge = earnedBadgeMap.get(badge.id);
         const badgeProgress = progressMap?.[badge.id];
         return (
