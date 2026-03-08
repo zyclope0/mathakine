@@ -136,6 +136,22 @@ async def test_interleaved_plan_409_not_enough_variety(padawan_client):
     assert data["detail"].get("code") == "not_enough_variety"
 
 
+async def test_generate_exercise_save_true_returns_id(padawan_client):
+    """POST /api/exercises/generate avec save=true → succès avec id."""
+    client = padawan_client["client"]
+    response = await client.post(
+        "/api/exercises/generate",
+        json={"exercise_type": "addition", "age_group": "6-8", "save": True},
+    )
+    assert (
+        response.status_code == 200
+    ), f"Attendu 200, reçu {response.status_code}: {response.text}"
+    data = response.json()
+    assert "id" in data, "save=true doit retourner un exercice avec id"
+    assert isinstance(data["id"], int), "id doit être un entier"
+    assert data["id"] > 0, "id doit être positif"
+
+
 async def test_generate_exercise_save_fails_returns_500(padawan_client):
     """Lot 2 — Si save=true et la sauvegarde échoue, retourner 500."""
     from unittest.mock import patch
