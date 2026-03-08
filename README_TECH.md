@@ -1,6 +1,6 @@
 # README_TECH.md - Mathakine
 
-> Documentation technique de référence — Mise à jour le 07/03/2026 (F32 + F35)
+> Documentation technique de référence — Mise à jour le 08/03/2026 (hardening F32 + quality gates)
 
 ---
 
@@ -13,6 +13,7 @@ Mises a jour recentes:
 - F07: timeline progression 7j/30j (`/api/users/me/progress/timeline`)
 - F32: session entrelacee (interleaving) via plan dedie (`/api/exercises/interleaved-plan`)
 - F35: redaction des secrets URL DB au demarrage (`redact_database_url_for_log`)
+- 08/03: durcissement F32/analytics (`first_attempt` interleaved emis une seule fois par session, `save=true` strict, helper adaptive partage, hygiene black/UTF-8 et repo)
 
 | Composant | Technologie | Version |
 |---|---|---|
@@ -225,7 +226,7 @@ Couche independante du framework HTTP :
 | GET | `/api/exercises/interleaved-plan` | exercise_handlers | F32 Plan session entrelacee (`409 not_enough_variety`) |
 | GET | `/api/exercises/{id}` | exercise_handlers | Detail exercice |
 | POST | `/api/exercises/{id}/attempt` | exercise_handlers | Soumettre reponse |
-| POST | `/api/exercises/generate` | exercise_handlers | Generation exercice (auth optionnelle, `age_group?`, `adaptive?`) |
+| POST | `/api/exercises/generate` | exercise_handlers | Generation exercice (auth optionnelle, `age_group?`, `adaptive?`, `save?`) ; si `save=true`, reponse avec `id` persiste ou erreur `500` |
 | GET | `/api/challenges` | challenge_handlers | Liste défis (filtres, `order=random`, `hide_completed`) |
 | GET | `/api/challenges/{id}` | challenge_handlers | Detail defi |
 | POST | `/api/challenges/{id}/attempt` | challenge_handlers | Tenter defi |
@@ -364,6 +365,14 @@ Le systeme utilise l'API OpenAI pour generer des exercices et defis :
 | ~~F32~~ | ~~Pas de mode session entrelacee guidee~~ | Endpoint `GET /api/exercises/interleaved-plan`, CTA Quick Start, flux `session=interleaved` cote frontend |
 | ~~F35~~ | ~~URL DB complete loggee au demarrage~~ | Redaction via `redact_database_url_for_log()` + tests unitaires dedies |
 
+### Resolues (08/03/2026)
+| ID | Description | Resolution |
+|---|---|---|
+| ~~INC-A1~~ | ~~Les analytics `interleaved` surcomptent les `first_attempt`~~ | Etat `sessionStorage` enrichi avec `analytics.firstAttemptTracked`, emission unique par session et test unitaire frontend dedie |
+| ~~INC-B7~~ | ~~`POST /api/exercises/generate` peut repondre `200` sans `id` quand `save=true`~~ | Contrat durci : erreur `500` si la sauvegarde echoue ou ne retourne pas d'identifiant persiste |
+| ~~INC-B8~~ | ~~Resolution adaptive `age_group` dupliquee dans deux handlers~~ | Helper prive `_resolve_adaptive_age_group_if_needed()` partage entre `generate_exercise` et `generate_exercise_api` |
+| ~~INC-Q2~~ | ~~Quality gate Python et hygiene repo non fiables~~ | `black app/ server/ tests/ --check` remis au vert, test UTF-8 nettoye, `frontend/junit.xml` retire de l'index git et `.gitignore` assaini |
+
 ### Endpoints progression integres (06/02/2026, MAJ 06/03)
 | Endpoint | Description | Utilisation frontend |
 |---|---|---|
@@ -423,7 +432,8 @@ cd frontend && npx playwright test           # Tests E2E
 # Tests et qualite Python
 pytest tests/                                # Lancer les tests pytest
 mypy app/ server/ --ignore-missing-imports   # Typage statique (CI)
-black app/ server/ && isort app/ server/    # Formatage (pre-commit)
+black app/ server/ tests/                   # Formatage Python
+isort app/ server/                         # Tri imports backend
 ```
 
 ---

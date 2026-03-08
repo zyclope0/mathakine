@@ -1275,25 +1275,30 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
     mock_badge_service.check_and_award_badges.return_value = []
     mock_badge_service.get_closest_progress_notification.return_value = None
 
-    with patch.object(
-        LogicChallengeService,
-        "get_challenge_or_raise",
-        return_value=mock_challenge,
-    ), patch.object(
-        LogicChallengeService,
-        "record_attempt",
-        return_value=mock_attempt,
-    ) as record_attempt_mock, patch(
-        "app.services.challenge_answer_service.check_answer",
-        return_value=True,
-    ), patch(
-        "app.services.badge_service.BadgeService",
-        return_value=mock_badge_service,
-    ) as badge_service_cls, patch(
-        "app.services.streak_service.update_user_streak"
-    ) as streak_mock, patch(
-        "app.services.daily_challenge_service.record_logic_challenge_completed"
-    ) as daily_mock:
+    with (
+        patch.object(
+            LogicChallengeService,
+            "get_challenge_or_raise",
+            return_value=mock_challenge,
+        ),
+        patch.object(
+            LogicChallengeService,
+            "record_attempt",
+            return_value=mock_attempt,
+        ) as record_attempt_mock,
+        patch(
+            "app.services.challenge_answer_service.check_answer",
+            return_value=True,
+        ),
+        patch(
+            "app.services.badge_service.BadgeService",
+            return_value=mock_badge_service,
+        ) as badge_service_cls,
+        patch("app.services.streak_service.update_user_streak") as streak_mock,
+        patch(
+            "app.services.daily_challenge_service.record_logic_challenge_completed"
+        ) as daily_mock,
+    ):
         result = LogicChallengeService.submit_answer_result(
             mock_db,
             challenge_id=77,

@@ -4,6 +4,16 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## [Unreleased]
+
+### Fixed
+- Analytics EdTech `interleaved` : `first_attempt` n'est désormais émis qu'une seule fois par session, avec persistance du flag `firstAttemptTracked` dans `sessionStorage` pour éviter le surcomptage après passage à l'exercice suivant
+- Session entrelacée : `POST /api/exercises/generate` renvoie désormais `500` si `save=true` et que la sauvegarde échoue ou ne retourne pas d'`id`, au lieu d'un `200` incomplet
+- Session entrelacée : l'entrée de session et l'action `Exercice suivant` affichent désormais un toast explicite et conservent l'état de session en cas d'échec de génération
+- Handlers d'exercices : la résolution adaptive de `age_group` a été factorisée dans `_resolve_adaptive_age_group_if_needed()` pour supprimer la duplication entre `generate_exercise` et `generate_exercise_api`
+- Quality gate Python : `black app/ server/ tests/ --check` repasse au vert après nettoyage UTF-8 de `tests/unit/test_adaptive_difficulty_service.py` et reformatage des fichiers signalés
+- Hygiène repo : suppression de l'import inutilisé `cn` dans `frontend/app/challenges/page.tsx`, retrait de `frontend/junit.xml` de l'index git, nettoyage de `.gitignore` et ajout explicite de `frontend/junit.xml`
+
 ## [3.1.0-alpha.6] - 2026-03-07
 
 ### Added

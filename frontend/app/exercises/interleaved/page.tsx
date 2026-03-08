@@ -23,6 +23,7 @@ export default function InterleavedPage() {
   const router = useRouter();
   const t = useTranslations("dashboard.quickStart");
   const tSolver = useTranslations("exercises.solver");
+  const tToasts = useTranslations("toasts.exercises");
   const [status, setStatus] = useState<"loading" | "error">("loading");
 
   useEffect(() => {
@@ -56,11 +57,15 @@ export default function InterleavedPage() {
               plan: plan.plan,
               completedCount: 0,
               length: plan.length,
+              analytics: { firstAttemptTracked: false },
             })
           );
           router.replace(`/exercises/${exercise.id}?session=interleaved`);
         } else {
-          setStatus("error");
+          toast.error(tToasts("generateError"), {
+            description: tToasts("generateErrorDescription"),
+          });
+          router.replace("/exercises");
         }
       } catch (err) {
         if (cancelled) return;
@@ -74,8 +79,10 @@ export default function InterleavedPage() {
           }
         }
 
-        toast.error(err instanceof Error ? err.message : "Erreur");
-        setStatus("error");
+        toast.error(tToasts("generateError"), {
+          description: err instanceof Error ? err.message : tToasts("generateErrorDescription"),
+        });
+        router.replace("/exercises");
       }
     }
 
@@ -83,7 +90,7 @@ export default function InterleavedPage() {
     return () => {
       cancelled = true;
     };
-  }, [router, t]);
+  }, [router, t, tToasts]);
 
   return (
     <ProtectedRoute>

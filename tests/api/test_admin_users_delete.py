@@ -40,7 +40,9 @@ async def test_admin_delete_user_self_forbidden(archiviste_client):
     assert "propre compte" in response.json().get("error", "").lower()
 
 
-async def test_admin_delete_user_forbidden_padawan(padawan_client, db_session, mock_user):
+async def test_admin_delete_user_forbidden_padawan(
+    padawan_client, db_session, mock_user
+):
     """DELETE /api/admin/users/{id} — padawan interdit (403)."""
     client = padawan_client["client"]
 

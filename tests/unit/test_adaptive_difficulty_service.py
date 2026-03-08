@@ -1,11 +1,11 @@
 """
-Tests unitaires pour app/services/adaptive_difficulty_service.py — F05.
+Tests unitaires pour app/services/adaptive_difficulty_service.py  -  F05.
 
 Couvre :
-- Cascade de priorités (IRT > progression > profil > fallback)
+- Cascade de priorites (IRT > progression > profil > fallback)
 - Logique de boost (completion_rate > 85 % ET streak >= 3)
 - Logique de descente (completion_rate < 50 % ET streak = 0)
-- Cas edge : diagnostic expiré, profil vide, grade_level
+- Cas edge : diagnostic expire, profil vide, grade_level
 - Isolation : Mock de Session SQLAlchemy et de get_latest_score
 """
 
@@ -24,14 +24,13 @@ from app.services.adaptive_difficulty_service import (
     resolve_irt_level,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 
 def _make_db(progress=None):
-    """Crée un mock de Session SQLAlchemy qui retourne un Progress."""
+    """Cree un mock de Session SQLAlchemy qui retourne un Progress."""
     db = MagicMock()
     query_mock = MagicMock()
     filter_mock = MagicMock()
@@ -60,7 +59,7 @@ def _make_progress(
     mastery_level=2,
     days_ago=3,
 ):
-    """Crée un mock de Progress avec last_active_date récente."""
+    """Cree un mock de Progress avec last_active_date recente."""
     p = MagicMock()
     p.total_attempts = total_attempts
     p.completion_rate = completion_rate
@@ -71,7 +70,7 @@ def _make_progress(
 
 
 def _make_irt_score(difficulty="PADAWAN", days_ago=5):
-    """Crée un score IRT valide (< 30 jours)."""
+    """Cree un score IRT valide (< 30 jours)."""
     completed_at = datetime.now(timezone.utc) - timedelta(days=days_ago)
     return {
         "completed_at": completed_at.isoformat(),
@@ -146,19 +145,19 @@ class TestAdjustForRealtimeProgress:
         progress = _make_progress(total_attempts=10, completion_rate=90.0, streak=5)
         db = _make_db(progress=progress)
         result = _adjust_for_realtime_progress(db, 1, "addition", base_ordinal=2)
-        assert result == 3  # boost de 2 → 3
+        assert result == 3  # boost de 2 ? 3
 
     def test_no_boost_at_max_ordinal(self):
         progress = _make_progress(total_attempts=10, completion_rate=90.0, streak=5)
         db = _make_db(progress=progress)
         result = _adjust_for_realtime_progress(db, 1, "addition", base_ordinal=4)
-        assert result == 4  # plafonné
+        assert result == 4  # plafonne
 
     def test_descent_when_low_rate_and_no_streak(self):
         progress = _make_progress(total_attempts=10, completion_rate=40.0, streak=0)
         db = _make_db(progress=progress)
         result = _adjust_for_realtime_progress(db, 1, "addition", base_ordinal=2)
-        assert result == 1  # descente de 2 → 1
+        assert result == 1  # descente de 2 ? 1
 
     def test_no_descent_at_min_ordinal(self):
         progress = _make_progress(total_attempts=10, completion_rate=40.0, streak=0)
@@ -170,7 +169,7 @@ class TestAdjustForRealtimeProgress:
         progress = _make_progress(total_attempts=10, completion_rate=70.0, streak=2)
         db = _make_db(progress=progress)
         result = _adjust_for_realtime_progress(db, 1, "addition", base_ordinal=2)
-        assert result == 2  # inchangé
+        assert result == 2  # inchange
 
     def test_no_change_when_not_enough_attempts(self):
         progress = _make_progress(total_attempts=3, completion_rate=90.0, streak=5)
@@ -191,15 +190,15 @@ class TestAdjustForRealtimeProgress:
 
 
 # ---------------------------------------------------------------------------
-# Tests resolve_adaptive_difficulty — cascade de priorités
+# Tests resolve_adaptive_difficulty - cascade de priorites
 # ---------------------------------------------------------------------------
 
 
 class TestResolveAdaptiveDifficulty:
-    """Teste la cascade IRT → progression → profil → fallback."""
+    """Teste la cascade IRT ? progression ? profil ? fallback."""
 
     def test_priority1_irt_returns_adapted_age_group(self):
-        """IRT récent et valide → utilise la difficulté IRT."""
+        """IRT recent et valide ? utilise la difficulte IRT."""
         irt_score = _make_irt_score(difficulty=DifficultyLevels.CHEVALIER, days_ago=5)
         db = _make_db(progress=None)
         user = _make_user(user_id=1)
@@ -210,13 +209,17 @@ class TestResolveAdaptiveDifficulty:
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
 
-        # CHEVALIER = ordinal 2 → GROUP_12_14
+        # CHEVALIER = ordinal 2 ? GROUP_12_14
         assert result == AgeGroups.GROUP_12_14
 
     def test_priority1_irt_expired_falls_to_priority2(self):
-        """IRT > 30 jours → ignoré, passe au niveau 2."""
-        irt_score = _make_irt_score(difficulty=DifficultyLevels.GRAND_MAITRE, days_ago=35)
-        progress = _make_progress(total_attempts=10, completion_rate=70.0, streak=2, mastery_level=2)
+        """IRT > 30 jours ? ignore, passe au niveau 2."""
+        irt_score = _make_irt_score(
+            difficulty=DifficultyLevels.GRAND_MAITRE, days_ago=35
+        )
+        progress = _make_progress(
+            total_attempts=10, completion_rate=70.0, streak=2, mastery_level=2
+        )
         db = _make_db(progress=progress)
         user = _make_user(user_id=1)
 
@@ -226,13 +229,15 @@ class TestResolveAdaptiveDifficulty:
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
 
-        # IRT expiré → progression : mastery=2 → ordinal 1 → GROUP_9_11
+        # IRT expire ? progression : mastery=2 ? ordinal 1 ? GROUP_9_11
         assert result == AgeGroups.GROUP_9_11
 
     def test_priority1_irt_type_not_evaluated_falls_to_priority2(self):
-        """IRT ne couvre pas le type → passe au niveau 2."""
+        """IRT ne couvre pas le type ? passe au niveau 2."""
         irt_score = {
-            "completed_at": (datetime.now(timezone.utc) - timedelta(days=5)).isoformat(),
+            "completed_at": (
+                datetime.now(timezone.utc) - timedelta(days=5)
+            ).isoformat(),
             "scores": {
                 "soustraction": {
                     "difficulty": DifficultyLevels.MAITRE,
@@ -241,7 +246,9 @@ class TestResolveAdaptiveDifficulty:
                 }
             },
         }
-        progress = _make_progress(total_attempts=8, completion_rate=60.0, streak=1, mastery_level=3)
+        progress = _make_progress(
+            total_attempts=8, completion_rate=60.0, streak=1, mastery_level=3
+        )
         db = _make_db(progress=progress)
         user = _make_user(user_id=1)
 
@@ -251,12 +258,14 @@ class TestResolveAdaptiveDifficulty:
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
 
-        # IRT ne couvre pas addition → progression : mastery=3 → ordinal 2 → GROUP_12_14
+        # IRT ne couvre pas addition ? progression : mastery=3 ? ordinal 2 ? GROUP_12_14
         assert result == AgeGroups.GROUP_12_14
 
     def test_priority2_realtime_progress_used_when_no_irt(self):
-        """Pas d'IRT → utilise la progression temps réel."""
-        progress = _make_progress(total_attempts=10, completion_rate=72.0, streak=2, mastery_level=4)
+        """Pas d'IRT ? utilise la progression temps reel."""
+        progress = _make_progress(
+            total_attempts=10, completion_rate=72.0, streak=2, mastery_level=4
+        )
         db = _make_db(progress=progress)
         user = _make_user(user_id=1)
 
@@ -266,12 +275,14 @@ class TestResolveAdaptiveDifficulty:
         ):
             result = resolve_adaptive_difficulty(db, user, "MULTIPLICATION")
 
-        # mastery=4 → ordinal 3 → GROUP_15_17
+        # mastery=4 ? ordinal 3 ? GROUP_15_17
         assert result == AgeGroups.GROUP_15_17
 
     def test_priority2_not_enough_attempts_falls_to_priority3(self):
-        """Pas assez de tentatives → passe au profil utilisateur."""
-        progress = _make_progress(total_attempts=2, completion_rate=80.0, streak=2, mastery_level=3)
+        """Pas assez de tentatives ? passe au profil utilisateur."""
+        progress = _make_progress(
+            total_attempts=2, completion_rate=80.0, streak=2, mastery_level=3
+        )
         db = _make_db(progress=progress)
         user = _make_user(user_id=1, preferred_difficulty=DifficultyLevels.CHEVALIER)
 
@@ -281,11 +292,11 @@ class TestResolveAdaptiveDifficulty:
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
 
-        # Pas assez tentatives → profil → CHEVALIER → ordinal 2 → GROUP_12_14
+        # Pas assez tentatives ? profil ? CHEVALIER ? ordinal 2 ? GROUP_12_14
         assert result == AgeGroups.GROUP_12_14
 
     def test_priority3_preferred_difficulty_used(self):
-        """Profil utilisateur avec preferred_difficulty → utilisé comme fallback."""
+        """Profil utilisateur avec preferred_difficulty ? utilise comme fallback."""
         db = _make_db(progress=None)
         user = _make_user(user_id=1, preferred_difficulty=DifficultyLevels.MAITRE)
 
@@ -295,11 +306,11 @@ class TestResolveAdaptiveDifficulty:
         ):
             result = resolve_adaptive_difficulty(db, user, "DIVISION")
 
-        # MAITRE → ordinal 3 → GROUP_15_17
+        # MAITRE ? ordinal 3 ? GROUP_15_17
         assert result == AgeGroups.GROUP_15_17
 
     def test_priority3_grade_level_used_when_no_preferred_difficulty(self):
-        """Profil utilisateur avec grade_level → utilisé si pas de preferred_difficulty."""
+        """Profil utilisateur avec grade_level ? utilise si pas de preferred_difficulty."""
         db = _make_db(progress=None)
         user = _make_user(user_id=1, grade_level=9)
 
@@ -309,11 +320,11 @@ class TestResolveAdaptiveDifficulty:
         ):
             result = resolve_adaptive_difficulty(db, user, "FRACTIONS")
 
-        # grade 9 → ordinal 2 → GROUP_12_14
+        # grade 9 ? ordinal 2 ? GROUP_12_14
         assert result == AgeGroups.GROUP_12_14
 
     def test_priority4_fallback_when_no_data(self):
-        """Aucune donnée → fallback GROUP_9_11."""
+        """Aucune donnee ? fallback GROUP_9_11."""
         db = _make_db(progress=None)
         user = _make_user(user_id=1)
 
@@ -326,10 +337,12 @@ class TestResolveAdaptiveDifficulty:
         assert result == AgeGroups.GROUP_9_11
 
     def test_irt_with_boost_applied(self):
-        """IRT valide + boost temps réel → niveau monté."""
+        """IRT valide + boost temps reel ? niveau monte."""
         irt_score = _make_irt_score(difficulty=DifficultyLevels.PADAWAN, days_ago=10)
         # Progression avec boost (rate > 85 %, streak >= 3)
-        progress = _make_progress(total_attempts=15, completion_rate=92.0, streak=4, mastery_level=2)
+        progress = _make_progress(
+            total_attempts=15, completion_rate=92.0, streak=4, mastery_level=2
+        )
         db = _make_db(progress=progress)
         user = _make_user(user_id=1)
 
@@ -339,14 +352,16 @@ class TestResolveAdaptiveDifficulty:
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
 
-        # PADAWAN = ordinal 1, boost → 2 → GROUP_12_14
+        # PADAWAN = ordinal 1, boost ? 2 ? GROUP_12_14
         assert result == AgeGroups.GROUP_12_14
 
     def test_irt_with_descent_applied(self):
-        """IRT valide + descente temps réel → niveau descendu."""
+        """IRT valide + descente temps reel ? niveau descendu."""
         irt_score = _make_irt_score(difficulty=DifficultyLevels.CHEVALIER, days_ago=10)
         # Progression avec descente (rate < 50 %, streak = 0)
-        progress = _make_progress(total_attempts=10, completion_rate=35.0, streak=0, mastery_level=3)
+        progress = _make_progress(
+            total_attempts=10, completion_rate=35.0, streak=0, mastery_level=3
+        )
         db = _make_db(progress=progress)
         user = _make_user(user_id=1)
 
@@ -356,11 +371,11 @@ class TestResolveAdaptiveDifficulty:
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
 
-        # CHEVALIER = ordinal 2, descente → 1 → GROUP_9_11
+        # CHEVALIER = ordinal 2, descente ? 1 ? GROUP_9_11
         assert result == AgeGroups.GROUP_9_11
 
     def test_no_user_id_returns_fallback(self):
-        """Utilisateur sans id → fallback GROUP_9_11."""
+        """Utilisateur sans id ? fallback GROUP_9_11."""
         db = _make_db(progress=None)
         user = MagicMock()
         user.id = None
@@ -369,7 +384,7 @@ class TestResolveAdaptiveDifficulty:
         assert result == AgeGroups.GROUP_9_11
 
     def test_irt_exception_falls_through_to_fallback(self):
-        """Exception dans get_latest_score → continue vers fallback."""
+        """Exception dans get_latest_score ? continue vers fallback."""
         db = _make_db(progress=None)
         user = _make_user(user_id=1)
 
@@ -383,7 +398,7 @@ class TestResolveAdaptiveDifficulty:
 
 
 # ---------------------------------------------------------------------------
-# Tests _PREF_DIFFICULTY_TO_ORDINAL � mapping elargi (age_group + DifficultyLevel)
+# Tests _PREF_DIFFICULTY_TO_ORDINAL e mapping elargi (age_group + DifficultyLevel)
 # ---------------------------------------------------------------------------
 
 
@@ -391,77 +406,131 @@ class TestPrefDifficultyToOrdinal:
     def test_age_group_adulte_resolves_to_adult(self):
         db = _make_db(progress=None)
         user = _make_user(user_id=1, preferred_difficulty="adulte")
-        with patch("app.services.diagnostic_service.get_latest_score", return_value=None):
+        with patch(
+            "app.services.diagnostic_service.get_latest_score", return_value=None
+        ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
         assert result == AgeGroups.ADULT
 
     def test_age_group_9_11_resolves_to_group_9_11(self):
         db = _make_db(progress=None)
         user = _make_user(user_id=1, preferred_difficulty="9-11")
-        with patch("app.services.diagnostic_service.get_latest_score", return_value=None):
+        with patch(
+            "app.services.diagnostic_service.get_latest_score", return_value=None
+        ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
         assert result == AgeGroups.GROUP_9_11
 
     def test_age_group_12_14_resolves_to_group_12_14(self):
         db = _make_db(progress=None)
         user = _make_user(user_id=1, preferred_difficulty="12-14")
-        with patch("app.services.diagnostic_service.get_latest_score", return_value=None):
+        with patch(
+            "app.services.diagnostic_service.get_latest_score", return_value=None
+        ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
         assert result == AgeGroups.GROUP_12_14
 
     def test_age_group_15_17_resolves_to_group_15_17(self):
         db = _make_db(progress=None)
         user = _make_user(user_id=1, preferred_difficulty="15-17")
-        with patch("app.services.diagnostic_service.get_latest_score", return_value=None):
+        with patch(
+            "app.services.diagnostic_service.get_latest_score", return_value=None
+        ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
         assert result == AgeGroups.GROUP_15_17
 
     def test_difficulty_level_grand_maitre_still_works(self):
         db = _make_db(progress=None)
         user = _make_user(user_id=1, preferred_difficulty=DifficultyLevels.GRAND_MAITRE)
-        with patch("app.services.diagnostic_service.get_latest_score", return_value=None):
+        with patch(
+            "app.services.diagnostic_service.get_latest_score", return_value=None
+        ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
         assert result == AgeGroups.ADULT
 
 
 # ---------------------------------------------------------------------------
-# Tests _irt_ordinal_for_type � resolution directe et proxy
+# Tests _irt_ordinal_for_type e resolution directe et proxy
 # ---------------------------------------------------------------------------
 
 
-def _make_full_irt_scores(addition="CHEVALIER", soustraction="CHEVALIER", multiplication="MAITRE", division="PADAWAN"):
+def _make_full_irt_scores(
+    addition="CHEVALIER",
+    soustraction="CHEVALIER",
+    multiplication="MAITRE",
+    division="PADAWAN",
+):
     return {
         "addition": {"difficulty": addition, "level": 2, "correct": 3, "total": 4},
-        "soustraction": {"difficulty": soustraction, "level": 2, "correct": 3, "total": 4},
-        "multiplication": {"difficulty": multiplication, "level": 3, "correct": 4, "total": 4},
+        "soustraction": {
+            "difficulty": soustraction,
+            "level": 2,
+            "correct": 3,
+            "total": 4,
+        },
+        "multiplication": {
+            "difficulty": multiplication,
+            "level": 3,
+            "correct": 4,
+            "total": 4,
+        },
         "division": {"difficulty": division, "level": 1, "correct": 2, "total": 4},
     }
 
 
 class TestIrtOrdinalForType:
     def test_direct_addition(self):
-        assert _irt_ordinal_for_type(_make_full_irt_scores(addition="CHEVALIER"), "addition") == 2
+        assert (
+            _irt_ordinal_for_type(
+                _make_full_irt_scores(addition="CHEVALIER"), "addition"
+            )
+            == 2
+        )
 
     def test_direct_multiplication(self):
-        assert _irt_ordinal_for_type(_make_full_irt_scores(multiplication="MAITRE"), "multiplication") == 3
+        assert (
+            _irt_ordinal_for_type(
+                _make_full_irt_scores(multiplication="MAITRE"), "multiplication"
+            )
+            == 3
+        )
 
     def test_direct_grand_maitre(self):
-        assert _irt_ordinal_for_type(_make_full_irt_scores(addition="GRAND_MAITRE"), "addition") == 4
+        assert (
+            _irt_ordinal_for_type(
+                _make_full_irt_scores(addition="GRAND_MAITRE"), "addition"
+            )
+            == 4
+        )
 
     def test_proxy_mixte_returns_minimum(self):
-        scores = _make_full_irt_scores(addition="CHEVALIER", soustraction="MAITRE", multiplication="MAITRE", division="PADAWAN")
+        scores = _make_full_irt_scores(
+            addition="CHEVALIER",
+            soustraction="MAITRE",
+            multiplication="MAITRE",
+            division="PADAWAN",
+        )
         assert _irt_ordinal_for_type(scores, "mixte") == 1
 
     def test_proxy_mixte_all_grand_maitre(self):
-        scores = _make_full_irt_scores(addition="GRAND_MAITRE", soustraction="GRAND_MAITRE", multiplication="GRAND_MAITRE", division="GRAND_MAITRE")
+        scores = _make_full_irt_scores(
+            addition="GRAND_MAITRE",
+            soustraction="GRAND_MAITRE",
+            multiplication="GRAND_MAITRE",
+            division="GRAND_MAITRE",
+        )
         assert _irt_ordinal_for_type(scores, "mixte") == 4
 
     def test_proxy_fractions_uses_division_level(self):
         scores = _make_full_irt_scores(multiplication="MAITRE", division="PADAWAN")
-        assert _irt_ordinal_for_type(scores, "fractions") == 1  # PADAWAN (division seule)
+        assert (
+            _irt_ordinal_for_type(scores, "fractions") == 1
+        )  # PADAWAN (division seule)
 
     def test_proxy_fractions_both_grand_maitre(self):
-        scores = _make_full_irt_scores(multiplication="GRAND_MAITRE", division="GRAND_MAITRE")
+        scores = _make_full_irt_scores(
+            multiplication="GRAND_MAITRE", division="GRAND_MAITRE"
+        )
         assert _irt_ordinal_for_type(scores, "fractions") == 4
 
     def test_no_proxy_geometrie_returns_none(self):
@@ -478,53 +547,80 @@ class TestIrtOrdinalForType:
 
     def test_proxy_mixte_partial_scores(self):
         partial = {
-            "addition": {"difficulty": "CHEVALIER", "level": 2, "correct": 3, "total": 4},
-            "multiplication": {"difficulty": "MAITRE", "level": 3, "correct": 4, "total": 4},
+            "addition": {
+                "difficulty": "CHEVALIER",
+                "level": 2,
+                "correct": 3,
+                "total": 4,
+            },
+            "multiplication": {
+                "difficulty": "MAITRE",
+                "level": 3,
+                "correct": 4,
+                "total": 4,
+            },
         }
         assert _irt_ordinal_for_type(partial, "mixte") == 2
 
 
 # ---------------------------------------------------------------------------
-# Tests resolve_irt_level � point d entree public
+# Tests resolve_irt_level e point d'entree public
 # ---------------------------------------------------------------------------
 
 
 class TestResolveIrtLevel:
     def _make_db_with_irt(self, scores, days_ago=5):
-        completed_at = (datetime.now(timezone.utc) - timedelta(days=days_ago)).isoformat()
+        completed_at = (
+            datetime.now(timezone.utc) - timedelta(days=days_ago)
+        ).isoformat()
         irt_data = {"completed_at": completed_at, "scores": scores}
         return _make_db(progress=None), irt_data
 
     def test_returns_difficulty_for_direct_type(self):
         scores = _make_full_irt_scores(addition="CHEVALIER")
         db, irt_data = self._make_db_with_irt(scores)
-        with patch("app.services.diagnostic_service.get_latest_score", return_value=irt_data):
+        with patch(
+            "app.services.diagnostic_service.get_latest_score", return_value=irt_data
+        ):
             result = resolve_irt_level(db, user_id=1, exercise_type="ADDITION")
         assert result == DifficultyLevels.CHEVALIER
 
     def test_returns_none_for_geometrie(self):
         scores = _make_full_irt_scores()
         db, irt_data = self._make_db_with_irt(scores)
-        with patch("app.services.diagnostic_service.get_latest_score", return_value=irt_data):
+        with patch(
+            "app.services.diagnostic_service.get_latest_score", return_value=irt_data
+        ):
             result = resolve_irt_level(db, user_id=1, exercise_type="GEOMETRIE")
         assert result is None
 
     def test_returns_none_when_no_diagnostic(self):
         db = _make_db(progress=None)
-        with patch("app.services.diagnostic_service.get_latest_score", return_value=None):
+        with patch(
+            "app.services.diagnostic_service.get_latest_score", return_value=None
+        ):
             result = resolve_irt_level(db, user_id=1, exercise_type="ADDITION")
         assert result is None
 
     def test_returns_none_when_irt_expired(self):
         scores = _make_full_irt_scores(addition="GRAND_MAITRE")
         db, irt_data = self._make_db_with_irt(scores, days_ago=35)
-        with patch("app.services.diagnostic_service.get_latest_score", return_value=irt_data):
+        with patch(
+            "app.services.diagnostic_service.get_latest_score", return_value=irt_data
+        ):
             result = resolve_irt_level(db, user_id=1, exercise_type="ADDITION")
         assert result is None
 
     def test_mixte_returns_minimum_difficulty(self):
-        scores = _make_full_irt_scores(addition="CHEVALIER", soustraction="MAITRE", multiplication="MAITRE", division="INITIE")
+        scores = _make_full_irt_scores(
+            addition="CHEVALIER",
+            soustraction="MAITRE",
+            multiplication="MAITRE",
+            division="INITIE",
+        )
         db, irt_data = self._make_db_with_irt(scores)
-        with patch("app.services.diagnostic_service.get_latest_score", return_value=irt_data):
+        with patch(
+            "app.services.diagnostic_service.get_latest_score", return_value=irt_data
+        ):
             result = resolve_irt_level(db, user_id=1, exercise_type="MIXTE")
         assert result == DifficultyLevels.INITIE

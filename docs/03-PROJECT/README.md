@@ -36,6 +36,12 @@
 | **[IMPLEMENTATION_F32_SESSION_ENTRELACEE.md](./IMPLEMENTATION_F32_SESSION_ENTRELACEE.md)** | 07/03/2026 | **F32** — Session entrelacée (plan interleaved, CTA Quick Start, flux session côté frontend) |
 | **[IMPLEMENTATION_F35_REDACTION_LOGS_DB.md](./IMPLEMENTATION_F35_REDACTION_LOGS_DB.md)** | 07/03/2026 | **F35** — Redaction des secrets dans les logs DB (`app/db/base.py`, tests unitaires) |
 
+### Guidage implementation (Cursor)
+
+| Document | Date | Sujet |
+|----------|------|-------|
+| **[GUIDAGE_CURSOR_ALIGNEMENT_POST_IMPL_2026-03-08.md](./GUIDAGE_CURSOR_ALIGNEMENT_POST_IMPL_2026-03-08.md)** | 08/03/2026 | **Guide d'execution** — recommandations post-audit pour analytics interleaved, robustesse session, hygiene quality gates, DRY et standardisation |
+
 ### Refactoring (terminé P1–P3 / Ph1–Ph3)
 
 | Document | Date | Sujet |

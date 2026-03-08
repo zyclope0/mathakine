@@ -21,17 +21,25 @@ from server.exercise_generator import (
 def _assert_valid_exercise(ex, *, expected_type=None, ai_generated=None):
     """Assertions structurelles communes à tout exercice généré."""
     assert isinstance(ex, dict), "Le résultat doit être un dict"
-    for key in ("exercise_type", "age_group", "difficulty", "title", "question",
-                "correct_answer", "choices", "explanation"):
+    for key in (
+        "exercise_type",
+        "age_group",
+        "difficulty",
+        "title",
+        "question",
+        "correct_answer",
+        "choices",
+        "explanation",
+    ):
         assert key in ex, f"Clé manquante: {key}"
 
     assert isinstance(ex["choices"], list), "choices doit être une liste"
     assert len(ex["choices"]) >= 2, "Au moins 2 choix requis"
 
     choices_str = [str(c) for c in ex["choices"]]
-    assert str(ex["correct_answer"]) in choices_str, (
-        f"correct_answer '{ex['correct_answer']}' absent de choices {choices_str}"
-    )
+    assert (
+        str(ex["correct_answer"]) in choices_str
+    ), f"correct_answer '{ex['correct_answer']}' absent de choices {choices_str}"
 
     assert ex["title"], "Le titre ne doit pas être vide"
     assert ex["question"], "La question ne doit pas être vide"
@@ -185,6 +193,10 @@ class TestEnsureExplanation:
         assert result["explanation"] == "Custom explanation."
 
     def test_replaces_empty_explanation(self):
-        ex = {"exercise_type": "MULTIPLICATION", "correct_answer": "10", "explanation": ""}
+        ex = {
+            "exercise_type": "MULTIPLICATION",
+            "correct_answer": "10",
+            "explanation": "",
+        }
         result = ensure_explanation(ex)
         assert result["explanation"] != ""

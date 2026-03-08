@@ -44,6 +44,38 @@ def _parse_submit_answer_payload(raw_data: dict) -> SubmitAnswerRequest:
     return SubmitAnswerRequest.model_validate(raw_data)
 
 
+async def _resolve_adaptive_age_group_if_needed(
+    request: Request,
+    exercise_type_raw: str | None,
+    age_group_raw: str | None,
+    adaptive: bool,
+) -> str | None:
+    """
+    Résout age_group de façon adaptative si l'utilisateur est authentifié
+    et qu'aucun age_group n'est fourni.
+
+    Utilisé par generate_exercise et generate_exercise_api.
+    """
+    current_user = getattr(request.state, "user", None)
+    if not adaptive or not current_user or age_group_raw:
+        return age_group_raw
+    try:
+        from app.models.user import User
+        from app.services.adaptive_difficulty_service import resolve_adaptive_difficulty
+        from server.exercise_generator_validators import normalize_exercise_type
+
+        resolved_type = normalize_exercise_type(exercise_type_raw or "ADDITION")
+        async with db_session() as db:
+            user_obj = db.query(User).filter(User.id == current_user["id"]).first()
+            if user_obj:
+                return resolve_adaptive_difficulty(db, user_obj, resolved_type)
+    except Exception as adaptive_err:
+        logger.warning(
+            f"[AdaptiveDifficulty] Résolution échouée, fallback statique: {adaptive_err}"
+        )
+    return age_group_raw
+
+
 async def generate_exercise(request: Request) -> Response:
     """Génère un nouvel exercice en utilisant le groupe d'âge.
 
@@ -57,29 +89,9 @@ async def generate_exercise(request: Request) -> Response:
     age_group_raw = params.get("age_group")  # Changed from difficulty
     use_ai = params.get("ai", False)
     adaptive = params.get("adaptive", "true").lower() not in ("false", "0", "no")
-
-    # Résolution adaptative si authentifié et aucun age_group forcé
-    current_user = getattr(request.state, "user", None)
-    if adaptive and current_user and not age_group_raw:
-        try:
-            from app.models.user import User
-            from app.services.adaptive_difficulty_service import (
-                resolve_adaptive_difficulty,
-            )
-            from app.utils.db_utils import db_session
-            from server.exercise_generator_validators import normalize_exercise_type
-
-            resolved_type = normalize_exercise_type(exercise_type_raw or "ADDITION")
-            async with db_session() as db:
-                user_obj = db.query(User).filter(User.id == current_user["id"]).first()
-                if user_obj:
-                    age_group_raw = resolve_adaptive_difficulty(
-                        db, user_obj, resolved_type
-                    )
-        except Exception as adaptive_err:
-            logger.warning(
-                f"[AdaptiveDifficulty] Résolution échouée, fallback statique: {adaptive_err}"
-            )
+    age_group_raw = await _resolve_adaptive_age_group_if_needed(
+        request, exercise_type_raw, age_group_raw, adaptive
+    )
 
     # Normaliser et valider les paramètres
     exercise_type, age_group, derived_difficulty = (
@@ -331,29 +343,9 @@ async def generate_exercise_api(request: Request) -> JSONResponse:
         if not exercise_type_raw:
             return api_error_response(400, "Le paramètre 'exercise_type' est requis")
 
-        # Résolution adaptative si authentifié et aucun age_group fourni
-        current_user = getattr(request.state, "user", None)
-        if adaptive and current_user and not age_group_raw:
-            try:
-                from app.models.user import User
-                from app.services.adaptive_difficulty_service import (
-                    resolve_adaptive_difficulty,
-                )
-                from server.exercise_generator_validators import normalize_exercise_type
-
-                resolved_type = normalize_exercise_type(exercise_type_raw)
-                async with db_session() as db:
-                    user_obj = (
-                        db.query(User).filter(User.id == current_user["id"]).first()
-                    )
-                    if user_obj:
-                        age_group_raw = resolve_adaptive_difficulty(
-                            db, user_obj, resolved_type
-                        )
-            except Exception as adaptive_err:
-                logger.warning(
-                    f"[AdaptiveDifficulty] Résolution échouée, fallback statique: {adaptive_err}"
-                )
+        age_group_raw = await _resolve_adaptive_age_group_if_needed(
+            request, exercise_type_raw, age_group_raw, adaptive
+        )
 
         if not age_group_raw:
             return api_error_response(400, "Le paramètre 'age_group' est requis")
@@ -407,14 +399,19 @@ async def generate_exercise_api(request: Request) -> JSONResponse:
                         ai_generated=ai_generated,
                         locale=locale,
                     )
-                    if created_exercise:
-                        exercise_dict["id"] = created_exercise["id"]
-                        logger.info(
-                            f"Exercice sauvegardé avec ID={created_exercise['id']}"
+                    if not created_exercise or not created_exercise.get("id"):
+                        return api_error_response(
+                            500,
+                            "Erreur lors de la sauvegarde de l'exercice",
                         )
+                    exercise_dict["id"] = created_exercise["id"]
+                    logger.info(f"Exercice sauvegardé avec ID={created_exercise['id']}")
             except Exception as save_error:
                 logger.warning(f"Erreur lors de la sauvegarde: {save_error}")
-                # Continuer même si la sauvegarde échoue
+                return api_error_response(
+                    500,
+                    "Erreur lors de la sauvegarde de l'exercice",
+                )
 
         # Retourner l'exercice généré
         return JSONResponse(exercise_dict)

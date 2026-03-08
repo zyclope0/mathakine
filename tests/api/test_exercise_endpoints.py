@@ -136,6 +136,38 @@ async def test_interleaved_plan_409_not_enough_variety(padawan_client):
     assert data["detail"].get("code") == "not_enough_variety"
 
 
+async def test_generate_exercise_save_fails_returns_500(padawan_client):
+    """Lot 2 — Si save=true et la sauvegarde échoue, retourner 500."""
+    from unittest.mock import patch
+
+    client = padawan_client["client"]
+    with patch(
+        "server.handlers.exercise_handlers.EnhancedServerAdapter.create_generated_exercise",
+        return_value=None,
+    ):
+        response = await client.post(
+            "/api/exercises/generate",
+            json={"exercise_type": "addition", "age_group": "6-8", "save": True},
+        )
+    assert response.status_code == 500
+
+
+async def test_generate_exercise_save_exception_returns_500(padawan_client):
+    """Lot 2 — Si save=true et create_generated_exercise lève, retourner 500."""
+    from unittest.mock import patch
+
+    client = padawan_client["client"]
+    with patch(
+        "server.handlers.exercise_handlers.EnhancedServerAdapter.create_generated_exercise",
+        side_effect=Exception("DB error"),
+    ):
+        response = await client.post(
+            "/api/exercises/generate",
+            json={"exercise_type": "addition", "age_group": "6-8", "save": True},
+        )
+    assert response.status_code == 500
+
+
 async def test_interleaved_plan_200(padawan_client, db_session):
     """F32 — Utilisateur avec 2+ types éligibles → 200 avec plan valide."""
     from app.models.attempt import Attempt

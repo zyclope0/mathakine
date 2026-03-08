@@ -32,7 +32,6 @@ import { Filter, X, Puzzle, Search, LayoutGrid, List, EyeOff } from "lucide-reac
 import { CompactListItem } from "@/components/shared/CompactListItem";
 import { getStaggerDelay } from "@/lib/utils/animation";
 import { isAiGenerated } from "@/lib/utils/format";
-import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import {
   PageLayout,

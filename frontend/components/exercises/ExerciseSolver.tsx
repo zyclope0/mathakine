@@ -14,7 +14,8 @@ import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { MathText } from "@/components/ui/MathText";
 import { GrowthMindsetHint } from "@/components/ui/GrowthMindsetHint";
-import { api } from "@/lib/api/client";
+import { api, ApiClientError } from "@/lib/api/client";
+import { toast } from "sonner";
 
 interface ExerciseSolverProps {
   exerciseId: number;
@@ -27,6 +28,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
   const searchParams = useSearchParams();
   const sessionMode = searchParams.get("session") === "interleaved" ? "interleaved" : null;
   const t = useTranslations("exercises.solver");
+  const tToasts = useTranslations("toasts.exercises");
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
   const { exercise, isLoading, error } = useExercise(exerciseId);
   const { submitAnswer, isSubmitting, submitResult } = useSubmitAnswer();
@@ -39,6 +41,7 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
     plan: string[];
     completedCount: number;
     length: number;
+    analytics?: { firstAttemptTracked?: boolean };
   } | null>(null);
   const [isGeneratingNext, setIsGeneratingNext] = useState(false);
   const startTimeRef = useRef<number>(0);
@@ -52,12 +55,14 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
             plan?: string[];
             completedCount?: number;
             length?: number;
+            analytics?: { firstAttemptTracked?: boolean };
           };
           if (parsed.plan && Array.isArray(parsed.plan)) {
             setSessionData({
               plan: parsed.plan,
               completedCount: parsed.completedCount ?? 0,
               length: parsed.length ?? parsed.plan.length,
+              ...(parsed.analytics && { analytics: parsed.analytics }),
             });
           }
         }
@@ -140,22 +145,46 @@ export function ExerciseSolver({ exerciseId }: ExerciseSolverProps) {
     setIsGeneratingNext(true);
     try {
       const nextType = sessionData.plan[nextIndex];
-      const exercise = await api.post<{ id: number }>("/api/exercises/generate", {
+      const exercise = await api.post<{ id?: number }>("/api/exercises/generate", {
         exercise_type: nextType,
         adaptive: true,
         save: true,
       });
       if (exercise?.id) {
+        let analytics = sessionData.analytics ?? { firstAttemptTracked: false };
+        try {
+          const currentRaw = sessionStorage.getItem(INTERLEAVED_STORAGE_KEY);
+          if (currentRaw) {
+            const current = JSON.parse(currentRaw) as {
+              analytics?: { firstAttemptTracked?: boolean };
+            };
+            if (current.analytics?.firstAttemptTracked) {
+              analytics = { ...analytics, firstAttemptTracked: true };
+            }
+          }
+        } catch {
+          // ignorer
+        }
         sessionStorage.setItem(
           INTERLEAVED_STORAGE_KEY,
           JSON.stringify({
             plan: sessionData.plan,
             completedCount: nextIndex,
             length: sessionData.length,
+            analytics,
           })
         );
         router.push(`/exercises/${exercise.id}?session=interleaved`);
+      } else {
+        toast.error(tToasts("generateError"), {
+          description: tToasts("generateErrorDescription"),
+        });
       }
+    } catch (err) {
+      toast.error(tToasts("generateError"), {
+        description:
+          err instanceof ApiClientError ? err.message : tToasts("generateErrorDescription"),
+      });
     } finally {
       setIsGeneratingNext(false);
     }

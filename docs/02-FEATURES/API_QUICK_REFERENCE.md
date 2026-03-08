@@ -1,7 +1,7 @@
 # API Quick Reference — Mathakine
 
 > Référence condensée des endpoints — Frontend/Backend  
-> **Date :** 07/03/2026 (MAJ F32 + F35)  
+> **Date :** 08/03/2026 (MAJ F32 hardening + F35)  
 > **Détails :** [ENDPOINTS_NON_INTEGRES](../03-PROJECT/ENDPOINTS_NON_INTEGRES.md), [PLACEHOLDERS_ET_TODO](../03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/PLACEHOLDERS_ET_TODO.md)
 
 ---
@@ -98,7 +98,7 @@
 | POST | `/api/exercises/{id}/attempt` | Oui | `{answer}` | OK |
 | GET | `/api/exercises/completed-ids` | Oui | — | OK |
 | ~~GET~~ | ~~`/api/exercises/generate`~~ | — | — | Supprimé (audit H2, 01/03/2026) |
-| POST | `/api/exercises/generate` | Optionnel | `{exercise_type, age_group?, adaptive?, save?, ai?}` | OK — `adaptive=true` + utilisateur auth : résout `age_group` automatiquement (F05/F32) |
+| POST | `/api/exercises/generate` | Optionnel | `{exercise_type, age_group?, adaptive?, save?, ai?}` | OK — `adaptive=true` + utilisateur auth : résout `age_group` automatiquement (F05/F32). Si `save=true`, renvoie un exercice persisté avec `id` ou une erreur `500` |
 | GET | `/api/exercises/generate-ai-stream` | Non | — | OK (SSE) |
 | ~~DELETE~~ | ~~`/api/exercises/{id}`~~ | — | — | Supprimé — archivage prévu dans l’admin |
 

@@ -3,6 +3,7 @@
 ## Statut
 
 - Statut : Implémente le 07/03/2026
+- Durcissements post-implementation : 08/03/2026
 - Portee : MVP sans migration DB, session ephemere cote client, endpoint de plan dedie
 
 ## Objectif
@@ -34,6 +35,25 @@ Pour limiter le risque :
   - adaptation dynamique F05
 
 La session est ephemere cote client via `sessionStorage`.
+
+## Durcissements post-implementation (08/03/2026)
+
+Les lots de stabilisation appliques apres la livraison MVP ont cible les points
+les plus fragiles du flux F32 :
+
+- analytics EdTech `interleaved` : emission de `first_attempt` une seule fois
+  par session, avec persistance `analytics.firstAttemptTracked` dans
+  `sessionStorage`
+- robustesse `save=true` : `POST /api/exercises/generate` renvoie maintenant
+  une erreur `500` si la sauvegarde echoue ou ne retourne pas d'`id`
+- UX d'erreur : toast explicite + fallback vers `/exercises` a l'entree de
+  session ; toast explicite et conservation de la session lors de
+  `Exercice suivant`
+- DRY backend : resolution adaptive `age_group` factorisee dans
+  `_resolve_adaptive_age_group_if_needed()` pour supprimer la duplication entre
+  `generate_exercise` et `generate_exercise_api`
+- hygiene quality gate : `black app/ server/ tests/ --check` remis au vert et
+  nettoyage repo (`frontend/junit.xml`, `.gitignore`, import inutilise)
 
 ## Valeur pedagogique a respecter
 

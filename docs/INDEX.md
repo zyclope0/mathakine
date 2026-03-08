@@ -77,6 +77,7 @@ docs/
 │   ├── POLITIQUE_REDACTION_LOGS_PII.md  # Règles PII/secrets dans les logs
 │   ├── IMPLEMENTATION_F32_SESSION_ENTRELACEE.md  # Dossier d'implémentation F32 (session entrelacée)
 │   ├── IMPLEMENTATION_F35_REDACTION_LOGS_DB.md  # Dossier d'implémentation F35 (redaction logs DB)
+│   ├── GUIDAGE_CURSOR_ALIGNEMENT_POST_IMPL_2026-03-08.md  # Guide Cursor post-audit (P1/P2/P3)
 │   ├── ENDPOINTS_NON_INTEGRES.md  # Endpoints à intégrer
 │   └── AUDITS_ET_RAPPORTS_ARCHIVES/  # 📦 Audits implémentés + rapports temporaires
 │       ├── PLACEHOLDERS_ET_TODO.md  # Endpoints à implémenter (archivé avec rapports)
@@ -257,6 +258,9 @@ docs/
 
 ## 🔄 Dernières mises à jour
 
+### 08/03/2026 — Guidage Cursor post-audit
+- 📙 **[GUIDAGE_CURSOR_ALIGNEMENT_POST_IMPL_2026-03-08.md](03-PROJECT/GUIDAGE_CURSOR_ALIGNEMENT_POST_IMPL_2026-03-08.md)** — guide d'execution tres cadre pour Cursor : analytics interleaved, robustesse `save=true`, hygiene `black`, DRY et standardisation minimale
+- 📝 **[README.md](03-PROJECT/README.md)** — index 03-PROJECT enrichi avec la nouvelle entree de guidage implementation
 ### 07/03/2026 — F32 Session entrelacee + F35 securite logs DB
 - 📝 **[ROADMAP_FONCTIONNALITES.md](02-FEATURES/ROADMAP_FONCTIONNALITES.md)** — F32 et F35 marqués ✅ implémentés (matrice, sections, historique)
 - 📝 **[API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md)** — endpoint F32 `GET /api/exercises/interleaved-plan?length=10` + contrat `POST /api/exercises/generate` clarifié (`adaptive`, `age_group?`)

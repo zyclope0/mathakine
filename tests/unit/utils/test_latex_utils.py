@@ -2,7 +2,10 @@
 
 import pytest
 
-from app.utils.latex_utils import sanitize_exercise_text_fields, sanitize_latex_fractions
+from app.utils.latex_utils import (
+    sanitize_exercise_text_fields,
+    sanitize_latex_fractions,
+)
 
 
 class TestSanitizeLatexFractions:

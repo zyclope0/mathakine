@@ -1,7 +1,7 @@
 # Analytics EdTech — Parcours guidé et conversion
 
 > **Statut** : Implémenté  
-> **Date** : 07/03/2026 (MAJ F32 interleaved)  
+> **Date** : 08/03/2026 (MAJ F32 interleaved + hardening session)  
 > **Cible** : Admins (rôle archiviste)
 
 ## Objectif
@@ -20,13 +20,14 @@ Mesurer l'efficacité du bloc Quick Start (parcours guidé) :
 | Événement | Déclencheur | Payload |
 |-----------|-------------|---------|
 | `quick_start_click` | Clic sur un CTA Quick Start (exercice, défi, session entrelacée) | type, guided, targetId |
-| `first_attempt` | Soumission (exercice, défi, session entrelacée) | type, targetId, timeToFirstAttemptMs (si flux Quick Start) |
+| `first_attempt` | Soumission (exercice, défi). Pour session entrelacée : **une seule fois** au premier exercice soumis | type, targetId, timeToFirstAttemptMs (si flux Quick Start) |
 
 ### 1.2 Module `lib/analytics/edtech.ts`
 
 - `trackDashboardView()` — conservé pour compat ; le temps utilise le clic Quick Start
 - `trackQuickStartClick(payload)` — stocke le timestamp au clic, envoie l'événement
-- `trackFirstAttempt(type, targetId)` — calcule timeToFirstAttemptMs = submit - clic Quick Start (plafond 24h, valeurs négatives ignorées)
+- `trackFirstAttempt(type, targetId)` — calcule timeToFirstAttemptMs = submit - clic Quick Start (plafond 24h). Pour `type=interleaved` : n'émet qu'au premier submit de la session (évite surcomptage)
+- la session entrelacée persiste `analytics.firstAttemptTracked` dans `sessionStorage` pour empêcher une réémission lors du passage à l'exercice suivant
 
 ### 1.3 Envoi des données
 

@@ -981,22 +981,26 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
         "explanation": "2+2=4",
     }
 
-    with patch.object(
-        ExerciseService,
-        "get_exercise_for_submit_validation",
-        return_value=exercise_payload,
-    ), patch.object(
-        ExerciseService,
-        "record_attempt",
-        return_value=mock_attempt,
-    ) as record_attempt_mock, patch(
-        "app.services.badge_service.BadgeService",
-        return_value=mock_badge_service,
-    ) as badge_service_cls, patch(
-        "app.services.streak_service.update_user_streak"
-    ) as streak_mock, patch(
-        "app.services.daily_challenge_service.record_exercise_completed"
-    ) as daily_mock:
+    with (
+        patch.object(
+            ExerciseService,
+            "get_exercise_for_submit_validation",
+            return_value=exercise_payload,
+        ),
+        patch.object(
+            ExerciseService,
+            "record_attempt",
+            return_value=mock_attempt,
+        ) as record_attempt_mock,
+        patch(
+            "app.services.badge_service.BadgeService",
+            return_value=mock_badge_service,
+        ) as badge_service_cls,
+        patch("app.services.streak_service.update_user_streak") as streak_mock,
+        patch(
+            "app.services.daily_challenge_service.record_exercise_completed"
+        ) as daily_mock,
+    ):
         result = ExerciseService.submit_answer_result(
             mock_db,
             exercise_id=42,

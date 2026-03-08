@@ -1,6 +1,6 @@
 # Backlog & Priorisation des Features — Mathakine
 
-> **Document vivant** — Dernière MAJ : 07/03/2026 (F07, F33, F32 et F35 implémentés)  
+> **Document vivant** — Dernière MAJ : 08/03/2026 (F32 durci, F07/F33/F35 alignés)  
 > **Rôle** : Source de vérité unique pour toutes les features à implémenter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -506,6 +506,12 @@ Route: /parent/child/[id] → progression détaillée
 - i18n FR/EN : clés `dashboard.quickStart.interleaved*` et `exercises.solver.session*`
 - Correctif critique F05/F32 : `POST /api/exercises/generate` passe en `@optional_auth`, ce qui active correctement la résolution adaptative `age_group` quand `adaptive=true`
 
+**Durcissements post-implémentation (08/03/2026)** :
+- analytics EdTech `interleaved` ramenées à une sémantique session : `first_attempt` n'est émis qu'une seule fois au premier exercice soumis, avec persistance `sessionStorage`
+- flux de session durci : `POST /api/exercises/generate` ne renvoie plus de `200` sans `id` quand `save=true` ; en cas d'échec, le frontend affiche un toast et conserve l'état de session
+- dette DRY réduite : la résolution adaptive `age_group` est factorisée dans `_resolve_adaptive_age_group_if_needed()` pour éviter la divergence entre `generate_exercise` et `generate_exercise_api`
+- quality gate restauré : `black app/ server/ tests/ --check` repasse au vert ; nettoyage UTF-8 de `tests/unit/test_adaptive_difficulty_service.py` et hygiène repo (`frontend/junit.xml`, `.gitignore`, import inutilisé)
+
 **Tests** :
 - `tests/unit/test_interleaved_practice_service.py`
 - `tests/api/test_exercise_endpoints.py` (auth, `409 not_enough_variety`, succès `200`, non-régression `adaptive=true` sans `age_group` explicite)
@@ -671,7 +677,7 @@ Avatars, titres, cadres de profil débloquables avec les points. Donne de la val
 | F01 — Rendu Markdown/KaTeX dans les explications | 2026 | Composant `MathText.tsx` — intégré dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver` |
 | F03 — Test de diagnostic initial (IRT adaptatif) | 04/03/2026 | [ROADMAP_FONCTIONNALITES §F03](ROADMAP_FONCTIONNALITES.md) |
 | F35 — Redaction secrets logs DB (sécurité) | 07/03/2026 | [IMPLEMENTATION_F35_REDACTION_LOGS_DB](../03-PROJECT/IMPLEMENTATION_F35_REDACTION_LOGS_DB.md) |
-| F32 — Session entrelacée (interleaving) | 07/03/2026 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE](../03-PROJECT/IMPLEMENTATION_F32_SESSION_ENTRELACEE.md) |
+| F32 — Session entrelacée (interleaving) | 07-08/03/2026 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE](../03-PROJECT/IMPLEMENTATION_F32_SESSION_ENTRELACEE.md) |
 | F33 — Feedback Growth Mindset (copywriting + micro-UI) | 07/03/2026 | [ROADMAP_FONCTIONNALITES §F33](ROADMAP_FONCTIONNALITES.md) |
 | F07 — Courbe d'évolution temporelle (7j/30j) | 07/03/2026 | [IMPLEMENTATION_F07_TIMELINE](../03-PROJECT/IMPLEMENTATION_F07_TIMELINE.md) |
 | Espace admin complet (rôle archiviste) | 16/02/2026 | [ADMIN_ESPACE_PROPOSITION](ADMIN_ESPACE_PROPOSITION.md) |

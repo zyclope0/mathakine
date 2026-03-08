@@ -10,6 +10,7 @@
 
 const KEY_QUICK_START_CLICKED = "mathakine_quick_start_clicked_at";
 const KEY_DASHBOARD_VIEWED = "mathakine_dashboard_viewed_at"; // conservé pour compat
+const KEY_INTERLEAVED_SESSION = "interleaved_session";
 const EVENT_NAME = "mathakine-edtech";
 const MAX_TIME_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -87,11 +88,33 @@ export interface FirstAttemptPayload {
  * À appeler lors de la soumission (exercice ou défi).
  * Calcule timeToFirstAttemptMs si l'utilisateur est passé par un clic Quick Start.
  * Référence = clic Quick Start (pas dashboard view) pour éviter temps négatifs et décalages.
+ *
+ * Pour type="interleaved" : n'émet qu'une seule fois par session (premier exercice soumis).
+ * Les exercices suivants de la même session n'émettent pas de first_attempt.
  */
 export function trackFirstAttempt(
   type: "exercise" | "challenge" | "interleaved",
   targetId: number
 ): void {
+  if (type === "interleaved" && isClient()) {
+    try {
+      const raw = sessionStorage.getItem(KEY_INTERLEAVED_SESSION);
+      if (raw) {
+        const data = JSON.parse(raw) as {
+          analytics?: { firstAttemptTracked?: boolean };
+          plan?: string[];
+          completedCount?: number;
+          length?: number;
+        };
+        if (data.analytics?.firstAttemptTracked) {
+          return;
+        }
+      }
+    } catch {
+      // ignorer
+    }
+  }
+
   let timeToFirstAttemptMs: number | null = null;
   if (isClient()) {
     try {
@@ -116,4 +139,27 @@ export function trackFirstAttempt(
   const p: Record<string, unknown> = { ...payload };
   dispatchEvent("first_attempt", p);
   sendToBackend("first_attempt", p);
+
+  if (type === "interleaved" && isClient()) {
+    try {
+      const raw = sessionStorage.getItem(KEY_INTERLEAVED_SESSION);
+      if (raw) {
+        const data = JSON.parse(raw) as {
+          analytics?: { firstAttemptTracked?: boolean };
+          plan?: string[];
+          completedCount?: number;
+          length?: number;
+        };
+        sessionStorage.setItem(
+          KEY_INTERLEAVED_SESSION,
+          JSON.stringify({
+            ...data,
+            analytics: { ...data.analytics, firstAttemptTracked: true },
+          })
+        );
+      }
+    } catch {
+      // ignorer
+    }
+  }
 }
