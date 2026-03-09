@@ -4,15 +4,52 @@ Toutes les modifications notables du projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et le projet adhère au [Semantic Versioning](https://semver.org/lang/fr/) avec suffixe `-alpha.N` pour les versions alpha.
 
+## Jalons internes du refactor backend (hors release produit)
+
+- Cette section suit l'itération interne de refactor backend centrée sur
+  `exercise`, `auth` et `user`.
+- Ces versions ne remplacent pas les versions produit publiées ci-dessous.
+- Cette iteration `exercise/auth/user` est maintenant cloturee en `1.0.0`.
+- Les iterations backend suivantes devront ouvrir leur propre document de
+  versioning, sans recycler celui-ci.
+- Référence détaillée :
+  [`docs/03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/VERSIONING_BACKEND_REFACTOR_EXERCISE_AUTH_USER_2026-03-08.md`](docs/03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/VERSIONING_BACKEND_REFACTOR_EXERCISE_AUTH_USER_2026-03-08.md)
+
 ## [Unreleased]
 
+### Notes
+- Rien pour le moment.
+
+## [3.1.0-alpha.7] - 2026-03-09
+
+### Changed
+- Release de fiabilisation backend centree sur `exercise`, `auth` et `user`,
+  avec handlers aminci, services applicatifs clarifies et boundaries HTTP
+  preserves.
+- Gestion du compte plus robuste : profil, sessions, export RGPD et suppression
+  de compte passent desormais derriere une boundary `user` plus propre.
+- Authentification plus robuste : login, refresh, verification, forgot/reset et
+  invalidation post-reset ou post-changement de mot de passe ont ete
+  reindustrialises sans changer les contrats HTTP publics.
+
 ### Fixed
-- Analytics EdTech `interleaved` : `first_attempt` n'est désormais émis qu'une seule fois par session, avec persistance du flag `firstAttemptTracked` dans `sessionStorage` pour éviter le surcomptage après passage à l'exercice suivant
-- Session entrelacée : `POST /api/exercises/generate` renvoie désormais `500` si `save=true` et que la sauvegarde échoue ou ne retourne pas d'`id`, au lieu d'un `200` incomplet
-- Session entrelacée : l'entrée de session et l'action `Exercice suivant` affichent désormais un toast explicite et conservent l'état de session en cas d'échec de génération
-- Handlers d'exercices : la résolution adaptive de `age_group` a été factorisée dans `_resolve_adaptive_age_group_if_needed()` pour supprimer la duplication entre `generate_exercise` et `generate_exercise_api`
-- Quality gate Python : `black app/ server/ tests/ --check` repasse au vert après nettoyage UTF-8 de `tests/unit/test_adaptive_difficulty_service.py` et reformatage des fichiers signalés
-- Hygiène repo : suppression de l'import inutilisé `cn` dans `frontend/app/challenges/page.tsx`, retrait de `frontend/junit.xml` de l'index git, nettoyage de `.gitignore` et ajout explicite de `frontend/junit.xml`
+- Reset password : les anciens `access_token` et `refresh_token` emis avant la
+  reinitialisation sont desormais rejetes.
+- Reset password : les autres sessions actives de l'utilisateur sont
+  revoquees, et un ancien onglet doit se reconnecter au prochain controle
+  protege.
+- Changement de mot de passe depuis le profil : alignement sur le meme
+  mecanisme de revocation (`password_changed_at` + rejet des anciens tokens).
+- `POST /api/auth/resend-verification` revient a une reponse generique
+  compatible sur email mal forme, sans fuite d'information par validation.
+- `GET /api/users/me/export` est recable sur le bon handler HTTP et couvre
+  desormais explicitement par un test API.
+
+### Notes
+- Cette release reste en `alpha` : l'iteration backend `exercise/auth/user` est
+  maintenant cloturee en interne, mais le produit continue d'evoluer vite et
+  garde encore des reliquats UX et des chantiers backend pour l'iteration
+  suivante.
 
 ## [3.1.0-alpha.6] - 2026-03-07
 

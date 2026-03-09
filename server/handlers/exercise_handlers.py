@@ -14,27 +14,33 @@ from starlette.responses import (
     StreamingResponse,
 )
 
-from app.core.config import settings
 from app.core.logging_config import get_logger
 from app.exceptions import (
     ExerciseNotFoundError,
     ExerciseSubmitError,
     InterleavedNotEnoughVariety,
 )
-from app.schemas.exercise import SubmitAnswerRequest
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.services.exercise_service import ExerciseService
-from app.services.exercise_stats_service import ExerciseStatsService
+from app.schemas.exercise import GenerateExerciseRequest, SubmitAnswerRequest
+from app.services.exercise_generation_service import (
+    AgeGroupRequiredError,
+    generate_exercise as svc_generate_exercise,
+)
+from app.schemas.exercise import GenerateExerciseStreamQuery, InterleavedPlanQuery
+from app.services.exercise_attempt_service import submit_answer as svc_submit_answer
+from app.services.exercise_query_service import (
+    get_completed_exercise_ids,
+    get_exercise_for_api as svc_get_exercise,
+    get_exercises_list_for_api as svc_get_exercises_list,
+    get_exercises_stats_for_api as svc_get_exercises_stats,
+    get_interleaved_plan_for_api as svc_get_interleaved_plan,
+)
+from app.services.exercise_stream_service import prepare_stream_context
 from app.utils.db_utils import db_session
 from app.utils.error_handler import ErrorHandler, api_error_response
 from app.utils.request_utils import parse_json_body_any
+from app.utils.translation import parse_accept_language
 from server.auth import optional_auth, require_auth, require_auth_sse
-from server.exercise_generator import (
-    ensure_explanation,
-    generate_ai_exercise,
-    generate_simple_exercise,
-    normalize_and_validate_exercise_params,
-)
+from server.exercise_generator import normalize_and_validate_exercise_params
 
 logger = get_logger(__name__)
 
@@ -42,38 +48,6 @@ logger = get_logger(__name__)
 def _parse_submit_answer_payload(raw_data: dict) -> SubmitAnswerRequest:
     """Valide la payload de soumission d'exercice hors contexte HTTP."""
     return SubmitAnswerRequest.model_validate(raw_data)
-
-
-async def _resolve_adaptive_age_group_if_needed(
-    request: Request,
-    exercise_type_raw: str | None,
-    age_group_raw: str | None,
-    adaptive: bool,
-) -> str | None:
-    """
-    Résout age_group de façon adaptative si l'utilisateur est authentifié
-    et qu'aucun age_group n'est fourni.
-
-    Utilisé par generate_exercise et generate_exercise_api.
-    """
-    current_user = getattr(request.state, "user", None)
-    if not adaptive or not current_user or age_group_raw:
-        return age_group_raw
-    try:
-        from app.models.user import User
-        from app.services.adaptive_difficulty_service import resolve_adaptive_difficulty
-        from server.exercise_generator_validators import normalize_exercise_type
-
-        resolved_type = normalize_exercise_type(exercise_type_raw or "ADDITION")
-        async with db_session() as db:
-            user_obj = db.query(User).filter(User.id == current_user["id"]).first()
-            if user_obj:
-                return resolve_adaptive_difficulty(db, user_obj, resolved_type)
-    except Exception as adaptive_err:
-        logger.warning(
-            f"[AdaptiveDifficulty] Résolution échouée, fallback statique: {adaptive_err}"
-        )
-    return age_group_raw
 
 
 async def generate_exercise(request: Request) -> Response:
@@ -86,67 +60,26 @@ async def generate_exercise(request: Request) -> Response:
     """
     params = request.query_params
     exercise_type_raw = params.get("type") or params.get("exercise_type")
-    age_group_raw = params.get("age_group")  # Changed from difficulty
+    age_group_raw = params.get("age_group")
     use_ai = params.get("ai", False)
     adaptive = params.get("adaptive", "true").lower() not in ("false", "0", "no")
-    age_group_raw = await _resolve_adaptive_age_group_if_needed(
-        request, exercise_type_raw, age_group_raw, adaptive
-    )
+    current_user = getattr(request.state, "user", None)
+    user_id = current_user["id"] if current_user else None
+    locale = parse_accept_language(request.headers.get("Accept-Language")) or "fr"
 
-    # Normaliser et valider les paramètres
-    exercise_type, age_group, derived_difficulty = (
-        normalize_and_validate_exercise_params(exercise_type_raw, age_group_raw)
-    )
-
-    ai_generated = False
-    if use_ai and str(use_ai).lower() in ["true", "1", "yes", "y"]:
-        exercise_dict = generate_ai_exercise(exercise_type, age_group)
-        ai_generated = True
-    else:
-        exercise_dict = generate_simple_exercise(exercise_type, age_group)
-
-    exercise_dict = ensure_explanation(exercise_dict)
-    logger.debug(f"Explication générée: {exercise_dict['explanation']}")
     try:
-        # Extraire la locale
-        from app.utils.translation import parse_accept_language
-
-        accept_language = request.headers.get("Accept-Language")
-        locale = parse_accept_language(accept_language) or "fr"
-
-        async with db_session() as db:
-            # Sauvegarder l'exercice avec age_group et la difficulté dérivée
-            created_exercise = EnhancedServerAdapter.create_generated_exercise(
-                db=db,
-                exercise_type=exercise_dict["exercise_type"],
-                age_group=exercise_dict["age_group"],  # Save age_group
-                difficulty=exercise_dict["difficulty"],  # Save derived difficulty
-                title=exercise_dict["title"],
-                question=exercise_dict["question"],
-                correct_answer=exercise_dict["correct_answer"],
-                choices=exercise_dict["choices"],
-                explanation=exercise_dict["explanation"],
-                hint=exercise_dict.get("hint"),
-                tags=exercise_dict.get("tags", "generated"),
-                ai_generated=ai_generated,
-                locale=locale,
-            )
-            if created_exercise:
-                exercise_id = created_exercise["id"]
-                logger.info(f"Nouvel exercice créé avec ID={exercise_id}")
-                logger.debug(f"Explication: {exercise_dict['explanation']}")
-            else:
-                logger.error("Erreur: L'exercice n'a pas été créé")
-                templates = request.app.state.templates
-                return templates.TemplateResponse(
-                    "error.html",
-                    {
-                        "request": request,
-                        "error": "Erreur de génération",
-                        "message": "Impossible de créer l'exercice dans la base de données.",
-                    },
-                    status_code=500,
-                )
+        result = await svc_generate_exercise(
+            exercise_type_raw=exercise_type_raw or "addition",
+            age_group_raw=age_group_raw,
+            use_ai=use_ai,
+            adaptive=adaptive,
+            save=True,
+            user_id=user_id,
+            locale=locale,
+            require_age_group=False,
+        )
+        if result.id:
+            logger.info(f"Nouvel exercice créé avec ID={result.id}")
         return RedirectResponse(url="/exercises?generated=true", status_code=303)
     except Exception as exercise_generation_error:
         logger.error(
@@ -169,8 +102,11 @@ async def get_exercise(request: Request) -> JSONResponse:
     """Récupère un exercice par son ID (format API, sans correct_answer)."""
     exercise_id = request.path_params.get("exercise_id")
     try:
-        async with db_session() as db:
-            exercise = ExerciseService.get_exercise_for_api(db, int(exercise_id))
+        exercise = await svc_get_exercise(int(exercise_id))
+        if exercise is None:
+            raise ExerciseSubmitError(
+                500, "Erreur lors de la récupération de l'exercice"
+            )
         return JSONResponse(exercise)
     except (ExerciseNotFoundError,) as e:
         return api_error_response(e.status_code, e.message)
@@ -193,7 +129,7 @@ async def get_exercise(request: Request) -> JSONResponse:
 
 @require_auth
 async def submit_answer(request: Request) -> JSONResponse:
-    """Orchestration HTTP : parse, valide, délègue à ExerciseService.submit_answer_result."""
+    """Orchestration HTTP : parse, valide, délègue à exercise_attempt_service.submit_answer."""
     try:
         current_user = request.state.user
         try:
@@ -218,7 +154,7 @@ async def submit_answer(request: Request) -> JSONResponse:
         )
 
         async with db_session() as db:
-            response_data = ExerciseService.submit_answer_result(
+            response_data = svc_submit_answer(
                 db, exercise_id, user_id, payload.answer, payload.time_spent
             )
             return JSONResponse(response_data.model_dump())
@@ -256,19 +192,8 @@ async def get_exercises_list(request: Request) -> JSONResponse:
             f"exercise_type={q.exercise_type}, age_group={q.age_group}"
         )
 
-        async with db_session() as db:
-            response_data = ExerciseService.get_exercises_list_for_api(
-                db,
-                limit=q.limit,
-                skip=q.skip,
-                exercise_type=q.exercise_type,
-                age_group=q.age_group,
-                search=q.search,
-                order=q.order,
-                hide_completed=q.hide_completed,
-                user_id=user_id,
-            )
-            return JSONResponse(response_data.model_dump())
+        response_data = await svc_get_exercises_list(q, user_id)
+        return JSONResponse(response_data.model_dump())
 
     except Exception as exercises_list_error:
         logger.error(
@@ -297,11 +222,8 @@ async def get_interleaved_plan_api(request: Request) -> JSONResponse:
         current_user = request.state.user
         user_id = current_user["id"]
 
-        from app.services.interleaved_practice_service import get_interleaved_plan
-
-        async with db_session() as db:
-            plan = get_interleaved_plan(db, user_id, length=length)
-
+        query = InterleavedPlanQuery(length=length)
+        plan = await svc_get_interleaved_plan(user_id, query)
         return JSONResponse(plan)
 
     except InterleavedNotEnoughVariety as e:
@@ -335,86 +257,34 @@ async def generate_exercise_api(request: Request) -> JSONResponse:
         data_or_err = await parse_json_body_any(request)
         if isinstance(data_or_err, JSONResponse):
             return data_or_err
-        exercise_type_raw = data_or_err.get("exercise_type")
-        age_group_raw = data_or_err.get("age_group")
-        use_ai = data_or_err.get("ai", False)
-        adaptive = data_or_err.get("adaptive", True)
 
-        if not exercise_type_raw:
+        try:
+            payload = GenerateExerciseRequest.model_validate(data_or_err)
+        except ValidationError as e:
+            return JSONResponse({"detail": e.errors()}, status_code=422)
+
+        if not payload.exercise_type or not str(payload.exercise_type).strip():
             return api_error_response(400, "Le paramètre 'exercise_type' est requis")
 
-        age_group_raw = await _resolve_adaptive_age_group_if_needed(
-            request, exercise_type_raw, age_group_raw, adaptive
-        )
+        current_user = getattr(request.state, "user", None)
+        user_id = current_user["id"] if current_user else None
+        locale = parse_accept_language(request.headers.get("Accept-Language")) or "fr"
 
-        if not age_group_raw:
-            return api_error_response(400, "Le paramètre 'age_group' est requis")
+        try:
+            result = await svc_generate_exercise(
+                exercise_type_raw=payload.exercise_type,
+                age_group_raw=payload.age_group,
+                use_ai=payload.ai,
+                adaptive=payload.adaptive,
+                save=payload.save,
+                user_id=user_id,
+                locale=locale,
+                require_age_group=True,
+            )
+        except AgeGroupRequiredError as e:
+            return api_error_response(400, str(e))
 
-        from server.exercise_generator import normalize_and_validate_exercise_params
-
-        exercise_type, age_group, derived_difficulty = (
-            normalize_and_validate_exercise_params(exercise_type_raw, age_group_raw)
-        )
-
-        logger.debug(
-            f"Génération API: type={exercise_type_raw}→{exercise_type}, groupe d'âge={age_group_raw}→{age_group}, IA={use_ai}"
-        )
-
-        # Générer l'exercice
-        ai_generated = False
-        if use_ai and str(use_ai).lower() in ["true", "1", "yes", "y"]:
-            exercise_dict = generate_ai_exercise(exercise_type, age_group)
-            ai_generated = True
-        else:
-            exercise_dict = generate_simple_exercise(exercise_type, age_group)
-
-        exercise_dict = ensure_explanation(exercise_dict)
-
-        # Optionnellement sauvegarder en base de données
-        save_to_db = data_or_err.get("save", True)
-        if save_to_db:
-            try:
-                # Extraire la locale
-                from app.utils.translation import parse_accept_language
-
-                accept_language = request.headers.get("Accept-Language")
-                locale = parse_accept_language(accept_language) or "fr"
-
-                async with db_session() as db:
-                    # Sauvegarder l'exercice avec age_group et la difficulté dérivée
-                    created_exercise = EnhancedServerAdapter.create_generated_exercise(
-                        db=db,
-                        exercise_type=exercise_dict["exercise_type"],
-                        age_group=exercise_dict["age_group"],  # Save age_group
-                        difficulty=exercise_dict[
-                            "difficulty"
-                        ],  # Save derived difficulty
-                        title=exercise_dict["title"],
-                        question=exercise_dict["question"],
-                        correct_answer=exercise_dict["correct_answer"],
-                        choices=exercise_dict["choices"],
-                        explanation=exercise_dict["explanation"],
-                        hint=exercise_dict.get("hint"),
-                        tags=exercise_dict.get("tags", "generated"),
-                        ai_generated=ai_generated,
-                        locale=locale,
-                    )
-                    if not created_exercise or not created_exercise.get("id"):
-                        return api_error_response(
-                            500,
-                            "Erreur lors de la sauvegarde de l'exercice",
-                        )
-                    exercise_dict["id"] = created_exercise["id"]
-                    logger.info(f"Exercice sauvegardé avec ID={created_exercise['id']}")
-            except Exception as save_error:
-                logger.warning(f"Erreur lors de la sauvegarde: {save_error}")
-                return api_error_response(
-                    500,
-                    "Erreur lors de la sauvegarde de l'exercice",
-                )
-
-        # Retourner l'exercice généré
-        return JSONResponse(exercise_dict)
+        return JSONResponse(result.model_dump(mode="json", exclude_none=True))
 
     except Exception as api_generation_error:
         logger.error(
@@ -432,52 +302,37 @@ async def generate_exercise_api(request: Request) -> JSONResponse:
 async def generate_ai_exercise_stream(request: Request) -> Response:
     """
     Génère un exercice avec OpenAI en streaming SSE.
-    Délègue la logique au service exercise_ai_service.
+    Délègue la préparation au service exercise_stream_service.
     """
     try:
         from app.services.exercise_ai_service import (
             generate_exercise_stream as svc_generate_stream,
         )
-        from app.utils.prompt_sanitizer import (
-            sanitize_user_prompt,
-            validate_prompt_safety,
-        )
         from app.utils.sse_utils import SSE_HEADERS, sse_error_response
-        from app.utils.translation import parse_accept_language
-        from server.exercise_generator import normalize_and_validate_exercise_params
 
-        current_user = request.state.user
-        exercise_type_raw = request.query_params.get("exercise_type", "addition")
-        age_group_raw = request.query_params.get(
-            "age_group"
-        ) or request.query_params.get("difficulty", "6-8")
-        prompt_raw = request.query_params.get("prompt", "")
-
-        is_safe, safety_reason = validate_prompt_safety(prompt_raw)
-        if not is_safe:
-            logger.warning(f"Prompt utilisateur rejeté pour sécurité: {safety_reason}")
-            return sse_error_response(f"Prompt invalide: {safety_reason}")
-        prompt = sanitize_user_prompt(prompt_raw)
-
-        exercise_type, age_group, derived_difficulty = (
-            normalize_and_validate_exercise_params(exercise_type_raw, age_group_raw)
+        params = request.query_params
+        query = GenerateExerciseStreamQuery(
+            exercise_type=params.get("exercise_type", "addition"),
+            age_group=params.get("age_group") or params.get("difficulty", "6-8"),
+            prompt=params.get("prompt", ""),
         )
-
-        if not settings.OPENAI_API_KEY:
-            return sse_error_response("OpenAI API key non configurée")
-
-        accept_language = request.headers.get("Accept-Language")
-        locale = parse_accept_language(accept_language) or "fr"
+        current_user = request.state.user
         user_id = current_user.get("id") if current_user else None
+        accept_language = request.headers.get("Accept-Language")
+
+        context, error = prepare_stream_context(query, user_id, accept_language)
+        if error:
+            logger.warning(f"Préparation stream rejetée: {error}")
+            return sse_error_response(error)
 
         async def generate():
             async for event in svc_generate_stream(
-                exercise_type=exercise_type,
-                age_group=age_group,
-                derived_difficulty=derived_difficulty,
-                prompt=prompt,
-                locale=locale,
-                user_id=user_id,
+                exercise_type=context.exercise_type,
+                age_group=context.age_group,
+                derived_difficulty=context.derived_difficulty,
+                prompt=context.prompt,
+                locale=context.locale,
+                user_id=context.user_id,
             ):
                 yield event
 
@@ -515,8 +370,7 @@ async def get_completed_exercises_ids(request: Request) -> JSONResponse:
         if not user_id:
             return JSONResponse({"completed_ids": []}, status_code=200)
 
-        async with db_session() as db:
-            completed_ids = ExerciseService.get_user_completed_exercise_ids(db, user_id)
+        completed_ids = await get_completed_exercise_ids(user_id)
 
         logger.debug(
             f"Récupération de {len(completed_ids)} exercices complétés pour l'utilisateur {user_id}"
@@ -555,13 +409,12 @@ async def get_exercises_stats(request: Request) -> JSONResponse:
     """
     logger.info("=== DEBUT get_exercises_stats ===")
     try:
-        async with db_session() as db:
-            response_data = ExerciseStatsService.get_exercises_stats_for_api(db)
-            total_exercises = response_data["academy_statistics"]["total_exercises"]
-            logger.info(
-                f"Statistiques des épreuves récupérées: {total_exercises} épreuves actives"
-            )
-            return JSONResponse(response_data)
+        response_data = await svc_get_exercises_stats()
+        total_exercises = response_data["academy_statistics"]["total_exercises"]
+        logger.info(
+            f"Statistiques des épreuves récupérées: {total_exercises} épreuves actives"
+        )
+        return JSONResponse(response_data)
 
     except Exception as e:
         logger.error(

@@ -3,7 +3,14 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 from app.models.user import UserRole
 
@@ -253,6 +260,12 @@ class RefreshTokenRequest(BaseModel):
     refresh_token: str = Field(..., description="Token de rafraîchissement à utiliser")
 
 
+class ValidateTokenRequest(BaseModel):
+    """Schéma pour la validation d'un token d'accès (sync-cookie frontend)."""
+
+    token: str = Field(..., description="Token JWT à valider")
+
+
 class UserPasswordUpdate(BaseModel):
     """Schéma pour la mise à jour du mot de passe d'un utilisateur"""
 
@@ -265,19 +278,64 @@ class UserPasswordUpdate(BaseModel):
     @classmethod
     def password_strength(cls, v):
         """Vérifie que le mot de passe est suffisamment fort"""
-        if len(v) < 8:
-            raise ValueError("Le mot de passe doit faire au moins 8 caractères")
-        if not any(char.isdigit() for char in v):
-            raise ValueError("Le mot de passe doit contenir au moins un chiffre")
-        if not any(char.isupper() for char in v):
-            raise ValueError("Le mot de passe doit contenir au moins une majuscule")
+        from app.core.security import validate_password_strength
+
+        err = validate_password_strength(v)
+        if err:
+            raise ValueError(err)
         return v
+
+    @model_validator(mode="after")
+    def passwords_different(self):
+        """Le nouveau mot de passe doit être différent de l'actuel."""
+        if self.current_password == self.new_password:
+            raise ValueError("Le nouveau mot de passe doit être différent de l'ancien.")
+        return self
 
 
 class ForgotPasswordRequest(BaseModel):
     """Schéma pour la demande de réinitialisation de mot de passe"""
 
     email: EmailStr = Field(..., description="Adresse email associée au compte")
+
+
+class ResendVerificationRequest(BaseModel):
+    """Schéma pour le renvoi d'email de vérification."""
+
+    email: EmailStr = Field(..., description="Adresse email du compte")
+
+
+class ResetPasswordRequest(BaseModel):
+    """Schéma pour la réinitialisation de mot de passe avec token."""
+
+    token: str = Field(..., description="Token de réinitialisation")
+    password: str = Field(..., min_length=8, description="Nouveau mot de passe")
+    password_confirm: str = Field(..., description="Confirmation du mot de passe")
+
+    @field_validator("token")
+    @classmethod
+    def token_not_empty(cls, v):
+        if not v or not str(v).strip():
+            raise ValueError("Token de réinitialisation manquant")
+        return str(v).strip()
+
+    @field_validator("password")
+    @classmethod
+    def password_strength(cls, v):
+        """Vérifie que le mot de passe est suffisamment fort."""
+        from app.core.security import validate_password_strength
+
+        err = validate_password_strength(v)
+        if err:
+            raise ValueError(err)
+        return v
+
+    @model_validator(mode="after")
+    def passwords_match(self):
+        """Vérifie que le mot de passe et la confirmation correspondent."""
+        if self.password != self.password_confirm:
+            raise ValueError("Les mots de passe ne correspondent pas")
+        return self
 
 
 class ForgotPasswordResponse(BaseModel):

@@ -1039,6 +1039,39 @@ def test_reset_password_with_token_success(db_session, mock_user):
     db_session.refresh(user)
     assert user.password_reset_token is None
     assert user.password_reset_expires_at is None
+    assert user.password_changed_at is not None
+
+
+def test_reset_password_with_token_revokes_sessions(db_session, mock_user):
+    """LOT 5.2: reset_password_with_token supprime les UserSession de l'utilisateur."""
+    from app.models.user_session import UserSession
+
+    user_data = mock_user()
+    user = adapted_dict_to_user(user_data, db_session)
+    user.password_reset_token = "valid_reset_token"
+    user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    db_session.add(user)
+    db_session.commit()
+
+    # Créer une session pour cet utilisateur
+    session_row = UserSession(
+        user_id=user.id,
+        session_token="test_session_token_xyz",
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
+    )
+    db_session.add(session_row)
+    db_session.commit()
+    assert (
+        db_session.query(UserSession).filter(UserSession.user_id == user.id).count()
+        == 1
+    )
+
+    reset_password_with_token(db_session, "valid_reset_token", "NewSecurePass123")
+
+    assert (
+        db_session.query(UserSession).filter(UserSession.user_id == user.id).count()
+        == 0
+    )
 
 
 def test_reset_password_with_token_invalid(db_session):

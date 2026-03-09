@@ -240,6 +240,56 @@ class ExerciseListResponse(BaseModel):
     hasMore: bool
 
 
+# ---------------------------------------------------------------------------
+# Query params — Lot 3
+# ---------------------------------------------------------------------------
+
+
+class ExerciseListQuery(BaseModel):
+    """Paramètres parsés pour GET /api/exercises."""
+
+    skip: int = 0
+    limit: int = 20
+    exercise_type: Optional[str] = None
+    age_group: Optional[str] = None
+    search: Optional[str] = None
+    order: str = "random"
+    hide_completed: bool = False
+
+    model_config = ConfigDict(extra="ignore")
+
+
+class InterleavedPlanQuery(BaseModel):
+    """Paramètres parsés pour GET /api/exercises/interleaved-plan."""
+
+    length: int = 10
+
+    model_config = ConfigDict(extra="ignore")
+
+
+class GenerateExerciseStreamQuery(BaseModel):
+    """Paramètres parsés pour GET /api/exercises/generate-ai-stream."""
+
+    exercise_type: str = "addition"
+    age_group: Optional[str] = None
+    prompt: str = ""
+
+    model_config = ConfigDict(extra="ignore")
+
+
+class GenerateExerciseStreamContext(BaseModel):
+    """Contexte préparé pour le flux SSE (après validation/normalisation)."""
+
+    exercise_type: str
+    age_group: str
+    derived_difficulty: str
+    prompt: str
+    locale: str
+    user_id: Optional[int] = None
+
+    model_config = ConfigDict(extra="ignore")
+
+
 class SubmitAnswerResponse(BaseModel):
     """Réponse POST /api/exercises/{id}/attempt."""
 
@@ -288,3 +338,48 @@ class ExerciseStats(BaseModel):
     average_time: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# ---------------------------------------------------------------------------
+# Génération d'exercice — Lot 1
+# ---------------------------------------------------------------------------
+
+
+class GenerateExerciseRequest(BaseModel):
+    """
+    DTO entrée pour POST /api/exercises/generate.
+    Contrat explicite pour la génération d'exercice.
+    """
+
+    exercise_type: str = Field(..., description="Type d'exercice (ex: addition)")
+    age_group: Optional[str] = Field(
+        None, description="Groupe d'âge (optionnel si adaptive)"
+    )
+    ai: Union[bool, str] = Field(default=False, description="Utiliser la génération IA")
+    adaptive: bool = Field(
+        default=True, description="Résoudre age_group de façon adaptative"
+    )
+    save: bool = Field(default=True, description="Persister l'exercice en base")
+
+    model_config = ConfigDict(extra="ignore")
+
+
+class GenerateExerciseResult(BaseModel):
+    """
+    Résultat de la génération d'exercice.
+    Contrat explicite de sortie — compatible avec le payload JSON actuel.
+    """
+
+    title: str = Field(..., description="Titre de l'exercice")
+    exercise_type: str = Field(..., description="Type d'exercice (ex: ADDITION)")
+    age_group: Optional[str] = Field(None, description="Groupe d'âge cible")
+    difficulty: str = Field(..., description="Niveau de difficulté dérivé")
+    question: str = Field(..., description="Question de l'exercice")
+    correct_answer: str = Field(..., description="Réponse correcte")
+    choices: List[str] = Field(default_factory=list, description="Options QCM")
+    explanation: str = Field(default="", description="Explication de la solution")
+    hint: Optional[str] = Field(None, description="Indice")
+    tags: Optional[str] = Field(None, description="Tags")
+    id: Optional[int] = Field(None, description="ID si persistance")
+
+    model_config = ConfigDict(extra="allow")

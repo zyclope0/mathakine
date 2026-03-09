@@ -299,16 +299,20 @@ async def test_generate_exercise_missing_parameters(db_session):
 
 @pytest.mark.asyncio
 async def test_generate_exercise_service_error(db_session):
-    """Teste la gestion des erreurs de service lors de la génération d'exercice."""
-    # Simuler un exercice avec erreur de service
+    """Teste la gestion des erreurs de service lors de la génération d'exercice.
+
+    Le handler appelle svc_generate_exercise (exercise_generation_service).
+    On patch au point d'appel pour simuler une erreur et vérifier que le handler
+    retourne 500 via TemplateResponse.
+    """
     mock_response = JSONResponse({"error": "Erreur de service"}, status_code=500)
 
-    # Mock pour simuler une erreur lors de la création de l'exercice
+    # Patch au point d'appel du handler (svc_generate_exercise) — la cible réelle
+    # depuis le refactor Lot 1 (plus EnhancedServerAdapter.create_generated_exercise)
     with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
+        "server.handlers.exercise_handlers.svc_generate_exercise",
         side_effect=Exception("Erreur simulée du service"),
     ):
-        # Préparer les paramètres de requête
         query_params = {
             "type": get_enum_value(
                 ExerciseType, ExerciseType.ADDITION.value, db_session
@@ -318,18 +322,17 @@ async def test_generate_exercise_service_error(db_session):
             ),
         }
 
-        # Créer une requête mockée
         mock_request = create_mock_request(query_params=query_params)
+        # Pas d'utilisateur authentifié pour éviter MagicMock dans le flux adaptive
+        mock_request.state = MagicMock()
+        mock_request.state.user = None
 
-        # Appeler le handler avec app.state.templates pour éviter les erreurs
         mock_request.app = MagicMock()
         mock_request.app.state.templates = MagicMock()
         mock_request.app.state.templates.TemplateResponse.return_value = mock_response
 
-        # Appeler le handler
         response = await generate_exercise(mock_request)
 
-        # Vérifier que nous avons une erreur de service
         assert response.status_code == 500
         assert "error" in json.loads(response.body)
 

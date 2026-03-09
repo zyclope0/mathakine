@@ -1,136 +1,120 @@
 """
 Tests unitaires pour la validation des differents formats de reponses aux exercices.
 
-Le handler submit_answer utilise:
-- @require_auth (server.auth.get_current_user)
-- SQLAlchemy query chain direct pour charger l'exercice
-- ExerciseService.record_attempt pour enregistrer
-- Comparaison stricte pour types numeriques, insensible a la casse pour TEXTE/MIXTE
+Exercent la vraie logique metier de exercise_attempt_service._check_answer_correct
+via submit_answer, en mockant uniquement le repository et les dependances (badges, streak, daily).
 """
 
-import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import datetime
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.models.exercise import DifficultyLevel, ExerciseType
-from app.utils.db_helpers import get_enum_value
-from server.handlers.exercise_handlers import submit_answer
-from tests.unit.test_utils import create_mock_request
+from app.models.exercise import ExerciseType
+from app.services.exercise_attempt_service import submit_answer as svc_submit_answer
 
 
-def _mock_auth_user():
-    """Mock utilisateur authentifie."""
+def _exercise_dict(correct_answer, exercise_type="ADDITION", explanation=""):
+    """Dict simulant le retour de get_exercise_for_submit_validation."""
     return {
         "id": 1,
-        "username": "test_user",
-        "role": "padawan",
-        "is_authenticated": True,
+        "exercise_type": exercise_type,
+        "difficulty": "INITIE",
+        "choices": [],
+        "question": "Question test",
+        "explanation": explanation or "",
+        "correct_answer": correct_answer,
     }
 
 
-def _patch_auth(mock_user):
-    """Patch le decorateur @require_auth."""
-    return patch("server.auth.get_current_user", AsyncMock(return_value=mock_user))
+def _mock_attempt(attempt_id=1):
+    """Mock Attempt pour create_attempt."""
+    a = MagicMock()
+    a.id = attempt_id
+    a.created_at = datetime(2026, 3, 6, 12, 0, 0)
+    return a
 
 
-def _mock_exercise_row(correct_answer, exercise_type="ADDITION"):
-    """Mock du resultat SQLAlchemy query pour un exercice."""
-    row = MagicMock()
-    row.id = 1
-    row.question = "Question test"
-    row.correct_answer = correct_answer
-    row.choices = []
-    row.explanation = "Explication test"
-    row.exercise_type_str = exercise_type
-    row.difficulty_str = "INITIE"
-    return row
+def _run_submit(exercise_type, correct_answer, selected_answer, expected_result):
+    """Execute submit_answer avec mocks repo/deps, verifie is_correct."""
+    ex_dict = _exercise_dict(correct_answer, exercise_type)
+    mock_db = MagicMock()
+    mock_db.begin_nested.side_effect = [
+        MagicMock(is_active=True),
+        MagicMock(is_active=True),
+        MagicMock(is_active=True),
+    ]
+    mock_attempt = _mock_attempt()
+
+    with (
+        patch(
+            "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
+            return_value=ex_dict,
+        ),
+        patch(
+            "app.services.exercise_attempt_service.create_attempt",
+            return_value=mock_attempt,
+        ),
+        patch("app.services.exercise_attempt_service.update_progress_after_attempt"),
+        patch(
+            "app.services.badge_service.BadgeService",
+        ) as BadgeCls,
+        patch("app.services.streak_service.update_user_streak"),
+        patch("app.services.daily_challenge_service.record_exercise_completed"),
+    ):
+        badge_inst = MagicMock()
+        badge_inst.check_and_award_badges.return_value = []
+        badge_inst.get_closest_progress_notification.return_value = None
+        BadgeCls.return_value = badge_inst
+
+        result = svc_submit_answer(
+            mock_db,
+            exercise_id=1,
+            user_id=1,
+            selected_answer=selected_answer,
+            time_spent=10.0,
+        )
+
+    assert (
+        result.is_correct == expected_result
+    ), f"'{selected_answer}' vs '{correct_answer}' (type={exercise_type}): attendu {expected_result}, obtenu {result.is_correct}"
+    assert result.correct_answer == correct_answer
 
 
-def _mock_attempt(user_answer, is_correct):
-    """Mock de l'objet Attempt retourne par record_attempt."""
-    attempt = MagicMock()
-    attempt.id = 123
-    attempt.user_id = 1
-    attempt.exercise_id = 1
-    attempt.user_answer = user_answer
-    attempt.is_correct = is_correct
-    attempt.time_spent = 10.0
-    attempt.created_at = None
-    return attempt
+# --- Comparaison texte / normalisation ---
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "exercise_type,answer,correct_answer,expected_result",
     [
         # Types numeriques : comparaison stricte APRES strip()
-        # Le handler fait: str(answer).strip() == str(correct).strip()
         (ExerciseType.ADDITION.value, "42", "42", True),
-        (ExerciseType.ADDITION.value, " 42", "42", True),  # strip enleve les espaces
-        (ExerciseType.ADDITION.value, "42 ", "42", True),  # strip enleve les espaces
+        (ExerciseType.ADDITION.value, " 42", "42", True),
+        (ExerciseType.ADDITION.value, "42 ", "42", True),
         (ExerciseType.MULTIPLICATION.value, "100", "100", True),
-        (
-            ExerciseType.MULTIPLICATION.value,
-            "0100",
-            "100",
-            False,
-        ),  # strings differentes
+        (ExerciseType.MULTIPLICATION.value, "0100", "100", False),
         (ExerciseType.DIVISION.value, "3.5", "3.5", True),
-        (ExerciseType.DIVISION.value, "3,5", "3.5", False),  # virgule != point
+        (ExerciseType.DIVISION.value, "3,5", "3.5", False),
         # Types textuels : lower() + strip()
         (ExerciseType.TEXTE.value, "Paris", "Paris", True),
-        (ExerciseType.TEXTE.value, "paris", "Paris", True),  # insensible casse
-        (ExerciseType.TEXTE.value, " Paris", "Paris", True),  # strip
-        (ExerciseType.TEXTE.value, "Paris ", "Paris", True),  # strip
+        (ExerciseType.TEXTE.value, "paris", "Paris", True),
+        (ExerciseType.TEXTE.value, " Paris", "Paris", True),
+        (ExerciseType.TEXTE.value, "Paris ", "Paris", True),
         (ExerciseType.MIXTE.value, "Force", "Force", True),
-        (ExerciseType.MIXTE.value, "force", "Force", True),  # insensible casse
-        (ExerciseType.MIXTE.value, " Force ", "Force", True),  # strip
+        (ExerciseType.MIXTE.value, "force", "Force", True),
+        (ExerciseType.MIXTE.value, " Force ", "Force", True),
     ],
 )
-async def test_answer_validation_formats(
+def test_answer_validation_formats(
     exercise_type, answer, correct_answer, expected_result, db_session
 ):
-    """Teste la validation des reponses selon type d'exercice."""
-    mock_user = _mock_auth_user()
-    mock_request = create_mock_request(
-        json_data={"selected_answer": answer, "time_spent": 10.0},
-        path_params={"exercise_id": "1"},
-    )
-    mock_request.headers = {"Accept-Language": "fr"}
-
-    # Mock query chain: exercise lookup
-    mock_db_ex = MagicMock()
-    mock_db_ex.query.return_value.filter.return_value.first.return_value = (
-        _mock_exercise_row(correct_answer, exercise_type.upper())
-    )
-
-    # Mock attempt recording
-    mock_db_att = MagicMock()
-    attempt_obj = _mock_attempt(answer, expected_result)
-
-    # Mock badges
-    mock_db_badges = MagicMock()
-
-    with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
-        side_effect=[mock_db_ex, mock_db_att, mock_db_badges],
-    ):
-        with patch(
-            "app.services.exercise_service.ExerciseService.record_attempt",
-            return_value=attempt_obj,
-        ):
-            with _patch_auth(mock_user):
-                response = await submit_answer(mock_request)
-
-    result = json.loads(response.body.decode("utf-8"))
-    assert response.status_code == 200, f"Status {response.status_code}: {result}"
-    assert (
-        result["is_correct"] == expected_result
-    ), f"Validation de '{answer}' pour type {exercise_type}: attendu {expected_result}, obtenu {result['is_correct']}"
+    """Teste la validation des reponses selon type d'exercice (vraie logique metier)."""
+    _run_submit(exercise_type, correct_answer, answer, expected_result)
 
 
-@pytest.mark.asyncio
+# --- Fractions / formats mathematiques ---
+
+
 @pytest.mark.parametrize(
     "answer,correct,expected",
     [
@@ -141,43 +125,14 @@ async def test_answer_validation_formats(
         ("0,5", "0.5", False),
     ],
 )
-async def test_fraction_answer_validation(answer, correct, expected, db_session):
-    """Teste la validation pour les exercices de fractions."""
-    mock_user = _mock_auth_user()
-    mock_request = create_mock_request(
-        json_data={"selected_answer": answer, "time_spent": 10.0},
-        path_params={"exercise_id": "1"},
-    )
-    mock_request.headers = {"Accept-Language": "fr"}
-
-    mock_db_ex = MagicMock()
-    mock_db_ex.query.return_value.filter.return_value.first.return_value = (
-        _mock_exercise_row(correct, "FRACTIONS")
-    )
-
-    mock_db_att = MagicMock()
-    attempt_obj = _mock_attempt(answer, expected)
-    mock_db_badges = MagicMock()
-
-    with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
-        side_effect=[mock_db_ex, mock_db_att, mock_db_badges],
-    ):
-        with patch(
-            "app.services.exercise_service.ExerciseService.record_attempt",
-            return_value=attempt_obj,
-        ):
-            with _patch_auth(mock_user):
-                response = await submit_answer(mock_request)
-
-    result = json.loads(response.body.decode("utf-8"))
-    assert response.status_code == 200
-    assert (
-        result["is_correct"] == expected
-    ), f"Fraction: '{answer}' vs '{correct}': attendu {expected}"
+def test_fraction_answer_validation(answer, correct, expected, db_session):
+    """Teste la validation pour les exercices de fractions (comparaison stricte)."""
+    _run_submit(ExerciseType.FRACTIONS.value, correct, answer, expected)
 
 
-@pytest.mark.asyncio
+# --- Unites / formats avec suffixes ---
+
+
 @pytest.mark.parametrize(
     "answer,correct,expected",
     [
@@ -187,71 +142,44 @@ async def test_fraction_answer_validation(answer, correct, expected, db_session)
         ("10km", "10 km", False),
     ],
 )
-async def test_unit_answer_validation(answer, correct, expected, db_session):
-    """Teste la validation des reponses avec unites de mesure."""
-    mock_user = _mock_auth_user()
-    mock_request = create_mock_request(
-        json_data={"selected_answer": answer, "time_spent": 12.0},
-        path_params={"exercise_id": "1"},
-    )
-    mock_request.headers = {"Accept-Language": "fr"}
+def test_unit_answer_validation(answer, correct, expected, db_session):
+    """Teste la validation des reponses avec unites de mesure (comparaison stricte)."""
+    _run_submit(ExerciseType.GEOMETRIE.value, correct, answer, expected)
 
-    mock_db_ex = MagicMock()
-    mock_db_ex.query.return_value.filter.return_value.first.return_value = (
-        _mock_exercise_row(correct, "DIVERS")
-    )
 
-    mock_db_att = MagicMock()
-    attempt_obj = _mock_attempt(answer, expected)
-    mock_db_badges = MagicMock()
-
-    with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
-        side_effect=[mock_db_ex, mock_db_att, mock_db_badges],
-    ):
-        with patch(
-            "app.services.exercise_service.ExerciseService.record_attempt",
-            return_value=attempt_obj,
-        ):
-            with _patch_auth(mock_user):
-                response = await submit_answer(mock_request)
-
-    result = json.loads(response.body.decode("utf-8"))
-    assert response.status_code == 200
-    assert result["is_correct"] == expected
+# --- Handler : validation payload (reponse vide) ---
 
 
 @pytest.mark.asyncio
 async def test_empty_answer_validation(db_session):
-    """Teste qu'une reponse vide est traitee comme incorrecte."""
-    mock_user = _mock_auth_user()
+    """Teste qu'une reponse vide est rejetee par SubmitAnswerRequest (422)."""
+    import json
+    from contextlib import asynccontextmanager
+    from unittest.mock import AsyncMock, patch
+
+    from server.handlers.exercise_handlers import submit_answer
+    from tests.unit.test_utils import create_mock_request
+
+    @asynccontextmanager
+    async def _mock_db():
+        yield MagicMock()
+
+    mock_user = {
+        "id": 1,
+        "username": "test_user",
+        "role": "padawan",
+        "is_authenticated": True,
+    }
+
     mock_request = create_mock_request(
         json_data={"selected_answer": "", "time_spent": 5.0},
         path_params={"exercise_id": "1"},
     )
     mock_request.headers = {"Accept-Language": "fr"}
 
-    mock_db_ex = MagicMock()
-    mock_db_ex.query.return_value.filter.return_value.first.return_value = (
-        _mock_exercise_row("4", "ADDITION")
-    )
-
-    mock_db_att = MagicMock()
-    attempt_obj = _mock_attempt("", False)
-    mock_db_badges = MagicMock()
-
-    with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
-        side_effect=[mock_db_ex, mock_db_att, mock_db_badges],
-    ):
-        with patch(
-            "app.services.exercise_service.ExerciseService.record_attempt",
-            return_value=attempt_obj,
-        ):
-            with _patch_auth(mock_user):
-                response = await submit_answer(mock_request)
+    with patch("server.auth.get_current_user", AsyncMock(return_value=mock_user)):
+        response = await submit_answer(mock_request)
 
     result = json.loads(response.body.decode("utf-8"))
-    # SubmitAnswerRequest : answer vide → 422 (min_length=1)
     assert response.status_code == 422
     assert "detail" in result

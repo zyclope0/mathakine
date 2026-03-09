@@ -1,23 +1,34 @@
 """
 Tests unitaires pour la validation des reponses aux exercices.
 
-Le handler submit_answer utilise:
-- @require_auth decorator (server.auth.get_current_user)
-- SQLAlchemy query chain pour charger l'exercice
-- ExerciseService.record_attempt pour enregistrer la tentative
-- request.path_params['exercise_id'] pour l'ID exercice
+- Tests service-level : exercent la vraie logique metier de validation
+  (exercise_attempt_service.submit_answer) via mocks repo/dependances uniquement.
+- Tests handler : validation payload (SubmitAnswerRequest), auth, mapping erreurs.
 """
 
 import json
+from contextlib import asynccontextmanager
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
+from app.exceptions import ExerciseNotFoundError
 from app.models.user import UserRole
+from app.services.exercise_attempt_service import submit_answer as svc_submit_answer
 from app.utils.db_helpers import get_enum_value
 from server.handlers.exercise_handlers import submit_answer
 from tests.unit.test_utils import create_mock_request
+
+
+def _mock_db_session():
+    """Async context manager mock pour db_session."""
+
+    @asynccontextmanager
+    async def _cm():
+        yield MagicMock()
+
+    return _cm()
 
 
 def _mock_user(db_session=None, role=UserRole.PADAWAN):
@@ -35,162 +46,136 @@ def _patch_auth(mock_user):
     return patch("server.auth.get_current_user", AsyncMock(return_value=mock_user))
 
 
-def _mock_exercise_row(
-    exercise_id=1,
-    correct_answer="8",
-    exercise_type="ADDITION",
-    difficulty="INITIE",
-    question="5 + 3 = ?",
-    explanation="Explication",
-    choices=None,
-):
-    """Cree un mock qui simule le resultat de db.query(...).filter(...).first()."""
-    row = MagicMock()
-    row.id = exercise_id
-    row.question = question
-    row.correct_answer = correct_answer
-    row.choices = choices or ["6", "7", "8", "9"]
-    row.explanation = explanation
-    row.exercise_type_str = exercise_type
-    row.difficulty_str = difficulty
-    return row
+def _exercise_dict(correct_answer, exercise_type="ADDITION", explanation=""):
+    """Dict simulant le retour de get_exercise_for_submit_validation."""
+    return {
+        "id": 1,
+        "exercise_type": exercise_type,
+        "difficulty": "INITIE",
+        "choices": ["6", "7", "8", "9"],
+        "question": "5 + 3 = ?",
+        "explanation": explanation or "Explication",
+        "correct_answer": correct_answer,
+    }
 
 
-def _mock_attempt_obj(
-    attempt_id=1,
-    user_id=1,
-    exercise_id=1,
-    user_answer="8",
-    is_correct=True,
-    time_spent=10.0,
-):
-    """Cree un mock d'objet Attempt retourne par ExerciseService.record_attempt."""
-    attempt = MagicMock()
-    attempt.id = attempt_id
-    attempt.user_id = user_id
-    attempt.exercise_id = exercise_id
-    attempt.user_answer = user_answer
-    attempt.is_correct = is_correct
-    attempt.time_spent = time_spent
-    attempt.created_at = None
-    return attempt
+def _mock_attempt(attempt_id=1, created_at=None):
+    """Mock Attempt pour create_attempt."""
+    a = MagicMock()
+    a.id = attempt_id
+    a.created_at = created_at or datetime(2026, 3, 6, 12, 0, 0)
+    return a
 
 
-@pytest.mark.asyncio
-async def test_submit_correct_answer(db_session):
-    """Teste la soumission d'une reponse correcte a un exercice."""
-    mock_user = _mock_user(db_session)
-    mock_request = create_mock_request(
-        json_data={"selected_answer": "8", "time_spent": 15.5},
-        path_params={"exercise_id": "1"},
-    )
-    # Mock headers pour Accept-Language
-    mock_request.headers = {"Accept-Language": "fr"}
-
-    # Mock pour le query chain SQLAlchemy (exercise lookup)
-    mock_db_ex = MagicMock()
-    exercise_row = _mock_exercise_row(correct_answer="8", exercise_type="ADDITION")
-    mock_db_ex.query.return_value.filter.return_value.first.return_value = exercise_row
-
-    # Mock pour le record_attempt
-    mock_db_att = MagicMock()
-    attempt_obj = _mock_attempt_obj(is_correct=True, user_answer="8")
-
-    # Mock pour badges (évite MagicMock dans check_and_award_badges / get_closest_progress_notification)
-    mock_db_badges = MagicMock()
-
-    with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
-        side_effect=[mock_db_ex, mock_db_att, mock_db_badges],
-    ):
-        with patch(
-            "app.services.exercise_service.ExerciseService.record_attempt",
-            return_value=attempt_obj,
-        ):
-            with _patch_auth(mock_user):
-                with patch("app.services.badge_service.BadgeService") as mock_badge_cls:
-                    mock_badge_cls.return_value.check_and_award_badges.return_value = []
-                    mock_badge_cls.return_value.get_closest_progress_notification.return_value = (
-                        None
-                    )
-                    response = await submit_answer(mock_request)
-
-    result = json.loads(response.body.decode("utf-8"))
-    assert response.status_code == 200
-    assert result["is_correct"] is True
-    assert "correct_answer" in result
+# --- Tests service-level : vraie logique de validation ---
 
 
-@pytest.mark.asyncio
-async def test_submit_incorrect_answer(db_session):
-    """Teste la soumission d'une reponse incorrecte a un exercice."""
-    mock_user = _mock_user(db_session)
-    mock_request = create_mock_request(
-        json_data={"selected_answer": "36", "time_spent": 25.0},
-        path_params={"exercise_id": "1"},
-    )
-    mock_request.headers = {"Accept-Language": "fr"}
-
-    mock_db_ex = MagicMock()
-    exercise_row = _mock_exercise_row(
-        correct_answer="42", exercise_type="MULTIPLICATION"
-    )
-    mock_db_ex.query.return_value.filter.return_value.first.return_value = exercise_row
-
-    mock_db_att = MagicMock()
-    attempt_obj = _mock_attempt_obj(is_correct=False, user_answer="36")
-    mock_db_badges = MagicMock()
-
-    with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
-        side_effect=[mock_db_ex, mock_db_att, mock_db_badges],
-    ):
-        with patch(
-            "app.services.exercise_service.ExerciseService.record_attempt",
-            return_value=attempt_obj,
-        ):
-            with _patch_auth(mock_user):
-                with patch("app.services.badge_service.BadgeService") as mock_badge_cls:
-                    mock_badge_cls.return_value.check_and_award_badges.return_value = []
-                    mock_badge_cls.return_value.get_closest_progress_notification.return_value = (
-                        None
-                    )
-                    response = await submit_answer(mock_request)
-
-    result = json.loads(response.body.decode("utf-8"))
-    assert response.status_code == 200
-    assert result["is_correct"] is False
-    assert result["correct_answer"] == "42"
-
-
-@pytest.mark.asyncio
-async def test_submit_answer_nonexistent_exercise(db_session):
-    """Teste la soumission d'une reponse a un exercice inexistant."""
-    mock_user = _mock_user(db_session)
-    mock_request = create_mock_request(
-        json_data={"selected_answer": "42", "time_spent": 10.0},
-        path_params={"exercise_id": "999"},
-    )
-    mock_request.headers = {"Accept-Language": "fr"}
-
+def test_service_submit_correct_answer(db_session):
+    """Service : reponse correcte -> is_correct=True."""
+    ex_dict = _exercise_dict("8", "ADDITION")
     mock_db = MagicMock()
-    mock_db.query.return_value.filter.return_value.first.return_value = None
+    mock_db.begin_nested.side_effect = [
+        MagicMock(is_active=True),
+        MagicMock(is_active=True),
+        MagicMock(is_active=True),
+    ]
+    mock_attempt = _mock_attempt(attempt_id=42)
 
-    with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
-        return_value=mock_db,
+    with (
+        patch(
+            "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
+            return_value=ex_dict,
+        ),
+        patch(
+            "app.services.exercise_attempt_service.create_attempt",
+            return_value=mock_attempt,
+        ),
+        patch("app.services.exercise_attempt_service.update_progress_after_attempt"),
+        patch(
+            "app.services.badge_service.BadgeService",
+        ) as BadgeCls,
+        patch("app.services.streak_service.update_user_streak"),
+        patch("app.services.daily_challenge_service.record_exercise_completed"),
     ):
-        with _patch_auth(mock_user):
-            response = await submit_answer(mock_request)
+        badge_inst = MagicMock()
+        badge_inst.check_and_award_badges.return_value = []
+        badge_inst.get_closest_progress_notification.return_value = None
+        BadgeCls.return_value = badge_inst
 
-    result = json.loads(response.body.decode("utf-8"))
-    assert response.status_code == 404
-    assert "error" in result
+        result = svc_submit_answer(
+            mock_db, exercise_id=1, user_id=1, selected_answer="8", time_spent=15.5
+        )
+
+    assert result.is_correct is True
+    assert result.correct_answer == "8"
+    assert result.attempt_id == 42
+
+
+def test_service_submit_incorrect_answer(db_session):
+    """Service : reponse incorrecte -> is_correct=False."""
+    ex_dict = _exercise_dict("42", "ADDITION")
+    mock_db = MagicMock()
+    mock_db.begin_nested.side_effect = [
+        MagicMock(is_active=True),
+        MagicMock(is_active=True),
+        MagicMock(is_active=True),
+    ]
+    mock_attempt = _mock_attempt(attempt_id=1)
+
+    with (
+        patch(
+            "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
+            return_value=ex_dict,
+        ),
+        patch(
+            "app.services.exercise_attempt_service.create_attempt",
+            return_value=mock_attempt,
+        ),
+        patch("app.services.exercise_attempt_service.update_progress_after_attempt"),
+        patch(
+            "app.services.badge_service.BadgeService",
+        ) as BadgeCls,
+        patch("app.services.streak_service.update_user_streak"),
+        patch("app.services.daily_challenge_service.record_exercise_completed"),
+    ):
+        badge_inst = MagicMock()
+        badge_inst.check_and_award_badges.return_value = []
+        badge_inst.get_closest_progress_notification.return_value = None
+        BadgeCls.return_value = badge_inst
+
+        result = svc_submit_answer(
+            mock_db,
+            exercise_id=1,
+            user_id=1,
+            selected_answer="36",
+            time_spent=25.0,
+        )
+
+    assert result.is_correct is False
+    assert result.correct_answer == "42"
+
+
+def test_service_submit_exercise_not_found(db_session):
+    """Service : exercice inexistant -> ExerciseNotFoundError."""
+    with patch(
+        "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
+        return_value=None,
+    ):
+        with pytest.raises(ExerciseNotFoundError):
+            svc_submit_answer(
+                MagicMock(),
+                exercise_id=999999,
+                user_id=1,
+                selected_answer="4",
+            )
+
+
+# --- Tests handler : validation payload, auth, mapping erreurs ---
 
 
 @pytest.mark.asyncio
 async def test_submit_answer_missing_answer(db_session):
-    """Teste la soumission sans reponse selectionnee → 422 (SubmitAnswerRequest)."""
+    """Teste la soumission sans reponse selectionnee -> 422 (SubmitAnswerRequest)."""
     mock_user = _mock_user(db_session)
     mock_request = create_mock_request(
         json_data={"time_spent": 10.0}, path_params={"exercise_id": "1"}
@@ -224,8 +209,36 @@ async def test_submit_answer_unauthenticated():
 
 
 @pytest.mark.asyncio
+async def test_submit_answer_nonexistent_exercise(db_session):
+    """Handler : exercice inexistant -> 404 (mapping ExerciseNotFoundError)."""
+    mock_user = _mock_user(db_session)
+    mock_request = create_mock_request(
+        json_data={"selected_answer": "42", "time_spent": 10.0},
+        path_params={"exercise_id": "999"},
+    )
+    mock_request.headers = {"Accept-Language": "fr"}
+
+    with (
+        patch(
+            "server.handlers.exercise_handlers.db_session",
+            return_value=_mock_db_session(),
+        ),
+        patch(
+            "server.handlers.exercise_handlers.svc_submit_answer",
+            side_effect=ExerciseNotFoundError(),
+        ),
+        _patch_auth(mock_user),
+    ):
+        response = await submit_answer(mock_request)
+
+    result = json.loads(response.body.decode("utf-8"))
+    assert response.status_code == 404
+    assert "error" in result
+
+
+@pytest.mark.asyncio
 async def test_submit_answer_internal_error(db_session):
-    """Teste la gestion des erreurs internes du serveur."""
+    """Handler : erreur interne du service -> 500."""
     mock_user = _mock_user(db_session)
     mock_request = create_mock_request(
         json_data={"selected_answer": "8", "time_spent": 10.0},
@@ -233,15 +246,18 @@ async def test_submit_answer_internal_error(db_session):
     )
     mock_request.headers = {"Accept-Language": "fr"}
 
-    def raise_error(*args, **kwargs):
-        raise Exception("Erreur interne")
-
-    with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.get_db_session",
-        side_effect=raise_error,
+    with (
+        patch(
+            "server.handlers.exercise_handlers.db_session",
+            return_value=_mock_db_session(),
+        ),
+        patch(
+            "server.handlers.exercise_handlers.svc_submit_answer",
+            side_effect=Exception("Erreur interne"),
+        ),
+        _patch_auth(mock_user),
     ):
-        with _patch_auth(mock_user):
-            response = await submit_answer(mock_request)
+        response = await submit_answer(mock_request)
 
     result = json.loads(response.body.decode("utf-8"))
     assert response.status_code == 500

@@ -16,25 +16,42 @@ type VersionBlock = {
   items: string[];
 };
 
-const LATEST_KEY = "v310a5";
+type ReleaseKey =
+  | "release_3_1_0_alpha_7"
+  | "release_3_1_0_alpha_6"
+  | "release_3_1_0_alpha_5"
+  | "release_3_1_0_alpha_4"
+  | "release_3_1_0_alpha_3"
+  | "release_3_0_0_alpha_3"
+  | "release_2_5_0_alpha_2"
+  | "release_2_4_0_alpha_2"
+  | "release_2_3_0"
+  | "release_2_2_1_alpha_2"
+  | "release_2_2_0_alpha_1"
+  | "release_2_1_0"
+  | "release_2_0_0";
+
+const LATEST_RELEASE_KEY: ReleaseKey = "release_3_1_0_alpha_7";
 
 export default function ChangelogPage() {
   const t = useTranslations("changelog");
   const { shouldReduceMotion, createVariants, createTransition } = useAccessibleAnimation();
 
-  const versionKeys = [
-    "v310a5",
-    "v310a4",
-    "v310a3",
-    "v250a3",
-    "v250",
-    "v240",
-    "v230",
-    "v221a2",
-    "v222",
-    "v221",
-    "v220",
-  ] as const;
+  const releaseKeys: readonly ReleaseKey[] = [
+    "release_3_1_0_alpha_7",
+    "release_3_1_0_alpha_6",
+    "release_3_1_0_alpha_5",
+    "release_3_1_0_alpha_4",
+    "release_3_1_0_alpha_3",
+    "release_3_0_0_alpha_3",
+    "release_2_5_0_alpha_2",
+    "release_2_4_0_alpha_2",
+    "release_2_3_0",
+    "release_2_2_1_alpha_2",
+    "release_2_2_0_alpha_1",
+    "release_2_1_0",
+    "release_2_0_0",
+  ];
 
   const itemIcon = (idx: number, isLatest: boolean) => {
     if (!isLatest)
@@ -63,6 +80,7 @@ export default function ChangelogPage() {
         </motion.div>
         <h1 className="text-3xl md:text-4xl font-bold text-foreground">{t("title")}</h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{t("subtitle")}</p>
+        <p className="text-sm text-muted-foreground max-w-2xl mx-auto">{t("scopeNote")}</p>
       </header>
 
       {/* Timeline */}
@@ -74,11 +92,11 @@ export default function ChangelogPage() {
         />
 
         <div className="space-y-6">
-          {versionKeys.map((key, idx) => {
+          {releaseKeys.map((key, idx) => {
             const block = t.raw(key) as VersionBlock | undefined;
             if (!block?.items?.length) return null;
 
-            const isLatest = key === LATEST_KEY;
+            const isLatest = key === LATEST_RELEASE_KEY;
 
             return (
               <motion.article

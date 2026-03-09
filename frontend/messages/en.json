@@ -1006,6 +1006,7 @@
     "loading": "Loading leaderboard...",
     "empty": "No users in the leaderboard yet.",
     "ranking": "Ranking by points",
+    "rank": "Rank",
     "level": "Level",
     "you": "You",
     "allAges": "All ages",
@@ -1630,135 +1631,156 @@
   "changelog": {
     "title": "What's new",
     "subtitle": "Latest improvements to Mathakine, explained simply.",
+    "scopeNote": "This page lists visible product releases. Internal engineering milestones stay in the root project changelog.",
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
-    "v310a5": {
+    "release_3_1_0_alpha_7": {
+      "version": "v3.1.0-alpha.7",
+      "date": "March 9, 2026",
+      "items": [
+        "Changing or resetting your password now revokes older sessions, so an older tab must sign in again.",
+        "Account, profile, and session management are now more reliable on the backend.",
+        "Personal data export is now properly wired and covered by an API test.",
+        "This is mainly a technical release focused on reliability across exercises, authentication, and the user area."
+      ]
+    },
+    "release_3_1_0_alpha_6": {
+      "version": "v3.1.0-alpha.6",
+      "date": "March 7, 2026",
+      "items": [
+        "New progress timeline chart in the dashboard to follow your results over 7 or 30 days.",
+        "Clearer exercise volume chart in the Progress tab.",
+        "New interleaved practice session to vary exercises automatically inside one run.",
+        "Adaptive exercise generation is now better calibrated when adaptive mode is enabled."
+      ]
+    },
+    "release_3_1_0_alpha_5": {
       "version": "v3.1.0-alpha.5",
-      "date": "March 7th, 2026",
+      "date": "March 7, 2026",
       "items": [
-        "Internal stability fixes (invisible to you)",
-        "Home page: new hero with highlighted logo, tagline and Assistant accessible from the navigation",
-        "Exercises and Challenges pages: more compact filters and generator to save space",
-        "Exercise modal: improved readability and more visible Validate button"
+        "Home page refreshed with a stronger hero, clearer tagline, and easier access to the Assistant from navigation.",
+        "Exercises and Challenges pages now use more compact filters and generator controls.",
+        "Exercise modal readability improved, with a clearer Validate action.",
+        "Additional stability and polish fixes across existing flows."
       ]
     },
-    "v310a4": {
+    "release_3_1_0_alpha_4": {
       "version": "v3.1.0-alpha.4",
-      "date": "March 7th, 2026",
+      "date": "March 7, 2026",
       "items": [
-        "New daily challenges: 3 daily goals to keep the pace (exercises, specific type, logic challenges)",
-        "Dashboard reorganised: simplified overview, My Profile tab for your level and badges",
-        "Daily challenges and current streak are now side by side for a clearer view",
-        "Visual improvements to challenges: XP badges highlighted, correct plural labels"
+        "New daily challenges with 3 goals to keep practice regular.",
+        "Dashboard reorganized with a simpler overview and a dedicated My Profile tab.",
+        "Daily challenges and current streak now sit side by side for a clearer overview.",
+        "Challenge visuals improved, especially for XP badges and labels."
       ]
     },
-    "v310a3": {
+    "release_3_1_0_alpha_3": {
       "version": "v3.1.0-alpha.3",
-      "date": "March 6th, 2026",
+      "date": "March 6, 2026",
       "items": [
-        "Better skill tracking for a 100% tailor-made difficulty",
-        "Improved support during difficult exercises",
-        "Added clear progression widgets in your dashboard",
-        "Complete overhaul of documentation to ease future updates"
+        "Better skill tracking for more personalized difficulty.",
+        "Clearer support during difficult exercises.",
+        "New progress widgets added to the dashboard.",
+        "Answer modes are now better aligned with the learner's measured level."
       ]
     },
     "latestBadge": "Latest",
     "latestLabel": "Most recent version",
-    "v250a3": {
-      "version": "3.0.0 — alpha 3",
+    "release_3_0_0_alpha_3": {
+      "version": "v3.0.0-alpha.3",
       "date": "March 4, 2026",
       "items": [
-        "Adaptive level test now available: 10 questions across 4 operations to personalise your exercises from the start",
-        "The test can be retaken at any time from the Settings page",
-        "Recommendations now take your measured level into account after completing the test",
-        "Exercise, challenge and diagnostic pages now display correctly on all themes (light, dino, ocean…), not just the spatial theme",
-        "Exercise explanations no longer show the technical prefix [TEST-ZAXXON]",
-        "Fixed duplicate answer choices in some division exercises"
+        "Adaptive placement test now available with 10 questions across 4 operations.",
+        "The test can be retaken at any time from Settings.",
+        "Recommendations now use the level actually measured by the test.",
+        "Exercise, challenge, and diagnostic pages now display correctly across all themes.",
+        "Exercise explanations no longer show the technical prefix [TEST-ZAXXON].",
+        "Duplicate answer choices were fixed in some division exercises."
       ]
     },
-    "v250": {
-      "version": "2.5.0 — alpha 2",
+    "release_2_5_0_alpha_2": {
+      "version": "v2.5.0-alpha.2",
       "date": "March 4, 2026",
       "items": [
-        "The exercise page has been fully redesigned: content is centred in a large frosted-glass panel for a more immersive experience",
-        "Answer tiles have a new look with a hover lift effect and a purple glow when you select an answer",
-        "The 'Validate' button is greyed out until you choose an answer, then lights up in the primary colour",
-        "The success state is more celebratory: vivid green with a glowing halo on the correct answer, explanation shown as a knowledge card",
-        "The challenge page has also been redesigned: clearer header hierarchy, answer bar docked at the bottom of the panel",
-        "The 'Hint' button has a distinctive amber style to make it stand out as a lifeline",
-        "Clicking outside the exercise window now correctly closes it"
+        "The exercise page was fully redesigned with a more immersive centered panel.",
+        "Answer tiles now feel clearer and more responsive visually.",
+        "The Validate button is better staged and activates more clearly.",
+        "Success states feel more rewarding and explanations read more like knowledge cards.",
+        "The challenge page was also redesigned with a better integrated answer area.",
+        "The Hint button now stands out more clearly as optional help.",
+        "Clicking outside the exercise window now closes it correctly."
       ]
     },
-    "v240": {
-      "version": "2.4.0 — alpha 2",
+    "release_2_4_0_alpha_2": {
+      "version": "v2.4.0-alpha.2",
       "date": "March 4, 2026",
       "items": [
-        "The Mathakine logo now appears in the navigation bar at the top of every page",
-        "The home page displays the illustrated logo in place of the plain text title",
-        "The app icon in your browser tab and when installing on mobile now uses the official logo",
-        "The badges page now shows an encouraging message based on your collection progress",
-        "A confetti burst appears the first time you return after unlocking a new badge",
-        "A 'Within reach' panel shows the badges closest to being unlocked",
-        "Badge cards have a new look: frosted glass background, larger centred icon, glowing halo on earned badges",
-        "Locked badges show a padlock and the heart icon replaces the pin for favourites"
+        "The Mathakine logo now appears in the top navigation.",
+        "The home page shows the illustrated logo instead of a plain text title.",
+        "The app icon now uses the official logo in the browser and on mobile install.",
+        "The badges page now includes encouragement based on your collection progress.",
+        "A confetti burst appears the first time you return after unlocking a new badge.",
+        "A Within reach panel highlights the badges closest to being unlocked.",
+        "Badge cards now feel more premium with stronger visual emphasis on earned badges.",
+        "Locked badges display a lock and favorites now use a heart icon."
       ]
     },
-    "v230": {
-      "version": "2.3.0 — alpha 2",
+    "release_2_3_0": {
+      "version": "v2.3.0",
       "date": "March 3, 2026",
       "items": [
-        "Dashboard charts now follow your chosen theme — no more fixed colors disconnected from the rest of the interface",
-        "Home page feature cards now have a depth effect on hover",
-        "Chart and visualization animations now respect your accessibility preferences (reduced motion)",
-        "Badge icons now have descriptive text for screen readers",
-        "Input fields are more consistent across all pages (same components, same style)"
+        "Dashboard charts now follow your selected theme.",
+        "Home page feature cards now include a stronger hover depth effect.",
+        "Chart and visualization animations better respect accessibility preferences.",
+        "Badge icons now include descriptive text for screen readers.",
+        "Input fields are more consistent across the app."
       ]
     },
-    "v221a2": {
-      "version": "2.2.1 — alpha 2",
+    "release_2_2_1_alpha_2": {
+      "version": "v2.2.1-alpha.2",
       "date": "February 25, 2026",
       "items": [
-        "First Exercise < 90s: immediate access after signup, 45‑min grace period, then exercises-only mode until email verification",
-        "Onboarding: class, age group, learning goal and practice rhythm — personalizes recommendations",
-        "Guided path on dashboard: \"An exercise\" / \"A challenge\" CTAs with smart recommendations",
-        "EdTech analytics: track dashboard views, Quick Start clicks and first attempts — admin page for KPIs",
-        "Profile and settings accessible for unverified users (change email, resend verification link)"
+        "Faster access to the first exercise after sign-up, with a grace period before email verification is enforced.",
+        "Onboarding now captures class, age group, goal, and rhythm to personalize recommendations.",
+        "Dashboard now offers a guided path with An exercise / A challenge calls to action.",
+        "EdTech analytics now track dashboard views, Quick Start clicks, and first attempts.",
+        "Profile and settings remain accessible for unverified users."
       ]
     },
-    "v222": {
-      "version": "2.2.0 — alpha 1",
+    "release_2_2_0_alpha_1": {
+      "version": "v2.2.0-alpha.1",
       "date": "February 22, 2026",
       "items": [
-        "New pages: About, Contact and Privacy Policy",
-        "Report button (red flag) to report an incorrect exercise, incoherent challenge or bug",
-        "Leaderboard: filter by age group",
-        "Dashboard: average session time and more relevant recommendations (without exercises and challenges already completed)",
-        "Display improvements: chatbot and footer layout more consistent"
+        "New About, Contact, and Privacy Policy pages.",
+        "New report button to flag a wrong exercise, inconsistent challenge, or bug.",
+        "Leaderboard can now be filtered by age group.",
+        "Dashboard recommendations and session metrics are more useful.",
+        "Chatbot and footer display are now more consistent."
       ]
     },
-    "v221": {
-      "version": "2.1.0",
+    "release_2_1_0": {
+      "version": "v2.1.0",
       "date": "February 6, 2026",
       "items": [
-        "Random order and option to hide exercises and challenges already completed",
-        "Badges redesigned: \"In progress\" and \"To unlock\" tabs, rarity display, ability to pin your favourites",
-        "Challenges: better answer handling and new puzzle types",
-        "New themes: Dune, Forest, Light and Dinosaurs",
-        "User leaderboard",
-        "Export your data as PDF or Excel",
-        "Math assistant to help with exercises",
-        "Accessibility options: contrast, text size, animations and Focus mode for ASD/ADHD"
+        "Random order and hide-completed options for exercises and challenges.",
+        "Badges redesigned with rarity display, dedicated tabs, and favorites pinning.",
+        "Challenges improved with better answer handling and new puzzle types.",
+        "New themes: Dune, Forest, Light, and Dinosaurs.",
+        "User leaderboard.",
+        "Export your data as PDF or Excel.",
+        "Math assistant to help with exercises.",
+        "Accessibility options for contrast, text size, animations, and Focus mode."
       ]
     },
-    "v220": {
-      "version": "2.0.0",
+    "release_2_0_0": {
+      "version": "v2.0.0",
       "date": "December 2025 - January 2026",
       "items": [
-        "Adaptive exercises (addition, subtraction, multiplication, division)",
-        "Varied logic challenges (riddles, chess, puzzles)",
-        "Registration and login with email verification",
-        "Dashboard with progress tracking",
-        "Achievement badges",
-        "Visual themes to customize the interface"
+        "Adaptive exercises for addition, subtraction, multiplication, and division.",
+        "Varied logic challenges with riddles, chess, and puzzles.",
+        "Registration and login with email verification.",
+        "Dashboard with progress tracking.",
+        "Achievement badges.",
+        "Visual themes to customize the interface."
       ]
     }
   },

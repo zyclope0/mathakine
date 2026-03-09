@@ -77,6 +77,11 @@ async def get_current_user(request):  # noqa: C901
             if user is None:
                 return None
 
+            from app.services.auth_service import _is_token_revoked_by_password_reset
+
+            if _is_token_revoked_by_password_reset(payload, user):
+                return None
+
             from app.utils.unverified_access import get_unverified_access_scope
 
             access_scope = get_unverified_access_scope(user)

@@ -166,6 +166,7 @@ async def test_update_user_onboarding_fields(padawan_client):
 async def test_update_user_password(padawan_client, db_session):
     """Test pour mettre a jour le mot de passe d'un utilisateur."""
     client = padawan_client["client"]
+    username = padawan_client["user_data"]["username"]
     user_id = padawan_client["user_id"]
 
     old_password = padawan_client["user_data"]["password"]
@@ -177,6 +178,17 @@ async def test_update_user_password(padawan_client, db_session):
 
     response = await client.put("/api/users/me/password", json=update_data)
     assert response.status_code == 200
+
+    # L'ancien access_token doit être invalidé dès la requête suivante.
+    me_response = await client.get("/api/users/me")
+    assert me_response.status_code == 401
+
+    # Le nouvel identifiant de connexion doit fonctionner immédiatement.
+    relogin_response = await client.post(
+        "/api/auth/login",
+        json={"username": username, "password": new_password},
+    )
+    assert relogin_response.status_code == 200
 
 
 async def test_get_leaderboard(padawan_client):
@@ -239,6 +251,30 @@ async def test_update_user_password_wrong_current(padawan_client):
 
     response = await client.put("/api/users/me/password", json=update_data)
     assert response.status_code in (400, 401)
+
+
+async def test_get_user_export_returns_rgpd_data(padawan_client):
+    """GET /api/users/me/export doit retourner les données RGPD avec structure attendue."""
+    client = padawan_client["client"]
+
+    response = await client.get("/api/users/me/export")
+    assert response.status_code == 200
+
+    data = response.json()
+    assert "export_date" in data
+    assert "format_version" in data
+    assert "profile" in data
+    assert "exercise_attempts" in data
+    assert "challenge_attempts" in data
+    assert "badges_earned" in data
+    assert "progress" in data
+    assert "recommendations" in data
+    assert "statistics" in data
+    stats = data["statistics"]
+    assert "total_exercise_attempts" in stats
+    assert "total_challenge_attempts" in stats
+    assert "total_badges" in stats
+    assert data["profile"]["username"] == padawan_client["user_data"]["username"]
 
 
 async def test_get_user_sessions_returns_current_session(padawan_client):

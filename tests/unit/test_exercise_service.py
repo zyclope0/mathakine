@@ -14,7 +14,6 @@ from sqlalchemy.orm import Session
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import LogicChallenge
-from app.models.progress import Progress
 from app.models.user import User, UserRole
 from app.exceptions import ExerciseNotFoundError
 from app.services.exercise_service import ExerciseService
@@ -779,19 +778,6 @@ def test_record_attempt_with_mock(mock_get_exercise, mock_adapt_enum):
     mock_session.add.side_effect = side_effect_add
     mock_session.flush.return_value = None
 
-    # Mock Progress pour _update_user_statistics (évite TypeError: int > MagicMock)
-    mock_progress = MagicMock(spec=Progress)
-    mock_progress.total_attempts = 0
-    mock_progress.correct_attempts = 0
-    mock_progress.streak = 0
-    mock_progress.highest_streak = 0
-    mock_progress.average_time = None
-    mock_progress.calculate_completion_rate.return_value = 0.0
-    mock_progress.update_mastery_level.return_value = None
-    mock_session.query.return_value.filter.return_value.first.return_value = (
-        mock_progress
-    )
-
     # Données pour la tentative
     attempt_data = {
         "user_id": 1,
@@ -826,8 +812,8 @@ def test_record_attempt_with_mock(mock_get_exercise, mock_adapt_enum):
 
 
 def test_submit_answer_result_correct(db_session):
-    """Test submit_answer_result avec réponse correcte (zone critique P2)."""
-    from app.services.exercise_service import ExerciseService, ExerciseSubmitError
+    """Test submit_answer avec réponse correcte (zone critique P2)."""
+    from app.services.exercise_attempt_service import submit_answer
 
     unique_id = str(uuid.uuid4())[:8]
     user = User(
@@ -857,7 +843,7 @@ def test_submit_answer_result_correct(db_session):
     db_session.commit()
     db_session.refresh(exercise)
 
-    result = ExerciseService.submit_answer_result(
+    result = submit_answer(
         db_session,
         exercise.id,
         user.id,
@@ -883,8 +869,8 @@ def test_submit_answer_result_correct(db_session):
 
 
 def test_submit_answer_result_incorrect(db_session):
-    """Test submit_answer_result avec réponse incorrecte."""
-    from app.services.exercise_service import ExerciseService
+    """Test submit_answer avec réponse incorrecte."""
+    from app.services.exercise_attempt_service import submit_answer
 
     unique_id = str(uuid.uuid4())[:8]
     user = User(
@@ -913,7 +899,7 @@ def test_submit_answer_result_incorrect(db_session):
     db_session.commit()
     db_session.refresh(exercise)
 
-    result = ExerciseService.submit_answer_result(
+    result = submit_answer(
         db_session,
         exercise.id,
         user.id,
@@ -938,8 +924,9 @@ def test_submit_answer_result_incorrect(db_session):
 
 
 def test_submit_answer_result_exercise_not_found(db_session):
-    """Test submit_answer_result lève ExerciseSubmitError si exercice inexistant."""
-    from app.services.exercise_service import ExerciseService, ExerciseSubmitError
+    """Test submit_answer lève ExerciseSubmitError si exercice inexistant."""
+    from app.exceptions import ExerciseSubmitError
+    from app.services.exercise_attempt_service import submit_answer
 
     unique_id = str(uuid.uuid4())[:8]
     user = User(
@@ -952,7 +939,7 @@ def test_submit_answer_result_exercise_not_found(db_session):
     db_session.commit()
 
     with pytest.raises(ExerciseSubmitError) as exc_info:
-        ExerciseService.submit_answer_result(
+        submit_answer(
             db_session,
             exercise_id=999999,
             user_id=user.id,
@@ -963,12 +950,20 @@ def test_submit_answer_result_exercise_not_found(db_session):
 
 
 def test_submit_answer_result_uses_orchestrator_owned_transaction():
+    from app.services.exercise_attempt_service import submit_answer
+
     mock_db = MagicMock()
+    progress_savepoint = MagicMock()
+    progress_savepoint.is_active = True
     streak_savepoint = MagicMock()
     streak_savepoint.is_active = True
     daily_savepoint = MagicMock()
     daily_savepoint.is_active = True
-    mock_db.begin_nested.side_effect = [streak_savepoint, daily_savepoint]
+    mock_db.begin_nested.side_effect = [
+        progress_savepoint,
+        streak_savepoint,
+        daily_savepoint,
+    ]
 
     mock_attempt = MagicMock(id=321, created_at=datetime(2026, 3, 6, 12, 0, 0))
     mock_badge_service = MagicMock()
@@ -982,16 +977,17 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
     }
 
     with (
-        patch.object(
-            ExerciseService,
-            "get_exercise_for_submit_validation",
+        patch(
+            "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
             return_value=exercise_payload,
         ),
-        patch.object(
-            ExerciseService,
-            "record_attempt",
+        patch(
+            "app.services.exercise_attempt_service.create_attempt",
             return_value=mock_attempt,
-        ) as record_attempt_mock,
+        ) as create_attempt_mock,
+        patch(
+            "app.services.exercise_attempt_service.update_progress_after_attempt",
+        ) as update_progress_mock,
         patch(
             "app.services.badge_service.BadgeService",
             return_value=mock_badge_service,
@@ -1001,7 +997,7 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
             "app.services.daily_challenge_service.record_exercise_completed"
         ) as daily_mock,
     ):
-        result = ExerciseService.submit_answer_result(
+        result = submit_answer(
             mock_db,
             exercise_id=42,
             user_id=7,
@@ -1009,7 +1005,7 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
             time_spent=3.5,
         )
 
-    record_attempt_mock.assert_called_once_with(
+    create_attempt_mock.assert_called_once_with(
         mock_db,
         {
             "user_id": 7,
@@ -1018,14 +1014,81 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
             "is_correct": True,
             "time_spent": 3.5,
         },
-        auto_commit=False,
     )
-    badge_service_cls.assert_called_once_with(mock_db, auto_commit=False)
+    update_progress_mock.assert_called_once()
+    assert badge_service_cls.call_count >= 1
+    badge_service_cls.assert_any_call(mock_db, auto_commit=False)
     streak_mock.assert_called_once_with(mock_db, 7, auto_commit=False)
     daily_mock.assert_called_once_with(mock_db, 7, ExerciseType.ADDITION.value, True)
+    progress_savepoint.commit.assert_called_once()
     streak_savepoint.commit.assert_called_once()
     daily_savepoint.commit.assert_called_once()
     mock_db.commit.assert_called_once()
     mock_db.refresh.assert_called_once_with(mock_attempt)
     assert result.is_correct is True
     assert result.attempt_id == 321
+
+
+def test_submit_answer_progress_db_error_returns_result_anyway():
+    """LOT 2.2: Erreur DB sur update_progress -> rollback savepoint, soumission réussit."""
+    from app.services.exercise_attempt_service import submit_answer
+
+    mock_db = MagicMock()
+    progress_savepoint = MagicMock()
+    progress_savepoint.is_active = True
+    streak_savepoint = MagicMock()
+    streak_savepoint.is_active = True
+    daily_savepoint = MagicMock()
+    daily_savepoint.is_active = True
+    mock_db.begin_nested.side_effect = [
+        progress_savepoint,
+        streak_savepoint,
+        daily_savepoint,
+    ]
+
+    mock_attempt = MagicMock(id=99, created_at=datetime(2026, 3, 6, 12, 0, 0))
+    mock_badge_service = MagicMock()
+    mock_badge_service.check_and_award_badges.return_value = []
+    mock_badge_service.get_closest_progress_notification.return_value = None
+
+    exercise_payload = {
+        "correct_answer": "4",
+        "exercise_type": ExerciseType.ADDITION.value,
+        "explanation": "2+2=4",
+    }
+
+    with (
+        patch(
+            "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
+            return_value=exercise_payload,
+        ),
+        patch(
+            "app.services.exercise_attempt_service.create_attempt",
+            return_value=mock_attempt,
+        ),
+        patch(
+            "app.services.exercise_attempt_service.update_progress_after_attempt",
+            side_effect=SQLAlchemyError("DB error on progress"),
+        ) as update_progress_mock,
+        patch(
+            "app.services.badge_service.BadgeService",
+            return_value=mock_badge_service,
+        ),
+        patch("app.services.streak_service.update_user_streak"),
+        patch("app.services.daily_challenge_service.record_exercise_completed"),
+    ):
+        result = submit_answer(
+            mock_db,
+            exercise_id=42,
+            user_id=7,
+            selected_answer="4",
+            time_spent=3.5,
+        )
+
+    update_progress_mock.assert_called_once()
+    progress_savepoint.rollback.assert_called_once()
+    progress_savepoint.commit.assert_not_called()
+    mock_db.commit.assert_called_once()
+    mock_db.refresh.assert_called_once_with(mock_attempt)
+    assert result.is_correct is True
+    assert result.attempt_id == 99

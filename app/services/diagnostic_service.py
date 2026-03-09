@@ -209,7 +209,7 @@ def generate_question(session: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     session est terminée.
     """
     # Import ici pour éviter les imports circulaires au niveau module
-    from server.exercise_generator import generate_ai_exercise
+    from app.generators.exercise_generator import generate_ai_exercise
 
     exercise_type = _next_type(session)
     if exercise_type is None:

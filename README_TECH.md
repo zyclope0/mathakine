@@ -1,6 +1,6 @@
 # README_TECH.md - Mathakine
 
-> Documentation technique de référence — Mise à jour le 08/03/2026 (hardening F32 + quality gates)
+> Documentation technique de reference - Mise a jour le 09/03/2026 (iteration backend exercise/auth/user cloturee, release 3.1.0-alpha.7)
 
 ---
 
@@ -13,7 +13,8 @@ Mises a jour recentes:
 - F07: timeline progression 7j/30j (`/api/users/me/progress/timeline`)
 - F32: session entrelacee (interleaving) via plan dedie (`/api/exercises/interleaved-plan`)
 - F35: redaction des secrets URL DB au demarrage (`redact_database_url_for_log`)
-- 08/03: durcissement F32/analytics (`first_attempt` interleaved emis une seule fois par session, `save=true` strict, helper adaptive partage, hygiene black/UTF-8 et repo)
+- 09/03: iteration backend `exercise/auth/user` cloturee - handlers amincis, services applicatifs isoles, repos `exercise`, auth session/recovery et boundary user stabilises
+- 09/03: reset password ET changement de mot de passe invalident desormais les anciens tokens et sessions via `password_changed_at` + `iat`
 
 | Composant | Technologie | Version |
 |---|---|---|
@@ -35,53 +36,41 @@ Mises a jour recentes:
 
 ```
 Mathakine/
-├── app/                    # Backend - Couche logique metier
-│   ├── api/                #   [Archive] Anciens routers FastAPI
-│   │   ├── deps.py         #   Dependencies injection (DB session, auth)
-│   │   └── endpoints/      #   Logique metier reutilisable (reference)
-│   ├── core/               #   Configuration, sécurité, logging, constantes, types
-│   │   ├── types.py        #   TypedDict centralisés (DashboardStats, TokenResponse, AuditLogPageDict…)
-│   │   ├── constants.py    #   Hub de re-export constantes (domaines exercise, user, config)
-│   │   └── constants_challenge.py  #   Constantes domaine challenges (types, aliases, normalize)
-│   ├── db/                 #   Base SQLAlchemy, adapter, queries
-│   ├── exceptions.py      #   Exceptions métier (ExerciseNotFoundError, ChallengeNotFoundError, UserNotFoundError, DatabaseOperationError)
-│   ├── models/             #   Modeles SQLAlchemy (User, Exercise, Attempt, LogicChallenge, etc.)
-│   ├── schemas/            #   Schemas Pydantic (validation API)
-│   ├── services/           #   Logique metier (exercise_service, challenge_service, challenge_ai_service, etc.)
-│   └── utils/              #   Utilitaires (sse_utils, json_utils, rate_limiter, prompt_sanitizer, error_handler)
-│
-├── server/                 # Backend - Couche HTTP Starlette (ACTIF)
-│   ├── handlers/           #   Handlers HTTP (exercise, challenge, user, auth, chat, badge)
-│   ├── app.py              #   Factory de l'app Starlette
-│   ├── auth.py             #   Authentification JWT
-│   ├── routes/             #   Routes par domaine (core, auth, users, exercises, challenges, badges, admin, misc)
-│   ├── middleware.py       #   CORS, logging, securite
-│   ├── exercise_generator.py           # Generateur d'exercices IA (streaming SSE)
-│   ├── exercise_generator_validators.py  # Validation/normalisation (type, age_group, difficulty)
-│   └── exercise_generator_helpers.py     # Choix MCQ, questions contextualisees (generate_smart_choices)
-│
-├── frontend/               # Frontend Next.js 16
-│   ├── app/                #   Pages (App Router) : /, exercises, challenges, dashboard, etc.
-│   │   └── api/            #   API Routes Next.js (proxy SSE vers backend)
-│   ├── components/         #   Composants React organises par domaine
-│   │   ├── challenges/     #     Defis : ChallengeCard, ChallengeSolver, AIGenerator, visualizations/
-│   │   ├── exercises/      #     Exercices : ExerciseCard, ExerciseModal, ExerciseSolver, AIGenerator
-│   │   ├── dashboard/      #     Tableau de bord : StatsCard, ProgressChart, Recommendations
-│   │   ├── layout/         #     Layout : Header, Footer, PageLayout, PageTransition
-│   │   ├── ui/             #     Composants UI generiques (shadcn/ui)
-│   │   └── spatial/        #     Fond anime (Starfield, Planet, Particles, DinoFloating)
-│   ├── hooks/              #   Hooks custom (useAuth, useExercises, useChallenges, etc.)
-│   ├── lib/                #   API client, constantes, stores Zustand, utils
-│   ├── messages/           #   Fichiers de traduction (fr.json, en.json)
-│   └── types/              #   Types TypeScript (api.ts)
-│
-├── migrations/             # Migrations Alembic
-│   └── env.py              #   Configuration Alembic
-│
-├── tests/                  # Tests (pytest + vitest + playwright)
-├── docs/                   # Documentation technique restante
-├── _ARCHIVE_2026/          # Fichiers archives (Phase 2 - 231 fichiers)
-└── enhanced_server.py      # Point d'entree du serveur
+|-- app/                    # Backend - logique metier et acces data
+|   |-- api/                #   [Archive] anciens endpoints FastAPI
+|   |-- core/               #   config, securite, logging, constantes, types
+|   |-- db/                 #   base SQLAlchemy, adapter, transactions
+|   |-- exceptions.py       #   exceptions metier
+|   |-- generators/         #   generateurs d'exercices (source de verite backend)
+|   |-- models/             #   modeles SQLAlchemy
+|   |-- repositories/       #   acces data isole (exercise, attempts)
+|   |-- schemas/            #   schemas Pydantic
+|   |-- services/           #   services applicatifs et metier
+|   `-- utils/              #   helpers transverses
+|
+|-- server/                 # Backend - couche HTTP Starlette (actif)
+|   |-- handlers/           #   controllers HTTP anemiques
+|   |-- routes/             #   routes par domaine
+|   |-- app.py              #   factory Starlette
+|   |-- auth.py             #   auth runtime / decorators
+|   |-- middleware.py       #   CORS, securite, auth middleware
+|   |-- exercise_generator.py            # compat re-export -> app/generators
+|   |-- exercise_generator_validators.py # compat re-export -> app/utils
+|   `-- exercise_generator_helpers.py    # compat re-export -> app/utils
+|
+|-- frontend/               # Frontend Next.js 16
+|   |-- app/                #   pages App Router + API routes Next.js
+|   |-- components/         #   composants React par domaine
+|   |-- hooks/              #   hooks custom
+|   |-- lib/                #   client API, stores, analytics, utils
+|   |-- messages/           #   traductions fr/en
+|   `-- types/              #   types TypeScript
+|
+|-- migrations/             # Migrations Alembic
+|-- tests/                  # Tests pytest / vitest
+|-- docs/                   # Documentation projet
+|-- _ARCHIVE_2026/          # Archives historiques
+`-- enhanced_server.py      # Point d'entree du serveur
 ```
 
 ---
@@ -130,46 +119,32 @@ Le backend est unifie sur **Starlette** (FastAPI archive le 06/02/2026).
 
 ### Couche HTTP - Starlette (`server/`)
 - **Point d'entree** : `enhanced_server.py` (port `8000` par defaut via `PORT`)
-- **Handlers** : `server/handlers/` (admin, admin_handlers_utils, auth, badge, challenge, chat, exercise, recommendation, user)
-- **Gestion DB** : context manager `db_session()` dans les handlers, puis delegation au service d'orchestration
-- **Responses** : `JSONResponse` (Starlette)
-- **Authentification** : `server/auth.py` (Cookie + Bearer token)
-- **Streaming** : SSE pour generation IA (exercices + challenges)
-- **Exercise generator** : `exercise_generator.py` + `exercise_generator_validators.py` + `exercise_generator_helpers.py` (choix MCQ, questions contextualisees)
-- **Routes** : ~85 routes dans `server/routes/` — agrégées via `get_routes()` (dont bloc admin)
-- **Convention B1/B2** : handler = adaptateur HTTP (parse, validation transport, appel service, format response) ; commit final porte par le service proprietaire du flux critique
+- **Handlers** : `server/handlers/` (admin, auth, badge, challenge, chat, exercise, recommendation, user)
+- **DB ownership** : sur les boundaries refactorees `exercise`, `auth` et `user`, les handlers n'ouvrent plus la DB ; les services applicatifs portent `db_session()` et l'orchestration.
+- **Responses** : `JSONResponse`, `TemplateResponse`, `StreamingResponse` selon le flux
+- **Authentification** : `server/auth.py` (cookie + bearer) avec rejet des tokens revoques
+- **Streaming** : SSE pour generation IA (exercices + defis)
+- **Compat generateur** : `server/exercise_generator*.py` sont des couches de compatibilite re-exportant vers `app/generators` et `app/utils`
+- **Routes** : ~95 routes dans `server/routes/` agregees via `get_routes()`
+- **Convention B1/B2** : handler = adaptateur HTTP (parse, validation transport, appel service, format response) ; le service proprietaire porte la transaction du flux critique
 
 ### Couche logique metier (`app/`)
 Couche independante du framework HTTP :
 - **Models** : SQLAlchemy ORM (`app/models/`)
 - **Schemas** : Pydantic validation (`app/schemas/`)
-- **Services** : Logique métier (`app/services/`)
-  - `exercise_service.py` — CRUD exercices
-  - `exercise_stats_service.py` — Statistiques (extrait 28/02)
-  - `challenge_service.py` — CRUD défis (quiz)
-  - `challenge_answer_service.py` — 7 algorithmes de comparaison réponses (Phase 3.1)
-  - `logic_challenge_service.py` — Défis logiques
-  - `user_service.py` — Gestion utilisateurs
-  - `auth_service.py` — Authentification, JWT
-  - `badge_service.py` — Système de badges
-  - `recommendation_service.py` — Recommandations adaptatives
-  - `adaptive_difficulty_service.py` — F05 : cascade IRT → progression → profil → fallback (voir [F05_ADAPTATION_DYNAMIQUE](docs/02-FEATURES/F05_ADAPTATION_DYNAMIQUE.md))
-  - `diagnostic_service.py` — F03 : test IRT adaptatif, `get_latest_score()` pour recommandations et F05
-  - `progress_timeline_service.py` — F07 : aggregation temporelle UTC, serie continue 7j/30j
-  - `interleaved_practice_service.py` — F32 : calcul du plan interleave (eligibilite + round-robin)
-  - `chat_service.py` — Config et helpers chatbot IA (Phase 3.2)
-  - `admin_service.py` — Façade re-exportant les 4 services admin spécialisés
-  - `admin_config_service.py` — Config, maintenance, paramètres globaux (Phase 3.3)
-  - `admin_stats_service.py` — Dashboard, audit logs, modération, rapports (Phase 3.3)
-  - `admin_user_service.py` — Gestion utilisateurs admin (Phase 3.3)
-  - `admin_content_service.py` — Exercices, défis, export CSV (Phase 3.3)
-  - `enhanced_server_adapter.py` — Adaptateur couche HTTP → services
-- **Utils** : Utilitaires (`app/utils/`)
-  - `rate_limiter.py` - Limitation taux API
-  - `prompt_sanitizer.py` - Securite prompts IA
-  - `error_handler.py` - Gestion erreurs
-  - `token_tracker.py` - Tracking usage OpenAI
-  - `generation_metrics.py` - Metriques generation IA
+- **Repositories** : acces data isole (`app/repositories/exercise_repository.py`, `app/repositories/exercise_attempt_repository.py`)
+- **Generators** : source de verite pour la generation d'exercices (`app/generators/exercise_generator.py`)
+- **Services application/metier** :
+  - `exercise_generation_service.py`, `exercise_attempt_service.py`, `exercise_query_service.py`, `exercise_stream_service.py`
+  - `exercise_service.py`, `exercise_stats_service.py`, `interleaved_practice_service.py`
+  - `auth_service.py`, `auth_session_service.py`, `auth_recovery_service.py`
+  - `user_service.py`, `user_application_service.py`
+  - `challenge_service.py`, `challenge_answer_service.py`, `challenge_validator.py`, `challenge_ai_service.py`
+  - `badge_service.py`, `recommendation_service.py`, `diagnostic_service.py`, `adaptive_difficulty_service.py`, `progress_timeline_service.py`
+  - `admin_service.py` et services specialises `admin_*`
+  - `enhanced_server_adapter.py` reste une facade legacy de transition, plus la source de verite des boundaries refactorees
+- **Utils** : `prompt_sanitizer.py`, `rate_limiter.py`, `token_tracker.py`, `exercise_generator_validators.py`, `exercise_generator_helpers.py`, etc.
+- **Securite auth** : `users.password_changed_at` invalide les anciens access/refresh tokens via le claim JWT `iat` apres reset password ou changement de mot de passe
 
 ### FastAPI archive
 - **Archive** : `_ARCHIVE_2026/app/main.py` + `_ARCHIVE_2026/app/api/api.py`
@@ -183,7 +158,7 @@ Couche independante du framework HTTP :
 
 | Modele | Table | Description |
 |---|---|---|
-| `User` | `users` | Utilisateurs (jedi_rank, total_points, avatar) |
+| `User` | `users` | Utilisateurs (profil, gamification, `password_changed_at` pour la revocation auth) |
 | `Exercise` | `exercises` | Exercices mathematiques |
 | `Attempt` | `attempts` | Tentatives de reponse |
 | `Progress` | `progress` | Progression par type d'exercice |
@@ -191,7 +166,7 @@ Couche independante du framework HTTP :
 | `Achievement` | `achievements` | Definitions de badges |
 | `UserAchievement` | `user_achievements` | Badges debloques par utilisateur |
 | `Notification` | `notifications` | Notifications utilisateur |
-| `UserSession` | `user_sessions` | Sessions actives |
+| `UserSession` | `user_sessions` | Sessions actives (revoquees sur reset/changement de mot de passe) |
 | `Recommendation` | `recommendations` | Recommandations IA |
 | `Setting` | `settings` | Paramètres globaux (admin config) |
 | `AdminAuditLog` | `admin_audit_logs` | Log des actions admin |
@@ -201,7 +176,7 @@ Couche independante du framework HTTP :
 
 ---
 
-## 6. API - Endpoints actifs (~85 routes Starlette)
+## 6. API - Endpoints actifs (~95 routes Starlette)
 
 | Methode | Route | Handler | Description |
 |---|---|---|---|
@@ -240,7 +215,7 @@ Couche independante du framework HTTP :
 | POST | `/api/chat` | chat_handlers | Chatbot IA |
 | POST | `/api/chat/stream` | chat_handlers | Chatbot streaming |
 
-### Admin (rôle archiviste) — 25 routes
+### Admin (rôle archiviste) — 34 routes
 
 | Domaine | Routes |
 |---------|--------|
@@ -438,4 +413,4 @@ isort app/ server/                         # Tri imports backend
 
 ---
 
-*Derniere mise a jour : 07/03/2026 - F32 session entrelacee, F35 redaction logs DB, F07 timeline et contrat generate aligne*
+*Derniere mise a jour : 09/03/2026 - iteration backend exercise/auth/user cloturee, revocation tokens/sessions alignee, release 3.1.0-alpha.7*

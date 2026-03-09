@@ -1,3 +1,6 @@
+import pytest
+
+
 async def test_get_exercises(client):
     """Test de l'endpoint pour récupérer tous les exercices (route publique @optional_auth)."""
     response = await client.get("/api/exercises")
@@ -158,7 +161,7 @@ async def test_generate_exercise_save_fails_returns_500(padawan_client):
 
     client = padawan_client["client"]
     with patch(
-        "server.handlers.exercise_handlers.EnhancedServerAdapter.create_generated_exercise",
+        "app.services.exercise_generation_service.ExerciseRepository.persist_generated_exercise",
         return_value=None,
     ):
         response = await client.post(
@@ -169,12 +172,12 @@ async def test_generate_exercise_save_fails_returns_500(padawan_client):
 
 
 async def test_generate_exercise_save_exception_returns_500(padawan_client):
-    """Lot 2 — Si save=true et create_generated_exercise lève, retourner 500."""
+    """Lot 2 — Si save=true et persist_generated_exercise lève, retourner 500."""
     from unittest.mock import patch
 
     client = padawan_client["client"]
     with patch(
-        "server.handlers.exercise_handlers.EnhancedServerAdapter.create_generated_exercise",
+        "app.services.exercise_generation_service.ExerciseRepository.persist_generated_exercise",
         side_effect=Exception("DB error"),
     ):
         response = await client.post(

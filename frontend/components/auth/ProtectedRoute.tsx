@@ -33,9 +33,6 @@ export function ProtectedRoute({
     }
 
     const timer = window.setTimeout(() => {
-      if (process.env.NODE_ENV === "development") {
-        console.log("[ProtectedRoute] Timeout sécurité - affichage du contenu");
-      }
       setHasTimedOut(true);
     }, 1500);
 
@@ -86,10 +83,6 @@ export function ProtectedRoute({
   }, [redirectTarget, router]);
 
   if (isLoading && user === null && !hasCheckedAuth) {
-    if (process.env.NODE_ENV === "development") {
-      console.log("[ProtectedRoute] Affichage du loader");
-    }
-
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">

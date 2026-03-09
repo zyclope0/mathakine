@@ -1,43 +1,41 @@
-# 📋 Rapports situationnels — Index
+# Rapports situationnels - Index
 
-> Récaps mission, plans contextuels — Contexte historique, pas de suivi actif.  
-> **Convention :** [CONVENTION_DOCUMENTATION.md](../../../CONVENTION_DOCUMENTATION.md)
+> Recaps mission, plans contextuels et archives d'execution. Contexte historique, pas de suivi actif.
 
 ---
 
-## Liste des documents
+## Documents marquants
 
 | Fichier | Date | Sujet |
 |---------|------|-------|
-| [BILAN_COMPLET.md](./BILAN_COMPLET.md) | Nov. 2025 | Phases 1–6 — historiquement remplacé par EVALUATION_PROJET |
-| [RAPPORT_VERIFICATION_CHALLENGES.md](./RAPPORT_VERIFICATION_CHALLENGES.md) | 29/11/2025 | Vérification défis |
-| [PHASES/](./PHASES/) | — | Documentation phases historiques (RECAP, PHASE6) |
-| [DEPLOIEMENT_2026-02-06.md](./DEPLOIEMENT_2026-02-06.md) | 06/02/2026 | Rapport déploiement Render (migrations, build frontend) |
-| [MISSION_COMPLETE_2026-02-06.md](./MISSION_COMPLETE_2026-02-06.md) | 06/02/2026 | Rapport final mission rationalisation + index DB |
-| [RECAP_FINAL_2026-02-06.md](./RECAP_FINAL_2026-02-06.md) | 06/02/2026 | Récapitulatif mission 06/02 |
-| [SUIVI_MIGRATION_ALEMBIC_22-02.md](./SUIVI_MIGRATION_ALEMBIC_22-02.md) | 22/02/2026 | Récap final migration DDL → Alembic |
-| [RATIONALISATION_DOCS_2026-02-06.md](./RATIONALISATION_DOCS_2026-02-06.md) | 06/02/2026 | Plan rationalisation documentation |
-| [PLAN_ACTION_2026-02-06.md](./PLAN_ACTION_2026-02-06.md) | 06/02/2026 | Plan d'action — ⚠️ obsolète (voir [EVALUATION_PROJET](../../EVALUATION_PROJET_2026-02-07.md) en racine 03-PROJECT) |
-| [MIGRATION_INDEX_ROLLBACK_PLAN.md](./MIGRATION_INDEX_ROLLBACK_PLAN.md) | 06/02/2026 | Plan rollback migrations index DB |
-| [COMMIT_FIXES_FRONTEND_2026-02-20.md](./COMMIT_FIXES_FRONTEND_2026-02-20.md) | 20/02/2026 | Audit commit fixes (framer-motion, dev) |
-| [ANALYSE_GENERATION_IA_EXERCICES.md](./ANALYSE_GENERATION_IA_EXERCICES.md) | Fév. 2026 | Génération IA exercices, bug cristaux |
-| [ANALYSE_GENERATION_IA_CHALLENGES.md](./ANALYSE_GENERATION_IA_CHALLENGES.md) | Fév. 2026 | Génération IA défis, bugs et validations |
-| [ANALYSE_DEPENDABOT_2026-02-20.md](./ANALYSE_DEPENDABOT_2026-02-20.md) | 20/02/2026 | Dependabot, pip-audit, npm audit |
-| [SECURITY_AUDIT_REPORT.md](./SECURITY_AUDIT_REPORT.md) | 12/02/2026 | CVE Next.js, requests, Jinja2 |
-| [BADGES_AUDIT_PAUFINAGE.md](./BADGES_AUDIT_PAUFINAGE.md) | 16/02/2026 | Audit page badges (ergonomie, rétention) |
-| [AUDIT_QUALITE_CODE_2026-02.md](./AUDIT_QUALITE_CODE_2026-02.md) | 25/02/2026 | État des lieux qualité (Black, flake8, docstrings) |
-| [REFACTO_EXERCISE_HANDLERS.md](./REFACTO_EXERCISE_HANDLERS.md) | 22/02/2026 | Plan refacto exercise_handlers → ExerciseService — ✅ complété |
-| [REFACTO_ADMIN_HANDLERS.md](./REFACTO_ADMIN_HANDLERS.md) | 27/02/2026 | Plan refacto admin_handlers → AdminService — ✅ complété |
-| [INVENTAIRE_HANDLERS_DB_DIRECTE.md](./INVENTAIRE_HANDLERS_DB_DIRECTE.md) | 27/02/2026 | Inventaire handlers vs DB — tous refactorés |
-| [ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md](./ANALYSE_MIGRATION_ALEMBIC_INIT_DB.md) | 22/02/2026 | Migration DDL init_database → Alembic — ✅ réalisée |
-| [VALIDATION_MIGRATION_ALEMBIC_2026-02.md](./VALIDATION_MIGRATION_ALEMBIC_2026-02.md) | 22/02/2026 | Rapport validation migration Alembic |
-| [PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md](./PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md) | Fév. 2026 | Plan backup/rollback migration DDL |
-| [CONTEXTE_PROJET_REEL.md](./CONTEXTE_PROJET_REEL.md) | 22/02/2026 | Contexte projet réel (structure, stack) — snapshot |
+| [CLOTURE_ITERATION_STABILISATION_POST_FEATURES_2026-03-08.md](./CLOTURE_ITERATION_STABILISATION_POST_FEATURES_2026-03-08.md) | 08/03/2026 | Cloture archivee de l'iteration Cursor post-features |
+| [GUIDAGE_CURSOR_ALIGNEMENT_POST_IMPL_2026-03-08.md](./GUIDAGE_CURSOR_ALIGNEMENT_POST_IMPL_2026-03-08.md) | 08/03/2026 | Guidage Cursor post-audit archive |
+| [PILOTAGE_CURSOR_STABILISATION_POST_FEATURES_2026-03-08.md](./PILOTAGE_CURSOR_STABILISATION_POST_FEATURES_2026-03-08.md) | 08/03/2026 | Document maitre archive de l'iteration precedente |
+| [PILOTAGE_CURSOR_LOT1_VERITE_TERRAIN_2026-03-08.md](./PILOTAGE_CURSOR_LOT1_VERITE_TERRAIN_2026-03-08.md) | 08/03/2026 | Archive lot 1 - verite terrain et hygiene |
+| [PILOTAGE_CURSOR_LOT1BIS_VERITE_API_DOC_2026-03-08.md](./PILOTAGE_CURSOR_LOT1BIS_VERITE_API_DOC_2026-03-08.md) | 08/03/2026 | Archive lot 1 bis - verite API et documentation critique |
+| [PILOTAGE_CURSOR_LOT2_DURCISSEMENT_PROD_2026-03-08.md](./PILOTAGE_CURSOR_LOT2_DURCISSEMENT_PROD_2026-03-08.md) | 08/03/2026 | Archive lot 2 - durcissement prod |
+| [PILOTAGE_CURSOR_LOT3_BOUCLIER_NON_REGRESSION_2026-03-08.md](./PILOTAGE_CURSOR_LOT3_BOUCLIER_NON_REGRESSION_2026-03-08.md) | 08/03/2026 | Archive lot 3 - bouclier de non-regression |
+| [PILOTAGE_CURSOR_LOT4_EXTRACTION_ARCHI_CIBLEE_2026-03-08.md](./PILOTAGE_CURSOR_LOT4_EXTRACTION_ARCHI_CIBLEE_2026-03-08.md) | 08/03/2026 | Archive lot 4 - extraction architecture ciblee |
+| [PILOTAGE_CURSOR_BACKEND_REFACTOR_EXERCISE_AUTH_USER_2026-03-08.md](./PILOTAGE_CURSOR_BACKEND_REFACTOR_EXERCISE_AUTH_USER_2026-03-08.md) | 09/03/2026 | Pilotage maitre archive de l'iteration backend `exercise/auth/user` |
+| [VERSIONING_BACKEND_REFACTOR_EXERCISE_AUTH_USER_2026-03-08.md](./VERSIONING_BACKEND_REFACTOR_EXERCISE_AUTH_USER_2026-03-08.md) | 09/03/2026 | Versioning interne archive, iteration cloturee en `1.0.0` |
+| [PILOTAGE_CURSOR_BACKEND_LOT1_EXERCISE_GENERATION_2026-03-08.md](./PILOTAGE_CURSOR_BACKEND_LOT1_EXERCISE_GENERATION_2026-03-08.md) | 08/03/2026 | Archive lot 1 - generation `exercise` |
+| [PILOTAGE_CURSOR_BACKEND_LOT2_EXERCISE_ATTEMPT_ORCHESTRATION_2026-03-08.md](./PILOTAGE_CURSOR_BACKEND_LOT2_EXERCISE_ATTEMPT_ORCHESTRATION_2026-03-08.md) | 08/03/2026 | Archive lot 2 - soumission `exercise` |
+| [PILOTAGE_CURSOR_BACKEND_LOT3_EXERCISE_QUERY_AND_STREAM_BOUNDARY_2026-03-08.md](./PILOTAGE_CURSOR_BACKEND_LOT3_EXERCISE_QUERY_AND_STREAM_BOUNDARY_2026-03-08.md) | 08/03/2026 | Archive lot 3 - query/SSE `exercise` |
+| [PILOTAGE_CURSOR_BACKEND_LOT4_AUTH_SESSION_BOUNDARY_2026-03-08.md](./PILOTAGE_CURSOR_BACKEND_LOT4_AUTH_SESSION_BOUNDARY_2026-03-08.md) | 08/03/2026 | Archive lot 4 - session auth |
+| [PILOTAGE_CURSOR_BACKEND_LOT5_AUTH_RECOVERY_AND_VERIFICATION_2026-03-08.md](./PILOTAGE_CURSOR_BACKEND_LOT5_AUTH_RECOVERY_AND_VERIFICATION_2026-03-08.md) | 08/03/2026 | Archive lot 5 - recovery auth |
+| [PILOTAGE_CURSOR_BACKEND_LOT6_USER_HANDLER_SLIMMING_2026-03-08.md](./PILOTAGE_CURSOR_BACKEND_LOT6_USER_HANDLER_SLIMMING_2026-03-08.md) | 08/03/2026 | Archive lot 6 - boundary user |
 
----
+## Autres rapports historiques
+
+| Fichier | Date | Sujet |
+|---------|------|-------|
+| [DEPLOIEMENT_2026-02-06.md](./DEPLOIEMENT_2026-02-06.md) | 06/02/2026 | Rapport deploiement Render |
+| [MISSION_COMPLETE_2026-02-06.md](./MISSION_COMPLETE_2026-02-06.md) | 06/02/2026 | Rapport final mission rationalisation + index DB |
+| [SUIVI_MIGRATION_ALEMBIC_22-02.md](./SUIVI_MIGRATION_ALEMBIC_22-02.md) | 22/02/2026 | Recap migration DDL -> Alembic |
+| [AUDIT_QUALITE_CODE_2026-02.md](./AUDIT_QUALITE_CODE_2026-02.md) | 25/02/2026 | Etat des lieux qualite |
 
 ## Navigation
 
-- [← Retour README archives](../README.md)
+- [Retour README archives](../README.md)
 - [Index 03-PROJECT](../../README.md)
 - [Index documentation](../../../INDEX.md)

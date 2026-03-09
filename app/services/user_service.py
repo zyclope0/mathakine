@@ -1098,6 +1098,8 @@ class UserService:
         Met à jour le mot de passe de l'utilisateur.
         Retourne (True, None) en cas de succès, (False, "message_erreur") sinon.
         """
+        from datetime import datetime, timezone
+
         from app.core.security import get_password_hash, verify_password
 
         user = UserService.get_user(db, user_id)
@@ -1107,8 +1109,18 @@ class UserService:
         if not verify_password(current_password, user.hashed_password):
             return False, "Le mot de passe actuel est incorrect."
 
+        now = datetime.now(timezone.utc)
         user.hashed_password = get_password_hash(new_password)
+        user.password_changed_at = now
+        user.updated_at = now
+
+        # Invalider toutes les sessions ORM de l'utilisateur pour aligner le
+        # changement de mot de passe avec la révocation post-reset.
+        for session in list(user.user_sessions):
+            db.delete(session)
+
         UserService._flush_or_commit(db, auto_commit=auto_commit)
+        db.refresh(user)
         return True, None
 
     @staticmethod

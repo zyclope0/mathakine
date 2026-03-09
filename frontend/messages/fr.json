@@ -1006,6 +1006,7 @@
     "empty": "Aucun utilisateur dans le classement pour le moment.",
     "error": "Impossible de charger le classement.",
     "ranking": "Classement par points",
+    "rank": "Rang",
     "level": "Niveau",
     "you": "Vous",
     "allAges": "Tous les âges",
@@ -1628,137 +1629,158 @@
     }
   },
   "changelog": {
-    "title": "Nouveautés",
-    "subtitle": "Les dernières améliorations de Mathakine, expliquées simplement.",
-    "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir régulièrement.",
-    "v310a5": {
+    "title": "Nouveautes",
+    "subtitle": "Les dernieres ameliorations de Mathakine, expliquees simplement.",
+    "scopeNote": "Cette page montre les nouveautes produit visibles. Les jalons techniques internes restent dans le changelog racine du projet.",
+    "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir regulierement.",
+    "release_3_1_0_alpha_7": {
+      "version": "v3.1.0-alpha.7",
+      "date": "09 mars 2026",
+      "items": [
+        "Changer ou reinitialiser le mot de passe revoque maintenant les anciennes sessions : un ancien onglet devra se reconnecter.",
+        "La gestion du compte, du profil et des sessions est plus fiable cote backend.",
+        "L export de vos donnees personnelles est maintenant correctement cable et teste.",
+        "Release surtout technique : gros travail de fiabilisation sur les exercices, l authentification et l espace utilisateur."
+      ]
+    },
+    "release_3_1_0_alpha_6": {
+      "version": "v3.1.0-alpha.6",
+      "date": "07 mars 2026",
+      "items": [
+        "Nouveau graphique d evolution temporelle dans le tableau de bord pour suivre vos progres sur 7 ou 30 jours.",
+        "Volume par type d exercice plus lisible dans l onglet Progression.",
+        "Nouvelle session entrelacee pour varier automatiquement les exercices dans un meme parcours.",
+        "La generation adaptive d exercices se calibre mieux quand le mode adaptive est active."
+      ]
+    },
+    "release_3_1_0_alpha_5": {
       "version": "v3.1.0-alpha.5",
       "date": "07 mars 2026",
       "items": [
-        "Corrections de stabilité internes (invisibles pour vous)",
-        "Page d'accueil : nouveau hero avec logo mis en valeur, slogan et Assistant accessible depuis la navigation",
-        "Pages Exercices et Défis : filtres et générateur plus compacts pour gagner de la place",
-        "Modal exercice : meilleure lisibilité et bouton Valider plus visible"
+        "Page d accueil repensee avec logo mis en valeur, slogan clarifie et Assistant accessible depuis la navigation.",
+        "Pages Exercices et Defis avec filtres et generateur plus compacts pour gagner de la place.",
+        "Modal exercice plus lisible avec une action Valider mieux mise en avant.",
+        "Corrections de stabilite et de finition sur les parcours existants."
       ]
     },
-    "v310a4": {
+    "release_3_1_0_alpha_4": {
       "version": "v3.1.0-alpha.4",
       "date": "07 mars 2026",
       "items": [
-        "Nouveaux défis du jour : 3 objectifs quotidiens pour garder le rythme (exercices, type spécifique, défis logiques)",
-        "Tableau de bord réorganisé : Vue d'ensemble simplifiée, onglet Mon Profil pour votre niveau et vos badges",
-        "Les défis du jour et la série en cours sont maintenant côte à côte pour une vue plus claire",
-        "Amélioration visuelle des défis : badges XP mis en valeur, libellés au pluriel correct"
+        "Nouveaux defis du jour : 3 objectifs quotidiens pour garder le rythme.",
+        "Tableau de bord reorganise avec une vue d ensemble plus lisible et un onglet Mon Profil dedie.",
+        "Les defis du jour et la serie en cours sont maintenant cote a cote pour une lecture plus claire.",
+        "Amelioration visuelle des defis avec badges XP mieux mis en valeur."
       ]
     },
-    "v310a3": {
+    "release_3_1_0_alpha_3": {
       "version": "v3.1.0-alpha.3",
       "date": "06 mars 2026",
       "items": [
-        "Un meilleur suivi des compétences pour une difficulté 100% sur-mesure",
-        "Amélioration de l'aide au cours des exercices difficiles",
-        "Ajout de widgets de progression clairs dans votre tableau de bord",
-        "Refonte complète de la documentation pour faciliter les prochaines mises à jour"
+        "Suivi des competences ameliore pour une difficulte mieux personnalisee.",
+        "Aide plus claire au cours des exercices difficiles.",
+        "Widgets de progression ajoutes dans le tableau de bord.",
+        "Choix du mode de reponse mieux adaptes au niveau reel mesure."
       ]
     },
-    "latestBadge": "Dernière version",
-    "latestLabel": "Version la plus récente",
-    "v250a3": {
-      "version": "3.0.0 — alpha 3",
+    "latestBadge": "Derniere version",
+    "latestLabel": "Version la plus recente",
+    "release_3_0_0_alpha_3": {
+      "version": "v3.0.0-alpha.3",
       "date": "4 mars 2026",
       "items": [
-        "Test de niveau adaptatif disponible : 10 questions, 4 opérations, pour personnaliser vos exercices dès le départ",
-        "Le test est accessible depuis les Paramètres pour être repassé à tout moment",
-        "Les recommandations tiennent maintenant compte de votre niveau réel mesuré lors du test",
-        "Les pages d'exercice, de défi et le diagnostic s'affichent correctement sur tous les thèmes (clair, dino, ocean…), plus seulement le thème spatial",
-        "Les explications d'exercices ne montrent plus le préfixe technique [TEST-ZAXXON]",
-        "Correction des choix de réponses en double dans certains exercices de division"
+        "Test de niveau adaptatif disponible avec 10 questions sur 4 operations pour personnaliser vos exercices des le depart.",
+        "Le test est accessible depuis les Parametres pour etre repasse a tout moment.",
+        "Les recommandations tiennent maintenant compte du niveau reellement mesure lors du test.",
+        "Les pages d exercice, de defi et le diagnostic s affichent correctement sur tous les themes.",
+        "Les explications d exercices ne montrent plus le prefixe technique [TEST-ZAXXON].",
+        "Correction des choix de reponses en double dans certains exercices de division."
       ]
     },
-    "v250": {
-      "version": "2.5.0 — alpha 2",
+    "release_2_5_0_alpha_2": {
+      "version": "v2.5.0-alpha.2",
       "date": "4 mars 2026",
       "items": [
-        "La page d'un exercice a été entièrement redessinée : le contenu est centré dans un grand panneau vitré semi-transparent, plus immersif",
-        "Les tuiles de réponse ont un nouveau look avec effet de survol en élévation et un éclat violet quand vous sélectionnez une réponse",
-        "Le bouton 'Valider' est grisé jusqu'à ce que vous choisissiez une réponse, puis s'illumine en couleur principale",
-        "L'état de succès est plus festif : vert vif avec halo lumineux sur la bonne réponse, explication en fiche de savoir",
-        "La page d'un défi a également été redessinée : header hiérarchisé, zone de réponse collée en bas du panneau",
-        "Le bouton 'Indice' a un style distinctif doré pour le faire ressortir comme une bouée de sauvetage",
-        "Cliquer en dehors de la fenêtre d'exercice la ferme maintenant correctement"
+        "La page d un exercice a ete entierement redessinee avec un grand panneau centre plus immersif.",
+        "Les tuiles de reponse ont un look plus clair avec effet de survol et selection mieux visible.",
+        "Le bouton Valider est mieux hierarchise et s active visuellement au bon moment.",
+        "L etat de succes est plus festif avec une explication presentee comme une fiche de savoir.",
+        "La page d un defi a aussi ete redessinee avec une zone de reponse mieux integree.",
+        "Le bouton Indice ressort mieux visuellement comme aide ponctuelle.",
+        "Cliquer en dehors de la fenetre d exercice la ferme desormais correctement."
       ]
     },
-    "v240": {
-      "version": "2.4.0 — alpha 2",
+    "release_2_4_0_alpha_2": {
+      "version": "v2.4.0-alpha.2",
       "date": "4 mars 2026",
       "items": [
-        "Le logo Mathakine est maintenant affiché dans la barre de navigation en haut de chaque page",
-        "La page d'accueil affiche le logo illustré en grand à la place du titre texte",
-        "L'icône de l'application dans votre navigateur et lors de l'installation sur mobile utilise désormais le logo officiel",
-        "La page des badges affiche désormais un message d'encouragement selon votre progression dans la collection",
-        "Un feu d'artifice apparaît la première fois que vous revenez après avoir débloqué un nouveau badge",
-        "Un encadré 'À portée de main' vous montre les badges les plus proches d'être débloqués",
-        "Les cartes de badges ont un nouveau look : fond vitré semi-transparent, icône centrale agrandie, halo lumineux sur les badges obtenus",
-        "Les badges non encore débloqués affichent un cadenas et l'icône de cœur remplace l'épingle pour les favoris"
+        "Le logo Mathakine apparait maintenant dans la barre de navigation sur chaque page.",
+        "La page d accueil affiche le logo illustre en grand a la place du simple titre texte.",
+        "L icone de l application dans le navigateur et a l installation mobile utilise desormais le logo officiel.",
+        "La page des badges affiche un message d encouragement selon votre progression dans la collection.",
+        "Un feu d artifice apparait la premiere fois que vous revenez apres avoir debloque un nouveau badge.",
+        "Un encadre A portee de main vous montre les badges les plus proches d etre debloques.",
+        "Les cartes de badges ont un look plus premium avec halo lumineux sur les badges obtenus.",
+        "Les badges non encore debloques affichent un cadenas et l icone de coeur remplace l epingle pour les favoris."
       ]
     },
-    "v230": {
-      "version": "2.3.0 — alpha 2",
+    "release_2_3_0": {
+      "version": "v2.3.0",
       "date": "3 mars 2026",
       "items": [
-        "Les graphiques de votre tableau de bord suivent désormais votre thème — plus de couleurs fixes déconnectées du reste de l'interface",
-        "La page d'accueil affiche un effet de profondeur au survol des fonctionnalités",
-        "Les animations des graphiques et visualisations respectent maintenant vos préférences d'accessibilité (réduction de mouvement)",
-        "Les icônes de badges ont un texte descriptif pour les lecteurs d'écran",
-        "Interface de saisie plus cohérente sur toutes les pages (mêmes composants, même style)"
+        "Les graphiques du tableau de bord suivent desormais le theme choisi.",
+        "La page d accueil affiche un effet de profondeur au survol des fonctionnalites.",
+        "Les animations des graphiques et visualisations respectent mieux les preferences d accessibilite.",
+        "Les icones de badges ont un texte descriptif pour les lecteurs d ecran.",
+        "Les champs de saisie sont plus coherents sur l ensemble des pages."
       ]
     },
-    "v221a2": {
-      "version": "2.2.1 — alpha 2",
-      "date": "25 février 2026",
+    "release_2_2_1_alpha_2": {
+      "version": "v2.2.1-alpha.2",
+      "date": "25 fevrier 2026",
       "items": [
-        "First Exercise < 90s : accès immédiat après inscription, 45 min de grâce, puis mode exercices uniquement jusqu'à vérification email",
-        "Onboarding : classe, groupe d'âge, objectif et rythme — personnalise les recommandations",
-        "Parcours guidé sur le dashboard : CTA « Un exercice » / « Un défi » avec recommandations intelligentes",
-        "Analytics EdTech : suivi des vues dashboard, clics Quick Start et premiers attempts — page admin pour les KPIs",
-        "Profil et paramètres accessibles aux utilisateurs non vérifiés (changer email, renvoyer lien)"
+        "Acces tres rapide au premier exercice apres inscription, avec periode de grace avant verification email.",
+        "Onboarding avec classe, groupe d age, objectif et rythme pour mieux personnaliser les recommandations.",
+        "Parcours guide sur le dashboard avec CTA Un exercice / Un defi.",
+        "Analytics EdTech pour suivre les vues dashboard, clics Quick Start et premiers essais.",
+        "Profil et parametres accessibles aux utilisateurs non verifies."
       ]
     },
-    "v222": {
-      "version": "2.2.0 — alpha 1",
-      "date": "22 février 2026",
+    "release_2_2_0_alpha_1": {
+      "version": "v2.2.0-alpha.1",
+      "date": "22 fevrier 2026",
       "items": [
-        "Nouvelles pages : À propos, Contact et Politique de confidentialité",
-        "Bouton de signalement (drapeau rouge) pour signaler un exercice incorrect, un défi incohérent ou un bug",
-        "Classement : vous pouvez filtrer par tranche d'âge",
-        "Tableau de bord : temps moyen par session et recommandations plus pertinentes (sans les exercices et défis déjà réussis)",
-        "Amélioration de l'affichage : chatbot et pied de page plus cohérents"
+        "Nouvelles pages : A propos, Contact et Politique de confidentialite.",
+        "Bouton de signalement pour remonter un exercice incorrect, un defi incoherent ou un bug.",
+        "Classement filtrable par tranche d age.",
+        "Tableau de bord avec temps moyen par session et recommandations plus pertinentes.",
+        "Affichage du chatbot et du pied de page plus coherent."
       ]
     },
-    "v221": {
-      "version": "2.1.0",
-      "date": "6 février 2026",
+    "release_2_1_0": {
+      "version": "v2.1.0",
+      "date": "6 fevrier 2026",
       "items": [
-        "Ordre aléatoire et option pour masquer les exercices et défis déjà réussis",
-        "Badges refaits : onglets « En cours » et « À débloquer », affichage de la rareté, possibilité d'épingler vos préférés",
-        "Défis : meilleure prise en charge des réponses et nouveaux types de puzzles",
-        "Nouveaux thèmes : Dune, Forêt, Lumière et Dinosaures",
-        "Classement des utilisateurs",
-        "Export de vos données en PDF ou Excel",
-        "Assistant mathématique pour vous aider sur les exercices",
-        "Options d'accessibilité : contraste, taille du texte, animations et mode Focus pour TSA/TDAH"
+        "Ordre aleatoire et option pour masquer les exercices et defis deja reussis.",
+        "Badges refaits avec rarete, onglets dedies et possibilite d epingler vos preferes.",
+        "Defis avec meilleure prise en charge des reponses et nouveaux types de puzzles.",
+        "Nouveaux themes : Dune, Foret, Lumiere et Dinosaures.",
+        "Classement des utilisateurs.",
+        "Export de vos donnees en PDF ou Excel.",
+        "Assistant mathematique pour vous aider sur les exercices.",
+        "Options d accessibilite pour contraste, taille du texte, animations et mode Focus."
       ]
     },
-    "v220": {
-      "version": "2.0.0",
-      "date": "Décembre 2025 - Janvier 2026",
+    "release_2_0_0": {
+      "version": "v2.0.0",
+      "date": "Decembre 2025 - Janvier 2026",
       "items": [
-        "Exercices adaptés (addition, soustraction, multiplication, division)",
-        "Défis logiques variés (énigmes, échecs, puzzles)",
-        "Inscription et connexion avec vérification par email",
-        "Tableau de bord avec suivi de progression",
-        "Badges de réussite",
-        "Thèmes visuels pour personnaliser l'interface"
+        "Exercices adaptes en addition, soustraction, multiplication et division.",
+        "Defis logiques varies avec enigmes, echecs et puzzles.",
+        "Inscription et connexion avec verification par email.",
+        "Tableau de bord avec suivi de progression.",
+        "Badges de reussite.",
+        "Themes visuels pour personnaliser l interface."
       ]
     }
   },

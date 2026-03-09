@@ -8,7 +8,7 @@ from server.handlers.user_handlers import (
     create_user_account,
     delete_user,
     delete_user_me,
-    export_user_data,
+    export_user_data_handler,
     get_all_user_progress,
     get_all_users,
     get_challenges_progress,
@@ -34,7 +34,9 @@ def get_users_routes():
             methods=["PUT"],
         ),
         Route("/api/users/me", endpoint=delete_user_me, methods=["DELETE"]),
-        Route("/api/users/me/export", endpoint=export_user_data, methods=["GET"]),
+        Route(
+            "/api/users/me/export", endpoint=export_user_data_handler, methods=["GET"]
+        ),
         Route(
             "/api/users/me/sessions",
             endpoint=get_user_sessions,

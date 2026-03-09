@@ -1,35 +1,23 @@
 """
 Parsing des paramètres pour GET /api/exercises.
 Extrait et normalise les query params hors du handler.
+Lot 3 : retourne ExerciseListQuery (Pydantic).
 """
 
-from dataclasses import dataclass
 from typing import Optional
 
 from starlette.requests import Request
 
+from app.schemas.exercise import ExerciseListQuery
 from app.utils.pagination import parse_pagination_params
 
 
-@dataclass
-class ListExercisesQuery:
-    """Paramètres parsés pour la liste des exercices (GET /api/exercises)."""
-
-    skip: int
-    limit: int
-    exercise_type: Optional[str]
-    age_group: Optional[str]
-    search: Optional[str]
-    order: str
-    hide_completed: bool
-
-
-def parse_exercise_list_params(request: Request) -> ListExercisesQuery:
+def parse_exercise_list_params(request: Request) -> ExerciseListQuery:
     """
     Parse et normalise les paramètres de GET /api/exercises.
 
     Returns:
-        ListExercisesQuery avec valeurs prêtes pour ExerciseService.get_exercises_list_for_api.
+        ExerciseListQuery avec valeurs prêtes pour exercise_query_service.
     """
     params = request.query_params
     skip, limit = parse_pagination_params(params, default_limit=20, max_limit=100)
@@ -53,7 +41,7 @@ def parse_exercise_list_params(request: Request) -> ListExercisesQuery:
         exercise_type = norm_type if exercise_type_raw else None
         age_group = norm_age if age_group_raw else None
 
-    return ListExercisesQuery(
+    return ExerciseListQuery(
         skip=skip,
         limit=limit,
         exercise_type=exercise_type,

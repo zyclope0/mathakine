@@ -1,189 +1,178 @@
-# Flux d'authentification — Mathakine
+# Flux d'authentification - Mathakine
 
-> Parcours utilisateur et pages associées  
-> **Date :** 15/02/2026 — **MAJ 06/03/2026** (sessions, flux auth clarifié, login non vérifié, B1/B2 backend)
+> Parcours utilisateur et pages associees
+> **Date :** 15/02/2026 - **MAJ 09/03/2026** (boundary session/recovery refactoree, revocation post-reset et post-change password)
 
 ---
 
 ## Vue d'ensemble
 
 ```
-┌─────────────┐     ┌──────────────────┐     ┌─────────────┐
-│  /register  │ ──▶ │ /verify-email   │ ──▶ │   /login    │
-│  Inscription │     │ (token=xxx)     │     │ Connexion   │
-└─────────────┘     └──────────────────┘     └─────────────┘
-                                                    │
-                                                    ▼
-┌──────────────────┐     ┌─────────────────┐     ┌─────────────┐
-│ /reset-password  │ ◀── │ /forgot-password │     │   App       │
-│ (token=xxx)      │     │ Demande reset    │     │ Connecté    │
-└──────────────────┘     └─────────────────┘     └─────────────┘
+/register -> /verify-email -> /login -> application protegee
+                ^                |
+                |                v
+POST /api/auth/resend-verification   session cookies + refresh
+
+/forgot-password -> email reset -> /reset-password?token=... -> /login
 ```
 
 ---
 
-## 1. Inscription (Register)
+## 1. Inscription
 
-**Page :** `/register`  
-**API :** `POST /api/users/` (crée le compte)
+**Page :** `/register`
+**API :** `POST /api/users/`
 
-| Champ | Validation |
-|-------|------------|
-| username | ≥ 3 caractères |
-| email | Format email valide |
-| password | ≥ 8 caractères, 1 chiffre, 1 majuscule |
-| confirmPassword | Doit égaler password |
-| full_name | Optionnel |
+Champs principaux :
+- `username` - >= 3 caracteres
+- `email` - format email valide
+- `password` - >= 8 caracteres, avec les regles de force backend
+- `full_name` - optionnel
 
-**Flux après succès :** Redirection vers `/verify-email?verify=true` (sans token) — l'utilisateur doit cliquer sur le lien reçu par email.
-
-**États d'erreur :** email/username déjà utilisé → message d'erreur affiché. Si `registration_enabled=false` (admin config) → 403, inscriptions désactivées.
-
----
-
-## 2. Vérification email (Verify Email)
-
-**Page :** `/verify-email`  
-**API :** `GET /api/auth/verify-email?token=xxx`  
-**Service :** `AuthService.verify_email_token` (refactoré 26/02)
-
-| Paramètre URL | Rôle |
-|---------------|------|
-| `token` | Token envoyé par email (obligatoire pour vérifier) |
-
-**États de la page :**
-| État | Déc déclencheur | Action utilisateur |
-|------|-----------------|-------------------|
-| `loading` | Token présent, requête en cours | — |
-| `success` | Vérification réussie | Lien vers /login |
-| `error` | Token invalide | Lien renvoi (avec email) |
-| `expired` | Token expiré | Lien renvoi |
-| `resend` | Pas de token | Formulaire email pour renvoyer |
-
-**Renvoi email :** `POST /api/auth/resend-verification` avec `{email}`.
+Flux apres succes :
+- creation utilisateur via `UserCreate`
+- generation du token de verification
+- envoi email de verification
+- redirection frontend vers `/verify-email?verify=true`
 
 ---
 
-## 3. Connexion (Login)
+## 2. Verification email
 
-**Page :** `/login`  
+**Page :** `/verify-email`
+**API :** `GET /api/auth/verify-email?token=...`
+**Boundary backend :** `auth_recovery_service.py`
+
+Etats fonctionnels :
+- `success` - email verifie
+- `already_verified` - lien rejoue
+- `invalid` - token invalide
+- `expired` - token expire
+- `resend` - renvoi manuel via email
+
+Renvoi manuel :
+- `POST /api/auth/resend-verification` avec `{email}`
+- le flow reste volontairement discret sur l'existence reelle du compte
+- un email mal forme ou inexistant retourne le meme message generique de securite
+
+---
+
+## 3. Connexion et session
+
+**Page :** `/login`
 **API :** `POST /api/auth/login`
+**Boundary backend :** `auth_session_service.py`
 
-| Champ | Rôle |
-|-------|------|
-| username | Identifiant (pas email) |
-| password | Mot de passe |
+Succes :
+- `access_token` renvoye dans le body et pose en cookie HttpOnly
+- `refresh_token` pose en cookie HttpOnly
+- `csrf_token` pose en cookie non HttpOnly (double-submit)
+- creation d'une `UserSession` en base
+- redirection frontend vers la zone protegee
 
-**Query params :**
-- `registered=true` — Affiche message "Inscription réussie, vérifiez votre email"
-- `verify=true` — Affiche message "Email vérifié, connectez-vous"
+Compte non verifie :
+- le login reste autorise
+- `access_scope` reste limite tant que l'email n'est pas verifie
 
-**Compte non vérifié :**
-
-- le login reste autorisé
-- l'utilisateur reçoit un `access_scope` limité tant que l'email n'est pas vérifié
-- l'UX peut toujours proposer le renvoi via `POST /api/auth/resend-verification`
-
-**Succès :**
-
-- `access_token` renvoyé dans le body et posé en cookie HttpOnly de compatibilité
-- `refresh_token` posé en cookie HttpOnly
-- création d'une `UserSession` en base via `authenticate_user_with_session()`
-- redirection frontend vers `/dashboard`
+Refresh / bootstrap :
+- `POST /api/auth/refresh` accepte le cookie `refresh_token` (ou le body si necessaire)
+- `POST /api/auth/validate-token` valide un token frontend avant sync-cookie
+- `GET /api/users/me` reconstruit l'utilisateur courant a partir du token valide
+- `POST /api/auth/logout` supprime les cookies d'auth
 
 ---
 
-## 4. Mot de passe oublié (Forgot Password)
+## 4. Mot de passe oublie
 
-**Page :** `/forgot-password`  
+**Page :** `/forgot-password`
 **API :** `POST /api/auth/forgot-password`
+**Boundary backend :** `auth_recovery_service.py`
 
-| Champ | Validation |
-|-------|------------|
-| email | Format email valide |
+Flux :
+1. l'utilisateur saisit son email
+2. si le compte existe et est actif, un email de reset est envoye
+3. la reponse reste la meme meme si l'email n'existe pas
 
-**Flux :**  
-1. Utilisateur entre son email  
-2. Backend envoie email avec lien `https://.../reset-password?token=xxx`  
-3. Page affiche message de confirmation (même si email inconnu — sécurité)
-
----
-
-## 5. Réinitialisation mot de passe (Reset Password)
-
-**Page :** `/reset-password`  
-**API :** `POST /api/auth/reset-password`  
-**Service :** `AuthService.reset_password_with_token` (refactoré 26/02)
-
-| Paramètre | Source |
-|-----------|--------|
-| token | Query `?token=xxx` (obligatoire) |
-| password | Formulaire |
-| password_confirm | Formulaire |
-
-**Validation :** Mot de passe ≥ 8 caractères (le backend impose aussi chiffre + majuscule).
-
-**États :**
-| État | Déc déclencheur |
-|------|-----------------|
-| `form` | Token présent, formulaire affiché |
-| `loading` | Requête en cours |
-| `success` | Redirection vers /login après 2s |
-| `error` | Token manquant ou expiré / erreur API |
-
-**CSRF :** Le header `X-CSRF-Token` est automatiquement injecté par `apiRequest()` (lecture du cookie `csrf_token` posé au login). Centralisé via `CsrfMiddleware` depuis l'audit H6 (02/03/2026) — plus d'appel explicite à `getCsrfToken()` dans les composants.
+Objectif securite : ne pas reveler si l'adresse est associee a un compte.
 
 ---
 
-## Fichiers clés
+## 5. Reinitialisation mot de passe
 
-| Rôle | Fichier |
+**Page :** `/reset-password`
+**API :** `POST /api/auth/reset-password`
+**Body :** `{token, password, password_confirm}`
+**Boundary backend :** `auth_recovery_service.py` + `auth_service.py`
+
+Succes :
+- mot de passe remplace
+- `password_changed_at` mis a jour
+- toutes les `UserSession` existantes supprimees
+- tous les access / refresh tokens emis avant ce moment sont rejetes via `iat`
+- reponse HTTP inchangee : message succes + `success: true`
+
+Effet utilisateur :
+- un autre onglet deja ouvert peut encore afficher son etat courant
+- des qu'il renavigue ou refait un appel protege, il doit se reconnecter
+
+---
+
+## 6. Changement de mot de passe depuis le profil
+
+**Page :** `/settings` / espace compte
+**API :** `PUT /api/users/me/password`
+**Boundary backend :** `user_application_service.py` -> `UserService.update_user_password`
+
+Depuis cette iteration, ce flow est aligne sur le reset password :
+- mise a jour du hash
+- mise a jour de `password_changed_at`
+- revocation des sessions existantes
+- rejet des anciens access / refresh tokens apres la reponse courante
+
+---
+
+## 7. Sessions actives
+
+**Page :** `/settings` - section sessions actives
+**API :**
+- `GET /api/users/me/sessions`
+- `DELETE /api/users/me/sessions/{id}`
+
+Comportement :
+- une `UserSession` est creee a chaque login reussi
+- la session courante est marquee `is_current: true`
+- la revocation manuelle des sessions reste disponible
+
+---
+
+## Fichiers cles
+
+| Role | Fichier |
 |------|---------|
-| Hook auth | `frontend/hooks/useAuth.ts` |
+| Hooks auth frontend | `frontend/hooks/useAuth.ts` |
 | Client API | `frontend/lib/api/client.ts` |
-| Route protégée | `frontend/components/auth/ProtectedRoute.tsx` |
-| Pages | `frontend/app/{login,register,verify-email,forgot-password,reset-password}/page.tsx` |
-| Backend handlers | `server/handlers/auth_handlers.py`, `server/handlers/user_handlers.py` |
-| Logique métier | `app/services/auth_service.py` (verify_email_token, reset_password_with_token, authenticate_user_with_session, create_registered_user_with_verification) |
-
-**Note Next.js (15/02)** : Les pages `reset-password` et `verify-email` utilisent `useSearchParams()` pour lire le token dans l'URL. Elles sont enveloppées dans un boundary `<Suspense>` afin de respecter les exigences de l'App Router (prerender).
+| Route protegee | `frontend/components/auth/ProtectedRoute.tsx` |
+| Pages frontend | `frontend/app/{login,register,verify-email,forgot-password,reset-password}/page.tsx` |
+| Handlers backend | `server/handlers/auth_handlers.py`, `server/handlers/user_handlers.py` |
+| Session auth | `app/services/auth_session_service.py` |
+| Recovery auth | `app/services/auth_recovery_service.py` |
+| Moteur auth | `app/services/auth_service.py` |
+| Auth runtime | `server/auth.py`, `server/middleware.py` |
 
 ---
 
-## Erreurs courantes et debugging
-
-| Symptôme | Cause possible |
-|----------|----------------|
-| Compte non vérifié après login | Accès limité tant que l'email n'est pas vérifié ; proposer le renvoi de verification |
-| Cookie non envoyé | Domaine différent (prod) → sync via `sync-cookie` |
-| Token expiré (verify/reset) | Lien trop ancien → renvoyer l'email |
-| 401 après login | Refresh token manquant ou expiré → se reconnecter |
-
-### Codes HTTP — Auth
+## Codes HTTP usuels
 
 | Endpoint | Cas d'erreur | Code |
 |----------|--------------|------|
-| `POST /api/auth/refresh` | Token/cookie manquant | **401** Unauthorized |
-| `POST /api/auth/refresh` | Token expiré ou invalide | **401** Unauthorized |
-
-→ Voir [CONFIGURER_EMAIL](../01-GUIDES/CONFIGURER_EMAIL.md) pour la configuration des envois d'email.
+| `POST /api/auth/login` | credentials invalides | `401` |
+| `POST /api/auth/refresh` | refresh token manquant/invalide/revoque | `401` |
+| `GET /api/auth/verify-email` | token invalide ou expire | `400` |
+| `POST /api/auth/resend-verification` | email manquant | `400` |
+| `POST /api/auth/forgot-password` | erreur d'envoi email | `500` |
+| `POST /api/auth/reset-password` | token invalide ou expire | `400` |
+| `PUT /api/users/me/password` | mot de passe courant incorrect | `401` |
 
 ---
 
-## 6. Sessions actives et paramètres plateforme
-
-### Sessions actives
-- **Page** : `/settings` — section « Sessions actives »
-- **API** : `GET /api/users/me/sessions` (liste avec `is_current: true` sur la session courante)
-- **Révocation** : `DELETE /api/users/me/sessions/{id}` — marque la session inactive
-- **Création** : Une `UserSession` est créée à chaque login réussi
-
-### Inscriptions désactivées
-- **Paramètre** : `registration_enabled=false` (table `settings`, admin `/admin/config`)
-- **Comportement** : `POST /api/users/` renvoie **403** si inscriptions désactivées
-- **Message** : Erreur affichée sur la page `/register`
-
-### Mode maintenance
-- **Paramètre** : `maintenance_mode=true` (table `settings`)
-- **Backend** : Middleware 503 sur toutes les routes sauf `/health`, `/metrics`, `/api/admin/*`, `/api/auth/login`, refresh, validate-token
-- **Frontend** : Overlay blocant (`MaintenanceOverlay.tsx`) sauf sur `/login` et `/admin` — lien « Accès admin » vers `/login`
+Voir aussi : [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md) et [CONFIGURER_EMAIL.md](../01-GUIDES/CONFIGURER_EMAIL.md)

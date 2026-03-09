@@ -29,6 +29,26 @@ from app.utils.email_verification import (
 logger = get_logger(__name__)
 
 
+def _is_token_revoked_by_password_reset(payload: dict, user: User) -> bool:
+    """
+    Vérifie si un token (access ou refresh) a été émis avant le dernier reset password.
+    Si user.password_changed_at est défini et que le token a été émis avant, il est révoqué.
+    """
+    pwd_changed = getattr(user, "password_changed_at", None)
+    if not pwd_changed:
+        return False
+    iat = payload.get("iat")
+    if iat is None:
+        return True
+    try:
+        token_issued_at = datetime.fromtimestamp(int(float(iat)), tz=timezone.utc)
+        if pwd_changed.tzinfo is None:
+            pwd_changed = pwd_changed.replace(tzinfo=timezone.utc)
+        return token_issued_at < pwd_changed
+    except (TypeError, ValueError, OSError):
+        return True
+
+
 def _flush_or_commit(db: Session, *, auto_commit: bool) -> None:
     """Persiste la transaction courante sans imposer un commit global."""
     if auto_commit:
@@ -180,13 +200,15 @@ def create_user_token(user: User) -> TokenResponse:
         data=token_data, expires_delta=access_token_expires
     )
 
-    # Données pour le token de rafraîchissement
+    # Données pour le token de rafraîchissement (iat pour révocation post-reset)
+    now = datetime.now(timezone.utc)
     refresh_data = token_data.copy()
     refresh_data["type"] = "refresh"
+    refresh_data["iat"] = int(now.timestamp())
+    refresh_data["exp"] = int((now + refresh_token_expires).timestamp())
 
-    # Créer le token de rafraîchissement manuellement
     refresh_token = jwt.encode(
-        {**refresh_data, "exp": datetime.now(timezone.utc) + refresh_token_expires},
+        refresh_data,
         settings.SECRET_KEY,
         algorithm=settings.ALGORITHM,
     )
@@ -264,6 +286,13 @@ def refresh_access_token(
                 f"Tentative de rafraîchissement pour un utilisateur inactif: {username}"
             )
             return None, "Compte utilisateur désactivé", 401
+
+        # Révocation post-reset : rejeter les tokens émis avant password_changed_at
+        if _is_token_revoked_by_password_reset(payload, user):
+            logger.warning(
+                f"Refresh token rejeté (révoqué par reset password): {username}"
+            )
+            return None, "Token de rafraîchissement expiré", 401
 
         new_token_data = create_user_token(user)
         return (
@@ -472,10 +501,15 @@ def reset_password_with_token(
     if is_password_reset_token_expired(user.password_reset_expires_at):
         return user, "expired"
 
+    now = datetime.now(timezone.utc)
     user.hashed_password = get_password_hash(new_password)
     user.password_reset_token = None
     user.password_reset_expires_at = None
-    user.updated_at = datetime.now(timezone.utc)
+    user.password_changed_at = now
+    user.updated_at = now
+    # Révoquer toutes les sessions via la relation (évite StaleDataError du bulk delete)
+    for s in list(user.user_sessions):
+        db.delete(s)
     _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
     logger.info(f"Mot de passe réinitialisé pour {user.username}")
@@ -573,6 +607,13 @@ def recover_refresh_token_from_access_token(
     if not user or not user.is_active:
         logger.warning(
             "Fallback refresh refusé: utilisateur introuvable ou inactif (%s)",
+            username,
+        )
+        return None
+
+    if _is_token_revoked_by_password_reset(payload, user):
+        logger.warning(
+            "Fallback refresh refusé: access_token révoqué par reset password (%s)",
             username,
         )
         return None

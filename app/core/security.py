@@ -73,16 +73,15 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         if hasattr(value, "value"):
             to_encode[key] = value.value
 
-    # Calculer l'expiration
+    # Calculer l'expiration et l'émission
+    now = datetime.now(timezone.utc)
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = now + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-        )
+        expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    # Ajouter l'expiration et le type de token
-    to_encode.update({"exp": expire, "type": "access"})
+    # Ajouter exp, iat (révocation post-reset) et type — iat en timestamp pour JWT
+    to_encode.update({"exp": expire, "iat": int(now.timestamp()), "type": "access"})
 
     # Encoder le token
     encoded_jwt = jwt.encode(

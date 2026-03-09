@@ -6,6 +6,7 @@ Teste les routes créées dans server/auth.py :
 - GET /api/users/me
 """
 
+import asyncio
 import uuid
 
 import pytest
@@ -178,6 +179,22 @@ async def test_forgot_password_missing_email(client):
     assert "error" in data
 
 
+async def test_resend_verification_malformed_email(client):
+    """Test resend-verification avec email mal formé : 200 + message générique (compat sécurité)."""
+    response = await client.post(
+        "/api/auth/resend-verification", json={"email": "not-an-email"}
+    )
+    assert (
+        response.status_code == 200
+    ), "Email mal formé doit suivre le chemin générique (200), pas 400"
+    data = response.json()
+    assert "message" in data
+    # Message générique de sécurité (même que user not found)
+    assert (
+        "compte" in data["message"].lower() or "vérification" in data["message"].lower()
+    )
+
+
 async def test_verify_email_success(client, test_user_data):
     """Test vérification email via GET /api/auth/verify-email?token=..."""
     # Créer utilisateur (non vérifié par défaut)
@@ -309,6 +326,98 @@ async def test_reset_password_mismatch(client, test_user_data):
     assert response.status_code == 400
     data = response.json()
     assert "error" in data
+
+
+async def test_reset_password_revokes_old_tokens(client, test_user_data):
+    """LOT 5.2: Après reset password, ancien access_token et refresh_token sont révoqués."""
+    await client.post("/api/users/", json=test_user_data)
+    verify_user_email_for_tests(test_user_data["username"])
+
+    # Login pour obtenir tokens
+    login_resp = await client.post(
+        "/api/auth/login",
+        json={
+            "username": test_user_data["username"],
+            "password": test_user_data["password"],
+        },
+    )
+    assert login_resp.status_code == 200
+    old_access_token = login_resp.json()["access_token"]
+
+    # Extraire refresh_token
+    refresh_token = None
+    for header, value in login_resp.headers.raw:
+        if header.lower() == b"set-cookie":
+            cookie_str = value.decode("utf-8") if isinstance(value, bytes) else value
+            for part in cookie_str.split(";"):
+                part = part.strip()
+                if part.startswith("refresh_token="):
+                    refresh_token = part.split("=", 1)[1].strip()
+                    break
+            if refresh_token:
+                break
+    assert refresh_token, "refresh_token absent"
+
+    # Demander reset et récupérer token
+    await client.post(
+        "/api/auth/forgot-password", json={"email": test_user_data["email"]}
+    )
+    from app.models.user import User
+    from app.services.enhanced_server_adapter import EnhancedServerAdapter
+
+    db = EnhancedServerAdapter.get_db_session()
+    try:
+        user = db.query(User).filter(User.email == test_user_data["email"]).first()
+        assert user is not None
+        reset_token = user.password_reset_token
+        assert reset_token is not None
+    finally:
+        EnhancedServerAdapter.close_db_session(db)
+
+    # Reset password
+    new_password = "NewSecurePass456!"
+    resp_reset = await client.post(
+        "/api/auth/reset-password",
+        json={
+            "token": reset_token,
+            "password": new_password,
+            "password_confirm": new_password,
+        },
+    )
+    assert resp_reset.status_code == 200
+    assert resp_reset.json().get("success") is True
+
+    # Petit délai pour garantir iat > password_changed_at (évite flakiness timing)
+    await asyncio.sleep(1)
+
+    # Ancien access_token doit être rejeté
+    resp_me = await client.get(
+        "/api/users/me",
+        headers={"Authorization": f"Bearer {old_access_token}"},
+    )
+    assert resp_me.status_code == 401, "Ancien access_token doit être révoqué"
+
+    # Ancien refresh_token doit être rejeté
+    resp_refresh = await client.post(
+        "/api/auth/refresh", json={"refresh_token": refresh_token}
+    )
+    assert resp_refresh.status_code == 401, "Ancien refresh_token doit être révoqué"
+
+    # Nouvelle connexion avec nouveau mot de passe doit fonctionner
+    new_login = await client.post(
+        "/api/auth/login",
+        json={
+            "username": test_user_data["username"],
+            "password": new_password,
+        },
+    )
+    assert new_login.status_code == 200
+    new_token = new_login.json()["access_token"]
+    resp_me_new = await client.get(
+        "/api/users/me",
+        headers={"Authorization": f"Bearer {new_token}"},
+    )
+    assert resp_me_new.status_code == 200
 
 
 async def test_refresh_token(client, test_user_data):

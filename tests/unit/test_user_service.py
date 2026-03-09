@@ -3,14 +3,14 @@ Tests unitaires pour le service de gestion des utilisateurs (UserService).
 """
 
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 from app.db.adapter import DatabaseAdapter
 from app.db.transaction import TransactionManager
 from app.models.attempt import Attempt
@@ -18,6 +18,7 @@ from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
 from app.models.progress import Progress
 from app.models.user import User, UserRole
+from app.models.user_session import UserSession
 from app.schemas.user import UserCreate, UserUpdate
 from app.services.user_service import UserService
 from app.utils.db_helpers import (
@@ -464,6 +465,61 @@ def test_update_nonexistent_user(db_session):
 
     # Vérifier que la mise à jour a échoué
     assert result is False
+
+
+def test_update_user_password_revokes_sessions_and_marks_password_change(db_session):
+    """Le changement de mot de passe doit révoquer les sessions et marquer password_changed_at."""
+    role_value = get_enum_value(UserRole, UserRole.PADAWAN.value, db_session)
+    user = User(
+        username=unique_username(),
+        email=unique_email(),
+        hashed_password=get_password_hash("CurrentPassword123!"),
+        role=role_value,
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    now = datetime.now(timezone.utc)
+    db_session.add_all(
+        [
+            UserSession(
+                user_id=user.id,
+                session_token=f"session-a-{user.id}",
+                ip_address="127.0.0.1",
+                user_agent="pytest-session-a",
+                expires_at=now + timedelta(days=7),
+            ),
+            UserSession(
+                user_id=user.id,
+                session_token=f"session-b-{user.id}",
+                ip_address="127.0.0.2",
+                user_agent="pytest-session-b",
+                expires_at=now + timedelta(days=7),
+            ),
+        ]
+    )
+    db_session.commit()
+    db_session.refresh(user)
+
+    ok, err = UserService.update_user_password(
+        db_session,
+        user.id,
+        "CurrentPassword123!",
+        "UpdatedPassword456!",
+    )
+
+    assert ok is True
+    assert err is None
+
+    refreshed_user = UserService.get_user(db_session, user.id)
+    assert refreshed_user is not None
+    assert refreshed_user.password_changed_at is not None
+    assert verify_password("UpdatedPassword456!", refreshed_user.hashed_password)
+    remaining_sessions = (
+        db_session.query(UserSession).filter(UserSession.user_id == user.id).count()
+    )
+    assert remaining_sessions == 0
 
 
 def test_delete_user(db_session):

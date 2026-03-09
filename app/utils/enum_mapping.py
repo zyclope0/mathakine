@@ -38,7 +38,7 @@ def exercise_type_from_api(value: Optional[str]) -> Optional[str]:
     """
     if not value or not str(value).strip():
         return None
-    from server.exercise_generator_validators import normalize_exercise_type
+    from app.utils.exercise_generator_validators import normalize_exercise_type
 
     return normalize_exercise_type(value)
 
@@ -59,7 +59,7 @@ def difficulty_from_api(value: Optional[str]) -> Optional[str]:
     """
     if not value or not str(value).strip():
         return None
-    from server.exercise_generator_validators import normalize_difficulty
+    from app.utils.exercise_generator_validators import normalize_difficulty
 
     return normalize_difficulty(value)
 

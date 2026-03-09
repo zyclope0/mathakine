@@ -22,9 +22,8 @@ export interface InterleavedPlan {
 export default function InterleavedPage() {
   const router = useRouter();
   const t = useTranslations("dashboard.quickStart");
-  const tSolver = useTranslations("exercises.solver");
   const tToasts = useTranslations("toasts.exercises");
-  const [status, setStatus] = useState<"loading" | "error">("loading");
+  const [status] = useState<"loading">("loading");
 
   useEffect(() => {
     let cancelled = false;
@@ -104,15 +103,6 @@ export default function InterleavedPage() {
                 <p className="text-muted-foreground">{t("interleavedPedagogy")}</p>
               </div>
             </>
-          )}
-          {status === "error" && (
-            <button
-              type="button"
-              onClick={() => router.replace("/exercises")}
-              className="text-primary hover:underline"
-            >
-              {tSolver("backToExercises")}
-            </button>
           )}
         </div>
       </PageLayout>

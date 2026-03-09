@@ -81,6 +81,8 @@ class User(Base):
     # Réinitialisation mot de passe
     password_reset_token = Column(String(255), nullable=True, index=True)
     password_reset_expires_at = Column(DateTime(timezone=True), nullable=True)
+    # Révocation post-reset : tokens émis avant ce timestamp sont rejetés
+    password_changed_at = Column(DateTime(timezone=True), nullable=True)
 
     # Informations pédagogiques
     grade_level = Column(Integer)

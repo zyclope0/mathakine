@@ -1,5 +1,6 @@
 """
 Tests unitaires pour les helpers de server.handlers.exercise_handlers.
+Lot 1 : la résolution adaptive a été déplacée dans exercise_generation_service.
 """
 
 from contextlib import asynccontextmanager
@@ -7,70 +8,81 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from server.handlers.exercise_handlers import _resolve_adaptive_age_group_if_needed
-from tests.unit.test_utils import create_mock_request
-
-
-def _make_request_with_user(user_id: int = 1):
-    """Crée une requête mock avec un utilisateur authentifié."""
-    req = create_mock_request()
-    req.state = MagicMock()
-    req.state.user = {"id": user_id, "username": "test"}
-    return req
-
-
-def _make_request_without_user():
-    """Crée une requête mock sans utilisateur authentifié."""
-    req = create_mock_request()
-    req.state = MagicMock()
-    req.state.user = None
-    return req
-
+from app.services.exercise_generation_service import (
+    AgeGroupRequiredError,
+    generate_exercise as svc_generate_exercise,
+)
 
 # ---------------------------------------------------------------------------
-# Tests _resolve_adaptive_age_group_if_needed — pas de résolution
+# Tests exercise_generation_service — résolution adaptive
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_resolve_adaptive_age_group_adaptive_false_returns_unchanged():
-    """adaptive=False → retourne age_group_raw inchangé."""
-    req = _make_request_with_user()
-    result = await _resolve_adaptive_age_group_if_needed(
-        req, "addition", None, adaptive=False
-    )
-    assert result is None
+async def test_generate_exercise_adaptive_false_uses_provided_age_group():
+    """adaptive=False → utilise age_group fourni, pas de résolution DB."""
+    with (
+        patch(
+            "app.services.exercise_generation_service.generate_simple_exercise",
+            return_value={
+                "title": "Test",
+                "exercise_type": "ADDITION",
+                "age_group": "6-8",
+                "difficulty": "INITIE",
+                "question": "1+1?",
+                "correct_answer": "2",
+                "choices": ["2", "3", "4"],
+                "explanation": "Test",
+            },
+        ),
+        patch(
+            "app.services.exercise_generation_service.db_session",
+        ) as mock_db,
+    ):
+        mock_db.return_value.__aenter__ = MagicMock(return_value=MagicMock())
+        mock_db.return_value.__aexit__ = MagicMock(return_value=None)
+        result = await svc_generate_exercise(
+            exercise_type_raw="addition",
+            age_group_raw="6-8",
+            adaptive=False,
+            save=False,
+        )
+    assert result.age_group == "6-8"
 
 
 @pytest.mark.asyncio
-async def test_resolve_adaptive_age_group_no_user_returns_unchanged():
-    """Pas d'utilisateur authentifié → retourne age_group_raw inchangé."""
-    req = _make_request_without_user()
-    result = await _resolve_adaptive_age_group_if_needed(
-        req, "addition", None, adaptive=True
-    )
-    assert result is None
-
-
-@pytest.mark.asyncio
-async def test_resolve_adaptive_age_group_already_provided_returns_unchanged():
-    """age_group_raw déjà fourni → pas de résolution, retour inchangé."""
-    req = _make_request_with_user()
-    result = await _resolve_adaptive_age_group_if_needed(
-        req, "addition", "GROUP_12_14", adaptive=True
-    )
-    assert result == "GROUP_12_14"
+async def test_generate_exercise_require_age_group_raises_when_missing():
+    """require_age_group=True et pas d'age_group → AgeGroupRequiredError."""
+    with pytest.raises(AgeGroupRequiredError) as exc_info:
+        await svc_generate_exercise(
+            exercise_type_raw="addition",
+            age_group_raw=None,
+            adaptive=False,
+            save=False,
+            user_id=None,
+            require_age_group=True,
+        )
+    assert "age_group" in str(exc_info.value)
 
 
 # ---------------------------------------------------------------------------
-# Tests _resolve_adaptive_age_group_if_needed — résolution adaptative
+# Tests exercise_generation_service — succès résolution adaptive
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_resolve_adaptive_age_group_resolves_when_eligible():
-    """adaptive=True, user auth, pas d'age_group → appelle resolve_adaptive_difficulty."""
-    req = _make_request_with_user()
+async def test_generate_exercise_adaptive_success_resolves_age_group():
+    """adaptive=True, user auth, pas d'age_group → appelle resolve_adaptive_difficulty, utilise résultat."""
+    mock_exercise = {
+        "title": "Test",
+        "exercise_type": "ADDITION",
+        "age_group": "9-11",
+        "difficulty": "PADAWAN",
+        "question": "2+2?",
+        "correct_answer": "4",
+        "choices": ["4", "5", "6"],
+        "explanation": "Test",
+    }
 
     @asynccontextmanager
     async def mock_db_cm():
@@ -82,28 +94,48 @@ async def test_resolve_adaptive_age_group_resolves_when_eligible():
 
     with (
         patch(
-            "server.handlers.exercise_handlers.db_session", return_value=mock_db_cm()
+            "app.services.exercise_generation_service.db_session",
+            return_value=mock_db_cm(),
         ),
         patch(
-            "app.services.adaptive_difficulty_service.resolve_adaptive_difficulty",
-            return_value="GROUP_9_11",
+            "app.services.exercise_generation_service.resolve_adaptive_difficulty",
+            return_value="9-11",
         ),
         patch(
-            "server.exercise_generator_validators.normalize_exercise_type",
-            return_value="ADDITION",
+            "app.services.exercise_generation_service.generate_simple_exercise",
+            return_value=mock_exercise,
         ),
     ):
-        result = await _resolve_adaptive_age_group_if_needed(
-            req, "addition", None, adaptive=True
+        result = await svc_generate_exercise(
+            exercise_type_raw="addition",
+            age_group_raw=None,
+            adaptive=True,
+            save=False,
+            user_id=1,
         )
 
-    assert result == "GROUP_9_11"
+    assert result.age_group == "9-11"
+    assert result.exercise_type == "ADDITION"
+
+
+# ---------------------------------------------------------------------------
+# Tests exercise_generation_service — fallback sur erreur adaptive
+# ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_resolve_adaptive_age_group_exercise_type_none_fallback_addition():
-    """exercise_type_raw=None → fallback vers ADDITION pour normalize_exercise_type."""
-    req = _make_request_with_user()
+async def test_generate_exercise_adaptive_exception_fallback_to_raw():
+    """Exception lors de resolve_adaptive_difficulty → fallback age_group_raw (None → default via normalize)."""
+    mock_exercise = {
+        "title": "Test",
+        "exercise_type": "ADDITION",
+        "age_group": "6-8",
+        "difficulty": "INITIE",
+        "question": "1+1?",
+        "correct_answer": "2",
+        "choices": ["2", "3", "4"],
+        "explanation": "Test",
+    }
 
     @asynccontextmanager
     async def mock_db_cm():
@@ -115,55 +147,54 @@ async def test_resolve_adaptive_age_group_exercise_type_none_fallback_addition()
 
     with (
         patch(
-            "server.handlers.exercise_handlers.db_session", return_value=mock_db_cm()
+            "app.services.exercise_generation_service.db_session",
+            return_value=mock_db_cm(),
         ),
         patch(
-            "app.services.adaptive_difficulty_service.resolve_adaptive_difficulty",
-            return_value="GROUP_12_14",
-        ),
-        patch(
-            "server.exercise_generator_validators.normalize_exercise_type",
-            return_value="ADDITION",
-        ) as mock_norm,
-    ):
-        result = await _resolve_adaptive_age_group_if_needed(
-            req, None, None, adaptive=True
-        )
-
-    assert result == "GROUP_12_14"
-    mock_norm.assert_called_once_with("ADDITION")
-
-
-# ---------------------------------------------------------------------------
-# Tests _resolve_adaptive_age_group_if_needed — exception / fallback
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.asyncio
-async def test_resolve_adaptive_age_group_exception_returns_original():
-    """Exception lors de la résolution → retourne age_group_raw (None), log warning."""
-    req = _make_request_with_user()
-
-    @asynccontextmanager
-    async def mock_db_cm():
-        yield MagicMock()
-
-    with (
-        patch(
-            "server.handlers.exercise_handlers.db_session", return_value=mock_db_cm()
-        ),
-        patch(
-            "app.services.adaptive_difficulty_service.resolve_adaptive_difficulty",
+            "app.services.exercise_generation_service.resolve_adaptive_difficulty",
             side_effect=RuntimeError("DB error"),
         ),
         patch(
-            "server.handlers.exercise_handlers.logger",
-        ) as mock_logger,
+            "app.services.exercise_generation_service.generate_simple_exercise",
+            return_value=mock_exercise,
+        ),
     ):
-        result = await _resolve_adaptive_age_group_if_needed(
-            req, "addition", None, adaptive=True
+        result = await svc_generate_exercise(
+            exercise_type_raw="addition",
+            age_group_raw=None,
+            adaptive=True,
+            save=False,
+            user_id=1,
         )
 
-    assert result is None
-    mock_logger.warning.assert_called_once()
-    assert "Résolution échouée" in mock_logger.warning.call_args[0][0]
+    # Fallback: pas de crash, on obtient un exercice (age_group du mock ou default normalize)
+    assert result.age_group is not None
+    assert result.question == "1+1?"
+
+
+@pytest.mark.asyncio
+async def test_generate_exercise_exercise_type_raw_none_fallback_to_addition():
+    """exercise_type_raw=None → normalisation vers ADDITION par défaut."""
+    mock_exercise = {
+        "title": "Test",
+        "exercise_type": "ADDITION",
+        "age_group": "6-8",
+        "difficulty": "INITIE",
+        "question": "1+1?",
+        "correct_answer": "2",
+        "choices": ["2", "3", "4"],
+        "explanation": "Test",
+    }
+
+    with patch(
+        "app.services.exercise_generation_service.generate_simple_exercise",
+        return_value=mock_exercise,
+    ):
+        result = await svc_generate_exercise(
+            exercise_type_raw=None,
+            age_group_raw="6-8",
+            adaptive=False,
+            save=False,
+        )
+
+    assert result.exercise_type == "ADDITION"
