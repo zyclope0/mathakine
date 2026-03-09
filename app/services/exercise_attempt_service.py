@@ -10,6 +10,7 @@ from typing import Any, Dict
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.logging_config import get_logger
 from app.exceptions import ExerciseNotFoundError, ExerciseSubmitError
 from app.models.exercise import ExerciseType
 from app.repositories.exercise_attempt_repository import (
@@ -17,7 +18,6 @@ from app.repositories.exercise_attempt_repository import (
     get_exercise_for_submit_validation,
     update_progress_after_attempt,
 )
-from app.core.logging_config import get_logger
 from app.schemas.exercise import SubmitAnswerResponse
 from app.utils.json_utils import make_json_serializable
 

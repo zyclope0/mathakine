@@ -111,7 +111,9 @@ describe("InterleavedPage", () => {
 
     render(<InterleavedPage />, { wrapper: TestWrapper });
 
-    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/exercises/42?session=interleaved"));
+    await waitFor(() =>
+      expect(mockReplace).toHaveBeenCalledWith("/exercises/42?session=interleaved")
+    );
     const stored = sessionStorage.getItem("interleaved_session");
     expect(stored).not.toBeNull();
     const parsed = JSON.parse(stored!);

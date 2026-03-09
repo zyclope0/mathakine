@@ -20,18 +20,30 @@ from app.exceptions import (
     ExerciseSubmitError,
     InterleavedNotEnoughVariety,
 )
-from app.schemas.exercise import GenerateExerciseRequest, SubmitAnswerRequest
+from app.schemas.exercise import (
+    GenerateExerciseRequest,
+    GenerateExerciseStreamQuery,
+    InterleavedPlanQuery,
+    SubmitAnswerRequest,
+)
+from app.services.exercise_attempt_service import submit_answer as svc_submit_answer
 from app.services.exercise_generation_service import (
     AgeGroupRequiredError,
+)
+from app.services.exercise_generation_service import (
     generate_exercise as svc_generate_exercise,
 )
-from app.schemas.exercise import GenerateExerciseStreamQuery, InterleavedPlanQuery
-from app.services.exercise_attempt_service import submit_answer as svc_submit_answer
 from app.services.exercise_query_service import (
     get_completed_exercise_ids,
-    get_exercise_for_api as svc_get_exercise,
+)
+from app.services.exercise_query_service import get_exercise_for_api as svc_get_exercise
+from app.services.exercise_query_service import (
     get_exercises_list_for_api as svc_get_exercises_list,
+)
+from app.services.exercise_query_service import (
     get_exercises_stats_for_api as svc_get_exercises_stats,
+)
+from app.services.exercise_query_service import (
     get_interleaved_plan_for_api as svc_get_interleaved_plan,
 )
 from app.services.exercise_stream_service import prepare_stream_context
