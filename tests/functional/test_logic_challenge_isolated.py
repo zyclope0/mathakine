@@ -130,12 +130,15 @@ async def test_logic_challenge_detail(
 
 
 async def test_logic_challenge_correct_answer(
-    client, logic_challenge_db, padawan_client_after_db
+    client, logic_challenge_db, padawan_client_after_db, challenge_with_hints_id
 ):
-    """Test de soumission d'une réponse correcte"""
+    """Test de soumission d'une reponse correcte"""
     ensure_challenge_exists_in_db(logic_challenge_db)
-    challenge = logic_challenge_db.query(LogicChallenge).first()
+    challenge = logic_challenge_db.query(LogicChallenge).filter(
+        LogicChallenge.id == challenge_with_hints_id
+    ).first()
     assert challenge is not None
+    assert challenge.correct_answer, "Le defi doit avoir une correct_answer non vide"
 
     headers = {"Authorization": f"Bearer {padawan_client_after_db['token']}"}
     answer_data = {"answer": challenge.correct_answer}
