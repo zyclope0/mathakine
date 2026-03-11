@@ -46,20 +46,24 @@ async def test_get_nonexistent_challenge(padawan_client):
     assert response.status_code == 404
 
 
-async def test_challenge_attempt_correct(logic_challenge_db, padawan_client):
-    """Test de la soumission d'une tentative correcte pour un défi logique."""
-    client = padawan_client["client"]
-    list_resp = await client.get("/api/challenges")
-    assert list_resp.status_code == 200
-    challenges = _get_challenges_list(list_resp.json())
-    assert len(challenges) > 0
-    challenge_id = challenges[0]["id"]
+async def test_challenge_attempt_correct(
+    logic_challenge_db, challenge_with_hints_id, padawan_client
+):
+    """Test de la soumission d'une tentative correcte pour un défi logique.
 
-    # Récupérer d'abord le défi pour connaître la réponse correcte
+    Utilise challenge_with_hints_id (défi créé par logic_challenge_db avec
+    correct_answer="42") pour éviter l'ordre aléatoire de la liste qui peut
+    retourner un défi sans correct_answer valide (ex. créé par admin).
+    """
+    client = padawan_client["client"]
+    challenge_id = challenge_with_hints_id
+
+    # Récupérer le défi pour connaître la réponse correcte
     response = await client.get(f"/api/challenges/{challenge_id}")
     assert response.status_code == 200
     challenge = response.json()
-    correct_answer = challenge["correct_answer"]
+    correct_answer = challenge.get("correct_answer")
+    assert correct_answer, "Le défi de test doit avoir correct_answer"
 
     # Soumettre la réponse correcte
     attempt_data = {"answer": correct_answer}
@@ -231,9 +235,27 @@ async def test_challenge_hint_invalid_level(challenge_with_hints_id, padawan_cli
         422,
     ), f"Le code d'état devrait être 400, 404 ou 422, reçu {response.status_code}"
 
-    # Vérifier que l'erreur est présente
     data = response.json()
     assert "error" in data, f"La réponse devrait contenir un champ 'error': {data}"
+    # Message attendu pour niveau invalide (LOT 1.1 : restaurer compat exacte)
+    assert "Indice de niveau" in data["error"] and "non disponible" in data["error"]
+
+
+async def test_challenge_hint_invalid_level_too_high(
+    challenge_with_hints_id, padawan_client
+):
+    """Niveau > nombre d'indices : message spécifique 'Indice de niveau X non disponible'."""
+    client = padawan_client["client"]
+    challenge_id = challenge_with_hints_id
+
+    response = await client.get(
+        f"/api/challenges/{challenge_id}/hint", params={"level": 99}
+    )
+
+    assert response.status_code in (400, 404, 422)
+    data = response.json()
+    assert "error" in data
+    assert "Indice de niveau" in data["error"] and "non disponible" in data["error"]
 
 
 async def test_challenge_attempt_unauthenticated(client):
@@ -268,26 +290,31 @@ async def test_challenge_attempt_unauthenticated(client):
 
 
 async def test_challenge_with_centralized_fixtures(
-    logic_challenge_db, padawan_client, mock_request, mock_api_response
+    logic_challenge_db,
+    challenge_with_hints_id,
+    padawan_client,
+    mock_request,
+    mock_api_response,
 ):
-    """Test d'un défi logique en utilisant les fixtures centralisées."""
-    client = padawan_client["client"]
+    """Test d'un défi logique en utilisant les fixtures centralisées.
 
-    list_resp = await client.get("/api/challenges")
-    assert list_resp.status_code == 200
-    challenges = _get_challenges_list(list_resp.json())
-    assert len(challenges) > 0
-    challenge_id = challenges[0]["id"]
+    Utilise challenge_with_hints_id pour cibler un défi avec correct_answer
+    valide (évite l'ordre aléatoire de la liste).
+    """
+    client = padawan_client["client"]
+    challenge_id = challenge_with_hints_id
+
     response = await client.get(f"/api/challenges/{challenge_id}")
     assert response.status_code == 200, "Impossible de récupérer le défi logique"
     challenge = response.json()
+    correct_answer = challenge.get("correct_answer")
+    assert correct_answer, "Le défi de test doit avoir correct_answer"
 
     # Tester la soumission d'une réponse en utilisant mock_request
-    # Simuler une requête qui sera utilisée pour des tests unitaires
     request = mock_request(
         authenticated=True,
         role="padawan",
-        json_data={"answer": challenge["correct_answer"]},
+        json_data={"answer": correct_answer},
         path_params={"challenge_id": challenge_id},
     )
 
@@ -303,7 +330,7 @@ async def test_challenge_with_centralized_fixtures(
     )
 
     # Test réel avec le client
-    attempt_data = {"answer": challenge["correct_answer"]}
+    attempt_data = {"answer": correct_answer}
     response = await client.post(
         f"/api/challenges/{challenge_id}/attempt", json=attempt_data
     )

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import type { LucideIcon } from "lucide-react";
 import { Sparkles, Rocket, Calendar, Plus, Wrench, Zap, CheckCircle2 } from "lucide-react";
@@ -17,6 +17,7 @@ type VersionBlock = {
 };
 
 type ReleaseKey =
+  | "release_3_1_0_alpha_8"
   | "release_3_1_0_alpha_7"
   | "release_3_1_0_alpha_6"
   | "release_3_1_0_alpha_5"
@@ -31,13 +32,14 @@ type ReleaseKey =
   | "release_2_1_0"
   | "release_2_0_0";
 
-const LATEST_RELEASE_KEY: ReleaseKey = "release_3_1_0_alpha_7";
+const LATEST_RELEASE_KEY: ReleaseKey = "release_3_1_0_alpha_8";
 
 export default function ChangelogPage() {
   const t = useTranslations("changelog");
   const { shouldReduceMotion, createVariants, createTransition } = useAccessibleAnimation();
 
   const releaseKeys: readonly ReleaseKey[] = [
+    "release_3_1_0_alpha_8",
     "release_3_1_0_alpha_7",
     "release_3_1_0_alpha_6",
     "release_3_1_0_alpha_5",
@@ -130,7 +132,7 @@ export default function ChangelogPage() {
                 </div>
 
                 <div className="min-w-0 flex-1 pb-2">
-                  {/* En-tête version */}
+                  {/* En-tete version */}
                   <div className="mb-3 flex flex-wrap items-center gap-2">
                     <h2 className="text-lg font-semibold text-foreground">{block.version}</h2>
                     {isLatest && (

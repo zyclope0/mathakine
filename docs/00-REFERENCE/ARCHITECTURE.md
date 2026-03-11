@@ -1,7 +1,7 @@
-# Architecture - Mathakine
+﻿# Architecture - Mathakine
 
 > Reference architecture globale (backend + frontend)
-> Derniere mise a jour : 09/03/2026
+> Derniere mise a jour : 11/03/2026
 
 ---
 
@@ -49,6 +49,7 @@ Fonctionnalites recentes importantes :
 - F32 : session entrelacee (`GET /api/exercises/interleaved-plan`)
 - F35 : redaction URL DB au log de demarrage (`redact_database_url_for_log`)
 - 09/03 : iteration backend `exercise/auth/user` cloturee et archivee
+- 11/03 : iteration backend `challenge/admin/badge` cloturee et archivee
 
 ---
 
@@ -75,11 +76,14 @@ Reference detaillee frontend :
 - `app/models/` : ORM SQLAlchemy
 - `app/db/` : session, engine, adapter, transactions
 
-Boundaries refactorees et stabilisees au 09/03/2026 :
+Boundaries refactorees et stabilisees au 11/03/2026 :
 
 - `exercise` : `exercise_generation_service.py`, `exercise_attempt_service.py`, `exercise_query_service.py`, `exercise_stream_service.py`
 - `auth` : `auth_session_service.py`, `auth_recovery_service.py`
 - `user` : `user_application_service.py`
+- `challenge` : `challenge_query_service.py`, `challenge_attempt_service.py`, `challenge_stream_service.py`
+- `admin` : `admin_read_service.py`, `admin_application_service.py`
+- `badge` : `badge_application_service.py`
 
 Compatibilite :
 
@@ -113,3 +117,4 @@ Reference API complete :
 - Flux auth : [AUTH_FLOW](../02-FEATURES/AUTH_FLOW.md)
 - Index documentation : [docs/INDEX](../INDEX.md)
 - Architecture frontend detaillee : [04-FRONTEND/ARCHITECTURE](../04-FRONTEND/ARCHITECTURE.md)
+

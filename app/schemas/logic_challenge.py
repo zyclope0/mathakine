@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.logic_challenge import AgeGroup, LogicChallengeType
 
@@ -177,6 +177,49 @@ class LogicChallengeAttemptCreate(LogicChallengeAttemptBase):
     pass
 
 
+class ChallengeAttemptRequest(BaseModel):
+    """
+    Payload pour POST /api/challenges/{id}/attempt.
+    Accepte 'answer' ou 'user_solution'. hints_used: liste ou entier (→ count).
+    """
+
+    user_solution: str = Field(..., description="Réponse fournie (alias: answer)")
+    time_spent: Optional[float] = Field(
+        None, ge=0.0, description="Temps passé en secondes"
+    )
+    hints_used: Optional[Union[List[Any], int]] = Field(
+        None, description="Indices utilisés: liste ou entier"
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_answer_alias(cls, data: Any) -> Any:
+        """Accepte 'answer' comme alias de 'user_solution' (compat frontend)."""
+        if isinstance(data, dict):
+            sol = data.get("user_solution") or data.get("answer")
+            if sol is not None:
+                data = {**data, "user_solution": str(sol).strip() if sol else ""}
+        return data
+
+    @field_validator("user_solution")
+    @classmethod
+    def answer_not_empty(cls, v: str) -> str:
+        if not v or v.isspace():
+            raise ValueError("Réponse requise")
+        return v
+
+    @property
+    def hints_used_count(self) -> int:
+        """Nombre d'indices utilisés (liste→len, int→valeur, sinon 0)."""
+        if self.hints_used is None:
+            return 0
+        if isinstance(self.hints_used, list):
+            return len(self.hints_used)
+        if isinstance(self.hints_used, int):
+            return self.hints_used
+        return 0
+
+
 class LogicChallengeAttemptUpdate(BaseModel):
     """Schéma pour la mise à jour d'une tentative de résolution"""
 
@@ -241,6 +284,20 @@ class ChallengeListResponse(BaseModel):
     page: int
     limit: int
     hasMore: bool
+
+
+class GenerateChallengeStreamQuery(BaseModel):
+    """Paramètres préparés pour la génération IA streaming (LOT 3 boundary)."""
+
+    challenge_type: str = Field(
+        ..., description="Type normalisé (sequence, pattern, etc.)"
+    )
+    age_group: str = Field(
+        ..., description="Groupe d'âge format service (6-8, 9-11, etc.)"
+    )
+    prompt: str = Field(default="", description="Prompt utilisateur sanitized")
+    user_id: Optional[int] = Field(None, description="ID utilisateur authentifié")
+    locale: str = Field(default="fr", description="Locale (Accept-Language résolu)")
 
 
 class LogicChallengeStats(BaseModel):

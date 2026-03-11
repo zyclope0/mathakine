@@ -1,37 +1,36 @@
 """
-Handlers pour les défis logiques (API Starlette)
+Handlers pour les defis logiques (API Starlette)
+
+LOT 1 : handlers de lecture anemiques - parse, appel query service, mapping HTTP.
 """
 
-import json
 import traceback
-from datetime import datetime
 
-from app.core.logging_config import get_logger
-
-logger = get_logger(__name__)
+from pydantic import ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, StreamingResponse
 
-import app.core.constants as constants
-from app.core.config import settings
-from app.core.messages import SystemMessages
+from app.core.logging_config import get_logger
 from app.exceptions import ChallengeNotFoundError
-
-# NOTE: challenge_service_translations_adapter archivé - utiliser fonctions de challenge_service.py
-from app.services import challenge_service
-from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.services.logic_challenge_service import LogicChallengeService
-from app.utils.db_utils import db_session
-
-# Importer les constantes et fonctions centralisées
-from app.utils.enum_mapping import age_group_exercise_from_api
+from app.schemas.logic_challenge import ChallengeAttemptRequest, ChallengeListResponse
+from app.services.challenge_attempt_service import submit_challenge_attempt
+from app.services.challenge_query_service import (
+    get_challenge_detail_for_api,
+    get_challenge_hint_for_api,
+)
+from app.services.challenge_query_service import (
+    get_completed_challenges_ids as query_completed_challenges_ids,
+)
+from app.services.challenge_query_service import (
+    list_challenges_for_api,
+)
+from app.services.challenge_stream_service import prepare_stream_context
 from app.utils.error_handler import (
     ErrorHandler,
     api_error_response,
     get_safe_error_message,
 )
 from app.utils.request_utils import parse_json_body_any
-from app.utils.response_formatters import format_paginated_response
 from app.utils.translation import parse_accept_language
 from server.auth import (
     optional_auth,
@@ -40,32 +39,25 @@ from server.auth import (
     require_full_access,
 )
 
+logger = get_logger(__name__)
 
-def _parse_challenge_submission_payload(data: dict) -> tuple[str, object, int]:
-    """Normalise la payload de tentative de défi sans dépendre du transport HTTP."""
-    user_solution = data.get("user_solution") or data.get("answer")
-    if not user_solution:
-        raise ValueError("Réponse requise")
 
-    hints_used_raw = data.get("hints_used", [])
-    if isinstance(hints_used_raw, list):
-        hints_used_count = len(hints_used_raw)
-    elif isinstance(hints_used_raw, int):
-        hints_used_count = hints_used_raw
-    else:
-        hints_used_count = 0
-
-    return user_solution, data.get("time_spent"), hints_used_count
+def _first_validation_error_message(ve: ValidationError) -> str:
+    """Extrait le premier message d'erreur d'une ValidationError Pydantic."""
+    errs = ve.errors()
+    if errs:
+        msg = errs[0].get("msg", "Payload invalide")
+        return str(msg) if isinstance(msg, str) else "Payload invalide"
+    return "Payload invalide"
 
 
 @require_auth
 @require_full_access
 async def get_challenges_list(request: Request) -> JSONResponse:
     """
-    Liste des défis logiques avec filtres optionnels.
+    Liste des defis logiques avec filtres optionnels.
     Route: GET /api/challenges
     """
-    from app.schemas.logic_challenge import ChallengeListItem, ChallengeListResponse
     from server.handlers.challenge_list_params import parse_challenge_list_params
 
     try:
@@ -75,68 +67,44 @@ async def get_challenges_list(request: Request) -> JSONResponse:
         accept_language = request.headers.get("Accept-Language", "fr")
         locale = parse_accept_language(accept_language)
         logger.debug(
-            f"API - Paramètres: limit={p.limit}, skip={p.skip}, order={p.order}, "
+            f"API - Parametres: limit={p.limit}, skip={p.skip}, order={p.order}, "
             f"hide_completed={p.hide_completed}"
         )
 
         user_id = current_user.get("id")
-        exclude_ids: list[int] = []
 
-        async with db_session() as db:
-            if p.hide_completed and user_id:
-                exclude_ids = challenge_service.get_user_completed_challenges(
-                    db, user_id
-                )
-            # Count d'abord pour random_offset (O(1) vs ORDER BY RANDOM() O(n))
-            total = challenge_service.count_challenges(
-                db=db,
-                challenge_type=p.challenge_type,
-                age_group=p.age_group_db,
-                search=p.search,
-                exclude_ids=exclude_ids if exclude_ids else None,
-                active_only=p.active_only,
-            )
-            challenges = challenge_service.list_challenges(
-                db=db,
-                challenge_type=p.challenge_type,
-                age_group=p.age_group_db,
-                search=p.search,
-                limit=p.limit,
-                offset=p.skip,
-                order=p.order,
-                exclude_ids=exclude_ids if exclude_ids else None,
-                total=total if p.order == "random" else None,
-                active_only=p.active_only,
-            )
-            challenges_list = [
-                ChallengeListItem.model_validate(
-                    challenge_service.challenge_to_api_dict(c)
-                )
-                for c in challenges
-            ]
-
-        response_data = ChallengeListResponse(
-            **format_paginated_response(challenges_list, total, p.skip, p.limit)
+        response_data = await list_challenges_for_api(
+            challenge_type=p.challenge_type,
+            age_group_db=p.age_group_db,
+            search=p.search,
+            skip=p.skip,
+            limit=p.limit,
+            active_only=p.active_only,
+            order=p.order,
+            hide_completed=p.hide_completed,
+            user_id=user_id,
         )
+        total = response_data.get("total", 0)
+        items_count = len(response_data.get("items", []))
         logger.info(
-            f"Récupération réussie de {len(challenges_list)} défis sur {total} total (locale: {locale})"
+            f"Recuperation reussie de {items_count} defis sur {total} total (locale: {locale})"
         )
-        return JSONResponse(response_data.model_dump())
+        return JSONResponse(ChallengeListResponse(**response_data).model_dump())
     except ValueError as filter_validation_error:
-        logger.error(f"Erreur de validation des paramètres: {filter_validation_error}")
+        logger.error(f"Erreur de validation des parametres: {filter_validation_error}")
         return ErrorHandler.create_validation_error(
             errors=[str(filter_validation_error)],
-            user_message="Les paramètres de filtrage sont invalides.",
+            user_message="Les parametres de filtrage sont invalides.",
         )
     except Exception as challenges_retrieval_error:
         logger.error(
-            f"Erreur lors de la récupération des défis: {challenges_retrieval_error}"
+            f"Erreur lors de la recuperation des defis: {challenges_retrieval_error}"
         )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
             error=challenges_retrieval_error,
             status_code=500,
-            user_message="Erreur lors de la récupération des défis.",
+            user_message="Erreur lors de la recuperation des defis.",
         )
 
 
@@ -144,44 +112,38 @@ async def get_challenges_list(request: Request) -> JSONResponse:
 @require_full_access
 async def get_challenge(request: Request) -> JSONResponse:
     """
-    Récupère un défi logique par son ID.
+    Recupere un defi logique par son ID.
     Route: GET /api/challenges/{challenge_id}
     """
     try:
-        current_user = request.state.user
-
         challenge_id = int(request.path_params.get("challenge_id"))
 
-        # Récupérer la locale depuis le header Accept-Language
         accept_language = request.headers.get("Accept-Language", "fr")
         locale = parse_accept_language(accept_language)
 
-        async with db_session() as db:
-            from app.services.challenge_service import get_challenge_for_api
-
-            challenge_dict = get_challenge_for_api(db, challenge_id)
+        challenge_dict = await get_challenge_detail_for_api(challenge_id)
 
         logger.info(
-            f"Récupération réussie du défi logique {challenge_id} (locale: {locale})"
+            f"Recuperation reussie du defi logique {challenge_id} (locale: {locale})"
         )
         return JSONResponse(challenge_dict)
     except ChallengeNotFoundError:
-        return api_error_response(404, "Défi logique non trouvé")
+        return api_error_response(404, "Defi logique non trouve")
     except ValueError as id_validation_error:
         logger.error(f"Erreur de validation: {id_validation_error}")
         return ErrorHandler.create_validation_error(
-            errors=["ID de défi invalide"],
-            user_message="L'identifiant du défi est invalide.",
+            errors=["ID de defi invalide"],
+            user_message="L'identifiant du defi est invalide.",
         )
     except Exception as challenge_retrieval_error:
         logger.error(
-            f"Erreur lors de la récupération du défi: {challenge_retrieval_error}"
+            f"Erreur lors de la recuperation du defi: {challenge_retrieval_error}"
         )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
             error=challenge_retrieval_error,
             status_code=500,
-            user_message="Erreur lors de la récupération du défi.",
+            user_message="Erreur lors de la recuperation du defi.",
         )
 
 
@@ -189,7 +151,7 @@ async def get_challenge(request: Request) -> JSONResponse:
 @require_full_access
 async def submit_challenge_answer(request: Request) -> JSONResponse:
     """
-    Soumet une réponse à un défi logique.
+    Soumet une reponse a un defi logique.
     Route: POST /api/challenges/{challenge_id}/attempt
     """
     try:
@@ -206,30 +168,20 @@ async def submit_challenge_answer(request: Request) -> JSONResponse:
         data = data_or_err
 
         try:
-            user_solution, time_spent, hints_used_count = (
-                _parse_challenge_submission_payload(data)
-            )
-        except ValueError as submission_payload_error:
-            return api_error_response(400, str(submission_payload_error))
+            attempt_req = ChallengeAttemptRequest.model_validate(data)
+        except ValidationError as ve:
+            return api_error_response(400, _first_validation_error_message(ve))
 
-        async with db_session() as db:
-            response_data = LogicChallengeService.submit_answer_result(
-                db,
-                challenge_id,
-                user_id,
-                user_solution,
-                time_spent=time_spent,
-                hints_used_count=hints_used_count,
-            )
-            return JSONResponse(response_data)
+        response_data = await submit_challenge_attempt(
+            challenge_id, user_id, attempt_req
+        )
+        return JSONResponse(response_data)
     except ChallengeNotFoundError:
-        return api_error_response(404, "Défi logique non trouvé")
+        return api_error_response(404, "Defi logique non trouve")
     except ValueError:
-        return api_error_response(400, "ID de défi invalide")
+        return api_error_response(400, "ID de defi invalide")
     except Exception as submission_error:
-        logger.error(f"Erreur lors de la soumission de la réponse: {submission_error}")
-        import traceback
-
+        logger.error(f"Erreur lors de la soumission de la reponse: {submission_error}")
         logger.debug(traceback.format_exc())
         return api_error_response(500, get_safe_error_message(submission_error))
 
@@ -238,48 +190,25 @@ async def submit_challenge_answer(request: Request) -> JSONResponse:
 @require_full_access
 async def get_challenge_hint(request: Request) -> JSONResponse:
     """
-    Récupère un indice pour un défi logique.
+    Recupere un indice pour un defi logique.
     Route: GET /api/challenges/{challenge_id}/hint
     """
     try:
         challenge_id = int(request.path_params.get("challenge_id"))
         level = int(request.query_params.get("level", 1))
 
-        async with db_session() as db:
-            challenge = LogicChallengeService.get_challenge_or_raise(db, challenge_id)
-
-            # Récupérer les indices
-            hints = challenge.hints
-            if isinstance(hints, str):
-                try:
-                    hints = json.loads(hints)
-                except (json.JSONDecodeError, ValueError):
-                    # Si le parsing échoue, traiter comme une liste vide
-                    hints = []
-            elif hints is None:
-                hints = []
-
-            # S'assurer que hints est une liste
-            if not isinstance(hints, list):
-                hints = []
-
-            if level < 1 or level > len(hints):
-                return api_error_response(
-                    400, f"Indice de niveau {level} non disponible"
-                )
-
-            # Retourner l'indice spécifique au niveau demandé (index 0-based)
-            hint_text = hints[level - 1] if level <= len(hints) else None
-            return JSONResponse(
-                {"hint": hint_text}
-            )  # Retourner l'indice spécifique au niveau
+        hint_data = await get_challenge_hint_for_api(challenge_id, level)
+        return JSONResponse(hint_data)
     except ChallengeNotFoundError:
-        return api_error_response(404, "Défi logique non trouvé")
-    except ValueError:
-        return api_error_response(400, "ID de défi ou niveau invalide")
+        return api_error_response(404, "Defi logique non trouve")
+    except ValueError as ve:
+        err_msg = str(ve).strip()
+        if "Indice de niveau" in err_msg and "non disponible" in err_msg:
+            return api_error_response(400, err_msg)
+        return api_error_response(400, "ID de defi ou niveau invalide")
     except Exception as hint_retrieval_error:
         logger.error(
-            f"Erreur lors de la récupération de l'indice: {hint_retrieval_error}",
+            f"Erreur lors de la recuperation de l'indice: {hint_retrieval_error}",
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(hint_retrieval_error))
@@ -288,7 +217,7 @@ async def get_challenge_hint(request: Request) -> JSONResponse:
 @optional_auth
 async def get_completed_challenges_ids(request: Request) -> JSONResponse:
     """
-    Récupère la liste des IDs de challenges complétés par l'utilisateur actuel.
+    Recupere la liste des IDs de challenges completes par l'utilisateur actuel.
     Route: GET /api/challenges/completed-ids
     """
     try:
@@ -300,23 +229,22 @@ async def get_completed_challenges_ids(request: Request) -> JSONResponse:
         if not user_id:
             return JSONResponse({"completed_ids": []}, status_code=200)
 
-        async with db_session() as db:
-            completed_ids = challenge_service.get_user_completed_challenges(db, user_id)
+        completed_ids = await query_completed_challenges_ids(user_id)
 
         logger.debug(
-            f"Récupération de {len(completed_ids)} challenges complétés pour l'utilisateur {user_id}"
+            f"Recuperation de {len(completed_ids)} challenges completes pour l'utilisateur {user_id}"
         )
         return JSONResponse({"completed_ids": completed_ids})
 
     except Exception as completed_challenges_error:
         logger.error(
-            f"Erreur lors de la récupération des challenges complétés: {completed_challenges_error}"
+            f"Erreur lors de la recuperation des challenges completes: {completed_challenges_error}"
         )
         logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
             error=completed_challenges_error,
             status_code=500,
-            user_message="Erreur lors de la récupération des challenges complétés.",
+            user_message="Erreur lors de la recuperation des challenges completes.",
         )
 
 
@@ -324,82 +252,34 @@ async def get_completed_challenges_ids(request: Request) -> JSONResponse:
 @require_full_access
 async def generate_ai_challenge_stream(request: Request) -> Response:
     """
-    Génère un challenge avec OpenAI en streaming SSE.
-    Délègue la logique au service challenge_ai_service.
+    Genere un challenge avec OpenAI en streaming SSE.
+    Handler fin : lecture request, preparation via challenge_stream_service, StreamingResponse.
     """
+    from app.services.challenge_ai_service import (
+        generate_challenge_stream as svc_generate_stream,
+    )
+    from app.utils.sse_utils import SSE_HEADERS, sse_error_response
+
     try:
         current_user = request.state.user
-        challenge_type_raw = request.query_params.get("challenge_type", "sequence")
-        age_group_raw = request.query_params.get("age_group", "10-12")
-        prompt_raw = request.query_params.get("prompt", "")
-
-        from app.services.challenge_ai_service import (
-            generate_challenge_stream as svc_generate_stream,
-        )
-        from app.utils.prompt_sanitizer import (
-            sanitize_user_prompt,
-            validate_prompt_safety,
-        )
-        from app.utils.sse_utils import SSE_HEADERS, sse_error_response
-
-        is_safe, safety_reason = validate_prompt_safety(prompt_raw)
-        if not is_safe:
-            logger.warning(f"Prompt utilisateur rejeté pour sécurité: {safety_reason}")
-            return sse_error_response(f"Prompt invalide: {safety_reason}")
-
-        prompt = sanitize_user_prompt(prompt_raw)
-
-        challenge_type = challenge_type_raw.lower()
-        valid_types = [
-            "sequence",
-            "pattern",
-            "visual",
-            "puzzle",
-            "graph",
-            "riddle",
-            "deduction",
-            "chess",
-            "coding",
-            "probability",
-        ]
-        if challenge_type not in valid_types:
-            logger.warning(
-                f"Type de challenge invalide: {challenge_type_raw}, utilisation de 'sequence' par défaut"
-            )
-            challenge_type = "sequence"
-
-        age_group = (
-            age_group_exercise_from_api(age_group_raw) or constants.AgeGroups.GROUP_6_8
+        query, error_msg = prepare_stream_context(
+            challenge_type_raw=request.query_params.get("challenge_type", "sequence"),
+            age_group_raw=request.query_params.get("age_group", "10-12"),
+            prompt_raw=request.query_params.get("prompt", ""),
+            user_id=current_user.get("id") if current_user else None,
+            accept_language=request.headers.get("Accept-Language", "fr"),
         )
 
-        user_id = current_user.get("id")
-        if user_id:
-            from app.utils.rate_limiter import rate_limiter
-
-            allowed, rate_limit_reason = rate_limiter.check_rate_limit(
-                user_id=user_id, max_per_hour=10, max_per_day=50
-            )
-            if not allowed:
-                logger.warning(
-                    f"Rate limit atteint pour utilisateur {user_id}: {rate_limit_reason}"
-                )
-                return sse_error_response(
-                    f"Limite de génération atteinte: {rate_limit_reason}"
-                )
-
-        if not settings.OPENAI_API_KEY:
-            return sse_error_response("OpenAI API key non configurée")
-
-        accept_language = request.headers.get("Accept-Language", "fr")
-        locale = parse_accept_language(accept_language) or "fr"
+        if error_msg:
+            return sse_error_response(error_msg)
 
         async def generate():
             async for event in svc_generate_stream(
-                challenge_type=challenge_type,
-                age_group=age_group,
-                prompt=prompt,
-                user_id=user_id,
-                locale=locale,
+                challenge_type=query.challenge_type,
+                age_group=query.age_group,
+                prompt=query.prompt,
+                user_id=query.user_id,
+                locale=query.locale,
             ):
                 yield event
 
@@ -414,4 +294,4 @@ async def generate_ai_challenge_stream(request: Request) -> Response:
             f"Erreur dans generate_ai_challenge_stream: {ai_stream_error}",
             exc_info=True,
         )
-        return sse_error_response("Erreur lors de la génération")
+        return sse_error_response("Erreur lors de la generation")

@@ -1782,6 +1782,16 @@
         "Badges de reussite.",
         "Themes visuels pour personnaliser l interface."
       ]
+    },
+    "release_3_1_0_alpha_8": {
+      "version": "v3.1.0-alpha.8",
+      "date": "11 mars 2026",
+      "items": [
+        "Consolidation backend challenge/admin/badge avec boundaries HTTP plus nettes et facades applicatives explicites.",
+        "Preuves API ajoutees sur les endpoints admin content et badge publics/utilisateur du scope.",
+        "Stabilisation des fixtures auth/admin et des tests challenge non deterministes sur le tree courant.",
+        "Release principalement technique: fiabilisation, documentation et cloture d'iteration backend."
+      ]
     }
   },
   "feedback": {

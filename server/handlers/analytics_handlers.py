@@ -65,8 +65,7 @@ async def analytics_event(request: Request) -> JSONResponse:
 
 # --- Admin : consultation des analytics EdTech ---
 
-from datetime import datetime, timedelta, timezone
-
+from app.services.admin_read_service import get_edtech_analytics_for_admin
 from server.auth import require_admin
 
 
@@ -84,19 +83,11 @@ async def admin_analytics_edtech(request: Request) -> JSONResponse:
             request.query_params, default_limit=200, max_limit=500
         )
 
-        since = datetime.now(timezone.utc)
-        if period == "30d":
-            since -= timedelta(days=30)
-        else:
-            since -= timedelta(days=7)
-
-        async with db_session() as db:
-            result = AnalyticsService.get_edtech_analytics_for_admin(
-                db,
-                since=since,
-                event_filter=event_filter,
-                limit=limit,
-            )
+        result = await get_edtech_analytics_for_admin(
+            period=period,
+            event_filter=event_filter,
+            limit=limit,
+        )
 
         return JSONResponse(
             {

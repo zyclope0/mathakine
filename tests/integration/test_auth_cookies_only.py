@@ -7,13 +7,43 @@ from enhanced_server import app as starlette_app
 from tests.utils.test_helpers import verify_user_email_for_tests
 
 
+@pytest.fixture(autouse=True)
+def cleanup_auth_cookie_users(db_session):
+    """Teardown explicite: supprime les users fixture_auth_cookie_* après chaque test.
+
+    AUTH_CLEANUP_RUNTIME_FIX: ne pas dépendre du cleanup global.
+    """
+    yield
+    from app.models.user import User
+
+    try:
+        users = (
+            db_session.query(User)
+            .filter(User.username.like("fixture_auth_cookie_%"))
+            .all()
+        )
+        for u in users:
+            db_session.delete(u)
+        if users:
+            db_session.commit()
+    except Exception:
+        try:
+            db_session.rollback()
+        except Exception:
+            pass
+
+
 @pytest.fixture
 def test_user_data():
-    """Génère des données d'utilisateur uniques pour chaque test"""
+    """Génère des données d'utilisateur uniques pour chaque test.
+
+    Namespace fixture_auth_cookie_* : évite collision avec le cleanup global
+    (test_% était supprimé pendant les tests, causant 401/500).
+    """
     unique_id = uuid.uuid4().hex[:8]
     return {
-        "username": f"test_cookies_{unique_id}",
-        "email": f"cookies_{unique_id}@test.com",
+        "username": f"fixture_auth_cookie_{unique_id}",
+        "email": f"fixture_auth_cookie_{unique_id}@example.com",
         "password": "SecurePassword123!",
         "role": "padawan",
     }

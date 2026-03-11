@@ -2,23 +2,22 @@
 Handlers pour la gestion des badges et achievements (API)
 """
 
-import json
 import traceback
 
+from pydantic import ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
-from app.services.badge_service import BadgeService
-from app.utils.db_utils import db_session
+from app.schemas.badge import PinnedBadgesRequest
+from app.services.badge_application_service import BadgeApplicationService
 from app.utils.error_handler import api_error_response, get_safe_error_message
 from app.utils.request_utils import parse_json_body_any
 from app.utils.simple_ttl_cache import get_or_set
-
-logger = get_logger(__name__)
-# NOTE: badge_service_translations archivé - utiliser BadgeService ORM uniquement
 from app.utils.translation import parse_accept_language
 from server.auth import require_auth, require_full_access
+
+logger = get_logger(__name__)
 
 
 @require_auth
@@ -27,18 +26,14 @@ async def get_user_badges(request: Request) -> JSONResponse:
     try:
         current_user = request.state.user
         user_id = current_user.get("id")
-
-        async with db_session() as db:
-            badge_service = BadgeService(db)
-            user_badges_data = badge_service.get_user_badges(user_id)
-            return JSONResponse({"success": True, "data": user_badges_data})
-
-    except Exception as user_badges_error:
+        data = await BadgeApplicationService.get_user_badges(user_id)
+        return JSONResponse({"success": True, "data": data})
+    except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération des badges utilisateur: {user_badges_error}",
+            f"Erreur lors de la récupération des badges utilisateur: {e}",
             exc_info=True,
         )
-        return api_error_response(500, get_safe_error_message(user_badges_error))
+        return api_error_response(500, get_safe_error_message(e))
 
 
 async def get_available_badges(request: Request) -> JSONResponse:
@@ -47,18 +42,12 @@ async def get_available_badges(request: Request) -> JSONResponse:
         accept_language = request.headers.get("Accept-Language", "fr")
         parse_accept_language(accept_language)
 
-        async with db_session() as db:
-            badge_service = BadgeService(db)
-            available_badges = badge_service.get_available_badges()
-
+        available_badges = await BadgeApplicationService.get_available_badges()
         return JSONResponse({"success": True, "data": available_badges})
-
-    except Exception as available_badges_error:
-        logger.error(
-            f"Erreur lors de la récupération des badges disponibles: {available_badges_error}"
-        )
+    except Exception as e:
+        logger.error(f"Erreur lors de la récupération des badges disponibles: {e}")
         logger.debug(traceback.format_exc())
-        return api_error_response(500, get_safe_error_message(available_badges_error))
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -69,28 +58,25 @@ async def check_user_badges(request: Request) -> JSONResponse:
         current_user = request.state.user
         user_id = current_user.get("id")
 
-        async with db_session() as db:
-            badge_service = BadgeService(db)
-            new_badges = badge_service.check_and_award_badges(user_id)
-            return JSONResponse(
-                {
-                    "success": True,
-                    "new_badges": new_badges,
-                    "badges_earned": len(new_badges),
-                    "message": (
-                        f"{len(new_badges)} nouveaux badges obtenus"
-                        if new_badges
-                        else "Aucun nouveau badge"
-                    ),
-                }
-            )
-
-    except Exception as badge_verification_error:
+        new_badges = await BadgeApplicationService.check_and_award_badges(user_id)
+        return JSONResponse(
+            {
+                "success": True,
+                "new_badges": new_badges,
+                "badges_earned": len(new_badges),
+                "message": (
+                    f"{len(new_badges)} nouveaux badges obtenus"
+                    if new_badges
+                    else "Aucun nouveau badge"
+                ),
+            }
+        )
+    except Exception as e:
         logger.error(
-            f"Erreur lors de la vérification forcée des badges: {badge_verification_error}",
+            f"Erreur lors de la vérification forcée des badges: {e}",
             exc_info=True,
         )
-        return api_error_response(500, get_safe_error_message(badge_verification_error))
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -100,20 +86,17 @@ async def get_user_gamification_stats(request: Request) -> JSONResponse:
         current_user = request.state.user
         user_id = current_user.get("id")
 
-        async def _fetch() -> dict:
-            async with db_session() as db:
-                badge_service = BadgeService(db)
-                return badge_service.get_user_gamification_stats(user_id)
+        async def _fetch():
+            return await BadgeApplicationService.get_user_gamification_stats(user_id)
 
         response_data = await get_or_set(f"gamification_stats:{user_id}", 60.0, _fetch)
         return JSONResponse({"success": True, "data": response_data})
-
-    except Exception as gamification_stats_error:
+    except Exception as e:
         logger.error(
-            f"Erreur lors de la récupération des statistiques de gamification: {gamification_stats_error}",
+            f"Erreur lors de la récupération des statistiques de gamification: {e}",
             exc_info=True,
         )
-        return api_error_response(500, get_safe_error_message(gamification_stats_error))
+        return api_error_response(500, get_safe_error_message(e))
 
 
 @require_auth
@@ -123,18 +106,26 @@ async def patch_pinned_badges(request: Request) -> JSONResponse:
     body_or_err = await parse_json_body_any(request)
     if isinstance(body_or_err, JSONResponse):
         return body_or_err
+
     try:
-        badge_ids = body_or_err.get("badge_ids", [])
-        if not isinstance(badge_ids, list):
-            return api_error_response(400, "badge_ids doit être une liste")
-        badge_ids = [int(x) for x in badge_ids if isinstance(x, (int, float))]
+        payload = PinnedBadgesRequest.model_validate(body_or_err)
+    except ValidationError as ve:
+        err_msg = (
+            ve.errors()[0].get("msg", str(ve))
+            if ve.errors()
+            else "badge_ids doit être une liste d'entiers"
+        )
+        return api_error_response(400, err_msg)
+
+    try:
         current_user = request.state.user
         user_id = current_user.get("id")
         if not user_id:
             return api_error_response(401, "Non authentifié")
-        async with db_session() as db:
-            badge_service = BadgeService(db)
-            pinned = badge_service.set_pinned_badges(user_id, badge_ids)
+
+        pinned = await BadgeApplicationService.set_pinned_badges(
+            user_id, payload.badge_ids
+        )
         return JSONResponse({"success": True, "data": {"pinned_badge_ids": pinned}})
     except Exception as e:
         logger.error(f"Erreur patch_pinned_badges: {e}", exc_info=True)
@@ -148,10 +139,8 @@ async def get_badges_rarity(request: Request) -> JSONResponse:
     """
     try:
 
-        async def _fetch() -> dict:
-            async with db_session() as db:
-                badge_service = BadgeService(db)
-                return badge_service.get_badges_rarity_stats()
+        async def _fetch():
+            return await BadgeApplicationService.get_badges_rarity_stats()
 
         data = await get_or_set("badges_rarity", 90.0, _fetch)
         return JSONResponse({"success": True, "data": data})
@@ -173,10 +162,7 @@ async def get_user_badges_progress(request: Request) -> JSONResponse:
         if not user_id:
             return api_error_response(400, "ID utilisateur manquant")
 
-        async with db_session() as db:
-            badge_service = BadgeService(db)
-            data = badge_service.get_badges_progress(user_id)
-
+        data = await BadgeApplicationService.get_badges_progress(user_id)
         return JSONResponse({"success": True, "data": data})
     except Exception as e:
         logger.error(

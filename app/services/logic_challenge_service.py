@@ -312,99 +312,13 @@ class LogicChallengeService:
         hints_used_count: int = 0,
     ) -> Dict[str, Any]:
         """
-        Orchestrateur transactionnel pour une tentative de défi logique.
+        Délègue à challenge_attempt_service (LOT 2.1).
+        Conservé pour compatibilité avec appelants synchrones (tests, etc.).
         """
-        from app.services.badge_service import BadgeService
-        from app.services.challenge_answer_service import check_answer
-
-        challenge = LogicChallengeService.get_challenge_or_raise(db, challenge_id)
-        challenge_type = (
-            str(challenge.challenge_type).lower() if challenge.challenge_type else ""
-        )
-        is_correct = check_answer(
-            challenge_type=challenge_type,
-            user_answer=user_solution,
-            correct_answer=challenge.correct_answer or "",
-            visual_data=getattr(challenge, "visual_data", None),
+        from app.services.challenge_attempt_service import (
+            submit_challenge_attempt_sync,
         )
 
-        attempt_data = {
-            "user_id": user_id,
-            "challenge_id": challenge_id,
-            "user_solution": user_solution,
-            "is_correct": is_correct,
-            "time_spent": time_spent,
-            "hints_used": hints_used_count,
-        }
-        attempt = LogicChallengeService.record_attempt(
-            db, attempt_data, auto_commit=False
+        return submit_challenge_attempt_sync(
+            db, challenge_id, user_id, user_solution, time_spent, hints_used_count
         )
-        if not attempt:
-            raise ValueError("Impossible d'enregistrer la tentative.")
-
-        new_badges = []
-        if is_correct:
-            try:
-                badge_service = BadgeService(db, auto_commit=False)
-                new_badges = badge_service.check_and_award_badges(user_id)
-            except (SQLAlchemyError, TypeError, ValueError) as badge_err:
-                logger.warning(
-                    "Badge check après défi (best effort): %s",
-                    badge_err,
-                    exc_info=True,
-                )
-
-        try:
-            from app.services.streak_service import update_user_streak
-
-            streak_savepoint = db.begin_nested()
-            update_user_streak(db, user_id, auto_commit=False)
-            streak_savepoint.commit()
-        except ImportError:
-            logger.warning("Streak service indisponible (ImportError)", exc_info=True)
-        except (SQLAlchemyError, TypeError, ValueError):
-            if "streak_savepoint" in locals() and streak_savepoint.is_active:
-                streak_savepoint.rollback()
-            logger.debug("Streak update skipped", exc_info=True)
-
-        if is_correct:
-            try:
-                from app.services.daily_challenge_service import (
-                    record_logic_challenge_completed,
-                )
-
-                daily_savepoint = db.begin_nested()
-                record_logic_challenge_completed(db, user_id, is_correct)
-                daily_savepoint.commit()
-            except Exception:
-                if "daily_savepoint" in locals() and daily_savepoint.is_active:
-                    daily_savepoint.rollback()
-                logger.debug("Daily challenge update skipped (logic)", exc_info=True)
-
-        progress_notif = None
-        if not new_badges:
-            try:
-                svc = BadgeService(db, auto_commit=False)
-                progress_notif = svc.get_closest_progress_notification(user_id)
-            except (SQLAlchemyError, TypeError, ValueError):
-                logger.debug(
-                    "Progress notification skipped (best effort)",
-                    exc_info=True,
-                )
-
-        db.commit()
-        db.refresh(attempt)
-
-        response_data = {
-            "is_correct": is_correct,
-            "explanation": challenge.solution_explanation if is_correct else None,
-            "new_badges": new_badges,
-        }
-        if progress_notif:
-            response_data["progress_notification"] = progress_notif
-
-        if not is_correct:
-            hints_list = challenge.hints if isinstance(challenge.hints, list) else []
-            response_data["hints_remaining"] = len(hints_list) - hints_used_count
-
-        return response_data

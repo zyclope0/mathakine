@@ -6,6 +6,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
+from app.services.admin_read_service import list_feedback_for_admin
 from app.services.feedback_service import FeedbackService
 from app.utils.db_utils import db_session
 from app.utils.error_handler import api_error_response, get_safe_error_message
@@ -83,9 +84,8 @@ async def admin_list_feedback(request: Request) -> JSONResponse:
     Route: GET /api/admin/feedback
     """
     try:
-        async with db_session() as db:
-            items = FeedbackService.list_feedback_for_admin(db, limit=500)
-            return JSONResponse({"feedback": items})
+        items = await list_feedback_for_admin(limit=500)
+        return JSONResponse({"feedback": items})
     except Exception as e:
         logger.error(f"Erreur admin_list_feedback: {e}", exc_info=True)
         return api_error_response(500, get_safe_error_message(e))

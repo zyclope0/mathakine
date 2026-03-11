@@ -62,6 +62,8 @@ class TestDataManager:
             "cascade_test_%",
             # Patterns supplementaires identifies dans les tests API
             "auth_test_%",
+            # fixture_auth_% RETIRÉ: les fixture users auth/admin ont teardown explicite.
+            # Le cleanup global ne doit plus les capturer (ADMIN_AUTH_FIXTURES_STABILIZATION).
             "unique_username_%",
             "different_%",
             "service_%",
@@ -421,6 +423,30 @@ class TestDataManager:
                 self.db.execute(
                     text(f"DELETE FROM notifications WHERE user_id IN ({ids_str})")
                 )
+
+            # 7.5 Sécurité FK: supprimer TOUS les logic_challenge_attempts des users test
+            #    avant de toucher aux users (évite FK logic_challenge_attempts.user_id -> users.id).
+            #    Catch-all au cas où identify_test_data ait manqué des lignes.
+            if test_data["users"]:
+                ids_str = ",".join(map(str, test_data["users"]))
+                self.db.execute(
+                    text(
+                        f"DELETE FROM logic_challenge_attempts WHERE user_id IN ({ids_str})"
+                    )
+                )
+
+            # 7.6 admin_audit_logs: annuler les refs vers users test avant DELETE users
+            #    (robuste si FK RESTRICT; redondant mais sans impact si FK ON DELETE SET NULL)
+            if test_data["users"]:
+                ids_str = ",".join(map(str, test_data["users"]))
+                result = self.db.execute(
+                    text(
+                        f"UPDATE admin_audit_logs SET admin_user_id = NULL "
+                        f"WHERE admin_user_id IN ({ids_str})"
+                    )
+                )
+                if result.rowcount > 0:
+                    deleted_counts["admin_audit_logs_nullified"] = result.rowcount
 
             # 8. Supprimer les utilisateurs de test (en dernier)
             if test_data["users"]:

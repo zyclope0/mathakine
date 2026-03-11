@@ -278,59 +278,88 @@ async def _create_authenticated_client(role="padawan", db_session_for_role=None)
     - Cree un utilisateur via l'API
     - Met a jour le role en DB si necessaire
     - Login pour obtenir le cookie access_token
+    - Teardown explicite: supprime l'user par id (ne depend plus du cleanup global)
     - Yield le client configure + metadata
     """
     transport = httpx.ASGITransport(app=starlette_app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
-        unique_id = uuid.uuid4().hex[:8]
-        user_data = {
-            "username": f"test_{role}_{unique_id}",
-            "email": f"{role}_{unique_id}@test.com",
-            "password": "Force123Jedi",
-        }
+    user_id_to_cleanup = None
+    try:
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
+            unique_id = uuid.uuid4().hex[:8]
+            # Namespace reserve: fixture_auth_* hors cleanup global (teardown explicite)
+            user_data = {
+                "username": f"fixture_auth_{role}_{unique_id}",
+                "email": f"fixture_auth_{role}_{unique_id}@example.com",
+                "password": "Force123Jedi",
+            }
 
-        # Creer l'utilisateur via l'API (role PADAWAN par defaut)
-        response = await ac.post("/api/users/", json=user_data)
-        if response.status_code not in (200, 201):
-            pytest.skip(f"Cannot create {role} user: {response.text}")
+            # Creer l'utilisateur via l'API (role PADAWAN par defaut)
+            response = await ac.post("/api/users/", json=user_data)
+            if response.status_code not in (200, 201):
+                pytest.skip(f"Cannot create {role} user: {response.text}")
 
-        # Marquer email verifie pour permettre le login (obligatoire en production)
-        verify_user_email_for_tests(user_data["username"])
+            # Marquer email verifie pour permettre le login (obligatoire en production)
+            verify_user_email_for_tests(user_data["username"])
 
-        # Mettre a jour le role en DB si different de padawan
-        if role != "padawan" and db_session_for_role is not None:
-            user = (
-                db_session_for_role.query(User)
-                .filter(User.username == user_data["username"])
-                .first()
-            )
-            if user:
-                adapted_role = adapt_enum_for_db("UserRole", role, db_session_for_role)
-                user.role = adapted_role
-                db_session_for_role.commit()
+            # Mettre a jour le role en DB si different de padawan
+            if role != "padawan" and db_session_for_role is not None:
+                user = (
+                    db_session_for_role.query(User)
+                    .filter(User.username == user_data["username"])
+                    .first()
+                )
+                if user:
+                    adapted_role = adapt_enum_for_db(
+                        "UserRole", role, db_session_for_role
+                    )
+                    user.role = adapted_role
+                    db_session_for_role.commit()
 
-        # Login pour obtenir le cookie
-        login_data = {
-            "username": user_data["username"],
-            "password": user_data["password"],
-        }
-        response = await ac.post("/api/auth/login", json=login_data)
-        if response.status_code != 200:
-            pytest.skip(f"Cannot authenticate {role}: {response.text}")
+            # Login pour obtenir le cookie
+            login_data = {
+                "username": user_data["username"],
+                "password": user_data["password"],
+            }
+            response = await ac.post("/api/auth/login", json=login_data)
+            if response.status_code != 200:
+                pytest.skip(f"Cannot authenticate {role}: {response.text}")
 
-        tokens = response.json()
-        access_token = tokens["access_token"]
+            tokens = response.json()
+            access_token = tokens["access_token"]
+            user_id_to_cleanup = tokens.get("user", {}).get("id")
 
-        # Forcer le cookie (en complement du Set-Cookie automatique)
-        ac.cookies.set("access_token", access_token)
+            # Forcer le cookie (en complement du Set-Cookie automatique)
+            ac.cookies.set("access_token", access_token)
 
-        yield {
-            "client": ac,
-            "user_data": user_data,
-            "token": access_token,
-            "user_id": tokens.get("user", {}).get("id"),
-            "role": role,
-        }
+            yield {
+                "client": ac,
+                "user_data": user_data,
+                "token": access_token,
+                "user_id": user_id_to_cleanup,
+                "role": role,
+            }
+    finally:
+        # Teardown explicite: supprimer l'user par id (ADMIN_AUTH_FIXTURES_STABILIZATION)
+        if user_id_to_cleanup is not None:
+            try:
+                sess_engine = _get_session_engine()
+                TeardownSession = sessionmaker(
+                    autocommit=False, autoflush=False, bind=sess_engine
+                )
+                teardown_sess = TeardownSession()
+                try:
+                    user = (
+                        teardown_sess.query(User)
+                        .filter(User.id == user_id_to_cleanup)
+                        .first()
+                    )
+                    if user:
+                        teardown_sess.delete(user)
+                        teardown_sess.commit()
+                finally:
+                    teardown_sess.close()
+            except Exception:
+                pass
 
 
 @pytest.fixture
@@ -690,7 +719,10 @@ def logic_challenge_db(db_session):
     """
     unique_id = uuid.uuid4().hex[:8]
 
-    # Nettoyage pre-test des donnees de test existantes
+    # Nettoyage pre-test: challenges et attempts de test, SANS supprimer les users.
+    # Raison: padawan_client peut s'exécuter avant logic_challenge_db (ordre pytest non garanti).
+    # Supprimer les users ici provoquerait 401 sur tests utilisant les deux fixtures.
+    # Les users test_% sont nettoyés par auto_cleanup après chaque test.
     try:
         db_session.execute(
             text(
@@ -703,9 +735,11 @@ def logic_challenge_db(db_session):
             )
         )
         db_session.execute(
-            text("DELETE FROM logic_challenges WHERE title LIKE 'Test %'")
+            text(
+                "DELETE FROM logic_challenges WHERE creator_id IN "
+                "(SELECT id FROM users WHERE username LIKE 'test_%')"
+            )
         )
-        db_session.execute(text("DELETE FROM users WHERE username LIKE 'test_%'"))
         db_session.commit()
     except Exception:
         db_session.rollback()
@@ -725,9 +759,7 @@ def logic_challenge_db(db_session):
             LogicChallenge.title.like("Test %")
         ).delete(synchronize_session=False)
 
-        for user in test_users:
-            db_session.delete(user)
-
+        # Ne pas supprimer les users ici (même motif: padawan_client peut avoir créé le sien)
         db_session.commit()
 
     try:
@@ -758,6 +790,10 @@ def logic_challenge_db(db_session):
         )
         db_session.add(test_challenge)
         db_session.commit()
+        db_session.refresh(test_challenge)
+
+        # Exposer l'ID pour challenge_with_hints_id (évite query stale en ordre variable)
+        db_session._logic_challenge_test_id = test_challenge.id
 
         yield db_session
 
@@ -824,8 +860,12 @@ def logic_challenge_db(db_session):
 def challenge_with_hints_id(logic_challenge_db):
     """ID du défi créé par logic_challenge_db (avec hints).
 
-    Utilise pour les tests qui requièrent un défi avec indices (hint endpoint).
+    Utilise l'ID exposé par logic_challenge_db pour éviter 404 ordre-dépendant.
     """
+    challenge_id = getattr(logic_challenge_db, "_logic_challenge_test_id", None)
+    if challenge_id is not None:
+        return challenge_id
+    # Fallback si attribut absent (compat)
     challenge = (
         logic_challenge_db.query(LogicChallenge)
         .filter(LogicChallenge.title.like("Test Challenge%"))
@@ -843,18 +883,44 @@ def challenge_with_hints_id(logic_challenge_db):
 
 @pytest.fixture(autouse=True, scope="function")
 def auto_cleanup_test_data(db_session):
-    """Nettoyage automatique des donnees de test apres chaque test.
+    """Nettoyage automatique des donnees de test.
 
-    - S'execute automatiquement (autouse=True)
-    - Identifie les donnees de test via TestDataManager
-    - Preserve les utilisateurs permanents (ObiWan, maitre_yoda, etc.)
-    - Gere les sessions en etat d'erreur (InFailedSqlTransaction)
-    - Logging avec traceback complet en cas d'erreur
+    - Pre-yield: nettoie les donnees du test precedent (evite disparition
+      prematuree des fixture users entre tests sequentiels)
+    - Post-yield: nettoie les donnees du test courant
     """
     import logging
     import traceback
 
+    from sqlalchemy.exc import InvalidRequestError, StatementError
+
     _cleanup_logger = logging.getLogger("tests.cleanup")
+
+    def _do_cleanup(session):
+        try:
+            try:
+                session.execute(text("SELECT 1"))
+            except (InvalidRequestError, StatementError, Exception):
+                sess = sessionmaker(
+                    autocommit=False, autoflush=False, bind=get_test_engine()
+                )()
+                try:
+                    r = TestDataManager(sess).cleanup_test_data(dry_run=False)
+                    if r.get("success") and r.get("total_deleted", 0) > 0:
+                        _cleanup_logger.info(
+                            f"Nettoyage (secours): {r['total_deleted']} elements"
+                        )
+                finally:
+                    sess.close()
+                return
+            r = TestDataManager(session).cleanup_test_data(dry_run=False)
+            if r.get("success") and r.get("total_deleted", 0) > 0:
+                _cleanup_logger.info(f"Nettoyage: {r['total_deleted']} elements")
+        except Exception as e:
+            _cleanup_logger.error(f"Erreur nettoyage: {e}\n{traceback.format_exc()}")
+
+    # Pre-yield: nettoyer donnees du test precedent
+    _do_cleanup(db_session)
 
     yield
 

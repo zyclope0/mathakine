@@ -33,11 +33,11 @@ async def test_list_challenges_without_auth(client):
     assert response.status_code == 401, "L'accès non authentifié doit être interdit"
 
 
-async def test_list_challenges_authenticated(client, padawan_client):
-    """Test liste challenges avec authentification"""
-    token = padawan_client["token"]
-    client.cookies.set("access_token", token)
-
+async def test_list_challenges_authenticated(padawan_client):
+    """Test liste challenges avec authentification.
+    Utilise padawan_client directement pour éviter 401 ordre-dépendant en full suite.
+    """
+    client = padawan_client["client"]
     response = await client.get("/api/challenges")
 
     assert response.status_code == 200, f"Erreur: {response.text}"
@@ -45,14 +45,12 @@ async def test_list_challenges_authenticated(client, padawan_client):
     assert "items" in data, "La réponse doit contenir une clé 'items'"
     assert isinstance(data["items"], list), "Les items doivent être dans une liste"
 
-    client.cookies.clear()
 
-
-async def test_list_challenges_with_type_filter(client, padawan_client):
-    """Test filtres challenges par type (Phase 3 - normalisation)"""
-    token = padawan_client["token"]
-    client.cookies.set("access_token", token)
-
+async def test_list_challenges_with_type_filter(padawan_client):
+    """Test filtres challenges par type (Phase 3 - normalisation).
+    Utilise padawan_client directement pour éviter 401 ordre-dépendant.
+    """
+    client = padawan_client["client"]
     test_types = ["sequence", "SEQUENCE", "pattern", "PATTERN"]
 
     for challenge_type in test_types:
@@ -63,13 +61,12 @@ async def test_list_challenges_with_type_filter(client, padawan_client):
         data = response.json()
         assert isinstance(data["items"], list)
 
-    client.cookies.clear()
 
-
-async def test_list_challenges_with_age_group_filter(client, padawan_client):
-    """Test filtres challenges par groupe d'âge (Phase 3)"""
-    token = padawan_client["token"]
-    client.cookies.set("access_token", token)
+async def test_list_challenges_with_age_group_filter(padawan_client):
+    """Test filtres challenges par groupe d'âge (Phase 3).
+    Utilise padawan_client directement pour éviter 401 ordre-dépendant en full suite.
+    """
+    client = padawan_client["client"]
 
     test_age_groups = ["age_6_8", "age_10_12", "GROUP_10_12"]
 
@@ -81,14 +78,12 @@ async def test_list_challenges_with_age_group_filter(client, padawan_client):
         data = response.json()
         assert isinstance(data["items"], list)
 
-    client.cookies.clear()
 
-
-async def test_list_challenges_with_multiple_filters(client, padawan_client):
-    """Test filtres multiples (type + age_group)"""
-    token = padawan_client["token"]
-    client.cookies.set("access_token", token)
-
+async def test_list_challenges_with_multiple_filters(padawan_client):
+    """Test filtres multiples (type + age_group).
+    Utilise padawan_client directement pour éviter 401 ordre-dépendant.
+    """
+    client = padawan_client["client"]
     response = await client.get(
         "/api/challenges?challenge_type=sequence&age_group=GROUP_10_12"
     )
@@ -96,8 +91,6 @@ async def test_list_challenges_with_multiple_filters(client, padawan_client):
     assert response.status_code == 200, f"Erreur filtres multiples: {response.text}"
     data = response.json()
     assert isinstance(data["items"], list)
-
-    client.cookies.clear()
 
 
 def test_challenge_service_integration(db_session):
@@ -125,7 +118,7 @@ def test_challenge_service_integration(db_session):
     db_session.refresh(test_user)
 
     challenge_data = {
-        "title": f"Test Challenge Phase 4 {unique_id}",
+        "title": f"Phase4_svc_challenge_{unique_id}",
         "description": "Challenge de test pour validation Phase 4",
         "challenge_type": "SEQUENCE",
         "age_group": "GROUP_10_12",

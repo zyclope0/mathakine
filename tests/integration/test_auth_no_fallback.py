@@ -19,6 +19,32 @@ from app.core.config import settings
 from tests.utils.test_helpers import verify_user_email_for_tests
 
 
+@pytest.fixture(autouse=True)
+def cleanup_auth_nofallback_users(db_session):
+    """Teardown explicite: supprime les users fixture_auth_nofallback_* après chaque test.
+
+    AUTH_CLEANUP_RUNTIME_FIX: ne pas dépendre du cleanup global.
+    """
+    yield
+    from app.models.user import User
+
+    try:
+        users = (
+            db_session.query(User)
+            .filter(User.username.like("fixture_auth_nofallback_%"))
+            .all()
+        )
+        for u in users:
+            db_session.delete(u)
+        if users:
+            db_session.commit()
+    except Exception:
+        try:
+            db_session.rollback()
+        except Exception:
+            pass
+
+
 def _extract_refresh_token_from_response(response):
     """Extrait refresh_token du header Set-Cookie (Secure cookie non transmis en HTTP)."""
     for header, value in response.headers.raw:
@@ -33,11 +59,15 @@ def _extract_refresh_token_from_response(response):
 
 @pytest.fixture
 async def test_user_with_tokens(client):
-    """Crée un utilisateur de test et retourne ses tokens"""
+    """Crée un utilisateur de test et retourne ses tokens.
+
+    Namespace fixture_auth_nofallback_* : évite collision avec le cleanup global
+    (test_% était supprimé pendant les tests, causant 401/500).
+    """
     unique_id = uuid.uuid4().hex[:8]
     user_data = {
-        "username": f"test_no_fallback_{unique_id}",
-        "email": f"no_fallback_{unique_id}@test.com",
+        "username": f"fixture_auth_nofallback_{unique_id}",
+        "email": f"fixture_auth_nofallback_{unique_id}@example.com",
         "password": "SecurePassword123!",
         "role": "padawan",
     }

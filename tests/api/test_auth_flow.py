@@ -14,13 +14,43 @@ import pytest
 from tests.utils.test_helpers import verify_user_email_for_tests
 
 
+@pytest.fixture(autouse=True)
+def cleanup_auth_flow_users(db_session):
+    """Teardown explicite: supprime les users fixture_auth_flow_* apres chaque test.
+
+    ADMIN_AUTH_FIXTURES_STABILIZATION: ne plus dependre du cleanup global.
+    """
+    yield
+    from app.models.user import User
+
+    try:
+        users = (
+            db_session.query(User)
+            .filter(User.username.like("fixture_auth_flow_%"))
+            .all()
+        )
+        for u in users:
+            db_session.delete(u)
+        if users:
+            db_session.commit()
+    except Exception:
+        try:
+            db_session.rollback()
+        except Exception:
+            pass
+
+
 @pytest.fixture
 def test_user_data():
-    """Génère des données d'utilisateur uniques pour chaque test"""
+    """Génère des données d'utilisateur uniques pour chaque test.
+
+    Namespace fixture_auth_flow_* : évite collision avec le cleanup global
+    (auth_test_% était supprimé pendant les tests, causant 401/500).
+    """
     unique_id = uuid.uuid4().hex[:8]
     return {
-        "username": f"auth_test_{unique_id}",
-        "email": f"auth_test_{unique_id}@example.com",
+        "username": f"fixture_auth_flow_{unique_id}",
+        "email": f"fixture_auth_flow_{unique_id}@example.com",
         "password": "SecurePassword123!",
         "role": "padawan",
     }

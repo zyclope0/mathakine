@@ -5,6 +5,7 @@ Tests de l'endpoint admin GET /api/admin/analytics/edtech.
 import pytest
 
 from app.models.edtech_event import EdTechEvent
+from app.models.user import User
 
 
 @pytest.mark.asyncio
@@ -40,8 +41,21 @@ async def test_admin_analytics_forbidden_padawan(padawan_client):
 
 
 @pytest.mark.asyncio
-async def test_analytics_event_post_and_visible(padawan_client, archiviste_client):
+async def test_analytics_event_post_and_visible(
+    padawan_client, archiviste_client, db_session
+):
     """POST /api/analytics/event enregistre l'événement, visible dans admin."""
+    # LOT 4.3: diagnostic — si fixture user supprimé avant requête → 401
+    for role, client_fixture in [
+        ("padawan", padawan_client),
+        ("archiviste", archiviste_client),
+    ]:
+        uid = client_fixture["user_id"]
+        u = db_session.query(User).filter(User.id == uid).first()
+        assert (
+            u is not None
+        ), f"Fixture user {role} (id={uid}) absent en DB avant requête — cause probable 401"
+
     # Padawan envoie un événement
     client = padawan_client["client"]
     payload = {
@@ -73,6 +87,13 @@ async def test_admin_analytics_edtech_excludes_negative_times(
 ):
     """Les temps négatifs (timeToFirstAttemptMs) sont exclus des agrégats."""
     from datetime import datetime, timedelta, timezone
+
+    # LOT 4.3: diagnostic — si archiviste supprimé avant requête → 401
+    arch_id = archiviste_client["user_id"]
+    arch_user = db_session.query(User).filter(User.id == arch_id).first()
+    assert (
+        arch_user is not None
+    ), f"Fixture user archiviste (id={arch_id}) absent en DB avant requête — cause probable 401"
 
     user_id = padawan_client["user_id"]
     since = datetime.now(timezone.utc) - timedelta(days=1)

@@ -1,6 +1,6 @@
-# README_TECH.md - Mathakine
+﻿# README_TECH.md - Mathakine
 
-> Documentation technique de reference - Mise a jour le 09/03/2026 (iteration backend exercise/auth/user cloturee, release 3.1.0-alpha.7)
+> Documentation technique de reference - Mise a jour le 11/03/2026 (iterations backend exercise/auth/user et challenge/admin/badge cloturees, release 3.1.0-alpha.8)
 
 ---
 
@@ -14,6 +14,7 @@ Mises a jour recentes:
 - F32: session entrelacee (interleaving) via plan dedie (`/api/exercises/interleaved-plan`)
 - F35: redaction des secrets URL DB au demarrage (`redact_database_url_for_log`)
 - 09/03: iteration backend `exercise/auth/user` cloturee - handlers amincis, services applicatifs isoles, repos `exercise`, auth session/recovery et boundary user stabilises
+- 11/03: iteration backend `challenge/admin/badge` cloturee - boundaries query/attempt/stream challenge, read/write admin et facade badge isolees, preuves API ciblees ajoutees
 - 09/03: reset password ET changement de mot de passe invalident desormais les anciens tokens et sessions via `password_changed_at` + `iat`
 
 | Composant | Technologie | Version |
@@ -86,7 +87,7 @@ pip install -r requirements.txt
 cp .env.example .env
 # Editer .env avec DATABASE_URL, OPENAI_API_KEY, SECRET_KEY
 
-# Lancer le serveur backend (port 8000 par défaut)
+# Lancer le serveur backend (port 8000 par dÃ©faut)
 python enhanced_server.py
 ```
 
@@ -120,7 +121,7 @@ Le backend est unifie sur **Starlette** (FastAPI archive le 06/02/2026).
 ### Couche HTTP - Starlette (`server/`)
 - **Point d'entree** : `enhanced_server.py` (port `8000` par defaut via `PORT`)
 - **Handlers** : `server/handlers/` (admin, auth, badge, challenge, chat, exercise, recommendation, user)
-- **DB ownership** : sur les boundaries refactorees `exercise`, `auth` et `user`, les handlers n'ouvrent plus la DB ; les services applicatifs portent `db_session()` et l'orchestration.
+- **DB ownership** : sur les boundaries refactorees `exercise`, `auth`, `user`, `challenge`, `admin` et `badge`, les handlers n'ouvrent plus la DB sur le scope traite ; les services applicatifs portent `db_session()` et l'orchestration.
 - **Responses** : `JSONResponse`, `TemplateResponse`, `StreamingResponse` selon le flux
 - **Authentification** : `server/auth.py` (cookie + bearer) avec rejet des tokens revoques
 - **Streaming** : SSE pour generation IA (exercices + defis)
@@ -139,9 +140,9 @@ Couche independante du framework HTTP :
   - `exercise_service.py`, `exercise_stats_service.py`, `interleaved_practice_service.py`
   - `auth_service.py`, `auth_session_service.py`, `auth_recovery_service.py`
   - `user_service.py`, `user_application_service.py`
-  - `challenge_service.py`, `challenge_answer_service.py`, `challenge_validator.py`, `challenge_ai_service.py`
-  - `badge_service.py`, `recommendation_service.py`, `diagnostic_service.py`, `adaptive_difficulty_service.py`, `progress_timeline_service.py`
-  - `admin_service.py` et services specialises `admin_*`
+  - `challenge_query_service.py`, `challenge_attempt_service.py`, `challenge_stream_service.py`, `challenge_service.py`, `challenge_answer_service.py`, `challenge_validator.py`, `challenge_ai_service.py
+  - `badge_service.py`, `badge_application_service.py`, `recommendation_service.py`, `diagnostic_service.py`, `adaptive_difficulty_service.py`, `progress_timeline_service.py
+  - `admin_service.py`, `admin_read_service.py`, `admin_application_service.py` et services specialises `admin_*`
   - `enhanced_server_adapter.py` reste une facade legacy de transition, plus la source de verite des boundaries refactorees
 - **Utils** : `prompt_sanitizer.py`, `rate_limiter.py`, `token_tracker.py`, `exercise_generator_validators.py`, `exercise_generator_helpers.py`, etc.
 - **Securite auth** : `users.password_changed_at` invalide les anciens access/refresh tokens via le claim JWT `iat` apres reset password ou changement de mot de passe
@@ -168,7 +169,7 @@ Couche independante du framework HTTP :
 | `Notification` | `notifications` | Notifications utilisateur |
 | `UserSession` | `user_sessions` | Sessions actives (revoquees sur reset/changement de mot de passe) |
 | `Recommendation` | `recommendations` | Recommandations IA |
-| `Setting` | `settings` | Paramètres globaux (admin config) |
+| `Setting` | `settings` | ParamÃ¨tres globaux (admin config) |
 | `AdminAuditLog` | `admin_audit_logs` | Log des actions admin |
 
 **Tables legacy** (dans `legacy_tables.py`, conservees en DB) :
@@ -190,19 +191,19 @@ Couche independante du framework HTTP :
 | PUT | `/api/users/me/password` | user_handlers | Changer mot de passe (CSRF) |
 | GET | `/api/users/leaderboard` | user_handlers | Classement par total_points (15/02/2026) |
 | GET | `/api/users/stats` | user_handlers | Statistiques utilisateur |
-| GET | `/api/users/me/progress` | user_handlers | ✨ Progression exercices (streaks, accuracy) |
+| GET | `/api/users/me/progress` | user_handlers | âœ¨ Progression exercices (streaks, accuracy) |
 | GET | `/api/users/me/progress/timeline` | user_handlers | F07 Evolution temporelle (7d/30d) |
-| GET | `/api/users/me/challenges/progress` | user_handlers | ✨ Progression defis |
-| GET | `/api/daily-challenges` | daily_challenge_handlers | F02 Défis quotidiens (06/03) |
-| GET | `/api/users/me/sessions` | user_handlers | ✨ Sessions actives (RGPD) |
-| DELETE | `/api/users/me/sessions/{id}` | user_handlers | ✨ Revoquer session |
+| GET | `/api/users/me/challenges/progress` | user_handlers | âœ¨ Progression defis |
+| GET | `/api/daily-challenges` | daily_challenge_handlers | F02 DÃ©fis quotidiens (06/03) |
+| GET | `/api/users/me/sessions` | user_handlers | âœ¨ Sessions actives (RGPD) |
+| DELETE | `/api/users/me/sessions/{id}` | user_handlers | âœ¨ Revoquer session |
 | GET | `/api/exercises` | exercise_handlers | Liste exercices (filtres, pagination, `order=random`, `hide_completed`) |
-| GET | `/api/exercises/stats` | exercise_handlers | ✨ Statistiques Académie (thème gamifié) |
+| GET | `/api/exercises/stats` | exercise_handlers | âœ¨ Statistiques AcadÃ©mie (thÃ¨me gamifiÃ©) |
 | GET | `/api/exercises/interleaved-plan` | exercise_handlers | F32 Plan session entrelacee (`409 not_enough_variety`) |
 | GET | `/api/exercises/{id}` | exercise_handlers | Detail exercice |
 | POST | `/api/exercises/{id}/attempt` | exercise_handlers | Soumettre reponse |
 | POST | `/api/exercises/generate` | exercise_handlers | Generation exercice (auth optionnelle, `age_group?`, `adaptive?`, `save?`) ; si `save=true`, reponse avec `id` persiste ou erreur `500` |
-| GET | `/api/challenges` | challenge_handlers | Liste défis (filtres, `order=random`, `hide_completed`) |
+| GET | `/api/challenges` | challenge_handlers | Liste dÃ©fis (filtres, `order=random`, `hide_completed`) |
 | GET | `/api/challenges/{id}` | challenge_handlers | Detail defi |
 | POST | `/api/challenges/{id}/attempt` | challenge_handlers | Tenter defi |
 | GET | `/api/challenges/{id}/hint` | challenge_handlers | Demander indice |
@@ -215,7 +216,7 @@ Couche independante du framework HTTP :
 | POST | `/api/chat` | chat_handlers | Chatbot IA |
 | POST | `/api/chat/stream` | chat_handlers | Chatbot streaming |
 
-### Admin (rôle archiviste) — 34 routes
+### Admin (rÃ´le archiviste) â€” 34 routes
 
 | Domaine | Routes |
 |---------|--------|
@@ -223,18 +224,18 @@ Couche independante du framework HTTP :
 | Users | `GET/PATCH /api/admin/users`, `send-reset-password`, `resend-verification` |
 | Exercises | `GET/POST/PUT/PATCH /api/admin/exercises`, `duplicate` |
 | Challenges | `GET/POST/PUT/PATCH /api/admin/challenges`, `duplicate` |
-| Modération | `GET /api/admin/moderation` |
+| ModÃ©ration | `GET /api/admin/moderation` |
 | Audit | `GET /api/admin/audit-log` |
 | Config | `GET/PUT /api/admin/config` |
 | Export | `GET /api/admin/export` |
 | Reports | `GET /api/admin/reports` |
 
-→ Voir `docs/02-FEATURES/API_QUICK_REFERENCE.md` pour la liste complète.
+â†’ Voir `docs/02-FEATURES/API_QUICK_REFERENCE.md` pour la liste complÃ¨te.
 
 **Note** : Les routes de generation IA (SSE) sont dans `frontend/app/api/` (proxy Next.js vers backend). Routes auth frontend : `POST /api/auth/sync-cookie`, `GET /api/auth/check-cookie` (diagnostic).
 
 **Legende** :
-- ✨ = Nouveaux endpoints ajoutes le 06/02/2026
+- âœ¨ = Nouveaux endpoints ajoutes le 06/02/2026
 - 15/02 = Leaderboard, modification profil/mot de passe
 
 ---
@@ -250,7 +251,7 @@ Toutes les requetes passent par `frontend/lib/api/client.ts` qui gere :
 
 **Exception** : Les endpoints SSE (streaming IA, chat) utilisent `fetch()` direct ou `EventSource` car le client ne supporte pas le streaming.
 
-**Prod cross-domain** : Frontend et backend sur domaines differents (ex. Render) → le cookie backend n'est pas envoye aux routes Next.js. Le flux `sync-cookie` copie le token sur le domaine frontend (login, refresh, `ensureFrontendAuthCookie()` avant generation IA). Voir `docs/01-GUIDES/TROUBLESHOOTING.md` si erreur « Cookie manquant ».
+**Prod cross-domain** : Frontend et backend sur domaines differents (ex. Render) â†’ le cookie backend n'est pas envoye aux routes Next.js. Le flux `sync-cookie` copie le token sur le domaine frontend (login, refresh, `ensureFrontendAuthCookie()` avant generation IA). Voir `docs/01-GUIDES/TROUBLESHOOTING.md` si erreur Â« Cookie manquant Â».
 
 ### Hooks (~30 hooks custom)
 Chaque domaine a son hook dedie base sur React Query :
@@ -260,18 +261,18 @@ Chaque domaine a son hook dedie base sur React Query :
 - `useBadges` - Liste et verification de badges
 - `useBadgesProgress` - Progression vers badges (16/02)
 - `useProfile` / `useUserStats` - Donnees utilisateur
-- `useProgressStats` - ✨ Progression exercices (streaks, accuracy)
-- `useChallengesProgress` - ✨ Progression defis
-- `useDailyChallenges` - F02 Défis quotidiens (06/03)
+- `useProgressStats` - âœ¨ Progression exercices (streaks, accuracy)
+- `useChallengesProgress` - âœ¨ Progression defis
+- `useDailyChallenges` - F02 DÃ©fis quotidiens (06/03)
 - `useProgressTimeline` - F07 Timeline progression (7j/30j)
-- `useSettings` - ✨ Sessions utilisateur (RGPD)
+- `useSettings` - âœ¨ Sessions utilisateur (RGPD)
 - `useRecommendations` - Recommandations adaptatives (avec mutation `complete`)
 - `useSubmitAnswer` - Soumission de reponses
 - `useChat` - Chatbot IA
 - `useChallengeTranslations` - Traductions types challenges
 - `useCompletedItems` - IDs exercices/challenges completes
 
-**Note** : ✨ = Ajoutes le 06/02/2026 ; 16/02 = badges progress, recommendations complete, sessions
+**Note** : âœ¨ = Ajoutes le 06/02/2026 ; 16/02 = badges progress, recommendations complete, sessions
 
 ### State management
 - **Zustand** : theme, locale, accessibilite (persistence localStorage)
@@ -351,12 +352,12 @@ Le systeme utilise l'API OpenAI pour generer des exercices et defis :
 ### Endpoints progression integres (06/02/2026, MAJ 06/03)
 | Endpoint | Description | Utilisation frontend |
 |---|---|---|
-| `GET /api/daily-challenges` | F02 Défis quotidiens (3 par jour) | ✅ `useDailyChallenges` → DailyChallengesWidget |
-| `GET /api/users/me/progress` | Stats exercices : streaks, accuracy, par categorie | ✅ `useProgressStats` → StreakWidget, CategoryAccuracyChart |
-| `GET /api/users/me/challenges/progress` | Stats defis : completes, temps, liste detaillee | ✅ `useChallengesProgress` → ChallengesProgressWidget |
-| `GET /api/users/me/sessions` | Sessions actives (is_current sur session courante) | ✅ `useSettings` → page /settings |
-| `GET /api/challenges/badges/progress` | Progression vers badges verrouilles | ✅ `useBadgesProgress` → page /badges |
-| `POST /api/recommendations/complete` | Marquer recommandation comme faite | ✅ `useRecommendations` → dashboard Recommandations |
+| `GET /api/daily-challenges` | F02 DÃ©fis quotidiens (3 par jour) | âœ… `useDailyChallenges` â†’ DailyChallengesWidget |
+| `GET /api/users/me/progress` | Stats exercices : streaks, accuracy, par categorie | âœ… `useProgressStats` â†’ StreakWidget, CategoryAccuracyChart |
+| `GET /api/users/me/challenges/progress` | Stats defis : completes, temps, liste detaillee | âœ… `useChallengesProgress` â†’ ChallengesProgressWidget |
+| `GET /api/users/me/sessions` | Sessions actives (is_current sur session courante) | âœ… `useSettings` â†’ page /settings |
+| `GET /api/challenges/badges/progress` | Progression vers badges verrouilles | âœ… `useBadgesProgress` â†’ page /badges |
+| `POST /api/recommendations/complete` | Marquer recommandation comme faite | âœ… `useRecommendations` â†’ dashboard Recommandations |
 
 **Plateforme** : `maintenance_mode` (overlay frontend + 503 sauf /login, /admin, health), `registration_enabled` (403 sur POST /api/users/ si false). UserSession creee a chaque login.
 
@@ -364,7 +365,7 @@ Le systeme utilise l'API OpenAI pour generer des exercices et defis :
 
 ### Plan d'alignement futur
 1. **P1** : Remonter les imports lazy en haut des fichiers `server/handlers/` (amelioration perfs)
-2. **P2** : Fixture defis pour tests (8 skips « No challenges »), delete_user admin (RGPD) - voir `docs/PLACEHOLDERS_ET_TODO.md`
+2. **P2** : Fixture defis pour tests (8 skips Â« No challenges Â»), delete_user admin (RGPD) - voir `docs/PLACEHOLDERS_ET_TODO.md`
 
 ---
 
@@ -378,7 +379,7 @@ Le dossier `_ARCHIVE_2026/` contient les fichiers archives :
 | `static/` | Ancien frontend Jinja2 (26 fichiers HTML/CSS/JS) | Phase 2 (2025-11) |
 | `server/` | Handlers ghost (simple_views, api_routes, api_challenges) | Phase 2 (2025-11) |
 | `app/` | Code backend mort (enum_helpers, queries_translations, user_extended) | Phase 2 (2025-11) |
-| `app/main.py` + `app/api/api.py` | ✨ **FastAPI archive** (double architecture) | 06/02/2026 |
+| `app/main.py` + `app/api/api.py` | âœ¨ **FastAPI archive** (double architecture) | 06/02/2026 |
 | `frontend/` | Composants morts (PatternSolver, LogicGrid, ThemeSelector) | Phase 2 (2025-11) |
 
 **Note archivage FastAPI** : Voir `_ARCHIVE_2026/FASTAPI_ARCHIVE_NOTE.md` pour details et procedure de restauration.
@@ -413,4 +414,5 @@ isort app/ server/                         # Tri imports backend
 
 ---
 
-*Derniere mise a jour : 09/03/2026 - iteration backend exercise/auth/user cloturee, revocation tokens/sessions alignee, release 3.1.0-alpha.7*
+*Derniere mise a jour : 11/03/2026 - iterations backend exercise/auth/user et challenge/admin/badge cloturees, release 3.1.0-alpha.8*
+

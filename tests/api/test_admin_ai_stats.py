@@ -1,10 +1,41 @@
 """
-Tests des endpoints admin IA :
+Tests des endpoints admin IA et config :
   GET /api/admin/ai-stats
   GET /api/admin/generation-metrics
+  PUT /api/admin/config (LOT 5.1)
 """
 
 import pytest
+
+from app.models.user import User
+
+# ─── PUT /api/admin/config (LOT 5.1) ───────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_admin_config_put_nominal(archiviste_client):
+    """PUT /api/admin/config — archiviste peut mettre à jour les paramètres."""
+    client = archiviste_client["client"]
+    response = await client.put(
+        "/api/admin/config",
+        json={"settings": {"maintenance_mode": False, "registration_enabled": True}},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "status" in data
+    assert data["status"] == "ok"
+
+
+@pytest.mark.asyncio
+async def test_admin_config_put_forbidden_padawan(padawan_client):
+    """PUT /api/admin/config — padawan interdit (403)."""
+    client = padawan_client["client"]
+    response = await client.put(
+        "/api/admin/config",
+        json={"settings": {"maintenance_mode": False}},
+    )
+    assert response.status_code == 403
+
 
 # ─── /api/admin/ai-stats ──────────────────────────────────────────────────────
 
@@ -95,8 +126,15 @@ async def test_admin_generation_metrics_days_param(archiviste_client):
 
 
 @pytest.mark.asyncio
-async def test_admin_generation_metrics_invalid_days(archiviste_client):
+async def test_admin_generation_metrics_invalid_days(archiviste_client, db_session):
     """GET /api/admin/generation-metrics?days=400 — jours hors limite → 400."""
+    # LOT 4.3: diagnostic — si archiviste supprimé avant requête → 401
+    arch_id = archiviste_client["user_id"]
+    arch_user = db_session.query(User).filter(User.id == arch_id).first()
+    assert (
+        arch_user is not None
+    ), f"Fixture user archiviste (id={arch_id}) absent en DB avant requête — cause probable 401"
+
     client = archiviste_client["client"]
     response = await client.get("/api/admin/generation-metrics?days=400")
     assert response.status_code == 400
