@@ -1,5 +1,5 @@
 # Serveur et API REST
-fastapi==0.133.1  # Version compatible Pydantic 2.x et Python 3.12+
+fastapi==0.135.1  # Version compatible Pydantic 2.x et Python 3.12+
 starlette==0.52.1  # Compatible FastAPI 0.133.1
 uvicorn==0.41.0
 
