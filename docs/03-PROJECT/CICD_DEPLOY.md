@@ -1,154 +1,120 @@
-# CI/CD, smoke test, migrations et rollback
+﻿# CI/CD, DEPLOY ET ROLLBACK
 
-**Dernière mise à jour :** Février 2026  
-**Contexte :** CI automatique, déploiement Render, migrations Alembic
+> Mise a jour : 13/03/2026
+> Source de verite CI : `.github/workflows/tests.yml`
 
----
+## CI active
 
-## 1. CI automatique (push/PR)
+Le workflow principal est `CI (Tests + Lint)`.
 
-Le workflow **CI (Tests + Lint)** (`.github/workflows/tests.yml`) est la **source de vérité unique** (ci.yml supprimé 25/02/2026). Déclenchement sur :
+Declenchement:
+- `push` sur `main`, `master`, `develop`
+- `pull_request` vers `main`, `master`, `develop`
 
-- `push` et `pull_request` vers `main`, `master`, `develop`
+Jobs actifs:
+- `test` : backend pytest + couverture + smoke `/health`
+- `lint` : flake8 critique, black, isort, mypy
+- `frontend` : TypeScript, ESLint, Prettier, Vitest, build Next.js
+- `codecov` : agrege les artefacts de couverture
 
-### Jobs exécutés
+## Ce que verifie la CI backend
 
-| Job   | Actions                                        |
-|-------|-------------------------------------------------|
-| test  | Backend : pytest (coverage), smoke /health, Codecov |
-| lint  | Backend : flake8, black, isort, mypy            |
-| frontend | TypeScript, ESLint, Prettier, Vitest, build Next.js |
+### Test job
 
-**Gate :** Les tests et le lint doivent passer avant merge.
+- PostgreSQL 15 en service GitHub Actions
+- creation / initialisation de `test_mathakine`
+- `python -m pytest tests/ -v --ignore=tests/archives/ --ignore=tests/api/test_admin_auth_stability.py --cov=app --cov=server --cov-fail-under=62 --tb=short -m "not slow"`
+- smoke test `GET /health`
 
-### Lint bloquant
+### Lint job
 
-- `flake8` : erreurs critiques uniquement (`E9,F63,F7,F82`)
-- `black` : vérification formatage (config dans `pyproject.toml`)
-- `isort` : vérification tri des imports (profil `black` dans `pyproject.toml`)
-- `mypy` : typage statique (`mypy app/ server/ --ignore-missing-imports`) — config progressive dans `pyproject.toml`
-- `prettier` : formatage frontend (job frontend)
+- `flake8 app/ server/ --select=E9,F63,F7,F82`
+- `black app/ server/ --check --diff`
+- `isort app/ server/ --check-only --diff`
+- `mypy app/ server/ --ignore-missing-imports`
 
-#### Stratégie flake8
+### Typing progressif
 
-| Série | Règles | Rôle |
-|-------|--------|------|
-| **E9** | Erreurs d'exécution (indentation, etc.) | Bloquant |
-| **F63** | `break`/`continue`/`return` incorrects | Bloquant |
-| **F7** | Utilisation de variables non définies (ex. typo) | Bloquant |
-| **F82** | Référence à un nom non défini | Bloquant |
+En plus du mypy global permissif, `pyproject.toml` porte des overrides plus stricts sur des ilots cibles:
+- badge
+- auth session / recovery
+- exercise generation / query
+- challenge query / stream
 
-**Pourquoi ne pas étendre (E501, W, etc.) ?**
+### Frontend job
 
-- **E501** (line length) : redondant — black impose 88 caractères.
-- **W** (warnings) : peut générer beaucoup de bruit (W291, W401 imports non utilisés) ; à envisager progressivement si besoin.
-- **Stratégie actuelle** : garder les erreurs critiques pour éviter les régressions, sans surcharger la CI. Une extension future (ex. W291 trailing whitespace) peut être documentée ici.
+- `npm ci`
+- `npx tsc --noEmit`
+- `npm run lint`
+- `npm run format:check`
+- `npx vitest --coverage --run`
+- `npm run build`
 
-Corriger en local avant de pousser :
+## Ce que la CI ne prouve pas encore
+
+- elle n'impose pas encore un mypy global strict
+- le faux gate `tests/api/test_admin_auth_stability.py` ne doit pas servir de reference locale standard
+- une full suite verte en CI ne remplace pas un diagnostic causal quand un lot local rouge est flake
+
+## Verification locale recommandee avant push
 
 ```bash
-# Backend
-black app/ server/
-isort app/ server/
-
-# Frontend
-cd frontend && npm run format
+git status --short
+git diff --name-only
+pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py
+black app/ server/ tests/ --check
+isort app/ server/ --check-only --diff
+cd frontend && npm run lint:ci
 ```
 
----
+## Smoke post-deploiement
 
-## 2. Smoke test post-déploiement
-
-Render effectue un **health check** à chaque déploiement.
-
-### Backend
-
-| Paramètre    | Valeur   | Rôle                                   |
-|-------------|----------|----------------------------------------|
-| healthCheckPath | `/health` | Render appelle `GET /health` pour valider le déploiement |
-
-Si `/health` ne répond pas 2xx, Render considère le déploiement comme échoué et ne bascule pas le trafic.
-
-### Test manuel
+Verifications minimales:
 
 ```bash
-# Backend
 curl -s https://mathakine-backend.onrender.com/health
-
-# Frontend (page principale)
 curl -s -o /dev/null -w "%{http_code}" https://mathakine-frontend.onrender.com/
 ```
 
----
+## Migrations Alembic
 
-## 3. Migrations (Alembic)
+Le backend applique `alembic upgrade head` pendant le build/deploiement.
 
-### Déploiement automatique
-
-Le `buildCommand` du backend (render.yaml) exécute :
-
-```bash
-pip install -r requirements.txt && alembic upgrade head
-```
-
-Les migrations sont appliquées **à chaque build** avant le démarrage du serveur.
-
-### Créer une nouvelle migration
-
-```bash
-alembic revision -m "description_courte"
-# Éditer migrations/versions/<fichier>.py
-alembic upgrade head
-```
-
-### Vérifier l'état
+Commandes utiles:
 
 ```bash
 alembic current
 alembic history -r current:head
+alembic revision -m "description_courte"
+alembic upgrade head
 ```
 
----
+## Rollback
 
-## 4. Rollback manuel
+### Code
 
-### 4.1 Rollback code ( Render )
+Depuis Render:
+1. ouvrir le service
+2. aller sur `Deploys`
+3. choisir un deploy reussi
+4. lancer un rollback manuel
 
-1. **Dashboard Render** → Service (backend ou frontend) → **Deploys**
-2. Cliquer sur un déploiement antérieur réussi
-3. **Manual Deploy** → **Rollback to this deploy**
+### Base de donnees
 
-### 4.2 Rollback migration Alembic
+Avant tout downgrade:
+- faire un backup
+- verifier que le code cible supporte l'etat schema voulu
 
-Si une migration pose problème après déploiement :
+Commandes utiles:
 
-1. **Backup BDD** (Recommandé avant toute manipulation)  
-   - Render : Dashboard → Database → **Export** → Create export  
-   - Voir [PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md) (backup local)
+```bash
+alembic downgrade -1
+alembic downgrade <revision>
+```
 
-2. **Downgrade une révision**
-   ```bash
-   alembic downgrade -1
-   # ou vers une révision spécifique
-   alembic downgrade <revision_parente>
-   ```
+## References
 
-3. **Sur Render** : lancer Alembic depuis un shell (Dashboard → Shell) avec `DATABASE_URL` déjà configuré, ou inclure `alembic downgrade -1` dans un script exécuté manuellement.
-
-### 4.3 Rollback code + BDD
-
-Si le nouveau code dépend de la nouvelle migration :
-
-1. Rollback déploiement Render (ancienne version du code)
-2. Downgrade Alembic si la migration a déjà été appliquée : `alembic downgrade -1`
-3. Optionnel : restaurer un dump si l’état de la BDD est incohérent (voir PLAN_PREPARATION)
-
----
-
-## 5. Références
-
-| Doc | Contenu |
-|-----|---------|
-| [DEPLOYMENT_ENV.md](../01-GUIDES/DEPLOYMENT_ENV.md) | Variables d'environnement, checklist pré-déploiement |
-| [PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/PLAN_PREPARATION_MIGRATION_ALEMBIC_DDL.md) | Backup, procédures détaillées rollback BDD |
-| [DEPLOIEMENT_2026-02-06.md](AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/DEPLOIEMENT_2026-02-06.md) | Exemple de rapport déploiement |
+- [../01-GUIDES/DEPLOYMENT_ENV.md](../01-GUIDES/DEPLOYMENT_ENV.md)
+- [../01-GUIDES/TROUBLESHOOTING.md](../01-GUIDES/TROUBLESHOOTING.md)
+- [../../README_TECH.md](../../README_TECH.md)
+- [../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)

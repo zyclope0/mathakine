@@ -8,10 +8,36 @@ from sqlalchemy.orm import Session
 
 from app.core.logging_config import get_logger
 from app.models.feedback_report import FeedbackReport
+from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 
 VALID_TYPES = frozenset({"exercise", "challenge", "ui", "other"})
+
+
+def create_feedback_report_sync(
+    *,
+    feedback_type: str,
+    description: Optional[str] = None,
+    page_url: Optional[str] = None,
+    exercise_id: Optional[int] = None,
+    challenge_id: Optional[int] = None,
+    user_id: Optional[int] = None,
+) -> Tuple[Optional[FeedbackReport], Optional[str]]:
+    """
+    Use case sync: cree un rapport de feedback.
+    Execute via run_db_bound() depuis les handlers async.
+    """
+    with sync_db_session() as db:
+        return FeedbackService.create_feedback_report(
+            db,
+            feedback_type=feedback_type,
+            description=description,
+            page_url=page_url,
+            exercise_id=exercise_id,
+            challenge_id=challenge_id,
+            user_id=user_id,
+        )
 
 
 class FeedbackService:
@@ -29,10 +55,10 @@ class FeedbackService:
         user_id: Optional[int] = None,
     ) -> Tuple[Optional[FeedbackReport], Optional[str]]:
         """
-        Crée un rapport de feedback.
+        Cree un rapport de feedback.
 
         Returns:
-            (FeedbackReport, None) en cas de succès
+            (FeedbackReport, None) en cas de succes
             (None, "message_erreur") sinon (ex: feedback_type invalide)
         """
         feedback_type = (feedback_type or "").strip().lower()
@@ -55,7 +81,7 @@ class FeedbackService:
     @staticmethod
     def list_feedback_for_admin(db: Session, limit: int = 500) -> List[Dict[str, Any]]:
         """
-        Liste les retours pour l'admin, triés par date décroissante.
+        Liste les retours pour l'admin, tries par date decroissante.
         """
         reports = (
             db.query(FeedbackReport)

@@ -22,10 +22,22 @@ from tests.unit.test_utils import create_mock_request
 
 
 def _mock_db_session():
-    """Async context manager mock pour db_session."""
+    """Async context manager mock pour db_session (legacy)."""
 
     @asynccontextmanager
     async def _cm():
+        yield MagicMock()
+
+    return _cm()
+
+
+def _mock_sync_db_session():
+    """Sync context manager mock pour sync_db_session (LOT A4)."""
+
+    from contextlib import contextmanager
+
+    @contextmanager
+    def _cm():
         yield MagicMock()
 
     return _cm()
@@ -208,6 +220,11 @@ async def test_submit_answer_unauthenticated():
     assert "error" in result
 
 
+async def _run_db_bound_direct(func, *args, **kwargs):
+    """Execute func(*args, **kwargs) in caller thread (pour tests LOT A4)."""
+    return func(*args, **kwargs)
+
+
 @pytest.mark.asyncio
 async def test_submit_answer_nonexistent_exercise(db_session):
     """Handler : exercice inexistant -> 404 (mapping ExerciseNotFoundError)."""
@@ -220,11 +237,15 @@ async def test_submit_answer_nonexistent_exercise(db_session):
 
     with (
         patch(
-            "server.handlers.exercise_handlers.db_session",
-            return_value=_mock_db_session(),
+            "server.handlers.exercise_handlers.run_db_bound",
+            side_effect=_run_db_bound_direct,
         ),
         patch(
-            "server.handlers.exercise_handlers.svc_submit_answer",
+            "app.utils.db_utils.sync_db_session",
+            new=_mock_sync_db_session,
+        ),
+        patch(
+            "server.handlers.exercise_handlers.submit_answer_sync",
             side_effect=ExerciseNotFoundError(),
         ),
         _patch_auth(mock_user),
@@ -248,11 +269,15 @@ async def test_submit_answer_internal_error(db_session):
 
     with (
         patch(
-            "server.handlers.exercise_handlers.db_session",
-            return_value=_mock_db_session(),
+            "server.handlers.exercise_handlers.run_db_bound",
+            side_effect=_run_db_bound_direct,
         ),
         patch(
-            "server.handlers.exercise_handlers.svc_submit_answer",
+            "app.utils.db_utils.sync_db_session",
+            new=_mock_sync_db_session,
+        ),
+        patch(
+            "server.handlers.exercise_handlers.submit_answer_sync",
             side_effect=Exception("Erreur interne"),
         ),
         _patch_auth(mock_user),

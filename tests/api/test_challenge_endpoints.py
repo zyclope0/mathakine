@@ -112,8 +112,8 @@ async def test_challenge_attempt_incorrect(logic_challenge_db, padawan_client):
     result = response.json()
     assert result["is_correct"] is False
     assert (
-        result["explanation"] is None
-    )  # Pas d'explication pour une réponse incorrecte
+        result.get("explanation") is None
+    )  # Pas d'explication pour une réponse incorrecte (exclue si null)
     assert (
         result.get("hints") is not None or "hints_remaining" in result
     )  # Indices disponibles
@@ -378,16 +378,18 @@ async def test_get_logic_challenges(logic_challenge_db, padawan_client):
 async def test_search_challenges_by_title(logic_challenge_db, padawan_client):
     """Recherche par titre — doit trouver les défis dont le titre contient la chaîne."""
     client = padawan_client["client"]
-    # logic_challenge_db crée un défi avec titre "Test Challenge {uuid}"
-    response = await client.get("/api/challenges", params={"search": "Test Challenge"})
+    # logic_challenge_db crée un défi avec titre "Défi fixture chall {uuid}"
+    response = await client.get(
+        "/api/challenges", params={"search": "Défi fixture chall"}
+    )
     assert response.status_code == 200
     data = response.json()
     items = _get_challenges_list(data)
     total = data.get("total", 0)
-    assert total >= 1, "Recherche 'Test Challenge' doit trouver au moins un défi"
+    assert total >= 1, "Recherche 'Défi fixture chall' doit trouver au moins un défi"
     assert len(items) >= 1
     for c in items:
-        assert "Test Challenge" in (c.get("title") or c.get("description") or "")
+        assert "Défi fixture chall" in (c.get("title") or c.get("description") or "")
 
 
 async def test_search_challenges_by_description(logic_challenge_db, padawan_client):

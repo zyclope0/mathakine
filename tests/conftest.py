@@ -763,19 +763,19 @@ def logic_challenge_db(db_session):
         db_session.commit()
 
     try:
-        # Creer un utilisateur de test
+        # Creer un utilisateur de test (namespace fixture_chall_ hors patterns cleanup global)
         test_user = User(
-            username=f"test_jedi_{unique_id}",
-            email=f"test_{unique_id}@jedi.com",
+            username=f"fixture_chall_{unique_id}",
+            email=f"fixture_chall_{unique_id}@chall.example.com",
             hashed_password=get_password_hash("testpassword"),
             role=get_enum_value(UserRole, UserRole.GARDIEN),
         )
         db_session.add(test_user)
         db_session.commit()
 
-        # Créer un défi logique de test
+        # Créer un défi logique (titre sans "test"/"Test" pour éviter collision cleanup)
         test_challenge = LogicChallenge(
-            title=f"Test Challenge {unique_id}",
+            title=f"Défi fixture chall {unique_id}",
             description="Description du défi de test",
             challenge_type=get_enum_value(
                 LogicChallengeType, LogicChallengeType.SEQUENCE
@@ -800,11 +800,11 @@ def logic_challenge_db(db_session):
     finally:
         # Nettoyage post-test: supprimer d'abord les attempts liés aux challenges (FK)
         try:
-            # 1. Supprimer les attempts par user_id (test_jedi)
+            # 1. Supprimer les attempts par user_id (fixture_chall_)
             db_session.execute(
                 text(
                     f"DELETE FROM logic_challenge_attempts WHERE user_id IN "
-                    f"(SELECT id FROM users WHERE username = 'test_jedi_{unique_id}')"
+                    f"(SELECT id FROM users WHERE username = 'fixture_chall_{unique_id}')"
                 )
             )
             # 2. Supprimer les attempts qui référencent nos challenges (padawan peut avoir tenté)
@@ -813,16 +813,16 @@ def logic_challenge_db(db_session):
                     "DELETE FROM logic_challenge_attempts WHERE challenge_id IN "
                     "(SELECT id FROM logic_challenges WHERE title LIKE :pat)"
                 ),
-                {"pat": f"Test Challenge {unique_id}%"},
+                {"pat": f"Défi fixture chall {unique_id}%"},
             )
             # 3. Puis supprimer les challenges
             db_session.execute(
                 text(
-                    f"DELETE FROM logic_challenges WHERE title LIKE 'Test Challenge {unique_id}%'"
+                    f"DELETE FROM logic_challenges WHERE title LIKE 'Défi fixture chall {unique_id}%'"
                 )
             )
             db_session.execute(
-                text(f"DELETE FROM users WHERE username = 'test_jedi_{unique_id}'")
+                text(f"DELETE FROM users WHERE username = 'fixture_chall_{unique_id}'")
             )
             db_session.commit()
         except Exception:
@@ -849,7 +849,7 @@ def logic_challenge_db(db_session):
                     LogicChallengeAttempt.challenge_id.in_(challenge_ids)
                 ).delete(synchronize_session=False)
             db_session.query(LogicChallenge).filter(
-                LogicChallenge.title.like(f"Test Challenge {unique_id}%")
+                LogicChallenge.title.like(f"Défi fixture chall {unique_id}%")
             ).delete(synchronize_session=False)
             if test_user:
                 db_session.delete(test_user)
@@ -868,11 +868,13 @@ def challenge_with_hints_id(logic_challenge_db):
     # Fallback si attribut absent (compat)
     challenge = (
         logic_challenge_db.query(LogicChallenge)
-        .filter(LogicChallenge.title.like("Test Challenge%"))
+        .filter(LogicChallenge.title.like("Défi fixture chall%"))
         .order_by(LogicChallenge.id.desc())
         .first()
     )
-    assert challenge is not None, "logic_challenge_db doit créer un défi Test Challenge"
+    assert (
+        challenge is not None
+    ), "logic_challenge_db doit créer un défi Défi fixture chall"
     return challenge.id
 
 

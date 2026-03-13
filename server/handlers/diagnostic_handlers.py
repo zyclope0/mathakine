@@ -1,16 +1,16 @@
 """
-Handlers API pour le diagnostic adaptatif initial — F03.
+Handlers API pour le diagnostic adaptatif initial - F03.
 
 Endpoints :
-  GET  /api/diagnostic/status   — état du diagnostic (complété ou non)
-  POST /api/diagnostic/start    — crée une session vierge
-  POST /api/diagnostic/question — génère la prochaine question depuis l'état de session
-  POST /api/diagnostic/answer   — soumet une réponse, retourne état mis à jour + feedback
-  POST /api/diagnostic/complete — finalise la session, persiste DiagnosticResult
+  GET  /api/diagnostic/status   - etat du diagnostic (complete ou non)
+  POST /api/diagnostic/start    - cree une session vierge
+  POST /api/diagnostic/question - genere la prochaine question depuis l'etat de session
+  POST /api/diagnostic/answer   - soumet une reponse, retourne etat mis a jour + feedback
+  POST /api/diagnostic/complete - finalise la session, persiste DiagnosticResult
 
-Design stateless : l'état de session (dict JSON) transite dans le corps de la requête.
-Le backend ne conserve rien entre les appels jusqu'à /complete — seule la table
-diagnostic_results est écrite à la fin.
+Design stateless : l'etat de session (dict JSON) transite dans le corps de la requete.
+Le backend ne conserve rien entre les appels jusqu'a /complete - seule la table
+diagnostic_results est ecrite a la fin.
 """
 
 import json
@@ -22,7 +22,7 @@ from starlette.responses import JSONResponse
 
 import app.services.diagnostic_service as diagnostic_svc
 from app.core.logging_config import get_logger
-from app.utils.db_utils import db_session
+from app.core.runtime import run_db_bound
 from server.auth import require_auth
 
 logger = get_logger(__name__)
@@ -34,7 +34,7 @@ logger = get_logger(__name__)
 
 
 async def _parse_json(request: Request) -> Optional[Dict[str, Any]]:
-    """Parse le corps JSON de la requête avec gestion d'erreur."""
+    """Parse le corps JSON de la requete avec gestion d'erreur."""
     try:
         body = await request.body()
         if not body:
@@ -57,9 +57,9 @@ def _session_error(msg: str, status_code: int = 400) -> JSONResponse:
 @require_auth
 async def get_diagnostic_status(request: Request) -> JSONResponse:
     """
-    Retourne l'état du diagnostic pour l'utilisateur connecté.
+    Retourne l'etat du diagnostic pour l'utilisateur connecte.
 
-    Réponse :
+    Reponse :
     {
         "has_completed": bool,
         "latest": {   // null si jamais fait
@@ -73,8 +73,7 @@ async def get_diagnostic_status(request: Request) -> JSONResponse:
     }
     """
     user = request.state.user
-    async with db_session() as db:
-        latest = diagnostic_svc.get_latest_score(db, user["id"])
+    latest = await run_db_bound(diagnostic_svc.get_latest_score_sync, user["id"])
     return JSONResponse(
         {
             "has_completed": latest is not None,
@@ -91,15 +90,15 @@ async def get_diagnostic_status(request: Request) -> JSONResponse:
 @require_auth
 async def start_diagnostic(request: Request) -> JSONResponse:
     """
-    Crée et retourne une session de diagnostic vierge.
+    Cree et retourne une session de diagnostic vierge.
 
     Corps (optionnel) :
     { "triggered_from": "onboarding" | "settings" }
 
-    Réponse :
+    Reponse :
     {
-        "session": { ...état initial... },
-        "started_at_ts": float   // timestamp pour mesurer la durée côté frontend
+        "session": { ...etat initial... },
+        "started_at_ts": float   // timestamp pour mesurer la duree cote frontend
     }
     """
     body = await _parse_json(request)
@@ -127,12 +126,12 @@ async def start_diagnostic(request: Request) -> JSONResponse:
 @require_auth
 async def get_next_question(request: Request) -> JSONResponse:
     """
-    Génère la prochaine question du diagnostic depuis l'état de session courant.
+    Genere la prochaine question du diagnostic depuis l'etat de session courant.
 
     Corps :
-    { "session": { ...état de session... } }
+    { "session": { ...etat de session... } }
 
-    Réponse si question disponible (HTTP 200) :
+    Reponse si question disponible (HTTP 200) :
     {
         "done": false,
         "question": {
@@ -150,7 +149,7 @@ async def get_next_question(request: Request) -> JSONResponse:
         }
     }
 
-    Réponse si session terminée (HTTP 200) :
+    Reponse si session terminee (HTTP 200) :
     { "done": true }
     """
     body = await _parse_json(request)
@@ -179,25 +178,25 @@ async def get_next_question(request: Request) -> JSONResponse:
 @require_auth
 async def submit_diagnostic_answer(request: Request) -> JSONResponse:
     """
-    Soumet la réponse de l'utilisateur pour une question et met à jour la session.
+    Soumet la reponse de l'utilisateur pour une question et met a jour la session.
 
     Corps :
     {
-        "session": { ...état de session... },
-        "exercise_type": str,      // type de la question répondue
-        "user_answer": str,        // réponse choisie par l'utilisateur
-        "correct_answer": str      // bonne réponse (passée depuis le frontend)
+        "session": { ...etat de session... },
+        "exercise_type": str,      // type de la question repondue
+        "user_answer": str,        // reponse choisie par l'utilisateur
+        "correct_answer": str      // bonne reponse (passee depuis le frontend)
     }
 
-    Réponse :
+    Reponse :
     {
         "is_correct": bool,
-        "session": { ...état mis à jour... },
+        "session": { ...etat mis a jour... },
         "session_complete": bool
     }
 
-    Note : correct_answer est fourni par le frontend (non stocké en DB).
-    Le backend ne revalide pas — l'évaluation finale est en /complete.
+    Note : correct_answer est fourni par le frontend (non stocke en DB).
+    Le backend ne revalide pas - l'evaluation finale est en /complete.
     """
     body = await _parse_json(request)
     if body is None:
@@ -216,7 +215,7 @@ async def submit_diagnostic_answer(request: Request) -> JSONResponse:
     # Normaliser la comparaison (strip, casse insensible)
     is_correct = str(user_answer).strip().lower() == str(correct_answer).strip().lower()
 
-    # Mettre à jour l'état IRT
+    # Mettre a jour l'etat IRT
     diagnostic_svc._apply_answer(session, exercise_type, is_correct)
 
     return JSONResponse(
@@ -240,11 +239,11 @@ async def complete_diagnostic(request: Request) -> JSONResponse:
 
     Corps :
     {
-        "session": { ...état de session final... },
-        "duration_seconds": int    // durée totale mesurée côté frontend (optionnel)
+        "session": { ...etat de session final... },
+        "duration_seconds": int    // duree totale mesuree cote frontend (optionnel)
     }
 
-    Réponse succès (HTTP 201) :
+    Reponse succes (HTTP 201) :
     {
         "success": true,
         "result": {
@@ -257,7 +256,7 @@ async def complete_diagnostic(request: Request) -> JSONResponse:
         }
     }
 
-    Réponse échec (HTTP 500) :
+    Reponse echec (HTTP 500) :
     { "success": false, "error": str }
     """
     user = request.state.user
@@ -276,24 +275,12 @@ async def complete_diagnostic(request: Request) -> JSONResponse:
         except (ValueError, TypeError):
             duration_seconds = None
 
-    result_data: Optional[Dict[str, Any]] = None
-    async with db_session() as db:
-        success, result = diagnostic_svc.save_result(
-            db=db,
-            user_id=user["id"],
-            session=session,
-            duration_seconds=duration_seconds,
-        )
-        # Extraire les données DANS le contexte de session pour éviter DetachedInstanceError
-        if success and result is not None:
-            result_data = {
-                "id": result.id,
-                "completed_at": result.completed_at.isoformat(),
-                "triggered_from": result.triggered_from,
-                "questions_asked": result.questions_asked,
-                "duration_seconds": result.duration_seconds,
-                "scores": result.scores or {},
-            }
+    success, result_data = await run_db_bound(
+        diagnostic_svc.save_result_sync,
+        user["id"],
+        session,
+        duration_seconds,
+    )
 
     if not success or result_data is None:
         return JSONResponse(

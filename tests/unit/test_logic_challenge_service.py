@@ -1330,5 +1330,5 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
     daily_savepoint.commit.assert_called_once()
     mock_db.commit.assert_called_once()
     mock_db.refresh.assert_called_once_with(mock_attempt)
-    assert result["is_correct"] is True
-    assert result["new_badges"] == []
+    assert result.is_correct is True
+    assert result.new_badges == []

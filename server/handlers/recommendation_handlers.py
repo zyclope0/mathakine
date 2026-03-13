@@ -6,8 +6,12 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
-from app.services.recommendation_service import RecommendationService
-from app.utils.db_utils import db_session
+from app.core.runtime import run_db_bound
+from app.services.recommendation_service import (
+    generate_recommendations_sync,
+    get_recommendations_for_api_sync,
+    mark_recommendation_as_completed_sync,
+)
 from app.utils.error_handler import api_error_response, get_safe_error_message
 from app.utils.request_utils import parse_json_body_any
 from server.auth import require_auth, require_full_access
@@ -28,11 +32,10 @@ async def get_recommendations(request: Request) -> JSONResponse:
         if not user_id:
             return api_error_response(400, "ID utilisateur manquant")
 
-        async with db_session() as db:
-            recommendations_data = RecommendationService.get_recommendations_for_api(
-                db, user_id, limit=7
-            )
-            return JSONResponse(recommendations_data)
+        recommendations_data = await run_db_bound(
+            get_recommendations_for_api_sync, user_id, 7
+        )
+        return JSONResponse(recommendations_data)
     except Exception as recommendations_retrieval_error:
         logger.error(
             f"Erreur lors de la récupération des recommandations: {recommendations_retrieval_error}",
@@ -56,16 +59,13 @@ async def generate_recommendations(request: Request) -> JSONResponse:
         if not user_id:
             return api_error_response(400, "ID utilisateur manquant")
 
-        async with db_session() as db:
-            recommendations = RecommendationService.generate_recommendations(
-                db, user_id
-            )
-            return JSONResponse(
-                {
-                    "message": "Recommandations générées avec succès",
-                    "count": len(recommendations) if recommendations else 0,
-                }
-            )
+        recommendations = await run_db_bound(generate_recommendations_sync, user_id)
+        return JSONResponse(
+            {
+                "message": "Recommandations générées avec succès",
+                "count": len(recommendations) if recommendations else 0,
+            }
+        )
     except Exception as recommendations_generation_error:
         logger.error(
             f"Erreur lors de la génération des recommandations: {recommendations_generation_error}",
@@ -102,12 +102,13 @@ async def handle_recommendation_complete(request: Request) -> JSONResponse:
         except (TypeError, ValueError):
             return api_error_response(400, "recommendation_id invalide")
 
-        async with db_session() as db:
-            success, rec = RecommendationService.mark_recommendation_as_completed(
-                db, recommendation_id, user_id=user_id
-            )
-            if not success or not rec:
-                return api_error_response(404, "Recommandation non trouvée")
+        success, rec = await run_db_bound(
+            mark_recommendation_as_completed_sync,
+            recommendation_id,
+            user_id,
+        )
+        if not success or not rec:
+            return api_error_response(404, "Recommandation non trouvée")
 
         return JSONResponse(
             {"message": "Recommandation marquée comme complétée", "id": rec.id},

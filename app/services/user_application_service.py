@@ -3,7 +3,9 @@ Service applicatif pour la boundary users (LOT 6).
 
 Responsabilité : registration, dashboard stats, leaderboard, timeline,
 profile update, password update, delete, export, sessions.
-Pas d'accès DB direct dans les handlers — tout passe par ce service.
+Pas d'accès DB direct dans les handlers — tout passe par ce service via run_db_bound.
+
+LOT A6 : sync + sync_db_session, exécuté via run_db_bound() depuis les handlers.
 """
 
 from typing import Any, Dict, List, Optional, Tuple
@@ -15,12 +17,12 @@ from app.services.auth_service import create_registered_user_with_verification
 from app.services.email_service import EmailService
 from app.services.progress_timeline_service import get_progress_timeline
 from app.services.user_service import UserService
-from app.utils.db_utils import db_session
+from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 
 
-async def register_user(
+def register_user(
     user_create: UserCreate,
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
     """
@@ -30,7 +32,7 @@ async def register_user(
         (user_payload, error_message, status_code)
         user_payload si succès (201), sinon None + message + code HTTP.
     """
-    async with db_session() as db:
+    with sync_db_session() as db:
         from app.utils.email_verification import generate_verification_token
 
         verification_token = generate_verification_token()
@@ -73,51 +75,51 @@ async def register_user(
         return payload, None, 201
 
 
-async def get_dashboard_stats(
+def get_dashboard_stats(
     user_id: int,
     time_range: str = "30",
 ) -> Dict[str, Any]:
     """Récupère les statistiques dashboard pour un utilisateur."""
-    async with db_session() as db:
+    with sync_db_session() as db:
         return UserService.get_user_stats_for_dashboard(
             db, user_id, time_range=time_range
         )
 
 
-async def get_leaderboard(
+def get_leaderboard(
     current_user_id: int,
     limit: int = 50,
     age_group: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Récupère le classement des utilisateurs."""
-    async with db_session() as db:
+    with sync_db_session() as db:
         return UserService.get_leaderboard_for_api(
             db, current_user_id, limit=limit, age_group=age_group
         )
 
 
-async def get_progress_timeline_data(
+def get_progress_timeline_data(
     user_id: int,
     period: str = "7d",
 ) -> Dict[str, Any]:
     """Récupère la timeline de progression."""
-    async with db_session() as db:
+    with sync_db_session() as db:
         return get_progress_timeline(db, user_id, period=period)
 
 
-async def get_user_progress_data(user_id: int) -> Dict[str, Any]:
+def get_user_progress_data(user_id: int) -> Dict[str, Any]:
     """Récupère la progression globale de l'utilisateur."""
-    async with db_session() as db:
+    with sync_db_session() as db:
         return UserService.get_user_progress_for_api(db, user_id)
 
 
-async def get_challenges_progress_data(user_id: int) -> Dict[str, Any]:
+def get_challenges_progress_data(user_id: int) -> Dict[str, Any]:
     """Récupère la progression des défis logiques."""
-    async with db_session() as db:
+    with sync_db_session() as db:
         return UserService.get_challenges_progress_for_api(db, user_id)
 
 
-async def update_profile(
+def update_profile(
     user_id: int,
     raw_data: Dict[str, Any],
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
@@ -134,14 +136,14 @@ async def update_profile(
     if validation_error:
         return None, validation_error
 
-    async with db_session() as db:
+    with sync_db_session() as db:
         user, err = UserService.update_user_profile(db, user_id, update_data)
         if err:
             return None, err
         return UserService.serialize_user_profile_for_api(user), None
 
 
-async def update_password(
+def update_password(
     user_id: int,
     current_password: str,
     new_password: str,
@@ -153,33 +155,33 @@ async def update_password(
         (True, None) si succès
         (False, "Utilisateur introuvable.") ou (False, "Le mot de passe actuel est incorrect.")
     """
-    async with db_session() as db:
+    with sync_db_session() as db:
         return UserService.update_user_password(
             db, user_id, current_password, new_password
         )
 
 
-async def delete_user_account(user_id: int) -> None:
+def delete_user_account(user_id: int) -> None:
     """Supprime le compte utilisateur. Lève UserNotFoundError si introuvable."""
     from app.exceptions import UserNotFoundError
 
-    async with db_session() as db:
+    with sync_db_session() as db:
         UserService.delete_user(db, user_id)
 
 
-async def export_user_data(user_id: int) -> Optional[Dict[str, Any]]:
+def export_user_data(user_id: int) -> Optional[Dict[str, Any]]:
     """Exporte les données utilisateur (RGPD). Retourne None si introuvable."""
-    async with db_session() as db:
+    with sync_db_session() as db:
         return UserService.get_user_export_data_for_api(db, user_id)
 
 
-async def get_user_sessions_list(user_id: int) -> List[Dict[str, Any]]:
+def get_user_sessions_list(user_id: int) -> List[Dict[str, Any]]:
     """Récupère les sessions actives de l'utilisateur."""
-    async with db_session() as db:
+    with sync_db_session() as db:
         return UserService.get_user_sessions_for_api(db, user_id)
 
 
-async def revoke_session(
+def revoke_session(
     user_id: int,
     session_id: int,
 ) -> Tuple[bool, Optional[str]]:
@@ -190,5 +192,5 @@ async def revoke_session(
         (True, None) si succès
         (False, "Session non trouvée ou non autorisée") sinon
     """
-    async with db_session() as db:
+    with sync_db_session() as db:
         return UserService.revoke_user_session(db, session_id, user_id)

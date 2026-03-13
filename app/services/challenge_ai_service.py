@@ -20,13 +20,14 @@ from app.core.ai_config import AIConfig
 from app.core.config import settings
 from app.core.constants import calculate_difficulty_for_age_group
 from app.core.logging_config import get_logger
+from app.core.runtime import run_db_bound
 from app.services import challenge_service
 from app.services.challenge_service import normalize_age_group_for_frontend
 from app.services.challenge_validator import (
     auto_correct_challenge,
     validate_challenge_logic,
 )
-from app.utils.db_utils import db_session
+from app.utils.db_utils import sync_db_session
 from app.utils.generation_metrics import generation_metrics
 from app.utils.json_utils import extract_json_from_text
 from app.utils.sse_utils import sse_error_message, sse_status_message
@@ -519,6 +520,76 @@ def normalize_generated_challenge(
     }
 
 
+def _persist_challenge_sync(
+    normalized_challenge: Dict[str, Any],
+    user_id: Optional[int],
+    challenge_type: str,
+    model: str = "unknown",
+) -> Optional[Dict[str, Any]]:
+    """
+    Persiste un challenge généré en base via sync_db_session.
+    Retourne challenge_dict si succès, None sinon.
+    """
+    with sync_db_session() as db:
+        created_challenge = challenge_service.create_challenge(
+            db=db,
+            title=normalized_challenge["title"],
+            description=normalized_challenge["description"],
+            challenge_type=normalized_challenge["challenge_type"],
+            age_group=normalized_challenge["age_group"],
+            question=normalized_challenge.get("question"),
+            correct_answer=normalized_challenge["correct_answer"],
+            solution_explanation=normalized_challenge["solution_explanation"],
+            hints=normalized_challenge.get("hints", []),
+            visual_data=normalized_challenge.get("visual_data", {}),
+            difficulty_rating=normalized_challenge.get("difficulty_rating", 3.0),
+            estimated_time_minutes=normalized_challenge.get(
+                "estimated_time_minutes", 10
+            ),
+            tags=normalized_challenge.get("tags", "ai,generated"),
+            creator_id=user_id,
+            generation_parameters={
+                "source": "ai",
+                "challenge_type": challenge_type,
+                "age_group": normalized_challenge["age_group"],
+                "model": model,
+            },
+        )
+        if (
+            created_challenge
+            and hasattr(created_challenge, "title")
+            and created_challenge.title
+        ):
+            return {
+                "id": created_challenge.id,
+                "title": created_challenge.title,
+                "description": created_challenge.description,
+                "challenge_type": (
+                    str(created_challenge.challenge_type)
+                    if hasattr(created_challenge.challenge_type, "value")
+                    else created_challenge.challenge_type
+                ),
+                "age_group": normalize_age_group_for_frontend(
+                    created_challenge.age_group
+                ),
+                "question": created_challenge.question,
+                "correct_answer": created_challenge.correct_answer,
+                "solution_explanation": created_challenge.solution_explanation,
+                "hints": created_challenge.hints or [],
+                "visual_data": created_challenge.visual_data or {},
+                "difficulty_rating": created_challenge.difficulty_rating,
+                "estimated_time_minutes": created_challenge.estimated_time_minutes,
+                "tags": created_challenge.tags,
+                "is_active": created_challenge.is_active,
+                "created_at": (
+                    created_challenge.created_at.isoformat()
+                    if created_challenge.created_at
+                    else None
+                ),
+            }
+        return None
+
+
 async def generate_challenge_stream(
     challenge_type: str,
     age_group: str,
@@ -742,88 +813,36 @@ async def generate_challenge_stream(
             return
 
         try:
-            async with db_session() as db:
-                created_challenge = challenge_service.create_challenge(
-                    db=db,
-                    title=normalized_challenge["title"],
-                    description=normalized_challenge["description"],
-                    challenge_type=normalized_challenge["challenge_type"],
-                    age_group=normalized_challenge["age_group"],
-                    question=normalized_challenge.get("question"),
-                    correct_answer=normalized_challenge["correct_answer"],
-                    solution_explanation=normalized_challenge["solution_explanation"],
-                    hints=normalized_challenge.get("hints", []),
-                    visual_data=normalized_challenge.get("visual_data", {}),
-                    difficulty_rating=normalized_challenge.get(
-                        "difficulty_rating", 3.0
-                    ),
-                    estimated_time_minutes=normalized_challenge.get(
-                        "estimated_time_minutes", 10
-                    ),
-                    tags=normalized_challenge.get("tags", "ai,generated"),
-                    creator_id=user_id,
-                    generation_parameters={
-                        "source": "ai",
-                        "challenge_type": normalized_challenge["challenge_type"],
-                        "age_group": normalized_challenge["age_group"],
-                        "model": ai_params.get("model", "unknown"),
-                    },
+            challenge_dict = await run_db_bound(
+                _persist_challenge_sync,
+                normalized_challenge,
+                user_id,
+                challenge_type,
+                ai_params.get("model", "unknown"),
+            )
+            if challenge_dict:
+                usage_stats = token_tracker.track_usage(
+                    challenge_type=challenge_type,
+                    prompt_tokens=prompt_tokens_estimate,
+                    completion_tokens=completion_tokens_estimate,
+                    model=ai_params["model"],
+                )
+                logger.debug(f"Token usage tracked: {usage_stats}")
+
+                generation_success = True
+                duration = (datetime.now() - start_time).total_seconds()
+                generation_metrics.record_generation(
+                    challenge_type=challenge_type,
+                    success=True,
+                    validation_passed=validation_passed,
+                    auto_corrected=auto_corrected,
+                    duration_seconds=duration,
                 )
 
-                if (
-                    created_challenge
-                    and hasattr(created_challenge, "title")
-                    and created_challenge.title
-                ):
-                    usage_stats = token_tracker.track_usage(
-                        challenge_type=challenge_type,
-                        prompt_tokens=prompt_tokens_estimate,
-                        completion_tokens=completion_tokens_estimate,
-                        model=ai_params["model"],
-                    )
-                    logger.debug(f"Token usage tracked: {usage_stats}")
-
-                    generation_success = True
-                    duration = (datetime.now() - start_time).total_seconds()
-                    generation_metrics.record_generation(
-                        challenge_type=challenge_type,
-                        success=True,
-                        validation_passed=validation_passed,
-                        auto_corrected=auto_corrected,
-                        duration_seconds=duration,
-                    )
-
-                    challenge_dict = {
-                        "id": created_challenge.id,
-                        "title": created_challenge.title,
-                        "description": created_challenge.description,
-                        "challenge_type": (
-                            str(created_challenge.challenge_type)
-                            if hasattr(created_challenge.challenge_type, "value")
-                            else created_challenge.challenge_type
-                        ),
-                        "age_group": normalize_age_group_for_frontend(
-                            created_challenge.age_group
-                        ),
-                        "question": created_challenge.question,
-                        "correct_answer": created_challenge.correct_answer,
-                        "solution_explanation": created_challenge.solution_explanation,
-                        "hints": created_challenge.hints or [],
-                        "visual_data": created_challenge.visual_data or {},
-                        "difficulty_rating": created_challenge.difficulty_rating,
-                        "estimated_time_minutes": created_challenge.estimated_time_minutes,
-                        "tags": created_challenge.tags,
-                        "is_active": created_challenge.is_active,
-                        "created_at": (
-                            created_challenge.created_at.isoformat()
-                            if created_challenge.created_at
-                            else None
-                        ),
-                    }
-                    yield f"data: {json.dumps({'type': 'challenge', 'challenge': challenge_dict})}\n\n"
-                else:
-                    logger.error(f"Challenge créé mais invalide: {created_challenge}")
-                    yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardé en base'})}\n\n"
+                yield f"data: {json.dumps({'type': 'challenge', 'challenge': challenge_dict})}\n\n"
+            else:
+                logger.error("Challenge créé mais invalide")
+                yield f"data: {json.dumps({'type': 'challenge', 'challenge': normalized_challenge, 'warning': 'Non sauvegardé en base'})}\n\n"
         except Exception as db_error:
             logger.error(f"Erreur lors de la sauvegarde du challenge: {db_error}")
             logger.debug(traceback.format_exc())

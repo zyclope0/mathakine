@@ -11,11 +11,12 @@ from functools import wraps
 from starlette.responses import JSONResponse, StreamingResponse
 
 from app.core.logging_config import get_logger
+from app.core.runtime import run_db_bound
 from app.utils.error_handler import api_error_response
 
 logger = get_logger(__name__)
 
-from app.utils.db_utils import db_session
+from app.services.auth_session_service import get_current_user_payload
 
 
 async def get_current_user(request):  # noqa: C901
@@ -52,9 +53,8 @@ async def get_current_user(request):  # noqa: C901
         from fastapi import HTTPException
 
         from app.core.security import decode_token
-        from app.services.auth_service import get_user_by_username
 
-        # Réutiliser le payload déjà décodé par AuthenticationMiddleware (évite double decode)
+        # Reutiliser le payload deja decode par AuthenticationMiddleware (evite double decode)
         payload = getattr(request.state, "auth_payload", None)
         if not payload or not payload.get("sub"):
             try:
@@ -62,7 +62,7 @@ async def get_current_user(request):  # noqa: C901
             except HTTPException:
                 return None
             except Exception as decode_error:
-                logger.debug(f"Erreur lors du décodage du token: {decode_error}")
+                logger.debug(f"Erreur lors du decodage du token: {decode_error}")
                 return None
 
         username = payload.get("sub")
@@ -70,75 +70,8 @@ async def get_current_user(request):  # noqa: C901
         if not username:
             return None
 
-        # Récupérer l'utilisateur depuis la base de données
-        async with db_session() as db:
-            user = get_user_by_username(db, username)
-
-            if user is None:
-                return None
-
-            from app.services.auth_service import _is_token_revoked_by_password_reset
-
-            if _is_token_revoked_by_password_reset(payload, user):
-                return None
-
-            from app.utils.unverified_access import get_unverified_access_scope
-
-            access_scope = get_unverified_access_scope(user)
-            is_email_verified = getattr(user, "is_email_verified", True)
-
-            # Retourner un dictionnaire sérialisable avec tous les champs profil
-            return {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email if hasattr(user, "email") else None,
-                "is_authenticated": True,
-                "is_email_verified": is_email_verified,
-                "access_scope": access_scope,
-                "role": user.role.value if hasattr(user, "role") else None,
-                "full_name": user.full_name if hasattr(user, "full_name") else None,
-                "grade_level": (
-                    user.grade_level if hasattr(user, "grade_level") else None
-                ),
-                "grade_system": getattr(user, "grade_system", None),
-                "learning_style": (
-                    user.learning_style if hasattr(user, "learning_style") else None
-                ),
-                "preferred_difficulty": (
-                    user.preferred_difficulty
-                    if hasattr(user, "preferred_difficulty")
-                    else None
-                ),
-                "onboarding_completed_at": (
-                    user.onboarding_completed_at.isoformat()
-                    if getattr(user, "onboarding_completed_at", None)
-                    else None
-                ),
-                "learning_goal": getattr(user, "learning_goal", None),
-                "practice_rhythm": getattr(user, "practice_rhythm", None),
-                "preferred_theme": (
-                    user.preferred_theme if hasattr(user, "preferred_theme") else None
-                ),
-                "accessibility_settings": (
-                    user.accessibility_settings
-                    if hasattr(user, "accessibility_settings")
-                    else None
-                ),
-                "created_at": (
-                    user.created_at.isoformat()
-                    if hasattr(user, "created_at") and user.created_at
-                    else None
-                ),
-                "total_points": (
-                    user.total_points if hasattr(user, "total_points") else 0
-                ),
-                "current_level": (
-                    user.current_level if hasattr(user, "current_level") else 1
-                ),
-                "jedi_rank": (
-                    user.jedi_rank if hasattr(user, "jedi_rank") else "youngling"
-                ),
-            }
+        # Recuperer l'utilisateur depuis la DB via use case sync (threadpool)
+        return await run_db_bound(get_current_user_payload, username, payload)
 
     except Exception as user_fetch_error:
         logger.error(

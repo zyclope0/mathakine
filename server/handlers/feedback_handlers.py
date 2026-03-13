@@ -6,9 +6,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
+from app.core.runtime import run_db_bound
 from app.services.admin_read_service import list_feedback_for_admin
-from app.services.feedback_service import FeedbackService
-from app.utils.db_utils import db_session
+from app.services.feedback_service import create_feedback_report_sync
 from app.utils.error_handler import api_error_response, get_safe_error_message
 from app.utils.request_utils import parse_json_body_any
 from server.auth import require_admin, require_auth
@@ -49,23 +49,22 @@ async def submit_feedback(request: Request) -> JSONResponse:
             except (TypeError, ValueError):
                 challenge_id = None
 
-        async with db_session() as db:
-            report, err = FeedbackService.create_feedback_report(
-                db,
-                feedback_type=feedback_type,
-                description=description or None,
-                page_url=page_url or None,
-                exercise_id=exercise_id,
-                challenge_id=challenge_id,
-                user_id=user_id,
+        report, err = await run_db_bound(
+            create_feedback_report_sync,
+            feedback_type=feedback_type,
+            description=description or None,
+            page_url=page_url or None,
+            exercise_id=exercise_id,
+            challenge_id=challenge_id,
+            user_id=user_id,
+        )
+        if err:
+            return api_error_response(
+                400, "feedback_type invalide (exercise, challenge, ui, other)"
             )
-            if err:
-                return api_error_response(
-                    400, "feedback_type invalide (exercise, challenge, ui, other)"
-                )
 
         logger.info(
-            f"Feedback enregistré: type={feedback_type}, user_id={user_id}, id={report.id}"
+            f"Feedback enregistre: type={feedback_type}, user_id={user_id}, id={report.id}"
         )
         return JSONResponse(
             {"success": True, "id": report.id, "message": "Merci pour votre retour !"},
@@ -84,7 +83,7 @@ async def admin_list_feedback(request: Request) -> JSONResponse:
     Route: GET /api/admin/feedback
     """
     try:
-        items = await list_feedback_for_admin(limit=500)
+        items = await run_db_bound(list_feedback_for_admin, limit=500)
         return JSONResponse({"feedback": items})
     except Exception as e:
         logger.error(f"Erreur admin_list_feedback: {e}", exc_info=True)

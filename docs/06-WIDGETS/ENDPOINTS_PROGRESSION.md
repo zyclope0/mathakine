@@ -1,198 +1,80 @@
-# Endpoints de Progression - Disponibles pour Dashboard
+﻿# ENDPOINTS PROGRESSION - DASHBOARD ET WIDGETS
 
-Ce document liste les endpoints de progression **déjà implémentés** en Starlette qui peuvent être utilisés dans le dashboard frontend.
+> Mise a jour : 13/03/2026
+> Source de verite runtime : `server/routes/`
 
-## 📊 Endpoints actuellement actifs
+## Objectif
 
-### 1. GET /api/daily-challenges (F02)
-**Utilisé par :** `frontend/hooks/useDailyChallenges.ts`
+Lister les endpoints de progression effectivement exploitables par le frontend dashboard/widgets, sans melanger routes actives, placeholders et hypothese de design.
 
-**Authentification :** Oui (full_access)
+## Endpoints actifs utiles
 
-**Réponse :**
-```json
-{
-  "challenges": [
-    {
-      "id": 1,
-      "date": "2026-03-06",
-      "challenge_type": "volume_exercises",
-      "metadata": {},
-      "target_count": 3,
-      "completed_count": 1,
-      "status": "pending",
-      "bonus_points": 10
-    }
-  ]
-}
-```
+### `GET /api/daily-challenges`
 
-**Comportement :** Crée automatiquement les 3 défis du jour s'ils n'existent pas.
+Usage:
+- hook `useDailyChallenges`
+- widget daily challenges
 
-**Référence :** [F02_DEFIS_QUOTIDIENS.md](../02-FEATURES/F02_DEFIS_QUOTIDIENS.md)
+Contrat general:
+- auth requise
+- renvoie `{challenges: [...]}`
+- cree les defis du jour si necessaire
 
----
+### `GET /api/users/stats`
 
-### 2. GET /api/users/stats
-**Utilisé par :** `frontend/hooks/useUserStats.ts`
+Usage:
+- hook `useUserStats`
+- dashboard stats utilisateur
 
-**Paramètres :**
-- `timeRange`: "7" | "30" | "90" | "all"
+Contrat general:
+- auth requise
+- supporte `timeRange=7|30|90|all`
+- renvoie statistiques agregees utilisateur
 
-**Réponse :**
-```json
-{
-  "total_attempts": 50,
-  "correct_attempts": 40,
-  "success_rate": 80,
-  "experience_points": 500,
-  "level": {
-    "current": 5,
-    "progress_to_next": 60
-  },
-  "performance_by_type": {
-    "addition": {
-      "completed": 10,
-      "correct": 9,
-      "success_rate": 90.0
-    }
-  },
-  "recent_activity": [...]
-}
-```
+### `GET /api/users/me/progress`
 
----
+Usage possible:
+- widgets de progression globale
+- streak / progression par categorie
 
-## 🎯 Endpoints disponibles mais non utilisés (prêts pour intégration)
+### `GET /api/users/me/progress/timeline`
 
-### 3. GET /api/users/me/progress
-**Disponible :** ✅ Starlette handler (`server/handlers/user_handlers.py`)
+Usage possible:
+- timeline de progression
+- vue periodique `7d` / `30d`
 
-**Route :** `/api/users/me/progress`
+### `GET /api/users/me/challenges/progress`
 
-**Authentification :** Required (Cookie ou Bearer token)
+Usage possible:
+- progression defis
+- widgets challenge dashboard
 
-**Réponse :**
-```json
-{
-  "total_attempts": 50,
-  "correct_attempts": 40,
-  "accuracy": 0.8,
-  "average_time": 23.5,
-  "exercises_completed": 25,
-  "highest_streak": 12,
-  "current_streak": 5,
-  "by_category": {
-    "addition": {
-      "completed": 10,
-      "accuracy": 0.9
-    },
-    "multiplication": {
-      "completed": 8,
-      "accuracy": 0.75
-    }
-  }
-}
-```
+## Endpoints badges/progression lies
 
-**Utilisation suggérée :**
-- Widget "Streak" dans le dashboard
-- Graphique "Progression par catégorie"
-- Badge "Meilleur streak"
+### `GET /api/badges/stats`
 
----
+Usage possible:
+- stats gamification utilisateur
 
-### 4. GET /api/users/me/challenges/progress
-**Disponible :** ✅ Starlette handler (`server/handlers/user_handlers.py`)
+### `GET /api/challenges/badges/progress`
 
-**Route :** `/api/users/me/challenges/progress`
+Usage possible:
+- progression badges lies aux defis
 
-**Authentification :** Required (Cookie ou Bearer token)
+## Regles d'integration frontend
 
-**Réponse :**
-```json
-{
-  "completed_challenges": 5,
-  "total_challenges": 20,
-  "success_rate": 0.83,
-  "average_time": 45.5,
-  "challenges": [
-    {
-      "id": 1,
-      "title": "Défi de déduction logique",
-      "is_completed": true,
-      "attempts": 2,
-      "best_time": 35.2
-    }
-  ]
-}
-```
+- verifier le contrat actif dans `server/routes/` et `server/handlers/` avant toute integration
+- ne pas deduire un endpoint d'un ancien doc FastAPI
+- ne pas traiter une route placeholder comme feature exploitable sans verifier la reponse runtime
 
-**Utilisation suggérée :**
-- Section "Défis complétés" dans le dashboard
-- Graphique temps moyen par défi
-- Badges de défi (complétés X/Y)
+## Notes techniques
 
----
+- backend actif: Starlette, port par defaut `8000`
+- authentification supportee selon endpoint: cookie `access_token` et/ou bearer token
+- `app/api/endpoints/` n'est pas une source de verite runtime
 
-## 🔧 Intégration dans le dashboard
+## References
 
-### Étape 1 : Créer un hook React Query
-
-```typescript
-// frontend/hooks/useProgressStats.ts
-export function useProgressStats() {
-  return useQuery({
-    queryKey: ['user', 'progress'],
-    queryFn: async () => {
-      return await api.get<ProgressStats>('/api/users/me/progress');
-    }
-  });
-}
-
-export function useChallengesProgress() {
-  return useQuery({
-    queryKey: ['user', 'challenges', 'progress'],
-    queryFn: async () => {
-      return await api.get<ChallengesProgress>('/api/users/me/challenges/progress');
-    }
-  });
-}
-```
-
-### Étape 2 : Utiliser dans le dashboard
-
-```typescript
-// frontend/app/dashboard/page.tsx
-const { data: progress } = useProgressStats();
-const { data: challengesProgress } = useChallengesProgress();
-
-// Afficher le streak actuel
-<StreakWidget current={progress?.current_streak} best={progress?.highest_streak} />
-
-// Afficher les défis complétés
-<ChallengesWidget completed={challengesProgress?.completed_challenges} total={challengesProgress?.total_challenges} />
-```
-
----
-
-## 📝 Notes techniques
-
-- **Architecture actuelle :** Starlette pur (port 8000 par défaut)
-- **FastAPI archivé :** `_ARCHIVE_2026/app/main.py` + `_ARCHIVE_2026/app/api/api.py`
-- **Handlers actifs :** `server/handlers/user_handlers.py`
-- **Routes :** `server/routes/` (~85 routes totales, agrégées via `get_routes()`)
-
-**Authentification supportée :**
-- ✅ Cookie `access_token` (HttpOnly)
-- ✅ Header `Authorization: Bearer <token>` (ajouté pour tests/API clients)
-
----
-
-## 🧪 Test
-
-Script de test disponible : `test_progress_api.py`
-
-```bash
-python test_progress_api.py
-```
+- [../02-FEATURES/API_QUICK_REFERENCE.md](../02-FEATURES/API_QUICK_REFERENCE.md)
+- [../02-FEATURES/F02_DEFIS_QUOTIDIENS.md](../02-FEATURES/F02_DEFIS_QUOTIDIENS.md)
+- [../02-FEATURES/AUTH_FLOW.md](../02-FEATURES/AUTH_FLOW.md)

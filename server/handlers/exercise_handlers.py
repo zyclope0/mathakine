@@ -15,6 +15,7 @@ from starlette.responses import (
 )
 
 from app.core.logging_config import get_logger
+from app.core.runtime import run_db_bound
 from app.exceptions import (
     ExerciseNotFoundError,
     ExerciseSubmitError,
@@ -26,28 +27,19 @@ from app.schemas.exercise import (
     InterleavedPlanQuery,
     SubmitAnswerRequest,
 )
-from app.services.exercise_attempt_service import submit_answer as svc_submit_answer
+from app.services.exercise_attempt_service import submit_answer_sync
 from app.services.exercise_generation_service import (
     AgeGroupRequiredError,
-)
-from app.services.exercise_generation_service import (
-    generate_exercise as svc_generate_exercise,
+    generate_exercise_sync,
 )
 from app.services.exercise_query_service import (
-    get_completed_exercise_ids,
-)
-from app.services.exercise_query_service import get_exercise_for_api as svc_get_exercise
-from app.services.exercise_query_service import (
-    get_exercises_list_for_api as svc_get_exercises_list,
-)
-from app.services.exercise_query_service import (
-    get_exercises_stats_for_api as svc_get_exercises_stats,
-)
-from app.services.exercise_query_service import (
-    get_interleaved_plan_for_api as svc_get_interleaved_plan,
+    get_completed_exercise_ids_sync,
+    get_exercise_for_api_sync,
+    get_exercises_list_for_api_sync,
+    get_exercises_stats_for_api_sync,
+    get_interleaved_plan_for_api_sync,
 )
 from app.services.exercise_stream_service import prepare_stream_context
-from app.utils.db_utils import db_session
 from app.utils.error_handler import ErrorHandler, api_error_response
 from app.utils.request_utils import parse_json_body_any
 from app.utils.translation import parse_accept_language
@@ -80,15 +72,16 @@ async def generate_exercise(request: Request) -> Response:
     locale = parse_accept_language(request.headers.get("Accept-Language")) or "fr"
 
     try:
-        result = await svc_generate_exercise(
-            exercise_type_raw=exercise_type_raw or "addition",
-            age_group_raw=age_group_raw,
-            use_ai=use_ai,
-            adaptive=adaptive,
-            save=True,
-            user_id=user_id,
-            locale=locale,
-            require_age_group=False,
+        result = await run_db_bound(
+            generate_exercise_sync,
+            exercise_type_raw or "addition",
+            age_group_raw,
+            use_ai,
+            adaptive,
+            True,  # save
+            user_id,
+            locale,
+            False,  # require_age_group
         )
         if result.id:
             logger.info(f"Nouvel exercice créé avec ID={result.id}")
@@ -114,7 +107,7 @@ async def get_exercise(request: Request) -> JSONResponse:
     """Récupère un exercice par son ID (format API, sans correct_answer)."""
     exercise_id = request.path_params.get("exercise_id")
     try:
-        exercise = await svc_get_exercise(int(exercise_id))
+        exercise = await run_db_bound(get_exercise_for_api_sync, int(exercise_id))
         if exercise is None:
             raise ExerciseSubmitError(
                 500, "Erreur lors de la récupération de l'exercice"
@@ -165,11 +158,14 @@ async def submit_answer(request: Request) -> JSONResponse:
             f"answer={payload.answer}"
         )
 
-        async with db_session() as db:
-            response_data = svc_submit_answer(
-                db, exercise_id, user_id, payload.answer, payload.time_spent
-            )
-            return JSONResponse(response_data.model_dump())
+        response_data = await run_db_bound(
+            submit_answer_sync,
+            exercise_id,
+            user_id,
+            payload.answer,
+            payload.time_spent,
+        )
+        return JSONResponse(response_data.model_dump())
 
     except (ExerciseNotFoundError, ExerciseSubmitError) as e:
         return api_error_response(e.status_code, e.message)
@@ -204,7 +200,7 @@ async def get_exercises_list(request: Request) -> JSONResponse:
             f"exercise_type={q.exercise_type}, age_group={q.age_group}"
         )
 
-        response_data = await svc_get_exercises_list(q, user_id)
+        response_data = await run_db_bound(get_exercises_list_for_api_sync, q, user_id)
         return JSONResponse(response_data.model_dump())
 
     except Exception as exercises_list_error:
@@ -235,7 +231,7 @@ async def get_interleaved_plan_api(request: Request) -> JSONResponse:
         user_id = current_user["id"]
 
         query = InterleavedPlanQuery(length=length)
-        plan = await svc_get_interleaved_plan(user_id, query)
+        plan = await run_db_bound(get_interleaved_plan_for_api_sync, user_id, query)
         return JSONResponse(plan)
 
     except InterleavedNotEnoughVariety as e:
@@ -283,15 +279,16 @@ async def generate_exercise_api(request: Request) -> JSONResponse:
         locale = parse_accept_language(request.headers.get("Accept-Language")) or "fr"
 
         try:
-            result = await svc_generate_exercise(
-                exercise_type_raw=payload.exercise_type,
-                age_group_raw=payload.age_group,
-                use_ai=payload.ai,
-                adaptive=payload.adaptive,
-                save=payload.save,
-                user_id=user_id,
-                locale=locale,
-                require_age_group=True,
+            result = await run_db_bound(
+                generate_exercise_sync,
+                payload.exercise_type,
+                payload.age_group,
+                payload.ai,
+                payload.adaptive,
+                payload.save,
+                user_id,
+                locale,
+                True,  # require_age_group
             )
         except AgeGroupRequiredError as e:
             return api_error_response(400, str(e))
@@ -382,7 +379,7 @@ async def get_completed_exercises_ids(request: Request) -> JSONResponse:
         if not user_id:
             return JSONResponse({"completed_ids": []}, status_code=200)
 
-        completed_ids = await get_completed_exercise_ids(user_id)
+        completed_ids = await run_db_bound(get_completed_exercise_ids_sync, user_id)
 
         logger.debug(
             f"Récupération de {len(completed_ids)} exercices complétés pour l'utilisateur {user_id}"
@@ -421,7 +418,7 @@ async def get_exercises_stats(request: Request) -> JSONResponse:
     """
     logger.info("=== DEBUT get_exercises_stats ===")
     try:
-        response_data = await svc_get_exercises_stats()
+        response_data = await run_db_bound(get_exercises_stats_for_api_sync)
         total_exercises = response_data["academy_statistics"]["total_exercises"]
         logger.info(
             f"Statistiques des épreuves récupérées: {total_exercises} épreuves actives"

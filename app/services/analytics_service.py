@@ -1,5 +1,5 @@
 """
-Service pour les événements analytiques EdTech.
+Service pour les evenements analytiques EdTech.
 """
 
 from collections import defaultdict
@@ -10,10 +10,27 @@ from sqlalchemy.orm import Session
 
 from app.core.logging_config import get_logger
 from app.models.edtech_event import EdTechEvent
+from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 
 VALID_EVENTS = frozenset({"quick_start_click", "first_attempt"})
+
+
+def record_edtech_event_sync(
+    *,
+    event: str,
+    payload: Optional[Dict[str, Any]] = None,
+    user_id: Optional[int] = None,
+) -> bool:
+    """
+    Use case sync: enregistre un evenement EdTech.
+    Execute via run_db_bound() depuis les handlers async.
+    """
+    with sync_db_session() as db:
+        return AnalyticsService.record_edtech_event(
+            db, event=event, payload=payload, user_id=user_id
+        )
 
 
 class AnalyticsService:
@@ -28,10 +45,10 @@ class AnalyticsService:
         user_id: Optional[int] = None,
     ) -> bool:
         """
-        Enregistre un événement EdTech.
+        Enregistre un evenement EdTech.
 
         Returns:
-            True si enregistré, False si event invalide (non persisted)
+            True si enregistre, False si event invalide (non persisted)
         """
         event = (event or "").strip().lower()
         if event not in VALID_EVENTS:
@@ -55,7 +72,7 @@ class AnalyticsService:
         limit: int = 200,
     ) -> Dict[str, Any]:
         """
-        Récupère les agrégats et la liste des événements EdTech pour l'admin.
+        Recupere les agregats et la liste des evenements EdTech pour l'admin.
         """
         limit = min(limit, 500)
         event_filter = (event_filter or "").strip().lower()
@@ -86,7 +103,7 @@ class AnalyticsService:
                 if t is not None:
                     try:
                         val = float(t)
-                        # Ignorer les valeurs négatives (décalage horaire, données de test)
+                        # Ignorer les valeurs negatives (decalage horaire, donnees de test)
                         if val >= 0:
                             aggregates[e.event]["time_to_first_attempt_ms"].append(val)
                     except (TypeError, ValueError):

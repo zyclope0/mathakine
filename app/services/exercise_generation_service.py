@@ -1,6 +1,7 @@
 """
-Service applicatif pour la génération d'exercices.
+Service applicatif pour la génération d'exercices (LOT A5).
 Orchestration : résolution adaptive, normalisation, génération AI/simple, persistance.
+Modèle runtime : sync, exécuté via run_db_bound() depuis les handlers.
 """
 
 from typing import Any, Dict, Optional
@@ -14,7 +15,7 @@ from app.generators.exercise_generator import (
 from app.repositories.exercise_repository import ExerciseRepository
 from app.schemas.exercise import GenerateExerciseResult
 from app.services.adaptive_difficulty_service import resolve_adaptive_difficulty
-from app.utils.db_utils import db_session
+from app.utils.db_utils import sync_db_session
 from app.utils.exercise_generator_validators import (
     normalize_and_validate_exercise_params,
     normalize_exercise_type,
@@ -23,20 +24,20 @@ from app.utils.exercise_generator_validators import (
 logger = get_logger(__name__)
 
 
-async def _resolve_age_group_adaptive(
+def _resolve_age_group_adaptive_sync(
     user_id: int,
     exercise_type_raw: Optional[str],
     age_group_raw: Optional[str],
 ) -> Optional[str]:
     """
     Résout age_group de façon adaptative si l'utilisateur existe et qu'aucun
-    age_group n'est fourni.
+    age_group n'est fourni. Sync, exécuté dans run_db_bound.
     """
     if age_group_raw:
         return age_group_raw
     try:
         resolved_type = normalize_exercise_type(exercise_type_raw or "ADDITION")
-        async with db_session() as db:
+        with sync_db_session() as db:
             user = ExerciseRepository.get_user_by_id(db, user_id)
             if user:
                 return resolve_adaptive_difficulty(db, user, resolved_type)
@@ -60,7 +61,7 @@ class AgeGroupRequiredError(Exception):
     pass
 
 
-async def generate_exercise(
+def generate_exercise_sync(
     exercise_type_raw: str,
     age_group_raw: Optional[str],
     use_ai: Any = False,
@@ -72,23 +73,11 @@ async def generate_exercise(
 ) -> GenerateExerciseResult:
     """
     Génère un exercice (AI ou simple), optionnellement persisté.
-
-    Args:
-        exercise_type_raw: Type brut (ex: "addition")
-        age_group_raw: Groupe d'âge brut (optionnel si adaptive)
-        use_ai: Utiliser la génération IA
-        adaptive: Résoudre age_group de façon adaptative
-        save: Persister en base
-        user_id: ID utilisateur (pour adaptive)
-        locale: Locale (pour persistance, non utilisée actuellement)
-        require_age_group: Si True (API), lève AgeGroupRequiredError si non fourni
-
-    Returns:
-        GenerateExerciseResult conforme au contrat de sortie
+    Sync, exécuté via run_db_bound() depuis les handlers.
     """
     # Résolution adaptive
     if adaptive and user_id:
-        age_group_raw = await _resolve_age_group_adaptive(
+        age_group_raw = _resolve_age_group_adaptive_sync(
             user_id, exercise_type_raw, age_group_raw
         )
 
@@ -113,7 +102,7 @@ async def generate_exercise(
     # Persistance conditionnelle
     if save:
         try:
-            async with db_session() as db:
+            with sync_db_session() as db:
                 created = ExerciseRepository.persist_generated_exercise(
                     db=db,
                     exercise_type=exercise_dict["exercise_type"],

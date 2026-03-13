@@ -4,233 +4,286 @@ et admin content (LOT 6).
 
 Centralise l'ouverture DB, l'orchestration admin/auth/user/content et le wiring
 des mutations. Les handlers ne font que : parse request, validation minimale,
-appel façade, mapping HTTP.
+appel façade via run_db_bound, mapping HTTP.
+
+LOT A6 : sync + sync_db_session, exécuté via run_db_bound() depuis les handlers.
+LOT B2 : contrats explicites (AdminError, result models) à la place des tuples.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
+from app.schemas.admin import (
+    AdminActionSuccess,
+    AdminError,
+    AdminExportDataResult,
+    AdminResendVerificationResult,
+    AdminUserMutationResult,
+)
 from app.services.admin_service import AdminService
-from app.utils.db_utils import db_session
+from app.utils.db_utils import sync_db_session
 
 
 class AdminApplicationService:
     """Façade pour les mutations admin users/config et content."""
 
     @staticmethod
-    async def update_config(
+    def update_config(
         settings_in: Dict[str, Any], admin_user_id: Optional[int]
     ) -> None:
         """PUT /api/admin/config — met à jour les paramètres globaux."""
-        async with db_session() as db:
+        with sync_db_session() as db:
             AdminService.update_config(db, settings_in, admin_user_id)
 
     @staticmethod
-    async def patch_user(
+    def patch_user(
         user_id: int,
         admin_user_id: int,
         data: Dict[str, Any],
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+    ) -> AdminUserMutationResult:
         """
         PATCH /api/admin/users/{user_id} — mise à jour is_active et/ou role.
-
-        Returns:
-            (result_dict, error_message, status_code)
+        Lève AdminError en cas d'erreur.
         """
-        async with db_session() as db:
-            return AdminService.validate_and_patch_user(
+        with sync_db_session() as db:
+            result, err, code = AdminService.validate_and_patch_user(
                 db,
                 user_id=user_id,
                 admin_user_id=admin_user_id,
                 data=data,
             )
+            if err:
+                raise AdminError(err, code)
+            return AdminUserMutationResult.model_validate(result)
 
     @staticmethod
-    async def send_reset_password(user_id: int) -> Tuple[bool, Optional[str], int]:
+    def send_reset_password(user_id: int) -> AdminActionSuccess:
         """
         POST /api/admin/users/{user_id}/send-reset-password.
-
-        Returns:
-            (success, error_message, status_code)
+        Lève AdminError en cas d'erreur.
         """
-        async with db_session() as db:
-            return AdminService.send_reset_password_for_admin(db, user_id)
+        with sync_db_session() as db:
+            success, err, code = AdminService.send_reset_password_for_admin(db, user_id)
+            if not success:
+                raise AdminError(err or "Erreur inconnue", code)
+            return AdminActionSuccess(message="Email de réinitialisation envoyé.")
 
     @staticmethod
-    async def resend_verification(
-        user_id: int,
-    ) -> Tuple[bool, bool, Optional[str], int]:
+    def resend_verification(user_id: int) -> AdminResendVerificationResult:
         """
         POST /api/admin/users/{user_id}/resend-verification.
-
-        Returns:
-            (success, already_verified, error_message, status_code)
+        Lève AdminError en cas d'erreur.
         """
-        async with db_session() as db:
-            return AdminService.resend_verification_for_admin(db, user_id)
+        with sync_db_session() as db:
+            success, already_verified, err, code = (
+                AdminService.resend_verification_for_admin(db, user_id)
+            )
+            if not success:
+                raise AdminError(err or "Erreur inconnue", code)
+            message = (
+                "L'email est déjà vérifié."
+                if already_verified
+                else "Email de vérification envoyé."
+            )
+            return AdminResendVerificationResult(
+                already_verified=already_verified, message=message
+            )
 
     @staticmethod
-    async def delete_user(
-        user_id: int, admin_user_id: int
-    ) -> Tuple[bool, Optional[str], int]:
+    def delete_user(user_id: int, admin_user_id: int) -> AdminActionSuccess:
         """
         DELETE /api/admin/users/{user_id} — suppression définitive.
-
-        Returns:
-            (success, error_message, status_code)
+        Lève AdminError en cas d'erreur.
         """
-        async with db_session() as db:
-            return AdminService.delete_user_for_admin(
+        with sync_db_session() as db:
+            success, err, code = AdminService.delete_user_for_admin(
                 db, user_id=user_id, admin_user_id=admin_user_id
             )
+            if not success:
+                raise AdminError(err or "Erreur lors de la suppression.", code)
+            return AdminActionSuccess(message="Utilisateur supprimé.")
 
     # ── Content (LOT 6) ───────────────────────────────────────────────────
 
     @staticmethod
-    async def create_exercise_for_admin(
+    def create_exercise_for_admin(
         data: Dict[str, Any], admin_user_id: Optional[int]
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        """POST /api/admin/exercises — création d'un exercice."""
-        async with db_session() as db:
-            return AdminService.create_exercise_for_admin(
+    ) -> Dict[str, Any]:
+        """POST /api/admin/exercises — création d'un exercice. Lève AdminError si erreur."""
+        with sync_db_session() as db:
+            result, err, code = AdminService.create_exercise_for_admin(
                 db, data=data, admin_user_id=admin_user_id
             )
+            if err:
+                raise AdminError(err, code)
+            return result
 
     @staticmethod
-    async def put_exercise_for_admin(
-        exercise_id: str,
+    def put_exercise_for_admin(
+        exercise_id: int,
         data: Dict[str, Any],
         admin_user_id: Optional[int],
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        """PUT /api/admin/exercises/{exercise_id} — mise à jour complète."""
-        async with db_session() as db:
-            return AdminService.put_exercise_for_admin(
+    ) -> Dict[str, Any]:
+        """PUT /api/admin/exercises/{exercise_id} — mise à jour complète. Lève AdminError si erreur."""
+        with sync_db_session() as db:
+            result, err, code = AdminService.put_exercise_for_admin(
                 db,
                 exercise_id=exercise_id,
                 data=data,
                 admin_user_id=admin_user_id,
             )
+            if err:
+                raise AdminError(err, code)
+            return result
 
     @staticmethod
-    async def duplicate_exercise_for_admin(
-        exercise_id: str, admin_user_id: Optional[int]
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        """POST /api/admin/exercises/{exercise_id}/duplicate — crée une copie."""
-        async with db_session() as db:
-            return AdminService.duplicate_exercise_for_admin(
+    def duplicate_exercise_for_admin(
+        exercise_id: int, admin_user_id: Optional[int]
+    ) -> Dict[str, Any]:
+        """POST /api/admin/exercises/{exercise_id}/duplicate — crée une copie. Lève AdminError si erreur."""
+        with sync_db_session() as db:
+            result, err, code = AdminService.duplicate_exercise_for_admin(
                 db, exercise_id=exercise_id, admin_user_id=admin_user_id
             )
+            if err:
+                raise AdminError(err, code)
+            return result
 
     @staticmethod
-    async def patch_exercise_for_admin(
-        exercise_id: str,
+    def patch_exercise_for_admin(
+        exercise_id: int,
         is_archived: bool,
         admin_user_id: Optional[int],
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        """PATCH /api/admin/exercises/{exercise_id} — toggle is_archived."""
-        async with db_session() as db:
-            return AdminService.patch_exercise_for_admin(
+    ) -> Dict[str, Any]:
+        """PATCH /api/admin/exercises/{exercise_id} — toggle is_archived. Lève AdminError si erreur."""
+        with sync_db_session() as db:
+            result, err, code = AdminService.patch_exercise_for_admin(
                 db,
                 exercise_id=exercise_id,
                 is_archived=is_archived,
                 admin_user_id=admin_user_id,
             )
+            if err:
+                raise AdminError(err, code)
+            return result
 
     @staticmethod
-    async def create_badge_for_admin(
+    def create_badge_for_admin(
         data: Dict[str, Any], admin_user_id: Optional[int]
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        """POST /api/admin/badges — création d'un badge."""
-        async with db_session() as db:
-            return AdminService.create_badge_for_admin(
+    ) -> Dict[str, Any]:
+        """POST /api/admin/badges — création d'un badge. Lève AdminError si erreur."""
+        with sync_db_session() as db:
+            result, err, code = AdminService.create_badge_for_admin(
                 db, data=data, admin_user_id=admin_user_id
             )
+            if err:
+                raise AdminError(err, code)
+            return result
 
     @staticmethod
-    async def put_badge_for_admin(
-        badge_id: str,
+    def put_badge_for_admin(
+        badge_id: int,
         data: Dict[str, Any],
         admin_user_id: Optional[int],
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        """PUT /api/admin/badges/{badge_id} — mise à jour complète."""
-        async with db_session() as db:
-            return AdminService.put_badge_for_admin(
+    ) -> Dict[str, Any]:
+        """PUT /api/admin/badges/{badge_id} — mise à jour complète. Lève AdminError si erreur."""
+        with sync_db_session() as db:
+            result, err, code = AdminService.put_badge_for_admin(
                 db,
                 badge_id=badge_id,
                 data=data,
                 admin_user_id=admin_user_id,
             )
+            if err:
+                raise AdminError(err, code)
+            return result
 
     @staticmethod
-    async def delete_badge_for_admin(
-        badge_id: str, admin_user_id: Optional[int]
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        """DELETE /api/admin/badges/{badge_id} — soft delete."""
-        async with db_session() as db:
-            return AdminService.delete_badge_for_admin(
+    def delete_badge_for_admin(
+        badge_id: int, admin_user_id: Optional[int]
+    ) -> Dict[str, Any]:
+        """DELETE /api/admin/badges/{badge_id} — soft delete. Lève AdminError si erreur."""
+        with sync_db_session() as db:
+            result, err, code = AdminService.delete_badge_for_admin(
                 db, badge_id=badge_id, admin_user_id=admin_user_id
             )
+            if err:
+                raise AdminError(err, code)
+            return result
 
     @staticmethod
-    async def create_challenge_for_admin(
+    def create_challenge_for_admin(
         data: Dict[str, Any], admin_user_id: Optional[int]
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        """POST /api/admin/challenges — création d'un défi."""
-        async with db_session() as db:
-            return AdminService.create_challenge_for_admin(
+    ) -> Dict[str, Any]:
+        """POST /api/admin/challenges — création d'un défi. Lève AdminError si erreur."""
+        with sync_db_session() as db:
+            result, err, code = AdminService.create_challenge_for_admin(
                 db, data=data, admin_user_id=admin_user_id
             )
+            if err:
+                raise AdminError(err, code)
+            return result
 
     @staticmethod
-    async def put_challenge_for_admin(
-        challenge_id: str,
+    def put_challenge_for_admin(
+        challenge_id: int,
         data: Dict[str, Any],
         admin_user_id: Optional[int],
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        """PUT /api/admin/challenges/{challenge_id} — mise à jour complète."""
-        async with db_session() as db:
-            return AdminService.put_challenge_for_admin(
+    ) -> Dict[str, Any]:
+        """PUT /api/admin/challenges/{challenge_id} — mise à jour complète. Lève AdminError si erreur."""
+        with sync_db_session() as db:
+            result, err, code = AdminService.put_challenge_for_admin(
                 db,
                 challenge_id=challenge_id,
                 data=data,
                 admin_user_id=admin_user_id,
             )
+            if err:
+                raise AdminError(err, code)
+            return result
 
     @staticmethod
-    async def duplicate_challenge_for_admin(
-        challenge_id: str, admin_user_id: Optional[int]
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        """POST /api/admin/challenges/{challenge_id}/duplicate — crée une copie."""
-        async with db_session() as db:
-            return AdminService.duplicate_challenge_for_admin(
+    def duplicate_challenge_for_admin(
+        challenge_id: int, admin_user_id: Optional[int]
+    ) -> Dict[str, Any]:
+        """POST /api/admin/challenges/{challenge_id}/duplicate — crée une copie. Lève AdminError si erreur."""
+        with sync_db_session() as db:
+            result, err, code = AdminService.duplicate_challenge_for_admin(
                 db, challenge_id=challenge_id, admin_user_id=admin_user_id
             )
+            if err:
+                raise AdminError(err, code)
+            return result
 
     @staticmethod
-    async def patch_challenge_for_admin(
-        challenge_id: str,
+    def patch_challenge_for_admin(
+        challenge_id: int,
         is_archived: bool,
         admin_user_id: Optional[int],
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        """PATCH /api/admin/challenges/{challenge_id} — toggle is_archived."""
-        async with db_session() as db:
-            return AdminService.patch_challenge_for_admin(
+    ) -> Dict[str, Any]:
+        """PATCH /api/admin/challenges/{challenge_id} — toggle is_archived. Lève AdminError si erreur."""
+        with sync_db_session() as db:
+            result, err, code = AdminService.patch_challenge_for_admin(
                 db,
                 challenge_id=challenge_id,
                 is_archived=is_archived,
                 admin_user_id=admin_user_id,
             )
+            if err:
+                raise AdminError(err, code)
+            return result
 
     @staticmethod
-    async def export_csv_data_for_admin(
+    def export_csv_data_for_admin(
         export_type: str,
         period: str,
         admin_user_id: Optional[int],
-    ) -> Tuple[List[str], List[List[Any]]]:
+    ) -> AdminExportDataResult:
         """GET /api/admin/export — préparation métier (headers + rows)."""
-        async with db_session() as db:
-            return AdminService.export_csv_data_for_admin(
+        with sync_db_session() as db:
+            headers, rows = AdminService.export_csv_data_for_admin(
                 db,
                 export_type=export_type,
                 period=period,
                 admin_user_id=admin_user_id,
             )
+            return AdminExportDataResult(headers=headers, rows=rows)

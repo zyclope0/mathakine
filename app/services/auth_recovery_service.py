@@ -19,7 +19,7 @@ from app.services.auth_service import (
     verify_email_token,
 )
 from app.services.email_service import EmailService
-from app.utils.db_utils import db_session
+from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 
@@ -28,7 +28,7 @@ RESEND_COOLDOWN_MINUTES = 2
 
 
 class AuthRecoveryError(Exception):
-    """Erreur métier recovery/verification. Le handler mappe vers HTTP."""
+    """Erreur metier recovery/verification. Le handler mappe vers HTTP."""
 
     def __init__(self, code: str):
         self.code = code
@@ -36,7 +36,7 @@ class AuthRecoveryError(Exception):
 
 @dataclass
 class VerifyEmailResult:
-    """Résultat de la vérification d'email."""
+    """Resultat de la verification d'email."""
 
     user_payload: Dict[str, Any]
     state: Literal["verified", "already_verified"]
@@ -44,14 +44,14 @@ class VerifyEmailResult:
 
 @dataclass
 class ResendVerificationResult:
-    """Résultat du renvoi d'email de vérification."""
+    """Resultat du renvoi d'email de verification."""
 
     outcome: Literal["sent", "user_not_found", "already_verified", "cooldown"]
 
 
 @dataclass
 class ForgotPasswordResult:
-    """Résultat de la demande forgot-password."""
+    """Resultat de la demande forgot-password."""
 
     outcome: Literal["sent", "user_not_found_or_inactive"]
 
@@ -66,19 +66,20 @@ def _build_verify_user_payload(user) -> Dict[str, Any]:
     }
 
 
-async def perform_verify_email(token: str) -> VerifyEmailResult:
+def perform_verify_email(token: str) -> VerifyEmailResult:
     """
-    Vérifie un token d'email et marque l'utilisateur comme vérifié si valide.
+    Verifie un token d'email et marque l'utilisateur comme verifie si valide.
+    Sync - execute via run_db_bound() depuis les handlers async.
 
     Returns:
-        VerifyEmailResult si succès
+        VerifyEmailResult si succes
     Raises:
-        AuthRecoveryError("invalid") ou ("expired") si échec
+        AuthRecoveryError("invalid") ou ("expired") si echec
     """
     if not token or not token.strip():
         raise AuthRecoveryError("invalid")
 
-    async with db_session() as db:
+    with sync_db_session() as db:
         user, err = verify_email_token(db, token.strip())
 
         if err == "invalid":
@@ -96,20 +97,21 @@ async def perform_verify_email(token: str) -> VerifyEmailResult:
         return VerifyEmailResult(user_payload=payload, state="verified")
 
 
-async def perform_resend_verification(email: str) -> ResendVerificationResult:
+def perform_resend_verification(email: str) -> ResendVerificationResult:
     """
-    Renvoie l'email de vérification avec cooldown.
+    Renvoie l'email de verification avec cooldown.
+    Sync - execute via run_db_bound() depuis les handlers async.
 
     Returns:
         ResendVerificationResult (outcome)
     Raises:
-        AuthRecoveryError("email_send_failed") si échec envoi
+        AuthRecoveryError("email_send_failed") si echec envoi
     """
     email = (email or "").strip().lower()
     if not email:
         return ResendVerificationResult(outcome="user_not_found")
 
-    async with db_session() as db:
+    with sync_db_session() as db:
         user = get_user_by_email(db, email)
 
         if not user:
@@ -146,21 +148,22 @@ async def perform_resend_verification(email: str) -> ResendVerificationResult:
     return ResendVerificationResult(outcome="sent")
 
 
-async def perform_forgot_password(email: str) -> ForgotPasswordResult:
+def perform_forgot_password(email: str) -> ForgotPasswordResult:
     """
-    Demande de réinitialisation de mot de passe.
-    Génère un token, le stocke en DB, et envoie un email.
+    Demande de reinitialisation de mot de passe.
+    Genere un token, le stocke en DB, et envoie un email.
+    Sync - execute via run_db_bound() depuis les handlers async.
 
     Returns:
-        ForgotPasswordResult (toujours succès côté message pour sécurité)
+        ForgotPasswordResult (toujours succes cote message pour securite)
     Raises:
-        AuthRecoveryError("email_send_failed") si envoi échoue pour un compte valide
+        AuthRecoveryError("email_send_failed") si envoi echoue pour un compte valide
     """
     email = (email or "").strip().lower()
     if not email:
         return ForgotPasswordResult(outcome="user_not_found_or_inactive")
 
-    async with db_session() as db:
+    with sync_db_session() as db:
         user = get_user_by_email(db, email)
 
         if not user:
@@ -190,9 +193,10 @@ async def perform_forgot_password(email: str) -> ForgotPasswordResult:
     return ForgotPasswordResult(outcome="sent")
 
 
-async def perform_reset_password(token: str, new_password: str) -> None:
+def perform_reset_password(token: str, new_password: str) -> None:
     """
-    Réinitialise le mot de passe avec un token valide.
+    Reinitialise le mot de passe avec un token valide.
+    Sync - execute via run_db_bound() depuis les handlers async.
 
     Raises:
         AuthRecoveryError("invalid") ou ("expired") si token invalide
@@ -201,7 +205,7 @@ async def perform_reset_password(token: str, new_password: str) -> None:
     if not token:
         raise AuthRecoveryError("invalid")
 
-    async with db_session() as db:
+    with sync_db_session() as db:
         user, err = reset_password_with_token(db, token, new_password)
 
         if err == "invalid":

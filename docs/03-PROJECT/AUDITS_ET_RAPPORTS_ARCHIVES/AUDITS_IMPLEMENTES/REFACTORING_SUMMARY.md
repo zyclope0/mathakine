@@ -5,7 +5,7 @@
 **Statut :** ✅ Complété  
 **Périmètre :** Frontend uniquement (pages /exercises, /challenges, /dashboard, /badges).
 
-> **Backend refactor :** Voir [REFACTOR_STATUS_2026-02.md](../../REFACTOR_STATUS_2026-02.md), [PLAN_CLEAN_CODE_ET_DTO](../../PLAN_CLEAN_CODE_ET_DTO_2026-02.md), [PLAN_REFACTO_ARCHITECTURE](../../PLAN_REFACTO_ARCHITECTURE_2026-02.md).
+> **Backend refactor :** Voir [REFACTOR_STATUS_2026-02.md](../../archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/REFACTOR_STATUS_2026-02.md), [PLAN_CLEAN_CODE_ET_DTO](../../archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/PLAN_CLEAN_CODE_ET_DTO_2026-02.md), [PLAN_REFACTO_ARCHITECTURE](../PLAN_REFACTO_ARCHITECTURE_2026-02.md).
 
 ---
 

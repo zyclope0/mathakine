@@ -2,6 +2,7 @@
 Handlers pour les defis logiques (API Starlette)
 
 LOT 1 : handlers de lecture anemiques - parse, appel query service, mapping HTTP.
+LOT A6 : appels via run_db_bound() vers facades sync.
 """
 
 import traceback
@@ -11,8 +12,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, StreamingResponse
 
 from app.core.logging_config import get_logger
-from app.exceptions import ChallengeNotFoundError
-from app.schemas.logic_challenge import ChallengeAttemptRequest, ChallengeListResponse
+from app.core.runtime import run_db_bound
+from app.exceptions import ChallengeAttemptRecordError, ChallengeNotFoundError
+from app.schemas.logic_challenge import ChallengeAttemptRequest
 from app.services.challenge_attempt_service import submit_challenge_attempt
 from app.services.challenge_query_service import (
     get_challenge_detail_for_api,
@@ -73,7 +75,8 @@ async def get_challenges_list(request: Request) -> JSONResponse:
 
         user_id = current_user.get("id")
 
-        response_data = await list_challenges_for_api(
+        list_result = await run_db_bound(
+            list_challenges_for_api,
             challenge_type=p.challenge_type,
             age_group_db=p.age_group_db,
             search=p.search,
@@ -84,12 +87,10 @@ async def get_challenges_list(request: Request) -> JSONResponse:
             hide_completed=p.hide_completed,
             user_id=user_id,
         )
-        total = response_data.get("total", 0)
-        items_count = len(response_data.get("items", []))
         logger.info(
-            f"Recuperation reussie de {items_count} defis sur {total} total (locale: {locale})"
+            f"Recuperation reussie de {len(list_result.items)} defis sur {list_result.total} total (locale: {locale})"
         )
-        return JSONResponse(ChallengeListResponse(**response_data).model_dump())
+        return JSONResponse(list_result.model_dump())
     except ValueError as filter_validation_error:
         logger.error(f"Erreur de validation des parametres: {filter_validation_error}")
         return ErrorHandler.create_validation_error(
@@ -121,7 +122,7 @@ async def get_challenge(request: Request) -> JSONResponse:
         accept_language = request.headers.get("Accept-Language", "fr")
         locale = parse_accept_language(accept_language)
 
-        challenge_dict = await get_challenge_detail_for_api(challenge_id)
+        challenge_dict = await run_db_bound(get_challenge_detail_for_api, challenge_id)
 
         logger.info(
             f"Recuperation reussie du defi logique {challenge_id} (locale: {locale})"
@@ -172,12 +173,18 @@ async def submit_challenge_answer(request: Request) -> JSONResponse:
         except ValidationError as ve:
             return api_error_response(400, _first_validation_error_message(ve))
 
-        response_data = await submit_challenge_attempt(
-            challenge_id, user_id, attempt_req
+        result = await run_db_bound(
+            submit_challenge_attempt,
+            challenge_id,
+            user_id,
+            attempt_req,
         )
-        return JSONResponse(response_data)
+        return JSONResponse(result.model_dump(by_alias=True, exclude_none=True))
     except ChallengeNotFoundError:
         return api_error_response(404, "Defi logique non trouve")
+    except ChallengeAttemptRecordError as record_err:
+        logger.error(f"Erreur enregistrement tentative: {record_err}")
+        return api_error_response(500, record_err.message)
     except ValueError:
         return api_error_response(400, "ID de defi invalide")
     except Exception as submission_error:
@@ -197,8 +204,10 @@ async def get_challenge_hint(request: Request) -> JSONResponse:
         challenge_id = int(request.path_params.get("challenge_id"))
         level = int(request.query_params.get("level", 1))
 
-        hint_data = await get_challenge_hint_for_api(challenge_id, level)
-        return JSONResponse(hint_data)
+        hint_result = await run_db_bound(
+            get_challenge_hint_for_api, challenge_id, level
+        )
+        return JSONResponse(hint_result.model_dump())
     except ChallengeNotFoundError:
         return api_error_response(404, "Defi logique non trouve")
     except ValueError as ve:
@@ -229,7 +238,7 @@ async def get_completed_challenges_ids(request: Request) -> JSONResponse:
         if not user_id:
             return JSONResponse({"completed_ids": []}, status_code=200)
 
-        completed_ids = await query_completed_challenges_ids(user_id)
+        completed_ids = await run_db_bound(query_completed_challenges_ids, user_id)
 
         logger.debug(
             f"Recuperation de {len(completed_ids)} challenges completes pour l'utilisateur {user_id}"
@@ -262,7 +271,7 @@ async def generate_ai_challenge_stream(request: Request) -> Response:
 
     try:
         current_user = request.state.user
-        query, error_msg = prepare_stream_context(
+        stream_result = prepare_stream_context(
             challenge_type_raw=request.query_params.get("challenge_type", "sequence"),
             age_group_raw=request.query_params.get("age_group", "10-12"),
             prompt_raw=request.query_params.get("prompt", ""),
@@ -270,8 +279,10 @@ async def generate_ai_challenge_stream(request: Request) -> Response:
             accept_language=request.headers.get("Accept-Language", "fr"),
         )
 
-        if error_msg:
-            return sse_error_response(error_msg)
+        if not stream_result.is_success:
+            return sse_error_response(stream_result.error_message or "")
+
+        query = stream_result.query
 
         async def generate():
             async for event in svc_generate_stream(

@@ -1,6 +1,6 @@
 """
-Handler pour les événements analytiques EdTech (CTR Quick Start, temps vers 1er attempt, conversion).
-Persistance en BDD + log structuré. Consultation via admin /api/admin/analytics/edtech.
+Handler pour les evenements analytiques EdTech (CTR Quick Start, temps vers 1er attempt, conversion).
+Persistance en BDD + log structure. Consultation via admin /api/admin/analytics/edtech.
 """
 
 import json
@@ -9,8 +9,8 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
-from app.services.analytics_service import AnalyticsService
-from app.utils.db_utils import db_session
+from app.core.runtime import run_db_bound
+from app.services.analytics_service import record_edtech_event_sync
 from app.utils.error_handler import api_error_response
 from app.utils.pagination import parse_pagination_params
 from app.utils.request_utils import parse_json_body_any
@@ -22,7 +22,7 @@ logger = get_logger(__name__)
 @require_auth
 async def analytics_event(request: Request) -> JSONResponse:
     """
-    Enregistrer un événement analytics EdTech.
+    Enregistrer un evenement analytics EdTech.
     Route: POST /api/analytics/event
     Body: { "event": "quick_start_click"|"first_attempt", "payload": {...} }
     """
@@ -45,17 +45,16 @@ async def analytics_event(request: Request) -> JSONResponse:
         }
         logger.info("[EDTECH] %s", json.dumps(log_payload, default=str))
 
-        async with db_session() as db:
-            ok = AnalyticsService.record_edtech_event(
-                db,
-                event=event,
-                payload=payload_dict,
-                user_id=user_id,
+        ok = await run_db_bound(
+            record_edtech_event_sync,
+            event=event,
+            payload=payload_dict,
+            user_id=user_id,
+        )
+        if not ok:
+            return api_error_response(
+                400, "event invalide (attendu: first_attempt, quick_start_click)"
             )
-            if not ok:
-                return api_error_response(
-                    400, "event invalide (attendu: first_attempt, quick_start_click)"
-                )
 
         return JSONResponse({"ok": True}, status_code=200)
     except Exception as e:
@@ -74,7 +73,7 @@ from server.auth import require_admin
 async def admin_analytics_edtech(request: Request) -> JSONResponse:
     """
     GET /api/admin/analytics/edtech
-    Agrégats et liste des événements EdTech (period=7d|30d, event=optional).
+    Agregats et liste des evenements EdTech (period=7d|30d, event=optional).
     """
     try:
         period = request.query_params.get("period", "7d")
@@ -83,7 +82,8 @@ async def admin_analytics_edtech(request: Request) -> JSONResponse:
             request.query_params, default_limit=200, max_limit=500
         )
 
-        result = await get_edtech_analytics_for_admin(
+        result = await run_db_bound(
+            get_edtech_analytics_for_admin,
             period=period,
             event_filter=event_filter,
             limit=limit,

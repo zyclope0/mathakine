@@ -286,6 +286,12 @@ class ChallengeListResponse(BaseModel):
     hasMore: bool
 
 
+class ChallengeHintResponse(BaseModel):
+    """Réponse GET /api/challenges/{id}/hint."""
+
+    hint: str = Field(..., description="Indice demandé")
+
+
 class GenerateChallengeStreamQuery(BaseModel):
     """Paramètres préparés pour la génération IA streaming (LOT 3 boundary)."""
 
@@ -328,3 +334,68 @@ class LogicChallengeAttemptResult(BaseModel):
     )
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# --- DTOs use case Attempt (LOT B1) ---
+
+
+class SubmitChallengeAttemptCommand(BaseModel):
+    """Commande pour soumettre une tentative de défi logique."""
+
+    challenge_id: int = Field(..., description="ID du défi")
+    user_id: int = Field(..., description="ID de l'utilisateur")
+    user_solution: str = Field(..., description="Réponse fournie")
+    time_spent: Optional[float] = Field(
+        None, ge=0.0, description="Temps passé en secondes"
+    )
+    hints_used_count: int = Field(0, ge=0, description="Nombre d'indices utilisés")
+
+
+class ChallengeBadgeEarned(BaseModel):
+    """Badge débloqué lors d'une tentative (contrat API préservé)."""
+
+    badge_id: Optional[int] = Field(None, serialization_alias="id")
+    code: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    star_wars_title: Optional[str] = None
+    difficulty: Optional[str] = None
+    points_reward: Optional[int] = None
+    earned_at: Optional[str] = None
+
+
+class ChallengeProgressNotification(BaseModel):
+    """Notification de progression vers un badge (contrat historique: name, remaining)."""
+
+    name: Optional[str] = None
+    remaining: Optional[int] = None
+
+
+class SubmitChallengeAttemptResult(BaseModel):
+    """Résultat de la soumission d'une tentative (POST /api/challenges/{id}/attempt)."""
+
+    is_correct: bool = Field(..., description="Si la réponse est correcte")
+    explanation: Optional[str] = Field(None, description="Explication (si correct)")
+    new_badges: List[ChallengeBadgeEarned] = Field(
+        default_factory=list, description="Nouveaux badges débloqués"
+    )
+    progress_notification: Optional[ChallengeProgressNotification] = Field(
+        None, description="Progression vers le prochain badge"
+    )
+    hints_remaining: Optional[int] = Field(
+        None, description="Indices restants (si incorrect)"
+    )
+
+
+# --- DTO use case Stream (LOT B1) ---
+
+
+class PrepareStreamContextResult(BaseModel):
+    """Résultat de la préparation du contexte SSE génération IA."""
+
+    query: Optional[GenerateChallengeStreamQuery] = None
+    error_message: Optional[str] = None
+
+    @property
+    def is_success(self) -> bool:
+        return self.error_message is None

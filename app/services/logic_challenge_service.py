@@ -310,9 +310,10 @@ class LogicChallengeService:
         user_solution: Any,
         time_spent: Any = None,
         hints_used_count: int = 0,
-    ) -> Dict[str, Any]:
+    ):
         """
         Délègue à challenge_attempt_service (LOT 2.1).
+        Retourne SubmitChallengeAttemptResult (LOT B1).
         Conservé pour compatibilité avec appelants synchrones (tests, etc.).
         """
         from app.services.challenge_attempt_service import (

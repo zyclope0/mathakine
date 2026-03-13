@@ -28,6 +28,14 @@ class ChallengeNotFoundError(ExerciseSubmitError):
         super().__init__(404, message)
 
 
+class ChallengeAttemptRecordError(Exception):
+    """Impossible d'enregistrer la tentative de défi (erreur métier)."""
+
+    def __init__(self, message: str = "Impossible d'enregistrer la tentative"):
+        self.message = message
+        super().__init__(message)
+
+
 class UserNotFoundError(Exception):
     """Utilisateur non trouvé."""
 

@@ -2,6 +2,7 @@
 
 import { useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { api, ApiClientError } from "@/lib/api/client";
 import type { UserBadgesResponse, GamificationStats, Badge, UserBadge } from "@/types/api";
 import { toast } from "sonner";
@@ -10,6 +11,7 @@ import { useLocaleStore } from "@/lib/stores/localeStore";
 
 export function useBadges() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { locale } = useLocaleStore();
   const t = useTranslations("toasts");
 
@@ -113,6 +115,11 @@ export function useBadges() {
       }
     },
     onError: (error: ApiClientError) => {
+      if (error.status === 401) {
+        queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+        router.push("/login");
+        return;
+      }
       toast.error(t("badges.checkError"), {
         description: error.message || t("badges.checkErrorDescription"),
       });

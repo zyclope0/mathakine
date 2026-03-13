@@ -2,6 +2,7 @@
 Handlers pour la gestion des utilisateurs et statistiques (API)
 
 LOT 6 : handlers anémiques — lecture HTTP, validation schema, appel service, mapping erreurs.
+LOT A6 : appels via run_db_bound() vers facades sync.
 """
 
 import traceback
@@ -11,6 +12,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
+from app.core.runtime import run_db_bound
 from app.core.security import get_cookie_config
 from app.exceptions import UserNotFoundError
 from app.schemas.user import UserCreate, UserPasswordUpdate
@@ -77,7 +79,9 @@ async def get_user_stats(request: Request) -> JSONResponse:
             f"Récupération des statistiques pour {username} (ID: {user_id}), période: {time_range}"
         )
 
-        response_data = await get_dashboard_stats(user_id, time_range=time_range)
+        response_data = await run_db_bound(
+            get_dashboard_stats, user_id, time_range=time_range
+        )
         return JSONResponse(response_data)
 
     except Exception as stats_retrieval_error:
@@ -97,7 +101,7 @@ async def create_user_account(request: Request) -> JSONResponse:
     Route: POST /api/users/
     Body: UserCreate (username, email, password, full_name optionnel)
     """
-    if not await get_setting_bool("registration_enabled", True):
+    if not await run_db_bound(get_setting_bool, "registration_enabled", True):
         return api_error_response(403, "Les inscriptions sont temporairement fermées.")
 
     data_or_err = await parse_json_body_any(request)
@@ -111,12 +115,17 @@ async def create_user_account(request: Request) -> JSONResponse:
             email=(data.get("email") or "").strip(),
             password=data.get("password", ""),
             full_name=(data.get("full_name") or "").strip() or None,
+            grade_level=None,
+            learning_style=None,
+            preferred_difficulty=None,
+            preferred_theme="spatial",
+            accessibility_settings=None,
         )
     except ValidationError as ve:
         return api_error_response(400, _first_validation_error_message(ve))
 
     try:
-        payload, error, status_code = await register_user(user_create)
+        payload, error, status_code = await run_db_bound(register_user, user_create)
         if error:
             return api_error_response(status_code, error)
         return JSONResponse(payload, status_code=201)
@@ -170,8 +179,9 @@ async def get_users_leaderboard(request: Request) -> JSONResponse:
         )
         age_group = query_params.get("age_group", "").strip() or None
 
-        leaderboard = await get_leaderboard(
-            current_user_id=user_id,
+        leaderboard = await run_db_bound(
+            get_leaderboard,
+            user_id,
             limit=limit,
             age_group=age_group,
         )
@@ -199,7 +209,9 @@ async def get_progress_timeline_handler(request: Request) -> JSONResponse:
         user_id = current_user.get("id")
         period = request.query_params.get("period", "7d")
 
-        response_data = await get_progress_timeline_data(user_id, period=period)
+        response_data = await run_db_bound(
+            get_progress_timeline_data, user_id, period=period
+        )
         return JSONResponse(response_data, status_code=200)
 
     except Exception as e:
@@ -224,7 +236,7 @@ async def get_all_user_progress(request: Request) -> JSONResponse:
             f"Récupération de la progression globale pour l'utilisateur {user_id}"
         )
 
-        response_data = await get_user_progress_data(user_id)
+        response_data = await run_db_bound(get_user_progress_data, user_id)
         return JSONResponse(response_data, status_code=200)
 
     except Exception as e:
@@ -249,7 +261,7 @@ async def get_challenges_progress(request: Request) -> JSONResponse:
             f"Récupération de la progression des défis pour l'utilisateur {user_id}"
         )
 
-        response_data = await get_challenges_progress_data(user_id)
+        response_data = await run_db_bound(get_challenges_progress_data, user_id)
         return JSONResponse(response_data, status_code=200)
 
     except Exception as e:
@@ -276,7 +288,7 @@ async def update_user_me(request: Request) -> JSONResponse:
         user_id = current_user.get("id")
         logger.info(f"Mise à jour profil utilisateur {user_id}")
 
-        user_payload, err = await update_profile(user_id, data)
+        user_payload, err = await run_db_bound(update_profile, user_id, data)
         if err == "not_found":
             return api_error_response(404, "Utilisateur introuvable.")
         if err == "email_taken":
@@ -319,7 +331,8 @@ async def update_user_password_me(request: Request) -> JSONResponse:
         current_user = request.state.user
         user_id = current_user.get("id")
 
-        ok, err_msg = await update_password(
+        ok, err_msg = await run_db_bound(
+            update_password,
             user_id,
             payload.current_password,
             payload.new_password,
@@ -352,7 +365,7 @@ async def delete_user_me(request: Request) -> JSONResponse:
         user_id = current_user.get("id")
         username = current_user.get("username")
 
-        await delete_user_account(user_id)
+        await run_db_bound(delete_user_account, user_id)
 
         logger.info(f"Compte utilisateur supprimé : {username} (ID: {user_id})")
 
@@ -421,7 +434,7 @@ async def export_user_data_handler(request: Request) -> JSONResponse:
         current_user = request.state.user
         user_id = current_user.get("id")
 
-        export = await export_user_data(user_id)
+        export = await run_db_bound(export_user_data, user_id)
         if export is None:
             return api_error_response(404, "Utilisateur introuvable.")
 
@@ -450,7 +463,7 @@ async def get_user_sessions(request: Request) -> JSONResponse:
         current_user = request.state.user
         user_id = current_user.get("id")
 
-        session_list = await get_user_sessions_list(user_id)
+        session_list = await run_db_bound(get_user_sessions_list, user_id)
 
         logger.debug(
             f"Récupération de {len(session_list)} sessions actives pour user_id={user_id}"
@@ -474,7 +487,7 @@ async def revoke_user_session(request: Request) -> JSONResponse:
         user_id = current_user.get("id")
         session_id = int(request.path_params.get("session_id"))
 
-        ok, err_msg = await revoke_session(user_id, session_id)
+        ok, err_msg = await run_db_bound(revoke_session, user_id, session_id)
 
         if not ok:
             logger.warning(

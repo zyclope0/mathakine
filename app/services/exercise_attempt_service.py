@@ -19,6 +19,7 @@ from app.repositories.exercise_attempt_repository import (
     update_progress_after_attempt,
 )
 from app.schemas.exercise import SubmitAnswerResponse
+from app.utils.db_utils import sync_db_session
 from app.utils.json_utils import make_json_serializable
 
 logger = get_logger(__name__)
@@ -189,3 +190,18 @@ def submit_answer(
         badges_earned=len(new_badges) if new_badges else None,
         progress_notification=progress_notif,
     )
+
+
+def submit_answer_sync(
+    exercise_id: int,
+    user_id: int,
+    selected_answer: Any,
+    time_spent: float = 0,
+) -> SubmitAnswerResponse:
+    """
+    Point d'entrée sync pour soumission de réponse.
+    Ouvre sync_db_session et délègue à submit_answer.
+    Utilisé par les handlers via run_db_bound().
+    """
+    with sync_db_session() as db:
+        return submit_answer(db, exercise_id, user_id, selected_answer, time_spent)

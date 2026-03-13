@@ -307,10 +307,9 @@ async def test_generate_exercise_service_error(db_session):
     """
     mock_response = JSONResponse({"error": "Erreur de service"}, status_code=500)
 
-    # Patch au point d'appel du handler (svc_generate_exercise) — la cible réelle
-    # depuis le refactor Lot 1 (plus EnhancedServerAdapter.create_generated_exercise)
+    # Patch au point d'appel du handler (run_db_bound + generate_exercise_sync)
     with patch(
-        "server.handlers.exercise_handlers.svc_generate_exercise",
+        "server.handlers.exercise_handlers.run_db_bound",
         side_effect=Exception("Erreur simulée du service"),
     ):
         query_params = {

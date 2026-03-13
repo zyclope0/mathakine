@@ -1,12 +1,12 @@
 """
-Service des défis quotidiens — F02.
+Service des defis quotidiens - F02.
 
-Génère et met à jour les 3 défis quotidiens par utilisateur.
+Genere et met a jour les 3 defis quotidiens par utilisateur.
 Types : volume_exercises, specific_type, logic_challenge.
 
 Fondements EdTech :
-  - Cepeda et al. (2006) : pratique distribuée, rétention à long terme
-  - Deci & Ryan (2000) : SDT, défis optionnels sans punition si manqués
+  - Cepeda et al. (2006) : pratique distribuee, retention a long terme
+  - Deci & Ryan (2000) : SDT, defis optionnels sans punition si manques
 """
 
 import random
@@ -18,10 +18,11 @@ from app.core.constants import ExerciseTypes
 from app.core.logging_config import get_logger
 from app.models.daily_challenge import DailyChallenge
 from app.models.user import User
+from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 
-# Types de défis quotidiens
+# Types de defis quotidiens
 CHALLENGE_TYPE_VOLUME = "volume_exercises"
 CHALLENGE_TYPE_SPECIFIC = "specific_type"
 CHALLENGE_TYPE_LOGIC = "logic_challenge"
@@ -40,10 +41,35 @@ SPECIFIC_TEMPLATES = [(CHALLENGE_TYPE_SPECIFIC, 2, 4, 15)]
 LOGIC_TEMPLATES = [(CHALLENGE_TYPE_LOGIC, 1, 2, 20)]
 
 
+def _daily_challenge_to_dict(dc: DailyChallenge) -> dict:
+    """Serialise un DailyChallenge pour l'API (dans le contexte session)."""
+    return {
+        "id": dc.id,
+        "date": dc.date.isoformat() if dc.date else None,
+        "challenge_type": dc.challenge_type,
+        "metadata": dc.metadata_ or {},
+        "target_count": dc.target_count,
+        "completed_count": dc.completed_count,
+        "status": dc.status,
+        "bonus_points": dc.bonus_points,
+    }
+
+
+def get_or_create_today_for_user_sync(user_id: int) -> list[dict]:
+    """
+    Use case sync: recupere ou cree les defis du jour pour l'utilisateur.
+    Retourne une liste de dicts serialises (evite DetachedInstanceError hors session).
+    Execute via run_db_bound() depuis les handlers async.
+    """
+    with sync_db_session() as db:
+        challenges = get_or_create_today_for_user(db, user_id)
+        return [_daily_challenge_to_dict(c) for c in challenges]
+
+
 def get_or_create_today(db: Session, user_id: int) -> list[DailyChallenge]:
     """
-    Récupère les défis du jour pour l'utilisateur.
-    Les crée si aucun n'existe pour aujourd'hui.
+    Recupere les defis du jour pour l'utilisateur.
+    Les cree si aucun n'existe pour aujourd'hui.
     """
     today = date.today()
     existing = (
@@ -72,7 +98,7 @@ def get_or_create_today_for_user(db: Session, user_id: int) -> list[DailyChallen
 
 
 def _generate_today(db: Session, user_id: int, day: date) -> list[DailyChallenge]:
-    """Génère 3 défis adaptés au profil utilisateur."""
+    """Genere 3 defis adaptes au profil utilisateur."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         return []
@@ -95,7 +121,7 @@ def _generate_today(db: Session, user_id: int, day: date) -> list[DailyChallenge
     db.add(c1)
     challenges.append(c1)
 
-    # 2. Specific type : N exercices d'un type donné
+    # 2. Specific type : N exercices d'un type donne
     t = random.choice(SPECIFIC_TEMPLATES)
     target = random.randint(t[1], t[2])
     ex_type = random.choice(SPECIFIC_TYPES)
@@ -112,7 +138,7 @@ def _generate_today(db: Session, user_id: int, day: date) -> list[DailyChallenge
     db.add(c2)
     challenges.append(c2)
 
-    # 3. Logic challenge : N défis logiques
+    # 3. Logic challenge : N defis logiques
     t = random.choice(LOGIC_TEMPLATES)
     target = random.randint(t[1], t[2])
     c3 = DailyChallenge(
@@ -130,7 +156,7 @@ def _generate_today(db: Session, user_id: int, day: date) -> list[DailyChallenge
 
     db.flush()
     logger.info(
-        f"[DailyChallenge] Généré 3 défis pour user={user_id} date={day}: "
+        f"[DailyChallenge] Genere 3 defis pour user={user_id} date={day}: "
         f"volume={c1.target_count}, specific={ex_type}={c2.target_count}, logic={c3.target_count}"
     )
     return challenges
@@ -143,8 +169,8 @@ def record_exercise_completed(
     is_correct: bool,
 ) -> list[dict]:
     """
-    Met à jour les défis du jour après une tentative d'exercice réussie.
-    Retourne la liste des défis qui viennent d'être complétés (pour feedback).
+    Met a jour les defis du jour apres une tentative d'exercice reussie.
+    Retourne la liste des defis qui viennent d'etre completes (pour feedback).
     """
     if not is_correct:
         return []
@@ -197,8 +223,8 @@ def record_logic_challenge_completed(
     is_correct: bool,
 ) -> list[dict]:
     """
-    Met à jour les défis du jour après une tentative de défi logique réussie.
-    Retourne la liste des défis qui viennent d'être complétés.
+    Met a jour les defis du jour apres une tentative de defi logique reussie.
+    Retourne la liste des defis qui viennent d'etre completes.
     """
     if not is_correct:
         return []
@@ -237,9 +263,9 @@ def record_logic_challenge_completed(
 
 def expire_past_daily_challenges(db: Session) -> int:
     """
-    Marque comme expirés les défis des jours passés encore en pending.
-    À appeler périodiquement (ex: cron ou au démarrage).
-    Retourne le nombre de défis expirés.
+    Marque comme expires les defis des jours passes encore en pending.
+    A appeler periodiquement (ex: cron ou au demarrage).
+    Retourne le nombre de defis expires.
     """
     today = date.today()
     updated = (
@@ -251,5 +277,5 @@ def expire_past_daily_challenges(db: Session) -> int:
         .update({"status": "expired"}, synchronize_session=False)
     )
     if updated:
-        logger.info(f"[DailyChallenge] {updated} défis expirés")
+        logger.info(f"[DailyChallenge] {updated} defis expires")
     return updated

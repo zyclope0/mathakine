@@ -1,5 +1,6 @@
 """
 Handlers pour l'espace admin (rôle archiviste).
+LOT A6 : appels via run_db_bound() vers facades sync.
 """
 
 import csv
@@ -8,6 +9,8 @@ import io
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, StreamingResponse
 
+from app.core.runtime import run_db_bound
+from app.schemas.admin import AdminError
 from app.services.admin_application_service import AdminApplicationService
 from app.services.admin_read_service import (
     get_audit_log_for_api,
@@ -48,7 +51,7 @@ async def admin_config_get(request: Request) -> JSONResponse:
     GET /api/admin/config
     Liste les paramètres globaux (paramètres du Temple).
     """
-    result = await get_config_for_api()
+    result = await run_db_bound(get_config_for_api)
     return JSONResponse({"settings": result})
 
 
@@ -69,7 +72,9 @@ async def admin_config_put(request: Request) -> JSONResponse:
         return api_error_response(400, "'settings' doit être un objet")
 
     admin_user_id = getattr(request.state, "user", {}).get("id")
-    await AdminApplicationService.update_config(settings_in, admin_user_id)
+    await run_db_bound(
+        AdminApplicationService.update_config, settings_in, admin_user_id
+    )
     return JSONResponse({"status": "ok"})
 
 
@@ -80,7 +85,7 @@ async def admin_overview(request: Request) -> JSONResponse:
     GET /api/admin/overview
     KPIs globaux de la plateforme.
     """
-    result = await get_overview_for_api()
+    result = await run_db_bound(get_overview_for_api)
     return JSONResponse(result)
 
 
@@ -94,7 +99,8 @@ async def admin_users(request: Request) -> JSONResponse:
     from server.handlers.admin_list_params import parse_admin_users_params
 
     p = parse_admin_users_params(request)
-    result = await list_users_for_admin(
+    result = await run_db_bound(
+        list_users_for_admin,
         search=p.search,
         role=p.role,
         is_active=p.is_active,
@@ -122,14 +128,16 @@ async def admin_users_patch(request: Request) -> JSONResponse:
     if isinstance(data_or_err, JSONResponse):
         return data_or_err
 
-    result, err, code = await AdminApplicationService.patch_user(
-        user_id=user_id,
-        admin_user_id=admin_user_id,
-        data=data_or_err,
-    )
-    if err:
-        return api_error_response(code, err)
-    return JSONResponse(result)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.patch_user,
+            user_id,
+            admin_user_id,
+            data_or_err,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
+    return JSONResponse(result.model_dump())
 
 
 @require_auth
@@ -139,16 +147,18 @@ async def admin_users_send_reset_password(request: Request) -> JSONResponse:
     POST /api/admin/users/{user_id}/send-reset-password
     Force l'envoi d'un email de réinitialisation de mot de passe (bypass rate limit).
     """
-
     try:
         user_id = int(request.path_params["user_id"])
     except (ValueError, TypeError):
         return api_error_response(400, "user_id invalide")
 
-    success, err, code = await AdminApplicationService.send_reset_password(user_id)
-    if not success:
-        return api_error_response(code, err)
-    return JSONResponse({"message": "Email de réinitialisation envoyé."})
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.send_reset_password, user_id
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
+    return JSONResponse({"message": result.message})
 
 
 @require_auth
@@ -164,14 +174,13 @@ async def admin_users_resend_verification(request: Request) -> JSONResponse:
     except (ValueError, TypeError):
         return api_error_response(400, "user_id invalide")
 
-    success, already_verified, err, code = (
-        await AdminApplicationService.resend_verification(user_id)
-    )
-    if not success:
-        return api_error_response(code, err)
-    if already_verified:
-        return JSONResponse({"message": "L'email est déjà vérifié."})
-    return JSONResponse({"message": "Email de vérification envoyé."})
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.resend_verification, user_id
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
+    return JSONResponse({"message": result.message})
 
 
 @require_auth
@@ -190,12 +199,13 @@ async def admin_users_delete(request: Request) -> JSONResponse:
     if not admin_user_id:
         return api_error_response(401, "Non authentifié.")
 
-    success, err, code = await AdminApplicationService.delete_user(
-        user_id=user_id, admin_user_id=admin_user_id
-    )
-    if not success:
-        return api_error_response(code, err or "Erreur lors de la suppression.")
-    return JSONResponse({"message": "Utilisateur supprimé."})
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.delete_user, user_id, admin_user_id
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
+    return JSONResponse({"message": result.message})
 
 
 @require_auth
@@ -208,7 +218,8 @@ async def admin_exercises(request: Request) -> JSONResponse:
     from server.handlers.admin_list_params import parse_admin_exercises_params
 
     base, exercise_type = parse_admin_exercises_params(request)
-    result = await list_exercises_for_admin(
+    result = await run_db_bound(
+        list_exercises_for_admin,
         archived=base.archived,
         exercise_type=exercise_type,
         search=base.search,
@@ -224,17 +235,19 @@ async def admin_exercises(request: Request) -> JSONResponse:
 @require_admin
 async def admin_exercises_post(request: Request) -> JSONResponse:
     """POST /api/admin/exercises — création d'un exercice."""
-
     data_or_err = await parse_json_body_any(request)
     if isinstance(data_or_err, JSONResponse):
         return data_or_err
 
     admin_id = getattr(request.state, "user", {}).get("id")
-    result, err, code = await AdminApplicationService.create_exercise_for_admin(
-        data=data_or_err, admin_user_id=admin_id
-    )
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.create_exercise_for_admin,
+            data_or_err,
+            admin_id,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result, status_code=201)
 
 
@@ -243,9 +256,10 @@ async def admin_exercises_post(request: Request) -> JSONResponse:
 async def admin_exercise_get(request: Request) -> JSONResponse:
     """GET /api/admin/exercises/{exercise_id} — détail complet pour édition."""
     exercise_id = request.path_params["exercise_id"]
-    result, err, code = await get_exercise_for_admin(exercise_id)
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(get_exercise_for_admin, exercise_id)
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result)
 
 
@@ -253,18 +267,21 @@ async def admin_exercise_get(request: Request) -> JSONResponse:
 @require_admin
 async def admin_exercises_put(request: Request) -> JSONResponse:
     """PUT /api/admin/exercises/{exercise_id} — mise à jour complète."""
-
     exercise_id = request.path_params["exercise_id"]
     data_or_err = await parse_json_body_any(request)
     if isinstance(data_or_err, JSONResponse):
         return data_or_err
 
     admin_id = getattr(request.state, "user", {}).get("id")
-    result, err, code = await AdminApplicationService.put_exercise_for_admin(
-        exercise_id=exercise_id, data=data_or_err, admin_user_id=admin_id
-    )
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.put_exercise_for_admin,
+            exercise_id,
+            data_or_err,
+            admin_id,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result)
 
 
@@ -272,14 +289,16 @@ async def admin_exercises_put(request: Request) -> JSONResponse:
 @require_admin
 async def admin_exercises_duplicate(request: Request) -> JSONResponse:
     """POST /api/admin/exercises/{exercise_id}/duplicate — crée une copie."""
-
     exercise_id = request.path_params["exercise_id"]
     admin_id = getattr(request.state, "user", {}).get("id")
-    result, err, code = await AdminApplicationService.duplicate_exercise_for_admin(
-        exercise_id=exercise_id, admin_user_id=admin_id
-    )
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.duplicate_exercise_for_admin,
+            exercise_id,
+            admin_id,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result, status_code=201)
 
 
@@ -287,7 +306,6 @@ async def admin_exercises_duplicate(request: Request) -> JSONResponse:
 @require_admin
 async def admin_exercises_patch(request: Request) -> JSONResponse:
     """PATCH /api/admin/exercises/{exercise_id} — toggle is_archived."""
-
     exercise_id = request.path_params["exercise_id"]
     data_or_err = await parse_json_body_any(request)
     if isinstance(data_or_err, JSONResponse):
@@ -297,11 +315,15 @@ async def admin_exercises_patch(request: Request) -> JSONResponse:
         return api_error_response(400, "Le champ is_archived doit être un booléen.")
 
     admin_id = getattr(request.state, "user", {}).get("id")
-    result, err, code = await AdminApplicationService.patch_exercise_for_admin(
-        exercise_id=exercise_id, is_archived=is_archived, admin_user_id=admin_id
-    )
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.patch_exercise_for_admin,
+            exercise_id,
+            is_archived,
+            admin_id,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result)
 
 
@@ -315,7 +337,7 @@ async def admin_badges(request: Request) -> JSONResponse:
     GET /api/admin/badges
     Liste tous les badges (actifs et inactifs).
     """
-    result = await list_badges_for_admin()
+    result = await run_db_bound(list_badges_for_admin)
     return JSONResponse(result)
 
 
@@ -323,17 +345,19 @@ async def admin_badges(request: Request) -> JSONResponse:
 @require_admin
 async def admin_badges_post(request: Request) -> JSONResponse:
     """POST /api/admin/badges — création d'un badge."""
-
     data_or_err = await parse_json_body_any(request)
     if isinstance(data_or_err, JSONResponse):
         return data_or_err
 
     admin_id = getattr(request.state, "user", {}).get("id")
-    result, err, code = await AdminApplicationService.create_badge_for_admin(
-        data=data_or_err, admin_user_id=admin_id
-    )
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.create_badge_for_admin,
+            data_or_err,
+            admin_id,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result, status_code=201)
 
 
@@ -342,9 +366,10 @@ async def admin_badges_post(request: Request) -> JSONResponse:
 async def admin_badge_get(request: Request) -> JSONResponse:
     """GET /api/admin/badges/{badge_id} — détail pour édition."""
     badge_id = request.path_params["badge_id"]
-    result, err, code = await get_badge_for_admin(badge_id)
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(get_badge_for_admin, badge_id)
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result)
 
 
@@ -352,18 +377,21 @@ async def admin_badge_get(request: Request) -> JSONResponse:
 @require_admin
 async def admin_badges_put(request: Request) -> JSONResponse:
     """PUT /api/admin/badges/{badge_id} — mise à jour complète."""
-
     badge_id = request.path_params["badge_id"]
     data_or_err = await parse_json_body_any(request)
     if isinstance(data_or_err, JSONResponse):
         return data_or_err
 
     admin_id = getattr(request.state, "user", {}).get("id")
-    result, err, code = await AdminApplicationService.put_badge_for_admin(
-        badge_id=badge_id, data=data_or_err, admin_user_id=admin_id
-    )
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.put_badge_for_admin,
+            badge_id,
+            data_or_err,
+            admin_id,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result)
 
 
@@ -374,14 +402,16 @@ async def admin_badges_delete(request: Request) -> JSONResponse:
     DELETE /api/admin/badges/{badge_id}
     Soft delete : is_active = False (recommandé).
     """
-
     badge_id = request.path_params["badge_id"]
     admin_id = getattr(request.state, "user", {}).get("id")
-    result, err, code = await AdminApplicationService.delete_badge_for_admin(
-        badge_id=badge_id, admin_user_id=admin_id
-    )
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.delete_badge_for_admin,
+            badge_id,
+            admin_id,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result)
 
 
@@ -389,17 +419,19 @@ async def admin_badges_delete(request: Request) -> JSONResponse:
 @require_admin
 async def admin_challenges_post(request: Request) -> JSONResponse:
     """POST /api/admin/challenges — création d'un défi."""
-
     data_or_err = await parse_json_body_any(request)
     if isinstance(data_or_err, JSONResponse):
         return data_or_err
 
     admin_id = getattr(request.state, "user", {}).get("id")
-    result, err, code = await AdminApplicationService.create_challenge_for_admin(
-        data=data_or_err, admin_user_id=admin_id
-    )
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.create_challenge_for_admin,
+            data_or_err,
+            admin_id,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result, status_code=201)
 
 
@@ -408,9 +440,10 @@ async def admin_challenges_post(request: Request) -> JSONResponse:
 async def admin_challenge_get(request: Request) -> JSONResponse:
     """GET /api/admin/challenges/{challenge_id} — détail complet pour édition."""
     challenge_id = request.path_params["challenge_id"]
-    result, err, code = await get_challenge_for_admin(challenge_id)
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(get_challenge_for_admin, challenge_id)
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result)
 
 
@@ -418,18 +451,21 @@ async def admin_challenge_get(request: Request) -> JSONResponse:
 @require_admin
 async def admin_challenges_put(request: Request) -> JSONResponse:
     """PUT /api/admin/challenges/{challenge_id} — mise à jour complète."""
-
     challenge_id = request.path_params["challenge_id"]
     data_or_err = await parse_json_body_any(request)
     if isinstance(data_or_err, JSONResponse):
         return data_or_err
 
     admin_id = getattr(request.state, "user", {}).get("id")
-    result, err, code = await AdminApplicationService.put_challenge_for_admin(
-        challenge_id=challenge_id, data=data_or_err, admin_user_id=admin_id
-    )
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.put_challenge_for_admin,
+            challenge_id,
+            data_or_err,
+            admin_id,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result)
 
 
@@ -437,14 +473,16 @@ async def admin_challenges_put(request: Request) -> JSONResponse:
 @require_admin
 async def admin_challenges_duplicate(request: Request) -> JSONResponse:
     """POST /api/admin/challenges/{challenge_id}/duplicate — crée une copie."""
-
     challenge_id = request.path_params["challenge_id"]
     admin_id = getattr(request.state, "user", {}).get("id")
-    result, err, code = await AdminApplicationService.duplicate_challenge_for_admin(
-        challenge_id=challenge_id, admin_user_id=admin_id
-    )
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.duplicate_challenge_for_admin,
+            challenge_id,
+            admin_id,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result, status_code=201)
 
 
@@ -458,7 +496,8 @@ async def admin_challenges(request: Request) -> JSONResponse:
     from server.handlers.admin_list_params import parse_admin_challenges_params
 
     base, challenge_type_param = parse_admin_challenges_params(request)
-    result = await list_challenges_for_admin(
+    result = await run_db_bound(
+        list_challenges_for_admin,
         archived=base.archived,
         challenge_type=challenge_type_param,
         search=base.search,
@@ -474,7 +513,6 @@ async def admin_challenges(request: Request) -> JSONResponse:
 @require_admin
 async def admin_challenges_patch(request: Request) -> JSONResponse:
     """PATCH /api/admin/challenges/{challenge_id} — toggle is_archived."""
-
     challenge_id = request.path_params["challenge_id"]
     data_or_err = await parse_json_body_any(request)
     if isinstance(data_or_err, JSONResponse):
@@ -484,13 +522,15 @@ async def admin_challenges_patch(request: Request) -> JSONResponse:
         return api_error_response(400, "Le champ is_archived doit être un booléen.")
 
     admin_id = getattr(request.state, "user", {}).get("id")
-    result, err, code = await AdminApplicationService.patch_challenge_for_admin(
-        challenge_id=challenge_id,
-        is_archived=is_archived,
-        admin_user_id=admin_id,
-    )
-    if err:
-        return api_error_response(code, err)
+    try:
+        result = await run_db_bound(
+            AdminApplicationService.patch_challenge_for_admin,
+            challenge_id,
+            is_archived,
+            admin_id,
+        )
+    except AdminError as e:
+        return api_error_response(e.status_code, e.message)
     return JSONResponse(result)
 
 
@@ -505,7 +545,8 @@ async def admin_audit_log(request: Request) -> JSONResponse:
     skip, limit = parse_pagination_params(query_params, default_limit=50, max_limit=200)
     action_filter = (query_params.get("action") or "").strip() or None
     resource_filter = (query_params.get("resource_type") or "").strip() or None
-    result = await get_audit_log_for_api(
+    result = await run_db_bound(
+        get_audit_log_for_api,
         skip=skip,
         limit=limit,
         action_filter=action_filter,
@@ -524,7 +565,12 @@ async def admin_moderation(request: Request) -> JSONResponse:
     query_params = dict(request.query_params)
     mod_type = (query_params.get("type") or "all").strip().lower()
     skip, limit = parse_pagination_params(query_params, default_limit=50, max_limit=100)
-    result = await get_moderation_for_api(mod_type=mod_type, skip=skip, limit=limit)
+    result = await run_db_bound(
+        get_moderation_for_api,
+        mod_type=mod_type,
+        skip=skip,
+        limit=limit,
+    )
     return JSONResponse(result)
 
 
@@ -539,7 +585,7 @@ async def admin_reports(request: Request) -> JSONResponse:
     period = (query_params.get("period") or "7d").strip().lower()
     if period not in ("7d", "30d"):
         return api_error_response(400, "period invalide. Valeurs: 7d, 30d.")
-    result = await get_reports_for_api(period=period)
+    result = await run_db_bound(get_reports_for_api, period=period)
     return JSONResponse(result)
 
 
@@ -558,9 +604,14 @@ async def admin_export(request: Request) -> Response:
             400, "type invalide. Valeurs: users, exercises, attempts, overview."
         )
     admin_id = getattr(request.state, "user", {}).get("id")
-    headers, rows_data = await AdminApplicationService.export_csv_data_for_admin(
-        export_type=export_type, period=period, admin_user_id=admin_id
+    export_result = await run_db_bound(
+        AdminApplicationService.export_csv_data_for_admin,
+        export_type,
+        period,
+        admin_id,
     )
+    headers = export_result.headers
+    rows_data = export_result.rows
 
     def generate_csv():
         buf = io.StringIO()

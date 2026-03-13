@@ -1,157 +1,85 @@
-# 🚀 Guide Rapide : Lancer le Serveur en Mode Test
+﻿# LANCER LE SERVEUR EN MODE TEST - MATHAKINE
 
-**Date** : 30 Novembre 2025  
-**Objectif** : Démarrer rapidement le serveur pour tester les modifications de sécurité
+> Guide rapide pour verifier manuellement un changement backend/local
+> Mise a jour : 13/03/2026
 
----
+## Usage
 
-## ⚡ Démarrage Rapide (Windows PowerShell)
+Ce guide sert a demarrer le backend localement pour un controle manuel.
+Il ne remplace pas les gates backend documentees dans `TESTING.md`.
 
-### Option 1 : Script Automatique (Recommandé)
+## Demarrage rapide
 
-```powershell
-# Lancer directement avec le script de test
-scripts\start_server_test.bat
-```
+### Backend
 
-### Option 2 : Commande Manuelle
-
-```powershell
-# 1. Configurer les variables d'environnement
-$env:MATH_TRAINER_DEBUG="true"
-$env:RUN_STARTUP_MIGRATIONS="true"
-$env:REQUIRE_STRONG_DEFAULT_ADMIN="false"
-
-# 2. Lancer le serveur
+```bash
+venv\Scripts\activate
 python enhanced_server.py
 ```
 
----
+Backend par defaut: `http://localhost:8000`
 
-## ✅ Vérification des Dépendances
-
-Si vous avez l'erreur `ModuleNotFoundError: No module named 'loguru'` :
+### Variables utiles
 
 ```powershell
-# Installer les dépendances principales
-python -m pip install loguru python-dotenv starlette uvicorn
-
-# Ou installer toutes les dépendances (peut prendre du temps)
-python -m pip install -r requirements.txt
-```
-
-**Note** : Si `pillow` pose problème, ce n'est pas bloquant pour démarrer le serveur.
-
----
-
-## 🔍 Vérifier que le Serveur Fonctionne
-
-Une fois le serveur lancé, vous devriez voir :
-
-```
-========================================
-ENHANCED_SERVER.PY - Serveur complet démarré sur le port 8000
-Serveur avec interface graphique complète
-========================================
-INFO:     Starting Mathakine server on 0.0.0.0:8000 (debug=True)
-INFO:     RUN_STARTUP_MIGRATIONS=true: Initialisation DB et migrations activées
-INFO:     Mathakine server started successfully
-INFO:     Uvicorn running on http://0.0.0.0:8000
-```
-
-**Accéder au backend** : `http://localhost:8000`
-
----
-
-## 🧪 Tests Rapides
-
-### 1. Vérifier les Logs Sensibles
-
-```powershell
-python scripts/security/check_sensitive_logs.py
-```
-
-### 2. Tester le Login
-
-1. Si le frontend est lancé, ouvrir `http://localhost:3000/login`
-2. Sinon, tester l'API via `POST http://localhost:8000/api/auth/login`
-3. Se connecter avec `ObiWan` / `HelloThere123!`
-4. Vérifier dans la console backend qu'aucun mot de passe n'apparaît dans les logs
-
-### 3. Vérifier les Cookies
-
-1. Ouvrir DevTools (F12) → Application → Cookies
-2. Vérifier que `refresh_token` est présent (HTTP-only)
-3. Vérifier que `refresh_token` n'est PAS dans localStorage
-
----
-
-## 🐛 Dépannage
-
-### Erreur : `ModuleNotFoundError: No module named 'loguru'`
-
-**Solution** :
-```powershell
-python -m pip install loguru
-```
-
-### Erreur : `ModuleNotFoundError: No module named 'dotenv'`
-
-**Solution** :
-```powershell
-python -m pip install python-dotenv
-```
-
-### Erreur : Port déjà utilisé
-
-**Solution** :
-```powershell
-# Utiliser un autre port
-$env:PORT="8001"
-python enhanced_server.py
-```
-
-### Erreur : Base de données non accessible
-
-**Solution** :
-```powershell
-# Vérifier que PostgreSQL est démarré
-# Ou utiliser SQLite pour les tests rapides
-$env:DATABASE_URL="sqlite:///./test.db"
-```
-
----
-
-## 📝 Variables d'Environnement Utiles
-
-```powershell
-# Mode développement
 $env:MATH_TRAINER_DEBUG="true"
 $env:RUN_STARTUP_MIGRATIONS="true"
-$env:REQUIRE_STRONG_DEFAULT_ADMIN="false"
-
-# Base de données
-$env:DATABASE_URL="postgresql://postgres:postgres@localhost/mathakine_test"
-$env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost/mathakine_test"
-
-# Port
 $env:PORT="8000"
+python enhanced_server.py
 ```
 
----
+## Verifications manuelles utiles
 
-## 🎯 Prochaines Étapes
+### Auth
 
-Une fois le serveur lancé :
+1. ouvrir `http://localhost:3000/login`
+2. verifier login nominal
+3. verifier refresh apres navigation
+4. verifier logout
 
-1. ✅ Vérifier que les logs ne contiennent pas de mots de passe
-2. ✅ Tester le login/logout
-3. ✅ Vérifier que le refresh token fonctionne (cookies uniquement)
-4. ✅ Vérifier que les credentials démo sont conditionnés
+### Reset password
 
-Pour plus de détails, voir : [TESTER_MODIFICATIONS_SECURITE.md](TESTER_MODIFICATIONS_SECURITE.md)
+1. lancer le flow `forgot-password`
+2. reinitialiser le mot de passe
+3. verifier qu'un autre onglet doit se reconnecter a la prochaine navigation protegee
 
----
+### Exercise / challenge generation
 
-**Dernière mise à jour** : 30 Novembre 2025
+1. verifier `POST /api/exercises/generate`
+2. verifier les flux SSE si le lot touche la generation IA
+3. verifier qu'aucun contrat JSON ou statut HTTP n'a derive
 
+## Verification rapide backend
+
+```bash
+pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py
+```
+
+## Problemes frequents
+
+### Port `8000` deja utilise
+
+```bash
+netstat -ano | findstr :8000
+taskkill /PID <PID> /F
+```
+
+### PostgreSQL local indisponible
+
+```bash
+python scripts/check_local_db.py
+```
+
+### Backend inaccessible depuis le frontend
+
+Verifier `frontend/.env.local`:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+```
+
+## References
+
+- [TESTING.md](TESTING.md)
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- [../00-REFERENCE/GETTING_STARTED.md](../00-REFERENCE/GETTING_STARTED.md)

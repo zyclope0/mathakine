@@ -10,8 +10,9 @@ from typing import Any, AsyncGenerator, Dict, Optional
 from app.core.ai_config import AIConfig
 from app.core.config import settings
 from app.core.logging_config import get_logger
+from app.core.runtime import run_db_bound
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.utils.db_utils import db_session
+from app.utils.db_utils import sync_db_session
 from app.utils.json_utils import extract_json_from_text
 from app.utils.latex_utils import sanitize_exercise_text_fields
 
@@ -51,6 +52,33 @@ def _get_model(exercise_type: str) -> str:
         if settings.OPENAI_MODEL_REASONING and exercise_type in _REASONING_TYPES
         else settings.OPENAI_MODEL
     )
+
+
+def _persist_exercise_ai_sync(
+    normalized_exercise: Dict[str, Any],
+    locale: str = "fr",
+) -> Optional[int]:
+    """
+    Persiste un exercice généré en base via sync_db_session.
+    Retourne l'id de l'exercice créé ou None.
+    """
+    with sync_db_session() as db:
+        created = EnhancedServerAdapter.create_generated_exercise(
+            db=db,
+            exercise_type=normalized_exercise["exercise_type"],
+            age_group=normalized_exercise["age_group"],
+            difficulty=normalized_exercise["difficulty"],
+            title=normalized_exercise["title"],
+            question=normalized_exercise["question"],
+            correct_answer=normalized_exercise["correct_answer"],
+            choices=normalized_exercise["choices"],
+            explanation=normalized_exercise["explanation"],
+            hint=normalized_exercise.get("hint"),
+            tags=normalized_exercise.get("tags", "ai,generated"),
+            ai_generated=True,
+            locale=locale,
+        )
+        return created.get("id") if created else None
 
 
 def _has_custom_theme(prompt: str) -> bool:
@@ -233,24 +261,13 @@ async def generate_exercise_stream(
         }
 
         try:
-            async with db_session() as db:
-                created_exercise = EnhancedServerAdapter.create_generated_exercise(
-                    db=db,
-                    exercise_type=normalized_exercise["exercise_type"],
-                    age_group=normalized_exercise["age_group"],
-                    difficulty=normalized_exercise["difficulty"],
-                    title=normalized_exercise["title"],
-                    question=normalized_exercise["question"],
-                    correct_answer=normalized_exercise["correct_answer"],
-                    choices=normalized_exercise["choices"],
-                    explanation=normalized_exercise["explanation"],
-                    hint=normalized_exercise.get("hint"),
-                    tags=normalized_exercise.get("tags", "ai,generated"),
-                    ai_generated=True,
-                    locale=locale,
-                )
-                if created_exercise:
-                    normalized_exercise["id"] = created_exercise["id"]
+            exercise_id = await run_db_bound(
+                _persist_exercise_ai_sync,
+                normalized_exercise,
+                locale,
+            )
+            if exercise_id:
+                normalized_exercise["id"] = exercise_id
         except Exception as save_error:
             logger.warning(f"Erreur lors de la sauvegarde: {save_error}")
 

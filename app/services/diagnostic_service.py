@@ -1,29 +1,29 @@
 """
-Service de diagnostic adaptatif initial — F03.
+Service de diagnostic adaptatif initial - F03.
 
-Implémente un algorithme IRT (Item Response Theory) simplifié pour évaluer
-le niveau d'un utilisateur en 4 opérations arithmétiques :
+Implemente un algorithme IRT (Item Response Theory) simplifie pour evaluer
+le niveau d'un utilisateur en 4 operations arithmetiques :
 ADDITION, SOUSTRACTION, MULTIPLICATION, DIVISION.
 
 Algorithme :
-  - Départ au niveau médian (PADAWAN, ordinal 1)
-  - Réponse correcte → niveau +1 (plafonné à GRAND_MAITRE)
-  - Réponse incorrecte → niveau -1 (plancher à INITIE)
-  - Arrêt d'un type : 2 erreurs consécutives au MÊME niveau → niveau établi
-  - Session complète : tous les types terminés OU 10 questions atteintes
+  - Depart au niveau median (PADAWAN, ordinal 1)
+  - Reponse correcte -> niveau +1 (plafonne a GRAND_MAITRE)
+  - Reponse incorrecte -> niveau -1 (plancher a INITIE)
+  - Arret d'un type : 2 erreurs consecutives au MEME niveau -> niveau etabli
+  - Session complete : tous les types termines OU 10 questions atteintes
 
-Les questions sont générées à la volée par exercise_generator.generate_ai_exercise()
-(générateur interne, pas de requête OpenAI, pas de stockage dans exercises).
+Les questions sont generees a la volee par exercise_generator.generate_ai_exercise()
+(generateur interne, pas de requete OpenAI, pas de stockage dans exercises).
 
-État de session (DiagnosticSessionState) : dict sérialisable en JSON, stocké côté
+Etat de session (DiagnosticSessionState) : dict serialisable en JSON, stocke cote
 frontend entre chaque question (stateless backend entre les appels).
 
 Architecture :
-  - DiagnosticService  : logique métier pure (aucune dépendance DB directe sauf save)
-  - generate_question() : délègue au générateur interne, applique LaTeX
-  - next_type()         : stratégie de rotation des types (round-robin équilibré)
-  - save_result()       : écrit DiagnosticResult, déclenche recommandations
-  - get_latest_score()  : point d'entrée unique pour recommendation_service
+  - DiagnosticService  : logique metier pure (aucune dependance DB directe sauf save)
+  - generate_question() : delegue au generateur interne, applique LaTeX
+  - next_type()         : strategie de rotation des types (round-robin equilibre)
+  - save_result()       : ecrit DiagnosticResult, declenche recommandations
+  - get_latest_score()  : point d'entree unique pour recommendation_service
 """
 
 from datetime import datetime, timezone
@@ -35,14 +35,15 @@ from sqlalchemy.orm import Session
 from app.core.constants import AgeGroups, DifficultyLevels, ExerciseTypes
 from app.core.logging_config import get_logger
 from app.models.diagnostic_result import DiagnosticResult
+from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 
 # --------------------------------------------------------------------------- #
-# Constantes de l'algorithme — seul endroit à modifier pour tuner l'algo      #
+# Constantes de l'algorithme - seul endroit a modifier pour tuner l'algo      #
 # --------------------------------------------------------------------------- #
 
-# Types évalués (logique exclue de V1 : pas de générateur interne de qualité)
+# Types evalues (logique exclue de V1 : pas de generateur interne de qualite)
 DIAGNOSTIC_TYPES: List[str] = [
     ExerciseTypes.ADDITION,
     ExerciseTypes.SUBTRACTION,
@@ -50,16 +51,16 @@ DIAGNOSTIC_TYPES: List[str] = [
     ExerciseTypes.DIVISION,
 ]
 
-# Niveau de départ (ordinal 1 = PADAWAN)
+# Niveau de depart (ordinal 1 = PADAWAN)
 STARTING_LEVEL_ORDINAL: int = 1
 
 # Nombre max de questions sur toute la session
 MAX_QUESTIONS: int = 10
 
-# Nombre d'erreurs consécutives au même niveau pour figer un type
+# Nombre d'erreurs consecutives au meme niveau pour figer un type
 CONSECUTIVE_ERRORS_TO_STOP: int = 2
 
-# Mapping ordinal ↔ difficulté (source de vérité unique)
+# Mapping ordinal <-> difficulte (source de verite unique)
 _ORDINAL_TO_DIFFICULTY: Dict[int, str] = {
     0: DifficultyLevels.INITIE,
     1: DifficultyLevels.PADAWAN,
@@ -71,7 +72,7 @@ _DIFFICULTY_TO_ORDINAL: Dict[str, int] = {
     v: k for k, v in _ORDINAL_TO_DIFFICULTY.items()
 }
 
-# Mapping difficulté → age_group pour le générateur interne
+# Mapping difficulte -> age_group pour le generateur interne
 _DIFFICULTY_TO_AGE_GROUP: Dict[str, str] = {
     DifficultyLevels.INITIE: AgeGroups.GROUP_6_8,
     DifficultyLevels.PADAWAN: AgeGroups.GROUP_9_11,
@@ -82,25 +83,25 @@ _DIFFICULTY_TO_AGE_GROUP: Dict[str, str] = {
 
 
 # --------------------------------------------------------------------------- #
-# Structures de données de session                                             #
+# Structures de donnees de session                                             #
 # --------------------------------------------------------------------------- #
 
 
 def _initial_type_state(level_ordinal: int = STARTING_LEVEL_ORDINAL) -> Dict[str, Any]:
-    """État initial pour un type d'exercice dans la session."""
+    """Etat initial pour un type d'exercice dans la session."""
     return {
         "level_ordinal": level_ordinal,  # niveau courant (0-4)
-        "correct": 0,  # bonnes réponses pour ce type
-        "total": 0,  # questions posées pour ce type
-        "consecutive_errors": 0,  # erreurs consécutives au niveau courant
-        "done": False,  # type finalisé (2 erreurs ou session max)
-        "last_error_level": None,  # niveau où les 2 erreurs ont été commises
+        "correct": 0,  # bonnes reponses pour ce type
+        "total": 0,  # questions posees pour ce type
+        "consecutive_errors": 0,  # erreurs consecutives au niveau courant
+        "done": False,  # type finalise (2 erreurs ou session max)
+        "last_error_level": None,  # niveau ou les 2 erreurs ont ete commises
     }
 
 
 def create_session(triggered_from: str = "onboarding") -> Dict[str, Any]:
     """
-    Crée un état de session vierge.
+    Cree un etat de session vierge.
 
     triggered_from : "onboarding" | "settings"
     """
@@ -109,7 +110,7 @@ def create_session(triggered_from: str = "onboarding") -> Dict[str, Any]:
         "questions_asked": 0,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "types": {t: _initial_type_state() for t in DIAGNOSTIC_TYPES},
-        # Index de rotation pour alterner les types équitablement
+        # Index de rotation pour alterner les types equitablement
         "type_rotation_index": 0,
     }
 
@@ -121,8 +122,8 @@ def create_session(triggered_from: str = "onboarding") -> Dict[str, Any]:
 
 def _next_type(session: Dict[str, Any]) -> Optional[str]:
     """
-    Retourne le prochain type à évaluer (round-robin sur les types non terminés).
-    Retourne None si tous les types sont terminés ou MAX_QUESTIONS atteint.
+    Retourne le prochain type a evaluer (round-robin sur les types non termines).
+    Retourne None si tous les types sont termines ou MAX_QUESTIONS atteint.
     """
     if session["questions_asked"] >= MAX_QUESTIONS:
         return None
@@ -131,13 +132,13 @@ def _next_type(session: Dict[str, Any]) -> Optional[str]:
     if not active:
         return None
 
-    # Round-robin : reprendre là où on s'était arrêté
+    # Round-robin : reprendre la ou on s'etait arrete
     idx = session["type_rotation_index"] % len(active)
     return active[idx]
 
 
 def _advance_rotation(session: Dict[str, Any]) -> None:
-    """Avance l'index de rotation après avoir posé une question."""
+    """Avance l'index de rotation apres avoir pose une question."""
     active = [t for t in DIAGNOSTIC_TYPES if not session["types"][t]["done"]]
     if active:
         session["type_rotation_index"] = (session["type_rotation_index"] + 1) % len(
@@ -149,12 +150,12 @@ def _apply_answer(
     session: Dict[str, Any], exercise_type: str, is_correct: bool
 ) -> None:
     """
-    Met à jour l'état IRT pour un type après une réponse.
+    Met a jour l'etat IRT pour un type apres une reponse.
 
-    Règles :
-    - Correct  → level +1, reset consecutive_errors
-    - Incorrect → consecutive_errors +1
-                  si consecutive_errors >= seuil → done = True (niveau figé)
+    Regles :
+    - Correct  -> level +1, reset consecutive_errors
+    - Incorrect -> consecutive_errors +1
+                  si consecutive_errors >= seuil -> done = True (niveau fige)
                   sinon → level -1 (plancher 0)
     """
     ts = session["types"][exercise_type]
@@ -173,11 +174,11 @@ def _apply_answer(
         current_level = ts["level_ordinal"]
 
         if ts["consecutive_errors"] >= CONSECUTIVE_ERRORS_TO_STOP:
-            # Niveau établi : on fige à ce niveau
+            # Niveau etabli : on fige a ce niveau
             ts["done"] = True
             ts["last_error_level"] = current_level
             logger.debug(
-                f"Diagnostic: type={exercise_type} figé au niveau ordinal {current_level}"
+                f"Diagnostic: type={exercise_type} fige au niveau ordinal {current_level}"
             )
         else:
             # Descendre d'un niveau (plancher 0)
@@ -187,28 +188,28 @@ def _apply_answer(
 
 
 def is_session_complete(session: Dict[str, Any]) -> bool:
-    """Retourne True si la session est terminée (tous types done ou max questions)."""
+    """Retourne True si la session est terminee (tous types done ou max questions)."""
     if session["questions_asked"] >= MAX_QUESTIONS:
         return True
     return all(session["types"][t]["done"] for t in DIAGNOSTIC_TYPES)
 
 
 # --------------------------------------------------------------------------- #
-# Génération de questions                                                      #
+# Generation de questions                                                      #
 # --------------------------------------------------------------------------- #
 
 
 def generate_question(session: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    Génère la prochaine question du diagnostic.
+    Genere la prochaine question du diagnostic.
 
-    Délègue à generate_ai_exercise() du générateur interne — aucune requête IA,
+    Delegue a generate_ai_exercise() du generateur interne - aucune requete IA,
     aucun stockage en DB.
 
-    Retourne un dict avec les champs nécessaires au frontend, ou None si la
-    session est terminée.
+    Retourne un dict avec les champs necessaires au frontend, ou None si la
+    session est terminee.
     """
-    # Import ici pour éviter les imports circulaires au niveau module
+    # Import ici pour eviter les imports circulaires au niveau module
     from app.generators.exercise_generator import generate_ai_exercise
 
     exercise_type = _next_type(session)
@@ -223,7 +224,7 @@ def generate_question(session: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         raw = generate_ai_exercise(exercise_type, age_group)
     except Exception as exc:
         logger.error(
-            f"Diagnostic: erreur génération exercice type={exercise_type} "
+            f"Diagnostic: erreur generation exercice type={exercise_type} "
             f"difficulty={difficulty}: {exc}"
         )
         return None
@@ -237,7 +238,7 @@ def generate_question(session: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "correct_answer": raw.get("correct_answer", ""),
         "explanation": raw.get("explanation", ""),
         "hint": raw.get("hint", ""),
-        # Méta pour le frontend
+        # Meta pour le frontend
         "question_number": session["questions_asked"] + 1,
         "max_questions": MAX_QUESTIONS,
         "types_remaining": len(
@@ -253,9 +254,9 @@ def generate_question(session: Dict[str, Any]) -> Optional[Dict[str, Any]]:
 
 def _compute_final_scores(session: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Calcule les scores finaux depuis l'état de session.
+    Calcule les scores finaux depuis l'etat de session.
 
-    Format de sortie (stocké dans DiagnosticResult.scores) :
+    Format de sortie (stocke dans DiagnosticResult.scores) :
     {
         "addition":       {"level": 2, "difficulty": "CHEVALIER", "correct": 4, "total": 5},
         "soustraction":   {"level": 1, ...},
@@ -265,10 +266,10 @@ def _compute_final_scores(session: Dict[str, Any]) -> Dict[str, Any]:
     scores = {}
     for ex_type in DIAGNOSTIC_TYPES:
         ts = session["types"][ex_type]
-        # Si le type n'a pas été évalué (0 questions), on ne le stocke pas
+        # Si le type n'a pas ete evalue (0 questions), on ne le stocke pas
         if ts["total"] == 0:
             continue
-        # Le niveau final = le niveau courant (déjà ajusté par l'algo IRT)
+        # Le niveau final = le niveau courant (deja ajuste par l'algo IRT)
         final_level = ts["level_ordinal"]
         scores[ex_type.lower()] = {
             "level": final_level,
@@ -286,10 +287,10 @@ def save_result(
     duration_seconds: Optional[int] = None,
 ) -> Tuple[bool, Optional[DiagnosticResult]]:
     """
-    Persiste le résultat de la session en base.
+    Persiste le resultat de la session en base.
 
     Retourne (success, DiagnosticResult | None).
-    Déclenche la régénération des recommandations après sauvegarde.
+    Declenche la regeneration des recommandations apres sauvegarde.
     """
     try:
         scores = _compute_final_scores(session)
@@ -304,11 +305,11 @@ def save_result(
         db.commit()
         db.refresh(result)
         logger.info(
-            f"DiagnosticResult sauvegardé: user={user_id} "
+            f"DiagnosticResult sauvegarde: user={user_id} "
             f"questions={result.questions_asked} scores={scores}"
         )
 
-        # Déclenche la régénération des recommandations pour profiter du diagnostic
+        # Declenche la regeneration des recommandations pour profiter du diagnostic
         _refresh_recommendations(db, user_id)
 
         return True, result
@@ -319,10 +320,36 @@ def save_result(
         return False, None
 
 
+def save_result_sync(
+    user_id: int,
+    session: Dict[str, Any],
+    duration_seconds: Optional[int] = None,
+) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    """
+    Use case sync: persiste le resultat de diagnostic.
+    Retourne (success, result_data_dict) avec result_data_dict serialise dans le contexte DB.
+    Execute via run_db_bound() depuis les handlers async.
+    """
+    with sync_db_session() as db:
+        success, result = save_result(
+            db, user_id=user_id, session=session, duration_seconds=duration_seconds
+        )
+        if not success or result is None:
+            return False, None
+        return True, {
+            "id": result.id,
+            "completed_at": result.completed_at.isoformat(),
+            "triggered_from": result.triggered_from,
+            "questions_asked": result.questions_asked,
+            "duration_seconds": result.duration_seconds,
+            "scores": result.scores or {},
+        }
+
+
 def _refresh_recommendations(db: Session, user_id: int) -> None:
     """
-    Régénère les recommandations utilisateur après un diagnostic.
-    Isolé dans une fonction pour ne pas bloquer save_result en cas d'erreur.
+    Regenere les recommandations utilisateur apres un diagnostic.
+    Isole dans une fonction pour ne pas bloquer save_result en cas d'erreur.
     """
     try:
         from app.services.recommendation_service import RecommendationService
@@ -330,14 +357,23 @@ def _refresh_recommendations(db: Session, user_id: int) -> None:
         RecommendationService.generate_recommendations(db, user_id)
     except Exception as exc:
         logger.warning(
-            f"Impossible de régénérer les recommandations après diagnostic "
+            f"Impossible de regenerer les recommandations apres diagnostic "
             f"user={user_id}: {exc}"
         )
 
 
 # --------------------------------------------------------------------------- #
-# Point d'entrée public pour les autres services                               #
+# Point d'entree public pour les autres services                               #
 # --------------------------------------------------------------------------- #
+
+
+def get_latest_score_sync(user_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Use case sync: recupere le dernier score de diagnostic.
+    Execute via run_db_bound() depuis les handlers async.
+    """
+    with sync_db_session() as db:
+        return get_latest_score(db, user_id)
 
 
 def get_latest_score(db: Session, user_id: int) -> Optional[Dict[str, Any]]:
@@ -353,7 +389,7 @@ def get_latest_score(db: Session, user_id: int) -> Optional[Dict[str, Any]]:
             ...
         }
     }
-    Retourne None si aucun diagnostic n'a été effectué.
+    Retourne None si aucun diagnostic n'a ete effectue.
     """
     result = (
         db.query(DiagnosticResult)
@@ -374,7 +410,7 @@ def get_latest_score(db: Session, user_id: int) -> Optional[Dict[str, Any]]:
 
 
 def has_completed_diagnostic(db: Session, user_id: int) -> bool:
-    """Vérifie rapidement si l'utilisateur a au moins un diagnostic complété."""
+    """Verifie rapidement si l'utilisateur a au moins un diagnostic complete."""
     return (
         db.query(DiagnosticResult.id)
         .filter(DiagnosticResult.user_id == user_id)
@@ -383,10 +419,10 @@ def has_completed_diagnostic(db: Session, user_id: int) -> bool:
 
 
 def difficulty_to_ordinal(difficulty: str) -> int:
-    """Convertit une chaîne difficulté → ordinal (utilitaire exposé aux tests)."""
+    """Convertit une chaine difficulte -> ordinal (utilitaire expose aux tests)."""
     return _DIFFICULTY_TO_ORDINAL.get(difficulty.upper(), STARTING_LEVEL_ORDINAL)
 
 
 def ordinal_to_difficulty(ordinal: int) -> str:
-    """Convertit un ordinal → chaîne difficulté (utilitaire exposé aux tests)."""
+    """Convertit un ordinal -> chaine difficulte (utilitaire expose aux tests)."""
     return _ORDINAL_TO_DIFFICULTY.get(ordinal, DifficultyLevels.PADAWAN)

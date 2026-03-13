@@ -7,7 +7,6 @@ Utilise uniquement SQLAlchemy ORM pour la maintenabilité.
 Créé : Phase 4 (20 Nov 2025)
 """
 
-import os
 import random
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -398,11 +397,9 @@ def list_challenges(
         return query.offset(offset).limit(limit).all()
 
     # Optimisation: random_offset O(1) au lieu de ORDER BY RANDOM() O(n).
-    # Désactivé en TESTING: double engine fixtures vs handlers → items=[].
-    # Réf: DIAGNOSTIC_CHALLENGES_LIST_2026-02.md
-    _use_random_offset = (
-        total is not None and total > 0 and os.getenv("TESTING", "").lower() != "true"
-    )
+    # B4.1: utiliser random_offset dès que total est fourni (prod + tests).
+    # Le caller (challenge_query_service) fournit toujours total quand order=random.
+    _use_random_offset = total is not None and total > 0
     if _use_random_offset:
         max_offset_val = max(0, total - limit - offset)
         random_offset_val = (

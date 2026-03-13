@@ -1,19 +1,19 @@
 """
-Handlers pour l'authentification et la vérification d'email
+Handlers pour l'authentification et la verification d'email
 """
 
+import json
 import secrets
 import traceback
 from typing import Optional
 
-from app.core.config import settings
-from app.core.logging_config import get_logger
-
-logger = get_logger(__name__)
 from pydantic import ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from app.core.config import settings
+from app.core.logging_config import get_logger
+from app.core.runtime import run_db_bound
 from app.core.security import get_cookie_config
 from app.schemas.user import ResetPasswordRequest
 from app.services.auth_recovery_service import (
@@ -43,6 +43,8 @@ from app.utils.error_handler import api_error_response
 from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
 from app.utils.request_utils import parse_json_body, parse_json_body_any
 from server.auth import require_auth
+
+logger = get_logger(__name__)
 
 
 def _set_auth_cookie(
@@ -112,8 +114,6 @@ async def _extract_refresh_token_from_request(request: Request) -> Optional[str]
         body_content = b""
 
     if body_content:
-        import json
-
         try:
             data = json.loads(body_content.decode("utf-8"))
             if data:
@@ -170,12 +170,10 @@ def _build_refresh_response(
 
 async def api_get_csrf_token(request: Request) -> JSONResponse:
     """
-    Récupère un token CSRF (pattern double-submit).
+    Recupere un token CSRF (pattern double-submit).
     Route: GET /api/auth/csrf
     Retourne le token et le pose en cookie. Le client doit l'envoyer dans X-CSRF-Token.
     """
-    import secrets
-
     token = secrets.token_urlsafe(32)
     response = JSONResponse({"csrf_token": token})
     cookie_samesite, cookie_secure = get_cookie_config()
@@ -193,21 +191,21 @@ async def api_get_csrf_token(request: Request) -> JSONResponse:
 
 async def verify_email(request: Request) -> JSONResponse:
     """
-    Vérifie l'adresse email d'un utilisateur avec un token.
+    Verifie l'adresse email d'un utilisateur avec un token.
     Route: GET /api/auth/verify-email?token=...
     """
     try:
         token = request.query_params.get("token")
 
         if not token:
-            return api_error_response(400, "Token de vérification manquant")
+            return api_error_response(400, "Token de verification manquant")
 
-        result = await svc_perform_verify_email(token)
+        result = await run_db_bound(svc_perform_verify_email, token)
 
         if result.state == "already_verified":
             return JSONResponse(
                 {
-                    "message": "Votre adresse email est déjà vérifiée",
+                    "message": "Votre adresse email est deja verifiee",
                     "success": True,
                     "user": result.user_payload,
                 },
@@ -216,7 +214,7 @@ async def verify_email(request: Request) -> JSONResponse:
 
         return JSONResponse(
             {
-                "message": "Votre adresse email a été vérifiée avec succès !",
+                "message": "Votre adresse email a ete verifiee avec succes !",
                 "success": True,
                 "user": result.user_payload,
             },
@@ -225,25 +223,25 @@ async def verify_email(request: Request) -> JSONResponse:
 
     except AuthRecoveryError as e:
         if e.code == "invalid":
-            return api_error_response(400, "Token de vérification invalide")
+            return api_error_response(400, "Token de verification invalide")
         if e.code == "expired":
             return api_error_response(
                 400,
-                "Le token de vérification a expiré. Veuillez demander un nouveau lien.",
+                "Le token de verification a expire. Veuillez demander un nouveau lien.",
             )
         raise
     except Exception as email_verification_error:
         logger.error(
-            f"Erreur lors de la vérification de l'email: {email_verification_error}"
+            f"Erreur lors de la verification de l'email: {email_verification_error}"
         )
         logger.debug(traceback.format_exc())
-        return api_error_response(500, "Erreur lors de la vérification de l'email")
+        return api_error_response(500, "Erreur lors de la verification de l'email")
 
 
 @rate_limit_resend_verification
 async def resend_verification_email(request: Request) -> JSONResponse:
     """
-    Renvoie l'email de vérification.
+    Renvoie l'email de verification.
     Route: POST /api/auth/resend-verification
     Body: {"email": "user@example.com"}
     Rate limit: 2 req/min par IP (protection abus).
@@ -254,25 +252,25 @@ async def resend_verification_email(request: Request) -> JSONResponse:
         )
         if isinstance(data_or_err, JSONResponse):
             return data_or_err
-        # Extraction brute (pas EmailStr) : email mal formé = même chemin que user not found
-        # → 200 + message générique, sans révéler l'existence du compte
+        # Extraction brute (pas EmailStr): email mal forme = meme chemin que user not found
+        # -> 200 + message generique, sans reveler l'existence du compte
         email = (data_or_err.get("email") or "").strip().lower()
         if not email:
             return api_error_response(400, "Adresse email requise")
 
-        result = await svc_perform_resend_verification(email)
+        result = await run_db_bound(svc_perform_resend_verification, email)
 
         if result.outcome == "user_not_found":
             return JSONResponse(
                 {
-                    "message": "Si cette adresse email est associée à un compte non vérifié, vous recevrez un email de vérification."
+                    "message": "Si cette adresse email est associee a un compte non verifie, vous recevrez un email de verification."
                 },
                 status_code=200,
             )
 
         if result.outcome == "already_verified":
             return JSONResponse(
-                {"message": "Votre adresse email est déjà vérifiée"},
+                {"message": "Votre adresse email est deja verifiee"},
                 status_code=200,
             )
 
@@ -286,10 +284,10 @@ async def resend_verification_email(request: Request) -> JSONResponse:
 
         # result.outcome == "sent"
         if "localhost" in settings.FRONTEND_URL:
-            logger.info("[DEV] email vérification renvoyé")
+            logger.info("[DEV] email verification renvoye")
         return JSONResponse(
             {
-                "message": "Un nouvel email de vérification a été envoyé à votre adresse."
+                "message": "Un nouvel email de verification a ete envoye a votre adresse."
             },
             status_code=200,
         )
@@ -298,16 +296,16 @@ async def resend_verification_email(request: Request) -> JSONResponse:
         if e.code == "email_send_failed":
             return api_error_response(
                 500,
-                "Impossible d'envoyer l'email de vérification. Veuillez réessayer plus tard.",
+                "Impossible d'envoyer l'email de verification. Veuillez reessayer plus tard.",
             )
         raise
     except Exception as resend_verification_error:
         logger.error(
-            f"Erreur lors du renvoi de l'email de vérification: {resend_verification_error}"
+            f"Erreur lors du renvoi de l'email de verification: {resend_verification_error}"
         )
         logger.debug(traceback.format_exc())
         return api_error_response(
-            500, "Erreur lors du renvoi de l'email de vérification"
+            500, "Erreur lors du renvoi de l'email de verification"
         )
 
 
@@ -334,7 +332,8 @@ async def api_login(request: Request) -> JSONResponse:
         password = data_or_err["password"]
         logger.debug(f"Tentative de connexion pour l'utilisateur: {username}")
 
-        user_payload, token_data = await svc_perform_login(
+        user_payload, token_data = await run_db_bound(
+            svc_perform_login,
             username,
             password,
             ip=request.client.host if request.client else None,
@@ -342,13 +341,13 @@ async def api_login(request: Request) -> JSONResponse:
         )
 
         if not user_payload:
-            logger.warning(f"Échec de connexion pour l'utilisateur: {username}")
+            logger.warning(f"Echec de connexion pour l'utilisateur: {username}")
             return api_error_response(
                 401, "Nom d'utilisateur ou mot de passe incorrect"
             )
 
         logger.info(
-            f"Connexion réussie pour l'utilisateur: {user_payload.get('username')}"
+            f"Connexion reussie pour l'utilisateur: {user_payload.get('username')}"
         )
         return _build_login_response(user_payload, token_data)
 
@@ -362,8 +361,8 @@ async def api_login(request: Request) -> JSONResponse:
 async def api_validate_token(request: Request) -> JSONResponse:
     """
     Valide un token JWT sans l'utiliser pour une action.
-    Utilisé par la route sync-cookie du frontend pour s'assurer qu'un token
-    est signé par notre backend et non expiré avant de le poser en cookie.
+    Utilise par la route sync-cookie du frontend pour s'assurer qu'un token
+    est signe par notre backend et non expire avant de le poser en cookie.
     Route: POST /api/auth/validate-token
     Body: {"token": "..."}
     Rate limit: 5 req/min par IP (protection brute-force).
@@ -377,15 +376,15 @@ async def api_validate_token(request: Request) -> JSONResponse:
         token = data_or_err["token"]
         if not isinstance(token, str):
             return api_error_response(400, "Token invalide")
-        result = svc_validate_access_token(token)
+        result = await run_db_bound(svc_validate_access_token, token)
         return JSONResponse(result)
     except Exception:
-        return api_error_response(401, "Token invalide ou expiré")
+        return api_error_response(401, "Token invalide ou expire")
 
 
 async def api_refresh_token(request: Request) -> JSONResponse:
     """
-    Rafraîchit le token d'accès avec un refresh token.
+    Rafraichit le token d'acces avec un refresh token.
     Route: POST /api/auth/refresh
     Body (optionnel): {"refresh_token": "..."}
     Cookie (optionnel): refresh_token
@@ -395,9 +394,11 @@ async def api_refresh_token(request: Request) -> JSONResponse:
         refresh_token = await _extract_refresh_token_from_request(request)
 
         if not refresh_token:
-            logger.warning("Aucun refresh_token trouvé dans les cookies ou le body")
+            logger.warning("Aucun refresh_token trouve dans les cookies ou le body")
             access_token = request.cookies.get("access_token", "").strip()
-            refresh_token = await svc_recover_refresh_fallback(access_token)
+            refresh_token = await run_db_bound(
+                svc_recover_refresh_fallback, access_token
+            )
 
         if not refresh_token:
             return api_error_response(
@@ -405,13 +406,13 @@ async def api_refresh_token(request: Request) -> JSONResponse:
                 "Refresh token requis (body ou cookie). Veuillez vous reconnecter.",
             )
 
-        new_token_data, refresh_err, refresh_status = await svc_perform_refresh(
-            refresh_token
+        new_token_data, refresh_err, refresh_status = await run_db_bound(
+            svc_perform_refresh, refresh_token
         )
         if refresh_err:
             return api_error_response(refresh_status, refresh_err)
 
-        logger.info("Token rafraîchi avec succès")
+        logger.info("Token rafraichi avec succes")
         return _build_refresh_response(
             new_token_data,
             fallback_refresh_token=refresh_token,
@@ -419,15 +420,15 @@ async def api_refresh_token(request: Request) -> JSONResponse:
         )
 
     except Exception as token_refresh_error:
-        logger.error(f"Erreur lors du rafraîchissement du token: {token_refresh_error}")
+        logger.error(f"Erreur lors du rafraichissement du token: {token_refresh_error}")
         logger.debug(traceback.format_exc())
-        return api_error_response(401, "Refresh token invalide ou expiré")
+        return api_error_response(401, "Refresh token invalide ou expire")
 
 
 @require_auth
 async def api_get_current_user(request: Request) -> JSONResponse:
     """
-    Récupère les informations de l'utilisateur actuellement connecté.
+    Recupere les informations de l'utilisateur actuellement connecte.
     Route: GET /api/users/me
     Returns: User info
     """
@@ -437,25 +438,25 @@ async def api_get_current_user(request: Request) -> JSONResponse:
 
     except Exception as user_retrieval_error:
         logger.error(
-            f"Erreur lors de la récupération de l'utilisateur: {user_retrieval_error}"
+            f"Erreur lors de la recuperation de l'utilisateur: {user_retrieval_error}"
         )
         logger.debug(traceback.format_exc())
         return api_error_response(
-            500, "Erreur lors de la récupération de l'utilisateur"
+            500, "Erreur lors de la recuperation de l'utilisateur"
         )
 
 
 SUCCESS_MESSAGE_FORGOT = (
-    "Si cette adresse email est associée à un compte, "
-    "vous recevrez un email avec les instructions de réinitialisation."
+    "Si cette adresse email est associee a un compte, "
+    "vous recevrez un email avec les instructions de reset du mot de passe."
 )
 
 
 @rate_limit_auth("forgot-password")
 async def api_forgot_password(request: Request) -> JSONResponse:
     """
-    Demande de réinitialisation de mot de passe.
-    Génère un token, le stocke en DB, et envoie un email avec le lien.
+    Demande de reinitialisation de mot de passe.
+    Genere un token, le stocke en DB, et envoie un email avec le lien.
     Route: POST /api/auth/forgot-password
     Body: {"email": "user@example.com"}
     """
@@ -468,10 +469,10 @@ async def api_forgot_password(request: Request) -> JSONResponse:
         if not email:
             return api_error_response(400, "Adresse email requise")
 
-        result = await svc_perform_forgot_password(email)
+        result = await run_db_bound(svc_perform_forgot_password, email)
 
         if result.outcome == "sent" and "localhost" in settings.FRONTEND_URL:
-            logger.info("[DEV] email reset envoyé")
+            logger.info("[DEV] email reset envoye")
 
         return JSONResponse({"message": SUCCESS_MESSAGE_FORGOT}, status_code=200)
 
@@ -479,7 +480,7 @@ async def api_forgot_password(request: Request) -> JSONResponse:
         if e.code == "email_send_failed":
             return api_error_response(
                 500,
-                "Impossible d'envoyer l'email. Veuillez réessayer plus tard.",
+                "Impossible d'envoyer l'email. Veuillez reessayer plus tard.",
             )
         raise
     except Exception as forgot_err:
@@ -489,7 +490,7 @@ async def api_forgot_password(request: Request) -> JSONResponse:
 
 
 def _extract_validation_message(exc) -> str:
-    """Extrait le message de la première erreur de validation Pydantic."""
+    """Extrait le message de la premiere erreur de validation Pydantic."""
     errs = getattr(exc, "errors", lambda: [])()
     if errs and isinstance(errs, list):
         msg = errs[0].get("msg", "Erreur de validation")
@@ -501,10 +502,10 @@ def _extract_validation_message(exc) -> str:
 
 async def api_reset_password(request: Request) -> JSONResponse:
     """
-    Réinitialise le mot de passe avec un token valide.
+    Reinitialise le mot de passe avec un token valide.
     Route: POST /api/auth/reset-password
     Body: {"token": "...", "password": "...", "password_confirm": "..."}
-    Protégé CSRF via CsrfMiddleware (audit H6).
+    Protege CSRF via CsrfMiddleware (audit H6).
     """
     try:
         data_or_err = await parse_json_body_any(request)
@@ -516,11 +517,11 @@ async def api_reset_password(request: Request) -> JSONResponse:
         except ValidationError as ve:
             return api_error_response(400, _extract_validation_message(ve))
 
-        await svc_perform_reset_password(req.token, req.password)
+        await run_db_bound(svc_perform_reset_password, req.token, req.password)
 
         return JSONResponse(
             {
-                "message": "Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.",
+                "message": "Mot de passe reinitialise avec succes. Vous pouvez vous connecter.",
                 "success": True,
             },
             status_code=200,
@@ -528,30 +529,30 @@ async def api_reset_password(request: Request) -> JSONResponse:
 
     except AuthRecoveryError as e:
         if e.code == "invalid":
-            return api_error_response(400, "Token invalide ou déjà utilisé")
+            return api_error_response(400, "Token invalide ou deja utilise")
         if e.code == "expired":
             return api_error_response(
-                400, "Le lien a expiré. Veuillez demander un nouveau lien."
+                400, "Le lien a expire. Veuillez demander un nouveau lien."
             )
         raise
     except Exception as reset_err:
         logger.error(f"Erreur reset-password: {reset_err}")
         logger.debug(traceback.format_exc())
         return api_error_response(
-            500, "Erreur lors de la réinitialisation du mot de passe"
+            500, "Erreur lors de la reinitialisation du mot de passe"
         )
 
 
 async def api_logout(request: Request) -> JSONResponse:
     """
-    Déconnexion de l'utilisateur en effaçant les cookies d'authentification.
+    Deconnexion de l'utilisateur en effacant les cookies d'authentification.
     Route: POST /api/auth/logout
 
-    IMPORTANT: En prod cross-domain, les cookies sont définis avec SameSite=None, Secure.
-    delete_cookie DOIT utiliser les mêmes paramètres sinon le navigateur ignore la suppression.
+    IMPORTANT: En prod cross-domain, les cookies sont definis avec SameSite=None, Secure.
+    delete_cookie DOIT utiliser les memes parametres sinon le navigateur ignore la suppression.
     """
     try:
-        response = JSONResponse({"message": "Déconnexion réussie"}, status_code=200)
+        response = JSONResponse({"message": "Deconnexion reussie"}, status_code=200)
 
         cookie_samesite, cookie_secure = get_cookie_config()
 
@@ -568,9 +569,9 @@ async def api_logout(request: Request) -> JSONResponse:
             secure=cookie_secure,
         )
 
-        logger.info("Utilisateur déconnecté : cookies d'authentification effacés.")
+        logger.info("Utilisateur deconnecte : cookies d'authentification effaces.")
         return response
     except Exception as logout_error:
-        logger.error(f"Erreur lors de la déconnexion: {logout_error}")
+        logger.error(f"Erreur lors de la deconnexion: {logout_error}")
         logger.debug(traceback.format_exc())
-        return api_error_response(500, "Erreur lors de la déconnexion")
+        return api_error_response(500, "Erreur lors de la deconnexion")

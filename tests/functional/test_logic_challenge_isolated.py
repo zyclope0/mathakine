@@ -134,9 +134,11 @@ async def test_logic_challenge_correct_answer(
 ):
     """Test de soumission d'une reponse correcte"""
     ensure_challenge_exists_in_db(logic_challenge_db)
-    challenge = logic_challenge_db.query(LogicChallenge).filter(
-        LogicChallenge.id == challenge_with_hints_id
-    ).first()
+    challenge = (
+        logic_challenge_db.query(LogicChallenge)
+        .filter(LogicChallenge.id == challenge_with_hints_id)
+        .first()
+    )
     assert challenge is not None
     assert challenge.correct_answer, "Le defi doit avoir une correct_answer non vide"
 

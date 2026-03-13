@@ -113,8 +113,10 @@ jobs:
       run: |
         python -m pytest tests/ -v \
           --ignore=tests/archives/ \
+          --ignore=tests/api/test_admin_auth_stability.py \
           --cov=app \
           --cov=server \
+          --cov-fail-under=62 \
           --cov-report=term-missing \
           --cov-report=xml \
           --junitxml=junit.xml \

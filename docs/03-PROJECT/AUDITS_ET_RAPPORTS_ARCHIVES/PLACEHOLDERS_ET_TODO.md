@@ -190,7 +190,7 @@ Les handlers placeholders `start_challenge`, `get_challenge_progress`, `get_chal
 
 ## 🔧 Dette technique résiduelle — Audit Architecture 2026-03 (22/02/2026)
 
-> Audit complet Phases 0→4 terminé. Les items ci-dessous sont les points non finalisés, classés par priorité. Référence : [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](../AUDIT_ARCHITECTURE_BACKEND_2026-03.md)
+> Audit complet Phases 0→4 terminé. Les items ci-dessous sont les points non finalisés, classés par priorité. Référence : [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](../archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/AUDIT_ARCHITECTURE_BACKEND_2026-03.md)
 
 ### Priorité BASSE — Découpage `constants.py` partiel (A10)
 

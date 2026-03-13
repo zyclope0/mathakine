@@ -17,6 +17,7 @@ from starlette.requests import Request
 
 from app.core.config import settings
 from app.core.logging_config import get_logger
+from app.core.runtime import run_db_bound
 from app.utils.error_handler import api_error_response
 from app.utils.settings_reader import get_setting_bool
 
@@ -118,7 +119,7 @@ class MaintenanceMiddleware(BaseHTTPMiddleware):
         if any(request.url.path.startswith(p) for p in MAINTENANCE_EXEMPT_PREFIXES):
             return await call_next(request)
         try:
-            if await get_setting_bool("maintenance_mode", False):
+            if await run_db_bound(get_setting_bool, "maintenance_mode", False):
                 return api_error_response(
                     503, "Le temple est en maintenance. Réessayez plus tard."
                 )

@@ -64,17 +64,18 @@ def test_get_nonexistent_exercise(db_session):
 
 
 def test_list_exercises(db_session):
-    """Teste la liste des exercices avec différents filtres."""
-    # STRATÉGIE : Utiliser des identifiants uniques pour éviter les conflits
+    """Teste la liste des exercices avec différents filtres.
+
+    Namespace fixture_ex_service_* hors patterns cleanup global (%test%, %Test%).
+    Vérifie uniquement les exercices créés par le test (par unique_id), pas de delta global.
+    """
     unique_id = str(uuid.uuid4())[:8]
+    title_prefix = f"fixture_ex_service_{unique_id}"
 
-    # Compter les exercices avant nos ajouts
-    initial_count = len(ExerciseService.list_exercises(db_session))
-
-    # Créer des exercices de test avec des titres uniques
+    # Créer des exercices avec titres hors patterns cleanup
     exercises = [
         Exercise(
-            title=f"Test Addition Initié {unique_id}",
+            title=f"{title_prefix}_addition_initie",
             exercise_type=get_enum_value(
                 ExerciseType, ExerciseType.ADDITION.value, db_session
             ),
@@ -87,7 +88,7 @@ def test_list_exercises(db_session):
             is_archived=False,
         ),
         Exercise(
-            title=f"Test Soustraction Padawan {unique_id}",
+            title=f"{title_prefix}_soustraction_padawan",
             exercise_type=get_enum_value(
                 ExerciseType, ExerciseType.SOUSTRACTION.value, db_session
             ),
@@ -100,7 +101,7 @@ def test_list_exercises(db_session):
             is_archived=False,
         ),
         Exercise(
-            title=f"Test Multiplication Chevalier {unique_id}",
+            title=f"{title_prefix}_multiplication_chevalier",
             exercise_type=get_enum_value(
                 ExerciseType, ExerciseType.MULTIPLICATION.value, db_session
             ),
@@ -113,7 +114,7 @@ def test_list_exercises(db_session):
             is_archived=False,
         ),
         Exercise(
-            title=f"Test Addition Archivée {unique_id}",
+            title=f"{title_prefix}_addition_archivee",
             exercise_type=get_enum_value(
                 ExerciseType, ExerciseType.ADDITION.value, db_session
             ),
@@ -131,28 +132,25 @@ def test_list_exercises(db_session):
         db_session.add(exercise)
     db_session.commit()
 
-    # Tester la liste sans filtres - vérifier qu'on a 3 exercices de plus (non archivés)
+    # Liste sans filtres — vérifier que nos 3 exercices actifs sont retrouvés
     all_exercises = ExerciseService.list_exercises(db_session)
-    final_count = len(all_exercises)
-    assert (
-        final_count == initial_count + 3
-    ), f"Attendu {initial_count + 3}, obtenu {final_count}"
-
-    # Filtrer nos exercices spécifiquement pour les tests détaillés
     our_exercises = [ex for ex in all_exercises if unique_id in ex.title]
-    assert len(our_exercises) == 3  # L'exercice archivé ne devrait pas être inclus
+    assert len(our_exercises) == 3, "3 exercices actifs du test doivent être retrouvés"
+    # L'exercice archivé ne doit pas apparaître
+    archived_titles = [ex.title for ex in our_exercises if "archivee" in ex.title]
+    assert len(archived_titles) == 0
 
     # Vérifier que les exercices attendus sont présents
     expected_titles = [
-        f"Test Addition Initié {unique_id}",
-        f"Test Soustraction Padawan {unique_id}",
-        f"Test Multiplication Chevalier {unique_id}",
+        f"{title_prefix}_addition_initie",
+        f"{title_prefix}_soustraction_padawan",
+        f"{title_prefix}_multiplication_chevalier",
     ]
     actual_titles = [ex.title for ex in our_exercises]
     for title in expected_titles:
         assert title in actual_titles
 
-    # Tester avec filtre par type
+    # Filtre par type — retrouve l'exercice addition
     addition_exercises = ExerciseService.list_exercises(
         db_session,
         exercise_type=get_enum_value(
@@ -161,9 +159,9 @@ def test_list_exercises(db_session):
     )
     our_addition_exercises = [ex for ex in addition_exercises if unique_id in ex.title]
     assert len(our_addition_exercises) == 1
-    assert our_addition_exercises[0].title == f"Test Addition Initié {unique_id}"
+    assert our_addition_exercises[0].title == f"{title_prefix}_addition_initie"
 
-    # Tester avec filtre par difficulté
+    # Filtre par difficulté — retrouve l'exercice padawan
     padawan_exercises = ExerciseService.list_exercises(
         db_session,
         difficulty=get_enum_value(
@@ -172,9 +170,9 @@ def test_list_exercises(db_session):
     )
     our_padawan_exercises = [ex for ex in padawan_exercises if unique_id in ex.title]
     assert len(our_padawan_exercises) == 1
-    assert our_padawan_exercises[0].title == f"Test Soustraction Padawan {unique_id}"
+    assert our_padawan_exercises[0].title == f"{title_prefix}_soustraction_padawan"
 
-    # Tester avec limite et offset
+    # limit / offset — comportement du service sans hypothèse sur l'état global
     limited_exercises = ExerciseService.list_exercises(db_session, limit=1)
     assert len(limited_exercises) == 1
 

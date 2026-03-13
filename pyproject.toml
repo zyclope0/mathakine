@@ -29,13 +29,13 @@ extend-exclude = '''
 profile = "black"
 line_length = 88
 
-# Mypy 5.2 (audit) — démarrage progressif : passe en CI, durcissement ultérieur
+# Mypy 5.2 (audit) - démarrage progressif : passe en CI, durcissement ultérieur
 [tool.mypy]
 python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
-# Permettre Optional implicite (def foo(x: str = None)) — à durcir plus tard
+# Permettre Optional implicite (def foo(x: str = None)) - à durcir plus tard
 no_implicit_optional = false
 # Désactiver temporairement les codes les plus bruyants (à réactiver module par module)
 disable_error_code = [
@@ -56,5 +56,68 @@ disable_error_code = [
 module = ["app.db.adapter", "app.utils.error_handler", "app.exceptions"]
 disable_error_code = [
     "assignment", "arg-type", "return-value", "union-attr", "attr-defined",
+    "var-annotated", "call-overload", "operator", "index",
+]
+
+# B5.2 - Scope badge : durcissement progressif (no_implicit_optional, no-any-return)
+[[tool.mypy.overrides]]
+module = [
+    "app.services.badge_service",
+    "app.services.badge_application_service",
+    "app.services.badge_user_view_service",
+    "app.services.badge_progress_service",
+    "app.services.badge_rarity_service",
+    "app.services.badge_stats_cache",
+    "app.services.badge_award_persistence",
+    "app.services.badge_gamification_updates",
+    "app.schemas.badge",
+]
+no_implicit_optional = true
+check_untyped_defs = true
+# Moins de relaxations que le projet : assignment réactivé pour Optional explicite
+disable_error_code = [
+    "arg-type", "return-value", "union-attr", "attr-defined",
+    "var-annotated", "call-overload", "operator", "index",
+]
+
+# B5.3 - Scope auth : durcissement progressif (auth_session, auth_recovery)
+[[tool.mypy.overrides]]
+module = [
+    "app.services.auth_session_service",
+    "app.services.auth_recovery_service",
+]
+no_implicit_optional = true
+check_untyped_defs = true
+# Moins de relaxations que le projet : assignment réactivé pour Optional explicite
+disable_error_code = [
+    "arg-type", "return-value", "union-attr", "attr-defined",
+    "var-annotated", "call-overload", "operator", "index",
+]
+
+# B5.4 - Scope exercise : durcissement progressif (generation, query)
+[[tool.mypy.overrides]]
+module = [
+    "app.services.exercise_generation_service",
+    "app.services.exercise_query_service",
+]
+no_implicit_optional = true
+check_untyped_defs = true
+# Moins de relaxations que le projet : assignment réactivé pour Optional explicite
+disable_error_code = [
+    "arg-type", "return-value", "union-attr", "attr-defined",
+    "var-annotated", "call-overload", "operator", "index",
+]
+
+# B5.5 - Scope challenge : durcissement progressif (query, stream)
+[[tool.mypy.overrides]]
+module = [
+    "app.services.challenge_query_service",
+    "app.services.challenge_stream_service",
+]
+no_implicit_optional = true
+check_untyped_defs = true
+# Moins de relaxations que le projet : assignment réactivé pour Optional explicite
+disable_error_code = [
+    "arg-type", "return-value", "union-attr", "attr-defined",
     "var-annotated", "call-overload", "operator", "index",
 ]

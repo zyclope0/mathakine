@@ -125,6 +125,34 @@ async def test_admin_challenges_post_nominal(archiviste_client):
 
 
 @pytest.mark.asyncio
+async def test_admin_challenge_get_nominal(archiviste_client):
+    """GET /api/admin/challenges/{challenge_id} — détail pour édition (B2 boundary)."""
+    client = archiviste_client["client"]
+    create_payload = {
+        "title": "Défi pour GET LOT6",
+        "description": "Description du défi pour test GET.",
+    }
+    create_resp = await client.post("/api/admin/challenges", json=create_payload)
+    assert create_resp.status_code == 201
+    challenge_id = create_resp.json()["id"]
+
+    get_resp = await client.get(f"/api/admin/challenges/{challenge_id}")
+    assert get_resp.status_code == 200
+    data = get_resp.json()
+    assert data.get("id") == challenge_id
+    assert data.get("title") == create_payload["title"]
+    assert data.get("description") == create_payload["description"]
+
+
+@pytest.mark.asyncio
+async def test_admin_challenge_get_404(archiviste_client):
+    """GET /api/admin/challenges/{challenge_id} — 404 si non trouvé."""
+    client = archiviste_client["client"]
+    response = await client.get("/api/admin/challenges/999999")
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
 async def test_admin_challenges_duplicate_nominal(archiviste_client):
     """POST /api/admin/challenges/{challenge_id}/duplicate — crée une copie."""
     client = archiviste_client["client"]

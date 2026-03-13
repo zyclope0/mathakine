@@ -351,7 +351,7 @@ def compare_visual_pattern(
     if "pattern" in challenge_type and visual_data:
         grid = visual_data.get("grid") if isinstance(visual_data, dict) else None
         if grid:
-            from app.services.challenge_validator import (
+            from app.services.challenge_validation_analysis import (
                 analyze_pattern,
                 compute_pattern_answers_multi,
             )

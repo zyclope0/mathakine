@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Tuple
+from typing import Optional, Tuple
 
 from sqlalchemy import and_, exists, or_
 from sqlalchemy.exc import SQLAlchemyError
@@ -352,21 +352,32 @@ class RecommendationService:
                 .all()
             )
 
+            # B4.2: précharger les exercices des tentatives récentes en une requête
+            # au lieu de N requêtes dans la boucle (évite O(attempts × types) requêtes)
+            recent_exercise_ids = [
+                a.exercise_id for a in recent_attempts if a.exercise_id
+            ]
+            exercises_by_id = {}
+            if recent_exercise_ids:
+                exercises = (
+                    db.query(Exercise)
+                    .filter(
+                        Exercise.id.in_(recent_exercise_ids),
+                        Exercise.exercise_type.in_(valid_types),
+                        Exercise.difficulty.in_(valid_difficulties),
+                    )
+                    .all()
+                )
+                exercises_by_id = {ex.id: ex for ex in exercises}
+
             for ex_type in all_exercise_types:
                 ex_type = ex_type[0]  # Extraction du tuple
                 # Vérifier si ce type d'exercice a été pratiqué récemment
-                # Utiliser une requête filtrée pour éviter les erreurs d'énumération
                 recent_type_attempts = []
                 for a in recent_attempts:
-                    exercise = (
-                        db.query(Exercise)
-                        .filter(
-                            Exercise.id == a.exercise_id,
-                            Exercise.exercise_type.in_(valid_types),
-                            Exercise.difficulty.in_(valid_difficulties),
-                        )
-                        .first()
-                    )
+                    if not a.exercise_id:
+                        continue
+                    exercise = exercises_by_id.get(a.exercise_id)
                     if exercise and exercise.exercise_type == ex_type:
                         recent_type_attempts.append(a)
 
@@ -423,17 +434,19 @@ class RecommendationService:
                             )
 
             # 4. Recommandations de découverte (nouveaux types d'exercices)
+            # B4.3: une requête SQL avec DISTINCT ON (exercise_type) — au plus 1 exercice par type,
+            # chaque type ayant des candidats valides a sa chance directe (pas d'échantillon global borné)
             practised_types = set([p.exercise_type for p in progress_records])
             all_types = set([ex_type[0] for ex_type in all_exercise_types])
             new_types = all_types - practised_types
 
-            for new_type in new_types:
-                # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
+            if new_types:
                 valid_types = [t.value for t in ExerciseType]
                 valid_difficulties = [d.value for d in DifficultyLevel]
+                new_types_list = list(new_types)
 
                 ex_filter = [
-                    Exercise.exercise_type == new_type,
+                    Exercise.exercise_type.in_(new_types_list),
                     Exercise.difficulty == user_default_difficulty,
                     Exercise.exercise_type.in_(valid_types),
                     Exercise.difficulty.in_(valid_difficulties),
@@ -447,27 +460,29 @@ class RecommendationService:
                     age_values = [str(v).lower() for v in age_values]
                     age_values.extend(["tous-ages", "tous ages", "all_ages"])
                     ex_filter.append(func.lower(Exercise.age_group).in_(age_values))
-                exercises = (
+                if all_completed_exercise_ids:
+                    ex_filter.append(~Exercise.id.in_(list(all_completed_exercise_ids)))
+
+                # PostgreSQL DISTINCT ON: un exercice par type, aléatoire par type (ORDER BY doit commencer par exercise_type)
+                discovery_exercises = (
                     db.query(Exercise)
                     .filter(*ex_filter)
-                    .order_by(func.random())
-                    .limit(1)
+                    .distinct(Exercise.exercise_type)
+                    .order_by(Exercise.exercise_type, func.random())
                     .all()
                 )
 
-                for ex in exercises:
-                    # Exclure les exercices déjà réussis
-                    if ex.id not in all_completed_exercise_ids:
-                        recommendations.append(
-                            Recommendation(
-                                user_id=user_id,
-                                exercise_type=ex.exercise_type,
-                                difficulty=ex.difficulty,
-                                exercise_id=ex.id,
-                                priority=4,
-                                reason=f"Découvrez un nouveau type d'exercice: {ex.exercise_type}",
-                            )
+                for ex in discovery_exercises:
+                    recommendations.append(
+                        Recommendation(
+                            user_id=user_id,
+                            exercise_type=ex.exercise_type,
+                            difficulty=ex.difficulty,
+                            exercise_id=ex.id,
+                            priority=4,
+                            reason=f"Découvrez un nouveau type d'exercice: {ex.exercise_type}",
                         )
+                    )
 
             # 5. Recommandations de défis logiques (challenges) — ciblés par age_group
             from app.services.challenge_service import normalize_age_group_for_db
@@ -813,3 +828,47 @@ class RecommendationService:
         except ValueError:
             pass
         return None
+
+
+# --- Sync wrappers pour run_db_bound (LOT A4) ---
+
+
+def get_recommendations_for_api_sync(user_id: int, limit: int = 7):
+    """
+    Use case sync: récupère les recommandations formatées pour l'API.
+    Exécuté via run_db_bound() depuis les handlers.
+    """
+    from app.utils.db_utils import sync_db_session
+
+    with sync_db_session() as db:
+        return RecommendationService.get_recommendations_for_api(
+            db, user_id, limit=limit
+        )
+
+
+def generate_recommendations_sync(user_id: int):
+    """
+    Use case sync: génère des recommandations pour l'utilisateur.
+    Exécuté via run_db_bound() depuis les handlers.
+    """
+    from app.utils.db_utils import sync_db_session
+
+    with sync_db_session() as db:
+        return RecommendationService.generate_recommendations(db, user_id)
+
+
+def mark_recommendation_as_completed_sync(
+    recommendation_id: int, user_id: int
+) -> Tuple[bool, Optional[Recommendation]]:
+    """
+    Use case sync: marque une recommandation comme complétée.
+    Exécuté via run_db_bound() depuis les handlers.
+    Returns:
+        (success, recommendation) - recommendation peut être None si non trouvée.
+    """
+    from app.utils.db_utils import sync_db_session
+
+    with sync_db_session() as db:
+        return RecommendationService.mark_recommendation_as_completed(
+            db, recommendation_id, user_id=user_id
+        )

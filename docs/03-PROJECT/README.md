@@ -1,46 +1,63 @@
 ﻿# Gestion projet Mathakine
 
-> Index maitre - audits, pilotages, bilans et rapports projet
-> Derniere mise a jour : 11/03/2026 (iteration backend `challenge/admin/badge` cloturee et archivee, release `3.1.0-alpha.8`)
+> Index maitre projet
+> Mise a jour : 13/03/2026
 
----
+## A lire en premier
 
-## Documents actifs a lire en premier
+| Document | Role |
+|---|---|
+| [../../CHANGELOG.md](../../CHANGELOG.md) | release produit et versioning |
+| [../../README_TECH.md](../../README_TECH.md) | reference technique vivante |
+| [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | protocole quality-first pour les lots backend |
+| [BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](./BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) | recapitulatif actif Runtime + Contracts |
 
-| Document | Date | Role |
-|----------|------|------|
-| [BILAN_FINAL_ITERATION_BACKEND_EXERCISE_AUTH_USER_2026-03-09.md](./BILAN_FINAL_ITERATION_BACKEND_EXERCISE_AUTH_USER_2026-03-09.md) | 09/03/2026 | Bilan final iteration backend `exercise/auth/user` |
-| [DELTA_RESTANT_POST_ITERATION_BACKEND_2026-03-09.md](./DELTA_RESTANT_POST_ITERATION_BACKEND_2026-03-09.md) | 09/03/2026 | Delta post-iteration `exercise/auth/user` |
-| [BILAN_FINAL_ITERATION_BACKEND_CHALLENGE_ADMIN_BADGE_2026-03-11.md](./BILAN_FINAL_ITERATION_BACKEND_CHALLENGE_ADMIN_BADGE_2026-03-11.md) | 11/03/2026 | Bilan final iteration backend `challenge/admin/badge` |
-| [DELTA_RESTANT_POST_ITERATION_BACKEND_CHALLENGE_ADMIN_BADGE_2026-03-11.md](./DELTA_RESTANT_POST_ITERATION_BACKEND_CHALLENGE_ADMIN_BADGE_2026-03-11.md) | 11/03/2026 | Delta post-iteration `challenge/admin/badge` |
-| [CHANGELOG racine](../../CHANGELOG.md) | vivant | Historique produit, version courante `3.1.0-alpha.8` |
+## Etat projet reel
 
-## References projet
+- `exercise/auth/user` : cloture
+- `challenge/admin/badge` : cloture
+- `Runtime Truth` : cloturee
+- `Contracts / Hardening` : cloturee
 
-| Document | Date | Role |
-|----------|------|------|
-| [POINT_SITUATION_2026-02-18.md](./POINT_SITUATION_2026-02-18.md) | 18/02/2026 | Point de situation produit |
-| [CICD_DEPLOY.md](./CICD_DEPLOY.md) | Fev. 2026 | CI/CD, smoke tests, rollback |
-| [POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md) | 22/02/2026 | Regles PII et secrets dans les logs |
-| [AUDIT_ARCHITECTURE_BACKEND_2026-03.md](./AUDIT_ARCHITECTURE_BACKEND_2026-03.md) | 03/2026 | Audit architecture backend de reference |
+Baseline locale de reference:
+- full suite hors faux gate : `823 passed, 2 skipped`
+- `black --check` vert
+- `isort --check-only --diff` vert
+- coverage CI backend : `62 %`
 
-## Iterations archivees
+## References actives
 
-Les documents de pilotage lot par lot et de versioning interne des iterations cloturees ont ete deplaces dans `AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/`.
+| Document | Role |
+|---|---|
+| [BILAN_FINAL_ITERATION_BACKEND_EXERCISE_AUTH_USER_2026-03-09.md](./BILAN_FINAL_ITERATION_BACKEND_EXERCISE_AUTH_USER_2026-03-09.md) | bilan iteration `exercise/auth/user` |
+| [BILAN_FINAL_ITERATION_BACKEND_CHALLENGE_ADMIN_BADGE_2026-03-11.md](./BILAN_FINAL_ITERATION_BACKEND_CHALLENGE_ADMIN_BADGE_2026-03-11.md) | bilan iteration `challenge/admin/badge` |
+| [BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](./BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) | recapitulatif actif Runtime + Contracts |
+| [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | protocole de validation |
+| [CICD_DEPLOY.md](./CICD_DEPLOY.md) | CI/CD, coverage et typing gates |
 
-| Iteration | Archive |
-|-----------|---------|
-| `exercise/auth/user` | [RAPPORTS_TEMPORAIRES/INDEX.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INDEX.md) |
-| `challenge/admin/badge` | [RAPPORTS_TEMPORAIRES/INDEX.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INDEX.md) |
+## Notes actives par theme
 
-## Signaux utiles
+| Document | Role |
+|---|---|
+| [ENDPOINTS_NON_INTEGRES.md](./ENDPOINTS_NON_INTEGRES.md) | endpoints encore non relies ou volontairement hors scope |
+| [IMPLEMENTATION_F07_TIMELINE.md](./IMPLEMENTATION_F07_TIMELINE.md) | note d implementation timeline |
+| [IMPLEMENTATION_F32_SESSION_ENTRELACEE.md](./IMPLEMENTATION_F32_SESSION_ENTRELACEE.md) | note fonctionnelle session entrelacee |
+| [IMPLEMENTATION_F35_REDACTION_LOGS_DB.md](./IMPLEMENTATION_F35_REDACTION_LOGS_DB.md) | tracabilite redaction logs DB |
+| [POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md) | politique PII / logs |
+| [REFACTOR_DASHBOARD_2026-03.md](./REFACTOR_DASHBOARD_2026-03.md) | note active sur le refactor dashboard |
 
-- `tests/api/test_admin_auth_stability.py` est un faux gate tant qu'il lance `pytest` dans `pytest` avec couverture.
-- Les reliquats techniques ouverts sont suivis dans les documents `DELTA_*` plutot que dans les pilotages archives.
+## Ce qui reste a peaufiner
 
-## Navigation
+Le recapitulatif actif liste les sujets hors scope restant a traiter via lots dedies:
+- legacy encore actif
+- extension du typing strict au-dela des ilots actuels
+- hausse du coverage gate au-dela de `62 %`
+- gros services encore denses (`auth_service`, `exercise_service`, `challenge_service`, `challenge_validator`, `admin_content_service`, `badge_requirement_engine`)
 
-- [Index documentation](../INDEX.md)
-- [Roadmap metier](../02-FEATURES/ROADMAP_FONCTIONNALITES.md)
-- [README_TECH racine](../../README_TECH.md)
-- [README archives](./AUDITS_ET_RAPPORTS_ARCHIVES/README.md)
+## Archives
+
+- [archives/README.md](./archives/README.md)
+- [archives/BACKEND_RUNTIME_CONTRACTS_DETAIL_2026-03-13/README.md](./archives/BACKEND_RUNTIME_CONTRACTS_DETAIL_2026-03-13/README.md)
+- [archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/README.md](./archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/README.md)
+- [AUDITS_ET_RAPPORTS_ARCHIVES/README.md](./AUDITS_ET_RAPPORTS_ARCHIVES/README.md)
+- [AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INDEX.md](./AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INDEX.md)
