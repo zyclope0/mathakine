@@ -2,8 +2,9 @@
 
 Toutes les modifications notables du projet sont documentees dans ce fichier.
 
-Le projet suit Semantic Versioning avec suffixe `-alpha.N` pour les releases alpha.
-Source de verite release produit:
+Le format suit l'esprit de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) et le projet utilise Semantic Versioning avec suffixe `-alpha.N` pour les releases alpha.
+
+Source de verite release produit :
 - `CHANGELOG.md`
 - `frontend/package.json`
 
@@ -14,15 +15,23 @@ Source de verite release produit:
 - iteration `Runtime Truth` : cloturee
 - iteration `Contracts / Hardening` : cloturee
 
-Reference active:
+Reference active :
 - [`bilan runtime + contracts`](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
 
 ## [Unreleased]
 
 ### Changed
-- Documentation racine, architecture, guides de test et index projet realignes sur la cloture reelle des iterations `Runtime Truth` et `Contracts / Hardening`.
-- Les details lot par lot `Runtime` et `Contracts` sont desormais archives; un recapitulatif unique sert de reference active.
-- La CI backend documentee et le guide de test refletent maintenant l'etat reel:
+- La documentation racine, l'architecture, les guides de test et l'index projet sont realignes sur la cloture reelle des iterations `Runtime Truth` et `Contracts / Hardening`.
+- Les details lot par lot `Runtime` et `Contracts` sont desormais archives ; un recapitulatif unique sert de reference active.
+- Le domaine `badge` a ete decompose :
+  - `BadgeService` devient une facade lisible
+  - `badge_award_service`, `badge_requirement_fallbacks`, `badge_progress_service`, `badge_rarity_service` et les helpers associes sont separes par responsabilite
+- Le domaine `challenge` a ete clarifie :
+  - dispatch explicite dans `challenge_validator.py`
+  - analyzers partages extraits
+  - validateurs `PATTERN` et `SEQUENCE` sortis dans un module dedie
+- `admin_stats_service.py` a ete transforme en facade courte avec sous-services `overview`, `audit`, `moderation` et `reporting`.
+- La CI backend documentee et le guide de test refletent maintenant l'etat reel :
   - coverage gate `62 %`
   - faux gate `tests/api/test_admin_auth_stability.py` exclu des gates standards
   - ilots mypy plus stricts sur badge, auth session/recovery, exercise generation/query et challenge query/stream
@@ -31,6 +40,10 @@ Reference active:
 - Les documents actifs ne disent plus que `Contracts / Hardening` est seulement preparee.
 - `docs/03-PROJECT/CICD_DEPLOY.md` et `docs/01-GUIDES/TESTING.md` sont realignes sur la CI effective et les gates actuelles.
 - Les references vers les anciens masters/lots actifs Runtime et Contracts pointent maintenant vers le recapitulatif et vers les archives.
+- Le hotspot `ORDER BY RANDOM()` principal de `challenge_service.py` a ete remplace sur le chemin principal par une strategie `random_offset`.
+- `recommendation_service.py` a perdu deux hotspots SQL :
+  - preload des exercices recents au lieu d'un N+1
+  - selection `new_types` en une requete `DISTINCT ON` au lieu d'une requete par type
 
 ### Notes
 - Aucun bump de release produit n'est documente ici.
