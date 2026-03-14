@@ -82,6 +82,22 @@ async def test_analytics_event_post_and_visible(
 
 
 @pytest.mark.asyncio
+async def test_analytics_event_invalid_event_returns_400(padawan_client):
+    """POST /api/analytics/event retourne 400 si l'event est invalide."""
+    client = padawan_client["client"]
+
+    response = await client.post(
+        "/api/analytics/event",
+        json={"event": "invalid_event", "payload": {"type": "exercise"}},
+    )
+
+    assert response.status_code == 400
+    data = response.json()
+    assert "error" in data
+    assert "event invalide" in data["error"]
+
+
+@pytest.mark.asyncio
 async def test_admin_analytics_edtech_excludes_negative_times(
     archiviste_client, db_session, padawan_client
 ):

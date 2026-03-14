@@ -1,7 +1,7 @@
 ﻿# Delta restant post iteration backend challenge/admin/badge
 
 Date: 2026-03-11
-Statut: non bloquant pour la cloture locale
+Statut: trace historique locale, non bloquante
 
 ## Delta technique
 ### Faux gate connu
@@ -12,9 +12,18 @@ Statut: non bloquant pour la cloture locale
 
 ### Hotspots restant volumineux
 - `app/services/challenge_validator.py`
-- `app/services/badge_service.py`
 - `app/services/admin_content_service.py`
-- `app/services/admin_stats_service.py`
+- `app/services/auth_service.py`
+- `app/services/user_service.py`
+- `app/services/exercise_service.py`
+- `app/services/challenge_service.py`
+- `app/services/badge_requirement_engine.py`
+
+Note:
+- `badge_service.py` et `admin_stats_service.py` ont depuis ete decomposes dans
+  `Contracts / Hardening`
+- `challenge_validator.py` a ete clarifie par dispatch et extractions bornees,
+  mais reste un gros module
 
 ### Dette de preuve secondaire
 - Certaines validations d'erreur fines restent principalement prouvees par la full suite ou des tests indirects, pas par une matrice exhaustive endpoint par endpoint.
@@ -26,7 +35,9 @@ Statut: non bloquant pour la cloture locale
   - changelog produit public
   - versioning interne d'iteration backend
 
-## Recommandation suite
-1. Commit/push de l'iteration challenge/admin/badge en `3.1.0-alpha.8`.
-2. Ne pas reutiliser `tests/api/test_admin_auth_stability.py` comme gate CI sans reecriture.
-3. Ouvrir la prochaine iteration uniquement sur un perimetre borne et independant.
+## Note d'actualisation
+
+L'iteration `challenge/admin/badge`, puis `Runtime Truth` et `Contracts / Hardening`,
+ont depuis ete cloturees et poussees. Ce document reste utile pour garder la
+trace du faux gate connu et de la dette de preuve secondaire, mais ne doit plus
+etre lu comme une feuille de route active.

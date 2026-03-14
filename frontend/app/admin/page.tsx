@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AdminAcademyStatsSection } from "@/components/admin/AdminAcademyStatsSection";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminOverview } from "@/hooks/useAdminOverview";
@@ -136,6 +137,8 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
               </div>
+
+              <AdminAcademyStatsSection />
 
               <Card className="mt-6">
                 <CardHeader>

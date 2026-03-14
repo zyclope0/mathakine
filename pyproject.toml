@@ -121,3 +121,18 @@ disable_error_code = [
     "arg-type", "return-value", "union-attr", "attr-defined",
     "var-annotated", "call-overload", "operator", "index",
 ]
+
+# B5.6 - Small services : durcissement progressif (analytics, feedback, daily, diagnostic)
+[[tool.mypy.overrides]]
+module = [
+    "app.services.analytics_service",
+    "app.services.feedback_service",
+    "app.services.daily_challenge_service",
+    "app.services.diagnostic_service",
+]
+no_implicit_optional = true
+check_untyped_defs = true
+disable_error_code = [
+    "arg-type", "return-value", "union-attr", "attr-defined",
+    "var-annotated", "call-overload", "operator", "index",
+]
