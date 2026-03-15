@@ -1,39 +1,38 @@
-"""
+﻿"""
 Rate limiting pour les endpoints sensibles (audit 3.4).
-Protège contre bruteforce (login, forgot-password) et énumération.
+Protege contre bruteforce (login, forgot-password) et enumeration.
 
-Limitation connue: stockage en mémoire — inefficace en multi-instances.
-Voir AUDIT_SECURITE_APPLICATIVE_2026-02.md §10 (limitations connues).
+C2: Store distribue Redis en prod. Fallback memoire borne pour dev/test (REDIS_URL vide).
 """
 
 import os
-import time
-from collections import defaultdict
 from functools import wraps
-from typing import Callable
+from typing import Callable, Optional
 
 from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
+from app.utils.rate_limit_store import _get_store
 
 logger = get_logger(__name__)
 
-# Fenêtre glissante : {key: [timestamps]}
-_rate_limit_store: dict[str, list[float]] = defaultdict(list)
-
 RATE_LIMIT_WINDOW_SEC = 60
 RATE_LIMIT_AUTH_MAX = 5  # login, forgot-password, validate-token
-RATE_LIMIT_REGISTER_MAX = 3  # création de compte
+RATE_LIMIT_REGISTER_MAX = 3  # creation de compte
 RATE_LIMIT_RESEND_VERIFICATION_MAX = 2  # resend-verification (abus email)
-RATE_LIMIT_CHAT_MAX = 15  # chat/stream — coût OpenAI, éviter abus
+RATE_LIMIT_CHAT_MAX = 15  # chat/stream - cout OpenAI, eviter abus
+RATE_LIMIT_AI_MAX_PER_HOUR = 10
+RATE_LIMIT_AI_MAX_PER_DAY = 50
 
-# Messages d'erreur centralisés (429 Too Many Requests)
-MSG_RATE_LIMIT_RETRY = "Trop de tentatives. Veuillez réessayer dans une minute."
-MSG_CHAT_RATE_LIMIT = "Limite de messages atteinte. Veuillez réessayer dans une minute."
+# Messages d'erreur centralises (429 Too Many Requests)
+MSG_RATE_LIMIT_RETRY = "Trop de tentatives. Veuillez reessayer dans une minute."
+MSG_CHAT_RATE_LIMIT = "Limite de messages atteinte. Veuillez reessayer dans une minute."
+MSG_AI_HOURLY_RATE_LIMIT = "Limite horaire de generation atteinte."
+MSG_AI_DAILY_RATE_LIMIT = "Limite journaliere de generation atteinte."
 
 
 def _get_client_ip(request) -> str:
-    """Récupère l'IP cliente (X-Forwarded-For si derrière proxy)."""
+    """Recupere l'IP cliente (X-Forwarded-For si derriere proxy)."""
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
         return forwarded.split(",")[0].strip()
@@ -41,7 +40,7 @@ def _get_client_ip(request) -> str:
 
 
 def _rate_limit_response(message: str) -> JSONResponse:
-    """Retourne une réponse 429 Too Many Requests."""
+    """Retourne une reponse 429 Too Many Requests."""
     from app.utils.error_handler import api_error_response
 
     return api_error_response(429, message)
@@ -53,23 +52,36 @@ def _check_rate_limit(
     window_sec: int = RATE_LIMIT_WINDOW_SEC,
 ) -> bool:
     """
-    Vérifie si la requête dépasse la limite.
-    Returns True si autorisé, False si limité.
+    Verifie si la requete depasse la limite.
+    Returns True si autorise, False si limite.
+    Store: Redis en prod (REDIS_URL), memoire en dev/test.
     """
     if os.getenv("TESTING", "false").lower() == "true":
         return True
-    now = time.time()
-    _rate_limit_store[key] = [t for t in _rate_limit_store[key] if now - t < window_sec]
-    if not _rate_limit_store[key]:
-        del _rate_limit_store[key]
-    if len(_rate_limit_store.get(key, [])) >= max_requests:
-        return False
-    _rate_limit_store[key].append(now)
-    return True
+    return _get_store().check(key=key, max_requests=max_requests, window_sec=window_sec)
+
+
+def check_ai_generation_rate_limit(user_id: int) -> tuple[bool, Optional[str]]:
+    """
+    Verifie les limites de generation IA par utilisateur sur 1h et 24h.
+    Source de verite: store distribue Redis en prod, fallback memoire en dev/test.
+    """
+    if os.getenv("TESTING", "false").lower() == "true":
+        return True, None
+
+    store = _get_store()
+    hourly_key = f"rate_limit:ai_generation:hour:{user_id}"
+    daily_key = f"rate_limit:ai_generation:day:{user_id}"
+
+    if not store.check(hourly_key, RATE_LIMIT_AI_MAX_PER_HOUR, 3600):
+        return False, MSG_AI_HOURLY_RATE_LIMIT
+    if not store.check(daily_key, RATE_LIMIT_AI_MAX_PER_DAY, 86400):
+        return False, MSG_AI_DAILY_RATE_LIMIT
+    return True, None
 
 
 def rate_limit_auth(endpoint_name: str):
-    """Décorateur rate limit pour login/forgot-password (5 req/min)."""
+    """Decorateur rate limit pour login/forgot-password (5 req/min)."""
 
     def decorator(func: Callable):
         @wraps(func)
@@ -77,7 +89,7 @@ def rate_limit_auth(endpoint_name: str):
             ip = _get_client_ip(request)
             key = f"rate_limit:{endpoint_name}:{ip}"
             if not _check_rate_limit(key, RATE_LIMIT_AUTH_MAX):
-                logger.warning(f"Rate limit dépassé pour {endpoint_name} depuis {ip}")
+                logger.warning(f"Rate limit depasse pour {endpoint_name} depuis {ip}")
                 return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
             return await func(request, *args, **kwargs)
 
@@ -87,14 +99,14 @@ def rate_limit_auth(endpoint_name: str):
 
 
 def rate_limit_register(func: Callable):
-    """Décorateur rate limit pour création de compte (3 req/min)."""
+    """Decorateur rate limit pour creation de compte (3 req/min)."""
 
     @wraps(func)
     async def wrapped(request, *args, **kwargs):
         ip = _get_client_ip(request)
         key = f"rate_limit:register:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_REGISTER_MAX):
-            logger.warning(f"Rate limit dépassé pour register depuis {ip}")
+            logger.warning(f"Rate limit depasse pour register depuis {ip}")
             return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
         return await func(request, *args, **kwargs)
 
@@ -102,14 +114,14 @@ def rate_limit_register(func: Callable):
 
 
 def rate_limit_resend_verification(func: Callable):
-    """Décorateur rate limit pour resend-verification (2 req/min par IP)."""
+    """Decorateur rate limit pour resend-verification (2 req/min par IP)."""
 
     @wraps(func)
     async def wrapped(request, *args, **kwargs):
         ip = _get_client_ip(request)
         key = f"rate_limit:resend_verification:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_RESEND_VERIFICATION_MAX):
-            logger.warning(f"Rate limit dépassé pour resend-verification depuis {ip}")
+            logger.warning(f"Rate limit depasse pour resend-verification depuis {ip}")
             return _rate_limit_response(MSG_RATE_LIMIT_RETRY)
         return await func(request, *args, **kwargs)
 
@@ -117,14 +129,14 @@ def rate_limit_resend_verification(func: Callable):
 
 
 def rate_limit_chat(func: Callable):
-    """Décorateur rate limit pour chat/stream (15 req/min par IP — coût OpenAI)."""
+    """Decorateur rate limit pour chat/stream (15 req/min par IP - cout OpenAI)."""
 
     @wraps(func)
     async def wrapped(request, *args, **kwargs):
         ip = _get_client_ip(request)
         key = f"rate_limit:chat:{ip}"
         if not _check_rate_limit(key, RATE_LIMIT_CHAT_MAX):
-            logger.warning(f"Rate limit dépassé pour chat depuis {ip}")
+            logger.warning(f"Rate limit depasse pour chat depuis {ip}")
             return _rate_limit_response(MSG_CHAT_RATE_LIMIT)
         return await func(request, *args, **kwargs)
 

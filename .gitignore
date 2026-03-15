@@ -129,6 +129,7 @@ mathakine.db
 archives/
 !docs/03-PROJECT/archives/
 !docs/03-PROJECT/archives/**
+.coverage.*
 backups/
 *.sql.gz
 *.zip

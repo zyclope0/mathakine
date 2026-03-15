@@ -9,11 +9,14 @@ from unittest.mock import MagicMock
 import pytest
 
 from app.utils.rate_limit import (
+    MSG_AI_DAILY_RATE_LIMIT,
+    MSG_AI_HOURLY_RATE_LIMIT,
     MSG_CHAT_RATE_LIMIT,
     MSG_RATE_LIMIT_RETRY,
     _check_rate_limit,
     _get_client_ip,
     _rate_limit_response,
+    check_ai_generation_rate_limit,
     rate_limit_auth,
     rate_limit_register,
 )
@@ -124,3 +127,39 @@ async def test_rate_limit_register_decorator_allows_when_testing():
     request.client = MagicMock(host="127.0.0.1")
     result = await handler(request)
     assert result == {"ok": True}
+
+
+def test_check_ai_generation_rate_limit_hourly(monkeypatch):
+    """La limite horaire IA retourne le message horaire attendu."""
+    monkeypatch.setenv("TESTING", "false")
+
+    class StubStore:
+        def __init__(self):
+            self.calls = 0
+
+        def check(self, key, max_requests, window_sec):
+            self.calls += 1
+            return self.calls != 1 and True
+
+    monkeypatch.setattr("app.utils.rate_limit._get_store", lambda: StubStore())
+    allowed, reason = check_ai_generation_rate_limit(123)
+    assert allowed is False
+    assert reason == MSG_AI_HOURLY_RATE_LIMIT
+
+
+def test_check_ai_generation_rate_limit_daily(monkeypatch):
+    """La limite journaliere IA retourne le message journalier attendu."""
+    monkeypatch.setenv("TESTING", "false")
+
+    class StubStore:
+        def __init__(self):
+            self.calls = 0
+
+        def check(self, key, max_requests, window_sec):
+            self.calls += 1
+            return self.calls == 1
+
+    monkeypatch.setattr("app.utils.rate_limit._get_store", lambda: StubStore())
+    allowed, reason = check_ai_generation_rate_limit(123)
+    assert allowed is False
+    assert reason == MSG_AI_DAILY_RATE_LIMIT

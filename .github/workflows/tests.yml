@@ -116,7 +116,7 @@ jobs:
           --ignore=tests/api/test_admin_auth_stability.py \
           --cov=app \
           --cov=server \
-          --cov-fail-under=62 \
+          --cov-fail-under=63 \
           --cov-report=term-missing \
           --cov-report=xml \
           --junitxml=junit.xml \

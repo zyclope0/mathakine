@@ -32,9 +32,6 @@ def create_app(debug: bool = False) -> Starlette:
     Returns:
         Configured Starlette application
     """
-    # Monitoring : Sentry + Prometheus (audit HIGH #1)
-    init_monitoring()
-
     # Create the application
     app = Starlette(
         debug=debug,
@@ -58,6 +55,7 @@ async def startup():
     It initializes the database and performs other setup tasks.
     """
     logger.info("Starting up Mathakine server")
+    init_monitoring()
     init_database()
 
     # Note: La migration email est désormais gérée via Alembic (migrations/versions/)
@@ -66,7 +64,12 @@ async def startup():
     logger.info("Mathakine server started successfully")
 
 
-def run_server(host: str = "0.0.0.0", port: int = 8000, debug: bool = False):
+def run_server(
+    app: object | None = None,
+    host: str = "0.0.0.0",
+    port: int = 8000,
+    debug: bool = False,
+):
     """
     Run the Starlette server.
 
@@ -75,10 +78,31 @@ def run_server(host: str = "0.0.0.0", port: int = 8000, debug: bool = False):
         port: Port to bind to
         debug: Whether to enable debug mode
     """
+    import sys
+
     log_level = os.environ.get("MATH_TRAINER_LOG_LEVEL", "INFO").lower()
+
+    # Windows : désactiver reload — le processus enfant réimporte tout et peut bloquer
+    # (deadlock import connu). Le reload reste actif sur Unix.
+    use_reload = debug and sys.platform != "win32"
+    if debug and sys.platform == "win32":
+        logger.info(
+            "Reload désactivé sur Windows (évite blocage à l'import), "
+            "redémarrer manuellement pour appliquer les changements"
+        )
 
     logger.info(f"Starting Mathakine server on {host}:{port} (debug={debug})")
 
+    uvicorn_app = (
+        "enhanced_server:app"
+        if use_reload
+        else (app if app is not None else "enhanced_server:app")
+    )
+
     uvicorn.run(
-        "enhanced_server:app", host=host, port=port, reload=debug, log_level=log_level
+        uvicorn_app,
+        host=host,
+        port=port,
+        reload=use_reload,
+        log_level=log_level,
     )

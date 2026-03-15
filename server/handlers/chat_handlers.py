@@ -18,14 +18,6 @@ try:
 except ImportError:
     OPENAI_AVAILABLE = False
     AsyncOpenAI = None  # type: ignore[assignment,misc]
-
-try:
-    from openai import AsyncOpenAI
-
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
-    AsyncOpenAI = None  # type: ignore[assignment, misc]
 from app.services.chat_service import (
     build_chat_config,
     cleanup_markdown_images,

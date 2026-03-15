@@ -31,7 +31,6 @@ export interface DiagnosticQuestion {
   level_ordinal: number;
   question: string;
   choices: string[];
-  correct_answer: string;
   explanation: string;
   hint: string;
   question_number: number;
@@ -69,10 +68,12 @@ type SessionState = Record<string, any>;
 
 export function useDiagnostic(triggeredFrom: "onboarding" | "settings" = "onboarding") {
   const [phase, setPhase] = useState<DiagnosticPhase>("idle");
-  const [session, setSession] = useState<SessionState | null>(null);
+  const [, setSession] = useState<SessionState | null>(null);
+  const [stateToken, setStateToken] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<DiagnosticQuestion | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [correctAnswerForFeedback, setCorrectAnswerForFeedback] = useState<string | null>(null);
   const [result, setResult] = useState<DiagnosticResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,13 +90,14 @@ export function useDiagnostic(triggeredFrom: "onboarding" | "settings" = "onboar
   // ---- finalizeSession ---------------------------------------------------- //
 
   const finalizeSession = useCallback(
-    async (currentSession: SessionState) => {
+    async (currentStateToken: string | null) => {
+      if (!currentStateToken) return;
       setPhase("loading");
       const durationSeconds = Math.round((Date.now() - startTsRef.current) / 1000);
       try {
         const res = await api.post<{ success: boolean; result?: DiagnosticResult; error?: string }>(
           "/api/diagnostic/complete",
-          { session: currentSession, duration_seconds: durationSeconds }
+          { state_token: currentStateToken, duration_seconds: durationSeconds }
         );
         if (res.success && res.result) {
           setResult(res.result);
@@ -113,20 +115,24 @@ export function useDiagnostic(triggeredFrom: "onboarding" | "settings" = "onboar
   // ---- fetchNextQuestion -------------------------------------------------- //
 
   const fetchNextQuestion = useCallback(
-    async (currentSession: SessionState) => {
+    async (token: string | null) => {
+      if (!token) return;
       setPhase("loading");
       try {
-        const res = await api.post<{ done: boolean; question?: DiagnosticQuestion }>(
-          "/api/diagnostic/question",
-          { session: currentSession }
-        );
+        const res = await api.post<{
+          done: boolean;
+          question?: DiagnosticQuestion;
+          state_token?: string;
+        }>("/api/diagnostic/question", { state_token: token });
+        const nextToken = res.state_token ?? null;
+        setStateToken(nextToken);
         if (res.done) {
-          // Session terminée côté backend — on finalise
-          await finalizeSession(currentSession);
+          await finalizeSession(nextToken);
         } else if (res.question) {
           setCurrentQuestion(res.question);
           setSelectedAnswer(null);
           setIsCorrect(null);
+          setCorrectAnswerForFeedback(null);
           setPhase("question");
         } else {
           setErr("Aucune question retournée par le serveur.");
@@ -147,18 +153,22 @@ export function useDiagnostic(triggeredFrom: "onboarding" | "settings" = "onboar
     setError(null);
     setResult(null);
     setSession(null);
+    setStateToken(null);
     setCurrentQuestion(null);
     setSelectedAnswer(null);
     setIsCorrect(null);
+    setCorrectAnswerForFeedback(null);
 
     try {
-      const res = await api.post<{ session: SessionState; started_at_ts: number }>(
-        "/api/diagnostic/start",
-        { triggered_from: triggeredFrom }
-      );
+      const res = await api.post<{
+        session: SessionState;
+        state_token: string;
+        started_at_ts: number;
+      }>("/api/diagnostic/start", { triggered_from: triggeredFrom });
       startTsRef.current = Date.now();
       setSession(res.session);
-      await fetchNextQuestion(res.session);
+      setStateToken(res.state_token);
+      await fetchNextQuestion(res.state_token);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Impossible de démarrer le diagnostic.");
     }
@@ -167,40 +177,41 @@ export function useDiagnostic(triggeredFrom: "onboarding" | "settings" = "onboar
   // ---- submitAnswer ------------------------------------------------------- //
 
   const submitAnswer = useCallback(async () => {
-    if (!session || !currentQuestion || !selectedAnswer) return;
+    if (!stateToken || !currentQuestion || !selectedAnswer) return;
 
     setPhase("loading");
     try {
       const res = await api.post<{
         is_correct: boolean;
+        correct_answer?: string;
         session: SessionState;
+        state_token: string;
         session_complete: boolean;
       }>("/api/diagnostic/answer", {
-        session,
-        exercise_type: currentQuestion.exercise_type,
+        state_token: stateToken,
         user_answer: selectedAnswer,
-        correct_answer: currentQuestion.correct_answer,
       });
 
       setIsCorrect(res.is_correct);
+      setCorrectAnswerForFeedback(res.correct_answer ?? null);
       setSession(res.session);
+      setStateToken(res.state_token);
       setPhase("feedback");
 
       if (res.session_complete) {
-        // On affiche le feedback brièvement puis finalise
-        setTimeout(() => finalizeSession(res.session), 1800);
+        setTimeout(() => finalizeSession(res.state_token), 1800);
       }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Erreur lors de la soumission de la réponse.");
     }
-  }, [session, currentQuestion, selectedAnswer, finalizeSession, setErr]);
+  }, [stateToken, currentQuestion, selectedAnswer, finalizeSession, setErr]);
 
   // ---- nextQuestion ------------------------------------------------------- //
 
   const nextQuestion = useCallback(async () => {
-    if (!session) return;
-    await fetchNextQuestion(session);
-  }, [session, fetchNextQuestion]);
+    if (!stateToken) return;
+    await fetchNextQuestion(stateToken);
+  }, [stateToken, fetchNextQuestion]);
 
   // ---- public API --------------------------------------------------------- //
 
@@ -210,6 +221,7 @@ export function useDiagnostic(triggeredFrom: "onboarding" | "settings" = "onboar
     currentQuestion,
     selectedAnswer,
     isCorrect,
+    correctAnswerForFeedback,
     result,
     error,
     // Actions

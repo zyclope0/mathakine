@@ -173,6 +173,52 @@ def get_cookie_config() -> Tuple[str, bool]:
     return ("none" if is_production else "lax", is_production)
 
 
+# --------------------------------------------------------------------------- #
+# Diagnostic state token (C1 - integrity)                                      #
+# --------------------------------------------------------------------------- #
+
+DIAGNOSTIC_STATE_PURPOSE = "diagnostic_state"
+DIAGNOSTIC_STATE_EXPIRY_MINUTES = 60
+
+
+def sign_diagnostic_state(state: dict) -> str:
+    """
+    Signe un état diagnostic pour garantir son intégrité.
+    Utilisé par le flux /start, /question, /answer, /complete.
+
+    Returns:
+        Token JWT signé contenant l'état.
+    """
+    from datetime import timedelta
+
+    to_encode = {
+        "purpose": DIAGNOSTIC_STATE_PURPOSE,
+        "state": state,
+    }
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=DIAGNOSTIC_STATE_EXPIRY_MINUTES
+    )
+    to_encode["exp"] = expire
+    to_encode["iat"] = int(datetime.now(timezone.utc).timestamp())
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=SecurityConfig.ALGORITHM)
+
+
+def verify_diagnostic_state(token: str) -> Optional[dict]:
+    """
+    Vérifie et décode un token d'état diagnostic.
+
+    Returns:
+        Le dict state contenu dans le token, ou None si invalide.
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[SecurityConfig.ALGORITHM])
+        if payload.get("purpose") != DIAGNOSTIC_STATE_PURPOSE:
+            return None
+        return payload.get("state")
+    except JWTError:
+        return None
+
+
 def validate_password_strength(password: str) -> Optional[str]:
     """Valide la force d'un mot de passe. Source unique pour handlers et schemas.
 

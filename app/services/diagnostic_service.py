@@ -26,14 +26,19 @@ Architecture :
   - get_latest_score()  : point d'entree unique pour recommendation_service
 """
 
+import json
+import secrets
+import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.constants import AgeGroups, DifficultyLevels, ExerciseTypes
 from app.core.logging_config import get_logger
+from app.core.security import sign_diagnostic_state, verify_diagnostic_state
 from app.models.diagnostic_result import DiagnosticResult
 from app.utils.db_utils import sync_db_session
 
@@ -113,6 +118,161 @@ def create_session(triggered_from: str = "onboarding") -> Dict[str, Any]:
         # Index de rotation pour alterner les types equitablement
         "type_rotation_index": 0,
     }
+
+
+# --------------------------------------------------------------------------- #
+# State token (C1 - integrity backend)                                         #
+# --------------------------------------------------------------------------- #
+
+# Structure du state signe : {"session": {...}, "pending_ref": str | None}
+
+_PENDING_STATE_TTL_SEC = 60 * 60
+_pending_state_memory: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+_pending_state_redis_client = None
+
+
+def _is_production() -> bool:
+    return (
+        settings.ENVIRONMENT == "production"
+        or settings.NODE_ENV == "production"
+        or settings.MATH_TRAINER_PROFILE == "prod"
+    )
+
+
+def _get_pending_state_redis_client():
+    global _pending_state_redis_client
+
+    if _pending_state_redis_client is not None:
+        return _pending_state_redis_client
+
+    redis_url = (settings.REDIS_URL or "").strip()
+    if not redis_url:
+        return None
+
+    try:
+        import redis
+
+        _pending_state_redis_client = redis.from_url(redis_url, decode_responses=True)
+        return _pending_state_redis_client
+    except Exception as exc:
+        if _is_production() and not settings.TESTING:
+            raise RuntimeError(
+                f"Redis requis pour le pending diagnostic en production: {exc}"
+            ) from exc
+        logger.warning(
+            "Pending diagnostic Redis indisponible (%s), fallback memoire dev/test",
+            exc,
+        )
+        return None
+
+
+def _cleanup_pending_state_memory(now: Optional[float] = None) -> None:
+    current = now or time.time()
+    expired_refs = [
+        pending_ref
+        for pending_ref, (expires_at, _) in _pending_state_memory.items()
+        if expires_at <= current
+    ]
+    for pending_ref in expired_refs:
+        _pending_state_memory.pop(pending_ref, None)
+
+
+def store_pending_state(pending: Dict[str, Any]) -> str:
+    """
+    Stocke l'etat pending cote serveur et retourne une reference opaque.
+    correct_answer n'est jamais embarque dans le token client.
+    """
+    pending_ref = secrets.token_urlsafe(24)
+    redis_client = _get_pending_state_redis_client()
+    if redis_client is not None:
+        redis_client.setex(
+            f"diagnostic:pending:{pending_ref}",
+            _PENDING_STATE_TTL_SEC,
+            json.dumps(pending),
+        )
+        return pending_ref
+
+    expires_at = time.time() + _PENDING_STATE_TTL_SEC
+    _cleanup_pending_state_memory(expires_at)
+    _pending_state_memory[pending_ref] = (expires_at, pending)
+    return pending_ref
+
+
+def load_pending_state(pending_ref: str) -> Optional[Dict[str, Any]]:
+    """Charge l'etat pending stocke cote serveur."""
+    redis_client = _get_pending_state_redis_client()
+    if redis_client is not None:
+        raw = redis_client.get(f"diagnostic:pending:{pending_ref}")
+        return json.loads(raw) if raw else None
+
+    _cleanup_pending_state_memory()
+    entry = _pending_state_memory.get(pending_ref)
+    if entry is None:
+        return None
+    expires_at, pending = entry
+    if expires_at <= time.time():
+        _pending_state_memory.pop(pending_ref, None)
+        return None
+    return pending
+
+
+def delete_pending_state(pending_ref: str) -> None:
+    """Supprime l'etat pending une fois la question consommee."""
+    redis_client = _get_pending_state_redis_client()
+    if redis_client is not None:
+        redis_client.delete(f"diagnostic:pending:{pending_ref}")
+        return
+    _pending_state_memory.pop(pending_ref, None)
+
+
+def get_pending_state(state: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Resolve la reference opaque pending_ref vers le pending stocke cote serveur."""
+    pending_ref = state.get("pending_ref")
+    if not pending_ref or not isinstance(pending_ref, str):
+        return None
+    return load_pending_state(pending_ref)
+
+
+def sign_state_token(state: Dict[str, Any]) -> str:
+    """Signe l'etat diagnostic. Retourne un token JWT."""
+    return sign_diagnostic_state(state)
+
+
+def verify_state_token(token: str) -> Optional[Dict[str, Any]]:
+    """
+    Verifie le token et retourne l'etat.
+    Retourne None si token invalide, expire ou falsifie.
+    """
+    return verify_diagnostic_state(token)
+
+
+def check_answer(state: Dict[str, Any], user_answer: str) -> bool:
+    """
+    Compare la reponse utilisateur a la bonne reponse contenue dans le state verifie.
+    Source de verite : backend uniquement (pas de correct_answer client).
+
+    Raises:
+        ValueError: si state n'a pas de pending (question en attente).
+    """
+    pending = get_pending_state(state)
+    if not pending:
+        raise ValueError("Aucune question en attente pour cette session")
+    correct = pending.get("correct_answer", "")
+    return str(user_answer).strip().lower() == str(correct).strip().lower()
+
+
+def apply_answer_and_advance(
+    state: Dict[str, Any], exercise_type: str, is_correct: bool
+) -> None:
+    """
+    Applique la reponse au state et efface le pending.
+    Mutate state en place.
+    """
+    _apply_answer(state["session"], exercise_type, is_correct)
+    pending_ref = state.get("pending_ref")
+    if pending_ref and isinstance(pending_ref, str):
+        delete_pending_state(pending_ref)
+    state["pending_ref"] = None
 
 
 # --------------------------------------------------------------------------- #

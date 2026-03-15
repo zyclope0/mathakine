@@ -6,33 +6,69 @@ RÉALITÉ (audit 2026-02):
 - Métriques : Prometheus + Sentry (éviter démultiplication outils)
 - request_id : corrélation logs ↔ Sentry via RequestIdMiddleware
 - Désactivé en mode TESTING
+
+Note: Prometheus désactivé sur Windows — import peut bloquer/freeze (deadlock connu
+thread+import, CPython #125037). Pas de thread de contournement : ça déplace le blocage.
 """
 
 import os
+import sys
 import time
+from typing import Any
 
 from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-# Prometheus (optionnel, évite import si désactivé)
+# Prometheus : désactivé sur Windows (blocage/freeze connu)
 _prometheus_available = False
-try:
-    from prometheus_client import (
-        CONTENT_TYPE_LATEST,
-        REGISTRY,
-        Counter,
-        Histogram,
-        generate_latest,
-    )
-
-    _prometheus_available = True
-except ImportError:
-    pass
+_CONTENT_TYPE_LATEST = None
+_REGISTRY = None
+_Counter = None
+_Histogram = None
+_generate_latest = None
 
 # Métriques Prometheus (créées à l'init)
-HTTP_REQUESTS_TOTAL: "Counter | None" = None
-HTTP_REQUEST_DURATION: "Histogram | None" = None
+HTTP_REQUESTS_TOTAL: Any = None
+HTTP_REQUEST_DURATION: Any = None
+_monitoring_init_attempted = False
+_monitoring_initialized = False
+
+
+def _load_prometheus_client():
+    """
+    Import prometheus_client. Désactivé sur Windows : l'import peut bloquer indéfiniment
+    (deadlock thread+import). Pas de thread de contournement — ça déplace le blocage.
+    """
+    global _prometheus_available, _CONTENT_TYPE_LATEST, _REGISTRY, _Counter, _Histogram, _generate_latest
+
+    if _prometheus_available:
+        return True
+
+    if sys.platform == "win32":
+        logger.info(
+            "Prometheus désactivé sur Windows (blocage connu à l'import), métriques via Sentry uniquement"
+        )
+        return False
+
+    try:
+        from prometheus_client import (
+            CONTENT_TYPE_LATEST,
+            REGISTRY,
+            Counter,
+            Histogram,
+            generate_latest,
+        )
+
+        _CONTENT_TYPE_LATEST = CONTENT_TYPE_LATEST
+        _REGISTRY = REGISTRY
+        _Counter = Counter
+        _Histogram = Histogram
+        _generate_latest = generate_latest
+        _prometheus_available = True
+        return True
+    except ImportError:
+        return False
 
 
 def _sentry_before_send(event, hint):
@@ -63,6 +99,12 @@ def init_monitoring() -> bool:
         True si au moins une partie du monitoring est active.
     """
     global HTTP_REQUESTS_TOTAL, HTTP_REQUEST_DURATION
+    global _monitoring_init_attempted, _monitoring_initialized
+
+    if _monitoring_init_attempted:
+        return _monitoring_initialized
+
+    _monitoring_init_attempted = True
     initialized = False
 
     # 1. Sentry — erreurs et APM (SENTRY_DSN ou fallback NEXT_PUBLIC_SENTRY_DSN)
@@ -120,14 +162,19 @@ def init_monitoring() -> bool:
         logger.debug("Sentry non configuré (SENTRY_DSN manquant)")
 
     # 2. Prometheus — métriques (préfixe mathakine_ évite conflits avec uvicorn --reload)
-    if _prometheus_available and HTTP_REQUESTS_TOTAL is None:
+    if (
+        _load_prometheus_client()
+        and HTTP_REQUESTS_TOTAL is None
+        and _Counter is not None
+        and _Histogram is not None
+    ):
         try:
-            HTTP_REQUESTS_TOTAL = Counter(
+            HTTP_REQUESTS_TOTAL = _Counter(
                 "mathakine_http_requests_total",
                 "Total des requêtes HTTP",
                 ["method", "path", "status"],
             )
-            HTTP_REQUEST_DURATION = Histogram(
+            HTTP_REQUEST_DURATION = _Histogram(
                 "mathakine_http_request_duration_seconds",
                 "Durée des requêtes HTTP",
                 ["method", "path"],
@@ -141,6 +188,7 @@ def init_monitoring() -> bool:
             else:
                 raise
 
+    _monitoring_initialized = initialized
     return initialized
 
 
@@ -148,11 +196,11 @@ async def metrics_endpoint(request):
     """Endpoint GET /metrics pour Prometheus."""
     from starlette.responses import PlainTextResponse, Response
 
-    if not _prometheus_available:
+    if not _load_prometheus_client():
         return PlainTextResponse("Prometheus client non installé", status_code=501)
 
-    data = generate_latest(REGISTRY)
-    return Response(content=data, media_type=CONTENT_TYPE_LATEST)
+    data = _generate_latest(_REGISTRY)
+    return Response(content=data, media_type=_CONTENT_TYPE_LATEST)
 
 
 class PrometheusMetricsMiddleware:

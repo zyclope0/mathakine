@@ -142,6 +142,7 @@ export function DiagnosticSolver({
     currentQuestion,
     selectedAnswer,
     isCorrect,
+    correctAnswerForFeedback,
     result,
     error,
     startDiagnostic,
@@ -342,7 +343,8 @@ export function DiagnosticSolver({
       >
         {currentQuestion.choices.map((choice, choiceIdx) => {
           const isSelected = selectedAnswer === choice;
-          const isCorrectChoice = isFeedback && choice === currentQuestion.correct_answer;
+          const isCorrectChoice =
+            isFeedback && correctAnswerForFeedback != null && choice === correctAnswerForFeedback;
           const isWrongChoice = isFeedback && isSelected && !isCorrect;
 
           return (
@@ -408,7 +410,9 @@ export function DiagnosticSolver({
               className="text-muted-foreground mb-3"
               supportText={t("answer.incorrectSupport")}
               correctAnswerLabel={t("answer.correctAnswerWas")}
-              correctAnswer={currentQuestion.correct_answer}
+              {...(typeof correctAnswerForFeedback === "string"
+                ? { correctAnswer: correctAnswerForFeedback }
+                : {})}
             />
           )}
           {currentQuestion.explanation && (

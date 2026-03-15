@@ -87,6 +87,12 @@ class Settings(BaseSettings):
 
     RATE_LIMIT_PER_MINUTE: int = 60
     MAX_CONTENT_LENGTH: int = 16_777_216
+
+    # Redis — rate limit distribue (C2). Vide = fallback memoire (dev/test uniquement).
+    REDIS_URL: str = Field(
+        default="",
+        description="URL Redis pour rate limit distribue. Vide = memoire locale (dev/test).",
+    )
     SECURE_HEADERS: bool = True
 
     ENABLE_METRICS: bool = True
@@ -201,6 +207,15 @@ def _validate_production_settings():
         raise ValueError(
             "POSTGRES_PASSWORD utilise une valeur par défaut non sécurisée en production. "
             "Définir une valeur forte dans les variables d'environnement Render."
+        )
+
+    # C2 — rate limit distribue : en prod, REDIS_URL obligatoire.
+    # Source de verite prod = Redis, pas memoire. Fallback memoire = dev/test uniquement.
+    if not settings.TESTING and not (settings.REDIS_URL or "").strip():
+        raise ValueError(
+            "REDIS_URL doit être définie en production pour le rate limit distribue. "
+            "Sans Redis, la protection anti-abus reste mono-instance. "
+            "Ex: redis://localhost:6379/0"
         )
 
 

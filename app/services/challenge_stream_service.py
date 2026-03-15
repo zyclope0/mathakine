@@ -12,6 +12,7 @@ from app.schemas.logic_challenge import (
 )
 from app.utils.enum_mapping import age_group_exercise_from_api
 from app.utils.prompt_sanitizer import sanitize_user_prompt, validate_prompt_safety
+from app.utils.rate_limit import check_ai_generation_rate_limit
 
 logger = get_logger(__name__)
 
@@ -68,11 +69,7 @@ def prepare_stream_context(
 
     # Rate limiting (contexte utilisateur)
     if user_id:
-        from app.utils.rate_limiter import rate_limiter
-
-        allowed, rate_limit_reason = rate_limiter.check_rate_limit(
-            user_id=user_id, max_per_hour=10, max_per_day=50
-        )
+        allowed, rate_limit_reason = check_ai_generation_rate_limit(user_id)
         if not allowed:
             logger.warning(
                 f"Rate limit atteint pour utilisateur {user_id}: {rate_limit_reason}"

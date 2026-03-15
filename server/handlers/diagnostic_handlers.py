@@ -90,7 +90,7 @@ async def get_diagnostic_status(request: Request) -> JSONResponse:
 @require_auth
 async def start_diagnostic(request: Request) -> JSONResponse:
     """
-    Cree et retourne une session de diagnostic vierge.
+    Cree et retourne une session de diagnostic vierge avec state_token signe.
 
     Corps (optionnel) :
     { "triggered_from": "onboarding" | "settings" }
@@ -98,7 +98,8 @@ async def start_diagnostic(request: Request) -> JSONResponse:
     Reponse :
     {
         "session": { ...etat initial... },
-        "started_at_ts": float   // timestamp pour mesurer la duree cote frontend
+        "state_token": str,   // token signe - source de verite pour les appels suivants
+        "started_at_ts": float
     }
     """
     body = await _parse_json(request)
@@ -110,9 +111,12 @@ async def start_diagnostic(request: Request) -> JSONResponse:
         triggered_from = "onboarding"
 
     session = diagnostic_svc.create_session(triggered_from)
+    state = {"session": session, "pending_ref": None}
+    state_token = diagnostic_svc.sign_state_token(state)
     return JSONResponse(
         {
             "session": session,
+            "state_token": state_token,
             "started_at_ts": time.time(),
         }
     )
@@ -126,48 +130,75 @@ async def start_diagnostic(request: Request) -> JSONResponse:
 @require_auth
 async def get_next_question(request: Request) -> JSONResponse:
     """
-    Genere la prochaine question du diagnostic depuis l'etat de session courant.
+    Genere la prochaine question depuis le state_token verifie.
 
     Corps :
-    { "session": { ...etat de session... } }
+    { "state_token": str }   // token emis par /start ou /answer
 
     Reponse si question disponible (HTTP 200) :
     {
         "done": false,
-        "question": {
-            "exercise_type": str,
-            "difficulty": str,
-            "level_ordinal": int,
-            "question": str,          // texte LaTeX/Markdown
-            "choices": [str, str, str, str],
-            "correct_answer": str,
-            "explanation": str,
-            "hint": str,
-            "question_number": int,
-            "max_questions": int,
-            "types_remaining": int
-        }
+        "question": { ... },
+        "state_token": str   // a renvoyer pour /answer
     }
 
     Reponse si session terminee (HTTP 200) :
-    { "done": true }
+    { "done": true, "state_token": str }   // a renvoyer pour /complete
     """
     body = await _parse_json(request)
     if body is None:
         return _session_error("Corps JSON invalide")
 
-    session = body.get("session")
+    state_token = body.get("state_token")
+    if not state_token or not isinstance(state_token, str):
+        return _session_error("Champ 'state_token' manquant ou invalide", 400)
+
+    state = diagnostic_svc.verify_state_token(state_token)
+    if state is None:
+        return _session_error("State token invalide ou expire", 401)
+
+    session = state.get("session")
     if not session or not isinstance(session, dict):
-        return _session_error("Champ 'session' manquant ou invalide")
+        return _session_error("Etat de session invalide", 400)
 
     if diagnostic_svc.is_session_complete(session):
-        return JSONResponse({"done": True})
+        next_state = {"session": session, "pending_ref": None}
+        return JSONResponse(
+            {
+                "done": True,
+                "state_token": diagnostic_svc.sign_state_token(next_state),
+            }
+        )
 
     question = diagnostic_svc.generate_question(session)
     if question is None:
-        return JSONResponse({"done": True})
+        next_state = {"session": session, "pending_ref": None}
+        return JSONResponse(
+            {
+                "done": True,
+                "state_token": diagnostic_svc.sign_state_token(next_state),
+            }
+        )
 
-    return JSONResponse({"done": False, "question": question})
+    # correct_answer reste uniquement dans le state_token signe, jamais expose au client
+    correct_answer = question.pop("correct_answer", "")
+    pending_ref = diagnostic_svc.store_pending_state(
+        {
+            "exercise_type": question["exercise_type"],
+            "correct_answer": correct_answer,
+        }
+    )
+    next_state = {
+        "session": session,
+        "pending_ref": pending_ref,
+    }
+    return JSONResponse(
+        {
+            "done": False,
+            "question": question,
+            "state_token": diagnostic_svc.sign_state_token(next_state),
+        }
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -178,50 +209,61 @@ async def get_next_question(request: Request) -> JSONResponse:
 @require_auth
 async def submit_diagnostic_answer(request: Request) -> JSONResponse:
     """
-    Soumet la reponse de l'utilisateur pour une question et met a jour la session.
+    Soumet la reponse de l'utilisateur. La correction est faite cote backend
+    (correct_answer lu depuis le state_token verifie, jamais du client).
 
     Corps :
     {
-        "session": { ...etat de session... },
-        "exercise_type": str,      // type de la question repondue
-        "user_answer": str,        // reponse choisie par l'utilisateur
-        "correct_answer": str      // bonne reponse (passee depuis le frontend)
+        "state_token": str,   // token emis par /question
+        "user_answer": str
     }
 
     Reponse :
     {
         "is_correct": bool,
         "session": { ...etat mis a jour... },
+        "state_token": str,
         "session_complete": bool
     }
-
-    Note : correct_answer est fourni par le frontend (non stocke en DB).
-    Le backend ne revalide pas - l'evaluation finale est en /complete.
     """
     body = await _parse_json(request)
     if body is None:
         return _session_error("Corps JSON invalide")
 
-    session = body.get("session")
-    exercise_type = body.get("exercise_type")
+    state_token = body.get("state_token")
     user_answer = body.get("user_answer", "")
-    correct_answer = body.get("correct_answer", "")
 
-    if not session or not isinstance(session, dict):
-        return _session_error("Champ 'session' manquant ou invalide")
-    if not exercise_type:
-        return _session_error("Champ 'exercise_type' manquant")
+    if not state_token or not isinstance(state_token, str):
+        return _session_error("Champ 'state_token' manquant ou invalide", 400)
 
-    # Normaliser la comparaison (strip, casse insensible)
-    is_correct = str(user_answer).strip().lower() == str(correct_answer).strip().lower()
+    state = diagnostic_svc.verify_state_token(state_token)
+    if state is None:
+        return _session_error("State token invalide ou expire", 401)
 
-    # Mettre a jour l'etat IRT
-    diagnostic_svc._apply_answer(session, exercise_type, is_correct)
+    try:
+        is_correct = diagnostic_svc.check_answer(state, user_answer)
+    except ValueError:
+        return _session_error("Aucune question en attente pour cette session", 400)
 
+    pending = diagnostic_svc.get_pending_state(state)
+    if not pending:
+        return _session_error("Question en attente introuvable ou expiree", 400)
+    exercise_type = pending["exercise_type"]
+    correct_answer = pending.get("correct_answer", "")
+
+    diagnostic_svc.apply_answer_and_advance(state, exercise_type, is_correct)
+
+    session = state["session"]
+    next_state = {"session": session, "pending_ref": None}
+    next_token = diagnostic_svc.sign_state_token(next_state)
+
+    # correct_answer expose uniquement apres soumission, pour feedback pedagogique
     return JSONResponse(
         {
             "is_correct": is_correct,
+            "correct_answer": correct_answer,
             "session": session,
+            "state_token": next_token,
             "session_complete": diagnostic_svc.is_session_complete(session),
         }
     )
@@ -235,38 +277,37 @@ async def submit_diagnostic_answer(request: Request) -> JSONResponse:
 @require_auth
 async def complete_diagnostic(request: Request) -> JSONResponse:
     """
-    Finalise la session de diagnostic et persiste le DiagnosticResult en base.
+    Finalise et persiste le diagnostic. La session est lue depuis le state_token
+    verifie (jamais depuis le client).
 
     Corps :
     {
-        "session": { ...etat de session final... },
-        "duration_seconds": int    // duree totale mesuree cote frontend (optionnel)
+        "state_token": str,
+        "duration_seconds": int    // optionnel
     }
 
     Reponse succes (HTTP 201) :
     {
         "success": true,
-        "result": {
-            "id": int,
-            "completed_at": "ISO",
-            "triggered_from": str,
-            "questions_asked": int,
-            "duration_seconds": int|null,
-            "scores": { ... }
-        }
+        "result": { ... }
     }
-
-    Reponse echec (HTTP 500) :
-    { "success": false, "error": str }
     """
     user = request.state.user
     body = await _parse_json(request)
     if body is None:
         return _session_error("Corps JSON invalide")
 
-    session = body.get("session")
+    state_token = body.get("state_token")
+    if not state_token or not isinstance(state_token, str):
+        return _session_error("Champ 'state_token' manquant ou invalide", 400)
+
+    state = diagnostic_svc.verify_state_token(state_token)
+    if state is None:
+        return _session_error("State token invalide ou expire", 401)
+
+    session = state.get("session")
     if not session or not isinstance(session, dict):
-        return _session_error("Champ 'session' manquant ou invalide")
+        return _session_error("Etat de session invalide", 400)
 
     duration_seconds: Optional[int] = body.get("duration_seconds")
     if duration_seconds is not None:
