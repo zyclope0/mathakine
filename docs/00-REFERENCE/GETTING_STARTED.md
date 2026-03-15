@@ -1,10 +1,10 @@
 ﻿# GETTING STARTED - MATHAKINE
 
-> Demarrage rapide
-> Mise a jour : 13/03/2026
-> Release produit visible : `3.1.0-alpha.8`
+> Quick start
+> Updated: 15/03/2026
+> Visible product release: `3.1.0-alpha.8`
 
-## Prerequis
+## Prerequisites
 
 - Node.js `>= 18.17`
 - npm `>= 9`
@@ -13,13 +13,13 @@
 - Git
 
 Important:
-- le backend de dev et les tests backend s'appuient sur PostgreSQL local
-- la source de verite release produit est `CHANGELOG.md` + `frontend/package.json`
-- `pyproject.toml` ne doit pas etre lu comme version produit courante
+- backend development and backend tests rely on a local PostgreSQL instance
+- visible release truth comes from `CHANGELOG.md` and `frontend/package.json`
+- `pyproject.toml` is not the visible product release source
 
-## Installation rapide
+## Quick Install
 
-### 1. Cloner le projet
+### 1. Clone the repository
 
 ```bash
 git clone <repository-url>
@@ -37,14 +37,16 @@ alembic upgrade head
 python enhanced_server.py
 ```
 
-Backend par defaut: `http://localhost:8000`
+Backend default URL: `http://localhost:8000`
 
-Variables minimales a verifier dans `.env`:
+Useful backend variables in `.env`:
 
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mathakine
 SECRET_KEY=<secret>
 ALLOWED_ORIGINS=http://localhost:3000
+# optional in local dev, mandatory in production for distributed rate limiting
+REDIS_URL=
 ```
 
 ### 3. Frontend
@@ -56,34 +58,34 @@ Copy-Item .env.example .env.local
 npm run dev
 ```
 
-Frontend par defaut: `http://localhost:3000`
+Frontend default URL: `http://localhost:3000`
 
-Variable frontend utile:
+Frontend variable usually required locally:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
-## Base de test locale
+## Local Test Database
 
-Pour preparer la base backend de test locale:
+Prepare the local backend test database:
 
 ```powershell
 python scripts/check_local_db.py
 ```
 
-Pour un run local backend complet (DB + schema + pytest):
+Run the local backend verification script:
 
 ```powershell
 python scripts/test_backend_local.py
 ```
 
-## Verification rapide
+## Quick Verification
 
 ### Backend
 
 ```bash
-pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py
+pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 black app/ server/ tests/ --check
 isort app/ server/ --check-only --diff
 ```
@@ -93,20 +95,21 @@ isort app/ server/ --check-only --diff
 ```bash
 cd frontend
 npm run lint:ci
+npx tsc --noEmit
 npm run test
 ```
 
-## Points de vigilance
+## Watch-Outs
 
-- ne pas lancer plusieurs commandes `pytest` avec couverture en parallele sur Windows: lock `.coverage` et faux positifs possibles
-- `tests/api/test_admin_auth_stability.py` n'est pas un gate standard
-- les routes actives sont definies dans `server/routes/`
-- `app/api/endpoints/` existe encore mais n'est pas monte dans le runtime Starlette actif
+- on Windows, repeated coverage reruns should use a dedicated `COVERAGE_FILE`
+- `tests/api/test_admin_auth_stability.py` is not a standard gate
+- active routes are defined in `server/routes/`
+- `app/api/endpoints/*` is archived under `_ARCHIVE_2026/`; live runtime truth is `server/routes/` + `server/handlers/`
 
-## Lire ensuite
+## Read Next
 
 - [../../README_TECH.md](../../README_TECH.md)
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [../01-GUIDES/TESTING.md](../01-GUIDES/TESTING.md)
-- [../01-GUIDES/TROUBLESHOOTING.md](../01-GUIDES/TROUBLESHOOTING.md)
+- [../01-GUIDES/DEPLOYMENT_ENV.md](../01-GUIDES/DEPLOYMENT_ENV.md)
 - [../03-PROJECT/README.md](../03-PROJECT/README.md)

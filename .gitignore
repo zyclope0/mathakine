@@ -127,6 +127,8 @@ mathakine.db
 
 # Archives et backups
 archives/
+!docs/03-PROJECT/archives/
+!docs/03-PROJECT/archives/**
 backups/
 *.sql.gz
 *.zip

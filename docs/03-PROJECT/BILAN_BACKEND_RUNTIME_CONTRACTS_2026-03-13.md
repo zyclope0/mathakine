@@ -1,113 +1,112 @@
 ﻿# Bilan Backend Runtime + Contracts
 
 > Date: 13/03/2026
-> Statut: reference active
-> Portee: recapitulatif unique des iterations `Runtime Truth` et `Contracts / Hardening`
+> Status: active recap for `Runtime Truth` and `Contracts / Hardening`
+> Scope: historical recap of those two iterations only
 
-## 1. Statut global
+## 1. Global status at closure on 13/03/2026
 
-| Iteration | Statut | Preuve de cloture |
+| Iteration | Status | Closure proof |
 |---|---|---|
-| `exercise/auth/user` | cloturee | bilan et delta 09/03/2026 |
-| `challenge/admin/badge` | cloturee | bilan et delta 11/03/2026 |
-| `Runtime Truth` | cloturee | full suite hors faux gate verte, `black` vert, `isort` vert |
-| `Contracts / Hardening` | cloturee | lots `B1` a `B5` executes et valides |
+| `exercise/auth/user` | closed | recap and delta 09/03/2026 |
+| `challenge/admin/badge` | closed | recap and delta 11/03/2026 |
+| `Runtime Truth` | closed | full suite excluding false gate green, `black` green, `isort` green |
+| `Contracts / Hardening` | closed | lots `B1` to `B5` executed and validated |
 
-Baseline locale retenue au 13/03/2026:
+Baseline retained at closure on 13/03/2026:
 - `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py` -> `823 passed, 2 skipped`
-- `black app/ server/ tests/ --check` -> vert
-- `isort app/ server/ --check-only --diff` -> vert
-- CI backend coverage gate -> `--cov-fail-under=62`
+- `black app/ server/ tests/ --check` -> green
+- `isort app/ server/ --check-only --diff` -> green
+- backend CI coverage gate at closure -> `--cov-fail-under=62`
 
-## 2. Ce que Runtime a apporte
+## 2. What Runtime brought
 
-Decision d architecture fermee:
-- handlers HTTP `async`
+Closed architecture decision:
+- HTTP handlers `async`
 - services / facades / repositories `sync`
-- acces DB sync via `sync_db_session()`
-- appels DB depuis les handlers via `await run_db_bound(...)`
-- sous-appels DB des flows SSE/LLM isoles en sync
+- sync DB access via `sync_db_session()`
+- DB calls from handlers through `await run_db_bound(...)`
+- SSE/LLM DB subcalls isolated in sync boundaries
 
-Resultats fermes sur le scope traite:
-- fin du faux async sur les verticales refactorees
-- plus de DB possedee par les handlers du scope runtime traite
-- generation exercice active alignee sur le modele runtime
-- facades admin / badge / user / challenge homogenisees en sync
-- `settings_reader` et reliquats runtime fermes
+Closed results on the treated scope:
+- fake async removed from the refactored verticals
+- handlers in scope no longer own DB sessions directly
+- active exercise generation aligned with the runtime model
+- admin / badge / user / challenge facades homogenized in sync boundaries
+- `settings_reader` and the remaining runtime relics in scope were closed
 
-## 3. Ce que Contracts a apporte
+## 3. What Contracts brought
 
 ### B1 - Challenge use cases
-- contrats types sur les tentatives challenge
-- preparation SSE challenge explicitee
-- handlers challenge limites a la couche HTTP
+- stronger challenge attempt contracts
+- challenge SSE preparation clarified
+- challenge handlers limited to HTTP concerns
 
 ### B2 - Admin / badge contracts
-- tuples faibles masques derriere des boundaries explicites
-- mapping erreurs admin/badge clarifie
-- preuve API completee sur les endpoints admin challenge detail
+- weak tuples hidden behind explicit boundaries
+- admin / badge error mapping clarified
+- API proof completed on admin challenge detail endpoints
 
 ### B3 - Hotspot decomposition
-- `BadgeService` transforme en facade
-- decomposition de `badge_award_service.py`
-- fallback badge par code passe en dispatch explicite
-- `admin_stats_service.py` decoupe par responsabilite
-- `challenge_validator.py` clarifie par dispatch, analyzers extraits, famille `PATTERN` / `SEQUENCE` extraite
+- `BadgeService` turned into a facade
+- `badge_award_service.py` decomposed
+- badge fallback dispatch made explicit
+- `admin_stats_service.py` split by responsibility
+- `challenge_validator.py` clarified with dispatch and extracted analyzers
 
 ### B4 - SQL / performance
-- suppression du chemin principal `ORDER BY RANDOM()` dans `challenge_service.py`
-- suppression de deux hotspots `query-in-loop` dans `recommendation_service.py`
-- preservation des contrats publics recommendation / challenge
+- main `ORDER BY RANDOM()` path removed from `challenge_service.py`
+- two query-in-loop hotspots removed from `recommendation_service.py`
+- public challenge / recommendation contracts preserved
 
 ### B5 - CI / typing
-- gate coverage CI explicite a `62 %`
-- exclusion formelle du faux gate `tests/api/test_admin_auth_stability.py`
-- ilots mypy plus stricts sur:
+- explicit CI coverage gate at `62 %`
+- formal exclusion of the false gate `tests/api/test_admin_auth_stability.py`
+- stricter mypy islands on:
   - badge
   - auth session / recovery
   - exercise generation / query
   - challenge query / stream
+  - analytics / feedback / daily challenge / diagnostic
 
-## 4. Ce qui reste hors scope ou a peaufiner
+## 4. Post-closure updates that changed the current truth
 
-Ce document cloture `Runtime` et `Contracts` sur leur scope cible. Il reste cependant des sujets non bloquants, a traiter seulement via nouveaux lots dedies:
+This recap stays valid for the 13/03 closure state, but the current repository truth moved further during `Production Hardening` on 15/03/2026.
 
-### Legacy / compatibilite
-- `app/services/enhanced_server_adapter.py` reste actif sur certains chemins legacy
-- `app/utils/db_utils.py::db_session()` reste present pour compatibilite legacy
-- `app/api/endpoints/` existe encore physiquement mais n est pas une source de verite runtime
+Current notable updates:
+- backend reference baseline is now `868 passed, 2 skipped`
+- backend CI coverage gate is now `63 %`
+- `app/api/endpoints/*` and `app/api/deps.py` are now archived in `_ARCHIVE_2026/app/api/`
+- diagnostic endpoints now use a signed `state_token`
+- production rate limiting now relies on Redis
 
-### Typing / CI
-- le mypy global du projet reste permissif
-- les ilots stricts existent, mais pas encore de durcissement global sur `app/` et `server/`
-- le seuil coverage CI est a `62 %`; les seuils `65 %` puis `70 %` demandent encore un chantier tests cible
+Read [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) for the current post-hardening state.
 
-### Hotspots encore gros
-- `app/services/auth_service.py`
-- `app/services/user_service.py`
-- `app/services/exercise_service.py`
-- `app/services/challenge_service.py`
-- `app/services/challenge_validator.py`
-- `app/services/admin_content_service.py`
-- `app/services/badge_requirement_engine.py`
+## 5. What still remained outside Runtime + Contracts
 
-### Performance / donnees
-- `challenge_service.py` et `recommendation_service.py` ont eu leurs hotspots principaux traites, mais pas un audit exhaustif
-- aucun chantier index / migration SQL n a ete ouvert dans ces iterations
+At the end of these two iterations, the following items were still intentionally outside scope:
+- global mypy strictness
+- higher coverage gates such as `65 %` and `70 %`
+- dense historical modules:
+  - `app/services/auth_service.py`
+  - `app/services/user_service.py`
+  - `app/services/exercise_service.py`
+  - `app/services/challenge_service.py`
+  - `app/services/challenge_validator.py`
+  - `app/services/admin_content_service.py`
+  - `app/services/badge_requirement_engine.py`
 
-## 5. Source de verite documentaire active
+## 6. Active sources of truth today
 
-Documents actifs a lire pour la suite:
+For the current state, read:
 - `README_TECH.md`
 - `docs/INDEX.md`
 - `docs/00-REFERENCE/ARCHITECTURE.md`
 - `docs/01-GUIDES/TESTING.md`
-- `docs/03-PROJECT/CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md`
-- ce document
+- `docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md`
+- this document for the historical closure state of `Runtime Truth` and `Contracts / Hardening`
 
-## 6. Archives
+## 7. Archives
 
-Les details lot par lot `Runtime` et `Contracts` ont ete archives ici:
+Detailed lot-by-lot `Runtime` and `Contracts` notes are archived here:
 - `docs/03-PROJECT/archives/BACKEND_RUNTIME_CONTRACTS_DETAIL_2026-03-13/`
-
-Ils restent utiles pour l historique, mais ne sont plus la reference active.

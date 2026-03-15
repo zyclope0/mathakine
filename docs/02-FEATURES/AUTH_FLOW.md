@@ -1,14 +1,12 @@
-# Flux d'authentification - Mathakine
+﻿# Authentication Flow - Mathakine
 
-> Parcours utilisateur et pages associees
-> **Date :** 15/02/2026 - **MAJ 09/03/2026** (boundary session/recovery refactoree, revocation post-reset et post-change password)
+> User-facing auth journey and backend boundaries
+> Updated: 15/03/2026
 
----
+## Overview
 
-## Vue d'ensemble
-
-```
-/register -> /verify-email -> /login -> application protegee
+```text
+/register -> /verify-email -> /login -> protected application
                 ^                |
                 |                v
 POST /api/auth/resend-verification   session cookies + refresh
@@ -16,163 +14,135 @@ POST /api/auth/resend-verification   session cookies + refresh
 /forgot-password -> email reset -> /reset-password?token=... -> /login
 ```
 
----
+Production note:
+- auth-sensitive endpoints are now protected by distributed Redis rate limiting in production
+- memory fallback is dev/test only
 
-## 1. Inscription
+## 1. Registration
 
-**Page :** `/register`
-**API :** `POST /api/users/`
+**Page:** `/register`
+**API:** `POST /api/users/`
+**Rate limit:** 3 requests/minute per IP
 
-Champs principaux :
-- `username` - >= 3 caracteres
-- `email` - format email valide
-- `password` - >= 8 caracteres, avec les regles de force backend
-- `full_name` - optionnel
+Main fields:
+- `username`
+- `email`
+- `password`
+- `full_name` (optional)
 
-Flux apres succes :
-- creation utilisateur via `UserCreate`
-- generation du token de verification
-- envoi email de verification
-- redirection frontend vers `/verify-email?verify=true`
+Successful flow:
+- user creation via `UserCreate`
+- verification token generation
+- verification email delivery
+- frontend redirect to `/verify-email?verify=true`
 
----
+## 2. Email verification
 
-## 2. Verification email
+**Page:** `/verify-email`
+**API:** `GET /api/auth/verify-email?token=...`
+**Backend boundary:** `auth_recovery_service.py`
 
-**Page :** `/verify-email`
-**API :** `GET /api/auth/verify-email?token=...`
-**Boundary backend :** `auth_recovery_service.py`
+Manual resend:
+- `POST /api/auth/resend-verification`
+- rate limited: 2 requests/minute per IP
+- generic response to avoid account enumeration
 
-Etats fonctionnels :
-- `success` - email verifie
-- `already_verified` - lien rejoue
-- `invalid` - token invalide
-- `expired` - token expire
-- `resend` - renvoi manuel via email
+## 3. Login and session
 
-Renvoi manuel :
-- `POST /api/auth/resend-verification` avec `{email}`
-- le flow reste volontairement discret sur l'existence reelle du compte
-- un email mal forme ou inexistant retourne le meme message generique de securite
+**Page:** `/login`
+**API:** `POST /api/auth/login`
+**Backend boundary:** `auth_session_service.py`
+**Rate limit:** 5 requests/minute per IP
 
----
+On success:
+- `access_token` returned in the body and stored in an HttpOnly cookie
+- `refresh_token` stored in an HttpOnly cookie
+- `csrf_token` stored in a readable cookie for double-submit CSRF
+- a `UserSession` row is created in the database
+- frontend redirects to the protected area
 
-## 3. Connexion et session
+Unverified account behavior:
+- login is still allowed
+- `access_scope` remains limited until email verification
 
-**Page :** `/login`
-**API :** `POST /api/auth/login`
-**Boundary backend :** `auth_session_service.py`
+Refresh / bootstrap:
+- `POST /api/auth/refresh` accepts the refresh cookie (or body fallback if needed)
+- `POST /api/auth/validate-token` validates the access token before cookie sync and is rate limited
+- `GET /api/users/me` rebuilds the current user from the validated token
+- `POST /api/auth/logout` clears auth cookies
 
-Succes :
-- `access_token` renvoye dans le body et pose en cookie HttpOnly
-- `refresh_token` pose en cookie HttpOnly
-- `csrf_token` pose en cookie non HttpOnly (double-submit)
-- creation d'une `UserSession` en base
-- redirection frontend vers la zone protegee
+## 4. Forgot password
 
-Compte non verifie :
-- le login reste autorise
-- `access_scope` reste limite tant que l'email n'est pas verifie
+**Page:** `/forgot-password`
+**API:** `POST /api/auth/forgot-password`
+**Backend boundary:** `auth_recovery_service.py`
+**Rate limit:** 5 requests/minute per IP
 
-Refresh / bootstrap :
-- `POST /api/auth/refresh` accepte le cookie `refresh_token` (ou le body si necessaire)
-- `POST /api/auth/validate-token` valide un token frontend avant sync-cookie
-- `GET /api/users/me` reconstruit l'utilisateur courant a partir du token valide
-- `POST /api/auth/logout` supprime les cookies d'auth
+The response remains generic whether the email exists or not.
 
----
+## 5. Password reset
 
-## 4. Mot de passe oublie
+**Page:** `/reset-password`
+**API:** `POST /api/auth/reset-password`
+**Body:** `{token, password, password_confirm}`
+**Backend boundary:** `auth_recovery_service.py` + `auth_service.py`
 
-**Page :** `/forgot-password`
-**API :** `POST /api/auth/forgot-password`
-**Boundary backend :** `auth_recovery_service.py`
+On success:
+- password hash is replaced
+- `password_changed_at` is updated
+- all active `UserSession` rows are revoked
+- older access/refresh tokens are rejected through `iat`
 
-Flux :
-1. l'utilisateur saisit son email
-2. si le compte existe et est actif, un email de reset est envoye
-3. la reponse reste la meme meme si l'email n'existe pas
+## 6. Password change from settings
 
-Objectif securite : ne pas reveler si l'adresse est associee a un compte.
+**Page:** `/settings`
+**API:** `PUT /api/users/me/password`
+**Backend boundary:** `user_application_service.py` -> `UserService.update_user_password`
 
----
+This flow is aligned with reset-password semantics:
+- password hash update
+- `password_changed_at` update
+- session revocation
+- older access/refresh tokens rejected after the current response
 
-## 5. Reinitialisation mot de passe
+## 7. Active sessions
 
-**Page :** `/reset-password`
-**API :** `POST /api/auth/reset-password`
-**Body :** `{token, password, password_confirm}`
-**Boundary backend :** `auth_recovery_service.py` + `auth_service.py`
-
-Succes :
-- mot de passe remplace
-- `password_changed_at` mis a jour
-- toutes les `UserSession` existantes supprimees
-- tous les access / refresh tokens emis avant ce moment sont rejetes via `iat`
-- reponse HTTP inchangee : message succes + `success: true`
-
-Effet utilisateur :
-- un autre onglet deja ouvert peut encore afficher son etat courant
-- des qu'il renavigue ou refait un appel protege, il doit se reconnecter
-
----
-
-## 6. Changement de mot de passe depuis le profil
-
-**Page :** `/settings` / espace compte
-**API :** `PUT /api/users/me/password`
-**Boundary backend :** `user_application_service.py` -> `UserService.update_user_password`
-
-Depuis cette iteration, ce flow est aligne sur le reset password :
-- mise a jour du hash
-- mise a jour de `password_changed_at`
-- revocation des sessions existantes
-- rejet des anciens access / refresh tokens apres la reponse courante
-
----
-
-## 7. Sessions actives
-
-**Page :** `/settings` - section sessions actives
-**API :**
+**Page:** `/settings`
+**API:**
 - `GET /api/users/me/sessions`
 - `DELETE /api/users/me/sessions/{id}`
 
-Comportement :
-- une `UserSession` est creee a chaque login reussi
-- la session courante est marquee `is_current: true`
-- la revocation manuelle des sessions reste disponible
+Behavior:
+- one `UserSession` row per successful login
+- current session marked `is_current: true`
+- manual revocation available
 
----
+## Key files
 
-## Fichiers cles
+| Role | File |
+|---|---|
+| Frontend auth hook | `frontend/hooks/useAuth.ts` |
+| Frontend API client | `frontend/lib/api/client.ts` |
+| Protected route | `frontend/components/auth/ProtectedRoute.tsx` |
+| Frontend pages | `frontend/app/{login,register,verify-email,forgot-password,reset-password}/page.tsx` |
+| Backend handlers | `server/handlers/auth_handlers.py`, `server/handlers/user_handlers.py` |
+| Auth session | `app/services/auth_session_service.py` |
+| Auth recovery | `app/services/auth_recovery_service.py` |
+| Auth engine | `app/services/auth_service.py` |
+| Runtime auth | `server/auth.py`, `server/middleware.py` |
+| Distributed rate limit store | `app/utils/rate_limit_store.py` |
 
-| Role | Fichier |
-|------|---------|
-| Hooks auth frontend | `frontend/hooks/useAuth.ts` |
-| Client API | `frontend/lib/api/client.ts` |
-| Route protegee | `frontend/components/auth/ProtectedRoute.tsx` |
-| Pages frontend | `frontend/app/{login,register,verify-email,forgot-password,reset-password}/page.tsx` |
-| Handlers backend | `server/handlers/auth_handlers.py`, `server/handlers/user_handlers.py` |
-| Session auth | `app/services/auth_session_service.py` |
-| Recovery auth | `app/services/auth_recovery_service.py` |
-| Moteur auth | `app/services/auth_service.py` |
-| Auth runtime | `server/auth.py`, `server/middleware.py` |
+## Typical HTTP codes
 
----
+| Endpoint | Error case | Code |
+|---|---|---|
+| `POST /api/auth/login` | invalid credentials | `401` |
+| `POST /api/auth/refresh` | missing/invalid/revoked refresh token | `401` |
+| `GET /api/auth/verify-email` | invalid or expired token | `400` |
+| `POST /api/auth/resend-verification` | missing email | `400` |
+| `POST /api/auth/forgot-password` | email delivery failure | `500` |
+| `POST /api/auth/reset-password` | invalid or expired token | `400` |
+| `PUT /api/users/me/password` | incorrect current password | `401` |
+| rate-limited auth endpoints | too many requests | `429` |
 
-## Codes HTTP usuels
-
-| Endpoint | Cas d'erreur | Code |
-|----------|--------------|------|
-| `POST /api/auth/login` | credentials invalides | `401` |
-| `POST /api/auth/refresh` | refresh token manquant/invalide/revoque | `401` |
-| `GET /api/auth/verify-email` | token invalide ou expire | `400` |
-| `POST /api/auth/resend-verification` | email manquant | `400` |
-| `POST /api/auth/forgot-password` | erreur d'envoi email | `500` |
-| `POST /api/auth/reset-password` | token invalide ou expire | `400` |
-| `PUT /api/users/me/password` | mot de passe courant incorrect | `401` |
-
----
-
-Voir aussi : [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md) et [CONFIGURER_EMAIL.md](../01-GUIDES/CONFIGURER_EMAIL.md)
+See also: [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md) and [../01-GUIDES/CONFIGURER_EMAIL.md](../01-GUIDES/CONFIGURER_EMAIL.md)

@@ -1,159 +1,165 @@
 ﻿# API QUICK REFERENCE - MATHAKINE
 
-> Reference condensee des endpoints actifs
-> Mise a jour : 13/03/2026
-> Source de verite runtime : `server/routes/`
+> Condensed reference of active endpoints
+> Updated: 15/03/2026
+> Runtime source of truth: `server/routes/`
 
-## Regles de lecture
+## Reading Rules
 
-- ce document resume les routes actives montees dans Starlette
-- la verite terrain reste `server/routes/` + `server/handlers/`
-- `app/api/endpoints/` n'est pas monte dans le runtime actif
-- le handler HTML `generate_exercise` existe encore mais n'est pas une route Starlette active
+- this document summarizes active Starlette routes only
+- final truth remains `server/routes/` + `server/handlers/`
+- `app/api/endpoints/*` has been archived in `_ARCHIVE_2026/app/api/` and is not part of the runtime
+- the HTML handler `generate_exercise` still exists but is not an active Starlette route
+- auth-sensitive and chat endpoints now rely on distributed Redis rate limiting in production
 
 ## Auth
 
-| Methode | Endpoint | Notes |
+| Method | Endpoint | Notes |
 |---|---|---|
-| POST | `/api/auth/login` | login + cookies auth |
-| GET | `/api/auth/csrf` | recupere le token CSRF |
-| POST | `/api/auth/validate-token` | validation de token |
+| POST | `/api/auth/login` | login + auth cookies, rate limited |
+| GET | `/api/auth/csrf` | fetches CSRF token |
+| POST | `/api/auth/validate-token` | token validation, rate limited |
 | POST | `/api/auth/refresh` | refresh via cookie/body |
-| POST | `/api/auth/logout` | supprime les cookies |
-| POST | `/api/auth/forgot-password` | message generique |
-| POST | `/api/auth/reset-password` | revoque anciens tokens et sessions |
-| GET | `/api/auth/verify-email` | verification email |
-| POST | `/api/auth/resend-verification` | message generique aussi sur email inconnu/mal forme |
+| POST | `/api/auth/logout` | clears auth cookies |
+| POST | `/api/auth/forgot-password` | generic message, rate limited |
+| POST | `/api/auth/reset-password` | revokes older tokens and sessions |
+| GET | `/api/auth/verify-email` | email verification |
+| POST | `/api/auth/resend-verification` | generic message, rate limited |
 
 ## Users
 
-| Methode | Endpoint | Notes |
+| Method | Endpoint | Notes |
 |---|---|---|
-| POST | `/api/users/` | inscription |
-| GET | `/api/users/` | placeholder / en developpement |
-| GET | `/api/users/me` | utilisateur courant |
-| PUT | `/api/users/me` | mise a jour profil |
-| PUT | `/api/users/me/password` | changement mot de passe + revocation |
-| DELETE | `/api/users/me` | suppression compte courant |
-| GET | `/api/users/me/export` | export RGPD |
-| GET | `/api/users/me/sessions` | sessions actives |
+| POST | `/api/users/` | registration, rate limited |
+| GET | `/api/users/` | placeholder / in development |
+| GET | `/api/users/me` | current user |
+| PUT | `/api/users/me` | profile update |
+| PUT | `/api/users/me/password` | password change + revocation |
+| DELETE | `/api/users/me` | delete current account |
+| GET | `/api/users/me/export` | GDPR export |
+| GET | `/api/users/me/sessions` | active sessions |
 | DELETE | `/api/users/me/sessions/{session_id}` | revoke session |
-| GET | `/api/users/me/progress/timeline` | timeline progression |
-| GET | `/api/users/me/progress` | progression globale |
-| GET | `/api/users/me/challenges/progress` | progression defis |
-| GET | `/api/users/stats` | stats utilisateur |
+| GET | `/api/users/me/progress/timeline` | progression timeline |
+| GET | `/api/users/me/progress` | global progression |
+| GET | `/api/users/me/challenges/progress` | challenge progression |
+| GET | `/api/users/stats` | user stats |
 | GET | `/api/users/leaderboard` | leaderboard |
-| DELETE | `/api/users/{user_id}` | route active mais renvoie vers `/api/users/me` pour self-delete |
+| DELETE | `/api/users/{user_id}` | active route, redirects self-delete to `/api/users/me` semantics |
 
-## Daily challenge
+## Daily Challenge
 
-| Methode | Endpoint | Notes |
+| Method | Endpoint | Notes |
 |---|---|---|
-| GET | `/api/daily-challenges` | 3 defis du jour pour l'utilisateur |
+| GET | `/api/daily-challenges` | 3 daily challenges for the user |
 
 ## Diagnostic
 
-| Methode | Endpoint | Notes |
+| Method | Endpoint | Notes |
 |---|---|---|
-| GET | `/api/diagnostic/status` | dernier score / etat |
-| POST | `/api/diagnostic/start` | demarre une session |
-| POST | `/api/diagnostic/question` | prochaine question |
-| POST | `/api/diagnostic/answer` | soumet une reponse intermediaire |
-| POST | `/api/diagnostic/complete` | persiste le resultat |
+| GET | `/api/diagnostic/status` | latest score / state |
+| POST | `/api/diagnostic/start` | starts a session, returns `state_token` |
+| POST | `/api/diagnostic/question` | body uses `state_token`, returns next signed token |
+| POST | `/api/diagnostic/answer` | body uses `state_token` + `user_answer`; no client `correct_answer` trust |
+| POST | `/api/diagnostic/complete` | body uses `state_token`, persists final result |
+
+Contract note:
+- `/api/diagnostic/question` does not expose `correct_answer`
+- `/api/diagnostic/answer` may return `correct_answer` only after submission for feedback
 
 ## Exercises
 
-| Methode | Endpoint | Notes |
+| Method | Endpoint | Notes |
 |---|---|---|
-| GET | `/api/exercises` | liste / filtres / hide_completed |
-| GET | `/api/exercises/stats` | stats accueil |
-| GET | `/api/exercises/interleaved-plan` | plan entrelace |
-| GET | `/api/exercises/{exercise_id}` | detail exercice |
-| POST | `/api/exercises/generate` | generation active montee runtime |
-| GET | `/api/exercises/generate-ai-stream` | SSE generation IA |
-| GET | `/api/exercises/completed-ids` | ids completes |
-| POST | `/api/exercises/{exercise_id}/attempt` | soumission reponse |
+| GET | `/api/exercises` | list / filters / hide_completed |
+| GET | `/api/exercises/stats` | home + admin academy stats |
+| GET | `/api/exercises/interleaved-plan` | interleaved plan |
+| GET | `/api/exercises/{exercise_id}` | exercise detail |
+| POST | `/api/exercises/generate` | active generation route |
+| GET | `/api/exercises/generate-ai-stream` | AI generation SSE |
+| GET | `/api/exercises/completed-ids` | completed ids |
+| POST | `/api/exercises/{exercise_id}/attempt` | submit answer |
 
 ## Challenges
 
-| Methode | Endpoint | Notes |
+| Method | Endpoint | Notes |
 |---|---|---|
-| GET | `/api/challenges` | liste / filtres / hide_completed |
-| GET | `/api/challenges/{challenge_id}` | detail defi |
-| POST | `/api/challenges/{challenge_id}/attempt` | soumission reponse |
-| GET | `/api/challenges/{challenge_id}/hint` | indice |
-| GET | `/api/challenges/completed-ids` | ids completes |
-| GET | `/api/challenges/generate-ai-stream` | SSE generation IA |
-| GET | `/api/challenges/badges/progress` | progression badges challenge |
+| GET | `/api/challenges` | list / filters / hide_completed |
+| GET | `/api/challenges/{challenge_id}` | challenge detail |
+| POST | `/api/challenges/{challenge_id}/attempt` | submit answer |
+| GET | `/api/challenges/{challenge_id}/hint` | hint |
+| GET | `/api/challenges/completed-ids` | completed ids |
+| GET | `/api/challenges/generate-ai-stream` | AI generation SSE |
+| GET | `/api/challenges/badges/progress` | challenge badge progress |
 
 ## Badges
 
-| Methode | Endpoint | Notes |
+| Method | Endpoint | Notes |
 |---|---|---|
-| GET | `/api/badges/user` | badges utilisateur |
-| GET | `/api/badges/available` | badges publics |
-| POST | `/api/badges/check` | verification badges |
-| GET | `/api/badges/stats` | stats gamification |
-| GET | `/api/badges/rarity` | stats rarete |
-| PATCH | `/api/badges/pin` | badge_ids a epingler |
-| GET | `/api/challenges/badges/progress` | progression badges challenge |
+| GET | `/api/badges/user` | user badges |
+| GET | `/api/badges/available` | public badges |
+| POST | `/api/badges/check` | badge check |
+| GET | `/api/badges/stats` | gamification stats |
+| GET | `/api/badges/rarity` | rarity stats |
+| PATCH | `/api/badges/pin` | pin `badge_ids` |
+| GET | `/api/challenges/badges/progress` | challenge badge progress |
 
 ## Admin
 
-| Methode | Endpoint | Notes |
+| Method | Endpoint | Notes |
 |---|---|---|
-| GET | `/api/admin/health` | health admin |
+| GET | `/api/admin/health` | admin health |
 | GET | `/api/admin/overview` | overview |
-| GET | `/api/admin/users` | liste users |
-| PATCH | `/api/admin/users/{user_id}` | mutation user |
-| POST | `/api/admin/users/{user_id}/send-reset-password` | envoi reset |
-| POST | `/api/admin/users/{user_id}/resend-verification` | renvoi verification |
-| DELETE | `/api/admin/users/{user_id}` | suppression admin |
-| GET | `/api/admin/exercises` | liste exercises |
-| POST | `/api/admin/exercises` | creation exercise |
-| POST | `/api/admin/exercises/{exercise_id}/duplicate` | duplication exercise |
-| GET | `/api/admin/exercises/{exercise_id}` | detail exercise |
-| PUT | `/api/admin/exercises/{exercise_id}` | mise a jour complete |
-| PATCH | `/api/admin/exercises/{exercise_id}` | patch exercise |
-| GET | `/api/admin/challenges` | liste challenges |
-| POST | `/api/admin/challenges` | creation challenge |
-| POST | `/api/admin/challenges/{challenge_id}/duplicate` | duplication challenge |
-| GET | `/api/admin/challenges/{challenge_id}` | detail challenge |
-| PUT | `/api/admin/challenges/{challenge_id}` | mise a jour complete |
-| PATCH | `/api/admin/challenges/{challenge_id}` | patch challenge |
+| GET | `/api/admin/users` | user list |
+| PATCH | `/api/admin/users/{user_id}` | mutate user |
+| POST | `/api/admin/users/{user_id}/send-reset-password` | send reset |
+| POST | `/api/admin/users/{user_id}/resend-verification` | resend verification |
+| DELETE | `/api/admin/users/{user_id}` | admin delete |
+| GET | `/api/admin/exercises` | exercise list |
+| POST | `/api/admin/exercises` | create exercise |
+| POST | `/api/admin/exercises/{exercise_id}/duplicate` | duplicate exercise |
+| GET | `/api/admin/exercises/{exercise_id}` | exercise detail |
+| PUT | `/api/admin/exercises/{exercise_id}` | full update |
+| PATCH | `/api/admin/exercises/{exercise_id}` | partial update |
+| GET | `/api/admin/challenges` | challenge list |
+| POST | `/api/admin/challenges` | create challenge |
+| POST | `/api/admin/challenges/{challenge_id}/duplicate` | duplicate challenge |
+| GET | `/api/admin/challenges/{challenge_id}` | challenge detail |
+| PUT | `/api/admin/challenges/{challenge_id}` | full update |
+| PATCH | `/api/admin/challenges/{challenge_id}` | partial update |
 | GET | `/api/admin/reports` | reports |
-| GET | `/api/admin/feedback` | feedback admin |
+| GET | `/api/admin/feedback` | admin feedback |
 | GET | `/api/admin/audit-log` | audit log |
 | GET | `/api/admin/moderation` | moderation |
-| GET | `/api/admin/config` | lecture config |
-| PUT | `/api/admin/config` | ecriture config |
-| GET | `/api/admin/export` | export CSV |
-| GET | `/api/admin/badges` | liste badges |
-| POST | `/api/admin/badges` | creation badge |
-| GET | `/api/admin/badges/{badge_id}` | detail badge |
-| PUT | `/api/admin/badges/{badge_id}` | mise a jour badge |
+| GET | `/api/admin/config` | config read |
+| PUT | `/api/admin/config` | config write |
+| GET | `/api/admin/export` | CSV export |
+| GET | `/api/admin/badges` | badge list |
+| POST | `/api/admin/badges` | create badge |
+| GET | `/api/admin/badges/{badge_id}` | badge detail |
+| PUT | `/api/admin/badges/{badge_id}` | badge update |
 | DELETE | `/api/admin/badges/{badge_id}` | soft delete badge |
-| GET | `/api/admin/analytics/edtech` | analytics EdTech |
-| GET | `/api/admin/ai-stats` | stats IA |
-| GET | `/api/admin/generation-metrics` | metriques generation |
+| GET | `/api/admin/analytics/edtech` | EdTech analytics |
+| GET | `/api/admin/ai-stats` | AI stats |
+| GET | `/api/admin/generation-metrics` | generation metrics |
 
 ## Misc
 
-| Methode | Endpoint | Notes |
+| Method | Endpoint | Notes |
 |---|---|---|
-| POST | `/api/analytics/event` | analytics applicatif |
-| POST | `/api/feedback` | creation feedback |
-| GET | `/api/recommendations` | recommandations |
-| POST | `/api/recommendations/generate` | genere recommandations |
-| POST | `/api/recommendations/complete` | complete recommandation |
-| POST | `/api/chat` | chat public |
-| POST | `/api/chat/stream` | chat SSE |
-| GET | `/health` | health backend |
+| POST | `/api/analytics/event` | app analytics |
+| POST | `/api/feedback` | create feedback |
+| GET | `/api/recommendations` | recommendations |
+| POST | `/api/recommendations/generate` | generate recommendations |
+| POST | `/api/recommendations/complete` | mark recommendation complete |
+| POST | `/api/chat` | public chat, rate limited |
+| POST | `/api/chat/stream` | chat SSE, rate limited |
+| GET | `/health` | backend health |
 | GET | `/robots.txt` | robots |
-| GET | `/metrics` | metriques Prometheus |
+| GET | `/metrics` | Prometheus metrics |
 
 ## References
 
 - [AUTH_FLOW.md](AUTH_FLOW.md)
+- [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md)
 - [../00-REFERENCE/ARCHITECTURE.md](../00-REFERENCE/ARCHITECTURE.md)
 - [../03-PROJECT/ENDPOINTS_NON_INTEGRES.md](../03-PROJECT/ENDPOINTS_NON_INTEGRES.md)

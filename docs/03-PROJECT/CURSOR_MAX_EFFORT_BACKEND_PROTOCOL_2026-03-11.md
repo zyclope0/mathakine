@@ -1,170 +1,95 @@
-# Cursor Max Effort Backend Protocol
+﻿# Cursor Max Effort Backend Protocol
 
 > Date: 11/03/2026
-> Statut: actif
-> Objectif: fournir un protocole unique pour les lots backend executes en mode quality-first.
+> Status: evergreen reference protocol
+> Goal: provide one quality-first validation protocol for backend lots.
 
-## Principe
+## Principle
 
-Un lot backend n'est valide que si 4 choses sont vraies en meme temps:
+A backend lot is valid only if four things are true at the same time:
 
-1. le code touche est relu factuellement
-2. le wiring reel est verifie
-3. les checks sont reproductibles
-4. les endpoints reels modifies sont explicitement prouves
+1. touched code has been reviewed factually
+2. real wiring has been verified
+3. checks are reproducible
+4. touched endpoints or runtime paths are explicitly proven
 
-Un lot n'est jamais `GO` sur la seule base d'une suite verte non reproduite.
+A lot is never `GO` only because one green suite happened once.
 
-## Faux gate connu
+## Known False Gate
 
-Le fichier suivant ne doit pas etre utilise comme gate standard tant qu'il lance `pytest` dans `pytest` avec couverture:
+The following file must not be used as a standard validation gate while it launches `pytest` from `pytest` with coverage:
 
 - `tests/api/test_admin_auth_stability.py`
 
-## Standard de validation
+## Validation Standard
 
-Chaque lot doit distinguer explicitement:
-- fichiers runtime modifies
-- fichiers de test modifies
-- endpoints reels touches
-- ce qui a ete prouve
-- ce qui n'a pas ete prouve
-- risques residuels
+Each lot must explicitly distinguish:
+- modified runtime files
+- modified test files
+- real touched endpoints or runtime paths
+- what was proven
+- what was not proven
+- residual risks
 
-### Gate standard
+### Standard Gate
 
 1. `git status --short`
 2. `git diff --name-only`
-3. `run 1` de la batterie cible
-4. `run 2` de la meme batterie
-5. `full suite` si runtime touche
+3. `run 1` of the target battery
+4. `run 2` of the same battery
+5. `full suite` if runtime changed
 6. `black app/ server/ tests/ --check`
-7. `isort app/ server/ --check-only --diff` si le lot touche Python backend
+7. `isort app/ server/ --check-only --diff` if the lot touches backend Python
 
-## Regles de verdict
+## Verdict Rules
 
-- `GO` seulement si le vert est reproductible
-- `NO-GO` si un `run 2` recasse
-- `NO-GO` si le code touche n'a pas ete relu factuellement
-- `NO-GO` si les endpoints reels modifies ne sont pas listes
-- `NO-GO` si le report conclut sans distinguer runtime et tests
+- `GO` only if green is reproducible
+- `NO-GO` if `run 2` fails
+- `NO-GO` if touched code was not reviewed factually
+- `NO-GO` if touched runtime paths were not listed
+- `NO-GO` if the report concludes without distinguishing runtime and tests
 
-## Regle anti-boucle
+## Anti-Loop Rule
 
-Quand un meme symptome revient sur plusieurs tours, on ne continue pas indefiniment en micro-correctifs sans preuve nouvelle.
+When the same symptom comes back across multiple turns, do not continue indefinitely with micro-fixes without new proof.
 
-Regle imposee:
-1. au premier echec: diagnostiquer et corriger si la cause est prouvee
-2. au deuxieme echec sur le meme symptome: recontroler le tree courant, verifier si le lot est reellement en cause, verifier faux gates et environnement
-3. au troisieme tour sans causalite nouvelle: STOP, produire un document de diagnostic/cadrage, puis requalifier le probleme
+Mandatory rule:
+1. on first failure: diagnose and correct if the cause is proven
+2. on second failure for the same symptom: re-check the current tree, verify whether the lot is really in cause, verify false gates and environment
+3. on third turn without new causality: STOP, produce a diagnosis/scoping note, then re-qualify the problem
 
-## Verification prealable avant verdict
+## Pre-Verdict Verification
 
-Avant de conclure `GO` ou `NO-GO`, verifier:
+Before concluding `GO` or `NO-GO`, verify:
 
-1. la verite du tree courant
-2. la validite de l'environnement de preuve
-3. la difference entre probleme du scope et bruit de baseline
+1. the truth of the current tree
+2. the validity of the proof environment
+3. the difference between a scope problem and baseline noise
 
-### Environnement de preuve
+### Proof Environment
 
-Toujours verifier:
-- base de donnees disponible
-- faux gate connu ou non
-- contention `.coverage`, locks Windows, parallelisme parasite
-- execution concurrente de plusieurs `pytest` avec couverture
+Always verify:
+- database availability
+- known false gate or not
+- `.coverage` contention, Windows locks, accidental parallelism
+- concurrent execution of multiple `pytest` commands with coverage
 
-Regle explicite:
-- sur Windows, ne pas lancer plusieurs commandes `pytest` avec `pytest-cov` en parallele
-- un lock `.coverage` est un faux positif de tooling tant qu'il n'y a pas d'echec metier associe
-- ce faux positif ne doit pas etre confondu avec un rouge runtime
+Explicit rule:
+- on Windows, do not launch multiple `pytest` commands with `pytest-cov` in parallel
+- a `.coverage` lock is a tooling false positive as long as there is no associated business failure
+- that tooling false positive must not be confused with a runtime failure
 
-## Attribution causale obligatoire
+## Mandatory Causal Attribution
 
-Chaque rouge observe doit etre classe dans une seule categorie:
-1. regression runtime du lot
-2. bruit de baseline preexistant
-3. faux gate / harnais de test invalide
-4. probleme d'environnement
-5. hypothese non prouvee
+Each observed failure must be classified in only one category:
+1. runtime regression of the lot
+2. pre-existing baseline noise
+3. false gate or invalid test harness
+4. environment problem
+5. unproven hypothesis
 
-Regles:
-- ne jamais attribuer un echec a un lot sans lien causal explicite
-- ne jamais utiliser un echec hors scope comme preuve suffisante contre le lot
-- si un echec vient d'un faux gate, le signaler comme tel et l'exclure de la decision
-- si un echec vient d'un probleme d'environnement, conclure `NO-GO environnement`, pas `NO-GO runtime`
-
-## Exemple handler cible
-
-### Mauvais
-
-```py
-@require_auth
-async def analytics_event(request):
-    body = await request.json()
-    async with db_session() as db:
-        ok = AnalyticsService.record_edtech_event(db, ...)
-        return JSONResponse({"ok": ok})
-```
-
-### Bon
-
-```py
-@require_auth
-async def analytics_event(request):
-    body = EventRequest.model_validate(await request.json())
-    result = await run_db_bound(
-        analytics_application_service.record_event,
-        body,
-        request.state.user["id"],
-    )
-    return JSONResponse(result)
-```
-
-## Exemple de mauvais report
-
-```text
-GO.
-Tous les tests passent.
-Aucun risque identifie.
-```
-
-Pourquoi c'est invalide:
-- aucune distinction runtime/tests
-- aucun endpoint liste
-- aucun rerun prouve
-- aucune attribution causale
-- aucune verification du tree courant
-
-## Exemple de bon report
-
-```text
-1. Fichiers modifies
-2. Fichiers runtime modifies
-3. Fichiers de test modifies
-4. Endpoints reellement touches
-5. Ce qui a ete prouve
-6. Ce qui n'a pas ete prouve
-7. Cause exacte ou meilleure explication defendable
-8. Correctif applique et pourquoi il est borne
-9. Resultat run 1
-10. Resultat run 2
-11. Resultat full suite
-12. Resultat black
-13. Resultat isort
-14. Risques residuels
-15. Recommendation GO / NO-GO
-```
-
-## Mode d'execution backend retenu
-
-Le cycle runtime part du principe suivant:
-- handlers HTTP async
-- services/repositories sync
-- acces DB sync executes via un helper threadpool unique
-- pas de migration globale `AsyncSession` dans cette iteration
-
-## Regle finale
-
-Le but n'est pas de faire passer des tests.
-Le but est de rendre la base defendable, lisible et stable.
+Rules:
+- never attribute a failure to a lot without explicit causal linkage
+- never use an out-of-scope failure as sufficient proof against the lot
+- if a failure comes from a false gate, mark it as such and exclude it from the decision
+- if a failure comes from an environment problem, conclude `NO-GO environment`, not `NO-GO runtime`

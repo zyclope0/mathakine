@@ -1,55 +1,58 @@
-﻿# 🎓 Mathakine
+﻿# Mathakine
 
-Plateforme d'apprentissage des mathematiques gamifiee avec frontend Next.js et backend Starlette/SQLAlchemy.
+Gamified mathematics learning platform with a Next.js frontend and a Starlette/SQLAlchemy backend.
 
 [![Version](https://img.shields.io/badge/version-3.1.0--alpha.8-blue.svg)](CHANGELOG.md)
-[![Statut](https://img.shields.io/badge/statut-alpha-orange.svg)](CHANGELOG.md)
+[![Status](https://img.shields.io/badge/status-alpha-orange.svg)](CHANGELOG.md)
 [![Tests](https://github.com/zyclope0/mathakine/actions/workflows/tests.yml/badge.svg)](https://github.com/zyclope0/mathakine/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/zyclope0/mathakine/graph/badge.svg)](https://codecov.io/gh/zyclope0/mathakine)
 
-## 📌 Statut produit actuel
+## Product Status
 
-- release visible : `3.1.0-alpha.8`
-- source de verite versioning : `CHANGELOG.md` + `frontend/package.json`
-- note : la metadata Python de `pyproject.toml` n'est pas alignee sur la release produit
+- visible release: `3.1.0-alpha.8`
+- release source of truth: `CHANGELOG.md` and `frontend/package.json`
+- note: `pyproject.toml` still carries a historical Python package version and does not define the visible product release
 
-## ✨ Fonctionnalites cles
+## Key Capabilities
 
-- 🎯 Exercices mathematiques adaptatifs
-- 🧩 Defis logiques et contenus IA
-- 🏆 Gamification, badges et progression
-- 📊 Dashboard utilisateur et analytics admin
-- 🔐 Authentification par session/cookies et recuperation de compte
-- 🌍 Frontend Next.js multilingue
+- adaptive math exercises
+- logic challenges and AI-backed content
+- badges, progression and user dashboard
+- admin analytics and moderation surfaces
+- cookie/session authentication with account recovery
+- multilingual Next.js frontend
 
-## 📚 Documentation a lire en premier
+## Read First
 
-- [README_TECH.md](README_TECH.md) : reference technique vivante
-- [docs/INDEX.md](docs/INDEX.md) : point d'entree de la documentation
-- [docs/00-REFERENCE/GETTING_STARTED.md](docs/00-REFERENCE/GETTING_STARTED.md) : installation pas a pas
-- [docs/00-REFERENCE/ARCHITECTURE.md](docs/00-REFERENCE/ARCHITECTURE.md) : architecture globale
-- [CHANGELOG.md](CHANGELOG.md) : historique produit et statut de release
+- [README_TECH.md](README_TECH.md): living technical reference
+- [docs/INDEX.md](docs/INDEX.md): documentation entry point
+- [docs/00-REFERENCE/GETTING_STARTED.md](docs/00-REFERENCE/GETTING_STARTED.md): setup guide
+- [docs/00-REFERENCE/ARCHITECTURE.md](docs/00-REFERENCE/ARCHITECTURE.md): active architecture
+- [docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md](docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md): active recap of the latest backend hardening iteration
+- [CHANGELOG.md](CHANGELOG.md): product history and release status
 
-## ✅ Etat reel au 14/03/2026
+## Current Verified State On 15/03/2026
 
-- backend `exercise/auth/user` : iteration cloturee
-- backend `challenge/admin/badge` : iteration cloturee
-- iteration Runtime `quality-first` : cloturee
-- iteration Contracts / Hardening : cloturee
-- baseline locale de reference :
-  - full suite hors faux gate : `823 passed, 2 skipped`
-  - `black --check` : vert
-  - `isort --check-only --diff` : vert
+- backend iteration `exercise/auth/user`: closed
+- backend iteration `challenge/admin/badge`: closed
+- iteration `Runtime Truth`: closed
+- iteration `Contracts / Hardening`: closed
+- iteration `Production Hardening`: closed
+- local reference baseline:
+  - full suite excluding the false gate: `868 passed, 2 skipped`
+  - `black app/ server/ tests/ --check`: green
+  - `isort app/ server/ --check-only --diff`: green
+  - backend coverage gate in CI: `63 %`
 
-## 🏗️ Stack
+## Stack
 
-- Frontend : Next.js 16, React 19, TypeScript, React Query, Zustand
-- Backend : Starlette, SQLAlchemy 2, PostgreSQL, Alembic
-- IA : OpenAI
-- Tests : pytest, Vitest, Playwright
-- CI/CD : GitHub Actions + Render
+- Frontend: Next.js 16, React 19, TypeScript, React Query, Zustand
+- Backend: Starlette, SQLAlchemy 2, PostgreSQL, Alembic
+- AI: OpenAI
+- Tests: pytest, Vitest, Playwright
+- CI/CD: GitHub Actions and Render
 
-## ⚡ Demarrage rapide
+## Quick Start
 
 ### Backend
 
@@ -61,7 +64,7 @@ alembic upgrade head
 python enhanced_server.py
 ```
 
-Le backend ecoute par defaut sur `http://localhost:8000`.
+Backend default URL: `http://localhost:8000`
 
 ### Frontend
 
@@ -71,43 +74,46 @@ npm install
 npm run dev
 ```
 
-Le frontend ecoute par defaut sur `http://localhost:3000`.
+Frontend default URL: `http://localhost:3000`
 
-## 📁 Structure
+## Repository Structure
 
 ```text
-frontend/   interface utilisateur Next.js
-server/     couche HTTP Starlette (routes, handlers, auth, middleware)
-app/        logique metier, services, repositories, modeles, schemas
-migrations/ migrations Alembic
-tests/      tests backend et frontend
-docs/       documentation projet
+frontend/   Next.js user interface
+server/     Starlette HTTP layer (routes, handlers, auth, middleware)
+app/        business logic, services, repositories, models, schemas
+migrations/ Alembic migrations
+tests/      backend and frontend tests
+docs/       project documentation
 ```
 
-## 🧭 Regles de lecture
+## Reading Rules
 
-- la source de verite des routes actives est `server/routes/`
-- la source de verite de l'architecture backend active est `server/` + `app/`
-- `app/api/endpoints/` existe encore physiquement mais n'est pas monte dans le wiring Starlette actif
-- les details lot par lot `Runtime` et `Contracts` sont archives ; le recapitulatif actif fait foi
+- active route truth lives in `server/routes/`
+- active backend architecture truth lives in `server/` and `app/`
+- `app/api/endpoints/*` has been archived under `_ARCHIVE_2026/` and is not part of the live runtime
+- the active diagnostic contract uses a signed `state_token`; `/api/diagnostic/question` no longer exposes `correct_answer`
+- production rate limiting now relies on Redis; memory fallback is dev/test only
+- detailed lot-by-lot execution notes are archived; the active recap documents take precedence
 
-## 🧪 Tests et qualite
+## Tests And Quality
 
-Commandes utiles :
+Useful commands:
 
 ```bash
-pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py
+pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 black app/ server/ tests/ --check
 isort app/ server/ --check-only --diff
 cd frontend && npm run lint:ci
+cd frontend && npx tsc --noEmit
 ```
 
-Important :
-- ne pas lancer plusieurs commandes `pytest` avec couverture en parallele sur Windows : cela peut provoquer des faux positifs de lock `.coverage`
-- `tests/api/test_admin_auth_stability.py` n'est pas un gate standard tant qu'il lance `pytest` dans `pytest`
+Important:
+- `tests/api/test_admin_auth_stability.py` is not a standard gate while it still launches `pytest` from inside `pytest`
+- on Windows, repeated coverage runs should use a dedicated `COVERAGE_FILE` to avoid false `.coverage` lock failures
 
-## 🔎 References projet
+## Project References
 
 - [docs/03-PROJECT/README.md](docs/03-PROJECT/README.md)
-- [docs/03-PROJECT/CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](docs/03-PROJECT/CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md)
 - [docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
+- [docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md](docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)

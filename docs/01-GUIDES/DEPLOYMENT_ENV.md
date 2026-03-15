@@ -1,93 +1,89 @@
-# Variables d'environnement — Déploiement (Render)
+﻿# Deployment Environment Variables - Render
 
-**Dernière mise à jour :** Février 2026  
-**Pour :** Alpha / Production sur Render
+> Updated: 15/03/2026
+> Scope: alpha / production deployment on Render
 
----
+## Backend (`mathakine-backend`)
 
-## Backend (mathakine-backend)
+### Required In Production
 
-### Obligatoires
+| Variable | Role | Example |
+|---|---|---|
+| `DATABASE_URL` | PostgreSQL connection string | Render-managed DB URL |
+| `SECRET_KEY` | JWT and signed state secrets | generated strong value |
+| `FRONTEND_URL` | CORS and redirects | `https://mathakine.fun` |
+| `OPENAI_API_KEY` | Chat and AI generation | `sk-xxx` |
+| `DEFAULT_ADMIN_PASSWORD` | production startup validation | strong value |
+| `REDIS_URL` | distributed rate limiting source of truth | `redis://...` |
 
-| Variable | Rôle | Valeur exemple |
-|----------|------|----------------|
-| `DATABASE_URL` | Connexion PostgreSQL | Auto (Render DB) |
-| `SECRET_KEY` | Signatures JWT | Généré par Render |
-| `FRONTEND_URL` | CORS + redirects | `https://mathakine.fun` |
-| `OPENAI_API_KEY` | Chat + génération IA | `sk-xxx` |
-| `DEFAULT_ADMIN_PASSWORD` | Validation prod (bloqué si vide/faible). Admin créé via BDD si besoin. | Valeur forte ou placeholder |
+Why `REDIS_URL` is required:
+- production anti-abuse protection now relies on Redis
+- production must not degrade silently to in-memory rate limiting
+- startup fails if `REDIS_URL` is missing in production
 
-### Monitoring (Sentry)
+### Monitoring / environment tags
 
-| Variable | Rôle | Valeur exemple |
-|----------|------|----------------|
-| `NEXT_PUBLIC_SENTRY_DSN` ou `SENTRY_DSN` | Erreurs backend → Sentry | Même DSN que frontend |
-| `ENVIRONMENT` | Tag Sentry (prod/staging) | `production` |
-| `SENTRY_RELEASE` | Corrélation erreurs ↔ déploiement | `${RENDER_GIT_COMMIT}` ou manuel |
-| `SENTRY_TRACES_SAMPLE_RATE` | Taux de traces APM | `0.1` (10 %) |
+| Variable | Role | Example |
+|---|---|---|
+| `ENVIRONMENT` | runtime environment tag | `production` |
+| `MATH_TRAINER_PROFILE` | alternative prod detection | `prod` |
+| `LOG_LEVEL` | logging level | `INFO` |
+| `SENTRY_DSN` or `NEXT_PUBLIC_SENTRY_DSN` | Sentry backend reporting | project DSN |
+| `SENTRY_RELEASE` | deployment correlation | `${RENDER_GIT_COMMIT}` |
+| `SENTRY_TRACES_SAMPLE_RATE` | APM sampling | `0.1` |
 
-### Emails (un des deux : SMTP ou SendGrid)
+### Email providers
 
-| Variable | Rôle |
-|----------|------|
-| `SENDGRID_API_KEY` + `SENDGRID_FROM_EMAIL` | SendGrid (prioritaire si défini) |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`, `SMTP_USE_TLS` | SMTP classique |
+Use one of the two families below:
 
-### Optionnels / Auto
+| Variable family | Role |
+|---|---|
+| `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL` | SendGrid |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM_EMAIL`, `SMTP_USE_TLS` | SMTP |
 
-| Variable | Rôle |
-|----------|------|
-| `MATH_TRAINER_PROFILE` | `prod` pour détecter la prod |
-| `ENVIRONMENT` | `production` (souvent dans render.yaml) |
-| `LOG_LEVEL` | `INFO` minimum en prod |
-| `PORT` | Auto par Render |
+### Not Needed On The Backend In Production
 
-### ❌ Non nécessaires sur le backend
+| Variable | Why |
+|---|---|
+| `TEST_DATABASE_URL` | test-only |
+| `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | frontend source-map upload concerns |
 
-| Variable | Raison |
-|----------|--------|
-| `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` | Utilisés par le frontend (source maps). Backend Python n'en a pas besoin. |
-| `TEST_DATABASE_URL` | Uniquement pour pytest en CI. À retirer de la prod. |
+## Frontend (`mathakine-frontend`)
 
----
+| Variable | Required | Role | Example |
+|---|---|---|---|
+| `NEXT_PUBLIC_API_BASE_URL` | yes | backend base URL | `https://mathakine-alpha.onrender.com` |
+| `NEXT_PUBLIC_SITE_URL` | yes | canonical and OpenGraph URL | `https://mathakine.fun` |
+| `NEXT_PUBLIC_SENTRY_DSN` | optional | client-side Sentry | DSN |
+| `NEXT_PUBLIC_FEEDBACK_EMAIL` | optional | feedback email | `webmaster@mathakine.fun` |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | optional | contact email | `webmaster@mathakine.fun` |
+| `SENTRY_RELEASE` | optional | release correlation | `${RENDER_GIT_COMMIT}` |
+| `NEXT_PUBLIC_SENTRY_RELEASE` | optional | client release tag | `${RENDER_GIT_COMMIT}` |
+| `SENTRY_ORG` | optional | source-map upload | org slug |
+| `SENTRY_PROJECT` | optional | source-map upload | project slug |
+| `SENTRY_AUTH_TOKEN` | optional | source-map upload | token |
 
-## Frontend (mathakine-frontend)
-
-| Variable | Obligatoire | Rôle | Valeur exemple |
-|----------|-------------|------|----------------|
-| `NEXT_PUBLIC_API_BASE_URL` | ✅ | URL du backend | `https://mathakine-alpha.onrender.com` |
-| `NEXT_PUBLIC_SITE_URL` | ✅ | Canonical, OpenGraph | `https://mathakine.fun` |
-| `NEXT_PUBLIC_SENTRY_DSN` | — | Erreurs client → Sentry | `https://xxx@xxx.ingest.sentry.io/xxx` |
-| `NEXT_PUBLIC_FEEDBACK_EMAIL` | — | Email signalements / feedback | `webmaster@mathakine.fun` |
-| `NEXT_PUBLIC_CONTACT_EMAIL` | — | Email contact / formulaire (prioritaire si défini) | `webmaster@mathakine.fun` |
-| `SENTRY_RELEASE` | — | Corrélation erreurs ↔ déploiement | `${RENDER_GIT_COMMIT}` |
-| `NEXT_PUBLIC_SENTRY_RELEASE` | — | Idem pour le bundle client (build) | `${RENDER_GIT_COMMIT}` |
-| `SENTRY_ORG` | — | Organisation Sentry (upload source maps) | Slug de ton org |
-| `SENTRY_PROJECT` | — | Projet Sentry (upload source maps) | `mathakine-frontend` |
-| `SENTRY_AUTH_TOKEN` | — | Token Sentry pour CI/build (source maps) | `sntrys_xxx` |
-| `NODE_ENV` | — | Géré par Render | `production` |
-
-### À définir manuellement (sync: false)
-
-- `NEXT_PUBLIC_SENTRY_DSN`
-- `SENTRY_AUTH_TOKEN` (optionnel — pour source maps en prod)
-
----
-
-## Checklist pré-déploiement alpha
+## Pre-Deploy Checklist
 
 ### Backend
-- [ ] `SECRET_KEY` générée (Render le fait si `generateValue: true`)
-- [ ] `DEFAULT_ADMIN_PASSWORD` définie (obligatoire au démarrage prod, ≠ admin/password/123456)
-- [ ] `OPENAI_API_KEY` définie
-- [ ] `NEXT_PUBLIC_SENTRY_DSN` ou `SENTRY_DSN` définie
-- [ ] `FRONTEND_URL` = `https://mathakine.fun`
-- [ ] Emails : SendGrid ou SMTP configuré (mot de passe oublié, vérification)
-- [ ] Optionnel : retirer `TEST_DATABASE_URL`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` de la prod
-- [ ] Health check : `GET /health` → 200 OK
+
+- [ ] `SECRET_KEY` is defined and strong
+- [ ] `DEFAULT_ADMIN_PASSWORD` is defined and strong
+- [ ] `OPENAI_API_KEY` is defined
+- [ ] `REDIS_URL` is defined and reachable from Render
+- [ ] `FRONTEND_URL` matches the deployed frontend origin
+- [ ] one email provider family is configured
+- [ ] `GET /health` returns 200
 
 ### Frontend
-- [ ] `NEXT_PUBLIC_API_BASE_URL` = `https://mathakine-alpha.onrender.com`
-- [ ] `NEXT_PUBLIC_SITE_URL` = `https://mathakine.fun`
-- [ ] `NEXT_PUBLIC_SENTRY_DSN` définie
-- [ ] `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` (optionnel, pour source maps)
+
+- [ ] `NEXT_PUBLIC_API_BASE_URL` points to the deployed backend
+- [ ] `NEXT_PUBLIC_SITE_URL` matches the visible frontend URL
+- [ ] `NEXT_PUBLIC_SENTRY_DSN` is configured if Sentry is used
+- [ ] source-map variables are present only if source-map upload is desired
+
+## Notes
+
+- local development may omit `REDIS_URL`; dev/test fall back to memory rate limiting
+- production must not omit `REDIS_URL`
+- active backend runtime truth is documented in [../00-REFERENCE/ARCHITECTURE.md](../00-REFERENCE/ARCHITECTURE.md)

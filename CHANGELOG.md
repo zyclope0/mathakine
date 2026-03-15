@@ -1,110 +1,97 @@
 ﻿# Changelog
 
-Toutes les modifications notables du projet sont documentees dans ce fichier.
+All notable changes to the project are documented in this file.
 
-Le format suit l'esprit de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/) et le projet utilise Semantic Versioning avec suffixe `-alpha.N` pour les releases alpha.
+The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). The visible product release uses Semantic Versioning with `-alpha.N` suffixes.
 
-Source de verite release produit :
+Visible release source of truth:
 - `CHANGELOG.md`
 - `frontend/package.json`
 
-## Jalons internes du refactor backend (hors release produit)
+## Internal backend milestones (not product releases)
 
-- iteration `exercise/auth/user` : cloturee
-- iteration `challenge/admin/badge` : cloturee
-- iteration `Runtime Truth` : cloturee
-- iteration `Contracts / Hardening` : cloturee
+- iteration `exercise/auth/user`: closed
+- iteration `challenge/admin/badge`: closed
+- iteration `Runtime Truth`: closed
+- iteration `Contracts / Hardening`: closed
+- iteration `Production Hardening`: closed
 
-Reference active :
-- [`bilan runtime + contracts`](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
+Active references:
+- [`runtime + contracts recap`](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
+- [`production hardening recap`](docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
 
 ## [Unreleased]
 
 ### Changed
-- La documentation racine, l'architecture, les guides de test et l'index projet sont realignes sur la cloture reelle des iterations `Runtime Truth` et `Contracts / Hardening`.
-- Les details lot par lot `Runtime` et `Contracts` sont desormais archives ; un recapitulatif unique sert de reference active.
-- Le domaine `badge` a ete decompose :
-  - `BadgeService` devient une facade lisible
-  - `badge_award_service`, `badge_requirement_fallbacks`, `badge_progress_service`, `badge_rarity_service` et les helpers associes sont separes par responsabilite
-- Le domaine `challenge` a ete clarifie :
-  - dispatch explicite dans `challenge_validator.py`
-  - analyzers partages extraits
-  - validateurs `PATTERN` et `SEQUENCE` sortis dans un module dedie
-- `admin_stats_service.py` a ete transforme en facade courte avec sous-services `overview`, `audit`, `moderation` et `reporting`.
-- La CI backend documentee et le guide de test refletent maintenant l'etat reel :
-  - coverage gate `62 %`
-  - faux gate `tests/api/test_admin_auth_stability.py` exclu des gates standards
-  - ilots mypy plus stricts sur badge, auth session/recovery, exercise generation/query et challenge query/stream
+- The root docs, architecture reference, setup guide, testing guide and project index now reflect the closure of `Production Hardening`.
+- The detailed `Production Hardening` execution notes were archived; a single active recap now defines the iteration truth.
+- The diagnostic feature documentation now reflects the signed `state_token` contract and the removal of `correct_answer` from `/api/diagnostic/question`.
+- The deployment guide now documents `REDIS_URL` as mandatory in production.
+- The active API reference now reflects:
+  - the signed diagnostic flow
+  - distributed Redis rate limiting in production
+  - the archival of `app/api/endpoints/*`
 
 ### Fixed
-- Les documents actifs ne disent plus que `Contracts / Hardening` est seulement preparee.
-- `docs/03-PROJECT/CICD_DEPLOY.md` et `docs/01-GUIDES/TESTING.md` sont realignes sur la CI effective et les gates actuelles.
-- Les references vers les anciens masters/lots actifs Runtime et Contracts pointent maintenant vers le recapitulatif et vers les archives.
-- Le hotspot `ORDER BY RANDOM()` principal de `challenge_service.py` a ete remplace sur le chemin principal par une strategie `random_offset`.
-- `recommendation_service.py` a perdu deux hotspots SQL :
-  - preload des exercices recents au lieu d'un N+1
-  - selection `new_types` en une requete `DISTINCT ON` au lieu d'une requete par type
+- Documentation no longer presents `Production Hardening` as still active.
+- Documentation no longer presents `app/api/endpoints/*` as a live runtime perimeter.
+- Documentation no longer presents the pre-hardening backend baseline (`823 passed, 2 skipped`, coverage gate `62 %`) as the current truth.
 
 ### Notes
-- Aucun bump de release produit n'est documente ici.
-- Les sujets restants sont maintenant explicitement classes comme hors scope ou a peaufiner dans le recapitulatif backend actif.
+- Current verified backend reference baseline: `868 passed, 2 skipped`
+- Current backend CI coverage gate: `63 %`
+- Detailed historical lot documents remain archived for traceability only.
 
 ## [3.1.0-alpha.8] - 2026-03-11
 
 ### Changed
-- Release de consolidation backend centree sur `challenge`, `admin` et `badge`, avec handlers aminci et facades applicatives explicites sur les boundaries HTTP du scope.
-- Les endpoints admin de lecture, de mutation users/config, de contenu et les endpoints badge publics/utilisateur passent desormais par des services applicatifs dedies, sans changer les contrats HTTP publics.
-- Les tests API de preuve ont ete completes sur les endpoints admin content et badge afin de verifier le wiring reel des routes mutate/public du scope.
+- Backend consolidation release centered on `challenge`, `admin` and `badge`, with thinner handlers and explicit application facades across the HTTP boundaries in scope.
+- Admin read/mutate/config/content endpoints and badge endpoints now go through dedicated application services without changing public HTTP contracts.
+- API proof tests were extended on admin content and badge endpoints to verify the real mutate/public route wiring.
 
 ### Fixed
-- La collision entre fixtures auth/admin et cleanup global des tests a ete supprimee; les namespaces de fixtures reserves ne sont plus captures par le nettoyage generique.
-- Les tests challenge qui dependaient d'une selection non deterministe de `challenges[0]` utilisent desormais une fixture stable avec `correct_answer` connu.
-- La stabilite locale du tree a ete retablie en excluant `tests/api/test_admin_auth_stability.py` des gates standard tant qu'il lance `pytest` dans `pytest` avec couverture.
-
-### Notes
-- Cette release reste en `alpha` : l'iteration backend `challenge/admin/badge` est cloturee en interne, mais le produit continue d'evoluer et garde des hotspots structurels hors scope (`challenge_validator.py`, `badge_service.py`, `admin_content_service.py`, `admin_stats_service.py`).
+- Fixture namespace collisions between auth/admin fixtures and global cleanup were removed.
+- Challenge tests that depended on nondeterministic `challenges[0]` selection now use a stable fixture with a known `correct_answer`.
+- Local stability improved by excluding `tests/api/test_admin_auth_stability.py` from standard gates while it still launches `pytest` from inside `pytest`.
 
 ## [3.1.0-alpha.7] - 2026-03-09
 
 ### Changed
-- Release de fiabilisation backend centree sur `exercise`, `auth` et `user`, avec handlers aminci, services applicatifs clarifies et boundaries HTTP preserves.
-- Gestion du compte plus robuste : profil, sessions, export RGPD et suppression de compte passent desormais derriere une boundary `user` plus propre.
-- Authentification plus robuste : login, refresh, verification, forgot/reset et invalidation post-reset ou post-changement de mot de passe ont ete reindustrialises sans changer les contrats HTTP publics.
+- Backend reliability release centered on `exercise`, `auth` and `user`, with thinner handlers, clearer application services and preserved HTTP boundaries.
+- Account management became more robust for profile, sessions, GDPR export and self-delete flows.
+- Authentication flows for login, refresh, verification, forgot/reset and post-reset invalidation were reindustrialized without changing public contracts.
 
 ### Fixed
-- Reset password : les anciens `access_token` et `refresh_token` emis avant la reinitialisation sont desormais rejetes.
-- Reset password : les autres sessions actives de l'utilisateur sont revoquees, et un ancien onglet doit se reconnecter au prochain controle protege.
-- Changement de mot de passe depuis le profil : alignement sur le meme mecanisme de revocation (`password_changed_at` + rejet des anciens tokens).
-- `POST /api/auth/resend-verification` revient a une reponse generique compatible sur email mal forme, sans fuite d'information par validation.
-- `GET /api/users/me/export` est recable sur le bon handler HTTP et couvre desormais explicitement par un test API.
-
-### Notes
-- Cette release reste en `alpha` : l'iteration backend `exercise/auth/user` est maintenant cloturee en interne, mais le produit continue d'evoluer vite et garde encore des reliquats UX et des chantiers backend pour l'iteration suivante.
+- Older access and refresh tokens issued before password reset are now rejected.
+- Other active sessions are revoked after password reset.
+- Password change from settings now uses the same revocation mechanism.
+- `POST /api/auth/resend-verification` keeps a generic secure response on malformed emails.
+- `GET /api/users/me/export` is wired to the correct HTTP handler and explicitly covered by API tests.
 
 ## [3.1.0-alpha.6] - 2026-03-07
 
 ### Added
-- F07 : timeline progression avec `GET /api/users/me/progress/timeline`
-- F32 : session entrelacee avec `GET /api/exercises/interleaved-plan`
-- F35 : redaction des secrets URL DB au demarrage
+- F07: progression timeline via `GET /api/users/me/progress/timeline`
+- F32: interleaved session via `GET /api/exercises/interleaved-plan`
+- F35: DB URL secret redaction at startup
 
 ### Changed
-- Dashboard progression et visualisations harmonises
-- `POST /api/exercises/generate` supporte mieux la resolution adaptive de `age_group`
+- Dashboard progression and visualizations were harmonized.
+- `POST /api/exercises/generate` better supports adaptive `age_group` resolution.
 
 ## [2.1.0] - 2026-02-06
 
 ### Added
-- Ordre aleatoire et option masquer les reussis pour exercices et defis
-- Refonte badges
-- Chatbot IA
-- Espace admin
-- Monitoring Sentry / Prometheus
-- Options d'accessibilite
+- random ordering and hide-completed options for exercises and challenges
+- badge overhaul
+- AI chatbot
+- admin area
+- Sentry / Prometheus monitoring
+- accessibility options
 
 ### Security
-- CSRF, rate limiting, CORS, secure headers, validation JWT
+- CSRF, rate limiting, CORS, secure headers and JWT validation
 
-## [2.0.0] et anterieur
+## [2.0.0] and earlier
 
-Historique condense : exercices adaptatifs, defis logiques, authentification, verification email, badges, tableau de bord de base.
+Condensed history: adaptive exercises, logic challenges, authentication, email verification, badges and the first dashboard layers.

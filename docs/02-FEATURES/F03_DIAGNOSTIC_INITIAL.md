@@ -1,105 +1,114 @@
-# F03 — Test de diagnostic initial (IRT adaptatif)
+﻿# F03 - Initial Diagnostic
 
-> **Référence technique** — Contexte complet pour développeurs et prompts IA  
-> **Date :** 06/03/2026  
-> **Statut :** Implémenté (04/03/2026)  
-> **Source :** [ROADMAP_FONCTIONNALITES §F03](ROADMAP_FONCTIONNALITES.md), [WORKFLOW_EDUCATION](WORKFLOW_EDUCATION_REFACTORING.md)
+> Technical reference
+> Updated: 15/03/2026
+> Status: implemented and hardened
+> Source: [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md), [WORKFLOW_EDUCATION_REFACTORING.md](WORKFLOW_EDUCATION_REFACTORING.md)
 
----
+## 1. Overview
 
-## 1. Vue d'ensemble
+F03 evaluates the learner level across four arithmetic families through a lightweight adaptive IRT-like algorithm. The resulting scores feed recommendation and difficulty adaptation.
 
-F03 évalue le niveau réel de l'utilisateur en 4 opérations arithmétiques via un algorithme IRT (Item Response Theory) simplifié. Les scores alimentent immédiatement les recommandations et l'adaptation dynamique (F05).
+Covered families:
+- addition
+- soustraction
+- multiplication
+- division
 
-**Fondements scientifiques :**
-- Hattie (2009) — Formative assessment (d = 0.90)
-- Sweller (1988) — Alignement difficulté/compétence prévient la surcharge cognitive
-- Black & Wiliam (1998) — Assessment for learning
+## 2. Adaptive Logic
 
----
-
-## 2. Algorithme IRT adaptatif
-
-```
-1. Commencer au niveau médian (PADAWAN, ordinal 1)
-2. Réponse correcte → niveau +1 (plafonné à GRAND_MAITRE)
-3. Réponse incorrecte → niveau -1 (plancher à INITIE)
-4. Arrêt d'un type : 2 erreurs consécutives au MÊME niveau → niveau établi
-5. Session complète : tous les types terminés OU 10 questions atteintes
+```text
+1. Start from the median level (PADAWAN, ordinal 1)
+2. Correct answer -> level +1 (capped at GRAND_MAITRE)
+3. Incorrect answer -> level -1 (floored at INITIE)
+4. Stop one family after 2 consecutive errors at the same level
+5. Complete the session when all families are done or MAX_QUESTIONS is reached
 ```
 
-**Constantes** (dans `app/services/diagnostic_service.py`) :
-- `DIAGNOSTIC_TYPES` : addition, soustraction, multiplication, division
-- `STARTING_LEVEL_ORDINAL` : 1 (PADAWAN)
-- `MAX_QUESTIONS` : 10
-- `CONSECUTIVE_ERRORS_TO_STOP` : 2
+Main constants in `app/services/diagnostic_service.py`:
+- `DIAGNOSTIC_TYPES`
+- `STARTING_LEVEL_ORDINAL`
+- `MAX_QUESTIONS`
+- `CONSECUTIVE_ERRORS_TO_STOP`
 
-**État de session** : `DiagnosticSessionState` — dict sérialisable en JSON, stocké côté frontend entre chaque question (backend stateless entre les appels).
+## 3. State And Integrity Model
 
----
+The backend remains stateless between requests, but the client no longer owns a freeform diagnostic state.
 
-## 3. Données — Table `diagnostic_results`
+Current contract:
+- `/api/diagnostic/start` returns an initial `state_token`
+- mutation steps reuse and rotate that token
+- the token is signed server-side and expires after a bounded duration
+- backend-controlled state embedded in the token is the source of truth for validation
+- `/api/diagnostic/question` does not expose `correct_answer`
+- `/api/diagnostic/answer` may return `correct_answer` only after submission for pedagogical feedback
 
-| Colonne | Type | Description |
-|---------|------|-------------|
-| `user_id` | int | Utilisateur |
-| `triggered_from` | str | "onboarding" \| "settings" |
-| `scores` | JSONB | `{"addition": {"level": 2, "difficulty": "CHEVALIER", "correct": 4, "total": 5}, ...}` |
-| `questions_asked` | int | Nombre de questions posées |
-| `duration_seconds` | int \| null | Durée totale |
-| `completed_at` | timestamp | Date de fin |
+The frontend may still hold returned `session` snapshots for display or continuity, but the trusted state is the signed `state_token`.
 
-**Mapping ordinal → difficulté** : 0=INITIE, 1=PADAWAN, 2=CHEVALIER, 3=MAITRE, 4=GRAND_MAITRE
+## 4. Persisted Data
 
-**Validité** : 30 jours (`_IRT_MAX_AGE_DAYS` dans `adaptive_difficulty_service`). Au-delà, F05 utilise progression ou profil.
+Table: `diagnostic_results`
 
----
+| Column | Type | Meaning |
+|---|---|---|
+| `user_id` | int | learner id |
+| `triggered_from` | str | `onboarding` or `settings` |
+| `scores` | JSONB | score per family |
+| `questions_asked` | int | total asked questions |
+| `duration_seconds` | int or null | total duration |
+| `completed_at` | timestamp | completion time |
 
-## 4. Endpoints API
+Ordinal to difficulty mapping:
+- `0=INITIE`
+- `1=PADAWAN`
+- `2=CHEVALIER`
+- `3=MAITRE`
+- `4=GRAND_MAITRE`
 
-| Méthode | Endpoint | Auth | Body / Params |
-|---------|----------|------|---------------|
-| GET | `/api/diagnostic/status` | Oui | — |
-| POST | `/api/diagnostic/start` | Oui | `{triggered_from?: "onboarding"\|"settings"}` |
-| POST | `/api/diagnostic/question` | Oui | `{session}` |
-| POST | `/api/diagnostic/answer` | Oui | `{session, exercise_type, user_answer, correct_answer}` |
-| POST | `/api/diagnostic/complete` | Oui | `{session, duration_seconds?}` |
+Validity window for downstream adaptation remains bounded in `adaptive_difficulty_service`.
 
-Voir [API_QUICK_REFERENCE.md § Diagnostic](API_QUICK_REFERENCE.md).
+## 5. Active API Contract
 
----
+| Method | Endpoint | Auth | Body |
+|---|---|---|---|
+| GET | `/api/diagnostic/status` | yes | none |
+| POST | `/api/diagnostic/start` | yes | `{triggered_from?: "onboarding"|"settings"}` |
+| POST | `/api/diagnostic/question` | yes | `{state_token}` |
+| POST | `/api/diagnostic/answer` | yes | `{state_token, user_answer}` |
+| POST | `/api/diagnostic/complete` | yes | `{state_token, duration_seconds?}` |
 
-## 5. Fichiers impliqués
+Response notes:
+- `/question` returns `{done, question?, state_token}`
+- `question` no longer contains `correct_answer`
+- `/answer` returns `{is_correct, correct_answer?, session, state_token, session_complete}`
 
-| Rôle | Fichier |
-|------|---------|
-| Service métier | `app/services/diagnostic_service.py` |
-| Modèle | `app/models/diagnostic_result.py` |
+See [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md).
+
+## 6. Files Involved
+
+| Role | File |
+|---|---|
+| Business service | `app/services/diagnostic_service.py` |
+| Model | `app/models/diagnostic_result.py` |
 | Handlers | `server/handlers/diagnostic_handlers.py` |
 | Routes | `server/routes/diagnostic.py` |
-| Migration | `migrations/versions/20260304_diagnostic.py` |
 | Frontend page | `frontend/app/diagnostic/page.tsx` |
-| Hook scores IRT | `frontend/hooks/useIrtScores.ts` |
-| Settings (section) | Section "Évaluation de niveau" dans Settings |
+| Frontend hook | `frontend/hooks/useDiagnostic.ts` |
+| Settings entry point | settings level evaluation section |
 
----
+## 7. Integration With Adaptation
 
-## 6. Intégration avec F05
+`adaptive_difficulty_service` uses `diagnostic_service.get_latest_score()` as the highest-priority signal when a recent diagnostic exists for the requested family.
 
-Le service `adaptive_difficulty_service` utilise `diagnostic_service.get_latest_score()` comme **priorité 1** de sa cascade. Si un diagnostic valide (< 30 jours) existe pour le type demandé, la difficulté est dérivée directement des scores IRT.
+## 8. Remaining Limits
 
----
+Known accepted limits after hardening:
+- the signed token is replayable during its validity window
+- the challenge was integrity, not full server-side persistence or Redis-backed session storage
+- the pedagogical feedback step still returns the correct answer after submission by design
 
-## 7. Backlog F03-suite
+## 9. Tests
 
-| Lacune | Statut |
-|--------|--------|
-| Dashboard `has_completed` — message "ton niveau a été établi" | ⏳ Backlog (partiellement couvert par `LevelEstablishedWidget` F05) |
-| Génération IA (`/api/ai/generate`) ignore le diagnostic | ⏳ Backlog |
-
----
-
-## 8. Tests
-
-- `tests/unit/services/test_diagnostic_service.py`
-- `tests/integration/test_diagnostic_api.py`
+Main proof files:
+- `tests/api/test_diagnostic_endpoints.py`
+- `tests/unit/test_adaptive_difficulty_service.py`

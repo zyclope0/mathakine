@@ -1,62 +1,59 @@
 ﻿# Documentation Mathakine
 
-> Point d'entree documentaire
-> Mise a jour : 13/03/2026
+> Documentation entry point
+> Updated: 15/03/2026
 
-## Lire d'abord
+## Read First
 
-1. [README racine](../README.md)
+1. [Root README](../README.md)
 2. [README_TECH](../README_TECH.md)
 3. [Architecture](00-REFERENCE/ARCHITECTURE.md)
-4. [API active](02-FEATURES/API_QUICK_REFERENCE.md)
-5. [Gestion projet](03-PROJECT/README.md)
+4. [API quick reference](02-FEATURES/API_QUICK_REFERENCE.md)
+5. [Project index](03-PROJECT/README.md)
 
-## Etat documentaire reel
+## Current Documented State
 
-- release produit visible: `3.1.0-alpha.8`
-- iterations backend cloturees:
+- visible product release: `3.1.0-alpha.8`
+- backend iterations closed:
   - `exercise/auth/user`
   - `challenge/admin/badge`
   - `Runtime Truth`
   - `Contracts / Hardening`
-- baseline locale de reference:
-  - full suite hors faux gate: `823 passed, 2 skipped`
-  - `black --check` vert
-  - `isort --check-only --diff` vert
+  - `Production Hardening`
+- local reference baseline:
+  - full suite excluding the false gate: `868 passed, 2 skipped`
+  - `black app/ server/ tests/ --check`: green
+  - `isort app/ server/ --check-only --diff`: green
+  - backend coverage gate in CI: `63 %`
 
-## References principales
+## Main References
 
-| Besoin | Document |
+| Need | Document |
 |---|---|
-| Installation | [00-REFERENCE/GETTING_STARTED.md](00-REFERENCE/GETTING_STARTED.md) |
-| Architecture globale | [00-REFERENCE/ARCHITECTURE.md](00-REFERENCE/ARCHITECTURE.md) |
-| Guide tests | [01-GUIDES/TESTING.md](01-GUIDES/TESTING.md) |
+| Setup | [00-REFERENCE/GETTING_STARTED.md](00-REFERENCE/GETTING_STARTED.md) |
+| Global architecture | [00-REFERENCE/ARCHITECTURE.md](00-REFERENCE/ARCHITECTURE.md) |
+| Testing guide | [01-GUIDES/TESTING.md](01-GUIDES/TESTING.md) |
+| Deployment env | [01-GUIDES/DEPLOYMENT_ENV.md](01-GUIDES/DEPLOYMENT_ENV.md) |
 | Troubleshooting | [01-GUIDES/TROUBLESHOOTING.md](01-GUIDES/TROUBLESHOOTING.md) |
-| API active | [02-FEATURES/API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md) |
-| Flux auth | [02-FEATURES/AUTH_FLOW.md](02-FEATURES/AUTH_FLOW.md) |
-| Projet / pilotage | [03-PROJECT/README.md](03-PROJECT/README.md) |
-| Recap Runtime + Contracts | [03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) |
-| Changelog produit | [../CHANGELOG.md](../CHANGELOG.md) |
+| Active API | [02-FEATURES/API_QUICK_REFERENCE.md](02-FEATURES/API_QUICK_REFERENCE.md) |
+| Auth flow | [02-FEATURES/AUTH_FLOW.md](02-FEATURES/AUTH_FLOW.md) |
+| Diagnostic flow | [02-FEATURES/F03_DIAGNOSTIC_INITIAL.md](02-FEATURES/F03_DIAGNOSTIC_INITIAL.md) |
+| Project / governance | [03-PROJECT/README.md](03-PROJECT/README.md) |
+| Runtime + Contracts recap | [03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) |
+| Production Hardening recap | [03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md](03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md) |
+| Product changelog | [../CHANGELOG.md](../CHANGELOG.md) |
 
-## Iterations backend
+## Reading Rules
 
-| Iteration | Statut | Reference |
-|---|---|---|
-| `exercise/auth/user` | cloturee | [03-PROJECT/BILAN_FINAL_ITERATION_BACKEND_EXERCISE_AUTH_USER_2026-03-09.md](03-PROJECT/BILAN_FINAL_ITERATION_BACKEND_EXERCISE_AUTH_USER_2026-03-09.md) |
-| `challenge/admin/badge` | cloturee | [03-PROJECT/BILAN_FINAL_ITERATION_BACKEND_CHALLENGE_ADMIN_BADGE_2026-03-11.md](03-PROJECT/BILAN_FINAL_ITERATION_BACKEND_CHALLENGE_ADMIN_BADGE_2026-03-11.md) |
-| `Runtime Truth` | cloturee | [03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) |
-| `Contracts / Hardening` | cloturee | [03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) |
-
-## Regles de lecture
-
-- la verite terrain est le code actif dans `server/` et `app/`
-- `server/routes/` est la source de verite des endpoints actifs
-- `app/api/endpoints/` n'est pas une source de verite runtime
-- les details lot par lot `Runtime` et `Contracts` sont archives; le recapitulatif actif fait foi
-- `tests/api/test_admin_auth_stability.py` ne doit pas etre utilise comme gate standard
+- the live code in `server/` and `app/` is the ultimate truth
+- `server/routes/` is the source of truth for active endpoints
+- `app/api/endpoints/*` is archived under `_ARCHIVE_2026/` and is not part of the live runtime
+- the active diagnostic contract uses a signed `state_token`
+- repeated Windows coverage reruns should isolate `COVERAGE_FILE`
 
 ## Archives
 
+- [03-PROJECT/archives/README.md](03-PROJECT/archives/README.md)
 - [03-PROJECT/archives/BACKEND_RUNTIME_CONTRACTS_DETAIL_2026-03-13/README.md](03-PROJECT/archives/BACKEND_RUNTIME_CONTRACTS_DETAIL_2026-03-13/README.md)
+- [03-PROJECT/archives/PRODUCTION_HARDENING_DETAIL_2026-03-15/README.md](03-PROJECT/archives/PRODUCTION_HARDENING_DETAIL_2026-03-15/README.md)
 - [03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/README.md](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/README.md)
-- [03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INDEX.md](03-PROJECT/AUDITS_ET_RAPPORTS_ARCHIVES/RAPPORTS_TEMPORAIRES/INDEX.md)

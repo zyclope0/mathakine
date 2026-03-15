@@ -1,104 +1,105 @@
 ﻿# Architecture - Mathakine
 
-> Reference architecture globale
-> Mise a jour : 13/03/2026
+> Global architecture reference
+> Updated: 15/03/2026
 
-## 1. Vue systeme
+## 1. System Overview
 
-Mathakine est structure en trois zones actives:
+Mathakine is structured around three active zones:
 
-1. `frontend/` : Next.js 16, React 19, TypeScript, React Query, Zustand
-2. `server/` : Starlette, routes, handlers, auth, middleware, SSE
-3. `app/` : logique metier, services applicatifs, repositories, generateurs, models, schemas
+1. `frontend/`: Next.js 16, React 19, TypeScript, React Query, Zustand
+2. `server/`: Starlette routes, handlers, auth and middleware
+3. `app/`: business logic, services, repositories, generators, models and schemas
 
-Flux principal:
+Main flow:
 
 ```text
 Browser -> frontend/ -> server/routes + server/handlers -> app/services -> app/repositories -> PostgreSQL
 ```
 
-## 2. Principes d'architecture
+## 2. Architecture Principles
 
-- handler HTTP mince: parse, validation transport, mapping response
-- logique metier et orchestration dans `app/services/`
-- acces DB isole dans des services synchrones ou repositories
-- contrats HTTP stables: pas de drift volontaire des routes, cookies ou payloads publics
-- le code actif prime sur la documentation historique
+- thin HTTP handlers: transport parsing, validation, response mapping
+- business orchestration in `app/services/`
+- DB access isolated behind sync services and repositories
+- stable public HTTP contracts
+- the active code wins over historical documentation
 
-## 3. Mode d'execution backend reel
+## 3. Real Backend Execution Model
 
-Le modele runtime applique sur le scope refactore est:
-- handlers HTTP `async`
-- services / facades / repositories `sync`
-- acces DB sync via `sync_db_session()`
-- execution depuis les handlers via `await run_db_bound(...)`
-- SSE/LLM conserves en `async`, mais avec sous-appels DB sync isoles
+The retained backend runtime model is:
+- HTTP handlers are `async`
+- services, facades and repositories are `sync`
+- sync DB access uses `sync_db_session()`
+- handlers call DB-bound work through `await run_db_bound(...)`
+- SSE and LLM flows remain `async`, with sync DB boundaries when needed
 
-Etat au 13/03/2026:
-- l'iteration Runtime est cloturee
-- l'iteration Contracts / Hardening est cloturee sur son scope cible
-- preuve locale de reference:
-  - full suite hors faux gate : `823 passed, 2 skipped`
-  - `black --check` vert
-  - `isort --check-only --diff` vert
+Verified local reference on 15/03/2026:
+- full suite excluding the false gate: `868 passed, 2 skipped`
+- `black app/ server/ tests/ --check`: green
+- `isort app/ server/ --check-only --diff`: green
+- backend coverage gate in CI: `63 %`
 
-## 4. Couches backend
+## 4. Backend Layers
 
 ### `server/`
 
-- `routes/` : source de verite des routes actives
-- `handlers/` : couche HTTP
-- `auth.py` : auth runtime et decorators
-- `middleware.py` : middleware applicatifs
-- `app.py` : creation de l'application Starlette via `get_routes()`
+- `routes/`: source of truth for active routes
+- `handlers/`: HTTP layer
+- `auth.py`: runtime auth and decorators
+- `middleware.py`: application middleware
+- `app.py`: Starlette app factory via `get_routes()`
 
 ### `app/`
 
-- `models/` : ORM SQLAlchemy
-- `schemas/` : schemas Pydantic
-- `services/` : use cases, facades et logique metier
-- `repositories/` : acces data isole sur les zones qui ont deja adopte cette convention
-- `generators/` : source de verite backend pour la generation d'exercices
-- `db/` : engine, session, transactions, adapter
-- `utils/` : helpers transverses
+- `models/`: SQLAlchemy ORM
+- `schemas/`: Pydantic schemas
+- `services/`: business logic and application boundaries
+- `repositories/`: isolated data access where introduced
+- `generators/`: exercise generation source of truth
+- `db/`: engine, sessions, transactions, adapter
+- `utils/`: shared helpers
 
-## 5. Domains refactores et stabilises
+## 5. Production Hardening Decisions Now Active
 
-Clotures:
-- `exercise/auth/user`
-- `challenge/admin/badge`
-- `Runtime Truth`
-- `Contracts / Hardening`
+### Diagnostic flow
 
-Durcissements notables sur le scope ferme:
-- contracts challenge types
-- boundaries admin/badge explicites
-- decomposition ciblee des hotspots badge, admin stats et challenge validator
-- corrections SQL ciblees sur `challenge_service.py` et `recommendation_service.py`
-- CI coverage gate a `62 %`
-- ilots mypy plus stricts sur plusieurs scopes stables
+- diagnostic mutation endpoints now rely on a signed `state_token`
+- `correct_answer` is no longer exposed by `/api/diagnostic/question`
+- backend-side checked state is the source of truth for answer validation
 
-## 6. Legacy et compatibilite
+### Rate limiting
 
-Legacy encore actif:
+- production source of truth is Redis
+- `REDIS_URL` is mandatory in production
+- Redis runtime failures are fail-closed on the protected scope
+- memory fallback is allowed only in dev/test
+
+### Legacy API truth
+
+- `app/api/endpoints/*` and `app/api/deps.py` are archived in `_ARCHIVE_2026/app/api/`
+- they are not mounted and not imported by the live runtime
+
+## 6. Legacy And Compatibility
+
+Legacy still active:
 - `app/services/enhanced_server_adapter.py`
-- `app/utils/db_utils.py::db_session()` pour compatibilite legacy
+- `app/utils/db_utils.py::db_session()` for compatibility paths
 
-Legacy non monte runtime:
-- `app/api/endpoints/`
-
-Compatibilite generateur:
+Generator compatibility re-exports:
 - `server/exercise_generator.py`
 - `server/exercise_generator_helpers.py`
 - `server/exercise_generator_validators.py`
 
-Ces fichiers servent de re-export. La source de verite reste dans `app/generators/` et `app/utils/`.
+These files are compatibility shims. Their source of truth remains `app/generators/` and `app/utils/`.
 
-## 7. References canoniques
+## 7. Canonical References
 
-- [README_TECH racine](../../README_TECH.md)
-- [docs/INDEX](../INDEX.md)
-- [API_QUICK_REFERENCE](../02-FEATURES/API_QUICK_REFERENCE.md)
-- [AUTH_FLOW](../02-FEATURES/AUTH_FLOW.md)
-- [README projet](../03-PROJECT/README.md)
-- [Bilan Runtime + Contracts](../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
+- [../../README_TECH.md](../../README_TECH.md)
+- [../INDEX.md](../INDEX.md)
+- [../02-FEATURES/API_QUICK_REFERENCE.md](../02-FEATURES/API_QUICK_REFERENCE.md)
+- [../02-FEATURES/AUTH_FLOW.md](../02-FEATURES/AUTH_FLOW.md)
+- [../02-FEATURES/F03_DIAGNOSTIC_INITIAL.md](../02-FEATURES/F03_DIAGNOSTIC_INITIAL.md)
+- [../03-PROJECT/README.md](../03-PROJECT/README.md)
+- [../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
+- [../03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md](../03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
