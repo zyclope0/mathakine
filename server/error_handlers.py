@@ -15,7 +15,7 @@ from starlette.exceptions import HTTPException
 from starlette.requests import Request
 
 from app.core.logging_config import get_logger
-from app.utils.error_handler import api_error_response
+from app.utils.error_handler import api_error_response, capture_exception_for_sentry
 
 logger = get_logger(__name__)
 
@@ -41,6 +41,15 @@ async def server_error(request: Request, exc: Exception):
         f"500 Server Error for {request.url.path} [trace_id={trace_id}]: {exc}"
     )
     logger.error(traceback.format_exc())
+    capture_exception_for_sentry(
+        exc,
+        status_code=500,
+        user_message="An internal server error occurred. Please try again later.",
+        tags={"capture_path": "server.error_handlers.server_error"},
+        extra_context={
+            "request": {"path": str(request.url.path), "trace_id": trace_id}
+        },
+    )
 
     return api_error_response(
         500,

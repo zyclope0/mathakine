@@ -11,11 +11,11 @@ import pytest
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.exceptions import ExerciseNotFoundError
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import LogicChallenge
 from app.models.user import User, UserRole
-from app.exceptions import ExerciseNotFoundError
 from app.services.exercise_service import ExerciseService
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 

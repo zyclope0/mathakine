@@ -11,7 +11,7 @@ from starlette.responses import JSONResponse
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.services.analytics_service import record_edtech_event_sync
-from app.utils.error_handler import api_error_response
+from app.utils.error_handler import api_error_response, capture_internal_error_response
 from app.utils.pagination import parse_pagination_params
 from app.utils.request_utils import parse_json_body_any
 from server.auth import require_auth
@@ -59,7 +59,11 @@ async def analytics_event(request: Request) -> JSONResponse:
         return JSONResponse({"ok": True}, status_code=200)
     except Exception as e:
         logger.exception("analytics_event: %s", e)
-        return api_error_response(500, "Erreur serveur")
+        return capture_internal_error_response(
+            e,
+            "Erreur serveur",
+            tags={"handler": "analytics.analytics_event"},
+        )
 
 
 # --- Admin : consultation des analytics EdTech ---
@@ -101,4 +105,8 @@ async def admin_analytics_edtech(request: Request) -> JSONResponse:
         )
     except Exception as e:
         logger.exception("admin_analytics_edtech: %s", e)
-        return api_error_response(500, "Erreur serveur")
+        return capture_internal_error_response(
+            e,
+            "Erreur serveur",
+            tags={"handler": "analytics.admin_analytics_edtech"},
+        )

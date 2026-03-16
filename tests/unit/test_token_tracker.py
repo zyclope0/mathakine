@@ -5,8 +5,10 @@ Couvre le bug M5 (audit 01/03/2026) : key.split("_")[0] tronquait les
 challenge_types contenant "_" (ex. LOGIC_SEQUENCE → "LOGIC").
 """
 
-import pytest
 from datetime import datetime
+
+import pytest
+
 from app.utils.token_tracker import TokenTracker
 
 

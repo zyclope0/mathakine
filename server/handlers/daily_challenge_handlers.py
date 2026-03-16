@@ -10,7 +10,7 @@ from starlette.responses import JSONResponse
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.services.daily_challenge_service import get_or_create_today_for_user_sync
-from app.utils.error_handler import api_error_response
+from app.utils.error_handler import api_error_response, capture_internal_error_response
 from server.auth import require_auth, require_full_access
 
 logger = get_logger(__name__)
@@ -35,4 +35,8 @@ async def get_daily_challenges(request: Request) -> JSONResponse:
 
     except Exception as e:
         logger.error(f"Erreur GET /api/daily-challenges: {e}", exc_info=True)
-        return api_error_response(500, "Erreur lors de la recuperation des defis")
+        return capture_internal_error_response(
+            e,
+            "Erreur lors de la recuperation des defis",
+            tags={"handler": "daily_challenges.get_daily_challenges"},
+        )

@@ -18,9 +18,9 @@ from starlette.responses import JSONResponse
 
 from app.utils.csrf import validate_csrf_token as _real_validate_csrf_token
 from server.middleware import (
-    CsrfMiddleware,
     _CSRF_EXEMPT_NORMALIZED,
     _CSRF_MUTATING_METHODS,
+    CsrfMiddleware,
 )
 
 # ---------------------------------------------------------------------------

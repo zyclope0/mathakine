@@ -107,7 +107,7 @@ def init_monitoring() -> bool:
     _monitoring_init_attempted = True
     initialized = False
 
-    # 1. Sentry — erreurs et APM (SENTRY_DSN ou fallback NEXT_PUBLIC_SENTRY_DSN)
+    # 1. Sentry — erreurs et APM (SENTRY_DSN, fallback NEXT_PUBLIC_SENTRY_DSN pour rétrocompat)
     sentry_dsn = (
         os.getenv("SENTRY_DSN") or os.getenv("NEXT_PUBLIC_SENTRY_DSN") or ""
     ).strip()
@@ -159,7 +159,9 @@ def init_monitoring() -> bool:
     elif testing:
         logger.debug("Sentry désactivé (mode TESTING)")
     else:
-        logger.debug("Sentry non configuré (SENTRY_DSN manquant)")
+        logger.debug(
+            "Sentry non configuré (SENTRY_DSN / NEXT_PUBLIC_SENTRY_DSN manquant)"
+        )
 
     # 2. Prometheus — métriques (préfixe mathakine_ évite conflits avec uvicorn --reload)
     if (

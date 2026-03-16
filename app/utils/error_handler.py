@@ -8,7 +8,6 @@ Schéma d'erreur API unifié (audit Alpha 2):
 - path, trace_id, field_errors: optionnels
 """
 
-import os
 import traceback
 import uuid
 from typing import Any, Dict, List, Optional
@@ -33,6 +32,41 @@ API_ERROR_CODES = {
     500: "INTERNAL_ERROR",
     503: "SERVICE_UNAVAILABLE",
 }
+
+
+def capture_exception_for_sentry(
+    exc: Exception,
+    *,
+    status_code: int = 500,
+    user_message: Optional[str] = None,
+    tags: Optional[Dict[str, str]] = None,
+    extra_context: Optional[Dict[str, Any]] = None,
+) -> None:
+    """
+    Capture une exception dans Sentry si le SDK est initialisé.
+
+    Utile pour les erreurs déjà catchées puis mappées vers une réponse JSON,
+    qui n'atteignent sinon pas StarletteIntegration.
+    """
+    try:
+        import sentry_sdk
+
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("handled", "true")
+            scope.set_tag("status_code", str(status_code))
+            if tags:
+                for key, value in tags.items():
+                    scope.set_tag(key, value)
+            if user_message:
+                scope.set_context("api_response", {"message": user_message})
+            if extra_context:
+                for key, value in extra_context.items():
+                    scope.set_context(key, value)
+            sentry_sdk.capture_exception(exc)
+    except ImportError:
+        return
+    except Exception as sentry_capture_error:
+        logger.debug(f"Capture Sentry ignorée: {sentry_capture_error}")
 
 
 def api_error_json(
@@ -98,7 +132,40 @@ def get_safe_error_message(exc: Exception, default: Optional[str] = None) -> str
     Ne jamais exposer le message brut de l'exception dans les réponses API externes.
     Les détails techniques restent dans les logs uniquement.
     """
+    capture_exception_for_sentry(
+        exc,
+        status_code=500,
+        user_message=default or GENERIC_ERROR_MESSAGE,
+        tags={"capture_path": "get_safe_error_message"},
+    )
     return default or GENERIC_ERROR_MESSAGE
+
+
+def capture_internal_error_response(
+    error: Exception,
+    message: str,
+    *,
+    path: Optional[str] = None,
+    trace_id: Optional[str] = None,
+    field_errors: Optional[List[Dict[str, str]]] = None,
+    tags: Optional[Dict[str, str]] = None,
+) -> JSONResponse:
+    """
+    Retourne une réponse 500 standardisée après capture Sentry de l'exception.
+    """
+    capture_exception_for_sentry(
+        error,
+        status_code=500,
+        user_message=message,
+        tags=tags,
+    )
+    return api_error_response(
+        500,
+        message,
+        path=path,
+        trace_id=trace_id,
+        field_errors=field_errors,
+    )
 
 
 class ErrorHandler:
@@ -133,6 +200,12 @@ class ErrorHandler:
 
         logger.error(f"{error_type}: {error_message}")
         logger.debug(f"Traceback complet:\n{traceback.format_exc()}")
+        capture_exception_for_sentry(
+            error,
+            status_code=status_code,
+            user_message=display_error,
+            tags={"capture_path": "ErrorHandler.create_error_response"},
+        )
 
         payload = api_error_json(status_code, display_error)
         payload = make_json_serializable(payload)

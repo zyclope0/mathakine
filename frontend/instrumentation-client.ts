@@ -3,8 +3,17 @@ import * as Sentry from "@sentry/nextjs";
 const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
 const isEnabled = process.env.NODE_ENV === "production" && !!dsn;
 const tracesSampleRate = parseFloat(process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE || "0.1");
+const replaysSessionSampleRate = parseFloat(
+  process.env.NEXT_PUBLIC_SENTRY_REPLAYS_SESSION_SAMPLE_RATE || "0.1"
+);
+const replaysOnErrorSampleRate = parseFloat(
+  process.env.NEXT_PUBLIC_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE || "1.0"
+);
 // Release pour corrélation erreurs ↔ déploiements (Render: SENTRY_RELEASE, Vercel: auto)
-const release = process.env.SENTRY_RELEASE || process.env.NEXT_PUBLIC_SENTRY_RELEASE;
+const release =
+  process.env.SENTRY_RELEASE ||
+  process.env.NEXT_PUBLIC_SENTRY_RELEASE ||
+  process.env.RENDER_GIT_COMMIT;
 
 Sentry.init({
   dsn,
@@ -20,8 +29,8 @@ Sentry.init({
       blockAllMedia: true,
     }),
   ],
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+  replaysSessionSampleRate,
+  replaysOnErrorSampleRate,
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

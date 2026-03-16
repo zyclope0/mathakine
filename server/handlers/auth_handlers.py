@@ -39,7 +39,7 @@ from app.services.auth_session_service import (
 from app.services.auth_session_service import (
     validate_access_token as svc_validate_access_token,
 )
-from app.utils.error_handler import api_error_response
+from app.utils.error_handler import api_error_response, capture_internal_error_response
 from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
 from app.utils.request_utils import (
     parse_json_body,
@@ -242,7 +242,11 @@ async def verify_email(request: Request) -> JSONResponse:
             f"Erreur lors de la verification de l'email: {email_verification_error}"
         )
         logger.debug(traceback.format_exc())
-        return api_error_response(500, "Erreur lors de la verification de l'email")
+        return capture_internal_error_response(
+            email_verification_error,
+            "Erreur lors de la verification de l'email",
+            tags={"handler": "auth.verify_email"},
+        )
 
 
 @rate_limit_resend_verification
@@ -311,8 +315,10 @@ async def resend_verification_email(request: Request) -> JSONResponse:
             f"Erreur lors du renvoi de l'email de verification: {resend_verification_error}"
         )
         logger.debug(traceback.format_exc())
-        return api_error_response(
-            500, "Erreur lors du renvoi de l'email de verification"
+        return capture_internal_error_response(
+            resend_verification_error,
+            "Erreur lors du renvoi de l'email de verification",
+            tags={"handler": "auth.resend_verification"},
         )
 
 
@@ -361,7 +367,11 @@ async def api_login(request: Request) -> JSONResponse:
     except Exception as login_error:
         logger.error(f"Erreur lors de la connexion: {login_error}")
         logger.debug(traceback.format_exc())
-        return api_error_response(500, "Erreur lors de la connexion")
+        return capture_internal_error_response(
+            login_error,
+            "Erreur lors de la connexion",
+            tags={"handler": "auth.login"},
+        )
 
 
 @rate_limit_auth("validate-token")
@@ -495,7 +505,11 @@ async def api_forgot_password(request: Request) -> JSONResponse:
     except Exception as forgot_err:
         logger.error(f"Erreur forgot-password: {forgot_err}")
         logger.debug(traceback.format_exc())
-        return api_error_response(500, "Erreur lors du traitement de la demande")
+        return capture_internal_error_response(
+            forgot_err,
+            "Erreur lors du traitement de la demande",
+            tags={"handler": "auth.forgot_password"},
+        )
 
 
 def _extract_validation_message(exc) -> str:
@@ -547,8 +561,10 @@ async def api_reset_password(request: Request) -> JSONResponse:
     except Exception as reset_err:
         logger.error(f"Erreur reset-password: {reset_err}")
         logger.debug(traceback.format_exc())
-        return api_error_response(
-            500, "Erreur lors de la reinitialisation du mot de passe"
+        return capture_internal_error_response(
+            reset_err,
+            "Erreur lors de la reinitialisation du mot de passe",
+            tags={"handler": "auth.reset_password"},
         )
 
 
@@ -583,4 +599,8 @@ async def api_logout(request: Request) -> JSONResponse:
     except Exception as logout_error:
         logger.error(f"Erreur lors de la deconnexion: {logout_error}")
         logger.debug(traceback.format_exc())
-        return api_error_response(500, "Erreur lors de la deconnexion")
+        return capture_internal_error_response(
+            logout_error,
+            "Erreur lors de la deconnexion",
+            tags={"handler": "auth.logout"},
+        )

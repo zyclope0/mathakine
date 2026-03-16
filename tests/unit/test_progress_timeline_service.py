@@ -4,6 +4,7 @@ Tests unitaires pour le service F07 — Courbe d'évolution temporelle.
 
 import uuid
 from datetime import datetime, timezone
+
 import pytest
 
 from app.models.attempt import Attempt

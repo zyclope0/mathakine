@@ -1,6 +1,6 @@
-# Sentry — Configuration optimale Mathakine
+# Sentry — Configuration opérable Mathakine
 
-Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js + Backend Starlette).
+Guide runtime réel pour Sentry dans Mathakine (Frontend Next.js + Backend Starlette).
 
 ---
 
@@ -13,6 +13,15 @@ Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js
 | **Frontend (edge)** | `sentry.edge.config.ts` | Middleware Edge |
 | **Backend Python** | `app/core/monitoring.py` | Erreurs, traces HTTP (StarletteIntegration), spans DB (SqlalchemyIntegration), métriques |
 
+## 1.1 État réel actuel
+
+- backend : erreurs, traces et métriques Sentry actifs si `SENTRY_DSN` est défini
+- frontend : erreurs, traces et Replay actifs si `NEXT_PUBLIC_SENTRY_DSN` est défini au build
+- logs Sentry : non activés par défaut
+- profiling backend : désactivé par défaut (`SENTRY_PROFILES_SAMPLE_RATE=0`)
+- profiling frontend : non activé
+- release correlation : recommandée via `SENTRY_RELEASE` et `NEXT_PUBLIC_SENTRY_RELEASE`
+
 ---
 
 ## 2. Variables d'environnement (checklist)
@@ -22,7 +31,7 @@ Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js
 | Variable | Où | Rôle |
 |----------|-----|------|
 | `NEXT_PUBLIC_SENTRY_DSN` | Frontend Render | DSN Sentry (lu au build) |
-| `SENTRY_DSN` | Backend Render | Même DSN (ou fallback `NEXT_PUBLIC_SENTRY_DSN`) |
+| `SENTRY_DSN` | Backend Render | DSN Sentry backend |
 | `ENVIRONMENT` | Backend | `production` pour taguer correctement |
 
 ### Recommandé (release, source maps)
@@ -41,7 +50,9 @@ Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js
 |----------|--------|------|
 | `SENTRY_TRACES_SAMPLE_RATE` | `0.1` | % des transactions tracées (10 %) |
 | `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Idem côté client |
-| `SENTRY_PROFILES_SAMPLE_RATE` | `0` | Profiling (0 = désactivé) |
+| `SENTRY_PROFILES_SAMPLE_RATE` | `0` | Profiling backend (0 = désactivé) |
+| `NEXT_PUBLIC_SENTRY_REPLAYS_SESSION_SAMPLE_RATE` | `0.1` | Replay baseline |
+| `NEXT_PUBLIC_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE` | `1.0` | Replay sur session en erreur |
 
 ---
 
@@ -55,10 +66,11 @@ Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js
    SENTRY_DSN = https://xxx@xxx.ingest.sentry.io/xxx
    ENVIRONMENT = production
    SENTRY_RELEASE = ${RENDER_GIT_COMMIT}
+   SENTRY_TRACES_SAMPLE_RATE = 0.1
    ```
-   *(Render expose automatiquement `RENDER_GIT_COMMIT` — tu peux le mapper ou le laisser auto)*
+   *(Render expose automatiquement `RENDER_GIT_COMMIT` — tu peux le mapper ou le laisser auto côté backend)*
 
-3. Si `SENTRY_RELEASE` n'est pas défini, le backend utilisera `RENDER_GIT_COMMIT` automatiquement.
+3. `NEXT_PUBLIC_SENTRY_DSN` peut rester présent en rétrocompat, mais le backend doit préférer `SENTRY_DSN`.
 
 ### 3.2 Frontend (mathakine-frontend)
 
@@ -68,6 +80,9 @@ Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js
    NEXT_PUBLIC_SENTRY_DSN = https://xxx@xxx.ingest.sentry.io/xxx
    SENTRY_RELEASE = ${RENDER_GIT_COMMIT}
    NEXT_PUBLIC_SENTRY_RELEASE = ${RENDER_GIT_COMMIT}
+   NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE = 0.1
+   NEXT_PUBLIC_SENTRY_REPLAYS_SESSION_SAMPLE_RATE = 0.1
+   NEXT_PUBLIC_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE = 1.0
    ```
    *Note : Les variables `NEXT_PUBLIC_*` sont lues au build. Après ajout, faire un **Manual Deploy**.*
 
@@ -92,6 +107,7 @@ Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js
 - **SqlalchemyIntegration** : spans DB automatiques + détection requêtes N+1 (backend)
 - **User context** : `set_user(username)` côté backend (middleware auth) + `Sentry.setUser()` côté frontend (post-login/logout)
 - **before_send** : filtrage health/metrics côté backend
+- **handled backend 500s** : les helpers centraux capturent maintenant aussi les exceptions catchées puis transformées en JSON
 
 ---
 
@@ -100,10 +116,18 @@ Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js
 ### Sampling
 - **Prod** : 10 % traces (équilibre coût / visibilité)
 - **Debug** : augmenter temporairement à 1.0 pour investiguer
+- **Profiling backend** : laisser à `0` tant qu'il n'y a pas un besoin explicite de diagnostic CPU
+- **Replay** : conserver `0.1 / 1.0` tant que le volume reste raisonnable
 
 ### PII
 - `sendDefaultPii: false` partout (RGPD, politique logs)
 - Ne pas logger email/tokens en clair
+
+### Logs
+- les logs applicatifs restent d'abord dans Render + Loguru
+- Sentry Logs n'est pas activé par défaut dans ce projet
+- raison : coût, bruit, et stack Loguru déjà en place
+- si besoin futur, activer seulement un flux warning/error ciblé, pas la totalité des logs
 
 ### Release
 - Toujours définir `SENTRY_RELEASE` = commit Git déployé
@@ -118,8 +142,9 @@ Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js
 ## 6. Vérification rapide
 
 1. **Backend** : `curl -I https://mathakine-alpha.onrender.com/health` → doit avoir `X-Request-ID`
-2. **Frontend** : `GET https://mathakine.fun/api/sentry-status` → `dsnPresent: true`
-3. **Sentry** : Projet → Issues → un event récent doit avoir le tag `request_id`
+2. **Frontend** : `GET https://mathakine.fun/api/sentry-status` → `dsnPresent: true`, `release` renseigné, sample rates visibles
+3. **Frontend** : ouvrir `/test-sentry`, envoyer `captureException`, vérifier l'Issue
+4. **Sentry** : un event récent doit avoir `request_id` et, si authentifié, un contexte utilisateur
 
 ---
 
@@ -128,9 +153,12 @@ Guide pour configurer Sentry au mieux pour le projet Mathakine (Frontend Next.js
 | Problème | Cause probable | Solution |
 |----------|----------------|----------|
 | Aucun event en prod | DSN manquant ou `enabled: false` | Vérifier vars, rebuild frontend |
+| Pas de release dans Sentry | `SENTRY_RELEASE` / `NEXT_PUBLIC_SENTRY_RELEASE` absents | Définir les variables sur Render puis redéployer |
 | Pas de source maps | `SENTRY_AUTH_TOKEN` manquant | Token + SENTRY_ORG, SENTRY_PROJECT |
 | request_id absent | Middleware non chargé | Vérifier ordre middleware |
 | Trop d'events health | — | `before_send` filtre déjà /health et /metrics |
+| Pas de logs Sentry | normal dans l'état actuel | les logs passent par Render + Loguru, pas par Sentry Logs |
+| Pas de profils Sentry | normal si `SENTRY_PROFILES_SAMPLE_RATE=0` | laisser à 0 sauf besoin explicite |
 
 ---
 

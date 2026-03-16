@@ -28,9 +28,10 @@ Why `REDIS_URL` is required:
 | `ENVIRONMENT` | runtime environment tag | `production` |
 | `MATH_TRAINER_PROFILE` | alternative prod detection | `prod` |
 | `LOG_LEVEL` | logging level | `INFO` |
-| `SENTRY_DSN` or `NEXT_PUBLIC_SENTRY_DSN` | Sentry backend reporting | project DSN |
+| `SENTRY_DSN` | Sentry backend reporting | project DSN |
 | `SENTRY_RELEASE` | deployment correlation | `${RENDER_GIT_COMMIT}` |
 | `SENTRY_TRACES_SAMPLE_RATE` | APM sampling | `0.1` |
+| `SENTRY_PROFILES_SAMPLE_RATE` | backend profiling sampling | `0` |
 
 ### Email providers
 
@@ -59,6 +60,9 @@ Use one of the two families below:
 | `NEXT_PUBLIC_CONTACT_EMAIL` | optional | contact email | `webmaster@mathakine.fun` |
 | `SENTRY_RELEASE` | optional | release correlation | `${RENDER_GIT_COMMIT}` |
 | `NEXT_PUBLIC_SENTRY_RELEASE` | optional | client release tag | `${RENDER_GIT_COMMIT}` |
+| `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` | optional | client traces sampling | `0.1` |
+| `NEXT_PUBLIC_SENTRY_REPLAYS_SESSION_SAMPLE_RATE` | optional | replay baseline sampling | `0.1` |
+| `NEXT_PUBLIC_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE` | optional | replay on error sampling | `1.0` |
 | `SENTRY_ORG` | optional | source-map upload | org slug |
 | `SENTRY_PROJECT` | optional | source-map upload | project slug |
 | `SENTRY_AUTH_TOKEN` | optional | source-map upload | token |
@@ -73,6 +77,8 @@ Use one of the two families below:
 - [ ] `REDIS_URL` is defined and reachable from Render
 - [ ] `FRONTEND_URL` matches the deployed frontend origin
 - [ ] one email provider family is configured
+- [ ] `SENTRY_DSN` is defined if backend Sentry is enabled
+- [ ] `SENTRY_RELEASE` matches the deployed commit if release correlation is desired
 - [ ] `GET /health` returns 200
 
 ### Frontend
@@ -80,6 +86,7 @@ Use one of the two families below:
 - [ ] `NEXT_PUBLIC_API_BASE_URL` points to the deployed backend
 - [ ] `NEXT_PUBLIC_SITE_URL` matches the visible frontend URL
 - [ ] `NEXT_PUBLIC_SENTRY_DSN` is configured if Sentry is used
+- [ ] `SENTRY_RELEASE` / `NEXT_PUBLIC_SENTRY_RELEASE` match the deployed commit if release correlation is desired
 - [ ] source-map variables are present only if source-map upload is desired
 
 ## Notes

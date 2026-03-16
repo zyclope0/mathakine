@@ -1,17 +1,47 @@
 """Tests pour le schéma d'erreur API unifié (audit Alpha 2)."""
 
 import json
+import sys
+import types
+from contextlib import contextmanager
 
 import pytest
 
 from app.utils.error_handler import (
     API_ERROR_CODES,
-    ErrorHandler,
     GENERIC_ERROR_MESSAGE,
+    ErrorHandler,
     api_error_json,
     api_error_response,
+    capture_internal_error_response,
     get_safe_error_message,
 )
+
+
+def _install_fake_sentry(monkeypatch):
+    captured: dict = {
+        "exceptions": [],
+        "tags": {},
+        "contexts": {},
+    }
+
+    class _FakeScope:
+        def set_tag(self, key, value):
+            captured["tags"][key] = value
+
+        def set_context(self, key, value):
+            captured["contexts"][key] = value
+
+    @contextmanager
+    def _push_scope():
+        yield _FakeScope()
+
+    fake_module = types.SimpleNamespace(
+        push_scope=_push_scope,
+        capture_exception=lambda exc: captured["exceptions"].append(exc),
+    )
+    monkeypatch.setitem(sys.modules, "sentry_sdk", fake_module)
+    return captured
 
 
 class TestApiErrorJson:
@@ -89,6 +119,18 @@ class TestGetSafeErrorMessage:
         assert msg == GENERIC_ERROR_MESSAGE
         assert "secret" not in msg
 
+    def test_captures_exception_to_sentry(self, monkeypatch):
+        captured = _install_fake_sentry(monkeypatch)
+        err = ValueError("internal detail")
+
+        msg = get_safe_error_message(err)
+
+        assert msg == GENERIC_ERROR_MESSAGE
+        assert captured["exceptions"] == [err]
+        assert captured["tags"]["handled"] == "true"
+        assert captured["tags"]["status_code"] == "500"
+        assert captured["tags"]["capture_path"] == "get_safe_error_message"
+
 
 class TestCreateValidationError:
     """Tests ErrorHandler.create_validation_error — modes (field, message) et (errors, user_message)."""
@@ -160,3 +202,34 @@ class TestCreateErrorResponseD1:
         assert data["message"] == "Erreur côté serveur"
         assert "error_type" not in data
         assert "details" not in data
+
+    def test_create_error_response_captures_exception_to_sentry(self, monkeypatch):
+        captured = _install_fake_sentry(monkeypatch)
+        err = RuntimeError("boom")
+
+        resp = ErrorHandler.create_error_response(
+            err, status_code=500, user_message="Erreur serveur"
+        )
+
+        assert resp.status_code == 500
+        assert captured["exceptions"] == [err]
+        assert captured["tags"]["capture_path"] == "ErrorHandler.create_error_response"
+        assert captured["contexts"]["api_response"]["message"] == "Erreur serveur"
+
+
+class TestCaptureInternalErrorResponse:
+    def test_returns_500_and_captures_exception(self, monkeypatch):
+        captured = _install_fake_sentry(monkeypatch)
+        err = RuntimeError("db down")
+
+        resp = capture_internal_error_response(
+            err,
+            "Erreur serveur",
+            tags={"handler": "tests.fake_handler"},
+        )
+
+        data = json.loads(resp.body.decode())
+        assert resp.status_code == 500
+        assert data["message"] == "Erreur serveur"
+        assert captured["exceptions"] == [err]
+        assert captured["tags"]["handler"] == "tests.fake_handler"

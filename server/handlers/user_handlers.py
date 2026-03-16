@@ -30,7 +30,11 @@ from app.services.user_application_service import (
     update_password,
     update_profile,
 )
-from app.utils.error_handler import api_error_response, get_safe_error_message
+from app.utils.error_handler import (
+    api_error_response,
+    capture_internal_error_response,
+    get_safe_error_message,
+)
 from app.utils.pagination import parse_pagination_params
 from app.utils.rate_limit import rate_limit_register
 from app.utils.request_utils import parse_json_body_any
@@ -89,8 +93,10 @@ async def get_user_stats(request: Request) -> JSONResponse:
             f"Erreur lors de la récupération des statistiques: {stats_retrieval_error}"
         )
         logger.debug(traceback.format_exc())
-        return api_error_response(
-            500, "Erreur lors de la récupération des statistiques"
+        return capture_internal_error_response(
+            stats_retrieval_error,
+            "Erreur lors de la récupération des statistiques",
+            tags={"handler": "users.get_user_stats"},
         )
 
 
@@ -134,7 +140,11 @@ async def create_user_account(request: Request) -> JSONResponse:
             f"Erreur lors de la création de l'utilisateur: {user_creation_error}"
         )
         logger.debug(traceback.format_exc())
-        return api_error_response(500, "Erreur lors de la création du compte")
+        return capture_internal_error_response(
+            user_creation_error,
+            "Erreur lors de la création du compte",
+            tags={"handler": "users.create_user_account"},
+        )
 
 
 @require_auth
@@ -472,7 +482,11 @@ async def get_user_sessions(request: Request) -> JSONResponse:
 
     except Exception as e:
         logger.error(f"Erreur lors de la récupération des sessions: {e}", exc_info=True)
-        return api_error_response(500, "Erreur lors de la récupération des sessions")
+        return capture_internal_error_response(
+            e,
+            "Erreur lors de la récupération des sessions",
+            tags={"handler": "users.get_user_sessions"},
+        )
 
 
 @require_auth
@@ -508,4 +522,8 @@ async def revoke_user_session(request: Request) -> JSONResponse:
         return api_error_response(400, "ID de session invalide")
     except Exception as e:
         logger.error(f"Erreur lors de la révocation de la session: {e}", exc_info=True)
-        return api_error_response(500, "Erreur lors de la révocation de la session")
+        return capture_internal_error_response(
+            e,
+            "Erreur lors de la révocation de la session",
+            tags={"handler": "users.revoke_user_session"},
+        )

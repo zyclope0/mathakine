@@ -11,6 +11,7 @@ import pytest
 from jose import jwt
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+
 from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.user import User, UserRole
@@ -18,8 +19,8 @@ from app.schemas.user import UserCreate, UserUpdate
 from app.services.auth_service import (
     authenticate_user,
     authenticate_user_with_session,
-    create_user,
     create_registered_user_with_verification,
+    create_user,
     create_user_token,
     get_user_by_email,
     get_user_by_id,

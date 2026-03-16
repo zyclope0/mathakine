@@ -32,6 +32,15 @@
 - `MAX_CONTENT_LENGTH` is enforced before JSON/body parsing on the hardened request paths
 - `/api/badges/available` is now explicitly bounded (`default=100`, `max=200`)
 
+### Monitoring
+
+- backend Sentry is initialized from `SENTRY_DSN` (fallback `NEXT_PUBLIC_SENTRY_DSN` kept only for backward compatibility)
+- backend sends errors, HTTP traces, SQLAlchemy spans, and HTTP metrics
+- backend profiling remains disabled by default (`SENTRY_PROFILES_SAMPLE_RATE=0`)
+- frontend Sentry sends errors, traces, and Replay through `/monitoring`
+- frontend Replay defaults are `0.1` baseline sessions and `1.0` on error
+- Sentry release correlation should use the deployed commit via `SENTRY_RELEASE` / `NEXT_PUBLIC_SENTRY_RELEASE`
+
 ### Rate limiting
 
 - production source of truth is Redis via `RedisRateLimitStore`

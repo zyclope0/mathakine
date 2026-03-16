@@ -52,11 +52,10 @@ import json
 import sys
 import uuid
 from contextlib import asynccontextmanager
-from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest

@@ -29,8 +29,14 @@ services:
         value: https://mathakine-frontend.onrender.com
       - key: OPENAI_API_KEY
         sync: false  # À définir manuellement dans le dashboard Render
+      - key: SENTRY_DSN
+        sync: false  # DSN backend dédié (préféré à NEXT_PUBLIC_SENTRY_DSN)
+      - key: SENTRY_RELEASE
+        sync: false  # Recommandé: ${RENDER_GIT_COMMIT}
+      - key: SENTRY_TRACES_SAMPLE_RATE
+        value: 0.1
       - key: NEXT_PUBLIC_SENTRY_DSN
-        sync: false  # Même DSN que frontend — erreurs backend vers Sentry
+        sync: false  # Rétrocompat Sentry backend si SENTRY_DSN absent
     healthCheckPath: /health
     autoDeploy: true
 
@@ -53,6 +59,16 @@ services:
         value: production
       - key: NEXT_PUBLIC_SENTRY_DSN
         sync: false
+      - key: SENTRY_RELEASE
+        sync: false  # Recommandé: ${RENDER_GIT_COMMIT}
+      - key: NEXT_PUBLIC_SENTRY_RELEASE
+        sync: false  # Recommandé: ${RENDER_GIT_COMMIT}
+      - key: NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE
+        value: 0.1
+      - key: NEXT_PUBLIC_SENTRY_REPLAYS_SESSION_SAMPLE_RATE
+        value: 0.1
+      - key: NEXT_PUBLIC_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE
+        value: 1.0
       - key: SENTRY_ORG
         sync: false  # Slug org Sentry (ex. mathakine) — pour source maps
       - key: SENTRY_PROJECT
