@@ -166,6 +166,76 @@ def challenge_to_api_dict(challenge) -> Dict[str, Any]:
     }
 
 
+def _prepare_challenge_data(
+    *,
+    title: str,
+    description: str,
+    challenge_type: str,
+    age_group: str,
+    correct_answer: str,
+    solution_explanation: str,
+    question: Optional[str] = None,
+    hints: Optional[List[str]] = None,
+    visual_data: Optional[Dict] = None,
+    difficulty_rating: float = 3.0,
+    estimated_time_minutes: int = 10,
+    tags: Optional[str] = None,
+    creator_id: Optional[int] = None,
+    generation_parameters: Optional[Dict] = None,
+) -> Dict[str, Any]:
+    """
+    Étape 1 : préparation et normalisation des entrées pour création d'un challenge.
+    Convertit age_group, applique les défauts, produit un dict prêt pour persistance.
+    """
+    now = datetime.now(timezone.utc)
+    db_age_group = normalize_age_group_for_db(age_group)
+    logger.debug(f"Conversion groupe d'âge: {age_group} -> {db_age_group}")
+
+    return {
+        "title": title,
+        "description": description,
+        "challenge_type": challenge_type,
+        "age_group": db_age_group,
+        "question": question,
+        "correct_answer": correct_answer,
+        "solution_explanation": solution_explanation,
+        "hints": hints or [],
+        "visual_data": visual_data or {},
+        "difficulty_rating": difficulty_rating,
+        "estimated_time_minutes": estimated_time_minutes,
+        "tags": tags,
+        "creator_id": creator_id,
+        "is_active": True,
+        "created_at": now,
+        "generation_parameters": generation_parameters,
+    }
+
+
+def _validate_challenge_data(data: Dict[str, Any]) -> None:
+    """
+    Étape 2 : validation métier des données préparées.
+    Lève ValueError si les champs requis sont vides ou invalides.
+    """
+    if not (data.get("title") or "").strip():
+        raise ValueError("Le titre du challenge est requis")
+    if not (data.get("description") or "").strip():
+        raise ValueError("La description du challenge est requise")
+    if not (data.get("correct_answer") or "").strip():
+        raise ValueError("La réponse correcte est requise")
+
+
+def _persist_challenge(db: Session, data: Dict[str, Any]) -> LogicChallenge:
+    """
+    Étape 3 : mutation et persistance du challenge en base.
+    Construit l'objet ORM, l'ajoute à la session, commit et refresh.
+    """
+    challenge = LogicChallenge(**data)
+    db.add(challenge)
+    db.commit()
+    db.refresh(challenge)
+    return challenge
+
+
 def create_challenge(
     db: Session,
     title: str,
@@ -186,6 +256,12 @@ def create_challenge(
     """
     Créer un nouveau challenge.
 
+    Flux décomposé (E3b) :
+    1. Préparation : _prepare_challenge_data (normalisation age_group, défauts)
+    2. Validation : _validate_challenge_data (champs requis)
+    3. Mutation : _persist_challenge (construction, add, commit)
+    4. Résultat : retour du challenge créé
+
     Args:
         db: Session SQLAlchemy
         title: Titre du challenge
@@ -205,36 +281,24 @@ def create_challenge(
     Returns:
         LogicChallenge créé
     """
-    # Définir explicitement created_at pour éviter les valeurs NULL
-    now = datetime.now(timezone.utc)
-
-    # Convertir le groupe d'âge frontend vers la valeur ENUM PostgreSQL
-    db_age_group = normalize_age_group_for_db(age_group)
-    logger.debug(f"Conversion groupe d'âge: {age_group} -> {db_age_group}")
-
-    challenge = LogicChallenge(
+    prepared = _prepare_challenge_data(
         title=title,
         description=description,
         challenge_type=challenge_type,
-        age_group=db_age_group,
-        question=question,
+        age_group=age_group,
         correct_answer=correct_answer,
         solution_explanation=solution_explanation,
-        hints=hints or [],
-        visual_data=visual_data or {},
+        question=question,
+        hints=hints,
+        visual_data=visual_data,
         difficulty_rating=difficulty_rating,
         estimated_time_minutes=estimated_time_minutes,
         tags=tags,
         creator_id=creator_id,
-        is_active=True,
-        created_at=now,  # Définir explicitement la date de création
         generation_parameters=generation_parameters,
     )
-
-    db.add(challenge)
-    db.commit()
-    db.refresh(challenge)
-
+    _validate_challenge_data(prepared)
+    challenge = _persist_challenge(db, prepared)
     logger.info(f"Challenge créé: {challenge.id} - {challenge.title}")
     return challenge
 
@@ -345,6 +409,59 @@ def _apply_challenge_filters(
     return query
 
 
+def _execute_list_with_ordering(
+    query,
+    *,
+    order: str = "random",
+    limit: int = 10,
+    offset: int = 0,
+    total: Optional[int] = None,
+) -> List[LogicChallenge]:
+    """
+    Exécute une requête de liste avec stratégie d'ordre et pagination.
+
+    Étapes métier :
+    1. Ordre "recent" : tri par date décroissante
+    2. Ordre "random" avec total fourni : random_offset O(1) (B4.1)
+    3. Ordre "random" sans total : func.random() O(n) fallback
+
+    Args:
+        query: Requête SQLAlchemy déjà filtrée
+        order: "random" ou "recent"
+        limit: Nombre max de résultats
+        offset: Décalage pagination
+        total: Total des items (pour optim random_offset)
+
+    Returns:
+        Liste de LogicChallenge
+    """
+    if order == "recent":
+        return (
+            query.order_by(
+                LogicChallenge.created_at.desc().nullslast(),
+                LogicChallenge.id.desc(),
+            )
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+    use_random_offset = total is not None and total > 0
+    if use_random_offset:
+        max_offset_val = max(0, total - limit - offset)
+        random_offset_val = (
+            random.randint(0, max_offset_val) if max_offset_val > 0 else 0
+        )
+        return (
+            query.order_by(LogicChallenge.id)
+            .offset(offset + random_offset_val)
+            .limit(limit)
+            .all()
+        )
+
+    return query.order_by(func.random()).offset(offset).limit(limit).all()
+
+
 def list_challenges(
     db: Session,
     challenge_type: Optional[str] = None,
@@ -389,31 +506,9 @@ def list_challenges(
         active_only=active_only,
     )
 
-    # Ordre : aléatoire par défaut (varier l'entraînement), ou récent
-    if order == "recent":
-        query = query.order_by(
-            LogicChallenge.created_at.desc().nullslast(), LogicChallenge.id.desc()
-        )
-        return query.offset(offset).limit(limit).all()
-
-    # Optimisation: random_offset O(1) au lieu de ORDER BY RANDOM() O(n).
-    # B4.1: utiliser random_offset dès que total est fourni (prod + tests).
-    # Le caller (challenge_query_service) fournit toujours total quand order=random.
-    _use_random_offset = total is not None and total > 0
-    if _use_random_offset:
-        max_offset_val = max(0, total - limit - offset)
-        random_offset_val = (
-            random.randint(0, max_offset_val) if max_offset_val > 0 else 0
-        )
-        return (
-            query.order_by(LogicChallenge.id)
-            .offset(offset + random_offset_val)
-            .limit(limit)
-            .all()
-        )
-
-    # func.random() O(n) — stable en tests, fallback si total non fourni
-    return query.order_by(func.random()).offset(offset).limit(limit).all()
+    return _execute_list_with_ordering(
+        query, order=order, limit=limit, offset=offset, total=total
+    )
 
 
 def count_challenges(

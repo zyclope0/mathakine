@@ -1,4 +1,4 @@
-﻿# Architecture - Mathakine
+# Architecture - Mathakine
 
 > Global architecture reference
 > Updated: 16/03/2026
@@ -90,8 +90,7 @@ Verified local reference on 16/03/2026:
 ## 6. Legacy And Compatibility
 
 Legacy still active:
-- `app/services/enhanced_server_adapter.py`
-- `app/utils/db_utils.py::db_session()` for compatibility paths
+- `app/services/enhanced_server_adapter.py` — seul `create_generated_exercise` est utilisé (exercise_ai_service). Les autres méthodes sont inactives ou compatibilité.
 
 Generator compatibility re-exports:
 - `server/exercise_generator.py`

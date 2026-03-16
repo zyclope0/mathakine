@@ -66,16 +66,13 @@ def verify_user_email_for_tests(username: str) -> None:
     À appeler après création via API, avant tenter un login.
     """
     from app.models.user import User
-    from app.services.enhanced_server_adapter import EnhancedServerAdapter
+    from app.utils.db_utils import sync_db_session
 
-    db = EnhancedServerAdapter.get_db_session()
-    try:
+    with sync_db_session() as db:
         user = db.query(User).filter(User.username == username).first()
         if user:
             user.is_email_verified = True
             db.commit()
-    finally:
-        EnhancedServerAdapter.close_db_session(db)
 
 
 def set_user_created_at_for_tests(username: str, minutes_ago: float) -> None:
@@ -87,18 +84,15 @@ def set_user_created_at_for_tests(username: str, minutes_ago: float) -> None:
         minutes_ago: Nombre de minutes dans le passé (ex: 50 pour dépasser 45 min)
     """
     from app.models.user import User
-    from app.services.enhanced_server_adapter import EnhancedServerAdapter
+    from app.utils.db_utils import sync_db_session
 
-    db = EnhancedServerAdapter.get_db_session()
-    try:
+    with sync_db_session() as db:
         user = db.query(User).filter(User.username == username).first()
         if user:
             user.created_at = datetime.now(timezone.utc) - timedelta(
                 minutes=minutes_ago
             )
             db.commit()
-    finally:
-        EnhancedServerAdapter.close_db_session(db)
 
 
 def dict_to_user(user_data: Dict[str, Any]) -> User:

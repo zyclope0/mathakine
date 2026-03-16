@@ -80,20 +80,20 @@ def perform_verify_email(token: str) -> VerifyEmailResult:
         raise AuthRecoveryError("invalid")
 
     with sync_db_session() as db:
-        user, err = verify_email_token(db, token.strip())
+        result = verify_email_token(db, token.strip())
 
-        if err == "invalid":
+        if result.error_code == "invalid":
             raise AuthRecoveryError("invalid")
 
-        if err == "expired":
+        if result.error_code == "expired":
             raise AuthRecoveryError("expired")
 
-        if err == "already_verified":
-            payload = _build_verify_user_payload(user)
+        if result.error_code == "already_verified":
+            payload = _build_verify_user_payload(result.user)
             return VerifyEmailResult(user_payload=payload, state="already_verified")
 
-        # err is None: success
-        payload = _build_verify_user_payload(user)
+        # result.is_success
+        payload = _build_verify_user_payload(result.user)
         return VerifyEmailResult(user_payload=payload, state="verified")
 
 
@@ -206,13 +206,13 @@ def perform_reset_password(token: str, new_password: str) -> None:
         raise AuthRecoveryError("invalid")
 
     with sync_db_session() as db:
-        user, err = reset_password_with_token(db, token, new_password)
+        result = reset_password_with_token(db, token, new_password)
 
-        if err == "invalid":
+        if result.error_code == "invalid":
             raise AuthRecoveryError("invalid")
 
-        if err == "expired":
+        if result.error_code == "expired":
             raise AuthRecoveryError("expired")
 
-    # err is None: success
+    # result.is_success
     logger.info("Mot de passe réinitialisé")

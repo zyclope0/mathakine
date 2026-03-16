@@ -40,7 +40,7 @@ Recommended direction:
 
 ### 3. Dense historical services remain to decompose
 
-Standard D6 (Handler Subjectivity Review) : ces modules sont des **candidats de refactor futur**, pas des défauts immédiats. Voir `PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_D6_HANDLER_SUBJECTIVITY_REVIEW_2026-03-15.md`.
+Standard D6 (Handler Subjectivity Review) : these modules are **future refactor candidates**, not immediate defects. See `archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_D6_HANDLER_SUBJECTIVITY_REVIEW_2026-03-15.md`.
 
 Main structural hotspots still worth bounded future lots:
 - `app/services/auth_service.py`
@@ -76,6 +76,9 @@ Potential future topics only if there is product evidence:
 ## Maintenance Rule
 
 This file is the active follow-up tracker for `docs/03-PROJECT`.
+The planned execution framework for the next architecture iteration is:
+- `PILOTAGE_CURSOR_TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_2026-03-16.md`
+
 When a point is closed or re-scoped:
 1. update this file
 2. update the relevant active recap if needed

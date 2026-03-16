@@ -11,6 +11,7 @@ from app.services.challenge_validation_analysis import (
     analyze_pattern,
     analyze_sequence,
     compute_pattern_answers_multi,
+    find_question_position_in_grid,
 )
 
 
@@ -49,16 +50,7 @@ def validate_pattern_challenge(
         return errors
 
     # Une seule "?"
-    question_pos = None
-    for i, row in enumerate(grid):
-        if not isinstance(row, list):
-            continue
-        for j, cell in enumerate(row):
-            if cell == "?" or (isinstance(cell, str) and "?" in cell):
-                question_pos = (i, j)
-                break
-        if question_pos:
-            break
+    question_pos = find_question_position_in_grid(grid)
     if not question_pos:
         return errors
     row_idx, col_idx = question_pos

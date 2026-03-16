@@ -20,7 +20,7 @@ Visible release source of truth:
 Active references:
 - [`runtime + contracts recap`](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
 - [`production hardening recap`](docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
-- [`security / boundaries recap`](docs/03-PROJECT/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md)
+- [`security / boundaries archive`](docs/03-PROJECT/archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md)
 
 ## [Unreleased]
 

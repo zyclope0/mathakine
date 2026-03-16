@@ -233,18 +233,15 @@ async def test_verify_email_success(client, test_user_data):
 
     # Récupérer le token depuis la DB (en test, on ne reçoit pas l'email)
     from app.models.user import User
-    from app.services.enhanced_server_adapter import EnhancedServerAdapter
+    from app.utils.db_utils import sync_db_session
 
-    db = EnhancedServerAdapter.get_db_session()
-    try:
+    with sync_db_session() as db:
         user = (
             db.query(User).filter(User.username == test_user_data["username"]).first()
         )
         assert user is not None
         token = user.email_verification_token
         assert token is not None, "Token vérification non généré"
-    finally:
-        EnhancedServerAdapter.close_db_session(db)
 
     # Vérifier l'email avec le token
     resp_verify = await client.get(f"/api/auth/verify-email?token={token}")
@@ -275,16 +272,13 @@ async def test_reset_password_full_flow(client, test_user_data):
 
     # Récupérer le token depuis la DB (en test, on ne reçoit pas l'email)
     from app.models.user import User
-    from app.services.enhanced_server_adapter import EnhancedServerAdapter
+    from app.utils.db_utils import sync_db_session
 
-    db = EnhancedServerAdapter.get_db_session()
-    try:
+    with sync_db_session() as db:
         user = db.query(User).filter(User.email == test_user_data["email"]).first()
         assert user is not None, "Utilisateur créé mais non trouvé"
         token = user.password_reset_token
         assert token is not None, "Token reset non généré"
-    finally:
-        EnhancedServerAdapter.close_db_session(db)
 
     # Réinitialiser avec le token
     new_password = "NewSecurePass456!"
@@ -333,14 +327,11 @@ async def test_reset_password_mismatch(client, test_user_data):
     )
 
     from app.models.user import User
-    from app.services.enhanced_server_adapter import EnhancedServerAdapter
+    from app.utils.db_utils import sync_db_session
 
-    db = EnhancedServerAdapter.get_db_session()
-    try:
+    with sync_db_session() as db:
         user = db.query(User).filter(User.email == test_user_data["email"]).first()
         token = user.password_reset_token if user else None
-    finally:
-        EnhancedServerAdapter.close_db_session(db)
 
     if not token:
         pytest.skip("Token non généré")
@@ -393,16 +384,13 @@ async def test_reset_password_revokes_old_tokens(client, test_user_data):
         "/api/auth/forgot-password", json={"email": test_user_data["email"]}
     )
     from app.models.user import User
-    from app.services.enhanced_server_adapter import EnhancedServerAdapter
+    from app.utils.db_utils import sync_db_session
 
-    db = EnhancedServerAdapter.get_db_session()
-    try:
+    with sync_db_session() as db:
         user = db.query(User).filter(User.email == test_user_data["email"]).first()
         assert user is not None
         reset_token = user.password_reset_token
         assert reset_token is not None
-    finally:
-        EnhancedServerAdapter.close_db_session(db)
 
     # Reset password
     new_password = "NewSecurePass456!"

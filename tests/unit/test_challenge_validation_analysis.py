@@ -10,7 +10,35 @@ from app.services.challenge_validation_analysis import (
     analyze_pattern,
     analyze_sequence,
     compute_pattern_answers_multi,
+    find_question_position_in_grid,
 )
+
+# ── find_question_position_in_grid (E2) ─────────────────────────────────────
+
+
+def test_find_question_position_in_grid_found():
+    """Trouve la premiere position '?' dans la grille."""
+    grid = [["X", "O", "X"], ["O", "?", "O"], ["X", "O", "X"]]
+    assert find_question_position_in_grid(grid) == (1, 1)
+
+
+def test_find_question_position_in_grid_not_found():
+    """Retourne None si aucune '?'."""
+    grid = [["X", "O", "X"], ["O", "X", "O"], ["X", "O", "X"]]
+    assert find_question_position_in_grid(grid) is None
+
+
+def test_find_question_position_in_grid_cell_contains_question():
+    """Detecte cellule contenant '?' (ex: '?')."""
+    grid = [["a", "b"], ["c", "?"]]
+    assert find_question_position_in_grid(grid) == (1, 1)
+
+
+def test_find_question_position_in_grid_skips_non_list_rows():
+    """Lignes non-list sont ignorees."""
+    grid = [["X", "O"], "invalid", ["?", "X"]]
+    assert find_question_position_in_grid(grid) == (2, 0)
+
 
 # ── compute_pattern_answers_multi ──────────────────────────────────────────
 

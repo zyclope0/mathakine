@@ -11,8 +11,8 @@
 | [../../README_TECH.md](../../README_TECH.md) | living technical reference |
 | [BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](./BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) | recap of `Runtime Truth` and `Contracts / Hardening` |
 | [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) | active recap of `Production Hardening` |
-| [PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md](./PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md) | closed recap of the audit-driven hardening iteration |
 | [POINTS_RESTANTS_2026-03-15.md](./POINTS_RESTANTS_2026-03-15.md) | single active tracker for remaining follow-ups |
+| [PILOTAGE_CURSOR_TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_2026-03-16.md](./PILOTAGE_CURSOR_TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_2026-03-16.md) | active master plan for iteration `E` |
 | [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | quality-first backend protocol |
 | [CICD_DEPLOY.md](./CICD_DEPLOY.md) | CI/CD, coverage and typing gates |
 
@@ -24,6 +24,7 @@
 - `Contracts / Hardening`: closed
 - `Production Hardening`: closed
 - `Security, Boundaries, and API Discipline`: closed
+- `Typed Contracts, Service Decomposition, and Legacy Retirement`: planned
 
 Local reference baseline:
 - full suite excluding the false gate: `882 passed, 2 skipped`
@@ -37,8 +38,8 @@ Local reference baseline:
 |---|---|
 | [BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](./BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) | recap for `Runtime Truth` and `Contracts / Hardening` |
 | [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) | recap for `Production Hardening` |
-| [PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md](./PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md) | closed audit-driven hardening recap |
 | [POINTS_RESTANTS_2026-03-15.md](./POINTS_RESTANTS_2026-03-15.md) | remaining points still worth tracking |
+| [PILOTAGE_CURSOR_TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_2026-03-16.md](./PILOTAGE_CURSOR_TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_2026-03-16.md) | active master plan for iteration `E` |
 | [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | validation protocol |
 | [CICD_DEPLOY.md](./CICD_DEPLOY.md) | CI/CD truth |
 
@@ -62,6 +63,7 @@ Closed bilans, temporary delta files, and superseded quick-win notes belong in a
 - [archives/README.md](./archives/README.md)
 - [archives/BACKEND_RUNTIME_CONTRACTS_DETAIL_2026-03-13/README.md](./archives/BACKEND_RUNTIME_CONTRACTS_DETAIL_2026-03-13/README.md)
 - [archives/PRODUCTION_HARDENING_DETAIL_2026-03-15/README.md](./archives/PRODUCTION_HARDENING_DETAIL_2026-03-15/README.md)
+- [archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md](./archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md)
 - [archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/README.md](./archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/README.md)
 - [archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/README.md](./archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/README.md)
 - [AUDITS_ET_RAPPORTS_ARCHIVES/README.md](./AUDITS_ET_RAPPORTS_ARCHIVES/README.md)

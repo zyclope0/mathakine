@@ -965,21 +965,21 @@ def test_verify_email_token_success(db_session, mock_user):
     db_session.add(user)
     db_session.commit()
 
-    result_user, error = verify_email_token(db_session, "valid_token_abc123")
+    result = verify_email_token(db_session, "valid_token_abc123")
 
-    assert error is None
-    assert result_user is not None
-    assert result_user.id == user.id
-    assert result_user.is_email_verified is True
+    assert result.is_success
+    assert result.user is not None
+    assert result.user.id == user.id
+    assert result.user.is_email_verified is True
     db_session.refresh(user)
     assert user.is_email_verified is True
 
 
 def test_verify_email_token_invalid(db_session):
     """Teste verify_email_token avec un token inexistant."""
-    user, error = verify_email_token(db_session, "nonexistent_token_xyz")
-    assert user is None
-    assert error == "invalid"
+    result = verify_email_token(db_session, "nonexistent_token_xyz")
+    assert result.user is None
+    assert result.error_code == "invalid"
 
 
 def test_verify_email_token_expired(db_session, mock_user):
@@ -992,11 +992,11 @@ def test_verify_email_token_expired(db_session, mock_user):
     db_session.add(user)
     db_session.commit()
 
-    result_user, error = verify_email_token(db_session, "expired_token")
+    result = verify_email_token(db_session, "expired_token")
 
-    assert result_user is not None
-    assert result_user.id == user.id
-    assert error == "expired"
+    assert result.user is not None
+    assert result.user.id == user.id
+    assert result.error_code == "expired"
     db_session.refresh(user)
     assert user.is_email_verified is False
 
@@ -1011,10 +1011,10 @@ def test_verify_email_token_already_verified(db_session, mock_user):
     db_session.add(user)
     db_session.commit()
 
-    result_user, error = verify_email_token(db_session, "token_already")
+    result = verify_email_token(db_session, "token_already")
 
-    assert result_user is not None
-    assert error == "already_verified"
+    assert result.user is not None
+    assert result.error_code == "already_verified"
     db_session.refresh(user)
     assert user.is_email_verified is True
 
@@ -1031,13 +1031,13 @@ def test_reset_password_with_token_success(db_session, mock_user):
     db_session.add(user)
     db_session.commit()
 
-    result_user, error = reset_password_with_token(
+    result = reset_password_with_token(
         db_session, "valid_reset_token", "NewSecurePass123"
     )
 
-    assert error is None
-    assert result_user is not None
-    assert result_user.id == user.id
+    assert result.is_success
+    assert result.user is not None
+    assert result.user.id == user.id
     assert authenticate_user(db_session, user.username, "NewSecurePass123") is not None
     db_session.refresh(user)
     assert user.password_reset_token is None
@@ -1079,11 +1079,9 @@ def test_reset_password_with_token_revokes_sessions(db_session, mock_user):
 
 def test_reset_password_with_token_invalid(db_session):
     """Teste reset_password_with_token avec un token inexistant."""
-    user, error = reset_password_with_token(
-        db_session, "invalid_reset_token", "NewPass123"
-    )
-    assert user is None
-    assert error == "invalid"
+    result = reset_password_with_token(db_session, "invalid_reset_token", "NewPass123")
+    assert result.user is None
+    assert result.error_code == "invalid"
 
 
 def test_reset_password_with_token_expired(db_session, mock_user):
@@ -1097,10 +1095,8 @@ def test_reset_password_with_token_expired(db_session, mock_user):
     db_session.add(user)
     db_session.commit()
 
-    result_user, error = reset_password_with_token(
-        db_session, "expired_reset_token", "NewPass456"
-    )
+    result = reset_password_with_token(db_session, "expired_reset_token", "NewPass456")
 
-    assert result_user is not None
-    assert error == "expired"
+    assert result.user is not None
+    assert result.error_code == "expired"
     assert authenticate_user(db_session, user.username, "OldPass123") is not None

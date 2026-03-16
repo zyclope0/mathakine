@@ -19,6 +19,7 @@ from app.core.security import (
 from app.core.types import TokenRefreshResponse, TokenResponse
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
+from app.schemas.auth_result import ResetPasswordTokenResult, VerifyEmailTokenResult
 from app.schemas.user import TokenData, UserCreate, UserUpdate
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 from app.utils.email_verification import (
@@ -378,7 +379,7 @@ def update_user_password(
 
 def verify_email_token(
     db: Session, token: str, *, auto_commit: bool = True
-) -> Tuple[Optional[User], Optional[str]]:
+) -> VerifyEmailTokenResult:
     """
     Vérifie un token d'email et marque l'utilisateur comme vérifié si valide.
 
@@ -387,24 +388,24 @@ def verify_email_token(
         token: Token de vérification
 
     Returns:
-        (user, error): user si succès, error parmi "invalid", "expired", "already_verified"
+        VerifyEmailTokenResult avec user et error_code (None si succès).
     """
     user = db.query(User).filter(User.email_verification_token == token).first()
     if not user:
-        return None, "invalid"
+        return VerifyEmailTokenResult(user=None, error_code="invalid")
 
     if is_verification_token_expired(user.email_verification_sent_at):
-        return user, "expired"
+        return VerifyEmailTokenResult(user=user, error_code="expired")
 
     if user.is_email_verified:
-        return user, "already_verified"
+        return VerifyEmailTokenResult(user=user, error_code="already_verified")
 
     user.is_email_verified = True
     user.updated_at = datetime.now(timezone.utc)
     _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
     logger.info(f"Email vérifié pour l'utilisateur {user.username} ({user.email})")
-    return user, None
+    return VerifyEmailTokenResult(user=user, error_code=None)
 
 
 def resend_verification_token(
@@ -482,7 +483,7 @@ def set_verification_token_for_new_user(
 
 def reset_password_with_token(
     db: Session, token: str, new_password: str, *, auto_commit: bool = True
-) -> Tuple[Optional[User], Optional[str]]:
+) -> ResetPasswordTokenResult:
     """
     Réinitialise le mot de passe avec un token valide.
 
@@ -492,14 +493,14 @@ def reset_password_with_token(
         new_password: Nouveau mot de passe (déjà validé par le handler)
 
     Returns:
-        (user, error): user si succès, error parmi "invalid", "expired"
+        ResetPasswordTokenResult avec user et error_code (None si succès).
     """
     user = db.query(User).filter(User.password_reset_token == token).first()
     if not user:
-        return None, "invalid"
+        return ResetPasswordTokenResult(user=None, error_code="invalid")
 
     if is_password_reset_token_expired(user.password_reset_expires_at):
-        return user, "expired"
+        return ResetPasswordTokenResult(user=user, error_code="expired")
 
     now = datetime.now(timezone.utc)
     user.hashed_password = get_password_hash(new_password)
@@ -513,7 +514,7 @@ def reset_password_with_token(
     _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
     logger.info(f"Mot de passe réinitialisé pour {user.username}")
-    return user, None
+    return ResetPasswordTokenResult(user=user, error_code=None)
 
 
 def create_registered_user_with_verification(

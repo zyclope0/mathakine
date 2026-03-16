@@ -1,4 +1,4 @@
-﻿# Technical README - Mathakine
+# Technical README - Mathakine
 
 > Updated: 16/03/2026
 
@@ -53,6 +53,4 @@
 - global strict `mypy` is still out of scope
 - coverage above `63 %` needs dedicated future lots
 - large historical services still deserve bounded decomposition
-- `app/services/enhanced_server_adapter.py` remains legacy compatibility
-- `app/utils/db_utils.py::db_session()` remains legacy compatibility
-- `app/utils/rate_limiter.py` is now legacy dead weight candidate, not active production truth
+- `app/services/enhanced_server_adapter.py` remains legacy compatibility (create_generated_exercise only, used by exercise_ai_service)

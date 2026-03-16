@@ -17,7 +17,6 @@ Ces modules existent, sont testés et documentés. Les utiliser en priorité :
 | Convertir enum ↔ string API (exercise_type, difficulty, age_group, challenge_type) | `app/utils/enum_mapping.py` | `TODO(H9-câblage)` |
 | Stats coûts tokens OpenAI | `app/utils/token_tracker.py` → `get_stats()`, `get_daily_summary()` | `TODO(H9-câblage)` |
 | Métriques qualité génération IA (taux succès, auto-correction...) | `app/utils/generation_metrics.py` → `get_summary()` | `TODO(H9-câblage)` |
-| Stats d'un utilisateur dans le rate limiter | `app/utils/rate_limiter.py` → `get_user_stats()` | — |
 
 ## Règle de comportement
 

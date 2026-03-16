@@ -16,6 +16,7 @@ from app.services.challenge_validation_analysis import (
     analyze_pattern,
     analyze_sequence,
     compute_pattern_answers_multi,
+    find_question_position_in_grid,
 )
 from app.services.maze_validator import solve_maze_bfs, validate_maze_path
 
@@ -385,20 +386,8 @@ def validate_grid_in_visual(
     """
     errors = []
 
-    # Trouver la position du '?'
-    question_pos = None
-    for i, row in enumerate(grid):
-        if not isinstance(row, list):
-            continue
-        for j, cell in enumerate(row):
-            if cell == "?" or (isinstance(cell, str) and "?" in str(cell)):
-                question_pos = (i, j)
-                break
-        if question_pos:
-            break
-
+    question_pos = find_question_position_in_grid(grid)
     if not question_pos:
-        # Pas de '?' à compléter
         return errors
 
     row_idx, col_idx = question_pos
@@ -467,16 +456,7 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
                         f"{explanation}"
                     )
             else:
-                question_pos = None
-                for i, row in enumerate(grid):
-                    if not isinstance(row, list):
-                        continue
-                    for j, cell in enumerate(row):
-                        if cell == "?" or (isinstance(cell, str) and "?" in cell):
-                            question_pos = (i, j)
-                            break
-                    if question_pos:
-                        break
+                question_pos = find_question_position_in_grid(grid)
                 if question_pos:
                     row_idx, col_idx = question_pos
                     expected_answer = analyze_pattern(grid, row_idx, col_idx)
@@ -501,18 +481,7 @@ def auto_correct_challenge(challenge_data: Dict[str, Any]) -> Dict[str, Any]:
             "grid", visual_data.get("matrix", visual_data.get("pattern"))
         )
         if grid and isinstance(grid, list) and len(grid) > 0:
-            # Trouver la position du '?'
-            question_pos = None
-            for i, row in enumerate(grid):
-                if not isinstance(row, list):
-                    continue
-                for j, cell in enumerate(row):
-                    if cell == "?" or (isinstance(cell, str) and "?" in str(cell)):
-                        question_pos = (i, j)
-                        break
-                if question_pos:
-                    break
-
+            question_pos = find_question_position_in_grid(grid)
             if question_pos:
                 row_idx, col_idx = question_pos
                 expected_answer = analyze_latin_square_pattern(grid, row_idx, col_idx)

@@ -7,7 +7,24 @@ Ne contient pas la logique de validation métier, uniquement l'analyse de patter
 et de séquences pour déduire les réponses attendues.
 """
 
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
+
+
+def find_question_position_in_grid(grid: List[List[Any]]) -> Optional[Tuple[int, int]]:
+    """
+    Trouve la position (row, col) de la première cellule '?' dans une grille.
+    Utilisé par validate_grid_in_visual, validate_pattern_challenge, auto_correct_challenge.
+
+    Returns:
+        (row_idx, col_idx) ou None si aucune cellule '?' trouvée.
+    """
+    for i, row in enumerate(grid):
+        if not isinstance(row, list):
+            continue
+        for j, cell in enumerate(row):
+            if cell == "?" or (isinstance(cell, str) and "?" in str(cell)):
+                return (i, j)
+    return None
 
 
 def compute_pattern_answers_multi(grid: List[List[Any]]) -> Optional[str]:

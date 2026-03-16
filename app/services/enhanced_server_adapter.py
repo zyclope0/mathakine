@@ -1,7 +1,9 @@
 """
-Service d'adaptation pour enhanced_server.py.
-Permet d'utiliser le système de transaction et les services avec enhanced_server.py
-sans modifier massivement le serveur existant.
+Service d'adaptation pour enhanced_server.py (LEGACY COMPATIBILITY).
+
+Statut E5: Seul create_generated_exercise est encore utilisé en runtime
+(exercise_ai_service). Les autres méthodes servent de compatibilité ou sont
+inactives. Ne pas étendre ce module.
 """
 
 import json
@@ -14,7 +16,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.adapter import DatabaseAdapter
-from app.db.base import SessionLocal
 from app.db.transaction import TransactionManager
 from app.models.attempt import Attempt
 from app.models.exercise import Exercise
@@ -84,31 +85,10 @@ def _serialize_exercise(exercise: Exercise) -> Dict[str, Any]:
 
 class EnhancedServerAdapter:
     """
-    Adaptateur pour enhanced_server.py.
+    Adaptateur pour enhanced_server.py (LEGACY COMPATIBILITY).
     Fournit des méthodes qui correspondent aux opérations SQL directes
     dans enhanced_server.py, mais utilise notre système de transaction.
     """
-
-    @staticmethod
-    def get_db_session() -> Session:
-        """
-        Obtient une session de base de données.
-        Remplace la fonction get_db_connection() de enhanced_server.py.
-
-        Returns:
-            Session: Une session SQLAlchemy
-        """
-        return SessionLocal()
-
-    @staticmethod
-    def close_db_session(db: Session) -> None:
-        """
-        Ferme une session de base de données.
-
-        Args:
-            db: Session à fermer
-        """
-        db.close()
 
     @staticmethod
     def get_exercise_by_id(db: Session, exercise_id: int) -> Optional[Dict[str, Any]]:
