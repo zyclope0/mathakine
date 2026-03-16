@@ -137,10 +137,13 @@ async def submit_answer(request: Request) -> JSONResponse:
     """Orchestration HTTP : parse, valide, délègue à exercise_attempt_service.submit_answer."""
     try:
         current_user = request.state.user
-        try:
-            raw_data = await request.json()
-        except (json.JSONDecodeError, TypeError):
-            return api_error_response(400, "Corps JSON invalide.")
+        raw_data_or_err = await parse_json_body_any(request)
+        if isinstance(raw_data_or_err, JSONResponse):
+            # Contrat submit_answer: JSON invalide -> 400 (pas 422)
+            if raw_data_or_err.status_code == 422:
+                return api_error_response(400, "Corps JSON invalide.")
+            return raw_data_or_err
+        raw_data = raw_data_or_err
 
         try:
             payload = _parse_submit_answer_payload(raw_data)

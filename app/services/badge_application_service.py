@@ -13,6 +13,7 @@ from typing import Any, Dict, List
 
 from app.schemas.badge import PinBadgesResult
 from app.services.badge_service import BadgeService
+from app.services.badge_user_view_service import AVAILABLE_BADGES_DEFAULT_LIMIT
 from app.utils.db_utils import sync_db_session
 
 
@@ -26,10 +27,12 @@ class BadgeApplicationService:
             return BadgeService(db).get_user_badges(user_id)
 
     @staticmethod
-    def get_available_badges() -> List[Dict[str, Any]]:
-        """GET /api/badges/available — liste des badges disponibles."""
+    def get_available_badges(
+        limit: int = AVAILABLE_BADGES_DEFAULT_LIMIT,
+    ) -> List[Dict[str, Any]]:
+        """GET /api/badges/available — liste des badges disponibles (bornée)."""
         with sync_db_session() as db:
-            return BadgeService(db).get_available_badges()
+            return BadgeService(db).get_available_badges(limit=limit)
 
     @staticmethod
     def check_and_award_badges(user_id: int) -> List[Dict[str, Any]]:

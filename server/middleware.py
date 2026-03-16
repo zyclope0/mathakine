@@ -113,7 +113,13 @@ MAINTENANCE_EXEMPT_PREFIXES = (
 
 
 class MaintenanceMiddleware(BaseHTTPMiddleware):
-    """Bloque les requêtes si maintenance_mode est activé (sauf routes exemptées)."""
+    """
+    Bloque les requêtes si maintenance_mode est activé (sauf routes exemptées).
+
+    Politique fail-open: si la vérification maintenance échoue (ex. DB indisponible),
+    la requête est laissée passer. Choix volontaire pour éviter de bloquer tout le site
+    quand seul le check maintenance casse.
+    """
 
     async def dispatch(self, request: Request, call_next: Callable):
         if any(request.url.path.startswith(p) for p in MAINTENANCE_EXEMPT_PREFIXES):
@@ -124,7 +130,10 @@ class MaintenanceMiddleware(BaseHTTPMiddleware):
                     503, "Le temple est en maintenance. Réessayez plus tard."
                 )
         except Exception as e:
-            logger.debug(f"Maintenance check failed (default: off): {e}")
+            # Fail-open volontaire: laisser passer la requête si le check échoue
+            logger.warning(
+                f"Maintenance check failed: {e} — fail-open, requête autorisée"
+            )
         return await call_next(request)
 
 

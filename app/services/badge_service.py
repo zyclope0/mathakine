@@ -21,6 +21,9 @@ from app.services.badge_progress_service import (
 )
 from app.services.badge_rarity_service import get_badges_rarity_stats as _get_rarity
 from app.services.badge_user_view_service import (
+    AVAILABLE_BADGES_DEFAULT_LIMIT,
+)
+from app.services.badge_user_view_service import (
     get_available_badges as _get_available_badges,
 )
 from app.services.badge_user_view_service import get_user_badges as _get_user_badges
@@ -41,9 +44,11 @@ class BadgeService:
         """Récupérer tous les badges d'un utilisateur."""
         return _get_user_badges(self.db, user_id)
 
-    def get_available_badges(self) -> List[Dict[str, Any]]:
-        """Récupérer tous les badges disponibles."""
-        return _get_available_badges(self.db)
+    def get_available_badges(
+        self, limit: int = AVAILABLE_BADGES_DEFAULT_LIMIT
+    ) -> List[Dict[str, Any]]:
+        """Récupérer les badges disponibles, borné par limit."""
+        return _get_available_badges(self.db, limit=limit)
 
     def check_and_award_badges(
         self, user_id: int, attempt_data: Optional[Dict[str, Any]] = None

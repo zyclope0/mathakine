@@ -15,7 +15,7 @@ diagnostic_results est ecrite a la fin.
 
 import json
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -23,6 +23,7 @@ from starlette.responses import JSONResponse
 import app.services.diagnostic_service as diagnostic_svc
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
+from app.utils.request_utils import read_body_with_limit
 from server.auth import require_auth
 
 logger = get_logger(__name__)
@@ -33,13 +34,17 @@ logger = get_logger(__name__)
 # --------------------------------------------------------------------------- #
 
 
-async def _parse_json(request: Request) -> Optional[Dict[str, Any]]:
-    """Parse le corps JSON de la requete avec gestion d'erreur."""
+async def _parse_json(
+    request: Request,
+) -> Union[Dict[str, Any], None, JSONResponse]:
+    """Parse le corps JSON avec garde MAX_CONTENT_LENGTH (D2b). Retourne dict, None, ou 413."""
+    body_bytes, err = await read_body_with_limit(request)
+    if err is not None:
+        return err
+    if not body_bytes:
+        return {}
     try:
-        body = await request.body()
-        if not body:
-            return {}
-        return json.loads(body)
+        return json.loads(body_bytes.decode("utf-8"))
     except (json.JSONDecodeError, ValueError) as exc:
         logger.warning(f"Corps JSON invalide: {exc}")
         return None
@@ -103,6 +108,8 @@ async def start_diagnostic(request: Request) -> JSONResponse:
     }
     """
     body = await _parse_json(request)
+    if isinstance(body, JSONResponse):
+        return body
     if body is None:
         return _session_error("Corps JSON invalide")
 
@@ -146,6 +153,8 @@ async def get_next_question(request: Request) -> JSONResponse:
     { "done": true, "state_token": str }   // a renvoyer pour /complete
     """
     body = await _parse_json(request)
+    if isinstance(body, JSONResponse):
+        return body
     if body is None:
         return _session_error("Corps JSON invalide")
 
@@ -227,6 +236,8 @@ async def submit_diagnostic_answer(request: Request) -> JSONResponse:
     }
     """
     body = await _parse_json(request)
+    if isinstance(body, JSONResponse):
+        return body
     if body is None:
         return _session_error("Corps JSON invalide")
 
@@ -294,6 +305,8 @@ async def complete_diagnostic(request: Request) -> JSONResponse:
     """
     user = request.state.user
     body = await _parse_json(request)
+    if isinstance(body, JSONResponse):
+        return body
     if body is None:
         return _session_error("Corps JSON invalide")
 

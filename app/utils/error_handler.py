@@ -18,7 +18,6 @@ from app.core.logging_config import get_logger
 logger = get_logger(__name__)
 from starlette.responses import JSONResponse
 
-from app.core.config import settings
 from app.utils.json_utils import make_json_serializable
 
 # Message générique pour ne pas exposer les détails techniques en production
@@ -96,14 +95,10 @@ def api_error_response(
 def get_safe_error_message(exc: Exception, default: Optional[str] = None) -> str:
     """
     Retourne un message d'erreur sûr pour l'utilisateur.
-    En production ou hors DEBUG : message générique.
-    En DEBUG (développement) : message de l'exception.
+    Ne jamais exposer le message brut de l'exception dans les réponses API externes.
+    Les détails techniques restent dans les logs uniquement.
     """
-    if os.getenv("ENVIRONMENT") == "production":
-        return default or GENERIC_ERROR_MESSAGE
-    if settings.LOG_LEVEL.upper() != "DEBUG":
-        return default or GENERIC_ERROR_MESSAGE
-    return str(exc)
+    return default or GENERIC_ERROR_MESSAGE
 
 
 class ErrorHandler:
@@ -121,38 +116,25 @@ class ErrorHandler:
         """
         Crée une réponse d'erreur JSON standardisée.
 
+        Les réponses API externes ne contiennent jamais traceback ni error_type.
+        Les détails techniques restent dans les logs uniquement (D1 hardening).
+
         Args:
             error: Exception levée
             status_code: Code HTTP d'erreur (défaut: 500)
-            user_message: Message à afficher à l'utilisateur (si None, utilise le message de l'exception)
-            include_details: Inclure les détails techniques (défaut: True si DEBUG, False sinon)
-
-        Returns:
-            JSONResponse avec le format d'erreur standardisé
+            user_message: Message à afficher à l'utilisateur (si None, message générique)
+            include_details: Ignoré — conservé pour rétrocompatibilité, jamais appliqué au payload
         """
         error_type = type(error).__name__
         error_message = str(error)
 
-        # Ne jamais exposer traceback/détails en production
-        if include_details is None:
-            include_details = (
-                settings.LOG_LEVEL.upper() == "DEBUG"
-                and os.getenv("ENVIRONMENT") != "production"
-            )
-
-        # Message utilisateur : générique en prod pour éviter fuite d'info
-        display_error = user_message or (
-            error_message if include_details else GENERIC_ERROR_MESSAGE
-        )
+        # D1 : ne jamais exposer traceback/error_type/details dans les payloads JSON
+        display_error = user_message or GENERIC_ERROR_MESSAGE
 
         logger.error(f"{error_type}: {error_message}")
-        if include_details:
-            logger.debug(f"Traceback complet:\n{traceback.format_exc()}")
+        logger.debug(f"Traceback complet:\n{traceback.format_exc()}")
 
         payload = api_error_json(status_code, display_error)
-        if include_details:
-            payload["error_type"] = error_type
-            payload["details"] = traceback.format_exc()
         payload = make_json_serializable(payload)
 
         return JSONResponse(payload, status_code=status_code)

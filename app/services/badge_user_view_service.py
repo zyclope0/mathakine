@@ -49,8 +49,11 @@ def get_user_badges(db: Session, user_id: int) -> Dict[str, Any]:
                 pinned = [
                     int(x) for x in user.pinned_badge_ids if isinstance(x, (int, float))
                 ]
-        except (SQLAlchemyError, TypeError, ValueError):
-            pass
+        except (SQLAlchemyError, TypeError, ValueError) as e:
+            logger.warning(
+                f"Fallback pinned_badge_ids: impossible de récupérer pour user_id={user_id} — {e}"
+            )
+            # pinned reste [] (fallback explicite)
 
         return {
             "earned_badges": [
@@ -102,13 +105,22 @@ def get_user_badges(db: Session, user_id: int) -> Dict[str, Any]:
         return {"earned_badges": [], "user_stats": {}}
 
 
-def get_available_badges(db: Session) -> List[Dict[str, Any]]:
-    """Récupérer tous les badges disponibles."""
+# Bornes explicites pour le listing public /api/badges/available (D5).
+AVAILABLE_BADGES_DEFAULT_LIMIT = 100
+AVAILABLE_BADGES_MAX_LIMIT = 200
+
+
+def get_available_badges(
+    db: Session, *, limit: int = AVAILABLE_BADGES_DEFAULT_LIMIT
+) -> List[Dict[str, Any]]:
+    """Récupérer les badges disponibles, borné par limit (max AVAILABLE_BADGES_MAX_LIMIT)."""
+    effective_limit = min(AVAILABLE_BADGES_MAX_LIMIT, max(1, limit))
     try:
         badges = (
             db.query(Achievement)
             .filter(Achievement.is_active == True)
             .order_by(Achievement.category, Achievement.difficulty)
+            .limit(effective_limit)
             .all()
         )
 

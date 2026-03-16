@@ -1,114 +1,67 @@
-﻿# F03 - Initial Diagnostic
+﻿# Diagnostic Flow - F03
 
-> Technical reference
-> Updated: 15/03/2026
-> Status: implemented and hardened
-> Source: [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md), [WORKFLOW_EDUCATION_REFACTORING.md](WORKFLOW_EDUCATION_REFACTORING.md)
+> Feature reference updated on 15/03/2026
 
-## 1. Overview
+## Scope
 
-F03 evaluates the learner level across four arithmetic families through a lightweight adaptive IRT-like algorithm. The resulting scores feed recommendation and difficulty adaptation.
-
-Covered families:
+Adaptive diagnostic for arithmetic fundamentals:
 - addition
-- soustraction
+- subtraction
 - multiplication
 - division
 
-## 2. Adaptive Logic
+The diagnostic remains a bounded product flow, not a generic session framework.
 
-```text
-1. Start from the median level (PADAWAN, ordinal 1)
-2. Correct answer -> level +1 (capped at GRAND_MAITRE)
-3. Incorrect answer -> level -1 (floored at INITIE)
-4. Stop one family after 2 consecutive errors at the same level
-5. Complete the session when all families are done or MAX_QUESTIONS is reached
-```
+## Current Runtime Truth
 
-Main constants in `app/services/diagnostic_service.py`:
-- `DIAGNOSTIC_TYPES`
-- `STARTING_LEVEL_ORDINAL`
-- `MAX_QUESTIONS`
-- `CONSECUTIVE_ERRORS_TO_STOP`
-
-## 3. State And Integrity Model
-
-The backend remains stateless between requests, but the client no longer owns a freeform diagnostic state.
-
-Current contract:
+The current trusted flow is:
 - `/api/diagnostic/start` returns an initial `state_token`
-- mutation steps reuse and rotate that token
-- the token is signed server-side and expires after a bounded duration
-- backend-controlled state embedded in the token is the source of truth for validation
+- `/api/diagnostic/question` returns the next public question payload and a refreshed token
 - `/api/diagnostic/question` does not expose `correct_answer`
 - `/api/diagnostic/answer` may return `correct_answer` only after submission for pedagogical feedback
+- the trusted correction data is not embedded in the public question payload
+- the frontend may still hold returned `session` snapshots for display or continuity, but the trusted state is the signed `state_token`
+- the token now carries an opaque `pending_ref`; the trusted pending answer data lives server-side until consumed
 
-The frontend may still hold returned `session` snapshots for display or continuity, but the trusted state is the signed `state_token`.
+## Integrity Model
 
-## 4. Persisted Data
+The current integrity model is:
+- session continuity through a signed `state_token`
+- no client-supplied `correct_answer` trust
+- no `correct_answer` exposure in `/question`
+- server-side lookup of the pending correct answer via `pending_ref`
+- persistence only at `/complete`
 
-Table: `diagnostic_results`
+This is stronger than the previous client-trusted flow, while remaining lighter than a full server-side session framework.
 
-| Column | Type | Meaning |
-|---|---|---|
-| `user_id` | int | learner id |
-| `triggered_from` | str | `onboarding` or `settings` |
-| `scores` | JSONB | score per family |
-| `questions_asked` | int | total asked questions |
-| `duration_seconds` | int or null | total duration |
-| `completed_at` | timestamp | completion time |
+## API Summary
 
-Ordinal to difficulty mapping:
-- `0=INITIE`
-- `1=PADAWAN`
-- `2=CHEVALIER`
-- `3=MAITRE`
-- `4=GRAND_MAITRE`
-
-Validity window for downstream adaptation remains bounded in `adaptive_difficulty_service`.
-
-## 5. Active API Contract
-
-| Method | Endpoint | Auth | Body |
+| Method | Path | Auth | Request body |
 |---|---|---|---|
 | GET | `/api/diagnostic/status` | yes | none |
-| POST | `/api/diagnostic/start` | yes | `{triggered_from?: "onboarding"|"settings"}` |
+| POST | `/api/diagnostic/start` | yes | `{triggered_from?}` |
 | POST | `/api/diagnostic/question` | yes | `{state_token}` |
 | POST | `/api/diagnostic/answer` | yes | `{state_token, user_answer}` |
 | POST | `/api/diagnostic/complete` | yes | `{state_token, duration_seconds?}` |
 
-Response notes:
+## Response Contract Notes
+
+- `/start` returns `{session, state_token, started_at_ts}`
 - `/question` returns `{done, question?, state_token}`
-- `question` no longer contains `correct_answer`
+- `question` does not contain `correct_answer`
 - `/answer` returns `{is_correct, correct_answer?, session, state_token, session_complete}`
+- `/complete` returns `{success, result}`
 
-See [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md).
+## Out Of Scope
 
-## 6. Files Involved
+Still out of scope for this feature note:
+- Redis-backed generic session storage
+- broader recommendation architecture
+- global auth/session refactors outside diagnostic
 
-| Role | File |
-|---|---|
-| Business service | `app/services/diagnostic_service.py` |
-| Model | `app/models/diagnostic_result.py` |
-| Handlers | `server/handlers/diagnostic_handlers.py` |
-| Routes | `server/routes/diagnostic.py` |
-| Frontend page | `frontend/app/diagnostic/page.tsx` |
-| Frontend hook | `frontend/hooks/useDiagnostic.ts` |
-| Settings entry point | settings level evaluation section |
+## References
 
-## 7. Integration With Adaptation
-
-`adaptive_difficulty_service` uses `diagnostic_service.get_latest_score()` as the highest-priority signal when a recent diagnostic exists for the requested family.
-
-## 8. Remaining Limits
-
-Known accepted limits after hardening:
-- the signed token is replayable during its validity window
-- the challenge was integrity, not full server-side persistence or Redis-backed session storage
-- the pedagogical feedback step still returns the correct answer after submission by design
-
-## 9. Tests
-
-Main proof files:
-- `tests/api/test_diagnostic_endpoints.py`
-- `tests/unit/test_adaptive_difficulty_service.py`
+- `server/handlers/diagnostic_handlers.py`
+- `app/services/diagnostic_service.py`
+- `app/core/security.py`
+- `frontend/hooks/useDiagnostic.ts`

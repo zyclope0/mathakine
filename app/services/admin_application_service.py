@@ -62,9 +62,9 @@ class AdminApplicationService:
         Lève AdminError en cas d'erreur.
         """
         with sync_db_session() as db:
-            success, err, code = AdminService.send_reset_password_for_admin(db, user_id)
-            if not success:
-                raise AdminError(err or "Erreur inconnue", code)
+            result = AdminService.send_reset_password_for_admin(db, user_id)
+            if not result.success:
+                raise AdminError(result.error or "Erreur inconnue", result.status_code)
             return AdminActionSuccess(message="Email de réinitialisation envoyé.")
 
     @staticmethod
@@ -74,18 +74,16 @@ class AdminApplicationService:
         Lève AdminError en cas d'erreur.
         """
         with sync_db_session() as db:
-            success, already_verified, err, code = (
-                AdminService.resend_verification_for_admin(db, user_id)
-            )
-            if not success:
-                raise AdminError(err or "Erreur inconnue", code)
+            result = AdminService.resend_verification_for_admin(db, user_id)
+            if not result.success:
+                raise AdminError(result.error or "Erreur inconnue", result.status_code)
             message = (
                 "L'email est déjà vérifié."
-                if already_verified
+                if result.already_verified
                 else "Email de vérification envoyé."
             )
             return AdminResendVerificationResult(
-                already_verified=already_verified, message=message
+                already_verified=result.already_verified, message=message
             )
 
     @staticmethod
@@ -95,11 +93,14 @@ class AdminApplicationService:
         Lève AdminError en cas d'erreur.
         """
         with sync_db_session() as db:
-            success, err, code = AdminService.delete_user_for_admin(
+            result = AdminService.delete_user_for_admin(
                 db, user_id=user_id, admin_user_id=admin_user_id
             )
-            if not success:
-                raise AdminError(err or "Erreur lors de la suppression.", code)
+            if not result.success:
+                raise AdminError(
+                    result.error or "Erreur lors de la suppression.",
+                    result.status_code,
+                )
             return AdminActionSuccess(message="Utilisateur supprimé.")
 
     # ── Content (LOT 6) ───────────────────────────────────────────────────

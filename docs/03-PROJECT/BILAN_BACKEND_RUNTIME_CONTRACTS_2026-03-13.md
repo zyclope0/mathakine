@@ -71,16 +71,18 @@ Closed results on the treated scope:
 
 ## 4. Post-closure updates that changed the current truth
 
-This recap stays valid for the 13/03 closure state, but the current repository truth moved further during `Production Hardening` on 15/03/2026.
+This recap stays valid for the 13/03 closure state, but the current repository truth moved further during `Production Hardening` on 15/03/2026 and `Security, Boundaries, and API Discipline` on 16/03/2026.
 
 Current notable updates:
-- backend reference baseline is now `868 passed, 2 skipped`
+- backend reference baseline is now `882 passed, 2 skipped`
 - backend CI coverage gate is now `63 %`
 - `app/api/endpoints/*` and `app/api/deps.py` are now archived in `_ARCHIVE_2026/app/api/`
 - diagnostic endpoints now use a signed `state_token`
+- runtime defaults and external error payloads are hardened
+- request-size guards are enforced before the previously uncovered JSON/body parsing paths
 - production rate limiting now relies on Redis
 
-Read [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) for the current post-hardening state.
+Read [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) and [PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md](./PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md) for the current post-hardening state.
 
 ## 5. What still remained outside Runtime + Contracts
 
@@ -104,6 +106,7 @@ For the current state, read:
 - `docs/00-REFERENCE/ARCHITECTURE.md`
 - `docs/01-GUIDES/TESTING.md`
 - `docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md`
+- `docs/03-PROJECT/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md`
 - this document for the historical closure state of `Runtime Truth` and `Contracts / Hardening`
 
 ## 7. Archives

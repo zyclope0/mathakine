@@ -160,10 +160,11 @@ def test_get_progress_timeline_period_fallback(db_session):
 def test_get_progress_timeline_avg_time_null_when_no_valid_time(db_session):
     """avg_time_spent_s null si time_spent NULL ou négatif."""
     user = _create_user(db_session)
+    user_id = user.id
     ex = _create_exercise(db_session)
 
     a = Attempt(
-        user_id=user.id,
+        user_id=user_id,
         exercise_id=ex.id,
         user_answer="2",
         is_correct=True,
@@ -177,13 +178,13 @@ def test_get_progress_timeline_avg_time_null_when_no_valid_time(db_session):
     fake_date = datetime(2026, 3, 5, 12, 0, 0, tzinfo=timezone.utc)
     db_session.execute(
         text("UPDATE attempts SET created_at = :ts WHERE user_id = :uid"),
-        {"ts": fake_date, "uid": user.id},
+        {"ts": fake_date, "uid": user_id},
     )
     db_session.commit()
 
     fake_now = datetime(2026, 3, 7, 12, 0, 0, tzinfo=timezone.utc)
     result = get_progress_timeline(
-        db_session, user.id, period="7d", now_fn=lambda: fake_now
+        db_session, user_id, period="7d", now_fn=lambda: fake_now
     )
 
     pt = next(p for p in result["points"] if p["date"] == "2026-03-05")

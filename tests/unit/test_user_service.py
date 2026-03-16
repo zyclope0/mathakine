@@ -479,20 +479,21 @@ def test_update_user_password_revokes_sessions_and_marks_password_change(db_sess
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
+    user_id = user.id
 
     now = datetime.now(timezone.utc)
     db_session.add_all(
         [
             UserSession(
-                user_id=user.id,
-                session_token=f"session-a-{user.id}",
+                user_id=user_id,
+                session_token=f"session-a-{user_id}",
                 ip_address="127.0.0.1",
                 user_agent="pytest-session-a",
                 expires_at=now + timedelta(days=7),
             ),
             UserSession(
-                user_id=user.id,
-                session_token=f"session-b-{user.id}",
+                user_id=user_id,
+                session_token=f"session-b-{user_id}",
                 ip_address="127.0.0.2",
                 user_agent="pytest-session-b",
                 expires_at=now + timedelta(days=7),
@@ -500,11 +501,10 @@ def test_update_user_password_revokes_sessions_and_marks_password_change(db_sess
         ]
     )
     db_session.commit()
-    db_session.refresh(user)
 
     ok, err = UserService.update_user_password(
         db_session,
-        user.id,
+        user_id,
         "CurrentPassword123!",
         "UpdatedPassword456!",
     )
@@ -512,12 +512,12 @@ def test_update_user_password_revokes_sessions_and_marks_password_change(db_sess
     assert ok is True
     assert err is None
 
-    refreshed_user = UserService.get_user(db_session, user.id)
+    refreshed_user = UserService.get_user(db_session, user_id)
     assert refreshed_user is not None
     assert refreshed_user.password_changed_at is not None
     assert verify_password("UpdatedPassword456!", refreshed_user.hashed_password)
     remaining_sessions = (
-        db_session.query(UserSession).filter(UserSession.user_id == user.id).count()
+        db_session.query(UserSession).filter(UserSession.user_id == user_id).count()
     )
     assert remaining_sessions == 0
 

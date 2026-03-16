@@ -14,6 +14,10 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.types import AdminUserItemDict, AdminUserListDict
 from app.models.user import User, UserRole
+from app.schemas.admin import (
+    AdminActionResult,
+    AdminResendVerificationServiceResult,
+)
 from app.services.admin_helpers import log_admin_action
 from app.services.email_service import EmailService
 from app.services.user_service import UserService
@@ -170,14 +174,19 @@ class AdminUserService:
         )
 
     @staticmethod
-    def send_reset_password_for_admin(
-        db: Session, user_id: int
-    ) -> Tuple[bool, Optional[str], int]:
+    def send_reset_password_for_admin(db: Session, user_id: int) -> AdminActionResult:
+        """Envoie email de réinitialisation. Retourne AdminActionResult (D4)."""
         user = UserService.get_user(db, user_id)
         if not user:
-            return False, "Utilisateur non trouvé.", 404
+            return AdminActionResult(
+                success=False, error="Utilisateur non trouvé.", status_code=404
+            )
         if not user.is_active:
-            return False, "Compte désactivé, impossible d'envoyer l'email.", 400
+            return AdminActionResult(
+                success=False,
+                error="Compte désactivé, impossible d'envoyer l'email.",
+                status_code=400,
+            )
         reset_token = generate_verification_token()
         expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
         user.password_reset_token = reset_token
@@ -191,18 +200,30 @@ class AdminUserService:
             frontend_url=settings.FRONTEND_URL,
         )
         if not email_sent:
-            return False, "Impossible d'envoyer l'email. Réessayez plus tard.", 500
-        return True, None, 200
+            return AdminActionResult(
+                success=False,
+                error="Impossible d'envoyer l'email. Réessayez plus tard.",
+                status_code=500,
+            )
+        return AdminActionResult(success=True)
 
     @staticmethod
     def resend_verification_for_admin(
         db: Session, user_id: int
-    ) -> Tuple[bool, bool, Optional[str], int]:
+    ) -> AdminResendVerificationServiceResult:
+        """Renvoie email de vérification. Retourne AdminResendVerificationServiceResult (D4)."""
         user = UserService.get_user(db, user_id)
         if not user:
-            return False, False, "Utilisateur non trouvé.", 404
+            return AdminResendVerificationServiceResult(
+                success=False,
+                already_verified=False,
+                error="Utilisateur non trouvé.",
+                status_code=404,
+            )
         if user.is_email_verified:
-            return True, True, None, 200
+            return AdminResendVerificationServiceResult(
+                success=True, already_verified=True
+            )
         verification_token = generate_verification_token()
         user.email_verification_token = verification_token
         user.email_verification_sent_at = datetime.now(timezone.utc)
@@ -214,31 +235,39 @@ class AdminUserService:
             frontend_url=settings.FRONTEND_URL,
         )
         if not email_sent:
-            return (
-                False,
-                False,
-                "Impossible d'envoyer l'email. Réessayez plus tard.",
-                500,
+            return AdminResendVerificationServiceResult(
+                success=False,
+                already_verified=False,
+                error="Impossible d'envoyer l'email. Réessayez plus tard.",
+                status_code=500,
             )
-        return True, False, None, 200
+        return AdminResendVerificationServiceResult(
+            success=True, already_verified=False
+        )
 
     @staticmethod
     def delete_user_for_admin(
         db: Session, user_id: int, admin_user_id: int
-    ) -> Tuple[bool, Optional[str], int]:
+    ) -> AdminActionResult:
         """
         Supprime définitivement un utilisateur (cascade sur toutes les données liées).
         Un admin ne peut pas supprimer son propre compte.
-
-        Returns:
-            (success, error_message, status_code)
+        Retourne AdminActionResult (D4).
         """
         if user_id == admin_user_id:
-            return False, "Vous ne pouvez pas supprimer votre propre compte.", 400
+            return AdminActionResult(
+                success=False,
+                error="Vous ne pouvez pas supprimer votre propre compte.",
+                status_code=400,
+            )
 
         user = UserService.get_user(db, user_id)
         if not user:
-            return False, "Utilisateur non trouvé.", 404
+            return AdminActionResult(
+                success=False,
+                error="Utilisateur non trouvé.",
+                status_code=404,
+            )
 
         log_admin_action(
             db,
@@ -249,4 +278,4 @@ class AdminUserService:
             {"username": user.username},
         )
         UserService.delete_user(db, user_id, auto_commit=True)
-        return True, None, 200
+        return AdminActionResult(success=True)

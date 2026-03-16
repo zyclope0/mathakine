@@ -1,4 +1,4 @@
-﻿# API QUICK REFERENCE - MATHAKINE
+# API QUICK REFERENCE - MATHAKINE
 
 > Condensed reference of active endpoints
 > Updated: 15/03/2026
@@ -96,7 +96,7 @@ Contract note:
 | Method | Endpoint | Notes |
 |---|---|---|
 | GET | `/api/badges/user` | user badges |
-| GET | `/api/badges/available` | public badges |
+| GET | `/api/badges/available` | public badges, `?limit=N` (défaut 100, max 200) |
 | POST | `/api/badges/check` | badge check |
 | GET | `/api/badges/stats` | gamification stats |
 | GET | `/api/badges/rarity` | rarity stats |
@@ -162,4 +162,5 @@ Contract note:
 - [AUTH_FLOW.md](AUTH_FLOW.md)
 - [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md)
 - [../00-REFERENCE/ARCHITECTURE.md](../00-REFERENCE/ARCHITECTURE.md)
-- [../03-PROJECT/ENDPOINTS_NON_INTEGRES.md](../03-PROJECT/ENDPOINTS_NON_INTEGRES.md)
+- [../03-PROJECT/POINTS_RESTANTS_2026-03-15.md](../03-PROJECT/POINTS_RESTANTS_2026-03-15.md)
+

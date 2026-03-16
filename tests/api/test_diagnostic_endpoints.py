@@ -3,6 +3,8 @@
 from unittest.mock import patch
 
 import pytest
+
+from app.core.config import settings
 from jose import jwt
 
 from app.db.base import Base, engine
@@ -217,6 +219,18 @@ async def test_diagnostic_full_flow_with_state_token(padawan_client):
     )
     assert complete_resp.status_code == 201
     assert complete_resp.json().get("success") is True
+
+
+async def test_diagnostic_start_rejects_oversized_payload_413_d2b(padawan_client):
+    """D2b: POST /api/diagnostic/start rejette payload > MAX_CONTENT_LENGTH avec 413."""
+    from app.utils.request_utils import PAYLOAD_TOO_LARGE_MESSAGE
+
+    client = padawan_client["client"]
+    with patch.object(settings, "MAX_CONTENT_LENGTH", 50):
+        large_body = {"triggered_from": "onboarding", "padding": "x" * 100}
+        resp = await client.post("/api/diagnostic/start", json=large_body)
+    assert resp.status_code == 413
+    assert resp.json().get("message") == PAYLOAD_TOO_LARGE_MESSAGE
 
 
 async def test_diagnostic_answer_ignores_client_correct_answer(padawan_client):

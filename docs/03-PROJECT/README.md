@@ -1,7 +1,7 @@
 ﻿# Project Governance - Mathakine
 
 > Project master index
-> Updated: 15/03/2026
+> Updated: 16/03/2026
 
 ## Read First
 
@@ -11,6 +11,8 @@
 | [../../README_TECH.md](../../README_TECH.md) | living technical reference |
 | [BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](./BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) | recap of `Runtime Truth` and `Contracts / Hardening` |
 | [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) | active recap of `Production Hardening` |
+| [PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md](./PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md) | closed recap of the audit-driven hardening iteration |
+| [POINTS_RESTANTS_2026-03-15.md](./POINTS_RESTANTS_2026-03-15.md) | single active tracker for remaining follow-ups |
 | [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | quality-first backend protocol |
 | [CICD_DEPLOY.md](./CICD_DEPLOY.md) | CI/CD, coverage and typing gates |
 
@@ -21,9 +23,10 @@
 - `Runtime Truth`: closed
 - `Contracts / Hardening`: closed
 - `Production Hardening`: closed
+- `Security, Boundaries, and API Discipline`: closed
 
 Local reference baseline:
-- full suite excluding the false gate: `868 passed, 2 skipped`
+- full suite excluding the false gate: `882 passed, 2 skipped`
 - `black app/ server/ tests/ --check`: green
 - `isort app/ server/ --check-only --diff`: green
 - backend coverage gate in CI: `63 %`
@@ -32,10 +35,10 @@ Local reference baseline:
 
 | Document | Role |
 |---|---|
-| [BILAN_FINAL_ITERATION_BACKEND_EXERCISE_AUTH_USER_2026-03-09.md](./BILAN_FINAL_ITERATION_BACKEND_EXERCISE_AUTH_USER_2026-03-09.md) | closed recap of `exercise/auth/user` |
-| [BILAN_FINAL_ITERATION_BACKEND_CHALLENGE_ADMIN_BADGE_2026-03-11.md](./BILAN_FINAL_ITERATION_BACKEND_CHALLENGE_ADMIN_BADGE_2026-03-11.md) | closed recap of `challenge/admin/badge` |
-| [BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](./BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) | active recap for `Runtime Truth` and `Contracts / Hardening` |
-| [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) | active recap for `Production Hardening` |
+| [BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](./BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) | recap for `Runtime Truth` and `Contracts / Hardening` |
+| [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) | recap for `Production Hardening` |
+| [PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md](./PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md) | closed audit-driven hardening recap |
+| [POINTS_RESTANTS_2026-03-15.md](./POINTS_RESTANTS_2026-03-15.md) | remaining points still worth tracking |
 | [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | validation protocol |
 | [CICD_DEPLOY.md](./CICD_DEPLOY.md) | CI/CD truth |
 
@@ -43,25 +46,16 @@ Local reference baseline:
 
 | Document | Role |
 |---|---|
-| [ENDPOINTS_NON_INTEGRES.md](./ENDPOINTS_NON_INTEGRES.md) | remaining endpoint/product gaps still worth tracking |
 | [IMPLEMENTATION_F07_TIMELINE.md](./IMPLEMENTATION_F07_TIMELINE.md) | timeline implementation note |
 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE.md](./IMPLEMENTATION_F32_SESSION_ENTRELACEE.md) | interleaved session note |
 | [IMPLEMENTATION_F35_REDACTION_LOGS_DB.md](./IMPLEMENTATION_F35_REDACTION_LOGS_DB.md) | DB log redaction traceability |
 | [POLITIQUE_REDACTION_LOGS_PII.md](./POLITIQUE_REDACTION_LOGS_PII.md) | PII / log policy |
 | [REFACTOR_DASHBOARD_2026-03.md](./REFACTOR_DASHBOARD_2026-03.md) | dashboard refactor note |
 
-## Remaining Follow-Ups Outside Closed Iterations
+## Maintenance Rule
 
-- global strict mypy remains out of scope
-- coverage above `63 %` still needs dedicated test lots
-- dense historical services remain to be decomposed incrementally
-- `enhanced_server_adapter.py` and `db_session()` legacy compatibility still exist
-- `app/utils/rate_limiter.py` remains outside the distributed Redis scope closed in C2
-
-## Archived Historical Notes
-
-Closed lot notes and superseded deltas were moved out of the active root:
-- [archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/README.md](./archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/README.md)
+`POINTS_RESTANTS_2026-03-15.md` is the only active follow-up tracker in this folder.
+Closed bilans, temporary delta files, and superseded quick-win notes belong in archives.
 
 ## Archives
 

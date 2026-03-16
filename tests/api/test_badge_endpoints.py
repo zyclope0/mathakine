@@ -30,6 +30,49 @@ async def test_get_badges_available_200(client):
 
 
 @pytest.mark.asyncio
+async def test_get_badges_available_limit_param(client):
+    """GET /api/badges/available?limit=N — borné (D5), max 200."""
+    response = await client.get("/api/badges/available?limit=5")
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("success") is True
+    badges = data.get("data", [])
+    assert isinstance(badges, list)
+    assert len(badges) <= 5
+
+
+@pytest.mark.asyncio
+async def test_get_badges_available_limit_clamped_max(client):
+    """D5b: ?limit=9999 → clampé à 200, jamais plus de 200 badges."""
+    response = await client.get("/api/badges/available?limit=9999")
+    assert response.status_code == 200
+    data = response.json()
+    assert data.get("success") is True
+    badges = data.get("data", [])
+    assert isinstance(badges, list)
+    assert len(badges) <= 200
+
+
+def test_available_badges_max_limit_constant():
+    """D5b: borne max serveur explicite (200)."""
+    from app.services.badge_user_view_service import (
+        AVAILABLE_BADGES_DEFAULT_LIMIT,
+        AVAILABLE_BADGES_MAX_LIMIT,
+    )
+
+    assert AVAILABLE_BADGES_MAX_LIMIT == 200
+    assert AVAILABLE_BADGES_DEFAULT_LIMIT == 100
+
+
+def test_available_badges_effective_limit_clamped():
+    """D5b: limit=9999 → effective_limit=200 (clamp déterministe)."""
+    from app.services.badge_user_view_service import AVAILABLE_BADGES_MAX_LIMIT
+
+    effective = min(AVAILABLE_BADGES_MAX_LIMIT, max(1, 9999))
+    assert effective == 200
+
+
+@pytest.mark.asyncio
 async def test_post_badges_check_200(padawan_client):
     """POST /api/badges/check — 200 avec enveloppe attendue."""
     client = padawan_client["client"]

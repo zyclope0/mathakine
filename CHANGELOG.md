@@ -15,10 +15,12 @@ Visible release source of truth:
 - iteration `Runtime Truth`: closed
 - iteration `Contracts / Hardening`: closed
 - iteration `Production Hardening`: closed
+- iteration `Security, Boundaries, and API Discipline`: closed
 
 Active references:
 - [`runtime + contracts recap`](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
 - [`production hardening recap`](docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
+- [`security / boundaries recap`](docs/03-PROJECT/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md)
 
 ## [Unreleased]
 
@@ -31,14 +33,21 @@ Active references:
   - the signed diagnostic flow
   - distributed Redis rate limiting in production
   - the archival of `app/api/endpoints/*`
+- The audit-driven `Security, Boundaries, and API Discipline` iteration is now closed and documented in the active project governance docs.
+- Admin user mutation flows now use explicit result contracts on the bounded `send_reset_password`, `resend_verification` and `delete_user` sub-scope instead of weak tuples.
+- Public badge listing is now explicitly bounded with `default=100` and `max=200`.
 
 ### Fixed
 - Documentation no longer presents `Production Hardening` as still active.
 - Documentation no longer presents `app/api/endpoints/*` as a live runtime perimeter.
 - Documentation no longer presents the pre-hardening backend baseline (`823 passed, 2 skipped`, coverage gate `62 %`) as the current truth.
+- `MATH_TRAINER_DEBUG` no longer defaults to `true`.
+- External JSON error payloads no longer expose traceback details or raw exception internals.
+- Request-size guards are now enforced before the previously uncovered JSON/body parsing paths.
+- Small silent fallbacks were made explicit and more observable on the treated scope.
 
 ### Notes
-- Current verified backend reference baseline: `868 passed, 2 skipped`
+- Current verified backend reference baseline: `882 passed, 2 skipped`
 - Current backend CI coverage gate: `63 %`
 - Detailed historical lot documents remain archived for traceability only.
 

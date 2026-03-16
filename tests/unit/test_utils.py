@@ -49,13 +49,17 @@ def create_mock_request(json_data=None, query_params=None, path_params=None):
     """
     mock_request = MagicMock(spec=Request)
 
-    # Configurer les données JSON de la requête
+    # Configurer les données JSON de la requête (D2: stream + headers pour parse_json_body_any)
     if json_data:
+        import json as _json
 
-        async def mock_json():
-            return json_data
+        body_bytes = _json.dumps(json_data).encode("utf-8")
 
-        mock_request.json = mock_json
+        async def mock_stream():
+            yield body_bytes
+
+        mock_request.stream = mock_stream
+        mock_request.headers.get = MagicMock(return_value=None)
 
     # Configurer les paramètres de requête
     if query_params:

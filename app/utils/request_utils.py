@@ -1,13 +1,17 @@
 """
 Utilitaires pour le parsing des requêtes HTTP (DRY).
 Centralise le pattern await request.json() + validation des champs.
+
+D2: Contrôle central MAX_CONTENT_LENGTH avant parsing JSON.
 """
 
-from typing import Any, Dict, Optional, Union
+import json
+from typing import Any, Dict, Optional, Tuple, Union
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from app.core.config import settings
 from app.core.constants import Messages
 from app.core.logging_config import get_logger
 from app.utils.error_handler import api_error_response
@@ -17,14 +21,57 @@ logger = get_logger(__name__)
 # Type : soit le dict parsé, soit une JSONResponse d'erreur
 ParseResult = Union[Dict[str, Any], JSONResponse]
 
+PAYLOAD_TOO_LARGE_MESSAGE = "Payload too large"
+
+
+async def read_body_with_limit(
+    request: Request,
+) -> Tuple[Optional[bytes], Optional[JSONResponse]]:
+    """
+    Lit le body avec limite MAX_CONTENT_LENGTH (D2/D2b).
+    Retourne (body_bytes, None) ou (None, json_response_413) si trop grand.
+    Gère Content-Length présent et absent/invalide.
+    Public pour les handlers qui lisent le body hors parse_json_body*.
+    """
+    max_size = settings.MAX_CONTENT_LENGTH
+
+    # Fast path: Content-Length présent et > limite → rejet sans lire
+    cl_raw = request.headers.get("content-length")
+    if cl_raw is not None:
+        try:
+            cl = int(cl_raw)
+            if cl < 0:
+                raise ValueError("negative")
+            if cl > max_size:
+                logger.warning(f"Payload too large: Content-Length={cl} > {max_size}")
+                return None, api_error_response(413, PAYLOAD_TOO_LARGE_MESSAGE)
+        except (ValueError, TypeError):
+            pass  # invalide, fallback lecture stream
+
+    # Lecture stream avec limite (Content-Length absent ou invalide)
+    total = 0
+    chunks = []
+    async for chunk in request.stream():
+        total += len(chunk)
+        if total > max_size:
+            logger.warning(f"Payload too large: stream exceeded {max_size} bytes")
+            return None, api_error_response(413, PAYLOAD_TOO_LARGE_MESSAGE)
+        chunks.append(chunk)
+    return b"".join(chunks), None
+
 
 async def parse_json_body_any(request: Request) -> ParseResult:
     """
     Parse le body JSON sans validation de champs.
-    Retourne le dict parsé ou JSONResponse 422/400 si invalide.
+    Applique MAX_CONTENT_LENGTH avant parsing (D2).
+    Retourne le dict parsé ou JSONResponse 413/422/400 si invalide.
     """
+    body_bytes, err = await read_body_with_limit(request)
+    if err is not None:
+        return err
+
     try:
-        body = await request.json()
+        body = json.loads(body_bytes.decode("utf-8")) if body_bytes else {}
     except Exception as e:
         logger.warning(f"parse_json_body_any: body JSON invalide — {e}")
         return api_error_response(422, Messages.JSON_BODY_INVALID)
@@ -64,8 +111,12 @@ async def parse_json_body(
     optional = optional or {}
     no_strip_fields = no_strip_fields or set()
 
+    body_bytes, err = await read_body_with_limit(request)
+    if err is not None:
+        return err
+
     try:
-        body = await request.json()
+        body = json.loads(body_bytes.decode("utf-8")) if body_bytes else {}
     except Exception as e:
         logger.warning(f"parse_json_body: body JSON invalide — {e}")
         return api_error_response(422, Messages.JSON_BODY_INVALID)

@@ -1,6 +1,6 @@
 ﻿# CI/CD, DEPLOY ET ROLLBACK
 
-> Mise a jour : 13/03/2026
+> Mise a jour : 15/03/2026
 > Source de verite CI : `.github/workflows/tests.yml`
 
 ## CI active
@@ -23,7 +23,7 @@ Jobs actifs:
 
 - PostgreSQL 15 en service GitHub Actions
 - creation / initialisation de `test_mathakine`
-- `python -m pytest tests/ -v --ignore=tests/archives/ --ignore=tests/api/test_admin_auth_stability.py --cov=app --cov=server --cov-fail-under=62 --tb=short -m "not slow"`
+- `python -m pytest tests/ -v --ignore=tests/archives/ --ignore=tests/api/test_admin_auth_stability.py --cov=app --cov=server --cov-fail-under=63 --tb=short -m "not slow"`
 - smoke test `GET /health`
 
 ### Lint job
@@ -40,6 +40,7 @@ En plus du mypy global permissif, `pyproject.toml` porte des overrides plus stri
 - auth session / recovery
 - exercise generation / query
 - challenge query / stream
+- analytics / feedback / daily challenge / diagnostic
 
 ### Frontend job
 
@@ -61,10 +62,10 @@ En plus du mypy global permissif, `pyproject.toml` porte des overrides plus stri
 ```bash
 git status --short
 git diff --name-only
-pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py
+pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 black app/ server/ tests/ --check
 isort app/ server/ --check-only --diff
-cd frontend && npm run lint:ci
+cd frontend && npm run lint
 ```
 
 ## Smoke post-deploiement
@@ -118,3 +119,5 @@ alembic downgrade <revision>
 - [../01-GUIDES/TROUBLESHOOTING.md](../01-GUIDES/TROUBLESHOOTING.md)
 - [../../README_TECH.md](../../README_TECH.md)
 - [../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](../03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
+- [../03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md](../03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
+- [../03-PROJECT/POINTS_RESTANTS_2026-03-15.md](../03-PROJECT/POINTS_RESTANTS_2026-03-15.md)

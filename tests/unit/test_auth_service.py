@@ -897,6 +897,8 @@ def test_update_user_password(db_session, mock_user):
 
     db_session.add(user)
     db_session.commit()
+    db_session.refresh(user)
+    username = user.username
 
     # Nouveau mot de passe
     new_password = "NewPassword456"
@@ -908,8 +910,8 @@ def test_update_user_password(db_session, mock_user):
     result = update_user(db_session, user, update_data)
 
     # Vérifier que le mot de passe a été modifié
-    assert authenticate_user(db_session, user.username, original_password) is None
-    assert authenticate_user(db_session, user.username, new_password) is not None
+    assert authenticate_user(db_session, username, original_password) is None
+    assert authenticate_user(db_session, username, new_password) is not None
 
 
 def test_refresh_access_token_generic_exception(db_session, mock_user):

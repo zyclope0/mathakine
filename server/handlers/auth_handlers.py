@@ -41,7 +41,11 @@ from app.services.auth_session_service import (
 )
 from app.utils.error_handler import api_error_response
 from app.utils.rate_limit import rate_limit_auth, rate_limit_resend_verification
-from app.utils.request_utils import parse_json_body, parse_json_body_any
+from app.utils.request_utils import (
+    parse_json_body,
+    parse_json_body_any,
+    read_body_with_limit,
+)
 from server.auth import require_auth
 
 logger = get_logger(__name__)
@@ -107,12 +111,15 @@ def _build_login_response(user_payload: dict, token_data: dict) -> JSONResponse:
     return response
 
 
-async def _extract_refresh_token_from_request(request: Request) -> Optional[str]:
-    try:
-        body_content = await request.body()
-    except Exception:
-        body_content = b""
+async def _extract_refresh_token_from_request(
+    request: Request,
+):
+    """Retourne refresh_token (str), None, ou JSONResponse 413 si payload trop grand."""
+    body_bytes, err = await read_body_with_limit(request)
+    if err is not None:
+        return err
 
+    body_content = body_bytes or b""
     if body_content:
         try:
             data = json.loads(body_content.decode("utf-8"))
@@ -392,6 +399,8 @@ async def api_refresh_token(request: Request) -> JSONResponse:
     """
     try:
         refresh_token = await _extract_refresh_token_from_request(request)
+        if isinstance(refresh_token, JSONResponse):
+            return refresh_token
 
         if not refresh_token:
             logger.warning("Aucun refresh_token trouve dans les cookies ou le body")

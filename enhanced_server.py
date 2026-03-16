@@ -21,7 +21,7 @@ if os.environ.get("ENVIRONMENT") != "production":
 # Import from our server module
 # Configuration from environment variables
 PORT = int(os.environ.get("PORT", 8000))
-DEBUG = os.environ.get("MATH_TRAINER_DEBUG", "true").lower() == "true"
+DEBUG = os.environ.get("MATH_TRAINER_DEBUG", "false").lower() == "true"
 HOST = os.environ.get("MATH_TRAINER_HOST", "0.0.0.0")
 
 _app_instance = None

@@ -49,3 +49,21 @@ class AdminExportDataResult(BaseModel):
 
     headers: List[str]
     rows: List[List[Any]]
+
+
+# ── Résultats internes service (D4) ───────────────────────────────────────────
+# Remplace les tuples (success, err, code) et (success, already_verified, err, code).
+
+
+class AdminActionResult(BaseModel):
+    """Résultat interne admin (success/error). Remplace tuple (bool, str?, int)."""
+
+    success: bool
+    error: str | None = None
+    status_code: int = 200
+
+
+class AdminResendVerificationServiceResult(AdminActionResult):
+    """Résultat interne resend_verification. Remplace tuple (bool, bool, str?, int)."""
+
+    already_verified: bool = False

@@ -7,6 +7,7 @@ import pytest
 from app.utils.error_handler import (
     API_ERROR_CODES,
     ErrorHandler,
+    GENERIC_ERROR_MESSAGE,
     api_error_json,
     api_error_response,
     get_safe_error_message,
@@ -82,6 +83,12 @@ class TestGetSafeErrorMessage:
         assert isinstance(msg, str)
         assert len(msg) > 0
 
+    def test_never_exposes_exception_message_d1(self):
+        """D1: Ne jamais exposer le message brut de l'exception dans les réponses API."""
+        msg = get_safe_error_message(ValueError("secret internal detail"))
+        assert msg == GENERIC_ERROR_MESSAGE
+        assert "secret" not in msg
+
 
 class TestCreateValidationError:
     """Tests ErrorHandler.create_validation_error — modes (field, message) et (errors, user_message)."""
@@ -127,3 +134,29 @@ class TestCreateValidationError:
         """Appel sans args valides lève TypeError."""
         with pytest.raises(TypeError, match="create_validation_error.*requis"):
             ErrorHandler.create_validation_error()
+
+
+class TestCreateErrorResponseD1:
+    """Tests ErrorHandler.create_error_response — D1: pas de traceback/details en JSON."""
+
+    def test_never_exposes_error_type_or_details_in_payload(self):
+        """D1: Les payloads JSON ne doivent jamais contenir error_type ni details."""
+        resp = ErrorHandler.create_error_response(
+            ValueError("secret traceback content"), status_code=500
+        )
+        data = json.loads(resp.body.decode())
+        assert "error_type" not in data
+        assert "details" not in data
+        assert "traceback" not in str(data).lower()
+        assert "secret" not in data.get("message", "")
+        assert data["message"] == GENERIC_ERROR_MESSAGE
+
+    def test_uses_user_message_when_provided(self):
+        """user_message explicite est affiché, pas le message de l'exception."""
+        resp = ErrorHandler.create_error_response(
+            ValueError("internal"), status_code=500, user_message="Erreur côté serveur"
+        )
+        data = json.loads(resp.body.decode())
+        assert data["message"] == "Erreur côté serveur"
+        assert "error_type" not in data
+        assert "details" not in data

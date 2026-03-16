@@ -13,7 +13,12 @@ from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.schemas.badge import PinnedBadgesRequest
 from app.services.badge_application_service import BadgeApplicationService
+from app.services.badge_user_view_service import (
+    AVAILABLE_BADGES_DEFAULT_LIMIT,
+    AVAILABLE_BADGES_MAX_LIMIT,
+)
 from app.utils.error_handler import api_error_response, get_safe_error_message
+from app.utils.pagination import parse_pagination_params
 from app.utils.request_utils import parse_json_body_any
 from app.utils.simple_ttl_cache import get_or_set
 from app.utils.translation import parse_accept_language
@@ -39,13 +44,18 @@ async def get_user_badges(request: Request) -> JSONResponse:
 
 
 async def get_available_badges(request: Request) -> JSONResponse:
-    """Récupérer tous les badges disponibles avec traductions"""
+    """Récupérer les badges disponibles (borné, D5). GET ?limit=N (défaut 100, max 200)."""
     try:
         accept_language = request.headers.get("Accept-Language", "fr")
         parse_accept_language(accept_language)
 
+        _, limit = parse_pagination_params(
+            request.query_params,
+            default_limit=AVAILABLE_BADGES_DEFAULT_LIMIT,
+            max_limit=AVAILABLE_BADGES_MAX_LIMIT,
+        )
         available_badges = await run_db_bound(
-            BadgeApplicationService.get_available_badges
+            BadgeApplicationService.get_available_badges, limit=limit
         )
         return JSONResponse({"success": True, "data": available_badges})
     except Exception as e:

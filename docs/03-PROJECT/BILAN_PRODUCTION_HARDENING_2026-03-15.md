@@ -8,14 +8,14 @@
 
 | Lot | Status | Main proof |
 |---|---|---|
-| `C1 - Diagnostic integrity` | closed | signed state token, backend-owned answer truth |
+| `C1 - Diagnostic integrity` | closed | signed state token plus server-side pending answer truth |
 | `C2 - Distributed rate limit` | closed | Redis source of truth in prod, fail-closed on Redis runtime failure |
 | `C3 - Coverage margin` | closed | CI coverage gate raised from `62 %` to `63 %` |
 | `C4 - Legacy API truth` | closed | `app/api/endpoints/*` archived and removed from live runtime |
 | `C5 - Hygiene / DRY` | closed | duplicated OpenAI import block removed |
 
-Verified local baseline on 15/03/2026:
-- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `868 passed, 2 skipped`
+Latest verified local baseline carried by active docs:
+- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `882 passed, 2 skipped`
 - `black app/ server/ tests/ --check` -> green
 - `isort app/ server/ --check-only --diff` -> green
 - backend CI coverage gate -> `--cov-fail-under=63`
@@ -26,7 +26,8 @@ Verified local baseline on 15/03/2026:
 
 - diagnostic mutation steps now rely on a signed `state_token`
 - `/api/diagnostic/question` no longer leaks `correct_answer`
-- backend answer validation reads trusted state from the token, not from a client-supplied `correct_answer`
+- backend answer validation no longer trusts client-supplied answer truth
+- the token carries an opaque `pending_ref`; the trusted pending answer data is stored server-side until `/answer`
 - frontend diagnostic feedback uses the answer returned by `/api/diagnostic/answer` after submission only
 
 ### C2 - Distributed rate limit
@@ -42,6 +43,7 @@ Verified local baseline on 15/03/2026:
   - resend-verification
   - register
   - chat and chat stream
+  - challenge stream generation flow
 
 ### C3 - Coverage margin
 
@@ -65,11 +67,11 @@ Verified local baseline on 15/03/2026:
 ## 3. Documentation Truth Updated With This Iteration
 
 Active documentation now reflects:
-- the signed diagnostic contract
+- the signed diagnostic contract with server-side pending answer storage
 - the production Redis requirement for rate limiting
 - the `63 %` CI coverage gate
 - the archival of `app/api/endpoints/*`
-- the latest verified local baseline (`868 passed, 2 skipped`)
+- the latest verified local baseline (`882 passed, 2 skipped`)
 
 Detailed execution notes for the iteration are archived and no longer act as the primary reference.
 
@@ -82,7 +84,7 @@ Not solved by `Production Hardening`:
 - compatibility legacy still present:
   - `app/services/enhanced_server_adapter.py`
   - `app/utils/db_utils.py::db_session()`
-- `app/utils/rate_limiter.py` remains outside the distributed Redis scope closed in C2
+- `app/utils/rate_limiter.py` remains only as legacy cleanup candidate, not as active production limiter
 
 ## 5. Active Sources Of Truth
 
@@ -94,6 +96,8 @@ Read these documents for the current backend state:
 - `docs/01-GUIDES/DEPLOYMENT_ENV.md`
 - `docs/02-FEATURES/API_QUICK_REFERENCE.md`
 - `docs/02-FEATURES/F03_DIAGNOSTIC_INITIAL.md`
+- `docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md`
+- `docs/03-PROJECT/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md`
 - this document
 
 ## 6. Archives

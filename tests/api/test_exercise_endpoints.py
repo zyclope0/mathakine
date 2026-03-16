@@ -445,7 +445,7 @@ async def test_submit_answer_selected_answer_alias(
 async def test_submit_answer_invalid_json_returns_400(
     padawan_client, db_session, mock_exercise
 ):
-    """POST /api/exercises/{id}/attempt avec corps JSON invalide → 400."""
+    """POST /api/exercises/{id}/attempt avec corps JSON invalide → 400 (contrat historique)."""
     from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 
     client = padawan_client["client"]

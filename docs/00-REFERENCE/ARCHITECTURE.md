@@ -1,7 +1,7 @@
 ﻿# Architecture - Mathakine
 
 > Global architecture reference
-> Updated: 15/03/2026
+> Updated: 16/03/2026
 
 ## 1. System Overview
 
@@ -34,8 +34,8 @@ The retained backend runtime model is:
 - handlers call DB-bound work through `await run_db_bound(...)`
 - SSE and LLM flows remain `async`, with sync DB boundaries when needed
 
-Verified local reference on 15/03/2026:
-- full suite excluding the false gate: `868 passed, 2 skipped`
+Verified local reference on 16/03/2026:
+- full suite excluding the false gate: `882 passed, 2 skipped`
 - `black app/ server/ tests/ --check`: green
 - `isort app/ server/ --check-only --diff`: green
 - backend coverage gate in CI: `63 %`
@@ -67,6 +67,13 @@ Verified local reference on 15/03/2026:
 - diagnostic mutation endpoints now rely on a signed `state_token`
 - `correct_answer` is no longer exposed by `/api/diagnostic/question`
 - backend-side checked state is the source of truth for answer validation
+- pending diagnostic answer truth is resolved server-side through an opaque `pending_ref`
+
+### Runtime boundaries
+
+- `MATH_TRAINER_DEBUG` defaults to `false`
+- external JSON error payloads do not expose traceback details
+- `MAX_CONTENT_LENGTH` is enforced before JSON/body parsing on the hardened request paths
 
 ### Rate limiting
 
