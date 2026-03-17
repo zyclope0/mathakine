@@ -1,7 +1,7 @@
 # Architecture - Mathakine
 
 > Global architecture reference
-> Updated: 16/03/2026
+> Updated: 17/03/2026
 
 ## 1. System Overview
 
@@ -30,12 +30,14 @@ Browser -> frontend/ -> server/routes + server/handlers -> app/services -> app/r
 The retained backend runtime model is:
 - HTTP handlers are `async`
 - services, facades and repositories are `sync`
-- sync DB access uses `sync_db_session()`
-- handlers call DB-bound work through `await run_db_bound(...)`
+- sync DB access uses `sync_db_session()` (app.core.db_boundary)
+- handlers call DB-bound work through `await run_db_bound(...)` (app.core.db_boundary)
 - SSE and LLM flows remain `async`, with sync DB boundaries when needed
 
-Verified local reference on 16/03/2026:
-- full suite excluding the false gate: `882 passed, 2 skipped`
+Boundary contract (F5): see `app.core.db_boundary` for the formal runtime/data boundary.
+
+Verified local reference on 17/03/2026 (post-F):
+- full suite excluding the false gate: `936 passed, 2 skipped`
 - `black app/ server/ tests/ --check`: green
 - `isort app/ server/ --check-only --diff`: green
 - backend coverage gate in CI: `63 %`

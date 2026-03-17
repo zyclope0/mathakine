@@ -6,7 +6,31 @@ Phase 2, item 2.9 — audit architecture 03/2026.
 Phase 4, item 4.1 — complétion TypedDict services (03/2026).
 """
 
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, List, Optional, Tuple, TypedDict
+
+# ── Admin badge create flow (F3, F4) ─────────────────────────────────────────
+
+
+class BadgeCreatePrepared(TypedDict):
+    """Données normalisées pour création badge admin (flux F3)."""
+
+    code: str
+    name: str
+    description: Optional[str]
+    icon_url: Optional[str]
+    category: Optional[str]
+    difficulty: str
+    points_reward: int
+    is_secret: bool
+    requirements: Optional[Dict[str, Any]]
+    star_wars_title: Optional[str]
+
+
+ValidationResult = Tuple[Optional[str], int]
+"""Résultat validation : (error_message, status_code) ou (None, 0) si valide."""
+
+
+# ── Auth / tokens ────────────────────────────────────────────────────────────
 
 
 class TokenResponse(TypedDict):

@@ -1,11 +1,11 @@
 """
-Moteur générique de vérification des badges — Lot C.
+Moteur générique de vérification des badges — Lot C, F2.
 
 Registry de checkers par type de requirements.
 Prépare le terrain pour B5 (défis logiques, mixte exercices+défis).
 
 Types supportés:
-- attempts_count
+- attempts_count (cluster volume — badge_requirement_volume)
 - success_rate (min_attempts + success_rate)
 - consecutive (exercise_type + consecutive_correct)
 - max_time
@@ -13,19 +13,26 @@ Types supportés:
 - perfect_day
 - all_types (explorer)
 - min_per_type (versatile)
-- logic_attempts_count (B5)
-- mixte (attempts_count + logic_attempts_count) (B5)
+- logic_attempts_count (B5, cluster volume)
+- mixte (attempts_count + logic_attempts_count) (B5, cluster volume)
 """
 
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, Optional
 
-from sqlalchemy import func, text
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.logging_config import get_logger
-from app.models.achievement import Achievement
 from app.models.attempt import Attempt
+from app.services.badge_requirement_volume import (
+    check_attempts_count,
+    check_logic_attempts_count,
+    check_mixte,
+    progress_attempts_count,
+    progress_logic_attempts_count,
+    progress_mixte,
+)
 
 logger = get_logger(__name__)
 
@@ -34,68 +41,6 @@ CheckerFn = Callable[
     [Session, int, Dict[str, Any], Optional[Dict[str, Any]], Optional[Dict[str, Any]]],
     bool,
 ]
-
-
-def _check_attempts_count(
-    db: Session,
-    user_id: int,
-    req: Dict[str, Any],
-    _attempt_data: Optional[Dict[str, Any]] = None,
-    stats_cache: Optional[Dict[str, Any]] = None,
-) -> bool:
-    """Vérifie count(attempts) >= attempts_count."""
-    target = req.get("attempts_count")
-    if target is None:
-        return False
-    if stats_cache is not None and "attempts_count" in stats_cache:
-        count = stats_cache["attempts_count"]
-    else:
-        count = (
-            db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar()
-            or 0
-        )
-    return count >= int(target)
-
-
-def _check_logic_attempts_count(
-    db: Session,
-    user_id: int,
-    req: Dict[str, Any],
-    _attempt_data: Optional[Dict[str, Any]] = None,
-    stats_cache: Optional[Dict[str, Any]] = None,
-) -> bool:
-    """Vérifie count(logic_challenge_attempts corrects) >= logic_attempts_count. B5."""
-    from app.models.logic_challenge import LogicChallengeAttempt
-
-    target = req.get("logic_attempts_count")
-    if target is None:
-        return False
-    if stats_cache is not None and "logic_correct_count" in stats_cache:
-        count = stats_cache["logic_correct_count"]
-    else:
-        count = (
-            db.query(func.count(LogicChallengeAttempt.id))
-            .filter(
-                LogicChallengeAttempt.user_id == user_id,
-                LogicChallengeAttempt.is_correct == True,
-            )
-            .scalar()
-            or 0
-        )
-    return count >= int(target)
-
-
-def _check_mixte(
-    db: Session,
-    user_id: int,
-    req: Dict[str, Any],
-    _attempt_data: Optional[Dict[str, Any]] = None,
-    stats_cache: Optional[Dict[str, Any]] = None,
-) -> bool:
-    """Vérifie attempts_count ET logic_attempts_count. B5."""
-    return _check_attempts_count(
-        db, user_id, req, _attempt_data, stats_cache
-    ) and _check_logic_attempts_count(db, user_id, req, _attempt_data, stats_cache)
 
 
 def _check_success_rate(
@@ -388,9 +333,9 @@ def _check_min_per_type(
 # Ordre de détection : mixte en premier (clés les plus spécifiques), puis les autres
 CHECKERS: Dict[str, CheckerFn] = {
     "comeback": _check_comeback,
-    "mixte": _check_mixte,
-    "logic_attempts_count": _check_logic_attempts_count,
-    "attempts_count": _check_attempts_count,
+    "mixte": check_mixte,
+    "logic_attempts_count": check_logic_attempts_count,
+    "attempts_count": check_attempts_count,
     "success_rate": _check_success_rate,
     "consecutive": _check_consecutive,
     "max_time": _check_max_time,
@@ -493,73 +438,6 @@ ProgressFn = Callable[
     [Session, int, Dict[str, Any], Optional[Dict[str, Any]]],
     Optional[tuple[float, int, int]],
 ]
-
-
-def _progress_attempts_count(
-    db: Session,
-    user_id: int,
-    req: Dict[str, Any],
-    cache: Optional[Dict[str, Any]] = None,
-) -> Optional[tuple[float, int, int]]:
-    t = req.get("attempts_count")
-    if t is None:
-        return None
-    t = int(t)
-    if cache is not None and "attempts_count" in cache:
-        c = cache["attempts_count"]
-    else:
-        c = (
-            db.query(func.count(Attempt.id)).filter(Attempt.user_id == user_id).scalar()
-            or 0
-        )
-    p = min(1.0, c / max(1, t))
-    return (round(p, 2), c, t)
-
-
-def _progress_logic_attempts_count(
-    db: Session,
-    user_id: int,
-    req: Dict[str, Any],
-    cache: Optional[Dict[str, Any]] = None,
-) -> Optional[tuple[float, int, int]]:
-    from app.models.logic_challenge import LogicChallengeAttempt
-
-    t = req.get("logic_attempts_count")
-    if t is None:
-        return None
-    t = int(t)
-    if cache is not None and "logic_correct_count" in cache:
-        c = cache["logic_correct_count"]
-    else:
-        c = (
-            db.query(func.count(LogicChallengeAttempt.id))
-            .filter(
-                LogicChallengeAttempt.user_id == user_id,
-                LogicChallengeAttempt.is_correct == True,
-            )
-            .scalar()
-            or 0
-        )
-    p = min(1.0, c / max(1, t))
-    return (round(p, 2), c, t)
-
-
-def _progress_mixte(
-    db: Session,
-    user_id: int,
-    req: Dict[str, Any],
-    cache: Optional[Dict[str, Any]] = None,
-) -> Optional[tuple[float, int, int]]:
-    p1 = _progress_attempts_count(db, user_id, req, cache)
-    p2 = _progress_logic_attempts_count(db, user_id, req, cache)
-    if not p1 or not p2:
-        return None
-    prog1, cur1, tgt1 = p1
-    prog2, cur2, tgt2 = p2
-    prog = min(prog1, prog2)
-    if prog1 <= prog2:
-        return (round(prog, 2), cur1, tgt1)
-    return (round(prog, 2), cur2, tgt2)
 
 
 def _progress_success_rate(
@@ -806,9 +684,9 @@ def _progress_min_per_type(
 
 PROGRESS_GETTERS: Dict[str, ProgressFn] = {
     "comeback": _progress_comeback,
-    "attempts_count": _progress_attempts_count,
-    "logic_attempts_count": _progress_logic_attempts_count,
-    "mixte": _progress_mixte,
+    "attempts_count": progress_attempts_count,
+    "logic_attempts_count": progress_logic_attempts_count,
+    "mixte": progress_mixte,
     "success_rate": _progress_success_rate,
     "consecutive": _progress_consecutive,
     "consecutive_days": _progress_consecutive_days,

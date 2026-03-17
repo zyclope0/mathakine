@@ -1,19 +1,22 @@
 # Technical README - Mathakine
 
-> Updated: 16/03/2026
+> Updated: 17/03/2026
 
 ## Runtime Truth
 
 - live backend runtime is the Starlette stack under `server/`
 - active route truth is `server/routes/`
 - active HTTP behavior is implemented by `server/handlers/` delegating to `app/services/`
+- runtime/data boundary: `app.core.db_boundary` (run_db_bound, sync_db_session)
 - `app/api/endpoints/*` is archived and not part of the active runtime
 
-## Current Stability Baseline
+## Current Stability Baseline (post-F, 2026-03-17)
 
-- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `882 passed, 2 skipped`
+- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `936 passed, 2 skipped`
 - `black app/ server/ tests/ --check` -> green
-- `isort app/ server/ --check-only --diff` -> green
+- `isort app/ server/ tests/ --check-only --diff` -> green
+- `mypy app/ server/ --ignore-missing-imports` -> green
+- `flake8 app/ server/ --select=E9,F63,F7,F82` -> green
 - backend CI coverage gate -> `63 %`
 
 ## Active Architecture Notes
@@ -48,9 +51,18 @@
 - Redis runtime failures are fail-closed on the protected scope
 - challenge stream is now aligned on the same distributed backend limiter
 
-## Explicit Remaining Debt
+## Iteration E + F Outcome
 
-- global strict `mypy` is still out of scope
-- coverage above `63 %` needs dedicated future lots
-- large historical services still deserve bounded decomposition
-- `app/services/enhanced_server_adapter.py` remains legacy compatibility (create_generated_exercise only, used by exercise_ai_service)
+The backend is now materially stronger on:
+- bounded typed contracts on auth recovery / verification (E) and auth_service (F1)
+- decomposition of challenge_service create flow (E) and badge_requirement_engine volume (F2)
+- isolated badge requirement validation (E) and admin badge create flow (F3)
+- scoped typing (F4) and runtime/data boundary formalization (F5)
+- replicability and operability closure (F6)
+
+## Explicit Remaining Debt (post-F)
+
+- residual weak contracts in auth paths not treated by F1 (e.g. authenticate_user_with_session)
+- other clusters in badge_requirement_engine and admin_content_service not decomposed
+- global strict mypy remains out of scope
+- `app/services/enhanced_server_adapter.py` remains legacy compatibility

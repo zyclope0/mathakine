@@ -352,12 +352,13 @@ def test_create_user_success(db_session):
     )
 
     # Créer l'utilisateur
-    created_user, err, status_code = create_user(db_session, user_data)
+    result = create_user(db_session, user_data)
 
     # Vérifier que l'utilisateur a été créé correctement
-    assert err is None
-    assert status_code == 201
-    assert created_user is not None
+    assert result.is_success
+    assert result.status_code == 201
+    assert result.user is not None
+    created_user = result.user
     assert created_user.username == username
     assert created_user.email == email
 
@@ -393,11 +394,12 @@ def test_create_user_duplicate_username(db_session, mock_user):
     )
 
     # Vérifier que la création échoue avec 409 (CONFLICT)
-    result, err, status_code = create_user(db_session, new_user_data)
+    result = create_user(db_session, new_user_data)
 
-    assert result is None
-    assert status_code == 409
-    assert "Un compte avec ces informations existe déjà" in err
+    assert not result.is_success
+    assert result.user is None
+    assert result.status_code == 409
+    assert "Un compte avec ces informations existe déjà" in (result.error_message or "")
 
 
 def test_create_user_duplicate_email(db_session, mock_user):
@@ -421,11 +423,12 @@ def test_create_user_duplicate_email(db_session, mock_user):
     )
 
     # Vérifier que la création échoue avec 409 (CONFLICT)
-    result, err, status_code = create_user(db_session, new_user_data)
+    result = create_user(db_session, new_user_data)
 
-    assert result is None
-    assert status_code == 409
-    assert "Un compte avec ces informations existe déjà" in err
+    assert not result.is_success
+    assert result.user is None
+    assert result.status_code == 409
+    assert "Un compte avec ces informations existe déjà" in (result.error_message or "")
 
 
 # Tests pour create_user_token
@@ -502,18 +505,19 @@ def test_refresh_access_token_valid(db_session, mock_user):
     )
 
     # Rafraîchir le token
-    result, err, status_code = refresh_access_token(db_session, refresh_token)
+    result = refresh_access_token(db_session, refresh_token)
 
     # Vérifier la structure de la réponse
-    assert err is None
-    assert status_code == 200
-    assert "access_token" in result
-    assert "token_type" in result
-    assert result["token_type"] == "bearer"
+    assert result.is_success
+    assert result.status_code == 200
+    assert result.token_data is not None
+    assert "access_token" in result.token_data
+    assert "token_type" in result.token_data
+    assert result.token_data["token_type"] == "bearer"
 
     # Vérifier le contenu du nouveau token
     new_payload = jwt.decode(
-        result["access_token"], settings.SECRET_KEY, algorithms=["HS256"]
+        result.token_data["access_token"], settings.SECRET_KEY, algorithms=["HS256"]
     )
     assert new_payload["sub"] == user.username
     assert new_payload["role"] == role_value
@@ -522,11 +526,14 @@ def test_refresh_access_token_valid(db_session, mock_user):
 
 def test_refresh_access_token_invalid_token(db_session):
     """Teste le rafraîchissement avec un token invalide."""
-    result, err, status_code = refresh_access_token(db_session, "invalid_token")
+    result = refresh_access_token(db_session, "invalid_token")
 
-    assert result is None
-    assert status_code == 401
-    assert "Token JWT invalide" in err or "Token invalide" in err
+    assert not result.is_success
+    assert result.token_data is None
+    assert result.status_code == 401
+    assert "Token JWT invalide" in (result.error_message or "") or "Token invalide" in (
+        result.error_message or ""
+    )
 
 
 def test_refresh_access_token_wrong_type(db_session, mock_user):
@@ -553,11 +560,12 @@ def test_refresh_access_token_wrong_type(db_session, mock_user):
     )
 
     # Tenter de rafraîchir avec un token du mauvais type
-    result, err, status_code = refresh_access_token(db_session, access_token)
+    result = refresh_access_token(db_session, access_token)
 
-    assert result is None
-    assert status_code == 401
-    assert "Token de rafraîchissement invalide" in err
+    assert not result.is_success
+    assert result.token_data is None
+    assert result.status_code == 401
+    assert "Token de rafraîchissement invalide" in (result.error_message or "")
 
 
 def test_refresh_access_token_user_not_found(db_session):
@@ -575,11 +583,12 @@ def test_refresh_access_token_user_not_found(db_session):
     # Encoder le token avec la clé secrète
     token = jwt.encode(token_data, settings.SECRET_KEY, algorithm="HS256")
 
-    result, err, status_code = refresh_access_token(db_session, token)
+    result = refresh_access_token(db_session, token)
 
-    assert result is None
-    assert status_code == 401
-    assert "Utilisateur non trouvé" in err
+    assert not result.is_success
+    assert result.token_data is None
+    assert result.status_code == 401
+    assert "Utilisateur non trouvé" in (result.error_message or "")
 
 
 def test_refresh_access_token_expired_token(db_session, mock_user):
@@ -610,11 +619,12 @@ def test_refresh_access_token_expired_token(db_session, mock_user):
     )
 
     # Tenter de rafraîchir le token expiré
-    result, err, status_code = refresh_access_token(db_session, expired_token)
+    result = refresh_access_token(db_session, expired_token)
 
-    assert result is None
-    assert status_code == 401
-    assert "expiré" in err
+    assert not result.is_success
+    assert result.token_data is None
+    assert result.status_code == 401
+    assert "expiré" in (result.error_message or "")
 
 
 def test_refresh_access_token_tampered_token(db_session, mock_user):
@@ -646,11 +656,12 @@ def test_refresh_access_token_tampered_token(db_session, mock_user):
     tampered_token = valid_token + "abc"
 
     # Tenter de rafraîchir le token falsifié
-    result, err, status_code = refresh_access_token(db_session, tampered_token)
+    result = refresh_access_token(db_session, tampered_token)
 
-    assert result is None
-    assert status_code == 401
-    assert "Token JWT invalide ou malformé" in err
+    assert not result.is_success
+    assert result.token_data is None
+    assert result.status_code == 401
+    assert "Token JWT invalide ou malformé" in (result.error_message or "")
 
 
 def test_refresh_access_token_valid_token_but_deleted_user(db_session, mock_user):
@@ -685,11 +696,12 @@ def test_refresh_access_token_valid_token_but_deleted_user(db_session, mock_user
     db_session.commit()
 
     # Tenter de rafraîchir le token (pour un utilisateur qui n'existe plus)
-    result, err, status_code = refresh_access_token(db_session, valid_token)
+    result = refresh_access_token(db_session, valid_token)
 
-    assert result is None
-    assert status_code == 401
-    assert "Utilisateur non trouvé" in err
+    assert not result.is_success
+    assert result.token_data is None
+    assert result.status_code == 401
+    assert "Utilisateur non trouvé" in (result.error_message or "")
 
 
 def test_recover_refresh_token_from_access_token_valid_user(db_session, mock_user):
@@ -739,12 +751,13 @@ def test_create_user_with_full_profile_data(db_session):
     )
 
     # Créer l'utilisateur via le service
-    user, err, status_code = create_user(db_session, user_data)
+    result = create_user(db_session, user_data)
 
     # Vérifications
-    assert err is None
-    assert status_code == 201
-    assert user is not None
+    assert result.is_success
+    assert result.status_code == 201
+    assert result.user is not None
+    user = result.user
     assert user.id is not None
     assert user.username == user_data.username
     assert user.email == user_data.email
@@ -769,15 +782,16 @@ def test_create_registered_user_with_verification_single_commit(db_session):
     )
 
     with patch.object(db_session, "commit", wraps=db_session.commit) as commit_spy:
-        user, err, status_code = create_registered_user_with_verification(
+        result = create_registered_user_with_verification(
             db_session,
             user_data,
             "verification_token_test",
         )
 
-    assert err is None
-    assert status_code == 201
-    assert user is not None
+    assert result.is_success
+    assert result.status_code == 201
+    assert result.user is not None
+    user = result.user
     assert user.email_verification_token == "verification_token_test"
     assert user.is_email_verified is False
     assert commit_spy.call_count == 1
@@ -945,11 +959,12 @@ def test_refresh_access_token_generic_exception(db_session, mock_user):
         "app.services.auth_service.jwt.decode",
         side_effect=Exception("Test unexpected error"),
     ):
-        result, err, status_code = refresh_access_token(db_session, refresh_token)
+        result = refresh_access_token(db_session, refresh_token)
 
-        assert result is None
-        assert status_code == 500
-        assert "Erreur interne du serveur" in err
+        assert not result.is_success
+        assert result.token_data is None
+        assert result.status_code == 500
+        assert "Erreur interne du serveur" in (result.error_message or "")
 
 
 # --- Tests verify_email_token (service, refactoré 26/02) ---

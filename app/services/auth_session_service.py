@@ -112,7 +112,8 @@ def perform_refresh(
         (None, error_message, status_code) si echec
     """
     with sync_db_session() as db:
-        return refresh_access_token(db, refresh_token)
+        result = refresh_access_token(db, refresh_token)
+        return result.token_data, result.error_message, result.status_code
 
 
 def validate_access_token(token: str) -> Dict[str, Any]:

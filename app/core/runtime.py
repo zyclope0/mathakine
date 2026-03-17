@@ -6,6 +6,9 @@ Modele d'execution LOT A1:
 - DB et use cases restent sync
 - Les appels DB/metier sync passent par run_db_bound() (threadpool)
 
+Contrat boundary (F5): les sync_func passées à run_db_bound doivent utiliser
+sync_db_session() en interne. Voir app.core.db_boundary pour la formalisation.
+
 Usage:
     result = await run_db_bound(some_sync_func, arg1, arg2, kw=val)
 """

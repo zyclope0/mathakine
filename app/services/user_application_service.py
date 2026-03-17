@@ -36,14 +36,15 @@ def register_user(
         from app.utils.email_verification import generate_verification_token
 
         verification_token = generate_verification_token()
-        user, create_err, create_status = create_registered_user_with_verification(
+        result = create_registered_user_with_verification(
             db,
             user_create,
             verification_token,
         )
-        if create_err:
-            return None, create_err, create_status
+        if not result.is_success:
+            return None, result.error_message, result.status_code
 
+        user = result.user
         try:
             logger.info(f"Préparation envoi email de vérification à {user.email}")
             email_sent = EmailService.send_verification_email(

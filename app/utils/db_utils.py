@@ -4,6 +4,8 @@ Context manager sync pour session + commit/rollback/close.
 
 Vérité runtime: sync_db_session est la source unique pour les services exécutés
 via run_db_bound(). Aucun context manager async legacy.
+
+Contrat boundary (F5): voir app.core.db_boundary pour la formalisation explicite.
 """
 
 from contextlib import contextmanager

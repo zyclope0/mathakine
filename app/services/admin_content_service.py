@@ -21,6 +21,11 @@ from app.models.logic_challenge import (
     LogicChallengeType,
 )
 from app.models.user import User
+from app.services.admin_badge_create_flow import (
+    persist_badge_create,
+    prepare_badge_create_data,
+    validate_badge_create_pre_persist,
+)
 from app.services.admin_helpers import log_admin_action
 from app.services.badge_requirement_validation import validate_badge_requirements
 
@@ -78,44 +83,12 @@ class AdminContentService:
         data: Dict[str, Any],
         admin_user_id: Optional[int] = None,
     ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        code = (data.get("code") or "").strip().lower().replace(" ", "_")
-        name = (data.get("name") or "").strip()
-        if not code:
-            return None, "Le code est obligatoire.", 400
-        if not name:
-            return None, "Le nom est obligatoire.", 400
-        requirements = data.get("requirements")
-        ok, err = AdminContentService._validate_badge_requirements(requirements)
-        if not ok:
-            return None, err or "Requirements invalides.", 400
-        existing = db.query(Achievement).filter(Achievement.code == code).first()
-        if existing:
-            return None, f"Le code '{code}' existe déjà.", 409
-        a = Achievement(
-            code=code,
-            name=name,
-            description=(data.get("description") or "").strip() or None,
-            icon_url=(data.get("icon_url") or "").strip() or None,
-            category=(data.get("category") or "").strip() or None,
-            difficulty=(data.get("difficulty") or "bronze").strip().lower() or "bronze",
-            points_reward=int(data.get("points_reward") or 0),
-            is_secret=bool(data.get("is_secret")),
-            requirements=requirements,
-            star_wars_title=(data.get("star_wars_title") or "").strip() or None,
-            is_active=True,
-        )
-        db.add(a)
-        db.flush()
-        log_admin_action(
-            db,
-            admin_user_id,
-            "badge_create",
-            "achievement",
-            a.id,
-            {"code": a.code, "name": a.name},
-        )
-        db.commit()
-        db.refresh(a)
+        """Création badge admin — flux F3 : préparation, validation, persistance, mapping."""
+        prepared = prepare_badge_create_data(data)
+        err, status = validate_badge_create_pre_persist(prepared, db)
+        if err:
+            return None, err, status
+        a = persist_badge_create(db, prepared, admin_user_id)
         return AdminContentService._achievement_to_detail(a), None, 201
 
     @staticmethod

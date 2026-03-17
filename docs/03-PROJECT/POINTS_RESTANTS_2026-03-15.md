@@ -1,7 +1,7 @@
-# Remaining Follow-Ups - 2026-03-15
+# Remaining Follow-Ups - 2026-03-17
 
 > Active recap of the points still outside the closed backend iterations.
-> Updated after `Production Hardening` and `Security, Boundaries, and API Discipline` closure.
+> Updated after iteration `F` (Academic Backend Rigor, Replicability, and Operability) closure.
 
 ## Current Status
 
@@ -12,63 +12,72 @@ The backend iterations below are closed and should not be reopened as generic cl
 - `Contracts / Hardening`
 - `Production Hardening`
 - `Security, Boundaries, and API Discipline`
+- `Typed Contracts, Service Decomposition, and Legacy Retirement`
+- `Academic Backend Rigor, Replicability, and Operability` (F1-F6)
 
-Verified local baseline:
-- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `882 passed, 2 skipped`
+Verified local baseline (post-F):
+- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `936 passed, 2 skipped`
 - `black app/ server/ tests/ --check` -> green
-- `isort app/ server/ --check-only --diff` -> green
+- `isort app/ server/ tests/ --check-only --diff` -> green
+- `mypy app/ server/ --ignore-missing-imports` -> green
+- `flake8 app/ server/ --select=E9,F63,F7,F82` -> green
 - backend CI coverage gate -> `63 %`
 
 ## Active Remaining Points
 
-### 1. Global typing remains partial
+### 1. Residual weak internal contracts (partially addressed by F1)
 
-Still out of scope today:
-- global strict `mypy`
-- dense modules not yet migrated to stricter scoped typing
+F1 strengthened `auth_service` on `create_user`, `refresh_access_token`, `update_user_password`, and `create_registered_user_with_verification`.
+What still remains: `authenticate_user_with_session` and other auth paths in tuples, plus weak contracts in some admin flows.
 
-This is a maintainability topic, not a production blocker.
+### 2. Badge requirement engine (partially addressed by F2)
 
-### 2. Coverage margin remains modest
+F2 extracted the volume cluster to `badge_requirement_volume.py`.
+Other clusters in `badge_requirement_engine.py` remain; density is reduced but not closed.
 
-Current gate is `63 %` and the margin is still limited.
-Future increases should stay incremental and test-led.
+### 3. Admin content mutation boundaries (partially addressed by F3)
 
-Recommended direction:
-- target low-coverage but bounded modules
-- avoid raising the CI gate without proof first
+F3 decomposed `create_badge` in `admin_badge_create_flow.py`.
+What remains: `create_exercise`, `put_challenge`, and other dense admin-content mutation paths.
 
-### 3. Dense historical services remain to decompose
+### 4. Strict typing (addressed locally by F4)
 
-Standard D6 (Handler Subjectivity Review) : these modules are **future refactor candidates**, not immediate defects. See `archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_D6_HANDLER_SUBJECTIVITY_REVIEW_2026-03-15.md`.
+F4 strengthened typing on the admin badge create seam (`BadgeCreatePrepared`, `ValidationResult`).
+Global strict mypy remains out of scope.
 
-Main structural hotspots still worth bounded future lots:
-- `app/services/auth_service.py`
-- `app/services/exercise_service.py`
-- `app/services/challenge_service.py`
-- `app/services/challenge_validator.py`
-- `app/services/admin_content_service.py`
-- `app/services/badge_requirement_engine.py`
+### 5. Runtime / data boundary (addressed by F5)
 
-These are change-cost risks, not immediate blockers.
+F5 formalized the boundary through `app.core.db_boundary`, an explicit contract, and a test proving the active chain.
+The seam is now documented and defended; a full normalization of imports to the canonical boundary remains optional future cleanup, not a critical active gap.
 
-### 4. Remaining compatibility legacy
+### 6. Replicability and operability (addressed by F6)
 
-Still present in the runtime or service layer:
-- `app/services/enhanced_server_adapter.py`
-- `app/utils/db_utils.py::db_session()` compatibility usage
+F6 produced closure: invariants, baseline, reproducible commands, and explicit `What F Proved / What F Still Does Not Claim` sections.
+Active docs now reflect the post-F truth.
 
-These should be treated as explicit legacy until removed, not as active architecture targets.
+## Next Technical Candidates
 
-### 5. Legacy memory limiter to retire
+If a new backend-focused iteration is opened, the most causal candidates are:
 
-`app/utils/rate_limiter.py` is no longer part of the active protected IA flow.
-It now behaves as a legacy artifact candidate for removal or archive, not as the production source of truth.
+1. finish residual weak internal contracts
+   - `authenticate_user_with_session`
+   - remaining tuple-shaped auth/admin paths
+2. continue badge engine decomposition
+   - streak / regularity
+   - performance / accuracy
+3. continue admin mutation-boundary cleanup
+   - `create_exercise`
+   - `put_challenge`
+   - other dense admin-content mutation paths
+4. decide whether a bounded stricter typing island is worth opening
+   - without turning into global strict mypy
+5. optionally normalize imports toward `app.core.db_boundary`
+   - only as a cleanup lot, not as a claimed critical gap
 
 ## Product / Frontend Gaps Still Plausible
 
-No endpoint integration gap is currently proved as priority.
-Potential future topics only if there is product evidence:
+No backend endpoint gap is currently proved as priority.
+Potential future topics only if product evidence appears:
 - additional admin/frontend exploitation of already existing backend capabilities
 - UX polish if a real user-facing issue is reproduced again
 - deeper proof on non-critical error branches if a new risk appears
@@ -76,8 +85,7 @@ Potential future topics only if there is product evidence:
 ## Maintenance Rule
 
 This file is the active follow-up tracker for `docs/03-PROJECT`.
-The planned execution framework for the next architecture iteration is:
-- `PILOTAGE_CURSOR_TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_2026-03-16.md`
+Iteration `F` is closed. The next backend lot should start from the points above rather than reopen `F` as generic cleanup.
 
 When a point is closed or re-scoped:
 1. update this file

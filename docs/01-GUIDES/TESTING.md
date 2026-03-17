@@ -1,7 +1,7 @@
-﻿# TESTING GUIDE - MATHAKINE
+# TESTING GUIDE - MATHAKINE
 
 > Test strategy and gates
-> Updated: 16/03/2026
+> Updated: 17/03/2026
 > Scope: backend + frontend
 
 ## Principles
@@ -99,9 +99,9 @@ Correct handling:
 
 ## Current Verified State
 
-As of 16/03/2026:
-- iterations `exercise/auth/user`, `challenge/admin/badge`, `Runtime Truth`, `Contracts / Hardening`, `Production Hardening` and `Security, Boundaries, and API Discipline` are closed
-- backend local reference baseline is `882 passed, 2 skipped`
+As of 17/03/2026 (post-F):
+- iterations `exercise/auth/user`, `challenge/admin/badge`, `Runtime Truth`, `Contracts / Hardening`, `Production Hardening`, `Security, Boundaries, and API Discipline`, and `Academic Backend Rigor, Replicability, and Operability` (F1–F6) are closed
+- backend local reference baseline is `936 passed, 2 skipped`
 - backend CI coverage gate is `63 %`
 
 ## Frontend Standard Gates

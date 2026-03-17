@@ -19,7 +19,13 @@ from app.core.security import (
 from app.core.types import TokenRefreshResponse, TokenResponse
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
-from app.schemas.auth_result import ResetPasswordTokenResult, VerifyEmailTokenResult
+from app.schemas.auth_result import (
+    CreateUserResult,
+    RefreshTokenResult,
+    ResetPasswordTokenResult,
+    UpdatePasswordResult,
+    VerifyEmailTokenResult,
+)
 from app.schemas.user import TokenData, UserCreate, UserUpdate
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 from app.utils.email_verification import (
@@ -123,35 +129,39 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
 
 def create_user(
     db: Session, user_in: UserCreate, *, auto_commit: bool = True
-) -> Tuple[Optional[User], Optional[str], int]:
+) -> CreateUserResult:
     """
     Crée un nouvel utilisateur.
 
     Returns:
-        (user, error_message, status_code)
-        user si succès, sinon None + message + code HTTP.
+        CreateUserResult avec user si succès, sinon error_message + status_code.
     """
     if get_user_by_username(db, user_in.username):
         logger.warning(
             f"Tentative de création avec nom déjà utilisé: {user_in.username}"
         )
-        return None, "Un compte avec ces informations existe déjà", 409
+        return CreateUserResult(
+            user=None,
+            error_message="Un compte avec ces informations existe déjà",
+            status_code=409,
+        )
 
     if get_user_by_email(db, user_in.email):
         logger.warning(
             f"Tentative de création avec email déjà utilisé: {user_in.email}"
         )
-        return None, "Un compte avec ces informations existe déjà", 409
+        return CreateUserResult(
+            user=None,
+            error_message="Un compte avec ces informations existe déjà",
+            status_code=409,
+        )
 
     # Par défaut, les nouveaux utilisateurs sont des Padawans sauf spécification contraire
     if user_in.role:
-        # Utiliser le rôle fourni (déjà une énumération grâce au schéma Pydantic)
         user_role = user_in.role
     else:
-        # Rôle par défaut
         user_role = UserRole.PADAWAN
 
-    # Créer l'utilisateur avec les données fournies
     current_time = datetime.now(timezone.utc)
     user = User(
         username=user_in.username,
@@ -169,13 +179,12 @@ def create_user(
         updated_at=current_time,
     )
 
-    # Ajouter l'utilisateur à la base de données
     db.add(user)
     _flush_or_commit(db, auto_commit=auto_commit)
     db.refresh(user)
 
     logger.info(f"Nouvel utilisateur créé: {user.username} (ID: {user.id})")
-    return user, None, 201
+    return CreateUserResult(user=user, error_message=None, status_code=201)
 
 
 def create_user_token(user: User) -> TokenResponse:
@@ -234,14 +243,12 @@ def create_user_token(user: User) -> TokenResponse:
     }
 
 
-def refresh_access_token(
-    db: Session, refresh_token: str
-) -> Tuple[Optional[TokenRefreshResponse], Optional[str], int]:
+def refresh_access_token(db: Session, refresh_token: str) -> RefreshTokenResult:
     """
     Rafraîchit un token d'accès JWT en utilisant un token de rafraîchissement valide.
 
     Returns:
-        (token_data, error_message, status_code)
+        RefreshTokenResult avec token_data si succès, sinon error_message + status_code.
     """
     try:
         logger.debug(
@@ -257,10 +264,18 @@ def refresh_access_token(
             )
         except jwt.ExpiredSignatureError:
             logger.warning("Tentative de rafraîchissement avec un token expiré")
-            return None, "Token de rafraîchissement expiré", 401
+            return RefreshTokenResult(
+                token_data=None,
+                error_message="Token de rafraîchissement expiré",
+                status_code=401,
+            )
         except JWTError as decode_error:
             logger.error(f"Erreur de décodage JWT: {str(decode_error)}")
-            return None, "Token JWT invalide ou malformé", 401
+            return RefreshTokenResult(
+                token_data=None,
+                error_message="Token JWT invalide ou malformé",
+                status_code=401,
+            )
 
         token_type = payload.get("type")
         logger.debug(f"Type de token décodé: {token_type}")
@@ -268,42 +283,59 @@ def refresh_access_token(
             logger.warning(
                 f"Tentative de rafraîchissement avec un token non-refresh: {token_type}"
             )
-            return None, f"Token de rafraîchissement invalide (type: {token_type})", 401
+            return RefreshTokenResult(
+                token_data=None,
+                error_message=f"Token de rafraîchissement invalide (type: {token_type})",
+                status_code=401,
+            )
 
         username = payload.get("sub")
         if not username:
             logger.warning("Tentative de rafraîchissement avec un token sans sujet")
-            return None, "Token invalide", 401
+            return RefreshTokenResult(
+                token_data=None, error_message="Token invalide", status_code=401
+            )
 
         user = get_user_by_username(db, username)
         if not user:
             logger.warning(
                 f"Tentative de rafraîchissement pour un utilisateur qui n'existe pas: {username}"
             )
-            return None, "Utilisateur non trouvé", 401
+            return RefreshTokenResult(
+                token_data=None,
+                error_message="Utilisateur non trouvé",
+                status_code=401,
+            )
 
         if not user.is_active:
             logger.warning(
                 f"Tentative de rafraîchissement pour un utilisateur inactif: {username}"
             )
-            return None, "Compte utilisateur désactivé", 401
+            return RefreshTokenResult(
+                token_data=None,
+                error_message="Compte utilisateur désactivé",
+                status_code=401,
+            )
 
-        # Révocation post-reset : rejeter les tokens émis avant password_changed_at
         if _is_token_revoked_by_password_reset(payload, user):
             logger.warning(
                 f"Refresh token rejeté (révoqué par reset password): {username}"
             )
-            return None, "Token de rafraîchissement expiré", 401
+            return RefreshTokenResult(
+                token_data=None,
+                error_message="Token de rafraîchissement expiré",
+                status_code=401,
+            )
 
         new_token_data = create_user_token(user)
-        return (
-            {
-                "access_token": new_token_data.get("access_token"),
-                "refresh_token": new_token_data.get("refresh_token"),
+        return RefreshTokenResult(
+            token_data={
+                "access_token": new_token_data["access_token"],
+                "refresh_token": new_token_data["refresh_token"],
                 "token_type": "bearer",
             },
-            None,
-            200,
+            error_message=None,
+            status_code=200,
         )
 
     except RuntimeError:
@@ -313,7 +345,11 @@ def refresh_access_token(
         logger.error(
             f"Erreur lors du rafraîchissement du token: {str(token_refresh_error)}"
         )
-        return None, "Erreur interne du serveur", 500
+        return RefreshTokenResult(
+            token_data=None,
+            error_message="Erreur interne du serveur",
+            status_code=500,
+        )
 
 
 def update_user(db: Session, user: User, user_in: UserUpdate) -> User:
@@ -353,18 +389,20 @@ def update_user_password(
     new_password: str,
     *,
     auto_commit: bool = True,
-) -> Tuple[bool, Optional[str]]:
+) -> UpdatePasswordResult:
     """
     Met à jour le mot de passe d'un utilisateur après vérification du mot de passe actuel.
 
     Returns:
-        (True, None) si succès, (False, error_message) sinon.
+        UpdatePasswordResult avec is_success et error_message.
     """
     if not verify_password(current_password, user.hashed_password):
         logger.warning(
             f"Tentative de changement de mot de passe avec mot de passe actuel incorrect pour {user.username}"
         )
-        return False, "Mot de passe actuel incorrect"
+        return UpdatePasswordResult(
+            is_success=False, error_message="Mot de passe actuel incorrect"
+        )
 
     user.hashed_password = get_password_hash(new_password)
     user.updated_at = datetime.now(timezone.utc)
@@ -374,7 +412,7 @@ def update_user_password(
     db.refresh(user)
 
     logger.info(f"Mot de passe mis à jour pour l'utilisateur: {user.username}")
-    return True, None
+    return UpdatePasswordResult(is_success=True, error_message=None)
 
 
 def verify_email_token(
@@ -519,23 +557,23 @@ def reset_password_with_token(
 
 def create_registered_user_with_verification(
     db: Session, user_in: UserCreate, verification_token: str
-) -> Tuple[Optional[User], Optional[str], int]:
+) -> CreateUserResult:
     """
     Crée un utilisateur et son token de vérification en un seul commit.
     """
-    user, error_message, status_code = create_user(db, user_in, auto_commit=False)
-    if error_message:
-        return user, error_message, status_code
+    result = create_user(db, user_in, auto_commit=False)
+    if not result.is_success:
+        return result
 
     set_verification_token_for_new_user(
         db,
-        user,
+        result.user,
         verification_token,
         auto_commit=False,
     )
     db.commit()
-    db.refresh(user)
-    return user, None, 201
+    db.refresh(result.user)
+    return CreateUserResult(user=result.user, error_message=None, status_code=201)
 
 
 def authenticate_user_with_session(

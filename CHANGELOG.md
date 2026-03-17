@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to the project are documented in this file.
 
@@ -16,11 +16,16 @@ Visible release source of truth:
 - iteration `Contracts / Hardening`: closed
 - iteration `Production Hardening`: closed
 - iteration `Security, Boundaries, and API Discipline`: closed
+- iteration `Typed Contracts, Service Decomposition, and Legacy Retirement`: closed
+- iteration `Academic Backend Rigor, Replicability, and Operability`: closed
 
 Active references:
 - [`runtime + contracts recap`](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
 - [`production hardening recap`](docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
 - [`security / boundaries archive`](docs/03-PROJECT/archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md)
+- [`iteration E archive`](docs/03-PROJECT/archives/TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_DETAIL_2026-03-16/README.md)
+- [`iteration F archive`](docs/03-PROJECT/archives/ACADEMIC_BACKEND_RIGOR_REPLICABILITY_AND_OPERABILITY_DETAIL_2026-03-17/README.md)
+- [`active remaining follow-ups`](docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md)
 
 ## [Unreleased]
 
@@ -34,8 +39,22 @@ Active references:
   - distributed Redis rate limiting in production
   - the archival of `app/api/endpoints/*`
 - The audit-driven `Security, Boundaries, and API Discipline` iteration is now closed and documented in the active project governance docs.
-- Admin user mutation flows now use explicit result contracts on the bounded `send_reset_password`, `resend_verification` and `delete_user` sub-scope instead of weak tuples.
+- The `Typed Contracts, Service Decomposition, and Legacy Retirement` iteration is now closed and archived for traceability.
+- The `Academic Backend Rigor, Replicability, and Operability` iteration is now closed and archived for traceability.
+- Auth service contracts are stronger on the treated bounded scope (`CreateUserResult`, `RefreshTokenResult`, `UpdatePasswordResult`).
 - Public badge listing is now explicitly bounded with `default=100` and `max=200`.
+- Auth recovery / verification flows now use explicit typed result contracts on the treated bounded scope.
+- `challenge_service.create_challenge` now has separated preparation, validation, persistence, and orchestration stages.
+- The badge requirement engine volume cluster now lives in `app/services/badge_requirement_volume.py`.
+- Admin badge requirement validation is now delegated to a dedicated validation module.
+- Admin badge creation now runs through a dedicated create-flow seam with a typed prepared payload.
+- Legacy compatibility runtime is clearer:
+  - `app/utils/rate_limiter.py` removed
+  - `app/utils/db_utils.py` simplified to `sync_db_session`
+  - `app/services/enhanced_server_adapter.py` isolated as explicit compatibility legacy
+- The runtime/data boundary is now formalized through `app/core/db_boundary.py`.
+- Targeted test proof was strengthened on the badge requirement validation and `db_utils` seams.
+- Active technical docs now reflect the post-F baseline and keep `POINTS_RESTANTS_2026-03-15.md` as the synthesis tracker.
 
 ### Fixed
 - Documentation no longer presents `Production Hardening` as still active.
@@ -47,7 +66,8 @@ Active references:
 - Small silent fallbacks were made explicit and more observable on the treated scope.
 
 ### Notes
-- Current verified backend reference baseline: `882 passed, 2 skipped`
+- Current verified backend reference baseline: `936 passed, 2 skipped`
+- Current measured local coverage on `app` + `server`: `71 %`
 - Current backend CI coverage gate: `63 %`
 - Detailed historical lot documents remain archived for traceability only.
 
