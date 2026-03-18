@@ -120,7 +120,7 @@ export default function BadgesPage() {
           current: b.current ?? 0,
           target: b.target,
           progress: b.progress ?? 0,
-          progress_detail: b.progress_detail,
+          ...(b.progress_detail != null && { progress_detail: b.progress_detail }),
         };
       }
       return acc;
