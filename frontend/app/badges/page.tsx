@@ -127,7 +127,19 @@ export default function BadgesPage() {
     },
     {} as Record<
       number,
-      { current: number; target: number; progress: number; progress_detail?: { type: "success_rate"; total: number; correct: number; rate_pct: number; min_attempts: number; required_rate_pct: number } }
+      {
+        current: number;
+        target: number;
+        progress: number;
+        progress_detail?: {
+          type: "success_rate";
+          total: number;
+          correct: number;
+          rate_pct: number;
+          min_attempts: number;
+          required_rate_pct: number;
+        };
+      }
     >
   );
 
@@ -744,7 +756,13 @@ export default function BadgesPage() {
                         fullBadge?.criteria_text ||
                         (badge as { criteria_text?: string }).criteria_text;
                       const detail = badge.progress_detail as
-                        | { type: "success_rate"; correct: number; total: number; rate_pct: number; required_rate_pct: number }
+                        | {
+                            type: "success_rate";
+                            correct: number;
+                            total: number;
+                            rate_pct: number;
+                            required_rate_pct: number;
+                          }
                         | undefined;
                       const displayText =
                         detail?.type === "success_rate"
@@ -797,24 +815,20 @@ export default function BadgesPage() {
                                   </div>
                                   {(badge.progress ?? 0) >= 0.5 && (badge.target ?? 0) > 0 && (
                                     <p className="text-sm font-semibold text-amber-500/90 mb-1">
-                                      {detail?.type === "success_rate" ? (
-                                        detail.rate_pct >= detail.required_rate_pct ? (
-                                          t("tuApproches")
-                                        ) : (
-                                          t("plusQueCorrect", {
-                                            count:
-                                              Math.ceil(
-                                                (detail.total * detail.required_rate_pct) / 100
-                                              ) - detail.correct,
-                                          })
-                                        )
-                                      ) : (badge.target ?? 0) - (badge.current ?? 0) > 0 ? (
-                                        t("plusQue", {
-                                          count: (badge.target ?? 0) - (badge.current ?? 0),
-                                        })
-                                      ) : (
-                                        t("tuApproches")
-                                      )}
+                                      {detail?.type === "success_rate"
+                                        ? detail.rate_pct >= detail.required_rate_pct
+                                          ? t("tuApproches")
+                                          : t("plusQueCorrect", {
+                                              count:
+                                                Math.ceil(
+                                                  (detail.total * detail.required_rate_pct) / 100
+                                                ) - detail.correct,
+                                            })
+                                        : (badge.target ?? 0) - (badge.current ?? 0) > 0
+                                          ? t("plusQue", {
+                                              count: (badge.target ?? 0) - (badge.current ?? 0),
+                                            })
+                                          : t("tuApproches")}
                                     </p>
                                   )}
                                   {badge.progress != null && (
