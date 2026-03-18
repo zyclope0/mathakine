@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from sqlalchemy.orm import Session
 
-import app.services.db_init_service as db_init_service
+import app.services.core.db_init_service as db_init_service
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import AgeGroup, LogicChallenge, LogicChallengeType
@@ -37,7 +37,7 @@ def test_create_test_users(mock_db_session):
     mock_db_session.query().count.return_value = 0
 
     # Appeler la fonction de création d'utilisateurs
-    with patch("app.services.db_init_service.User") as mock_user:
+    with patch("app.services.core.db_init_service.User") as mock_user:
         db_init_service.create_test_users(mock_db_session)
 
         # Vérifier que add_all est appelé
@@ -58,7 +58,7 @@ def test_create_test_exercises(mock_db_session):
     mock_db_session.query().filter().first.return_value = mock_yoda
 
     # Appeler la fonction de création d'exercices
-    with patch("app.services.db_init_service.Exercise") as mock_exercise:
+    with patch("app.services.core.db_init_service.Exercise") as mock_exercise:
         db_init_service.create_test_exercises(mock_db_session)
 
         # Vérifier que add_all est appelé
@@ -79,7 +79,7 @@ def test_create_test_logic_challenges(mock_db_session):
     mock_db_session.query().filter().first.return_value = mock_yoda
 
     # Appeler la fonction de création de défis logiques
-    with patch("app.services.db_init_service.LogicChallenge") as mock_challenge:
+    with patch("app.services.core.db_init_service.LogicChallenge") as mock_challenge:
         db_init_service.create_test_logic_challenges(mock_db_session)
 
         # Vérifier que add_all est appelé
@@ -109,7 +109,7 @@ def test_create_test_attempts(mock_db_session):
     mock_db_session.query().all.return_value = [mock_exercise]
 
     # Appeler la fonction de création de tentatives
-    with patch("app.services.db_init_service.Attempt") as mock_attempt:
+    with patch("app.services.core.db_init_service.Attempt") as mock_attempt:
         db_init_service.create_test_attempts(mock_db_session)
 
         # Vérifier que add est appelé (au moins deux fois, pour les tentatives réussies et échouées)
@@ -123,9 +123,9 @@ def test_initialize_database():
     """Test l'initialisation complète de la base de données"""
     # Patcher les fonctions du module
     with (
-        patch("app.services.db_init_service.create_tables") as mock_create_tables,
+        patch("app.services.core.db_init_service.create_tables") as mock_create_tables,
         patch(
-            "app.services.db_init_service.populate_test_data"
+            "app.services.core.db_init_service.populate_test_data"
         ) as mock_populate_test_data,
     ):
 
@@ -143,7 +143,7 @@ def test_create_test_users_integration(db_session):
     import time
 
     # Utiliser un mock pour éviter les conflits d'unicité avec les vrais noms
-    with patch("app.services.db_init_service.User") as MockUser:
+    with patch("app.services.core.db_init_service.User") as MockUser:
         # Créer des instances mockées avec des noms uniques
         timestamp = str(int(time.time() * 1000))
 
@@ -220,7 +220,7 @@ def test_create_test_exercises_and_attempts_with_mocked_session(mock_db_session)
     mock_yoda = MagicMock(id=1)
     mock_db_session.query().filter().first.return_value = mock_yoda
 
-    with patch("app.services.db_init_service.Exercise") as mock_exercise:
+    with patch("app.services.core.db_init_service.Exercise") as mock_exercise:
         db_init_service.create_test_exercises(mock_db_session)
         mock_db_session.add_all.assert_called_once()
         mock_db_session.flush.assert_called_once()
@@ -233,7 +233,7 @@ def test_create_test_exercises_and_attempts_with_mocked_session(mock_db_session)
     mock_db_session.query().filter().first.return_value = mock_padawan
     mock_db_session.query().all.return_value = [mock_ex]
 
-    with patch("app.services.db_init_service.Attempt") as mock_attempt:
+    with patch("app.services.core.db_init_service.Attempt") as mock_attempt:
         db_init_service.create_test_attempts(mock_db_session)
         assert mock_db_session.add.call_count >= 2
         assert mock_db_session.flush.call_count >= 2
@@ -244,7 +244,9 @@ def test_create_test_logic_challenges_integration(db_session):
     import time
 
     # Utiliser un mock pour éviter les violations de clés étrangères
-    with patch("app.services.db_init_service.LogicChallenge") as MockLogicChallenge:
+    with patch(
+        "app.services.core.db_init_service.LogicChallenge"
+    ) as MockLogicChallenge:
         # Créer des instances mockées avec des noms uniques
         timestamp = str(int(time.time() * 1000))
 
@@ -299,21 +301,23 @@ def test_populate_test_data_integration(db_session):
 
     # Utiliser des mocks pour éviter les violations de clés étrangères
     with (
-        patch("app.services.db_init_service.create_test_users") as mock_create_users,
         patch(
-            "app.services.db_init_service.create_test_exercises"
+            "app.services.core.db_init_service.create_test_users"
+        ) as mock_create_users,
+        patch(
+            "app.services.core.db_init_service.create_test_exercises"
         ) as mock_create_exercises,
         patch(
-            "app.services.db_init_service.create_test_logic_challenges"
+            "app.services.core.db_init_service.create_test_logic_challenges"
         ) as mock_create_challenges,
         patch(
-            "app.services.db_init_service.create_test_attempts"
+            "app.services.core.db_init_service.create_test_attempts"
         ) as mock_create_attempts,
     ):
 
         # Patcher la fonction get_db pour retourner notre session de test
         with patch(
-            "app.services.db_init_service.get_db", return_value=iter([db_session])
+            "app.services.core.db_init_service.get_db", return_value=iter([db_session])
         ):
             # Appeler la fonction de remplissage
             db_init_service.populate_test_data()
@@ -330,10 +334,12 @@ def test_populate_test_data_error_handling(db_session):
     # Simuler une erreur pendant la création des utilisateurs
     with (
         patch(
-            "app.services.db_init_service.create_test_users",
+            "app.services.core.db_init_service.create_test_users",
             side_effect=Exception("Erreur simulée"),
         ),
-        patch("app.services.db_init_service.get_db", return_value=iter([db_session])),
+        patch(
+            "app.services.core.db_init_service.get_db", return_value=iter([db_session])
+        ),
     ):
 
         # Vérifier que l'exception est gérée et qu'un rollback est effectué
@@ -375,9 +381,11 @@ def test_populate_test_data_exception_handling():
 
     # Simuler une exception lors de la création des utilisateurs de test
     with (
-        patch("app.services.db_init_service.get_db", return_value=mock_db_generator),
         patch(
-            "app.services.db_init_service.create_test_users",
+            "app.services.core.db_init_service.get_db", return_value=mock_db_generator
+        ),
+        patch(
+            "app.services.core.db_init_service.create_test_users",
             side_effect=Exception("Erreur simulée"),
         ),
         pytest.raises(Exception) as excinfo,
@@ -465,9 +473,9 @@ def test_initialize_database_success():
     """Test le cas de succès de l'initialisation de la base de données"""
     # Patcher les fonctions pour éviter les effets réels
     with (
-        patch("app.services.db_init_service.create_tables") as mock_create_tables,
+        patch("app.services.core.db_init_service.create_tables") as mock_create_tables,
         patch(
-            "app.services.db_init_service.populate_test_data"
+            "app.services.core.db_init_service.populate_test_data"
         ) as mock_populate_test_data,
     ):
 
@@ -484,7 +492,7 @@ def test_initialize_database_exception():
     # Patcher les fonctions pour simuler une exception
     with (
         patch(
-            "app.services.db_init_service.create_tables",
+            "app.services.core.db_init_service.create_tables",
             side_effect=Exception("Erreur de création des tables"),
         ),
         pytest.raises(Exception) as excinfo,

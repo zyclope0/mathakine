@@ -14,8 +14,8 @@ from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.user import User, UserRole
-from app.services.exercise_service import ExerciseService
-from app.services.recommendation_service import RecommendationService
+from app.services.exercises.exercise_service import ExerciseService
+from app.services.recommendation.recommendation_service import RecommendationService
 from app.utils.db_helpers import get_enum_value
 
 

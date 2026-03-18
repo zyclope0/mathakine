@@ -1,4 +1,4 @@
-﻿# Diagnostic Flow - F03
+# Diagnostic Flow - F03
 
 > Feature reference updated on 15/03/2026
 
@@ -62,6 +62,6 @@ Still out of scope for this feature note:
 ## References
 
 - `server/handlers/diagnostic_handlers.py`
-- `app/services/diagnostic_service.py`
+- `app/services/diagnostic/diagnostic_service.py`
 - `app/core/security.py`
 - `frontend/hooks/useDiagnostic.ts`

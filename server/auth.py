@@ -16,7 +16,7 @@ from app.utils.error_handler import api_error_response
 
 logger = get_logger(__name__)
 
-from app.services.auth_session_service import get_current_user_payload
+from app.services.auth.auth_session_service import get_current_user_payload
 
 
 async def get_current_user(request):  # noqa: C901

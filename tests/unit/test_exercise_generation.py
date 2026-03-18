@@ -10,7 +10,7 @@ import pytest
 from starlette.responses import JSONResponse
 
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
-from app.services.exercise_service import ExerciseService
+from app.services.exercises.exercise_service import ExerciseService
 from app.utils.db_helpers import get_enum_value
 from server.handlers.exercise_handlers import generate_exercise
 from tests.unit.test_utils import create_mock_request
@@ -36,7 +36,7 @@ async def test_generate_addition_exercise_initie_async(db_session):
 
     # Mock pour les méthodes de EnhancedServerAdapter
     with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
+        "app.services.core.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
         return_value=mock_exercise,
     ):
         # Préparer les paramètres de requête
@@ -80,7 +80,7 @@ async def test_generate_multiplication_exercise_chevalier(db_session):
 
     # Mock pour les méthodes de EnhancedServerAdapter
     with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
+        "app.services.core.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
         return_value=mock_exercise,
     ):
         # Préparer les paramètres de requête
@@ -124,7 +124,7 @@ async def test_generate_division_exercise_padawan(db_session):
 
     # Mock pour les méthodes de EnhancedServerAdapter
     with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
+        "app.services.core.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
         return_value=mock_exercise,
     ):
         # Préparer les paramètres de requête
@@ -169,7 +169,7 @@ async def test_generate_exercise_invalid_type(db_session):
 
     # Mock pour les méthodes de EnhancedServerAdapter
     with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
+        "app.services.core.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
         return_value=mock_exercise,
     ):
         # Préparer les paramètres de requête
@@ -212,7 +212,7 @@ async def test_generate_exercise_invalid_difficulty(db_session):
 
     # Mock pour les méthodes de EnhancedServerAdapter
     with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
+        "app.services.core.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
         return_value=mock_exercise,
     ):
         # Préparer les paramètres de requête
@@ -257,7 +257,7 @@ async def test_generate_exercise_missing_parameters(db_session):
 
     # Mock pour les méthodes de EnhancedServerAdapter
     with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
+        "app.services.core.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
         return_value=mock_exercise,
     ):
         # Cas 1: Type manquant
@@ -357,7 +357,7 @@ async def test_generate_mixed_exercise_maitre_async(db_session):
 
     # Mock pour les méthodes de EnhancedServerAdapter
     with patch(
-        "app.services.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
+        "app.services.core.enhanced_server_adapter.EnhancedServerAdapter.create_generated_exercise",
         return_value=mock_exercise,
     ):
         # Préparer les paramètres de requête

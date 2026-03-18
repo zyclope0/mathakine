@@ -16,7 +16,7 @@ from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.user import User, UserRole
-from app.services.recommendation_service import RecommendationService
+from app.services.recommendation.recommendation_service import RecommendationService
 from app.utils.db_helpers import get_enum_value
 from tests.utils.test_helpers import unique_email, unique_username
 

@@ -1,7 +1,7 @@
 # Project Governance - Mathakine
 
 > Project master index
-> Updated: 17/03/2026
+> Updated: 18/03/2026
 
 ## Read First
 
@@ -26,9 +26,11 @@
 - `Typed Contracts, Service Decomposition, and Legacy Retirement`: closed
 - `Academic Backend Rigor, Replicability, and Operability`: closed
 - `Lots G (Residual Contracts and Cleanup)`: closed (G1-G4)
+- `Architecture Clean Cible A + B`: closed (vertical slicing app/services/)
 
 Local reference baseline:
-- full suite excluding the false gate: `936 passed, 2 skipped`
+- gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `951 passed, 2 skipped`
+- `test_admin_auth_stability.py` : test spécial, exclu du gate standard (non-bloquant)
 - measured local coverage on `app` + `server`: `67.30 %`
 - `black app/ server/ tests/ --check`: green
 - `isort app/ server/ tests/ --check-only --diff`: green
@@ -45,6 +47,7 @@ Local reference baseline:
 | [POINTS_RESTANTS_2026-03-15.md](./POINTS_RESTANTS_2026-03-15.md) | remaining points still worth tracking |
 | [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | validation protocol |
 | [archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md](./archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md) | lots G (residual contracts, cleanup) — closed |
+| [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](./PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md) | architecture clean — Cible A + B closed (vertical slicing app/services/) |
 | [CICD_DEPLOY.md](./CICD_DEPLOY.md) | CI/CD truth |
 
 ## Active Notes By Theme

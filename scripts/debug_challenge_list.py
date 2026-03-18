@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 os.environ["TESTING"] = "true"
 
 from app.db.base import SessionLocal
-from app.services import challenge_service
+from app.services.challenges import challenge_service
 
 def main():
     db = SessionLocal()

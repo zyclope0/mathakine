@@ -105,7 +105,7 @@ async def test_get_diagnostic_status_empty(padawan_client):
 
 async def test_diagnostic_complete_then_status(padawan_client):
     """POST /api/diagnostic/complete puis GET /api/diagnostic/status verifie le wiring."""
-    import app.services.diagnostic_service as diagnostic_svc
+    import app.services.diagnostic.diagnostic_service as diagnostic_svc
 
     client = padawan_client["client"]
     session = _minimal_complete_session()
@@ -234,7 +234,7 @@ async def test_diagnostic_start_rejects_oversized_payload_413_d2b(padawan_client
 
 async def test_diagnostic_answer_ignores_client_correct_answer(padawan_client):
     """Le backend utilise le correct_answer du token, pas celui du client."""
-    import app.services.diagnostic_service as diagnostic_svc
+    import app.services.diagnostic.diagnostic_service as diagnostic_svc
 
     client = padawan_client["client"]
     session = _minimal_complete_session()

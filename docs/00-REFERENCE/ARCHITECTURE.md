@@ -1,7 +1,7 @@
 # Architecture - Mathakine
 
 > Global architecture reference
-> Updated: 17/03/2026
+> Updated: 18/03/2026
 
 ## 1. System Overview
 
@@ -36,10 +36,11 @@ The retained backend runtime model is:
 
 Boundary contract (F5): see `app.core.db_boundary` for the formal runtime/data boundary.
 
-Verified local reference on 17/03/2026 (post-F):
-- full suite excluding the false gate: `936 passed, 2 skipped`
+Verified local reference on 18/03/2026 (post-G, post–H1–H3):
+- gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `951 passed, 2 skipped`
+- `test_admin_auth_stability.py` : test spécial, exclu du gate standard (non-bloquant)
 - `black app/ server/ tests/ --check`: green
-- `isort app/ server/ --check-only --diff`: green
+- `isort app/ server/ tests/ --check-only --diff`: green
 - backend coverage gate in CI: `63 %`
 
 ## 4. Backend Layers
@@ -54,13 +55,33 @@ Verified local reference on 17/03/2026 (post-F):
 
 ### `app/`
 
-- `models/`: SQLAlchemy ORM
-- `schemas/`: Pydantic schemas
-- `services/`: business logic and application boundaries
+- `models/`: SQLAlchemy ORM (explicit modules, `__init__.py` re-exports)
+- `schemas/`: Pydantic schemas (explicit modules, `__init__.py` re-exports)
+- `services/`: business logic and application boundaries, **organised by DDD domains** (Cible B)
 - `repositories/`: isolated data access where introduced
 - `generators/`: exercise generation source of truth
 - `db/`: engine, sessions, transactions, adapter
 - `utils/`: shared helpers
+
+#### `app/services/` — Domains (Vertical Slicing, Cible B)
+
+Services are grouped by bounded context. No business logic file remains at root (only `__init__.py`).
+
+| Domain | Path | Content |
+|--------|------|---------|
+| **auth** | `app/services/auth/` | auth_service, auth_session_service, auth_recovery_service |
+| **users** | `app/services/users/` | user_service, user_application_service |
+| **badges** | `app/services/badges/` | badge_service, badge_application_service, badge_* (14 files) |
+| **exercises** | `app/services/exercises/` | exercise_service, exercise_attempt_service, exercise_* (9 files) |
+| **challenges** | `app/services/challenges/` | challenge_service, logic_challenge_service, maze_validator, etc. (11 files) |
+| **progress** | `app/services/progress/` | progress_timeline_service, streak_service, daily_challenge_service |
+| **admin** | `app/services/admin/` | admin_service, admin_read_service, admin_content_service, etc. (14 files) |
+| **analytics** | `app/services/analytics/` | analytics_service |
+| **communication** | `app/services/communication/` | email_service, chat_service |
+| **core** | `app/services/core/` | db_init_service, enhanced_server_adapter |
+| **diagnostic** | `app/services/diagnostic/` | diagnostic_service |
+| **feedback** | `app/services/feedback/` | feedback_service |
+| **recommendation** | `app/services/recommendation/` | recommendation_service |
 
 ## 5. Production Hardening Decisions Now Active
 
@@ -92,7 +113,7 @@ Verified local reference on 17/03/2026 (post-F):
 ## 6. Legacy And Compatibility
 
 Legacy still active:
-- `app/services/enhanced_server_adapter.py` — seul `create_generated_exercise` est utilisé (exercise_ai_service). Les autres méthodes sont inactives ou compatibilité.
+- `app/services/core/enhanced_server_adapter.py` — seul `create_generated_exercise` est utilisé (exercise_ai_service). Les autres méthodes sont inactives ou compatibilité.
 
 Generator compatibility re-exports:
 - `server/exercise_generator.py`

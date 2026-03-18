@@ -1,7 +1,7 @@
 # Documentation Mathakine
 
 > Documentation entry point
-> Updated: 17/03/2026
+> Updated: 18/03/2026
 
 ## Read First
 
@@ -24,8 +24,9 @@
   - `Typed Contracts, Service Decomposition, and Legacy Retirement`
   - `Academic Backend Rigor, Replicability, and Operability` (F1-F6)
   - `Lots G (Residual Contracts and Cleanup)` (G1-G4)
-- local reference baseline (post-F):
-  - full suite excluding the false gate: `936 passed, 2 skipped`
+- local reference baseline (post-G, post–H1–H3):
+  - gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `951 passed, 2 skipped`
+  - `test_admin_auth_stability.py` : test spécial, exclu du gate standard (non-bloquant)
   - `black app/ server/ tests/ --check`: green
   - `isort app/ server/ tests/ --check-only --diff`: green
   - `mypy app/ server/ --ignore-missing-imports`: green
@@ -54,6 +55,7 @@
 | Security / boundaries archive | [03-PROJECT/archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md](03-PROJECT/archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md) |
 | Remaining follow-ups | [03-PROJECT/POINTS_RESTANTS_2026-03-15.md](03-PROJECT/POINTS_RESTANTS_2026-03-15.md) |
 | Lots G (residual contracts, closed) | [03-PROJECT/archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md](03-PROJECT/archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md) |
+| Architecture Clean (Cible A + B closed) | [03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md) |
 | Product changelog | [../CHANGELOG.md](../CHANGELOG.md) |
 
 ## Reading Rules

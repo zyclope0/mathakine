@@ -15,7 +15,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.core.constants import AgeGroups, DifficultyLevels
-from app.services.adaptive_difficulty_service import (
+from app.services.exercises.adaptive_difficulty_service import (
     _adjust_for_realtime_progress,
     _irt_ordinal_for_type,
     _mastery_to_ordinal,
@@ -204,7 +204,7 @@ class TestResolveAdaptiveDifficulty:
         user = _make_user(user_id=1)
 
         with patch(
-            "app.services.diagnostic_service.get_latest_score",
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=irt_score,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
@@ -224,7 +224,7 @@ class TestResolveAdaptiveDifficulty:
         user = _make_user(user_id=1)
 
         with patch(
-            "app.services.diagnostic_service.get_latest_score",
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=irt_score,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
@@ -253,7 +253,7 @@ class TestResolveAdaptiveDifficulty:
         user = _make_user(user_id=1)
 
         with patch(
-            "app.services.diagnostic_service.get_latest_score",
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=irt_score,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
@@ -270,7 +270,7 @@ class TestResolveAdaptiveDifficulty:
         user = _make_user(user_id=1)
 
         with patch(
-            "app.services.diagnostic_service.get_latest_score",
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=None,
         ):
             result = resolve_adaptive_difficulty(db, user, "MULTIPLICATION")
@@ -287,7 +287,7 @@ class TestResolveAdaptiveDifficulty:
         user = _make_user(user_id=1, preferred_difficulty=DifficultyLevels.CHEVALIER)
 
         with patch(
-            "app.services.diagnostic_service.get_latest_score",
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=None,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
@@ -301,7 +301,7 @@ class TestResolveAdaptiveDifficulty:
         user = _make_user(user_id=1, preferred_difficulty=DifficultyLevels.MAITRE)
 
         with patch(
-            "app.services.diagnostic_service.get_latest_score",
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=None,
         ):
             result = resolve_adaptive_difficulty(db, user, "DIVISION")
@@ -315,7 +315,7 @@ class TestResolveAdaptiveDifficulty:
         user = _make_user(user_id=1, grade_level=9)
 
         with patch(
-            "app.services.diagnostic_service.get_latest_score",
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=None,
         ):
             result = resolve_adaptive_difficulty(db, user, "FRACTIONS")
@@ -329,7 +329,7 @@ class TestResolveAdaptiveDifficulty:
         user = _make_user(user_id=1)
 
         with patch(
-            "app.services.diagnostic_service.get_latest_score",
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=None,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
@@ -347,7 +347,7 @@ class TestResolveAdaptiveDifficulty:
         user = _make_user(user_id=1)
 
         with patch(
-            "app.services.diagnostic_service.get_latest_score",
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=irt_score,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
@@ -366,7 +366,7 @@ class TestResolveAdaptiveDifficulty:
         user = _make_user(user_id=1)
 
         with patch(
-            "app.services.diagnostic_service.get_latest_score",
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
             return_value=irt_score,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
@@ -389,7 +389,7 @@ class TestResolveAdaptiveDifficulty:
         user = _make_user(user_id=1)
 
         with patch(
-            "app.services.diagnostic_service.get_latest_score",
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
             side_effect=Exception("Service unavailable"),
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
@@ -407,7 +407,8 @@ class TestPrefDifficultyToOrdinal:
         db = _make_db(progress=None)
         user = _make_user(user_id=1, preferred_difficulty="adulte")
         with patch(
-            "app.services.diagnostic_service.get_latest_score", return_value=None
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
         assert result == AgeGroups.ADULT
@@ -416,7 +417,8 @@ class TestPrefDifficultyToOrdinal:
         db = _make_db(progress=None)
         user = _make_user(user_id=1, preferred_difficulty="9-11")
         with patch(
-            "app.services.diagnostic_service.get_latest_score", return_value=None
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
         assert result == AgeGroups.GROUP_9_11
@@ -425,7 +427,8 @@ class TestPrefDifficultyToOrdinal:
         db = _make_db(progress=None)
         user = _make_user(user_id=1, preferred_difficulty="12-14")
         with patch(
-            "app.services.diagnostic_service.get_latest_score", return_value=None
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
         assert result == AgeGroups.GROUP_12_14
@@ -434,7 +437,8 @@ class TestPrefDifficultyToOrdinal:
         db = _make_db(progress=None)
         user = _make_user(user_id=1, preferred_difficulty="15-17")
         with patch(
-            "app.services.diagnostic_service.get_latest_score", return_value=None
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
         assert result == AgeGroups.GROUP_15_17
@@ -443,7 +447,8 @@ class TestPrefDifficultyToOrdinal:
         db = _make_db(progress=None)
         user = _make_user(user_id=1, preferred_difficulty=DifficultyLevels.GRAND_MAITRE)
         with patch(
-            "app.services.diagnostic_service.get_latest_score", return_value=None
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
         ):
             result = resolve_adaptive_difficulty(db, user, "ADDITION")
         assert result == AgeGroups.ADULT
@@ -580,7 +585,8 @@ class TestResolveIrtLevel:
         scores = _make_full_irt_scores(addition="CHEVALIER")
         db, irt_data = self._make_db_with_irt(scores)
         with patch(
-            "app.services.diagnostic_service.get_latest_score", return_value=irt_data
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=irt_data,
         ):
             result = resolve_irt_level(db, user_id=1, exercise_type="ADDITION")
         assert result == DifficultyLevels.CHEVALIER
@@ -589,7 +595,8 @@ class TestResolveIrtLevel:
         scores = _make_full_irt_scores()
         db, irt_data = self._make_db_with_irt(scores)
         with patch(
-            "app.services.diagnostic_service.get_latest_score", return_value=irt_data
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=irt_data,
         ):
             result = resolve_irt_level(db, user_id=1, exercise_type="GEOMETRIE")
         assert result is None
@@ -597,7 +604,8 @@ class TestResolveIrtLevel:
     def test_returns_none_when_no_diagnostic(self):
         db = _make_db(progress=None)
         with patch(
-            "app.services.diagnostic_service.get_latest_score", return_value=None
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=None,
         ):
             result = resolve_irt_level(db, user_id=1, exercise_type="ADDITION")
         assert result is None
@@ -606,7 +614,8 @@ class TestResolveIrtLevel:
         scores = _make_full_irt_scores(addition="GRAND_MAITRE")
         db, irt_data = self._make_db_with_irt(scores, days_ago=35)
         with patch(
-            "app.services.diagnostic_service.get_latest_score", return_value=irt_data
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=irt_data,
         ):
             result = resolve_irt_level(db, user_id=1, exercise_type="ADDITION")
         assert result is None
@@ -620,7 +629,8 @@ class TestResolveIrtLevel:
         )
         db, irt_data = self._make_db_with_irt(scores)
         with patch(
-            "app.services.diagnostic_service.get_latest_score", return_value=irt_data
+            "app.services.diagnostic.diagnostic_service.get_latest_score",
+            return_value=irt_data,
         ):
             result = resolve_irt_level(db, user_id=1, exercise_type="MIXTE")
         assert result == DifficultyLevels.INITIE

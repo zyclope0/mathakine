@@ -81,21 +81,26 @@ async def test_challenge_attempt_correct(
     )  # Pas d'indice nécessaire
 
 
-async def test_challenge_attempt_incorrect(logic_challenge_db, padawan_client):
-    """Test de la soumission d'une tentative incorrecte pour un défi logique."""
-    client = padawan_client["client"]
-    list_resp = await client.get("/api/challenges")
-    assert list_resp.status_code == 200
-    challenges = _get_challenges_list(list_resp.json())
-    assert len(challenges) > 0
-    challenge_id = challenges[0]["id"]
+async def test_challenge_attempt_incorrect(
+    logic_challenge_db, challenge_with_hints_id, padawan_client
+):
+    """Test de la soumission d'une tentative incorrecte pour un défi logique.
 
-    # Récupérer d'abord le défi pour s'assurer de soumettre une mauvaise réponse
+    Utilise challenge_with_hints_id (défi créé par logic_challenge_db avec
+    correct_answer="42") pour garantir un défi déterministe et éviter toute
+    fuite d'état ou ordre variable de la liste (premier défi = production?).
+    """
+    client = padawan_client["client"]
+    challenge_id = challenge_with_hints_id
+
+    # Récupérer le défi pour confirmer correct_answer (42) et soumettre une mauvaise réponse
     response = await client.get(f"/api/challenges/{challenge_id}")
     assert response.status_code == 200
     challenge = response.json()
     correct_answer = challenge["correct_answer"]
-    incorrect_answer = "WRONG_ANSWER"  # Une valeur qui n'est certainement pas la bonne
+    incorrect_answer = (
+        "WRONG_ANSWER"  # Jamais égal à "42" (fixture a correct_answer="42")
+    )
 
     # S'assurer que notre réponse est différente de la bonne
     if incorrect_answer == correct_answer:

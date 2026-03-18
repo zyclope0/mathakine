@@ -20,7 +20,7 @@ from app.models.progress import Progress
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
 from app.schemas.user import UserCreate, UserUpdate
-from app.services.user_service import UserService
+from app.services.users.user_service import UserService
 from app.utils.db_helpers import (
     ENUM_MAPPING,
     adapt_enum_for_db,
@@ -39,7 +39,9 @@ from tests.utils.test_helpers import (
 def test_get_user(db_session):
     """Teste la récupération d'un utilisateur par son ID."""
     # Utiliser un mock pour DatabaseAdapter.get_by_id
-    with patch("app.services.user_service.DatabaseAdapter.get_by_id") as mock_get_by_id:
+    with patch(
+        "app.services.users.user_service.DatabaseAdapter.get_by_id"
+    ) as mock_get_by_id:
         # Créer un mock d'utilisateur avec des valeurs uniques
         mock_user = MagicMock(spec=User)
         mock_user.id = 1
@@ -189,7 +191,7 @@ def test_get_user_by_email():
     mock_session = MagicMock(spec=Session)
 
     with patch(
-        "app.services.user_service.DatabaseAdapter.get_by_field"
+        "app.services.users.user_service.DatabaseAdapter.get_by_field"
     ) as mock_get_by_field:
         # Créer un mock d'utilisateur avec des valeurs uniques
         test_username = unique_username()
@@ -279,16 +281,17 @@ def test_create_user(db_session):
     """Teste la création d'un utilisateur."""
     # Utiliser des mocks pour éviter d'interagir avec la base de données PostgreSQL
     with (
-        patch("app.services.user_service.DatabaseAdapter.create") as mock_create,
+        patch("app.services.users.user_service.DatabaseAdapter.create") as mock_create,
         patch(
-            "app.services.user_service.UserService.get_user_by_username",
+            "app.services.users.user_service.UserService.get_user_by_username",
             return_value=None,
         ),
         patch(
-            "app.services.user_service.UserService.get_user_by_email", return_value=None
+            "app.services.users.user_service.UserService.get_user_by_email",
+            return_value=None,
         ),
         patch(
-            "app.services.user_service.TransactionManager.transaction"
+            "app.services.users.user_service.TransactionManager.transaction"
         ) as mock_transaction,
     ):
 
@@ -350,7 +353,7 @@ def test_create_user_duplicate_username():
 
     # Simuler que get_user_by_username retourne un utilisateur existant
     with patch(
-        "app.services.user_service.UserService.get_user_by_username",
+        "app.services.users.user_service.UserService.get_user_by_username",
         return_value=existing_user,
     ):
         # Les données pour le nouvel utilisateur avec le même nom d'utilisateur
@@ -384,11 +387,11 @@ def test_create_user_duplicate_email():
     # Simuler que get_user_by_email retourne un utilisateur existant
     with (
         patch(
-            "app.services.user_service.UserService.get_user_by_username",
+            "app.services.users.user_service.UserService.get_user_by_username",
             return_value=None,
         ),
         patch(
-            "app.services.user_service.UserService.get_user_by_email",
+            "app.services.users.user_service.UserService.get_user_by_email",
             return_value=existing_user,
         ),
     ):
@@ -615,7 +618,7 @@ def test_get_user_stats(db_session):
     """Teste la récupération des statistiques d'un utilisateur."""
     # Mocker directement la méthode get_user_stats pour éviter les problèmes de requêtes SQL
     with patch(
-        "app.services.user_service.UserService.get_user_stats"
+        "app.services.users.user_service.UserService.get_user_stats"
     ) as mock_get_stats:
         # Configurer le mock pour retourner des statistiques de test
         mock_stats = {
@@ -671,7 +674,7 @@ def test_get_user_stats_with_exception():
 
     # Configurer le mock pour simuler l'existence d'un utilisateur mais lever une exception dans query()
     with patch(
-        "app.services.user_service.UserService.get_user", return_value=mock_user
+        "app.services.users.user_service.UserService.get_user", return_value=mock_user
     ):
         mock_session.query.side_effect = SQLAlchemyError("Test exception")
 
@@ -688,7 +691,7 @@ def test_get_user_stats_empty_exercise_types(db_session):
     """Teste la récupération des statistiques d'un utilisateur sans statistiques d'exercices."""
     # Mocker directement la méthode get_user_stats pour éviter les problèmes de requêtes SQL
     with patch(
-        "app.services.user_service.UserService.get_user_stats"
+        "app.services.users.user_service.UserService.get_user_stats"
     ) as mock_get_stats:
         # Configurer le mock pour retourner des statistiques vides
         mock_stats = {
@@ -725,7 +728,7 @@ def test_get_user_stats_zero_division_handling(db_session):
     """Teste la gestion de la division par zéro dans le calcul des statistiques."""
     # Mocker directement la méthode get_user_stats pour éviter les problèmes de requêtes SQL
     with patch(
-        "app.services.user_service.UserService.get_user_stats"
+        "app.services.users.user_service.UserService.get_user_stats"
     ) as mock_get_stats:
         # Configurer le mock pour retourner des statistiques avec division par zéro gérée
         mock_stats = {
@@ -755,7 +758,7 @@ def test_get_user_stats_with_multiple_exercise_types(db_session):
     """Teste les statistiques avec plusieurs types d'exercices."""
     # Mock directement la méthode get_user_stats pour retourner des données de test
     with patch(
-        "app.services.user_service.UserService.get_user_stats"
+        "app.services.users.user_service.UserService.get_user_stats"
     ) as mock_get_stats:
         # Configurer le mock pour retourner des statistiques de test
         mock_stats = {
@@ -816,7 +819,7 @@ def test_transaction_manager_in_create_user():
 
     # Patch le TransactionManager.transaction pour intercepter l'appel
     with patch(
-        "app.services.user_service.TransactionManager.transaction",
+        "app.services.users.user_service.TransactionManager.transaction",
         return_value=MagicMock(
             __enter__=lambda self: mock_transaction_result,
             __exit__=lambda self, *args: None,
@@ -826,15 +829,15 @@ def test_transaction_manager_in_create_user():
         # Patch les méthodes utilisées à l'intérieur de create_user
         with (
             patch(
-                "app.services.user_service.UserService.get_user_by_username",
+                "app.services.users.user_service.UserService.get_user_by_username",
                 return_value=None,
             ),
             patch(
-                "app.services.user_service.UserService.get_user_by_email",
+                "app.services.users.user_service.UserService.get_user_by_email",
                 return_value=None,
             ),
             patch(
-                "app.services.user_service.DatabaseAdapter.create",
+                "app.services.users.user_service.DatabaseAdapter.create",
                 return_value=mock_user,
             ) as mock_create,
         ):
@@ -875,7 +878,9 @@ def test_update_user_with_invalid_data(db_session):
     db_session.commit()
 
     # Mock de DatabaseAdapter.update pour simuler un échec
-    with patch("app.services.user_service.DatabaseAdapter.update", return_value=False):
+    with patch(
+        "app.services.users.user_service.DatabaseAdapter.update", return_value=False
+    ):
         # Tenter de mettre à jour l'utilisateur avec des données invalides
         result = UserService.update_user(db_session, user.id, {"role": "invalid_role"})
 
@@ -986,7 +991,7 @@ def test_get_user_stats_with_empty_attempts(db_session):
     """Teste la récupération des statistiques d'un utilisateur sans aucune tentative."""
     # Mocker directement la méthode get_user_stats pour éviter les problèmes de requêtes SQL
     with patch(
-        "app.services.user_service.UserService.get_user_stats"
+        "app.services.users.user_service.UserService.get_user_stats"
     ) as mock_get_stats:
         # Configurer le mock pour retourner des statistiques vides
         mock_stats = {
@@ -1020,7 +1025,7 @@ def test_get_user_stats_with_specific_exercise_type(db_session):
     """Teste la récupération des statistiques utilisateur pour un type d'exercice spécifique en utilisant des mocks."""
     # Mocker directement la méthode get_user_stats pour éviter les problèmes de requêtes SQL
     with patch(
-        "app.services.user_service.UserService.get_user_stats"
+        "app.services.users.user_service.UserService.get_user_stats"
     ) as mock_get_stats:
         # Configurer le mock pour retourner des statistiques spécifiques
         mock_stats = {
@@ -1065,7 +1070,7 @@ def test_get_user_stats_error_handling(db_session):
     """Teste la gestion des erreurs pour get_user_stats avec une exception de requête."""
     # Mocker directement la méthode get_user_stats pour simuler une erreur
     with patch(
-        "app.services.user_service.UserService.get_user_stats"
+        "app.services.users.user_service.UserService.get_user_stats"
     ) as mock_get_stats:
         # Configurer le mock pour retourner un dictionnaire d'erreur
         mock_stats = {"stats_error": "Erreur lors de la récupération des statistiques"}
@@ -1083,7 +1088,7 @@ def test_get_user_stats_performance_by_difficulty(db_session):
     """Teste la récupération des statistiques d'un utilisateur avec performance par difficulté."""
     # Mocker directement la méthode get_user_stats pour éviter les problèmes de requêtes SQL
     with patch(
-        "app.services.user_service.UserService.get_user_stats"
+        "app.services.users.user_service.UserService.get_user_stats"
     ) as mock_get_stats:
         # Configurer le mock pour retourner des statistiques avec performance par difficulté
         mock_stats = {
@@ -1136,7 +1141,7 @@ def test_get_user_stats_with_complex_relations(db_session):
     """Teste les statistiques utilisateur avec des relations complexes entre exercices et tentatives."""
     # Mocker directement la méthode get_user_stats pour éviter les problèmes de requêtes SQL
     with patch(
-        "app.services.user_service.UserService.get_user_stats"
+        "app.services.users.user_service.UserService.get_user_stats"
     ) as mock_get_stats:
         # Configurer le mock pour retourner des statistiques complexes
         mock_stats = {

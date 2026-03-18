@@ -12,8 +12,8 @@ from starlette.responses import JSONResponse
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.schemas.badge import PinnedBadgesRequest
-from app.services.badge_application_service import BadgeApplicationService
-from app.services.badge_user_view_service import (
+from app.services.badges.badge_application_service import BadgeApplicationService
+from app.services.badges.badge_user_view_service import (
     AVAILABLE_BADGES_DEFAULT_LIMIT,
     AVAILABLE_BADGES_MAX_LIMIT,
 )

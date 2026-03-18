@@ -23,7 +23,7 @@ from app.models.exercise import DifficultyLevel, ExerciseType
 
 # Import différé pour éviter cycles
 # from server.exercise_generator_validators import normalize_exercise_type, normalize_age_group
-# from app.services.challenge_service import normalize_age_group_for_db, normalize_age_group_for_frontend
+# from app.services.challenges.challenge_service import normalize_age_group_for_db, normalize_age_group_for_frontend
 
 
 # -----------------------------------------------------------------------------
@@ -120,7 +120,7 @@ def age_group_challenge_from_api(value: Optional[str]):
     """
     if not value or not str(value).strip():
         return None
-    from app.services.challenge_service import normalize_age_group_for_db
+    from app.services.challenges.challenge_service import normalize_age_group_for_db
 
     return normalize_age_group_for_db(value)
 
@@ -129,6 +129,8 @@ def age_group_challenge_to_api(value) -> str:
     """AgeGroup enum → string API (6-8, 9-11, adulte, tous-ages)."""
     if value is None:
         return "tous-ages"
-    from app.services.challenge_service import normalize_age_group_for_frontend
+    from app.services.challenges.challenge_service import (
+        normalize_age_group_for_frontend,
+    )
 
     return normalize_age_group_for_frontend(value)

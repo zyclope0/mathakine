@@ -16,7 +16,7 @@ from app.core.runtime import run_db_bound
 from app.core.security import get_cookie_config
 from app.exceptions import UserNotFoundError
 from app.schemas.user import UserCreate, UserPasswordUpdate
-from app.services.user_application_service import (
+from app.services.users.user_application_service import (
     delete_user_account,
     export_user_data,
     get_challenges_progress_data,

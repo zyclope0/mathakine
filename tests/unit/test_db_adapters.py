@@ -13,8 +13,8 @@ from sqlalchemy.orm import Session
 
 from app.models.logic_challenge import AgeGroup, LogicChallenge, LogicChallengeType
 from app.models.user import User, UserRole
-from app.services.logic_challenge_service import LogicChallengeService
-from app.services.user_service import UserService
+from app.services.challenges.logic_challenge_service import LogicChallengeService
+from app.services.users.user_service import UserService
 from app.utils.db_helpers import get_enum_value
 
 

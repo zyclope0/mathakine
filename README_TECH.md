@@ -10,9 +10,10 @@
 - runtime/data boundary: `app.core.db_boundary` (run_db_bound, sync_db_session) — all services import via db_boundary (G4)
 - `app/api/endpoints/*` is archived and not part of the active runtime
 
-## Current Stability Baseline (post-G, 2026-03-18)
+## Current Stability Baseline (post-G, post–H1–H3, 2026-03-18)
 
-- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `950 passed, 2 skipped`
+Gate standard backend (`test_admin_auth_stability.py` exclu — test spécial non-bloquant) :
+- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `951 passed, 2 skipped`
 - `black app/ server/ tests/ --check` -> green
 - `isort app/ server/ tests/ --check-only --diff` -> green
 - `mypy app/ server/ --ignore-missing-imports` -> green
@@ -52,6 +53,11 @@
 - Redis runtime failures are fail-closed on the protected scope
 - challenge stream is now aligned on the same distributed backend limiter
 
+## Architecture Clean (Cible A + B — closed)
+
+- **Cible A** : `app/models/` and `app/schemas/` use explicit per-module imports; `all_models.py` and `all_schemas.py` have been removed (A1–A6).
+- **Cible B** : `app/services/` is organised by DDD domains (auth, users, badges, exercises, challenges, progress, admin, analytics, communication, core, diagnostic, feedback, recommendation). No business logic file remains at root. See `docs/00-REFERENCE/ARCHITECTURE.md` § app/services/.
+
 ## Iteration E + F + G Outcome
 
 The backend is now materially stronger on:
@@ -68,4 +74,4 @@ The backend is now materially stronger on:
 - other clusters in badge_requirement_engine (consecutive, max_time, etc.) not decomposed
 - admin mutation paths: put_challenge, other dense admin-content flows
 - global strict mypy remains out of scope
-- `app/services/enhanced_server_adapter.py` remains legacy compatibility
+- `app/services/core/enhanced_server_adapter.py` remains legacy compatibility

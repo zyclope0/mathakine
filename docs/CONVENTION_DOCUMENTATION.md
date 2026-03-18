@@ -139,7 +139,8 @@ L'accumulation de rapports historiques rend la maintenance difficile sans proces
 | Nombre de routes API | `server/routes/` (`get_routes()` dans `__init__.py`) | README, README_TECH, docs référençant ce nombre |
 | Versions frontend | `frontend/package.json` (react, @tanstack/react-query, next-intl, framer-motion) | README § Stack technique |
 | Versions backend | `requirements.txt` (openai, sqlalchemy, starlette) | README, README_TECH |
-| Modèles ORM | `app/models/all_models.py` | README § Structure (nombre d'entités) |
+| Modèles ORM | `app/models/` (modules individuels, `__init__.py` pour réexport) | README § Structure (nombre d'entités) |
+| Schémas Pydantic | `app/schemas/` (modules individuels, `__init__.py` pour réexport) | — |
 | Handlers | `server/handlers/` (fichiers .py) | README § Structure |
 
 ### Principe

@@ -16,27 +16,29 @@ from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.core.security import get_cookie_config
 from app.schemas.user import ResetPasswordRequest
-from app.services.auth_recovery_service import (
+from app.services.auth.auth_recovery_service import (
     AuthRecoveryError,
 )
-from app.services.auth_recovery_service import (
+from app.services.auth.auth_recovery_service import (
     perform_forgot_password as svc_perform_forgot_password,
 )
-from app.services.auth_recovery_service import (
+from app.services.auth.auth_recovery_service import (
     perform_resend_verification as svc_perform_resend_verification,
 )
-from app.services.auth_recovery_service import (
+from app.services.auth.auth_recovery_service import (
     perform_reset_password as svc_perform_reset_password,
 )
-from app.services.auth_recovery_service import (
+from app.services.auth.auth_recovery_service import (
     perform_verify_email as svc_perform_verify_email,
 )
-from app.services.auth_session_service import perform_login as svc_perform_login
-from app.services.auth_session_service import perform_refresh as svc_perform_refresh
-from app.services.auth_session_service import (
+from app.services.auth.auth_session_service import perform_login as svc_perform_login
+from app.services.auth.auth_session_service import (
+    perform_refresh as svc_perform_refresh,
+)
+from app.services.auth.auth_session_service import (
     recover_refresh_token_fallback as svc_recover_refresh_fallback,
 )
-from app.services.auth_session_service import (
+from app.services.auth.auth_session_service import (
     validate_access_token as svc_validate_access_token,
 )
 from app.utils.error_handler import api_error_response, capture_internal_error_response

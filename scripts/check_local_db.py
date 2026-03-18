@@ -91,7 +91,7 @@ def main():
 
         skip_seed = os.environ.get("SKIP_SEED", "").lower() in ("true", "1", "yes")
         if skip_seed:
-            from app.services.db_init_service import create_tables
+            from app.services.core.db_init_service import create_tables
 
             create_tables()
             print("   OK: Schéma à jour (sans seed - aligné CI)")

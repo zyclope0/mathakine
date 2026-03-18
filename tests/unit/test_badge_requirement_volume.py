@@ -7,11 +7,14 @@ Vérifie les checkers et progress getters du module badge_requirement_volume.
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.user import User, UserRole
-from app.services.badge_requirement_engine import (
+from app.services.badges.badge_requirement_engine import (
     check_requirements,
     get_requirement_progress,
 )
-from app.services.badge_requirement_volume import (
+from app.services.badges.badge_requirement_fallbacks import (
+    check_badge_requirements_by_code,
+)
+from app.services.badges.badge_requirement_volume import (
     check_attempts_count,
     check_logic_attempts_count,
     check_mixte,
@@ -292,3 +295,69 @@ class TestVolumeIntegration:
         assert tgt == 10
         assert cur == 0
         assert prog == 0.0
+
+    def test_fallback_expert_delegates_to_volume_success_rate(self, db_session):
+        """H3: Fallback expert délègue à check_success_rate (source unique)."""
+        user = User(
+            username=unique_username(),
+            email=unique_email(),
+            hashed_password="hash",
+            role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        )
+        db_session.add(user)
+        ex = Exercise(
+            title="Ex",
+            exercise_type=get_enum_value(
+                ExerciseType, ExerciseType.ADDITION.value, db_session
+            ),
+            difficulty=get_enum_value(
+                DifficultyLevel, DifficultyLevel.INITIE.value, db_session
+            ),
+            age_group="6-8",
+            question="1+1=?",
+            correct_answer="2",
+            is_active=True,
+        )
+        db_session.add(ex)
+        db_session.commit()
+        db_session.refresh(user)
+        db_session.refresh(ex)
+
+        # Objet minimal: check_badge_requirements_by_code utilise uniquement badge.code
+        badge = type("Badge", (), {"code": "expert"})()
+
+        # 50 tentatives, 42 correctes = 84% >= 80% (expert default)
+        for i in range(50):
+            db_session.add(
+                Attempt(
+                    user_id=user.id,
+                    exercise_id=ex.id,
+                    user_answer="2",
+                    is_correct=(i < 42),
+                )
+            )
+        db_session.commit()
+
+        assert (
+            check_badge_requirements_by_code(db_session, user.id, badge, {}, None)
+            is True
+        )
+
+        # 30 tentatives, 29 correctes = 96% mais < 50 min_attempts
+        db_session.query(Attempt).filter(Attempt.user_id == user.id).delete()
+        db_session.commit()
+        for i in range(30):
+            db_session.add(
+                Attempt(
+                    user_id=user.id,
+                    exercise_id=ex.id,
+                    user_answer="2",
+                    is_correct=(i < 29),
+                )
+            )
+        db_session.commit()
+
+        assert (
+            check_badge_requirements_by_code(db_session, user.id, badge, {}, None)
+            is False
+        )

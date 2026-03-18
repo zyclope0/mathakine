@@ -83,8 +83,8 @@ disable_error_code = [
 # B5.3 - Scope auth : durcissement progressif (auth_session, auth_recovery)
 [[tool.mypy.overrides]]
 module = [
-    "app.services.auth_session_service",
-    "app.services.auth_recovery_service",
+    "app.services.auth.auth_session_service",
+    "app.services.auth.auth_recovery_service",
 ]
 no_implicit_optional = true
 check_untyped_defs = true
@@ -125,10 +125,10 @@ disable_error_code = [
 # B5.6 - Small services : durcissement progressif (analytics, feedback, daily, diagnostic)
 [[tool.mypy.overrides]]
 module = [
-    "app.services.analytics_service",
-    "app.services.feedback_service",
-    "app.services.daily_challenge_service",
-    "app.services.diagnostic_service",
+    "app.services.analytics.analytics_service",
+    "app.services.feedback.feedback_service",
+    "app.services.progress.daily_challenge_service",
+    "app.services.diagnostic.diagnostic_service",
 ]
 no_implicit_optional = true
 check_untyped_defs = true

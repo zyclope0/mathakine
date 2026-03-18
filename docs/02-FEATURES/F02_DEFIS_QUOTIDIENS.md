@@ -103,7 +103,7 @@ La progression n'est **pas** mise à jour par le endpoint GET. Elle est déclenc
 | Rôle | Fichier |
 |------|---------|
 | Modèle | `app/models/daily_challenge.py` |
-| Service | `app/services/daily_challenge_service.py` |
+| Service | `app/services/progress/daily_challenge_service.py` |
 | Handlers | `server/handlers/daily_challenge_handlers.py` |
 | Routes | `server/routes/users.py` (déclaration) |
 | Migration | `migrations/versions/20260307_add_daily_challenges.py` |

@@ -16,7 +16,7 @@ from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.logic_challenge import LogicChallenge
 from app.models.user import User, UserRole
-from app.services.exercise_service import ExerciseService
+from app.services.exercises.exercise_service import ExerciseService
 from app.utils.db_helpers import adapt_enum_for_db, get_enum_value
 
 
@@ -574,7 +574,7 @@ def test_list_exercises_with_exception():
 
 
 @patch("app.utils.db_helpers.adapt_enum_for_db")
-@patch("app.services.exercise_service.DatabaseAdapter")
+@patch("app.services.exercises.exercise_service.DatabaseAdapter")
 def test_list_exercises_with_mock(mock_db_adapter, mock_adapt_enum):
     """
     Teste la liste des exercices avec des mocks pour éviter les problèmes
@@ -679,7 +679,7 @@ def test_record_attempt_with_exception():
 
 
 @patch("app.utils.db_helpers.adapt_enum_for_db")
-@patch("app.services.exercise_service.DatabaseAdapter.create")
+@patch("app.services.exercises.exercise_service.DatabaseAdapter.create")
 def test_create_exercise_with_mock(mock_db_create, mock_adapt_enum):
     """
     Teste la création d'un exercice avec des mocks pour éviter les problèmes
@@ -734,7 +734,7 @@ def test_create_exercise_with_mock(mock_db_create, mock_adapt_enum):
 
 
 @patch("app.utils.db_helpers.adapt_enum_for_db")
-@patch("app.services.exercise_service.ExerciseService.get_exercise")
+@patch("app.services.exercises.exercise_service.ExerciseService.get_exercise")
 def test_record_attempt_with_mock(mock_get_exercise, mock_adapt_enum):
     """
     Teste l'enregistrement d'une tentative avec des mocks pour éviter les problèmes
@@ -811,7 +811,7 @@ def test_record_attempt_with_mock(mock_get_exercise, mock_adapt_enum):
 
 def test_submit_answer_result_correct(db_session):
     """Test submit_answer avec réponse correcte (zone critique P2)."""
-    from app.services.exercise_attempt_service import submit_answer
+    from app.services.exercises.exercise_attempt_service import submit_answer
 
     unique_id = str(uuid.uuid4())[:8]
     user = User(
@@ -868,7 +868,7 @@ def test_submit_answer_result_correct(db_session):
 
 def test_submit_answer_result_incorrect(db_session):
     """Test submit_answer avec réponse incorrecte."""
-    from app.services.exercise_attempt_service import submit_answer
+    from app.services.exercises.exercise_attempt_service import submit_answer
 
     unique_id = str(uuid.uuid4())[:8]
     user = User(
@@ -924,7 +924,7 @@ def test_submit_answer_result_incorrect(db_session):
 def test_submit_answer_result_exercise_not_found(db_session):
     """Test submit_answer lève ExerciseSubmitError si exercice inexistant."""
     from app.exceptions import ExerciseSubmitError
-    from app.services.exercise_attempt_service import submit_answer
+    from app.services.exercises.exercise_attempt_service import submit_answer
 
     unique_id = str(uuid.uuid4())[:8]
     user = User(
@@ -948,7 +948,7 @@ def test_submit_answer_result_exercise_not_found(db_session):
 
 
 def test_submit_answer_result_uses_orchestrator_owned_transaction():
-    from app.services.exercise_attempt_service import submit_answer
+    from app.services.exercises.exercise_attempt_service import submit_answer
 
     mock_db = MagicMock()
     progress_savepoint = MagicMock()
@@ -976,23 +976,23 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
 
     with (
         patch(
-            "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
+            "app.services.exercises.exercise_attempt_service.get_exercise_for_submit_validation",
             return_value=exercise_payload,
         ),
         patch(
-            "app.services.exercise_attempt_service.create_attempt",
+            "app.services.exercises.exercise_attempt_service.create_attempt",
             return_value=mock_attempt,
         ) as create_attempt_mock,
         patch(
-            "app.services.exercise_attempt_service.update_progress_after_attempt",
+            "app.services.exercises.exercise_attempt_service.update_progress_after_attempt",
         ) as update_progress_mock,
         patch(
-            "app.services.badge_service.BadgeService",
+            "app.services.badges.badge_service.BadgeService",
             return_value=mock_badge_service,
         ) as badge_service_cls,
-        patch("app.services.streak_service.update_user_streak") as streak_mock,
+        patch("app.services.progress.streak_service.update_user_streak") as streak_mock,
         patch(
-            "app.services.daily_challenge_service.record_exercise_completed"
+            "app.services.progress.daily_challenge_service.record_exercise_completed"
         ) as daily_mock,
     ):
         result = submit_answer(
@@ -1029,7 +1029,7 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
 
 def test_submit_answer_progress_db_error_returns_result_anyway():
     """LOT 2.2: Erreur DB sur update_progress -> rollback savepoint, soumission réussit."""
-    from app.services.exercise_attempt_service import submit_answer
+    from app.services.exercises.exercise_attempt_service import submit_answer
 
     mock_db = MagicMock()
     progress_savepoint = MagicMock()
@@ -1057,23 +1057,25 @@ def test_submit_answer_progress_db_error_returns_result_anyway():
 
     with (
         patch(
-            "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
+            "app.services.exercises.exercise_attempt_service.get_exercise_for_submit_validation",
             return_value=exercise_payload,
         ),
         patch(
-            "app.services.exercise_attempt_service.create_attempt",
+            "app.services.exercises.exercise_attempt_service.create_attempt",
             return_value=mock_attempt,
         ),
         patch(
-            "app.services.exercise_attempt_service.update_progress_after_attempt",
+            "app.services.exercises.exercise_attempt_service.update_progress_after_attempt",
             side_effect=SQLAlchemyError("DB error on progress"),
         ) as update_progress_mock,
         patch(
-            "app.services.badge_service.BadgeService",
+            "app.services.badges.badge_service.BadgeService",
             return_value=mock_badge_service,
         ),
-        patch("app.services.streak_service.update_user_streak"),
-        patch("app.services.daily_challenge_service.record_exercise_completed"),
+        patch("app.services.progress.streak_service.update_user_streak"),
+        patch(
+            "app.services.progress.daily_challenge_service.record_exercise_completed"
+        ),
     ):
         result = submit_answer(
             mock_db,

@@ -1,4 +1,4 @@
-﻿# F05 â€” Adaptation dynamique de difficultÃ©
+# F05 â€” Adaptation dynamique de difficultÃ©
 
 > **RÃ©fÃ©rence technique** â€” Contexte complet pour dÃ©veloppeurs et prompts IA  
 > **Date :** 06/03/2026  
@@ -20,7 +20,7 @@ F05 dÃ©termine le niveau de difficultÃ© adaptÃ© Ã  chaque utilisateur et
 
 ## 2. Architecture â€” Cascade de rÃ©solution
 
-La difficultÃ© est rÃ©solue par **cascade de prioritÃ©s** dans `app/services/adaptive_difficulty_service.py` :
+La difficulté est résolue par **cascade de priorités** dans `app/services/exercises/adaptive_difficulty_service.py` :
 
 | PrioritÃ© | Source | Condition | Retourne |
 |----------|--------|-----------|----------|
@@ -98,8 +98,8 @@ Voir `_PREF_DIFFICULTY_TO_ORDINAL` dans `adaptive_difficulty_service.py`.
 ### Backend
 | Fichier | RÃ´le |
 |---------|------|
-| `app/services/adaptive_difficulty_service.py` | Cascade, `resolve_adaptive_difficulty()`, `resolve_irt_level()`, proxys |
-| `app/services/diagnostic_service.py` | `get_latest_score()`, format scores IRT |
+| `app/services/exercises/adaptive_difficulty_service.py` | Cascade, `resolve_adaptive_difficulty()`, `resolve_irt_level()`, proxys |
+| `app/services/diagnostic/diagnostic_service.py` | `get_latest_score()`, format scores IRT |
 | `server/handlers/exercise_handlers.py` | Branchement `?adaptive=true` (dÃ©faut), appelle `resolve_adaptive_difficulty` |
 | `app/utils/exercise_generator_helpers.py` | Distracteurs QCM calibres par niveau (source de verite) |
 | `app/models/diagnostic_result.py` | ModÃ¨le `DiagnosticResult` |

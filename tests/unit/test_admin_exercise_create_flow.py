@@ -2,7 +2,7 @@
 Tests unitaires pour le flux de création exercice admin (Lot G3).
 """
 
-from app.services.admin_exercise_create_flow import (
+from app.services.admin.admin_exercise_create_flow import (
     persist_exercise_create,
     prepare_exercise_create_data,
     validate_exercise_create_pre_persist,

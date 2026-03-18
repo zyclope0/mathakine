@@ -16,7 +16,7 @@ from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserUpdate
-from app.services.auth_service import (
+from app.services.auth.auth_service import (
     authenticate_user,
     authenticate_user_with_session,
     create_registered_user_with_verification,
@@ -327,7 +327,7 @@ def test_authenticate_user_exception_during_verification(db_session, mock_user):
     db_session.commit()
 
     # Simuler une exception pendant la vérification du mot de passe
-    with patch("app.services.auth_service.verify_password") as mock_verify:
+    with patch("app.services.auth.auth_service.verify_password") as mock_verify:
         mock_verify.side_effect = Exception("Test exception")
 
         # Tenter d'authentifier l'utilisateur
@@ -957,7 +957,7 @@ def test_refresh_access_token_generic_exception(db_session, mock_user):
 
     # Mocker jwt.decode pour qu'il lève une exception générique
     with patch(
-        "app.services.auth_service.jwt.decode",
+        "app.services.auth.auth_service.jwt.decode",
         side_effect=Exception("Test unexpected error"),
     ):
         result = refresh_access_token(db_session, refresh_token)

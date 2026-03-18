@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.services.exercise_stats_service import ExerciseStatsService
+from app.services.exercises.exercise_stats_service import ExerciseStatsService
 
 
 def test_get_exercises_stats_for_api_structure(db_session):

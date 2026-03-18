@@ -10,7 +10,7 @@ import pytest
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.user import User, UserRole
-from app.services.progress_timeline_service import (
+from app.services.progress.progress_timeline_service import (
     DEFAULT_PERIOD,
     VALID_PERIODS,
     get_progress_timeline,

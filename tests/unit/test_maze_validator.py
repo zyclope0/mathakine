@@ -5,7 +5,7 @@ Figent le comportement avant extraction depuis challenge_validator.
 
 import pytest
 
-from app.services.maze_validator import solve_maze_bfs, validate_maze_path
+from app.services.challenges.maze_validator import solve_maze_bfs, validate_maze_path
 
 
 class TestSolveMazeBfs:

@@ -4,7 +4,7 @@ Tests unitaires pour badge_requirement_validation (cluster E4).
 
 import pytest
 
-from app.services.badge_requirement_validation import validate_badge_requirements
+from app.services.badges.badge_requirement_validation import validate_badge_requirements
 
 
 class TestValidateBadgeRequirements:

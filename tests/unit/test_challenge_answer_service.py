@@ -9,7 +9,7 @@ Phase 3, item 3.1a — audit architecture 03/2026.
 
 import pytest
 
-from app.services.challenge_answer_service import (
+from app.services.challenges.challenge_answer_service import (
     check_answer,
     compare_chess,
     compare_deduction,

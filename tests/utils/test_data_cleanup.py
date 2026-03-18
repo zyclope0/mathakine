@@ -374,18 +374,33 @@ class TestDataManager:
                 logger.info(f"  ✅ Supprimé {result.rowcount} exercices")
 
             # 7. Nettoyer toutes les FK restantes des test users
-            #    (challenges/exercices crees par des test users mais sans titre "test")
+            #    ORDRE STRICT: enfants avant parents (Attempts, Recommendations, Progress
+            #    avant LogicChallenges/Exercises, avant Users)
             if test_data["users"]:
                 ids_str = ",".join(map(str, test_data["users"]))
 
-                # 7a. Challenge attempts sur challenges crees par test users
+                # 7a. Challenge attempts sur challenges crees par test users (enfant de logic_challenges)
                 self.db.execute(
                     text(
                         f"DELETE FROM logic_challenge_attempts WHERE challenge_id IN "
                         f"(SELECT id FROM logic_challenges WHERE creator_id IN ({ids_str}))"
                     )
                 )
-                # 7b. Challenges crees par test users
+                # 7.5 Catch-all: TOUS les logic_challenge_attempts des test users (enfant)
+                #    AVANT de toucher logic_challenges (parent)
+                self.db.execute(
+                    text(
+                        f"DELETE FROM logic_challenge_attempts WHERE user_id IN ({ids_str})"
+                    )
+                )
+                # 7a2. Recommendations pointant vers challenges des test users (enfant de logic_challenges)
+                self.db.execute(
+                    text(
+                        f"DELETE FROM recommendations WHERE challenge_id IN "
+                        f"(SELECT id FROM logic_challenges WHERE creator_id IN ({ids_str}))"
+                    )
+                )
+                # 7b. Challenges crees par test users (parent - enfants supprimes)
                 result = self.db.execute(
                     text(
                         f"DELETE FROM logic_challenges WHERE creator_id IN ({ids_str})"
@@ -393,27 +408,27 @@ class TestDataManager:
                 )
                 if result.rowcount:
                     deleted_counts["challenges_by_creator"] = result.rowcount
-                # 7c. Attempts sur exercices crees par test users
+                # 7c. Attempts sur exercices crees par test users (enfant de exercises)
                 self.db.execute(
                     text(
                         f"DELETE FROM attempts WHERE exercise_id IN "
                         f"(SELECT id FROM exercises WHERE creator_id IN ({ids_str}))"
                     )
                 )
-                # 7d. Recommendations sur exercices crees par test users
+                # 7d. Recommendations sur exercices crees par test users (enfant de exercises)
                 self.db.execute(
                     text(
                         f"DELETE FROM recommendations WHERE exercise_id IN "
                         f"(SELECT id FROM exercises WHERE creator_id IN ({ids_str}))"
                     )
                 )
-                # 7e. Exercices crees par test users
+                # 7e. Exercices crees par test users (parent - enfants supprimes)
                 result = self.db.execute(
                     text(f"DELETE FROM exercises WHERE creator_id IN ({ids_str})")
                 )
                 if result.rowcount:
                     deleted_counts["exercises_by_creator"] = result.rowcount
-                # 7f. User achievements, sessions, notifications
+                # 7f. User achievements, sessions, notifications (enfants de users)
                 self.db.execute(
                     text(f"DELETE FROM user_achievements WHERE user_id IN ({ids_str})")
                 )
@@ -422,17 +437,6 @@ class TestDataManager:
                 )
                 self.db.execute(
                     text(f"DELETE FROM notifications WHERE user_id IN ({ids_str})")
-                )
-
-            # 7.5 Sécurité FK: supprimer TOUS les logic_challenge_attempts des users test
-            #    avant de toucher aux users (évite FK logic_challenge_attempts.user_id -> users.id).
-            #    Catch-all au cas où identify_test_data ait manqué des lignes.
-            if test_data["users"]:
-                ids_str = ",".join(map(str, test_data["users"]))
-                self.db.execute(
-                    text(
-                        f"DELETE FROM logic_challenge_attempts WHERE user_id IN ({ids_str})"
-                    )
                 )
 
             # 7.6 admin_audit_logs: annuler les refs vers users test avant DELETE users

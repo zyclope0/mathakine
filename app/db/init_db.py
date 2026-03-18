@@ -2,9 +2,23 @@ from app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-# Importer les modèles pour assurer qu'ils sont enregistrés par SQLAlchemy
-import app.models.all_models  # noqa: F401
-from app.services.db_init_service import create_tables, populate_test_data
+# Importer les modèles pour assurer qu'ils sont enregistrés par SQLAlchemy (Base.metadata.create_all)
+import app.models.achievement  # noqa: F401
+import app.models.admin_audit_log  # noqa: F401
+import app.models.attempt  # noqa: F401
+import app.models.daily_challenge  # noqa: F401
+import app.models.diagnostic_result  # noqa: F401
+import app.models.edtech_event  # noqa: F401
+import app.models.exercise  # noqa: F401
+import app.models.feedback_report  # noqa: F401
+import app.models.logic_challenge  # noqa: F401
+import app.models.notification  # noqa: F401
+import app.models.progress  # noqa: F401
+import app.models.recommendation  # noqa: F401
+import app.models.setting  # noqa: F401
+import app.models.user  # noqa: F401
+import app.models.user_session  # noqa: F401
+from app.services.core.db_init_service import create_tables, populate_test_data
 
 
 def create_tables_with_test_data():

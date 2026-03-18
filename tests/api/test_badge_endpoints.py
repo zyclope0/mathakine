@@ -55,7 +55,7 @@ async def test_get_badges_available_limit_clamped_max(client):
 
 def test_available_badges_max_limit_constant():
     """D5b: borne max serveur explicite (200)."""
-    from app.services.badge_user_view_service import (
+    from app.services.badges.badge_user_view_service import (
         AVAILABLE_BADGES_DEFAULT_LIMIT,
         AVAILABLE_BADGES_MAX_LIMIT,
     )
@@ -66,7 +66,7 @@ def test_available_badges_max_limit_constant():
 
 def test_available_badges_effective_limit_clamped():
     """D5b: limit=9999 → effective_limit=200 (clamp déterministe)."""
-    from app.services.badge_user_view_service import AVAILABLE_BADGES_MAX_LIMIT
+    from app.services.badges.badge_user_view_service import AVAILABLE_BADGES_MAX_LIMIT
 
     effective = min(AVAILABLE_BADGES_MAX_LIMIT, max(1, 9999))
     assert effective == 200

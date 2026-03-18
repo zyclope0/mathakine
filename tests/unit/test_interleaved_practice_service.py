@@ -11,7 +11,7 @@ from app.exceptions import InterleavedNotEnoughVariety
 from app.models.attempt import Attempt
 from app.models.exercise import Exercise, ExerciseType
 from app.models.user import User, UserRole
-from app.services.interleaved_practice_service import get_interleaved_plan
+from app.services.exercises.interleaved_practice_service import get_interleaved_plan
 
 
 def _create_user(db):

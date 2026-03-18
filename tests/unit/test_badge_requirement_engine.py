@@ -8,7 +8,7 @@ from sqlalchemy import text
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
 from app.models.user import User, UserRole
-from app.services.badge_requirement_engine import (
+from app.services.badges.badge_requirement_engine import (
     check_requirements,
     detect_requirement_type,
     get_requirement_progress,

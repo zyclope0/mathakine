@@ -161,7 +161,7 @@ async def test_generate_exercise_save_fails_returns_500(padawan_client):
 
     client = padawan_client["client"]
     with patch(
-        "app.services.exercise_generation_service.ExerciseRepository.persist_generated_exercise",
+        "app.services.exercises.exercise_generation_service.ExerciseRepository.persist_generated_exercise",
         return_value=None,
     ):
         response = await client.post(
@@ -177,7 +177,7 @@ async def test_generate_exercise_save_exception_returns_500(padawan_client):
 
     client = padawan_client["client"]
     with patch(
-        "app.services.exercise_generation_service.ExerciseRepository.persist_generated_exercise",
+        "app.services.exercises.exercise_generation_service.ExerciseRepository.persist_generated_exercise",
         side_effect=Exception("DB error"),
     ):
         response = await client.post(

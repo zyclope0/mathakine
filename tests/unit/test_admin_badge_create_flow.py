@@ -3,7 +3,7 @@ Tests unitaires pour le flux de création badge admin (Lot F3).
 """
 
 from app.models.achievement import Achievement
-from app.services.admin_badge_create_flow import (
+from app.services.admin.admin_badge_create_flow import (
     persist_badge_create,
     prepare_badge_create_data,
     validate_badge_create_pre_persist,

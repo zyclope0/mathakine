@@ -5,7 +5,7 @@ Valident les analyzers de patterns et sequences utilises par la validation des c
 
 import pytest
 
-from app.services.challenge_validation_analysis import (
+from app.services.challenges.challenge_validation_analysis import (
     analyze_latin_square_pattern,
     analyze_pattern,
     analyze_sequence,

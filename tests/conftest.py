@@ -66,7 +66,12 @@ from sqlalchemy.orm import Session, sessionmaker
 # Ajouter le repertoire racine au path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from sqlalchemy.orm import configure_mappers
+
 # App imports (apres TESTING=true)
+import app.models  # noqa: F401 — force l'enregistrement Base.metadata avant tout accès DB
+
+configure_mappers()  # Force la résolution des relations immédiatement (évite deadlock async)
 from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash
 from app.db.base import Base, engine
@@ -239,9 +244,12 @@ def _get_session_engine():
 
 @pytest.fixture
 def db_session():
-    """Session DB avec rollback automatique et isolation complete."""
-    session_engine = _get_session_engine()
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=session_engine)
+    """Session DB standard — vrais commits pour que les handlers HTTP (autre connexion) voient les données.
+
+    auto_cleanup_test_data nettoie les tables après chaque test.
+    """
+    engine = _get_session_engine()
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = SessionLocal()
 
     try:
@@ -254,15 +262,9 @@ def db_session():
         raise
     finally:
         try:
-            if session.is_active:
-                session.rollback()
+            session.close()
         except Exception:
             pass
-        finally:
-            try:
-                session.close()
-            except Exception:
-                pass
 
 
 # ================================================================

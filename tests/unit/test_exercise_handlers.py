@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.services.exercise_generation_service import (
+from app.services.exercises.exercise_generation_service import (
     AgeGroupRequiredError,
     generate_exercise_sync,
 )
@@ -21,7 +21,7 @@ from app.services.exercise_generation_service import (
 def test_generate_exercise_sync_adaptive_false_uses_provided_age_group():
     """adaptive=False → utilise age_group fourni, pas de résolution DB."""
     with patch(
-        "app.services.exercise_generation_service.generate_simple_exercise",
+        "app.services.exercises.exercise_generation_service.generate_simple_exercise",
         return_value={
             "title": "Test",
             "exercise_type": "ADDITION",
@@ -90,15 +90,15 @@ def test_generate_exercise_sync_adaptive_success_resolves_age_group():
 
     with (
         patch(
-            "app.services.exercise_generation_service.sync_db_session",
+            "app.services.exercises.exercise_generation_service.sync_db_session",
             new=_mock_sync_db_session_with_user,
         ),
         patch(
-            "app.services.exercise_generation_service.resolve_adaptive_difficulty",
+            "app.services.exercises.exercise_generation_service.resolve_adaptive_difficulty",
             return_value="9-11",
         ),
         patch(
-            "app.services.exercise_generation_service.generate_simple_exercise",
+            "app.services.exercises.exercise_generation_service.generate_simple_exercise",
             return_value=mock_exercise,
         ),
     ):
@@ -134,15 +134,15 @@ def test_generate_exercise_sync_adaptive_exception_fallback_to_raw():
 
     with (
         patch(
-            "app.services.exercise_generation_service.sync_db_session",
+            "app.services.exercises.exercise_generation_service.sync_db_session",
             new=_mock_sync_db_session_with_user,
         ),
         patch(
-            "app.services.exercise_generation_service.resolve_adaptive_difficulty",
+            "app.services.exercises.exercise_generation_service.resolve_adaptive_difficulty",
             side_effect=RuntimeError("DB error"),
         ),
         patch(
-            "app.services.exercise_generation_service.generate_simple_exercise",
+            "app.services.exercises.exercise_generation_service.generate_simple_exercise",
             return_value=mock_exercise,
         ),
     ):
@@ -173,7 +173,7 @@ def test_generate_exercise_sync_exercise_type_raw_none_fallback_to_addition():
     }
 
     with patch(
-        "app.services.exercise_generation_service.generate_simple_exercise",
+        "app.services.exercises.exercise_generation_service.generate_simple_exercise",
         return_value=mock_exercise,
     ):
         result = generate_exercise_sync(

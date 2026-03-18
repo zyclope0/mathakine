@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.services.chat_service import (
+from app.services.communication.chat_service import (
     build_chat_config,
     build_system_prompt,
     cleanup_markdown_images,

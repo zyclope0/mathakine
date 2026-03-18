@@ -15,18 +15,18 @@ from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.exceptions import ChallengeAttemptRecordError, ChallengeNotFoundError
 from app.schemas.logic_challenge import ChallengeAttemptRequest
-from app.services.challenge_attempt_service import submit_challenge_attempt
-from app.services.challenge_query_service import (
+from app.services.challenges.challenge_attempt_service import submit_challenge_attempt
+from app.services.challenges.challenge_query_service import (
     get_challenge_detail_for_api,
     get_challenge_hint_for_api,
 )
-from app.services.challenge_query_service import (
+from app.services.challenges.challenge_query_service import (
     get_completed_challenges_ids as query_completed_challenges_ids,
 )
-from app.services.challenge_query_service import (
+from app.services.challenges.challenge_query_service import (
     list_challenges_for_api,
 )
-from app.services.challenge_stream_service import prepare_stream_context
+from app.services.challenges.challenge_stream_service import prepare_stream_context
 from app.utils.error_handler import (
     ErrorHandler,
     api_error_response,
@@ -264,7 +264,7 @@ async def generate_ai_challenge_stream(request: Request) -> Response:
     Genere un challenge avec OpenAI en streaming SSE.
     Handler fin : lecture request, preparation via challenge_stream_service, StreamingResponse.
     """
-    from app.services.challenge_ai_service import (
+    from app.services.challenges.challenge_ai_service import (
         generate_challenge_stream as svc_generate_stream,
     )
     from app.utils.sse_utils import SSE_HEADERS, sse_error_response

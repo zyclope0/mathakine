@@ -20,9 +20,10 @@ Four lots extending iteration F discipline without reopening F:
 
 - **G2** : Suppression du code mort `_progress_success_rate` resté dans `badge_requirement_engine.py` (PROGRESS_GETTERS utilisait déjà `progress_success_rate` depuis volume).
 
-## Final Verified Baseline
+## Final Verified Baseline (archive)
 
-- full suite (excl. test_admin_auth_stability): `952 passed, 2 skipped`
+- baseline active post–H1–H3: `951 passed, 2 skipped` (gate standard, excl. test_admin_auth_stability)
+- voir [POINTS_RESTANTS](../../POINTS_RESTANTS_2026-03-15.md), [README_TECH](../../../README_TECH.md) pour la vérité documentaire courante
 - black, isort, mypy, flake8: green
 - backend CI coverage gate: `63 %`
 

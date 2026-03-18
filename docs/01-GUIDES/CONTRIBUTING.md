@@ -1,4 +1,4 @@
-﻿# CONTRIBUTING GUIDE - MATHAKINE
+# CONTRIBUTING GUIDE - MATHAKINE
 
 > Mise a jour : 13/03/2026
 > Audience : contributeurs code et documentation
@@ -49,7 +49,25 @@ git checkout -b feature/nom-court
 
 ### 2. Developper
 
-Regles backend:
+#### Ajouter un nouveau modele (app/models/)
+
+Depuis le désamorçage (Architecture Clean A1–A5, Cible A terminée), l'énumération des modèles est explicite. Lors de l'ajout d'un **nouveau fichier** dans `app/models/` :
+
+1. Creer `app/models/<nom>.py` avec le modele SQLAlchemy
+2. Ajouter l'import dans `migrations/env.py` (pour Alembic autogenerate)
+3. Ajouter `import app.models.<nom>  # noqa: F401` dans `app/db/init_db.py`
+4. Ajouter au `__all__` et imports de `app/models/__init__.py` si reexport requis
+
+#### Ajouter un nouveau schema (app/schemas/)
+
+Depuis le désamorçage (Architecture Clean A4–A5), les schémas utilisent des imports directs. Lors de l'ajout d'un **nouveau fichier** dans `app/schemas/` :
+
+1. Creer `app/schemas/<nom>.py` avec les schemas Pydantic
+2. Ajouter les imports et le `__all__` dans `app/schemas/__init__.py` si reexport requis
+
+Reference : [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](../03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md)
+
+#### Regles backend
 - handler `async`
 - service / facade / repository `sync`
 - body JSON valide par schema Pydantic

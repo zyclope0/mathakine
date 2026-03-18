@@ -10,7 +10,7 @@ from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
-from app.services.analytics_service import record_edtech_event_sync
+from app.services.analytics.analytics_service import record_edtech_event_sync
 from app.utils.error_handler import api_error_response, capture_internal_error_response
 from app.utils.pagination import parse_pagination_params
 from app.utils.request_utils import parse_json_body_any
@@ -68,7 +68,7 @@ async def analytics_event(request: Request) -> JSONResponse:
 
 # --- Admin : consultation des analytics EdTech ---
 
-from app.services.admin_read_service import get_edtech_analytics_for_admin
+from app.services.admin.admin_read_service import get_edtech_analytics_for_admin
 from server.auth import require_admin
 
 

@@ -11,7 +11,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.models.exercise import ExerciseType
-from app.services.exercise_attempt_service import submit_answer as svc_submit_answer
+from app.services.exercises.exercise_attempt_service import (
+    submit_answer as svc_submit_answer,
+)
 
 
 def _exercise_dict(correct_answer, exercise_type="ADDITION", explanation=""):
@@ -48,19 +50,23 @@ def _run_submit(exercise_type, correct_answer, selected_answer, expected_result)
 
     with (
         patch(
-            "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
+            "app.services.exercises.exercise_attempt_service.get_exercise_for_submit_validation",
             return_value=ex_dict,
         ),
         patch(
-            "app.services.exercise_attempt_service.create_attempt",
+            "app.services.exercises.exercise_attempt_service.create_attempt",
             return_value=mock_attempt,
         ),
-        patch("app.services.exercise_attempt_service.update_progress_after_attempt"),
         patch(
-            "app.services.badge_service.BadgeService",
+            "app.services.exercises.exercise_attempt_service.update_progress_after_attempt"
+        ),
+        patch(
+            "app.services.badges.badge_service.BadgeService",
         ) as BadgeCls,
-        patch("app.services.streak_service.update_user_streak"),
-        patch("app.services.daily_challenge_service.record_exercise_completed"),
+        patch("app.services.progress.streak_service.update_user_streak"),
+        patch(
+            "app.services.progress.daily_challenge_service.record_exercise_completed"
+        ),
     ):
         badge_inst = MagicMock()
         badge_inst.check_and_award_badges.return_value = []

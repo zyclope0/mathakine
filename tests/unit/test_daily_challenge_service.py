@@ -4,7 +4,7 @@ from unittest.mock import patch
 from app.core.security import get_password_hash
 from app.models.daily_challenge import DailyChallenge
 from app.models.user import User, UserRole
-from app.services.daily_challenge_service import (
+from app.services.progress.daily_challenge_service import (
     CHALLENGE_TYPE_LOGIC,
     CHALLENGE_TYPE_SPECIFIC,
     CHALLENGE_TYPE_VOLUME,

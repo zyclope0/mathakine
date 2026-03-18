@@ -18,7 +18,7 @@ mathakine/
 ├── app/                     # Logique métier (indépendant HTTP)
 │   ├── core/                # config, security, logging_config, monitoring, ai_config
 │   ├── db/                  # base, init_db, queries, adapter, transaction
-│   ├── models/              # SQLAlchemy (all_models, legacy_tables, etc.)
+│   ├── models/              # SQLAlchemy (modules explicites, legacy_tables, __init__.py réexport)
 │   ├── services/            # badge_service, badge_requirement_engine, exercise_service...
 │   └── utils/               # rate_limit.py, rate_limiter.py, request_utils
 ├── server/                  # Couche HTTP

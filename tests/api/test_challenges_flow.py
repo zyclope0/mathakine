@@ -99,7 +99,7 @@ def test_challenge_service_integration(db_session):
 
     from app.models.logic_challenge import AgeGroup, LogicChallengeType
     from app.models.user import User
-    from app.services.challenge_service import (
+    from app.services.challenges.challenge_service import (
         create_challenge,
         delete_challenge,
         get_challenge,

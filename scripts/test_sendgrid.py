@@ -43,7 +43,7 @@ try:
     from sendgrid import SendGridAPIClient
     from sendgrid.helpers.mail import Mail
 
-    from app.services.email_service import EmailService
+    from app.services.communication.email_service import EmailService
 
     if template:
         token = "test_token_preview_123"

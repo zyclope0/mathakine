@@ -11,8 +11,8 @@ from starlette.responses import JSONResponse, Response, StreamingResponse
 
 from app.core.runtime import run_db_bound
 from app.schemas.admin import AdminError
-from app.services.admin_application_service import AdminApplicationService
-from app.services.admin_read_service import (
+from app.services.admin.admin_application_service import AdminApplicationService
+from app.services.admin.admin_read_service import (
     get_audit_log_for_api,
     get_badge_for_admin,
     get_challenge_for_admin,

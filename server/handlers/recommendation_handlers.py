@@ -7,7 +7,7 @@ from starlette.responses import JSONResponse
 
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
-from app.services.recommendation_service import (
+from app.services.recommendation.recommendation_service import (
     generate_recommendations_sync,
     get_recommendations_for_api_sync,
     mark_recommendation_as_completed_sync,

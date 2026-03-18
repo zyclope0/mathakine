@@ -27,19 +27,19 @@ from app.schemas.exercise import (
     InterleavedPlanQuery,
     SubmitAnswerRequest,
 )
-from app.services.exercise_attempt_service import submit_answer_sync
-from app.services.exercise_generation_service import (
+from app.services.exercises.exercise_attempt_service import submit_answer_sync
+from app.services.exercises.exercise_generation_service import (
     AgeGroupRequiredError,
     generate_exercise_sync,
 )
-from app.services.exercise_query_service import (
+from app.services.exercises.exercise_query_service import (
     get_completed_exercise_ids_sync,
     get_exercise_for_api_sync,
     get_exercises_list_for_api_sync,
     get_exercises_stats_for_api_sync,
     get_interleaved_plan_for_api_sync,
 )
-from app.services.exercise_stream_service import prepare_stream_context
+from app.services.exercises.exercise_stream_service import prepare_stream_context
 from app.utils.error_handler import ErrorHandler, api_error_response
 from app.utils.request_utils import parse_json_body_any
 from app.utils.translation import parse_accept_language
@@ -317,7 +317,7 @@ async def generate_ai_exercise_stream(request: Request) -> Response:
     Délègue la préparation au service exercise_stream_service.
     """
     try:
-        from app.services.exercise_ai_service import (
+        from app.services.exercises.exercise_ai_service import (
             generate_exercise_stream as svc_generate_stream,
         )
         from app.utils.sse_utils import SSE_HEADERS, sse_error_response

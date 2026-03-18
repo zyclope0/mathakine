@@ -15,7 +15,9 @@ import pytest
 
 from app.exceptions import ExerciseNotFoundError
 from app.models.user import UserRole
-from app.services.exercise_attempt_service import submit_answer as svc_submit_answer
+from app.services.exercises.exercise_attempt_service import (
+    submit_answer as svc_submit_answer,
+)
 from app.utils.db_helpers import get_enum_value
 from server.handlers.exercise_handlers import submit_answer
 from tests.unit.test_utils import create_mock_request
@@ -95,19 +97,23 @@ def test_service_submit_correct_answer(db_session):
 
     with (
         patch(
-            "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
+            "app.services.exercises.exercise_attempt_service.get_exercise_for_submit_validation",
             return_value=ex_dict,
         ),
         patch(
-            "app.services.exercise_attempt_service.create_attempt",
+            "app.services.exercises.exercise_attempt_service.create_attempt",
             return_value=mock_attempt,
         ),
-        patch("app.services.exercise_attempt_service.update_progress_after_attempt"),
         patch(
-            "app.services.badge_service.BadgeService",
+            "app.services.exercises.exercise_attempt_service.update_progress_after_attempt"
+        ),
+        patch(
+            "app.services.badges.badge_service.BadgeService",
         ) as BadgeCls,
-        patch("app.services.streak_service.update_user_streak"),
-        patch("app.services.daily_challenge_service.record_exercise_completed"),
+        patch("app.services.progress.streak_service.update_user_streak"),
+        patch(
+            "app.services.progress.daily_challenge_service.record_exercise_completed"
+        ),
     ):
         badge_inst = MagicMock()
         badge_inst.check_and_award_badges.return_value = []
@@ -136,19 +142,23 @@ def test_service_submit_incorrect_answer(db_session):
 
     with (
         patch(
-            "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
+            "app.services.exercises.exercise_attempt_service.get_exercise_for_submit_validation",
             return_value=ex_dict,
         ),
         patch(
-            "app.services.exercise_attempt_service.create_attempt",
+            "app.services.exercises.exercise_attempt_service.create_attempt",
             return_value=mock_attempt,
         ),
-        patch("app.services.exercise_attempt_service.update_progress_after_attempt"),
         patch(
-            "app.services.badge_service.BadgeService",
+            "app.services.exercises.exercise_attempt_service.update_progress_after_attempt"
+        ),
+        patch(
+            "app.services.badges.badge_service.BadgeService",
         ) as BadgeCls,
-        patch("app.services.streak_service.update_user_streak"),
-        patch("app.services.daily_challenge_service.record_exercise_completed"),
+        patch("app.services.progress.streak_service.update_user_streak"),
+        patch(
+            "app.services.progress.daily_challenge_service.record_exercise_completed"
+        ),
     ):
         badge_inst = MagicMock()
         badge_inst.check_and_award_badges.return_value = []
@@ -170,7 +180,7 @@ def test_service_submit_incorrect_answer(db_session):
 def test_service_submit_exercise_not_found(db_session):
     """Service : exercice inexistant -> ExerciseNotFoundError."""
     with patch(
-        "app.services.exercise_attempt_service.get_exercise_for_submit_validation",
+        "app.services.exercises.exercise_attempt_service.get_exercise_for_submit_validation",
         return_value=None,
     ):
         with pytest.raises(ExerciseNotFoundError):

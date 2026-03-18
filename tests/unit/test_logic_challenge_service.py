@@ -22,7 +22,7 @@ from app.models.logic_challenge import (
 )
 from app.models.user import User, UserRole
 from app.schemas.logic_challenge import LogicChallengeCreate, LogicChallengeUpdate
-from app.services.logic_challenge_service import LogicChallengeService
+from app.services.challenges.logic_challenge_service import LogicChallengeService
 from app.utils.db_helpers import get_enum_value
 
 
@@ -208,7 +208,7 @@ def test_list_challenges_with_empty_db(db_session):
     """Teste la liste des défis avec une base de données vide."""
     # Utiliser un mock pour éviter les violations de clés étrangères
     with patch(
-        "app.services.logic_challenge_service.LogicChallengeService.list_challenges"
+        "app.services.challenges.logic_challenge_service.LogicChallengeService.list_challenges"
     ) as mock_list_challenges:
         # Configurer le mock pour retourner une liste vide (base de données vide)
         mock_list_challenges.return_value = []
@@ -803,7 +803,7 @@ def test_record_attempt_with_exception():
 
     # Configurer pour simuler l'existence d'un défi
     with patch(
-        "app.services.logic_challenge_service.LogicChallengeService.get_challenge",
+        "app.services.challenges.logic_challenge_service.LogicChallengeService.get_challenge",
         return_value=MagicMock(),
     ):
         # Configurer pour que l'ajout à la session lève une exception
@@ -811,7 +811,7 @@ def test_record_attempt_with_exception():
 
         # Configurer le mock pour TransactionManager.transaction
         with patch(
-            "app.services.logic_challenge_service.TransactionManager.transaction",
+            "app.services.challenges.logic_challenge_service.TransactionManager.transaction",
             return_value=mock_transaction,
         ):
             # Appeler la méthode
@@ -1011,8 +1011,8 @@ def test_update_challenge_with_complex_data(db_session):
     assert updated_challenge.generation_parameters["theme"] == "advanced"
 
 
-@patch("app.services.logic_challenge_service.adapt_enum_for_db")
-@patch("app.services.logic_challenge_service.DatabaseAdapter")
+@patch("app.services.challenges.logic_challenge_service.adapt_enum_for_db")
+@patch("app.services.challenges.logic_challenge_service.DatabaseAdapter")
 def test_list_challenges_with_mock(mock_db_adapter, mock_adapt_enum):
     """
     Teste la liste des défis avec des mocks pour éviter les problèmes de compatibilité
@@ -1130,7 +1130,7 @@ def test_list_challenges_with_mock(mock_db_adapter, mock_adapt_enum):
     assert len(result_with_multiple_filters) == 0
 
 
-@patch("app.services.logic_challenge_service.DatabaseAdapter")
+@patch("app.services.challenges.logic_challenge_service.DatabaseAdapter")
 def test_create_challenge_with_mock(mock_db_adapter):
     """
     Teste la création d'un défi avec des mocks pour éviter les problèmes
@@ -1188,7 +1188,9 @@ def test_create_challenge_with_mock(mock_db_adapter):
     assert result.age_group == "GROUP_10_12"
 
 
-@patch("app.services.logic_challenge_service.LogicChallengeService.get_challenge")
+@patch(
+    "app.services.challenges.logic_challenge_service.LogicChallengeService.get_challenge"
+)
 def test_record_attempt_with_mock(mock_get_challenge):
     """
     Teste l'enregistrement d'une tentative de défi avec des mocks pour éviter
@@ -1216,7 +1218,7 @@ def test_record_attempt_with_mock(mock_get_challenge):
 
     # ✅ CORRECTION : Mock du constructeur LogicChallengeAttempt
     with patch(
-        "app.services.logic_challenge_service.LogicChallengeAttempt"
+        "app.services.challenges.logic_challenge_service.LogicChallengeAttempt"
     ) as mock_attempt_class:
         mock_attempt_class.return_value = mock_attempt
 
@@ -1287,16 +1289,16 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
             return_value=mock_attempt,
         ) as record_attempt_mock,
         patch(
-            "app.services.challenge_answer_service.check_answer",
+            "app.services.challenges.challenge_attempt_service.check_answer",
             return_value=True,
         ),
         patch(
-            "app.services.badge_service.BadgeService",
+            "app.services.badges.badge_service.BadgeService",
             return_value=mock_badge_service,
         ) as badge_service_cls,
-        patch("app.services.streak_service.update_user_streak") as streak_mock,
+        patch("app.services.progress.streak_service.update_user_streak") as streak_mock,
         patch(
-            "app.services.daily_challenge_service.record_logic_challenge_completed"
+            "app.services.progress.daily_challenge_service.record_logic_challenge_completed"
         ) as daily_mock,
     ):
         result = LogicChallengeService.submit_answer_result(

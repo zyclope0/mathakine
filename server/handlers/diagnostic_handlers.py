@@ -20,7 +20,7 @@ from typing import Any, Dict, Optional, Union
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-import app.services.diagnostic_service as diagnostic_svc
+import app.services.diagnostic.diagnostic_service as diagnostic_svc
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.utils.request_utils import read_body_with_limit

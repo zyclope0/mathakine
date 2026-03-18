@@ -10,7 +10,7 @@ import pytest
 
 from app.core.security import get_password_hash, verify_password
 from app.models.user import User, UserRole
-from app.services.auth_service import create_session
+from app.services.auth.auth_service import create_session
 from app.utils.db_helpers import get_enum_value
 from tests.utils.test_helpers import verify_user_email_for_tests
 

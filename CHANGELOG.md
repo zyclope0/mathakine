@@ -68,7 +68,7 @@ Active references:
 - Small silent fallbacks were made explicit and more observable on the treated scope.
 
 ### Notes
-- Current verified backend reference baseline: `950 passed, 2 skipped`
+- Current verified backend gate standard: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `951 passed, 2 skipped`
 - Current measured local coverage on `app` + `server`: `71 %`
 - Current backend CI coverage gate: `63 %`
 - Detailed historical lot documents remain archived for traceability only.

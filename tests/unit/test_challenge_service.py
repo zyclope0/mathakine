@@ -47,7 +47,7 @@ def sample_challenges(db_session):
 
 def test_list_challenges_order_recent(db_session, sample_challenges):
     """list_challenges avec order=recent retourne les plus récents en premier."""
-    from app.services.challenge_service import list_challenges
+    from app.services.challenges.challenge_service import list_challenges
 
     result = list_challenges(
         db_session,
@@ -63,7 +63,7 @@ def test_list_challenges_order_recent(db_session, sample_challenges):
 
 def test_list_challenges_order_random_with_total(db_session, sample_challenges):
     """list_challenges avec order=random et total utilise random_offset."""
-    from app.services.challenge_service import list_challenges
+    from app.services.challenges.challenge_service import list_challenges
 
     total = len(sample_challenges) + 5
     result = list_challenges(
@@ -79,7 +79,7 @@ def test_list_challenges_order_random_with_total(db_session, sample_challenges):
 
 def test_list_challenges_order_random_without_total(db_session, sample_challenges):
     """list_challenges avec order=random sans total utilise func.random fallback."""
-    from app.services.challenge_service import list_challenges
+    from app.services.challenges.challenge_service import list_challenges
 
     result = list_challenges(
         db_session,
@@ -97,7 +97,7 @@ def test_list_challenges_order_random_without_total(db_session, sample_challenge
 
 def test_prepare_challenge_data_normalizes_age_group():
     """_prepare_challenge_data normalise age_group et applique les défauts."""
-    from app.services.challenge_service import _prepare_challenge_data
+    from app.services.challenges.challenge_service import _prepare_challenge_data
 
     data = _prepare_challenge_data(
         title="T",
@@ -116,7 +116,7 @@ def test_prepare_challenge_data_normalizes_age_group():
 
 def test_validate_challenge_data_raises_on_empty_title():
     """_validate_challenge_data lève ValueError si titre vide."""
-    from app.services.challenge_service import _validate_challenge_data
+    from app.services.challenges.challenge_service import _validate_challenge_data
 
     with pytest.raises(ValueError, match="titre"):
         _validate_challenge_data(
@@ -126,7 +126,7 @@ def test_validate_challenge_data_raises_on_empty_title():
 
 def test_validate_challenge_data_raises_on_empty_description():
     """_validate_challenge_data lève ValueError si description vide."""
-    from app.services.challenge_service import _validate_challenge_data
+    from app.services.challenges.challenge_service import _validate_challenge_data
 
     with pytest.raises(ValueError, match="description"):
         _validate_challenge_data(
@@ -139,7 +139,7 @@ def test_create_challenge_raises_on_invalid_data(db_session):
     import uuid
 
     from app.models.user import User
-    from app.services.challenge_service import create_challenge
+    from app.services.challenges.challenge_service import create_challenge
 
     user = User(
         username=f"val_{uuid.uuid4().hex[:8]}",
