@@ -30,6 +30,11 @@ Active references:
 
 ## [Unreleased]
 
+## [3.1.0-alpha.9] - 2026-03-06
+
+### Fixed
+- CI database initialization: corrected alembic.ini path resolution and robust fallback for "already exists" errors during create_all.
+
 ### Changed
 - The root docs, architecture reference, setup guide, testing guide and project index now reflect the closure of `Production Hardening`.
 - The detailed `Production Hardening` execution notes were archived; a single active recap now defines the iteration truth.

@@ -35,7 +35,7 @@ def create_tables():
         from alembic import command
         from alembic.config import Config
 
-        root = Path(__file__).resolve().parent.parent.parent
+        root = Path(__file__).resolve().parent.parent.parent.parent
         alembic_ini = root / "alembic.ini"
         alembic_cfg = Config(str(alembic_ini))
         command.upgrade(alembic_cfg, "head")
@@ -44,8 +44,19 @@ def create_tables():
         logger.warning(
             f"Alembic non disponible ou échec ({alembic_error}), fallback create_all"
         )
-        Base.metadata.create_all(bind=engine, checkfirst=True)
-        logger.success("Tables créées avec succès (create_all)")
+        try:
+            Base.metadata.create_all(bind=engine, checkfirst=True)
+            logger.success("Tables créées avec succès (create_all)")
+        except Exception as create_error:
+            from sqlalchemy.exc import ProgrammingError
+
+            err_msg = str(getattr(create_error, "orig", create_error)).lower()
+            if isinstance(create_error, ProgrammingError) and "already exists" in err_msg:
+                logger.info(
+                    "Schéma déjà présent (relation existante), create_all ignoré sans erreur"
+                )
+            else:
+                raise
 
 
 def populate_test_data():

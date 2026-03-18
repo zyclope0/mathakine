@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import type { LucideIcon } from "lucide-react";
 import { Sparkles, Rocket, Calendar, Plus, Wrench, Zap, CheckCircle2 } from "lucide-react";
@@ -17,6 +17,7 @@ type VersionBlock = {
 };
 
 type ReleaseKey =
+  | "release_3_1_0_alpha_9"
   | "release_3_1_0_alpha_8"
   | "release_3_1_0_alpha_7"
   | "release_3_1_0_alpha_6"
@@ -39,6 +40,7 @@ export default function ChangelogPage() {
   const { shouldReduceMotion, createVariants, createTransition } = useAccessibleAnimation();
 
   const releaseKeys: readonly ReleaseKey[] = [
+    "release_3_1_0_alpha_9",
     "release_3_1_0_alpha_8",
     "release_3_1_0_alpha_7",
     "release_3_1_0_alpha_6",

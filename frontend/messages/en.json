@@ -1795,6 +1795,13 @@
         "Auth/admin fixtures and non-deterministic challenge tests stabilized on the current tree.",
         "Primarily a technical release: hardening, documentation alignment, and backend iteration closure."
       ]
+    },
+    "release_3_1_0_alpha_9": {
+      "version": "v3.1.0-alpha.9",
+      "date": "March 6, 2026",
+      "items": [
+        "Fixed database initialization in CI pipeline."
+      ]
     }
   },
   "feedback": {
