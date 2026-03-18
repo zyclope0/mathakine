@@ -18,6 +18,7 @@ Visible release source of truth:
 - iteration `Security, Boundaries, and API Discipline`: closed
 - iteration `Typed Contracts, Service Decomposition, and Legacy Retirement`: closed
 - iteration `Academic Backend Rigor, Replicability, and Operability`: closed
+- lots G (Residual Contracts and Cleanup): closed (G1–G4)
 
 Active references:
 - [`runtime + contracts recap`](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
@@ -55,6 +56,7 @@ Active references:
 - The runtime/data boundary is now formalized through `app/core/db_boundary.py`.
 - Targeted test proof was strengthened on the badge requirement validation and `db_utils` seams.
 - Active technical docs now reflect the post-F baseline and keep `POINTS_RESTANTS_2026-03-15.md` as the synthesis tracker.
+- Lots G (Residual Contracts and Cleanup) are now closed: G1 `AuthenticateWithSessionResult`, G2 success_rate cluster in volume, G3 admin exercise create flow, G4 sync_db_session via db_boundary (19 services).
 
 ### Fixed
 - Documentation no longer presents `Production Hardening` as still active.
@@ -66,7 +68,7 @@ Active references:
 - Small silent fallbacks were made explicit and more observable on the treated scope.
 
 ### Notes
-- Current verified backend reference baseline: `936 passed, 2 skipped`
+- Current verified backend reference baseline: `950 passed, 2 skipped`
 - Current measured local coverage on `app` + `server`: `71 %`
 - Current backend CI coverage gate: `63 %`
 - Detailed historical lot documents remain archived for traceability only.

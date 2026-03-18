@@ -1,18 +1,18 @@
 # Technical README - Mathakine
 
-> Updated: 17/03/2026
+> Updated: 18/03/2026
 
 ## Runtime Truth
 
 - live backend runtime is the Starlette stack under `server/`
 - active route truth is `server/routes/`
 - active HTTP behavior is implemented by `server/handlers/` delegating to `app/services/`
-- runtime/data boundary: `app.core.db_boundary` (run_db_bound, sync_db_session)
+- runtime/data boundary: `app.core.db_boundary` (run_db_bound, sync_db_session) — all services import via db_boundary (G4)
 - `app/api/endpoints/*` is archived and not part of the active runtime
 
-## Current Stability Baseline (post-F, 2026-03-17)
+## Current Stability Baseline (post-G, 2026-03-18)
 
-- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `936 passed, 2 skipped`
+- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `950 passed, 2 skipped`
 - `black app/ server/ tests/ --check` -> green
 - `isort app/ server/ tests/ --check-only --diff` -> green
 - `mypy app/ server/ --ignore-missing-imports` -> green
@@ -52,7 +52,7 @@
 - Redis runtime failures are fail-closed on the protected scope
 - challenge stream is now aligned on the same distributed backend limiter
 
-## Iteration E + F Outcome
+## Iteration E + F + G Outcome
 
 The backend is now materially stronger on:
 - bounded typed contracts on auth recovery / verification (E) and auth_service (F1)
@@ -60,10 +60,12 @@ The backend is now materially stronger on:
 - isolated badge requirement validation (E) and admin badge create flow (F3)
 - scoped typing (F4) and runtime/data boundary formalization (F5)
 - replicability and operability closure (F6)
+- lots G: `authenticate_user_with_session` typed result (G1), success_rate cluster in volume (G2), admin exercise create flow (G3), db_boundary imports (G4)
 
-## Explicit Remaining Debt (post-F)
+## Explicit Remaining Debt (post-G)
 
-- residual weak contracts in auth paths not treated by F1 (e.g. authenticate_user_with_session)
-- other clusters in badge_requirement_engine and admin_content_service not decomposed
+- remaining tuple-shaped auth/admin paths not yet treated
+- other clusters in badge_requirement_engine (consecutive, max_time, etc.) not decomposed
+- admin mutation paths: put_challenge, other dense admin-content flows
 - global strict mypy remains out of scope
 - `app/services/enhanced_server_adapter.py` remains legacy compatibility
