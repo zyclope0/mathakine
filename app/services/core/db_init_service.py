@@ -51,7 +51,10 @@ def create_tables():
             from sqlalchemy.exc import ProgrammingError
 
             err_msg = str(getattr(create_error, "orig", create_error)).lower()
-            if isinstance(create_error, ProgrammingError) and "already exists" in err_msg:
+            if (
+                isinstance(create_error, ProgrammingError)
+                and "already exists" in err_msg
+            ):
                 logger.info(
                     "Schéma déjà présent (relation existante), create_all ignoré sans erreur"
                 )

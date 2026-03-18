@@ -1799,9 +1799,7 @@
     "release_3_1_0_alpha_9": {
       "version": "v3.1.0-alpha.9",
       "date": "March 6, 2026",
-      "items": [
-        "Fixed database initialization in CI pipeline."
-      ]
+      "items": ["Fixed database initialization in CI pipeline."]
     }
   },
   "feedback": {
