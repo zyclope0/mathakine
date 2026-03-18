@@ -65,8 +65,8 @@ def verify_user_email_for_tests(username: str) -> None:
     Marque un utilisateur comme email vérifié (pour les tests qui nécessitent un login).
     À appeler après création via API, avant tenter un login.
     """
+    from app.core.db_boundary import sync_db_session
     from app.models.user import User
-    from app.utils.db_utils import sync_db_session
 
     with sync_db_session() as db:
         user = db.query(User).filter(User.username == username).first()
@@ -83,8 +83,8 @@ def set_user_created_at_for_tests(username: str, minutes_ago: float) -> None:
         username: Nom d'utilisateur
         minutes_ago: Nombre de minutes dans le passé (ex: 50 pour dépasser 45 min)
     """
+    from app.core.db_boundary import sync_db_session
     from app.models.user import User
-    from app.utils.db_utils import sync_db_session
 
     with sync_db_session() as db:
         user = db.query(User).filter(User.username == username).first()

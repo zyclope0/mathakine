@@ -3,7 +3,7 @@ Service d'authentification pour gérer les utilisateurs et les connexions
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Tuple
+from typing import Optional
 
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
@@ -20,6 +20,7 @@ from app.core.types import TokenRefreshResponse, TokenResponse
 from app.models.user import User, UserRole
 from app.models.user_session import UserSession
 from app.schemas.auth_result import (
+    AuthenticateWithSessionResult,
     CreateUserResult,
     RefreshTokenResult,
     ResetPasswordTokenResult,
@@ -584,13 +585,13 @@ def authenticate_user_with_session(
     ip: Optional[str],
     user_agent: Optional[str],
     expires_at: datetime,
-) -> Tuple[Optional[User], Optional[TokenResponse]]:
+) -> AuthenticateWithSessionResult:
     """
     Authentifie un utilisateur, crée sa session et commit une seule fois.
     """
     user = authenticate_user(db, username, password)
     if not user:
-        return None, None
+        return AuthenticateWithSessionResult()
 
     token_data = create_user_token(user)
     create_session(
@@ -602,7 +603,7 @@ def authenticate_user_with_session(
         auto_commit=False,
     )
     db.commit()
-    return user, token_data
+    return AuthenticateWithSessionResult(user=user, token_data=token_data)
 
 
 def recover_refresh_token_from_access_token(

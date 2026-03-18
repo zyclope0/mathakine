@@ -7,10 +7,20 @@ import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { cn } from "@/lib/utils";
 
+interface SuccessRateProgressDetail {
+  type: "success_rate";
+  total: number;
+  correct: number;
+  rate_pct: number;
+  min_attempts: number;
+  required_rate_pct: number;
+}
+
 interface BadgeProgress {
   current: number;
   target: number;
   progress: number;
+  progress_detail?: SuccessRateProgressDetail;
 }
 
 export type BadgeSortBy = "progress" | "date" | "points" | "category";

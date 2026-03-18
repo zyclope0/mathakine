@@ -116,11 +116,19 @@ export default function BadgesPage() {
   const progressMap = inProgress.reduce(
     (acc, b) => {
       if (b.target != null && b.target > 0) {
-        acc[b.id] = { current: b.current ?? 0, target: b.target, progress: b.progress ?? 0 };
+        acc[b.id] = {
+          current: b.current ?? 0,
+          target: b.target,
+          progress: b.progress ?? 0,
+          progress_detail: b.progress_detail,
+        };
       }
       return acc;
     },
-    {} as Record<number, { current: number; target: number; progress: number }>
+    {} as Record<
+      number,
+      { current: number; target: number; progress: number; progress_detail?: { type: "success_rate"; total: number; correct: number; rate_pct: number; min_attempts: number; required_rate_pct: number } }
+    >
   );
 
   // A-3 : listes filtrées
@@ -735,8 +743,19 @@ export default function BadgesPage() {
                       const criteriaText =
                         fullBadge?.criteria_text ||
                         (badge as { criteria_text?: string }).criteria_text;
+                      const detail = badge.progress_detail as
+                        | { type: "success_rate"; correct: number; total: number; rate_pct: number; required_rate_pct: number }
+                        | undefined;
+                      const displayText =
+                        detail?.type === "success_rate"
+                          ? t("successRateDisplay", {
+                              correct: detail.correct,
+                              total: detail.total,
+                              rate: detail.rate_pct,
+                            })
+                          : `${badge.current ?? 0}/${badge.target}`;
                       const tooltipContent = [
-                        criteriaText && `${criteriaText} — ${badge.current ?? 0}/${badge.target}`,
+                        criteriaText && `${criteriaText} — ${displayText}`,
                         fullBadge?.description,
                       ]
                         .filter(Boolean)
@@ -773,16 +792,29 @@ export default function BadgesPage() {
                                     </span>
                                     <span className="font-medium flex-1 min-w-0">{badge.name}</span>
                                     <span className="text-sm font-semibold text-foreground tabular-nums shrink-0">
-                                      {badge.current ?? 0} / {badge.target}
+                                      {displayText}
                                     </span>
                                   </div>
                                   {(badge.progress ?? 0) >= 0.5 && (badge.target ?? 0) > 0 && (
                                     <p className="text-sm font-semibold text-amber-500/90 mb-1">
-                                      {(badge.target ?? 0) - (badge.current ?? 0) > 0
-                                        ? t("plusQue", {
-                                            count: (badge.target ?? 0) - (badge.current ?? 0),
+                                      {detail?.type === "success_rate" ? (
+                                        detail.rate_pct >= detail.required_rate_pct ? (
+                                          t("tuApproches")
+                                        ) : (
+                                          t("plusQueCorrect", {
+                                            count:
+                                              Math.ceil(
+                                                (detail.total * detail.required_rate_pct) / 100
+                                              ) - detail.correct,
                                           })
-                                        : t("tuApproches")}
+                                        )
+                                      ) : (badge.target ?? 0) - (badge.current ?? 0) > 0 ? (
+                                        t("plusQue", {
+                                          count: (badge.target ?? 0) - (badge.current ?? 0),
+                                        })
+                                      ) : (
+                                        t("tuApproches")
+                                      )}
                                     </p>
                                   )}
                                   {badge.progress != null && (
@@ -809,8 +841,7 @@ export default function BadgesPage() {
                               side="top"
                               className="max-w-[280px] whitespace-pre-line py-2.5 px-3 text-sm"
                             >
-                              {tooltipContent ||
-                                `${badge.name}: ${badge.current ?? 0}/${badge.target}`}
+                              {tooltipContent || `${badge.name}: ${displayText}`}
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>

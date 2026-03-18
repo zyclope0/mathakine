@@ -9,6 +9,7 @@ LOT B1 : use case typé (Command/Result, exceptions métier).
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.exceptions import ChallengeAttemptRecordError, ChallengeNotFoundError
 from app.schemas.logic_challenge import (
@@ -20,7 +21,6 @@ from app.schemas.logic_challenge import (
 )
 from app.services.challenge_answer_service import check_answer
 from app.services.logic_challenge_service import LogicChallengeService
-from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 

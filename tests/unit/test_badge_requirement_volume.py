@@ -15,9 +15,10 @@ from app.services.badge_requirement_volume import (
     check_attempts_count,
     check_logic_attempts_count,
     check_mixte,
+    check_success_rate,
     progress_attempts_count,
-    progress_logic_attempts_count,
     progress_mixte,
+    progress_success_rate,
 )
 from app.utils.db_helpers import get_enum_value
 from tests.utils.test_helpers import unique_email, unique_username
@@ -103,6 +104,49 @@ class TestVolumeCheckers:
         cache["logic_correct_count"] = 5
         assert check_mixte(db_session, user.id, req, None, cache) is True
 
+    def test_success_rate_satisfied_with_cache(self, db_session):
+        """success_rate: min_attempts atteint ET taux >= rate avec cache. G2."""
+        user = User(
+            username=unique_username(),
+            email=unique_email(),
+            hashed_password="hash",
+            role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        )
+        db_session.add(user)
+        db_session.commit()
+
+        req = {"min_attempts": 10, "success_rate": 80}
+        cache = {"attempts_total": 20, "attempts_correct": 18}  # 90% >= 80%
+        assert check_success_rate(db_session, user.id, req, None, cache) is True
+
+    def test_success_rate_not_satisfied_min_attempts(self, db_session):
+        """success_rate: total < min_attempts → False."""
+        user = User(
+            username=unique_username(),
+            email=unique_email(),
+            hashed_password="hash",
+            role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        )
+        db_session.add(user)
+        db_session.commit()
+
+        req = {"min_attempts": 10, "success_rate": 80}
+        cache = {"attempts_total": 5, "attempts_correct": 5}  # 100% mais seulement 5
+        assert check_success_rate(db_session, user.id, req, None, cache) is False
+
+    def test_success_rate_no_target_key(self, db_session):
+        """success_rate: pas de min_attempts ou success_rate → False."""
+        user = User(
+            username=unique_username(),
+            email=unique_email(),
+            hashed_password="hash",
+            role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        )
+        db_session.add(user)
+        db_session.commit()
+
+        assert check_success_rate(db_session, user.id, {}, None, None) is False
+
 
 class TestVolumeProgress:
     """Tests des progress getters du cluster volume."""
@@ -146,6 +190,47 @@ class TestVolumeProgress:
         assert p == 0.4  # logic: 2/5 = 0.4 < 8/10 = 0.8
         assert c == 2
         assert t == 5
+
+    def test_progress_success_rate_with_cache(self, db_session):
+        """progress_success_rate: affiche correct/required (pas total/min_attempts). G2."""
+        user = User(
+            username=unique_username(),
+            email=unique_email(),
+            hashed_password="hash",
+            role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        )
+        db_session.add(user)
+        db_session.commit()
+
+        req = {"min_attempts": 10, "success_rate": 80}
+        cache = {"attempts_total": 5, "attempts_correct": 4}
+        result = progress_success_rate(db_session, user.id, req, cache)
+        assert result is not None
+        p, correct, required = result
+        # required = ceil(max(5,10)*0.8) = 8 ; correct=4 → p_correct=0.5, p_attempts=0.5
+        assert required == 8
+        assert correct == 4
+        assert p == 0.5
+
+    def test_progress_success_rate_complete(self, db_session):
+        """progress_success_rate: atteint → p=1.0, affiche correct/required."""
+        user = User(
+            username=unique_username(),
+            email=unique_email(),
+            hashed_password="hash",
+            role=get_enum_value(UserRole, UserRole.PADAWAN.value, db_session),
+        )
+        db_session.add(user)
+        db_session.commit()
+
+        req = {"min_attempts": 10, "success_rate": 80}
+        cache = {"attempts_total": 20, "attempts_correct": 18}  # 90% >= 80%
+        result = progress_success_rate(db_session, user.id, req, cache)
+        assert result is not None
+        p, correct, required = result
+        assert p == 1.0
+        assert correct == 18  # correct affiché
+        assert required == 16  # ceil(20*0.8)
 
 
 class TestVolumeIntegration:

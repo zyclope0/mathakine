@@ -232,8 +232,8 @@ async def test_verify_email_success(client, test_user_data):
     assert resp.status_code in (200, 201)
 
     # Récupérer le token depuis la DB (en test, on ne reçoit pas l'email)
+    from app.core.db_boundary import sync_db_session
     from app.models.user import User
-    from app.utils.db_utils import sync_db_session
 
     with sync_db_session() as db:
         user = (
@@ -271,8 +271,8 @@ async def test_reset_password_full_flow(client, test_user_data):
     assert resp_forgot.status_code == 200
 
     # Récupérer le token depuis la DB (en test, on ne reçoit pas l'email)
+    from app.core.db_boundary import sync_db_session
     from app.models.user import User
-    from app.utils.db_utils import sync_db_session
 
     with sync_db_session() as db:
         user = db.query(User).filter(User.email == test_user_data["email"]).first()
@@ -326,8 +326,8 @@ async def test_reset_password_mismatch(client, test_user_data):
         "/api/auth/forgot-password", json={"email": test_user_data["email"]}
     )
 
+    from app.core.db_boundary import sync_db_session
     from app.models.user import User
-    from app.utils.db_utils import sync_db_session
 
     with sync_db_session() as db:
         user = db.query(User).filter(User.email == test_user_data["email"]).first()
@@ -383,8 +383,8 @@ async def test_reset_password_revokes_old_tokens(client, test_user_data):
     await client.post(
         "/api/auth/forgot-password", json={"email": test_user_data["email"]}
     )
+    from app.core.db_boundary import sync_db_session
     from app.models.user import User
-    from app.utils.db_utils import sync_db_session
 
     with sync_db_session() as db:
         user = db.query(User).filter(User.email == test_user_data["email"]).first()

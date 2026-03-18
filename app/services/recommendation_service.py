@@ -838,7 +838,7 @@ def get_recommendations_for_api_sync(user_id: int, limit: int = 7):
     Use case sync: récupère les recommandations formatées pour l'API.
     Exécuté via run_db_bound() depuis les handlers.
     """
-    from app.utils.db_utils import sync_db_session
+    from app.core.db_boundary import sync_db_session
 
     with sync_db_session() as db:
         return RecommendationService.get_recommendations_for_api(
@@ -851,7 +851,7 @@ def generate_recommendations_sync(user_id: int):
     Use case sync: génère des recommandations pour l'utilisateur.
     Exécuté via run_db_bound() depuis les handlers.
     """
-    from app.utils.db_utils import sync_db_session
+    from app.core.db_boundary import sync_db_session
 
     with sync_db_session() as db:
         return RecommendationService.generate_recommendations(db, user_id)
@@ -866,7 +866,7 @@ def mark_recommendation_as_completed_sync(
     Returns:
         (success, recommendation) - recommendation peut être None si non trouvée.
     """
-    from app.utils.db_utils import sync_db_session
+    from app.core.db_boundary import sync_db_session
 
     with sync_db_session() as db:
         return RecommendationService.mark_recommendation_as_completed(

@@ -3,8 +3,8 @@ Lecture des paramètres globaux (table settings).
 Utilisé par middleware et handlers pour maintenance_mode, registration_enabled, etc.
 """
 
+from app.core.db_boundary import sync_db_session
 from app.models.setting import Setting
-from app.utils.db_utils import sync_db_session
 
 
 def get_setting_bool(key: str, default: bool = False) -> bool:

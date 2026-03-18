@@ -8,9 +8,9 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
+from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.models.edtech_event import EdTechEvent
-from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 

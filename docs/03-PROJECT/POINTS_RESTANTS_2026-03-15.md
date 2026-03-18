@@ -14,8 +14,9 @@ The backend iterations below are closed and should not be reopened as generic cl
 - `Security, Boundaries, and API Discipline`
 - `Typed Contracts, Service Decomposition, and Legacy Retirement`
 - `Academic Backend Rigor, Replicability, and Operability` (F1-F6)
+- `Lots G (Residual Contracts and Cleanup)` (G1-G4)
 
-Verified local baseline (post-F):
+Verified local baseline (post-G):
 - `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `936 passed, 2 skipped`
 - `black app/ server/ tests/ --check` -> green
 - `isort app/ server/ tests/ --check-only --diff` -> green
@@ -25,30 +26,28 @@ Verified local baseline (post-F):
 
 ## Active Remaining Points
 
-### 1. Residual weak internal contracts (partially addressed by F1)
+### 1. Residual weak internal contracts (addressed by F1 + G1)
 
 F1 strengthened `auth_service` on `create_user`, `refresh_access_token`, `update_user_password`, and `create_registered_user_with_verification`.
-What still remains: `authenticate_user_with_session` and other auth paths in tuples, plus weak contracts in some admin flows.
+G1 : `authenticate_user_with_session` retourne désormais `AuthenticateWithSessionResult`. Autres chemins auth/admin en tuples restent éventuels.
 
 ### 2. Badge requirement engine (partially addressed by F2)
 
 F2 extracted the volume cluster to `badge_requirement_volume.py`.
 Other clusters in `badge_requirement_engine.py` remain; density is reduced but not closed.
 
-### 3. Admin content mutation boundaries (partially addressed by F3)
+### 3. Admin content mutation boundaries (addressed by F3 + G3)
 
-F3 decomposed `create_badge` in `admin_badge_create_flow.py`.
-What remains: `create_exercise`, `put_challenge`, and other dense admin-content mutation paths.
+F3 decomposed `create_badge` in `admin_badge_create_flow.py`. G3 : `create_exercise` décomposé dans `admin_exercise_create_flow.py`. Reste : `put_challenge` et autres chemins admin denses.
 
 ### 4. Strict typing (addressed locally by F4)
 
 F4 strengthened typing on the admin badge create seam (`BadgeCreatePrepared`, `ValidationResult`).
 Global strict mypy remains out of scope.
 
-### 5. Runtime / data boundary (addressed by F5)
+### 5. Runtime / data boundary (addressed by F5 + G4)
 
-F5 formalized the boundary through `app.core.db_boundary`, an explicit contract, and a test proving the active chain.
-The seam is now documented and defended; a full normalization of imports to the canonical boundary remains optional future cleanup, not a critical active gap.
+F5 formalized the boundary through `app.core.db_boundary`. G4 : tous les services importent `sync_db_session` depuis `app.core.db_boundary`.
 
 ### 6. Replicability and operability (addressed by F6)
 
@@ -59,20 +58,17 @@ Active docs now reflect the post-F truth.
 
 If a new backend-focused iteration is opened, the most causal candidates are:
 
-1. finish residual weak internal contracts
-   - `authenticate_user_with_session`
-   - remaining tuple-shaped auth/admin paths
+1. remaining weak internal contracts
+   - remaining tuple-shaped auth/admin paths (G1 a traité authenticate_user_with_session)
 2. continue badge engine decomposition
    - streak / regularity
    - performance / accuracy
 3. continue admin mutation-boundary cleanup
-   - `create_exercise`
    - `put_challenge`
-   - other dense admin-content mutation paths
+   - other dense admin-content mutation paths (G3 a traité create_exercise)
 4. decide whether a bounded stricter typing island is worth opening
    - without turning into global strict mypy
-5. optionally normalize imports toward `app.core.db_boundary`
-   - only as a cleanup lot, not as a claimed critical gap
+5. ~~optionally normalize imports toward app.core.db_boundary~~ — fait par G4
 
 ## Product / Frontend Gaps Still Plausible
 
@@ -81,6 +77,12 @@ Potential future topics only if product evidence appears:
 - additional admin/frontend exploitation of already existing backend capabilities
 - UX polish if a real user-facing issue is reproduced again
 - deeper proof on non-critical error branches if a new risk appears
+
+## Lots G (Residual Contracts and Cleanup)
+
+Pilotage documenté: [PILOTAGE_CURSOR_BACKEND_LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-17.md](./PILOTAGE_CURSOR_BACKEND_LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-17.md)
+
+Ordre recommandé: G1 (authenticate_user_with_session) → G4 (imports db_boundary) → G2 (success_rate) → G3 (create_exercise).
 
 ## Maintenance Rule
 

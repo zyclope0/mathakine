@@ -17,6 +17,7 @@
 - `isort app/ server/ tests/ --check-only --diff` -> green
 - `mypy app/ server/ --ignore-missing-imports` -> green
 - `flake8 app/ server/ --select=E9,F63,F7,F82` -> green
+- measured local coverage on `app` + `server`: `67.30 %`
 - backend CI coverage gate -> `63 %`
 
 ## Active Architecture Notes

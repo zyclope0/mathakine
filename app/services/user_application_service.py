@@ -11,13 +11,13 @@ LOT A6 : sync + sync_db_session, exécuté via run_db_bound() depuis les handler
 from typing import Any, Dict, List, Optional, Tuple
 
 from app.core.config import settings
+from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.schemas.user import UserCreate
 from app.services.auth_service import create_registered_user_with_verification
 from app.services.email_service import EmailService
 from app.services.progress_timeline_service import get_progress_timeline
 from app.services.user_service import UserService
-from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 

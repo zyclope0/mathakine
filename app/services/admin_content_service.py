@@ -301,40 +301,18 @@ class AdminContentService:
         data: Dict[str, Any],
         admin_user_id: Optional[int] = None,
     ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
-        title = (data.get("title") or "").strip()
-        question = (data.get("question") or "").strip()
-        correct_answer = (data.get("correct_answer") or "").strip()
-        exercise_type = (data.get("exercise_type") or "DIVERS").strip().upper()
-        difficulty = (data.get("difficulty") or "PADAWAN").strip()
-        age_group = (data.get("age_group") or "9-11").strip()
-
-        if not title:
-            return None, "Le titre est obligatoire.", 400
-        if not question:
-            return None, "La question est obligatoire.", 400
-        if not correct_answer:
-            return None, "La réponse correcte est obligatoire.", 400
-
-        ex = Exercise(
-            title=title,
-            exercise_type=exercise_type,
-            difficulty=difficulty,
-            age_group=age_group,
-            question=question,
-            correct_answer=correct_answer,
-            choices=data.get("choices"),
-            explanation=(data.get("explanation") or "").strip() or None,
-            hint=(data.get("hint") or "").strip() or None,
-            tags=(data.get("tags") or "").strip() or None,
-            ai_generated=False,
+        """Orchestration : prepare / validate / persist (G3, calqué sur F3)."""
+        from app.services.admin_exercise_create_flow import (
+            persist_exercise_create,
+            prepare_exercise_create_data,
+            validate_exercise_create_pre_persist,
         )
-        db.add(ex)
-        db.flush()
-        log_admin_action(
-            db, admin_user_id, "exercise_create", "exercise", ex.id, {"title": ex.title}
-        )
-        db.commit()
-        db.refresh(ex)
+
+        prepared = prepare_exercise_create_data(data)
+        err, status = validate_exercise_create_pre_persist(prepared, db)
+        if err:
+            return None, err, status
+        ex = persist_exercise_create(db, prepared, admin_user_id)
         return AdminContentService._exercise_to_detail(ex), None, 201
 
     @staticmethod

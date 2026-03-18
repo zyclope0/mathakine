@@ -29,9 +29,11 @@ from app.services.badge_requirement_volume import (
     check_attempts_count,
     check_logic_attempts_count,
     check_mixte,
+    check_success_rate,
     progress_attempts_count,
     progress_logic_attempts_count,
     progress_mixte,
+    progress_success_rate,
 )
 
 logger = get_logger(__name__)
@@ -41,40 +43,6 @@ CheckerFn = Callable[
     [Session, int, Dict[str, Any], Optional[Dict[str, Any]], Optional[Dict[str, Any]]],
     bool,
 ]
-
-
-def _check_success_rate(
-    db: Session,
-    user_id: int,
-    req: Dict[str, Any],
-    _attempt_data: Optional[Dict[str, Any]] = None,
-    stats_cache: Optional[Dict[str, Any]] = None,
-) -> bool:
-    """Vérifie min_attempts atteint ET success_rate >= taux."""
-    target = req.get("min_attempts")
-    rate = req.get("success_rate")
-    if target is None or rate is None:
-        return False
-    if (
-        stats_cache is not None
-        and "attempts_total" in stats_cache
-        and "attempts_correct" in stats_cache
-    ):
-        total, correct = stats_cache["attempts_total"], stats_cache["attempts_correct"]
-    else:
-        stats = db.execute(
-            text("""
-                SELECT COUNT(*) as total, COUNT(CASE WHEN is_correct THEN 1 END) as correct
-                FROM attempts WHERE user_id = :user_id
-            """),
-            {"user_id": user_id},
-        ).fetchone()
-        total = stats[0] if stats else 0
-        correct = stats[1] if stats else 0
-    if total < int(target):
-        return False
-    success_pct = (correct / total * 100) if total else 0
-    return success_pct >= float(rate)
 
 
 def _check_consecutive(
@@ -336,7 +304,7 @@ CHECKERS: Dict[str, CheckerFn] = {
     "mixte": check_mixte,
     "logic_attempts_count": check_logic_attempts_count,
     "attempts_count": check_attempts_count,
-    "success_rate": _check_success_rate,
+    "success_rate": check_success_rate,
     "consecutive": _check_consecutive,
     "max_time": _check_max_time,
     "consecutive_days": _check_consecutive_days,
@@ -438,35 +406,6 @@ ProgressFn = Callable[
     [Session, int, Dict[str, Any], Optional[Dict[str, Any]]],
     Optional[tuple[float, int, int]],
 ]
-
-
-def _progress_success_rate(
-    db: Session,
-    user_id: int,
-    req: Dict[str, Any],
-    cache: Optional[Dict[str, Any]] = None,
-) -> Optional[tuple[float, int, int]]:
-    t = req.get("min_attempts")
-    rate = req.get("success_rate")
-    if t is None or rate is None:
-        return None
-    t = int(t)
-    if cache is not None and "attempts_total" in cache and "attempts_correct" in cache:
-        total = cache["attempts_total"]
-        correct = cache["attempts_correct"]
-    else:
-        row = db.execute(
-            text(
-                "SELECT COUNT(*), COUNT(CASE WHEN is_correct THEN 1 END) FROM attempts WHERE user_id = :user_id"
-            ),
-            {"user_id": user_id},
-        ).fetchone()
-        total = row[0] if row else 0
-        correct = row[1] if row else 0
-    p = min(1.0, total / max(1, t)) if total else 0.0
-    if total >= t and (correct / total * 100 >= float(rate) if total else False):
-        p = 1.0
-    return (round(p, 2), total, t)
 
 
 def _progress_consecutive(
@@ -687,7 +626,7 @@ PROGRESS_GETTERS: Dict[str, ProgressFn] = {
     "attempts_count": progress_attempts_count,
     "logic_attempts_count": progress_logic_attempts_count,
     "mixte": progress_mixte,
-    "success_rate": _progress_success_rate,
+    "success_rate": progress_success_rate,
     "consecutive": _progress_consecutive,
     "consecutive_days": _progress_consecutive_days,
     "max_time": _progress_max_time,

@@ -12,10 +12,20 @@ import { motion, type Variants, type Transition } from "framer-motion";
 import { BadgeIcon } from "./BadgeIcon";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 
+interface SuccessRateProgressDetail {
+  type: "success_rate";
+  total: number;
+  correct: number;
+  rate_pct: number;
+  min_attempts: number;
+  required_rate_pct: number;
+}
+
 interface BadgeProgress {
   current: number;
   target: number;
   progress: number;
+  progress_detail?: SuccessRateProgressDetail;
 }
 
 interface RarityInfo {
@@ -426,16 +436,35 @@ export function BadgeCard({
                   <span className="text-foreground">{badge.criteria_text}</span>
                   {progress && progress.target > 0 && (
                     <span className="text-foreground font-semibold ml-1 tabular-nums">
-                      — {progress.current} / {progress.target}
+                      {progress.progress_detail?.type === "success_rate" ? (
+                        <> — {t("successRateDisplay", { correct: progress.progress_detail.correct, total: progress.progress_detail.total, rate: progress.progress_detail.rate_pct })}</>
+                      ) : (
+                        <> — {progress.current} / {progress.target}</>
+                      )}
                     </span>
                   )}
                 </p>
               )}
               {progress && progress.target > 0 && progress.progress >= 0.5 && (
                 <p className="text-sm font-semibold text-amber-500/90" role="status">
-                  {progress.target - progress.current > 0
-                    ? t("plusQue", { count: progress.target - progress.current })
-                    : t("tuApproches")}
+                  {progress.progress_detail?.type === "success_rate" ? (
+                    progress.progress_detail.rate_pct >= progress.progress_detail.required_rate_pct ? (
+                      t("tuApproches")
+                    ) : (
+                      t("plusQueCorrect", {
+                        count:
+                          Math.ceil(
+                            (progress.progress_detail.total *
+                              progress.progress_detail.required_rate_pct) /
+                              100
+                          ) - progress.progress_detail.correct,
+                      })
+                    )
+                  ) : progress.target - progress.current > 0 ? (
+                    t("plusQue", { count: progress.target - progress.current })
+                  ) : (
+                    t("tuApproches")
+                  )}
                 </p>
               )}
               {progress && progress.target > 0 && (

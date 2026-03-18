@@ -69,7 +69,12 @@ class BadgeService:
         )
 
     def get_badges_progress(self, user_id: int) -> Dict[str, Any]:
-        """Progression vers les badges (unlocked + in_progress)."""
+        """Progression vers les badges (unlocked + in_progress).
+        Vérifie d'abord les badges mérités (rattrapage si check pas appelé après une tentative).
+        """
+        BadgeAwardService(self.db, auto_commit=self.auto_commit).check_and_award_badges(
+            user_id
+        )
         return _get_badges_progress(self.db, user_id)
 
     def get_closest_progress_notification(

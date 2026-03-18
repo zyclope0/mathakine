@@ -9,10 +9,10 @@ from typing import Any, AsyncGenerator, Dict, Optional
 
 from app.core.ai_config import AIConfig
 from app.core.config import settings
+from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.services.enhanced_server_adapter import EnhancedServerAdapter
-from app.utils.db_utils import sync_db_session
 from app.utils.json_utils import extract_json_from_text
 from app.utils.latex_utils import sanitize_exercise_text_fields
 

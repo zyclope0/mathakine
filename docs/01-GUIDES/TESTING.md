@@ -38,7 +38,7 @@ git status --short
 git diff --name-only
 pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 black app/ server/ tests/ --check
-isort app/ server/ --check-only --diff
+isort app/ server/ tests/ --check-only --diff
 ```
 
 ### Runtime / contracts / hardening lot gate
@@ -48,7 +48,7 @@ pytest -q <target-battery> --maxfail=20
 pytest -q <target-battery> --maxfail=20
 pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 black app/ server/ tests/ --check
-isort app/ server/ --check-only --diff
+isort app/ server/ tests/ --check-only --diff
 ```
 
 ## Coverage In CI
@@ -102,6 +102,7 @@ Correct handling:
 As of 17/03/2026 (post-F):
 - iterations `exercise/auth/user`, `challenge/admin/badge`, `Runtime Truth`, `Contracts / Hardening`, `Production Hardening`, `Security, Boundaries, and API Discipline`, and `Academic Backend Rigor, Replicability, and Operability` (F1–F6) are closed
 - backend local reference baseline is `936 passed, 2 skipped`
+- measured local coverage on `app` + `server`: `67.30 %`
 - backend CI coverage gate is `63 %`
 
 ## Frontend Standard Gates

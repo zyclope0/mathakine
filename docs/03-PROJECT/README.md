@@ -25,10 +25,11 @@
 - `Security, Boundaries, and API Discipline`: closed
 - `Typed Contracts, Service Decomposition, and Legacy Retirement`: closed
 - `Academic Backend Rigor, Replicability, and Operability`: closed
+- `Lots G (Residual Contracts and Cleanup)`: closed (G1-G4)
 
 Local reference baseline:
 - full suite excluding the false gate: `936 passed, 2 skipped`
-- measured local coverage on `app` + `server`: `71 %`
+- measured local coverage on `app` + `server`: `67.30 %`
 - `black app/ server/ tests/ --check`: green
 - `isort app/ server/ tests/ --check-only --diff`: green
 - `mypy app/ server/ --ignore-missing-imports`: green
@@ -43,6 +44,7 @@ Local reference baseline:
 | [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) | recap for `Production Hardening` |
 | [POINTS_RESTANTS_2026-03-15.md](./POINTS_RESTANTS_2026-03-15.md) | remaining points still worth tracking |
 | [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | validation protocol |
+| [archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md](./archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md) | lots G (residual contracts, cleanup) — closed |
 | [CICD_DEPLOY.md](./CICD_DEPLOY.md) | CI/CD truth |
 
 ## Active Notes By Theme
@@ -68,6 +70,7 @@ Closed bilans, temporary delta files, and superseded lot notes belong in archive
 - [archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md](./archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md)
 - [archives/TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_DETAIL_2026-03-16/README.md](./archives/TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_DETAIL_2026-03-16/README.md)
 - [archives/ACADEMIC_BACKEND_RIGOR_REPLICABILITY_AND_OPERABILITY_DETAIL_2026-03-17/README.md](./archives/ACADEMIC_BACKEND_RIGOR_REPLICABILITY_AND_OPERABILITY_DETAIL_2026-03-17/README.md)
+- [archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md](./archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md)
 - [archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/README.md](./archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/README.md)
 - [archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/README.md](./archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/README.md)
 - [AUDITS_ET_RAPPORTS_ARCHIVES/README.md](./AUDITS_ET_RAPPORTS_ARCHIVES/README.md)

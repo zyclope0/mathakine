@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Tuple
 
 from app.core.config import settings
+from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.core.security import decode_token
 from app.services.auth_service import (
@@ -18,7 +19,6 @@ from app.services.auth_service import (
     recover_refresh_token_from_access_token,
     refresh_access_token,
 )
-from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 
@@ -73,7 +73,7 @@ def perform_login(
         days=settings.REFRESH_TOKEN_EXPIRE_DAYS
     )
     with sync_db_session() as db:
-        user, token_data = authenticate_user_with_session(
+        result = authenticate_user_with_session(
             db,
             username,
             password,
@@ -81,8 +81,9 @@ def perform_login(
             user_agent=user_agent,
             expires_at=expires_at,
         )
-        if not user:
+        if not result.is_success:
             return None, None
+        user, token_data = result.user, result.token_data
         # Construire le payload dans la session (evite User detache)
         user_payload = build_authenticated_user_payload(user)
     return user_payload, token_data

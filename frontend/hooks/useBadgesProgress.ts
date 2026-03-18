@@ -3,6 +3,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
 
+export interface SuccessRateProgressDetail {
+  type: "success_rate";
+  total: number;
+  correct: number;
+  rate_pct: number;
+  min_attempts: number;
+  required_rate_pct: number;
+}
+
 export interface BadgeProgressItem {
   id: number;
   code: string;
@@ -10,6 +19,7 @@ export interface BadgeProgressItem {
   progress?: number;
   current?: number;
   target?: number;
+  progress_detail?: SuccessRateProgressDetail;
 }
 
 export interface BadgesProgressData {

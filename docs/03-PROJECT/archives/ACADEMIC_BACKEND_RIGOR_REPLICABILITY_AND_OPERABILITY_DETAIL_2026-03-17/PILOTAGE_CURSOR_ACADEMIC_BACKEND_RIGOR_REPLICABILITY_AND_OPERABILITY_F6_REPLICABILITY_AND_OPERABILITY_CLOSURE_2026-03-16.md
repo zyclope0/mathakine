@@ -56,7 +56,8 @@ Close the iteration `F` by turning the backend into a more repeatably operable a
 **Validation** :
 - Full suite : `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov`
 - False gate exclu : `tests/api/test_admin_auth_stability.py` (lance pytest depuis pytest)
-- Coverage CI : `63 %` sur app/ + server/
+- Mesure locale coverage : `67.30 %` sur app/ + server/
+- Coverage gate CI : `63 %` sur app/ + server/
 - Format : `black app/ server/ tests/ --check`, `isort app/ server/ tests/ --check-only --diff`
 - Typage : `mypy app/ server/ --ignore-missing-imports`
 - Critique : `flake8 app/ server/ --select=E9,F63,F7,F82`
@@ -77,6 +78,7 @@ Close the iteration `F` by turning the backend into a more repeatably operable a
 - isort : green
 - mypy : green (annotation-unchecked notes non bloquantes)
 - flake8 : green
+- measured local coverage : `67.30 %`
 - coverage gate CI : `63 %`
 
 **Commandes de validation reproductibles** :

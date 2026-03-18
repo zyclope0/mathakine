@@ -807,7 +807,7 @@ def test_authenticate_user_with_session_single_commit(db_session, mock_user):
 
     expires_at = datetime.now(timezone.utc) + timedelta(days=1)
     with patch.object(db_session, "commit", wraps=db_session.commit) as commit_spy:
-        auth_user, token_data = authenticate_user_with_session(
+        result = authenticate_user_with_session(
             db_session,
             user.username,
             clear_password,
@@ -815,6 +815,7 @@ def test_authenticate_user_with_session_single_commit(db_session, mock_user):
             user_agent="pytest",
             expires_at=expires_at,
         )
+        auth_user, token_data = result.user, result.token_data
 
     assert auth_user is not None
     assert token_data is not None

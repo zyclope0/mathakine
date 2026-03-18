@@ -12,7 +12,19 @@ from typing import TYPE_CHECKING, Literal, Optional
 if TYPE_CHECKING:
     from app.models.user import User
 
-from app.core.types import TokenRefreshResponse
+from app.core.types import TokenRefreshResponse, TokenResponse
+
+
+@dataclass(frozen=False)
+class AuthenticateWithSessionResult:
+    """Résultat de authenticate_user_with_session (G1). Remplace tuple (user, token_data)."""
+
+    user: Optional["User"] = None
+    token_data: Optional[TokenResponse] = None
+
+    @property
+    def is_success(self) -> bool:
+        return self.user is not None and self.token_data is not None
 
 
 @dataclass(frozen=False)

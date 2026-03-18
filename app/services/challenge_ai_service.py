@@ -19,6 +19,7 @@ from tenacity import (
 from app.core.ai_config import AIConfig
 from app.core.config import settings
 from app.core.constants import calculate_difficulty_for_age_group
+from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.core.runtime import run_db_bound
 from app.services import challenge_service
@@ -27,7 +28,6 @@ from app.services.challenge_validator import (
     auto_correct_challenge,
     validate_challenge_logic,
 )
-from app.utils.db_utils import sync_db_session
 from app.utils.generation_metrics import generation_metrics
 from app.utils.json_utils import extract_json_from_text
 from app.utils.sse_utils import sse_error_message, sse_status_message

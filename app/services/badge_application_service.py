@@ -11,10 +11,10 @@ LOT B2 : contrats explicites (PinBadgesResult) pour set_pinned_badges.
 
 from typing import Any, Dict, List
 
+from app.core.db_boundary import sync_db_session
 from app.schemas.badge import PinBadgesResult
 from app.services.badge_service import BadgeService
 from app.services.badge_user_view_service import AVAILABLE_BADGES_DEFAULT_LIMIT
-from app.utils.db_utils import sync_db_session
 
 
 class BadgeApplicationService:

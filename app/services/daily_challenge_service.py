@@ -15,10 +15,10 @@ from datetime import date, datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.core.constants import ExerciseTypes
+from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.models.daily_challenge import DailyChallenge
 from app.models.user import User
-from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 

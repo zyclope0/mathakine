@@ -30,6 +30,21 @@ ValidationResult = Tuple[Optional[str], int]
 """Résultat validation : (error_message, status_code) ou (None, 0) si valide."""
 
 
+class ExerciseCreatePrepared(TypedDict, total=False):
+    """Données normalisées pour création exercice admin (flux G3)."""
+
+    title: str
+    question: str
+    correct_answer: str
+    exercise_type: str
+    difficulty: str
+    age_group: str
+    choices: Optional[Any]
+    explanation: Optional[str]
+    hint: Optional[str]
+    tags: Optional[str]
+
+
 # ── Auth / tokens ────────────────────────────────────────────────────────────
 
 

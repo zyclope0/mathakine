@@ -37,10 +37,10 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.constants import AgeGroups, DifficultyLevels, ExerciseTypes
+from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.core.security import sign_diagnostic_state, verify_diagnostic_state
 from app.models.diagnostic_result import DiagnosticResult
-from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 

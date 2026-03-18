@@ -6,6 +6,7 @@ LOT B1 : retours typés (ChallengeListResponse, ChallengeHintResponse).
 import json
 from typing import Any, List, Optional
 
+from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.exceptions import ChallengeNotFoundError
 from app.schemas.logic_challenge import (
@@ -15,7 +16,6 @@ from app.schemas.logic_challenge import (
 )
 from app.services import challenge_service
 from app.services.logic_challenge_service import LogicChallengeService
-from app.utils.db_utils import sync_db_session
 from app.utils.response_formatters import format_paginated_response
 
 logger = get_logger(__name__)

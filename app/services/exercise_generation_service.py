@@ -6,6 +6,7 @@ Modèle runtime : sync, exécuté via run_db_bound() depuis les handlers.
 
 from typing import Any, Dict, Optional
 
+from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.generators.exercise_generator import (
     ensure_explanation,
@@ -15,7 +16,6 @@ from app.generators.exercise_generator import (
 from app.repositories.exercise_repository import ExerciseRepository
 from app.schemas.exercise import GenerateExerciseResult
 from app.services.adaptive_difficulty_service import resolve_adaptive_difficulty
-from app.utils.db_utils import sync_db_session
 from app.utils.exercise_generator_validators import (
     normalize_and_validate_exercise_params,
     normalize_exercise_type,

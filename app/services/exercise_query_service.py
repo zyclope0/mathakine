@@ -9,6 +9,7 @@ Modèle A4 : fonctions sync exécutées via run_db_bound() depuis les handlers.
 
 from typing import Any, Dict, List, Optional
 
+from app.core.db_boundary import sync_db_session
 from app.schemas.exercise import (
     ExerciseListQuery,
     ExerciseListResponse,
@@ -17,7 +18,6 @@ from app.schemas.exercise import (
 from app.services.exercise_service import ExerciseService
 from app.services.exercise_stats_service import ExerciseStatsService
 from app.services.interleaved_practice_service import get_interleaved_plan
-from app.utils.db_utils import sync_db_session
 
 
 def get_exercise_for_api_sync(exercise_id: int) -> Optional[Dict[str, Any]]:

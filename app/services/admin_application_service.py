@@ -12,6 +12,7 @@ LOT B2 : contrats explicites (AdminError, result models) à la place des tuples.
 
 from typing import Any, Dict, List, Optional
 
+from app.core.db_boundary import sync_db_session
 from app.schemas.admin import (
     AdminActionSuccess,
     AdminError,
@@ -20,7 +21,6 @@ from app.schemas.admin import (
     AdminUserMutationResult,
 )
 from app.services.admin_service import AdminService
-from app.utils.db_utils import sync_db_session
 
 
 class AdminApplicationService:

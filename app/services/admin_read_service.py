@@ -11,11 +11,11 @@ LOT B2 : contrats explicites (AdminError) à la place des tuples (result, err, c
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
+from app.core.db_boundary import sync_db_session
 from app.schemas.admin import AdminError
 from app.services.admin_service import AdminService
 from app.services.analytics_service import AnalyticsService
 from app.services.feedback_service import FeedbackService
-from app.utils.db_utils import sync_db_session
 
 
 def get_config_for_api() -> List[Dict[str, Any]]:

@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Literal, Optional
 
 from app.core.config import settings
+from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.services.auth_service import (
     get_user_by_email,
@@ -19,7 +20,6 @@ from app.services.auth_service import (
     verify_email_token,
 )
 from app.services.email_service import EmailService
-from app.utils.db_utils import sync_db_session
 
 logger = get_logger(__name__)
 

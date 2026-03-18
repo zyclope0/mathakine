@@ -42,6 +42,25 @@ def _get_badge_progress(
     return (0.0, 0, 0)
 
 
+def _build_progress_detail_success_rate(
+    req: Dict[str, Any], stats_cache: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
+    """Construit progress_detail pour badges success_rate (affichage %)."""
+    if "min_attempts" not in req or "success_rate" not in req:
+        return None
+    total = stats_cache.get("attempts_total") or 0
+    correct = stats_cache.get("attempts_correct") or 0
+    rate_pct = round(correct / total * 100) if total else 0
+    return {
+        "type": "success_rate",
+        "total": total,
+        "correct": correct,
+        "rate_pct": rate_pct,
+        "min_attempts": int(req["min_attempts"]),
+        "required_rate_pct": float(req["success_rate"]),
+    }
+
+
 def get_badges_progress(db: Session, user_id: int) -> Dict[str, Any]:
     """Progression vers les badges (unlocked + in_progress)."""
     earned_ids = {
@@ -60,18 +79,30 @@ def get_badges_progress(db: Session, user_id: int) -> Dict[str, Any]:
             unlocked.append({"id": b.id, "code": b.code, "name": b.name})
         else:
             prog, cur, tgt = _get_badge_progress(db, user_id, b, stats_cache)
-            in_progress.append(
-                {
-                    "id": b.id,
-                    "code": b.code,
-                    "name": b.name,
-                    "progress": prog,
-                    "current": cur,
-                    "target": tgt,
-                    "criteria_text": format_requirements_to_text(b),
-                    "is_secret": getattr(b, "is_secret", False),
-                }
-            )
+            item = {
+                "id": b.id,
+                "code": b.code,
+                "name": b.name,
+                "progress": prog,
+                "current": cur,
+                "target": tgt,
+                "criteria_text": format_requirements_to_text(b),
+                "is_secret": getattr(b, "is_secret", False),
+            }
+            # Détail enrichi pour success_rate (affichage %)
+            try:
+                req = (
+                    json.loads(b.requirements)
+                    if isinstance(b.requirements, str)
+                    else (b.requirements or {})
+                )
+                if isinstance(req, dict):
+                    detail = _build_progress_detail_success_rate(req, stats_cache)
+                    if detail:
+                        item["progress_detail"] = detail
+            except (json.JSONDecodeError, TypeError):
+                pass
+            in_progress.append(item)
     return {"unlocked": unlocked, "in_progress": in_progress}
 
 
