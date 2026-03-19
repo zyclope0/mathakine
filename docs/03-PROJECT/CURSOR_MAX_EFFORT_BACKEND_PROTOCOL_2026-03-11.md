@@ -39,7 +39,7 @@ Each lot must explicitly distinguish:
 4. `run 2` of the same battery
 5. `full suite` if runtime changed
 6. `black app/ server/ tests/ --check`
-7. `isort app/ server/ --check-only --diff` if the lot touches backend Python
+7. `isort app/ server/ tests/ --check-only --diff` if the lot touches backend Python
 
 ## Verdict Rules
 

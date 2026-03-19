@@ -1,19 +1,19 @@
 # Technical README - Mathakine
 
-> Updated: 18/03/2026
+> Updated: 19/03/2026
 
 ## Runtime Truth
 
 - live backend runtime is the Starlette stack under `server/`
 - active route truth is `server/routes/`
 - active HTTP behavior is implemented by `server/handlers/` delegating to `app/services/`
-- runtime/data boundary: `app.core.db_boundary` (run_db_bound, sync_db_session) — all services import via db_boundary (G4)
+- runtime/data boundary: `app.core.db_boundary` (run_db_bound, sync_db_session) — services import sync_db_session via db_boundary (G4); data access is selective (2 repositories) and direct ORM in many services — see `docs/00-REFERENCE/ARCHITECTURE.md` § Data-Layer Doctrine
 - `app/api/endpoints/*` is archived and not part of the active runtime
 
-## Current Stability Baseline (post-G, post–H1–H3, 2026-03-18)
+## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
 
 Gate standard backend (`test_admin_auth_stability.py` exclu — test spécial non-bloquant) :
-- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `951 passed, 2 skipped`
+- `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `962 passed, 3 skipped`
 - `black app/ server/ tests/ --check` -> green
 - `isort app/ server/ tests/ --check-only --diff` -> green
 - `mypy app/ server/ --ignore-missing-imports` -> green

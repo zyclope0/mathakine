@@ -1,6 +1,6 @@
 # CONTRIBUTING GUIDE - MATHAKINE
 
-> Mise a jour : 13/03/2026
+> Mise a jour : 18/03/2026
 > Audience : contributeurs code et documentation
 
 ## Principes de contribution
@@ -80,9 +80,9 @@ Reference : [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](../03-PRO
 ```bash
 git status --short
 git diff --name-only
-pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py
+pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 black app/ server/ tests/ --check
-isort app/ server/ --check-only --diff
+isort app/ server/ tests/ --check-only --diff
 ```
 
 #### Frontend

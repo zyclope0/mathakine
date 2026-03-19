@@ -1,7 +1,7 @@
 ﻿# Bilan Production Hardening
 
 > Date: 15/03/2026
-> Status: active recap
+> Status: historical recap
 > Scope: closed recap of iteration `Production Hardening`
 
 ## 1. Global Status
@@ -14,7 +14,7 @@
 | `C4 - Legacy API truth` | closed | `app/api/endpoints/*` archived and removed from live runtime |
 | `C5 - Hygiene / DRY` | closed | duplicated OpenAI import block removed |
 
-Latest verified local baseline carried by active docs:
+Baseline retained at closure on 15/03/2026:
 - `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `882 passed, 2 skipped`
 - `black app/ server/ tests/ --check` -> green
 - `isort app/ server/ --check-only --diff` -> green
@@ -66,7 +66,7 @@ Latest verified local baseline carried by active docs:
 
 ## 3. Documentation Truth Updated With This Iteration
 
-Active documentation now reflects:
+At closure on 15/03/2026, active documentation reflected:
 - the signed diagnostic contract with server-side pending answer storage
 - the production Redis requirement for rate limiting
 - the `63 %` CI coverage gate
@@ -74,6 +74,10 @@ Active documentation now reflects:
 - the latest verified local baseline (`882 passed, 2 skipped`)
 
 Detailed execution notes for the iteration are archived and no longer act as the primary reference.
+Current repository truth moved further after this iteration:
+- active backend gate standard is now `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `951 passed, 2 skipped`
+- live backend services are now sliced by domain under `app/services/`
+- current active tracker is `POINTS_RESTANTS_2026-03-15.md`
 
 ## 4. What Remains Outside This Iteration
 
@@ -97,7 +101,7 @@ Read these documents for the current backend state:
 - `docs/02-FEATURES/API_QUICK_REFERENCE.md`
 - `docs/02-FEATURES/F03_DIAGNOSTIC_INITIAL.md`
 - `docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md`
-- `docs/03-PROJECT/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md`
+- `docs/03-PROJECT/archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md`
 - this document
 
 ## 6. Archives

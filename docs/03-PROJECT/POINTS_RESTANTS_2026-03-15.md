@@ -1,7 +1,7 @@
-# Remaining Follow-Ups - 2026-03-17
+# Remaining Follow-Ups - 2026-03-19
 
 > Active recap of the points still outside the closed backend iterations.
-> Updated after iteration `F` (Academic Backend Rigor, Replicability, and Operability) closure.
+> Updated after backend maturity audit and **closure of iteration `I`** (2026-03-19).
 
 ## Current Status
 
@@ -16,8 +16,9 @@ The backend iterations below are closed and should not be reopened as generic cl
 - `Academic Backend Rigor, Replicability, and Operability` (F1-F6)
 - `Lots G (Residual Contracts and Cleanup)` (G1-G4)
 
-Verified local baseline (post-G, post–H1–H3):
-- gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `951 passed, 2 skipped`
+Verified local baseline (post-G, post–H1–H3, **post–iteration `I` 2026-03-19**):
+- gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `962 passed, 3 skipped`
+- OpenAI live tests remain opt-in and are not part of the standard gate
 - `test_admin_auth_stability.py` : test spécial, exclu du gate standard (non-bloquant)
 - `black app/ server/ tests/ --check` -> green
 - `isort app/ server/ tests/ --check-only --diff` -> green
@@ -26,6 +27,46 @@ Verified local baseline (post-G, post–H1–H3):
 - backend CI coverage gate -> `63 %`
 
 ## Active Remaining Points
+
+### 0. Backend maturity truth (**iteration `I` closed** 2026-03-19)
+
+**I1 — Architecture Truth and Data-Layer Doctrine: done (doc-only).** Active doctrine is now explicit in `docs/00-REFERENCE/ARCHITECTURE.md` § Data-Layer Doctrine.
+
+**Lots `I2`–`I8` : done** — synthèse archivée : [iteration I archive](./archives/ITERATION_I_2026-03-19/README.md).
+
+I1 established the truthful doctrine (toujours vraie après `I`) :
+- runtime boundary via run_db_bound + sync_db_session is real
+- repositories are selective (2 modules); many services still use ORM/Session directly
+- no global repository isolation is claimed
+
+Structural gaps **still real** (partiellement réduits par `I`, non effacés) :
+- contrats faibles résiduels — réserves I2/I3
+- hotspots challenge/diagnostic — réserves I4/I5/I7
+- duplication handlers — réserve I6 (autres modules que `challenge_handlers`)
+- legacy drift (`enhanced_server_adapter`, `HTTPException` dans `server/auth.py`) — non traité en I8 (doc-only)
+
+Traceability archive for iteration `I` (**closed**) :
+- [archives/ITERATION_I_2026-03-19/README.md](./archives/ITERATION_I_2026-03-19/README.md)
+
+Ordered lots (état final) :
+- `I1` — **done**
+- `I2` — **done** (réserves actives)
+- `I3` — **done** (réserves actives)
+- `I4` — **done** (réserves actives)
+- `I5` — **done** (réserves actives)
+- `I6` — **done** (réserves actives)
+- `I7` — **done** (réserves actives)
+- `I8` — **done** (doc-only)
+
+Documented review reserves from closed lots:
+- `I1`: no active reserve remains after `I1b` fixed the stale baseline/date inconsistencies in `ARCHITECTURE.md` and `README_TECH.md`
+- `I2`: `RefreshTokenResult` still carries `status_code`; the auth refresh boundary is improved but not yet fully de-HTTPized
+- `I3`: `AdminContentMutationResult` still carries `status_code`, and `data` remains a weak `Dict[str, Any]`; the admin badge mutation boundary is improved but not yet fully normalized
+- `I4`: `challenge_to_api_dict(...)` remains in `challenge_service.py` as a compatibility shim; the challenge retrieval/mapping split is real, but the list-path mapping boundary is not yet fully externalized
+- `I5`: cluster **CODING** extrait vers `challenge_coding_validation.py` ; `validate_puzzle_challenge`, `validate_spatial_challenge`, `auto_correct_challenge` et le reste des validateurs restent denses dans `challenge_validator.py`. Réserve review : la batterie prescrite incluant `test_logic_challenge_service` peut être flaky en isolation DB (non causal pour le validateur) ; full gate vert après stabilisation.
+- `I6`: pipeline erreur/réponse normalisé sur **`challenge_handlers.py`** via `ErrorHandler.create_error_response(..., handler_log_context=...)` ; la même duplication (logs + traceback + 500) subsiste dans **`exercise_handlers`**, **`auth_handlers`**, etc. — hors scope du lot.
+- `I7`: cluster **pending storage** extrait vers `diagnostic_pending_storage.py` ; IRT, génération de questions, persistance `DiagnosticResult` / refresh reco restent dans `diagnostic_service.py` — hotspot résiduel documenté dans le pilotage I7.
+- `I8`: **clôture itération** (doc-only) — pas de correctif runtime legacy dans ce lot ; voir réserves transversales ci-dessus (`enhanced_server_adapter`, `server/auth.py`).
 
 ### 1. Residual weak internal contracts (addressed by F1 + G1)
 
@@ -57,20 +98,23 @@ Active docs now reflect the post-F truth.
 
 ## Next Technical Candidates
 
-If a new backend-focused iteration is opened, the most causal candidates are:
+After **iteration `I` (closed)** — voir aussi § *Recommended Next Iteration Candidates* dans le pilotage I8.
 
-1. **Architecture Clean** (pilotage dédié) — Cible A terminée ; Cible B (vertical slicing app/services/) **closed** (2026-03-18)
-2. remaining weak internal contracts
-   - remaining tuple-shaped auth/admin paths (G1 a traité authenticate_user_with_session)
-3. continue badge engine decomposition
+1. **Poursuites ciblées** (non lancées ici) :
+   - handlers : même discipline I6 sur `exercise_handlers` / `auth_handlers` si prioritaire
+   - challenge : validateur hors CODING ou externalisation liste/shim `challenge_to_api_dict`
+   - diagnostic : IRT / persistance hors pending storage
+   - contrats I2/I3 : retirer `status_code` des résultats de service sur chemins restants
+   - legacy ponctuel : `server/auth.py`, `enhanced_server_adapter` — micro-lots avec preuve
+2. continue badge engine decomposition after `I`
    - streak / regularity
-   - performance / accuracy
-4. continue admin mutation-boundary cleanup
+   - performance / accuracy outside `success_rate`
+3. continue admin mutation-boundary cleanup after `I`
    - `put_challenge`
-   - other dense admin-content mutation paths (G3 a traité create_exercise)
-5. decide whether a bounded stricter typing island is worth opening
+   - other dense admin-content mutation paths still left after `I3`
+4. decide later whether a bounded stricter typing island is still worth opening
    - without turning into global strict mypy
-6. ~~optionally normalize imports toward app.core.db_boundary~~ — fait par G4
+5. ~~optionally normalize imports toward app.core.db_boundary~~ - done by G4
 
 ## Product / Frontend Gaps Still Plausible
 
@@ -97,9 +141,14 @@ Pilotage : [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](./PILOTAGE
 ## Maintenance Rule
 
 This file is the active follow-up tracker for `docs/03-PROJECT`.
-Iteration `F` is closed. The next backend lot should start from the points above rather than reopen `F` as generic cleanup.
+Iteration `F` is closed. Lots `G` and Architecture Clean are also closed. **Iteration `I` is closed** (2026-03-19).
+The next backend work should use **this file** (`POINTS_RESTANTS`) and the summarized residual reservations captured here and in the iteration I archive — not generic reopenings of earlier series.
 
 When a point is closed or re-scoped:
 1. update this file
 2. update the relevant active recap if needed
 3. archive the old note instead of keeping duplicate active trackers
+
+
+
+

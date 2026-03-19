@@ -21,6 +21,7 @@ from app.schemas.logic_challenge import (
 )
 from app.services.challenges.challenge_answer_service import check_answer
 from app.services.challenges.logic_challenge_service import LogicChallengeService
+from app.services.progress.streak_service import update_user_streak
 
 logger = get_logger(__name__)
 
@@ -95,13 +96,9 @@ def _execute_attempt(
             )
 
     try:
-        from app.services.progress.streak_service import update_user_streak
-
         streak_savepoint = db.begin_nested()
         update_user_streak(db, cmd.user_id, auto_commit=False)
         streak_savepoint.commit()
-    except ImportError:
-        logger.warning("Streak service indisponible (ImportError)", exc_info=True)
     except (SQLAlchemyError, TypeError, ValueError):
         if "streak_savepoint" in locals() and streak_savepoint.is_active:
             streak_savepoint.rollback()

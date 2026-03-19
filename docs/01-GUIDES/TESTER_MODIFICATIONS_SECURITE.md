@@ -1,6 +1,6 @@
 ﻿# TESTER LES MODIFICATIONS DE SECURITE - MATHAKINE
 
-> Mise a jour : 13/03/2026
+> Mise a jour : 18/03/2026
 > Objectif : verifier localement les flux auth/session/cookies sans faux positifs de methode
 
 ## Portee
@@ -88,15 +88,15 @@ Verifier dans DevTools:
 ## Checks automatiques a relancer
 
 ```powershell
-pytest -q tests/api/test_auth_flow.py tests/integration/test_auth_cookies_only.py tests/integration/test_auth_no_fallback.py tests/unit/test_auth_service.py --maxfail=20
+pytest -q tests/api/test_auth_flow.py tests/integration/test_auth_cookies_only.py tests/integration/test_auth_no_fallback.py tests/unit/test_auth_service.py --maxfail=20 --no-cov
 black app/ server/ tests/ --check
-isort app/ server/ --check-only --diff
+isort app/ server/ tests/ --check-only --diff
 ```
 
 Si le changement touche aussi `user`:
 
 ```powershell
-pytest -q tests/api/test_user_endpoints.py tests/unit/test_user_service.py --maxfail=20
+pytest -q tests/api/test_user_endpoints.py tests/unit/test_user_service.py --maxfail=20 --no-cov
 ```
 
 ## Faux positifs a eviter

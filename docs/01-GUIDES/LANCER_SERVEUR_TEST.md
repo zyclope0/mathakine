@@ -1,7 +1,7 @@
 ﻿# LANCER LE SERVEUR EN MODE TEST - MATHAKINE
 
 > Guide rapide pour verifier manuellement un changement backend/local
-> Mise a jour : 13/03/2026
+> Mise a jour : 18/03/2026
 
 ## Usage
 
@@ -52,7 +52,7 @@ python enhanced_server.py
 ## Verification rapide backend
 
 ```bash
-pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py
+pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 ```
 
 ## Problemes frequents

@@ -1296,7 +1296,9 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
             "app.services.badges.badge_service.BadgeService",
             return_value=mock_badge_service,
         ) as badge_service_cls,
-        patch("app.services.progress.streak_service.update_user_streak") as streak_mock,
+        patch(
+            "app.services.challenges.challenge_attempt_service.update_user_streak"
+        ) as streak_mock,
         patch(
             "app.services.progress.daily_challenge_service.record_logic_challenge_completed"
         ) as daily_mock,

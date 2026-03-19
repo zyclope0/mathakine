@@ -1,7 +1,7 @@
 # Documentation Mathakine
 
 > Documentation entry point
-> Updated: 18/03/2026
+> Updated: 19/03/2026
 
 ## Read First
 
@@ -24,9 +24,12 @@
   - `Typed Contracts, Service Decomposition, and Legacy Retirement`
   - `Academic Backend Rigor, Replicability, and Operability` (F1-F6)
   - `Lots G (Residual Contracts and Cleanup)` (G1-G4)
-- local reference baseline (post-G, post–H1–H3):
-  - gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `951 passed, 2 skipped`
+- `Architecture Clean` (service slicing cible A + B)
+- `Backend Maturity Truth, Contract Normalization, and Hotspot Reduction` (I1-I8)
+- local reference baseline (post-iteration I, 19/03/2026):
+  - gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `962 passed, 3 skipped`
   - `test_admin_auth_stability.py` : test spécial, exclu du gate standard (non-bloquant)
+  - OpenAI live tests are opt-in and excluded from the standard gate
   - `black app/ server/ tests/ --check`: green
   - `isort app/ server/ tests/ --check-only --diff`: green
   - `mypy app/ server/ --ignore-missing-imports`: green

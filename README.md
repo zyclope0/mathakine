@@ -28,20 +28,29 @@ Gamified mathematics learning platform with a Next.js frontend and a Starlette/S
 - [docs/INDEX.md](docs/INDEX.md): documentation entry point
 - [docs/00-REFERENCE/GETTING_STARTED.md](docs/00-REFERENCE/GETTING_STARTED.md): setup guide
 - [docs/00-REFERENCE/ARCHITECTURE.md](docs/00-REFERENCE/ARCHITECTURE.md): active architecture
-- [docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md](docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md): active recap of the latest backend hardening iteration
+- [docs/03-PROJECT/README.md](docs/03-PROJECT/README.md): active project governance and backend quality state
+- [docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md](docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md): active remaining backend follow-ups
 - [CHANGELOG.md](CHANGELOG.md): product history and release status
 
-## Current Verified State On 15/03/2026
+## Current Verified State On 19/03/2026
 
 - backend iteration `exercise/auth/user`: closed
 - backend iteration `challenge/admin/badge`: closed
 - iteration `Runtime Truth`: closed
 - iteration `Contracts / Hardening`: closed
 - iteration `Production Hardening`: closed
+- iteration `Security, Boundaries, and API Discipline`: closed
+- iteration `Typed Contracts, Service Decomposition, and Legacy Retirement`: closed
+- iteration `Academic Backend Rigor, Replicability, and Operability`: closed
+- lots `G` (`Residual Contracts and Cleanup`): closed
+- `Architecture Clean` (service slicing cible A + B): closed
+- `Backend Maturity Truth, Contract Normalization, and Hotspot Reduction`: closed (`I1`-`I8`)
 - local reference baseline:
-  - full suite excluding the false gate: `868 passed, 2 skipped`
+  - gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `962 passed, 3 skipped`
+  - OpenAI live tests remain opt-in and are not part of the standard gate
+  - `test_admin_auth_stability.py`: test special, excluded from the standard gate (non-blocking)
   - `black app/ server/ tests/ --check`: green
-  - `isort app/ server/ --check-only --diff`: green
+  - `isort app/ server/ tests/ --check-only --diff`: green
   - backend coverage gate in CI: `63 %`
 
 ## Stack
@@ -103,7 +112,7 @@ Useful commands:
 ```bash
 pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 black app/ server/ tests/ --check
-isort app/ server/ --check-only --diff
+isort app/ server/ tests/ --check-only --diff
 cd frontend && npm run lint:ci
 cd frontend && npx tsc --noEmit
 ```
@@ -115,5 +124,5 @@ Important:
 ## Project References
 
 - [docs/03-PROJECT/README.md](docs/03-PROJECT/README.md)
-- [docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
-- [docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md](docs/03-PROJECT/BILAN_PRODUCTION_HARDENING_2026-03-15.md)
+- [docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md](docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md)
+- [docs/03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](docs/03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md)

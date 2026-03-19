@@ -2,6 +2,7 @@
 
 > Créé: 17/03/2026 — **Clôturé: 18/03/2026** (archive)
 > Principe: même discipline que F — sous-scope unique, preuve, blast radius limité
+> Note: this archive keeps the lot-level historical runs; the active post-H1-H3 baseline lives in `README_TECH.md`, `docs/INDEX.md`, and `docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md`.
 
 ## Contexte
 

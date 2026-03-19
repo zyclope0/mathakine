@@ -1,7 +1,7 @@
 # TESTING GUIDE - MATHAKINE
 
 > Test strategy and gates
-> Updated: 18/03/2026
+> Updated: 19/03/2026
 > Scope: backend + frontend
 
 ## Principles
@@ -99,10 +99,11 @@ Correct handling:
 
 ## Current Verified State
 
-As of 18/03/2026 (post-G, post–H1–H3):
-- exercise/auth/user, challenge/admin/badge, Runtime Truth, Contracts/Hardening, Production Hardening, Security/Boundaries, Typed Contracts, Academic Backend Rigor (F1–F6), Lots G (G1–G4) are closed
-- backend gate standard: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `951 passed, 2 skipped`
+As of 19/03/2026 (post-iteration I closure):
+- exercise/auth/user, challenge/admin/badge, Runtime Truth, Contracts/Hardening, Production Hardening, Security/Boundaries, Typed Contracts, Academic Backend Rigor (F1–F6), Lots G (G1–G4), Architecture Clean and iteration I are closed
+- backend gate standard: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `962 passed, 3 skipped`
 - `test_admin_auth_stability.py` : test spécial, exclu du gate standard (non-bloquant)
+- OpenAI live tests remain opt-in and are not part of the standard gate
 - measured local coverage on `app` + `server`: `67.30 %`
 - backend CI coverage gate is `63 %`
 

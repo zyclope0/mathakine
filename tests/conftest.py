@@ -17,6 +17,8 @@ import os
 import re as _re
 
 os.environ["TESTING"] = "true"
+os.environ["OPENAI_API_KEY"] = ""
+os.environ.setdefault("RUN_OPENAI_LIVE_TESTS", "0")
 
 # Charger .env AVANT tout import applicatif pour deriver TEST_DATABASE_URL
 # Optionnel : si python-dotenv absent (env minimal), les variables doivent être déjà définies (CI)
@@ -120,6 +122,36 @@ def _bypass_csrf_in_tests():
     n'a aucun bypass basé sur TESTING ou variables d'environnement.
     """
     with patch("app.utils.csrf.validate_csrf_token", return_value=None):
+        yield
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _block_real_openai_calls_in_tests():
+    """
+    Interdit tout appel réel à OpenAI pendant les tests par défaut.
+
+    Opt-in explicite uniquement avec RUN_OPENAI_LIVE_TESTS=1.
+    Le verrou reste limité à pytest et n'impacte pas le runtime normal.
+    """
+    if os.getenv("RUN_OPENAI_LIVE_TESTS") == "1":
+        yield
+        return
+
+    object.__setattr__(settings, "OPENAI_API_KEY", "")
+
+    def _forbidden_openai_client(*args, **kwargs):
+        raise AssertionError(
+            "Real OpenAI calls are forbidden in tests. "
+            "Mock AsyncOpenAI or enable RUN_OPENAI_LIVE_TESTS=1 explicitly."
+        )
+
+    with (
+        patch("openai.AsyncOpenAI", side_effect=_forbidden_openai_client),
+        patch(
+            "server.handlers.chat_handlers.AsyncOpenAI",
+            side_effect=_forbidden_openai_client,
+        ),
+    ):
         yield
 
 

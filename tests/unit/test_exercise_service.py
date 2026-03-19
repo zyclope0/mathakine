@@ -990,7 +990,9 @@ def test_submit_answer_result_uses_orchestrator_owned_transaction():
             "app.services.badges.badge_service.BadgeService",
             return_value=mock_badge_service,
         ) as badge_service_cls,
-        patch("app.services.progress.streak_service.update_user_streak") as streak_mock,
+        patch(
+            "app.services.exercises.exercise_attempt_service.update_user_streak"
+        ) as streak_mock,
         patch(
             "app.services.progress.daily_challenge_service.record_exercise_completed"
         ) as daily_mock,
@@ -1072,7 +1074,7 @@ def test_submit_answer_progress_db_error_returns_result_anyway():
             "app.services.badges.badge_service.BadgeService",
             return_value=mock_badge_service,
         ),
-        patch("app.services.progress.streak_service.update_user_streak"),
+        patch("app.services.exercises.exercise_attempt_service.update_user_streak"),
         patch(
             "app.services.progress.daily_challenge_service.record_exercise_completed"
         ),

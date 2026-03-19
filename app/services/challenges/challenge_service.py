@@ -5,6 +5,7 @@ Ce service remplace challenge_service_translations.py qui utilisait du raw SQL.
 Utilise uniquement SQLAlchemy ORM pour la maintenabilité.
 
 Créé : Phase 4 (20 Nov 2025)
+I4 : mapping API extrait vers challenge_api_mapper, age_group vers challenge_age_group.
 """
 
 import random
@@ -16,154 +17,27 @@ from sqlalchemy.orm import Session
 
 from app.core.logging_config import get_logger
 from app.core.types import ChallengeStatsDict
-from app.models.logic_challenge import (
-    AgeGroup,
-    LogicChallenge,
-    LogicChallengeAttempt,
+from app.models.logic_challenge import LogicChallenge, LogicChallengeAttempt
+from app.services.challenges.challenge_age_group import (
+    normalize_age_group_for_db,
+    normalize_age_group_for_frontend,
 )
+from app.services.challenges.challenge_api_mapper import (
+    challenge_to_detail_dict,
+    challenge_to_list_item,
+)
+from app.services.challenges.logic_challenge_service import LogicChallengeService
 from app.utils.db_helpers import adapt_enum_for_db
 
 logger = get_logger(__name__)
-
-# ============================================================================
-# MAPPING DES GROUPES D'ÂGE (après migration ENUM)
-# ============================================================================
-# PostgreSQL ENUM `agegroup` contient (après migration):
-#   - GROUP_6_8    (6-8 ans)
-#   - GROUP_10_12  (9-11 ans) - legacy name
-#   - GROUP_13_15  (12-14 ans) - legacy name
-#   - GROUP_15_17  (15-17 ans)
-#   - ADULT        (adultes)
-#   - ALL_AGES     (tous âges)
-#
-# Frontend utilise:
-#   - 6-8, 9-11, 12-14, 15-17, adulte, tous-ages
-# ============================================================================
-
-# Mapping des groupes d'âge frontend vers les valeurs ENUM PostgreSQL
-FRONTEND_TO_DB_AGE_GROUP = {
-    # Groupes d'âge frontend → valeurs DB (mapping 1:1 après migration)
-    "6-8": AgeGroup.GROUP_6_8,  # 6-8 ans → GROUP_6_8
-    "9-11": AgeGroup.GROUP_10_12,  # 9-11 ans → GROUP_10_12
-    "12-14": AgeGroup.GROUP_13_15,  # 12-14 ans → GROUP_13_15
-    "15-17": AgeGroup.GROUP_15_17,  # 15-17 ans → GROUP_15_17
-    "adulte": AgeGroup.ADULT,  # adulte → ADULT
-    "tous-ages": AgeGroup.ALL_AGES,  # tous âges → ALL_AGES
-    # Anciennes valeurs (rétrocompatibilité)
-    "10-12": AgeGroup.GROUP_10_12,
-    "13-15": AgeGroup.GROUP_13_15,
-    "all": AgeGroup.ALL_AGES,
-    # Valeurs legacy qui pourraient arriver (code ancien)
-    "enfant": AgeGroup.GROUP_6_8,
-    "adolescent": AgeGroup.GROUP_13_15,
-    "9-12": AgeGroup.GROUP_10_12,
-    "12-13": AgeGroup.GROUP_13_15,
-    "13+": AgeGroup.GROUP_15_17,
-    # Valeurs DB (cas où on reçoit déjà la valeur DB)
-    "group_6_8": AgeGroup.GROUP_6_8,
-    "group_10_12": AgeGroup.GROUP_10_12,
-    "group_13_15": AgeGroup.GROUP_13_15,
-    "group_15_17": AgeGroup.GROUP_15_17,
-    "adult": AgeGroup.ADULT,
-    "all_ages": AgeGroup.ALL_AGES,
-}
-
-# Mapping inverse : ENUM PostgreSQL vers format frontend pour affichage
-DB_TO_FRONTEND_AGE_GROUP = {
-    AgeGroup.GROUP_6_8: "6-8",  # GROUP_6_8 → 6-8 ans
-    AgeGroup.GROUP_10_12: "9-11",  # GROUP_10_12 → 9-11 ans
-    AgeGroup.GROUP_13_15: "12-14",  # GROUP_13_15 → 12-14 ans
-    AgeGroup.GROUP_15_17: "15-17",  # GROUP_15_17 → 15-17 ans
-    AgeGroup.ADULT: "adulte",  # ADULT → adulte
-    AgeGroup.ALL_AGES: "tous-ages",  # ALL_AGES → tous âges
-}
-
-# Alias pour compatibilité (même contenu)
-DB_TO_FRONTEND_AGE_GROUP_EXTENDED = DB_TO_FRONTEND_AGE_GROUP
-
-
-def normalize_age_group_for_db(age_group: str) -> AgeGroup:
-    """
-    Convertit un groupe d'âge frontend vers une valeur ENUM PostgreSQL.
-
-    Args:
-        age_group: Groupe d'âge (format frontend ou ENUM)
-
-    Returns:
-        Valeur AgeGroup compatible avec PostgreSQL
-    """
-    if not age_group:
-        return AgeGroup.ALL_AGES
-
-    # Normaliser la casse
-    age_group_lower = age_group.lower().strip()
-
-    # Chercher dans le mapping
-    if age_group_lower in FRONTEND_TO_DB_AGE_GROUP:
-        return FRONTEND_TO_DB_AGE_GROUP[age_group_lower]
-
-    # Si c'est déjà une valeur AgeGroup, la retourner
-    try:
-        return AgeGroup(age_group_lower)
-    except ValueError:
-        pass
-
-    # Fallback vers ALL_AGES
-    logger.warning(f"Groupe d'âge non reconnu: {age_group}, utilisation de ALL_AGES")
-    return AgeGroup.ALL_AGES
-
-
-def normalize_age_group_for_frontend(age_group) -> str:
-    """
-    Convertit une valeur ENUM PostgreSQL vers le format frontend.
-
-    Args:
-        age_group: Valeur AgeGroup de la DB (peut être AgeGroup, str, ou None)
-
-    Returns:
-        String au format frontend (6-8, 9-11, etc.)
-    """
-    if not age_group:
-        return "tous-ages"
-
-    # Si c'est une string, essayer de la convertir en AgeGroup d'abord
-    if isinstance(age_group, str):
-        # Vérifier d'abord dans le mapping étendu par valeur string
-        age_group_lower = age_group.lower()
-        for ag_enum, frontend_val in DB_TO_FRONTEND_AGE_GROUP_EXTENDED.items():
-            if ag_enum.value == age_group_lower or ag_enum.name == age_group.upper():
-                return frontend_val
-        # Fallback
-        return "tous-ages"
-
-    # Si c'est un enum, utiliser le mapping étendu
-    return DB_TO_FRONTEND_AGE_GROUP_EXTENDED.get(age_group, "tous-ages")
 
 
 def challenge_to_api_dict(challenge) -> Dict[str, Any]:
     """
     Convertit un objet LogicChallenge en dict pour l'API liste.
-
-    Args:
-        challenge: Objet LogicChallenge (ORM)
-
-    Returns:
-        Dict avec les champs attendus par le frontend.
+    Délègue à challenge_api_mapper (I4).
     """
-    return {
-        "id": challenge.id,
-        "title": challenge.title,
-        "description": challenge.description,
-        "challenge_type": challenge.challenge_type,
-        "age_group": normalize_age_group_for_frontend(challenge.age_group),
-        "difficulty": challenge.difficulty,
-        "tags": challenge.tags,
-        "difficulty_rating": challenge.difficulty_rating,
-        "estimated_time_minutes": challenge.estimated_time_minutes,
-        "success_rate": challenge.success_rate,
-        "view_count": challenge.view_count,
-        "is_archived": challenge.is_archived,
-    }
+    return challenge_to_list_item(challenge)
 
 
 def _prepare_challenge_data(
@@ -321,40 +195,19 @@ def get_challenge(db: Session, challenge_id: int) -> Optional[LogicChallenge]:
     )
 
 
-def get_challenge_for_api(db: Session, challenge_id: int) -> Optional[Dict[str, Any]]:
+def get_challenge_for_api(db: Session, challenge_id: int) -> Dict[str, Any]:
     """
     Récupère un challenge formaté pour l'API (GET /api/challenges/{id}).
     Inclut les défis archivés (pas de filtre is_active).
     Lève ChallengeNotFoundError si le défi n'existe pas.
+    Délègue le mapping à challenge_api_mapper (I4).
     """
     from app.exceptions import ChallengeNotFoundError
-    from app.services.challenges.logic_challenge_service import LogicChallengeService
-    from app.utils.json_utils import safe_parse_json
 
     challenge = LogicChallengeService.get_challenge(db, challenge_id)
     if not challenge:
         raise ChallengeNotFoundError()
-    return {
-        "id": challenge.id,
-        "title": challenge.title,
-        "description": challenge.description,
-        "challenge_type": challenge.challenge_type,
-        "age_group": normalize_age_group_for_frontend(challenge.age_group),
-        "difficulty": challenge.difficulty,
-        "question": challenge.question,
-        "correct_answer": challenge.correct_answer,
-        "choices": safe_parse_json(challenge.choices, []),
-        "solution_explanation": challenge.solution_explanation,
-        "visual_data": safe_parse_json(challenge.visual_data, {}),
-        "hints": safe_parse_json(challenge.hints, []),
-        "tags": challenge.tags,
-        "difficulty_rating": challenge.difficulty_rating,
-        "estimated_time_minutes": challenge.estimated_time_minutes,
-        "success_rate": challenge.success_rate,
-        "view_count": challenge.view_count,
-        "is_active": challenge.is_active,
-        "is_archived": challenge.is_archived,
-    }
+    return challenge_to_detail_dict(challenge)
 
 
 def _apply_challenge_filters(

@@ -1,7 +1,7 @@
 ﻿# CREER UNE BASE DE TEST - MATHAKINE
 
 > Guide de preparation de la base backend de test
-> Mise a jour : 13/03/2026
+> Mise a jour : 18/03/2026
 
 ## Objectif
 
@@ -65,7 +65,7 @@ pytest -q tests/api/test_auth_flow.py --maxfail=20
 Puis gate backend standard:
 
 ```bash
-pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py
+pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 ```
 
 ## Probleme courant

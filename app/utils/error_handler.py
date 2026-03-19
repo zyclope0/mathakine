@@ -179,6 +179,8 @@ class ErrorHandler:
         status_code: int = 500,
         user_message: Optional[str] = None,
         include_details: Optional[bool] = None,
+        *,
+        handler_log_context: Optional[str] = None,
     ) -> JSONResponse:
         """
         Crée une réponse d'erreur JSON standardisée.
@@ -191,6 +193,9 @@ class ErrorHandler:
             status_code: Code HTTP d'erreur (défaut: 500)
             user_message: Message à afficher à l'utilisateur (si None, message générique)
             include_details: Ignoré — conservé pour rétrocompatibilité, jamais appliqué au payload
+            handler_log_context: Si fourni (handlers HTTP), un seul log contextualisé avec
+                traceback (exc_info) remplace la paire logger.error + logger.debug(traceback)
+                répétée dans les handlers — évite la double journalisation avec ce helper.
         """
         error_type = type(error).__name__
         error_message = str(error)
@@ -198,13 +203,27 @@ class ErrorHandler:
         # D1 : ne jamais exposer traceback/error_type/details dans les payloads JSON
         display_error = user_message or GENERIC_ERROR_MESSAGE
 
-        logger.error(f"{error_type}: {error_message}")
-        logger.debug(f"Traceback complet:\n{traceback.format_exc()}")
+        if handler_log_context is not None:
+            logger.error(
+                "%s | %s: %s",
+                handler_log_context,
+                error_type,
+                error_message,
+                exc_info=True,
+            )
+        else:
+            logger.error(f"{error_type}: {error_message}")
+            logger.debug(f"Traceback complet:\n{traceback.format_exc()}")
+        sentry_tags: Dict[str, str] = {
+            "capture_path": "ErrorHandler.create_error_response",
+        }
+        if handler_log_context is not None:
+            sentry_tags["handler_context"] = handler_log_context[:200]
         capture_exception_for_sentry(
             error,
             status_code=status_code,
             user_message=display_error,
-            tags={"capture_path": "ErrorHandler.create_error_response"},
+            tags=sentry_tags,
         )
 
         payload = api_error_json(status_code, display_error)

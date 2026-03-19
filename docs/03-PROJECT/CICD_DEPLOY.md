@@ -29,18 +29,17 @@ Jobs actifs:
 ### Lint job
 
 - `flake8 app/ server/ --select=E9,F63,F7,F82`
-- `black app/ server/ --check --diff`
-- `isort app/ server/ --check-only --diff`
+- `black app/ server/ tests/ --check --diff`
+- `isort app/ server/ tests/ --check-only --diff`
 - `mypy app/ server/ --ignore-missing-imports`
 
 ### Typing progressif
 
-En plus du mypy global permissif, `pyproject.toml` porte des overrides plus stricts sur des ilots cibles:
-- badge
-- auth session / recovery
-- exercise generation / query
-- challenge query / stream
-- analytics / feedback / daily challenge / diagnostic
+En plus du mypy global permissif, `pyproject.toml` porte des overrides plus stricts sur des ilots cibles.
+Etat reel apres le service slicing:
+- auth session / recovery : overrides alignes
+- badge / exercise / challenge : overrides realignes vers les nouveaux chemins de modules
+- analytics / feedback / daily challenge / diagnostic : overrides deja sur les chemins de domaine
 
 ### Frontend job
 
@@ -64,7 +63,7 @@ git status --short
 git diff --name-only
 pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 black app/ server/ tests/ --check
-isort app/ server/ --check-only --diff
+isort app/ server/ tests/ --check-only --diff
 cd frontend && npm run lint
 ```
 

@@ -5,8 +5,6 @@ LOT 1 : handlers de lecture anemiques - parse, appel query service, mapping HTTP
 LOT A6 : appels via run_db_bound() vers facades sync.
 """
 
-import traceback
-
 from pydantic import ValidationError
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, StreamingResponse
@@ -98,14 +96,11 @@ async def get_challenges_list(request: Request) -> JSONResponse:
             user_message="Les parametres de filtrage sont invalides.",
         )
     except Exception as challenges_retrieval_error:
-        logger.error(
-            f"Erreur lors de la recuperation des defis: {challenges_retrieval_error}"
-        )
-        logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
-            error=challenges_retrieval_error,
+            challenges_retrieval_error,
             status_code=500,
             user_message="Erreur lors de la recuperation des defis.",
+            handler_log_context="Erreur lors de la recuperation des defis",
         )
 
 
@@ -137,14 +132,11 @@ async def get_challenge(request: Request) -> JSONResponse:
             user_message="L'identifiant du defi est invalide.",
         )
     except Exception as challenge_retrieval_error:
-        logger.error(
-            f"Erreur lors de la recuperation du defi: {challenge_retrieval_error}"
-        )
-        logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
-            error=challenge_retrieval_error,
+            challenge_retrieval_error,
             status_code=500,
             user_message="Erreur lors de la recuperation du defi.",
+            handler_log_context="Erreur lors de la recuperation du defi",
         )
 
 
@@ -188,9 +180,12 @@ async def submit_challenge_answer(request: Request) -> JSONResponse:
     except ValueError:
         return api_error_response(400, "ID de defi invalide")
     except Exception as submission_error:
-        logger.error(f"Erreur lors de la soumission de la reponse: {submission_error}")
-        logger.debug(traceback.format_exc())
-        return api_error_response(500, get_safe_error_message(submission_error))
+        return ErrorHandler.create_error_response(
+            submission_error,
+            status_code=500,
+            user_message=None,
+            handler_log_context="Erreur lors de la soumission de la reponse",
+        )
 
 
 @require_auth
@@ -216,11 +211,12 @@ async def get_challenge_hint(request: Request) -> JSONResponse:
             return api_error_response(400, err_msg)
         return api_error_response(400, "ID de defi ou niveau invalide")
     except Exception as hint_retrieval_error:
-        logger.error(
-            f"Erreur lors de la recuperation de l'indice: {hint_retrieval_error}",
-            exc_info=True,
+        return ErrorHandler.create_error_response(
+            hint_retrieval_error,
+            status_code=500,
+            user_message=None,
+            handler_log_context="Erreur lors de la recuperation de l'indice",
         )
-        return api_error_response(500, get_safe_error_message(hint_retrieval_error))
 
 
 @optional_auth
@@ -246,14 +242,11 @@ async def get_completed_challenges_ids(request: Request) -> JSONResponse:
         return JSONResponse({"completed_ids": completed_ids})
 
     except Exception as completed_challenges_error:
-        logger.error(
-            f"Erreur lors de la recuperation des challenges completes: {completed_challenges_error}"
-        )
-        logger.debug(traceback.format_exc())
         return ErrorHandler.create_error_response(
-            error=completed_challenges_error,
+            completed_challenges_error,
             status_code=500,
             user_message="Erreur lors de la recuperation des challenges completes.",
+            handler_log_context="Erreur lors de la recuperation des challenges completes",
         )
 
 

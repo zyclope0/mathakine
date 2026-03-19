@@ -1,7 +1,7 @@
 # Project Governance - Mathakine
 
 > Project master index
-> Updated: 18/03/2026
+> Updated: 19/03/2026
 
 ## Read First
 
@@ -9,11 +9,10 @@
 |---|---|
 | [../../CHANGELOG.md](../../CHANGELOG.md) | product release and versioning |
 | [../../README_TECH.md](../../README_TECH.md) | living technical reference |
-| [BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](./BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) | recap of `Runtime Truth` and `Contracts / Hardening` |
-| [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) | active recap of `Production Hardening` |
 | [POINTS_RESTANTS_2026-03-15.md](./POINTS_RESTANTS_2026-03-15.md) | single active tracker for remaining follow-ups |
 | [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | quality-first backend protocol |
 | [CICD_DEPLOY.md](./CICD_DEPLOY.md) | CI/CD, coverage and typing gates |
+| [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](./PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md) | closed recap of service slicing architecture clean |
 
 ## Verified Project State
 
@@ -27,9 +26,11 @@
 - `Academic Backend Rigor, Replicability, and Operability`: closed
 - `Lots G (Residual Contracts and Cleanup)`: closed (G1-G4)
 - `Architecture Clean Cible A + B`: closed (vertical slicing app/services/)
+- `Backend Maturity Truth, Contract Normalization, and Hotspot Reduction`: **closed** (`I1`–`I8` done, 2026-03-19)
 
 Local reference baseline:
-- gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `951 passed, 2 skipped`
+- gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `962 passed, 3 skipped`
+- OpenAI live tests remain opt-in and are not part of the standard gate
 - `test_admin_auth_stability.py` : test spécial, exclu du gate standard (non-bloquant)
 - measured local coverage on `app` + `server`: `67.30 %`
 - `black app/ server/ tests/ --check`: green
@@ -42,13 +43,18 @@ Local reference baseline:
 
 | Document | Role |
 |---|---|
-| [BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](./BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) | recap for `Runtime Truth` and `Contracts / Hardening` |
-| [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) | recap for `Production Hardening` |
 | [POINTS_RESTANTS_2026-03-15.md](./POINTS_RESTANTS_2026-03-15.md) | remaining points still worth tracking |
 | [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | validation protocol |
-| [archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md](./archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md) | lots G (residual contracts, cleanup) — closed |
-| [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](./PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md) | architecture clean — Cible A + B closed (vertical slicing app/services/) |
+| [archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md](./archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md) | lots G (residual contracts, cleanup) - closed |
+| [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](./PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md) | architecture clean - Cible A + B closed (vertical slicing app/services/) |
 | [CICD_DEPLOY.md](./CICD_DEPLOY.md) | CI/CD truth |
+
+## Historical Recaps
+
+| Document | Role |
+|---|---|
+| [BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md](./BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md) | historical recap of `Runtime Truth` and `Contracts / Hardening` |
+| [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) | historical recap of `Production Hardening` |
 
 ## Active Notes By Theme
 
@@ -74,6 +80,7 @@ Closed bilans, temporary delta files, and superseded lot notes belong in archive
 - [archives/TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_DETAIL_2026-03-16/README.md](./archives/TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_DETAIL_2026-03-16/README.md)
 - [archives/ACADEMIC_BACKEND_RIGOR_REPLICABILITY_AND_OPERABILITY_DETAIL_2026-03-17/README.md](./archives/ACADEMIC_BACKEND_RIGOR_REPLICABILITY_AND_OPERABILITY_DETAIL_2026-03-17/README.md)
 - [archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md](./archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md)
+- [archives/ITERATION_I_2026-03-19/README.md](./archives/ITERATION_I_2026-03-19/README.md)
 - [archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/README.md](./archives/SUPERSEDED_ITERATION_NOTES_2026-03-15/README.md)
 - [archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/README.md](./archives/HISTORIQUE_PRE_REFACTOR_2026-03-13/README.md)
 - [AUDITS_ET_RAPPORTS_ARCHIVES/README.md](./AUDITS_ET_RAPPORTS_ARCHIVES/README.md)

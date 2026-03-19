@@ -173,12 +173,14 @@ class AdminApplicationService:
     ) -> Dict[str, Any]:
         """POST /api/admin/badges — création d'un badge. Lève AdminError si erreur."""
         with sync_db_session() as db:
-            result, err, code = AdminService.create_badge_for_admin(
+            r = AdminService.create_badge_for_admin(
                 db, data=data, admin_user_id=admin_user_id
             )
-            if err:
-                raise AdminError(err, code)
-            return result
+            if not r.is_success:
+                raise AdminError(
+                    r.error_message or "Erreur création badge", r.status_code
+                )
+            return r.data
 
     @staticmethod
     def put_badge_for_admin(
@@ -188,15 +190,17 @@ class AdminApplicationService:
     ) -> Dict[str, Any]:
         """PUT /api/admin/badges/{badge_id} — mise à jour complète. Lève AdminError si erreur."""
         with sync_db_session() as db:
-            result, err, code = AdminService.put_badge_for_admin(
+            r = AdminService.put_badge_for_admin(
                 db,
                 badge_id=badge_id,
                 data=data,
                 admin_user_id=admin_user_id,
             )
-            if err:
-                raise AdminError(err, code)
-            return result
+            if not r.is_success:
+                raise AdminError(
+                    r.error_message or "Erreur mise à jour badge", r.status_code
+                )
+            return r.data
 
     @staticmethod
     def delete_badge_for_admin(
@@ -204,12 +208,14 @@ class AdminApplicationService:
     ) -> Dict[str, Any]:
         """DELETE /api/admin/badges/{badge_id} — soft delete. Lève AdminError si erreur."""
         with sync_db_session() as db:
-            result, err, code = AdminService.delete_badge_for_admin(
+            r = AdminService.delete_badge_for_admin(
                 db, badge_id=badge_id, admin_user_id=admin_user_id
             )
-            if err:
-                raise AdminError(err, code)
-            return result
+            if not r.is_success:
+                raise AdminError(
+                    r.error_message or "Erreur suppression badge", r.status_code
+                )
+            return r.data
 
     @staticmethod
     def create_challenge_for_admin(

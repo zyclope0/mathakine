@@ -20,6 +20,7 @@ from app.repositories.exercise_attempt_repository import (
     update_progress_after_attempt,
 )
 from app.schemas.exercise import SubmitAnswerResponse
+from app.services.progress.streak_service import update_user_streak
 from app.utils.json_utils import make_json_serializable
 
 logger = get_logger(__name__)
@@ -141,22 +142,17 @@ def submit_answer(
         )
 
     try:
-        from app.services.progress.streak_service import update_user_streak
-    except ImportError:
-        logger.warning("Streak service indisponible (ImportError)", exc_info=True)
-    else:
-        try:
-            streak_savepoint = db.begin_nested()
-            update_user_streak(db, user_id, auto_commit=False)
-            streak_savepoint.commit()
-        except SQLAlchemyError:
-            if "streak_savepoint" in locals() and streak_savepoint.is_active:
-                streak_savepoint.rollback()
-            logger.debug("Streak update skipped (DB error)", exc_info=True)
-        except (TypeError, ValueError):
-            if "streak_savepoint" in locals() and streak_savepoint.is_active:
-                streak_savepoint.rollback()
-            logger.debug("Streak update skipped (data/type error)", exc_info=True)
+        streak_savepoint = db.begin_nested()
+        update_user_streak(db, user_id, auto_commit=False)
+        streak_savepoint.commit()
+    except SQLAlchemyError:
+        if "streak_savepoint" in locals() and streak_savepoint.is_active:
+            streak_savepoint.rollback()
+        logger.debug("Streak update skipped (DB error)", exc_info=True)
+    except (TypeError, ValueError):
+        if "streak_savepoint" in locals() and streak_savepoint.is_active:
+            streak_savepoint.rollback()
+        logger.debug("Streak update skipped (data/type error)", exc_info=True)
 
     try:
         from app.services.progress.daily_challenge_service import (

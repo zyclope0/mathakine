@@ -1,7 +1,7 @@
 ﻿# DEVELOPMENT GUIDE - MATHAKINE
 
 > Guide de developpement quotidien
-> Mise a jour : 13/03/2026
+> Mise a jour : 18/03/2026
 
 ## Modele d'architecture a respecter
 
@@ -16,7 +16,7 @@ Backend actif:
 Regle runtime actuelle:
 - handlers HTTP `async`
 - acces DB et orchestration sync
-- DB sync via `sync_db_session()`
+- DB sync via `sync_db_session()` exposed canonically through `app.core.db_boundary`
 - appels DB depuis les handlers via `await run_db_bound(...)`
 
 A ne pas faire:
@@ -72,9 +72,9 @@ git diff --name-only
 ### Gates backend standards
 
 ```bash
-pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py
+pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 black app/ server/ tests/ --check
-isort app/ server/ --check-only --diff
+isort app/ server/ tests/ --check-only --diff
 ```
 
 ### Gates frontend standards
@@ -104,7 +104,7 @@ npm run test
 
 - `tests/api/test_admin_auth_stability.py` n'est pas un gate standard
 - ne pas lancer plusieurs `pytest` avec couverture en parallele sur Windows
-- l'iteration Runtime est cloturee localement; la prochaine sequence de solidification backend est `Contracts / Hardening`
+- pour la prochaine sequence backend encore ouverte, lire `POINTS_RESTANTS_2026-03-15.md`
 
 ## References
 

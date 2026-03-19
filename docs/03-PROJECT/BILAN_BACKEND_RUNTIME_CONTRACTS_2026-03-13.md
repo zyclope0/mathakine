@@ -1,7 +1,7 @@
 ﻿# Bilan Backend Runtime + Contracts
 
 > Date: 13/03/2026
-> Status: active recap for `Runtime Truth` and `Contracts / Hardening`
+> Status: historical recap for `Runtime Truth` and `Contracts / Hardening`
 > Scope: historical recap of those two iterations only
 
 ## 1. Global status at closure on 13/03/2026
@@ -74,15 +74,16 @@ Closed results on the treated scope:
 This recap stays valid for the 13/03 closure state, but the current repository truth moved further during `Production Hardening` on 15/03/2026 and `Security, Boundaries, and API Discipline` on 16/03/2026.
 
 Current notable updates:
-- backend reference baseline is now `882 passed, 2 skipped`
+- active backend gate standard is now `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `951 passed, 2 skipped`
 - backend CI coverage gate is now `63 %`
 - `app/api/endpoints/*` and `app/api/deps.py` are now archived in `_ARCHIVE_2026/app/api/`
 - diagnostic endpoints now use a signed `state_token`
 - runtime defaults and external error payloads are hardened
 - request-size guards are enforced before the previously uncovered JSON/body parsing paths
 - production rate limiting now relies on Redis
+- service slicing moved the live modules under domain packages in `app/services/`
 
-Read [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md) and [archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md](./archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md) for the current post-hardening state.
+Read [../../README_TECH.md](../../README_TECH.md), [../INDEX.md](../INDEX.md), [../00-REFERENCE/ARCHITECTURE.md](../00-REFERENCE/ARCHITECTURE.md), [../01-GUIDES/TESTING.md](../01-GUIDES/TESTING.md), [POINTS_RESTANTS_2026-03-15.md](./POINTS_RESTANTS_2026-03-15.md), [BILAN_PRODUCTION_HARDENING_2026-03-15.md](./BILAN_PRODUCTION_HARDENING_2026-03-15.md), and [archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md](./archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/PILOTAGE_CURSOR_SECURITY_BOUNDARIES_AND_API_DISCIPLINE_2026-03-15.md) for the current post-hardening state.
 
 ## 5. What still remained outside Runtime + Contracts
 

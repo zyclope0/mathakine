@@ -199,8 +199,10 @@ def test_constants_values():
     assert "GROUP_10_12" in AGE_GROUPS_DB
 
 
+@pytest.mark.openai_live
 @pytest.mark.skipif(
-    not os.getenv("OPENAI_API_KEY"), reason="Test streaming nécessite OPENAI_API_KEY"
+    os.getenv("RUN_OPENAI_LIVE_TESTS") != "1" or not os.getenv("OPENAI_API_KEY"),
+    reason="Test live OpenAI desactive par defaut. Utiliser RUN_OPENAI_LIVE_TESTS=1 avec une cle explicite.",
 )
 async def test_generate_ai_challenge_stream(client, padawan_client):
     """Test génération IA streaming (si implémenté)"""

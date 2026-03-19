@@ -1,7 +1,7 @@
 # Architecture - Mathakine
 
 > Global architecture reference
-> Updated: 18/03/2026
+> Updated: 19/03/2026
 
 ## 1. System Overview
 
@@ -14,14 +14,14 @@ Mathakine is structured around three active zones:
 Main flow:
 
 ```text
-Browser -> frontend/ -> server/routes + server/handlers -> app/services -> app/repositories -> PostgreSQL
+Browser -> frontend/ -> server/routes + server/handlers -> app/services -> (repositories where used | ORM/Session direct) -> PostgreSQL
 ```
 
 ## 2. Architecture Principles
 
 - thin HTTP handlers: transport parsing, validation, response mapping
 - business orchestration in `app/services/`
-- DB access isolated behind sync services and repositories
+- DB access: sync_db_session() for lifecycle; data access is **selective** (repositories where introduced) and **direct ORM** in many services — no global repository isolation yet
 - stable public HTTP contracts
 - the active code wins over historical documentation
 
@@ -36,9 +36,24 @@ The retained backend runtime model is:
 
 Boundary contract (F5): see `app.core.db_boundary` for the formal runtime/data boundary.
 
-Verified local reference on 18/03/2026 (post-G, post–H1–H3):
-- gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `951 passed, 2 skipped`
+### Data-Layer Doctrine (I1 — 2026-03-19)
+
+**What is true today:**
+- Handlers are `async`; services and facades are `sync`
+- Runtime/data boundary: handlers call DB-bound work via `run_db_bound(...)`; sync code uses `sync_db_session()`
+- `sync_db_session` is imported from `app.core.db_boundary` (G4)
+- Repositories exist **selectively**: `exercise_repository.py`, `exercise_attempt_repository.py` — used for exercise generation and submit validation
+- Many services import `Session` and use ORM directly (25+ modules; per maturity audit: 40 of 64 service modules)
+
+**What is not true globally:**
+- DB access is **not** fully isolated behind repositories
+- There is no global repository layer; ORM direct use remains the dominant pattern in services
+- Repository rollout is out of scope for I1; it may be addressed in later bounded lots
+
+Verified local reference on 19/03/2026 (post-iteration I closure):
+- gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `962 passed, 3 skipped`
 - `test_admin_auth_stability.py` : test spécial, exclu du gate standard (non-bloquant)
+- OpenAI live tests remain opt-in and are not part of the standard gate
 - `black app/ server/ tests/ --check`: green
 - `isort app/ server/ tests/ --check-only --diff`: green
 - backend coverage gate in CI: `63 %`
@@ -58,7 +73,7 @@ Verified local reference on 18/03/2026 (post-G, post–H1–H3):
 - `models/`: SQLAlchemy ORM (explicit modules, `__init__.py` re-exports)
 - `schemas/`: Pydantic schemas (explicit modules, `__init__.py` re-exports)
 - `services/`: business logic and application boundaries, **organised by DDD domains** (Cible B)
-- `repositories/`: isolated data access where introduced
+- `repositories/`: **selective** data access (2 modules: exercise_repository, exercise_attempt_repository); most services still use ORM/Session directly
 - `generators/`: exercise generation source of truth
 - `db/`: engine, sessions, transactions, adapter
 - `utils/`: shared helpers

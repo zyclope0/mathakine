@@ -6,12 +6,13 @@ Pas d'accès DB direct dans les handlers — tout passe par ce service.
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 from app.core.config import settings
 from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.core.security import decode_token
+from app.schemas.auth_result import LoginResult, RefreshTokenResult
 from app.services.auth.auth_service import (
     _is_token_revoked_by_password_reset,
     authenticate_user_with_session,
@@ -60,14 +61,13 @@ def perform_login(
     *,
     ip: Optional[str] = None,
     user_agent: str = "",
-) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+) -> LoginResult:
     """
     Authentifie un utilisateur et prepare les donnees de login.
     Sync - execute via run_db_bound() depuis les handlers async.
 
     Returns:
-        (user_payload, token_data) si succes - user_payload construit dans la session
-        (None, None) si echec (credentials invalides)
+        LoginResult avec user_payload et token_data si succes, is_success=False sinon.
     """
     expires_at = datetime.now(timezone.utc) + timedelta(
         days=settings.REFRESH_TOKEN_EXPIRE_DAYS
@@ -82,11 +82,11 @@ def perform_login(
             expires_at=expires_at,
         )
         if not result.is_success:
-            return None, None
+            return LoginResult(user_payload=None, token_data=None)
         user, token_data = result.user, result.token_data
         # Construire le payload dans la session (evite User detache)
         user_payload = build_authenticated_user_payload(user)
-    return user_payload, token_data
+    return LoginResult(user_payload=user_payload, token_data=token_data)
 
 
 def recover_refresh_token_fallback(access_token: str) -> Optional[str]:
@@ -101,20 +101,16 @@ def recover_refresh_token_fallback(access_token: str) -> Optional[str]:
         return recover_refresh_token_from_access_token(db, access_token.strip())
 
 
-def perform_refresh(
-    refresh_token: str,
-) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+def perform_refresh(refresh_token: str) -> RefreshTokenResult:
     """
     Rafraichit un access token avec un refresh token valide.
     Sync - execute via run_db_bound() depuis les handlers async.
 
     Returns:
-        (token_data, None, 200) si succes
-        (None, error_message, status_code) si echec
+        RefreshTokenResult (token_data, error_message, status_code, is_success).
     """
     with sync_db_session() as db:
-        result = refresh_access_token(db, refresh_token)
-        return result.token_data, result.error_message, result.status_code
+        return refresh_access_token(db, refresh_token)
 
 
 def validate_access_token(token: str) -> Dict[str, Any]:

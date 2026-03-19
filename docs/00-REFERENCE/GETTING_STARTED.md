@@ -1,7 +1,7 @@
 ﻿# GETTING STARTED - MATHAKINE
 
 > Quick start
-> Updated: 15/03/2026
+> Updated: 18/03/2026
 > Visible product release: `3.1.0-alpha.8`
 
 ## Prerequisites
@@ -87,7 +87,7 @@ python scripts/test_backend_local.py
 ```bash
 pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 black app/ server/ tests/ --check
-isort app/ server/ --check-only --diff
+isort app/ server/ tests/ --check-only --diff
 ```
 
 ### Frontend

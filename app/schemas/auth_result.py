@@ -7,7 +7,7 @@ Remplace les tuples faibles (user, error) par des types typés.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal, Optional
+from typing import TYPE_CHECKING, Any, Dict, Literal, Optional
 
 if TYPE_CHECKING:
     from app.models.user import User
@@ -25,6 +25,18 @@ class AuthenticateWithSessionResult:
     @property
     def is_success(self) -> bool:
         return self.user is not None and self.token_data is not None
+
+
+@dataclass(frozen=False)
+class LoginResult:
+    """Résultat de perform_login (I2). Remplace tuple (user_payload, token_data)."""
+
+    user_payload: Optional[Dict[str, Any]] = None
+    token_data: Optional[TokenResponse] = None
+
+    @property
+    def is_success(self) -> bool:
+        return self.user_payload is not None and self.token_data is not None
 
 
 @dataclass(frozen=False)

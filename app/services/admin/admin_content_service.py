@@ -21,6 +21,7 @@ from app.models.logic_challenge import (
     LogicChallengeType,
 )
 from app.models.user import User
+from app.schemas.admin import AdminContentMutationResult
 from app.services.admin.admin_badge_create_flow import (
     persist_badge_create,
     prepare_badge_create_data,
@@ -82,14 +83,20 @@ class AdminContentService:
         *,
         data: Dict[str, Any],
         admin_user_id: Optional[int] = None,
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+    ) -> AdminContentMutationResult:
         """Création badge admin — flux F3 : préparation, validation, persistance, mapping."""
         prepared = prepare_badge_create_data(data)
         err, status = validate_badge_create_pre_persist(prepared, db)
         if err:
-            return None, err, status
+            return AdminContentMutationResult(
+                data=None, error_message=err, status_code=status
+            )
         a = persist_badge_create(db, prepared, admin_user_id)
-        return AdminContentService._achievement_to_detail(a), None, 201
+        return AdminContentMutationResult(
+            data=AdminContentService._achievement_to_detail(a),
+            error_message=None,
+            status_code=201,
+        )
 
     @staticmethod
     def get_badge_for_admin(
@@ -115,16 +122,22 @@ class AdminContentService:
         badge_id: int,
         data: Dict[str, Any],
         admin_user_id: Optional[int] = None,
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+    ) -> AdminContentMutationResult:
         a = db.query(Achievement).filter(Achievement.id == badge_id).first()
         if not a:
-            return None, "Badge non trouvé.", 404
+            return AdminContentMutationResult(
+                data=None, error_message="Badge non trouvé.", status_code=404
+            )
         if "requirements" in data:
             ok, err = AdminContentService._validate_badge_requirements(
                 data.get("requirements")
             )
             if not ok:
-                return None, err or "Requirements invalides.", 400
+                return AdminContentMutationResult(
+                    data=None,
+                    error_message=err or "Requirements invalides.",
+                    status_code=400,
+                )
         str_fields = (
             "name",
             "description",
@@ -154,7 +167,11 @@ class AdminContentService:
         )
         db.commit()
         db.refresh(a)
-        return AdminContentService._achievement_to_detail(a), None, 200
+        return AdminContentMutationResult(
+            data=AdminContentService._achievement_to_detail(a),
+            error_message=None,
+            status_code=200,
+        )
 
     @staticmethod
     def delete_badge_for_admin(
@@ -162,10 +179,12 @@ class AdminContentService:
         *,
         badge_id: int,
         admin_user_id: Optional[int] = None,
-    ) -> Tuple[Optional[Dict[str, Any]], Optional[str], int]:
+    ) -> AdminContentMutationResult:
         a = db.query(Achievement).filter(Achievement.id == badge_id).first()
         if not a:
-            return None, "Badge non trouvé.", 404
+            return AdminContentMutationResult(
+                data=None, error_message="Badge non trouvé.", status_code=404
+            )
         user_count = (
             db.query(func.count(UserAchievement.id))
             .filter(UserAchievement.achievement_id == badge_id)
@@ -183,8 +202,8 @@ class AdminContentService:
         )
         db.commit()
         db.refresh(a)
-        return (
-            {
+        return AdminContentMutationResult(
+            data={
                 "success": True,
                 "id": a.id,
                 "code": a.code,
@@ -192,8 +211,8 @@ class AdminContentService:
                 "is_active": False,
                 "message": "Badge désactivé (soft delete).",
             },
-            None,
-            200,
+            error_message=None,
+            status_code=200,
         )
 
     # ── Exercises ─────────────────────────────────────────────────────────

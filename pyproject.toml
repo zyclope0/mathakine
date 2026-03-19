@@ -62,14 +62,14 @@ disable_error_code = [
 # B5.2 - Scope badge : durcissement progressif (no_implicit_optional, no-any-return)
 [[tool.mypy.overrides]]
 module = [
-    "app.services.badge_service",
-    "app.services.badge_application_service",
-    "app.services.badge_user_view_service",
-    "app.services.badge_progress_service",
-    "app.services.badge_rarity_service",
-    "app.services.badge_stats_cache",
-    "app.services.badge_award_persistence",
-    "app.services.badge_gamification_updates",
+    "app.services.badges.badge_service",
+    "app.services.badges.badge_application_service",
+    "app.services.badges.badge_user_view_service",
+    "app.services.badges.badge_progress_service",
+    "app.services.badges.badge_rarity_service",
+    "app.services.badges.badge_stats_cache",
+    "app.services.badges.badge_award_persistence",
+    "app.services.badges.badge_gamification_updates",
     "app.schemas.badge",
 ]
 no_implicit_optional = true
@@ -97,8 +97,8 @@ disable_error_code = [
 # B5.4 - Scope exercise : durcissement progressif (generation, query)
 [[tool.mypy.overrides]]
 module = [
-    "app.services.exercise_generation_service",
-    "app.services.exercise_query_service",
+    "app.services.exercises.exercise_generation_service",
+    "app.services.exercises.exercise_query_service",
 ]
 no_implicit_optional = true
 check_untyped_defs = true
@@ -111,8 +111,8 @@ disable_error_code = [
 # B5.5 - Scope challenge : durcissement progressif (query, stream)
 [[tool.mypy.overrides]]
 module = [
-    "app.services.challenge_query_service",
-    "app.services.challenge_stream_service",
+    "app.services.challenges.challenge_query_service",
+    "app.services.challenges.challenge_stream_service",
 ]
 no_implicit_optional = true
 check_untyped_defs = true

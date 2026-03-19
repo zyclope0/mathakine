@@ -216,6 +216,24 @@ class TestCreateErrorResponseD1:
         assert captured["tags"]["capture_path"] == "ErrorHandler.create_error_response"
         assert captured["contexts"]["api_response"]["message"] == "Erreur serveur"
 
+    def test_handler_log_context_tags_sentry_and_payload_still_d1(self, monkeypatch):
+        """I6: chemin handlers — un seul log contextualisé, payload sans fuite D1."""
+        captured = _install_fake_sentry(monkeypatch)
+        err = RuntimeError("secret internal")
+
+        resp = ErrorHandler.create_error_response(
+            err,
+            status_code=500,
+            user_message=None,
+            handler_log_context="GET /api/challenges — recuperation liste",
+        )
+
+        data = json.loads(resp.body.decode())
+        assert data["message"] == GENERIC_ERROR_MESSAGE
+        assert "secret" not in data.get("message", "")
+        assert captured["exceptions"] == [err]
+        assert captured["tags"]["handler_context"].startswith("GET /api/challenges")
+
 
 class TestCaptureInternalErrorResponse:
     def test_returns_500_and_captures_exception(self, monkeypatch):

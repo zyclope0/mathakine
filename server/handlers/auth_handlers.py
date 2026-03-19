@@ -347,7 +347,7 @@ async def api_login(request: Request) -> JSONResponse:
         password = data_or_err["password"]
         logger.debug(f"Tentative de connexion pour l'utilisateur: {username}")
 
-        user_payload, token_data = await run_db_bound(
+        result = await run_db_bound(
             svc_perform_login,
             username,
             password,
@@ -355,16 +355,16 @@ async def api_login(request: Request) -> JSONResponse:
             user_agent=request.headers.get("user-agent") or "",
         )
 
-        if not user_payload:
+        if not result.is_success:
             logger.warning(f"Echec de connexion pour l'utilisateur: {username}")
             return api_error_response(
                 401, "Nom d'utilisateur ou mot de passe incorrect"
             )
 
         logger.info(
-            f"Connexion reussie pour l'utilisateur: {user_payload.get('username')}"
+            f"Connexion reussie pour l'utilisateur: {result.user_payload.get('username')}"
         )
-        return _build_login_response(user_payload, token_data)
+        return _build_login_response(result.user_payload, result.token_data)
 
     except Exception as login_error:
         logger.error(f"Erreur lors de la connexion: {login_error}")
@@ -427,15 +427,13 @@ async def api_refresh_token(request: Request) -> JSONResponse:
                 "Refresh token requis (body ou cookie). Veuillez vous reconnecter.",
             )
 
-        new_token_data, refresh_err, refresh_status = await run_db_bound(
-            svc_perform_refresh, refresh_token
-        )
-        if refresh_err:
-            return api_error_response(refresh_status, refresh_err)
+        result = await run_db_bound(svc_perform_refresh, refresh_token)
+        if not result.is_success:
+            return api_error_response(result.status_code, result.error_message)
 
         logger.info("Token rafraichi avec succes")
         return _build_refresh_response(
-            new_token_data,
+            result.token_data,
             fallback_refresh_token=refresh_token,
             had_refresh_cookie="refresh_token" in request.cookies,
         )

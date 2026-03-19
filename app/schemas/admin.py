@@ -4,7 +4,7 @@ Schémas et exceptions pour les use cases admin (LOT B2).
 Remplace les tuples faibles (result, err, code) par des contrats explicites.
 """
 
-from typing import Any, List
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -67,3 +67,18 @@ class AdminResendVerificationServiceResult(AdminActionResult):
     """Résultat interne resend_verification. Remplace tuple (bool, bool, str?, int)."""
 
     already_verified: bool = False
+
+
+class AdminContentMutationResult(BaseModel):
+    """
+    Résultat mutation admin content (badge, exercise, challenge) — I3.
+    Remplace tuple (Optional[Dict], Optional[str], int).
+    """
+
+    data: Optional[Dict[str, Any]] = None
+    error_message: Optional[str] = None
+    status_code: int = 200
+
+    @property
+    def is_success(self) -> bool:
+        return self.error_message is None
