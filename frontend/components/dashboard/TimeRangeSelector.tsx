@@ -10,20 +10,29 @@ import {
 import { CalendarDays } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type TimeRange } from "@/hooks/useUserStats";
+import { cn } from "@/lib/utils";
 
 interface TimeRangeSelectorProps {
   value: TimeRange;
   onValueChange: (value: TimeRange) => void;
   className?: string;
+  triggerClassName?: string;
 }
 
-export function TimeRangeSelector({ value, onValueChange, className }: TimeRangeSelectorProps) {
+export function TimeRangeSelector({
+  value,
+  onValueChange,
+  className,
+  triggerClassName,
+}: TimeRangeSelectorProps) {
   const t = useTranslations("dashboard.timeRange");
 
   return (
     <div className={className}>
       <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger className="w-[180px] flex items-center gap-2">
+        <SelectTrigger
+          className={cn("flex min-h-11 w-[180px] items-center gap-2 sm:min-h-9", triggerClassName)}
+        >
           <CalendarDays className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <SelectValue placeholder={t("30days")} />
         </SelectTrigger>

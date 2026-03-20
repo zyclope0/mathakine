@@ -667,6 +667,9 @@
       "charts": "Continuez à vous entraîner pour voir vos graphiques de progression.",
       "performance": "Aucune donnée de performance pour le moment."
     },
+    "scope": {
+      "cumulative": "Cumulé"
+    },
     "lastUpdate": "Dernière mise à jour : {time}",
     "quickStart": {
       "title": "Que veux-tu faire ?",
@@ -953,8 +956,14 @@
       },
       "dailyExercises": {
         "title": "Exercices par jour (30 derniers jours)",
+        "titleShort": "Exercices par jour",
+        "titleWithPeriod": "Exercices par jour ({period})",
+        "ariaPeriodSummary": "Période affichée : {period}",
+        "defaultPeriodAria": "période des statistiques",
         "ariaLabel": "Graphique en barres montrant le nombre d'exercices résolus chaque jour sur les 30 derniers jours",
-        "loading": "Chargement du graphique..."
+        "loading": "Chargement du graphique...",
+        "loadError": "Impossible de charger ce graphique pour le moment.",
+        "emptyForPeriod": "Aucune activité sur cette période."
       },
       "timeline": {
         "title": "Évolution temporelle",
@@ -966,6 +975,18 @@
         "empty": "Aucune tentative sur cette période.",
         "emptyHint": "Entraînez-vous pour voir votre évolution.",
         "error": "Impossible de charger les données."
+      },
+      "practiceConsistency": {
+        "title": "Régularité de pratique",
+        "subtitle": "Même période que l’évolution temporelle (tentatives par jour).",
+        "empty": "Pas assez d’activité sur cette période.",
+        "error": "Impossible de charger ces indicateurs.",
+        "activeDays": "Jours actifs",
+        "regularityPercent": "Régularité",
+        "avgPerActiveDay": "Moy. tentatives / jour actif",
+        "mostActiveDay": "Jour le plus actif",
+        "presenceAria": "{active} jours actifs sur {total} dans la période.",
+        "attemptsUnit": "{count, plural, one {# tentative} other {# tentatives}}"
       }
     },
     "timeRange": {

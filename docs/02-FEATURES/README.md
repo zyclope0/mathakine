@@ -1,0 +1,70 @@
+# Features Docs - Scope and Truth
+
+> Folder status index for `docs/02-FEATURES`
+> Updated: 2026-03-20
+
+## Purpose
+
+This folder mixes several kinds of documents:
+- active runtime references
+- feature backlog/spec documents
+- implemented feature notes kept as reference
+- historical ideation / analysis documents that are no longer the primary source of truth
+
+This file defines which document should be trusted for what.
+
+## Reading Rules
+
+- live code remains the final truth
+- active HTTP/API truth remains `server/routes/` + `server/handlers/`
+- active product backlog truth remains [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md)
+- if a document is marked historical, do not use it as sole implementation source
+- when a feature is already implemented, prefer the dedicated implementation note or runtime code over older ideation docs
+
+## Document Map
+
+| Document | Role | Status | Notes |
+|---|---|---|---|
+| [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md) | Backlog source of truth | Active | Priorities, implemented history, open follow-ups |
+| [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md) | Active runtime/API reference | Active | Mirrors current routes at a high level |
+| [AUTH_FLOW.md](AUTH_FLOW.md) | Auth reference | Active | Runtime auth flow reference |
+| [F02_DEFIS_QUOTIDIENS.md](F02_DEFIS_QUOTIDIENS.md) | Implemented feature note | Active reference | Daily challenges are implemented |
+| [F03_DIAGNOSTIC_INITIAL.md](F03_DIAGNOSTIC_INITIAL.md) | Implemented feature note | Active reference | Diagnostic is implemented; remaining gaps should also appear in roadmap/backlog |
+| [F05_ADAPTATION_DYNAMIQUE.md](F05_ADAPTATION_DYNAMIQUE.md) | Implemented feature note + follow-ups | Active reference | Includes F05 follow-up backlog |
+| [EDTECH_ANALYTICS.md](EDTECH_ANALYTICS.md) | Implemented admin analytics note | Active reference | Quick Start analytics instrumentation is implemented |
+| [F04_REVISIONS_ESPACEES.md](F04_REVISIONS_ESPACEES.md) | Future feature spec | Active backlog spec | Not implemented |
+| [NIVEAUX_DIFFICULTE_NORMALISATION.md](NIVEAUX_DIFFICULTE_NORMALISATION.md) | Future feature spec | Active backlog spec | Product wish, not implemented |
+| [ADMIN_FEATURE_SECURITE.md](ADMIN_FEATURE_SECURITE.md) | Admin security constraints | Active reference | Use before extending admin endpoints |
+| [ADMIN_ESPACE_PROPOSITION.md](ADMIN_ESPACE_PROPOSITION.md) | Admin feature proposal | Partial / mixed | Some admin/security foundations exist; this doc is not full runtime truth |
+| [BADGES_AMELIORATIONS.md](BADGES_AMELIORATIONS.md) | Badge analysis and partial implementation note | Historical + partial reference | Some items are implemented, remaining backlog must be tracked in roadmap |
+| [ANALYTICS_PROGRESSION.md](ANALYTICS_PROGRESSION.md) | Progress analytics ideation | Historical / partially superseded | F07 exists; F12/F16/F37 now carry active backlog relevance |
+| [WORKFLOW_EDUCATION_REFACTORING.md](WORKFLOW_EDUCATION_REFACTORING.md) | Product/refactoring context | Historical design reference | Useful for rationale, not for runtime truth |
+| [THEMES.md](THEMES.md) | Frontend/theme reference | Reference | Keep as supporting design/system note |
+| [I18N.md](I18N.md) | Internationalization reference | Reference | System-level reference, not feature backlog |
+| [F34_SCIENCES_PROTOTYPE.html](F34_SCIENCES_PROTOTYPE.html) | Prototype only | Prototype | Not implemented; roadmap remains the product truth |
+
+## Rationalized Usage
+
+### Use first
+
+- [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md)
+- [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)
+- [AUTH_FLOW.md](AUTH_FLOW.md)
+- feature notes already marked implemented when working on the same area
+
+### Use with caution
+
+- [ADMIN_ESPACE_PROPOSITION.md](ADMIN_ESPACE_PROPOSITION.md)
+- [BADGES_AMELIORATIONS.md](BADGES_AMELIORATIONS.md)
+- [ANALYTICS_PROGRESSION.md](ANALYTICS_PROGRESSION.md)
+- [WORKFLOW_EDUCATION_REFACTORING.md](WORKFLOW_EDUCATION_REFACTORING.md)
+
+These are useful for rationale and design intent, but they are not the primary truth for runtime or current backlog ordering.
+
+## Current Rationalization Decisions
+
+1. Already implemented features are not removed from this folder if they still provide useful implementation context.
+2. Historical ideation is not deleted, but must be explicitly marked as historical or partially superseded.
+3. New backlog items must land in [ROADMAP_FONCTIONNALITES.md](ROADMAP_FONCTIONNALITES.md), not in scattered standalone notes only.
+4. If a future refactor needs a dedicated spec, that spec must link back to the roadmap item that owns the priority.
+

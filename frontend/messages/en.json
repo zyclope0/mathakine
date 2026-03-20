@@ -667,6 +667,9 @@
       "charts": "Keep training to see your progress charts.",
       "performance": "No performance data at the moment."
     },
+    "scope": {
+      "cumulative": "All-time"
+    },
     "tabs": {
       "tabsLabel": "Dashboard sections",
       "overview": "Overview",
@@ -953,8 +956,14 @@
       },
       "dailyExercises": {
         "title": "Daily exercises (last 30 days)",
+        "titleShort": "Daily exercises",
+        "titleWithPeriod": "Daily exercises ({period})",
+        "ariaPeriodSummary": "Period shown: {period}",
+        "defaultPeriodAria": "selected statistics period",
         "ariaLabel": "Bar chart showing the number of exercises solved each day over the last 30 days",
-        "loading": "Loading chart..."
+        "loading": "Loading chart...",
+        "loadError": "Unable to load this chart right now.",
+        "emptyForPeriod": "No activity in this period."
       },
       "timeline": {
         "title": "Time evolution",
@@ -966,6 +975,18 @@
         "empty": "No attempts in this period.",
         "emptyHint": "Practice to see your evolution.",
         "error": "Unable to load data."
+      },
+      "practiceConsistency": {
+        "title": "Practice consistency",
+        "subtitle": "Same window as the time evolution chart (attempts per day).",
+        "empty": "Not enough activity in this period.",
+        "error": "Unable to load these indicators.",
+        "activeDays": "Active days",
+        "regularityPercent": "Consistency",
+        "avgPerActiveDay": "Avg. attempts / active day",
+        "mostActiveDay": "Most active day",
+        "presenceAria": "{active} active days out of {total} in the period.",
+        "attemptsUnit": "{count, plural, one {# attempt} other {# attempts}}"
       }
     },
     "timeRange": {

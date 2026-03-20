@@ -18,6 +18,7 @@ import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { RECHARTS_TOOLTIP_STYLE } from "@/lib/utils/chart";
+import { DashboardDataScopeBadge } from "@/components/dashboard/DashboardDataScopeBadge";
 
 interface CategoryData {
   completed: number;
@@ -64,9 +65,12 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
     return (
       <Card className="dashboard-card-surface h-full flex flex-col">
         <CardHeader className="flex-shrink-0">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
-            <Activity className="w-5 h-5 text-primary" />
-            {t("title")}
+          <CardTitle className="text-lg font-semibold flex flex-wrap items-center justify-between gap-2 text-foreground">
+            <span className="flex items-center gap-2 min-w-0">
+              <Activity className="w-5 h-5 shrink-0 text-primary" />
+              <span className="min-w-0">{t("title")}</span>
+            </span>
+            <DashboardDataScopeBadge />
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-grow flex items-center justify-center">
@@ -94,9 +98,12 @@ export function CategoryAccuracyChart({ categoryData, isLoading }: CategoryAccur
     >
       <Card className="dashboard-card-surface h-full flex flex-col">
         <CardHeader className="pb-2 flex-shrink-0">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
-            <Activity className="w-5 h-5 text-primary" />
-            {t("title")}
+          <CardTitle className="text-lg font-semibold flex flex-wrap items-center justify-between gap-2 text-foreground">
+            <span className="flex items-center gap-2 min-w-0">
+              <Activity className="w-5 h-5 shrink-0 text-primary" />
+              <span className="min-w-0">{t("title")}</span>
+            </span>
+            <DashboardDataScopeBadge />
           </CardTitle>
         </CardHeader>
 

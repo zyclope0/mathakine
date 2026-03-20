@@ -1,11 +1,15 @@
 # Proposition : Espace Admin Mathakine
 
 > **Date** : 15/02/2026  
-> **Objectif** : Définir un espace admin pour gérer les points clés, basé sur l'analyse des leaders du secteur et les best practices
+> **Statut** : Proposition fonctionnelle mixte - partiellement realisee  
+> **Realite terrain** : les fondations admin et securite existent deja (`server/routes/admin.py`, `server/handlers/admin_handlers.py`, services admin, role archiviste) ; ce document contient encore du perimetre prospectif qui n'est pas entierement implemente  
+> **Objectif** : Definir un espace admin cible en s'appuyant sur benchmark + best practices
+
+> **Lire ce document comme** : une vision produit/admin et un backlog de capacites, pas comme la photographie exacte du runtime admin actuel.
 
 ---
 
-## 1. Benchmark — Plateformes de référence
+## 1. Benchmark - Plateformes de reference
 
 ### 1.1 Comparatif fonctionnalités admin
 

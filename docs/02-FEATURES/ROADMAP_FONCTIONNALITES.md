@@ -1,6 +1,6 @@
 ﻿# Backlog & Priorisation des Features â€” Mathakine
 
-> **Document vivant** â€” DerniÃ¨re MAJ : 09/03/2026 (F32 durci, F07/F33/F35 alignÃ©s, backlog QCM F05-B2 ajoutÃ©, artefact refresh auth F36 formalisÃ©)  
+> **Document vivant** - Derniere MAJ : 20/03/2026 (F37 ajoute : coherence progression / selecteurs de temporalite, F32 durci, F07/F33/F35 alignes, backlog QCM F05-B2 ajoute, artefact refresh auth F36 formalise)  
 > **RÃ´le** : Source de vÃ©ritÃ© unique pour toutes les features Ã  implÃ©menter.  
 > **Cible** : Enfants 5-20 ans + Parents. Contexte : plateforme EdTech maths adaptative.
 
@@ -101,6 +101,7 @@ Un score Ã©levÃ© indique une feature Ã  haute valeur et faible coÃ»t/ris
 | F22 | Suppression utilisateur admin (RGPD) | 2 | 1 | 1 | 2 | 3 | **4.7** | P2 |
 | F35 | [TECH] Redaction secrets dans logs DB (URL SQLAlchemy) âœ… | 1 | 2 | 1 | 1 | 4 | **7.5** | P2 |
 | F36 | [UX][TECH] Flash auth au refresh | 2 | 2 | 1 | 1 | 3 | **7.2** | P2 |
+| F37 | [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard | 3 | 3 | 4 | 2 | 3 | **11.7** | P2 |
 | F23 | [PROP] Exercices adaptatifs SR+IA | 4 | 5 | 5 | 3 | 5 | **17.1** | P2* |
 | F24 | Tuteur IA contextuel | 5 | 5 | 5 | 3 | 5 | **16.1** | P3 |
 | F25 | Mode classe / enseignant | 5 | 4 | 4 | 3 | 5 | **14.9** | P3 |
@@ -576,7 +577,37 @@ Route: /parent/child/[id] â†’ progression dÃ©taillÃ©e
 | **F22 â€” Suppression utilisateur admin (RGPD)** | `DELETE /api/admin/users/{id}` avec soft delete. Voir PLACEHOLDERS_ET_TODO. Compliance obligatoire avant scale. |
 | **F35 â€” [TECH] Redaction secrets logs DB âœ…** | ImplÃ©mentÃ© le 07/03/2026. `app/db/base.py` loggue dÃ©sormais une URL redigÃ©e via `redact_database_url_for_log()` (credentials et query params masquÃ©s). Couvert par `tests/unit/test_db_log_redaction.py` (7 tests). |
 | **F36 â€” [UX][TECH] Flash auth au refresh** | Artefact visuel observÃ© aprÃ¨s refresh: pendant ~0.5s, le frontend semble repasser par un Ã©tat "non connectÃ©" avant rehydratation correcte de la session. Backend session validÃ©: login OK, session conservÃ©e aprÃ¨s refresh et aprÃ¨s idle prolongÃ©. Cible: supprimer le flash sans changer la chaÃ®ne de session/cookies. Piste probable: bootstrap auth frontend (`ProtectedRoute`, `current-user`, `validate-token`, `sync-cookie`). Ouvrir un lot dÃ©diÃ© seulement si le symptÃ´me devient gÃªnant ou s'accompagne d'une redirection parasite/perte de session. |
+| **F37 - [UX][EdTech] Coherence progression & selecteurs de temporalite dashboard** | Clarifier la portee des filtres temporels dans le dashboard. Conclusion de l'analyse UX : un controle = un perimetre visible. Les widgets temporels doivent avoir un selecteur local ou une periode partagee explicite ; les widgets cumules doivent afficher un badge de portee (`Cumule`, `Tous les temps`) plutot qu'un faux selecteur. Les vues journalieres redondantes dans `Progression` doivent etre rationalisees au profit d'un widget complementaire (ex : regularite de pratique). Si l'on veut une coherence temporelle complete de l'onglet `Progression`, ouvrir ensuite un lot dedie data/hooks/backend pour exposer une periode explicite sur les widgets aujourd'hui cumules. |
 | **F23 â€” [PROP] Exercices adaptatifs SR+IA** | GÃ©nÃ©rer des exercices IA ciblÃ©s sur les concepts Ã  rÃ©viser selon la courbe SR (F04). Score composite trÃ¨s Ã©levÃ© (17.1) mais **dÃ©pend de F04**. DÃ©bloquÃ© aprÃ¨s F04. |
+
+---
+
+### F37 - Coherence progression & selecteurs de temporalite dashboard
+
+**Score** : 11.7 | D=3, G=3, E=4, R=2, B=3
+
+**Probleme** : Le dashboard peut exposer plusieurs controles de periode qui ne pilotent pas le meme perimetre. Sur `Progression`, cela cree une incoherence UX : certains widgets sont temporels, d'autres cumules, et un filtre de header peut laisser croire a tort a une portee globale. Pour un apprenant, cette ambiguite consomme de la charge cognitive inutile.
+
+**Conclusion de l'analyse** :
+- **Un controle = un perimetre visible.** Aucun widget ne doit dependre d'une periode choisie ailleurs sans feedback clair.
+- **Widgets temporels** : selecteur local ou periode partagee explicite a l'echelle du bloc.
+- **Widgets cumules** : pas de faux selecteur ; afficher un badge de portee type `Cumule` / `Tous les temps`.
+- **Pas de doublons visuels** : deux widgets journaliers qui repondent presque a la meme question doivent etre fusionnes ou remplaces par un angle pedagogique complementaire (ex : regularite de pratique).
+
+**Valeur pedagogique (E=4)** :
+- Sweller (1988) ? la reduction de charge cognitive extrinseque ameliore la comprehension et la focalisation sur la tache d'apprentissage.
+- Mayer (2001) ? la clarte de presentation et la coherence des signaux visuels ameliorent l'assimilation.
+- Hattie & Timperley (2007) ? un feedback utile doit etre interpretable immediatement ; un filtre ambigu deforme le feedback plutot qu'il ne l'aide.
+
+**Cible backlog** :
+1. Rationaliser l'onglet `Progression` pour que chaque widget exprime clairement son scope temporel.
+2. Eliminer les dependances invisibles a un filtre de header masque ou partiellement applique.
+3. Remplacer les widgets redondants par des widgets complementaires a valeur pedagogique plus forte.
+4. Ouvrir ensuite, si necessaire, un lot dedie data/hooks/backend pour rendre `Progression` entierement coherent sur la temporalite (periode explicite sur stats/progress/challenges aujourd'hui cumules).
+
+**Effort estime** : 2-4 jours pour la rationalisation frontend ; lot separe si la coherence complete demande une evolution API/hook.
+
+**Statut** : ? Backlog actif ? a traiter avant toute refonte visuelle plus large du dashboard.
 
 ---
 
@@ -678,7 +709,9 @@ Avatars, titres, cadres de profil dÃ©bloquables avec les points. Donne de la v
 | Feature | Date | RÃ©fÃ©rence |
 |---------|------|-----------|
 | F01 â€” Rendu Markdown/KaTeX dans les explications | 2026 | Composant `MathText.tsx` â€” intÃ©grÃ© dans `ExerciseSolver`, `ExerciseModal`, `ChallengeSolver`, `DiagnosticSolver` |
+| F02 - Defis quotidiens (daily challenges) | 03/2026 | [F02_DEFIS_QUOTIDIENS](F02_DEFIS_QUOTIDIENS.md) |
 | F03 â€” Test de diagnostic initial (IRT adaptatif) | 04/03/2026 | [ROADMAP_FONCTIONNALITES Â§F03](ROADMAP_FONCTIONNALITES.md) |
+| F05 - Adaptation dynamique de difficulte | 06/03/2026 | [F05_ADAPTATION_DYNAMIQUE](F05_ADAPTATION_DYNAMIQUE.md) |
 | F35 â€” Redaction secrets logs DB (sÃ©curitÃ©) | 07/03/2026 | [IMPLEMENTATION_F35_REDACTION_LOGS_DB](../03-PROJECT/IMPLEMENTATION_F35_REDACTION_LOGS_DB.md) |
 | F32 â€” Session entrelacÃ©e (interleaving) | 07-08/03/2026 | [IMPLEMENTATION_F32_SESSION_ENTRELACEE](../03-PROJECT/IMPLEMENTATION_F32_SESSION_ENTRELACEE.md) |
 | F33 â€” Feedback Growth Mindset (copywriting + micro-UI) | 07/03/2026 | [ROADMAP_FONCTIONNALITES Â§F33](ROADMAP_FONCTIONNALITES.md) |
@@ -740,6 +773,7 @@ Avatars, titres, cadres de profil dÃ©bloquables avec les points. Donne de la v
 
 | Sujet | Document |
 |-------|----------|
+| Carte du dossier features | [README.md](README.md) |
 | SpÃ©cifications graphiques analytics | [ANALYTICS_PROGRESSION.md](ANALYTICS_PROGRESSION.md) |
 | Fondements psychologiques badges | [BADGES_AMELIORATIONS.md](BADGES_AMELIORATIONS.md) |
 | Workflow utilisateur complet | [WORKFLOW_EDUCATION_REFACTORING.md](WORKFLOW_EDUCATION_REFACTORING.md) |

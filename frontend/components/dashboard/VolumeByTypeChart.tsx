@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
 import { RECHARTS_TOOLTIP_STYLE } from "@/lib/utils/chart";
 import type { ProgressByCategory } from "@/hooks/useProgressStats";
+import { DashboardDataScopeBadge } from "@/components/dashboard/DashboardDataScopeBadge";
 
 interface VolumeByTypeChartProps {
   categoryData: Record<string, ProgressByCategory>;
@@ -43,8 +44,9 @@ export function VolumeByTypeChart({ categoryData }: VolumeByTypeChartProps) {
   if (chartData.length === 0) {
     return (
       <Card className="border-border/50 bg-card/40 backdrop-blur-md">
-        <CardHeader>
+        <CardHeader className="flex flex-col gap-2 space-y-0 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-xl text-foreground">{t("title")}</CardTitle>
+          <DashboardDataScopeBadge />
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
@@ -57,8 +59,9 @@ export function VolumeByTypeChart({ categoryData }: VolumeByTypeChartProps) {
 
   return (
     <Card className="border-border/50 bg-card/40 backdrop-blur-md">
-      <CardHeader>
+      <CardHeader className="flex flex-col gap-2 space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="text-xl text-foreground">{t("title")}</CardTitle>
+        <DashboardDataScopeBadge />
       </CardHeader>
       <CardContent>
         <div

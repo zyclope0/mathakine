@@ -23,8 +23,21 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle } from "lucide-react";
 import { useLocaleStore } from "@/lib/stores/localeStore";
 
-export function ProgressTimelineWidget() {
-  const [period, setPeriod] = useState<TimelinePeriod>("7d");
+type ProgressTimelineWidgetProps = {
+  /** When both are set, period is controlled by the parent (e.g. dashboard Progress tab). */
+  period?: TimelinePeriod;
+  onPeriodChange?: (p: TimelinePeriod) => void;
+};
+
+export function ProgressTimelineWidget({
+  period: periodProp,
+  onPeriodChange,
+}: ProgressTimelineWidgetProps = {}) {
+  const [internalPeriod, setInternalPeriod] = useState<TimelinePeriod>("7d");
+  const isControlled = periodProp !== undefined && onPeriodChange !== undefined;
+  const period = isControlled ? periodProp : internalPeriod;
+  const setPeriod = isControlled ? onPeriodChange : setInternalPeriod;
+
   const { data, isLoading, error } = useProgressTimeline(period);
   const t = useTranslations("dashboard.charts.timeline");
   const { shouldReduceMotion } = useAccessibleAnimation();

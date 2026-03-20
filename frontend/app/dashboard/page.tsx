@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocaleStore } from "@/lib/stores/localeStore";
 import { useUserStats, type TimeRange } from "@/hooks/useUserStats";
 import { useProgressStats } from "@/hooks/useProgressStats";
+import type { TimelinePeriod } from "@/hooks/useProgressTimeline";
 import { useChallengesProgress } from "@/hooks/useChallengesProgress";
 import { useDailyChallenges } from "@/hooks/useDailyChallenges";
 import { buildDashboardExportSnapshot } from "@/lib/dashboard/buildDashboardExportSnapshot";
@@ -25,7 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { VolumeByTypeChartLazy } from "@/components/dashboard/VolumeByTypeChartLazy";
-import { DailyExercisesChartLazy } from "@/components/dashboard/DailyExercisesChartLazy";
+import { PracticeConsistencyWidget } from "@/components/dashboard/PracticeConsistencyWidget";
 import { AverageTimeWidget } from "@/components/dashboard/AverageTimeWidget";
 import { LevelIndicator } from "@/components/dashboard/LevelIndicator";
 import { Recommendations } from "@/components/dashboard/Recommendations";
@@ -39,6 +40,7 @@ import { CategoryAccuracyChart } from "@/components/dashboard/CategoryAccuracyCh
 import { ProgressTimelineWidget } from "@/components/dashboard/ProgressTimelineWidget";
 import { ExportButton } from "@/components/dashboard/ExportButton";
 import { TimeRangeSelector } from "@/components/dashboard/TimeRangeSelector";
+import { shouldShowHeaderTimeRange } from "@/lib/dashboard/headerTimeRangeScope";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { PageLayout, PageHeader, PageSection, EmptyState } from "@/components/layout";
@@ -67,6 +69,8 @@ export default function DashboardPage() {
   const { data: challengesProgress, isLoading: isLoadingChallenges } = useChallengesProgress();
   const { challenges: dailyChallenges } = useDailyChallenges();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [timelinePeriod, setTimelinePeriod] = useState<TimelinePeriod>("7d");
 
   const t = useTranslations("dashboard");
   const tToasts = useTranslations("toasts.dashboard");
@@ -110,6 +114,7 @@ export default function DashboardPage() {
       await refetch();
       // Invalider progress, challenges et défis quotidiens pour un rafraîchissement complet
       await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["user", "stats"] }),
         queryClient.invalidateQueries({ queryKey: ["user", "progress"] }),
         queryClient.invalidateQueries({ queryKey: ["user", "progress", "timeline"] }),
         queryClient.invalidateQueries({ queryKey: ["user", "challenges", "progress"] }),
@@ -176,7 +181,9 @@ export default function DashboardPage() {
           description={t("description")}
           actions={
             <>
-              <TimeRangeSelector value={timeRange} onValueChange={setTimeRange} />
+              {shouldShowHeaderTimeRange(activeTab) ? (
+                <TimeRangeSelector value={timeRange} onValueChange={setTimeRange} />
+              ) : null}
               <ExportButton snapshot={exportSnapshot} />
               <Button
                 variant="ghost"
@@ -197,7 +204,11 @@ export default function DashboardPage() {
 
         {/* Contenu organisé par onglets pour réduire la densité */}
         {stats && (
-          <Tabs defaultValue="overview" className="space-y-4 animate-fade-in-up-delay-1">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="space-y-4 animate-fade-in-up-delay-1"
+          >
             <TabsList
               className="grid w-full max-w-3xl grid-cols-2 sm:grid-cols-4"
               aria-label={t("tabs.tabsLabel", { default: "Sections du tableau de bord" })}
@@ -268,7 +279,10 @@ export default function DashboardPage() {
             {/* Onglet Progression — graphiques uniquement */}
             <TabsContent value="progress" className="space-y-6">
               <PageSection>
-                <ProgressTimelineWidget />
+                <ProgressTimelineWidget
+                  period={timelinePeriod}
+                  onPeriodChange={setTimelinePeriod}
+                />
               </PageSection>
               <PageSection>
                 <div className="grid gap-6 md:grid-cols-2 items-stretch">
@@ -286,23 +300,12 @@ export default function DashboardPage() {
                 </div>
               </PageSection>
 
-              {stats.exercises_by_day ? (
-                <PageSection>
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <VolumeByTypeChartLazy categoryData={progressStats?.by_category ?? {}} />
-                    <DailyExercisesChartLazy data={stats.exercises_by_day} />
-                  </div>
-                </PageSection>
-              ) : (
-                <PageSection>
-                  <p className="text-muted-foreground text-center py-8">
-                    {t("empty.charts", {
-                      default:
-                        "Continuez à vous entraîner pour voir vos graphiques de progression.",
-                    })}
-                  </p>
-                </PageSection>
-              )}
+              <PageSection>
+                <div className="grid gap-6 md:grid-cols-2 items-stretch">
+                  <VolumeByTypeChartLazy categoryData={progressStats?.by_category ?? {}} />
+                  <PracticeConsistencyWidget period={timelinePeriod} />
+                </div>
+              </PageSection>
             </TabsContent>
 
             {/* Onglet Mon Profil — Niveau, badges, stats, tempo, journal */}

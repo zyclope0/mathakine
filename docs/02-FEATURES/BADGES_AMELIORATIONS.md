@@ -1,12 +1,15 @@
-# Améliorations Page Badges - Analyse et Priorisation
+# Ameliorations Page Badges - Analyse et Priorisation
 
-> **Date** : 06/02/2026 — **MAJ 17/02** : UX onglets + cartes compactes dépliables  
-> **Statut** : Analyse complète — P0 progression ✅, UX Lot A ✅ (onglets, cartes dépliables)  
+> **Date** : 06/02/2026 - **MAJ 17/02** : UX onglets + cartes compactes depliables  
+> **Statut** : Analyse historique + note partiellement implementee  
+> **Realite terrain** : plusieurs items badges sont deja implementes ; le backlog actif restant doit etre pilote par `ROADMAP_FONCTIONNALITES.md` (F06, F13, F21, F26)  
 > **Cible** : Enfants 5-20 ans (dont TSA/TDAH)
+
+> **Lire ce document comme** : une analyse detaillee des choix badges et de l'historique d'implementation, pas comme l'unique source de priorisation actuelle.
 
 ---
 
-## Table des matières
+## Table des matieres
 
 1. [Analyse du système actuel](#1-analyse-du-système-actuel)
 2. [Fondements psychologiques](#2-fondements-psychologiques)

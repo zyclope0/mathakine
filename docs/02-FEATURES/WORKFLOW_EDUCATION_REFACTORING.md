@@ -1,7 +1,11 @@
-# Workflow utilisateur & Éducation — Vue d'ensemble et refactoring
+# Workflow utilisateur & Education - Vue d'ensemble et refactoring
 
-> **Objectif** : Contexte global du parcours utilisateur et de la partie éducation, pour guider les refactorings tout en gardant la cohérence.
-> **Date** : Février 2026
+> **Objectif** : Contexte global du parcours utilisateur et de la partie education, pour guider les refactorings tout en gardant la coherence.
+> **Date** : Fevrier 2026  
+> **Statut** : Reference produit / design historique  
+> **Realite terrain** : une partie importante du contenu est deja implementee ou supersedee ; la priorisation active appartient a `ROADMAP_FONCTIONNALITES.md`, et la verite runtime appartient au code vivant
+
+> **Lire ce document comme** : une note de contexte et de rationale, utile pour comprendre le pourquoi, mais pas comme la source de verite du parcours actuel.
 
 ---
 

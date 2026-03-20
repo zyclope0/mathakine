@@ -8,6 +8,7 @@ import { Trophy, Target, Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { useAccessibleAnimation } from "@/lib/hooks/useAccessibleAnimation";
+import { DashboardDataScopeBadge } from "@/components/dashboard/DashboardDataScopeBadge";
 
 interface ChallengesProgressWidgetProps {
   completedChallenges: number;
@@ -59,14 +60,17 @@ export function ChallengesProgressWidget({
     >
       <Card className="border-border/50 bg-card/40 backdrop-blur-md h-full flex flex-col">
         <CardHeader className="pb-3 flex-shrink-0">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
-            <motion.div
-              animate={!shouldReduceMotion ? { rotate: [0, -10, 10, -10, 0] } : {}}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <Trophy className="w-5 h-5 text-warning" />
-            </motion.div>
-            {t("title")}
+          <CardTitle className="text-lg font-semibold flex flex-wrap items-center justify-between gap-2 text-foreground">
+            <span className="flex items-center gap-2 min-w-0">
+              <motion.div
+                animate={!shouldReduceMotion ? { rotate: [0, -10, 10, -10, 0] } : {}}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <Trophy className="w-5 h-5 shrink-0 text-warning" />
+              </motion.div>
+              <span className="min-w-0">{t("title")}</span>
+            </span>
+            <DashboardDataScopeBadge />
           </CardTitle>
         </CardHeader>
 

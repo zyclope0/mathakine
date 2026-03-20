@@ -1,8 +1,11 @@
 # Analytics et Suivi de Progression
 
-> **Statut** : Idées à implémenter  
+> **Statut** : Reference d'ideation historique - partiellement supersedee  
 > **Date** : 06/02/2026  
+> **Realite terrain** : la timeline F07 est implementee ; le backlog actif progression/temporalite est maintenant porte par `ROADMAP_FONCTIONNALITES.md` (F07, F12, F16, F37)  
 > **Endpoint existant** : `/api/exercises/stats`
+
+> **Lire ce document comme** : une source d'idees et de rationale produit, pas comme la source de verite du dashboard progression actuel.
 
 ## Objectif
 
