@@ -1,16 +1,15 @@
+from collections import Counter
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Tuple
+from types import SimpleNamespace
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from sqlalchemy import and_, exists, or_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
+from sqlalchemy.orm.attributes import set_committed_value
 from sqlalchemy.sql import func
 
-from app.core.constants import (
-    AgeGroups,
-    get_difficulty_from_age_group,
-    normalize_age_group,
-)
+from app.core.constants import AgeGroups, normalize_age_group
 from app.core.logging_config import get_logger
 from app.models.attempt import Attempt
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
@@ -18,102 +17,263 @@ from app.models.logic_challenge import AgeGroup, LogicChallenge, LogicChallengeA
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.user import User
+from app.services.recommendation.recommendation_exercise_ranking import (
+    MAX_CANDIDATES_TO_RANK,
+    collect_recent_recommended_exercise_ids,
+    select_top_ranked_exercises,
+)
+from app.services.recommendation.recommendation_exercise_reasons import (
+    REASON_EXERCISE_DISCOVERY,
+    REASON_EXERCISE_FALLBACK,
+    REASON_EXERCISE_IMPROVEMENT,
+    REASON_EXERCISE_MAINTENANCE,
+    REASON_EXERCISE_PROGRESSION,
+    english_discovery,
+    english_fallback,
+    english_improvement,
+    english_maintenance,
+    english_progression,
+    params_discovery,
+    params_fallback,
+    params_improvement,
+    params_maintenance,
+    params_progression,
+)
+from app.services.recommendation.recommendation_user_context import (
+    build_recommendation_user_context,
+    get_target_difficulty_for_type,
+)
+from app.utils.exercise_type_normalization import normalize_exercise_type_key
 
 logger = get_logger(__name__)
 
-# Mapping grade_level → age_group (quand preferred_difficulty vide)
-# Approximation : suisse 1H-11H, unifié 1-12
-_GRADE_TO_AGE_GROUP = {
-    (1, 3): AgeGroups.GROUP_6_8,  # CP-CE2
-    (4, 6): AgeGroups.GROUP_9_11,  # CM1-6e
-    (7, 9): AgeGroups.GROUP_12_14,  # 5e-3e
-    (10, 12): AgeGroups.GROUP_15_17,  # Lycée
-}
+# --- R5 — Défis logiques : codes de raison stables (i18n côté client) ---
+REASON_CHALLENGE_ONBOARDING = "reco.challenge.onboarding"
+REASON_CHALLENGE_GENTLE = "reco.challenge.gentle_progress"
+REASON_CHALLENGE_STRETCH = "reco.challenge.skill_stretch"
+REASON_CHALLENGE_VARIETY = "reco.challenge.variety"
+
+_CHALLENGE_ONBOARDING_TYPES = frozenset({"sequence", "puzzle", "pattern"})
+
+
+def _challenge_type_key(ch: LogicChallenge) -> str:
+    ct = ch.challenge_type
+    if ct is None:
+        return "custom"
+    return getattr(ct, "value", str(ct)).lower()
+
+
+def _compute_logic_challenge_user_stats(db, user_id: int) -> SimpleNamespace:
+    """Signaux R5 : tentatives 90j, taux de réussite, diversité récente (30j)."""
+    now = datetime.now(timezone.utc)
+    d30 = now - timedelta(days=30)
+    d90 = now - timedelta(days=90)
+    attempts = (
+        db.query(LogicChallengeAttempt)
+        .options(selectinload(LogicChallengeAttempt.challenge))
+        .filter(
+            LogicChallengeAttempt.user_id == user_id,
+            LogicChallengeAttempt.created_at >= d90,
+        )
+        .all()
+    )
+    attempts_30 = [a for a in attempts if a.created_at and a.created_at >= d30]
+    total_90 = len(attempts)
+    success_90 = sum(1 for a in attempts if a.is_correct)
+    sr_90 = (success_90 / total_90) if total_90 else None
+    type_counts: Counter[str] = Counter()
+    for a in attempts_30:
+        ch = a.challenge
+        if ch is not None:
+            type_counts[_challenge_type_key(ch)] += 1
+    dominant = type_counts.most_common(1)[0][0] if type_counts else None
+    recent_types = set(type_counts.keys())
+    last_activity = max((a.created_at for a in attempts if a.created_at), default=None)
+    return SimpleNamespace(
+        total_attempts_90d=total_90,
+        success_rate_90d=sr_90,
+        recent_types_30d=recent_types,
+        dominant_recent_type=dominant,
+        last_activity_at=last_activity,
+    )
+
+
+def _classify_challenge_profile(completed_count: int, stats: SimpleNamespace) -> str:
+    """
+    Profil utilisateur sur les défis (explicite, ordre des tests important).
+    - struggling : priorité si beaucoup d'échecs relatifs
+    - novice : peu d'historique défi et aucune complétion enregistrée
+    - mature : assez de défis réussis ou historique riche et solide
+    """
+    if (
+        stats.total_attempts_90d >= 3
+        and stats.success_rate_90d is not None
+        and stats.success_rate_90d < 0.45
+    ):
+        return "struggling"
+    if completed_count == 0 and stats.total_attempts_90d < 5:
+        return "novice"
+    if completed_count >= 3 or (
+        stats.total_attempts_90d >= 10
+        and stats.success_rate_90d is not None
+        and stats.success_rate_90d >= 0.5
+    ):
+        return "mature"
+    return "developing"
+
+
+def _profile_to_reason_code(profile: str) -> str:
+    return {
+        "novice": REASON_CHALLENGE_ONBOARDING,
+        "struggling": REASON_CHALLENGE_GENTLE,
+        "developing": REASON_CHALLENGE_STRETCH,
+        "mature": REASON_CHALLENGE_VARIETY,
+    }[profile]
+
+
+def _english_fallback_reason(profile: str, type_key: str) -> str:
+    """Fallback non-FR pour clients ne lisant pas reason_code (transition)."""
+    return {
+        "novice": f"Guided logic challenge ({type_key}) to get started.",
+        "struggling": f"A gentler {type_key} challenge to rebuild confidence.",
+        "developing": f"A {type_key} challenge matched to your current level.",
+        "mature": f"A {type_key} challenge to diversify your logic practice.",
+    }[profile]
+
+
+def _score_challenge_for_recommendation(
+    ch: LogicChallenge,
+    profile: str,
+    stats: SimpleNamespace,
+    learning_goal: str,
+    now: datetime,
+) -> float:
+    """
+    Score borné et lisible. ``difficulty_rating`` est traité comme indicateur souvent partiel
+    (défaut 3.0 si absent) — ne pas sur-interpréter.
+    """
+    dr_raw = ch.difficulty_rating
+    dr = 3.0 if dr_raw is None else float(dr_raw)
+    dr = max(1.0, min(5.0, dr))
+    tv = _challenge_type_key(ch)
+    inactive = False
+    if stats.last_activity_at:
+        inactive = (now - stats.last_activity_at) > timedelta(days=14)
+
+    if profile == "struggling":
+        score = (4.6 - dr) * 3.5
+        if tv in _CHALLENGE_ONBOARDING_TYPES:
+            score += 4.0
+        if dr <= 2.5:
+            score += 2.0
+    elif profile == "novice":
+        score = (4.2 - min(dr, 4.0)) * 2.8
+        if tv in _CHALLENGE_ONBOARDING_TYPES:
+            score += 6.0
+    elif profile == "mature":
+        score = (dr - 2.0) * 1.2
+        if tv not in stats.recent_types_30d:
+            score += 5.0
+        if stats.dominant_recent_type and tv == stats.dominant_recent_type:
+            score -= 4.0
+    else:
+        score = (5.0 - abs(dr - 3.0)) * 2.0
+        if tv not in stats.recent_types_30d:
+            score += 2.5
+
+    if inactive and tv in _CHALLENGE_ONBOARDING_TYPES:
+        score += 2.0
+    if learning_goal == "samuser":
+        score += 1.2
+    return score
+
+
+def _select_logic_challenge_recommendation_entries(
+    db,
+    user_id: int,
+    user_age_group: str,
+    learning_goal: str,
+    completed_challenge_ids: Set[int],
+) -> List[Dict[str, Any]]:
+    """
+    R5 — Pool filtré (actif, non archivé, âge, non réussi), tri par score explicite
+    (pas de tirage aléatoire dominant).
+    """
+    from app.services.challenges.challenge_service import normalize_age_group_for_db
+
+    stats = _compute_logic_challenge_user_stats(db, user_id)
+    completed_count = len(completed_challenge_ids)
+    profile = _classify_challenge_profile(completed_count, stats)
+    reason_code = _profile_to_reason_code(profile)
+    now = datetime.now(timezone.utc)
+
+    challenge_query = db.query(LogicChallenge).filter(
+        LogicChallenge.is_archived == False,
+        LogicChallenge.is_active == True,
+    )
+    if user_age_group != AgeGroups.ALL_AGES:
+        try:
+            db_age_group = normalize_age_group_for_db(user_age_group)
+            challenge_query = challenge_query.filter(
+                or_(
+                    LogicChallenge.age_group == db_age_group,
+                    LogicChallenge.age_group == AgeGroup.ALL_AGES,
+                )
+            )
+        except (TypeError, ValueError):
+            pass
+    if completed_challenge_ids:
+        challenge_query = challenge_query.filter(
+            ~LogicChallenge.id.in_(list(completed_challenge_ids))
+        )
+    pool = challenge_query.order_by(LogicChallenge.id.desc()).limit(150).all()
+    if not pool:
+        return []
+
+    scored: List[Tuple[float, LogicChallenge]] = []
+    for ch in pool:
+        sc = _score_challenge_for_recommendation(
+            ch, profile, stats, learning_goal or "", now
+        )
+        scored.append((sc, ch))
+    scored.sort(key=lambda x: (-x[0], -x[1].id))
+    top = scored[:4]
+
+    pri_base = {"novice": 8, "struggling": 8, "developing": 7, "mature": 6}[profile]
+    if learning_goal == "samuser":
+        pri_base = min(9, pri_base + 1)
+
+    out: List[Dict[str, Any]] = []
+    for _sc, ch in top:
+        tk = _challenge_type_key(ch)
+        dr_raw = ch.difficulty_rating
+        dr = 3.0 if dr_raw is None else float(dr_raw)
+        dr = max(1.0, min(5.0, dr))
+        params = {
+            "challenge_type": tk,
+            "difficulty_rating": round(dr, 2),
+        }
+        out.append(
+            {
+                "challenge": ch,
+                "reason_code": reason_code,
+                "reason_params": params,
+                "priority": pri_base,
+                "reason": _english_fallback_reason(profile, tk),
+            }
+        )
+    return out
+
+
+# --- R1 — Comparaison des types d'exercice ---
+# Convention unique : ``normalize_exercise_type_key`` (chaîne minuscule strip).
+# Toute comparaison Progress / Exercise / stats ``by_exercise_type`` doit passer par cette clé.
+
+# --- R2 — Contexte utilisateur : diagnostic par type (``RecommendationUserContext``) ---
 
 
 class RecommendationService:
     """Service analysant les performances et générant des recommandations personnalisées"""
-
-    @staticmethod
-    def _get_user_context(user, db=None) -> Tuple[str, str, str, str]:
-        """
-        Extrait le contexte utilisateur (onboarding + profil + diagnostic F03) pour les
-        recommandations.
-
-        Priorité de résolution de la difficulté par défaut :
-          1. Diagnostic initial (F03) — niveau réel mesuré par exercice type
-          2. preferred_difficulty (onboarding)
-          3. grade_level (déduit)
-          4. ALL_AGES (fallback large)
-
-        Returns:
-            (age_group, default_difficulty, learning_goal, practice_rhythm)
-        """
-        # preferred_difficulty stocke le groupe d'âge (6-8, 9-11, etc.) depuis l'onboarding
-        age_group = None
-        if getattr(user, "preferred_difficulty", None):
-            val = str(user.preferred_difficulty).lower().strip()
-            if val in (
-                AgeGroups.GROUP_6_8,
-                AgeGroups.GROUP_9_11,
-                AgeGroups.GROUP_12_14,
-                AgeGroups.GROUP_15_17,
-                AgeGroups.ADULT,
-                AgeGroups.ALL_AGES,
-            ):
-                age_group = val
-            elif val in ("6-8", "9-11", "12-14", "15-17", "adulte", "tous-ages"):
-                age_group = val
-
-        # Fallback : dériver du grade_level
-        if not age_group and getattr(user, "grade_level", None) is not None:
-            try:
-                gl = int(user.grade_level)
-                for (lo, hi), ag in _GRADE_TO_AGE_GROUP.items():
-                    if lo <= gl <= hi:
-                        age_group = ag
-                        break
-            except (TypeError, ValueError):
-                pass
-
-        # Sans onboarding/profil : ne pas filtrer par âge (tous-ages = large)
-        age_group = age_group or AgeGroups.ALL_AGES
-        default_difficulty = get_difficulty_from_age_group(age_group)
-
-        # Affiner la difficulté par défaut avec le diagnostic initial (F03) si disponible.
-        # On calcule la difficulté médiane sur les types évalués pour obtenir une valeur globale.
-        if db is not None:
-            try:
-                from app.services.diagnostic.diagnostic_service import (
-                    _DIFFICULTY_TO_ORDINAL,
-                    _ORDINAL_TO_DIFFICULTY,
-                    get_latest_score,
-                )
-
-                latest = get_latest_score(db, user.id)
-                if latest and latest.get("scores"):
-                    ordinals = [
-                        _DIFFICULTY_TO_ORDINAL.get(s.get("difficulty", ""), 1)
-                        for s in latest["scores"].values()
-                    ]
-                    if ordinals:
-                        median_ordinal = sorted(ordinals)[len(ordinals) // 2]
-                        default_difficulty = _ORDINAL_TO_DIFFICULTY.get(
-                            median_ordinal, default_difficulty
-                        )
-                        logger.debug(
-                            f"Recommandations user={user.id}: difficulté affinée par "
-                            f"diagnostic → {default_difficulty} (médiane ordinal {median_ordinal})"
-                        )
-            except Exception as diag_err:
-                # Non bloquant : les recommandations continuent avec le fallback
-                logger.debug(
-                    f"Impossible de lire le diagnostic pour user={user.id}: {diag_err}"
-                )
-
-        learning_goal = getattr(user, "learning_goal", None) or ""
-        practice_rhythm = getattr(user, "practice_rhythm", None) or ""
-        return age_group, default_difficulty, learning_goal, practice_rhythm
 
     @staticmethod
     def generate_recommendations(db, user_id):
@@ -140,13 +300,15 @@ class RecommendationService:
                 logger.error(f"Utilisateur {user_id} non trouvé")
                 return []
 
-            # Contexte onboarding/profil + diagnostic (F03) pour personnalisation
-            user_age_group, user_default_difficulty, learning_goal, practice_rhythm = (
-                RecommendationService._get_user_context(user, db=db)
-            )
+            # R2 — Contexte explicite : diagnostic par type + médiane globale
+            ctx = build_recommendation_user_context(user, db=db)
+            user_age_group = ctx.age_group
+            learning_goal = ctx.learning_goal
+            practice_rhythm = ctx.practice_rhythm
             logger.debug(
                 f"Recommandations user {user_id}: age_group={user_age_group}, "
-                f"default_difficulty={user_default_difficulty}, goal={learning_goal}"
+                f"global_default_difficulty={ctx.global_default_difficulty}, "
+                f"diagnostic_by_type={ctx.diagnostic_difficulty_by_type}, goal={learning_goal}"
             )
 
             # Récupérer les stats récentes (30 derniers jours) pour mieux cibler
@@ -184,10 +346,21 @@ class RecommendationService:
                 if a.exercise_id
             }
 
-            # Supprimer les anciennes recommandations non complétées
+            # R3 — Avant suppression des incomplètes : capturer les exercices récemment recommandés
+            penalized_exercise_ids = collect_recent_recommended_exercise_ids(
+                db, user_id
+            )
+
+            # Supprimer les anciennes recommandations non complétées.
+            # synchronize_session=False : évite de marquer des instances ORM déjà en session
+            # comme « supprimées » (ObjectDeletedError) lors d’un 2e generate dans la même session.
             db.query(Recommendation).filter(
                 Recommendation.user_id == user_id, Recommendation.is_completed == False
-            ).delete()
+            ).delete(synchronize_session=False)
+            # Le DELETE bulk ne vide pas ``user.recommendations`` (relation ``delete-orphan``).
+            # ``expire`` sur la relation a montré des effets de bord (FK user_id) ; on réaligne
+            # la collection en mémoire sans toucher à la ligne ``users``.
+            set_committed_value(user, "recommendations", [])
 
             # Générer de nouvelles recommandations
             recommendations = []
@@ -195,8 +368,8 @@ class RecommendationService:
             # 1. Recommandations basées sur les domaines à améliorer (utilisant les stats récentes)
             # Prioriser les types avec faible taux de réussite récent
             for ex_type_key, type_stats in performance_by_type.items():
-                # Normaliser le type d'exercice (peut être en minuscules depuis SQL)
-                ex_type = str(ex_type_key).lower()
+                # Clé canonique (alignée UserService : stats SQL en LOWER)
+                ex_type = normalize_exercise_type_key(ex_type_key)
                 success_rate = type_stats.get("success_rate", 0)
                 total = type_stats.get("total", 0)
 
@@ -205,23 +378,23 @@ class RecommendationService:
                     # Déterminer la priorité selon le taux de réussite + objectif (learning_goal)
                     if success_rate < 50:
                         priority = 9  # Urgent
-                        reason = f"Votre taux de réussite en {ex_type} est de {success_rate}%. Continuons à progresser !"
                     else:
                         priority = 8  # Important
-                        reason = f"Pour améliorer votre taux de réussite en {ex_type} ({success_rate}%)"
                     if learning_goal == "preparer_exam":
                         priority = min(10, priority + 1)  # Prioriser en vue d'un examen
 
-                    # Trouver le niveau de difficulté le plus approprié
-                    # Utiliser le niveau le plus pratiqué récemment ou le niveau actuel du Progress
-                    target_difficulty = None
+                    # Niveau cible : Progress si présent, sinon diagnostic par type (R2), sinon global
+                    progress_difficulty = None
                     for progress in progress_records:
-                        if str(progress.exercise_type).lower() == ex_type:
-                            target_difficulty = progress.difficulty
+                        if (
+                            normalize_exercise_type_key(progress.exercise_type)
+                            == ex_type
+                        ):
+                            progress_difficulty = progress.difficulty
                             break
-
-                    if not target_difficulty:
-                        target_difficulty = user_default_difficulty
+                    target_difficulty = get_target_difficulty_for_type(
+                        ctx, ex_type, progress_difficulty
+                    )
 
                     # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
                     valid_types = [t.value for t in ExerciseType]
@@ -253,7 +426,22 @@ class RecommendationService:
                             ~Exercise.id.in_(list(all_completed_exercise_ids))
                         )
 
-                    exercises = exercise_query.order_by(func.random()).limit(2).all()
+                    # Borne le pool : ids décroissants = contenus récents d'abord (évite un LIMIT arbitraire)
+                    candidates = (
+                        exercise_query.order_by(Exercise.id.desc())
+                        .limit(MAX_CANDIDATES_TO_RANK)
+                        .all()
+                    )
+                    exercises = select_top_ranked_exercises(
+                        candidates,
+                        user_age_group,
+                        penalized_exercise_ids,
+                        2,
+                    )
+                    ex_reason_params = params_improvement(
+                        ex_type, int(success_rate), target_difficulty
+                    )
+                    ex_reason_en = english_improvement(ex_type, int(success_rate))
 
                     for ex in exercises:
                         # Exclure si l'utilisateur a déjà réussi cet exercice
@@ -265,14 +453,15 @@ class RecommendationService:
                                     difficulty=ex.difficulty,
                                     exercise_id=ex.id,
                                     priority=priority,
-                                    reason=reason,
+                                    reason=ex_reason_en,
+                                    reason_code=REASON_EXERCISE_IMPROVEMENT,
+                                    reason_params=ex_reason_params,
                                 )
                             )
 
             # 2. Recommandations pour monter en niveau (progression) - basé sur stats récentes
             for ex_type_key, type_stats in performance_by_type.items():
-                # Normaliser le type d'exercice
-                ex_type = str(ex_type_key).lower()
+                ex_type = normalize_exercise_type_key(ex_type_key)
                 success_rate = type_stats.get("success_rate", 0)
                 total = type_stats.get("total", 0)
 
@@ -281,7 +470,10 @@ class RecommendationService:
                     # Trouver le niveau actuel depuis Progress
                     current_difficulty = None
                     for progress in progress_records:
-                        if str(progress.exercise_type).lower() == ex_type:
+                        if (
+                            normalize_exercise_type_key(progress.exercise_type)
+                            == ex_type
+                        ):
                             current_difficulty = progress.difficulty
                             break
 
@@ -296,13 +488,6 @@ class RecommendationService:
                         # FILTRE CRITIQUE : Exclure les exercices avec des types/difficultés invalides
                         valid_types = [t.value for t in ExerciseType]
                         valid_difficulties = [d.value for d in DifficultyLevel]
-
-                        # Normaliser ex_type pour la comparaison
-                        exercise_type_filter = ex_type
-                        for enum_type in ExerciseType:
-                            if enum_type.value.lower() == ex_type:
-                                exercise_type_filter = enum_type.value
-                                break
 
                         exercise_query = db.query(Exercise).filter(
                             func.lower(Exercise.exercise_type) == ex_type,
@@ -319,8 +504,22 @@ class RecommendationService:
                                 ~Exercise.id.in_(list(all_completed_exercise_ids))
                             )
 
-                        exercises = (
-                            exercise_query.order_by(func.random()).limit(1).all()
+                        candidates = (
+                            exercise_query.order_by(Exercise.id.desc())
+                            .limit(MAX_CANDIDATES_TO_RANK)
+                            .all()
+                        )
+                        exercises = select_top_ranked_exercises(
+                            candidates,
+                            user_age_group,
+                            penalized_exercise_ids,
+                            1,
+                        )
+                        prog_params = params_progression(
+                            ex_type, int(success_rate), next_difficulty
+                        )
+                        prog_en = english_progression(
+                            ex_type, int(success_rate), next_difficulty
                         )
 
                         for ex in exercises:
@@ -332,7 +531,9 @@ class RecommendationService:
                                         difficulty=ex.difficulty,
                                         exercise_id=ex.id,
                                         priority=7,
-                                        reason=f"Excellent ! Vous avez {success_rate}% de réussite en {ex.exercise_type}. Essayons le niveau {next_difficulty} !",
+                                        reason=prog_en,
+                                        reason_code=REASON_EXERCISE_PROGRESSION,
+                                        reason_params=prog_params,
                                     )
                                 )
 
@@ -378,7 +579,9 @@ class RecommendationService:
                     if not a.exercise_id:
                         continue
                     exercise = exercises_by_id.get(a.exercise_id)
-                    if exercise and exercise.exercise_type == ex_type:
+                    if exercise and normalize_exercise_type_key(
+                        exercise.exercise_type
+                    ) == normalize_exercise_type_key(ex_type):
                         recent_type_attempts.append(a)
 
                 if not recent_type_attempts:
@@ -386,18 +589,22 @@ class RecommendationService:
                     user_level = None
                     for p in progress_records:
                         if (
-                            p.exercise_type == ex_type
+                            normalize_exercise_type_key(p.exercise_type)
+                            == normalize_exercise_type_key(ex_type)
                             and p.calculate_completion_rate() > 70
                         ):
                             user_level = p.difficulty
 
-                    # Si aucun niveau trouvé, utiliser le niveau du profil/onboarding
+                    # Sinon diagnostic par type (R2) puis défaut global
                     if not user_level:
-                        user_level = user_default_difficulty
+                        user_level = get_target_difficulty_for_type(
+                            ctx, normalize_exercise_type_key(ex_type), None
+                        )
 
                     # Proposer un exercice pour maintenir cette compétence
                     ex_filter = [
-                        Exercise.exercise_type == ex_type,
+                        func.lower(Exercise.exercise_type)
+                        == normalize_exercise_type_key(ex_type),
                         Exercise.difficulty == user_level,
                         Exercise.exercise_type.in_(valid_types),
                         Exercise.difficulty.in_(valid_difficulties),
@@ -411,13 +618,22 @@ class RecommendationService:
                         age_values = [str(v).lower() for v in age_values]
                         age_values.extend(["tous-ages", "tous ages", "all_ages"])
                         ex_filter.append(func.lower(Exercise.age_group).in_(age_values))
-                    exercises = (
+                    cand_react = (
                         db.query(Exercise)
                         .filter(*ex_filter)
-                        .order_by(func.random())
-                        .limit(1)
+                        .order_by(Exercise.id.desc())
+                        .limit(MAX_CANDIDATES_TO_RANK)
                         .all()
                     )
+                    exercises = select_top_ranked_exercises(
+                        cand_react,
+                        user_age_group,
+                        penalized_exercise_ids,
+                        1,
+                    )
+                    nt_key = normalize_exercise_type_key(ex_type)
+                    maint_params = params_maintenance(nt_key, user_level)
+                    maint_en = english_maintenance(nt_key)
 
                     for ex in exercises:
                         # Exclure les exercices déjà réussis
@@ -429,50 +645,67 @@ class RecommendationService:
                                     difficulty=ex.difficulty,
                                     exercise_id=ex.id,
                                     priority=5,
-                                    reason=f"Pour maintenir vos compétences en {ex.exercise_type}",
+                                    reason=maint_en,
+                                    reason_code=REASON_EXERCISE_MAINTENANCE,
+                                    reason_params=maint_params,
                                 )
                             )
 
-            # 4. Recommandations de découverte (nouveaux types d'exercices)
-            # B4.3: une requête SQL avec DISTINCT ON (exercise_type) — au plus 1 exercice par type,
-            # chaque type ayant des candidats valides a sa chance directe (pas d'échantillon global borné)
-            practised_types = set([p.exercise_type for p in progress_records])
-            all_types = set([ex_type[0] for ex_type in all_exercise_types])
+            # 4. Recommandations de découverte (R6 — diversité par type + ranking R3 + anti-répétition)
+            practised_types = {
+                normalize_exercise_type_key(p.exercise_type) for p in progress_records
+            }
+            all_types = {
+                normalize_exercise_type_key(ex_type[0])
+                for ex_type in all_exercise_types
+            }
             new_types = all_types - practised_types
 
             if new_types:
                 valid_types = [t.value for t in ExerciseType]
                 valid_difficulties = [d.value for d in DifficultyLevel]
-                new_types_list = list(new_types)
+                discovery_penalized: Set[int] = set(penalized_exercise_ids)
 
-                ex_filter = [
-                    Exercise.exercise_type.in_(new_types_list),
-                    Exercise.difficulty == user_default_difficulty,
-                    Exercise.exercise_type.in_(valid_types),
-                    Exercise.difficulty.in_(valid_difficulties),
-                    Exercise.is_archived == False,
-                    Exercise.is_active == True,
-                ]
-                if user_age_group != AgeGroups.ALL_AGES:
-                    age_values = list(
-                        AgeGroups.AGE_ALIASES.get(user_age_group, [user_age_group])
+                for nt in sorted(new_types):
+                    target_d = get_target_difficulty_for_type(ctx, nt, None)
+                    ex_filter = [
+                        func.lower(Exercise.exercise_type) == nt,
+                        Exercise.difficulty == target_d,
+                        Exercise.exercise_type.in_(valid_types),
+                        Exercise.difficulty.in_(valid_difficulties),
+                        Exercise.is_archived == False,
+                        Exercise.is_active == True,
+                    ]
+                    if user_age_group != AgeGroups.ALL_AGES:
+                        age_values = list(
+                            AgeGroups.AGE_ALIASES.get(user_age_group, [user_age_group])
+                        )
+                        age_values = [str(v).lower() for v in age_values]
+                        age_values.extend(["tous-ages", "tous ages", "all_ages"])
+                        ex_filter.append(func.lower(Exercise.age_group).in_(age_values))
+                    if all_completed_exercise_ids:
+                        ex_filter.append(
+                            ~Exercise.id.in_(list(all_completed_exercise_ids))
+                        )
+
+                    candidates = (
+                        db.query(Exercise)
+                        .filter(*ex_filter)
+                        .order_by(Exercise.id.desc())
+                        .limit(MAX_CANDIDATES_TO_RANK)
+                        .all()
                     )
-                    age_values = [str(v).lower() for v in age_values]
-                    age_values.extend(["tous-ages", "tous ages", "all_ages"])
-                    ex_filter.append(func.lower(Exercise.age_group).in_(age_values))
-                if all_completed_exercise_ids:
-                    ex_filter.append(~Exercise.id.in_(list(all_completed_exercise_ids)))
-
-                # PostgreSQL DISTINCT ON: un exercice par type, aléatoire par type (ORDER BY doit commencer par exercise_type)
-                discovery_exercises = (
-                    db.query(Exercise)
-                    .filter(*ex_filter)
-                    .distinct(Exercise.exercise_type)
-                    .order_by(Exercise.exercise_type, func.random())
-                    .all()
-                )
-
-                for ex in discovery_exercises:
+                    picked = select_top_ranked_exercises(
+                        candidates,
+                        user_age_group,
+                        discovery_penalized,
+                        1,
+                    )
+                    if not picked:
+                        continue
+                    ex = picked[0]
+                    disc_params = params_discovery(nt, target_d)
+                    disc_en = english_discovery(nt)
                     recommendations.append(
                         Recommendation(
                             user_id=user_id,
@@ -480,67 +713,33 @@ class RecommendationService:
                             difficulty=ex.difficulty,
                             exercise_id=ex.id,
                             priority=4,
-                            reason=f"Découvrez un nouveau type d'exercice: {ex.exercise_type}",
+                            reason=disc_en,
+                            reason_code=REASON_EXERCISE_DISCOVERY,
+                            reason_params=disc_params,
                         )
                     )
+                    discovery_penalized.add(ex.id)
 
-            # 5. Recommandations de défis logiques (challenges) — ciblés par age_group
-            from app.services.challenges.challenge_service import (
-                normalize_age_group_for_db,
-            )
-
+            # 5. Recommandations de défis logiques (R5 — scoring explicite + reason_code)
             completed_challenge_ids = {
                 a.challenge_id
                 for a in db.query(LogicChallengeAttempt)
                 .filter(
                     LogicChallengeAttempt.user_id == user_id,
                     LogicChallengeAttempt.is_correct == True,
+                    LogicChallengeAttempt.challenge_id.isnot(None),
                 )
                 .all()
+                if a.challenge_id
             }
-            challenge_query = db.query(LogicChallenge).filter(
-                LogicChallenge.is_archived == False
-            )
-            # Filtrer par groupe d'âge utilisateur (sauf tous-ages)
-            if user_age_group != AgeGroups.ALL_AGES:
-                try:
-                    db_age_group = normalize_age_group_for_db(user_age_group)
-                    challenge_query = challenge_query.filter(
-                        or_(
-                            LogicChallenge.age_group == db_age_group,
-                            LogicChallenge.age_group == AgeGroup.ALL_AGES,
-                        )
-                    )
-                except (TypeError, ValueError):
-                    pass  # Garder tous les défis si erreur de conversion
-            if completed_challenge_ids:
-                challenge_query = challenge_query.filter(
-                    ~LogicChallenge.id.in_(list(completed_challenge_ids))
-                )
-            suggested_challenges = (
-                challenge_query.order_by(func.random()).limit(4).all()
-            )
-            # Priorité selon défis complétés + objectif (samuser → plus de défis)
-            num_completed = len(completed_challenge_ids)
-            challenge_priority = (
-                8 if num_completed == 0 else 7 if num_completed < 3 else 6
-            )
-            if learning_goal == "samuser":
-                challenge_priority = min(9, challenge_priority + 1)
-            for ch in suggested_challenges:
-                challenge_type_str = (
-                    getattr(ch.challenge_type, "value", str(ch.challenge_type)).lower()
-                    if ch.challenge_type
-                    else "logique"
-                )
-                if num_completed == 0:
-                    reason = "Découvrez les défis logiques pour aiguiser votre raisonnement !"
-                elif num_completed < 3:
-                    reason = (
-                        f"Variez votre entraînement avec un défi {challenge_type_str} !"
-                    )
-                else:
-                    reason = f"Testez vos compétences logiques avec un défi {challenge_type_str} !"
+            for entry in _select_logic_challenge_recommendation_entries(
+                db,
+                user_id,
+                user_age_group,
+                learning_goal or "",
+                completed_challenge_ids,
+            ):
+                ch = entry["challenge"]
                 recommendations.append(
                     Recommendation(
                         user_id=user_id,
@@ -549,8 +748,10 @@ class RecommendationService:
                         recommendation_type="challenge",
                         exercise_type="challenge",
                         difficulty=ch.difficulty or "PADAWAN",
-                        priority=challenge_priority,
-                        reason=reason,
+                        priority=entry["priority"],
+                        reason=entry["reason"],
+                        reason_code=entry["reason_code"],
+                        reason_params=entry["reason_params"],
                     )
                 )
 
@@ -587,13 +788,25 @@ class RecommendationService:
                         ~Exercise.id.in_(list(all_completed_exercise_ids))
                     )
 
-                random_exercises = exercise_query.order_by(func.random()).limit(3).all()
+                fb_candidates = (
+                    exercise_query.order_by(Exercise.id.desc())
+                    .limit(MAX_CANDIDATES_TO_RANK)
+                    .all()
+                )
+                ranked_fallback = select_top_ranked_exercises(
+                    fb_candidates,
+                    user_age_group,
+                    penalized_exercise_ids,
+                    3,
+                )
 
-                logger.debug(f"Exercices trouvés: {len(random_exercises)}")
-                for ex in random_exercises:
+                logger.debug(
+                    f"Exercices trouvés (fallback classé): {len(ranked_fallback)}"
+                )
+                for ex in ranked_fallback:
                     logger.debug(f"  - {ex.title} ({ex.exercise_type}/{ex.difficulty})")
 
-                for ex in random_exercises:
+                for ex in ranked_fallback:
                     if ex.id in all_completed_exercise_ids:
                         continue
                     recommendations.append(
@@ -603,7 +816,9 @@ class RecommendationService:
                             difficulty=ex.difficulty,
                             exercise_id=ex.id,
                             priority=3,
-                            reason="Pour continuer votre apprentissage",
+                            reason=english_fallback(),
+                            reason_code=REASON_EXERCISE_FALLBACK,
+                            reason_params=params_fallback(),
                         )
                     )
 
@@ -623,32 +838,119 @@ class RecommendationService:
             return []
 
     @staticmethod
-    def mark_recommendation_as_clicked(db, recommendation_id):
-        """Marque une recommandation comme ayant été cliquée par l'utilisateur"""
+    def recommendation_has_verified_attempt(
+        db, user_id: int, recommendation: Recommendation
+    ) -> bool:
+        """
+        True si l'utilisateur a au moins une tentative **réussie** sur le contenu ciblé
+        par la recommandation (exercice ou défi). Utilisé pour qualifier le signal « complété ».
+        """
+        if recommendation.exercise_id:
+            return bool(
+                db.query(
+                    exists().where(
+                        and_(
+                            Attempt.user_id == user_id,
+                            Attempt.exercise_id == recommendation.exercise_id,
+                            Attempt.is_correct == True,
+                        )
+                    )
+                ).scalar()
+            )
+        cid = getattr(recommendation, "challenge_id", None)
+        if cid:
+            return bool(
+                db.query(
+                    exists().where(
+                        and_(
+                            LogicChallengeAttempt.user_id == user_id,
+                            LogicChallengeAttempt.challenge_id == cid,
+                            LogicChallengeAttempt.is_correct == True,
+                        )
+                    )
+                ).scalar()
+            )
+        return False
+
+    @staticmethod
+    def record_recommendations_list_impression(
+        db, user_id: int, recommendation_ids: List[int]
+    ) -> None:
+        """
+        R4 — Incrémente ``shown_count`` pour chaque reco réellement renvoyée au client.
+
+        Appelé après construction de la liste API (une fois par requête GET liste).
+        Limite les surcomptes **React** : le front ne déclenche pas ce signal ; seul le GET compte.
+        """
+        if not recommendation_ids:
+            return
+        try:
+            rows = (
+                db.query(Recommendation)
+                .filter(
+                    Recommendation.id.in_(recommendation_ids),
+                    Recommendation.user_id == user_id,
+                    Recommendation.is_completed == False,
+                )
+                .all()
+            )
+            for row in rows:
+                row.shown_count = (row.shown_count or 0) + 1
+            db.commit()
+        except SQLAlchemyError as impression_error:
+            logger.error(
+                "Erreur lors de l'enregistrement des impressions recommandations: %s",
+                impression_error,
+            )
+            db.rollback()
+
+    @staticmethod
+    def mark_recommendation_as_clicked(
+        db, recommendation_id: int, user_id: int
+    ) -> Tuple[bool, Optional[Recommendation]]:
+        """
+        R4 — Enregistre une ouverture / clic sur le CTA (exercice ou défi) pour cette reco.
+
+        Vérifie que la recommandation appartient à ``user_id``. Chaque appel incrémente
+        ``clicked_count`` (signal « intent » — pas idempotent).
+        """
         try:
             recommendation = (
                 db.query(Recommendation)
-                .filter(Recommendation.id == recommendation_id)
+                .filter(
+                    Recommendation.id == recommendation_id,
+                    Recommendation.user_id == user_id,
+                    Recommendation.is_completed == False,
+                )
                 .first()
             )
-            if recommendation:
-                recommendation.clicked_count += 1
-                recommendation.last_clicked_at = datetime.now(timezone.utc)
-                db.commit()
+            if not recommendation:
+                return False, None
+            recommendation.clicked_count = (recommendation.clicked_count or 0) + 1
+            recommendation.last_clicked_at = datetime.now(timezone.utc)
+            db.commit()
+            db.refresh(recommendation)
+            return True, recommendation
         except SQLAlchemyError as mark_clicked_error:
             logger.error(
                 f"Erreur lors du marquage de la recommandation comme cliquée: {str(mark_clicked_error)}"
             )
             db.rollback()
+            return False, None
 
     @staticmethod
     def mark_recommendation_as_completed(db, recommendation_id, user_id=None):
         """
-        Marque une recommandation comme complétée.
+        Marque une recommandation comme complétée (acquittement manuel dashboard).
+
         Si user_id fourni, vérifie que la recommandation appartient à l'utilisateur.
 
+        ``verified_by_attempt`` : à l'instant T, une tentative réussie existe déjà sur
+        l'exercice ou le défi recommandé — le « fait » est corrélé au contenu. Sinon le
+        signal reste un **acquittement utilisateur** sans preuve de réussite (honnête).
+
         Returns:
-            (success: bool, recommendation: Recommendation | None)
+            (success, recommendation | None, verified_by_attempt | None)
         """
         try:
             q = db.query(Recommendation).filter(Recommendation.id == recommendation_id)
@@ -656,18 +958,24 @@ class RecommendationService:
                 q = q.filter(Recommendation.user_id == user_id)
             recommendation = q.first()
             if recommendation:
+                uid_for_verify = (
+                    user_id if user_id is not None else recommendation.user_id
+                )
+                verified = RecommendationService.recommendation_has_verified_attempt(
+                    db, uid_for_verify, recommendation
+                )
                 recommendation.is_completed = True
                 recommendation.completed_at = datetime.now(timezone.utc)
                 db.commit()
                 db.refresh(recommendation)
-                return True, recommendation
-            return False, None
+                return True, recommendation, verified
+            return False, None, None
         except SQLAlchemyError as mark_completed_error:
             logger.error(
                 f"Erreur lors du marquage de la recommandation comme complétée: {str(mark_completed_error)}"
             )
             db.rollback()
-            return False, None
+            return False, None, None
 
     @staticmethod
     def get_recommendations_for_api(db, user_id, limit=7):
@@ -723,6 +1031,7 @@ class RecommendationService:
         }
 
         result = []
+        displayed_ids: List[int] = []
         for rec in recommendations:
             if rec.exercise_id and rec.exercise_id in completed_exercise_ids:
                 continue
@@ -741,7 +1050,9 @@ class RecommendationService:
             ):
                 continue
             if getattr(rec, "challenge_id", None) and (
-                not challenge or getattr(challenge, "is_archived", False)
+                not challenge
+                or getattr(challenge, "is_archived", False)
+                or not getattr(challenge, "is_active", True)
             ):
                 continue
 
@@ -770,6 +1081,12 @@ class RecommendationService:
                 "recommendation_type": getattr(rec, "recommendation_type", None)
                 or "exercise",
             }
+            rc = getattr(rec, "reason_code", None)
+            if rc:
+                rec_data["reason_code"] = rc
+            rp = getattr(rec, "reason_params", None)
+            if rp is not None:
+                rec_data["reason_params"] = rp
             if rec.exercise_id and exercise:
                 rec_data["exercise_id"] = rec.exercise_id
                 rec_data["exercise_title"] = exercise.title
@@ -782,6 +1099,12 @@ class RecommendationService:
                 )
 
             result.append(rec_data)
+            displayed_ids.append(rec.id)
+
+        # R4 — une impression liste par requête GET (évite les surcomptes de rendu React)
+        RecommendationService.record_recommendations_list_impression(
+            db, user_id, displayed_ids
+        )
 
         return result
 
@@ -861,16 +1184,28 @@ def generate_recommendations_sync(user_id: int):
 
 def mark_recommendation_as_completed_sync(
     recommendation_id: int, user_id: int
-) -> Tuple[bool, Optional[Recommendation]]:
+) -> Tuple[bool, Optional[Recommendation], Optional[bool]]:
     """
     Use case sync: marque une recommandation comme complétée.
     Exécuté via run_db_bound() depuis les handlers.
     Returns:
-        (success, recommendation) - recommendation peut être None si non trouvée.
+        (success, recommendation, verified_by_attempt)
     """
     from app.core.db_boundary import sync_db_session
 
     with sync_db_session() as db:
         return RecommendationService.mark_recommendation_as_completed(
             db, recommendation_id, user_id=user_id
+        )
+
+
+def mark_recommendation_as_opened_sync(
+    recommendation_id: int, user_id: int
+) -> Tuple[bool, Optional[Recommendation]]:
+    """R4 — sync wrapper: clic / ouverture CTA depuis le dashboard."""
+    from app.core.db_boundary import sync_db_session
+
+    with sync_db_session() as db:
+        return RecommendationService.mark_recommendation_as_clicked(
+            db, recommendation_id, user_id
         )

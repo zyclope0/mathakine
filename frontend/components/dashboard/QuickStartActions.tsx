@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { Calculator, Swords, Layers, ArrowRight } from "lucide-react";
+import { Calculator, Puzzle, Layers, ArrowRight } from "lucide-react";
 import { useRecommendations } from "@/hooks/useRecommendations";
 import { useTranslations } from "next-intl";
 import { trackDashboardView, trackQuickStartClick } from "@/lib/analytics/edtech";
@@ -21,7 +21,7 @@ import { trackDashboardView, trackQuickStartClick } from "@/lib/analytics/edtech
  * Instrumentation EdTech : data-quick-start-* pour CTR, temps vers 1er attempt.
  */
 export function QuickStartActions() {
-  const { recommendations } = useRecommendations();
+  const { recommendations, recordOpen } = useRecommendations();
   const t = useTranslations("dashboard.quickStart");
 
   // Priorisation : priority desc, puis premier exercice et premier défi
@@ -46,6 +46,12 @@ export function QuickStartActions() {
       guided: !!bestExercise?.exercise_id,
       ...(bestExercise?.exercise_id != null && { targetId: bestExercise.exercise_id }),
     });
+    // R4b — feedback reco : uniquement parcours guidé (reco réelle avec id)
+    if (bestExercise?.id != null && bestExercise.exercise_id != null) {
+      void recordOpen(bestExercise.id).catch(() => {
+        /* ne pas bloquer la navigation */
+      });
+    }
   };
   const handleChallengeClick = () => {
     trackQuickStartClick({
@@ -53,6 +59,11 @@ export function QuickStartActions() {
       guided: !!bestChallenge?.challenge_id,
       ...(bestChallenge?.challenge_id != null && { targetId: bestChallenge.challenge_id }),
     });
+    if (bestChallenge?.id != null && bestChallenge.challenge_id != null) {
+      void recordOpen(bestChallenge.id).catch(() => {
+        /* ne pas bloquer la navigation */
+      });
+    }
   };
   const handleInterleavedClick = () => {
     trackQuickStartClick({
@@ -106,8 +117,8 @@ export function QuickStartActions() {
           data-quick-start-guided={!!bestChallenge?.challenge_id}
         >
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent-foreground shadow-sm">
-              <Swords className="h-6 w-6" aria-hidden="true" />
+            <div className="dashboard-card-icon-chip">
+              <Puzzle className="h-6 w-6" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-foreground">{t("challengeCta")}</p>

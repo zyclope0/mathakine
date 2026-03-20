@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useDailyChallenges } from "@/hooks/useDailyChallenges";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useTranslations } from "next-intl";
-import { Calendar, ChevronRight, CheckCircle2, Calculator, Swords, Target } from "lucide-react";
+import { Calendar, ChevronRight, CheckCircle2, Calculator, Puzzle, Target } from "lucide-react";
 import type { DailyChallenge } from "@/types/api";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const CHALLENGE_ICONS = {
   volume_exercises: Calculator,
   specific_type: Target,
-  logic_challenge: Swords,
+  logic_challenge: Puzzle,
 } as const;
 
 /**

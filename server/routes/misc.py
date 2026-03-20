@@ -9,6 +9,7 @@ from server.handlers.recommendation_handlers import (
     generate_recommendations,
     get_recommendations,
     handle_recommendation_complete,
+    handle_recommendation_open,
 )
 
 
@@ -32,6 +33,17 @@ def get_misc_routes():
         Route(
             "/api/recommendations/generate",
             endpoint=generate_recommendations,
+            methods=["POST"],
+        ),
+        Route(
+            "/api/recommendations/open",
+            endpoint=handle_recommendation_open,
+            methods=["POST"],
+        ),
+        # Alias stable (même handler) — utile si une couche intermédiaire filtre le path « open »
+        Route(
+            "/api/recommendations/clicked",
+            endpoint=handle_recommendation_open,
             methods=["POST"],
         ),
         Route(

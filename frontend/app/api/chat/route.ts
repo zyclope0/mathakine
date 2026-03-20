@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const backendUrl =
       process.env.NEXT_PUBLIC_API_BASE_URL ||
       process.env.NEXT_PUBLIC_API_URL ||
-      (process.env.NODE_ENV === "development" ? "http://localhost:8000" : "");
+      (process.env.NODE_ENV === "development" ? "http://localhost:10000" : "");
 
     // Validation en production uniquement
     if (process.env.NODE_ENV === "production") {

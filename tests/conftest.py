@@ -61,6 +61,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
+from _pytest.outcomes import Failed
 from jose import jwt
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
@@ -272,6 +273,42 @@ def _get_session_engine():
     from app.db.base import engine
 
     return engine
+
+
+def _ensure_recommendations_r5_columns() -> None:
+    """Idempotent : colonnes R5 si migration Alembic pas encore appliquée sur la base de test."""
+    engine = _get_session_engine()
+    try:
+        with engine.begin() as conn:
+            try:
+                conn.execute(
+                    text(
+                        "ALTER TABLE recommendations ADD COLUMN reason_code VARCHAR(80)"
+                    )
+                )
+            except Exception:
+                pass  # colonne déjà présente (ou dialecte)
+            try:
+                conn.execute(
+                    text("ALTER TABLE recommendations ADD COLUMN reason_params JSONB")
+                )
+            except Exception:
+                try:
+                    conn.execute(
+                        text(
+                            "ALTER TABLE recommendations ADD COLUMN reason_params JSON"
+                        )
+                    )
+                except Exception:
+                    pass
+    except Exception as schema_err:
+        print(f"  [conftest] skip R5 column ensure: {schema_err}")
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _session_ensure_recommendations_r5_columns():
+    _ensure_recommendations_r5_columns()
+    yield
 
 
 @pytest.fixture
@@ -936,8 +973,9 @@ def auto_cleanup_test_data(db_session):
             try:
                 session.execute(text("SELECT 1"))
             except (InvalidRequestError, StatementError, Exception):
+                # R5d: même engine que db_session / handlers — évite deux pools (FK, visibilité).
                 sess = sessionmaker(
-                    autocommit=False, autoflush=False, bind=get_test_engine()
+                    autocommit=False, autoflush=False, bind=_get_session_engine()
                 )()
                 try:
                     r = TestDataManager(sess).cleanup_test_data(dry_run=False)
@@ -945,14 +983,24 @@ def auto_cleanup_test_data(db_session):
                         _cleanup_logger.info(
                             f"Nettoyage (secours): {r['total_deleted']} elements"
                         )
+                    if not r.get("success"):
+                        pytest.fail(
+                            "Nettoyage pre-test (session secours) echoue: "
+                            f"{r.get('error', 'inconnue')}"
+                        )
                 finally:
                     sess.close()
                 return
             r = TestDataManager(session).cleanup_test_data(dry_run=False)
             if r.get("success") and r.get("total_deleted", 0) > 0:
                 _cleanup_logger.info(f"Nettoyage: {r['total_deleted']} elements")
+            if not r.get("success"):
+                pytest.fail(f"Nettoyage pre-test echoue: {r.get('error', 'inconnue')}")
+        except Failed:
+            raise
         except Exception as e:
             _cleanup_logger.error(f"Erreur nettoyage: {e}\n{traceback.format_exc()}")
+            pytest.fail(f"Exception pendant nettoyage pre-test: {e}")
 
     # Pre-yield: nettoyer donnees du test precedent
     _do_cleanup(db_session)
@@ -969,7 +1017,7 @@ def auto_cleanup_test_data(db_session):
             _cleanup_logger.debug(
                 "Session principale en erreur, creation d'une session de nettoyage"
             )
-            fallback_engine = get_test_engine()
+            fallback_engine = _get_session_engine()
             CleanupSessionLocal = sessionmaker(
                 autocommit=False, autoflush=False, bind=fallback_engine
             )
@@ -981,13 +1029,19 @@ def auto_cleanup_test_data(db_session):
                     _cleanup_logger.info(
                         f"Nettoyage (session secours): {result['total_deleted']} elements supprimes"
                     )
-                elif not result.get("success"):
-                    _cleanup_logger.warning(
-                        f"Nettoyage echoue (session secours): {result.get('error', 'inconnue')}"
+                if not result.get("success"):
+                    pytest.fail(
+                        "Nettoyage post-test (session secours) echoue: "
+                        f"{result.get('error', 'inconnue')}"
                     )
+            except Failed:
+                raise
             except Exception as fallback_error:
                 _cleanup_logger.error(
                     f"Erreur nettoyage (session secours): {fallback_error}\n{traceback.format_exc()}"
+                )
+                pytest.fail(
+                    f"Exception nettoyage post-test (session secours): {fallback_error}"
                 )
             finally:
                 cleanup_session.close()
@@ -999,15 +1053,18 @@ def auto_cleanup_test_data(db_session):
             _cleanup_logger.info(
                 f"Nettoyage: {result['total_deleted']} elements supprimes"
             )
-        elif not result.get("success"):
-            _cleanup_logger.warning(
-                f"Nettoyage echoue: {result.get('error', 'inconnue')}"
+        if not result.get("success"):
+            pytest.fail(
+                f"Nettoyage post-test echoue: {result.get('error', 'inconnue')}"
             )
 
+    except Failed:
+        raise
     except Exception as cleanup_error:
         _cleanup_logger.error(
             f"Erreur critique nettoyage: {cleanup_error}\n{traceback.format_exc()}"
         )
+        pytest.fail(f"Exception critique nettoyage post-test: {cleanup_error}")
 
 
 @pytest.fixture

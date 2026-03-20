@@ -1,21 +1,21 @@
-﻿# TROUBLESHOOTING GUIDE - MATHAKINE
+# TROUBLESHOOTING GUIDE - MATHAKINE
 
 > Problemes courants et diagnostics utiles
 > Mise a jour : 13/03/2026
 
 ## Backend ne demarre pas
 
-### Port `8000` deja utilise
+### Port `10000` deja utilise
 
 ```bash
-netstat -ano | findstr :8000
+netstat -ano | findstr :10000
 taskkill /PID <PID> /F
 ```
 
 Ou lancer sur un autre port:
 
 ```bash
-$env:PORT="8001"
+$env:PORT="10001"
 python enhanced_server.py
 ```
 
@@ -109,7 +109,7 @@ Exemple traite pendant la cloture Runtime:
 Verifier:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:10000
 ```
 
 Puis demarrer le backend:

@@ -1,7 +1,7 @@
 # Project Governance - Mathakine
 
 > Project master index
-> Updated: 19/03/2026
+> Updated: 21/03/2026
 
 ## Read First
 
@@ -27,6 +27,7 @@
 - `Lots G (Residual Contracts and Cleanup)`: closed (G1-G4)
 - `Architecture Clean Cible A + B`: closed (vertical slicing app/services/)
 - `Backend Maturity Truth, Contract Normalization, and Hotspot Reduction`: **closed** (`I1`–`I8` done, 2026-03-19)
+- **Recommendation remediation** (`R1`–`R7`): **closed** (governance R7, 2026-03-21) — [RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](./RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md)
 
 Local reference baseline:
 - gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `962 passed, 3 skipped`
@@ -39,11 +40,16 @@ Local reference baseline:
 - `flake8 app/ server/ --select=E9,F63,F7,F82`: green
 - backend coverage gate in CI: `63 %`
 
+Post–**recommendation iteration R** (closure R7, 2026-03-21) — **additional** citation; does not replace the I-era line above:
+- gate standard backend (same command) → `991 passed, 2 skipped`
+- reco ciblée → `40 passed` ; full detail: [R7 § Validated Recommendation Baseline](./RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md#validated-recommendation-baseline)
+
 ## Active References
 
 | Document | Role |
 |---|---|
 | [POINTS_RESTANTS_2026-03-15.md](./POINTS_RESTANTS_2026-03-15.md) | remaining points still worth tracking |
+| [RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](./RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md) | closed recommendation iteration R — baseline, reserves, maturity verdict |
 | [CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md](./CURSOR_MAX_EFFORT_BACKEND_PROTOCOL_2026-03-11.md) | validation protocol |
 | [archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md](./archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md) | lots G (residual contracts, cleanup) - closed |
 | [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](./PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md) | architecture clean - Cible A + B closed (vertical slicing app/services/) |

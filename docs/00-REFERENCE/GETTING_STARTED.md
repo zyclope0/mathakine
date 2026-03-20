@@ -1,4 +1,4 @@
-﻿# GETTING STARTED - MATHAKINE
+# GETTING STARTED - MATHAKINE
 
 > Quick start
 > Updated: 18/03/2026
@@ -37,7 +37,7 @@ alembic upgrade head
 python enhanced_server.py
 ```
 
-Backend default URL: `http://localhost:8000`
+Backend default URL: `http://localhost:10000`
 
 Useful backend variables in `.env`:
 
@@ -63,7 +63,7 @@ Frontend default URL: `http://localhost:3000`
 Frontend variable usually required locally:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:10000
 ```
 
 ## Local Test Database

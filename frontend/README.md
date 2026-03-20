@@ -1,6 +1,6 @@
 # 🚀 Frontend Mathakine - Next.js
 
-**Version** : 0.1.0  
+**Version produit visible** : 3.2.0-alpha.1  
 **Status** : ✅ **Production Ready** (~95% complété)  
 **Framework** : Next.js 16.1.6 avec App Router  
 **Language** : TypeScript (strict mode)
@@ -33,7 +33,7 @@
 
 - Node.js 18+ (recommandé : 20+)
 - npm ou yarn
-- Backend Mathakine démarré sur `http://localhost:8000`
+- Backend Mathakine démarré sur `http://localhost:10000`
 
 ### **Installation des Dépendances**
 
@@ -47,7 +47,7 @@ npm install
 Créer un fichier `.env.local` à la racine du dossier `frontend` :
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:10000
 ```
 
 ---
@@ -231,7 +231,7 @@ Créer `.env.local` :
 
 ```env
 # URL du backend API
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:10000
 
 # Pour production Render
 # NEXT_PUBLIC_API_URL=https://mathakine.onrender.com

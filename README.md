@@ -1,17 +1,17 @@
-﻿# Mathakine
+# Mathakine
 
 Gamified mathematics learning platform with a Next.js frontend and a Starlette/SQLAlchemy backend.
 
-[![Version](https://img.shields.io/badge/version-3.1.0--alpha.8-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.2.0--alpha.1-blue.svg)](CHANGELOG.md)
 [![Status](https://img.shields.io/badge/status-alpha-orange.svg)](CHANGELOG.md)
 [![Tests](https://github.com/zyclope0/mathakine/actions/workflows/tests.yml/badge.svg)](https://github.com/zyclope0/mathakine/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/zyclope0/mathakine/graph/badge.svg)](https://codecov.io/gh/zyclope0/mathakine)
 
 ## Product Status
 
-- visible release: `3.1.0-alpha.8`
+- visible release: `3.2.0-alpha.1`
 - release source of truth: `CHANGELOG.md` and `frontend/package.json`
-- note: `pyproject.toml` still carries a historical Python package version and does not define the visible product release
+- note: `pyproject.toml` now carries the aligned Python package metadata version `3.2.0a1`, but visible product release governance still lives in `CHANGELOG.md` and `frontend/package.json`
 
 ## Key Capabilities
 
@@ -30,9 +30,12 @@ Gamified mathematics learning platform with a Next.js frontend and a Starlette/S
 - [docs/00-REFERENCE/ARCHITECTURE.md](docs/00-REFERENCE/ARCHITECTURE.md): active architecture
 - [docs/03-PROJECT/README.md](docs/03-PROJECT/README.md): active project governance and backend quality state
 - [docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md](docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md): active remaining backend follow-ups
+- [docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md): closed recommendation iteration `R` (governance, reserves, baselines)
 - [CHANGELOG.md](CHANGELOG.md): product history and release status
 
-## Current Verified State On 19/03/2026
+## Current verified state (closed iterations + cited baselines)
+
+Figures below are **citations** from documented closure runs; **re-run** the same commands if your tree has diverged.
 
 - backend iteration `exercise/auth/user`: closed
 - backend iteration `challenge/admin/badge`: closed
@@ -45,13 +48,31 @@ Gamified mathematics learning platform with a Next.js frontend and a Starlette/S
 - lots `G` (`Residual Contracts and Cleanup`): closed
 - `Architecture Clean` (service slicing cible A + B): closed
 - `Backend Maturity Truth, Contract Normalization, and Hotspot Reduction`: closed (`I1`-`I8`)
-- local reference baseline:
-  - gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `962 passed, 3 skipped`
-  - OpenAI live tests remain opt-in and are not part of the standard gate
-  - `test_admin_auth_stability.py`: test special, excluded from the standard gate (non-blocking)
-  - `black app/ server/ tests/ --check`: green
-  - `isort app/ server/ tests/ --check-only --diff`: green
-  - backend coverage gate in CI: `63 %`
+- **Recommendation remediation** (`R1`–`R7`): **closed** (2026-03-21) — bounded heuristic rules, structured reasons, and test-backed behaviour on exercised paths; **not** a learned / ML personalization engine. Closure doc: [RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md).
+
+**Historical reference baseline — post–iteration `I` (2026-03-19)**
+
+- gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `962 passed, 3 skipped`
+- OpenAI live tests remain opt-in and are not part of the standard gate
+- `test_admin_auth_stability.py`: test special, excluded from the standard gate (non-blocking)
+- `black app/ server/ tests/ --check`: green
+- `isort app/ server/ tests/ --check-only --diff`: green
+- backend coverage gate in CI: `63 %`
+
+**Additional citation — post–recommendation closure R7 (2026-03-21)** (reco engine + same standard gate, after more tests landed)
+
+- targeted recommendation tests: `pytest -q tests/unit/test_recommendation_service.py tests/api/test_recommendation_endpoints.py --maxfail=20 --no-cov` -> **`40 passed`**
+- standard backend gate (same command as above): **`991 passed, 2 skipped`**
+- *(Micro-lot R7b, doc-only: root README alignment; no test rerun.)*
+
+## Versioning Rule
+
+- visible product releases follow SemVer prerelease stages
+- current visible train: `3.2.0-alpha.1`
+- moving from the last coherent `3.1.0-alpha.8` train to `3.2.0-alpha.1` is coherent here because the recommendation layer and backend maturity work changed visible product behavior enough to justify a new minor prerelease train
+- moving directly to `3.2.0` stable would be misleading in the current context
+- while still in `alpha`, incrementing `alpha.N` is the normal bugfix cadence; patch numbers become meaningful after a stable `X.Y.Z` exists
+- internal iterations (`I`, `R`, etc.) are engineering milestones, not product versions
 
 ## Stack
 
@@ -73,7 +94,7 @@ alembic upgrade head
 python enhanced_server.py
 ```
 
-Backend default URL: `http://localhost:8000`
+Backend default URL: `http://localhost:10000` (`PORT` défaut dans `enhanced_server.py`)
 
 ### Frontend
 
@@ -126,3 +147,4 @@ Important:
 - [docs/03-PROJECT/README.md](docs/03-PROJECT/README.md)
 - [docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md](docs/03-PROJECT/POINTS_RESTANTS_2026-03-15.md)
 - [docs/03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](docs/03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md)
+

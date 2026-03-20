@@ -217,7 +217,7 @@ npm run i18n:validate    # Valider structure JSON
 
 ```env
 # frontend/.env.local
-NEXT_PUBLIC_API_URL=http://localhost:8000   # Dev
+NEXT_PUBLIC_API_URL=http://localhost:10000   # Dev (API Starlette)
 # NEXT_PUBLIC_API_URL=https://mathakine-alpha.onrender.com  # Prod
 ```
 

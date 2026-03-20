@@ -3,17 +3,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, RefreshCw, Swords, CheckCircle2, ArrowRight } from "lucide-react";
+import { Sparkles, RefreshCw, Puzzle, CheckCircle2, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useRecommendations, type Recommendation } from "@/hooks/useRecommendations";
+import {
+  useRecommendations,
+  type Recommendation,
+  formatRecommendationReasonDisplay,
+} from "@/hooks/useRecommendations";
 import { cn } from "@/lib/utils";
 import { useExerciseTranslations } from "@/hooks/useChallengeTranslations";
 import { useTranslations } from "next-intl";
 
 export function Recommendations() {
-  const { recommendations, isLoading, generate, isGenerating, complete, isCompleting } =
+  const { recommendations, isLoading, generate, isGenerating, complete, isCompleting, recordOpen } =
     useRecommendations();
   const t = useTranslations("dashboard.recommendations");
+  const tReason = useTranslations("dashboard.recommendations.reasons");
   const tCommon = useTranslations("common");
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
 
@@ -104,7 +109,7 @@ export function Recommendations() {
                           isChallenge && "flex items-center gap-1"
                         )}
                       >
-                        {isChallenge && <Swords className="h-3 w-3" aria-hidden="true" />}
+                        {isChallenge && <Puzzle className="h-3 w-3" aria-hidden="true" />}
                         {exerciseTypeDisplay}
                       </Badge>
                       <Badge
@@ -140,7 +145,11 @@ export function Recommendations() {
 
                   {/* Raison — en italique discret */}
                   <p className="text-sm text-muted-foreground italic mb-3">
-                    {recommendation.reason}
+                    {formatRecommendationReasonDisplay(
+                      recommendation,
+                      (key, values) => tReason(key, values),
+                      getTypeDisplay
+                    )}
                   </p>
 
                   {/* Aperçu de l'exercice — style citation */}
@@ -159,6 +168,13 @@ export function Recommendations() {
                     <div className="flex justify-end">
                       <Link
                         href={href}
+                        onClick={() => {
+                          if (recommendation.id) {
+                            void recordOpen(recommendation.id).catch(() => {
+                              /* R4 : ne pas bloquer la navigation si le signal échoue */
+                            });
+                          }
+                        }}
                         className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary transition-colors hover:bg-primary/20 group-hover:gap-3"
                         aria-label={`${ctaLabel}${title ? ` : ${title}` : ""}`}
                       >

@@ -1,7 +1,7 @@
 # Documentation Mathakine
 
 > Documentation entry point
-> Updated: 19/03/2026
+> Updated: 21/03/2026
 
 ## Read First
 
@@ -13,7 +13,7 @@
 
 ## Current Documented State
 
-- visible product release: `3.1.0-alpha.8`
+- visible product release: `3.2.0-alpha.1`
 - backend iterations closed:
   - `exercise/auth/user`
   - `challenge/admin/badge`
@@ -36,6 +36,10 @@
   - `flake8 app/ server/ --select=E9,F63,F7,F82`: green
   - measured local coverage on `app` + `server`: `67.30 %`
   - backend coverage gate in CI: `63 %`
+- local reference baseline (**post–recommendation iteration R** closure R7, 21/03/2026 — citation only; re-run if tree diverged):
+  - gate standard backend (same command) → `991 passed, 2 skipped`
+  - reco ciblée: `pytest -q tests/unit/test_recommendation_service.py tests/api/test_recommendation_endpoints.py --maxfail=20 --no-cov` → `40 passed`
+  - frontend + vitest reasons hook + `black` / `isort` / `mypy` / `flake8` : see [R7 Validated Recommendation Baseline](03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md#validated-recommendation-baseline)
 
 ## Main References
 
@@ -57,6 +61,9 @@
 | Iteration E archive | [03-PROJECT/archives/TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_DETAIL_2026-03-16/README.md](03-PROJECT/archives/TYPED_CONTRACTS_SERVICE_DECOMPOSITION_AND_LEGACY_RETIREMENT_DETAIL_2026-03-16/README.md) |
 | Security / boundaries archive | [03-PROJECT/archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md](03-PROJECT/archives/SECURITY_BOUNDARIES_AND_API_DISCIPLINE_DETAIL_2026-03-16/README.md) |
 | Remaining follow-ups | [03-PROJECT/POINTS_RESTANTS_2026-03-15.md](03-PROJECT/POINTS_RESTANTS_2026-03-15.md) |
+| R5 — Reco défis + raisons i18n | [03-PROJECT/RECOMMENDATION_R5_CHALLENGE_REASON_I18N_2026-03-20.md](03-PROJECT/RECOMMENDATION_R5_CHALLENGE_REASON_I18N_2026-03-20.md) |
+| R6 — Reco exercice discovery + reasons | [03-PROJECT/RECOMMENDATION_R6_EXERCISE_DISCOVERY_AND_REASONS_2026-03-21.md](03-PROJECT/RECOMMENDATION_R6_EXERCISE_DISCOVERY_AND_REASONS_2026-03-21.md) |
+| R7 — Closure iteration R (governance) | [03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md) |
 | Lots G (residual contracts, closed) | [03-PROJECT/archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md](03-PROJECT/archives/LOTS_G_RESIDUAL_CONTRACTS_AND_CLEANUP_2026-03-18/README.md) |
 | Architecture Clean (Cible A + B closed) | [03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](03-PROJECT/PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md) |
 | Product changelog | [../CHANGELOG.md](../CHANGELOG.md) |

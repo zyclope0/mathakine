@@ -67,7 +67,7 @@ async def startup():
 def run_server(
     app: object | None = None,
     host: str = "0.0.0.0",
-    port: int = 8000,
+    port: int = 10000,
     debug: bool = False,
 ):
     """

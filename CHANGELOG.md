@@ -2,11 +2,18 @@
 
 All notable changes to the project are documented in this file.
 
-The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). The visible product release uses Semantic Versioning with `-alpha.N` suffixes.
+The format follows the spirit of [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Visible release source of truth:
 - `CHANGELOG.md`
 - `frontend/package.json`
+
+Visible product versioning policy:
+- `X.Y.Z-alpha.N`: active prerelease train, integration still moving
+- `X.Y.Z-beta.N`: feature set frozen, stabilization focused
+- `X.Y.Z-rc.N`: release candidate
+- `X.Y.Z`: stable visible release
+- patch versions (`X.Y.Z+1`) become the primary bugfix signal after a stable release exists; while still in `alpha`, incrementing `alpha.N` is the normal path
 
 ## Internal backend milestones (not product releases)
 
@@ -30,7 +37,72 @@ Active references:
 
 ## [Unreleased]
 
-## [3.1.0-alpha.9] - 2026-03-06
+## [3.2.0-alpha.1] - 2026-03-20
+
+### Changed
+- Backend maturity iteration `I` and recommendation iteration `R` are now both closed and reflected in the active governance documentation.
+- The recommendation engine now exposes materially improved visible product behaviour:
+  - canonical exercise-type normalization
+  - per-type diagnostic targeting
+  - deterministic exercise ranking with anti-repeat behaviour
+  - challenge recommendation scoring with structured reasons
+  - structured `reason_code` / `reason_params` for exercises and challenges, translated on the dashboard
+  - a minimal recommendation feedback lifecycle (`shown`, `open`, qualified manual completion)
+- Recommendation discovery now uses the same explicit exercise-selection pipeline as the other ranked exercise branches instead of a standalone SQL-only path.
+- Active docs now distinguish clearly between internal backend remediation iterations and visible product release numbering.
+
+### Fixed
+- Visible version references were realigned after historical drift in the late `3.1.0-alpha.*` prerelease notes.
+- Recommendation serving and recommendation UI reasons now follow the structured post-R baseline documented in the active project docs.
+
+### Notes
+- This is intentionally **not** `3.2.0` stable: the current engine is a stronger deterministic heuristic recommender, not a fully learned or feature-complete recommender.
+- Current cited post-R baseline:
+  - recommendation targeted tests: `40 passed`
+  - standard backend gate: `991 passed, 2 skipped`
+  - recommendation reason hook vitest: `3 passed`
+
+## [3.1.0-alpha.8] - 2026-03-11
+
+### Changed
+- Backend consolidation release centered on `challenge`, `admin` and `badge`, with thinner handlers and explicit application facades across the HTTP boundaries in scope.
+- Admin read/mutate/config/content endpoints and badge endpoints now go through dedicated application services without changing public HTTP contracts.
+- API proof tests were extended on admin content and badge endpoints to verify the real mutate/public route wiring.
+
+### Fixed
+- Fixture namespace collisions between auth/admin fixtures and global cleanup were removed.
+- Challenge tests that depended on nondeterministic `challenges[0]` selection now use a stable fixture with a known `correct_answer`.
+- Local stability improved by excluding `tests/api/test_admin_auth_stability.py` from standard gates while it still launches `pytest` from inside `pytest`.
+
+## [3.1.0-alpha.7] - 2026-03-09
+
+### Changed
+- Backend reliability release centered on `exercise`, `auth` and `user`, with thinner handlers, clearer application services and preserved HTTP boundaries.
+- Account management became more robust for profile, sessions, GDPR export and self-delete flows.
+- Authentication flows for login, refresh, verification, forgot/reset and post-reset invalidation were reindustrialized without changing public contracts.
+
+### Fixed
+- Older access and refresh tokens issued before password reset are now rejected.
+- Other active sessions are revoked after password reset.
+- Password change from settings now uses the same revocation mechanism.
+- `POST /api/auth/resend-verification` keeps a generic secure response on malformed emails.
+- `GET /api/users/me/export` is wired to the correct HTTP handler and explicitly covered by API tests.
+
+## [3.1.0-alpha.6] - 2026-03-07
+
+### Historical note
+- Earlier `3.1.0-alpha.1` to `3.1.0-alpha.4` prerelease steps existed before the detailed entries below; they are not expanded in this changelog and remain part of the condensed prerelease history.
+
+### Added
+- F07: progression timeline via `GET /api/users/me/progress/timeline`
+- F32: interleaved session via `GET /api/exercises/interleaved-plan`
+- F35: DB URL secret redaction at startup
+
+### Changed
+- Dashboard progression and visualizations were harmonized.
+- `POST /api/exercises/generate` better supports adaptive `age_group` resolution.
+
+## [3.1.0-alpha.5] - 2026-03-06
 
 ### Fixed
 - CI database initialization: corrected alembic.ini path resolution and robust fallback for "already exists" errors during create_all.
@@ -73,47 +145,10 @@ Active references:
 - Small silent fallbacks were made explicit and more observable on the treated scope.
 
 ### Notes
-- Current verified backend gate standard: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` → `951 passed, 2 skipped`
+- Current verified backend gate standard: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `951 passed, 2 skipped`
 - Current measured local coverage on `app` + `server`: `71 %`
 - Current backend CI coverage gate: `63 %`
 - Detailed historical lot documents remain archived for traceability only.
-
-## [3.1.0-alpha.8] - 2026-03-11
-
-### Changed
-- Backend consolidation release centered on `challenge`, `admin` and `badge`, with thinner handlers and explicit application facades across the HTTP boundaries in scope.
-- Admin read/mutate/config/content endpoints and badge endpoints now go through dedicated application services without changing public HTTP contracts.
-- API proof tests were extended on admin content and badge endpoints to verify the real mutate/public route wiring.
-
-### Fixed
-- Fixture namespace collisions between auth/admin fixtures and global cleanup were removed.
-- Challenge tests that depended on nondeterministic `challenges[0]` selection now use a stable fixture with a known `correct_answer`.
-- Local stability improved by excluding `tests/api/test_admin_auth_stability.py` from standard gates while it still launches `pytest` from inside `pytest`.
-
-## [3.1.0-alpha.7] - 2026-03-09
-
-### Changed
-- Backend reliability release centered on `exercise`, `auth` and `user`, with thinner handlers, clearer application services and preserved HTTP boundaries.
-- Account management became more robust for profile, sessions, GDPR export and self-delete flows.
-- Authentication flows for login, refresh, verification, forgot/reset and post-reset invalidation were reindustrialized without changing public contracts.
-
-### Fixed
-- Older access and refresh tokens issued before password reset are now rejected.
-- Other active sessions are revoked after password reset.
-- Password change from settings now uses the same revocation mechanism.
-- `POST /api/auth/resend-verification` keeps a generic secure response on malformed emails.
-- `GET /api/users/me/export` is wired to the correct HTTP handler and explicitly covered by API tests.
-
-## [3.1.0-alpha.6] - 2026-03-07
-
-### Added
-- F07: progression timeline via `GET /api/users/me/progress/timeline`
-- F32: interleaved session via `GET /api/exercises/interleaved-plan`
-- F35: DB URL secret redaction at startup
-
-### Changed
-- Dashboard progression and visualizations were harmonized.
-- `POST /api/exercises/generate` better supports adaptive `age_group` resolution.
 
 ## [2.1.0] - 2026-02-06
 
@@ -131,3 +166,4 @@ Active references:
 ## [2.0.0] and earlier
 
 Condensed history: adaptive exercises, logic challenges, authentication, email verification, badges and the first dashboard layers.
+

@@ -1,4 +1,5 @@
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     DateTime,
@@ -67,6 +68,9 @@ class Recommendation(Base):
     reason = Column(
         Text, nullable=True
     )  # Raison de la recommandation en langage naturel
+    # R5 — Raison structurée (i18n côté client) ; ``reason`` reste le fallback compat API
+    reason_code = Column(String(80), nullable=True)
+    reason_params = Column(JSON, nullable=True)
     is_completed = Column(
         Boolean, default=False, index=True
     )  # L'utilisateur a-t-il complété cette recommandation

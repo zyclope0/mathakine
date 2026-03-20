@@ -16,7 +16,7 @@ Erreur `Failed to fetch` lors de la connexion - le frontend ne peut pas atteindr
 
 - ✅ Support de `NEXT_PUBLIC_API_BASE_URL` (recommandé)
 - ✅ Fallback vers `NEXT_PUBLIC_API_URL` (ancien)
-- ✅ Fallback vers `http://localhost:8000` (par défaut)
+- ✅ Fallback code vers `http://localhost:10000` (port API Mathakine en dev)
 
 ## 🔍 **VÉRIFICATIONS À FAIRE**
 
@@ -25,44 +25,35 @@ Erreur `Failed to fetch` lors de la connexion - le frontend ne peut pas atteindr
 ```bash
 # Dans un terminal séparé (depuis la racine du projet)
 cd D:\Mathakine
-python server.py
-# ou
-uvicorn app.main:app --reload --port 8000
+python enhanced_server.py
 ```
 
-Le backend doit être accessible sur `http://localhost:8000`
+Le backend écoute par défaut sur **`http://localhost:10000`** (`PORT` surchargeable).
 
 ### **2. Tester l'endpoint directement**
 
 Ouvrir dans le navigateur ou avec curl :
 
 ```bash
-# Test de l'endpoint de login
-curl -X POST http://localhost:8000/api/auth/login \
+# Health check
+curl http://localhost:10000/health
+
+# Test login (adapter identifiants)
+curl -X POST http://localhost:10000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"ObiWan","password":"HelloThere123!"}'
 ```
 
 ### **3. Vérifier la configuration CORS**
 
-Le backend doit autoriser `http://localhost:3000` dans `BACKEND_CORS_ORIGINS`.
-
-Vérifier dans `app/core/config.py` :
-
-```python
-BACKEND_CORS_ORIGINS: List[str] = [
-    "http://localhost:8000",
-    "http://localhost:3000",  # ← Doit être présent
-    ...
-]
-```
+Le backend doit autoriser l’origine du frontend (`http://localhost:3000`) dans `BACKEND_CORS_ORIGINS` / défauts `app/core/config.py`.
 
 ### **4. Vérifier les variables d'environnement**
 
 Le fichier `frontend/.env.local` doit contenir :
 
 ```
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:10000
 ```
 
 **Important** : Redémarrer le serveur Next.js après modification de `.env.local` :
@@ -79,8 +70,7 @@ npm run dev
 ### **Vérifier que le backend répond**
 
 ```bash
-# Test simple
-curl http://localhost:8000/api/docs
+curl http://localhost:10000/health
 ```
 
 ### **Vérifier les logs du backend**
@@ -97,13 +87,13 @@ Ouvrir les DevTools (F12) → Onglet Network pour voir :
 
 ## 📋 **CHECKLIST DE DÉPANNAGE**
 
-- [ ] Backend démarré sur `http://localhost:8000`
+- [ ] Backend démarré sur `http://localhost:10000` (ou `PORT` défini)
 - [ ] Frontend démarré sur `http://localhost:3000`
 - [ ] Variable `NEXT_PUBLIC_API_BASE_URL` définie dans `.env.local`
 - [ ] Serveur Next.js redémarré après modification `.env.local`
 - [ ] CORS configuré pour autoriser `localhost:3000`
 - [ ] Pas de firewall bloquant les connexions locales
-- [ ] Ports 3000 et 8000 disponibles
+- [ ] Ports 3000 (front) et 10000 (API) disponibles
 
 ## 🎯 **PROCHAINES ÉTAPES**
 
