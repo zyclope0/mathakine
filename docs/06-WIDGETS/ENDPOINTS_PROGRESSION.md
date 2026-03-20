@@ -1,4 +1,4 @@
-﻿# ENDPOINTS PROGRESSION - DASHBOARD ET WIDGETS
+# ENDPOINTS PROGRESSION - DASHBOARD ET WIDGETS
 
 > Mise a jour : 15/03/2026
 > Source de verite runtime : `server/routes/`
@@ -69,7 +69,7 @@ Usage possible:
 
 ## Notes techniques
 
-- backend actif: Starlette, port par defaut `8000`
+- backend actif: Starlette, port dev par defaut `10000` (`enhanced_server.py`)
 - authentification supportee selon endpoint: cookie `access_token` et/ou bearer token
 - `app/api/endpoints/*` est archive dans `_ARCHIVE_2026/`; la source de verite active reste `server/routes/` + `server/handlers/`
 

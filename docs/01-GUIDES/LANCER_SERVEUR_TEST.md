@@ -1,4 +1,4 @@
-﻿# LANCER LE SERVEUR EN MODE TEST - MATHAKINE
+# LANCER LE SERVEUR EN MODE TEST - MATHAKINE
 
 > Guide rapide pour verifier manuellement un changement backend/local
 > Mise a jour : 18/03/2026
@@ -17,14 +17,14 @@ venv\Scripts\activate
 python enhanced_server.py
 ```
 
-Backend par defaut: `http://localhost:8000`
+Backend par defaut: `http://localhost:10000`
 
 ### Variables utiles
 
 ```powershell
 $env:MATH_TRAINER_DEBUG="true"
 $env:RUN_STARTUP_MIGRATIONS="true"
-$env:PORT="8000"
+$env:PORT="10000"
 python enhanced_server.py
 ```
 
@@ -57,10 +57,10 @@ pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
 
 ## Problemes frequents
 
-### Port `8000` deja utilise
+### Port `10000` deja utilise
 
 ```bash
-netstat -ano | findstr :8000
+netstat -ano | findstr :10000
 taskkill /PID <PID> /F
 ```
 
@@ -75,7 +75,7 @@ python scripts/check_local_db.py
 Verifier `frontend/.env.local`:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:10000
 ```
 
 ## References
