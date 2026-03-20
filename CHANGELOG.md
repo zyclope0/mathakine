@@ -25,7 +25,7 @@ Visible product versioning policy:
 - iteration `Security, Boundaries, and API Discipline`: closed
 - iteration `Typed Contracts, Service Decomposition, and Legacy Retirement`: closed
 - iteration `Academic Backend Rigor, Replicability, and Operability`: closed
-- lots G (Residual Contracts and Cleanup): closed (G1–G4)
+- lots G (Residual Contracts and Cleanup): closed (G1-G4)
 
 Active references:
 - [`runtime + contracts recap`](docs/03-PROJECT/BILAN_BACKEND_RUNTIME_CONTRACTS_2026-03-13.md)
@@ -166,4 +166,5 @@ Active references:
 ## [2.0.0] and earlier
 
 Condensed history: adaptive exercises, logic challenges, authentication, email verification, badges and the first dashboard layers.
+
 
