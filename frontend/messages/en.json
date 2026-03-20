@@ -747,7 +747,40 @@
       "priority": "Priority",
       "challenge": "Logic challenge",
       "startChallenge": "Take the challenge",
-      "markDone": "Mark as done"
+      "markDone": "Mark as done",
+      "reasons": {
+        "codes": {
+          "reco_challenge_onboarding": "Start with a {challengeType} challenge to ease into logic puzzles.",
+          "reco_challenge_gentle_progress": "A more approachable {challengeType} challenge to rebuild confidence.",
+          "reco_challenge_skill_stretch": "A {challengeType} challenge matched to your current level.",
+          "reco_challenge_variety": "Try a {challengeType} challenge to diversify your strategies.",
+          "reco_exercise_improvement": "Your rate in {exerciseType}: {successRate}%. Keep practicing at {targetDifficulty}.",
+          "reco_exercise_progression": "Strong results in {exerciseType} ({successRate}%). Try the {nextDifficulty} level.",
+          "reco_exercise_maintenance": "Maintain {exerciseType} at {targetDifficulty}.",
+          "reco_exercise_discovery": "Explore {exerciseType} at {targetDifficulty}.",
+          "reco_exercise_fallback": "A few exercises to keep you learning."
+        },
+        "difficulties": {
+          "initie": "Initiate",
+          "padawan": "Padawan",
+          "chevalier": "Knight",
+          "maitre": "Master",
+          "grand_maitre": "Grand Master"
+        },
+        "challengeTypes": {
+          "sequence": "sequence",
+          "pattern": "pattern",
+          "visual": "visual",
+          "puzzle": "puzzle",
+          "riddle": "riddle",
+          "deduction": "deduction",
+          "probability": "probability",
+          "graph": "graph",
+          "coding": "coding",
+          "chess": "chess",
+          "custom": "logic"
+        }
+      }
     },
     "recentActivity": {
       "title": "Activity log",
@@ -809,6 +842,8 @@
       "excelLabel": "Export to Excel",
       "noData": "No data available",
       "noDataDescription": "Please wait for statistics to load.",
+      "noUser": "Not signed in",
+      "noUserDescription": "Sign in to export.",
       "pdfSuccess": "PDF export successful!",
       "pdfSuccessDescription": "Your report has been downloaded.",
       "excelSuccess": "Excel export successful!",
@@ -817,6 +852,77 @@
       "pdfErrorDescription": "An error occurred while generating the PDF.",
       "excelError": "Excel export error",
       "excelErrorDescription": "An error occurred while generating the Excel file.",
+      "format": {
+        "notAvailable": "Not available",
+        "scopeExcludedActions": "Out of analytical scope (v1): recommendations and quick actions.",
+        "pdfTitle": "Mathakine dashboard",
+        "period": "Period",
+        "exportedAt": "Export date",
+        "lastDataUpdate": "Last data update",
+        "executiveSummary": "Executive summary",
+        "successRate": "Success rate",
+        "experiencePoints": "Experience points (XP)",
+        "averageScoreSecondary": "Average score (secondary)",
+        "incorrectAnswers": "Incorrect answers",
+        "exercisesSolved": "Exercises solved",
+        "challengesCompletedLabel": "Challenges completed",
+        "correctAnswers": "Correct answers",
+        "level": "Level",
+        "booleanYes": "Yes",
+        "booleanNo": "No",
+        "currentStreak": "Current streak",
+        "highestStreak": "Best streak",
+        "averageTime": "Average time (seconds)",
+        "performanceByCategory": "Performance by category",
+        "category": "Category",
+        "completed": "Completed",
+        "accuracy": "Accuracy",
+        "attempts": "Attempts",
+        "performanceByType": "Performance by exercise type",
+        "exerciseType": "Type",
+        "typeCompleted": "Completed",
+        "typeCorrect": "Correct",
+        "typeSuccessRate": "Success rate",
+        "logicChallengesSection": "Logic challenges progress",
+        "logicCompletedTotal": "Challenges completed / total",
+        "logicSuccessRate": "Success rate (challenges)",
+        "logicAverageTime": "Average time (challenges)",
+        "challengeTitle": "Challenge",
+        "challengeCompleted": "Done",
+        "challengeAttempts": "Attempts",
+        "challengeBestTime": "Best time (s)",
+        "recentActivity": "Recent activity",
+        "activityType": "Type",
+        "activityDescription": "Description",
+        "activityTime": "Time",
+        "activityCorrect": "Correct",
+        "dailyChallengesSection": "Daily challenges",
+        "dailyType": "Type",
+        "dailyTarget": "Target",
+        "dailyCompleted": "Progress",
+        "dailyStatus": "Status",
+        "dailyBonus": "Bonus",
+        "dailyMetadata": "Metadata",
+        "statusPending": "Pending",
+        "statusCompleted": "Completed",
+        "statusExpired": "Expired",
+        "typeVolume": "Exercise volume",
+        "typeSpecific": "Specific type",
+        "typeLogic": "Logic challenge",
+        "seriesDate": "Date",
+        "seriesValue": "Value",
+        "timelineDataset": "Series",
+        "sheetSummary": "Summary",
+        "sheetPerformanceCategories": "Performance by category",
+        "sheetPerformanceTypes": "Performance by type",
+        "sheetLogicChallenges": "Logic challenges",
+        "sheetRecentActivity": "Recent activity",
+        "sheetDailyChallenges": "Daily challenges",
+        "sheetTimeSeries": "Time series",
+        "columnMetric": "Metric",
+        "columnValue": "Value",
+        "workbookTitle": "Mathakine dashboard"
+      },
       "labels": {
         "title": "Mathakine Statistics",
         "user": "User:",
@@ -1636,6 +1742,16 @@
     "subtitle": "Latest improvements to Mathakine, explained simply.",
     "scopeNote": "This page lists visible product releases. Internal engineering milestones stay in the root project changelog.",
     "alphaNote": "Mathakine is in alpha: changes may occur regularly.",
+    "release_3_2_0_alpha_1": {
+      "version": "v3.2.0-alpha.1",
+      "date": "March 20, 2026",
+      "items": [
+        "Dashboard recommendations are now more stable from one refresh to the next.",
+        "Exercise and challenge suggestions now use clearer, better translated reason labels in the interface.",
+        "Discovery of new exercise types now follows a more consistent selection path with the rest of the recommendation engine.",
+        "This is primarily a product and quality release: the recommendation engine is stronger, without pretending to be a learned AI system."
+      ]
+    },
     "release_3_1_0_alpha_7": {
       "version": "v3.1.0-alpha.7",
       "date": "March 9, 2026",
@@ -1799,7 +1915,9 @@
     "release_3_1_0_alpha_9": {
       "version": "v3.1.0-alpha.9",
       "date": "March 6, 2026",
-      "items": ["Fixed database initialization in CI pipeline."]
+      "items": [
+        "Historical entry removed from visible product meaning: this CI fix remained an internal milestone, not a user-facing release."
+      ]
     }
   },
   "feedback": {

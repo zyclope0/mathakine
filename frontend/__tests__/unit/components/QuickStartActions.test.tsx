@@ -34,6 +34,8 @@ describe("QuickStartActions", () => {
       isGenerating: false,
       complete: vi.fn(),
       isCompleting: false,
+      recordOpen: vi.fn(),
+      isRecordingOpen: false,
     } as ReturnType<typeof useRecommendations>);
   });
 
@@ -84,6 +86,8 @@ describe("QuickStartActions", () => {
       isGenerating: false,
       complete: vi.fn(),
       isCompleting: false,
+      recordOpen: vi.fn(),
+      isRecordingOpen: false,
     } as ReturnType<typeof useRecommendations>);
 
     render(<QuickStartActions />, { wrapper: TestWrapper });
@@ -133,5 +137,102 @@ describe("QuickStartActions", () => {
       type: "exercise",
       guided: false,
     });
+  });
+
+  it("R4b — n'appelle pas recordOpen sans parcours guidé (liste exercices)", async () => {
+    const recordOpen = vi.fn();
+    vi.mocked(useRecommendations).mockReturnValue({
+      recommendations: [],
+      isLoading: false,
+      error: null,
+      generate: vi.fn(),
+      isGenerating: false,
+      complete: vi.fn(),
+      isCompleting: false,
+      recordOpen,
+      isRecordingOpen: false,
+    } as ReturnType<typeof useRecommendations>);
+
+    render(<QuickStartActions />, { wrapper: TestWrapper });
+    await userEvent.click(screen.getByRole("link", { name: /Un exercice/i }));
+
+    expect(recordOpen).not.toHaveBeenCalled();
+  });
+
+  it("R4b — appelle recordOpen(recommendationId) au clic guidé exercice et défi", async () => {
+    const recordOpen = vi.fn().mockResolvedValue({
+      id: 1,
+      clicked_count: 1,
+      last_clicked_at: "2026-03-20T00:00:00+00:00",
+    });
+    vi.mocked(useRecommendations).mockReturnValue({
+      recommendations: [
+        {
+          id: 10,
+          exercise_id: 42,
+          priority: 9,
+          exercise_type: "ADDITION",
+          exercise_title: "Addition test",
+          reason: "",
+          difficulty: "",
+        },
+        {
+          id: 20,
+          exercise_type: "SEQUENCE",
+          challenge_id: 99,
+          priority: 8,
+          challenge_title: "Suite logique",
+          reason: "",
+          difficulty: "",
+        },
+      ] as ReturnType<typeof useRecommendations>["recommendations"],
+      isLoading: false,
+      error: null,
+      generate: vi.fn(),
+      isGenerating: false,
+      complete: vi.fn(),
+      isCompleting: false,
+      recordOpen,
+      isRecordingOpen: false,
+    } as ReturnType<typeof useRecommendations>);
+
+    render(<QuickStartActions />, { wrapper: TestWrapper });
+
+    await userEvent.click(screen.getByRole("link", { name: /Un exercice/i }));
+    expect(recordOpen).toHaveBeenCalledWith(10);
+
+    await userEvent.click(screen.getByRole("link", { name: /Un défi/i }));
+    expect(recordOpen).toHaveBeenCalledWith(20);
+  });
+
+  it("R4b — Session entrelacée ne déclenche pas recordOpen", async () => {
+    const recordOpen = vi.fn();
+    vi.mocked(useRecommendations).mockReturnValue({
+      recommendations: [
+        {
+          id: 10,
+          exercise_id: 42,
+          priority: 9,
+          exercise_type: "ADDITION",
+          exercise_title: "X",
+          reason: "",
+          difficulty: "",
+        },
+      ] as ReturnType<typeof useRecommendations>["recommendations"],
+      isLoading: false,
+      error: null,
+      generate: vi.fn(),
+      isGenerating: false,
+      complete: vi.fn(),
+      isCompleting: false,
+      recordOpen,
+      isRecordingOpen: false,
+    } as ReturnType<typeof useRecommendations>);
+
+    render(<QuickStartActions />, { wrapper: TestWrapper });
+    recordOpen.mockClear();
+    await userEvent.click(screen.getByRole("link", { name: /Session entrelacée/i }));
+
+    expect(recordOpen).not.toHaveBeenCalled();
   });
 });

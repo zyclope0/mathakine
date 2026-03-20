@@ -734,7 +734,40 @@
       "priority": "Prioritaire",
       "challenge": "Défi logique",
       "startChallenge": "Relever le défi",
-      "markDone": "Marquer comme fait"
+      "markDone": "Marquer comme fait",
+      "reasons": {
+        "codes": {
+          "reco_challenge_onboarding": "Démarrez avec un défi {challengeType} pour prendre en main la logique.",
+          "reco_challenge_gentle_progress": "Un défi {challengeType} plus accessible pour reprendre confiance.",
+          "reco_challenge_skill_stretch": "Un défi {challengeType} aligné sur votre niveau actuel.",
+          "reco_challenge_variety": "Variez avec un défi {challengeType} pour élargir vos stratégies.",
+          "reco_exercise_improvement": "Votre taux en {exerciseType} : {successRate} %. Poursuivez au niveau {targetDifficulty}.",
+          "reco_exercise_progression": "Très bon taux en {exerciseType} ({successRate} %). Essayez le niveau {nextDifficulty}.",
+          "reco_exercise_maintenance": "Entretenez {exerciseType} au niveau {targetDifficulty}.",
+          "reco_exercise_discovery": "Découvrez {exerciseType} — niveau {targetDifficulty}.",
+          "reco_exercise_fallback": "Quelques exercices pour poursuivre votre apprentissage."
+        },
+        "difficulties": {
+          "initie": "Initié",
+          "padawan": "Padawan",
+          "chevalier": "Chevalier",
+          "maitre": "Maître",
+          "grand_maitre": "Grand Maître"
+        },
+        "challengeTypes": {
+          "sequence": "suite logique",
+          "pattern": "motifs",
+          "visual": "visuel",
+          "puzzle": "puzzle",
+          "riddle": "énigme",
+          "deduction": "déduction",
+          "probability": "probabilités",
+          "graph": "graphe",
+          "coding": "codage",
+          "chess": "échecs",
+          "custom": "logique"
+        }
+      }
     },
     "recentActivity": {
       "title": "Journal d'activité",
@@ -809,6 +842,8 @@
       "excelLabel": "Exporter en Excel",
       "noData": "Aucune donnée disponible",
       "noDataDescription": "Veuillez attendre le chargement des statistiques.",
+      "noUser": "Utilisateur non connecté",
+      "noUserDescription": "Connectez-vous pour exporter.",
       "pdfSuccess": "Export PDF réussi !",
       "pdfSuccessDescription": "Votre rapport a été téléchargé.",
       "excelSuccess": "Export Excel réussi !",
@@ -817,6 +852,77 @@
       "pdfErrorDescription": "Une erreur est survenue lors de la génération du PDF.",
       "excelError": "Erreur lors de l'export Excel",
       "excelErrorDescription": "Une erreur est survenue lors de la génération du fichier Excel.",
+      "format": {
+        "notAvailable": "Non disponible",
+        "scopeExcludedActions": "Hors périmètre analytique : recommandations et actions rapides.",
+        "pdfTitle": "Tableau de bord Mathakine",
+        "period": "Période",
+        "exportedAt": "Date d'export",
+        "lastDataUpdate": "Dernière mise à jour des données",
+        "executiveSummary": "Résumé exécutif",
+        "successRate": "Taux de réussite",
+        "experiencePoints": "Points d'expérience (XP)",
+        "averageScoreSecondary": "Score moyen (indicateur secondaire)",
+        "incorrectAnswers": "Réponses incorrectes",
+        "exercisesSolved": "Exercices résolus",
+        "challengesCompletedLabel": "Défis complétés",
+        "correctAnswers": "Réponses correctes",
+        "level": "Niveau",
+        "booleanYes": "Oui",
+        "booleanNo": "Non",
+        "currentStreak": "Série en cours",
+        "highestStreak": "Meilleure série",
+        "averageTime": "Temps moyen (secondes)",
+        "performanceByCategory": "Performance par catégorie",
+        "category": "Catégorie",
+        "completed": "Complétés",
+        "accuracy": "Précision",
+        "attempts": "Tentatives",
+        "performanceByType": "Performance par type d'exercice",
+        "exerciseType": "Type",
+        "typeCompleted": "Complétés",
+        "typeCorrect": "Corrects",
+        "typeSuccessRate": "Taux de réussite",
+        "logicChallengesSection": "Progression défis logiques",
+        "logicCompletedTotal": "Défis complétés / total",
+        "logicSuccessRate": "Taux de réussite (défis)",
+        "logicAverageTime": "Temps moyen (défis)",
+        "challengeTitle": "Défi",
+        "challengeCompleted": "Terminé",
+        "challengeAttempts": "Tentatives",
+        "challengeBestTime": "Meilleur temps (s)",
+        "recentActivity": "Activité récente",
+        "activityType": "Type",
+        "activityDescription": "Description",
+        "activityTime": "Heure",
+        "activityCorrect": "Correct",
+        "dailyChallengesSection": "Défis du jour",
+        "dailyType": "Type",
+        "dailyTarget": "Objectif",
+        "dailyCompleted": "Progression",
+        "dailyStatus": "Statut",
+        "dailyBonus": "Bonus",
+        "dailyMetadata": "Métadonnées",
+        "statusPending": "En cours",
+        "statusCompleted": "Terminé",
+        "statusExpired": "Expiré",
+        "typeVolume": "Volume d'exercices",
+        "typeSpecific": "Type spécifique",
+        "typeLogic": "Défi logique",
+        "seriesDate": "Date",
+        "seriesValue": "Valeur",
+        "timelineDataset": "Série",
+        "sheetSummary": "Résumé",
+        "sheetPerformanceCategories": "Performance catégories",
+        "sheetPerformanceTypes": "Performance types",
+        "sheetLogicChallenges": "Défis logiques",
+        "sheetRecentActivity": "Activité récente",
+        "sheetDailyChallenges": "Défis du jour",
+        "sheetTimeSeries": "Séries temporelles",
+        "columnMetric": "Métrique",
+        "columnValue": "Valeur",
+        "workbookTitle": "Tableau de bord Mathakine"
+      },
       "labels": {
         "title": "Statistiques Mathakine",
         "user": "Utilisateur:",
@@ -1636,6 +1742,16 @@
     "subtitle": "Les dernieres ameliorations de Mathakine, expliquees simplement.",
     "scopeNote": "Cette page montre les nouveautes produit visibles. Les jalons techniques internes restent dans le changelog racine du projet.",
     "alphaNote": "Mathakine est en version alpha : des changements peuvent survenir regulierement.",
+    "release_3_2_0_alpha_1": {
+      "version": "v3.2.0-alpha.1",
+      "date": "20 mars 2026",
+      "items": [
+        "Les recommandations du tableau de bord sont maintenant plus stables d un rafraichissement a l autre.",
+        "Les conseils d exercice et de defi utilisent des raisons plus claires et mieux traduites dans l interface.",
+        "La decouverte de nouveaux types d exercices suit maintenant une logique plus coherente avec le reste des suggestions.",
+        "Release surtout produit et qualite : moteur de recommandations renforce sans le presenter comme une IA apprenante."
+      ]
+    },
     "release_3_1_0_alpha_7": {
       "version": "v3.1.0-alpha.7",
       "date": "09 mars 2026",
@@ -1799,7 +1915,9 @@
     "release_3_1_0_alpha_9": {
       "version": "v3.1.0-alpha.9",
       "date": "6 mars 2026",
-      "items": ["Correction de l initialisation de la base de donnees en CI."]
+      "items": [
+        "Entree historique supprimee de l affichage produit : ce correctif CI restait un jalon interne et non une nouveaute visible."
+      ]
     }
   },
   "feedback": {

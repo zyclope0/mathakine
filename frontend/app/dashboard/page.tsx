@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { enUS, fr } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
@@ -9,6 +9,8 @@ import { useLocaleStore } from "@/lib/stores/localeStore";
 import { useUserStats, type TimeRange } from "@/hooks/useUserStats";
 import { useProgressStats } from "@/hooks/useProgressStats";
 import { useChallengesProgress } from "@/hooks/useChallengesProgress";
+import { useDailyChallenges } from "@/hooks/useDailyChallenges";
+import { buildDashboardExportSnapshot } from "@/lib/dashboard/buildDashboardExportSnapshot";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,10 +65,41 @@ export default function DashboardPage() {
   const { stats, isLoading, error, refetch } = useUserStats(timeRange);
   const { data: progressStats, isLoading: isLoadingProgress } = useProgressStats();
   const { data: challengesProgress, isLoading: isLoadingChallenges } = useChallengesProgress();
+  const { challenges: dailyChallenges } = useDailyChallenges();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const t = useTranslations("dashboard");
   const tToasts = useTranslations("toasts.dashboard");
+
+  const timeRangeLabel = useMemo(() => {
+    const key =
+      timeRange === "7"
+        ? "7days"
+        : timeRange === "30"
+          ? "30days"
+          : timeRange === "90"
+            ? "90days"
+            : "all";
+    return t(`timeRange.${key}`);
+  }, [timeRange, t]);
+
+  const exportSnapshot = useMemo(() => {
+    if (!stats || !user) {
+      return null;
+    }
+    return buildDashboardExportSnapshot(
+      {
+        username: user.username,
+        timeRange,
+        timeRangeLabel,
+        stats,
+        progressStats: progressStats ?? null,
+        challengesProgress: challengesProgress ?? null,
+        dailyChallenges,
+      },
+      new Date()
+    );
+  }, [stats, user, timeRange, timeRangeLabel, progressStats, challengesProgress, dailyChallenges]);
 
   // Debounce du refresh pour éviter les clics multiples rapides
   const handleRefresh = useCallback(async () => {
@@ -144,7 +177,7 @@ export default function DashboardPage() {
           actions={
             <>
               <TimeRangeSelector value={timeRange} onValueChange={setTimeRange} />
-              <ExportButton timeRange={timeRange} />
+              <ExportButton snapshot={exportSnapshot} />
               <Button
                 variant="ghost"
                 onClick={handleRefresh}
