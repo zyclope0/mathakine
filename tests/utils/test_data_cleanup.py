@@ -14,7 +14,7 @@ import logging
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
@@ -270,6 +270,84 @@ class TestDataManager:
 
         return test_data
 
+    def _execute_if_table_exists(self, table: str, sql: str) -> None:
+        """Exécute une requête de nettoyage si la table est présente (schéma variable / migrations)."""
+        try:
+            bind = self.db.get_bind()
+            insp = inspect(bind)
+            if table not in insp.get_table_names():
+                return
+        except Exception as ex:
+            logger.debug("Cleanup: skip table check %s: %s", table, ex)
+            return
+        self.db.execute(text(sql))
+
+    def _log_fk_diagnostics_for_test_users(self, user_ids: List[int]) -> None:
+        """
+        R5d — avant rollback sur échec cleanup : journaliser les lignes encore liées aux users test.
+        """
+        if not user_ids:
+            logger.error("R5d FK diagnostic: identify_test_data n'a aucun user_id test")
+            return
+        ids = ",".join(map(str, user_ids))
+        logger.error(
+            "R5d FK diagnostic: user_ids identify=%s (count=%s)",
+            user_ids,
+            len(user_ids),
+        )
+        queries: List[tuple[str, str]] = [
+            ("attempts", f"SELECT COUNT(*) FROM attempts WHERE user_id IN ({ids})"),
+            (
+                "logic_challenge_attempts",
+                f"SELECT COUNT(*) FROM logic_challenge_attempts WHERE user_id IN ({ids})",
+            ),
+            (
+                "recommendations",
+                f"SELECT COUNT(*) FROM recommendations WHERE user_id IN ({ids})",
+            ),
+            ("progress", f"SELECT COUNT(*) FROM progress WHERE user_id IN ({ids})"),
+            (
+                "daily_challenges",
+                f"SELECT COUNT(*) FROM daily_challenges WHERE user_id IN ({ids})",
+            ),
+            (
+                "diagnostic_results",
+                f"SELECT COUNT(*) FROM diagnostic_results WHERE user_id IN ({ids})",
+            ),
+            (
+                "user_achievements",
+                f"SELECT COUNT(*) FROM user_achievements WHERE user_id IN ({ids})",
+            ),
+            (
+                "user_sessions",
+                f"SELECT COUNT(*) FROM user_sessions WHERE user_id IN ({ids})",
+            ),
+            (
+                "notifications",
+                f"SELECT COUNT(*) FROM notifications WHERE user_id IN ({ids})",
+            ),
+            (
+                "feedback_reports",
+                f"SELECT COUNT(*) FROM feedback_reports WHERE user_id IN ({ids})",
+            ),
+            (
+                "edtech_events_user_ref",
+                f"SELECT COUNT(*) FROM edtech_events WHERE user_id IN ({ids})",
+            ),
+        ]
+        for label, sql in queries:
+            try:
+                row = self.db.execute(text(sql))
+                cnt = row.scalar()
+                if cnt and int(cnt) > 0:
+                    logger.error(
+                        "R5d FK diagnostic: lignes restantes %s = %s", label, cnt
+                    )
+            except Exception as ex:
+                logger.error(
+                    "R5d FK diagnostic: impossible de compter %s — %s", label, ex
+                )
+
     def cleanup_test_data(self, dry_run: bool = True) -> Dict[str, Any]:
         """
         Nettoie les données de test de manière sécurisée.
@@ -439,8 +517,42 @@ class TestDataManager:
                     text(f"DELETE FROM notifications WHERE user_id IN ({ids_str})")
                 )
 
-            # 7.6 admin_audit_logs: annuler les refs vers users test avant DELETE users
-            #    (robuste si FK RESTRICT; redondant mais sans impact si FK ON DELETE SET NULL)
+                # 7g. Catch-all R5d : lignes encore liées aux test users si identify a raté des ids.
+                self.db.execute(
+                    text(f"DELETE FROM recommendations WHERE user_id IN ({ids_str})")
+                )
+                self.db.execute(
+                    text(f"DELETE FROM attempts WHERE user_id IN ({ids_str})")
+                )
+                self.db.execute(
+                    text(f"DELETE FROM progress WHERE user_id IN ({ids_str})")
+                )
+                # Tables F02/F03 / signalements — absentes sur vieilles bases test
+                self._execute_if_table_exists(
+                    "daily_challenges",
+                    f"DELETE FROM daily_challenges WHERE user_id IN ({ids_str})",
+                )
+                self._execute_if_table_exists(
+                    "diagnostic_results",
+                    f"DELETE FROM diagnostic_results WHERE user_id IN ({ids_str})",
+                )
+                self._execute_if_table_exists(
+                    "feedback_reports",
+                    f"DELETE FROM feedback_reports WHERE user_id IN ({ids_str})",
+                )
+                self._execute_if_table_exists(
+                    "edtech_events",
+                    f"UPDATE edtech_events SET user_id = NULL WHERE user_id IN ({ids_str})",
+                )
+
+            # Phase 1 — commit : les enfants sont supprimés en base même si phase 2 échoue
+            # (évite rollback total qui laissait un état « à moitié nettoyé » invisible côté ORM).
+            self.db.commit()
+            logger.info(
+                "  📌 R5d: phase 1 cleanup commit (FK enfants / users test encore présents)"
+            )
+
+            # Phase 2 — users test seulement (audit + DELETE users)
             if test_data["users"]:
                 ids_str = ",".join(map(str, test_data["users"]))
                 result = self.db.execute(
@@ -451,18 +563,14 @@ class TestDataManager:
                 )
                 if result.rowcount > 0:
                     deleted_counts["admin_audit_logs_nullified"] = result.rowcount
-
-            # 8. Supprimer les utilisateurs de test (en dernier)
-            if test_data["users"]:
-                ids_str = ",".join(map(str, test_data["users"]))
                 result = self.db.execute(
                     text(f"DELETE FROM users WHERE id IN ({ids_str})")
                 )
                 deleted_counts["users"] = result.rowcount
                 logger.info(f"  ✅ Supprimé {result.rowcount} utilisateurs")
 
-            # Commit toutes les suppressions
             self.db.commit()
+            logger.info("  📌 R5d: phase 2 cleanup commit (users test)")
 
             total_deleted = sum(deleted_counts.values())
             logger.info(f"🎉 Nettoyage terminé : {total_deleted} éléments supprimés")
@@ -477,6 +585,9 @@ class TestDataManager:
 
         except Exception as e:
             logger.error(f"❌ Erreur lors du nettoyage : {str(e)}")
+            uids = test_data.get("users") or []
+            if uids:
+                self._log_fk_diagnostics_for_test_users(uids)
             self.db.rollback()
             return {
                 "dry_run": False,

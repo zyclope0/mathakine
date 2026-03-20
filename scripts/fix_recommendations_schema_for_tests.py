@@ -51,20 +51,19 @@ def main():
         """))
         if result.fetchone():
             print("OK Colonne challenge_id existe deja.")
-            return
-
-        print("Ajout de la colonne challenge_id...")
-        conn.execute(text("""
-            ALTER TABLE recommendations
-            ADD COLUMN challenge_id INTEGER
-            REFERENCES logic_challenges(id) ON DELETE SET NULL
-        """))
-        conn.execute(
-            text(
-                "CREATE INDEX ix_recommendations_challenge_id ON recommendations (challenge_id)"
+        else:
+            print("Ajout de la colonne challenge_id...")
+            conn.execute(text("""
+                ALTER TABLE recommendations
+                ADD COLUMN challenge_id INTEGER
+                REFERENCES logic_challenges(id) ON DELETE SET NULL
+            """))
+            conn.execute(
+                text(
+                    "CREATE INDEX ix_recommendations_challenge_id ON recommendations (challenge_id)"
+                )
             )
-        )
-        conn.commit()
+            conn.commit()
 
         # recommendation_type
         result = conn.execute(text("""
@@ -80,6 +79,44 @@ def main():
                 ADD COLUMN recommendation_type VARCHAR(20) NOT NULL DEFAULT 'exercise'
             """))
             conn.commit()
+
+        # R5 — reason_code / reason_params
+        result = conn.execute(text("""
+            SELECT column_name FROM information_schema.columns
+            WHERE table_name = 'recommendations' AND column_name = 'reason_code'
+        """))
+        if not result.fetchone():
+            print("Ajout de la colonne reason_code...")
+            conn.execute(
+                text(
+                    "ALTER TABLE recommendations ADD COLUMN reason_code VARCHAR(80)"
+                )
+            )
+            conn.commit()
+        else:
+            print("OK Colonne reason_code existe deja.")
+
+        result = conn.execute(text("""
+            SELECT column_name FROM information_schema.columns
+            WHERE table_name = 'recommendations' AND column_name = 'reason_params'
+        """))
+        if not result.fetchone():
+            print("Ajout de la colonne reason_params...")
+            try:
+                conn.execute(
+                    text(
+                        "ALTER TABLE recommendations ADD COLUMN reason_params JSONB"
+                    )
+                )
+            except Exception:
+                conn.execute(
+                    text(
+                        "ALTER TABLE recommendations ADD COLUMN reason_params JSON"
+                    )
+                )
+            conn.commit()
+        else:
+            print("OK Colonne reason_params existe deja.")
 
     print("OK Schema recommendations mis a jour.")
 

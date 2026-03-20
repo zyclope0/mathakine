@@ -11,6 +11,7 @@ from app.services.recommendation.recommendation_service import (
     generate_recommendations_sync,
     get_recommendations_for_api_sync,
     mark_recommendation_as_completed_sync,
+    mark_recommendation_as_opened_sync,
 )
 from app.utils.error_handler import api_error_response, get_safe_error_message
 from app.utils.request_utils import parse_json_body_any
@@ -102,7 +103,7 @@ async def handle_recommendation_complete(request: Request) -> JSONResponse:
         except (TypeError, ValueError):
             return api_error_response(400, "recommendation_id invalide")
 
-        success, rec = await run_db_bound(
+        success, rec, verified = await run_db_bound(
             mark_recommendation_as_completed_sync,
             recommendation_id,
             user_id,
@@ -111,12 +112,68 @@ async def handle_recommendation_complete(request: Request) -> JSONResponse:
             return api_error_response(404, "Recommandation non trouvée")
 
         return JSONResponse(
-            {"message": "Recommandation marquée comme complétée", "id": rec.id},
+            {
+                "message": "Recommandation marquée comme complétée",
+                "id": rec.id,
+                "verified_by_attempt": bool(verified),
+                "completion_kind": "manual_ack",
+            },
             status_code=200,
         )
     except Exception as e:
         logger.error(
             f"Erreur lors de la gestion de la recommandation complétée: {e}",
+            exc_info=True,
+        )
+        return api_error_response(500, get_safe_error_message(e))
+
+
+@require_auth
+@require_full_access
+async def handle_recommendation_open(request: Request) -> JSONResponse:
+    """
+    R4 — Enregistre une ouverture / clic sur le lien vers l'exercice ou le défi recommandé.
+    Route: POST /api/recommendations/open
+    Body: { "recommendation_id": int }
+    """
+    try:
+        current_user = request.state.user
+        user_id = current_user.get("id")
+        if not user_id:
+            return api_error_response(400, "ID utilisateur manquant")
+
+        data_or_err = await parse_json_body_any(request)
+        if isinstance(data_or_err, JSONResponse):
+            return data_or_err
+        data = data_or_err
+        recommendation_id = data.get("recommendation_id")
+        if recommendation_id is None:
+            return api_error_response(400, "recommendation_id manquant")
+        try:
+            recommendation_id = int(recommendation_id)
+        except (TypeError, ValueError):
+            return api_error_response(400, "recommendation_id invalide")
+
+        success, rec = await run_db_bound(
+            mark_recommendation_as_opened_sync,
+            recommendation_id,
+            user_id,
+        )
+        if not success or not rec:
+            return api_error_response(404, "Recommandation non trouvée")
+
+        last_clicked = rec.last_clicked_at
+        return JSONResponse(
+            {
+                "id": rec.id,
+                "clicked_count": rec.clicked_count or 0,
+                "last_clicked_at": last_clicked.isoformat() if last_clicked else None,
+            },
+            status_code=200,
+        )
+    except Exception as e:
+        logger.error(
+            f"Erreur lors de l'enregistrement ouverture recommandation: {e}",
             exc_info=True,
         )
         return api_error_response(500, get_safe_error_message(e))

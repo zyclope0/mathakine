@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -13,6 +13,12 @@ class RecommendationBase(BaseModel):
         5, ge=1, le=10, description="Priorité de la recommandation (1-10)"
     )
     reason: Optional[str] = Field(None, description="Raison de la recommandation")
+    reason_code: Optional[str] = Field(
+        None, description="Clé stable pour i18n (R5, optionnel)"
+    )
+    reason_params: Optional[Dict[str, Any]] = Field(
+        None, description="Paramètres interpolables pour la raison (R5)"
+    )
 
 
 class RecommendationCreate(RecommendationBase):
@@ -56,3 +62,5 @@ class RecommendationResponse(RecommendationBase):
     exercise_id: Optional[int] = None
     exercise_title: Optional[str] = None
     exercise_question: Optional[str] = None
+    challenge_id: Optional[int] = None
+    challenge_title: Optional[str] = None
