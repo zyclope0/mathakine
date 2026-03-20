@@ -1,7 +1,7 @@
 # Remaining Follow-Ups - 2026-03-19
 
 > Active recap of the points still outside the closed backend iterations.
-> Updated after backend maturity audit and **closure of iteration `I`** (2026-03-19).
+> Updated after backend maturity audit, **closure of iteration `I`** (2026-03-19), and **closure of recommendation iteration `R`** (R7, 2026-03-21).
 
 ## Current Status
 
@@ -15,6 +15,7 @@ The backend iterations below are closed and should not be reopened as generic cl
 - `Typed Contracts, Service Decomposition, and Legacy Retirement`
 - `Academic Backend Rigor, Replicability, and Operability` (F1-F6)
 - `Lots G (Residual Contracts and Cleanup)` (G1-G4)
+- **Recommendation remediation** (`R1`–`R7` closure, 2026-03-21) — see [RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](./RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md)
 
 Verified local baseline (post-G, post–H1–H3, **post–iteration `I` 2026-03-19**):
 - gate standard backend: `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `962 passed, 3 skipped`
@@ -26,7 +27,21 @@ Verified local baseline (post-G, post–H1–H3, **post–iteration `I` 2026-03-
 - `flake8 app/ server/ --select=E9,F63,F7,F82` -> green
 - backend CI coverage gate -> `63 %`
 
+**Additional citation — post–recommendation iteration `R` (closure R7, 2026-03-21)** — does not erase the I-era gate above; re-run if the tree diverges:
+- gate standard backend: same command → **`991 passed, 2 skipped`**
+- reco ciblée: `pytest -q tests/unit/test_recommendation_service.py tests/api/test_recommendation_endpoints.py --maxfail=20 --no-cov` → **`40 passed`**
+- frontend (from `frontend/`): `npm run lint`, `npm run format:check`, `npm run build` → **green** ; vitest `useRecommendationsReason` → **`3 passed`**
+- backend quality: `black` / `isort` / `mypy` / `flake8` (same scopes as § Current Status) → **green**
+
 ## Active Remaining Points
+
+### Recommendation iteration `R` — **closed** (R7 governance, 2026-03-21)
+
+**Clôture** : [RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](./RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md) — baseline, ce que R prouve / ne revendique pas, réserves résiduelles, verdict de maturité sobre.
+
+**Trace technique** : R1 types canoniques, R2 diagnostic par type, R3 ranking stable + anti-répétition, R3b honnêteté discovery **puis R6** alignement pipeline, R4/R4b feedback + QuickStart, R5–R5d défis + raisons structurées + stabilité tests, R6 discovery explicite + `reason_code` exercice + i18n.
+
+**Historique R3** : [CLOTURE_LOT_R3_REMEDIATION_MOTEUR_RECOMMANDATIONS_EXERCICE_2026-03-20.md](./CLOTURE_LOT_R3_REMEDIATION_MOTEUR_RECOMMANDATIONS_EXERCICE_2026-03-20.md) — bannière en tête : § 2.2 **supersédé** par R6 (ne plus lire la branche discovery comme vérité active).
 
 ### 0. Backend maturity truth (**iteration `I` closed** 2026-03-19)
 
@@ -141,7 +156,7 @@ Pilotage : [PILOTAGE_CURSOR_BACKEND_ARCHITECTURE_CLEAN_2026-03-18.md](./PILOTAGE
 ## Maintenance Rule
 
 This file is the active follow-up tracker for `docs/03-PROJECT`.
-Iteration `F` is closed. Lots `G` and Architecture Clean are also closed. **Iteration `I` is closed** (2026-03-19).
+Iteration `F` is closed. Lots `G` and Architecture Clean are also closed. **Iteration `I` is closed** (2026-03-19). **Recommendation iteration `R` is closed** (R7, 2026-03-21) — residual reco reserves live in R7, not as a reopened R-series.
 The next backend work should use **this file** (`POINTS_RESTANTS`) and the summarized residual reservations captured here and in the iteration I archive — not generic reopenings of earlier series.
 
 When a point is closed or re-scoped:

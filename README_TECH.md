@@ -1,9 +1,15 @@
 # Technical README - Mathakine
 
-> Updated: 19/03/2026
+> Updated: 21/03/2026
+
+Visible product train:
+- `3.2.0-alpha.1`
+- source of truth: `CHANGELOG.md` + `frontend/package.json`
+- `pyproject.toml` now carries the equivalent PEP 440 package metadata version: `3.2.0a1`
 
 ## Runtime Truth
 
+- **Dev** : `python enhanced_server.py` écoute par défaut sur le port **`10000`** (`PORT` dans `.env`). Le frontend attend la même URL (`NEXT_PUBLIC_API_BASE_URL`, `frontend/lib/api/client.ts`).
 - live backend runtime is the Starlette stack under `server/`
 - active route truth is `server/routes/`
 - active HTTP behavior is implemented by `server/handlers/` delegating to `app/services/`
@@ -11,6 +17,8 @@
 - `app/api/endpoints/*` is archived and not part of the active runtime
 
 ## Current Stability Baseline (post–iteration `I` closure, 2026-03-19)
+
+Jalon historique valide ; le dépôt a depuis accumulé d’autres preuves (dont reco **R** ci-dessous). Chiffres = **citations** de clôture documentée ; **re-lancer** les commandes si l’arbre a divergé.
 
 Gate standard backend (`test_admin_auth_stability.py` exclu — test spécial non-bloquant) :
 - `pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov` -> `962 passed, 3 skipped`
@@ -20,6 +28,17 @@ Gate standard backend (`test_admin_auth_stability.py` exclu — test spécial no
 - `flake8 app/ server/ --select=E9,F63,F7,F82` -> green
 - measured local coverage on `app` + `server`: `67.30 %`
 - backend CI coverage gate -> `63 %`
+
+## Recommendation Iteration R Closure (2026-03-21)
+
+Chiffres = **citations** de la clôture R7 (pas de nouvelle exécution imposée pour aligner la doc). **Micro-lot R7b** : mise à jour des README racine uniquement, **sans rerun** ; vérité runtime inchangée.
+
+Moteur reco après **R** : règles heuristiques bornées et chemins testés ; **pas** d’apprentissage ML ni personnalisation « intelligente » au sens data-science.
+
+- Clôture gouvernance + réserves + non-revendications : [docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md](docs/03-PROJECT/RECOMMENDATION_R7_CLOSURE_ITERATION_R_2026-03-21.md)
+- Reco ciblée : `pytest -q tests/unit/test_recommendation_service.py tests/api/test_recommendation_endpoints.py --maxfail=20 --no-cov` -> **`40 passed`**
+- Gate standard backend (même commande que la section post-I) -> **`991 passed, 2 skipped`**
+- Frontend (depuis `frontend/`) : Vitest `useRecommendationsReason` -> **`3 passed`** ; `npm run lint`, `npm run format:check`, `npm run build` -> **green**
 
 ## Active Architecture Notes
 
