@@ -26,9 +26,7 @@ describe("formatRecommendationReasonDisplay (R5)", () => {
 
   it("falls back to reason when reason_code absent", () => {
     const t = vi.fn();
-    expect(
-      formatRecommendationReasonDisplay({ reason: "Legacy phrase", reason_code: undefined }, t)
-    ).toBe("Legacy phrase");
+    expect(formatRecommendationReasonDisplay({ reason: "Legacy phrase" }, t)).toBe("Legacy phrase");
     expect(t).not.toHaveBeenCalled();
   });
 

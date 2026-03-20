@@ -51,7 +51,7 @@ describe("buildDashboardExportSnapshot", () => {
   });
 
   it("ne met pas incorrect_answers à 0 si absent et non dérivable", () => {
-    const stats = baseStats({ incorrect_answers: undefined });
+    const stats = baseStats();
     const snap = buildDashboardExportSnapshot({
       username: "dave",
       timeRange: "all",
@@ -63,7 +63,7 @@ describe("buildDashboardExportSnapshot", () => {
   });
 
   it("dérive incorrect_answers depuis total_attempts - correct_attempts si possible", () => {
-    const stats = baseStats({ incorrect_answers: undefined });
+    const stats = baseStats();
     const progress: ProgressStats = {
       total_attempts: 100,
       correct_attempts: 88,
