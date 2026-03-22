@@ -33,7 +33,7 @@ Verifier au minimum:
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mathakine
 SECRET_KEY=<secret>
-ALLOWED_ORIGINS=http://localhost:3000
+BACKEND_CORS_ORIGINS=http://localhost:3000
 ```
 
 ## PostgreSQL local indisponible

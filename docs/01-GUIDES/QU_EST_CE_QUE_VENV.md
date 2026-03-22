@@ -25,7 +25,7 @@ Sans environnement virtuel, tous vos projets Python partagent les mêmes bibliot
 ```
 Python global
 ├── loguru 0.7.2
-├── fastapi 0.121.0
+├── starlette 0.52.1
 ├── sqlalchemy 2.0.44
 └── ... (toutes les bibliothèques installées globalement)
 ```
@@ -44,7 +44,7 @@ Projet Mathakine/
 ├── .venv/  (ou venv/)
 │   ├── Python 3.13
 │   ├── loguru 0.7.2
-│   ├── fastapi 0.121.0
+│   ├── starlette 0.52.1
 │   └── sqlalchemy 2.0.44
 └── code source...
 ```

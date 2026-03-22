@@ -2,7 +2,7 @@
 
 > Quick start
 > Updated: 18/03/2026
-> Visible product release: `3.1.0-alpha.8`
+> Visible product release: `3.3.0-alpha.1`
 
 ## Prerequisites
 
@@ -44,7 +44,7 @@ Useful backend variables in `.env`:
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mathakine
 SECRET_KEY=<secret>
-ALLOWED_ORIGINS=http://localhost:3000
+BACKEND_CORS_ORIGINS=http://localhost:3000
 # optional in local dev, mandatory in production for distributed rate limiting
 REDIS_URL=
 ```

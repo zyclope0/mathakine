@@ -116,7 +116,70 @@ python -m app.evaluation.comparative_campaign --campaign ia11a_offline_default
 
 References de validation : `tests/unit/test_app_model_policy.py`, `tests/unit/test_chat_service.py`, `tests/unit/test_exercise_ai_policy.py`, `tests/unit/test_token_tracker.py`, `tests/unit/test_generation_metrics.py`, `tests/api/test_admin_ai_stats.py`, `app/evaluation/ai_generation_harness.py:341-360`, `app/evaluation/comparative_campaign.py:219-236`, `app/evaluation/comparative_campaign.py:524-652`.
 
-## 8. Limites et decisions assumees
+## 8. Pattern SSE POST commun
+
+Les deux flux IA pedagogiques (exercices et defis) partagent le meme pattern de transport : `POST` avec corps JSON et reponse `text/event-stream`. Le chat utilise le meme pattern cote client mais via une route proxy distincte.
+
+### Routes actives par workload
+
+| Workload | Route Next.js (proxy) | Route backend |
+|---|---|---|
+| `exercises_ai` | `POST /api/exercises/generate-ai-stream` | `POST /api/exercises/generate` |
+| `challenges_ai` | `POST /api/challenges/generate-ai-stream` | `POST /api/challenges/generate` |
+| `assistant_chat` | `POST /api/chat/stream` | `POST /api/chat/stream` (Starlette direct) |
+
+Sources : `server/routes/exercises.py`, `server/routes/challenges.py`, `server/routes/chat.py`, `frontend/app/api/exercises/generate-ai-stream/route.ts`, `frontend/app/api/challenges/generate-ai-stream/route.ts`, `frontend/app/api/chat/stream/route.ts`.
+
+### Evenements SSE emis
+
+Tous les flux emettent `data: <json>\n\n`. Les types d'evenements reconnus sont : `chunk` (contenu texte), `status` (message d'avancement), `done` (fin de stream), `error` (erreur safe). Les exercices emettent en plus `json_complete` (objet JSON complet reconstruit). Source : `frontend/lib/utils/ssePostStream.ts`, `frontend/lib/api/chat.ts`.
+
+### Divergences de resilience entre workloads
+
+| Aspect | `exercises_ai` | `challenges_ai` | `assistant_chat` |
+|---|---|---|---|
+| Timeout OpenAI | `AIConfig.DEFAULT_TIMEOUT` | `AIConfig.DEFAULT_TIMEOUT` | Pas de timeout explicite |
+| Retry sur erreurs transitoires | tenacity, borne | tenacity, borne | Aucun retry |
+| Fallback modele sur echec | `gpt-4o-mini` (log separe) | `gpt-4o-mini` (log separe) | Pas de fallback |
+| Token tracking sur echec | `_flush_usage_events()` avant parsing | `_flush_usage_events()` avant parsing | `token_tracker` sur reponse complete |
+
+Sources : `app/services/exercises/exercise_ai_service.py`, `app/services/challenges/challenge_ai_service.py`, `server/handlers/chat_handlers.py`.
+
+---
+
+## 9. Contrat IA9 — `response_mode`
+
+Le contrat IA9 dicte la structure de la reponse IA pour les defis logiques. La policy `challenge_contract_policy.py` assigne `response_mode` selon le type de defi ; l'IA doit respecter ce mode dans sa reponse JSON.
+
+### Valeurs de `response_mode`
+
+| Valeur | Description | Validation frontend |
+|---|---|---|
+| `qcm` | Reponse a choix multiples, champ `choices` obligatoire | `ChallengeSolver` affiche les boutons |
+| `text` | Reponse texte libre | Champ de saisie libre |
+| `interaction` | Interaction multi-etapes | Mode interactif |
+
+### Politique `choices` par type de defi
+
+- `qcm` : 4 choix minimum, dont 1 correct. Le champ `correct_answer` doit matcher exactement l'un des choix.
+- `text` : pas de champ `choices` attendu.
+- `interaction` : structure definie par le sous-type.
+
+Sources : `app/services/challenges/challenge_contract_policy.py`, `app/services/challenges/challenge_validator.py`, `docs/02-FEATURES/CHALLENGE_CONTRACT_IA9.md` (reference detaillee).
+
+---
+
+## 10. Risques connus — TokenTracker et metriques runtime
+
+| Risque | Severite | Detail | Fichier source |
+|---|---|---|---|
+| Fragmentation multi-worker | P1 | Gunicorn multi-worker = N instances de `token_tracker` independantes. Les stats admin agregent uniquement le worker qui repond. | `app/utils/token_tracker.py:20-26` |
+| Couts = estimations | INFO | La table de prix est locale et peut diverger des tarifs OpenAI reels. Fallback `gpt-4o-mini` si modele absent avec log warning. | `app/utils/token_tracker.py:88-128` |
+| Rétention bornée | INFO | TTL 90j + cap 2000 evenements/cle. Les stats ne survivent pas a un restart process. | `app/utils/ai_workload_keys.py:34-36`, `app/utils/token_tracker.py:313-332` |
+
+---
+
+## 11. Limites et decisions assumees
 
 - Chat public sans auth : les handlers chat sont exposes avec `@rate_limit_chat` mais sans `require_auth`, par decision produit. Sources : `server/handlers/chat_handlers.py:41`, `server/handlers/chat_handlers.py:133`.
 - Couts = estimations, pas comptabilite : la page admin et `token_tracker` le disent explicitement. Sources : `app/utils/token_tracker.py:193-221`, `frontend/app/admin/ai-monitoring/page.tsx:81-127`.

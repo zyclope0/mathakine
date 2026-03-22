@@ -126,9 +126,9 @@ Behavior:
 | Protected route | `frontend/components/auth/ProtectedRoute.tsx` |
 | Frontend pages | `frontend/app/{login,register,verify-email,forgot-password,reset-password}/page.tsx` |
 | Backend handlers | `server/handlers/auth_handlers.py`, `server/handlers/user_handlers.py` |
-| Auth session | `app/services/auth_session_service.py` |
-| Auth recovery | `app/services/auth_recovery_service.py` |
-| Auth engine | `app/services/auth_service.py` |
+| Auth session | `app/services/auth/auth_session_service.py` |
+| Auth recovery | `app/services/auth/auth_recovery_service.py` |
+| Auth engine | `app/services/auth/auth_service.py` |
 | Runtime auth | `server/auth.py`, `server/middleware.py` |
 | Distributed rate limit store | `app/utils/rate_limit_store.py` |
 
