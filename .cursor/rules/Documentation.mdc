@@ -1,0 +1,25 @@
+---
+alwaysApply: true
+---
+
+Pas de nouvelle documentation par défaut.
+
+Principe
+Mettre à jour la doc existante avant de créer un nouveau fichier.
+
+Références principales
+README.md
+README_TECH.md
+docs/INDEX.md
+docs/01-GUIDES/
+docs/03-PROJECT/
+Nouveau doc autorisé seulement si
+aucun document existant ne couvre le sujet
+le nouveau document apporte une vraie valeur durable
+il s’insère proprement dans l’arborescence documentaire
+Règle
+Toujours challenger :
+
+faut-il documenter ?
+où faut-il documenter ?
+faut-il mettre à jour plutôt que créer ?

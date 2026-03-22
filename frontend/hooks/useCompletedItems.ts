@@ -4,8 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { api, ApiClientError } from "@/lib/api/client";
 import { debugLog } from "@/lib/utils/debug";
 
+/** Fenêtre de fraîcheur côté client : évite refetch au remount si rien n’a changé (I2 stabilité). */
+const COMPLETED_IDS_STALE_MS = 60 * 1000;
+
 /**
- * Hook pour récupérer les IDs d'exercices complétés par l'utilisateur actuel
+ * Hook pour récupérer les IDs d'exercices complétés par l'utilisateur actuel.
+ * À utiliser au niveau page / liste — pas dans chaque carte.
  */
 export function useCompletedExercises() {
   const { data, isLoading, error } = useQuery<number[], ApiClientError>({
@@ -26,8 +30,7 @@ export function useCompletedExercises() {
         throw error;
       }
     },
-    staleTime: 0, // Toujours considérer comme stale pour refetch immédiat après invalidation
-    refetchOnMount: true,
+    staleTime: COMPLETED_IDS_STALE_MS,
     refetchOnWindowFocus: false,
     retry: 1,
   });
@@ -41,7 +44,8 @@ export function useCompletedExercises() {
 }
 
 /**
- * Hook pour récupérer les IDs de challenges complétés par l'utilisateur actuel
+ * Hook pour récupérer les IDs de challenges complétés par l'utilisateur actuel.
+ * À utiliser au niveau page / liste — pas dans chaque carte.
  */
 export function useCompletedChallenges() {
   const { data, isLoading, error } = useQuery<number[], ApiClientError>({
@@ -62,8 +66,7 @@ export function useCompletedChallenges() {
         throw error;
       }
     },
-    staleTime: 0, // Toujours considérer comme stale pour refetch immédiat après invalidation
-    refetchOnMount: true,
+    staleTime: COMPLETED_IDS_STALE_MS,
     refetchOnWindowFocus: false,
     retry: 1,
   });

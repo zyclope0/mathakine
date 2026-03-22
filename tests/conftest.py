@@ -78,6 +78,7 @@ configure_mappers()  # Force la résolution des relations immédiatement (évite
 from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash
 from app.db.base import Base, engine
+from app.models.ai_eval_harness_run import AiEvalHarnessCaseResult, AiEvalHarnessRun
 from app.models.attempt import Attempt
 from app.models.daily_challenge import DailyChallenge
 from app.models.exercise import DifficultyLevel, Exercise, ExerciseType
@@ -87,6 +88,7 @@ from app.models.logic_challenge import (
     LogicChallengeAttempt,
     LogicChallengeType,
 )
+from app.models.point_event import PointEvent
 from app.models.progress import Progress
 from app.models.recommendation import Recommendation
 from app.models.user import User, UserRole
@@ -181,6 +183,10 @@ def setup_test_environment():
     # F02/B1: certaines bases de test locales n'ont pas encore la table daily_challenges.
     # On la crée à la volée en test pour éviter les erreurs de cascade User -> DailyChallenge.
     DailyChallenge.__table__.create(bind=imported_engine, checkfirst=True)
+    PointEvent.__table__.create(bind=imported_engine, checkfirst=True)
+    # IA8 : tables harness eval (même principe que daily_challenges — base de test sans alembic à jour).
+    AiEvalHarnessRun.__table__.create(bind=imported_engine, checkfirst=True)
+    AiEvalHarnessCaseResult.__table__.create(bind=imported_engine, checkfirst=True)
 
     engine_db_match = re.search(r"/([^/?]+)(?:\?|$)", engine_url)
     if engine_db_match:

@@ -1,9 +1,8 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import { useLocaleStore } from "@/lib/stores/localeStore";
-import { useEffect } from "react";
 import { debugLog } from "@/lib/utils/debug";
 
 export interface PaginatedResponse<T> {
@@ -39,12 +38,19 @@ export interface UsePaginatedContentConfig {
 
 /**
  * Hook générique pour contenu paginé (DRY useExercises / useChallenges).
+ *
+ * Stabilité liste (I1) :
+ * - `locale` est dans la queryKey : un changement de langue crée une entrée de cache distincte
+ *   et déclenche un fetch légitime — pas d’invalidation globale au montage.
+ * - Pas de `refetchOnMount: 'always'` : avec `staleTime` > 0, le défaut TanStack (refetch au
+ *   montage seulement si stale) évite un second aller-retour juste après le premier fetch.
+ * - Pas de `placeholderData` ici : changer page/filtres doit afficher l’état de chargement ou
+ *   les données de la clé courante, pas masquer un changement de contexte.
  */
 export function usePaginatedContent<T>(
   filters: PaginatedContentFiltersInput = {},
   config: UsePaginatedContentConfig
 ) {
-  const queryClient = useQueryClient();
   const { locale } = useLocaleStore();
   const {
     endpoint,
@@ -54,10 +60,6 @@ export function usePaginatedContent<T>(
     staleTime = 30 * 1000,
     defaultLimit = 15,
   } = config;
-
-  useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: [queryKey] });
-  }, [locale, queryClient, queryKey]);
 
   const skip = filters?.skip ?? 0;
   const limit = filters?.limit ?? defaultLimit;
@@ -99,7 +101,6 @@ export function usePaginatedContent<T>(
     },
     staleTime,
     gcTime: 5 * 60 * 1000,
-    refetchOnMount: true,
     refetchOnWindowFocus: false,
     retry: 2,
   });

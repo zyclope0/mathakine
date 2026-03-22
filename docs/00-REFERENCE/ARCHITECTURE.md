@@ -1,7 +1,7 @@
 # Architecture - Mathakine
 
 > Global architecture reference
-> Updated: 19/03/2026
+> Updated: 22/03/2026
 
 ## 1. System Overview
 
@@ -26,6 +26,10 @@ Browser -> frontend/ -> server/routes + server/handlers -> app/services -> (repo
 - the active code wins over historical documentation
 
 ## 3. Real Backend Execution Model
+
+> ⚠️ OBSOLÈTE — la baseline locale "post-iteration I" ci-dessous est un snapshot historique du 19/03/2026.
+> Elle ne doit plus être utilisée comme vérité des lots IA10b, IA11, IA12 et IA13.
+> Pour la gouvernance des modèles IA et l'observabilité runtime actuelles, utiliser [AI_MODEL_GOVERNANCE.md](AI_MODEL_GOVERNANCE.md).
 
 The retained backend runtime model is:
 - HTTP handlers are `async`
@@ -100,6 +104,12 @@ Services are grouped by bounded context. No business logic file remains at root 
 
 ## 5. Production Hardening Decisions Now Active
 
+### AI runtime governance
+
+- la gouvernance des modèles IA est maintenant explicitement séparée par workload (`assistant_chat`, `exercises_ai`, `challenges_ai`)
+- les métriques runtime IA et les runs persistés du harness sont des lectures distinctes
+- la référence détaillée n'est plus portée par ce document d'architecture généraliste, mais par [AI_MODEL_GOVERNANCE.md](AI_MODEL_GOVERNANCE.md)
+
 ### Diagnostic flow
 
 - diagnostic mutation endpoints now rely on a signed `state_token`
@@ -141,6 +151,7 @@ These files are compatibility shims. Their source of truth remains `app/generato
 
 - [../../README_TECH.md](../../README_TECH.md)
 - [../INDEX.md](../INDEX.md)
+- [AI_MODEL_GOVERNANCE.md](AI_MODEL_GOVERNANCE.md)
 - [../02-FEATURES/API_QUICK_REFERENCE.md](../02-FEATURES/API_QUICK_REFERENCE.md)
 - [../02-FEATURES/AUTH_FLOW.md](../02-FEATURES/AUTH_FLOW.md)
 - [../02-FEATURES/F03_DIAGNOSTIC_INITIAL.md](../02-FEATURES/F03_DIAGNOSTIC_INITIAL.md)

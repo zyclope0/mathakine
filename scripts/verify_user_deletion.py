@@ -25,6 +25,7 @@ def main():
     print(f"\n=== Vérification suppression utilisateur '{username}' ===\n")
 
     from sqlalchemy import create_engine, text
+
     from app.core.config import settings
 
     url = settings.SQLALCHEMY_DATABASE_URL
@@ -32,10 +33,14 @@ def main():
 
     with engine.connect() as conn:
         # 1. L'utilisateur n'existe plus
-        r = conn.execute(text("SELECT id, username FROM users WHERE username = :u"), {"u": username})
+        r = conn.execute(
+            text("SELECT id, username FROM users WHERE username = :u"), {"u": username}
+        )
         rows = r.fetchall()
         if rows:
-            print(f"  ERREUR: L'utilisateur '{username}' existe encore (id={rows[0][0]})")
+            print(
+                f"  ERREUR: L'utilisateur '{username}' existe encore (id={rows[0][0]})"
+            )
             return 1
         print(f"  OK: L'utilisateur '{username}' n'existe plus dans users")
 
@@ -53,9 +58,13 @@ def main():
         )
         audit = r.fetchone()
         if audit:
-            print(f"  OK: Action user_delete enregistrée dans l'audit (id={audit[0]}, {audit[5]})")
+            print(
+                f"  OK: Action user_delete enregistrée dans l'audit (id={audit[0]}, {audit[5]})"
+            )
         else:
-            print(f"  INFO: Aucune entrée audit user_delete trouvée pour '{username}' (peut-être supprimé avant l'audit)")
+            print(
+                f"  INFO: Aucune entrée audit user_delete trouvée pour '{username}' (peut-être supprimé avant l'audit)"
+            )
 
         # 3. Pas d'enregistrements orphelins (user_id non NULL mais inexistant dans users)
         # Note: feedback_reports et edtech_events ont ON DELETE SET NULL → user_id=NULL est voulu
@@ -75,13 +84,11 @@ def main():
         orphans = []
         for table, col in tables:
             try:
-                r = conn.execute(
-                    text(f"""
+                r = conn.execute(text(f"""
                         SELECT COUNT(*) FROM {table} t
                         WHERE t.{col} IS NOT NULL
                         AND NOT EXISTS (SELECT 1 FROM users u WHERE u.id = t.{col})
-                    """)
-                )
+                    """))
                 count = r.scalar()
                 if count and count > 0:
                     orphans.append((table, count))

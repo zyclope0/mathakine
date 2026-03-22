@@ -1,43 +1,93 @@
-# Checklist .env & Render – Environnement de développement
+﻿# Checklist .env & Render - Environnement de developpement
 
-**Dernière mise à jour :** Février 2026  
-**Complément à :** [DEPLOYMENT_ENV.md](DEPLOYMENT_ENV.md) (variables prod Render)
+**Derniere mise a jour :** 22/03/2026  
+**Complement a :** [DEPLOYMENT_ENV.md](DEPLOYMENT_ENV.md) (variables prod Render)
+
+> ⚠️ OBSOLETE - la partie historique "Ton .env actuel" ci-dessous reste un snapshot local de travail et ne doit plus servir de reference generique.
+> La verite actuelle des variables IA et de leur hierarchie est dans `app/core/config.py`, [../../.env.example](../../.env.example) et [../00-REFERENCE/AI_MODEL_GOVERNANCE.md](../00-REFERENCE/AI_MODEL_GOVERNANCE.md).
 
 ---
 
-## ✅ Ton .env actuel (dev local)
+## Contrat generique actuel
+
+### Backend local minimum
+
+- `DATABASE_URL`
+- `SECRET_KEY`
+- `FRONTEND_URL`
+- `OPENAI_API_KEY` si tu utilises `assistant_chat`, `exercises_ai` ou `challenges_ai`
+
+### Frontend local minimum
+
+- `NEXT_PUBLIC_API_BASE_URL` dans `frontend/.env.local` si le frontend tourne separement du backend
+
+### Backend production Render minimum
+
+- `DATABASE_URL`
+- `SECRET_KEY`
+- `OPENAI_API_KEY`
+- `FRONTEND_URL`
+- `ENVIRONMENT=production`
+- `MATH_TRAINER_PROFILE=prod`
+- `REDIS_URL` : requis en production pour le rate limiting distribue
+- `DEFAULT_ADMIN_PASSWORD` : requis et fort en production
+
+### Variables IA optionnelles
+
+- `OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE`
+- `OPENAI_MODEL_EXERCISES_OVERRIDE`
+- `OPENAI_MODEL_CHALLENGES_OVERRIDE`
+- `OPENAI_MODEL_CHALLENGES_FALLBACK_OVERRIDE`
+
+Ces variables sont des overrides ops. Elles ne remplacent pas les defauts produit codes.
+
+### Variables legacy a laisser vides en nominal
+
+- `OPENAI_MODEL`
+- `OPENAI_MODEL_EXERCISES`
+- `OPENAI_MODEL_REASONING`
+
+Ces variables existent pour compatibilite ou transition, mais ne doivent plus piloter le comportement nominal.
+
+---
+
+## Snapshot local historique (conserve pour trace)
+
+> ⚠️ OBSOLETE - ce qui suit decrit un contexte local ponctuel et non un contrat generique de projet.
+
+## Ton .env actuel (dev local)
 
 | Variable | Statut | Note |
 |----------|--------|------|
-| DATABASE_URL | ✅ | Pointe vers Render → ton serveur local utilise la BDD Render |
-| TEST_DATABASE_URL | ✅ | Pointe vers Docker local → les tests utilisent la BDD locale |
-| SECRET_KEY | ✅ | Défini |
-| LOG_LEVEL | ✅ | INFO |
-| FRONTEND_URL | ✅ | localhost:3000 pour le dev |
-| OPENAI_API_KEY | ✅ | Défini (génération d'exercices IA) |
-| PORT | ✅ | 10000 |
-| MATH_TRAINER_PROFILE | ⚠️ | = prod → pour le dev local, tu peux passer en `dev` |
-| NEXT_PUBLIC_API_BASE_URL | ℹ️ | Variable frontend – à définir dans `frontend/.env.local` |
-| NEXT_PUBLIC_DEMO_MODE | ℹ️ | Variable frontend |
+| DATABASE_URL | OK | Pointe vers Render -> ton serveur local utilise la BDD Render |
+| TEST_DATABASE_URL | OK | Pointe vers Docker local -> les tests utilisent la BDD locale |
+| SECRET_KEY | OK | Defini |
+| LOG_LEVEL | OK | INFO |
+| FRONTEND_URL | OK | localhost:3000 pour le dev |
+| OPENAI_API_KEY | OK | Defini |
+| PORT | OK | 10000 |
+| MATH_TRAINER_PROFILE | Attention | `prod` en local -> preferer `dev` pour un vrai contexte local |
+| NEXT_PUBLIC_API_BASE_URL | Info | Variable frontend a definir dans `frontend/.env.local` |
+| NEXT_PUBLIC_DEMO_MODE | Info | Variable frontend |
 
----
+## Variables optionnelles (avec valeurs par defaut)
 
-## 🔧 Variables optionnelles (avec valeurs par défaut)
-
-Ces variables ont des valeurs par défaut, pas besoin de les mettre dans le `.env` sauf si tu veux changer le comportement :
+Ces variables ont des valeurs par defaut ; inutile de les mettre dans le `.env` sauf si tu veux changer le comportement :
 
 - `LOG_FILE`, `CACHE_TTL_SECONDS`, `MAX_CONNECTIONS_POOL`, `POOL_RECYCLE_SECONDS`
-- `RATE_LIMIT_PER_MINUTE`, `ENABLE_QUERY_CACHE`, `OPENAI_MODEL`
+- `RATE_LIMIT_PER_MINUTE`, `ENABLE_QUERY_CACHE`
+- `OPENAI_MODEL` (legacy assistant si non vide et allowlist fail-closed : `gpt-5-mini`, `gpt-5.4`, `gpt-4o-mini`, `gpt-4o` - vide recommande ; defaut assistant = `gpt-5-mini`)
+- `OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE` (override ops assistant ; meme allowlist fail-closed ; vide = defaut produit)
+- `OPENAI_MODEL_EXERCISES_OVERRIDE` (override ops flux SSE exercices IA ; defaut code = `o3`), `OPENAI_MODEL_EXERCISES` (legacy)
+- `OPENAI_MODEL_CHALLENGES_OVERRIDE` (override ops flux SSE defis IA, prioritaire), `OPENAI_MODEL_REASONING` (legacy defis ; non nominal, laisser vide), `OPENAI_MODEL_CHALLENGES_FALLBACK_OVERRIDE` (fallback defis ; defaut code = `gpt-4o-mini`)
 
----
+## Emails (mot de passe oublie, verification email)
 
-## 📧 Emails (mot de passe oublié, vérification email)
+Guide detaille : [CONFIGURER_EMAIL.md](CONFIGURER_EMAIL.md). Sans config : simules en dev, erreur en prod.
 
-Guide détaillé : **[CONFIGURER_EMAIL.md](CONFIGURER_EMAIL.md)** — Sans config : simulés en dev, erreur en prod.
+Exemple SMTP :
 
-Par défaut, les emails sont simulés si SMTP n’est pas configuré. Pour envoyer de vrais emails (ex. vérification d’email) :
-
-```
+```env
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=ton_email@gmail.com
@@ -45,57 +95,43 @@ SMTP_PASSWORD=mot_de_passe_application
 SMTP_FROM_EMAIL=noreply@mathakine.com
 ```
 
-Ou avec SendGrid :
+Exemple SendGrid :
 
-```
+```env
 SENDGRID_API_KEY=SG.xxx
 SENDGRID_FROM_EMAIL=noreply@mathakine.com
 ```
 
----
+## Variables a configurer sur Render
 
-## 🌐 Variables à configurer sur Render
-
-Dans le **Dashboard Render** → ton service backend → **Environment** :
-
-### Déjà gérées par Render (si tout est correctement lié)
+### Gerees par Render si le service est correctement relie
 
 | Variable | Source |
 |----------|--------|
-| DATABASE_URL | Injectée par Render si la base est liée au service |
-| SECRET_KEY | **Obligatoire** en prod. Peut être générée par Render (`generateValue: true`). Sans elle, l'app ne démarre pas (sécurité 2.3). |
+| DATABASE_URL | Injectee par Render si la base est liee au service |
+| SECRET_KEY | Obligatoire en prod. Peut etre generee par Render |
 
-### À définir à la main dans Render
+### A definir a la main dans Render
 
 | Variable | Valeur | Obligatoire |
 |----------|--------|-------------|
-| **OPENAI_API_KEY** | Ta clé API OpenAI | ✅ (pour la génération d’exercices IA) |
-| ENVIRONMENT | `production` | ✅ |
-| MATH_TRAINER_PROFILE | `prod` | ✅ |
-| FRONTEND_URL | `https://mathakine-frontend.onrender.com` (ou ton URL front) | ✅ |
-| LOG_LEVEL | `INFO` | Recommandé |
+| OPENAI_API_KEY | Ta cle API OpenAI | Oui |
+| ENVIRONMENT | `production` | Oui |
+| MATH_TRAINER_PROFILE | `prod` | Oui |
+| FRONTEND_URL | URL frontend de production | Oui |
+| LOG_LEVEL | `INFO` | Recommande |
+| REDIS_URL | URL Redis de production | Oui |
+| DEFAULT_ADMIN_PASSWORD | Secret fort | Oui |
 
-### Exemple pour le service backend
+## Resume rapide
 
-1. Render Dashboard → **mathakine-backend** → **Environment**
-2. Vérifier / ajouter :
-   - `OPENAI_API_KEY` = `sk-proj-...` (ta clé)
-   - `ENVIRONMENT` = `production`
-   - `FRONTEND_URL` = `https://mathakine-frontend.onrender.com`
-   - `SECRET_KEY` = une chaîne longue et aléatoire si Render ne l’a pas générée
+**Env local (.env)**
+- Tests -> `TEST_DATABASE_URL`
+- Serveur local -> `DATABASE_URL`
 
----
-
-## 📋 Résumé rapide
-
-**Env local (.env)**  
-- Tests → `TEST_DATABASE_URL` (Docker local)  
-- Serveur local → `DATABASE_URL` (Render ou autre selon ton besoin)
-
-**Render (production)**  
-- Vérifier que `DATABASE_URL` est bien liée à la base PostgreSQL  
-- Définir `OPENAI_API_KEY`  
-- **Obligatoire** : `SECRET_KEY` (sans elle, le backend ne démarre pas en prod)  
-
-Ton `.env` actuel est cohérent pour le dev local.  
-La seule chose à confirmer sur Render est la présence de `OPENAI_API_KEY`.
+**Render (production)**
+- verifier que `DATABASE_URL` est bien liee a PostgreSQL
+- definir `OPENAI_API_KEY`
+- definir `REDIS_URL`
+- definir `DEFAULT_ADMIN_PASSWORD`
+- verifier `SECRET_KEY`

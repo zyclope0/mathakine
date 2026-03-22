@@ -1,11 +1,20 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.logic_challenge import AgeGroup, LogicChallengeType
 
 # Schémas pour la manipulation des défis logiques
+
+# Lot IA9 — modalité UI exposée sur GET /api/challenges/{id} (voir challenge_api_mapper).
+ChallengeResponseModeLiteral = Literal[
+    "open_text",
+    "single_choice",
+    "interactive_visual",
+    "interactive_order",
+    "interactive_grid",
+]
 
 
 class LogicChallengeBase(BaseModel):
@@ -290,6 +299,16 @@ class ChallengeHintResponse(BaseModel):
     """Réponse GET /api/challenges/{id}/hint."""
 
     hint: str = Field(..., description="Indice demandé")
+
+
+class GenerateChallengeStreamPostBody(BaseModel):
+    """Corps JSON POST /api/challenges/generate-ai-stream (contrat symétrique aux exercices)."""
+
+    challenge_type: str = Field(default="sequence", max_length=64)
+    age_group: str = Field(default="9-11", max_length=64)
+    prompt: str = Field(default="", max_length=8000)
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
 class GenerateChallengeStreamQuery(BaseModel):

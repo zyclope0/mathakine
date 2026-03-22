@@ -161,3 +161,35 @@ def test_create_challenge_raises_on_invalid_data(db_session):
             solution_explanation="E",
             creator_id=user.id,
         )
+
+
+def test_create_challenge_persists_choices_column(db_session):
+    """Les choices passés à create_challenge sont stockés sur LogicChallenge.choices."""
+    import uuid
+
+    from app.models.user import User
+    from app.services.challenges.challenge_service import create_challenge
+
+    user = User(
+        username=f"ch_{uuid.uuid4().hex[:8]}",
+        email=f"ch_{uuid.uuid4().hex[:8]}@test.com",
+        hashed_password="pw",
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    choice_list = ["8", "9", "10", "11"]
+    ch = create_challenge(
+        db_session,
+        title="QCM",
+        description="D",
+        challenge_type="SEQUENCE",
+        age_group="9-11",
+        correct_answer="10",
+        solution_explanation="E",
+        creator_id=user.id,
+        choices=choice_list,
+    )
+    db_session.refresh(ch)
+    assert ch.choices == choice_list

@@ -1,0 +1,25 @@
+---
+alwaysApply: true
+---
+
+Ne jamais pousser “à l’aveugle”.
+
+Backend
+Exécuter selon le scope :
+
+pytest -q --maxfail=20 --ignore=tests/api/test_admin_auth_stability.py --no-cov
+black app/ server/ tests/ --check
+isort app/ server/ tests/ --check-only --diff
+mypy app/ server/ --ignore-missing-imports
+flake8 app/ server/ --select=E9,F63,F7,F82
+Frontend
+Exécuter selon le scope :
+
+npm run lint
+npm run build
+npm run format:check
+npx tsc --noEmit
+npm exec vitest run <tests ciblés> si pertinent
+Règle
+ne pas annoncer “c’est bon” sans validation
+si tout n’a pas été lancé, dire précisément ce qui a été lancé et ce qui ne l’a pas été

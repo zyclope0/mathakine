@@ -1,0 +1,29 @@
+---
+alwaysApply: true
+---
+
+Un refactoring n’est acceptable que s’il améliore au moins un de ces axes :
+
+lisibilité
+découpage des responsabilités
+testabilité
+robustesse
+cohérence contractuelle
+suppression de duplication
+Règles
+ne pas “refactorer pour refactorer”
+ne pas mélanger un gros refactor opportuniste avec une feature si cela brouille la revue
+préférer des refactors bornés, nommés, vérifiables
+si un refactor change le comportement observable :
+le traiter comme un changement fonctionnel
+ajouter les tests adaptés
+si un refactor est purement structurel :
+prouver qu’il n’y a pas de régression
+garder le diff minimal
+Attendu
+Avant de refactorer, se demander :
+
+quel est le problème exact ?
+pourquoi la structure actuelle gêne-t-elle ?
+quel seam minimal corrige le problème ?
+comment prouver que le refactor n’a pas dégradé le comportement ?

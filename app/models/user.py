@@ -157,6 +157,9 @@ class User(Base):
     daily_challenges = relationship(
         "DailyChallenge", back_populates="user", cascade="all, delete-orphan"
     )
+    point_events = relationship(
+        "PointEvent", back_populates="user", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<User {self.username}, Role: {self.role}>"

@@ -1,0 +1,17 @@
+{
+  "challenge_type": "DEDUCTION",
+  "title": "Grille logique (incohérente)",
+  "description": "Réponse volontairement non bijective sur les boissons.",
+  "correct_answer": "Alice:thé,Bob:thé",
+  "solution_explanation": "Cas négatif harness : deux personnes ne peuvent pas avoir la même boisson si le domaine impose une permutation.",
+  "difficulty_rating": 3.0,
+  "visual_data": {
+    "type": "logic_grid",
+    "entities": {
+      "personnes": ["Alice", "Bob"],
+      "boisson": ["thé", "café"]
+    },
+    "clues": ["Alice ne boit pas le café", "Bob ne boit pas le thé"],
+    "description": "indices"
+  }
+}

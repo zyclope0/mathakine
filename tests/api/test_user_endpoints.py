@@ -27,6 +27,12 @@ async def test_get_current_user(padawan_client):
     assert data["username"] == user_data["username"]
     assert "id" in data
     assert "hashed_password" not in data
+    assert isinstance(data["total_points"], int)
+    assert isinstance(data["current_level"], int)
+    assert isinstance(data["experience_points"], int)
+    assert isinstance(data["jedi_rank"], str)
+    assert data["experience_points"] >= 0
+    assert data["gamification_level"]["current_xp"] == data["experience_points"]
 
 
 async def test_get_users_as_gardien(gardien_client):

@@ -1,0 +1,9 @@
+{
+  "exercise_type": "addition",
+  "title": "Test distracteurs dupliqués",
+  "question": "Calcule mentalement la somme de 5 et 5 pour valider ta compréhension de l'addition simple.",
+  "correct_answer": "10",
+  "choices": ["10", "10", "11", "12"],
+  "explanation": "Cinq plus cinq égale dix ; les deux nombres identiques se cumulent en une dizaine claire pour l'apprenant.",
+  "hint": "Les deux termes sont identiques, pense au double."
+}

@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "simple_addition_6_8",
+      "pipeline": "simple_generator",
+      "exercise_type": "addition",
+      "age_group": "6-8",
+      "rng_seed": 42,
+      "rationale": "Flux le plus fréquent ; vérifie QCM numériques et bornes d'âge."
+    },
+    {
+      "id": "simple_division_9_11",
+      "pipeline": "simple_generator",
+      "exercise_type": "division",
+      "age_group": "9-11",
+      "rng_seed": 43,
+      "rationale": "Division ; distracteurs et erreurs classiques."
+    },
+    {
+      "id": "simple_fractions_12_14",
+      "pipeline": "simple_generator",
+      "exercise_type": "fractions",
+      "age_group": "12-14",
+      "rng_seed": 44,
+      "rationale": "Fractions ; structure plus riche."
+    },
+    {
+      "id": "simple_divers_9_11",
+      "pipeline": "simple_generator",
+      "exercise_type": "divers",
+      "age_group": "9-11",
+      "rng_seed": 46,
+      "rationale": "Divers (suite / conversion / etc.) ; graine choisie pour une explication ≥ 40 car. (certaines branches « conversion » restent trop courtes pour le validateur harness)."
+    },
+    {
+      "id": "template_ai_addition_9_11",
+      "pipeline": "template_exercise_generator",
+      "exercise_type": "addition",
+      "age_group": "9-11",
+      "rng_seed": 100,
+      "rationale": "Templates narratifs locaux (sans OpenAI)."
+    },
+    {
+      "id": "template_ai_mixte_9_11",
+      "pipeline": "template_exercise_generator",
+      "exercise_type": "mixte",
+      "age_group": "9-11",
+      "rng_seed": 101,
+      "rationale": "Type composite ; stress titres / QCM."
+    },
+    {
+      "id": "fixture_exercise_openai_valid",
+      "pipeline": "fixture_exercise_openai_shape",
+      "fixture": "exercise_openai_valid.json",
+      "rationale": "Référence passant validate_exercise_ai_output."
+    },
+    {
+      "id": "fixture_exercise_openai_bad_hint",
+      "pipeline": "fixture_exercise_openai_shape",
+      "fixture": "exercise_openai_bad_hint.json",
+      "expected_success": false,
+      "rationale": "Échec métier attendu (hint trop court)."
+    },
+    {
+      "id": "fixture_exercise_openai_duplicate_choices",
+      "pipeline": "fixture_exercise_openai_shape",
+      "fixture": "exercise_openai_duplicate_choices.json",
+      "expected_success": false,
+      "rationale": "Choix dupliqués ; rejet attendu."
+    },
+    {
+      "id": "fixture_challenge_sequence",
+      "pipeline": "fixture_challenge",
+      "fixture": "challenge_sequence_valid.json",
+      "rationale": "SEQUENCE + validateur suite."
+    },
+    {
+      "id": "fixture_challenge_pattern",
+      "pipeline": "fixture_challenge",
+      "fixture": "challenge_pattern_valid.json",
+      "rationale": "PATTERN grille."
+    },
+    {
+      "id": "fixture_challenge_deduction",
+      "pipeline": "fixture_challenge",
+      "fixture": "challenge_deduction_valid.json",
+      "rationale": "DEDUCTION bijection colonnes."
+    },
+    {
+      "id": "fixture_challenge_deduction_invalid_bijection",
+      "pipeline": "fixture_challenge",
+      "fixture": "challenge_deduction_invalid_bijection.json",
+      "expected_success": false,
+      "rationale": "Cas négatif : violation bijection (même boisson pour deux personnes) — le harness doit être vert si rejet observé."
+    },
+    {
+      "id": "fixture_challenge_coding",
+      "pipeline": "fixture_challenge",
+      "fixture": "challenge_coding_valid.json",
+      "rationale": "CODING caesar minimal."
+    },
+    {
+      "id": "live_openai_exercise_addition",
+      "pipeline": "openai_exercise_stream",
+      "exercise_type": "addition",
+      "age_group": "9-11",
+      "prompt": "Problème court sur une somme de deux nombres entiers positifs.",
+      "live_only": true,
+      "rationale": "Live OpenAI exercice."
+    },
+    {
+      "id": "live_openai_challenge_sequence",
+      "pipeline": "openai_challenge_stream",
+      "challenge_type": "sequence",
+      "age_group": "9-11",
+      "prompt": "Suite arithmétique simple à trois termes visibles.",
+      "live_only": true,
+      "rationale": "Live OpenAI défi."
+    }
+  ]
+}

@@ -42,6 +42,6 @@ def get_challenges_routes():
         Route(
             "/api/challenges/generate-ai-stream",
             endpoint=generate_ai_challenge_stream,
-            methods=["GET"],
+            methods=["POST"],
         ),
     ]

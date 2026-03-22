@@ -3,6 +3,17 @@
  */
 
 /**
+ * Niveau gamification persisté (aligné classement), fourni par le backend — pas dérivé du timeRange stats.
+ */
+export interface GamificationLevelIndicator {
+  current: number;
+  title: string;
+  current_xp: number;
+  next_level_xp: number;
+  jedi_rank?: string;
+}
+
+/**
  * Type User avec tous les champs possibles.
  */
 export interface User {
@@ -28,7 +39,10 @@ export interface User {
   accessibility_settings?: Record<string, boolean> | null;
   total_points?: number;
   current_level?: number;
+  experience_points?: number;
   jedi_rank?: string;
+  /** Structure stable pour le widget « Niveau actuel » (hors filtre temporel dashboard) */
+  gamification_level?: GamificationLevelIndicator;
   language_preference?: string | null;
   timezone?: string | null;
   is_public_profile?: boolean;
@@ -93,6 +107,17 @@ export interface ExerciseFiltersWithSearch {
 }
 
 /**
+ * Modalité d'interaction (lot IA9) — ne pas déduire un QCM depuis `choices` seul.
+ * @see app/services/challenges/challenge_contract_policy.py
+ */
+export type ChallengeResponseMode =
+  | "open_text"
+  | "single_choice"
+  | "interactive_visual"
+  | "interactive_order"
+  | "interactive_grid";
+
+/**
  * Type Challenge avec tous les champs possibles.
  */
 export interface Challenge {
@@ -106,6 +131,8 @@ export interface Challenge {
   difficulty?: string | null;
   correct_answer?: string | null;
   choices?: string[] | null;
+  /** Fourni par GET détail ; défaut côté client si absent (legacy). */
+  response_mode?: ChallengeResponseMode | string | null;
   hints?: string[] | null;
   visual_data?: Record<string, unknown> | null;
   difficulty_rating?: number | null;

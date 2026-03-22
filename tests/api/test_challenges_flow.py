@@ -210,8 +210,13 @@ async def test_generate_ai_challenge_stream(client, padawan_client):
     client.cookies.set("access_token", token)
 
     async with client.stream(
-        "GET",
-        "/api/challenges/generate-ai-stream?challenge_type=calculation&difficulty=easy",
+        "POST",
+        "/api/challenges/generate-ai-stream",
+        json={
+            "challenge_type": "sequence",
+            "age_group": "9-11",
+            "prompt": "",
+        },
     ) as response:
         if response.status_code == 200:
             assert "text/event-stream" in response.headers.get("content-type", "")

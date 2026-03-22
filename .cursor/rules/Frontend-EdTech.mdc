@@ -1,0 +1,44 @@
+---
+alwaysApply: true
+---
+
+Chaque modification d’interface doit respecter les 4 piliers EdTech.
+
+10.1 Gestion de la charge cognitive — priorité absolue
+L’utilisateur est un apprenant.
+L’interface ne doit jamais détourner l’attention de l’exercice.
+
+Règles
+progressive disclosure
+whitespace généreux
+pas d’animations décoratives pendant la réflexion
+pas de surcharge visuelle
+pas de panneaux secondaires inutiles visibles en permanence
+10.2 Feedback visuel et micro-interactions
+L’interface doit communiquer clairement l’état.
+
+Règles
+états neutre / succès / erreur / chargement clairement distincts
+erreurs constructives, pas punitives
+skeletons préférés aux spinners bloquants
+gamification subtile, jamais envahissante
+10.3 Accessibilité et lisibilité
+Règles
+contraste WCAG AA minimum
+cibles tactiles minimum 44x44px
+typographie lisible
+formules/logique/code affichés avec une présentation adaptée
+10.4 Contraintes techniques frontend
+Règles
+pas de any
+props alignées avec les schémas backend
+logique dans hooks / helpers
+composants de vue aussi purs que possible
+Tailwind cohérent
+pas de CSS inline bricolé
+prévoir un fallback local ou état d’erreur clair
+Règle d’exécution frontend
+Avant de coder un composant UI, expliquer brièvement :
+
+comment le design réduit la charge cognitive
+comment il rend les états et feedbacks visibles

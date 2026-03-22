@@ -1,6 +1,9 @@
-import { getCsrfTokenFromCookie } from "./client";
+import { consumeSseJsonEvents, type SseJsonEvent } from "@/lib/utils/ssePostStream";
 
-interface ChatStreamPayload {
+/** Route Next (proxy → backend), même origine + cookies. */
+export const CHAT_STREAM_PATH = "/api/chat/stream";
+
+export interface ChatStreamPayload {
   message: string;
   conversation_history: Array<{ role: "user" | "assistant"; content: string }>;
   stream: true;
@@ -14,93 +17,96 @@ export type ChatStreamChunk =
   | { type: "error"; message: string };
 
 /**
- * Initiates a streaming chat request to the backend.
- *
- * This function does not use the standard `api.post` because it needs to handle
- * a streaming response (SSE), not a simple JSON response.
- *
- * @param payload The message and conversation history.
- * @param onChunk A callback function that will be called for each chunk of data received from the stream.
- * @param onFinish A callback function that will be called when the stream is finished.
- * @param onError A callback function that will be called if an error occurs.
+ * Valide / normalise un événement SSE JSON vers {@link ChatStreamChunk}.
+ * Exporté pour tests unitaires (non-régression parsing).
+ */
+export function parseChatStreamEvent(data: unknown): ChatStreamChunk | null {
+  if (typeof data !== "object" || data === null || !("type" in data)) {
+    return null;
+  }
+  const rec = data as Record<string, unknown>;
+  const type = rec.type;
+  if (type === "chunk" && typeof rec.content === "string") {
+    return { type: "chunk", content: rec.content };
+  }
+  if (type === "status" && typeof rec.message === "string") {
+    return { type: "status", message: rec.message };
+  }
+  if (type === "image" && typeof rec.url === "string") {
+    return { type: "image", url: rec.url };
+  }
+  if (type === "done") {
+    return { type: "done" };
+  }
+  if (type === "error" && typeof rec.message === "string") {
+    return { type: "error", message: rec.message };
+  }
+  return null;
+}
+
+export interface StreamChatCallbacks {
+  onChunk: (chunk: ChatStreamChunk) => void;
+  onFinish: () => void;
+  onError: (error: Error) => void;
+}
+
+export interface StreamChatOptions {
+  signal?: AbortSignal;
+}
+
+/**
+ * Streaming chat (POST + SSE). Ne passe pas par `api.post` (corps stream).
  */
 export async function streamChat(
   payload: ChatStreamPayload,
-  {
-    onChunk,
-    onFinish,
-    onError,
-  }: {
-    onChunk: (chunk: ChatStreamChunk) => void;
-    onFinish: () => void;
-    onError: (error: Error) => void;
-  }
-) {
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    (process.env.NODE_ENV === "development" ? "http://localhost:10000" : "");
-
+  { onChunk, onFinish, onError }: StreamChatCallbacks,
+  options?: StreamChatOptions
+): Promise<void> {
   try {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      Accept: "text/event-stream",
-    };
-    const csrfToken = getCsrfTokenFromCookie();
-    if (csrfToken) {
-      headers["X-CSRF-Token"] = csrfToken;
-    }
-
-    const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
+    const requestInit: RequestInit = {
       method: "POST",
-      headers,
-      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+        "Accept-Language": typeof navigator !== "undefined" ? navigator.language : "fr",
+      },
       body: JSON.stringify(payload),
-    });
+    };
+    if (options?.signal) {
+      requestInit.signal = options.signal;
+    }
+    const response = await fetch(CHAT_STREAM_PATH, requestInit);
 
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(errorText || `API Error: ${response.status}`);
     }
 
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error("Could not read stream from response.");
-    }
-
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          try {
-            const data = JSON.parse(line.slice(6)) as ChatStreamChunk;
-            onChunk(data);
-            if (data.type === "done") {
-              onFinish();
-              return; // End the stream processing
-            }
-            if (data.type === "error") {
-              throw new Error(data.message);
-            }
-          } catch (e) {
-            console.error("Failed to parse SSE chunk:", e);
-          }
+    let finished = false;
+    await consumeSseJsonEvents(
+      response,
+      async (data: SseJsonEvent) => {
+        const chunk = parseChatStreamEvent(data);
+        if (!chunk) return;
+        onChunk(chunk);
+        if (chunk.type === "done") {
+          finished = true;
+          onFinish();
         }
-      }
-    }
+        if (chunk.type === "error") {
+          throw new Error(chunk.message);
+        }
+      },
+      options?.signal ? { signal: options.signal } : undefined
+    );
 
-    onFinish();
+    if (!finished) {
+      onFinish();
+    }
   } catch (err) {
-    onError(err as Error);
+    if (err instanceof DOMException && err.name === "AbortError") {
+      return;
+    }
+    onError(err instanceof Error ? err : new Error(String(err)));
   }
 }

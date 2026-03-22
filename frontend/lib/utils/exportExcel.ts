@@ -61,14 +61,23 @@ function addSummarySheet(
     { label: labels.challengesCompletedLabel, raw: s.total_challenges, kind: "number" },
     { label: labels.successRate, raw: toExcelPercentFraction(s.success_rate), kind: "percent" },
     {
-      label: labels.experiencePoints,
-      raw: s.experience_points,
-      kind: s.experience_points === null ? "naNumber" : "number",
+      label: labels.accountTotalPoints,
+      raw: s.account_total_points,
+      kind: s.account_total_points === null ? "naNumber" : "number",
+    },
+    {
+      label: labels.accountXpInLevel,
+      raw: s.account_xp_in_level,
+      kind: s.account_xp_in_level === null ? "naNumber" : "number",
     },
   ];
 
-  if (snapshot.level) {
-    rows.push({ label: labels.level, raw: snapshot.level.current, kind: "number" });
+  if (snapshot.gamification_level) {
+    rows.push({
+      label: labels.level,
+      raw: snapshot.gamification_level.current,
+      kind: "number",
+    });
   }
   if (s.current_streak !== null) {
     rows.push({ label: labels.currentStreak, raw: s.current_streak, kind: "number" });

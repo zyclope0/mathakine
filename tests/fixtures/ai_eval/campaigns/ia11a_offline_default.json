@@ -1,0 +1,81 @@
+{
+  "campaign_id": "ia11a_offline_default",
+  "version": 1,
+  "title": "IA11a — Campagne comparative offline (protocole)",
+  "offline_only": true,
+  "honesty_disclaimer": "Pas de score global ni classement définitif entre workloads : agrégats par workload/pipeline pour cadrer IA11b. Les pipelines ne sont pas comparables chiffre à chiffre (générateur local vs fixtures vs futur live).",
+  "notes": [
+    "Ce lot ne lance aucun appel OpenAI : uniquement pipelines offline reproductibles du harness existant.",
+    "Les variantes live (SSE o3 baseline) sont déclarées pour exécution ultérieure IA11b sous opt-in explicite."
+  ],
+  "non_measurable_offline": [
+    "cost_usd_estimate (réservé au live / token_tracker)",
+    "tokens_prompt / tokens_completion (live)",
+    "diversité ou créativité des sorties modèle",
+    "qualité pédagogique en situation réelle"
+  ],
+  "segments": [
+    {
+      "workload_key": "simple_generator",
+      "harness_target": "simple",
+      "description": "Générateur numérique local (non-LLM) — même code que le flux produit « simple ».",
+      "offline_comparison_axes": [
+        "scenario_compliance_success_vs_expected_success",
+        "structural_ok",
+        "business_ok",
+        "latency_ms"
+      ],
+      "live_planned_variants": []
+    },
+    {
+      "workload_key": "exercises_ai",
+      "harness_target": "exercises_ai",
+      "description": "Offline : template_exercise_generator + fixture_exercise_openai_shape. Les cas openai_exercise_stream sont exclus hors live (corpus).",
+      "offline_comparison_axes": [
+        "scenario_compliance_success_vs_expected_success",
+        "structural_ok",
+        "business_ok",
+        "latency_ms",
+        "choices_flags"
+      ],
+      "live_planned_variants": [
+        {
+          "variant_id": "exercises_openai_stream_o3_baseline",
+          "status": "planned_not_executed",
+          "pipeline": "openai_exercise_stream",
+          "baseline_model_hint": "o3",
+          "execution_gate": "IA11b : confirmation humaine + MATHAKINE_AI_EVAL_LIVE=1 ou --live sur le harness",
+          "subset_note": "Sous-ensemble : cas live_only du corpus + parité fixtures pour régression validateurs"
+        }
+      ]
+    },
+    {
+      "workload_key": "challenges_ai",
+      "harness_target": "challenges_ai",
+      "description": "Offline : fixture_challenge uniquement. Les cas openai_challenge_stream sont exclus hors live.",
+      "offline_comparison_axes": [
+        "scenario_compliance_success_vs_expected_success",
+        "business_ok",
+        "difficulty_flags",
+        "choices_flags",
+        "latency_ms"
+      ],
+      "live_planned_variants": [
+        {
+          "variant_id": "challenges_openai_stream_o3_baseline",
+          "status": "planned_not_executed",
+          "pipeline": "openai_challenge_stream",
+          "baseline_model_hint": "o3",
+          "execution_gate": "IA11b : confirmation humaine + MATHAKINE_AI_EVAL_LIVE=1 ou --live sur le harness",
+          "subset_note": "Sous-ensemble : cas live_only + fixtures pour régression validateurs"
+        }
+      ]
+    }
+  ],
+  "ia11b_prerequisites": [
+    "Protocole IA11a relu et figé (ce document + JSON de campagne).",
+    "Budget / quota API validé hors CI.",
+    "Exécuter le harness en mode live sur les mêmes axes de rapport (pas de nouveau score opaque).",
+    "Comparer live vs offline sur sous-ensembles explicitement nommés (pas de mélange implicite des corpus)."
+  ]
+}

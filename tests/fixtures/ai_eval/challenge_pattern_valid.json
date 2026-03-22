@@ -1,0 +1,11 @@
+{
+  "challenge_type": "PATTERN",
+  "title": "Motif en grille",
+  "description": "Quelle case complète le motif ?",
+  "correct_answer": "X",
+  "solution_explanation": "Dernière ligne suit le même damier que les lignes 0 et 1 : la case manquante est X.",
+  "difficulty_rating": 2.8,
+  "visual_data": {
+    "grid": [["X", "O", "X"], ["O", "X", "O"], ["X", "O", "?"]]
+  }
+}

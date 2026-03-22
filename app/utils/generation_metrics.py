@@ -1,6 +1,8 @@
 """
-Module de métriques pour la génération IA.
-Track la qualité, performance et fiabilité des générations.
+Runtime metrics for AI-assisted generation workloads.
+
+The historical parameter name `challenge_type` is retained for backward compatibility,
+but now stores a generic AI metric key for challenges, exercises, and assistant chat.
 """
 
 from collections import defaultdict
@@ -8,15 +10,20 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
 from app.core.logging_config import get_logger
+from app.utils import ai_workload_keys as _ai_workload_keys
+from app.utils.ai_workload_keys import (
+    classify_ai_workload_key,
+    runtime_ai_metrics_retention_meta,
+)
 
 logger = get_logger(__name__)
 
 
 class GenerationMetrics:
-    """Tracker de métriques pour la génération IA."""
+    """In-memory runtime metrics tracker for AI workloads."""
 
     def __init__(self):
-        # Structure: {challenge_type: [{"timestamp": datetime, "success": bool, "validation_passed": bool, "auto_corrected": bool, "duration": float}]}
+        # Structure: {metric_key: [{timestamp, success, validation_passed, auto_corrected, duration, error_type}]}
         self._generation_history: Dict[str, List] = defaultdict(list)
         self._validation_failures: Dict[str, int] = defaultdict(int)
         self._auto_corrections: Dict[str, int] = defaultdict(int)
@@ -32,17 +39,7 @@ class GenerationMetrics:
         duration_seconds: float = 0.0,
         error_type: Optional[str] = None,
     ):
-        """
-        Enregistre une génération dans les métriques.
-
-        Args:
-            challenge_type: Type de challenge
-            success: Si la génération a réussi
-            validation_passed: Si la validation a passé
-            auto_corrected: Si une auto-correction a été appliquée
-            duration_seconds: Durée de la génération en secondes
-            error_type: Type d'erreur si échec
-        """
+        """Record one generation attempt in runtime metrics."""
         record = {
             "timestamp": datetime.now(),
             "success": success,
@@ -53,28 +50,21 @@ class GenerationMetrics:
         }
 
         self._generation_history[challenge_type].append(record)
-
-        if success:
-            self._success_count[challenge_type] += 1
-        else:
-            self._failure_count[challenge_type] += 1
-
-        if not validation_passed:
-            self._validation_failures[challenge_type] += 1
-
-        if auto_corrected:
-            self._auto_corrections[challenge_type] += 1
+        self._prune_metric_key_records(challenge_type)
 
         logger.debug(
-            f"Metrics recorded - Type: {challenge_type}, "
-            f"Success: {success}, Validation: {validation_passed}, "
+            "Metrics recorded - "
+            f"Type: {challenge_type}, Success: {success}, Validation: {validation_passed}, "
             f"Auto-corrected: {auto_corrected}, Duration: {duration_seconds:.2f}s"
         )
 
-    def get_success_rate(
-        self, challenge_type: Optional[str] = None, days: int = 1
-    ) -> float:
-        """Calcule le taux de succès."""
+    def _records_in_window(
+        self,
+        challenge_type: Optional[str],
+        days: int,
+        *,
+        success_only: bool = False,
+    ) -> List[Dict]:
         cutoff_date = datetime.now() - timedelta(days=days)
 
         if challenge_type:
@@ -90,126 +80,171 @@ class GenerationMetrics:
                     [r for r in type_records if r["timestamp"] > cutoff_date]
                 )
 
+        if success_only:
+            return [r for r in records if r["success"]]
+        return records
+
+    def get_success_rate(
+        self, challenge_type: Optional[str] = None, days: int = 1
+    ) -> float:
+        records = self._records_in_window(challenge_type, days)
         if not records:
             return 0.0
-
         success_count = sum(1 for r in records if r["success"])
         return success_count / len(records) * 100
 
     def get_validation_failure_rate(
         self, challenge_type: Optional[str] = None, days: int = 1
     ) -> float:
-        """Calcule le taux d'échec de validation."""
-        cutoff_date = datetime.now() - timedelta(days=days)
-
-        if challenge_type:
-            records = [
-                r
-                for r in self._generation_history[challenge_type]
-                if r["timestamp"] > cutoff_date
-            ]
-        else:
-            records = []
-            for type_records in self._generation_history.values():
-                records.extend(
-                    [r for r in type_records if r["timestamp"] > cutoff_date]
-                )
-
+        records = self._records_in_window(challenge_type, days)
         if not records:
             return 0.0
-
         failure_count = sum(1 for r in records if not r["validation_passed"])
         return failure_count / len(records) * 100
 
     def get_auto_correction_rate(
         self, challenge_type: Optional[str] = None, days: int = 1
     ) -> float:
-        """Calcule le taux d'auto-correction."""
-        cutoff_date = datetime.now() - timedelta(days=days)
-
-        if challenge_type:
-            records = [
-                r
-                for r in self._generation_history[challenge_type]
-                if r["timestamp"] > cutoff_date
-            ]
-        else:
-            records = []
-            for type_records in self._generation_history.values():
-                records.extend(
-                    [r for r in type_records if r["timestamp"] > cutoff_date]
-                )
-
+        records = self._records_in_window(challenge_type, days)
         if not records:
             return 0.0
-
         corrected_count = sum(1 for r in records if r["auto_corrected"])
         return corrected_count / len(records) * 100
 
     def get_average_duration(
         self, challenge_type: Optional[str] = None, days: int = 1
     ) -> float:
-        """Calcule la durée moyenne de génération."""
-        cutoff_date = datetime.now() - timedelta(days=days)
-
-        if challenge_type:
-            records = [
-                r
-                for r in self._generation_history[challenge_type]
-                if r["timestamp"] > cutoff_date and r["success"]
-            ]
-        else:
-            records = []
-            for type_records in self._generation_history.values():
-                records.extend(
-                    [
-                        r
-                        for r in type_records
-                        if r["timestamp"] > cutoff_date and r["success"]
-                    ]
-                )
-
+        records = self._records_in_window(challenge_type, days, success_only=True)
         if not records:
             return 0.0
-
         total_duration = sum(r["duration"] for r in records)
         return total_duration / len(records)
 
     def get_summary(self, days: int = 1) -> Dict:
-        """Retourne un résumé complet des métriques."""
+        """Return full runtime summary for admin read-only."""
         return {
             "success_rate": self.get_success_rate(days=days),
             "validation_failure_rate": self.get_validation_failure_rate(days=days),
             "auto_correction_rate": self.get_auto_correction_rate(days=days),
             "average_duration": self.get_average_duration(days=days),
             "by_type": self._get_summary_by_type(days),
+            "by_workload": self._get_summary_by_workload(days),
+            "error_types": self._get_error_type_counts(days),
+            "retention": runtime_ai_metrics_retention_meta(),
+            "metrics_disclaimer_fr": (
+                "Métriques runtime opportunistes (mémoire process) : pas d'historique long terme ; "
+                "pour comparer des runs figés, utiliser les exécutions harness persistées."
+            ),
         }
 
     def _get_summary_by_type(self, days: int) -> Dict[str, Dict]:
-        """Retourne les métriques groupées par type."""
+        """Return runtime metrics grouped by fine-grained metric key."""
         summary_by_type = {}
 
-        for challenge_type in self._generation_history.keys():
-            summary_by_type[challenge_type] = {
-                "success_rate": self.get_success_rate(challenge_type, days),
+        for metric_key in self._generation_history.keys():
+            summary_by_type[metric_key] = {
+                "success_rate": self.get_success_rate(metric_key, days),
                 "validation_failure_rate": self.get_validation_failure_rate(
-                    challenge_type, days
+                    metric_key, days
                 ),
-                "auto_correction_rate": self.get_auto_correction_rate(
-                    challenge_type, days
-                ),
-                "average_duration": self.get_average_duration(challenge_type, days),
-                "total_generations": len(
-                    [
-                        r
-                        for r in self._generation_history[challenge_type]
-                        if r["timestamp"] > datetime.now() - timedelta(days=days)
-                    ]
-                ),
+                "auto_correction_rate": self.get_auto_correction_rate(metric_key, days),
+                "average_duration": self.get_average_duration(metric_key, days),
+                "total_generations": len(self._records_in_window(metric_key, days)),
             }
 
         return summary_by_type
 
+    def _get_summary_by_workload(self, days: int) -> Dict[str, Dict]:
+        """Return runtime metrics grouped by stable workload."""
+        cutoff = datetime.now() - timedelta(days=days)
+        summary_by_workload: Dict[str, Dict] = {}
+
+        for metric_key, records in self._generation_history.items():
+            workload = classify_ai_workload_key(metric_key)
+
+            filtered = [r for r in records if r["timestamp"] > cutoff]
+            if not filtered:
+                continue
+
+            bucket = summary_by_workload.setdefault(
+                workload,
+                {
+                    "success_count": 0,
+                    "validation_failures": 0,
+                    "auto_corrections": 0,
+                    "total_duration": 0.0,
+                    "duration_count": 0,
+                    "total_generations": 0,
+                },
+            )
+            bucket["total_generations"] += len(filtered)
+            bucket["success_count"] += sum(1 for r in filtered if r["success"])
+            bucket["validation_failures"] += sum(
+                1 for r in filtered if not r["validation_passed"]
+            )
+            bucket["auto_corrections"] += sum(
+                1 for r in filtered if r["auto_corrected"]
+            )
+
+            success_records = [r for r in filtered if r["success"]]
+            bucket["total_duration"] += sum(r["duration"] for r in success_records)
+            bucket["duration_count"] += len(success_records)
+
+        final_summary: Dict[str, Dict] = {}
+        for workload, bucket in summary_by_workload.items():
+            total = bucket["total_generations"]
+            duration_count = bucket["duration_count"]
+            final_summary[workload] = {
+                "success_rate": (
+                    (bucket["success_count"] / total * 100) if total else 0.0
+                ),
+                "validation_failure_rate": (
+                    (bucket["validation_failures"] / total * 100) if total else 0.0
+                ),
+                "auto_correction_rate": (
+                    (bucket["auto_corrections"] / total * 100) if total else 0.0
+                ),
+                "average_duration": (
+                    bucket["total_duration"] / duration_count if duration_count else 0.0
+                ),
+                "total_generations": total,
+            }
+
+        return final_summary
+
+    def _get_error_type_counts(self, days: int) -> Dict[str, int]:
+        """Return runtime errors grouped by error_type."""
+        cutoff = datetime.now() - timedelta(days=days)
+        counts: Dict[str, int] = {}
+
+        for records in self._generation_history.values():
+            for record in records:
+                if record["timestamp"] <= cutoff:
+                    continue
+                error_type = record.get("error_type")
+                if not error_type:
+                    continue
+                counts[error_type] = counts.get(error_type, 0) + 1
+
+        return counts
+
+    def _prune_metric_key_records(self, metric_key: str) -> None:
+        """Purge TTL + cap par clé (aligné token_tracker, IA12)."""
+        lst = self._generation_history.get(metric_key)
+        if not lst:
+            return
+        cutoff = datetime.now() - timedelta(
+            days=_ai_workload_keys.RUNTIME_AI_METRICS_RETENTION_DAYS
+        )
+        kept = [r for r in lst if r["timestamp"] > cutoff]
+        max_n = _ai_workload_keys.RUNTIME_AI_METRICS_MAX_EVENTS_PER_KEY
+        if len(kept) > max_n:
+            kept = kept[-max_n:]
+        self._generation_history[metric_key] = kept
+        if not kept:
+            del self._generation_history[metric_key]
+
 
 # Instance globale des métriques
+
 generation_metrics = GenerationMetrics()

@@ -1,0 +1,18 @@
+---
+alwaysApply: true
+---
+
+Avant de conclure qu’un lot est “fini”, vérifier :
+
+le code réel
+les tests réellement exécutés
+la doc réellement alignée
+la version réellement affichée
+la branche réellement pushée
+Ne jamais confondre :
+
+“implémenté”
+“testé”
+“documenté”
+“mergé”
+“release”

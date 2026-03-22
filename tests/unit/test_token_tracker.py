@@ -79,3 +79,63 @@ class TestGetDailySummary:
         summary = tracker.get_daily_summary(past_date)
 
         assert summary == {}
+
+
+class TestWorkloadBreakdown:
+    def test_get_stats_groups_by_workload(self):
+        tracker = TokenTracker()
+        tracker.track_usage("assistant_chat:simple", 100, 50, model="gpt-5-mini")
+        tracker.track_usage("exercise_ai:addition", 120, 60, model="o3")
+        tracker.track_usage("sequence", 200, 100, model="o3")
+
+        stats = tracker.get_stats(days=1)
+
+        assert stats["by_workload"]["assistant_chat"]["count"] == 1
+        assert stats["by_workload"]["exercises_ai"]["count"] == 1
+        assert stats["by_workload"]["challenges_ai"]["count"] == 1
+        assert "retention" in stats
+        assert "cost_disclaimer_fr" in stats
+
+    def test_unknown_metric_key_buckets_unknown_not_challenges(self):
+        tracker = TokenTracker()
+        tracker.track_usage("weird_legacy_key", 50, 50, model="gpt-4o-mini")
+        stats = tracker.get_stats(days=1)
+        assert stats["by_workload"]["unknown"]["count"] == 1
+        assert (
+            "challenges_ai" not in stats["by_workload"]
+            or stats["by_workload"].get("challenges_ai", {}).get("count", 0) == 0
+        )
+
+    def test_prune_caps_events_per_key(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(
+            "app.utils.ai_workload_keys.RUNTIME_AI_METRICS_MAX_EVENTS_PER_KEY",
+            4,
+        )
+        tracker = TokenTracker()
+        for _ in range(6):
+            tracker.track_usage("pattern", 10, 10, model="o3")
+        assert len(tracker._usage_history["pattern"]) == 4
+
+    def test_gpt54_pricing_uses_premium_rate(self):
+        tracker = TokenTracker()
+
+        usage = tracker.track_usage(
+            "assistant_chat:premium",
+            1000,
+            1000,
+            model="gpt-5.4",
+        )
+
+        assert usage["cost"] == pytest.approx(0.0175)
+
+    def test_gpt5_mini_pricing_uses_public_chat_default_rate(self):
+        tracker = TokenTracker()
+
+        usage = tracker.track_usage(
+            "assistant_chat:simple",
+            1000,
+            1000,
+            model="gpt-5-mini",
+        )
+
+        assert usage["cost"] == pytest.approx(0.00225)

@@ -102,8 +102,41 @@ class Settings(BaseSettings):
     GZIP_MINIMUM_SIZE: int = 1024
 
     OPENAI_API_KEY: str = Field(default="")
-    OPENAI_MODEL: str = Field(default="gpt-4o-mini")
-    OPENAI_MODEL_REASONING: str = Field(default="")
+    # Legacy optionnel : si non vide et allowlist fail-closed assistant (IA10b), peut piloter assistant_chat.
+    # (voir app.core.app_model_policy). Laisser vide = défaut produit gpt-5-mini.
+    OPENAI_MODEL: str = Field(
+        default="",
+        description="Legacy : compat déploiements anciens. Vide recommandé ; override chat explicite = OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE.",
+    )
+    OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE: str = Field(
+        default="",
+        description="Override ops : assistant_chat (REST/SSE). Vide = gpt-5-mini. Allowlist fail-closed IA10b : "
+        "gpt-5-mini, gpt-5.4, gpt-4o-mini, gpt-4o (voir ASSISTANT_CHAT_ALLOWED_MODEL_IDS).",
+    )
+    OPENAI_MODEL_REASONING: str = Field(
+        default="",
+        description="Legacy défis IA seulement (si OPENAI_MODEL_CHALLENGES_OVERRIDE vide). Non nominal : défaut policy code = o3.",
+    )
+    # Override ops du flux SSE exercices IA (prioritaire sur la policy applicative). Voir app.core.ai_generation_policy.
+    OPENAI_MODEL_EXERCISES_OVERRIDE: str = Field(
+        default="",
+        description="Override opérationnel : modèle OpenAI pour exercices IA (SSE). Vide = policy applicative.",
+    )
+    OPENAI_MODEL_EXERCISES: str = Field(
+        default="",
+        description="Déprécié : même rôle qu'OPENAI_MODEL_EXERCISES_OVERRIDE si celui-ci est vide.",
+    )
+    # Flux SSE défis IA — prioritaire sur OPENAI_MODEL_REASONING (legacy). Vide = policy défis en code.
+    OPENAI_MODEL_CHALLENGES_OVERRIDE: str = Field(
+        default="",
+        description="Override opérationnel : modèle OpenAI pour défis IA (SSE). "
+        "Prioritaire sur OPENAI_MODEL_REASONING si non vide. Allowlist = EXERCISES_AI_ALLOWED_MODEL_IDS.",
+    )
+    OPENAI_MODEL_CHALLENGES_FALLBACK_OVERRIDE: str = Field(
+        default="",
+        description="Override ops : modèle appelé si le stream défis o3/o3-mini renvoie un contenu vide. "
+        "Vide = défaut policy (challenge_ai_model_policy). Allowlist = EXERCISES_AI_ALLOWED_MODEL_IDS.",
+    )
 
     @model_validator(mode="after")
     def build_computed_and_validate(self):

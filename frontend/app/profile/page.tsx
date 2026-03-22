@@ -69,6 +69,7 @@ function ProfilePageContent() {
   const tActions = useTranslations("profile.actions");
   const tValidation = useTranslations("profile.validation");
   const tTheme = useTranslations("theme");
+  const tDashboard = useTranslations("dashboard");
 
   // État pour les formulaires
   const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
@@ -1462,40 +1463,60 @@ function ProfilePageContent() {
                 </div>
               ) : stats ? (
                 <div className="animate-fade-in-up space-y-8">
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {stats.level && <LevelIndicator level={stats.level} />}
-                    <Card className="bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl p-6 md:p-8 flex flex-col justify-center">
-                      <CardHeader className="border-b border-border/50 pb-4 mb-6 p-0 space-y-0">
-                        <CardTitle className="flex items-center gap-2 text-xl">
-                          <TrendingUp className="h-5 w-5 text-primary" />
-                          {tStatistics("overallPerformance")}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                        <div className="flex flex-col">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
-                            <div className="flex flex-col gap-1 pr-4">
-                              <p className="text-sm font-medium text-foreground">
-                                {tStatistics("totalAttempts")}
+                  <div className="space-y-3">
+                    <p className="text-xs text-muted-foreground">
+                      {tDashboard("profile.statsPeriodHint", {
+                        period: tDashboard("timeRange.30days"),
+                      })}
+                    </p>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      {user?.gamification_level ? (
+                        <LevelIndicator level={user.gamification_level} />
+                      ) : (
+                        <Card className="border-dashed bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl">
+                          <CardContent className="p-6 sm:p-8">
+                            <p className="text-sm font-semibold text-foreground">
+                              {tDashboard("profile.levelUnavailableTitle")}
+                            </p>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              {tDashboard("profile.levelUnavailableDescription")}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
+                      <Card className="bg-card/60 backdrop-blur-md border border-border/50 shadow-sm rounded-2xl p-6 md:p-8 flex flex-col justify-center">
+                        <CardHeader className="border-b border-border/50 pb-4 mb-6 p-0 space-y-0">
+                          <CardTitle className="flex items-center gap-2 text-xl">
+                            <TrendingUp className="h-5 w-5 text-primary" />
+                            {tStatistics("overallPerformance")}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <div className="flex flex-col">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                              <div className="flex flex-col gap-1 pr-4">
+                                <p className="text-sm font-medium text-foreground">
+                                  {tStatistics("totalAttempts")}
+                                </p>
+                              </div>
+                              <p className="text-base font-semibold text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">
+                                {stats.total_exercises || 0}
                               </p>
                             </div>
-                            <p className="text-base font-semibold text-foreground sm:text-right mt-3 sm:mt-0 shrink-0">
-                              {stats.total_exercises || 0}
-                            </p>
-                          </div>
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
-                            <div className="flex flex-col gap-1 pr-4">
-                              <p className="text-sm font-medium text-foreground">
-                                {tStatistics("successRate")}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 border-b border-border/50 last:border-0">
+                              <div className="flex flex-col gap-1 pr-4">
+                                <p className="text-sm font-medium text-foreground">
+                                  {tStatistics("successRate")}
+                                </p>
+                              </div>
+                              <p className="text-base font-semibold text-primary sm:text-right mt-3 sm:mt-0 shrink-0">
+                                {Math.round((stats.success_rate || 0) * 10) / 10}%
                               </p>
                             </div>
-                            <p className="text-base font-semibold text-primary sm:text-right mt-3 sm:mt-0 shrink-0">
-                              {Math.round((stats.success_rate || 0) * 10) / 10}%
-                            </p>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </div>
 
                   {/* Activité récente */}

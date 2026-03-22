@@ -5,19 +5,23 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
-import { ensureFrontendAuthCookie } from "@/lib/api/client";
 import { validateExerciseParams, validateAIPrompt } from "@/lib/validation/exercise";
+import { consumeSseJsonEvents } from "@/lib/utils/ssePostStream";
 import { toast } from "sonner";
 import type { Exercise } from "@/types/api";
+import { dispatchExerciseAiSseEvent } from "@/lib/ai/generation/dispatchExerciseAiSseEvent";
+import {
+  postAiGenerationSse,
+  AI_GENERATION_SSE_PATH,
+} from "@/lib/ai/generation/postAiGenerationSse";
 
 interface UseAIExerciseGeneratorOptions {
   onExerciseGenerated?: ((exercise: Exercise) => void) | undefined;
 }
 
 /**
- * Hook partagé pour la génération IA d'exercices via EventSource.
- * Encapsule l'état (isGenerating, streamedText, generatedExercise) et
- * les callbacks (generate, cancel).
+ * Hook partagé pour la génération IA d'exercices (POST + flux SSE via fetch).
+ * Client SSE : `postAiGenerationSse` ; dispatch événements : `dispatchExerciseAiSseEvent`.
  *
  * Utilisé par : UnifiedExerciseGenerator, AIGenerator (exercises).
  */
@@ -27,7 +31,7 @@ export function useAIExerciseGenerator({
   const [isGenerating, setIsGenerating] = useState(false);
   const [streamedText, setStreamedText] = useState("");
   const [generatedExercise, setGeneratedExercise] = useState<Exercise | null>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -36,11 +40,11 @@ export function useAIExerciseGenerator({
 
   useEffect(() => {
     return () => {
-      eventSourceRef.current?.close();
+      abortControllerRef.current?.abort();
     };
   }, []);
 
-  const generate = (type: string, ageGroup: string, prompt: string) => {
+  const generate = async (type: string, ageGroup: string, prompt: string) => {
     if (isGenerating) return;
 
     if (!user) {
@@ -73,68 +77,74 @@ export function useAIExerciseGenerator({
     setStreamedText("");
     setGeneratedExercise(null);
 
-    ensureFrontendAuthCookie()
-      .then(() => {
-        const params = new URLSearchParams({ exercise_type: type, age_group: ageGroup });
-        if (prompt.trim()) params.append("prompt", prompt.trim());
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
-        const eventSource = new EventSource(`/api/exercises/generate-ai-stream?${params}`);
-        eventSourceRef.current = eventSource;
+    try {
+      const response = await postAiGenerationSse(
+        AI_GENERATION_SSE_PATH.exercise,
+        {
+          exercise_type: type,
+          age_group: ageGroup,
+          prompt: prompt.trim(),
+        },
+        abortController.signal
+      );
 
-        eventSource.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.type === "status") {
-              setStreamedText(data.message);
-            } else if (data.type === "exercise") {
-              const exercise = data.exercise as Exercise;
-              setGeneratedExercise(exercise);
-              setStreamedText("");
-              eventSource.close();
-              eventSourceRef.current = null;
-              setIsGenerating(false);
+      if (!response.ok) {
+        let description = t("aiGenerator.errorDescription");
+        try {
+          const errBody = (await response.json()) as { error?: string; detail?: unknown };
+          if (typeof errBody.error === "string") description = errBody.error;
+        } catch {
+          /* ignore */
+        }
+        toast.error(t("aiGenerator.error"), { description });
+        return;
+      }
+
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.includes("text/event-stream")) {
+        toast.error(t("aiGenerator.connectionError"), {
+          description: t("aiGenerator.connectionErrorDescription"),
+        });
+        return;
+      }
+
+      await consumeSseJsonEvents(
+        response,
+        (data) => {
+          dispatchExerciseAiSseEvent(data as Record<string, unknown>, {
+            t,
+            setStreamedText,
+            setGeneratedExercise,
+            onInvalidateLists: () => {
               setTimeout(() => {
                 queryClient.invalidateQueries({ queryKey: ["exercises"] });
               }, 100);
-              toast.success(t("aiGenerator.success"), {
-                description: t("aiGenerator.successDescription", { title: exercise.title }),
-              });
-              onExerciseGenerated?.(exercise);
-            } else if (data.type === "error") {
-              setStreamedText("");
-              eventSource.close();
-              eventSourceRef.current = null;
-              setIsGenerating(false);
-              toast.error(t("aiGenerator.error"), {
-                description: data.message || t("aiGenerator.errorDescription"),
-              });
-            }
-          } catch {
-            // Parsing SSE silencieux
-          }
-        };
-
-        eventSource.onerror = () => {
-          setStreamedText("");
-          eventSource.close();
-          eventSourceRef.current = null;
-          setIsGenerating(false);
-          toast.error(t("aiGenerator.connectionError"), {
-            description: t("aiGenerator.connectionErrorDescription"),
+            },
+            ...(onExerciseGenerated !== undefined ? { onExerciseGenerated } : {}),
           });
-        };
-      })
-      .catch(() => {
-        setIsGenerating(false);
-        toast.error(t("aiGenerator.startError"), {
-          description: t("aiGenerator.startErrorDescription"),
-        });
+        },
+        { signal: abortController.signal }
+      );
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") {
+        return;
+      }
+      setStreamedText("");
+      toast.error(t("aiGenerator.connectionError"), {
+        description: t("aiGenerator.connectionErrorDescription"),
       });
+    } finally {
+      abortControllerRef.current = null;
+      setIsGenerating(false);
+    }
   };
 
   const cancel = () => {
-    eventSourceRef.current?.close();
-    eventSourceRef.current = null;
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
     setIsGenerating(false);
     setStreamedText("");
   };

@@ -268,13 +268,34 @@ class InterleavedPlanQuery(BaseModel):
 
 
 class GenerateExerciseStreamQuery(BaseModel):
-    """Paramètres parsés pour GET /api/exercises/generate-ai-stream."""
+    """Paramètres normalisés pour la préparation du flux SSE exercices IA."""
 
     exercise_type: str = "addition"
     age_group: Optional[str] = None
     prompt: str = ""
 
     model_config = ConfigDict(extra="ignore")
+
+
+class GenerateExerciseStreamPostBody(BaseModel):
+    """Corps JSON POST /api/exercises/generate-ai-stream (pas de prompt dans l'URL)."""
+
+    exercise_type: str = Field(default="addition", max_length=64)
+    age_group: Optional[str] = Field(default=None, max_length=64)
+    difficulty: Optional[str] = Field(
+        default=None,
+        max_length=64,
+        description="Alias legacy de age_group (même sémantique que l'ancien query param)",
+    )
+    prompt: str = Field(default="", max_length=8000)
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    @model_validator(mode="after")
+    def resolve_age_group_from_difficulty(self) -> "GenerateExerciseStreamPostBody":
+        if self.age_group is None and self.difficulty is not None:
+            return self.model_copy(update={"age_group": self.difficulty})
+        return self
 
 
 class GenerateExerciseStreamContext(BaseModel):

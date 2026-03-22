@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import type { Exercise } from "@/types/api";
+import { normalizeCreatedResourceId } from "@/lib/ai/generation/normalizeResourceId";
 
 const PROMPT_SUGGESTIONS = EXERCISE_PROMPT_SUGGESTIONS;
 
@@ -34,13 +35,15 @@ interface UnifiedExerciseGeneratorProps {
 export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExerciseGeneratorProps) {
   const t = useTranslations("exercises");
   const { getTypeDisplay, getAgeDisplay } = useExerciseTranslations();
-  const { generateExercise, isGenerating: isQuickGenerating } = useExercises();
+  const { generateExerciseAsync, isGenerating: isQuickGenerating } = useExercises();
   const router = useRouter();
 
   const [exerciseType, setExerciseType] = useState<string>(EXERCISE_TYPES.ADDITION);
   const [ageGroup, setAgeGroup] = useState<string>(AGE_GROUPS.GROUP_6_8);
   const [isIAEnabled, setIsIAEnabled] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
+  /** Exercice créé par la génération rapide (hors IA) — pour CTA « Voir l'exercice ». */
+  const [quickGeneratedExercise, setQuickGeneratedExercise] = useState<Exercise | null>(null);
 
   // Logique IA déléguée au hook partagé
   const {
@@ -54,13 +57,24 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
 
   const isGenerating = isIAEnabled ? isAIGenerating : isQuickGenerating;
 
-  const handleQuickGenerate = () => {
+  const handleQuickGenerate = async () => {
     const validation = validateExerciseParams({ exercise_type: exerciseType, age_group: ageGroup });
     if (!validation.valid) {
       toast.error("Erreur de validation", { description: validation.errors.join(", ") });
       return;
     }
-    generateExercise({ exercise_type: exerciseType, age_group: ageGroup, save: true });
+    setQuickGeneratedExercise(null);
+    try {
+      const created = await generateExerciseAsync({
+        exercise_type: exerciseType,
+        age_group: ageGroup,
+        save: true,
+      });
+      setQuickGeneratedExercise(created);
+      onExerciseGenerated?.(created);
+    } catch {
+      /* erreur déjà toastée par useExercises (onError) */
+    }
   };
 
   const handleGenerate = () => {
@@ -151,7 +165,12 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
               checked={isIAEnabled}
               onCheckedChange={(val) => {
                 setIsIAEnabled(val);
-                if (!val) setCustomPrompt("");
+                if (val) {
+                  setQuickGeneratedExercise(null);
+                } else {
+                  setCustomPrompt("");
+                  setGeneratedExercise(null);
+                }
               }}
               aria-label="Activer le mode génération IA"
             />
@@ -184,6 +203,41 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
           </Button>
         </div>
       </div>
+
+      {!isIAEnabled && quickGeneratedExercise && !isQuickGenerating && (
+        <div className="mt-4 p-2.5 rounded-lg bg-success/10 border border-success/20 flex items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-success mb-0.5">
+              {t("aiGenerator.exerciseGenerated")}
+            </p>
+            <p className="text-sm text-foreground truncate">{quickGeneratedExercise.title}</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {normalizeCreatedResourceId(quickGeneratedExercise.id) !== undefined ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const id = normalizeCreatedResourceId(quickGeneratedExercise.id);
+                  if (id) router.push(`/exercises/${id}`);
+                }}
+                className="h-7 text-xs"
+              >
+                {t("aiGenerator.viewExercise")}
+              </Button>
+            ) : null}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setQuickGeneratedExercise(null)}
+              className="h-7 w-7 p-0"
+              aria-label={t("aiGenerator.close")}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Zone IA — affichage conditionnel (mobile + desktop quand activé) */}
       <AnimatePresence initial={false}>
@@ -255,14 +309,19 @@ export function UnifiedExerciseGenerator({ onExerciseGenerated }: UnifiedExercis
                     <p className="text-sm text-foreground truncate">{generatedExercise.title}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => router.push(`/exercises/${generatedExercise.id}`)}
-                      className="h-7 text-xs"
-                    >
-                      {t("aiGenerator.viewExercise")}
-                    </Button>
+                    {normalizeCreatedResourceId(generatedExercise.id) !== undefined ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const id = normalizeCreatedResourceId(generatedExercise.id);
+                          if (id) router.push(`/exercises/${id}`);
+                        }}
+                        className="h-7 text-xs"
+                      >
+                        {t("aiGenerator.viewExercise")}
+                      </Button>
+                    ) : null}
                     <Button
                       variant="ghost"
                       size="sm"

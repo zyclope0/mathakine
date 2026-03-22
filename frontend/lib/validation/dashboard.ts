@@ -1,5 +1,6 @@
 /**
- * Validation des données du dashboard
+ * Validation des données du dashboard (stats période /api/users/stats).
+ * Pas de pseudo-XP période ni de niveau temporel — gamification compte via /me.
  */
 
 export interface UserStats {
@@ -9,16 +10,6 @@ export interface UserStats {
   incorrect_answers?: number;
   success_rate?: number;
   average_score?: number;
-  experience_points?: number;
-  level?: {
-    current: number;
-    title: string;
-    current_xp: number;
-    next_level_xp: number;
-    is_max_level?: boolean;
-  };
-  xp?: number;
-  next_level_xp?: number;
   exercises_by_type?: Record<string, number>;
   exercises_by_difficulty?: Record<string, number>;
   performance_by_type?: Record<
@@ -64,13 +55,11 @@ export function safeValidateUserStats(data: unknown): UserStats | null {
 
   const stats = data as Record<string, unknown>;
 
-  // Valeurs par défaut pour les champs obligatoires
   const validated: UserStats = {
     total_exercises: typeof stats.total_exercises === "number" ? stats.total_exercises : 0,
     correct_answers: typeof stats.correct_answers === "number" ? stats.correct_answers : 0,
   };
 
-  // Champs optionnels - Préserver TOUS les champs que le backend envoie
   if (typeof stats.total_challenges === "number") {
     validated.total_challenges = stats.total_challenges;
   }
@@ -85,43 +74,6 @@ export function safeValidateUserStats(data: unknown): UserStats | null {
 
   if (typeof stats.average_score === "number") {
     validated.average_score = stats.average_score;
-  }
-
-  if (typeof stats.experience_points === "number") {
-    validated.experience_points = stats.experience_points;
-  }
-
-  // Level peut être un objet ou un number
-  if (stats.level) {
-    const level = stats.level;
-    if (typeof level === "object" && level !== null) {
-      const lev = level as {
-        current?: number;
-        title?: string;
-        current_xp?: number;
-        next_level_xp?: number;
-        is_max_level?: boolean;
-      };
-      if (typeof lev.current === "number") {
-        validated.level = {
-          current: lev.current,
-          title: typeof lev.title === "string" ? lev.title : "",
-          current_xp: typeof lev.current_xp === "number" ? lev.current_xp : 0,
-          next_level_xp: typeof lev.next_level_xp === "number" ? lev.next_level_xp : 0,
-          is_max_level: typeof lev.is_max_level === "boolean" ? lev.is_max_level : false,
-        };
-      }
-    } else if (typeof level === "number") {
-      validated.xp = level;
-    }
-  }
-
-  if (typeof stats.xp === "number") {
-    validated.xp = stats.xp;
-  }
-
-  if (typeof stats.next_level_xp === "number") {
-    validated.next_level_xp = stats.next_level_xp;
   }
 
   if (

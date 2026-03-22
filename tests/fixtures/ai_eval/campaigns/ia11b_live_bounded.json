@@ -1,0 +1,39 @@
+{
+  "campaign_id": "ia11b_live_bounded",
+  "version": 1,
+  "title": "IA11b — Campagne comparative live bornée (réutilise IA11a)",
+  "offline_only": false,
+  "base_offline_campaign_id": "ia11a_offline_default",
+  "honesty_disclaimer": "Échantillon minimal (n=1 par variante live sur le corpus actuel). Pas de score global : métriques explicites par workload/variante. Les conclusions restent indicatives ; confiance statistique faible.",
+  "notes": [
+    "Réutilise strictement les segments offline de ia11a_offline_default via base_offline_campaign_id.",
+    "Les exécutions live sont listées explicitement ; un seul passage par ligne (pas de répétitions).",
+    "eval_model force le modèle pour l’évaluation uniquement (patch harness) — aucun changement des défauts produit."
+  ],
+  "live_executions": [
+    {
+      "workload_key": "exercises_ai",
+      "variant_id": "exercises_openai_stream_o3_baseline",
+      "source_case_id": "live_openai_exercise_addition",
+      "eval_model": "o3"
+    },
+    {
+      "workload_key": "exercises_ai",
+      "variant_id": "exercises_openai_stream_gpt4o_mini_candidate",
+      "source_case_id": "live_openai_exercise_addition",
+      "eval_model": "gpt-4o-mini"
+    },
+    {
+      "workload_key": "challenges_ai",
+      "variant_id": "challenges_openai_stream_o3_baseline",
+      "source_case_id": "live_openai_challenge_sequence",
+      "eval_model": "o3"
+    },
+    {
+      "workload_key": "challenges_ai",
+      "variant_id": "challenges_openai_stream_gpt4o_mini_candidate",
+      "source_case_id": "live_openai_challenge_sequence",
+      "eval_model": "gpt-4o-mini"
+    }
+  ]
+}

@@ -1,25 +1,13 @@
 "use client";
 
-import { useState, useMemo, Suspense, useEffect } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useChallenges } from "@/hooks/useChallenges";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { ChallengeCard } from "@/components/challenges/ChallengeCard";
 import { AIGenerator } from "@/components/challenges/AIGenerator";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import {
   CHALLENGE_TYPE_STYLES,
   AGE_GROUPS,
@@ -28,22 +16,23 @@ import {
 } from "@/lib/constants/challenges";
 import { useChallengeTranslations } from "@/hooks/useChallengeTranslations";
 import type { ChallengeFilters } from "@/hooks/useChallenges";
-import { Filter, X, Puzzle, Search, LayoutGrid, List, EyeOff } from "lucide-react";
+import { Puzzle, LayoutGrid, List } from "lucide-react";
 import { CompactListItem } from "@/components/shared/CompactListItem";
 import { getStaggerDelay } from "@/lib/utils/animation";
 import { isAiGenerated } from "@/lib/utils/format";
 import { useTranslations } from "next-intl";
-import {
-  PageLayout,
-  PageHeader,
-  PageSection,
-  PageGrid,
-  EmptyState,
-  LoadingState,
-} from "@/components/layout";
+import { PageLayout, PageHeader, PageSection, PageGrid, EmptyState } from "@/components/layout";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ContentListSkeleton } from "@/components/shared/ContentListSkeleton";
+import { ChallengesListLoadingShell } from "@/components/shared/ListLoadingShells";
 import { ApiClientError } from "@/lib/api/client";
 import { useCompletedChallenges } from "@/hooks/useCompletedItems";
 import dynamic from "next/dynamic";
+import {
+  ContentListProgressiveFilterToolbar,
+  type ContentListFilterToolbarLabels,
+} from "@/components/shared/ContentListProgressiveFilterToolbar";
+import { CONTENT_LIST_ORDER, type ContentListOrder } from "@/lib/constants/contentListOrder";
 
 // Lazy load modal pour la vue liste
 const ChallengeModal = dynamic(
@@ -62,24 +51,17 @@ function ChallengesPageContent() {
   const t = useTranslations("challenges");
   const { getTypeDisplay, getAgeDisplay } = useChallengeTranslations();
   const queryClient = useQueryClient();
-  const pathname = usePathname();
   const [challengeTypeFilter, setChallengeTypeFilter] = useState<string>("all");
   const [ageGroupFilter, setAgeGroupFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [orderFilter, setOrderFilter] = useState<"random" | "recent">("random");
+  const [orderFilter, setOrderFilter] = useState<ContentListOrder>(CONTENT_LIST_ORDER.RANDOM);
+  const [filtersPanelOpen, setFiltersPanelOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedChallengeId, setSelectedChallengeId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hideCompleted, setHideCompleted] = useState(false);
   const { isCompleted } = useCompletedChallenges();
-
-  // Refetch les queries de progression quand on arrive sur la page
-  useEffect(() => {
-    if (pathname === "/challenges") {
-      queryClient.refetchQueries({ queryKey: ["completed-challenges"] });
-    }
-  }, [pathname, queryClient]);
 
   // Optimiser les filtres avec useMemo
   const filters: ChallengeFilters = useMemo(() => {
@@ -116,7 +98,7 @@ function ChallengesPageContent() {
     challengeTypeFilter !== "all" ||
     ageGroupFilter !== "all" ||
     searchQuery.trim() !== "" ||
-    orderFilter !== "random" ||
+    orderFilter !== CONTENT_LIST_ORDER.RANDOM ||
     hideCompleted;
 
   const handleFilterChange = () => {
@@ -127,7 +109,7 @@ function ChallengesPageContent() {
     setChallengeTypeFilter("all");
     setAgeGroupFilter("all");
     setSearchQuery("");
-    setOrderFilter("random");
+    setOrderFilter(CONTENT_LIST_ORDER.RANDOM);
     setHideCompleted(false);
     setCurrentPage(1);
   };
@@ -138,158 +120,72 @@ function ChallengesPageContent() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const advancedActiveCount =
+    (challengeTypeFilter !== "all" ? 1 : 0) + (ageGroupFilter !== "all" ? 1 : 0);
+
+  const toolbarLabels: ContentListFilterToolbarLabels = useMemo(
+    () => ({
+      filterButton: t("filters.title"),
+      filterButtonAriaExpand: t("filters.expandFilters"),
+      filterButtonAriaCollapse: t("filters.collapseFilters"),
+      advancedRegionLabel: t("filters.advancedFiltersRegion"),
+      reset: t("filters.reset"),
+      typeHeading: t("filters.challengeType"),
+      allTypes: t("filters.allTypes"),
+      ageGroup: t("filters.ageGroup"),
+      allAgesPlaceholder: t("filters.allGroups"),
+      orderAria: t("filters.order"),
+      orderRandom: t("filters.orderRandom"),
+      orderRecent: t("filters.orderRecent"),
+      hideCompleted: t("filters.hideCompleted"),
+      searchPlaceholder: t("search.placeholder", { default: "Rechercher un défi..." }),
+      searchAriaLabel: t("search.placeholder", { default: "Rechercher un défi..." }),
+      activeFiltersSummary: t("filters.activeFiltersSummary"),
+      removeTypeChip: t("filters.removeTypeFilter"),
+      removeAgeChip: t("filters.removeAgeFilter"),
+    }),
+    [t]
+  );
+
   return (
     <ProtectedRoute requireFullAccess>
       <PageLayout compact>
         {/* En-tête */}
         <PageHeader title={t("title")} description={t("pageDescription")} icon={Puzzle} />
 
-        {/* Filtres — Toolbar ultra-compacte */}
-        <div className="p-4 rounded-xl border border-border/50 bg-card/40 backdrop-blur-md flex flex-col md:flex-row md:items-center gap-3 animate-fade-in-up">
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Filter className="h-4 w-4 text-primary" aria-hidden="true" />
-            <span className="text-sm font-medium">{t("filters.title")}</span>
-            {hasActiveFilters && (
-              <Badge variant="secondary" className="text-xs">
-                {(challengeTypeFilter !== "all" ? 1 : 0) +
-                  (ageGroupFilter !== "all" ? 1 : 0) +
-                  (searchQuery.trim() ? 1 : 0) +
-                  (orderFilter !== "random" ? 1 : 0) +
-                  (hideCompleted ? 1 : 0)}
-              </Badge>
-            )}
-            {hasActiveFilters && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="h-8 text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-3.5 w-3.5 mr-1" />
-                {t("filters.reset")}
-              </Button>
-            )}
-          </div>
-
-          <div className="relative flex-1 min-w-0">
-            <Search
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <Input
-              type="text"
-              placeholder={t("search.placeholder", { default: "Rechercher un défi..." })}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="pl-9 h-9"
-              aria-label={t("search.placeholder", { default: "Rechercher un défi..." })}
-            />
-          </div>
-
-          <TooltipProvider delayDuration={300}>
-            <div className="flex flex-wrap items-center gap-1.5 flex-shrink-0">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={challengeTypeFilter === "all" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      setChallengeTypeFilter("all");
-                      handleFilterChange();
-                    }}
-                    className="h-9 w-9 p-0"
-                  >
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">{t("filters.allTypes")}</TooltipContent>
-              </Tooltip>
-              <div className="w-px h-9 bg-border mx-0.5 hidden sm:block" aria-hidden="true" />
-              {Object.entries(CHALLENGE_TYPE_STYLES).map(([type, { icon: Icon }]) => (
-                <Tooltip key={type}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={challengeTypeFilter === type ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setChallengeTypeFilter(type);
-                        handleFilterChange();
-                      }}
-                      className="h-9 w-9 p-0"
-                    >
-                      <Icon className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">{getTypeDisplay(type)}</TooltipContent>
-                </Tooltip>
-              ))}
-            </div>
-          </TooltipProvider>
-
-          <Select
-            value={ageGroupFilter}
-            onValueChange={(value) => {
-              setAgeGroupFilter(value);
-              handleFilterChange();
-            }}
-          >
-            <SelectTrigger
-              id="filter-age-group"
-              className="h-9 w-[100px] md:w-[110px] flex-shrink-0"
-            >
-              <SelectValue placeholder={t("filters.allGroups")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("filters.allGroups")}</SelectItem>
-              {Object.values(AGE_GROUPS).map((value) => (
-                <SelectItem key={value} value={value}>
-                  {getAgeDisplay(value)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={orderFilter}
-            onValueChange={(value: "random" | "recent") => {
-              setOrderFilter(value);
-              handleFilterChange();
-            }}
-          >
-            <SelectTrigger id="filter-order" className="h-9 w-[100px] flex-shrink-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="random">
-                {t("filters.orderRandom", { default: "Aléatoire" })}
-              </SelectItem>
-              <SelectItem value="recent">
-                {t("filters.orderRecent", { default: "Plus récents" })}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Switch
-              id="hide-completed-challenges"
-              checked={hideCompleted}
-              onCheckedChange={(checked) => {
-                setHideCompleted(checked);
-                handleFilterChange();
-              }}
-            />
-            <label
-              htmlFor="hide-completed-challenges"
-              className="text-xs text-muted-foreground cursor-pointer flex items-center gap-1.5"
-            >
-              <EyeOff className="h-3.5 w-3.5" />
-              {t("filters.hideCompleted")}
-            </label>
-          </div>
-        </div>
+        <ContentListProgressiveFilterToolbar
+          labels={toolbarLabels}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onSearchPageReset={() => setCurrentPage(1)}
+          panelOpen={filtersPanelOpen}
+          onPanelOpenChange={setFiltersPanelOpen}
+          typeFilterValue={challengeTypeFilter}
+          onTypeFilterChange={setChallengeTypeFilter}
+          typeStyles={CHALLENGE_TYPE_STYLES}
+          ageFilterValue={ageGroupFilter}
+          onAgeFilterChange={setAgeGroupFilter}
+          ageGroupValues={Object.values(AGE_GROUPS)}
+          orderValue={orderFilter}
+          onOrderChange={setOrderFilter}
+          hideCompleted={hideCompleted}
+          onHideCompletedChange={setHideCompleted}
+          hideCompletedFieldId="hide-completed-challenges"
+          getTypeDisplay={getTypeDisplay}
+          getAgeDisplay={getAgeDisplay}
+          onResetAll={clearFilters}
+          onFilterAdjust={handleFilterChange}
+          onClearTypeFilter={() => {
+            setChallengeTypeFilter("all");
+            handleFilterChange();
+          }}
+          onClearAgeFilter={() => {
+            setAgeGroupFilter("all");
+            handleFilterChange();
+          }}
+          hasResettableState={hasActiveFilters}
+          advancedActiveCount={advancedActiveCount}
+        />
 
         {/* Générateur IA — Toolbar compacte */}
         <AIGenerator
@@ -302,36 +198,43 @@ function ChallengesPageContent() {
 
         {/* Liste des défis */}
         <PageSection className="space-y-3 animate-fade-in-up-delay-2">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg md:text-xl font-semibold">
-              {isLoading
-                ? t("list.loading")
-                : total === 0
+          <div className="flex items-center justify-between mb-2 gap-3">
+            {isLoading ? (
+              <div className="text-lg md:text-xl font-semibold min-h-11 flex items-center">
+                <h2 className="sr-only">{t("list.loading")}</h2>
+                <Skeleton className="h-7 w-44 md:w-56 max-w-[min(100%,16rem)]" aria-hidden />
+              </div>
+            ) : (
+              <h2 className="text-lg md:text-xl font-semibold">
+                {total === 0
                   ? t("list.empty")
                   : total === 1
                     ? t("list.count", { count: total, default: "1 défi" })
                     : t("list.countPlural", { count: total, default: `${total} défis` })}
-            </h2>
+              </h2>
+            )}
 
-            {/* Toggle Vue Grille / Liste */}
-            <div className="flex items-center gap-1 border rounded-lg p-1">
+            {/* Toggle Vue Grille / Liste — cibles tactiles 44px */}
+            <div className="flex items-center gap-1 border rounded-lg p-1 shrink-0">
               <Button
                 variant={viewMode === "grid" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("grid")}
-                className="h-8 w-8 p-0"
+                className="h-11 w-11 min-h-[44px] min-w-[44px] p-0"
                 aria-label={t("viewGrid")}
+                aria-pressed={viewMode === "grid"}
               >
-                <LayoutGrid className="h-4 w-4" />
+                <LayoutGrid className="h-4 w-4" aria-hidden="true" />
               </Button>
               <Button
                 variant={viewMode === "list" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("list")}
-                className="h-8 w-8 p-0"
+                className="h-11 w-11 min-h-[44px] min-w-[44px] p-0"
                 aria-label={t("viewList")}
+                aria-pressed={viewMode === "list"}
               >
-                <List className="h-4 w-4" />
+                <List className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
           </div>
@@ -347,7 +250,7 @@ function ChallengesPageContent() {
               icon={Puzzle}
             />
           ) : isLoading ? (
-            <LoadingState message={t("list.loading")} />
+            <ContentListSkeleton variant={viewMode} loadingLabel={t("list.loading")} />
           ) : challenges.length === 0 ? (
             <EmptyState
               title={
@@ -371,7 +274,7 @@ function ChallengesPageContent() {
                 >
                   {challenges.map((challenge, index) => (
                     <div key={challenge.id} className={`${getStaggerDelay(index)} h-full`}>
-                      <ChallengeCard challenge={challenge} />
+                      <ChallengeCard challenge={challenge} completed={isCompleted(challenge.id)} />
                     </div>
                   ))}
                 </PageGrid>
@@ -437,8 +340,8 @@ export default function ChallengesPage() {
     <Suspense
       fallback={
         <ProtectedRoute requireFullAccess>
-          <PageLayout>
-            <LoadingState message="Chargement..." />
+          <PageLayout compact>
+            <ChallengesListLoadingShell />
           </PageLayout>
         </ProtectedRoute>
       }

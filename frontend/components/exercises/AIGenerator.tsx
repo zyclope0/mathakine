@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { useAIExerciseGenerator } from "@/hooks/useAIExerciseGenerator";
+import { normalizeCreatedResourceId } from "@/lib/ai/generation/normalizeResourceId";
 import {
   AIGeneratorBase,
   type AIGeneratedItem,
@@ -36,9 +37,12 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
     label: getAgeDisplay(v),
   }));
 
+  const persistedId = generatedExercise
+    ? normalizeCreatedResourceId(generatedExercise.id)
+    : undefined;
   const generatedItem: AIGeneratedItem | null = generatedExercise
     ? {
-        id: generatedExercise.id,
+        ...(persistedId !== undefined ? { id: persistedId } : {}),
         title: generatedExercise.title,
         subtitle: generatedExercise.question,
       }
@@ -70,7 +74,10 @@ export function AIGenerator({ onExerciseGenerated }: AIGeneratorProps) {
       generatedItem={generatedItem}
       onGenerate={generate}
       onCancel={cancel}
-      onViewItem={() => generatedExercise?.id && router.push(`/exercises/${generatedExercise.id}`)}
+      onViewItem={() => {
+        const id = generatedExercise ? normalizeCreatedResourceId(generatedExercise.id) : undefined;
+        if (id) router.push(`/exercises/${id}`);
+      }}
       onDismissResult={() => setGeneratedExercise(null)}
       isAuthenticated={!!user}
       showAuthBanner={false}

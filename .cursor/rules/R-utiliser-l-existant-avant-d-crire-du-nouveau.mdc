@@ -1,0 +1,36 @@
+---
+alwaysApply: true
+---
+
+Avant toute implémentation, vérifier si un module existant couvre déjà le besoin.
+
+Règle
+Avant d’ajouter :
+
+une conversion enum/string
+un format de réponse paginée
+un helper de stats IA
+un helper de métriques
+un mapping de contrat
+un formatteur frontend
+un builder/export snapshot
+chercher d’abord l’existant.
+
+Exemples prioritaires
+pagination :
+app/utils/response_formatters.py
+enum mapping :
+app/utils/enum_mapping.py
+token stats :
+app/utils/token_tracker.py
+generation metrics :
+app/utils/generation_metrics.py
+Réflexe obligatoire
+Chercher avant d’écrire :
+
+rg "TODO(H9-câblage)"
+rg "format_paginated_response"
+rg "enum_mapping"
+rg "reason_code"
+rg "build.*Snapshot|snapshot"
+Si un module existe et couvre 80% du besoin, l’étendre proprement plutôt que dupliquer.

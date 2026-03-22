@@ -19,8 +19,33 @@ from app.core.db_boundary import sync_db_session
 from app.core.logging_config import get_logger
 from app.models.daily_challenge import DailyChallenge
 from app.models.user import User
+from app.services.gamification.gamification_service import GamificationService
+from app.services.gamification.point_source import PointEventSourceType
 
 logger = get_logger(__name__)
+
+
+def _grant_daily_challenge_bonus(
+    db: Session,
+    user_id: int,
+    dc: DailyChallenge,
+) -> None:
+    """Crédite les points bonus via le moteur gamification unique + ledger."""
+    pts = int(dc.bonus_points or 0)
+    if pts <= 0:
+        return
+    GamificationService.apply_points(
+        db,
+        user_id,
+        pts,
+        PointEventSourceType.DAILY_CHALLENGE_COMPLETED,
+        source_id=dc.id,
+        details={
+            "challenge_type": dc.challenge_type,
+            "date": dc.date.isoformat() if dc.date else None,
+        },
+    )
+
 
 # Types de defis quotidiens
 CHALLENGE_TYPE_VOLUME = "volume_exercises"
@@ -203,9 +228,7 @@ def record_exercise_completed(
         if dc.completed_count >= dc.target_count:
             dc.status = "completed"
             dc.completed_at = datetime.now(timezone.utc)
-            user = db.query(User).filter(User.id == user_id).first()
-            if user:
-                user.total_points = (user.total_points or 0) + dc.bonus_points
+            _grant_daily_challenge_bonus(db, user_id, dc)
             completed_now.append(
                 {
                     "id": dc.id,
@@ -247,9 +270,7 @@ def record_logic_challenge_completed(
         if dc.completed_count >= dc.target_count:
             dc.status = "completed"
             dc.completed_at = datetime.now(timezone.utc)
-            user = db.query(User).filter(User.id == user_id).first()
-            if user:
-                user.total_points = (user.total_points or 0) + dc.bonus_points
+            _grant_daily_challenge_bonus(db, user_id, dc)
             completed_now.append(
                 {
                     "id": dc.id,

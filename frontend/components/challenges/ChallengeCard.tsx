@@ -13,21 +13,20 @@ import { formatSuccessRate, hasAiTag } from "@/lib/utils/format";
 import type { Challenge } from "@/types/api";
 import { Clock, Eye, TrendingUp, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useCompletedChallenges } from "@/hooks/useCompletedItems";
 import { useTranslations } from "next-intl";
 
 interface ChallengeCardProps {
   challenge: Challenge;
+  /** État « résolu » fourni par la page (une seule query completed-ids). */
+  completed: boolean;
 }
 
-export function ChallengeCard({ challenge }: ChallengeCardProps) {
+export function ChallengeCard({ challenge, completed }: ChallengeCardProps) {
   const t = useTranslations("challenges");
-  const { isCompleted } = useCompletedChallenges();
   const { theme } = useThemeStore();
   const typeDisplay = getChallengeTypeDisplay(challenge.challenge_type);
   const ageGroupDisplay = getAgeGroupDisplay(challenge.age_group);
   const ageGroupColor = getAgeGroupColor(challenge.age_group, theme);
-  const completed = isCompleted(challenge.id);
 
   return (
     <Link

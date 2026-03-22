@@ -1,0 +1,9 @@
+{
+  "exercise_type": "addition",
+  "title": "Addition courte",
+  "question": "Combien font 3 et 4 ensemble pour un jeune padawan en calcul mental ?",
+  "correct_answer": "7",
+  "choices": ["5", "6", "7", "8"],
+  "explanation": "On additionne 3 et 4, ce qui donne sept ; c'est une opération de base que tu retrouves souvent en entraînement.",
+  "hint": "court"
+}

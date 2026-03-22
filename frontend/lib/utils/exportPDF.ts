@@ -139,13 +139,17 @@ export function exportDashboardToPDF(
     [labels.challengesCompletedLabel, String(s.total_challenges)],
     [labels.successRate, formatPercentDisplay(s.success_rate, labels)],
     [
-      labels.experiencePoints,
-      s.experience_points !== null ? String(s.experience_points) : labels.notAvailable,
+      labels.accountTotalPoints,
+      s.account_total_points !== null ? String(s.account_total_points) : labels.notAvailable,
+    ],
+    [
+      labels.accountXpInLevel,
+      s.account_xp_in_level !== null ? String(s.account_xp_in_level) : labels.notAvailable,
     ],
   ];
 
-  if (snapshot.level) {
-    execBody.push([labels.level, String(snapshot.level.current)]);
+  if (snapshot.gamification_level) {
+    execBody.push([labels.level, String(snapshot.gamification_level.current)]);
   }
   if (s.current_streak !== null) {
     execBody.push([labels.currentStreak, String(s.current_streak)]);

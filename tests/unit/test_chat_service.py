@@ -11,13 +11,17 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from app.core.config import settings
 from app.services.communication.chat_service import (
+    assistant_chat_metrics_key,
     build_chat_config,
+    build_openai_chat_completion_kwargs,
     build_system_prompt,
     cleanup_markdown_images,
     detect_complexity,
     detect_image_request,
     estimate_age,
+    extract_chat_usage_estimate,
     generate_image,
 )
 
@@ -28,6 +32,11 @@ class TestDetectImageRequest:
     def test_image_and_math_keywords(self):
         is_img, is_math = detect_image_request("Dessine-moi un triangle")
         assert is_img is True
+        assert is_math is True
+
+    def test_create_exercise_is_not_routed_to_image_generation(self):
+        is_img, is_math = detect_image_request("Créer un exercice")
+        assert is_img is False
         assert is_math is True
 
     def test_image_only(self):
@@ -53,26 +62,46 @@ class TestDetectImageRequest:
         _, is_math = detect_image_request("J'aime les mathématiques")
         assert is_math is True
 
+    def test_generate_image_with_explicit_visual_keyword_still_routes_to_image(self):
+        is_img, is_math = detect_image_request("Genere une image de triangle")
+        assert is_img is True
+        assert is_math is True
+
 
 # ── build_chat_config ─────────────────────────────────────────────────────
 
 
+@pytest.fixture(autouse=True)
+def _assistant_chat_policy_isolated(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Évite qu'un .env local impose un legacy OPENAI_MODEL pendant les tests."""
+    monkeypatch.setattr(settings, "OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE", "")
+    monkeypatch.setattr(settings, "OPENAI_MODEL", "")
+
+
 class TestBuildChatConfig:
-    def test_simple_message_uses_mini_model(self):
+    def test_simple_message_uses_policy_default_model(self):
         cfg = build_chat_config("Combien fait 2+2", [])
-        assert cfg["model"] == "gpt-4o-mini"
+        assert cfg["model"] == "gpt-5-mini"
         assert cfg["complexity"] == "simple"
         assert cfg["temperature"] == 0.4
         assert cfg["max_tokens"] == 400
 
-    def test_complex_message_uses_full_model(self):
+    def test_complex_message_same_model_routing_temperature_only(self):
         cfg = build_chat_config(
             "Peux-tu me démontrer le théorème de Pythagore étape par étape", []
         )
-        assert cfg["model"] == "gpt-4o"
+        assert cfg["model"] == "gpt-5-mini"
         assert cfg["complexity"] == "complex"
         assert cfg["temperature"] == 0.6
         assert cfg["max_tokens"] == 500
+
+    def test_premium_tier_uses_policy_premium_model(
+        self, monkeypatch: pytest.MonkeyPatch
+    ):
+        monkeypatch.setattr(settings, "OPENAI_MODEL_ASSISTANT_CHAT_OVERRIDE", "")
+        monkeypatch.setattr(settings, "OPENAI_MODEL", "")
+        cfg = build_chat_config("Bonjour", [], user_tier="premium")
+        assert cfg["model"] == "gpt-5.4"
 
     def test_messages_structure(self):
         history = [
@@ -96,6 +125,78 @@ class TestBuildChatConfig:
         cfg = build_chat_config("Aide-moi avec ce problème de CM1", [])
         system_msg = cfg["messages"][0]["content"]
         assert "5-8" in system_msg
+
+
+# ── build_openai_chat_completion_kwargs ───────────────────────────────────
+
+
+def _sample_cfg(model: str) -> dict:
+    return {
+        "model": model,
+        "messages": [{"role": "user", "content": "hi"}],
+        "temperature": 0.4,
+        "max_tokens": 400,
+        "complexity": "simple",
+    }
+
+
+class TestBuildOpenaiChatCompletionKwargs:
+    def test_gpt5_mini_uses_max_completion_tokens_not_max_tokens(self):
+        kw = build_openai_chat_completion_kwargs(_sample_cfg("gpt-5-mini"), stream=True)
+        assert kw["stream"] is True
+        assert kw["max_completion_tokens"] == 400
+        assert "max_tokens" not in kw
+        assert kw["reasoning_effort"] == "low"
+        assert kw["verbosity"] == "medium"
+        assert "frequency_penalty" not in kw
+
+    def test_gpt5_dot_form_uses_max_completion_tokens(self):
+        kw = build_openai_chat_completion_kwargs(_sample_cfg("gpt-5.4"), stream=False)
+        assert kw["max_completion_tokens"] == 400
+        assert "max_tokens" not in kw
+
+    def test_gpt4o_uses_classic_max_tokens_and_penalties(self):
+        kw = build_openai_chat_completion_kwargs(_sample_cfg("gpt-4o"), stream=False)
+        assert kw["max_tokens"] == 400
+        assert kw["temperature"] == 0.4
+        assert "max_completion_tokens" not in kw
+
+    def test_gpt4o_mini_uses_classic_max_tokens_and_penalties(self):
+        kw = build_openai_chat_completion_kwargs(
+            _sample_cfg("gpt-4o-mini"), stream=False
+        )
+        assert kw["max_tokens"] == 400
+        assert kw["temperature"] == 0.4
+        assert kw["top_p"] == 0.9
+        assert kw["frequency_penalty"] == 0.3
+        assert "max_completion_tokens" not in kw
+
+
+class TestChatObservabilityHelpers:
+    def test_assistant_chat_metrics_key_uses_complexity_bucket(self):
+        assert assistant_chat_metrics_key("simple") == "assistant_chat:simple"
+        assert assistant_chat_metrics_key("complex") == "assistant_chat:complex"
+        assert assistant_chat_metrics_key("unexpected") == "assistant_chat:simple"
+
+    def test_extract_chat_usage_estimate_prefers_usage_when_available(self):
+        usage = MagicMock(prompt_tokens=123, completion_tokens=45)
+        response = MagicMock(usage=usage)
+        prompt_tokens, completion_tokens = extract_chat_usage_estimate(
+            response,
+            messages=[{"role": "user", "content": "bonjour"}],
+            completion_text="salut",
+        )
+        assert prompt_tokens == 123
+        assert completion_tokens == 45
+
+    def test_extract_chat_usage_estimate_falls_back_to_length(self):
+        prompt_tokens, completion_tokens = extract_chat_usage_estimate(
+            None,
+            messages=[{"role": "user", "content": "1234" * 5}],
+            completion_text="abcd" * 3,
+        )
+        assert prompt_tokens > 0
+        assert completion_tokens > 0
 
 
 # ── cleanup_markdown_images ───────────────────────────────────────────────

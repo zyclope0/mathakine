@@ -1,0 +1,68 @@
+---
+alwaysApply: true
+---
+
+Règle fondamentale
+Tant qu’on n’a pas commit/push la release, on ne change pas la version visible et on ne met pas à jour la page changelog du site.
+
+Pendant le développement :
+
+pas de bump de version visible
+pas d’entrée utilisateur “release” prématurée
+pas de fausse release dans /changelog
+Source de vérité release visible
+CHANGELOG.md
+frontend/package.json
+Convention de versioning
+X.Y.Z-alpha.N : train de prerelease actif
+X.Y.Z-beta.N : feature set gelé
+X.Y.Z-rc.N : release candidate
+X.Y.Z : stable
+Règle d’incrément
+tant qu’on reste en alpha :
+incrémenter alpha.N
+si le changement justifie un nouveau train mineur visible :
+3.1.0-alpha.8 → 3.2.0-alpha.1
+ne pas passer en stable sans justification produit forte
+Au moment du commit/push de release
+Mettre à jour :
+
+1. Version
+frontend/package.json
+éventuellement pyproject.toml si on maintient l’alignement metadata package
+ex. 3.2.0-alpha.1 ↔ 3.2.0a1
+2. Changelog technique
+CHANGELOG.md
+nouvelle section en tête :
+## [X.Y.Z-alpha.N] - AAAA-MM-JJ
+
+### Added
+- ...
+
+### Fixed
+- ...
+
+### Changed
+- ...
+3. Changelog utilisateur du site
+Le code actuel utilise :
+
+frontend/messages/fr.json
+frontend/messages/en.json
+clés du type :
+changelog.release_3_2_0_alpha_1
+et :
+frontend/app/changelog/page.tsx
+LATEST_RELEASE_KEY
+releaseKeys
+Règle UX changelog site
+langage simple
+bénéfice utilisateur
+pas de jargon backend
+pas d’endpoint names
+pas de détail technique non visible
+Exemple correct :
+
+“Les recommandations sont plus stables d’un rafraîchissement à l’autre.”
+Pas :
+“Ajout de scoring heuristique sur recommendation_service.py.”
